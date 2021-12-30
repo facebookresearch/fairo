@@ -8,21 +8,38 @@
     <body>
         <div id="voxel_painter"></div>
         <div id="buttons">
+            <button type="button" class="center btn btn-secondary" id="reset">Reset to Starting State</button>
             <button type="button" class="center btn btn-danger" id="null-result">The Object is Not Present</button>
             <button type="button" class="center btn btn-success" id="finish-annotation">Finish Annotation</button>
+            <div id="response" class="center"></div>
         </div>
         <input type="hidden" id="markedBlocks" name="markedBlocks" value="">
     </body>
-    <script type='module' src='voxel_painter.mjs'></script>
+    <script type='module' id="voxelPainter" src='voxel_painter.mjs'></script>
     <script>
+        // Pull scene key from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const module_key = urlParams.get('shapes');
+
+        // Event listeners for buttons
         document.getElementById("finish-annotation").addEventListener("click", function() {
-            let output_obj = {annotation_output: document.getElementById("markedBlocks").value};
+            let output_obj = JSON.parse('{"' + module_key + '_output": ' + JSON.stringify(document.getElementById("markedBlocks").value) + '}');
             window.parent.postMessage(JSON.stringify({ msg: output_obj }), "*");
-            // TODO upload data to S3 on complete
+            document.getElementById("finish-annotation").disabled = true;
+            document.getElementById("null-result").disabled = true;
+            document.getElementById("response").innerHTML = " - Annotation Complete";
         });
         document.getElementById("null-result").addEventListener("click", function() {
-            window.parent.postMessage(JSON.stringify({ msg: "null_result" }), "*");
-            // TODO upload data to S3 on complete
+            let output_obj = JSON.parse('{"' + module_key + '_output": "null"}');  // parser expects a string
+            window.parent.postMessage(JSON.stringify({ msg: output_obj }), "*");
+            document.getElementById("finish-annotation").disabled = true;
+            document.getElementById("null-result").disabled = true;
+            document.getElementById("response").innerHTML = " - Annotation Complete";
+        });
+        document.getElementById("reset").addEventListener("click", function() {
+            document.getElementById("finish-annotation").disabled = false;
+            document.getElementById("null-result").disabled = false;
+            location.reload();
         });
     </script>
     <link rel="stylesheet" href="voxel_wrapper.css">

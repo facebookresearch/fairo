@@ -1,25 +1,8 @@
 import * as THREE from 'https://cdn.skypack.dev/three';
 import { OrbitControls } from './OrbitControls.mjs';
 import { GLTFLoader } from './GLTFLoader.mjs';
-
-const BLOCK_MAP = {
-46: 0xffffff, // White Wool
-47: 0xffa500, // Orange Wool
-48: 0xff00ff, // Magenta Wool
-49: 0x75bdff, // Light Blue Wool
-50: 0xffff00, // Yellow Wool
-51: 0x00ff00, // Lime Wool
-52: 0xffc0cb, // Pink Wool
-53: 0x5b5b5b, // Gray Wool
-54: 0xbcbcbc, // Light Gray Wool
-55: 0x00ffff, // Cyan Wool
-56: 0x800080, // Purple Wool
-57: 0x2986cc, // Blue Wool
-58: 0xa52a2a, // Brown Wool
-59: 0x8fce00, // Green Wool
-60: 0xff0000, // Red Wool
-61: 0x000000, // Black Wool
-};
+import { qualShapes } from './qualification_shapes.mjs';
+import { BLOCK_MAP } from './blockMap.mjs';
 
 let cameras = {1: [], 2: []};
 let controls = {1: [], 2: []};
@@ -37,30 +20,28 @@ let actions_taken = []; // [original_block, new_block, action_type]
 let isADown = false;
 let isSDown = false;
 let isDDown = false;
-var startedHIT = false;
+let startedHIT = false;
+let isQual = false;
 
 const geo = new THREE.BoxGeometry( 50, 50, 50 );
 const rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.3, transparent: true } );
 const cubeMaterial_mark = new THREE.MeshBasicMaterial( { color: 0x089000, opacity: 0.6, transparent: true } );
 let rollOverMesh = new THREE.Mesh( geo, rollOverMaterial );
 
-// Agent will always be looking at user, transform relative location into yaw
-//let user_agent_angle = Math.atan((user[0][0] - agent[0][0]) / (user[0][2] - agent[0][2]));
+// Pull scene key from URL
+const urlParams = new URLSearchParams(window.location.search);
+const module_key = urlParams.get('shapes');
 
-let starting_cube = [];
-let block_id = 0;
-for (let x=-2; x<2; x++){
-    for (let y=0; y<4; y++){
-        for (let z=-2; z<2; z++){
-            starting_cube.push([x,y,z,block_id++])
-        }
-    }
-}
+if (module_key[0] === 'q') {  // This is the qualification HIT, load the appropriate scene
+    isQual = true;
+    let shapes = new qualShapes( parseInt(module_key[1]) );
+    if (!shapes) console.error("Scene for " + module_key + " did not load correctly");
+    else init(shapes.scene);
+} else {
+    // TODO download data from S3 based on data.csv or module_key?
+    // In the meantime, here's some dummy data
 
-// TODO download data from S3 based on data.csv?
-// In the meantime, here's some dummy data
-
-fetch('./scene1_v2.json')
+    fetch('./scene1_v2.json')
     .then(response => {
         return response.json();
     })
@@ -68,14 +49,19 @@ fetch('./scene1_v2.json')
         return jsondata[0];  // Pull the first scene (of 1 in this case)
     })
     .then(scene => {
-        init(scene, 1);
-        init(scene, 2);
-        addEventListeners();
-        render();
-        var canvii = document.getElementsByTagName("canvas");
-        Array.from(canvii).forEach(canv => canv.style.display = "inline");
-        canvii[1].style.float = "right";
+        init(scene);
     })
+}
+
+function init(scene) {
+    loadScene(scene, 1);
+    loadScene(scene, 2);
+    addEventListeners();
+    render();
+    var canvii = document.getElementsByTagName("canvas");
+    Array.from(canvii).forEach(canv => canv.style.display = "inline");
+    canvii[1].style.float = "right";
+}
 
 function lookRadsToVec(raw_vals) {
     // Look direction comes in as [yaw, pitch] floats
@@ -93,18 +79,8 @@ function lookRadsToVec(raw_vals) {
     return look_dir;
 }
 
-function init(scene, idx) {
-    let user_pos = scene.avatarInfo.pos;
-    let agent_pos = scene.agentInfo.pos;
-    let user_look = lookRadsToVec(scene.avatarInfo.look);
-    //let agent_look = lookRadsToVec(scene.agentInfo.look);
-    const head_position = new THREE.Vector3((user_pos[0]*50)+25, (user_pos[1]*50)+100, (user_pos[2]*50)+25);
-    const userMaterial = new THREE.MeshLambertMaterial( { color: 0xffff00 } );
-    const agentMaterial = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
-    const groundMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, opacity: 1.0} );
-    const targetGeo = new THREE.BoxGeometry( 0, 50, 50 );
-    const targetMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'target.png' ), transparent: true } );
-
+function loadScene(scene, idx) {
+    
     cameras[idx] = new THREE.PerspectiveCamera( 50, (window.innerWidth/2) / (window.innerHeight - 50), 1, 10000 );
     cameras[idx].position.set( 400, 640, 1040 );
     cameras[idx].lookAt( 0, 0, 0 );
@@ -121,9 +97,11 @@ function init(scene, idx) {
         pointers[idx] = new THREE.Vector2();
     }
 
-    // grid
-    // const gridHelper = new THREE.GridHelper( scene.length*50 , scene.length );
-    // scenes[idx].add( gridHelper );
+    // Load the ground plane grid iff qual HIT
+    if (isQual){
+        const gridHelper = new THREE.GridHelper( 20*50 , 20 );
+        scenes[idx].add( gridHelper );
+    }
 
     // plane
     const geometry = new THREE.PlaneGeometry( 1000, 1000 );
@@ -134,7 +112,7 @@ function init(scene, idx) {
 
     // find origin offset so that scene is centerd on 0,0
     let Xs = scene.blocks.map(function(x) { return x[0]; });
-    let origin_offset = Math.floor(Math.max(...Xs) / 2)
+    let origin_offset = Math.floor( (Math.max(...Xs) + Math.min(...Xs)) / 2)
 
     // load scene
     for (let i=0; i<scene.blocks.length; i++) {
@@ -162,24 +140,37 @@ function init(scene, idx) {
     //The X axis is red. The Y axis is green. The Z axis is blue.
     scenes[idx].add( new THREE.AxesHelper( 10000 ) );
 
-    // add look direction and init look raycaster - MUST BE AFTER SCENE, BEFORE USER
-    scenes[idx].updateMatrixWorld();  // Must call this for raycasting to work before render
-    scenes[idx].add( new THREE.ArrowHelper( user_look, head_position, 150, 0xff0000, 40, 20 ) );
-    user_raycasters[idx] = new THREE.Raycaster(head_position, user_look);
-    const intersects = user_raycasters[idx].intersectObjects( objects[idx] );
-    if ( intersects.length > 0 ) {
-        const intersect = intersects[ 0 ];
-        let target = new THREE.Mesh( targetGeo, targetMaterial );
-        target.position.set(intersect.point.x, intersect.point.y, intersect.point.z);
-        target.rotation.y += user_look.y;
-        target.rotation.z -= user_look.z;
-        scenes[idx].add(target);
+    if (scene.avatarInfo && scene.agentInfo) {
+        let user_pos = scene.avatarInfo.pos;
+        let agent_pos = scene.agentInfo.pos;
+        let user_look = lookRadsToVec(scene.avatarInfo.look);
+        const head_position = new THREE.Vector3((user_pos[0]*50)+25, (user_pos[1]*50)+100, (user_pos[2]*50)+25);
+        const userMaterial = new THREE.MeshLambertMaterial( { color: 0xffff00 } );
+        const agentMaterial = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
+        const targetGeo = new THREE.BoxGeometry( 0, 50, 50 );
+        const targetMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'target.png' ), transparent: true } );
+
+        // add look direction and init look raycaster - MUST BE AFTER SCENE, BEFORE USER
+        if (!isQual) {  // Skip if it's a qualification HIT
+            scenes[idx].updateMatrixWorld();  // Must call this for raycasting to work before render
+            scenes[idx].add( new THREE.ArrowHelper( user_look, head_position, 150, 0xff0000, 40, 20 ) );
+            user_raycasters[idx] = new THREE.Raycaster(head_position, user_look);
+            const intersects = user_raycasters[idx].intersectObjects( objects[idx] );
+            if ( intersects.length > 0 ) {
+                const intersect = intersects[ 0 ];
+                let target = new THREE.Mesh( targetGeo, targetMaterial );
+                target.position.set(intersect.point.x, intersect.point.y, intersect.point.z);
+                target.rotation.y += user_look.y;
+                target.rotation.z -= user_look.z;
+                scenes[idx].add(target);
+            }
+        }
+
+        // add user and agent avatars
+        addAvatar(scenes[idx], user_pos, userMaterial, scene.avatarInfo.look);
+        addAvatar(scenes[idx], agent_pos, agentMaterial, scene.agentInfo.look);
     }
-
-    // add user and agent avatars
-    addAvatar(scenes[idx], user_pos, userMaterial, scene.avatarInfo.look);
-    addAvatar(scenes[idx], agent_pos, agentMaterial, scene.agentInfo.look);
-
+    
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
     scenes[idx].add( ambientLight );
@@ -280,7 +271,7 @@ function onPointerDown( event ) {
             if ( intersect.object !== planes[2] ) {
                 // Remove the old block from the scene
                 scenes[2].remove( intersect.object );
-                objects[2].splice( objects2.indexOf( intersect.object ), 1 );
+                objects[2].splice( objects[2].indexOf( intersect.object ), 1 );
                 // Add in a marked block in the same spot
                 const voxel = new THREE.Mesh( geo, cubeMaterial_mark );
                 voxel.position.set(intersect.object.position.x,intersect.object.position.y,intersect.object.position.z);
