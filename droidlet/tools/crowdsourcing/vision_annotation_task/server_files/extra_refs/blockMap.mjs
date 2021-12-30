@@ -1,3 +1,7 @@
+// Copyright (c) Facebook, Inc. and its affiliates.
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 const BLOCK_MAP = {
     46: 0xffffff, // White Wool
     47: 0xffa500, // Orange Wool
@@ -11,7 +15,7 @@ const BLOCK_MAP = {
     55: 0x00ffff, // Cyan Wool
     56: 0x800080, // Purple Wool
     57: 0x2986cc, // Blue Wool
-    58: 0xa52a2a, // Brown Wool
+    58: 0xdd992c, // Brown Wool
     59: 0x8fce00, // Green Wool
     60: 0xff0000, // Red Wool
     61: 0x000000, // Black Wool

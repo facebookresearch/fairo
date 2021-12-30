@@ -1,7 +1,11 @@
+// Copyright (c) Facebook, Inc. and its affiliates.
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 import * as THREE from 'https://cdn.skypack.dev/three';
 import { OrbitControls } from './OrbitControls.mjs';
 import { GLTFLoader } from './GLTFLoader.mjs';
-import { qualShapes } from './qualification_shapes.mjs';
+import { staticShapes } from './staticShapes.mjs';
 import { BLOCK_MAP } from './blockMap.mjs';
 
 let cameras = {1: [], 2: []};
@@ -32,9 +36,15 @@ let rollOverMesh = new THREE.Mesh( geo, rollOverMaterial );
 const urlParams = new URLSearchParams(window.location.search);
 const module_key = urlParams.get('shapes');
 
-if (module_key[0] === 'q') {  // This is the qualification HIT, load the appropriate scene
+if (module_key.includes("test")){  // Used for loading test scenes
     isQual = true;
-    let shapes = new qualShapes( parseInt(module_key[1]) );
+    let shapes = new staticShapes( module_key );
+    if (!shapes) console.error("Scene for " + module_key + " did not load correctly");
+    else init(shapes.scene);
+}
+else if (module_key[0] === 'q') {  // This is the qualification HIT, load the appropriate scene
+    isQual = true;
+    let shapes = new staticShapes( parseInt(module_key[1]) );
     if (!shapes) console.error("Scene for " + module_key + " did not load correctly");
     else init(shapes.scene);
 } else {

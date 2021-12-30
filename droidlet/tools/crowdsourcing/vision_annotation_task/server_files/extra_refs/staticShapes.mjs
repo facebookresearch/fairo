@@ -1,21 +1,41 @@
-class qualShapes {
+// Copyright (c) Facebook, Inc. and its affiliates.
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
+class staticShapes {
 
     constructor (qnum) {
 
-        this.starting_cube = function () {  // Will need to fix this later to match the scene format
-			let starting_cube = [];
-            let material = 58; // Brown wool
-            for (let x=-2; x<2; x++){
-                for (let y=0; y<4; y++){
-                    for (let z=-2; z<2; z++){
-                        starting_cube.push([x,y,z,material])
+        let material;
+        switch (qnum) {
+            case "test_cube":
+                let starting_cube = [];
+                material = 58; // Brown wool
+                for (let x=-2; x<2; x++){
+                    for (let y=0; y<4; y++){
+                        for (let z=-2; z<2; z++){
+                            starting_cube.push([x,y,z,material])
+                        }
                     }
                 }
-            }
-            return starting_cube
-		};
-
-        switch (qnum) {
+                this.scene = {
+                    "avatarInfo": null,
+                    "agentInfo": null, 
+                    "blocks": starting_cube
+                };
+                break;
+            case "test_colors":
+                let every_color = [];
+                material = 46;
+                for (let x=0; x<15; x++){
+                    every_color.push([x,0,0,material++])
+                }
+                this.scene = {
+                    "avatarInfo": null,
+                    "agentInfo": null, 
+                    "blocks": every_color
+                };
+                break;
             case 1:
                 this.scene = {
                     "avatarInfo": null,
@@ -103,4 +123,4 @@ class qualShapes {
     }
 }
 
-export { qualShapes };
+export { staticShapes };
