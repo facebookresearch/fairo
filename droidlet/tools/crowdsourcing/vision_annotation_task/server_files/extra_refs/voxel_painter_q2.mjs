@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.skypack.dev/three';
 import { OrbitControls } from './OrbitControls.mjs';
+import { GLTFLoader } from './GLTFLoader.mjs';
 
 let camera1, controls1, scene1, renderer1, plane1;
 let camera2, controls2, scene2, renderer2, plane2;
@@ -13,29 +14,46 @@ let rollOverMesh2, rollOverMaterial2;
 let cubeMaterial_mark;
 const geo = new THREE.BoxGeometry( 50, 50, 50 );
 const cubeMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'square-outline-textured.png' ) } );
+const userMaterial = new THREE.MeshLambertMaterial( { color: 0xffff00 } );
+const agentMaterial = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
 
 let objects1 = [];
 let objects2  = [];
 let marked_blocks = [];
 
+let userModel1, userModel2, agentModel1, agentModel2;
+
+let user_pos = [-6, -3];  // x,z
+let agent_pos = [6, 2];
+
 let actions_taken = []; // [original_block, new_block, action_type]
 var startedHIT = false;
 
 let starting_shapes = [
-    [2,0,2,0],
-    [2,1,2,1],
-    [2,2,2,2],
-    [1,0,2,3],
-    [0,0,2,4],
-    [-1,0,2,5],
-    [-2,0,-2,0],
-    [-2,1,-2,1],
-    [-2,0,-1,2],
-    [-2,1,-1,3],
-    [-1,0,-2,4],
-    [-1,1,-2,5],
-    [-1,0,-1,4],
-    [-1,1,-1,5]
+    [5,0,0,0],
+    [5,1,0,1],
+    [4,0,0,2],
+    [4,1,0,3],
+    [5,0,-1,4],
+    [5,1,-1,5],
+    [4,0,-1,0],
+    [4,1,-1,1],
+    [0,0,0,0],
+    [0,1,0,1],
+    [-1,0,0,2],
+    [-1,1,0,3],
+    [0,0,-1,4],
+    [0,1,-1,5],
+    [-1,0,-1,0],
+    [-1,1,-1,1],
+    [-5,0,0,0],
+    [-5,1,0,1],
+    [-4,0,0,2],
+    [-4,1,0,3],
+    [-5,0,-1,4],
+    [-5,1,-1,5],
+    [-4,0,-1,0],
+    [-4,1,-1,1]
 ];
 
 init1();
@@ -73,6 +91,35 @@ function init1() {
         scene1.add( voxel );
         objects1.push( voxel );
     })
+
+    // add user
+    const loader = new GLTFLoader();
+    loader.load( './body.glb', function ( gltf ) {
+        userModel1 = gltf.scene;
+        userModel1.scale.multiplyScalar(75.0);
+        userModel1.position.set((user_pos[0]*50)+25, 0, (user_pos[1]*50)+25)
+        scene1.add( userModel1 );
+        userModel1.traverse( function ( object ) {
+            if ( object.isMesh ) {
+                object.castShadow = false;
+                object.material = userMaterial;
+            }
+        } );
+	} );
+
+    // add agent
+    loader.load( './body.glb', function ( gltf ) {
+        agentModel1 = gltf.scene;
+        agentModel1.scale.multiplyScalar(75.0);
+        agentModel1.position.set((agent_pos[0]*50)+25, 0, (agent_pos[1]*50)+25)
+        scene1.add( agentModel1 );
+        agentModel1.traverse( function ( object ) {
+            if ( object.isMesh ) {
+                object.castShadow = false;
+                object.material = agentMaterial;
+            }
+        } );
+	} );
 
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
@@ -135,7 +182,36 @@ function init2() {
         voxel.position.set((shape[0]*50)+25, (shape[1]*50)+25, (shape[2]*50)+25);
         scene2.add( voxel );
         objects2.push( voxel );
-    })
+    });
+
+    // add user
+    const loader = new GLTFLoader();
+    loader.load( './body.glb', function ( gltf ) {
+        userModel2 = gltf.scene;
+        userModel2.scale.multiplyScalar(75.0);
+        userModel2.position.set((user_pos[0]*50)+25, 0, (user_pos[1]*50)+25)
+        scene2.add( userModel2 );
+        userModel2.traverse( function ( object ) {
+            if ( object.isMesh ) {
+                object.castShadow = false;
+                object.material = userMaterial;
+            }
+        } );
+    } );
+
+    // add agent
+    loader.load( './body.glb', function ( gltf ) {
+        agentModel2 = gltf.scene;
+        agentModel2.scale.multiplyScalar(75.0);
+        agentModel2.position.set((agent_pos[0]*50)+25, 0, (agent_pos[1]*50)+25)
+        scene2.add( agentModel2 );
+        agentModel2.traverse( function ( object ) {
+            if ( object.isMesh ) {
+                object.castShadow = false;
+                object.material = agentMaterial;
+            }
+        } );
+    } );
 
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
@@ -196,6 +272,7 @@ function onPointerMove( event ) {
         }
         
     }
+
     camera2.position.set( camera1.position.x, camera1.position.y, camera1.position.z );
     camera2.lookAt( 0, 0, 0 );
     render();

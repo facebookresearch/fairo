@@ -22,15 +22,15 @@ let actions_taken = []; // [original_block, new_block, action_type]
 var startedHIT = false;
 
 let starting_shapes = [
-    [[2,0,2,0], [2,1,2,0], [2,2,2,0]],
-    [[2,0,-2,1], [2,1,-2,0], [2,2,-2,0]],
-    [[-2,0,2,2], [-2,1,2,0], [-2,2,2,0]],
-    [[-2,0,-2,3], [-2,1,-2,0], [-2,2,-2,0]]
+    [0,0,0,0],
+    [-1,0,0,2],
+    [0,0,-1,4],
+    [-1,0,-1,0]
 ];
-let colors = [0xff0000, 0x00ff00, 0x0000ff, 0x000000]
 
 init1();
 init2();
+addEventListeners();
 render();
 var canvii = document.getElementsByTagName("canvas");
 Array.from(canvii).forEach(canv => canv.style.display = "inline");
@@ -57,19 +57,12 @@ function init1() {
     objects1.push( plane1 );
 
     // starting shapes
-    for (let i=0; i<starting_shapes.length; i++) {
-        starting_shapes[i].forEach(block => {
-            const material = new THREE.MeshBasicMaterial( { color: colors[i], opacity: 1.0} );
-            const voxel = new THREE.Mesh( geo, material );
-            voxel.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
-            scene1.add( voxel );
-            objects1.push( voxel );
-            const edges = new THREE.EdgesGeometry( geo );  // outline the blocks for visibility
-            const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
-            line.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
-            scene1.add( line );
-        })
-    }
+    starting_shapes.forEach((shape) => {
+        const voxel = new THREE.Mesh( geo, cubeMaterial );
+        voxel.position.set((shape[0]*50)+25, (shape[1]*50)+25, (shape[2]*50)+25);
+        scene1.add( voxel );
+        objects1.push( voxel );
+    })
 
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
@@ -92,10 +85,6 @@ function init1() {
     controls1.enableZoom = false;
     controls1.minPolarAngle = (0.5 * Math.PI) / 4;
     controls1.maxPolarAngle = (2.0 * Math.PI) / 4;
-
-    document.addEventListener( 'keydown', onDocumentKeyDown );
-    document.addEventListener( 'keyup', onDocumentKeyUp );
-    window.addEventListener( 'resize', onWindowResize );
 }
 
 function init2() {
@@ -130,20 +119,13 @@ function init2() {
     scene2.add( plane2 );
     objects2.push( plane2 );
 
-    // starting shape
-    for (let i=0; i<starting_shapes.length; i++) {
-        starting_shapes[i].forEach(block => {
-            const material = new THREE.MeshBasicMaterial( { color: colors[i], opacity: 1.0} );
-            const voxel = new THREE.Mesh( geo, material );
-            voxel.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
-            scene2.add( voxel );
-            objects2.push( voxel );
-            const edges = new THREE.EdgesGeometry( geo );  // outline the blocks for visibility
-            const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
-            line.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
-            scene2.add( line );
-        })
-    }
+    // starting shapes
+    starting_shapes.forEach((shape) => {
+        const voxel = new THREE.Mesh( geo, cubeMaterial );
+        voxel.position.set((shape[0]*50)+25, (shape[1]*50)+25, (shape[2]*50)+25);
+        scene2.add( voxel );
+        objects2.push( voxel );
+    })
 
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
@@ -165,7 +147,9 @@ function init2() {
     controls2.enableZoom = false;
     controls2.minPolarAngle = (0.5 * Math.PI) / 4;
     controls2.maxPolarAngle = (2.0 * Math.PI) / 4;
+}
 
+function addEventListeners() {
     document.addEventListener( 'pointermove', onPointerMove );
     document.addEventListener( 'pointerdown', onPointerDown );
     document.addEventListener( 'keydown', onDocumentKeyDown );
@@ -202,6 +186,8 @@ function onPointerMove( event ) {
         }
         
     }
+    camera2.position.set( camera1.position.x, camera1.position.y, camera1.position.z );
+    camera2.lookAt( 0, 0, 0 );
     render();
 }
 

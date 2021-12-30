@@ -15,7 +15,7 @@
         </div>
         <input type="hidden" id="markedBlocks" name="markedBlocks" value="">
     </body>
-    <script type='module' src='voxel_painter_q1.mjs'></script>
+    <script type='module' id="voxelPainter" src='voxel_painter_q1.mjs'></script>
     <script>
         document.getElementById("finish-annotation").addEventListener("click", function() {
             let output_obj = {q1_output: document.getElementById("markedBlocks").value};
