@@ -11,7 +11,7 @@
   <div class="row col-xs-12 col-md-12">
     <div class="panel panel-primary">		
       <div class="panel-heading">	
-        <button class="btn btn-primary" type="button" onclick="showHideInstructions()" aria-expanded="false" aria-controls="instructionsWrapper">	
+        <button class="btn btn-warning" type="button" onclick="showHideInstructions()" aria-expanded="false" aria-controls="instructionsWrapper">	
           Click here to view/hide instructions	
         </button>	
       </div>	
@@ -68,7 +68,7 @@
           At any time, even after pressing the other buttons, you can press the 'Reset to Starting State' button to start over.
         </div>
         <div class="instructions-section">
-          When you are finished, please answer the question at the bottom and click 'Submit'
+          When you are finished with the HIT, please answer the question at the bottom and click 'Submit'.
         </div>
       </div>	
     </div>	
@@ -101,7 +101,7 @@
   <hr>
   
   <div class="row">
-    <h2>Question #1 - mark the blocks in the cube closer to the User</h2>
+    <h2>Question #1 - Mark all the blocks in the blue tower</h2>
     <div class="col-xs-6">
       <h3 class="center">Original Scene</h3>
       <p class="center">
@@ -116,13 +116,13 @@
         Press 'z' to undo an action
       </p>
     </div>
-    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper_q1.html" scrolling="no"></iframe>
+    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper.html?batch_id=q1&error_idx=" scrolling="no"></iframe>
   </div>
-
+  
   <hr>
   
   <div class="row">
-    <h2>Question #2 - mark the blocks in the pyramid</h2>
+    <h2>Question #2 - Mark all of the blocks in the cube closer to the User</h2>
     <div class="col-xs-6">
       <h3 class="center">Original Scene</h3>
       <p class="center">
@@ -137,13 +137,34 @@
         Press 'z' to undo an action
       </p>
     </div>
-    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper_q2.html" scrolling="no"></iframe>
+    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper.html?batch_id=q2&error_idx=" scrolling="no"></iframe>
   </div>
 
   <hr>
   
   <div class="row">
-    <h2>Question #3 - mark all the air blocks 4 above each opaque brown block, but not the 3 blocks in-between</h2>
+    <h2>Question #3 - Mark all of the blocks in the pyramid</h2>
+    <div class="col-xs-6">
+      <h3 class="center">Original Scene</h3>
+      <p class="center">
+        Perform annotation in the other window<br>
+        Rotate in this window using mouse or arrow keys
+      </p>
+    </div>
+    <div class="col-xs-6">
+      <h3 class="center">Annotation Window</h3>
+      <p class="center">
+        Click in this window to start task<br>
+        Press 'z' to undo an action
+      </p>
+    </div>
+    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper.html?batch_id=q3&error_idx=" scrolling="no"></iframe>
+  </div>
+
+  <hr>
+  
+  <div class="row">
+    <h2>Question #4 - Mark all the air blocks 4 above spaces each opaque brown block, but not the 3 blocks in-between</h2>
     <p>
       See the instructions and demonstration above.  You will need to unmark the 3 air blocks between the opaque blocks and the target blocks.
       You should end up with a "floating" set of marked blocks.
@@ -162,7 +183,7 @@
         Press 'z' to undo an action
       </p>
     </div>
-    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper_q3.html" scrolling="no"></iframe>
+    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper.html?batch_id=q4&error_idx=" scrolling="no"></iframe>
   </div>
 </section>
 
@@ -176,6 +197,7 @@
         <input type="hidden" id="q1Answer" name="q1Answer" value="false">
         <input type="hidden" id="q2Answer" name="q2Answer" value="false">
         <input type="hidden" id="q3Answer" name="q3Answer" value="false">
+        <input type="hidden" id="q4Answer" name="q4Answer" value="false">
         <input type="hidden" id="clickedElements" name="clickedElements" value="0">
         <input type="hidden" id="userAgent" name="userAgent" value="0">
       </div>

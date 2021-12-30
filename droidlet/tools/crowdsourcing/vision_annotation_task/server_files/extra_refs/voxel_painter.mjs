@@ -27,6 +27,12 @@ let isDDown = false;
 let startedHIT = false;
 let isQual = false;
 
+let origin_offset;  // Scene needs to be recentered on 0,0 and then annotation output needs to be reindexed to the original origin reference
+
+const addAxes = false;  // Useful for development. The positive X axis is red, Y is green, Z  is blue.
+const minCameraPitch = (0.5 * Math.PI) / 4;
+const maxCameraPitch = (2.0 * Math.PI) / 4;
+
 const geo = new THREE.BoxGeometry( 50, 50, 50 );
 const rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.3, transparent: true } );
 const cubeMaterial_mark = new THREE.MeshBasicMaterial( { color: 0x089000, opacity: 0.6, transparent: true } );
@@ -34,7 +40,8 @@ let rollOverMesh = new THREE.Mesh( geo, rollOverMaterial );
 
 // Pull scene key from URL
 const urlParams = new URLSearchParams(window.location.search);
-const module_key = urlParams.get('shapes');
+const module_key = urlParams.get('batch_id') + urlParams.get('error_idx');
+console.log("Module key: " + module_key);
 
 if (module_key.includes("test")){  // Used for loading test scenes
     isQual = true;
@@ -47,10 +54,9 @@ else if (module_key[0] === 'q') {  // This is the qualification HIT, load the ap
     let shapes = new staticShapes( parseInt(module_key[1]) );
     if (!shapes) console.error("Scene for " + module_key + " did not load correctly");
     else init(shapes.scene);
-} else {
-    // TODO download data from S3 based on data.csv or module_key?
-    // In the meantime, here's some dummy data
-
+}
+else {
+    // Dummy data until the rest of the pipeline is built
     fetch('./scene1_v2.json')
     .then(response => {
         return response.json();
@@ -122,7 +128,7 @@ function loadScene(scene, idx) {
 
     // find origin offset so that scene is centerd on 0,0
     let Xs = scene.blocks.map(function(x) { return x[0]; });
-    let origin_offset = Math.floor( (Math.max(...Xs) + Math.min(...Xs)) / 2)
+    origin_offset = Math.floor( (Math.max(...Xs) + Math.min(...Xs)) / 2)
 
     // load scene
     for (let i=0; i<scene.blocks.length; i++) {
@@ -146,9 +152,10 @@ function loadScene(scene, idx) {
         objects[idx].push( voxel );
     }
 
-    // add axes helper
-    //The X axis is red. The Y axis is green. The Z axis is blue.
-    scenes[idx].add( new THREE.AxesHelper( 10000 ) );
+    // add axes helper if turned on
+    if (addAxes) {
+        scenes[idx].add( new THREE.AxesHelper( 10000 ) );
+    }
 
     if (scene.avatarInfo && scene.agentInfo) {
         let user_pos = scene.avatarInfo.pos;
@@ -200,8 +207,8 @@ function loadScene(scene, idx) {
     controls[idx].addEventListener( 'change', render );
 
     controls[idx].enableZoom = false;
-    controls[idx].minPolarAngle = (0.5 * Math.PI) / 4;
-    controls[idx].maxPolarAngle = (2.0 * Math.PI) / 4;
+    controls[idx].minPolarAngle = minCameraPitch;
+    controls[idx].maxPolarAngle = maxCameraPitch;
 }
 
 function addAvatar(scene, position, material, look_dir) {
@@ -321,6 +328,25 @@ function onPointerDown( event ) {
                 actions_taken.push( [intersect.object, voxel, "unmark_block"] );
             }
         }
+
+        // Signal to the HIT that annotation was at least attempted
+        if ((marked_blocks.length > 0) && (!startedHIT)) {
+            startedHIT = true;
+            window.parent.postMessage(JSON.stringify({ msg: "block_marked" }), "*");
+        }
+    
+        // Store marked blocks in parent HTML.
+        // TODO reindex to match the locations of the input blocks
+        let output_list = [];
+        marked_blocks.forEach((block) => {
+            let positionArray = block.position.toArray();
+            let scaledArray = positionArray.map(function(item) { return (item-25)/50 });
+            scaledArray[0] += origin_offset;  // Reset the origin in x and z
+            scaledArray[2] += origin_offset;
+            output_list.push(scaledArray);
+        })
+        document.getElementById("markedBlocks").value = JSON.stringify(output_list);
+
         render();
     }
 }
@@ -330,7 +356,7 @@ function onDocumentKeyDown( event ) {
         case 65: isADown = true; break;
         case 83: isSDown = true; break;
         case 68: isDDown = true; break;
-        case 90:  // ctrl-z to undo
+        case 90:  // z to undo
             let action = actions_taken.pop();
             if (action){
                 switch (action[2]) {
@@ -375,17 +401,4 @@ function onDocumentKeyUp( event ) {
 function render() {
     renderers[1].render( scenes[1], cameras[1] );
     renderers[2].render( scenes[2], cameras[2] );
-
-    if ((marked_blocks.length > 0) && (!startedHIT)) {
-        startedHIT = true;
-        window.parent.postMessage(JSON.stringify({ msg: "block_marked" }), "*");
-    }
-
-    let output_list = [];
-    marked_blocks.forEach((block) => {
-        let positionArray = block.position.toArray();
-        let scaledArray = positionArray.map(function(item) { return (item-25)/50 });
-        output_list.push(scaledArray);
-    })
-    document.getElementById("markedBlocks").value = JSON.stringify(output_list);
 }

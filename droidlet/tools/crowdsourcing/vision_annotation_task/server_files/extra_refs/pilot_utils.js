@@ -18,23 +18,24 @@ var answers = [
 ]
 
 function checkAnswer(qnum, ans) {
+  console.log("Checking Question #: " + qnum + " answer: " + ans);
   let qidx = qnum -1;
   complete[qidx] = true;
   if (ans === "null") {
     if (JSON.stringify(JSON.parse(ans)) === JSON.stringify(answers[qidx])){
-      //console.log("answer " + qnum + " correct");
+      console.log("answer " + qnum + " correct");
       correct[qidx] = true;
     } else {
       correct[qidx] = false;
-      //console.log("answer " + qnum + " incorrect");
+      console.log("answer " + qnum + " incorrect");
     }
   }
   else if (JSON.stringify(JSON.parse(ans).sort()) === JSON.stringify(answers[qidx].sort())){
-    //console.log("answer " + qnum + " correct");
+    console.log("answer " + qnum + " correct");
     correct[qidx] = true;
   } else {
     correct[qidx] = false;
-    //console.log("answer " + qnum + " incorrect");
+    console.log("answer " + qnum + " incorrect");
   }
   let qid = "q" + qnum + "Answer";
   document.getElementById(qid).value = JSON.stringify(correct[qidx]);
@@ -45,18 +46,17 @@ function checkAnswer(qnum, ans) {
 
 // recordClick records and handles messages received from within the iframes
 function recordClick(ele) {
-  if (ele["q1_output"]) { checkAnswer(1, ele.q1_output) }
-  else if (ele["q2_output"]) { checkAnswer(2, ele.q2_output) }
-  else if (ele["q3_output"]) { checkAnswer(3, ele.q3_output) }
-  else if (ele["q4_output"]) { checkAnswer(4, ele.q4_output) }
+  if (ele["q1__output"]) { checkAnswer(1, ele.q1__output) }
+  else if (ele["q2__output"]) { checkAnswer(2, ele.q2__output) }
+  else if (ele["q3__output"]) { checkAnswer(3, ele.q3__output) }
+  else if (ele["q4__output"]) { checkAnswer(4, ele.q4__output) }
 
   clickedElements.push({id: ele, timestamp: Date.now()});
   document.getElementById("clickedElements").value = JSON.stringify(clickedElements);
-  //console.log("Clicked elements array: " + JSON.stringify(clickedElements));
 }
 recordClick("start");
 
-// Log data from postMessage, and record it if it seems to come from the dashboard
+// Log data from postMessage, and record it if it seems to come from the iframe
 var data;
 if (window.addEventListener) {
   window.addEventListener("message", (event) => {
@@ -77,6 +77,7 @@ else if (window.attachEvent) {  // Cross compatibility for old versions of IE
   });
 }
 
+// Have the instructions follow the user when scrolling
 document.addEventListener('scroll', function(e) {
   let panel = document.getElementById("heading");
   if (window.scrollY > 10) {
@@ -91,8 +92,8 @@ document.addEventListener('scroll', function(e) {
     document.getElementById("demos").style.marginTop = "0px";
   }
 
+  // if at the bottom of the page and all questions are not done, prompt user
   if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 10)) {
-    // if at the bottom of the page and all questions are not done, prompt user
     if (!complete.every(x => x === true)) {
       document.getElementById("complete-prompt").innerHTML = "Not all questions are complete, are you sure you want to submit?";
     }
@@ -102,6 +103,7 @@ document.addEventListener('scroll', function(e) {
   }
 });
 
+// toggle instructions collapse on button click
 var instructionsCollapsed = false;
 function showHideInstructions() {
   if (document.getElementById("instructionsWrapper").classList.contains("in")){
@@ -120,6 +122,7 @@ function showHideInstructions() {
   recordClick("toggle-instructions");
 }
 
+// Auto shrink instructions text to fit in the window
 let font_size = 11;
 let heading_size = 13;
 function dynamicInstructionsSize() {
