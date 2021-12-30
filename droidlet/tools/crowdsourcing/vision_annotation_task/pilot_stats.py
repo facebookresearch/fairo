@@ -134,7 +134,8 @@ def timing_charts(run_id: int) -> None:
     data_browser = DataBrowser(db=db)
     workers = {"total": []}
     unit_timing = {"total": [], "end": []}
-    question_results = {1: [], 2: [], 3: [], 4: [], 5: []}
+    question_results = {1: [], 2: [], 3: []}
+    pass_rates = {1: [], 2: [], 3: []}
     starttime = math.inf
     endtime = -math.inf
     feedback = []
@@ -154,11 +155,10 @@ def timing_charts(run_id: int) -> None:
             if outputs[key] == 'false':
                 num_false += 1
 
-        if num_false == 3:
+        if num_false == len(question_results):
             num_all_false += 1
 
     plot_hist_sorted(unit_timing["total"], cutoff=1200, target_val=600, xlabel="", ylabel="Total HIT Time (sec)")
-    pass_rates = {1: [], 2: [], 3: [], 4: [], 5: []}
     for q in question_results.keys():
         results_dict = Counter(question_results[q])
         pass_rates[q] = (results_dict['true']/(results_dict['true'] + results_dict['false']))*100
