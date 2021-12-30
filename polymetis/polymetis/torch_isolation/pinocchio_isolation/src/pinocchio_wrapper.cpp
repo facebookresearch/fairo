@@ -14,8 +14,6 @@
 #include "pinocchio/parsers/sample-models.hpp"
 #include "pinocchio/parsers/urdf.hpp"
 
-#include "spdlog/spdlog.h"
-
 #include "pinocchio_wrapper.hpp"
 
 extern "C" {

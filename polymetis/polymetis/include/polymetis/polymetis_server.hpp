@@ -13,8 +13,6 @@
 #include <unistd.h>
 #include <vector>
 
-#include "spdlog/spdlog.h"
-
 #include <grpc/grpc.h>
 #include <grpcpp/security/server_credentials.h>
 #include <grpcpp/server.h>

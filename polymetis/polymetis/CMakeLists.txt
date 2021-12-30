@@ -129,6 +129,7 @@ add_executable(empty_statistics_client "src/clients/empty_statistics_client.cpp"
 target_link_libraries(empty_statistics_client
     generated_grpc_protos
     yaml-cpp
+    spdlog::spdlog
 )
 
 if(BUILD_FRANKA)
@@ -150,6 +151,7 @@ if(BUILD_FRANKA)
       generated_grpc_protos
       Franka::Franka
       yaml-cpp
+      spdlog::spdlog
   )
 
   # Add Franka gripper server
@@ -158,6 +160,7 @@ if(BUILD_FRANKA)
       generated_grpc_protos
       Franka::Franka
       yaml-cpp
+      spdlog::spdlog
   )
 endif()
 
