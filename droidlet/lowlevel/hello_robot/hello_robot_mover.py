@@ -382,9 +382,9 @@ class HelloRobotMover(MoverInterface):
         turn_rad = yaw * math.pi / 180
         self.bot.rotate_by(turn_rad)
 
-    def explore(self):
+    def explore(self, goal):
         if self.nav_result.ready:
-            self.nav_result = safe_call(self.nav.explore)
+            self.nav_result = safe_call(self.nav.explore, goal)
         else:
             print("navigator executing another call right now")
         return self.nav_result
