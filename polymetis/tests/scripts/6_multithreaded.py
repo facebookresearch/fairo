@@ -50,4 +50,4 @@ if __name__ == "__main__":
     thread.start()
     thread.join()
 
-    assert success, f"Exception: {exceptions}"
+    assert success, f"Exception: {exceptions[0]}"
