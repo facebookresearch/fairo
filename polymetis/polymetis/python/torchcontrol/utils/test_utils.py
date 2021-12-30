@@ -15,14 +15,6 @@ project_root_dir = (
 )
 
 
-panda_urdf_path = os.path.abspath(
-    os.path.join(
-        project_root_dir, "polymetis/polymetis/data/franka_panda/panda_arm.urdf"
-    )
-)
-panda_ee_link_name = "panda_link8"
-
-
 class FakeRobotModel(torch.nn.Module):
     def __init__(self, num_joints):
         super().__init__()
