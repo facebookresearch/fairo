@@ -101,3 +101,17 @@ def explore(agent):
     x,y,t = agent.mover.get_base_pos()
     goal = get_distant_goal(x,y,t)
     start_explore(agent, goal)
+
+
+start_pose = [9.5367431640625e-07, 0.499999076128006, 2.9583334357799833] 
+target = [-1.00626746, -0.04194924, -1.31068668]
+
+
+def reexplore(agent):
+    task_data = {
+        'start_pose': start_pose,
+        'target': {'xyz': target, 'label': 'hobbit'},
+        'data_path': 'reexplore',
+        'root_data_path': 'reexplore',
+    }
+    agent.memory.task_stack_push(tasks.Reexplore(agent, task_data))

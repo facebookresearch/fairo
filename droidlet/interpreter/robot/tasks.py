@@ -620,3 +620,50 @@ class Explore(TrajectorySaverTask):
             self.agent.mover.explore(self.goal)
             self.finished = self.agent.mover.nav.is_done_exploring().value
 
+
+class Reexplore(Task):
+    def __init__(self, agent, task_data):
+        super().__init__(agent)
+        self.target = task_data.get('target')
+        self.start_pos = task_data.get('start_pos')
+        self.task_data = task_data
+        self.steps = ['not_started'] * 2 # S1, C1
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    def step(self):
+        self.finished = False  
+        if self.steps[0] == 'not_started': # do Straightline 
+            self.add_child_task(ExamineDetectionStraightline(
+                    self.agent, {
+                        "target": self.target, 
+                        "save_data": True,
+                        "root_data_path": f"{self.task_data['data_path']}",
+                        "data_path": f"{self.task_data['data_path']}",
+                        "dbg_str": f'Straightline examine {self.target}',
+                        }
+                    )
+                )
+            self.steps[0] = 'finished'
+
+        if self.steps[0] == 'finished' and self.steps[1] == 'not_started':
+            self.add_child_task(ExamineDetectionCircle(
+                    self.agent, {
+                        "target": self.target, 
+                        "save_data": True,
+                        "root_data_path": f"{self.task_data['data_path']}",
+                        "data_path": f"{self.task_data['data_path']}",
+                        "dbg_str": f'Circle examine {self.target}',
+                        }
+                    )
+                )
+            self.steps[1] = 'finished'
+
+        else:
+            self.finished = self.agent.mover.nav.is_done_exploring().value
+            if not self.finished:
+                self.steps = ["not_started"] * 2
+            else:
+                self.logger.info(f"Exploration finished!")
+    
+    def __repr__(self):
+        return "<ReExplore>"
