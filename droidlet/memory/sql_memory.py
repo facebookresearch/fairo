@@ -18,6 +18,7 @@ from droidlet.shared_data_structs import Time
 from droidlet.memory.memory_filters import MemorySearcher
 from droidlet.event import dispatch
 from droidlet.memory.memory_util import parse_sql, format_query
+from droidlet.memory.place_field import PlaceField
 
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
@@ -136,6 +137,7 @@ class AgentMemory:
         self.tag(self.self_memid, "SELF")
 
         self.searcher = MemorySearcher()
+        self.place_field = PlaceField()
 
     def __del__(self):
         """Close the database file"""
