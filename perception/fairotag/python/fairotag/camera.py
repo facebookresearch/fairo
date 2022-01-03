@@ -123,8 +123,8 @@ class CameraModule:
         # Draw marker axes
         for m in markers:
             if m.length is not None:
-                tvec = m.pose.log()[None, :3]
-                rvec = m.pose.log()[None, 3:]
+                tvec = m.pose.translation()[None, :]
+                rvec = m.pose.so3().log()[None, :]
                 length = m.length / 2.0
                 img_rend = cv2.aruco.drawAxis(
                     img_rend,
