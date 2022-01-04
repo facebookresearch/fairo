@@ -9,6 +9,7 @@ import os
 import random
 import numpy as np
 import shutil
+import json
 
 random.seed(2021) # fixing a random seed to fix default exploration goal
 
@@ -102,24 +103,28 @@ def explore(agent):
     goal = get_distant_goal(x,y,t)
     start_explore(agent, goal)
 
+eid = 0
+reexplore_json = '/checkpoint/apratik/data_dec/0/reexplore_data.json'
 
-# start_pos = [9.5367431640625e-07, 0.499999076128006, 2.9583334357799833] 
-# target = [-1.00626746, -0.04194924, -1.31068668]
-# start_pos =  [0.18430093, -1.3747652, 5.265953]
-# target =  [0.95228908, 2.45812503, 5.9460001] # canonical
-start_pos = [1.0343010425567627, -1.374765157699585, 4.6159563064575195] 
-target = [ 0.04544921, -0.04891405,  0.40229623]
+def get_task_data():
+    global eid
+    with open(reexplore_json, 'r') as f:
+        reex = json.load(f)
 
-do_one = False
+    if str(eid) not in reex.keys():
+        return None
+    
+    task_data = {
+        'spawn_pos': reex[str(eid)]['spawn_pos'],
+        'base_pos': reex[str(eid)]['base_pos'],
+        'target': {'xyz': reex[str(eid)]['target'], 'label': 'object'},
+        'data_path': f'reexplore/{eid}',
+        'root_data_path': f'reexplore/{eid}',
+    }
+    eid += 1
+    return task_data
 
 def reexplore(agent):
-    global do_one
-    task_data = {
-        'start_pos': start_pos,
-        'target': {'xyz': target, 'label': 'object'},
-        'data_path': 'reexplore',
-        'root_data_path': 'reexplore',
-    }
-    if not do_one:
+    task_data = get_task_data()
+    if task_data is not None:
         agent.memory.task_stack_push(tasks.Reexplore(agent, task_data))
-        do_one = True

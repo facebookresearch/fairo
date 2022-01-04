@@ -632,7 +632,8 @@ class Reexplore(Task):
         self.steps = ["not_started"] * 2
         self.task_data = task_data
         self.target = task_data.get('target')
-        self.start_pos = task_data.get('start_pos')
+        self.spawn_pos = task_data.get('spawn_pos')
+        self.base_pos = task_data.get('base_pos')
         self.init_logger()
         self.agent = agent
         print(f'CuriousExplore task_data {task_data}')
@@ -659,9 +660,10 @@ class Reexplore(Task):
         logger = logging.getLogger('reexplore')
 
         if self.steps[0] == "not_started":
-            cur_state = self.agent.mover.bot.get_agent_state()
-            self.agent.mover.bot.respawn_agent(self.start_pos)
-            cur_state = self.agent.mover.bot.get_agent_state()
+            self.agent.mover.bot.respawn_agent(self.spawn_pos)
+            base_pos = self.agent.mover.get_base_pos()
+            assert np.allclose(base_pos, self.base_pos)
+
             self.add_child_task(ExamineDetectionStraightline(
                     self.agent, {
                         "target": self.target, 
@@ -678,8 +680,9 @@ class Reexplore(Task):
         
         # execute a examine maneuver
         if self.steps[0] == "finished" and self.steps[1] == "not_started":
-            cur_state = self.agent.mover.bot.get_agent_state()
-            self.agent.mover.bot.respawn_agent(self.start_pos)
+            self.agent.mover.bot.respawn_agent(self.spawn_pos)
+            base_pos = self.agent.mover.get_base_pos()
+            assert np.allclose(base_pos, self.base_pos)
 
             self.add_child_task(ExamineDetectionCircle(
                     self.agent, {
