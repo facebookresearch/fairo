@@ -14,6 +14,7 @@ import skimage
 from pyrobot.locobot.camera import DepthImgProcessor
 from pyrobot.locobot.base_control_utils import LocalActionStatus
 from slam_pkg.utils import depth_util as du
+import habitat_sim
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
@@ -50,6 +51,20 @@ class RemoteLocobot(object):
 
         # check skfmm, skimage in installed, its necessary for slam
         self._done = True
+    
+    def get_agent_state(self):
+        sim = self._robot.base.sim
+        agent = sim.get_agent(0)
+        return agent.get_state()
+    
+    def respawn_agent(self, pos):
+        print(f'pos {pos, type(pos)}')
+        sim = self._robot.base.sim
+        agent = sim.get_agent(0)
+        new_agent_state = habitat_sim.AgentState()
+        new_agent_state.position = pos
+        new_agent_state.rotation = np.quaternion(1.0, 0.0, 0.0, 0.0)
+        agent.set_state(new_agent_state)
 
     def restart_habitat(self):
         if hasattr(self, "_robot"):

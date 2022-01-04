@@ -11,6 +11,7 @@ import math
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 from droidlet.task.task import Task, BaseMovementTask
 from droidlet.memory.memory_nodes import TaskNode
+from droidlet.lowlevel.robot_coordinate_utils import base_canonical_coords_to_pyrobot_coords
 
 from droidlet.interpreter.robot.objects import DanceMovement
 
@@ -24,6 +25,7 @@ from droidlet.lowlevel.robot_mover_utils import (
     ExaminedMap,
     CAMERA_HEIGHT,
     get_circular_path,
+
 )
 
 # FIXME store dances, etc.
@@ -379,9 +381,10 @@ class TrajectorySaverTask(Task):
         depth = depth.astype(np.uint16)
         
         pos = self.agent.mover.get_base_pos()
+        pos_hab = self.agent.mover.bot.get_agent_state().position.tolist()
         for data_saver in self.data_savers:
             data_saver.set_dbg_str(self.dbg_str)
-            data_saver.save(rgb, depth, segm, pos)
+            data_saver.save(rgb, depth, segm, pos, pos_hab)
     
     @Task.step_wrapper
     def step(self):
@@ -389,7 +392,7 @@ class TrajectorySaverTask(Task):
             self.save_rgb_depth_seg()
 
     def __repr__(self):
-        return "<TrajectorySaverTask {}>".format(self.target)
+        return "<TrajectorySaverTask>"
 
 class CuriousExplore(TrajectorySaverTask):
     """use slam to explore environemt, but also examine detections"""
@@ -555,7 +558,7 @@ class ExamineDetectionCircle(TrajectorySaverTask):
         self.robot_poses = []
         self.last_base_pos = None
         self.dbg_str = task_data.get('dbg_str')
-        self.logger = task_data.get('logger')
+        self.logger = task_data.get('logger') 
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         self.pts = get_circular_path(self.frontier_center, base_pos, radius=0.7, num_points=40)
         self.logger.info(f'{len(self.pts)} pts on cicle {self.pts}')
@@ -622,48 +625,154 @@ class Explore(TrajectorySaverTask):
 
 
 class Reexplore(Task):
+    """use slam to explore environemt, but also examine detections"""
+
     def __init__(self, agent, task_data):
-        super().__init__(agent)
+        super().__init__(agent, task_data)
+        self.steps = ["not_started"] * 2
+        self.task_data = task_data
         self.target = task_data.get('target')
         self.start_pos = task_data.get('start_pos')
-        self.task_data = task_data
-        self.steps = ['not_started'] * 2 # S1, C1
+        self.init_logger()
+        self.agent = agent
+        print(f'CuriousExplore task_data {task_data}')
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
+    def init_logger(self):
+        logger = logging.getLogger('reexplore')
+        logger.setLevel(logging.INFO)
+        fh = logging.FileHandler(f"reexplore.log", 'w')
+        fh.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(filename)s:%(lineno)s - %(funcName)s(): %(message)s')
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+        logger.addHandler(ch)
+        logger.info(f'Reexplore task_data {self.task_data}')
+
+    @Task.step_wrapper
     def step(self):
-        self.finished = False  
-        if self.steps[0] == 'not_started': # do Straightline 
+        super().step()
+        self.interrupted = False
+        self.finished = False
+        logger = logging.getLogger('reexplore')
+
+        if self.steps[0] == "not_started":
+            cur_state = self.agent.mover.bot.get_agent_state()
+            self.agent.mover.bot.respawn_agent(self.start_pos)
+            cur_state = self.agent.mover.bot.get_agent_state()
             self.add_child_task(ExamineDetectionStraightline(
                     self.agent, {
                         "target": self.target, 
                         "save_data": True,
-                        "root_data_path": f"{self.task_data['data_path']}",
-                        "data_path": f"{self.task_data['data_path']}",
+                        "root_data_path": f"{self.task_data['data_path']}/st",
+                        "data_path": f"{self.task_data['data_path']}/st",
                         "dbg_str": f'Straightline examine {self.target}',
+                        'logger': logger
                         }
                     )
                 )
-            self.steps[0] = 'finished'
+            self.steps[0] = "finished"
+            return
+        
+        # execute a examine maneuver
+        if self.steps[0] == "finished" and self.steps[1] == "not_started":
+            cur_state = self.agent.mover.bot.get_agent_state()
+            self.agent.mover.bot.respawn_agent(self.start_pos)
 
-        if self.steps[0] == 'finished' and self.steps[1] == 'not_started':
             self.add_child_task(ExamineDetectionCircle(
                     self.agent, {
                         "target": self.target, 
                         "save_data": True,
-                        "root_data_path": f"{self.task_data['data_path']}",
-                        "data_path": f"{self.task_data['data_path']}",
+                        "root_data_path": f"{self.task_data['data_path']}/ci",
+                        "data_path": f"{self.task_data['data_path']}/ci",
                         "dbg_str": f'Circle examine {self.target}',
+                        'logger': logger
                         }
                     )
                 )
-            self.steps[1] = 'finished'
 
+            self.steps[1] = "finished"
+            return
+        
         else:
-            self.finished = self.agent.mover.nav.is_done_exploring().value
-            if not self.finished:
-                self.steps = ["not_started"] * 2
-            else:
-                self.logger.info(f"Exploration finished!")
+            self.finished = True
     
     def __repr__(self):
         return "<ReExplore>"
+
+
+# class Reexplore(Task):
+#     def __init__(self, agent, task_data):
+#         super().__init__(agent, task_data)
+#         self.target = task_data.get('target')
+#         self.start_pos = task_data.get('start_pos')
+#         self.task_data = task_data
+#         self.steps = ["not_started"] * 2 # S1, C1
+#         self.init_logger()
+#         TaskNode(agent.memory, self.memid).update_task(task=self)
+
+#     def init_logger(self):
+#         logger = logging.getLogger('reexplore')
+#         logger.setLevel(logging.INFO)
+#         fh = logging.FileHandler(f"reexplore.log", 'w')
+#         fh.setLevel(logging.INFO)
+#         ch = logging.StreamHandler()
+#         ch.setLevel(logging.INFO)
+#         formatter = logging.Formatter('%(filename)s:%(lineno)s - %(funcName)s(): %(message)s')
+#         fh.setFormatter(formatter)
+#         logger.addHandler(fh)
+#         logger.addHandler(ch)
+#         logger.info(f'Reexplore task_data {self.task_data}')
+
+#     def step(self):
+#         super().step()
+#         logger = logging.getLogger('reexplore')
+#         self.interrupted = False
+#         self.finished = False
+
+#         if self.steps[0] == "not_started": # do Straightline 
+#             # self.agent.mover.bot.respawn_agent(
+#             #     base_canonical_coords_to_pyrobot_coords(self.start_pos)
+#             # )
+#             # self.add_child_task(ExamineDetectionStraightline(
+#             #         self.agent, {
+#             #             "target": self.target, 
+#             #             "save_data": True,
+#             #             "root_data_path": f"{self.task_data['data_path']}/st",
+#             #             "data_path": f"{self.task_data['data_path']}/st",
+#             #             "dbg_str": f'Straightline examine {self.target}',
+#             #             'logger': logger
+#             #             }
+#             #         )
+#             #     )
+#             self.steps[0] = "finished"
+#             return
+
+#         if self.steps[0] == "finished" and self.steps[1] == "not_started":
+#             # respawn agent 
+#             print(f'self.start_pos {self.start_pos, type(self.start_pos)}')
+#             # self.agent.mover.bot.respawn_agent(
+#             #     base_canonical_coords_to_pyrobot_coords(self.start_pos)
+#             # )
+
+#             # self.add_child_task(ExamineDetectionCircle(
+#             #         self.agent, {
+#             #             "target": self.target, 
+#             #             "save_data": True,
+#             #             "root_data_path": f"{self.task_data['data_path']}/ci",
+#             #             "data_path": f"{self.task_data['data_path']}/ci",
+#             #             "dbg_str": f'Circle examine {self.target}',
+#             #             'logger': logger
+#             #             }
+#             #         )
+#             #     )
+#             self.steps[1] = "finished"
+#             return
+
+#         else:
+#             self.finished = True #self.agent.mover.nav.is_done_exploring().value
+    
+#     def __repr__(self):
+#         return "<ReExplore>"

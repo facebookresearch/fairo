@@ -103,15 +103,23 @@ def explore(agent):
     start_explore(agent, goal)
 
 
-start_pose = [9.5367431640625e-07, 0.499999076128006, 2.9583334357799833] 
-target = [-1.00626746, -0.04194924, -1.31068668]
+# start_pos = [9.5367431640625e-07, 0.499999076128006, 2.9583334357799833] 
+# target = [-1.00626746, -0.04194924, -1.31068668]
+# start_pos =  [0.18430093, -1.3747652, 5.265953]
+# target =  [0.95228908, 2.45812503, 5.9460001] # canonical
+start_pos = [1.0343010425567627, -1.374765157699585, 4.6159563064575195] 
+target = [ 0.04544921, -0.04891405,  0.40229623]
 
+do_one = False
 
 def reexplore(agent):
+    global do_one
     task_data = {
-        'start_pose': start_pose,
-        'target': {'xyz': target, 'label': 'hobbit'},
+        'start_pos': start_pos,
+        'target': {'xyz': target, 'label': 'object'},
         'data_path': 'reexplore',
         'root_data_path': 'reexplore',
     }
-    agent.memory.task_stack_push(tasks.Reexplore(agent, task_data))
+    if not do_one:
+        agent.memory.task_stack_push(tasks.Reexplore(agent, task_data))
+        do_one = True
