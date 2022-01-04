@@ -55,7 +55,9 @@ class RemoteLocobot(object):
     def get_agent_state(self):
         sim = self._robot.base.sim
         agent = sim.get_agent(0)
-        return agent.get_state()
+        pos_hab = agent.get_state().position.tolist()
+        pos = self.get_base_state()
+        return pos, pos_hab
     
     def respawn_agent(self, pos):
         print(f'pos {pos, type(pos)}')

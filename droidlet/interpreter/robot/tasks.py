@@ -380,8 +380,7 @@ class TrajectorySaverTask(Task):
         depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
         depth = depth.astype(np.uint16)
         
-        pos = self.agent.mover.get_base_pos()
-        pos_hab = self.agent.mover.bot.get_agent_state().position.tolist()
+        pos, pos_hab = self.agent.mover.bot.get_agent_state()
         for data_saver in self.data_savers:
             data_saver.set_dbg_str(self.dbg_str)
             data_saver.save(rgb, depth, segm, pos, pos_hab)
@@ -662,7 +661,7 @@ class Reexplore(Task):
         if self.steps[0] == "not_started":
             self.agent.mover.bot.respawn_agent(self.spawn_pos)
             base_pos = self.agent.mover.get_base_pos()
-            assert np.allclose(base_pos, self.base_pos)
+            # assert np.allclose(base_pos, self.base_pos)
 
             self.add_child_task(ExamineDetectionStraightline(
                     self.agent, {
@@ -682,7 +681,7 @@ class Reexplore(Task):
         if self.steps[0] == "finished" and self.steps[1] == "not_started":
             self.agent.mover.bot.respawn_agent(self.spawn_pos)
             base_pos = self.agent.mover.get_base_pos()
-            assert np.allclose(base_pos, self.base_pos)
+            # assert np.allclose(base_pos, self.base_pos)
 
             self.add_child_task(ExamineDetectionCircle(
                     self.agent, {
