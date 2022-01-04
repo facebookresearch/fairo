@@ -12,7 +12,7 @@ echo "Kill matching processes..."
 
 echo "Launching environment ..."
 
-default_ip=$(hostname -I | cut -f1 -d" ")
+default_ip=127.0.0.1 #$(hostname -I | cut -f1 -d" ")
 ip=${LOCOBOT_IP:-$default_ip}
 export LOCAL_IP=$ip
 export LOCOBOT_IP=$ip

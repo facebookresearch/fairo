@@ -391,6 +391,7 @@ class LoCoBotMover:
             self.nav_result = safe_call(self.nav.explore, goal)
         else:
             print("navigator executing another call right now")
+        print(f'nav_result {self.nav_result}')
         return self.nav_result
 
     def get_obstacles_in_canonical_coords(self):
