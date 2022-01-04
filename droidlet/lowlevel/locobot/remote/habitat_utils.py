@@ -6,7 +6,7 @@ import magnum as mn
 import numpy as np
 import os
 from copy import deepcopy as copy
-
+import logging
 
 def reconfigure_scene(env, scene_path):
     """This function takes a habitat scene and adds relevant changes to the
@@ -15,7 +15,7 @@ def reconfigure_scene(env, scene_path):
     For example, it sets initial positions to be deterministic, and it
     adds some humans to the environment a reasonable places
     """
-
+    scene_path = scene_path + '_semantic.ply'
     sim = env._robot.base.sim
 
     # these are useful to know to understand co-ordinate normalization
@@ -27,11 +27,13 @@ def reconfigure_scene(env, scene_path):
 
     # keep the initial rotation consistent across runs
     agent_state = agent.get_state()
-    # print(f'\ninit agent_state {agent_state}')
-    # p = sim.pathfinder.get_random_navigable_point()
-    # print(f'\nrandom navigable point {p}')
-    # p = sim.pathfinder.get_random_navigable_point()
-    # print(f'\nrandom navigable point {p}')
+    print(f'\ninit agent_state {agent_state}')
+    
+    # Find random navigable point
+    p = sim.pathfinder.get_random_navigable_point()
+    print(f'\nrandom navigable point {p}')
+    # # p = sim.pathfinder.get_random_navigable_point()
+    # # print(f'\nrandom navigable point {p}')
     # agent_state.position = copy(p)
     # agent_state.sensor_states["rgb"].position = copy(p + np.array([0.0, 0.6, 0.0]))
     # agent_state.sensor_states["depth"].position = copy(p + np.array([0.0, 0.6, 0.0]))
@@ -51,6 +53,7 @@ def reconfigure_scene(env, scene_path):
     # scene-specific additions
     ###########################
     scene_name = os.path.basename(scene_path).split(".")[0]
+    logging.info(f'scene_name {scene_name}')
     if scene_name == "mesh_semantic":
         # this must be Replica Dataset
         scene_name = os.path.basename(os.path.dirname(os.path.dirname(scene_path)))

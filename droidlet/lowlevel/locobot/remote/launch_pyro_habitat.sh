@@ -17,6 +17,8 @@ source /root/pyenv_pyrobot_python3/bin/activate && source /root/pyrobot_catkin_w
 default_ip=$(hostname -I)
 ip=${LOCOBOT_IP:-$default_ip}
 echo "Binding to Host IP" $ip
+echo $HEURISTIC >> env.txt
+echo $ip >> env.txt
 
 python -m Pyro4.naming -n $ip &
 BGPID=$!

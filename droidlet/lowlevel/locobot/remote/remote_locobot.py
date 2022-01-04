@@ -766,10 +766,11 @@ if __name__ == "__main__":
         help="Optional config argument to be passed to the backend."
         "Currently mainly used to pass Habitat environment path",
         type=json.loads,
-        # default='{"scene_path": "/mp3d/1LXtFkjw3qL/1LXtFkjw3qL_semantic.ply", \
-        #      "physics_config": "DEFAULT"}'
-        default='{"scene_path": "/Replica-Dataset/' + os.getenv("SCENE") + '/habitat/mesh_semantic.ply", \
-            "physics_config": "DEFAULT"}',
+        default='{"scene_path":"/remote/mp3d/090920/' + os.getenv("SCENE") + '/' + os.getenv("SCENE") + '_semantic.ply", \
+            "physics_config": "DEFAULT"}'
+        # default='{"scene_path": "/Replica-Dataset/' + os.getenv("SCENE") + '/habitat/mesh_semantic.ply", \
+            # "physics_config": "DEFAULT"}',
+        # /remote/mp3d/090920/${1}/${1}_semantic.ply
     )
     parser.add_argument(
          "--noisy",
