@@ -1,5 +1,43 @@
 version: 2.1
 commands:
+  polymetis_tests:
+    steps:
+      - run:
+          name: Run polymetis pytest
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-local
+
+            Xvfb :100 -screen 0 1024x768x24 &
+            DISPLAY=:100 pytest ./polymetis/polymetis/tests/python
+            pkill Xvfb
+      - run:
+          name: Run polymetis C++ unit tests
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-local
+
+            export PATH=$PWD/polymetis/polymetis/build/:$PATH
+
+            python ./polymetis/polymetis/tests/cpp/test_server.py
+      - run:
+          name: Run integration tests (empty client)
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-local
+            ./polymetis/tests/test_empty_statistics_client.sh
+      - run:
+          name: Run integration tests (mocked hardware client)
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-local
+            ./polymetis/tests/test_mocked_hardware_client.sh
+      - run:
+          name: Run integration tests (simulation)
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-local
+            ./polymetis/tests/test_simulation.sh
   polymetis_local_build:
     steps:
       - run:
@@ -15,20 +53,7 @@ commands:
 
             export BUILD_DOCS="ON"
             ./install.sh
-      - run:
-          name: Run tests
-          command: |
-            . /opt/conda/etc/profile.d/conda.sh
-            conda activate polymetis-local
-
-            cd ./polymetis
-            export PATH=$PWD/polymetis/build/:$PATH
-
-            Xvfb :100 -screen 0 1024x768x24 &
-            DISPLAY=:100 pytest ./polymetis/tests/python
-            pkill Xvfb
-
-            python ./polymetis/tests/cpp/test_server.py
+      - polymetis_tests
       - run:
           name: Generate documentation
           command: |
@@ -70,12 +95,12 @@ commands:
           name: Create Conda environment
           command: |
             . /opt/conda/etc/profile.d/conda.sh
-            [ -d /opt/conda/envs/polymetis-env ] || mamba create -n polymetis-env python=3.8
+            [ -d /opt/conda/envs/polymetis-local ] || mamba create -n polymetis-local python=3.8
       - run:
           name: Create Conda package
           command: |
             . /opt/conda/etc/profile.d/conda.sh
-            conda activate polymetis-env
+            conda activate polymetis-local
             conda mambabuild -c pytorch -c fair-robotics -c aihabitat -c conda-forge polymetis/polymetis/conda/conda_recipe
       - store_artifacts:
           path: /opt/conda/conda-bld/linux-64/
@@ -84,49 +109,29 @@ commands:
           name: Update local channel
           command: |
             . /opt/conda/etc/profile.d/conda.sh
-            conda activate polymetis-env
+            conda activate polymetis-local
             cd ./polymetis/polymetis/conda/
             PKG_PATH="/opt/conda/conda-bld/linux-64/polymetis*.tar.bz2" ./build_conda_package.sh
       - run:
           name: Install from conda
           command: |
             . /opt/conda/etc/profile.d/conda.sh
-            conda activate polymetis-env
+            conda activate polymetis-local
             mamba install --override-channels -c file://$(eval pwd)/polymetis/polymetis/conda/channel -c pytorch -c fair-robotics -c aihabitat -c conda-forge polymetis -y
-      - run:
-          name: Run polymetis pytest
-          command: |
-            . /opt/conda/etc/profile.d/conda.sh
-            conda activate polymetis-env
-
-            Xvfb :100 -screen 0 1024x768x24 &
-            DISPLAY=:100 pytest ./polymetis/polymetis/tests/python
-            pkill Xvfb
-      - run:
-          name: Run polymetis C++ unit tests
-          command: |
-            . /opt/conda/etc/profile.d/conda.sh
-            conda activate polymetis-env
-            python ./polymetis/polymetis/tests/cpp/test_server.py
       - run:
           name: Run libfranka test
           command: |
             . /opt/conda/etc/profile.d/conda.sh
-            conda activate polymetis-env
+            conda activate polymetis-local
             ./polymetis/polymetis/tests/test_libfranka_installation.sh
-      - run:
-          name: Run integration tests
-          command: |
-            . /opt/conda/etc/profile.d/conda.sh
-            conda activate polymetis-env
-            ./polymetis/tests/test_integrations.sh
+      - polymetis_tests
       - run:
           name: Upload to Anaconda Cloud (if on main branch)
           command: |
             if [[ $(git symbolic-ref -q --short HEAD) = "main" ]]
               then
                 . /opt/conda/etc/profile.d/conda.sh
-                conda activate polymetis-env
+                conda activate polymetis-local
                 mamba install anaconda-client
                 anaconda login --username $ANACONDA_USER --password $ANACONDA_PASSWORD
                 anaconda upload --user fair-robotics --skip /opt/conda/conda-bld/linux-64/polymetis*.tar.bz2
