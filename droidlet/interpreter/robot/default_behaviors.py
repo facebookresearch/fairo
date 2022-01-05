@@ -49,6 +49,9 @@ def start_explore(agent, goal):
     assert len(t) <= 1, f"More than 1 ({len(t)}, {t}) triple for explore_count"
     if len(t) == 1:
         explore_count = int(t[0][2])
+
+    if explore_count > 100:
+        return
    
     if not first_exploration_done or os.getenv('CONTINUOUS_EXPLORE', 'False') == 'True':
         agent.mover.slam.reset_map()
