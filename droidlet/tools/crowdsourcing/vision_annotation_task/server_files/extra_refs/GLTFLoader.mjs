@@ -1,3 +1,5 @@
+// Standard three.js module, modified to import from CDN
+
 import {
 	AnimationClip,
 	Bone,

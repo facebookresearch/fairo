@@ -134,8 +134,8 @@ def timing_charts(run_id: int) -> None:
     data_browser = DataBrowser(db=db)
     workers = {"total": []}
     unit_timing = {"total": [], "end": []}
-    question_results = {1: [], 2: [], 3: []}
-    pass_rates = {1: [], 2: [], 3: []}
+    question_results = {1: [], 2: [], 3: [], 4: []}
+    pass_rates = {1: [], 2: [], 3: [], 4: []}
     starttime = math.inf
     endtime = -math.inf
     feedback = []
@@ -163,7 +163,6 @@ def timing_charts(run_id: int) -> None:
         results_dict = Counter(question_results[q])
         pass_rates[q] = (results_dict['true']/(results_dict['true'] + results_dict['false']))*100
         print(f"Question #{q} pass rate: {(results_dict['true']/(results_dict['true'] + results_dict['false']))*100:.1f}%")
-        #plot_hist(results_dict, xlabel="", ylabel=f"Question #{q} Passes")
     plot_hist(pass_rates, xlabel="Question #", ylabel=f"Pass Rate %")
     print(f"Number of workers who didn't get any right: {num_all_false}")
     print(feedback)
@@ -224,16 +223,3 @@ def plot_scatter(xs: list, ys: list, ylabel: str, s: list=None, target_val: floa
     if ymax:
         plt.ylim(0, ymax)
     plt.show()
-
-
-#%%
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    # User needs to provide file I/O paths
-    parser.add_argument(
-        "--run_id", required=True,
-        help="The Mephisto run ID, eg.'218'",
-    )
-    args = parser.parse_args()
-
-    

@@ -1,5 +1,34 @@
+/* Copyright (c) Facebook, Inc. and its affiliates.
+   This source code is licensed under the MIT license found in the
+   LICENSE file in the root directory of this source tree. */
+
 iframe {
     border-width: 0;
+}
+
+figcaption {
+    font-weight: bold;
+    text-align: center;
+}
+
+h2 {
+    margin-top: 10px;
+    font-size: 24px;
+}
+
+h4 {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 13pt;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+hr {
+    margin: 0.25em;
+}
+
+.instruction-headings {
+    text-decoration: underline;
 }
 
 .container {
@@ -24,18 +53,6 @@ iframe {
     padding: 10px;
 }
 
-#heading {
-    position: relative;
-    display: block;
-    margin: auto;
-    z-index: 10;
-}
-
-#complete-prompt {
-    color: red;
-    text-align: center;
-}
-
 .instructions-section {
     font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
     font-size: 11pt;
@@ -43,26 +60,6 @@ iframe {
     margin-bottom: 5px;
     padding-left: 15px;
     padding-right: 15px;
-}
-
-h4 {
-    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-    font-size: 13pt;
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-
-.instruction-headings {
-    text-decoration: underline;
-}
-
-h2 {
-    margin-top: 10px;
-    font-size: 24px;
-}
-
-hr {
-    margin: 0.25em;
 }
 
 .input-group {
@@ -77,6 +74,18 @@ hr {
     padding: 5px;
 }
 
+#heading {
+    position: relative;
+    display: block;
+    margin: auto;
+    z-index: 10;
+}
+
+#complete-prompt {
+    color: red;
+    text-align: center;
+}
+
 #avatars-fig {
     float: right;
     margin: 10px;
@@ -84,9 +93,4 @@ hr {
 
 #avatars {
     width: 200px; 
-}
-
-figcaption {
-    font-weight: bold;
-    text-align: center;
 }

@@ -33,12 +33,13 @@ const addAxes = false;  // Useful for development. The positive X axis is red, Y
 const minCameraPitch = (0.5 * Math.PI) / 4;
 const maxCameraPitch = (2.0 * Math.PI) / 4;
 
+// Define cube geometry and materials
 const geo = new THREE.BoxGeometry( 50, 50, 50 );
 const rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.3, transparent: true } );
 const cubeMaterial_mark = new THREE.MeshBasicMaterial( { color: 0x089000, opacity: 0.6, transparent: true } );
 let rollOverMesh = new THREE.Mesh( geo, rollOverMaterial );
 
-// Pull scene key from URL
+// Pull scene key from URL params
 const urlParams = new URLSearchParams(window.location.search);
 const module_key = urlParams.get('batch_id') + urlParams.get('error_idx');
 console.log("Module key: " + module_key);
@@ -57,7 +58,7 @@ else if (module_key[0] === 'q') {  // This is the qualification HIT, load the ap
 }
 else {
     // Dummy data until the rest of the pipeline is built
-    fetch('./scene1_v2.json')
+    fetch('./example_scene.json')
     .then(response => {
         return response.json();
     })
@@ -77,22 +78,6 @@ function init(scene) {
     var canvii = document.getElementsByTagName("canvas");
     Array.from(canvii).forEach(canv => canv.style.display = "inline");
     canvii[1].style.float = "right";
-}
-
-function lookRadsToVec(raw_vals) {
-    // Look direction comes in as [yaw, pitch] floats
-    // referenced s.t. pos pitch is down, 0 yaw = pos-z, and pos yaw is CCW
-    // Three.js has pos pitch up, 0 yaw = pos-x, and pos yaw is CW
-    const look_angles = [(-1)*raw_vals[0], ((-1)*raw_vals[1]) + Math.PI/2]
-    // Convert pitch and yaw radian values to a Vector3 look direction
-    let look_dir = new THREE.Vector3( 
-        Math.cos(look_angles[0]) * Math.cos(look_angles[1]),
-        Math.sin(look_angles[1]),
-        Math.sin(look_angles[0]) * Math.cos(look_angles[1])
-        );
-    look_dir.normalize();
-
-    return look_dir;
 }
 
 function loadScene(scene, idx) {
@@ -211,6 +196,23 @@ function loadScene(scene, idx) {
     controls[idx].maxPolarAngle = maxCameraPitch;
 }
 
+function lookRadsToVec(raw_vals) {
+    // Look direction comes in as [yaw, pitch] floats
+    // referenced s.t. pos pitch is down, 0 yaw = pos-z, and pos yaw is CCW
+    // Three.js has pos pitch up, 0 yaw = pos-x, and pos yaw is CW
+    const look_angles = [(-1)*raw_vals[0], ((-1)*raw_vals[1]) + Math.PI/2]
+    // Convert pitch and yaw radian values to a Vector3 look direction
+    let look_dir = new THREE.Vector3( 
+        Math.cos(look_angles[0]) * Math.cos(look_angles[1]),
+        Math.sin(look_angles[1]),
+        Math.sin(look_angles[0]) * Math.cos(look_angles[1])
+        );
+    look_dir.normalize();
+
+    return look_dir;
+}
+
+// Add user or agent avatars to the scene
 function addAvatar(scene, position, material, look_dir) {
     const loader = new GLTFLoader();
     loader.load( './body.glb', function ( gltf ) {
@@ -336,7 +338,6 @@ function onPointerDown( event ) {
         }
     
         // Store marked blocks in parent HTML.
-        // TODO reindex to match the locations of the input blocks
         let output_list = [];
         marked_blocks.forEach((block) => {
             let positionArray = block.position.toArray();
@@ -377,10 +378,10 @@ function onDocumentKeyDown( event ) {
                         // If there's a cube there, remove it
                         if (action[1]){
                             scenes[2].remove( action[1] );
-                            objects[2].splice( objects2.indexOf( action[1] ), 1 );
+                            objects[2].splice( objects[2].indexOf( action[1] ), 1 );
                         }
                         // Put back the marked block
-                        scene[2].add( action[0] );
+                        scenes[2].add( action[0] );
                         marked_blocks.push( action[0] );
                         break;
                 }

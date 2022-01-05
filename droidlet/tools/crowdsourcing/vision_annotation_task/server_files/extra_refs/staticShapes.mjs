@@ -105,6 +105,7 @@ class staticShapes {
                         [-1,1,-1,58]]
                 };
                 break;
+                
             case 4:
                 this.scene = {
                     "avatarInfo": null,

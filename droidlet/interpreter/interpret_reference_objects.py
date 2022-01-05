@@ -7,7 +7,7 @@ import numpy as np
 from copy import deepcopy
 from typing import cast, List, Tuple, Dict
 
-from .interpreter_utils import SPEAKERLOOK
+from .interpreter_utils import SPEAKERLOOK, update_attended_and_link_lf
 from droidlet.dialog.dialogue_task import ConfirmReferenceObject
 from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
@@ -129,6 +129,7 @@ def interpret_reference_object(
     if filters_d.get("contains_coreference", "NULL") != "NULL":
         mem = filters_d["contains_coreference"]
         if isinstance(mem, ReferenceObjectNode):
+            update_attended_and_link_lf(interpreter, [mem])
             return [mem]
         elif mem == "resolved":
             pass
@@ -161,7 +162,7 @@ def interpret_reference_object(
         #        filters_no_select.pop("location", None)
         candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
         if len(candidate_mems) > 0:
-            return filter_by_sublocation(
+            mems = filter_by_sublocation(
                 interpreter,
                 speaker,
                 candidate_mems,
@@ -169,6 +170,8 @@ def interpret_reference_object(
                 loose=loose_speakerlook,
                 all_proximity=all_proximity,
             )
+            update_attended_and_link_lf(interpreter, mems)
+            return mems
 
         elif allow_clarification:
             # no candidates found; ask Clarification
@@ -203,6 +206,7 @@ def interpret_reference_object(
                 self.memid
             )
             _, ref_obj_mems = interpreter.memory.basic_search(query)
+            update_attended_and_link_lf(interpreter, ref_obj_mems)
             return ref_obj_mems
         else:
             raise ErrorWithResponse("I don't know what you're referring to")

@@ -24,25 +24,26 @@
         // Event listeners for buttons
         document.getElementById("finish-annotation").addEventListener("click", function() {
             let output_obj = JSON.parse('{"' + module_key + '_output": ' + JSON.stringify(document.getElementById("markedBlocks").value) + '}');
-            window.parent.postMessage(JSON.stringify({ msg: output_obj }), "*");
-            window.parent.postMessage(JSON.stringify({ msg: "annotation_finished" }), "*");
-            document.getElementById("finish-annotation").disabled = true;
-            document.getElementById("null-result").disabled = true;
-            document.getElementById("response").innerHTML = " - Annotation Complete";
+            finishAnnotation(output_obj);
         });
         document.getElementById("null-result").addEventListener("click", function() {
             let output_obj = JSON.parse('{"' + module_key + '_output": "null"}');  // parser expects a string
-            window.parent.postMessage(JSON.stringify({ msg: output_obj }), "*");
-            window.parent.postMessage(JSON.stringify({ msg: "annotation_finished" }), "*");
-            document.getElementById("finish-annotation").disabled = true;
-            document.getElementById("null-result").disabled = true;
-            document.getElementById("response").innerHTML = " - Annotation Complete";
+            finishAnnotation(output_obj);
         });
         document.getElementById("reset").addEventListener("click", function() {
             document.getElementById("finish-annotation").disabled = false;
             document.getElementById("null-result").disabled = false;
             location.reload();
         });
+
+        // Notify the HIT that annotation is complete and set visual feedback
+        function finishAnnotation (obj) {
+            window.parent.postMessage(JSON.stringify({ msg: obj }), "*");
+            window.parent.postMessage(JSON.stringify({ msg: "annotation_finished" }), "*");
+            document.getElementById("finish-annotation").disabled = true;
+            document.getElementById("null-result").disabled = true;
+            document.getElementById("response").innerHTML = " - Annotation Complete";
+        }
     </script>
     <link rel="stylesheet" href="voxel_wrapper.css">
 </html>

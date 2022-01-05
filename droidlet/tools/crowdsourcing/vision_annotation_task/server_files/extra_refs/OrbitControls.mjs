@@ -1,3 +1,5 @@
+// Standard three.js module, modified to import from CDN and use custom controls
+
 import {
 	EventDispatcher,
 	MOUSE,

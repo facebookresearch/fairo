@@ -145,6 +145,13 @@ def combine_tool_cd_make_ab(tool_A_out_file, tool_B_out_file):
             if "location" in clean_dict and "reference_object" in clean_dict["location"]:
                 value = clean_dict["location"]["reference_object"]
                 clean_dict["location"]["reference_object"] = fix_ref_obj(value)
+            if "location" in clean_dict and "reference_object_1" in clean_dict["location"]:
+                value = clean_dict["location"]["reference_object_1"]
+                clean_dict["location"]["reference_object_1"] = fix_ref_obj(value)
+            if "location" in clean_dict and "reference_object_2" in clean_dict["location"]:
+                value = clean_dict["location"]["reference_object_2"]
+                clean_dict["location"]["reference_object_2"] = fix_ref_obj(value)
+
             new_clean_dict = fix_ref_obj(clean_dict)
             if all_yes(a_dict_child):
                 if cmd in toolC_updated_map:
@@ -214,9 +221,24 @@ def clean_dict_1(a_dict):
             new_d[k] = val
     # only for now
     if "dance_type_span" in new_d:
-        new_d["dance_type"] = {}
-        new_d["dance_type"]["dance_type_name"] = new_d["dance_type_span"]
+        new_d["dance_type"] = {"filters": {
+            "where_clause": {"AND": [{
+                "pred_text": "has_tag",
+                "obj_text": new_d["dance_type_span"]}]}}
+        }
         new_d.pop("dance_type_span")
+    if "has_block_type" in new_d:
+        new_d['schematic'] = {
+            "filters": {
+                "where_clause": {
+                    "AND" : [{
+                        "pred_text": "has_block_type",
+                        "obj_text": new_d["has_block_type"]
+                    }]
+                }
+            }
+        }
+        new_d.pop("has_block_type")
     if "dance_type_name" in new_d:
         new_d["dance_type"] = {}
         new_d["dance_type"]["dance_type_name"] = new_d["dance_type_name"]
@@ -238,12 +260,14 @@ def fix_put_mem(d):
         d = ast.literal_eval(d)
     new_d = copy.deepcopy(d)
     del new_d["action_type"]
-    memory_type = "TRIPLES"
+    memory_type = "TRIPLE"
     if "dialogue_target" in new_d:
         if new_d["dialogue_target"] == "f1":
             memory_type = "SET"
             if "selector" in new_d["filters"]:
-                new_d["filters"]["selector"]["location"] = {"location_type": "SPEAKER_LOOK"}
+                new_d["filters"]["selector"]["location"] = {
+                    "reference_object": {
+                        "special_reference": {"fixed_value": "SPEAKER_LOOK"}}}
                 new_d["filters"]["selector"]["same"] = "DISALLOWED"
         elif new_d["dialogue_target"] == "SWARM":
             memory_type = "SET"
@@ -256,7 +280,9 @@ def fix_put_mem(d):
         elif new_d["dialogue_target"] == "AGENT":
             new_d["filters"] = {
                 "memory_type": "AGENT",
-                "selector" : {"location" : "SPEAKER_LOOK"}
+                "selector" : {"location": {
+                    "reference_object": {
+                        "special_reference": {"fixed_value": "SPEAKER_LOOK"}}}}
                 }
         del new_d['dialogue_target']
 
@@ -392,6 +418,12 @@ def update_action_dictionaries(all_combined_path):
                     if (k in v) and ("reference_object" in v[k]):
                         value = v[k]["reference_object"]
                         v[k]["reference_object"] = fix_ref_obj(value)
+                    if (k in v) and ("reference_object_1" in v[k]):
+                        value = v[k]["reference_object_1"]
+                        v[k]["reference_object_1"] = fix_ref_obj(value)
+                    if (k in v) and ("reference_object_2" in v[k]):
+                        value = v[k]["reference_object_2"]
+                        v[k]["reference_object_2"] = fix_ref_obj(value)
                     if k == "tag_val":
                         clean_dict.update(v)
                     elif k == "facing":
@@ -495,7 +527,9 @@ def postprocess_step(combined_path, post_processed_path):
                         if "selector" in action_dict["filters"]:
                             d["dialogue_target"] = {"filters": action_dict["filters"]}
                             del action_dict["filters"]
-                            d["dialogue_target"]["filters"]["selector"]["location"] = {"location_type": "SPEAKER_LOOK"}
+                            d["dialogue_target"]["filters"]["selector"]["location"] = {
+                                "reference_object": {
+                                    "special_reference": {"fixed_value": "SPEAKER_LOOK"}}}
                             d["dialogue_target"]["filters"]["selector"]["same"] = "DISALLOWED"
                         else:
                             # where clause

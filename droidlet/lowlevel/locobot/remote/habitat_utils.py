@@ -7,7 +7,7 @@ import numpy as np
 import os
 
 
-def reconfigure_scene(env, scene_path):
+def reconfigure_scene(env, scene_path, add_humans):
     """This function takes a habitat scene and adds relevant changes to the
     scene that make it useful for locobot assistant.
 
@@ -55,29 +55,31 @@ def reconfigure_scene(env, scene_path):
     human_male_template_id = load_object_configs(os.path.join(assets_path, "human_male"))[0]
     human_female_template_id = load_object_configs(os.path.join(assets_path, "human_female"))[0]
 
-    if scene_name == "apartment_0":
-        id_male = sim.add_object(human_male_template_id)
-        id_female = sim.add_object(human_female_template_id)
-        print("id_male, id_female: {} {}".format(id_male, id_female))
+    if add_humans is True:
+        if scene_name == "apartment_0":
+            id_male = sim.add_object(human_male_template_id)
+            id_female = sim.add_object(human_female_template_id)
+            print("id_male, id_female: {} {}".format(id_male, id_female))
 
-        sim.set_translation([1.2, -0.81, 0.3], id_female)  # apartment_0, female
-        sim.set_translation([1.2, -0.75, -0.3], id_male)  # apartment_0, male
+            sim.set_translation([1.2, -0.81, 0.3], id_female)  # apartment_0, female
+            sim.set_translation([1.2, -0.75, -0.3], id_male)  # apartment_0, male
 
-        rot = mn.Quaternion.rotation(mn.Deg(-75), mn.Vector3.y_axis())
-        sim.set_rotation(rot, id_male)  # apartment_0
-        sim.set_rotation(rot, id_female)  # apartment_0
-    elif scene_name == "skokloster-castle":
-        id_female = sim.add_object(human_female_template_id)
-        print("id_female: {}".format(id_female))
-        sim.set_translation([2.0, 3.0, 15.00], id_female)  # skokloster castle
-    elif scene_name == "van-gogh-room":
-        id_female = sim.add_object(human_female_template_id)
-        print("id_female: {}".format(id_female))
-        sim.set_translation([1.0, 0.84, 0.00], id_female)  # van-gogh-room
+            rot = mn.Quaternion.rotation(mn.Deg(-75), mn.Vector3.y_axis())
+            sim.set_rotation(rot, id_male)  # apartment_0
+            sim.set_rotation(rot, id_female)  # apartment_0
+        elif scene_name == "skokloster-castle":
+            id_female = sim.add_object(human_female_template_id)
+            print("id_female: {}".format(id_female))
+            sim.set_translation([2.0, 3.0, 15.00], id_female)  # skokloster castle
+        elif scene_name == "van-gogh-room":
+            id_female = sim.add_object(human_female_template_id)
+            print("id_female: {}".format(id_female))
+            sim.set_translation([1.0, 0.84, 0.00], id_female)  # van-gogh-room
 
-    # make the objects STATIC so that collisions work
-    for obj in [id_male, id_female]:
-        sim.set_object_motion_type(habitat_sim.physics.MotionType.STATIC, obj)
+        # make the objects STATIC so that collisions work
+        for obj in [id_male, id_female]:
+            sim.set_object_motion_type(habitat_sim.physics.MotionType.STATIC, obj)
+    
     navmesh_settings = habitat_sim.NavMeshSettings()
     navmesh_settings.set_defaults()
     sim.recompute_navmesh(sim.pathfinder, navmesh_settings, include_static_objects=True)
