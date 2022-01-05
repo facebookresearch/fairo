@@ -58,7 +58,7 @@ else if (module_key[0] === 'q') {  // This is the qualification HIT, load the ap
 }
 else {
     // Dummy data until the rest of the pipeline is built
-    fetch('./scene1_v2.json')
+    fetch('./example_scene.json')
     .then(response => {
         return response.json();
     })
