@@ -37,7 +37,7 @@ function showHideInstructions() {
 let font_size = 11;
 let heading_size = 13;
 function dynamicInstructionsSize() {
-    while (document.getElementById("heading").offsetHeight > (window.innerHeight * 0.9)) {
+    while (document.getElementById("heading").clientHeight > (window.innerHeight * 0.95)) {
         console.log("decrease font size");
         font_size -= 1;
         heading_size -= 1;
@@ -45,7 +45,7 @@ function dynamicInstructionsSize() {
         Array.from(document.getElementsByClassName("instruction-headings")).forEach( ele => ele.style.fontSize = heading_size + "pt" );
     }
     if (!instructionsCollapsed) {
-        while (document.getElementById("heading").offsetHeight < (window.innerHeight * 0.8)) {
+        while (document.getElementById("heading").clientHeight < (window.innerHeight * 0.85)) {
         console.log("increase font size");
         font_size += 1;
         heading_size += 1;

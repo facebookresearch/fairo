@@ -134,8 +134,8 @@ def timing_charts(run_id: int) -> None:
     data_browser = DataBrowser(db=db)
     workers = {"total": []}
     unit_timing = {"total": [], "end": []}
-    question_results = {1: [], 2: [], 3: []}
-    pass_rates = {1: [], 2: [], 3: []}
+    question_results = {1: [], 2: [], 3: [], 4: []}
+    pass_rates = {1: [], 2: [], 3: [], 4: []}
     starttime = math.inf
     endtime = -math.inf
     feedback = []
