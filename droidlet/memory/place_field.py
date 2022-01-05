@@ -54,7 +54,9 @@ class PlaceField:
         self.maps = {}
         self.add_memid("NULL")
         self.add_memid(memory.self_memid)
-        self.map_size = self.extend_map()
+        # FIXME, want slices, esp for mc... init after first perception
+        # with h=y2slice(y) instead of using 0
+        self.map_size = self.extend_map(h=0)
 
         self.pixels_per_unit = pixels_per_unit
 
@@ -121,10 +123,9 @@ class PlaceField:
         if not h and len(self.maps) == 1:
             h = list(self.maps.keys())[0]
         if not self.maps.get(h):
-            self.maps[h] = {
-                "map": np.zeros(MAP_INIT_SIZE, MAP_INIT_SIZE),
-                "updated": -np.ones((MAP_INIT_SIZE, MAP_INIT_SIZE)),
-            }
+            self.maps[h] = {}
+            for m, v in {"updated": -1, "map": 0, "memids": 0}.items():
+                self.maps[h][m] = v * np.ones((MAP_INIT_SIZE, MAP_INIT_SIZE))
         w = self.maps[h]["map"].shape[0]
         new_w = w + 2 * extension
         if new_w > MAX_MAP_SIZE:
