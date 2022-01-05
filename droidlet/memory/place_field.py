@@ -43,6 +43,10 @@ class PlaceField:
     # FIXME allow multiple memids at a single location in the map
     def __init__(self, memory, pixels_per_unit=1):
         self.get_time = memory.get_time
+
+        self.index2memid = []
+        self.memid2index = {}
+
         self.examined = {}
         self.examined_id = set()
         self.last = None
