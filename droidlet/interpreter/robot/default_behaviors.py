@@ -104,7 +104,7 @@ def explore(agent):
     start_explore(agent, goal)
 
 eid = 0
-reexplore_json = '/checkpoint/apratik/data_dec/0/reexplore_data.json'
+reexplore_json = '/checkpoint/apratik/data_dec/baselinev2/0/reexplore_data.json'
 
 def get_task_data():
     global eid

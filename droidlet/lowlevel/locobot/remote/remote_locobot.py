@@ -61,13 +61,12 @@ class RemoteLocobot(object):
         pos = self.get_base_state()
         return pos, pos_hab_pos, pos_hab_rot
     
-    def respawn_agent(self, pos):
-        print(f'pos {pos, type(pos)}')
+    def respawn_agent(self, pos_pos, pos_rot):
         sim = self._robot.base.sim
         agent = sim.get_agent(0)
         new_agent_state = habitat_sim.AgentState()
-        new_agent_state.position = pos
-        new_agent_state.rotation = np.quaternion(1.0, 0.0, 0.0, 0.0)
+        new_agent_state.position = pos_pos
+        new_agent_state.rotation = quaternion.from_float_array(pos_rot)
         agent.set_state(new_agent_state)
 
     def restart_habitat(self):

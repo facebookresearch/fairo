@@ -659,9 +659,9 @@ class Reexplore(Task):
         logger = logging.getLogger('reexplore')
 
         if self.steps[0] == "not_started":
-            self.agent.mover.bot.respawn_agent(self.spawn_pos)
+            self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
-            # assert np.allclose(base_pos, self.base_pos)
+            assert np.allclose(base_pos, self.base_pos)
 
             self.add_child_task(ExamineDetectionStraightline(
                     self.agent, {
@@ -679,9 +679,9 @@ class Reexplore(Task):
         
         # execute a examine maneuver
         if self.steps[0] == "finished" and self.steps[1] == "not_started":
-            self.agent.mover.bot.respawn_agent(self.spawn_pos)
+            self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
-            # assert np.allclose(base_pos, self.base_pos)
+            assert np.allclose(base_pos, self.base_pos)
 
             self.add_child_task(ExamineDetectionCircle(
                     self.agent, {
