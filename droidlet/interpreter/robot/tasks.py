@@ -551,6 +551,7 @@ class ExamineDetectionCircle(TrajectorySaverTask):
         super().__init__(agent, task_data)
         self.task_data = task_data
         self.target = task_data['target']
+        self.radius = task_data.get('radius', 0.7)
         self.frontier_center = np.asarray(self.target['xyz'])
         self.agent = agent
         self.steps = 0
@@ -559,7 +560,7 @@ class ExamineDetectionCircle(TrajectorySaverTask):
         self.dbg_str = task_data.get('dbg_str')
         self.logger = task_data.get('logger') 
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
-        self.pts = get_circular_path(self.frontier_center, base_pos, radius=0.7, num_points=40)
+        self.pts = get_circular_path(self.frontier_center, base_pos, radius=self.radius, num_points=40)
         self.logger.info(f'{len(self.pts)} pts on cicle {self.pts}')
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
@@ -651,7 +652,7 @@ class Reexplore(Task):
 
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
-        self.steps = ["not_started"] * 4 # S1, C1, R1, R2
+        self.steps = ["not_started"] * 5 # S1, C1s, C1l, R1, R2
         self.task_data = task_data
         self.target = task_data.get('target')
         self.spawn_pos = task_data.get('spawn_pos')
@@ -691,8 +692,8 @@ class Reexplore(Task):
                     self.agent, {
                         "target": self.target, 
                         "save_data": True,
-                        "root_data_path": f"{self.task_data['data_path']}/st",
-                        "data_path": f"{self.task_data['data_path']}/st",
+                        "root_data_path": f"{self.task_data['data_path']}/s1",
+                        "data_path": f"{self.task_data['data_path']}/s1",
                         "dbg_str": f'Straightline examine {self.target}',
                         'logger': logger
                         }
@@ -711,8 +712,8 @@ class Reexplore(Task):
                     self.agent, {
                         "target": self.target, 
                         "save_data": True,
-                        "root_data_path": f"{self.task_data['data_path']}/ci",
-                        "data_path": f"{self.task_data['data_path']}/ci",
+                        "root_data_path": f"{self.task_data['data_path']}/c1s",
+                        "data_path": f"{self.task_data['data_path']}/c1s",
                         "dbg_str": f'Circle examine {self.target}',
                         'logger': logger
                         }
@@ -722,7 +723,32 @@ class Reexplore(Task):
             self.steps[1] = "finished"
             return
 
-        if self.steps[1] == 'finished' and self.steps[2] == 'not_started':
+        # execute a circle examine with radius as distance from spawn loc
+        if self.steps[1] == "finished" and self.steps[2] == "not_started":
+            self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
+            base_pos = self.agent.mover.get_base_pos()
+            assert np.allclose(base_pos, self.base_pos)
+
+            base_pos_can = self.agent.mover.get_base_pos_in_canonical_coords()
+            dist = np.linalg.norm(base_pos_can[:2] - [self.target['xyz'][0], self.target['xyz'][2]])
+
+            self.add_child_task(ExamineDetectionCircle(
+                    self.agent, {
+                        "target": self.target, 
+                        "save_data": True,
+                        "root_data_path": f"{self.task_data['data_path']}/c1l",
+                        "data_path": f"{self.task_data['data_path']}/c1l",
+                        "dbg_str": f'Circle examine {self.target}',
+                        'logger': logger,
+                        'radius': dist
+                        }
+                    )
+                )
+
+            self.steps[2] = "finished"
+            return
+
+        if self.steps[2] == 'finished' and self.steps[3] == 'not_started':
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
             assert np.allclose(base_pos, self.base_pos)
@@ -736,10 +762,10 @@ class Reexplore(Task):
                     }
                 )
             )
-            self.steps[2] = 'finished' # peek and check?
+            self.steps[3] = 'finished' # peek and check?
             return
 
-        if self.steps[2] == 'finished' and self.steps[3] == 'not_started':
+        if self.steps[3] == 'finished' and self.steps[4] == 'not_started':
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
             assert np.allclose(base_pos, self.base_pos)
@@ -753,7 +779,7 @@ class Reexplore(Task):
                     }
                 )
             )
-            self.steps[3] = 'finished' # peek and check
+            self.steps[4] = 'finished' # peek and check
             return
         
         else:
