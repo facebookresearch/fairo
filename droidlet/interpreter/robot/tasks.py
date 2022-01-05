@@ -380,10 +380,10 @@ class TrajectorySaverTask(Task):
         depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
         depth = depth.astype(np.uint16)
         
-        pos, pos_hab = self.agent.mover.bot.get_agent_state()
+        pos, pos_hab_pos, pos_hab_rot = self.agent.mover.bot.get_agent_state()
         for data_saver in self.data_savers:
             data_saver.set_dbg_str(self.dbg_str)
-            data_saver.save(rgb, depth, segm, pos, pos_hab)
+            data_saver.save(rgb, depth, segm, pos, pos_hab_pos, pos_hab_rot)
     
     @Task.step_wrapper
     def step(self):

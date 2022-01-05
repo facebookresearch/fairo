@@ -6,6 +6,7 @@ import Pyro4
 from pyrobot import Robot
 from pyrobot.locobot.camera import DepthImgProcessor
 import numpy as np
+import quaternion
 from scipy.spatial.transform import Rotation
 import logging
 import os
@@ -55,9 +56,10 @@ class RemoteLocobot(object):
     def get_agent_state(self):
         sim = self._robot.base.sim
         agent = sim.get_agent(0)
-        pos_hab = agent.get_state().position.tolist()
+        pos_hab_pos = agent.get_state().position.tolist()
+        pos_hab_rot = quaternion.as_float_array(agent.get_state().rotation).tolist()
         pos = self.get_base_state()
-        return pos, pos_hab
+        return pos, pos_hab_pos, pos_hab_rot
     
     def respawn_agent(self, pos):
         print(f'pos {pos, type(pos)}')

@@ -223,7 +223,7 @@ class TrajectoryDataSaver:
     def get_total_frames(self):
         return self.img_count
 
-    def save(self, rgb, depth, seg, pos, pos_hab):
+    def save(self, rgb, depth, seg, pos, pos_hab_pos, pos_hab_rot):
         self.img_count = len(glob.glob(self.img_folder + '/*.jpg'))
         self.logger.info(f'Saving to {self.save_folder}, {self.img_count}, pos {np.round(pos,3)}, {self.dbg_str}')
         print(f'saving {rgb.shape, depth.shape, seg.shape}')
@@ -260,7 +260,10 @@ class TrajectoryDataSaver:
                 self.pose_dict_hab = json.load(fp)
 
         self.pose_dict[self.img_count] = copy(pos)
-        self.pose_dict_hab[self.img_count] = copy(pos_hab)
+        self.pose_dict_hab[self.img_count] = {
+                "position": copy(pos_hab_pos),
+                "rotation": copy(pos_hab_rot),
+            }
         
         with open(os.path.join(self.save_folder, "data.json"), "w") as fp:
             json.dump(self.pose_dict, fp)
