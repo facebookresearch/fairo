@@ -84,3 +84,9 @@ document.addEventListener('scroll', function(e) {
     }
   }
 });
+
+// Bug report onclick
+function bugReport() {
+  document.getElementById('bug').value = "true";
+  document.getElementById('bugButton').disabled = true;
+}
