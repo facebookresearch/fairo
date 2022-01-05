@@ -192,12 +192,14 @@
   <div class="col-xs-8">
     <fieldset>
       <div class="input-group center">
+        <input type="button" class="bugButton" value="Click here if one or more windows failed to load" onclick="document.getElementById('bug').value = 'true';">
         <h4>Please provide feedback on how we can improve the usability of this HIT</h4>
-        <input type="text" class="form-control" id="feedback" name="feedback" onchange="giveFeedback()">
+        <input type="text" class="form-control" id="feedback" name="feedback">
         <input type="hidden" id="q1Answer" name="q1Answer" value="false">
         <input type="hidden" id="q2Answer" name="q2Answer" value="false">
         <input type="hidden" id="q3Answer" name="q3Answer" value="false">
         <input type="hidden" id="q4Answer" name="q4Answer" value="false">
+        <input type="hidden" id="bug" name="bug" value="false">
         <input type="hidden" id="clickedElements" name="clickedElements" value="0">
         <input type="hidden" id="userAgent" name="userAgent" value="0">
       </div>
