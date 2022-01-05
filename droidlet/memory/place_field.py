@@ -41,15 +41,18 @@ class PlaceField:
     """
 
     # FIXME allow multiple memids at a single location in the map
-    def __init__(self, memory):
+    def __init__(self, memory, pixels_per_unit=1):
+        self.get_time = memory.get_time
         self.examined = {}
         self.examined_id = set()
         self.last = None
 
         self.maps = {}
         self.add_memid("NULL")
-        self.add_memid(self.memory.self_memid)
+        self.add_memid(memory.self_memid)
         self.map_size = self.extend_map()
+
+        self.pixels_per_unit = pixels_per_unit
 
     def update_map(self, changes):
         """
@@ -59,17 +62,17 @@ class PlaceField:
         blocking to have a memid.  an obstacle can be cleared by inputting the proper tuple.
         in world coordinates. is_obstacle is 1 for obstacle and 0 for free space
         """
-        t = self.memory.get_time()
+        t = self.get_time()
         for x, y, z, memid, is_obstacle in changes:
             h = self.y2slice(y)
             i, j = self.real2map(x, z)
             s = max(i - self.map_size + 1, j - self.map_size + 1, -i, -j)
             if s > 0:
                 self.extend_map(s)
-            i, j = self.real2map(x, z)
+            i, j = self.real2map(x, z, h)
             s = max(i - self.map_size + 1, j - self.map_size + 1, -i, -j)
-            # the map has not been extended enough to handle these.
             if s > 0:
+                # the map can not been extended enough to handle these bc MAX_MAP_SIZE
                 # FIXME appropriate warning or error?
                 continue
             self.maps[h]["map"][i, j] = is_obstacle
@@ -78,8 +81,30 @@ class PlaceField:
             self.maps[k]["updated"] = t
 
     # FIXME, want slices, esp for mc
-    def y2slice(self):
+    def y2slice(self, y):
         return 0
+
+    def real2map(self, x, z, h):
+        """
+        convert an x, z coordinate in agent space to a pixel on the map
+        """
+        n = self.maps[h]["map"].shape[0]
+        i = x * self.pixels_per_unit
+        j = z * self.pixels_per_unit
+        i = i - n // 2
+        j = j - n // 2
+        return i, j
+
+    def map2real(self, i, j, h):
+        """
+        convert an x, z coordinate in agent space to a pixel on the map
+        """
+        n = self.maps[h]["map"].shape[0]
+        i = i + n // 2
+        j = j + n // 2
+        x = i / self.pixels_per_unit
+        z = j / self.pixels_per_unit
+        return x, z
 
     def add_memid(self, memid):
         self.index2memid.append(memid)

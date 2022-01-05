@@ -137,7 +137,7 @@ class AgentMemory:
         self.tag(self.self_memid, "SELF")
 
         self.searcher = MemorySearcher()
-        self.place_field = PlaceField()
+        self.place_field = PlaceField(self)
 
     def __del__(self):
         """Close the database file"""
