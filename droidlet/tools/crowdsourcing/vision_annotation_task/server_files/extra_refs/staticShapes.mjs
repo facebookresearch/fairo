@@ -8,6 +8,7 @@ class staticShapes {
 
         let material;
         switch (qnum) {
+
             case "test_cube":
                 let starting_cube = [];
                 material = 58; // Brown wool
@@ -24,6 +25,7 @@ class staticShapes {
                     "blocks": starting_cube
                 };
                 break;
+
             case "test_colors":
                 let every_color = [];
                 material = 46;
@@ -36,6 +38,7 @@ class staticShapes {
                     "blocks": every_color
                 };
                 break;
+
             case 1:
                 this.scene = {
                     "avatarInfo": null,
@@ -47,6 +50,7 @@ class staticShapes {
                         [-2,0,-2,61], [-2,1,-2,61], [-2,2,-2,61]]  //black tower
                 };
                 break;
+
             case 2:
                 this.scene = {
                     "avatarInfo": {
@@ -84,6 +88,7 @@ class staticShapes {
                         [-4,1,-1,58]]
                 };
                 break;
+
             case 3:
                 this.scene = {
                     "avatarInfo": null,
@@ -117,6 +122,7 @@ class staticShapes {
                         [-1,0,-1,58]]
                 };
                 break;
+                
             default:
                 this.scene = null;
                 console.log("Invalid qualification question number received, something is wrong.");
