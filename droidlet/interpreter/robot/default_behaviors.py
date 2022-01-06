@@ -107,11 +107,11 @@ def explore(agent):
     start_explore(agent, goal)
 
 eid = 0
-reexplore_json = '/checkpoint/apratik/data_dec/baselinev2/0/reexplore_data.json'
+# reexplore_json = '/checkpoint/apratik/data_dec/baselinev2/0/reexplore_data.json'
 
-def get_task_data():
+def get_task_data(agent):
     global eid
-    with open(reexplore_json, 'r') as f:
+    with open(agent.opts.reexplore_json, 'r') as f:
         reex = json.load(f)
 
     if str(eid) not in reex.keys():
@@ -121,13 +121,13 @@ def get_task_data():
         'spawn_pos': reex[str(eid)]['spawn_pos'],
         'base_pos': reex[str(eid)]['base_pos'],
         'target': {'xyz': reex[str(eid)]['target'], 'label': 'object'},
-        'data_path': f'reexplore/{eid}',
-        'root_data_path': f'reexplore/{eid}',
+        'data_path': f'{agent.opts.data_store_path}/{eid}',
+        'root_data_path': f'{agent.opts.data_store_path}/{eid}',
     }
     eid += 1
     return task_data
 
 def reexplore(agent):
-    task_data = get_task_data()
+    task_data = get_task_data(agent)
     if task_data is not None:
         agent.memory.task_stack_push(tasks.Reexplore(agent, task_data))

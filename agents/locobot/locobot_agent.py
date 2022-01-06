@@ -86,7 +86,7 @@ class LocobotAgent(DroidletAgent):
         self.init_event_handlers()
         # list of (prob, default function) pairs
         if self.backend == 'habitat':
-            self.visible_defaults = [(1.0, default_behaviors.explore)]
+            self.visible_defaults = [(1.0, default_behaviors.reexplore)]
         elif self.backend == 'hellorobot':
             self.visible_defaults = []
         else:
