@@ -24,4 +24,4 @@ echo """"""""""""""""""""""""""""""
 cd /private/home/apratik/fairo/tools/active_vision
 
 chmod +x reexplore.py
-python reexplore.py --data_dir $data_dir --job_dir $job_dir #--noise
+python reexplore.py --data_dir $data_dir --job_dir $job_dir $2

@@ -129,5 +129,6 @@ def get_task_data(agent):
 
 def reexplore(agent):
     task_data = get_task_data(agent)
+    logging.info(f'task_data {task_data}')
     if task_data is not None:
         agent.memory.task_stack_push(tasks.Reexplore(agent, task_data))

@@ -136,23 +136,24 @@ def process(traj_path, out_dir, gt, s, is_annot_validfn):
 def find_spawn_loc(baseline_root, outdir):
     jobs = []
     print(f"baseline_root {baseline_root}")
-    for traj_path in glob.glob(baseline_root + '/*')[:10]:
-        if traj_path.split('/')[-1].isdigit():
-            print(f'processing {traj_path}')
-            traj_id = '/'.join(traj_path.split('/')[-2:])
-            for setting in ['class', 'instance']:
-                annot_fn = is_annot_validfn_class if setting == 'class' else is_annot_validfn_inst
-                
-                def job_unit(traj_path, outdir, traj_id, annot_fn, setting):
-                    s = SampleGoodCandidates(traj_path, annot_fn, setting)
-                    for gt in range(5,10,5):
-                        outr = os.path.join(outdir, traj_id, setting, str(gt))
-                        os.makedirs(outr, exist_ok=True)
-                        print(f'outr {outr}')
-                        process(traj_path, outr, gt, s, annot_fn)
+    with executor.batch():
+        for traj_path in glob.glob(baseline_root + '/*')[:10]:
+            if traj_path.split('/')[-1].isdigit():
+                print(f'processing {traj_path}')
+                traj_id = '/'.join(traj_path.split('/')[-2:])
+                for setting in ['class', 'instance']:
+                    annot_fn = is_annot_validfn_class if setting == 'class' else is_annot_validfn_inst
+                    
+                    def job_unit(traj_path, outdir, traj_id, annot_fn, setting):
+                        s = SampleGoodCandidates(traj_path, annot_fn, setting)
+                        for gt in range(5,10,5):
+                            outr = os.path.join(outdir, traj_id, setting, str(gt))
+                            os.makedirs(outr, exist_ok=True)
+                            print(f'outr {outr}')
+                            process(traj_path, outr, gt, s, annot_fn)
 
-                job = executor.submit(job_unit, traj_path, outdir, traj_id, annot_fn, setting)
-                jobs.append(job)
+                    job = executor.submit(job_unit, traj_path, outdir, traj_id, annot_fn, setting)
+                    jobs.append(job)
 
     print(f"Job Id {jobs[0].job_id.split('_')[0]}, num jobs {len(jobs)}")
 
@@ -174,7 +175,7 @@ if __name__ == "__main__":
     # set timeout in min, and partition for running the job
     executor.update_parameters(
         slurm_partition="learnfair", #"learnfair", #scavenge
-        timeout_min=2000,
+        timeout_min=20,
         mem_gb=256,
         gpus_per_node=4,
         tasks_per_node=1, 
