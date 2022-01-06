@@ -18,7 +18,7 @@ from mephisto.tools.data_browser import DataBrowser
 from mephisto.data_model.worker import Worker
 
 #%%
-def check_run_status(run_id: int) -> None:
+def check_run_status(run_id: int, qual_name: str) -> None:
     db = LocalMephistoDB()
     units = db.find_units(task_run_id=run_id)
     units_num = len(units)
@@ -55,7 +55,6 @@ def check_run_status(run_id: int) -> None:
     total_cnt = 0
     passed_time = 0
     passed_cnt = 0
-    qual_name = "VISION_ALLOWLIST_PRE_PILOT_1"
     turkers_with_mturk_qual_cnt = 0
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
@@ -139,7 +138,7 @@ def timing_charts(run_id: int) -> None:
     starttime = math.inf
     endtime = -math.inf
     feedback = []
-    num_all_false = 0
+    num_correct_hist = []
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         worker = Worker(db, data["worker_id"]).worker_name
@@ -148,23 +147,28 @@ def timing_charts(run_id: int) -> None:
         
         outputs = data["data"]["outputs"]
         feedback.append(outputs["feedback"])
-        num_false = 0
+        num_correct = 0
         for q in question_results.keys():
             key = "q" + str(q) + "Answer"
             question_results[q].append(outputs[key])
-            if outputs[key] == 'false':
-                num_false += 1
-
-        if num_false == len(question_results):
-            num_all_false += 1
+            if outputs[key] == 'true':
+                num_correct += 1
+        num_correct_hist.append(num_correct)
 
     plot_hist_sorted(unit_timing["total"], cutoff=1200, target_val=600, xlabel="", ylabel="Total HIT Time (sec)")
+    calc_percentiles(unit_timing["total"], "HIT Length")
+    
     for q in question_results.keys():
         results_dict = Counter(question_results[q])
         pass_rates[q] = (results_dict['true']/(results_dict['true'] + results_dict['false']))*100
         print(f"Question #{q} pass rate: {(results_dict['true']/(results_dict['true'] + results_dict['false']))*100:.1f}%")
     plot_hist(pass_rates, xlabel="Question #", ylabel=f"Pass Rate %")
-    print(f"Number of workers who didn't get any right: {num_all_false}")
+    print(f"Number of workers who didn't get any right: {len([x for x in num_correct_hist if x == 0])}")
+
+    keys = range(len(num_correct_hist))
+    vals_dict = dict(zip(keys, num_correct_hist))
+    plot_hist(vals_dict, xlabel="HIT #", ylabel="# Correct", ymax=4)
+
     print(feedback)
         
 #%%
