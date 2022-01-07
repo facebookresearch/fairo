@@ -1,7 +1,5 @@
 FROM nvidia/cuda:11.4.1-cudnn8-devel-ubuntu20.04
 
-ENV version=0.0.0
-
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt install -y \
     git \

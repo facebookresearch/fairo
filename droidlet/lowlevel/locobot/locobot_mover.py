@@ -22,9 +22,12 @@ from ..robot_mover_utils import (
     MAX_PAN_RAD,
     CAMERA_HEIGHT,
     ARM_HEIGHT,
-    transform_pose,
-    base_canonical_coords_to_pyrobot_coords,
+    transform_pose
+)
+
+from droidlet.lowlevel.robot_coordinate_utils import (
     xyz_pyrobot_to_canonical_coords,
+    base_canonical_coords_to_pyrobot_coords
 )
 
 Pyro4.config.SERIALIZER = "pickle"
@@ -354,6 +357,11 @@ class LoCoBotMover:
         pts = transform_pose(pts, self.bot.get_base_state("odom"))
         return RGBDepth(rgb, d, pts)
 
+    def get_rgb_depth_segm(self):
+        if self.backend != 'habitat':
+            return None
+        return self.bot.get_rgb_depth_segm()
+
     def get_current_pcd(self, in_cam=False, in_global=False):
         """Gets the current point cloud"""
         return self.bot.get_current_pcd(in_cam=in_cam, in_global=in_global)
@@ -378,9 +386,9 @@ class LoCoBotMover:
         """
         return self.bot.grasp(bounding_box)
 
-    def explore(self):
+    def explore(self, goal):
         if self.nav_result.ready:
-            self.nav_result = safe_call(self.nav.explore)
+            self.nav_result = safe_call(self.nav.explore, goal)
         else:
             print("navigator executing another call right now")
         return self.nav_result

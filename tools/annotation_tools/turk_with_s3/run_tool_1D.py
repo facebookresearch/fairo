@@ -6,7 +6,7 @@ import os
 import boto3
 
 from create_jobs import create_turk_job
-from get_results import get_hit_result
+from get_results import get_hits_result
 
 """
 Kicks off a pipeline that schedules Turk jobs for tool 1D,
@@ -64,7 +64,7 @@ mturk = boto3.client(
     endpoint_url=MTURK_URL,
 )
 
-get_hit_result(mturk, hit_id, f"{default_write_dir}/D/turk_output.csv", True if dev_flag else False, timeout)
+get_hits_result(mturk, hit_id, f"{default_write_dir}/D/turk_output.csv", True if dev_flag else False, timeout)
 
 # Collate datasets
 print("*"*50)

@@ -91,7 +91,13 @@ class Launcher(BaseLauncher):
         }
         util.nested_dict_update(run_kwargs, self.kwargs)
 
-        self.proc = await docker.containers.create_or_replace(container, run_kwargs)
+        try:
+            self.proc = await docker.containers.create_or_replace(container, run_kwargs)
+        except Exception as e:
+            life_cycle.set_state(self.name, life_cycle.State.STOPPED, return_code=-1)
+            await docker.close()
+            util.fail(f"Failed to start docker process: name={self.name} reason={e}")
+
         await self.proc.start()
 
         proc_info = await self.proc.show()
@@ -130,7 +136,9 @@ class Launcher(BaseLauncher):
 
 
 class Docker(BaseRuntime):
-    def __init__(self, image=None, dockerfile=None, mount=[], build_kwargs={}, run_kwargs={}):
+    def __init__(
+        self, image=None, dockerfile=None, mount=[], build_kwargs={}, run_kwargs={}
+    ):
         if bool(image) == bool(dockerfile):
             util.fail("Docker process must define exactly one of image or dockerfile")
         self.image = image
@@ -164,6 +172,17 @@ class Docker(BaseRuntime):
                     print(lineinfo["stream"].strip())
                 elif "errorDetail" in lineinfo:
                     util.fail(json.dumps(lineinfo["errorDetail"], indent=2))
+        else:
+            try:
+                docker_api.images.get(self.image)
+            except docker.errors.ImageNotFound:
+                try:
+                    for line in docker_api.lowlevel.pull(self.image, stream=True):
+                        lineinfo = json.loads(line.decode())
+                        if args.verbose and "status" in lineinfo:
+                            print(lineinfo["status"].strip())
+                except docker.errors.NotFound as e:
+                    util.fail(e)
 
         uses_ldap = util.is_ldap_user()
 

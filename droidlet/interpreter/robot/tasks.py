@@ -3,9 +3,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import time
+import math
 import logging
 import numpy as np
-
+import os
+import math
+from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 from droidlet.task.task import Task, BaseMovementTask
 from droidlet.memory.memory_nodes import TaskNode
 
@@ -15,6 +18,12 @@ from droidlet.lowlevel.robot_mover_utils import (
     get_move_target_for_point,
     ARM_HEIGHT,
     get_camera_angles,
+    TrajectoryDataSaver,
+    visualize_examine,
+    get_step_target_for_straightline_move,
+    ExaminedMap,
+    CAMERA_HEIGHT,
+    get_circular_path,
 )
 
 # FIXME store dances, etc.
@@ -40,30 +49,43 @@ class Dance(Task):
         self.finished = True
 
 
+def torad(deg):
+    if deg:
+        return deg * math.pi / 180 
+
 #### TODO, FIXME!:
 #### merge Look, Point, Turn into dancemove; on mc side too
 class Look(Task):
     def __init__(self, agent, task_data):
         super().__init__(agent)
-        self.target = task_data.get("target")
-        self.yaw = task_data.get("yaw")
-        self.pitch = task_data.get("pitch")
-        assert self.yaw or self.pitch or self.target
+        self.task_data = task_data
+        assert(
+            task_data.get("target") or
+            task_data.get("pitch") or
+            task_data.get("yaw") or
+            task_data.get("relative_yaw") or
+            task_data.get("relative_pitch")
+        )
         self.command_sent = False
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
     def step(self):
         self.finished = False
-        self.interrupted = False
-        if self.target:
-            logging.info(f"calling bot to look at location {self.target}")
-        if self.pitch:
-            logging.info(f"calling bot to shift pitch {self.pitch}")
-        if self.yaw:
-            logging.info(f"calling bot to shift yaw {self.yaw}")
+        self.interrupted = False 
         if not self.command_sent:
-            status = self.agent.mover.look_at(self.target, self.yaw, self.pitch)
+            if self.task_data.get("target"):
+                status = self.agent.mover.look_at(self.task_data["target"])
+            if self.task_data.get("pitch") or self.task_data.get("yaw"):
+                status = self.agent.mover.set_look(
+                    torad(self.task_data.get("yaw")),
+                    torad(self.task_data.get("pitch"))
+                )
+            if self.task_data.get("relative_pitch") or self.task_data.get("relative_yaw"):
+                status = self.agent.mover.relative_pan_tilt(
+                    torad(self.task_data.get("relative_yaw")),
+                    torad(self.task_data.get("relative_pitch"))
+                ) 
             self.command_sent = True
             if status == "finished":
                 self.finished = True
@@ -71,11 +93,12 @@ class Look(Task):
             self.finished = self.agent.mover.bot_step()
 
     def __repr__(self):
-        if self.target:
-            return "<Look at {} {} {}>".format(self.target[0], self.target[1], self.target[2])
+        if self.task_data.get("target"):
+            target = self.task_data.get["target"]
+            return "<Look at {} {} {}>".format(target[0], target[1], target[2])
         else:
-            return "<Look at {} {}>".format(self.pitch, self.yaw)
-
+            return "<Look: {}".format(self.task_data)
+        
 
 class Point(Task):
     def __init__(self, agent, task_data):
@@ -160,7 +183,7 @@ class Move(BaseMovementTask):
 class Turn(Task):
     def __init__(self, agent, task_data):
         super().__init__(agent)
-        self.yaw = task_data["yaw"]
+        self.yaw = task_data.get("yaw") or task_data.get("relative_yaw") 
         self.command_sent = False
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
@@ -334,21 +357,266 @@ class Drop(Task):
                         agent.memory.untag(mmid, "_in_inventory")
 
 
-class Explore(Task):
-    """use slam to explore environemt"""
+class TrajectorySaverTask(Task):
+    def __init__(self, agent, task_data):
+        super().__init__(agent, task_data)
+        self.save_data = task_data.get('save_data', False)
+        self.data_path = task_data.get('data_path', 'default')
+        self.dbg_str = 'None'
+        if self.save_data:
+            self.data_saver = TrajectoryDataSaver(os.path.join(agent.opts.data_store_path, self.data_path))
+            self.data_savers = [self.data_saver]
+            parent_data_saver = task_data.get('parent_data_saver', None)
+            if parent_data_saver is not None:
+                self.data_savers.append(parent_data_saver)
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    def save_rgb_depth_seg(self):
+        rgb, depth, segm = self.agent.mover.get_rgb_depth_segm()
+        # store depth in mm
+        depth *= 1e3
+        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
+        depth = depth.astype(np.uint16)
+        
+        pos = self.agent.mover.get_base_pos()
+        for data_saver in self.data_savers:
+            data_saver.set_dbg_str(self.dbg_str)
+            data_saver.save(rgb, depth, segm, pos)
+    
+    @Task.step_wrapper
+    def step(self):
+        if self.save_data:
+            self.save_rgb_depth_seg()
+
+    def __repr__(self):
+        return "<TrajectorySaverTask {}>".format(self.target)
+
+class CuriousExplore(TrajectorySaverTask):
+    """use slam to explore environemt, but also examine detections"""
 
     def __init__(self, agent, task_data):
-        super().__init__(agent)
-        self.command_sent = False
+        super().__init__(agent, task_data)
+        self.steps = ["not_started"] * 2
+        self.task_data = task_data
+        self.goal = task_data.get("goal", (19,19,0))
+        self.init_curious_logger()
         self.agent = agent
+        self.objects_examined = 0
+        self.save_data = task_data.get('save_data')
+        print(f'CuriousExplore task_data {task_data}')
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    def init_curious_logger(self):
+        self.logger = logging.getLogger('curious')
+        self.logger.setLevel(logging.INFO)
+        fh = logging.FileHandler(f"curious_explore_{'_'.join([str(x) for x in self.goal])}.log", 'w')
+        fh.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(filename)s:%(lineno)s - %(funcName)s(): %(message)s')
+        fh.setFormatter(formatter)
+        self.logger.addHandler(fh)
+        self.logger.addHandler(ch)
+        self.logger.info(f'CuriousExplore task_data {self.task_data}')
+
+    @Task.step_wrapper
+    def step(self):
+        super().step()
+        self.interrupted = False
+        self.finished = False
+        
+        if self.steps[0] == "not_started":
+            self.logger.info(f'exploring goal {self.goal}')           
+            self.agent.mover.explore(self.goal)
+            self.dbg_str = "Explore"
+            self.steps[0] = "finished"
+            return
+        
+        # execute a examine maneuver
+        if self.steps[0] == "finished" and self.steps[1] == "not_started":
+            # Get a list of current detections
+            objects = DetectedObjectNode.get_all(self.agent.memory)
+            pos = self.agent.mover.get_base_pos_in_canonical_coords()
+            # pick all from unexamined, in-sight object
+            def pick_random_in_sight(objects, base_pos):
+                for x in objects:
+                    if ExaminedMap.can_examine(x):
+                        # check for line of sight and if within a certain distance
+                        yaw_rad, _ = get_camera_angles([base_pos[0], CAMERA_HEIGHT, base_pos[1]], x['xyz'])
+                        dist = np.linalg.norm(base_pos[:2]-[x['xyz'][0], x['xyz'][2]])
+                        if abs(yaw_rad - base_pos[2]) <= math.pi/4 and dist <= 3:
+                            self.logger.info(f"Exploring eid {x['eid']}, {x['label']} next, dist {dist}")
+                            return x
+                return None
+            target = pick_random_in_sight(objects, pos)
+            if target is not None:
+                self.logger.info(f"CuriousExplore Target {target['eid'], target['label'], target['xyz']}, robot pos {pos}")
+                ExaminedMap.update(target)
+                self.dbg_str = f"Examine {str(target['eid']) + '_' + str(target['label'])} xyz {str(np.round(target['xyz'],3))}"
+                if os.getenv('HEURISTIC') == 'straightline':
+                    examine_heuristic = ExamineDetectionStraightline 
+                else:
+                    examine_heuristic = ExamineDetectionCircle
+                self.add_child_task(examine_heuristic(
+                    self.agent, {
+                        "target": target, 
+                        "save_data": self.save_data,
+                        "root_data_path": f"{self.task_data['data_path']}",
+                        "data_path": f"{self.task_data['data_path']}/{str(self.objects_examined)}",
+                        "dbg_str": self.dbg_str,
+                        "parent_data_saver": self.data_savers[0],
+                        "logger": self.logger,
+                        }
+                    )
+                )
+                self.objects_examined += 1
+            self.steps[1] = "finished"
+            return
+        
+        else:
+            self.finished = self.agent.mover.nav.is_done_exploring().value
+            if not self.finished:
+                self.steps = ["not_started"] * 2
+            else:
+                self.logger.info(f"Exploration finished!")
+    
+    def __repr__(self):
+        return "<CuriousExplore>"
+
+
+class ExamineDetectionStraightline(TrajectorySaverTask):
+    """Examine a detection"""
+    def __init__(self, agent, task_data):
+        super().__init__(agent, task_data)
+        self.task_data = task_data
+        self.target = task_data['target']
+        self.frontier_center = np.asarray(self.target['xyz'])
+        self.agent = agent
+        self.last_base_pos = None
+        self.robot_poses = []
+        self.dbg_str = task_data.get('dbg_str')
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
     def step(self):
+        super().step()
         self.interrupted = False
         self.finished = False
-        if not self.command_sent:
-            self.command_sent = True
-            self.agent.mover.explore()
+        logger = logging.getLogger('curious')
+        base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        self.robot_poses.append(base_pos)
+        dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
+        logger.info(f"Deciding examination, dist = {dist}")
+        d = 1
+        if self.last_base_pos is not None:
+            d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
+            # logger.info(f"Distance moved {d}")
+        if (base_pos != self.last_base_pos).any() and dist > 0.2 and d > 0:
+            tloc = get_step_target_for_straightline_move(base_pos, self.frontier_center)
+            logger.debug(f"get_step_target_for_straight_move \
+                \nx, z, yaw = {base_pos},\
+                \nxf, zf = {self.frontier_center[0], self.frontier_center[2]} \
+                \nx_move, z_move, yaw_move = {tloc}")
+            logging.info(f"Current Pos {base_pos}")
+            logging.info(f"Move Target for Examining {tloc}")
+            logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-tloc[:2])}")
+            self.add_child_task(Move(self.agent, {"target": tloc}))
+
+            # visualize tloc, frontier_center, obstacle_map  
+            if os.getenv('VISUALIZE_EXAMINE', 'False') == 'True':
+                visualize_examine(
+                    self.agent, 
+                    self.robot_poses, 
+                    self.frontier_center, 
+                    self.target['label'],
+                    self.agent.mover.get_obstacles_in_canonical_coords(),
+                    self.task_data['root_data_path'],
+                )   
+
+            self.last_base_pos = base_pos
+            return
         else:
+            logger.info(f"Finished Examination")
             self.finished = self.agent.mover.bot_step()
+        
+    def __repr__(self):
+        return "<ExamineDetectionStraightline {}>".format(self.target['label'])
+
+
+class ExamineDetectionCircle(TrajectorySaverTask):
+    """Examine a detection"""
+    def __init__(self, agent, task_data):
+        super().__init__(agent, task_data)
+        self.task_data = task_data
+        self.target = task_data['target']
+        self.frontier_center = np.asarray(self.target['xyz'])
+        self.agent = agent
+        self.steps = 0
+        self.robot_poses = []
+        self.last_base_pos = None
+        self.dbg_str = task_data.get('dbg_str')
+        self.logger = task_data.get('logger')
+        base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        self.pts = get_circular_path(self.frontier_center, base_pos, radius=0.7, num_points=40)
+        self.logger.info(f'{len(self.pts)} pts on cicle {self.pts}')
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        super().step()
+        self.interrupted = False
+        self.finished = False
+        base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        if self.steps > 0: # without any steps, the robot isn't on the circle of inspection
+            self.robot_poses.append(base_pos)
+        d = 1
+        if self.last_base_pos is not None:
+            d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
+            self.logger.info(f"Distance moved {d}")
+        if (base_pos != self.last_base_pos).any() and self.steps < len(self.pts):
+            tloc = self.pts[self.steps]
+            self.steps += 1
+            self.logger.info(f'step {self.steps} moving to {tloc} Current Pos {base_pos}')
+            self.add_child_task(Move(self.agent, {"target": tloc}))
+            self.last_base_pos = base_pos
+            # visualize tloc, frontier_center, obstacle_map  
+            if os.getenv('VISUALIZE_EXAMINE', 'False') == 'True':
+                visualize_examine(
+                    self.agent, 
+                    self.robot_poses, 
+                    self.frontier_center, 
+                    self.target['label'],
+                    self.agent.mover.get_obstacles_in_canonical_coords(),
+                    self.task_data['root_data_path'],
+                    self.pts,
+                )   
+
+            return
+        else:
+            self.logger.info(f"Finished Examination")
+            self.finished = self.agent.mover.bot_step()
+        
+    def __repr__(self):
+        return "<ExamineDetectionCircle {}>".format(self.target['label'])
+
+
+
+class Explore(TrajectorySaverTask):
+    """use slam to explore environemt"""
+
+    def __init__(self, agent, task_data):
+        super().__init__(agent, task_data)
+        self.command_sent = False
+        self.agent = agent
+        self.goal = task_data.get("goal")
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        super().step()
+        self.interrupted = False
+        self.finished = False
+        if not self.finished:
+            self.agent.mover.explore(self.goal)
+            self.finished = self.agent.mover.nav.is_done_exploring().value
+

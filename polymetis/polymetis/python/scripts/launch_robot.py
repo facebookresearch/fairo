@@ -22,6 +22,12 @@ from polymetis.utils.data_dir import PKG_ROOT_DIR, which
 log = logging.getLogger(__name__)
 
 
+def check_server_exists(ip, port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        server_exists = s.connect_ex((ip, port)) == 0
+    return server_exists
+
+
 @hydra.main(config_name="launch_robot")
 def main(cfg):
     build_dir = os.path.abspath(os.path.join(PKG_ROOT_DIR, "..", "..", "build"))
@@ -29,10 +35,8 @@ def main(cfg):
     os.environ["PATH"] = build_dir + os.pathsep + os.environ["PATH"]
 
     # Check if another server is alive on address
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        server_exists = s.connect_ex((cfg.ip, cfg.port)) == 0
-    assert (
-        not server_exists
+    assert not check_server_exists(
+        cfg.ip, cfg.port
     ), "Port unavailable; possibly another server found on designated address. To prevent undefined behavior, start the service on a different port or kill stale servers with 'pkill -9 run_server'"
 
     # Parse server address
@@ -75,7 +79,12 @@ def main(cfg):
     signal.signal(signal.SIGTERM, lambda signal_number, stack_frame: cleanup())
 
     # Start client
-    time.sleep(1.0)
+    t0 = time.time()
+    while not check_server_exists(cfg.ip, cfg.port):
+        time.sleep(0.1)
+        if time.time() - t0 > cfg.timeout:
+            raise ConnectionError("Robot client: Unable to locate server.")
+
     log.info(f"Starting robot client...")
     client = hydra.utils.instantiate(cfg.robot_client)
     client.run()

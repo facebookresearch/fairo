@@ -12,7 +12,7 @@ python try_download.py --agent_name <name of agent> --test_mode
 ```
 where `agent_name` is the name of agent you are downloading the artifacts for. Note that some perception models will be 
 different for different agents like `craftassist` and `locobot`.
-`test_mode` is a binary flag, if passed downloads the `test_assets` for locobot. This will be refactored soon.
+`test_mode` is a binary flag, and if passed, downloads the `perception_test_assets` for robot.
 
 The above script first compares the checksum of your local artifacts folders and compares them against the checksums 
 tracked in main, if they are different it will force download the updated version.

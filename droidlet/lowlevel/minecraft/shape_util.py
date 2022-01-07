@@ -6,7 +6,7 @@ import random
 import numpy as np
 from droidlet.lowlevel.minecraft import shapes
 
-FORCE_SMALL = 10  # for debug
+FORCE_SMALL = 5  # for debug
 
 # Map shape name to function in shapes.py
 SHAPE_FNS = {

@@ -14,18 +14,19 @@ import numpy as np
 
 import cv2
 from droidlet.shared_data_structs import ErrorWithResponse
-from agents.argument_parser import ArgumentParser
+#from agents.argument_parser import ArgumentParser
 from droidlet.shared_data_structs import RGBDepth
 
-from ..robot_mover import MoverInterface
-from ..robot_mover_utils import (
+from droidlet.lowlevel.robot_coordinate_utils import base_canonical_coords_to_pyrobot_coords
+
+from droidlet.lowlevel.robot_mover import MoverInterface
+from droidlet.lowlevel.robot_mover_utils import (
     get_camera_angles,
     angle_diff,
     transform_pose,
-    base_canonical_coords_to_pyrobot_coords,
-    xyz_pyrobot_to_canonical_coords,
 )
-from ..rotation import (
+
+from droidlet.lowlevel.hello_robot.rotation import (
     rotation_matrix_x,
     rotation_matrix_y,
     rotation_matrix_z,
@@ -36,6 +37,10 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION=2
+
+MAX_PAN_RAD = math.pi/4
+
+# TODO/FIXME: state machines.  state machines everywhere
 
 def safe_call(f, *args, **kwargs):
     try:
@@ -66,7 +71,6 @@ class HelloRobotMover(MoverInterface):
         self.data_logger = Pyro4.Proxy("PYRONAME:hello_data_logger@" + ip)
         self.data_logger._pyroAsync()
         _ = safe_call(self.data_logger.ready)
-        self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
 
         intrinsic_mat = safe_call(self.cam.get_intrinsics)
         intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
@@ -87,12 +91,67 @@ class HelloRobotMover(MoverInterface):
         f = not self.bot.is_moving().value
         return f
 
-    def look_at(self, target, turn_base=True):
+    def relative_pan_tilt(self, dpan, dtilt, turn_base=True):
+        """ 
+        move the head so its new tilt is current_tilt + dtilt 
+        and pan is current_pan + dpan 
+        
+        Args: 
+            dpan (float): angle in radians to turn head left-right.  
+                positive is right
+            dtilt (float): angle in radians to turn head up-down.  
+                positive is up
+        """
+        # FIXME handle out-of-range values properly
+        dtilt = dtilt or 0
+        dpan = dpan or 0
+        
+        new_tilt = self.get_tilt() + dtilt
+        
+        # FIXME: make a safe_base_turn method
+        if np.abs(dpan) > MAX_PAN_RAD and turn_base:
+            dyaw = np.sign(dpan) * (np.abs(dpan) - MAX_PAN_RAD)
+            self.turn(dyaw * 180 / math.pi)
+            pan_rad = np.sign(dpan) * MAX_PAN_RAD
+        else:
+            pan_rad = dpan
+        new_pan = self.get_pan() + pan_rad
+        self.bot.set_pan_tilt(new_pan, new_tilt)
+        return "finished"
+        
+
+    def set_look(self, pan_rad, tilt_rad, turn_base=True, world=False):
+        """
+        Sets the agent to look at a specified absolute pan and tilt.
+        These are  "absolute" w.r.t. robot current base, if world==False
+        and absolute w.r.t. world coords if world=True
+
+        Args: 
+            pan_rad (float): angle in radians to turn head left-right.  
+                positive is right
+            tilt_rad (float): angle in radians to to turn head up-down.
+                positive is down. 
+        """
+        tilt_rad = tilt_rad or self.get_tilt()
+        # TODO handle out-of-range properly
+        dtilt = angle_diff(self.get_tilt(), tilt_rad)
+        if not world:
+            pan_rad = pan_rad or self.get_pan()
+            dpan = angle_diff(self.get_pan(), pan_rad)
+        else:
+            base_pan = self.get_base_pos_in_canonical_coords()[2]
+            pan_rad = pan_rad or base_pan + self.get_pan()
+            dpan = angle_diff(base_pan + self.get_pan(), pan_rad)
+        return self.relative_pan_tilt(dpan, dtilt, turn_base=turn_base)
+
+    
+    def look_at(self, target, turn_base=True, face=False):
         """
         Executes "look at" by setting the pan, tilt of the camera
         or turning the base if required.
         Uses both the base state and object coordinates in 
         canonical world coordinates to calculate expected yaw and pitch.
+        if face == True will move body so head yaw is 0 
 
         Args:
             target (list): object coordinates as saved in memory.
@@ -104,32 +163,27 @@ class HelloRobotMover(MoverInterface):
         cam_transform = self.bot.get_camera_transform().value
         cam_pos = cam_transform[0:3, 3]
         # convert cam_pos to canonical co-ordinates
+        # FIXME !  do this properly in a util, current functions don't do it bc
+        #          we are mixing base pos already converted and cam height
         cam_pos = [pos[0], cam_pos[2], pos[1]]
 
         logging.info(f"Current base state (x, z, yaw): {pos}, camera state (x, y, z): {cam_pos}")
         logging.info(f"looking at x,y,z: {target}")
         
         pan_rad, tilt_rad = get_camera_angles(cam_pos, target)
+#        pan_res = angle_diff(pos[2], pan_rad)
         # For the Hello camera, negative tilt seems to be up, and positive tilt is down
         # For the locobot camera, it is the opposite
         # TODO: debug this further, and make things across robots consistent
-        tilt_rad = -tilt_rad
         logging.info(f"Returned new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
-
-        head_res = angle_diff(pos[2], pan_rad)
-
-        # TODO: fix the turning logic to be correct
-        MAX_PAN_RAD = 1.7763497523715726
-        if np.abs(head_res) > MAX_PAN_RAD and turn_base:
-            dyaw = np.sign(head_res) * (np.abs(head_res) - MAX_PAN_RAD)
-            self.turn(dyaw)
-            pan_rad = np.sign(head_res) * MAX_PAN_RAD
+        if face:
+            # TODO less blocking, make me into state machine
+            dpan = angle_diff(self.get_base_pos_in_canonical_coords()[2], pan_rad)
+            self.turn(dpan * 180 / math.pi)
+            return self.set_look(0, tilt_rad)
         else:
-            pan_rad = head_res
-        logging.info(f"Camera new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
-        self.bot.set_pan_tilt(pan_rad, tilt_rad)
+            self.set_look(pan_rad, tilt_rad, turn_base=True, world=True)
 
-        return "finished"
 
     def stop(self):
         """immediately stop the robot."""
@@ -155,36 +209,36 @@ class HelloRobotMover(MoverInterface):
         """Command to execute a relative move.
 
         Args:
-            xyt_positions: a list of relative (x,y,yaw) positions for the bot to execute.
+            xzt_positions: a list of relative (x,y,yaw) positions for the bot to execute.
             x,y,yaw are in the pyrobot's coordinates.
         """
         if not isinstance(next(iter(xyt_positions)), Iterable):
             # single xyt position given
-            xyt_positions = [xyt_positions]
+            xzt_positions = [xzt_positions]
         for xyt in xyt_positions:
             self.is_moving.wait()
             self.is_moving = safe_call(self.bot.go_to_relative, xyt)
             if blocking:
                 self.is_moving.wait()
 
-    def move_absolute(self, xyt_positions, blocking=True):
+    def move_absolute(self, xzt_positions, blocking=True):
         """Command to execute a move to an absolute position.
 
         It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
         before calling the bot APIs.
 
         Args:
-            xyt_positions: a list of (x_c,y_c,yaw) positions for the bot to move to.
-            (x_c,y_c,yaw) are in the canonical world coordinates.
+            xzt_positions: a list of (x_c,z_c,yaw) positions for the bot to move to.
+            (x_c,z_c,yaw) are in the canonical world coordinates.
         """
-        if not isinstance(next(iter(xyt_positions)), Iterable):
-            # single xyt position given
-            xyt_positions = [xyt_positions]
-        for xyt in xyt_positions:
-            logging.info("Move absolute in canonical coordinates {}".format(xyt))
-            global_coords = base_canonical_coords_to_pyrobot_coords(xyt)
+        if not isinstance(next(iter(xzt_positions)), Iterable):
+            # single xzt position given
+            xzt_positions = [xzt_positions]
+        for xzt in xzt_positions:
+            logging.info("Move absolute in canonical coordinates {}".format(xzt))
             self.is_moving.wait()
-            self.is_moving = self.bot.go_to_absolute(global_coords)
+            robot_coords = base_canonical_coords_to_pyrobot_coords(xzt)
+            self.is_moving = self.bot.go_to_absolute(robot_coords)
             if blocking:
                 self.is_moving.wait()
         return "finished"
@@ -192,19 +246,20 @@ class HelloRobotMover(MoverInterface):
     def get_base_pos_in_canonical_coords(self):
         """get the current robot position in the canonical coordinate system
        
-        the standard coordinate systems:
-          Camera looks at (0, 0, 1),
-          its right direction is (1, 0, 0) and
-          its up-direction is (0, 1, 0)
+        the canonical coordinate systems:                           
+        from the origin, at yaw=0, front is (x, y, z) = (0, 0, 1),
+        its right direction is (x,y,z) = (1, 0, 0) 
+        its up direction is (x,y,z) = (0, 1, 0)
+        yaw is + counterclockwise
 
-         return:
-         (x, z, yaw) of the robot base in standard coordinates
+        return:
+        (x, z, yaw) of the robot base in canonical coordinates
         """
         future = safe_call(self.bot.get_base_state)
-        x_global, y_global, yaw = future.value
-        x_standard = -y_global
-        z_standard = x_global
-        return np.array([x_standard, z_standard, yaw])
+        x_robot, y_robot, yaw = future.value
+        z_canonical = x_robot
+        x_canonical = -y_robot
+        return np.array([x_canonical, z_canonical, yaw])
 
     def get_current_pcd(self, in_cam=False, in_global=False):
         """Gets the current point cloud"""
@@ -306,21 +361,13 @@ class HelloRobotMover(MoverInterface):
         turn_rad = yaw * math.pi / 180
         self.bot.rotate_by(turn_rad)
 
-    def get_obstacles_in_canonical_coords(self):
-        cordinates_in_robot_frame = self.bot.get_map()
-        cordinates_in_standard_frame = [
-            xyz_pyrobot_to_canonical_coords(list(c) + [0.0]) for c in cordinates_in_robot_frame
-        ]
-        cordinates_in_standard_frame = [(c[0], c[2]) for c in cordinates_in_standard_frame]
-        return cordinates_in_standard_frame
-
     def explore(self):
         return self.bot.explore()
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ip", default="")
+    opts = parser.parse_args()
     base_path = os.path.dirname(__file__)
-    parser = ArgumentParser("HelloRobot", base_path)
-    opts = parser.parse()
-    mover = BotMover(ip=opts.ip)
-    if opts.check_controller:
-        mover.check()
+    mover = HelloRobotMover(ip=opts.ip)

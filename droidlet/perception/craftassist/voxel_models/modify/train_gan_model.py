@@ -299,7 +299,7 @@ if __name__ == "__main__":
     parser.add_argument("--hidden_dim", type=int, default=64, help="size of hidden dim")
     parser.add_argument(
         "--load_dictionary",
-        default="/private/home/aszlam/junk/word_modify_word_ids.pk",
+        default="",
         help="where to get word dict",
     )
     parser.add_argument("--reg_param", type=float, default=10.0, help="reg_param")

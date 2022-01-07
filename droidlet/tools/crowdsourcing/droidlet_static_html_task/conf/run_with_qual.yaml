@@ -12,6 +12,7 @@ mephisto:
     task_reward: 3.0
     allowed_concurrent: 1
     maximum_units_per_worker: 5
+    assignment_duration_in_seconds: 900
     task_tags: "assistant, game, interact"
     task_name: "droidlet-dashbaord"
   architect:
