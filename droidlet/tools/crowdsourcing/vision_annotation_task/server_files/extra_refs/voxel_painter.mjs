@@ -148,7 +148,7 @@ function loadScene(scene, idx) {
         let user_look = lookRadsToVec(scene.avatarInfo.look);
         const head_position = new THREE.Vector3((user_pos[0]*50)+25, (user_pos[1]*50)+100, (user_pos[2]*50)+25);
         const userMaterial = new THREE.MeshLambertMaterial( { color: 0xffff00 } );
-        const agentMaterial = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
+        const agentMaterial = new THREE.MeshLambertMaterial( { color: 0x337eff } );
         const targetGeo = new THREE.BoxGeometry( 0, 50, 50 );
         const targetMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'target.png' ), transparent: true } );
 
@@ -215,9 +215,9 @@ function lookRadsToVec(raw_vals) {
 // Add user or agent avatars to the scene
 function addAvatar(scene, position, material, look_dir) {
     const loader = new GLTFLoader();
-    loader.load( './body.glb', function ( gltf ) {
+    loader.load( './robot.glb', function ( gltf ) {
         let model = gltf.scene;
-        model.scale.multiplyScalar(75.0);
+        model.scale.multiplyScalar(25.0);
         model.position.set((position[0]*50)+25, (position[1]*50), (position[2]*50)+25)
         model.rotation.y += look_dir[0]; //yaw, referenced a la the raw vals for some reason
         scene.add( model );
