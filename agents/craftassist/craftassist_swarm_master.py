@@ -82,7 +82,7 @@ class empty_object():
         pass
 
 class CraftAssistSwarmMaster(CraftAssistAgent):
-    default_num_agents = 2
+    default_num_agents = 2 #
 
     def __init__(self, opts):
         try:

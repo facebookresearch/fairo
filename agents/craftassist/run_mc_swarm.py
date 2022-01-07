@@ -12,7 +12,7 @@ log_formatter = logging.Formatter(
 )
 
 def test_mc_swarm():
-    num_workers = 1
+    num_workers = 1 # Number of workers
     base_path = os.path.dirname(__file__)
     parser = ArgumentParser("Minecraft", base_path)
     opts = parser.parse()

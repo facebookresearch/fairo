@@ -34,17 +34,17 @@ class SwarmMasterWrapper():
         self.agent_type = base_agent.__class__.__name__.lower()
         self.opts = opts
         self.swarm_config = swarm_config
-        self.num_workers = len(worker_agents)
+        self.num_workers = len(worker_agents) # can just pass in a number here?
         self.init_workers(worker_agents, opts)
         self.init_master_controller()
         self.init_memory_handlers_dict()
         
         base_agent.task_step_filters = ["swarm_worker_{}".format(i+1) for i in range(self.num_workers)]
-        base_agent.num_agents = self.num_workers + 1
+        base_agent.num_agents = self.num_workers + 1 # including main agent
 
     def init_workers(self, worker_agents, opts):
         task_map = self.base_agent.dialogue_manager.dialogue_object_mapper.dialogue_objects["interpreter"].task_objects
-        disable_perception_modules = self.swarm_config["disable_perception_modules"]
+        disable_perception_modules = self.swarm_config["disable_perception_modules"] # what is this ?
         self.swarm_workers = [SwarmWorkerWrapper(opts, task_map=task_map, disable_perception_modules=disable_perception_modules, idx=i+1) for i in range(self.num_workers)]
         self.base_agent.swarm_workers_memid = [None for i in range(self.num_workers)]
         self.swarm_workers_memid = self.base_agent.swarm_workers_memid
@@ -61,10 +61,22 @@ class SwarmMasterWrapper():
             )
         
     def init_memory_handlers_dict(self):
+        """
+        Get all methods of memory from droidlet agent +
+        craftassist / locobot
+        map of {method_name: method}
+        :return:
+        None
+        """
         # TODO: customized to different agent
         self.handle_query_dict = get_memory_handlers_dict(self.base_agent)
         
     def get_new_tasks(self, tag):
+        """
+        Get task from memory for this tag and return the list
+        :param tag:
+        :return:
+        """
         query = "SELECT MEMORY FROM Task WHERE prio=-1"
         _, task_mems = self.base_agent.memory.basic_search(query)
         task_list = []
@@ -79,19 +91,32 @@ class SwarmMasterWrapper():
         return task_list
 
     def assign_new_tasks_to_workers(self):
+        """
+        get new tasks for each worker and add to the channel they are
+        listening on
+        :return:
+        """
         for i in range(self.num_workers):
             task_list = self.get_new_tasks(tag="swarm_worker_{}".format(i+1))
             for new_task in task_list:
                 self.swarm_workers[i].input_tasks.put(new_task)
 
     def handle_worker_perception(self):
-        tmp_perceptions = [{} for i in range(self.num_workers)]
+        """
+        Get perception output from each worker and write to main agent's
+        memory
+        :return:
+        """
+        # one perception map for each worker
+        tmp_perceptions = [{} for  i in range(self.num_workers)]
         worker_eids = dict()
+        # Iterate over all workers
         for i in range(self.num_workers):
+            # while things still in worker's perception queue
             while not self.swarm_workers[i].perceptions.empty:
                 eid, name, obj = self.swarm_workers[i].perceptions.get_nowait()
                 tmp_perceptions[i][name] = obj
-                worker_eids[i] = eid
+                worker_eids[i] = eid # what is eid ?
         
         # resolve conflicts 
         
@@ -99,7 +124,7 @@ class SwarmMasterWrapper():
         # write back to memory
         for i in range(self.num_workers):
             if i not in worker_eids.keys():
-                continue
+                continue # this shouldn't happen
             eid = worker_eids[i]
             if "pos" in tmp_perceptions[i].keys():
                 mem = self.base_agent.memory.get_player_by_eid(eid)
@@ -116,11 +141,15 @@ class SwarmMasterWrapper():
         update task status with info sent from workers
         """
         for i in range(self.num_workers):
-            # query_from_worker: worker send its general query to master in the queue. e.g. task updates sent to the master
+            # query_from_worker:
+            # worker send its general query to master in the
+            # queue. e.g. task updates sent to the master
+            # query from worker -> task updates, init status, worker memid
             while not self.swarm_workers[i].query_from_worker.empty():
                 name, obj = self.swarm_workers[i].query_from_worker.get_nowait()
                 if name == "task_updates":
                     for (memid, cur_task_status) in obj:
+                        # memid = task memid
                         # task status is a tuple
                         # cur_task_status = (prio, running, finished)
                         mem = self.base_agent.memory.get_mem_by_id(memid)
@@ -138,7 +167,8 @@ class SwarmMasterWrapper():
     def handle_worker_memory_queries(self):
         """
         handles the workers' queries of the master agent's memory 
-        self.swarm_workers[i].memory_send_queue: the queue where swarm worker i send its memory queries to the master
+        self.swarm_workers[i].memory_send_queue: the queue where swarm worker
+        i send its memory queries to the master
         """
         for i in range(self.num_workers):
             # memory_send_queue: worker send its memory related query to the master through this queue
@@ -152,7 +182,8 @@ class SwarmMasterWrapper():
         """
         handle one memory query from the worker
         query = (query_id, query_name, query_args)
-        query_id is a unique id for each query, we need the id to send the response back to workers
+        query_id is a unique id for each query,
+        we need the id to send the response back to workers
         query_name is the query function name. e.g. db_write, tag, etc
         query_args contain args for the query
         """
@@ -219,7 +250,8 @@ class SwarmWorkerWrapper(Process):
         
     def init_task_map(self, task_map, task_info=None):
         self.TASK_MAP = deepcopy(task_map)
-        self.TASK_INFO = get_default_task_info(task_map)
+        self.TASK_INFO = get_default_task_info(task_map) # populate args of tasks from default map else []
+        # overwrite task info with input
         if task_info is not None:
             for key in task_info:
                 self.TASK_INFO[key] = task_info[key]
