@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 import pytest
 
-from arucoX import CameraModule
+from fairotag import CameraModule
 
 CALIB_IMGFILE_LIST = [
     "tutorials/data/0_marker_pose_estimation/charuco_1.jpg",
