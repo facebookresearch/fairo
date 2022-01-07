@@ -6,9 +6,16 @@
 from setuptools import setup, find_packages
 
 __author__ = "Austin Wang"
-__copyright__ = "2020, Facebook"
+__copyright__ = "2022, Facebook"
 
-install_requires = ["numpy", "matplotlib", "opencv-contrib-python", "scipy", "sophuspy"]
+install_requires = [
+    "gtsam==4.1.1",
+    "numpy",
+    "matplotlib",
+    "opencv-contrib-python",
+    "scipy",
+    "sophuspy",
+]
 
 setup(
     name="fairotag",

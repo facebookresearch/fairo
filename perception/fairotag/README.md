@@ -14,7 +14,7 @@ A wrapper around [ArUco](https://www.uco.es/investiga/grupos/ava/node/26) and [G
 ## Installation
 Install dependencies
 ```
-conda install -c fair-robotics -c conda-forge cmake pybind11 gtsam
+conda install -c conda-forge cmake pybind11
 ```
 (Note: Cmake and Pybind11 are required to build wheel for sophuspy)
 

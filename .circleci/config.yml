@@ -356,7 +356,7 @@ jobs:
           command: pytest ./fbrp
 
   fairotag:
-    working_directory: ~/fair-aruco
+    working_directory: ~/fairo/perception/fairotag
     resource_class: large
     docker:
       - image: continuumio/miniconda3
@@ -368,7 +368,7 @@ jobs:
           name: Setup env
           command: |
             apt-get update
-            apt-get install -y cmake build-essential libgl1-mesa-dev
+            apt-get install -y build-essential libgl1-mesa-dev
             [ -d ~/testenv ] || conda env create -f environment.yml -p ~/testenv
       - save_cache:
           key: deps9-{{ .Branch }}-{{ checksum "environment.yml" }}
@@ -381,7 +381,7 @@ jobs:
             conda init bash
             source ~/.bashrc
             conda activate ~/testenv
-            cd ~/fair-aruco
+            cd ~/fairo/perception/fairotag
             pip install -e .
             pytest
 

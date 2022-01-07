@@ -1,14 +1,14 @@
 name: artags_utils
 channels:
-  - fair-robotics
-  - conda-forge
   - defaults
+  - conda-forge
 dependencies:
-  - gtsam
+  - cmake
   - pip=20.2.2=py38_0
   - pybind11=2.6.2
   - python=3.8.5
   - pip:
+    - gtsam==4.1.1
     - numpy==1.19.2
     - matplotlib==3.4.2
     - opencv-contrib-python==4.4.0.42
