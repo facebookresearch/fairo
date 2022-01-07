@@ -345,22 +345,21 @@ jobs:
           command: pytest ./fbrp
 
   fairotag:
-    working_directory: ~/fairo/perception/fairotag
-    resource_class: large
     docker:
       - image: continuumio/miniconda3
+    resource_class: large
     steps:
       - checkout
       - restore_cache:
-          key: deps9-{{ .Branch }}-{{ checksum "environment.yml" }}
+          key: deps9-{{ .Branch }}-{{ checksum "perception/fairotag/environment.yml" }}
       - run:
           name: Setup env
           command: |
             apt-get update
             apt-get install -y build-essential libgl1-mesa-dev
-            [ -d ~/testenv ] || conda env create -f environment.yml -p ~/testenv
+            [ -d ~/testenv ] || conda env create -f perception/fairotag/environment.yml -p ~/testenv
       - save_cache:
-          key: deps9-{{ .Branch }}-{{ checksum "environment.yml" }}
+          key: deps9-{{ .Branch }}-{{ checksum "perception/fairotag/environment.yml" }}
           paths:
             - "~/testenv"
             - "/usr/lib"
@@ -370,7 +369,7 @@ jobs:
             conda init bash
             source ~/.bashrc
             conda activate ~/testenv
-            cd ~/fairo/perception/fairotag
+            cd perception/fairotag
             pip install -e .
             pytest
 
