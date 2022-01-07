@@ -5,13 +5,13 @@ Get stats and plot for vision annotation pilot tasks
 
 #%%
 from numpy import Inf, Infinity
-import argparse
 import json
 import math
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import Counter
 from typing import Tuple
+from datetime import datetime
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser
@@ -139,6 +139,7 @@ def timing_charts(run_id: int) -> None:
     endtime = -math.inf
     feedback = []
     num_correct_hist = []
+    bug_count = 0
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         worker = Worker(db, data["worker_id"]).worker_name
@@ -147,6 +148,7 @@ def timing_charts(run_id: int) -> None:
         
         outputs = data["data"]["outputs"]
         feedback.append(outputs["feedback"])
+        if outputs["bug"] == 'true': bug_count += 1
         num_correct = 0
         for q in question_results.keys():
             key = "q" + str(q) + "Answer"
@@ -154,6 +156,9 @@ def timing_charts(run_id: int) -> None:
             if outputs[key] == 'true':
                 num_correct += 1
         num_correct_hist.append(num_correct)
+
+    print(f"Job start time: {datetime.fromtimestamp(starttime)}")
+    print(f"Job end time: {datetime.fromtimestamp(endtime)}")
 
     plot_hist_sorted(unit_timing["total"], cutoff=1200, target_val=600, xlabel="", ylabel="Total HIT Time (sec)")
     calc_percentiles(unit_timing["total"], "HIT Length")
@@ -169,6 +174,7 @@ def timing_charts(run_id: int) -> None:
     vals_dict = dict(zip(keys, num_correct_hist))
     plot_hist(vals_dict, xlabel="HIT #", ylabel="# Correct", ymax=4)
 
+    print(f"Number of workers who experienced a window crash: {bug_count}")
     print(feedback)
         
 #%%
