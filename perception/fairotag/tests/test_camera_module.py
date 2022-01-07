@@ -8,14 +8,14 @@ import pytest
 from arucoX import CameraModule
 
 CALIB_IMGFILE_LIST = [
-    "examples/single_camera/figs/charuco_1.jpg",
-    "examples/single_camera/figs/charuco_2.jpg",
-    "examples/single_camera/figs/charuco_3.jpg",
-    "examples/single_camera/figs/charuco_4.jpg",
-    "examples/single_camera/figs/charuco_5.jpg",
+    "tutorials/data/0_marker_pose_estimation/charuco_1.jpg",
+    "tutorials/data/0_marker_pose_estimation/charuco_2.jpg",
+    "tutorials/data/0_marker_pose_estimation/charuco_3.jpg",
+    "tutorials/data/0_marker_pose_estimation/charuco_4.jpg",
+    "tutorials/data/0_marker_pose_estimation/charuco_5.jpg",
 ]
 
-INPUT_IMGFILE = "examples/single_camera/figs/test_5x5.jpg"
+INPUT_IMGFILE = "tutorials/data/0_marker_pose_estimation/test_5x5.jpg"
 MARKER_LENGTH = 0.05
 
 
