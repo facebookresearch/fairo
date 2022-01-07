@@ -83,6 +83,9 @@ def main(bucket, int_list, vis_list, nlu_list):
     s3_vis_allowlist = importAllowlist(bucket, vis_list)
     s3_nlu_allowlist = importAllowlist(bucket, nlu_list)
 
+    # TODO block lists should be sync'd as well
+    
+
     # Check against local lists
 
     
