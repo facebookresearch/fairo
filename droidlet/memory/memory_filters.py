@@ -308,7 +308,7 @@ class MemorySearcher:
         v = where_clause["input_left"]["value_extractor"]
         input_left = v.get("attribute")
         input_right = where_clause["input_right"]["value_extractor"]
-        if type(input_right) is dict:
+        if type(input_right) is dict:            
             raise Exception(
                 "currently basic search assumes input_right is a fixed value (not FILTERS): {}".format(
                     input_right
@@ -383,11 +383,13 @@ class MemorySearcher:
             all_memids = set(get_all_memids_of_node_type(agent_memory, memtype))
             memids = self.handle_where(agent_memory, where_clause["NOT"][0], memtype)
             return list(all_memids - set(memids))
-
         if where_clause.get("input_left"):
-            # this is a cmparator leaf, actually search:
+            # this is a comparator leaf, actually search:
             return self.handle_comparator_where_leaf(agent_memory, where_clause, memtype)
-
+        if where_clause.get("callable_filter"):
+            # this is a MemoryFilter object, or otherwise something callable.
+            memids, _ = where_clause["callable_filter"]()
+            return memids
         # if we made it here, this is a triple
         try:
             # check if triples dict is well formed:
