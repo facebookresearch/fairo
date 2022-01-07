@@ -55,7 +55,7 @@ def ref_data(intrinsics, output_dict):
     Loads reference data
     Saves current data as reference data if reference data does not exist
     """
-    data_path = path.join("tests/data", "pyexample_ref_data.pkl")
+    data_path = path.join("tests/data", "camera_module_ref_data.pkl")
 
     if path.exists(data_path):
         with open(data_path, "rb") as f:
