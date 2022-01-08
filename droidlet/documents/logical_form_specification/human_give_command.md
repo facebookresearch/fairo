@@ -9,149 +9,127 @@ Note: Classes used in the dict using `<>` are defined as subsections and their c
   "action_sequence" : list(<CommandDict>)
 }
 ```
-The CommandDict for each action type is described in the [Action subsection](#actions).
 
 ## Actions ##
 
 ### Build Action ###
 This is the action to Build a schematic at an optional location.
 
-```
+<pre>
 { "action_type" : BUILD,
-  <Location>,
-  <Schematic>,
-  "replace" : True
+  <a href="#location">Location</a>,
+  <a href="#schematic">Schematic</a>,
 }
-    
-```
+</pre>
+
 ### Copy Action ###
 This is the action to copy a block object to an optional location. The copy action is represented as a "Build" with an optional reference_object in the tree.
 
-```
+<pre>
 { "action_type" : 'BUILD',
-  <Location>,
-  <ReferenceObject>,
-  "replace" : True
+  <a href="#location">Location</a>,
+  <a href="#reference_object">ReferenceObject</a>,
 }
-```
+</pre>
 
 ### Spawn Action ###
 This action indicates that the specified object should be spawned in the environment.
 Spawn only has a name in the reference object.
 
-```
+<pre>
 { "action_type" : 'SPAWN',
-  "reference_object" : {
-      "text_span" : span,
-      "triples": [{"pred_text": "has_name", "obj_text": {"fixed_value" : text} / span}]
-    },
-    "replace": True
+  "reference_object" : FILTERS
 }
-```
+</pre>
 
 ### Resume ###
 This action indicates that the previous action should be resumed.
 
-```
+<pre>
 { "action_type" : 'RESUME',
   "target_action_type": {"fixed_value" : text} / span
 }
-```
+</pre>
 
 ### Fill ###
 This action states that a hole / negative shape needs to be filled up.
 
 ```
 { "action_type" : 'FILL',
-  <Schematic>,
-  <ReferenceObject>,
-  "replace": True
+  <a href="#schematic">Schematic</a>,,
+  <a href="#reference_object">ReferenceObject</a>,
 }
 ```
 
 #### Destroy ####
 This action indicates the intent to destroy a block object.
 
-```
+<pre>
 { "action_type" : 'DESTROY',
-  <ReferenceObject>,
-  "replace": True
+    <a href="#reference_object">ReferenceObject</a>
 }
-```
+</pre>
 
 #### Move ####
 This action states that the agent should move to the specified location.
 
 ```
 { "action_type" : 'MOVE',
-  <Location>,
-  <StopCondition>,
-  <RemoveCondition>,
-  "replace": True
+  <a href="#location">Location</a>,
 }
 ```
 
 #### Undo ####
 This action states the intent to revert the specified action, if any.
 
-```
+<pre>
 { "action_type" : 'UNDO',
   "target_action_type" : {"fixed_value" : text} / span
 }
-```
+</pre>
 
 #### Stop ####
 This action indicates stop.
 
-```
+<pre>
 { "action_type" : 'STOP',
   "target_action_type": {"fixed_value" : text} / span
 }
-```
+</pre>
 
 #### Dig ####
 This action represents the intent to dig a hole / negative shape of optional dimensions at an optional location.
 The `Schematic` child in this only has a subset of properties.
 
-```
+<pre>
 { "action_type" : 'DIG',
-  <Location>,
-  "schematic" : {
-    "text_span" : span,
-    "triples": [{"pred_text": "has_x", "obj_text": {"fixed_value" : text} / span}]
-    },
-  <StopCondition>,
-  "replace": True  
+  <a href="#location">Location</a>,
+  <a href="#schematic">Schematic</a>
 }
-```
-where `has_x` can be : `has_size`, `has_length`, `has_depth`, `has_width`
+</pre>
+
 
 #### FreeBuild ####
 This action represents that the agent should complete an already existing half-finished block object, using its mental model.
 
-```
+<pre>
 { "action_type" : 'FREEBUILD',
-  <ReferenceObject>,
-  <Location>,
+  <a href="#reference_object">ReferenceObject</a>,
+  <a href="#location">Location</a>,
   "replace": True
 }
-```
+</pre>
 
 #### Dance ####
-This action provides information to the agent to do a dance.
+A movement where the sequence of poses or locations is determined, rather than just the final location.
 Also has support for Point / Turn / Look.
 
-```
+<pre>
 { "action_type" : 'DANCE',
-  <Location> (additional relative_direction values: ['CLOCKWISE', 'ANTICLOCKWISE']),
-  <DanceType>
-  "remove_condition" : {
-      "condition_type" : NEVER,
-  },
-  <RemoveCondition>,
-  "replace": True
+  <a href="#reference_object">ReferenceObject</a> (additional relative_direction values: ['CLOCKWISE', 'ANTICLOCKWISE']),
+  DanceType
 }
-```
+</pre>
 
 #### Get ####
 The GET action_type covers the intents: bring, get and give.
@@ -160,22 +138,23 @@ The Get intent represents getting or picking up something. This might involve fi
 The Give intent represents giving something, in Minecraft this would mean removing something from the inventory of the bot and adding it to the inventory of the speaker / other player.
 The Bring intent represents bringing a reference_object to the speaker or to a specified location.
 
-```
+<pre>
 {
     "action_type" : 'GET',
-    <ReferenceObject>,
-    "receiver" : <ReferenceObject> / <Location>
+      <a href="#reference_object">ReferenceObject</a>,
+    "receiver" : <a href="#reference_object">ReferenceObject</a> / <a href="#location">Location</a>
 }
-```
+</pre>
 
 #### Scout ####
 This command expresses the intent to look for / find or scout something.
-```
+
 {
     "action_type" : 'SCOUT',
-    <ReferenceObject>
+    <a href="#reference_object">ReferenceObject</a>,
+    <a href="#location">Location</a>    
 }
-```
+
 
 #### Modify action ####
 Note that: This section is a temporary heristic based fix until we have a generative model that can handle "modify".
@@ -185,15 +164,15 @@ This command represents making a change or modifying a block object in a certain
 [Examples](https://docs.google.com/document/d/1nLEMRvUO9VNV_HYVRB7c9kDkUl0dACzwjY0h_APDcVU/edit?ts=5e050a45#bookmark=id.o3lwuh3fj1lt)
 
 Grammar proposal:
-```
+<pre>
 { "dialogue_type": "HUMAN_GIVE_COMMAND",
   "action_sequence" : [
     { "action_type" : 'MODIFY',
-      <ReferenceObject>,
+      <a href="#reference_object">ReferenceObject</a>,
       "modify_dict" :  THICKEN/SCALE/RIGIDMOTION/REPLACE/FILL
     }]
 }
-```
+</pre>
 Where
 ```
 THICKEN = {"modify_type": "THICKER"/"THINNER", "num_blocks": span}
@@ -215,8 +194,8 @@ If "location" is given in RIGIDMOTION, the modify is to move the reference objec
 ### Subcomponents of action dict ###
 
 #### Location ####
-```
-"location" : "OTHER" / {
+<pre>
+<a id="location">"location": { </a>
           "text_span" : span,
           "steps" : span,
           "has_measure" : {"fixed_value" : text} / span,
@@ -225,20 +204,19 @@ If "location" is given in RIGIDMOTION, the modify is to move the reference objec
                                   / 'INSIDE' / 'NEAR' / 'OUTSIDE' / 'BETWEEN',
           <ReferenceObject>,
           }
- ```
+ </pre>
 
 Note: for "relative_direction" == 'BETWEEN' the location dict will have two children: 'reference_object_1' : <ReferenceObject> and 
 'reference_object_2' : <ReferenceObject> in the sub-dictionary to represent the two distinct reference objects.
 
 #### Reference Object ####
-```
-"reference_object" : {
-      "text_span" : span,
+<pre>
+  <a id="reference_object">"reference_object" : { </a>
       "special_reference" : {"fixed_value" : "SPEAKER" / "AGENT" / "SPEAKER_LOOK"} / {"coordinates_span" : span},
       "filters" : <FILTERS>
       }
   } 
-```
+</pre>
 #### Remove Condition ####
 ```
 "remove_condition" : {
@@ -248,23 +226,22 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 ```
 #### Schematic ####
 
-```
-"schematic" : {
+<pre>
+<a id="schematic">"schematic": { </a>
     "text_span" : span,
     "filters" : <FILTERS>
 }
-```
-where `has_x` can be : `has_block_type`, `has_name`, `has_size`, `has_orientation`, `has_thickness`, `has_colour`, `has_height`, `has_length`, `has_radius`, `has_slope`, `has_width`, `has_base`, `has_depth`, `has_distance` 
+</pre>
 
 #### Repeat ####
-```
-"repeat" : {
+<pre>
+<a id="repeat">"repeat" : { </a>
   "repeat_key" : 'ALL'
 }
-```
+</pre>
 
 #### FACING ####
-```
+<pre>
 {
   "text_span" : span,
   "yaw_pitch": span,
@@ -274,7 +251,7 @@ where `has_x` can be : `has_block_type`, `has_name`, `has_size`, `has_orientatio
   "relative_pitch" = {"fixed_value": -90 / -45 / 45 / 90} / {"pitch_span": span},
   "location": <LOCATION>
 }
-```
+</pre>
 
 #### DanceType ####
 ```
