@@ -20,8 +20,14 @@ class staticShapes {
                     }
                 }
                 this.scene = {
-                    "avatarInfo": null,
-                    "agentInfo": null, 
+                    "avatarInfo": {
+                        "pos": [-5, 0, 2], 
+                        "look": [0.0, 0.0]
+                    },
+                    "agentInfo": {
+                        "pos": [6, 0, 2], 
+                        "look": [0.0, 0.0]
+                    },
                     "blocks": starting_cube
                 };
                 break;
