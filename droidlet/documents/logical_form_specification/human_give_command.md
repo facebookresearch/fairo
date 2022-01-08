@@ -1,22 +1,64 @@
 
 # Dialogue Types #
 
-## Human Give Command Dialogue type ##
+### Human Give Command Dialogue type ###
+<pre>
+{ 
+  "dialogue_type": "HUMAN_GIVE_COMMAND",
+  "event": <a href="#event">&ltEVENT&gt</a>
+}
+</pre>
+
+### Get Memory Dialogue Type ###
+<pre>
+{
+  "dialogue_type": "GET_MEMORY",
+  "filters": <a href="#filters">&ltFILTERS&gt</a>,
+}
+</pre>
+
+### Put Memory Dialogue Type ###
 ```
-{ "dialogue_type": "HUMAN_GIVE_COMMAND",
-  "action_sequence" : list(<CommandDict>)
+{
+  "filters": <a href="#filters">&ltFILTERS&gt</a>,
+  "upsert" : {
+      "memory_data": {
+        "memory_type": "REWARD" / "TRIPLE",
+        "reward_value": "POSITIVE" / "NEGATIVE",
+        "triples": [{"pred_text": "has_x", "obj_text": {"fixed_value" : text} / span}]
+      } }
 }
 ```
+where `has_x` is one of : `has_tag`, `has_colour`, `has_size`
+
+### Noop Dialogue Type ###
+```
+{ "dialogue_type": "NOOP"}
+```
+# Events and Actions #
+
+<pre>
+<a id="event">EVENT</a> = { 
+  "event_sequence": [<a href="#event">&ltEVENT&gt</a>/<a href="#action">&ltACTION&gt</a> , …, <a href="#event">&ltEVENT&gt</a>/<a href="#action">&ltACTION&gt</a>],
+  "init_condition": <a href="#condition">&ltCONDITION&gt</a>,
+  "terminate_condition": <a href="#condition">&ltCONDITION&gt</a>,
+  "spatial_control": SPATIAL_CONTROL
+}
+</pre>
+
+Each condition key and the "spatial_control" blocks are optional. The default (if a key is not set) for "init_condition" is {"fixed_value":  "ALWAYS"}.  The default for "terminate_condition"  is THIS_SEQUENCE_1_TIMES_CONDITION , which uses a special value for use only inside a <a href="#condition">CONDITION</a> in an <a href="#event">EVENT</a> block: "THIS", referring to the value of the "event_sequence" key that is a sibling of the "\*condition" key inside an <a href="#event">EVENT</a> block.  
+
 
 ## Actions ##
+<a id="action"> Actions </a> are an "atomic" <a href="#event">EVENT</a>, and can be distinguished by the "action_type" key.
 
 ### Build Action ###
 This is the action to Build a schematic at an optional location.
 
 <pre>
-{ "action_type" : BUILD,
-  <a href="#location">Location</a>,
-  <a href="#schematic">Schematic</a>,
+{"action_type" : BUILD,
+  <a href="#location">&ltLOCATION&gt</a>,
+  <a href="#schematic">&ltSCHEMATIC&gt</a>,
 }
 </pre>
 
@@ -24,9 +66,9 @@ This is the action to Build a schematic at an optional location.
 This is the action to copy a block object to an optional location. The copy action is represented as a "Build" with an optional reference_object in the tree.
 
 <pre>
-{ "action_type" : 'BUILD',
-  <a href="#location">Location</a>,
-  <a href="#reference_object">ReferenceObject</a>,
+{"action_type" : 'BUILD',
+  <a href="#location">&ltLOCATION&gt</a>,
+  <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>,
 }
 </pre>
 
@@ -52,30 +94,30 @@ This action indicates that the previous action should be resumed.
 ### Fill ###
 This action states that a hole / negative shape needs to be filled up.
 
-```
+<pre>
 { "action_type" : 'FILL',
-  <a href="#schematic">Schematic</a>,,
-  <a href="#reference_object">ReferenceObject</a>,
+  <a href="#schematic">&ltSCHEMATIC&gt</a>,,
+  <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>,
 }
-```
+</pre>
 
 #### Destroy ####
 This action indicates the intent to destroy a block object.
 
 <pre>
 { "action_type" : 'DESTROY',
-    <a href="#reference_object">ReferenceObject</a>
+    <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>
 }
 </pre>
 
 #### Move ####
 This action states that the agent should move to the specified location.
 
-```
+<pre>
 { "action_type" : 'MOVE',
-  <a href="#location">Location</a>,
+  <a href="#location">&ltLOCATION&gt</a>,
 }
-```
+</pre>
 
 #### Undo ####
 This action states the intent to revert the specified action, if any.
@@ -101,8 +143,8 @@ The `Schematic` child in this only has a subset of properties.
 
 <pre>
 { "action_type" : 'DIG',
-  <a href="#location">Location</a>,
-  <a href="#schematic">Schematic</a>
+  <a href="#location">&ltLOCATION&gt</a>,
+  <a href="#schematic">&ltSCHEMATIC&gt</a>
 }
 </pre>
 
@@ -112,8 +154,8 @@ This action represents that the agent should complete an already existing half-f
 
 <pre>
 { "action_type" : 'FREEBUILD',
-  <a href="#reference_object">ReferenceObject</a>,
-  <a href="#location">Location</a>,
+  <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>,
+  <a href="#location">&ltLOCATION&gt</a>,
   "replace": True
 }
 </pre>
@@ -124,7 +166,7 @@ Also has support for Point / Turn / Look.
 
 <pre>
 { "action_type" : 'DANCE',
-  <a href="#reference_object">ReferenceObject</a> (additional relative_direction values: ['CLOCKWISE', 'ANTICLOCKWISE']),
+  <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a> (additional relative_direction values: ['CLOCKWISE', 'ANTICLOCKWISE']),
   DanceType
 }
 </pre>
@@ -139,57 +181,51 @@ The Bring intent represents bringing a reference_object to the speaker or to a s
 <pre>
 {
     "action_type" : 'GET',
-      <a href="#reference_object">ReferenceObject</a>,
-    "receiver" : <a href="#reference_object">ReferenceObject</a> / <a href="#location">Location</a>
+      <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>,
+    "receiver" : <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a> / <a href="#location">&ltLOCATION&gt</a>
 }
 </pre>
 
 #### Scout ####
 This command expresses the intent to look for / find or scout something.
 
+<pre>
 {
     "action_type" : 'SCOUT',
-    <a href="#reference_object">ReferenceObject</a>,
-    <a href="#location">Location</a>    
-}
-
-
-#### Modify action ####
-Note that: This section is a temporary heristic based fix until we have a generative model that can handle "modify".
-
-This command represents making a change or modifying a block object in a certain way.
-
-[Examples](https://docs.google.com/document/d/1nLEMRvUO9VNV_HYVRB7c9kDkUl0dACzwjY0h_APDcVU/edit?ts=5e050a45#bookmark=id.o3lwuh3fj1lt)
-
-Grammar proposal:
-<pre>
-{ "dialogue_type": "HUMAN_GIVE_COMMAND",
-  "action_sequence" : [
-    { "action_type" : 'MODIFY',
-      <a href="#reference_object">ReferenceObject</a>,
-      "modify_dict" :  THICKEN/SCALE/RIGIDMOTION/REPLACE/FILL
-    }]
+    <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>,
+    <a href="#location">&ltLOCATION&gt</a>    
 }
 </pre>
-Where
-```
-THICKEN = {"modify_type": "THICKER"/"THINNER", "num_blocks": span}
-SCALE = {"modify_type": "SCALE", "text_scale_factor": span, "categorical_scale_factor": "WIDER"/"NARROWER"/"TALLER"/"SHORTER"/"SKINNIER"/"FATTER"/"BIGGER"/"SMALLER"}
-RIGIDMOTION = {"modify_type": "RIGIDMOTION", "categorical_angle": "LEFT"/"RIGHT"/"AROUND", "MIRROR"=True/False, "location": LOCATION}
-REPLACE={"modify_type": "REPLACE", "old_block": BLOCK, "new_block": BLOCK, "replace_geometry": REPLACE_GEOMETRY}
-FILL={"modify_type": "FILL"/"HOLLOW", "new_block": BLOCK}
-```
-And
-```
-BLOCK = {"has_x": span}
-REPLACE_GEOMETRY = {"relative_direction": "LEFT"/"RIGHT"/"TOP"/"BOTTOM", "amount": "QUARTER"/"HALF"}
-```
-Note w2n doesn't handle fractions :(
-
-If "location" is given in RIGIDMOTION, the modify is to move the reference object from its current location to the given location
 
 
-### Subcomponents of action dict ###
+# Subcomponents of logical forms#
+
+## CONDITION ##
+<pre>
+<a id="condition"> CONDITION = { </a>
+  "condition": COMPARATOR/TIME_CONDITION/AND_CONDITION/OR_CONDITION/NOT_CONDITION,
+  "condition_span": span}
+</pre>
+AND OR and NOT modify other conditions:
+<pre>
+ AND_CONDITION = {"and_condition": [<a href="#condition">&ltCONDITION&gt</a>, ..., <a href="#condition">&ltCONDITION&gt</a>]} 
+</pre>
+<pre>
+ OR_CONDITION = {"or_condition": [<a href="#condition">&ltCONDITION&gt</a>, ..., <a href="#condition">&ltCONDITION&gt</a>]} 
+</pre>
+<pre>
+ NOT_CONDITION = {"not_condition": <a href="#condition">&ltCONDITION&gt</a>} 
+</pre>
+<pre>
+TIME_CONDITION = {
+    "comparator": <a href="#comparator">&ltCOMPARATOR&gt</a>,
+    "special_time_event" : 'SUNSET / SUNRISE / DAY / NIGHT / RAIN / SUNNY',
+    "event": <a href="#condition">&ltCONDITION&gt</a>,
+  }
+</pre>
+Note that `event` in time_condition represents when to start the timer and
+`input_left` by default in time condition marks the time since the event condition.
+
 
 #### Location ####
 <pre>
@@ -200,12 +236,12 @@ If "location" is given in RIGIDMOTION, the modify is to move the reference objec
           "contains_coreference" : "yes",
           "relative_direction" : 'LEFT' / 'RIGHT'/ 'UP'/ 'DOWN'/ 'FRONT'/ 'BACK'/ 'AWAY'
                                   / 'INSIDE' / 'NEAR' / 'OUTSIDE' / 'BETWEEN',
-          <ReferenceObject>,
+           <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>,
           }
  </pre>
 
-Note: for "relative_direction" == 'BETWEEN' the location dict will have two children: 'reference_object_1' : <ReferenceObject> and 
-'reference_object_2' : <ReferenceObject> in the sub-dictionary to represent the two distinct reference objects.
+Note: for "relative_direction" == 'BETWEEN' the location dict will have two children: 'reference_object_1' : <&ltREFERENCE_OBJECT&gt> and 
+'reference_object_2' : <&ltREFERENCE_OBJECT&gt> in the sub-dictionary to represent the two distinct reference objects.
 
 #### Reference Object ####
 <pre>
@@ -215,13 +251,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
       }
   } 
 </pre>
-#### Remove Condition ####
-```
-"remove_condition" : {
-      "condition_type" : 'ADJACENT_TO_BLOCK_TYPE' / 'NEVER',
-      "block_type" : span
-  }
-```
+
 #### Schematic ####
 
 <pre>
@@ -247,7 +277,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
   "pitch": span,
   "relative_yaw" = {"fixed_value": -360 / -180 / -135 / -90 / -45 / 45 / 90 / 135 / 180 / 360} / {"yaw_span": span},
   "relative_pitch" = {"fixed_value": -90 / -45 / 45 / 90} / {"pitch_span": span},
-  "location": <LOCATION>
+  "location": <a href="#location">&ltLOCATION&gt</a>
 }
 </pre>
 
@@ -260,7 +290,6 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
   "body_turn": <a href="#facing">Facing</a>
 }
 </pre>
-
 
 
 # Filters #
@@ -285,7 +314,7 @@ The supported fields are :
       "selector": {
         "return_quantity": <a href="#argval">Argval</a> / "RANDOM" / "ALL" / span,
         "ordinal": {"fixed_value" : "FIRST"} / <span>, 
-        "location":  <a href="#location">Location</a>,
+        "location":  <a href="#location">&ltLOCATION&gt</a>,
         "same":"ALLOWED"/"DISALLOWED"/"REQUIRED"
       },
       "where_clause" : {
@@ -333,8 +362,8 @@ This is used to mean the number of steps (in "has_measure" units, default is "bl
                           / "BACK"/ "AWAY" / "INSIDE" / "OUTSIDE", 
     "frame": {"fixed_value": "SPEAKER" / "AGENT" / "ABSOLUTE"} / {"player_span": span},
     "has_measure" : {"fixed_value" : text} / span,
-    "source": <a href="#reference_object">ReferenceObject</a> ,
-    "destination": <a href="#reference_object">ReferenceObject</a> }
+    "source": <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a> ,
+    "destination": <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a> }
     }
 }
 </pre>
@@ -361,7 +390,7 @@ Comparator compares two values.
 - <a href="#attribute">Attribute</a> in `input_left` is used when the comparator is a WHERE clause; and the <a href="#attribute">Attribute</a> applied to a record is compared against the `input_right` to decide if the record is accepted by the clause.  When the comparator is used in a \<CONDITION\>, both `input_left` and `input_right` are "fixed" ( <a href="#filters">FILTERS</a> or a span)
 		
 <pre>
-<a id="comparator"> Comparator =  </a>
+<a id="comparator"> COMPARATOR =  </a>
 
 {
   "input_left" : {<a href="#filters">FILTERS</a> / <a href="#attribute">Attribute</a> / {"fixed_value" : text} / span }
@@ -456,3 +485,39 @@ Proposal:  Add an extra "output_all" key to FILTERS, with possible values "ALL" 
 TODO: Add "in_agent_view" like field to distinguish between "if you see a pig" vs "if there is a pig"
 
 
+
+
+
+#### Modify action ####
+Note that: This section is a temporary heristic based fix until we have a generative model that can handle "modify".
+
+This command represents making a change or modifying a block object in a certain way.
+
+[Examples](https://docs.google.com/document/d/1nLEMRvUO9VNV_HYVRB7c9kDkUl0dACzwjY0h_APDcVU/edit?ts=5e050a45#bookmark=id.o3lwuh3fj1lt)
+
+Grammar proposal:
+<pre>
+{ "dialogue_type": "HUMAN_GIVE_COMMAND",
+  "action_sequence" : [
+    { "action_type" : 'MODIFY',
+      <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>,
+      "modify_dict" :  THICKEN/SCALE/RIGIDMOTION/REPLACE/FILL
+    }]
+}
+</pre>
+Where
+```
+THICKEN = {"modify_type": "THICKER"/"THINNER", "num_blocks": span}
+SCALE = {"modify_type": "SCALE", "text_scale_factor": span, "categorical_scale_factor": "WIDER"/"NARROWER"/"TALLER"/"SHORTER"/"SKINNIER"/"FATTER"/"BIGGER"/"SMALLER"}
+RIGIDMOTION = {"modify_type": "RIGIDMOTION", "categorical_angle": "LEFT"/"RIGHT"/"AROUND", "MIRROR"=True/False, "location": <a href="#location">&ltLOCATION&gt</a>}
+REPLACE={"modify_type": "REPLACE", "old_block": BLOCK, "new_block": BLOCK, "replace_geometry": REPLACE_GEOMETRY}
+FILL={"modify_type": "FILL"/"HOLLOW", "new_block": BLOCK}
+```
+And
+```
+BLOCK = {"has_x": span}
+REPLACE_GEOMETRY = {"relative_direction": "LEFT"/"RIGHT"/"TOP"/"BOTTOM", "amount": "QUARTER"/"HALF"}
+```
+Note w2n doesn't handle fractions :(
+
+If "location" is given in RIGIDMOTION, the modify is to move the reference object from its current location to the given location
