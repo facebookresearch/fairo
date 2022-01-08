@@ -45,7 +45,7 @@ def make_cfg(SIM):
         }
 
     if SIM.noisy:
-        sensors['rgb']['noise_model'] = 'GaussianNoiseModel'
+        # sensors['rgb']['noise_model'] = 'GaussianNoiseModel' # We don't use RGB Noise
         sensors['depth']['noise_model'] = 'RedwoodDepthNoiseModel'
 
     # create sensor specifications
@@ -57,7 +57,7 @@ def make_cfg(SIM):
         sensor_spec.resolution = sensor_params["resolution"]
         sensor_spec.position = sensor_params["position"]
         sensor_spec.gpu2gpu_transfer = False  # Todo: Move this to config
-        if SIM.noisy and sensor_uuid in ('rgb', 'depth'):
+        if SIM.noisy and sensor_uuid in ('depth'):
             sensor_spec.noise_model = sensor_params['noise_model']
         print("==== Initialized Sensor Spec: =====")
         print("Sensor uuid: ", sensor_spec.uuid)
