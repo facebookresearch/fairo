@@ -8,6 +8,27 @@ MAX_MAP_SIZE = 4097
 MAP_INIT_SIZE = 1025
 
 
+def maybe_recursive_pop(d, s):
+    """ 
+    s is a sequence of keys into the nested dict d.
+    this method pops the final value from d 
+    and if the parent is now empty, pops it, etc.
+
+    if the sequence doesn't correspond to a branch of the nested
+    dict, this does nothing
+    """
+    levels = [d]
+    for i in s:
+        v = levels[-1].get(i)
+        if v is None:
+            return
+        levels.append(v)
+    for j in range(len(s), 0, -1):
+        l = levels[j - 1]
+        if j == len(s) or len(levels[j]) == 0:
+            l.pop(s[j - 1])
+
+
 def no_y_l1(self, xyz, k):
     """ returns the l1 distance between two standard coordinates"""
     return np.linalg.norm(np.asarray([xyz[0], xyz[2]]) - np.asarray([k[0], k[2]]), ord=1)
@@ -60,31 +81,105 @@ class PlaceField:
 
         self.pixels_per_unit = pixels_per_unit
 
+        # gives an index allowing quick lookup by memid
+        # each entry is keyed by a memid and has nested {h: {i: {j1:True, j2:True, ...}}}
+        # dicts as values
+        self.memid2locs = {}
+
+    def maybe_delete_loc(self, i, j, h, t, memid="NULL"):
+        """
+        remove a loc from the maps and from memid2loc index.
+        if memid is set, only removes the loc if the memid matches
+        """
+        current_memid = self.index2memid.get(self.maps[h]["memids"][i, j], "NULL")
+        if memid == "NULL" or current_memid == memid:
+            self.maps[h]["memids"][i, j] = self.memid2index["NULL"]
+            self.maps[h]["map"][i, j] = 0
+            self.maps[h]["updated"][i, j] = t
+            if current_memid != "NULL":
+                maybe_recursive_pop(self.memid2locs, [current_memid, h, i, j])
+
+    def delete_loc_by_memid(self, memid, t, is_move=False):
+        """
+        remove all locs corresponding to a memid.  
+        if is_move is set, asserts that there is precisely one loc
+        corresponding to the memid
+        """
+        count = 0
+        for h in self.memid2locs[memid]:
+            for i in self.memid2locs[memid][h]:
+                for j in self.memid2locs[memid][h][i]:
+                    self.maps[h]["memids"][i, j] = self.memid2index["NULL"]
+                    self.maps[h]["map"][i, j] = 0
+                    self.maps[h]["updated"][i, j] = t
+                    count = count + 1
+                    if is_move and count > 1:
+                        raise Exception(
+                            "tried to delete more than one pixel from the place_field by memid with is_move set"
+                        )
+        self.memid2locs.pop(memid, None)
+
     def update_map(self, changes):
         """
-        changes is a list of tuples of the form (x, y, z, memid, is_obstacle)
-        giving the obstacles in that slice, the memid of the object at that location
-        if there is a memid ("NULL" otherwise), and is_obstacle if its blocking.  An object need not be 
-        blocking to have a memid.  an obstacle can be cleared by inputting the proper tuple.
-        in world coordinates. is_obstacle is 1 for obstacle and 0 for free space
+        changes is a list of dicts of the form 
+        {"pos": (x, y, z),
+        "memid": str (default "NULL"),
+        "is_obstacle": bool (default True),
+        "is_move": bool (default False),
+        "is_delete": bool (default False) }
+        pos is required if is_delete is False. 
+        all other fields are always optional.
+        
+        "is_obstacle" tells whether the agent can traverse that location
+        if "is_move" is False, the change is taken as is; if "is_move" is True, if the
+            change corresponds to a memid, and the memid is located somewhere on the map,
+            the old location is removed when the new one is set.  For now, to move complicated objects
+            that cover many pixels, do not use is_move, and instead move them "by hand"
+            by issuing a list of changes deleting the old now empty locations and adding the
+            new now-filled locations
+        "is_delete" True without a memid means whatever is in that location is to be removed.
+            if a memid is set, the remove will occur only if the memid matches.
+        
+        the "is_obstacle" status can be changed without changing memid etc.
         """
         t = self.get_time()
-        for x, y, z, memid, is_obstacle in changes:
-            h = self.y2slice(y)
-            i, j = self.real2map(x, z)
-            s = max(i - self.map_size + 1, j - self.map_size + 1, -i, -j)
-            if s > 0:
-                self.extend_map(s)
-            i, j = self.real2map(x, z, h)
-            s = max(i - self.map_size + 1, j - self.map_size + 1, -i, -j)
-            if s > 0:
-                # the map can not been extended enough to handle these bc MAX_MAP_SIZE
-                # FIXME appropriate warning or error?
-                continue
-            self.maps[h]["map"][i, j] = is_obstacle
-            idx = self.memid2index.get(memid, self.add_memid(memid))
-            self.maps[h]["memids"] = idx
-            self.maps[k]["updated"] = t
+        for c in changes:
+            is_delete = c.get("is_delete", False)
+            is_move = c.get("is_move", False)
+            memid = c.get("memid", "NULL")
+            p = c.get("pos")
+            if p is None:
+                assert is_delete
+                # if the change is a remove, and is specified by memid:
+                if not memid:
+                    raise Exception("tried to update a map location without a location or a memid")
+                # warn if empty TODO?
+                self.delete_loc_by_memid(memid, t)
+            else:
+                x, y, z = p
+                h = self.y2slice(y)
+                i, j = self.real2map(x, z, h)
+                s = max(i - self.map_size + 1, j - self.map_size + 1, -i, -j)
+                if s > 0:
+                    self.extend_map(s)
+                i, j = self.real2map(x, z, h)
+                s = max(i - self.map_size + 1, j - self.map_size + 1, -i, -j)
+                if s > 0:
+                    # the map can not been extended enough to handle these bc MAX_MAP_SIZE
+                    # FIXME appropriate warning or error?
+                    continue
+                if is_delete:
+                    self.maybe_delete_loc(i, j, h, t, memid=memid)
+                else:
+                    if is_move:
+                        if memid != "NULL":
+                            self.delete_loc_by_memid(memid, t, is_move=True)
+
+                    self.maps[h]["memids"][i, j] = self.memid2index.get(
+                        memid, self.add_memid(memid)
+                    )
+                    self.maps[h]["map"][i, j] = c.get("is_obstacle", 1)
+                    self.maps[h]["updated"][i, j] = t
 
     # FIXME, want slices, esp for mc
     def y2slice(self, y):
@@ -173,3 +268,8 @@ class PlaceField:
         )
         print(f"examined[k] = {self.examined[k]}")
         return val
+
+
+if __name__ == "__main__":
+    W = {0: {0: {0: True}, 1: {2: {3: True}}}, 1: {5: True}}
+    idxs = [0, 1, 2, 3]
