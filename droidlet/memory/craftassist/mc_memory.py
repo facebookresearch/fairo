@@ -369,8 +369,16 @@ class MCAgentMemory(AgentMemory):
             delete = (b == 0 and idm[0] > 0) or (b > 0 and idm[0] == 0)
             if delete:
                 self.remove_voxel(*xyz, table)
-                # FIXME need to check the whole column
-                #                self.place_field.update_map(({"pos": xyz, "is_delete":True}))
+                # check if the whole column is removed:
+                # FIXME, eventually want y slices
+                r = self._db_read(
+                    "SELECT uuid FROM VoxelObjects WHERE x=? AND z=? and ref_type=?",
+                    xyz[0],
+                    xyz[2],
+                    tables[0],
+                )
+                if len(r) == 0:
+                    self.place_field.update_map([{"pos": xyz, "is_delete": True}])
                 local_areas_to_perceive.append((xyz, 3))
         return local_areas_to_perceive
 
