@@ -198,26 +198,26 @@ This command expresses the intent to look for / find or scout something.
 </pre>
 
 
-# Subcomponents of logical forms#
+# Subcomponents of logical forms #
 
 ## CONDITION ##
 <pre>
 <a id="condition"> CONDITION = { </a>
-  "condition": COMPARATOR/TIME_CONDITION/AND_CONDITION/OR_CONDITION/NOT_CONDITION,
+  "condition": <a href="#comparator">&ltCOMPARATOR&gt</a> /<a href="#time_condition">&ltTIME_CONDITION&gt</a>/<a href="#and_condition">&ltAND_CONDITION&gt</a>/<a href="#or_condition">&ltOR_CONDITION&gt</a>/<a href="#not_condition">&ltNOT_CONDITION&gt</a>,
   "condition_span": span}
 </pre>
 AND OR and NOT modify other conditions:
 <pre>
- AND_CONDITION = {"and_condition": [<a href="#condition">&ltCONDITION&gt</a>, ..., <a href="#condition">&ltCONDITION&gt</a>]} 
+ <a id="and_condition">AND_CONDITION</a> = {"and_condition": [<a href="#condition">&ltCONDITION&gt</a>, ..., <a href="#condition">&ltCONDITION&gt</a>]} 
 </pre>
 <pre>
- OR_CONDITION = {"or_condition": [<a href="#condition">&ltCONDITION&gt</a>, ..., <a href="#condition">&ltCONDITION&gt</a>]} 
+ <a id="or_condition">OR_CONDITION</a> = {"or_condition": [<a href="#condition">&ltCONDITION&gt</a>, ..., <a href="#condition">&ltCONDITION&gt</a>]} 
 </pre>
 <pre>
- NOT_CONDITION = {"not_condition": <a href="#condition">&ltCONDITION&gt</a>} 
+ <a id="not_condition">NOT_CONDITION</a> = {"not_condition": <a href="#condition">&ltCONDITION&gt</a>} 
 </pre>
 <pre>
-TIME_CONDITION = {
+<a id="time_condition">TIME_CONDITION</a> = {
     "comparator": <a href="#comparator">&ltCOMPARATOR&gt</a>,
     "special_time_event" : 'SUNSET / SUNRISE / DAY / NIGHT / RAIN / SUNNY',
     "event": <a href="#condition">&ltCONDITION&gt</a>,
