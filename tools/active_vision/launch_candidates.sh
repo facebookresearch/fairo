@@ -13,7 +13,7 @@ base_dir=/checkpoint/${USER}/jobs/reexplore
 mkdir -p $base_dir
 dt=$(date '+%d-%m-%Y/%H:%M:%S');
 
-job_dir=$base_dir/respawnv1
+out_dir=$base_dir/respawnv2
 # job_dir=$base_dir/$dt
 # echo """"""""""""""""""""""""""""""
 # echo Job Directory $job_dir
@@ -22,4 +22,4 @@ job_dir=$base_dir/respawnv1
 
 cd /private/home/apratik/fairo/tools/active_vision
 chmod +x find_respawn_loc.py
-python3.7 find_respawn_loc.py --data_dir $data_dir --job_dir $job_dir --slurm 
+python3.7 find_respawn_loc.py --data_dir $data_dir --out_dir $out_dir --slurm 

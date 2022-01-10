@@ -762,7 +762,7 @@ class Reexplore(Task):
                     }
                 )
             )
-            self.steps[3] = 'finished' # peek and check?
+            self.steps[3] = 'finished' 
             return
 
         if self.steps[3] == 'finished' and self.steps[4] == 'not_started':
@@ -779,7 +779,7 @@ class Reexplore(Task):
                     }
                 )
             )
-            self.steps[4] = 'finished' # peek and check
+            self.steps[4] = 'finished'
             return
         
         else:

@@ -10,9 +10,9 @@ fi
 # /checkpoint/apratik/jobs/reexplore/respawnv1/baselinev3_noisy
 # /checkpoint/apratik/jobs/reexplore/respawnv1/baselinev3
 
-data_dir=$1
+data_dir=/checkpoint/apratik/jobs/reexplore/respawnv1/baselinev3
 # Base dir for all jobs
-base_dir=/checkpoint/${USER}/jobs/reexplore/recollect
+base_dir=/checkpoint/${USER}/jobs/reexplore/labelprop
 
 dt=$(date '+%d-%m-%Y/%H:%M:%S');
 job_dir=$base_dir/$dt
@@ -23,5 +23,5 @@ echo """"""""""""""""""""""""""""""
 
 cd /private/home/apratik/fairo/tools/active_vision
 
-chmod +x reexplore.py
-python reexplore.py --data_dir $data_dir --job_dir $job_dir $2
+chmod +x run_label_prop.py
+python run_label_prop.py --data_dir $data_dir --job_dir $job_dir

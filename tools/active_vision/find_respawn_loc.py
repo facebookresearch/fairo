@@ -125,6 +125,7 @@ def process(traj_path, out_dir, gt, s, is_annot_validfn):
         visualize_instances(traj_path, [src_img_ids[i]], is_annot_validfn)
         # print(f'start pose {base_poses[i]} \nspawn {base_poses_hab[i]} \ntarget {target_xyz[i]}\n')
         reexplore_task_data[i] = {
+            'src_img_id': src_img_ids[i],
             'spawn_pos': base_poses_hab[i],
             'base_pos': base_poses[i],
             'target': target_xyz[i]
@@ -132,6 +133,9 @@ def process(traj_path, out_dir, gt, s, is_annot_validfn):
         
     with open(os.path.join(out_dir, 'reexplore_data.json'), 'w') as f:
         json.dump(reexplore_task_data, f)
+
+    with open(os.path.join(out_dir, 'traj_path.txt'), 'w') as f:
+        f.write(traj_path)
 
 def find_spawn_loc(baseline_root, outdir):
     jobs = []
@@ -146,7 +150,7 @@ def find_spawn_loc(baseline_root, outdir):
                     
                     def job_unit(traj_path, outdir, traj_id, annot_fn, setting):
                         s = SampleGoodCandidates(traj_path, annot_fn, setting)
-                        for gt in range(5,10,5):
+                        for gt in range(5,30,5):
                             outr = os.path.join(outdir, traj_id, setting, str(gt))
                             os.makedirs(outr, exist_ok=True)
                             print(f'outr {outr}')
@@ -164,14 +168,14 @@ if __name__ == "__main__":
         help="path where scene data is being stored",
         type=str,
     )
-    parser.add_argument("--job_dir", type=str, default="", help="")
+    parser.add_argument("--out_dir", type=str, default="", help="")
     parser.add_argument("--comment", type=str)
     parser.add_argument("--slurm", action="store_true", default=False, help="Run the pipeline on slurm, else locally")
 
     args = parser.parse_args()
 
     # executor is the submission interface (logs are dumped in the folder)
-    executor = submitit.AutoExecutor(folder=os.path.join(args.job_dir, 'slurm_logs'))
+    executor = submitit.AutoExecutor(folder=os.path.join(args.out_dir, 'slurm_logs'))
     # set timeout in min, and partition for running the job
     executor.update_parameters(
         slurm_partition="learnfair", #"learnfair", #scavenge
@@ -187,4 +191,4 @@ if __name__ == "__main__":
         slurm_comment="Droidlet Active Vision Pipeline"
     )
 
-    find_spawn_loc(args.data_dir, args.job_dir)
+    find_spawn_loc(args.data_dir, args.out_dir)
