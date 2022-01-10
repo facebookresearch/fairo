@@ -33,6 +33,8 @@ s3 = boto3.client('s3')
 
 
 def import_s3_lists(bucket: str):
+    
+    # Assumed S3 allowlist key example: (bucket)/interaction/allow.txt
     output_dict = copy.copy(qual_dict)
     
     for folder in output_dict.keys():
@@ -53,6 +55,7 @@ def import_s3_lists(bucket: str):
 
 
 def add_workers_to_quals(add_list: list, qual: str):
+
     for turker in add_list:
         #First add the worker to the database, or retrieve them if they already exist
         try:
@@ -78,12 +81,24 @@ def add_workers_to_quals(add_list: list, qual: str):
 
 
 def pull_local_lists():
+    # Pull the allowlists blocklists from local Mephisto DB into a formatted dict
+
     output_dict = copy.copy(qual_dict)
 
     logging.info(f"Retrieving qualification lists from local Mephisto DB")
     for task in output_dict.keys():
+        # If syncing for the first time, qualifications may not yet exist
+        try:
+            db.make_qualification(qual_dict[task]["allow"])
+        except:
+            pass
         whitelist = mephisto_data_browser.get_workers_with_qualification(qual_dict[task]["allow"])
         output_dict[task]["allow"] = [worker.worker_name for worker in whitelist]
+
+        try:
+            db.make_qualification(qual_dict[task]["block"])
+        except:
+            pass
         blacklist = mephisto_data_browser.get_workers_with_qualification(qual_dict[task]["block"])
         output_dict[task]["block"] = [worker.worker_name for worker in blacklist]
 
@@ -91,6 +106,8 @@ def pull_local_lists():
 
 
 def compare_qual_lists(s3_lists: dict, local_lists: dict):
+    # Compare two dicts of lists representing the local and S3 states, return a dict with the differences
+
     diff_dict = copy.copy(qual_dict)
 
     for t in diff_dict.keys():
@@ -102,6 +119,7 @@ def compare_qual_lists(s3_lists: dict, local_lists: dict):
 
 
 def update_lists(bucket:str, diff_dict: dict):
+    # Iterate through the differences between local and S3 lists and update both to be in sync
 
     for t in diff_dict.keys():
         for l in diff_dict[t].keys():
