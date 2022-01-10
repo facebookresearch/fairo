@@ -89,7 +89,7 @@ def build_shape_scene(args):
         opts = SHAPE_OPTION_FUNCTION_MAP[shape]()
         opts["bid"] = bid()
         S = SHAPE_FNS[shape](**opts)
-        m = np.mean([l for l, idm in S], axis=0)
+        m = np.round(np.mean([l for l, idm in S], axis=0)).astype("int32")
         offsets = np.random.randint((args.SL, args.H, args.SL)) - m
         inst_seg = []
         for l, idm in S:
@@ -104,18 +104,23 @@ def build_shape_scene(args):
         inst_segs.append({"tags": [shape], "locs": inst_seg})
 
     J = {}
-    o = (args.cuberite_x_offset, args.cuberite_y_offset, args.cuberite_z_offset)
+    # not shifting y for gridworld
+    o = (args.cuberite_x_offset, 0, args.cuberite_z_offset)
     blocks = shift(blocks, o)
     for i in inst_segs:
         i["locs"] = shift(i["locs"], o)
+    # FIXME not using the avatar and agent position in cuberite...
     J["avatarInfo"] = {"pos": avatar_pos(args, blocks), "look": avatar_look(args, blocks)}
     J["agentInfo"] = {"pos": agent_pos(args, blocks), "look": agent_look(args, blocks)}
+    J["inst_seg_tags"] = inst_segs
+    mapped_blocks = [(l[0], l[1], l[2], IGLU_BLOCK_MAP[idm]) for l, idm in blocks]
+    J["blocks"] = mapped_blocks
+
+    o = (0, args.cuberite_y_offset, 0)
+    blocks = shift(blocks, o)
     J["schematic_for_cuberite"] = [
         {"x": l[0], "y": l[1], "z": l[2], "id": idm[0], "meta": idm[1]} for l, idm in blocks
     ]
-    J["inst_seg_tags"] = inst_segs
-    blocks = [(l[0], l[1], l[2], IGLU_BLOCK_MAP[idm]) for l, idm in blocks]
-    J["blocks"] = blocks
     return J
 
 
