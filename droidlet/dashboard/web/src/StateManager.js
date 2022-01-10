@@ -17,6 +17,7 @@ import TimelineDetails from "./components/Timeline/TimelineDetails";
 import MobileMainPane from "./MobileMainPane";
 import Retrainer from "./components/Retrainer";
 import Navigator from "./components/Navigator";
+import FrankaArmMover from "./components/FrankaArmMover";
 import { isMobile } from "react-device-detect";
 import MainPane from "./MainPane";
 
@@ -78,6 +79,9 @@ class StateManager {
     this.setLastChatActionDict = this.setLastChatActionDict.bind(this);
     this.setConnected = this.setConnected.bind(this);
     this.updateAgentType = this.updateAgentType.bind(this);
+
+    this.updateImage = this.updateImage.bind(this);
+
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
     this.keyHandler = this.keyHandler.bind(this);
     this.updateVoxelWorld = this.updateVoxelWorld.bind(this);
@@ -112,6 +116,8 @@ class StateManager {
     this.setTurkExperimentId(turkExperimentId);
     this.setMephistoAgentId(mephistoAgentId);
     this.setTurkWorkerId(turkWorkerId);
+
+    const roboArmState = FrankaArmMover.state;
 
     // set default url to actual ip:port
     this.default_url = window.location.host;
@@ -251,7 +257,10 @@ class StateManager {
     socket.on("setLastChatActionDict", this.setLastChatActionDict);
     socket.on("memoryState", this.processMemoryState);
     socket.on("updateState", this.updateStateManagerMemory);
+    socket.on("updatePosState", this.updatePosState);
     socket.on("updateAgentType", this.updateAgentType);
+
+    socket.on("updateImage", this.updateImage);
 
     socket.on("rgb", this.processRGB);
     socket.on("depth", this.processDepth);
@@ -267,6 +276,15 @@ class StateManager {
     socket.on("annotationRetrain", this.annotationRetrain);
     socket.on("saveRgbSegCallback", this.saveAnnotations);
     socket.on("handleMaxFrames", this.handleMaxFrames);
+  }
+
+  updatePosState(data) {
+    /**
+     * This function sets the statemanager memory state
+     * to be what's on the server and force re-renders
+     * components.
+     */
+    this.roboArmState.ee_pos = data.movement_values["ee_pos"];
   }
 
   updateStateManagerMemory(data) {
@@ -425,12 +443,39 @@ class StateManager {
           // 4
           commands.push("TILT_DOWN");
         }
+        if (k === 53) {
+          commands.push("MOVE_JOINT_1");
+        }
+        if (k === 54) {
+          commands.push("MOVE_JOINT_2");
+        }
+        if (k === 55) {
+          commands.push("MOVE_JOINT_3");
+        }
+        if (k === 56) {
+          commands.push("MOVE_JOINT_4");
+        }
+        if (k === 57) {
+          commands.push("MOVE_JOINT_5");
+        }
+        if (k === 58) {
+          commands.push("MOVE_JOINT_6");
+        }
+        if (k === 59) {
+          commands.push("GO_HOME");
+        }
+        if (k === 60) {
+          commands.push("GET_POS");
+        }
+        if (k === 61) {
+          commands.push("GET_IMAGE");
+        }
       }
     }
     if (commands.length > 0) {
       let movementValues = {};
       this.refs.forEach((ref) => {
-        if (ref instanceof Navigator) {
+        if (ref instanceof Navigator || ref instanceof FrankaArmMover) {
           movementValues = ref.state;
         }
       });
@@ -452,6 +497,32 @@ class StateManager {
     if (commands.length > 0) {
       this.socket.emit("movement command", commands);
     }
+  }
+
+  updateImage(data) {
+    let img = new Image();
+    img.src = "data:image/webp;base64," + data;
+
+    //let img = new Image();
+    //let buff = Buffer.from(data.toString(),"base64");
+    //img.src = "data:image/png;base64," + buff;
+    //arraybuffer to image
+    //var arrayBufferView = new Uint8Array( data );
+    //var blob = new Blob( [ arrayBufferView ], { type: "image/jpeg" } );
+    //var urlCreator = window.URL || window.webkitURL;
+    //var imageUrl = urlCreator.createObjectURL( blob );
+    //img.src = imageUrl
+
+    //img.src = buff;
+    this.refs.forEach((ref) => {
+      console.log("Data sent", data);
+      console.log("Data image is", img);
+      if (ref instanceof FrankaArmMover) {
+        ref.setState({
+          image: img,
+        });
+      }
+    });
   }
 
   /**
@@ -831,7 +902,7 @@ class StateManager {
       this.prevFeedState.rgbImg = this.curFeedState.rgbImg;
       this.curFeedState.rgbImg = res;
       this.stateProcessed.rgbImg = false;
-      this.updateObjects = [true, true]; // Change objects on frame after this one
+      this.updateObjects = [true, false]; // Change objects on frame after this one
     }
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation();
@@ -890,7 +961,7 @@ class StateManager {
         }
         j++;
       }
-      if (res.objects[i].mask.length == 0) {
+      if (res.objects[i].mask.length === 0) {
         res.objects.splice(i, 1);
         continue;
       }
@@ -915,9 +986,6 @@ class StateManager {
           ref.setState({
             objects: res.objects,
             rgb: rgb,
-            height: res.height,
-            width: res.width,
-            scale: res.scale,
           });
         } else if (ref instanceof MobileMainPane) {
           // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
@@ -949,9 +1017,6 @@ class StateManager {
           isLoaded: true,
           humans: res.humans,
           rgb: rgb,
-          height: res.height,
-          width: res.width,
-          scale: res.scale,
         });
       }
     });
