@@ -8,7 +8,6 @@ import os
 import logging
 
 from mephisto.operations.operator import Operator
-from mephisto.operations.utils import get_root_dir
 from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
     BLUEPRINT_TYPE,
 )
@@ -32,6 +31,7 @@ from pilot_config import PILOT_ALLOWLIST_QUAL_NAME, PILOT_BLOCK_QUAL_NAME
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 defaults = [
+    "_self_",
     {"mephisto/blueprint": BLUEPRINT_TYPE},
     {"mephisto/architect": "ec2"},
     {"mephisto/provider": "mock"},
