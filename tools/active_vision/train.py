@@ -206,31 +206,35 @@ class MyTrainer(DefaultTrainer):
 
 
 class COCOTrain:
-    def __init__(self, lr, w, maxiters, seed, name):
+    def __init__(self, lr, w, maxiters, seed, data):
         self.cfg = get_cfg()
         self.cfg.merge_from_file(model_zoo.get_config_file(coco_yaml))
         self.cfg.SOLVER.BASE_LR = lr  # pick a good LR
         self.cfg.SOLVER.MAX_ITER = maxiters
         self.cfg.SOLVER.WARMUP_ITERS = w
         self.seed = seed
-        self.name = name
+        self.data = data
+    
+    def register_json(self, name, coco_json, img_dir):
+        register_coco_instances(name, {}, coco_json, img_dir)
+        # roundabout way to set metadata https://detectron2.readthedocs.io/en/latest/tutorials/datasets.html#metadata-for-datasets
+        coco = COCO(coco_json)
+        cats = coco.loadCats(coco.getCatIds())
+        MetadataCatalog.get(name).thing_classes = [cat['name'] for cat in cats]
         
-    def reset(self, train_json, img_dir_train, dataset_name):
+    def reset(self):
         DatasetCatalog.clear()
         MetadataCatalog.clear()
-        self.train_data = dataset_name +  "_train"
-        self.dataset_name = dataset_name
-        self.train_json = train_json
-        register_coco_instances(self.train_data, {}, train_json, img_dir_train)
-
-        # roundabout way to set metadata https://detectron2.readthedocs.io/en/latest/tutorials/datasets.html#metadata-for-datasets
-        coco = COCO(train_json)
-        # display COCO categories and supercategories
-        cats = coco.loadCats(coco.getCatIds())
-        self.thing_classes = [cat['name'] for cat in cats]
-        print(f'thing_classes {self.thing_classes}')
-        MetadataCatalog.get(self.train_data).thing_classes = self.thing_classes
-        # TODO: Register test json
+        self.train_data = self.data['dataset_name'] +  "_train"
+        self.register_json(self.train_data, self.data['train']['json'], self.data['train']['img_dir'])
+        if 'val' in self.data.keys():
+            self.val_data = self.data['dataset_name'] + "_val"
+            self.register_json(self.val_data, self.data['val']['json'], self.data['val']['img_dir'])
+        
+        self.test_data = None
+        if 'test' in self.data.keys():
+            self.test_data = self.data['dataset_name'] + "_test"
+            self.register_json(self.val_data, self.data['test']['json'], self.data['test']['img_dir'])
     
     def vis(self):
         dataset_dicts = DatasetCatalog.get(self.train_data)
@@ -243,21 +247,11 @@ class COCOTrain:
             plt.imshow(img)
             plt.show()
     
-    def train(self, val_json, img_dir_val):
+    def train(self):
         cfg = self.cfg
         print(f'SOLVER PARAMS {cfg.SOLVER.MAX_ITER, cfg.SOLVER.WARMUP_ITERS, cfg.SOLVER.BASE_LR}')
         cfg.DATASETS.TRAIN = (self.train_data,)
-        
-        self.val_data = self.dataset_name + "_val" + str(self.seed)
-        self.val_json = val_json
-        cfg.DATASETS.TEST = (self.val_data,self.train_data)
-
-        register_coco_instances(self.val_data, {}, val_json, img_dir_val)
-        coco = COCO(val_json)
-        # display COCO categories and supercategories
-        cats = coco.loadCats(coco.getCatIds())
-        val_thing_classes = [cat['name'] for cat in cats]
-        MetadataCatalog.get(self.val_data).thing_classes = val_thing_classes
+        cfg.DATASETS.TEST = (self.val_data, self.train_data if not self.test_data else self.test_data)
         
         cfg.DATALOADER.NUM_WORKERS = 2
         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
@@ -269,28 +263,22 @@ class COCOTrain:
         cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128 
         print(f'classes {MetadataCatalog.get(self.train_data)}')
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(MetadataCatalog.get(self.train_data).get("thing_classes"))  
-        cfg.OUTPUT_DIR = os.path.join('output_droid', self.name, str(self.seed), str(cfg.SOLVER.MAX_ITER), str(cfg.SOLVER.BASE_LR), str(cfg.SOLVER.WARMUP_ITERS))
+        cfg.OUTPUT_DIR = os.path.join(self.data['out_dir'], 'training', str(self.seed), str(cfg.SOLVER.MAX_ITER), str(cfg.SOLVER.BASE_LR), str(cfg.SOLVER.WARMUP_ITERS))
         print(f"recreating {cfg.OUTPUT_DIR}")
         os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
         self.trainer = MyTrainer(cfg) #DefaultTrainer(cfg)  #Trainer(cfg)
         self.trainer.resume_or_load(resume=False)
         self.trainer.train()
         
-    def run_train(self, train_json, img_dir_train, dataset_name, val_json, img_dir_val):
-        self.reset(train_json, img_dir_train, dataset_name)
+    def run_train(self):
+        self.reset()
         # self.vis()
-        self.train(val_json, img_dir_val)
+        self.train()
 
 
 maxiters = [1000]
 lrs = [0.001, 0.002, 0.004]
 warmups = [100]
-
-# # maxiters = [1000, 2000]
-# maxiters = [500, 1000, 2000, 4000, 6000]
-# # lrs = [0.0001, 0.0005, 0.001, 0.002, 0.005]
-# lrs = [0.001, 0.0005, 0.002]
-# warmups = [100, 200]
 
 def write_summary_to_file(filename, results, header_str):
     if isinstance(results['bbox']['AP50'][0], list):
@@ -305,31 +293,11 @@ def write_summary_to_file(filename, results, header_str):
 from pathlib import Path
 import string
 
-def run_training(out_dir, img_dir_train, n=10, active=False):
-    train_json = os.path.join(out_dir, 'coco_train.json')
-    # img_dir_val = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_val/rgb'
-    # val_json = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_val/coco_val.json'
-    # val_json = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_2/coco_val.json'
-    # img_dir_val = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_2/rgb'
-    # img_dir_val = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1114/rgb'
-    # val_json = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1114/coco_val.json'
-    # val_json = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_test_cvpr2/coco_val.json'
-    # img_dir_val = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_test_cvpr2/rgb'
-    val_json_1116 = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1116_cvpr2/coco_val.json'
-    img_dir_val_1116 = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1116_cvpr2/rgb'
+def run_training(training_data, n=1):
     for lr in lrs:
         for warmup in warmups:
             for maxiter in maxiters:
-                results = {
-                    "bbox": {
-                        "AP50": []
-                    },
-                    "segm": {
-                        "AP50": []
-                    }
-                }
                 for i in range(n):
-                    dataset_name = out_dir.split('/')[-1]
-                    c = COCOTrain(lr, warmup, maxiter, i, dataset_name)
-                    print(f'dataset_name {dataset_name}')
-                    c.run_train(train_json, img_dir_train, dataset_name, val_json_1116, img_dir_val_1116)
+                    c = COCOTrain(lr, warmup, maxiter, i, training_data)
+                    c.run_train()
+                return

@@ -82,12 +82,6 @@ def prop_and_combine(pth, out_name, f_name, prop_length):
     for x in folders:
         print(x)
         acopydir(os.path.join(x, 'rgb'), os.path.join(out_dir, 'rgb'), '.jpg') # only want to copy the propagated files!
-        # do label prop of length p on the GT frame (which is the first frame)
-        # create folder named px
-        # copy rgb over to px/rgb
-        # do label prop into px/seg
-        # out_dir = os.path.join(pth)
-        # pass
 
 def save_propagated_visual(semantic1, semantic2, save_dir, out_indx):
     if not os.path.isdir(save_dir):

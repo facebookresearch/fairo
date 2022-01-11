@@ -25,6 +25,45 @@ combinations = {
     'e1s1c1l': ['e1', 's1', 'c1l'],
 }
 
+def get_training_data(path):
+    """
+    Returns a struct for train, val, test data and associated directories
+    """
+    print(f'\nget_training_data {path}')
+    if 'instance' in path:
+        return {
+            'out_dir': path,
+            'dataset_name': path.split('/')[-1],
+            'train': {
+                'json': os.path.join(path, 'coco_train.json'), 
+                'img_dir': os.path.join(path, 'rgb')
+            },
+            'val': {
+                'json': '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1116_cvpr2/coco_val.json',
+                'img_dir': '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1116_cvpr2/rgb',
+            },
+        }
+
+    elif 'class' in path:
+        return {
+            'out_dir': path,
+            'dataset_name': path.split('/')[-1],
+            'train': {
+                'json': os.path.join(path, 'coco_train.json'),
+                'img_dir': os.path.join(path, 'rgb'),
+            },
+            'val': {
+                'json': '/checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200/83/seg/coco_train.json',
+                'img_dir': '/checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200/83/rgb',
+            },
+            'test':{
+                'json': '/checkpoint/apratik/finals/jsons/active_vision/frlapt1_20n0.json',
+                'img_dir': '/checkpoint/apratik/ActiveVision/active_vision/replica_random_exploration_data/frl_apartment_1/rgb',
+            },
+        }
+
+    return None
+
 def prep_and_run_training(data_dir, job_dir, args):
     print(f'data_dir {data_dir}')
     jobs = []
@@ -36,8 +75,9 @@ def prep_and_run_training(data_dir, job_dir, args):
                 if k in path:
                     print(path)
                     run_coco(path)
-                    run_training(path, os.path.join(path, 'rgb'), args.num_train_samples)
-                    break
+                    training_data = get_training_data(path)
+                    run_training(training_data, args.num_train_samples)
+                    return
 
     if len(jobs) > 0:
         print(f"Job Id {jobs[0].job_id.split('_')[0]}, num jobs {len(jobs)}")
@@ -62,7 +102,7 @@ if __name__ == "__main__":
     # set timeout in min, and partition for running the job
     executor.update_parameters(
         slurm_partition="learnfair", #"learnfair", #scavenge
-        timeout_min=30,
+        timeout_min=1000,
         mem_gb=256,
         gpus_per_node=4,
         tasks_per_node=1, 
