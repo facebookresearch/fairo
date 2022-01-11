@@ -1,0 +1,15 @@
+#@package _global_
+mephisto:
+  blueprint:
+    data_csv: ${task_dir}/data.csv
+    task_source: ${task_dir}/server_files/vision_annotation_task.html
+    preview_source: ${task_dir}/server_files/vision_annotation_task_preview.html
+    extra_source_dir: ${task_dir}/server_files/extra_refs
+    units_per_assignment: 1
+  task:
+    task_title: "Mark images in 3D"
+    task_description: "Mark the blocks that make up a shape"
+    task_reward: 1.0
+    allowed_concurrent: 1
+    task_tags: "3D, annotate, shapes"
+    task_name: "droidlet-vision-annotation"
