@@ -6,7 +6,7 @@
 2. Launch Reexplore
 ```
 ./launch_reexplore.sh <outdir from step 1> <noise or not>
-./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/respawnv2/baselinev3
+./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/respawnv3/baselinev3
 ```
 
 3. Label Prop

@@ -752,12 +752,13 @@ class Reexplore(Task):
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
             assert np.allclose(base_pos, self.base_pos)
-            
+            goal = get_distant_goal(base_pos[0], base_pos[1], base_pos[2])
             self.add_child_task(TimedExplore(
                     self.agent, { 
-                        "goal": get_distant_goal(base_pos[0], base_pos[1], base_pos[2]), 
+                        "goal": goal, 
                         "save_data": os.getenv('SAVE_EXPLORATION', 'False') == 'True',
                         "data_path": f"{self.task_data['data_path']}/r1",
+                        "dbg_str": f"TimedExplore r1 {goal}",
                         "timeout": 20,
                     }
                 )
@@ -769,12 +770,13 @@ class Reexplore(Task):
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
             assert np.allclose(base_pos, self.base_pos)
-            
+            goal = get_distant_goal(base_pos[0], base_pos[1], base_pos[2])
             self.add_child_task(TimedExplore(
                     self.agent, { 
-                        "goal": get_distant_goal(base_pos[0], base_pos[1], base_pos[2]), 
+                        "goal": goal, 
                         "save_data": os.getenv('SAVE_EXPLORATION', 'False') == 'True',
                         "data_path": f"{self.task_data['data_path']}/r2",
+                        "dbg_str": f"TimedExplore r2 {goal}",
                         "timeout": 20,
                     }
                 )

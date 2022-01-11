@@ -8,7 +8,7 @@ if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then
 fi
 
 # /checkpoint/apratik/jobs/reexplore/respawnv1/baselinev3_noisy
-# /checkpoint/apratik/jobs/reexplore/respawnv1/baselinev3
+# /checkpoint/apratik/jobs/reexplore/respawnv3_noisy/baselinev3_noisy --noise
 
 data_dir=$1
 # Base dir for all jobs

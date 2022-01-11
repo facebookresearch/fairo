@@ -14,8 +14,6 @@ import copy
 import argparse
 import submitit
 
-instance_ids = [243,404,196,133,166,170,172]
-
 def visualize_instances(traj_path, img_ids, is_annot_validfn):
     for img_indx in img_ids:
         src_img = cv2.imread(os.path.join(traj_path, "rgb/{:05d}.jpg".format(img_indx)))
@@ -32,6 +30,7 @@ def visualize_instances(traj_path, img_ids, is_annot_validfn):
         plt.show()
 
 def is_annot_validfn_inst(annot):
+    instance_ids = [243,404,196,133,166,170,172]
     if annot not in instance_ids:
         return False
     return True
@@ -141,7 +140,7 @@ def find_spawn_loc(baseline_root, outdir):
     jobs = []
     print(f"baseline_root {baseline_root}")
     with executor.batch():
-        for traj_path in glob.glob(baseline_root + '/*')[:10]:
+        for traj_path in glob.glob(baseline_root + '/*'):
             if traj_path.split('/')[-1].isdigit():
                 print(f'processing {traj_path}')
                 traj_id = '/'.join(traj_path.split('/')[-2:])

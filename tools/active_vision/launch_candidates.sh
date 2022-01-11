@@ -13,7 +13,7 @@ base_dir=/checkpoint/${USER}/jobs/reexplore
 mkdir -p $base_dir
 dt=$(date '+%d-%m-%Y/%H:%M:%S');
 
-out_dir=$base_dir/respawnv2
+out_dir=$base_dir/respawnv3
 # job_dir=$base_dir/$dt
 # echo """"""""""""""""""""""""""""""
 # echo Job Directory $job_dir

@@ -15,10 +15,12 @@ from PIL import Image
 import matplotlib.pyplot as plt
 
 set_keys = {
-    'a': ['e1', 'r1', 'r2'],
-    'b': ['e1', 's1', 'r2'],
-    'c': ['e1', 'c1s', 'r2'],
-    'd': ['e1', 's1', 'c1s'],
+    'e1r1r2': ['e1', 'r1', 'r2'],
+    'e1s1r2': ['e1', 's1', 'r2'],
+    'e1c1sr2': ['e1', 'c1s', 'r2'],
+    'e1c1lr2': ['e1', 'c1l', 'r2'],
+    'e1s1c1s': ['e1', 's1', 'c1s'],
+    'e1s1c1l': ['e1', 's1', 'c1l'],
 }
 
 d3_40_colors_rgb: np.ndarray = np.array(
@@ -65,19 +67,7 @@ d3_40_colors_rgb: np.ndarray = np.array(
         [222, 158, 214],
     ],
     dtype=np.uint8,
-)
-
-def acopydir(src, dst, ext):
-    if not os.path.isdir(dst):
-        os.makedirs(dst)
-    
-    fsa = [x for x in glob.glob(os.path.join(src, f'*{ext}'))]
-    
-    ctr = len(glob.glob(os.path.join(dst, f'*{ext}')))
-    for f in fsa:
-        fname = "{:05d}{}".format(ctr, ext)
-        copyfile(f, os.path.join(dst, fname))
-        ctr += 1    
+) 
 
 def prop_and_combine(pth, out_name, f_name, prop_length):
     # f takes values output by reexplore - e1, s1, ... etc
@@ -118,15 +108,12 @@ def save_propagated_visual(semantic1, semantic2, save_dir, out_indx):
         ax.axis('off')
         ax.set_title(titles[i])
         plt.imshow(data)
-    plt.savefig(f'{save_dir}/{out_indx}.jpg')
+    plt.savefig("{}/{:05d}.jpg".format(save_dir, out_indx))
 
 def calculate_accuracy(act, pred):
-    h, w = act.shape
-    assert act.shape == pred.shape
-    
+    assert act.shape == pred.shape    
     correct = np.sum(act[pred != 0] == pred[pred != 0])
     total = np.sum(pred != 0)
-    
     return correct/total
 
 # @ray.remote
@@ -199,7 +186,7 @@ def propogate_label(
         save_propagated_visual(
             gt_label, 
             annot_img, 
-            os.path.join(out_dir, 'visuals'), out_indx
+            os.path.join(out_dir, 'lp_visuals'), out_indx
         )
 
         # calculate metrics
@@ -236,8 +223,74 @@ def propagate_dir(reex_dir):
                 base_pose_data,
                 out_dir,
                 0
-            )
-        break 
+            ) 
+
+def acopydir(src, dst, pred_f):
+    # print(f'acopydir {src} {dst} {pred_f}')
+    og_rgb = os.path.join(src, 'rgb')
+    og_rgb_dbg = os.path.join(src, 'rgb_dbg')
+    og_visuals = os.path.join(src, pred_f, 'lp_visuals')
+    
+    out_dir = os.path.join(dst, pred_f)
+    rgb_dir = os.path.join(out_dir, 'rgb')
+    rgb_dbg_dir = os.path.join(out_dir, 'rgb_dbg')
+    seg_dir = os.path.join(out_dir, 'seg')
+    vis_dir = os.path.join(out_dir, 'lp_visuals')
+
+    if not os.path.isdir(out_dir):
+        for x in [out_dir, rgb_dir, rgb_dbg_dir, seg_dir, vis_dir]:
+            os.makedirs(x)
+    
+    # copy seg files and their corresponding rgb files, numbered appropriately
+
+    fsa = list(glob.glob(os.path.join(seg_dir, '*.npy')))
+    ctr = len(fsa)
+    for x in glob.glob(os.path.join(src, pred_f, '*.npy')):
+        og_indx = int(x.split('/')[-1].split('.')[0])
+        # copy seg
+        fname_seg = "{:05d}{}".format(ctr, '.npy')
+        copyfile(x, os.path.join(seg_dir, fname_seg))
+        # copy rgb
+        fname_rgb = "{:05d}{}".format(ctr, '.jpg')
+        copyfile(
+            os.path.join(og_rgb, "{:05d}{}".format(og_indx, '.jpg')),
+            os.path.join(rgb_dir, fname_rgb)
+        )
+        # copy rgb_dbg
+        fname_rgb = "{:05d}{}".format(ctr, '.jpg')
+        copyfile(
+            os.path.join(og_rgb_dbg, "{:05d}{}".format(og_indx, '.jpg')),
+            os.path.join(rgb_dbg_dir, fname_rgb)
+        )
+        # copy visuals
+        fname_vis = "{:05d}{}".format(ctr, '.jpg')
+        copyfile(
+            os.path.join(og_visuals, "{:05d}{}".format(og_indx, '.jpg')),
+            os.path.join(vis_dir, fname_vis)
+        )
+        ctr += 1
+
+def combine(src, dst, input_folds):
+    """
+    \src (0)
+        \input_folds (r1, s1 ..)
+            \pred_label_px
+    \dst (..\a)
+        \pred_label_px
+            \rgb
+            \seg
+            coco.json
+            metrics.json
+
+    """
+    print(f'src {src} dst {dst}, input_folds {input_folds}')
+    for x in input_folds:
+        # print(f'combining {os.path.join(src, x)} into {dst}')
+        for p in Path(os.path.join(src, x)).rglob('pred_label*'):
+            pred_f = str(p).split('/')[-1]
+            # print(pred_f, p.parent)
+            # want to put src/pred_label into dst/pred_label
+            acopydir(p.parent, dst, pred_f)
 
 def run_label_prop(data_dir, job_dir):
     print(f'data_dir {data_dir}')
@@ -252,8 +305,20 @@ def run_label_prop(data_dir, job_dir):
                     for eid in os.listdir(path.parent):
                         if eid.isdigit():
                             # do prop on each 
-                            propagate_dir(os.path.join(path.parent, eid))
-                    return
+                            # propagate_dir(os.path.join(path.parent, eid))
+
+                            # combine all propagated based on combinations
+                            for out_name, input_folds in set_keys.items():
+                                out_dir = os.path.join(path.parent, out_name)
+                                if os.path.isdir(out_dir):
+                                    print(f'rmtree {out_dir}')
+                                    rmtree(out_dir)
+                                combine(
+                                    os.path.join(path.parent, eid), 
+                                    out_dir, 
+                                    input_folds
+                                )
+                            return
 
                     # def job_unit(pth, out_name, input_fs):
                     #     # now, for each setkey, write a fn to output the rgb, seg folders 

@@ -24,4 +24,7 @@ echo """"""""""""""""""""""""""""""
 cd /private/home/apratik/fairo/tools/active_vision
 
 chmod +x run_label_prop.py
-python run_label_prop.py --data_dir $data_dir --job_dir $job_dir
+# python run_label_prop.py --data_dir $data_dir --job_dir $job_dir
+
+chmod +x prep_and_run_training.py
+python prep_and_run_training.py --data_dir $data_dir --job_dir $job_dir
