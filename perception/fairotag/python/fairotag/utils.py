@@ -1,9 +1,11 @@
-from typing import Tuple
+from typing import Tuple, Dict
 
 import numpy as np
 import sophus as sp
 import gtsam
 from scipy.spatial.transform import Rotation as R
+
+import fairotag as frt
 
 
 def so3_to_quat(r: sp.SO3) -> np.ndarray:
@@ -26,3 +28,23 @@ def sophus2gtsam(pose):
 
 def gtsam2sophus(pose):
     return sp.SE3(pose.matrix())
+
+
+def intrinsics2dict(intrinsics):
+    return {
+        "fx": intrinsics.fx,
+        "fy": intrinsics.fy,
+        "ppx": intrinsics.ppx,
+        "ppy": intrinsics.ppy,
+        "coeffs": list(intrinsics.coeffs),
+    }
+
+
+def dict2intrinsics(intrinsics_dict: Dict):
+    return frt.CameraIntrinsics(
+        fx=intrinsics_dict["fx"],
+        fy=intrinsics_dict["fy"],
+        ppx=intrinsics_dict["ppx"],
+        ppy=intrinsics_dict["ppy"],
+        coeffs=intrinsics_dict["coeffs"],
+    )
