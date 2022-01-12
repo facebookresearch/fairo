@@ -20,9 +20,14 @@ import glob
 from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.data.datasets import register_coco_instances
 from detectron2.utils.visualizer import Visualizer, ColorMode
+from common_utils import (
+    is_annot_validfn_class, 
+    is_annot_validfn_inst,
+    instance_ids,
+    class_labels,
+)
 
 semantic_json_root = '/checkpoint/apratik/ActiveVision/active_vision/info_semantic'
-instance_ids = [243,404,196,133,166,170,172]
 
 class CocoCreator:
     # Assumes root_data_dir has both te GT and propagated segmentation labels
@@ -146,16 +151,12 @@ class CocoCreator:
 
             self.IMAGES.append(image_info)
             
-#             print(f'unique annots {np.unique(annot.reshape(-1), axis=0)}')
-            # for each annotation add to coco format
             for i in np.sort(np.unique(annot.reshape(-1), axis=0)):
                 if self.is_valid_annot_fn(i):
-#                     print(f'{i} in {self.instance_ids}')
                     try:
                         if hsd["id_to_label"][i] < 1:# or hsd["id_to_label"][i] not in self.label_id_dict:
                             continue
                         category_info = {"id": self.new_old_id[i], "is_crowd": False}
-    #                     print(f'category_info {category_info}')
                     except:
                         continue
 
@@ -167,8 +168,6 @@ class CocoCreator:
                     if annotation_info is not None:
                         self.ANNOTATIONS.append(annotation_info)
                         count += 1
-#                         print(f'adding {len(annotation_info)} annotations')
-
         
     def load_semantic_json(self, scene):
         replica_root = '/datasets01/replica/061819/18_scenes'
@@ -187,29 +186,6 @@ class CocoCreator:
         for x in range(0, len(cs), int(frq)):
             fs.append(cs[x])
         return fs 
-
-def is_annot_validfn_inst(annot):
-    if annot not in instance_ids:
-        return False
-    return True
-
-def is_annot_validfn_class(annot):
-    def load_semantic_json(scene):
-        habitat_semantic_json = f'/checkpoint/apratik/replica/{scene}/habitat/info_semantic.json'
-        with open(habitat_semantic_json, "r") as f:
-            hsd = json.load(f)
-        if hsd is None:
-            print("Semantic json not found!")
-        return hsd
-    hsd = load_semantic_json('apartment_0')
-    labels = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
-    label_id_dict = {}
-    for obj_cls in hsd["classes"]:
-        if obj_cls["name"] in labels:
-            label_id_dict[obj_cls["id"]] = obj_cls["name"]
-    if hsd["id_to_label"][annot] < 1 or hsd["id_to_label"][annot] not in label_id_dict.keys():
-        return False
-    return True
 
 def get_valid_annot_fn(root_data_dir):
     if 'instance' in root_data_dir:

@@ -3,6 +3,7 @@ from droidlet.perception.robot.active_vision.candidate_selection import SampleGo
 from droidlet.lowlevel.robot_mover_utils import transform_pose
 from droidlet.lowlevel.robot_coordinate_utils import base_canonical_coords_to_pyrobot_coords, xyz_pyrobot_to_canonical_coords
 from droidlet.perception.robot.handlers import convert_depth_to_pcd, compute_uvone
+from common_utils import is_annot_validfn_class, is_annot_validfn_inst
 
 import os 
 import glob
@@ -17,7 +18,6 @@ import submitit
 def visualize_instances(traj_path, img_ids, is_annot_validfn):
     for img_indx in img_ids:
         src_img = cv2.imread(os.path.join(traj_path, "rgb/{:05d}.jpg".format(img_indx)))
-        # src_depth = np.load(os.path.join(root, "depth/{:05d}.npy".format(img_indx)))
         src_label = np.load(os.path.join(traj_path, "seg/{:05d}.npy".format(img_indx)))
         all_label = np.zeros_like(src_label).astype(np.int32)
         for x in np.unique(src_label):
@@ -29,38 +29,9 @@ def visualize_instances(traj_path, img_ids, is_annot_validfn):
         ax2.imshow(all_label)
         plt.show()
 
-def is_annot_validfn_inst(annot):
-    instance_ids = [243,404,196,133,166,170,172]
-    if annot not in instance_ids:
-        return False
-    return True
-
-def is_annot_validfn_class(annot):
-    def load_semantic_json(scene):
-        habitat_semantic_json = f'/checkpoint/apratik/replica/{scene}/habitat/info_semantic.json'
-        with open(habitat_semantic_json, "r") as f:
-            hsd = json.load(f)
-        if hsd is None:
-            print("Semantic json not found!")
-        return hsd
-    hsd = load_semantic_json('apartment_0')
-    labels = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
-    label_id_dict = {}
-    for obj_cls in hsd["classes"]:
-        if obj_cls["name"] in labels:
-            label_id_dict[obj_cls["id"]] = obj_cls["name"]
-    if hsd["id_to_label"][annot] < 1 or hsd["id_to_label"][annot] not in label_id_dict.keys():
-        return False
-    return True
-
 def get_center(mask):
-    # plt.imshow(mask)
-    # plt.show()
     m = np.argwhere(mask == 1)
-    l = len(m)
-    c = m[int(l/2)]
-    # print(f'returning center .. {c}')
-    return c
+    return m[int(len(m)/2)]
 
 def get_center_of_larger_mask(seg, is_annot_validfn):
     larea = 0
@@ -122,7 +93,6 @@ def process(traj_path, out_dir, gt, s, is_annot_validfn):
     # base_poses = [habitat_base_pos(x) for x in base_poses]
     for i in range(len(src_img_ids)):
         visualize_instances(traj_path, [src_img_ids[i]], is_annot_validfn)
-        # print(f'start pose {base_poses[i]} \nspawn {base_poses_hab[i]} \ntarget {target_xyz[i]}\n')
         reexplore_task_data[i] = {
             'src_img_id': src_img_ids[i],
             'spawn_pos': base_poses_hab[i],

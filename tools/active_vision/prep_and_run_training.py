@@ -65,7 +65,7 @@ def get_training_data(path):
     return None
 
 def prep_and_run_training(data_dir, job_dir, args):
-    print(f'data_dir {data_dir}')
+    print(f'preparing and running training for {data_dir}')
     jobs = []
 
     with executor.batch():
@@ -73,11 +73,13 @@ def prep_and_run_training(data_dir, job_dir, args):
             path = str(path)
             for k in combinations.keys():
                 if k in path:
-                    print(path)
-                    run_coco(path)
-                    training_data = get_training_data(path)
-                    run_training(training_data, args.num_train_samples)
-                    return
+                    def job_unit(path, args):
+                        run_coco(path)
+                        training_data = get_training_data(path)
+                        run_training(training_data, args.num_train_samples)
+                    
+                    job = executor.submit(job_unit, path, args)
+                    jobs.append(job)
 
     if len(jobs) > 0:
         print(f"Job Id {jobs[0].job_id.split('_')[0]}, num jobs {len(jobs)}")
@@ -97,7 +99,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # executor is the submission interface (logs are dumped in the folder)
     executor = submitit.AutoExecutor(folder=os.path.join(args.job_dir, 'slurm_logs'))
     # set timeout in min, and partition for running the job
     executor.update_parameters(

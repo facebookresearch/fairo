@@ -14,11 +14,6 @@ mkdir -p $base_dir
 dt=$(date '+%d-%m-%Y/%H:%M:%S');
 
 out_dir=$base_dir/respawnv3
-# job_dir=$base_dir/$dt
-# echo """"""""""""""""""""""""""""""
-# echo Job Directory $job_dir
-# mkdir -p $job_dir
-# echo """"""""""""""""""""""""""""""
 
 cd /private/home/apratik/fairo/tools/active_vision
 chmod +x find_respawn_loc.py
