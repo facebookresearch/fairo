@@ -1,0 +1,49 @@
+<html>
+    <head>
+        <link	
+            rel="stylesheet"	
+            href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"	
+        />	
+    </head>
+    <body>
+        <div id="voxel_painter"></div>
+        <div id="buttons">
+            <button type="button" class="center btn btn-secondary" id="reset">Reset to Starting State</button>
+            <button type="button" class="center btn btn-danger" id="null-result">The Object is Not Present</button>
+            <button type="button" class="center btn btn-success" id="finish-annotation">Finish Annotation</button>
+            <div id="response" class="center"></div>
+        </div>
+        <input type="hidden" id="markedBlocks" name="markedBlocks" value="">  <!--Where the annotation output appears-->
+    </body>
+    <script type='module' id="voxelPainter" src='voxel_painter.mjs'></script>  <!--three.js canvases-->
+    <script>
+        // Pull scene key from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const module_key = urlParams.get('batch_id') + "_" + urlParams.get('error_idx');
+
+        // Event listeners for buttons
+        document.getElementById("finish-annotation").addEventListener("click", function() {
+            let output_obj = JSON.parse('{"' + module_key + '_output": ' + JSON.stringify(document.getElementById("markedBlocks").value) + '}');
+            finishAnnotation(output_obj);
+        });
+        document.getElementById("null-result").addEventListener("click", function() {
+            let output_obj = JSON.parse('{"' + module_key + '_output": "null"}');  // parser expects a string
+            finishAnnotation(output_obj);
+        });
+        document.getElementById("reset").addEventListener("click", function() {
+            document.getElementById("finish-annotation").disabled = false;
+            document.getElementById("null-result").disabled = false;
+            location.reload();
+        });
+
+        // Notify the HIT that annotation is complete and set visual feedback
+        function finishAnnotation (obj) {
+            window.parent.postMessage(JSON.stringify({ msg: obj }), "*");
+            window.parent.postMessage(JSON.stringify({ msg: "annotation_finished" }), "*");
+            document.getElementById("finish-annotation").disabled = true;
+            document.getElementById("null-result").disabled = true;
+            document.getElementById("response").innerHTML = " - Annotation Complete";
+        }
+    </script>
+    <link rel="stylesheet" href="voxel_wrapper.css">
+</html>

@@ -11,34 +11,43 @@ from polymetis import RobotInterface
 from utils import check_episode_log
 
 
+success = []
+exceptions = []
+
+
 def connect_and_send_policy():
-    # Initialize robot interface
-    robot = RobotInterface(
-        ip_address="localhost",
-    )
-    hz = robot.metadata.hz
-    robot.go_home()
-    time.sleep(0.5)
+    try:
+        # Initialize robot interface
+        robot = RobotInterface(
+            ip_address="localhost",
+        )
+        hz = robot.metadata.hz
+        robot.go_home()
+        time.sleep(0.5)
 
-    # Get joint positions
-    joint_pos = robot.get_joint_angles()
-    print(f"Initial joint positions: {joint_pos}")
+        # Get joint positions
+        joint_pos = robot.get_joint_angles()
+        print(f"Initial joint positions: {joint_pos}")
 
-    # Go to joint positions
-    print("=== RobotInterface.set_joint_positions ===")
-    delta_joint_pos_desired = torch.Tensor([0.0, 0.0, 0.0, 0.5, 0.0, -0.5, 0.0])
-    joint_pos_desired = joint_pos + delta_joint_pos_desired
+        # Go to joint positions
+        print("=== RobotInterface.set_joint_positions ===")
+        delta_joint_pos_desired = torch.Tensor([0.0, 0.0, 0.0, 0.5, 0.0, -0.5, 0.0])
+        joint_pos_desired = joint_pos + delta_joint_pos_desired
 
-    state_log = robot.set_joint_positions(joint_pos_desired)
-    check_episode_log(state_log, int(robot.time_to_go_default * hz))
+        state_log = robot.set_joint_positions(joint_pos_desired)
+        check_episode_log(state_log, int(robot.time_to_go_default * hz))
 
-    joint_pos = robot.get_joint_angles()
-    assert torch.allclose(joint_pos, joint_pos_desired, atol=0.01)
+        joint_pos = robot.get_joint_angles()
+        assert torch.allclose(joint_pos, joint_pos_desired, atol=0.01)
 
-    return True
+        success.append(True)
+    except Exception as e:
+        exceptions.append(e)
 
 
 if __name__ == "__main__":
     thread = threading.Thread(target=connect_and_send_policy)
     thread.start()
     thread.join()
+
+    assert success, f"Exception: {exceptions[0]}"

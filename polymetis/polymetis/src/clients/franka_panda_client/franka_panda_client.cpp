@@ -219,8 +219,7 @@ void FrankaTorqueControlClient::updateServerCommand(
   grpc::ClientContext context;
   status_ = stub_->ControlUpdate(&context, robot_state_, &torque_command_);
   if (!status_.ok()) {
-    spdlog::error("ControlUpdate rpc failed: {}", status_.error_message());
-    return;
+    throw std::runtime_error("ControlUpdate rpc failed.");
   }
 
   assert(torque_command_.joint_torques_size() == NUM_DOFS);
