@@ -27,12 +27,17 @@ NDL_TIMEOUT = IL_TIMEOUT + 20
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--interaction_job_num", type=int, default=2, help="number of dashboard sessions to spin up")
+    parser.add_argument(
+        "--image_tag", type=str, required=True, help="The tag of docker image that will be used to spin up ecs instance"
+    )
+    parser.add_argument(
+        "--task_name", type=str, required=True, help="Task name of the ecs instance to be requested"
+    )
     opts = parser.parse_args()
 
     # TODO: parameterize this
     instance_num = opts.interaction_job_num
-    
-    ij = InteractionJob(instance_num, timeout=IJ_TIMEOUT)
+    ij = InteractionJob(instance_num, opts.image_tag, opts.task_name, timeout=IJ_TIMEOUT)
     batch_id = ij.get_batch_id()
     listener = InteractionLogListener(batch_id, IL_TIMEOUT)
 

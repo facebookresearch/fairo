@@ -1,8 +1,13 @@
 import fbrp
-import glob
 
-genmsg_py_bin = "${CONDA_PREFIX}/lib/genpy/genmsg_py.py"
-msg_files = glob.glob("my_msgs/*.msg")
+genmsg_py = [
+    "python",
+    fbrp.NoEscape("${CONDA_PREFIX}/lib/genpy/genmsg_py.py"),
+    "-p",
+    "my_msgs",
+    "-o",
+    "my_msgs/py",
+]
 
 fbrp.process(
     name="genmsgs",
@@ -14,9 +19,11 @@ fbrp.process(
         dependencies=[
             "ros-noetic-genpy",
         ],
-        run_command=f"python {genmsg_py_bin} -p my_msgs -o my_msgs/py "
-        + " ".join(msg_files)
-        + f" ; python {genmsg_py_bin} -p my_msgs -o my_msgs/py --initpy",
+        setup_commands=[
+            genmsg_py + ["my_msgs/PsUtil.msg"],
+            genmsg_py + ["--initpy"],
+        ],
+        run_command=[],
     ),
 )
 

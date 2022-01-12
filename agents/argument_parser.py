@@ -58,15 +58,17 @@ class ArgumentParser:
         )
         nsp_parser.add_argument(
             "--nsp_models_dir",
-            default="droidlet/artifacts/models/nlu/",
+            default="../../droidlet/artifacts/models/nlu/",
             help="path to semantic parsing models",
         )
         nsp_parser.add_argument(
-            "--nsp_data_dir", default="droidlet/artifacts/datasets/annotated_data/", help="path to annotated data"
+            "--nsp_data_dir", 
+            default="../../droidlet/artifacts/datasets/annotated_data/", 
+            help="path to annotated data"
         )
         nsp_parser.add_argument(
             "--ground_truth_data_dir",
-            default="droidlet/artifacts/datasets/ground_truth/",
+            default="../../droidlet/artifacts/datasets/ground_truth/",
             help="path to folder of common short and templated commands",
         )
         nsp_parser.add_argument(
@@ -105,13 +107,18 @@ class ArgumentParser:
         loco_parser.add_argument("--backend", default="habitat")
         loco_parser.add_argument(
             "--perception_model_dir",
-            default="droidlet/artifacts/models/perception/locobot",
+            default="../../droidlet/artifacts/models/perception/locobot",
             help="path to perception model data dir",
         )
         loco_parser.add_argument(
             "--check_controller",
             action="store_true",
             help="sanity checks the robot's movement, camera, arm.",
+        )
+        loco_parser.add_argument(
+            "--data_store_path",
+            default='',
+            help="path for storing data collected by the robot",
         )
 
     def fix_path(self, opts):
@@ -123,7 +130,7 @@ class ArgumentParser:
         for optname, optval in od.items():
             if "path" in optname or "dir" in optname:
                 if optval:
-                    od[optname] = os.path.join(base_path, optval)
+                    od[optname] = os.path.join(os.path.abspath(base_path), optval)
         return opts
 
     def parse(self):

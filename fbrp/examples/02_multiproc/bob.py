@@ -1,11 +1,6 @@
 import a0
 import signal
 
-
-def callback(pkt):
-    print(f"Got {pkt.payload}")
-
-
-s = a0.Subscriber("some/topic", a0.INIT_AWAIT_NEW, a0.ITER_NEXT, callback)
+s = a0.Subscriber("some/topic", lambda pkt: print(f"Got {pkt.payload}"))
 
 signal.pause()

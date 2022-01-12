@@ -1,0 +1,270 @@
+<!-- craftassist_task.html -->	
+<!-- Bootstrap v3.0.3 -->	
+<link	
+  rel="stylesheet"	
+  href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"	
+/>	
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>	
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>	
+<!-- Modal --><!-- MODAL -->	
+<div	
+  aria-hidden="true"	
+  aria-labelledby="exampleModalLabel"	
+  class="modal fade bd-example-modal-lg"	
+  id="exampleModal"	
+  role="dialog"	
+  tabindex="-1"	
+>	
+  <div class="modal-dialog modal-lg" role="document">	
+    <div class="modal-content">	
+      <div class="modal-header">	
+        <nav aria-label="Instruction page navigation">	
+          <ul class="pagination justify-content-center">	
+            <li class="page-item disabled" id="previous">	
+              <a class="page-link" tabindex="-1" href="#" onclick="incrementPage(-1);return false;" role="button" aria-expanded="false" aria-controls="collapseExample">Previous</a>	
+            </li>	
+            <li class="page-item active" id="pg1">	
+              <a class="page-link" tabindex="-1" href="#" onclick="applyPagination(1);return false;" role="button" aria-expanded="true" aria-controls="collapseExample">1</a>	
+            </li>	
+            <li class="page-item" id="pg2">	
+              <a class="page-link" tabindex="-1" href="#" onclick="applyPagination(2);return false;" role="button" aria-expanded="false" aria-controls="collapseExample">2</a>	
+            </li>	
+            <li class="page-item" id="pg3">	
+              <a class="page-link" tabindex="-1" href="#" onclick="applyPagination(3);return false;" role="button" aria-expanded="false" aria-controls="collapseExample">3</a>	
+            </li>	
+            <li class="page-item" id="pg4">	
+              <a class="page-link" tabindex="-1" href="#" onclick="applyPagination(4);return false;" role="button" aria-expanded="false" aria-controls="collapseExample">4</a>	
+            </li>	
+            <li class="page-item" id="pg5">	
+              <a class="page-link" tabindex="-1" href="#" onclick="applyPagination(5);return false;" role="button" aria-expanded="false" aria-controls="collapseExample">5</a>	
+            </li>	
+            <li class="page-item" id="pg6">	
+              <a class="page-link" tabindex="-1" href="#" onclick="applyPagination(6);return false;" role="button" aria-expanded="false" aria-controls="collapseExample">6</a>	
+            </li>
+            <li class="page-item" id="next">	
+              <a class="page-link" tabindex="-1" href="#" onclick="incrementPage(1);return false;" role="button" aria-expanded="false" aria-controls="collapseExample">Next</a>	
+            </li>	
+          </ul>	
+        </nav>	
+      </div>	
+      <div class="modal-body" id="modal"></div>	
+      <div class="modal-footer">	
+        <button class="btn btn-primary" id="close-instructions-btn" onclick="recordClick('instructions-popup-close')" data-dismiss="modal" type="button" style="display:none">Close</button>	
+      </div>	
+    </div>	
+  </div>	
+</div>
+
+	<!-- Content -->	
+  <section	
+  class="container"	
+  id="Other"	
+  style="	
+    padding: 10px;	
+    font-family: Verdana, Geneva, sans-serif;	
+    font-size: 0.9em;	
+  "	
+>	
+  <div class="row col-xs-12 col-md-12">	
+    <!-- Instructions -->	
+    <div class="panel panel-primary">	
+      <div class="panel-heading">	
+        <button class="btn btn-primary" type="button" onclick="showHideInstructions()" aria-expanded="false" aria-controls="instructionsWrapper">	
+          Click here to view/hide instructions	
+        </button>	
+      </div>	
+      <div class="collapse" id=instructionsWrapper>	
+        <div id="instructions">	
+          <div class="collapse in" id="instructions-page-1">	
+            <h1><strong>Interact with an assistant in a 3-D world</strong></h1>    	
+            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_world_agent_labeled.png" class="previews"></iframe>	
+            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_2_labeled.png" class="previews"></iframe>	
+            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_3_labeled.png" class="previews"></iframe>	
+            <p>	
+              <h3>You are playing a game in a 3-D world with an assistant who can help you.</h3>	
+              <h4>Use your imagination and creativity to <i>interact with the assistant by asking it to do things.</i></h4>	
+            </p>	
+          	
+            <p><b style="color: red;">	
+              IMPORTANT - Please note that you will only get paid if you:	
+              <ol>	
+                <li>Click "Start" in the bottom right to begin session.</li>	
+                <li>Interact with the assistant for the <i>full 5 minutes.</i></li>	
+                <li>Click on "End" in the bottom right.</li>	
+                <li>Rate the clarity and usability of the HIT.</li>	
+                <li>Click on "Submit" button at the bottom.</li>	
+              </ol>	
+              Please read these instructions carefully!  You should spend 3 minutes reading and understanding.	
+            </b></p>	
+          </div>	
+          <div class="collapse" id="instructions-page-2">	
+            <h3>Example Task Interface</h3>	
+            <img class=center src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/mturk_dashboard_new.png" width="60%"></iframe>	
+            <h3>How to move around the 3-D world</h3>	
+            <p>	
+              <ul>	
+                <li>Click on the upper right pane to enter the game.</li>	
+                <li>Press ‘w/a/s/d’ buttons to move forward/left/back/right and ‘space’ to jump.</li>	
+                <li>Press ‘esc’ to leave the world.</li>	
+              </ul>	
+            </p>	
+          </div>	
+          	
+          <div class="collapse" id="instructions-page-3">	
+            <h3>Interacting with the assistant</h3>	
+            <p>	
+              Please use the <b>chat window on the left side of the screen</b> to chat with the assistant. <br>	
+              We ask that you interact with the assistant for <b>at least 5 minutes.</b>	
+              <img class=center src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/dashboard_chat_window_highlight.png" width="60%"></iframe>	
+            </p>	
+            <p>	
+              <ul>	
+                <li><b>Press 'Enter' to send the command to the assistant.</b></li>	
+                <li>You should then see the assistant execute the command in the 3-D world.</li>	
+                <li>The assistant might also send you replies in the chat window.</li>	
+              </ul>	
+              <b style="color: red;">
+                If you see "Agent is not connected" at the top of the chat window,
+                take a screenshot, exit the HIT, and please send us an email.
+              </b>	
+            </p>	
+          </div>	
+          <div class="collapse" id="instructions-page-4">	
+            <h3>Assistant Capabilities</h3>	
+            <h4 style="color: red;">Keep in mind that the assistant is non-violent!</h4>	
+            <ul>	
+              <li><b>Move</b> (to a place or structure)</li>	
+              <li><b>Build</b> (a shape or structure)</li>	
+              <li><b>Destroy</b> (a structure)</li>	
+              <li><b>Dance</b></li>	
+              <li><b>Get</b> (an object)</li>	
+              <li><b>Tag</b> (rename something)</li>	
+              <li><b>Dig</b></li>	
+              <li><b>Copy</b> (make a copy of an object)</li>	
+              <li><b>Undo</b></li>	
+              <li><b>Fill</b> (up a hole or structure)</li>	
+              <li><b>Spawn</b> (create an animal)</li>	
+              <li><b>Answer</b> (a question)</li>	
+              <li><b>Stop</b></li>	
+              <li><b>Resume</b> (an earlier action)</li>	
+            </ul>	
+            <p>	
+              <b>Example Command 1: </b>"Build a red square there"<br>	
+              <b>Example Command 2: </b>"Dig a hole next to this red square"	
+            </p>	
+          </div>	
+          <div class="collapse" id="instructions-page-5">	
+            <h3> Interaction Quality Indicator</h3>	
+            <img class=center src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/dashboard_stoplight_highlight.png" width="60%"></iframe><br>	
+            <p>	
+              Near the bottom of the screen you will see a stoplight that will give you feedback on the quality of your interaction throughout the HIT.
+              You may also see some feedback that will guide you to improve your interaction with the assistant.
+            </p>	
+          </div>	
+          <div class="collapse" id="instructions-page-6">	
+            <h3>Tips</h3>	
+            <ul>	
+              <li><b>Be creative! Make the interaction interesting, within the assistant's capabilities.</b></li>	
+              <li><b>Please use as much variety as you can! Don't give the same commands over and over</b></li>	
+              <li><b>Include only one sentence in each command.</b></li>	
+            </ul>	
+            <p>	
+              <h3 style="color:red;">Rejection policy - You HIT will be rejected if any of these are violated:</h3>	
+            </p>	
+            	
+            <ul>	
+              <li>The commands must be valid English sentences.</li>	
+              <li>The commands must use the above list of capabilities</li>	
+              <li>All commands must be unique.</li>	
+              <li>If you do multiple HITs, you must use new commands each time.</li>	
+            </ul>	
+          </div>	
+        </div>	
+      </div>	
+    </div>	
+    <!-- End Instructions -->
+  </div>
+</section>
+
+<section	
+  class="container-fluid"	
+  id="Other"	
+  style="	
+    margin-bottom: 15px;	
+    padding: 10px;	
+    font-family: Verdana, Geneva, sans-serif;	
+    font-size: 0.9em;"	
+>
+  <div class="row">
+    <!-- Commands Reminder -->
+    <div class="col-xs-2">
+      <div class="panel panel-primary" style="height:1000px;">
+        <div class="panel-heading">
+          <strong>Assistant Capabilities</strong>
+        </div>
+        <p>
+          <ul>
+            <li><b>Move</b> (to a place or structure)</li>
+            <li><b>Build</b> (a shape or structure)</li>
+            <li><b>Destroy</b> (a structure)</li>
+            <li><b>Dance</b></li>
+            <li><b>Get</b> (an object)</li>
+            <li><b>Tag</b> (rename something)</li>
+            <li><b>Dig</b></li>
+            <li><b>Copy</b> (make a copy of an object)</li>
+            <li><b>Undo</b></li>
+            <li><b>Fill</b> (up a hole or structure)</li>
+            <li><b>Spawn</b> (create an animal)</li>
+            <li><b>Answer</b> (a question)</li>
+            <li><b>Stop</b> </li>
+            <li><b>Resume</b> (an earlier action)</li>
+          </ul>
+        </p>
+      </div>
+    </div>
+    <!-- End Commands Reminder -->
+    <div class="col-xs-10">
+      <iframe style="width:100%; height:1000px;" src="https://${subdomain}.craftassist.io/turk.html?turk_experiment_id=${batch}&mephisto_agent_id=${mephisto_agent_id}&turk_worker_id=${provider_worker_id}"></iframe>
+    </div>
+  </div>
+</section>
+
+<section class="container" style="margin-bottom: 20px">
+  <fieldset>
+    <div class="input-group center">
+      <h4>Please rate the clarity and usability of this HIT</h4>
+      <select class="form-control" name="usability-rating" onchange="usabilityRated()">
+        <option selected="selected" value="">(select one)</option>
+        <option value="7">7 - Perfect</option>
+        <option value="6">6 - Very Good</option>
+        <option value="5">5 - Decent</option>
+        <option value="4">4 - OK</option>
+        <option value="3">3 - Poor</option>
+        <option value="2">2 - Very Poor</option>
+        <option value="1">1 - Unusable</option>
+      </select><br>
+      <h4>Please rate your own performance and the quality of your contribution</h4>
+      <select class="form-control" name="self-rating" onchange="selfRated()">
+        <option selected="selected" value="">(select one)</option>
+        <option value="5">5 - Outstanding</option>
+        <option value="4">4 - Good</option>
+        <option value="3">3 - Acceptable</option>
+        <option value="2">2 - Poor</option>
+        <option value="1">1 - Very Poor</option>
+      </select>
+      <input type="hidden" id="clickedElements" name="clickedElements" value="0">
+      <input type="hidden" id="userAgent" name="userAgent" value="0">
+    </div>
+  </fieldset>
+</section>
+
+<script>
+  $(function () {
+    modal_body = $("#modal");
+    $("#instructions").clone().appendTo(modal_body);
+    $(".modal").modal("show");
+  });
+</script>
+<script src="utils.js"></script>	
+<script src="browserInfo.js"></script>	
+<link rel="stylesheet" href="craftassist_task.css">

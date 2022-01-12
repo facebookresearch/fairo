@@ -2,6 +2,7 @@ from fbrp import registrar
 from fbrp.process import process
 from fbrp.runtime.conda import Conda
 from fbrp.runtime.docker import Docker
+from fbrp.util import NoEscape
 import argparse
 
 
@@ -29,4 +30,4 @@ def main():
     args.func(args)
 
 
-__all__ = ["main", "process", "Docker", "Conda"]
+__all__ = ["main", "process", "NoEscape", "Docker", "Conda"]

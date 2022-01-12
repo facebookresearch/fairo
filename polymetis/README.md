@@ -1,4 +1,6 @@
-# [Polymetis](https://polymetis-docs.github.io/): a real-time PyTorch controller manager
+![Polymetis: a real-time PyTorch controller manager](./docs/source/img/polymetis-logo.svg)
+
+## A real-time PyTorch controller manager
 
 [![CircleCI](https://circleci.com/gh/facebookresearch/fairo/tree/main.svg?style=svg&circle-token=7fadbd3989ab8e76003fd5193ad62e26686bc4a6)](https://circleci.com/gh/facebookresearch/fairo/tree/main)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)

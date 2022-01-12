@@ -61,6 +61,16 @@ def get_all_memids_of_node_type(agent_memory, memtype, allow_archives=False):
     return [m[0] for m in all_memids]
 
 
+# TODO do this faster?
+def filter_memids_by_nodetype(agent_memory, memids, nodetype):
+    """
+    filters the list memids by corresponding MemoryNode's nodetype;
+    outputs a (sub) list of memids 
+    """
+    node_children = agent_memory.node_children[nodetype]
+    return [m for m in memids if agent_memory.get_node_from_memid(m) in node_children]
+
+
 # FIXME! refactor get_property_value, search_by_property, search_by_attribute
 # lots of duplicated code
 
@@ -120,7 +130,7 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
             "%", should be a tuple of (modulus, remainder)
             otherwise value should be a singleton tuple
         comparison_symbol: one of "=", "<", "<=", ">", ">=", "%", "<>"
-        memtype: a memory type
+        memtype: a MemoryNode type
 
     returns a list of memids
 
@@ -145,14 +155,16 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
     cols = [c[1] for c in agent_memory._db_read("PRAGMA table_info(Memories)")]
     if prop in cols:
         cmd = "SELECT uuid FROM Memories " + where
-        return [m[0] for m in agent_memory._db_read(cmd, *v)]
+        memids = [m[0] for m in agent_memory._db_read(cmd, *v)]
+        return filter_memids_by_nodetype(agent_memory, memids, memtype)
 
     # is it in the node table?
     T = agent_memory.nodes[memtype].TABLE
     cols = [c[1] for c in agent_memory._db_read("PRAGMA table_info({})".format(T))]
     if prop in cols:
         cmd = "SELECT uuid FROM " + T + " " + where
-        return [m[0] for m in agent_memory._db_read(cmd, *v)]
+        memids = [m[0] for m in agent_memory._db_read(cmd, *v)]
+        return filter_memids_by_nodetype(agent_memory, memids, memtype)
 
     # is it a triple?
     # n.b. if the query is about an actual triple (e.g. SELECT subj FROM Triples ...), it would have been
@@ -168,10 +180,9 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
         triples = agent_memory.get_triples(pred_text=prop, obj_text=value[0])
     else:
         triples = agent_memory.get_triples(pred_text=prop, obj=value[0])
-
-    node_children = agent_memory.node_children[memtype]
     if len(triples) > 0:
-        return [t[0] for t in triples if agent_memory.get_node_from_memid(t[0]) in node_children]
+        return filter_memids_by_nodetype(agent_memory, [t[0] for t in triples], memtype)
+
     return []
 
 
@@ -212,7 +223,7 @@ def search_by_attribute(agent_memory, attribute, value, comparison_symbol, memty
         }
         filtered_memids = [p[0] for p in pairs if (p[1] and s[comparison_symbol](p[1], value[0]))]
 
-    return filtered_memids
+    return filter_memids_by_nodetype(agent_memory, filtered_memids, memtype)
 
 
 def try_float(value, where_clause):

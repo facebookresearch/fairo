@@ -125,62 +125,60 @@ class LocoInterpreter(Interpreter):
                         if len(objmems) == 0:
                             raise ErrorWithResponse("I don't understand where you want me to go.")
                         ref_obj = objmems[0]
-                    for i in range(repeat):
-                        refmove = dance.RefObjMovement(
-                            agent,
-                            ref_object=ref_obj,
-                            relative_direction=location_d["relative_direction"],
-                        )
-                        t = self.task_objects["dance"](agent, {"movement": refmove})
-                        tasks_to_do.append(t)
-                    return maybe_task_list_to_control_block(tasks_to_do, agent)
+                    refmove = dance.RefObjMovement(
+                        agent,
+                        ref_object=ref_obj,
+                        relative_direction=location_d["relative_direction"],
+                    )
+                    t = self.task_objects["dance"](agent, {"movement": refmove})
+                    return t
 
             dance_type = d.get("dance_type", {})
-            dance_filters_d = dance_type.get("filters", {})
             if dance_type.get("point"):
                 target = self.subinterpret["point_target"](self, speaker, dance_type["point"])
-                for i in range(repeat):
-                    t = self.task_objects["point"](agent, {"target": target})
-                    tasks_to_do.append(t)
+                t = self.task_objects["point"](agent, {"target": target})
             elif dance_type.get("look_turn") or dance_type.get("body_turn"):
                 lt = dance_type.get("look_turn")
                 if lt:
                     f = self.subinterpret["facing"](self, speaker, lt, head_or_body="head")
-                    T = self.task_objects["look"]
+                    t = self.task_objects["look"](agent, f)
                 else:
                     bt = dance_type.get("body_turn")
                     f = self.subinterpret["facing"](self, speaker, bt, head_or_body="body")
-                    T = self.task_objects["turn"]
-                for i in range(repeat):
-                    tasks_to_do.append(T(agent, f))
+                    t = self.task_objects["turn"](agent, f)
             else:
-                dance_triples = dance_filters_d.get("triples", [])
-                if any([t.get("obj_text") == "dance" for t in dance_triples]):
-                    new_task = self.task_objects["dance"](agent, {"movement_type": "wave"})
-                    tasks_to_do.append(new_task)
-                    # FIXME ! merge dances, refactor.  search by name
+                if location_d is None:
+                    dance_location = None
                 else:
-                    raise ErrorWithResponse("I don't know how to do that dance yet!")
-            return maybe_task_list_to_control_block(tasks_to_do, agent)
+                    mems = self.subinterpret["reference_locations"](self, speaker, location_d)
+                    steps, reldir = interpret_relative_direction(self, location_d)
+                    dance_location, _ = self.subinterpret["specify_locations"](
+                        self, speaker, mems, steps, reldir
+                    )
+                filters_d = dance_type.get("filters", {})
+                filters_d["memory_type"] = "DANCES"
+                F = self.subinterpret["filters"](self, speaker, dance_type.get("filters", {}))
+                dance_memids, _ = F()
+                # TODO correct selector in filters
+                if dance_memids:
+                    dance_memid = random.choice(dance_memids)
+                    dance_mem = self.memory.get_mem_by_id(dance_memid)
+                    dance_obj = dance.Movement(
+                        agent=agent, move_fn=dance_mem.dance_fn, dance_location=dance_location
+                    )
+                    t = self.task_objects["dance"](agent, {"movement": dance_obj})
+                else:
+                    # dance out of scope
+                    raise ErrorWithResponse("I don't know how to do that movement yet.")
+            return t
 
         if "remove_condition" in d:
             condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
-            return (
-                [
-                    self.task_objects["control"](
-                        agent,
-                        data={
-                            "new_tasks_fn": TaskListWrapper(new_tasks),
-                            "remove_condition": condition,
-                            "action_dict": d,
-                        },
-                    )
-                ],
-                None,
-                None,
-            )
+            task_data = {"new_tasks": new_tasks, "remove_condition": condition, "action_dict": d}
+            return self.task_objects["control"](agent, task_data), None, None
         else:
             return new_tasks(), None, None
+
 
     def handle_drop(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         """

@@ -1,5 +1,4 @@
-Polymetis
-=======================
+.. image:: img/polymetis-logo.svg
 
 Write `PyTorch <https://pytorch.org/>`_ controllers, test them in simulation, and seamlessly transfer to real-time hardware.
 

@@ -46,10 +46,7 @@
         ```bash
         ./scripts/build_libfranka.sh
         ```
-    - Optionally, install the CUDA-enabled version of PyTorch (by default, only the CPU version is enabled):
-        ```bash
-        conda install -c pytorch pytorch
-        ```
+    - Optionally, [install the CUDA-enabled version of PyTorch](https://pytorch.org/get-started/locally/) (by default, only the CPU version is enabled).
     - Build Polymetis from source:
         ```bash
         mkdir -p ./polymetis/build
@@ -59,7 +56,7 @@
         make -j
         ```
 
-5. Start developing! Remember to rebuild if modifying C++ source code. When updating, you may need to do a `mamba env update --file ./polymetis/environment.yml --prune` to update dependencies.
+5. Start developing! Remember to rebuild if modifying C++ source code. When updating, you may need to do a `conda env update --file ./polymetis/environment.yml --prune` to update dependencies.
 
 ### From a local conda package
 
