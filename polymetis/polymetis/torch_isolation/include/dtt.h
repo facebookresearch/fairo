@@ -37,7 +37,6 @@
  */
 #pragma once
 
-#include "spdlog/spdlog.h"
 #include <cstdio>
 #include <cstdlib>
 

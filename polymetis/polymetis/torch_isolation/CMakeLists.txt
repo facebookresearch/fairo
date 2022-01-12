@@ -5,11 +5,6 @@
 cmake_minimum_required(VERSION 3.14)
 project(torch_isolation)
 
-# Find spdlog (C++ logger)
-if(NOT TARGET spdlog)
-    find_package(spdlog REQUIRED)
-endif()
-
 add_subdirectory("pinocchio_isolation/")
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
@@ -36,14 +31,12 @@ add_library(torch_server_ops SHARED src/torch_server_ops.cpp)
 set_target_properties(torch_server_ops PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_link_libraries(torch_server_ops PRIVATE
     "${TORCH_LIBRARIES}"
-    spdlog::spdlog
 )
 
 add_library(torchrot SHARED src/rotations.cpp)
 set_target_properties(torchrot PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_link_libraries(torchrot PRIVATE
     "${TORCH_LIBRARIES}"
-    spdlog::spdlog
 )
 
 add_library(torchscript_pinocchio SHARED src/pinocchio.cpp)
@@ -52,5 +45,4 @@ target_link_libraries(torchscript_pinocchio PRIVATE
     pinocchio_wrapper
     "${TORCH_LIBRARIES}"
     torchrot
-    spdlog::spdlog
 )
