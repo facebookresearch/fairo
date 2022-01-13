@@ -48,10 +48,10 @@ class InterpreterBase:
                 raise Exception("multiple logical forms associated to single interpreter memory")
             logical_form_memid = logical_form_memids[0]
 
-        if (
-            logical_form_memid != "NULL"
-        ):  # if it were "NULL", this is a dummy interpreter of some sort...
-            logical_form_mem = agent_memory.get_mem_by_id(logical_form_memid)
+        if logical_form_memid != "NULL":
+            # if it were "NULL", this is a dummy interpreter of some sort... probably from a unit test
+            self.logical_form_memid = logical_form_memid
+            logical_form_mem = agent_memory.get_mem_by_id(self.logical_form_memid)
             self.logical_form = logical_form_mem.logical_form
 
     def step(self, agent):

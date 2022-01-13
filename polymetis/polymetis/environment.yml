@@ -17,7 +17,7 @@ dependencies:
     - openmpi=2.1.2
     - pinocchio ==2.5.2
     - poco ==1.9.0 # needed by libfranka
-    - python
+    - python ==3.8
     - pytorch=1.10.0
     - urdfdom=2.3.3=hc9558a2_0
     - urdfdom_headers=1.0.5=hc9558a2_2

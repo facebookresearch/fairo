@@ -17,6 +17,7 @@ __pycache__
 *.log
 *.so
 *.sql
+*.jpg
 !*memory_schema.sql
 *~
 droidlet/documents/internal/*.txt

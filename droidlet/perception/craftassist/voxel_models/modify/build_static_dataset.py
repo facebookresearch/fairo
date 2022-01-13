@@ -16,7 +16,7 @@ if __name__ == "__main__":
     parser.add_argument("--sidelength", type=int, default=32, help="sidelength for dataloader")
     parser.add_argument(
         "--load_dictionary",
-        default="/private/home/aszlam/junk/word_modify_word_ids.pk",
+        default="",
         help="where to get word dict",
     )
     parser.add_argument("--ndonkeys", type=int, default=8, help="workers in dataloader")

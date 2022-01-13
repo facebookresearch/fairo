@@ -8,8 +8,8 @@ fbrp.process(
         run_command=["python3", "proc.py"],
     ),
     env={
-        "my_conda_path" : "/tmp/",
-        "my_conda_time_out" : "2",
+        "my_conda_path": "/tmp/",
+        "my_conda_time_out": "2",
     },
 )
 
@@ -18,13 +18,13 @@ fbrp.process(
     runtime=fbrp.Docker(
         dockerfile="./Dockerfile",
         mount=["/tmp/.X11-unix:/tmp/.X11-unix"],
-        run_kwargs = {
+        run_kwargs={
             "Env": [f"DISPLAY={os.getenv('DISPLAY')}"],
-        }
+        },
     ),
     env={
-        "my_docker_path" : "/tmp/",
-        "my_docker_time_out" : "2",
+        "my_docker_path": "/tmp/",
+        "my_docker_time_out": "2",
     },
 )
 
@@ -33,13 +33,11 @@ fbrp.process(
     runtime=fbrp.Docker(
         dockerfile="./Dockerfile.opengl",
         mount=["/tmp/.X11-unix:/tmp/.X11-unix"],
-        run_kwargs = {
+        run_kwargs={
             "Env": [f"DISPLAY={os.getenv('DISPLAY')}"],
-            "HostConfig": {
-                "Runtime": "nvidia" #  default "runc"
-            }
-        }
-    )
+            "HostConfig": {"Runtime": "nvidia"},  #  default "runc"
+        },
+    ),
 )
 
 fbrp.main()
