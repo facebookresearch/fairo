@@ -43,18 +43,16 @@ def main(opts) -> None:
         " --save_data_path=" + scene_path
     try:
         print(f"Starting scene generation script")
-        scene_gen = subprocess.Popen(scene_gen_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        scene_gen = subprocess.Popen(scene_gen_cmd, shell=True, stdout=sys.stdout, stderr=sys.stderr, text=True)
     except ValueError:
         print(f"Likely error: Popen called with invalid arguments")
         raise
     
     try:
-        outs, _ = scene_gen.communicate(timeout=SCENE_GEN_TIMEOUT)
+        scene_gen.wait(timeout=SCENE_GEN_TIMEOUT)
     except subprocess.TimeoutExpired:
         scene_gen.kill()
-        outs, _ = scene_gen.communicate()
         print("Scene generation script timed out after {SCENE_GEN_TIMEOUT} seconds")
-    print(f"Scene generation script output: \n{outs}")
 
     #Send scene file to S3 then remove
     upload_key = "pubr/scenes/" + scene_filename
@@ -83,9 +81,11 @@ def main(opts) -> None:
     try:
         job_launch.wait(timeout=LABELING_JOB_TIMEOUT)
     except subprocess.TimeoutExpired:
+        job_launch.kill()
         print("Scene labeling job timed out after {LABELING_JOB_TIMEOUT} seconds")
     
     # Retrieve task name and pull results from local DB
+    print("Mephisto job finished, retrieving results for upload")
     with open("conf/labeling.yaml", "r") as stream:
         task_name = yaml.safe_load(stream)["mephisto"]["task"]["task_name"]
     
@@ -103,6 +103,7 @@ def main(opts) -> None:
             csv_writer.writerow([scene_filename, scene_idx, worker_name, answer])
 
     # Upload results to S3 then remove local file
+    print(f"Uploading job results to S3 as {results_csv}")
     upload_key = "vision_labeling_results/" + results_csv
     response = s3.upload_file(results_csv, 'droidlet-hitl', upload_key)
     if response: print("S3 response: " + response)
