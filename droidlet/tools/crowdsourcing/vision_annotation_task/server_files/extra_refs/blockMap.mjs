@@ -18,7 +18,7 @@ const BLOCK_MAP = {
     58: 0xdd992c, // Brown Wool
     59: 0x8fce00, // Green Wool
     60: 0xff0000, // Red Wool
-    61: 0x000000, // Black Wool
+    61: 0x1a1a1a, // Black Wool
 };
 
 export { BLOCK_MAP };
