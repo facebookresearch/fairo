@@ -492,7 +492,9 @@ class MemorySearcher:
             except:
                 pass
             # TODO/FIXME switch output format to dicts
+
         return memids, self.handle_output(agent_memory, query, memids)
+
 
 
 # TODO subclass for filters that return at most one memory,value?

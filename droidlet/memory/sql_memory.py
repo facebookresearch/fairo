@@ -86,6 +86,7 @@ class AgentMemory:
         nodelist=NODELIST,
         agent_time=None,
         on_delete_callback=None,
+        ignore_self=False,
     ):
         if db_log_path:
             self._db_log_file = gzip.open(db_log_path + ".gz", "w")
@@ -135,7 +136,7 @@ class AgentMemory:
         self.tag(self.self_memid, "AGENT")
         self.tag(self.self_memid, "SELF")
 
-        self.searcher = MemorySearcher()
+        self.searcher = MemorySearcher(ignore_self=ignore_self)
 
     def __del__(self):
         """Close the database file"""

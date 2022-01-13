@@ -63,6 +63,7 @@ class MCAgentMemory(AgentMemory):
         agent_time=None,
         coordinate_transforms=None,
         agent_low_level_data={},
+        ignore_self=False,
     ):
         super(MCAgentMemory, self).__init__(
             db_file=db_file,
@@ -71,6 +72,7 @@ class MCAgentMemory(AgentMemory):
             nodelist=NODELIST,
             agent_time=agent_time,
             coordinate_transforms=coordinate_transforms,
+            ignore_self=ignore_self,
         )
         self.low_level_block_data = agent_low_level_data.get("block_data", {})
         self.banned_default_behaviors = []  # FIXME: move into triple store?
