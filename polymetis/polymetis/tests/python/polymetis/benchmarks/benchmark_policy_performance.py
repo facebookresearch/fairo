@@ -9,29 +9,23 @@ from polymetis.utils.test_policies import test_parametrized_data
 
 inputs = {"joint_positions": torch.zeros(7), "joint_velocities": torch.zeros(7)}
 
-policies = [
-    policy_class(**policy_kwargs)
-    for (
-        policy_class,
-        policy_kwargs,
-        is_terminating,
-        update_params,
-    ) in test_parametrized_data
-]
-scripted_policies = [torch.jit.script(policy) for policy in policies]
+perf_parametrized_data = [x for x in test_parametrized_data if not x[2]]
+policy_info = [(x[0], x[1]) for x in perf_parametrized_data]
 
 
-def time_policy_performance(policy):
-    with torch.no_grad():
-        policy.forward(inputs)
+class TimePolicyPerformance:
+    params = range(len(policy_info))
 
+    def setup(self, i):
+        policy_class, policy_args = policy_info[i]
+        self.policy = policy_class(**policy_args)
+        self.scripted_policy = torch.jit.script(self.policy)
+        self.repeat = 20
 
-time_policy_performance.params = policies
+    def time_policy_performance(self, i):
+        with torch.no_grad():
+            self.policy.forward(inputs)
 
-
-def time_scripted_policy_performance(param):
-    with torch.no_grad():
-        param.forward(inputs)
-
-
-time_scripted_policy_performance.params = scripted_policies
+    def time_scripted_policy_performance(self, i):
+        with torch.no_grad():
+            self.scripted_policy.forward(inputs)
