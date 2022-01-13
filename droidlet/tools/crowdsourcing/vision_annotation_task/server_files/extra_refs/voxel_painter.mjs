@@ -43,13 +43,13 @@ let rollOverMesh = new THREE.Mesh( geo, rollOverMaterial );
 // Pull scene key from URL params
 const urlParams = new URLSearchParams(window.location.search);
 let module_key = "";
-let hit_id = "";
+let scene_idx = "";
 if (urlParams.get('batch_id')) {
     module_key = urlParams.get('batch_id') + urlParams.get('error_idx');
 }
 else if (urlParams.get('scene_filename')){
     module_key = urlParams.get('scene_filename');
-    hit_id = urlParams.get('hit_id');
+    scene_idx = urlParams.get('scene_idx');
     avatarsOff = true;
 }
 console.log("Module key: " + module_key);
@@ -74,8 +74,7 @@ else if (module_key.includes("scene")){  // This is the scene labeling HIT
         return response.json();
     })
     .then(jsondata => {
-        let hit_num = parseInt(hit_id.charAt(hit_id.length - 1))
-        return jsondata[hit_num];  // Pull the appropriate scene from the file
+        return jsondata[parseInt(scene_idx)];  // Pull the appropriate scene from the file
     })
     .then(scene => {
         init(scene, false);

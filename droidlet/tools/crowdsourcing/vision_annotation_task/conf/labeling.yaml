@@ -9,9 +9,9 @@ mephisto:
   task:
     task_title: "Tell us what is in the scene"
     task_description: "Look at the 3D scene and tell us what is in it"
-    task_reward: 1.00
+    task_reward: 0.75
     maximum_units_per_worker: 10
     assignment_duration_in_seconds: 600
     task_tags: "3D, annotate, shapes"
-    task_name: "ca-vision-labeling-1-12-22-10"
+    task_name: "ca-vision-labeling-1-13-22-t1"
 

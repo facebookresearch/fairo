@@ -5,14 +5,20 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-from typing import List, Any
 import subprocess
 import boto3
 import argparse
 from datetime import datetime
 import csv
 import sys
+import yaml
 
+from mephisto.abstractions.databases.local_database import LocalMephistoDB
+from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
+from mephisto.data_model.worker import Worker
+
+db = LocalMephistoDB()
+mephisto_data_browser = MephistoDataBrowser(db=db)
 s3 = boto3.client('s3')
 SCENE_GEN_TIMEOUT = 30
 LABELING_JOB_TIMEOUT = 18000
@@ -23,13 +29,16 @@ def main(opts) -> None:
     #Generate ID number from datettime
     id = datetime.utcnow().strftime("%Y%m%d%H%M%S")
     scene_filename = "scene" + id + ".json"
-    hit_id_base = "hit" + id + "_"
 
     #Generate scenes
     scene_path = os.path.join(os.getcwd(), scene_filename)
     scene_gen_path = os.path.join(os.getcwd(), "../../../lowlevel/minecraft/small_scenes_with_shapes.py")
     scene_gen_cmd = "python3 " + \
         scene_gen_path + \
+        " --SL=" + str(opts.scene_length) + \
+        " --H=" + str(opts.scene_height) + \
+        " --GROUND_DEPTH=" + str(opts.ground_depth) + \
+        " --MAX_NUM_SHAPES=" + str(opts.max_num_shapes) + \
         " --NUM_SCENES=" + str(opts.num_hits) + \
         " --save_data_path=" + scene_path
     try:
@@ -47,21 +56,18 @@ def main(opts) -> None:
         print("Scene generation script timed out after {SCENE_GEN_TIMEOUT} seconds")
     print(f"Scene generation script output: \n{outs}")
 
-    #Send scene file to S3
+    #Send scene file to S3 then remove
     upload_key = "pubr/scenes/" + scene_filename
     response = s3.upload_file(scene_path, 'craftassist', upload_key)
     if response: print(f"S3 upload response: {response}")
+    os.remove(scene_path)
 
-    #Populate data.csv with scene filename and hit IDs
-    headers = ["scene_filename", "hit_id"]
+    #Populate data.csv with scene filename and indeces
     with open("labeling_data.csv", "w") as f:
         csv_writer = csv.writer(f, delimiter=",")
-        csv_writer.writerow(headers)
+        csv_writer.writerow(["scene_filename", "scene_idx"])
         for i in range(opts.num_hits):
-            csv_writer.writerow([scene_filename, (hit_id_base + str(i))])
-
-    #Remove the local scene file
-    os.remove(scene_path)
+            csv_writer.writerow([scene_filename, str(i)])
 
     #Launch via Mephisto
     job_launch_cmd = "python3 run_labeling_with_qual.py" + \
@@ -78,11 +84,39 @@ def main(opts) -> None:
         job_launch.wait(timeout=LABELING_JOB_TIMEOUT)
     except subprocess.TimeoutExpired:
         print("Scene labeling job timed out after {LABELING_JOB_TIMEOUT} seconds")
+    
+    # Retrieve task name and pull results from local DB
+    with open("conf/labeling.yaml", "r") as stream:
+        task_name = yaml.safe_load(stream)["mephisto"]["task"]["task_name"]
+    
+    results_csv = id + ".csv"
+    with open(results_csv, "w") as f:
+        csv_writer = csv.writer(f, delimiter=",")
+        csv_writer.writerow(["scene_filename", "scene_idx", "worker_name", "label"])
+
+        units = mephisto_data_browser.get_units_for_task_name(task_name)
+        for unit in units:
+            data = mephisto_data_browser.get_data_from_unit(unit)
+            worker_name = Worker(db, data["worker_id"]).worker_name
+            answer = data["data"]["outputs"]["answer"]
+            scene_idx = data["data"]["outputs"]["scene_idx"]
+            csv_writer.writerow([scene_filename, scene_idx, worker_name, answer])
+
+    # Upload results to S3 then remove local file
+    upload_key = "vision_labeling_results/" + results_csv
+    response = s3.upload_file(results_csv, 'droidlet-hitl', upload_key)
+    if response: print("S3 response: " + response)
+    os.remove(results_csv)
+
     print(f"Job {id} complete")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--scene_length", type=int, default=20)
+    parser.add_argument("--scene_height", type=int, default=14)
+    parser.add_argument("--ground_depth", type=int, default=3)
+    parser.add_argument("--max_num_shapes", type=int, default=4)
     parser.add_argument("--num_hits", type=int, default=1, help="Number of HITs to request")
     parser.add_argument("--mephisto_requester", type=str, default="ethancarlson_sandbox", help="Your Mephisto requester name")
     opts = parser.parse_args()

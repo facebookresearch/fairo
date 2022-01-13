@@ -31,7 +31,7 @@
         </div>
         <div class="instructions-section">
           <h4 class="instruction-headings">The Task:</h4>
-          Your task is to tell us one "thing" from scene in the text box below it.  Some examples of things you could name are:
+          Your task is to tell us one <b>(just one!)</b> "thing" from scene in the text box below it.  Some examples of things you could name are:
           <ul>
             <li>An object, like "cube" or "house"</li>
             <li>Part of an object, like "corner", "edge", "side", etc.</li>
@@ -43,6 +43,7 @@
           <h4 class="instruction-headings">Things Not To Do:</h4>
           In order to pass the HIT successfully, please keep the following in mind:
           <ul>
+            <li>Please only submit one object</li>
             <li>Don't respond with any profanity or violent words</li>
             <li>The answer must refer to an object made of non-white blocks, so not "the air", "the ground", "space", "a scene", etc.</li>
             <li>Please submit a new answer each time if you do the HIT multiple times.</li>
@@ -68,7 +69,7 @@
       </p>
     </div>
 
-    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper_labeling.html?scene_filename=${scene_filename}&hit_id=${hit_id}" scrolling="no"></iframe>
+    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper_labeling.html?scene_filename=${scene_filename}&scene_idx=${scene_idx}" scrolling="no"></iframe>
   
   </div>
 </section>
@@ -99,7 +100,7 @@
         <input type="text" class="form-control" id="feedback" name="feedback" onchange="giveFeedback()">
         <input type="hidden" id="clickedElements" name="clickedElements" value="0">
         <input type="hidden" id="bug" name="bug" value="false">
-        <input type="hidden" id="taskID" name="taskID" value="0">
+        <input type="hidden" id="scene_idx" name="scene_idx" value="${scene_idx}">
         <input type="hidden" id="markedBlocks" name="markedBlocks" value="0">
         <input type="hidden" id="userAgent" name="userAgent" value="0">
       </div>
