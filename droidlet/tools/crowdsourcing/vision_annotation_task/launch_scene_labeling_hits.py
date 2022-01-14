@@ -92,15 +92,16 @@ def main(opts) -> None:
     results_csv = id + ".csv"
     with open(results_csv, "w") as f:
         csv_writer = csv.writer(f, delimiter=",")
-        csv_writer.writerow(["scene_filename", "scene_idx", "worker_name", "label"])
+        csv_writer.writerow(["scene_filename", "scene_idx", "worker_name", "object", "location"])
 
         units = mephisto_data_browser.get_units_for_task_name(task_name)
         for unit in units:
             data = mephisto_data_browser.get_data_from_unit(unit)
             worker_name = Worker(db, data["worker_id"]).worker_name
-            answer = data["data"]["outputs"]["answer"]
+            object = data["data"]["outputs"]["object"]
+            location = data["data"]["outputs"]["location"]
             scene_idx = data["data"]["outputs"]["scene_idx"]
-            csv_writer.writerow([scene_filename, scene_idx, worker_name, answer])
+            csv_writer.writerow([scene_filename, scene_idx, worker_name, object, location])
 
     # Upload results to S3 then remove local file
     print(f"Uploading job results to S3 as {results_csv}")
