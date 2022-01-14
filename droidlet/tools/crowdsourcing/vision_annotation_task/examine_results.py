@@ -62,7 +62,11 @@ def format_for_printing_data(data):
     except:
         pass
     try:
-        output_string += f"Labeling task answer: {outputs['answer']}\n"
+        output_string += f"Labeling task object: {outputs['object']}\n"
+    except:
+        pass
+    try:
+        output_string += f"Labeling task location: {outputs['location']}\n"
     except:
         pass
     try:
