@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1358670558/OculusTeleop.iml" filepath="$PROJECT_DIR$/.idea/modules/1358670558/OculusTeleop.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1924552668/OculusTeleop.VrSamples.iml" filepath="$PROJECT_DIR$/.idea/modules/1924552668/OculusTeleop.VrSamples.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-318105759/OculusTeleop.VrSamples.SampleFramework.iml" filepath="$PROJECT_DIR$/.idea/modules/-318105759/OculusTeleop.VrSamples.SampleFramework.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1144856424/OculusTeleop.VrSamples.SampleFramework.Projects.iml" filepath="$PROJECT_DIR$/.idea/modules/1144856424/OculusTeleop.VrSamples.SampleFramework.Projects.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/461023944/OculusTeleop.VrSamples.SampleFramework.Projects.Android.iml" filepath="$PROJECT_DIR$/.idea/modules/461023944/OculusTeleop.VrSamples.SampleFramework.Projects.Android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-311444216/OculusTeleop.oculus_reader.iml" filepath="$PROJECT_DIR$/.idea/modules/-311444216/OculusTeleop.oculus_reader.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1373990048/OculusTeleop.oculus_reader.app_source.iml" filepath="$PROJECT_DIR$/.idea/modules/-1373990048/OculusTeleop.oculus_reader.app_source.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1403957833/OculusTeleop.oculus_reader.app_source.Projects.iml" filepath="$PROJECT_DIR$/.idea/modules/1403957833/OculusTeleop.oculus_reader.app_source.Projects.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/OculusTeleop.oculus_reader.app_source.Projects.Android.iml" filepath="$PROJECT_DIR$/.idea/modules/OculusTeleop.oculus_reader.app_source.Projects.Android.iml" />
+    </modules>
+  </component>
+</project>
