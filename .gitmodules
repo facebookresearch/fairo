@@ -18,8 +18,8 @@
 	url = https://github.com/frankaemika/libfranka.git
 
 [submodule "polymetis/rb2/oculus_reader"]
-	path = polymetis/rb2/oculus_reader
+	path = rb2/oculus_reader
 	url = https://github.com/rail-berkeley/oculus_reader
 [submodule "polymetis/rb2/robot_baselines"]
-	path = polymetis/rb2/robot_baselines
+	path = rb2/robot_baselines
 	url = https://github.com/SudeepDasari/robot_baselines
