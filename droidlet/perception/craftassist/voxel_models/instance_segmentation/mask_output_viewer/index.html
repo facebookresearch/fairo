@@ -1,0 +1,82 @@
+<!-- Voxel model output viewer -->	
+<!-- Bootstrap v3.0.3 -->	
+<html>
+    <head>
+        <link	
+        rel="stylesheet"	
+        href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"	
+        />	
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>	
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>	
+        <script>
+            sessionStorage.setItem('gtScene', window.prompt("URL to Ground Truth Scene",""));
+            sessionStorage.setItem('modelOutput', window.prompt("URL to Model Output Scene",""));
+        </script>
+    </head>
+
+    <body>
+        <section class="container"	id="heading">	
+        <div class="row col-xs-12 col-md-12">
+            <div class="panel panel-primary">		
+            <div class="panel-heading"></div>
+            <div class="collapse in" id="instructionsWrapper">	
+                <h2 class="center">Voxel Perception Model Output Viewer</h2>
+                <hr>
+                <div class="instructions-section">
+                    <h4 class="instruction-headings">Navigating the Scenes:</h4>
+                    Click once within the window to get everything inside to fully render.
+                    You can use the arrow keys to rotate the view, or click and drag <b>in the left window</b>.
+                    You can also zoom with your scroll wheel, also only in the left window.
+                    Both windows will maintain the same camera position and angle.
+                </div>
+                <div class="instructions-section">
+                    <h4 class="instruction-headings">Block Colors:</h4>
+                    The "ground" in the scene is made up of white blocks.
+                    The "air" in the scene is transparent.
+                    The instance segment masks are shown in colored blocks with darker edges.  The labels for each mask are below the windows.
+                </div>
+            </div>	
+            </div>	
+        </div>
+        </section>
+
+        <section class="container">	
+            <div class="row">
+                <div class="col-xs-6">
+                    <h3 class="center">Scene Ground Truth</h3>
+                    <p class="center">
+                        This window shows the ground truth masks for the given scene.
+                    </p>
+                </div>
+                <div class="col-xs-6">
+                    <h3 class="center">Perception Model Prediction</h3>
+                    <p class="center">
+                        This window shows the masks predicted by the model
+                    </p>
+                </div>
+                <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper.html?batch_id=${batch_id}&error_idx=${error_idx}" scrolling="no"></iframe>
+              </div>
+              <div id="legend_wrapper" class="center">
+                <h4>Segment Legend</h4>
+                <ul id="legend"></ul>
+            </div>
+        </section>
+        <link rel="stylesheet" href="index.css">
+        <script>
+            window.addEventListener("message", (event) => {
+                if (typeof(event.data) === "string") {
+                data = JSON.parse(event.data);
+                } else data = event.data;
+                console.log(data);
+                if (data.msg) populateLegend(data.msg);
+            }, false);
+
+            function populateLegend(msg) {
+                let li = document.createElement("li");
+                li.appendChild(document.createTextNode(msg.label.tags[0]));
+                li.style.color = "#" + msg.color.toString(16);
+                document.getElementById('legend').appendChild(li);
+            }
+        </script>
+    </body>
+</html>
