@@ -18,7 +18,7 @@
 </pre>
 
 ### Put Memory Dialogue Type ###
-```
+<pre>
 {
   "filters": <a href="#filters">&ltFILTERS&gt</a>,
   "upsert" : {
@@ -28,8 +28,8 @@
         "triples": [{"pred_text": "has_x", "obj_text": {"fixed_value" : text} / span}]
       } }
 }
-```
-where `has_x` is one of : `has_tag`, `has_colour`, `has_size`
+</pre>
+where `has_x` is one of : `has_tag`, `has_colour`, `has_size`.  The value of the "filters" key tells the agent which memory to modify or tag.
 
 ### Noop Dialogue Type ###
 ```
@@ -78,7 +78,7 @@ Spawn only has a name in the reference object.
 
 <pre>
 { "action_type" : 'SPAWN',
-  "reference_object" : FILTERS
+  "reference_object" : <a href="#filters">&ltFILTERS&gt</a>
 }
 </pre>
 
@@ -181,7 +181,7 @@ The Bring intent represents bringing a reference_object to the speaker or to a s
 <pre>
 {
     "action_type" : 'GET',
-      <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>,
+    <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>,
     "receiver" : <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a> / <a href="#location">&ltLOCATION&gt</a>
 }
 </pre>
@@ -247,7 +247,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 <pre>
   <a id="reference_object">"reference_object" : { </a>
       "special_reference" : {"fixed_value" : "SPEAKER" / "AGENT" / "SPEAKER_LOOK"} / {"coordinates_span" : span},
-      "filters" : <a href="#filters">FILTERS</a>
+      "filters" : <a href="#filters">&ltFILTERS&gt</a>
       }
   } 
 </pre>
@@ -257,14 +257,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 <pre>
 <a id="schematic">"schematic": { </a>
     "text_span" : span,
-    "filters" : <a href="#filters">FILTERS</a>
-}
-</pre>
-
-#### Repeat ####
-<pre>
-<a id="repeat">"repeat" : { </a>
-  "repeat_key" : 'ALL'
+    "filters" : <a href="#filters">&ltFILTERS&gt</a>
 }
 </pre>
 
@@ -284,27 +277,27 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 #### DanceType ####
 <pre>
 "dance_type" : {
-  "filters": <a href="#filters">FILTERS</a>,
-  "point": <a href="#facing">Facing</a>,
-  "look_turn":  <a href="#facing">Facing</a>,
-  "body_turn": <a href="#facing">Facing</a>
+  "filters": <a href="#filters">&ltFILTERS&gt</a>,
+  "point": <a href="#facing">&ltFACING&gt</a>,
+  "look_turn":  <a href="#facing">&ltFACING&gt</a>,
+  "body_turn": <a href="#facing">&ltFACING&gt</a>
 }
 </pre>
 
 
 # Filters #
 
-Filters helps us specify reference objects and extend Embodied Question Answering pipeline. Filters are used inside `reference_object` and dialogue types: `GET_MEMORY` and `PUT_MEMORY`.
+This is a query language for accessing the agent's memory.  Records are stored as memory nodes.  
 The supported fields are : 
-- `output` : This field specifies the expected output type. In the `output` field we can either have a `"memory"` value which means return the entire memory node (for eg: "is that red"), or `"count"` that represents the equivalent of `count(*)` (for eg: "how many houses on your left") or `attribute` representing the column name of that memory node (equivalent to `Select <attribute> from memory_node`) (for example: "what colour is the cube in front of me"). 
-- `contains coreference` : This field specifies whether the memory node has a coreference that needs to be resolved based on dialogue context.
+- `output` : This field specifies the expected output type. In the `output` field we can either have a `"memory"` value (which specifies returning the memory node), `"count"` that represents the equivalent of `count(*)` (for eg: "how many houses on your left") or `attribute` representing a generalized column of the memory node (equivalent to `Select <attribute> from memory_node`) (for example: "what colour is the cube in front of me"). 
+- `contains coreference` : This field specifies whether the query has coreference that needs to be resolved based on dialogue context.
 - `memory_type` : Specifies the type of memory is the name of memory node. The default value for this is : `"REFERENCE_OBJECT"`.
-- `selector` : This field specifies how the selection is done. This has the following fields:
-  - `return_quantity` which returns a set of objects based on some form of ranking or randomly selected objects.
-  - `ordinal` which specifies the ranking in the returned set.
+- `where_clause`: This field describes the properties that memory nodes must have to be returned.
+- `selector` : Specifies how to sub-select from the memory nodes that satisfy the where_clause; perhaps by comparing amongst the returned records
+  - `return_quantity` use an attribute, perhaps with sorting or ranking, to determine the records to be returned.
+  - `ordinal` which specifies the number of entries to be returned.
   - `same` that specifies whether we are allowed to return the exact copies of an object. 
-  - `location` : location of the object based on which the selection is done. This is defined [here](human_give_command.md#location)
-- `where_clause`: This field represents a tree that can have three different kinds of nodes: `AND`, `OR`, `NOT`
+  - `location` : <a href="#location">location</a> special shortcut for selections based on spatial location.
 
 <pre>
 <a id="filters"> FILTERS </a> = {
@@ -423,13 +416,12 @@ This defines a modulus with a `close_tolerance`:
 
 
 ## TRIPLES ##
-<a id="filters"> "FILTERS" : { </a>
-This is a list of triples, where each triple is a dictionary with optional : subject , predicate and object keys.
+corresponds to a (subject, predicate, object) triple.
 Each of these keys can be one of:
 - `subj` or `subj_text`
 - `pred` or `pred_text`
 - `obj` or `obj_text`
-
+In e.g. `obj` vs. `obj_text`, the former would be used to fix an explicit memid, and the latter to refer to the text associated to a NamedAbstraction 
 <pre>
 <a id="triple"> Triple =  </a>
 {
