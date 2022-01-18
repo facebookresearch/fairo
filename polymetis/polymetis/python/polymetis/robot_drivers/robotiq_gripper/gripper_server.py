@@ -24,7 +24,7 @@ class RobotiqGripperServer(polymetis_pb2_grpc.GripperServerServicer):
         self.gripper = Robotiq2FingerGripper(comport=comport)
 
         if not self.gripper.init_success:
-            raise Exception(f"Unable to open commport to {comport}")
+            raise Exception(f"Unable to open comport to {comport}")
 
         if not self.gripper.getStatus():
             raise Exception(f"Failed to contact gripper on port {comport}... ABORTING")
