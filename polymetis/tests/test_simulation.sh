@@ -30,6 +30,7 @@ for entry in "$PROJECT_ROOT_DIR/polymetis/tests/scripts"/*; do
         echo "Running `python $entry`"
         python $entry
     fi
+    sleep 4
 done
 echo "=== Success. ==="
 
@@ -41,6 +42,7 @@ for entry in "$PROJECT_ROOT_DIR/polymetis/examples"/*; do
         echo "Running `python $entry`"
         python $entry
     fi
+    sleep 4
 done
 echo "=== Success. ==="
 
