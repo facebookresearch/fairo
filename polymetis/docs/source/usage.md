@@ -48,4 +48,9 @@ launch_gripper.py gripper=<franka_hand|robotiq_2f>
 ```
 
 `launch_gripper.py` launches a service that exposes gripper functionality to a connected `GripperInterface`. 
-See [docs](https://polymetis-docs.github.io/usage.html) for usage instructions.
+
+You can modify the configuration on the command line through Hydra. For example, to change the comport (communication port) while using the [Robotiq 2F gripper config](https://github.com/facebookresearch/fairo/blob/main/polymetis/polymetis/conf/gripper/robotiq_2f.yaml):
+
+```bash
+launch_gripper.py gripper=robotiq_2f gripper.comport=/dev/ttyUSB1
+```
