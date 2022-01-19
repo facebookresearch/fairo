@@ -193,6 +193,22 @@ class Conda(BaseRuntime):
             use_mamba if use_mamba is not None else bool(shutil.which("mamba"))
         )
 
+        if env_nosandbox:
+            self._validate_env_nosandbox()
+
+    def _validate_env_nosandbox(self):
+        result = subprocess.run(
+            f"""
+                eval "$(conda shell.bash hook)"
+                conda activate {self.env_nosandbox}
+            """,
+            shell=True,
+            executable="/bin/bash",
+            stderr=subprocess.PIPE,
+        )
+        if result.returncode:
+            util.fail(f"'env_nosandbox' not valid: {result.stderr}")
+
     def _env_name(self, name):
         return self.env_nosandbox or f"fbrp_{name}"
 
