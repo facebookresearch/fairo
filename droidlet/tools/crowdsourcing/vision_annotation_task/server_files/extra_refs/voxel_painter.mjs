@@ -27,6 +27,7 @@ let isDDown = false;
 let startedHIT = false;
 let isQual = false;
 let avatarsOff = false;
+let twoWindows = true;
 
 let origin_offset;  // Scene needs to be recentered on 0,0 and then annotation output needs to be reindexed to the original origin reference
 
@@ -51,6 +52,7 @@ else if (urlParams.get('scene_filename')){
     module_key = urlParams.get('scene_filename');
     scene_idx = urlParams.get('scene_idx');
     avatarsOff = true;
+    twoWindows = false;
 }
 console.log("Module key: " + module_key);
 
@@ -67,9 +69,8 @@ else if (module_key[0] === 'q') {  // This is the qualification HIT, load the ap
     if (!shapes) console.error("Scene for " + module_key + " did not load correctly");
     else init(shapes.scene, true);
 }
-else if (module_key.includes("scene")){  // This is the scene labeling HIT
-    let s3URL = "https://craftassist.s3-us-west-2.amazonaws.com/pubr/scenes/" + module_key;
-    fetch(s3URL)
+else {  // Not a test or qual HIT, look for the scene list file
+    fetch("./scene_list.json")
     .then(response => {
         return response.json();
     })
@@ -77,24 +78,15 @@ else if (module_key.includes("scene")){  // This is the scene labeling HIT
         return jsondata[parseInt(scene_idx)];  // Pull the appropriate scene from the file
     })
     .then(scene => {
-        init(scene, false);
+        init(scene_idx);
     })
-}
-else {
-    // Dummy data until the rest of the pipeline is built
-    fetch('./example_scene.json')
-    .then(response => {
-        return response.json();
-    })
-    .then(jsondata => {
-        return jsondata[0];  // Pull the first scene (of 1 in this case)
-    })
-    .then(scene => {
-        init(scene, true);
-    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
 }
 
-function init(scene, twoWindows) {
+function init(scene) {
+    console.log("Initializing scene");
     loadScene(scene, 1);
     if (twoWindows) loadScene(scene, 2);
     addEventListeners();

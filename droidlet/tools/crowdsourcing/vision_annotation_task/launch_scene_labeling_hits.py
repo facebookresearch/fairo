@@ -28,10 +28,10 @@ def main(opts) -> None:
 
     #Generate ID number from datettime
     id = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-    scene_filename = "scene" + id + ".json"
+    print(f"Batch ID: {id}")
 
     #Generate scenes
-    scene_path = os.path.join(os.getcwd(), scene_filename)
+    scene_path = os.path.join(os.getcwd(), "server_files/extra_refs/scene_list.json")
     scene_gen_path = os.path.join(os.getcwd(), "../../../lowlevel/minecraft/small_scenes_with_shapes.py")
     scene_gen_cmd = "python3 " + \
         scene_gen_path + \
@@ -54,18 +54,17 @@ def main(opts) -> None:
         scene_gen.kill()
         print("Scene generation script timed out after {SCENE_GEN_TIMEOUT} seconds")
 
-    #Send scene file to S3 then remove
-    upload_key = "pubr/scenes/" + scene_filename
-    response = s3.upload_file(scene_path, 'craftassist', upload_key)
+    #Send scene file to S3 for future annotation
+    upload_key = id + "/vision_annotation/scene_list.json"
+    response = s3.upload_file(scene_path, 'droidlet-hitl', upload_key)
     if response: print(f"S3 upload response: {response}")
-    os.remove(scene_path)
 
     #Populate data.csv with scene filename and indeces
     with open("labeling_data.csv", "w") as f:
         csv_writer = csv.writer(f, delimiter=",")
         csv_writer.writerow(["scene_filename", "scene_idx"])
         for i in range(opts.num_hits):
-            csv_writer.writerow([scene_filename, str(i)])
+            csv_writer.writerow(["scene_list.json", str(i)])
 
     #Launch via Mephisto
     job_launch_cmd = "python3 run_labeling_with_qual.py" + \
@@ -101,16 +100,19 @@ def main(opts) -> None:
             object = data["data"]["outputs"]["object"]
             location = data["data"]["outputs"]["location"]
             scene_idx = data["data"]["outputs"]["scene_idx"]
-            csv_writer.writerow([scene_filename, scene_idx, worker_name, object, location])
+            csv_writer.writerow(["scene_list.json", scene_idx, worker_name, object, location])
 
-    # Upload results to S3 then remove local file
-    print(f"Uploading job results to S3 as {results_csv}")
-    upload_key = "vision_labeling_results/" + results_csv
+    # Upload results to S3
+    upload_key = id + "/vision_labeling_results/" + results_csv
+    print(f"Uploading job results to S3: {upload_key}")
     response = s3.upload_file(results_csv, 'droidlet-hitl', upload_key)
     if response: print("S3 response: " + response)
-    os.remove(results_csv)
 
-    print(f"Job {id} complete")
+    # Remove local temp files
+    os.remove(results_csv)
+    os.remove(scene_path)
+
+    print(f"Labeling job {id} complete")
 
 
 if __name__ == "__main__":
