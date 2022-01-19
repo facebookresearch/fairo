@@ -2,7 +2,7 @@ from polymetis.utils.continuous_grasper import ManipulatorSystem
 
 
 def track_num_successes_per_100():
-    iters = 2
+    iters = 100
     robot_kwargs = {}
     gripper_kwargs = {}
     robot = ManipulatorSystem(robot_kwargs, gripper_kwargs)
