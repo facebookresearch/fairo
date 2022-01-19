@@ -1,0 +1,18 @@
+name: pyrbgt
+channels:
+  - conda-forge
+  - pytorch3d
+  - plotly
+  - defaults
+dependencies:
+  - cudatoolkit=11.1
+  - eigen
+  - glew
+  - glfw
+  - matplotlib
+  - opencv
+  - plotly
+  - python=3.8
+  - pytorch3d
+  - pytorch=1.9.0
+  - scipy
