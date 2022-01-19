@@ -6,6 +6,9 @@ import sys
 from polymetis.utils.continuous_grasper import ManipulatorSystem
 
 
+DEFAULT_MAX_ITERS = 3
+
+
 def main(argv):
     if len(argv) > 1:
         try:

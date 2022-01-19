@@ -73,11 +73,12 @@ class ManipulatorSystem:
         # Plan trajectory
         pos_curr, quat_curr = self.arm.pose_ee()
         N = int(time_to_go / PLANNER_DT)
+
         waypoints = toco.planning.generate_cartesian_space_min_jerk(
             start=T.from_rot_xyz(R.from_quat(quat_curr), pos_curr),
             goal=T.from_rot_xyz(R.from_quat(quat), pos),
             time_to_go=time_to_go,
-            hz=self.arm.metadata.hz,
+            hz=1 / PLANNER_DT,
         )
 
         # Execute trajectory
