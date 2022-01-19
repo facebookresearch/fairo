@@ -5,9 +5,9 @@
 #ifndef polymetis_SERVER_H
 #define polymetis_SERVER_H
 
+#include "spdlog/spdlog.h"
 #include <chrono>
 #include <fstream>
-#include <iostream>
 #include <mutex>
 #include <string>
 #include <unistd.h>

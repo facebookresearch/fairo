@@ -47,6 +47,11 @@ set(_GRPC_GRPCPP gRPC::grpc++)
 find_program(_GRPC_CPP_PLUGIN_EXECUTABLE $ENV{CONDA_PREFIX}/bin/grpc_cpp_plugin)
 find_program(_GRPC_PYTHON_PLUGIN_EXECUTABLE $ENV{CONDA_PREFIX}/bin/grpc_python_plugin)
 
+# Find spdlog (C++ logger)
+if(NOT TARGET spdlog)
+    find_package(spdlog REQUIRED)
+endif()
+
 # Define proto directories
 get_filename_component(loader_proto "protos/polymetis.proto" ABSOLUTE)
 get_filename_component(loader_proto_path "${loader_proto}" PATH)
@@ -109,6 +114,7 @@ add_library(polymetis_server "src/polymetis_server.cpp")
 target_link_libraries(polymetis_server
     generated_grpc_protos
     yaml-cpp
+    spdlog::spdlog
 )
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchscript_pinocchio)
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchrot)
@@ -123,6 +129,7 @@ add_executable(empty_statistics_client "src/clients/empty_statistics_client.cpp"
 target_link_libraries(empty_statistics_client
     generated_grpc_protos
     yaml-cpp
+    spdlog::spdlog
 )
 
 if(BUILD_FRANKA)
@@ -144,6 +151,7 @@ if(BUILD_FRANKA)
       generated_grpc_protos
       Franka::Franka
       yaml-cpp
+      spdlog::spdlog
   )
 
   # Add Franka gripper server
@@ -152,6 +160,7 @@ if(BUILD_FRANKA)
       generated_grpc_protos
       Franka::Franka
       yaml-cpp
+      spdlog::spdlog
   )
 endif()
 
