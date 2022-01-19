@@ -8,6 +8,7 @@ import subprocess
 import time
 import csv
 import yaml
+import sys
 
 import boto3
 
@@ -78,7 +79,7 @@ class VisionAnnotationJob(DataGenerator):
             # Edit Mephisto config file task name
             with open("../../crowdsourcing/vision_annotation_task/conf/annotation.yaml", "r") as stream:
                 config = yaml.safe_load(stream)
-                task_name = config["mephisto"]["task"]["task_name"] + self._batch_id
+                task_name = "ca-vis-anno" + str(self._batch_id)
                 config["mephisto"]["task"]["task_name"] = task_name
             logging.info(f"Updating Mephisto config file to have task_name: {task_name}")
             with open("../../crowdsourcing/vision_annotation_task/conf/annotation.yaml", "w") as stream:
@@ -87,7 +88,7 @@ class VisionAnnotationJob(DataGenerator):
             # Launch the batch of HITs
             anno_job_path = os.path.join(os.getcwd(), "../../crowdsourcing/vision_annotation_task/run_annotation_with_qual.py")
             anno_cmd = "python3 " + anno_job_path
-            p = subprocess.Popen(anno_cmd, shell=True, preexec_fn=os.setsid)
+            p = subprocess.Popen(anno_cmd, shell=True, preexec_fn=os.setsid, stdout=sys.stdout, stderr=sys.stderr, stdin=sys.stdin)
 
             # Keep running Mephisto until timeout or job finished
             while not self.check_is_timeout() and p.poll() is None:
@@ -133,5 +134,5 @@ class VisionAnnotationJob(DataGenerator):
 
 
 if __name__ == "__main__":
-    aj = VisionAnnotationJob(987, "destory the biggest house behind me", 1, 300)
+    aj = VisionAnnotationJob(20220119175234, [0], ["grey floating cube"])
     aj.run()
