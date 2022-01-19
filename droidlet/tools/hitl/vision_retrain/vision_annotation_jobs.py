@@ -30,6 +30,7 @@ S3_ROOT = "s3://droidlet-hitl"
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
 AWS_DEFAULT_REGION = os.environ["AWS_DEFAULT_REGION"]
+MEPHISTO_REQUESTER = os.environ["MEPHISTO_REQUESTER"]
 
 s3 = boto3.client(
     "s3",
@@ -73,7 +74,7 @@ class VisionAnnotationJob(DataGenerator):
             with open("../../crowdsourcing/vision_annotation_task/data.csv", "w") as f:
                 csv_writer = csv.writer(f, delimiter=",")
                 csv_writer.writerow(["batch_id", "scene_idx", "label"])
-                for i in range(self._scene_list):
+                for i in range(len(self._scene_list)):
                     csv_writer.writerow([str(self._batch_id), str(self._scene_list[i]), self._label_list[i]])
 
             # Edit Mephisto config file task name
@@ -83,12 +84,15 @@ class VisionAnnotationJob(DataGenerator):
                 config["mephisto"]["task"]["task_name"] = task_name
             logging.info(f"Updating Mephisto config file to have task_name: {task_name}")
             with open("../../crowdsourcing/vision_annotation_task/conf/annotation.yaml", "w") as stream:
+                stream.write("#@package _global_\n")
                 yaml.dump(config, stream)
 
             # Launch the batch of HITs
             anno_job_path = os.path.join(os.getcwd(), "../../crowdsourcing/vision_annotation_task/run_annotation_with_qual.py")
-            anno_cmd = "python3 " + anno_job_path
-            p = subprocess.Popen(anno_cmd, shell=True, preexec_fn=os.setsid, stdout=sys.stdout, stderr=sys.stderr, stdin=sys.stdin)
+            anno_cmd = "python3 " + anno_job_path + \
+                " mephisto.provider.requester_name=" + MEPHISTO_REQUESTER + \
+                " mephisto.architect.profile_name=mephisto-router-iam"
+            p = subprocess.Popen(anno_cmd, shell=True, preexec_fn=os.setsid)#, stdout=sys.stdout, stderr=sys.stderr, stdin=sys.stdin)
 
             # Keep running Mephisto until timeout or job finished
             while not self.check_is_timeout() and p.poll() is None:
@@ -134,5 +138,5 @@ class VisionAnnotationJob(DataGenerator):
 
 
 if __name__ == "__main__":
-    aj = VisionAnnotationJob(20220119175234, [0], ["grey floating cube"])
+    aj = VisionAnnotationJob(20220119175234, [0], ["grey floating cube"], 300)
     aj.run()
