@@ -44,7 +44,13 @@ To run benchmarking, first configure the [script](polymetis/tests/python/polymet
 asv run --python=python --set-commit-hash $(git rev-parse HEAD)
 ```
 
-Commit the result under `.asv/results`; it will show up under the benchmarking page in the documentation.
+To update the dashboard, run:
+
+```bash
+asv publish
+```
+
+Commit the result under `.asv/results` and `docs/`; it will show up under the benchmarking page in the documentation.
 
 ## Citing
 If you use Polymetis in your research, please use the following BibTeX entry.
