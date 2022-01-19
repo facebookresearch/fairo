@@ -20,6 +20,7 @@ let objects = {1: [], 2: []};
 
 let marked_blocks = [];
 let actions_taken = []; // [original_block, new_block, action_type]
+let inst_seg_tags = [{"tags": [], "locs": []}]
 
 let isADown = false;
 let isSDown = false;
@@ -41,43 +42,70 @@ let rollOverMesh = new THREE.Mesh( geo, rollOverMaterial );
 
 // Pull scene key from URL params
 const urlParams = new URLSearchParams(window.location.search);
-const module_key = urlParams.get('batch_id') + urlParams.get('error_idx');
+let module_key = "";
+let scene_idx = "";
+if (urlParams.get('batch_id')) {
+    module_key = urlParams.get('batch_id');
+    scene_idx = urlParams.get('scene_idx');
+    inst_seg_tags[0]["tags"].push(urlParams.get('label'));
+}
+else if (urlParams.get('scene_filename')){
+    module_key = urlParams.get('scene_filename');
+    scene_idx = urlParams.get('scene_idx');
+    avatarsOff = true;
+}
 console.log("Module key: " + module_key);
 
+// Load the appropriate scene and number of windows based on module key
 if (module_key.includes("test")){  // Used for loading test scenes
     isQual = true;
     let shapes = new staticShapes( module_key );
     if (!shapes) console.error("Scene for " + module_key + " did not load correctly");
-    else init(shapes.scene);
+    else init(shapes.scene, true);
 }
 else if (module_key[0] === 'q') {  // This is the qualification HIT, load the appropriate scene
     isQual = true;
     let shapes = new staticShapes( parseInt(module_key[1]) );
     if (!shapes) console.error("Scene for " + module_key + " did not load correctly");
-    else init(shapes.scene);
+    else init(shapes.scene, true);
 }
-else {
-    // Dummy data until the rest of the pipeline is built
-    fetch('./example_scene.json')
+else if (module_key.includes("scene")){  // This is the scene labeling HIT
+    let s3URL = "https://craftassist.s3-us-west-2.amazonaws.com/pubr/scenes/" + module_key;
+    fetch(s3URL)
     .then(response => {
         return response.json();
     })
     .then(jsondata => {
-        return jsondata[0];  // Pull the first scene (of 1 in this case)
+        return jsondata[parseInt(scene_idx)];
     })
     .then(scene => {
-        init(scene);
+        init(scene, false);
+    })
+}
+else if (module_key.includes("batch")){  // This is an annotation HIT
+    fetch('./scene_list.json')
+    .then(response => {
+        return response.json();
+    })
+    .then(jsondata => {
+        return jsondata[parseInt(scene_idx)];
+    })
+    .then(scene => {
+        init(scene, true);
     })
 }
 
-function init(scene) {
+function init(scene, twoWindows) {
     loadScene(scene, 1);
-    loadScene(scene, 2);
+    if (twoWindows) loadScene(scene, 2);
     addEventListeners();
     render();
     var canvii = document.getElementsByTagName("canvas");
-    Array.from(canvii).forEach(canv => canv.style.display = "inline");
-    canvii[1].style.float = "right";
+    Array.from(canvii).forEach((canv) => {
+        canv.style.display = "inline";
+        canv.style.margin = "auto";
+    });
+    if (twoWindows) canvii[1].style.float = "right";
 }
 
 function loadScene(scene, idx) {
@@ -350,15 +378,14 @@ function onPointerDown( event ) {
         }
     
         // Store marked blocks in parent HTML.
-        let output_list = [];
         marked_blocks.forEach((block) => {
             let positionArray = block.position.toArray();
             let scaledArray = positionArray.map(function(item) { return (item-25)/50 });
             scaledArray[0] += origin_offset;  // Reset the origin in x and z
             scaledArray[2] += origin_offset;
-            output_list.push(scaledArray);
+            inst_seg_tags[0]["locs"].push(scaledArray);
         })
-        document.getElementById("markedBlocks").value = JSON.stringify(output_list);
+        document.getElementById("inst_seg_tags").value = JSON.stringify(inst_seg_tags);
 
         render();
     }
