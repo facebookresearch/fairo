@@ -66,6 +66,15 @@ def main(opts) -> None:
         for i in range(opts.num_hits):
             csv_writer.writerow(["scene_list.json", str(i)])
 
+    # Edit Mephisto config file task name
+    with open("conf/labeling.yaml", "r") as stream:
+        config = yaml.safe_load(stream)
+        task_name = "ca-vis-label" + str(id)
+        config["mephisto"]["task"]["task_name"] = task_name
+    print(f"Updating Mephisto config file to have task_name: {task_name}")
+    with open("conf/labeling.yaml", "w") as stream:
+        yaml.dump(config, stream)
+
     #Launch via Mephisto
     job_launch_cmd = "python3 run_labeling_with_qual.py" + \
         " mephisto.provider.requester_name=" + opts.mephisto_requester + \
@@ -83,11 +92,7 @@ def main(opts) -> None:
         job_launch.kill()
         print("Scene labeling job timed out after {LABELING_JOB_TIMEOUT} seconds")
     
-    # Retrieve task name and pull results from local DB
-    print("Mephisto job finished, retrieving results for upload")
-    with open("conf/labeling.yaml", "r") as stream:
-        task_name = yaml.safe_load(stream)["mephisto"]["task"]["task_name"]
-    
+    # Pull results from local DB    
     results_csv = id + ".csv"
     with open(results_csv, "w") as f:
         csv_writer = csv.writer(f, delimiter=",")
