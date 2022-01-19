@@ -8,7 +8,6 @@ import subprocess
 import time
 import csv
 import yaml
-import sys
 
 import boto3
 
@@ -92,7 +91,7 @@ class VisionAnnotationJob(DataGenerator):
             anno_cmd = "python3 " + anno_job_path + \
                 " mephisto.provider.requester_name=" + MEPHISTO_REQUESTER + \
                 " mephisto.architect.profile_name=mephisto-router-iam"
-            p = subprocess.Popen(anno_cmd, shell=True, preexec_fn=os.setsid)#, stdout=sys.stdout, stderr=sys.stderr, stdin=sys.stdin)
+            p = subprocess.Popen(anno_cmd, shell=True, preexec_fn=os.setsid)
 
             # Keep running Mephisto until timeout or job finished
             while not self.check_is_timeout() and p.poll() is None:
@@ -105,12 +104,11 @@ class VisionAnnotationJob(DataGenerator):
                 os.killpg(os.getpgid(p.pid), signal.SIGINT)
                 time.sleep(10)
                 os.killpg(os.getpgid(p.pid), signal.SIGKILL)
-
-            logging.info(f"Uploading scene annotation data to S3 {self._batch_id}/vision_annotation/annotated_scenes.csv")
             
             # Retrieve annotated scene data from Mephisto DB
-            # TODO make sure annotation job output lines up with this
-            results_csv = os.path.join(HITL_TMP_DIR, f"/{self._batch_id}/annotated_scenes.csv")
+            os.makedirs(os.path.join(HITL_TMP_DIR, str(self._batch_id)), exist_ok=True)
+            results_csv = os.path.join(HITL_TMP_DIR, f"{self._batch_id}/annotated_scenes.csv")
+            logging.info(f"Retrieving data from Mephisto DB and writing to {results_csv}")
             with open(results_csv, "w") as f:
                 csv_writer = csv.writer(f, delimiter=",")
                 csv_writer.writerow(["batch_id", "scene_idx", "label", "inst_seg_tags"])
@@ -121,9 +119,10 @@ class VisionAnnotationJob(DataGenerator):
                     scene_idx = data["data"]["outputs"]["scene_idx"]
                     label = data["data"]["outputs"]["label"]
                     inst_seg_tags = data["data"]["outputs"]["inst_seg_tags"]
-                    csv_writer.writerow([self._batch_id, scene_idx, label, inst_seg_tags])
+                    csv_writer.writerow([str(self._batch_id), scene_idx, label, inst_seg_tags])
 
             # Upload vision annotation results to S3
+            logging.info(f"Uploading scene annotation data to S3: {self._batch_id}/vision_annotation/annotated_scenes.csv")
             with open(results_csv, "rb") as f:
                 s3.upload_fileobj(f, f"{S3_BUCKET_NAME}", f"{self._batch_id}/vision_annotation/annotated_scenes.csv")
             logging.info(f"Uploading completed")
