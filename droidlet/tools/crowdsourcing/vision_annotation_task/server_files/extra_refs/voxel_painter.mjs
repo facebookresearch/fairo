@@ -20,6 +20,7 @@ let objects = {1: [], 2: []};
 
 let marked_blocks = [];
 let actions_taken = []; // [original_block, new_block, action_type]
+let inst_seg_tags = [{"tags": [], "locs": []}]
 
 let isADown = false;
 let isSDown = false;
@@ -46,7 +47,9 @@ const urlParams = new URLSearchParams(window.location.search);
 let module_key = "";
 let scene_idx = "";
 if (urlParams.get('batch_id')) {
-    module_key = urlParams.get('batch_id') + urlParams.get('error_idx');
+    module_key = urlParams.get('batch_id');
+    scene_idx = urlParams.get('scene_idx');
+    inst_seg_tags[0]["tags"].push(urlParams.get('label'));
 }
 else if (urlParams.get('scene_filename')){
     module_key = urlParams.get('scene_filename');
@@ -78,7 +81,7 @@ else {  // Not a test or qual HIT, look for the scene list file
         return jsondata[parseInt(scene_idx)];  // Pull the appropriate scene from the file
     })
     .then(scene => {
-        init(scene_idx);
+        init(scene);
     })
     .catch((error) => {
         console.error('Error:', error);
@@ -374,15 +377,14 @@ function onPointerDown( event ) {
             }
         
             // Store marked blocks in parent HTML.
-            let output_list = [];
             marked_blocks.forEach((block) => {
                 let positionArray = block.position.toArray();
                 let scaledArray = positionArray.map(function(item) { return (item-25)/50 });
                 scaledArray[0] += origin_offset;  // Reset the origin in x and z
                 scaledArray[2] += origin_offset;
-                output_list.push(scaledArray);
+                inst_seg_tags[0]["locs"].push(scaledArray);
             })
-            document.getElementById("markedBlocks").value = JSON.stringify(output_list);
+            document.getElementById("inst_seg_tags").value = JSON.stringify(inst_seg_tags);
 
             render();
         }
