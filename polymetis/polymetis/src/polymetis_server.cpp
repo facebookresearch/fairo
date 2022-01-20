@@ -178,10 +178,9 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   } else {
     controller = robot_client_context_.default_controller;
   }
-
+  std::vector<float> desired_torque;
   try {
-    std::vector<float> desired_torque =
-        controller->forward(*torch_robot_state_);
+    desired_torque = controller->forward(*torch_robot_state_);
   } catch (const std::exception &e) {
     custom_controller_context_.controller_mtx.unlock();
     std::string error_msg =
