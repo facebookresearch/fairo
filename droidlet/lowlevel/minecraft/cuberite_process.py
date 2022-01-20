@@ -69,6 +69,8 @@ def generate_place_blocks_plugin(workdir, place_blocks_yzx):
         template = f.read()
     # Generate lua code
     if type(place_blocks_yzx) == list:
+        if len(place_blocks_yzx) == 1:
+            place_blocks_yzx = place_blocks_yzx[0]
         dicts = place_blocks_yzx
     else:
         dicts = place_blocks.yzx_to_dicts(place_blocks_yzx)

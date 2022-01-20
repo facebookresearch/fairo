@@ -144,8 +144,6 @@ if __name__ == "__main__":
     scenes = []
     for i in range(args.NUM_SCENES):
         scenes.append(build_shape_scene(args))
-    if args.NUM_SCENES == 1:
-        scenes = scenes[0]
     if args.save_data_path:
         with open(args.save_data_path, "w") as f:
             json.dump(scenes, f)
