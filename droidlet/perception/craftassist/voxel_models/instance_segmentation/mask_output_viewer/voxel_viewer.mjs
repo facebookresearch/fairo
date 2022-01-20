@@ -31,8 +31,6 @@ let rollOverMesh = new THREE.Mesh( geo, rollOverMaterial );
 let gtScenePath = sessionStorage.getItem('gtScene');
 let modelOutputPath = sessionStorage.getItem('modelOutput');
 
-// https://craftassist.s3.us-west-2.amazonaws.com/pubr/scenes/scene20220113202201.json
-
 fetch(gtScenePath)  // Load the first file
 .then(response => {
     return response.json();
