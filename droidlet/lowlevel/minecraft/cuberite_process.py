@@ -69,8 +69,6 @@ def generate_place_blocks_plugin(workdir, place_blocks_yzx):
         template = f.read()
     # Generate lua code
     if type(place_blocks_yzx) == list:
-        if len(place_blocks_yzx) == 1:
-            place_blocks_yzx = place_blocks_yzx[0]
         dicts = place_blocks_yzx
     else:
         dicts = place_blocks.yzx_to_dicts(place_blocks_yzx)
@@ -170,6 +168,8 @@ if __name__ == "__main__":
         else:
             with open(args.schematic, "rb") as f:
                 J = json.load(f)
+                if type(J) is list and len(J) == 1:
+                    J = J[0]
                 schematic = J["schematic_for_cuberite"]
         if args.random_shapes:
             # TODO allow both?
