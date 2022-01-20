@@ -16,35 +16,32 @@ PROJECT_ROOT_DIR=$(git rev-parse --show-toplevel)
 # Test simulation client
 ######################
 # Start server & robot client
-echo "=== Starting server and franka simulation...==="
+echo "========= Starting server and franka simulation... ========="
 launch_robot.py robot_client=franka_sim gui=false use_real_time=false &
 server_pid=$!
-echo "=== Server PID: $server_pid ==="
+echo "========= Server PID: $server_pid ========="
 
 sleep 4
 
 # Run RobotInterface tests (previous agent.py tests)
-echo "=== Running controller tests in simulation to check tracking... ==="
+echo "========= Running controller tests in simulation to check tracking... ========="
 for entry in "$PROJECT_ROOT_DIR/polymetis/tests/scripts"/*; do
     if [[ ${entry: -3} == ".py" && ${entry: -6} != "_hw.py" ]]; then
-        echo "Running `python $entry`"
+        echo "====== Running 'python $entry' ======"
         python $entry
     fi
-    sleep 4
 done
-echo "=== Success. ==="
+echo "========= Success. ========="
 
 # Run examples
-echo "=== Running controllers in examples/ ... ==="
-echo "here $PROJECT_ROOT_DIR/polymetis/examples"
+echo "========= Running controllers in examples/ ... ========="
 for entry in "$PROJECT_ROOT_DIR/polymetis/examples"/*; do
     if [ ${entry: -3} == ".py" ]; then
-        echo "Running `python $entry`"
+        echo "====== Running 'python $entry' ======"
         python $entry
     fi
-    sleep 4
 done
-echo "=== Success. ==="
+echo "========= Success. ========="
 
 # Kill server
 pkill -9 run_server || true
