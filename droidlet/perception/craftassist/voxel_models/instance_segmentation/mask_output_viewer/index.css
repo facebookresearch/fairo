@@ -60,7 +60,7 @@ hr {
     padding: 5px;
 }
 
-#legend {
+.legend {
     font-weight: bold;
     list-style-type: none;
 }

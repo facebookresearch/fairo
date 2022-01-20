@@ -59,10 +59,16 @@
                     </p>
                 </div>
                 <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper.html?batch_id=${batch_id}&error_idx=${error_idx}" scrolling="no"></iframe>
-              </div>
-              <div id="legend_wrapper" class="center">
-                <h4>Segment Legend</h4>
-                <ul id="legend"></ul>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 center">
+                    <h4>Ground Truth Segment Legend</h4>
+                    <ul class="legend" id="legend1"></ul>
+                </div>
+                <div class="col-xs-6 center">
+                    <h4>Model Output Segment Legend</h4>
+                    <ul class="legend" id="legend2"></ul>
+                </div>
             </div>
         </section>
         <link rel="stylesheet" href="index.css">
@@ -79,7 +85,8 @@
                 let li = document.createElement("li");
                 li.appendChild(document.createTextNode(msg.label.tags[0]));
                 li.style.color = "#" + msg.color.toString(16);
-                document.getElementById('legend').appendChild(li);
+                let eleID = "legend" + msg.idx
+                document.getElementById(eleID).appendChild(li);
             }
         </script>
     </body>

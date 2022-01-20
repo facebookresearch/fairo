@@ -14,7 +14,6 @@ let renderers = {1: null, 2: null};
 let planes = {1: null, 2: null};
 let objects = {1: [], 2: []};
 
-let marked_blocks = [];
 let avatarsOff = false;
 
 let origin_offset;  // Scene needs to be recentered on 0,0 and then annotation output needs to be reindexed to the original origin reference
@@ -25,7 +24,6 @@ const maxCameraPitch = (2.0 * Math.PI) / 4;
 // Define cube geometry and materials
 const geo = new THREE.BoxGeometry( 50, 50, 50 );
 const rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.3, transparent: true } );
-let rollOverMesh = new THREE.Mesh( geo, rollOverMaterial );
 
 // Pull scene paths from input
 let gtScenePath = sessionStorage.getItem('gtScene');
@@ -81,14 +79,12 @@ function loadScene(scene, idx) {
     let Xs = scene.blocks.map(function(x) { return x[0]; });
     origin_offset = Math.floor( (Math.max(...Xs) + Math.min(...Xs)) / 2)
 
-    // Load labels if this is GT
-    if (idx === 1) {
-        scene.inst_seg_tags.forEach(tag => {
-            let block_lookup = scene.blocks.find(block => (block[0] == tag.locs[0][0] && block[1] == tag.locs[0][1] && block[2] == tag.locs[0][2] && block[3] != 46));
-            let obj = {msg: {label: tag, color: BLOCK_MAP[block_lookup[3]]}};
-            window.parent.postMessage(JSON.stringify(obj), "*");
-        });
-    }
+    // Load labels to populate legends
+    scene.inst_seg_tags.forEach(tag => {
+        let block_lookup = scene.blocks.find(block => (block[0] == tag.locs[0][0] && block[1] == tag.locs[0][1] && block[2] == tag.locs[0][2] && block[3] != 46));
+        let obj = {msg: {idx: idx, label: tag, color: BLOCK_MAP[block_lookup[3]]}};
+        window.parent.postMessage(JSON.stringify(obj), "*");
+    });
 
     // load scene
     for (let i=0; i<scene.blocks.length; i++) {
