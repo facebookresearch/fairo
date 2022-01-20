@@ -4,6 +4,14 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+''' 
+This script syncs Mephisto (MTurk) allowlists and blocklists between the
+local Mephisto DB and shared lists (.txt files) in an S3 bucket.
+
+Currently implemented are the interaction job and vision annotation job
+lists, but the structure is extendable to future qualifications as well.
+'''
+
 import argparse
 import os
 import logging
@@ -31,24 +39,36 @@ mephisto_data_browser = MephistoDataBrowser(db=db)
 
 s3 = boto3.client('s3')
 
+logging.basicConfig(level="INFO")
+
 
 def import_s3_lists(bucket: str):
-    
     # Assumed S3 allowlist key example: (bucket)/interaction/allow.txt
-    output_dict = copy.copy(qual_dict)
+    
+    output_dict = copy.deepcopy(qual_dict)
     
     for folder in output_dict.keys():
         key = folder + "/allow.txt"
-        with open('list.txt', 'wb') as f:
-            s3.download_fileobj(bucket, key, f)
-            output_dict[folder]["allow"] = [line.strip() for line in f.readlines()]
+        try:
+            with open('list.txt', 'wb') as f:
+                s3.download_fileobj(bucket, key, f)
+            logging.info(f"{folder} whitelist downloaded successfully")
+            with open('list.txt', 'r') as f:
+                output_dict[folder]["allow"] = [line.strip() for line in f.readlines()]
+        except:
+            logging.info(f"{folder} whitelist not found on S3, creating new S3 whitelist")
+            output_dict[folder]["allow"] = []
 
         key = folder + "/block.txt"
-        with open('list.txt', 'wb') as f:
-            s3.download_fileobj(bucket, key, f)
-            output_dict[folder]["block"] = [line.strip() for line in f.readlines()]
-
-        logging.info(f"{folder} whitelist and blacklist downloaded successfully")
+        try:
+            with open('list.txt', 'wb') as f:
+                s3.download_fileobj(bucket, key, f)
+            logging.info(f"{folder} blacklist downloaded successfully")
+            with open('list.txt', 'r') as f:
+                output_dict[folder]["block"] = [line.strip() for line in f.readlines()]
+        except:
+            logging.info(f"{folder} blacklist not found on S3, creating new S3 blacklist")
+            output_dict[folder]["block"] = []
 
     os.remove("list.txt")
     return output_dict
@@ -81,26 +101,30 @@ def add_workers_to_quals(add_list: list, qual: str):
 
 
 def pull_local_lists():
-    # Pull the allowlists blocklists from local Mephisto DB into a formatted dict
+    # Pull the allowlists and blocklists from local Mephisto DB into a formatted dict
 
-    output_dict = copy.copy(qual_dict)
+    output_dict = copy.deepcopy(qual_dict)
 
     logging.info(f"Retrieving qualification lists from local Mephisto DB")
     for task in output_dict.keys():
         # If syncing for the first time, qualifications may not yet exist
         try:
+            logging.info(f'attempting to make qualification: {qual_dict[task]["allow"]}')
             db.make_qualification(qual_dict[task]["allow"])
         except:
+            logging.info(f'Qualification {qual_dict[task]["allow"]} already exists')
             pass
         whitelist = mephisto_data_browser.get_workers_with_qualification(qual_dict[task]["allow"])
-        output_dict[task]["allow"] = [worker.worker_name for worker in whitelist]
+        output_dict[task]["allow"] = [worker.worker_name.strip("\n") for worker in whitelist]
 
         try:
+            logging.info(f'attempting to make qualification: {qual_dict[task]["block"]}')
             db.make_qualification(qual_dict[task]["block"])
         except:
+            logging.info(f'Qualification {qual_dict[task]["block"]} already exists')
             pass
         blacklist = mephisto_data_browser.get_workers_with_qualification(qual_dict[task]["block"])
-        output_dict[task]["block"] = [worker.worker_name for worker in blacklist]
+        output_dict[task]["block"] = [worker.worker_name.strip("\n") for worker in blacklist]
 
     return output_dict
 
@@ -108,10 +132,12 @@ def pull_local_lists():
 def compare_qual_lists(s3_lists: dict, local_lists: dict):
     # Compare two dicts of lists representing the local and S3 states, return a dict with the differences
 
-    diff_dict = copy.copy(qual_dict)
+    diff_dict = copy.deepcopy(qual_dict)
 
+    logging.info(f"Comparing qualification lists and checking for differences")
     for t in diff_dict.keys():
         for l in diff_dict[t].keys():
+            diff_dict[t][l] = {}
             diff_dict[t][l]["s3_exclusive"] = [x for x in s3_lists[t][l] if x not in local_lists[t][l]]
             diff_dict[t][l]["local_exclusive"] = [x for x in local_lists[t][l] if x not in s3_lists[t][l]]
 
@@ -126,11 +152,15 @@ def update_lists(bucket:str, diff_dict: dict):
             for e in diff_dict[t][l].keys():
 
                 if e == "s3_exclusive" and len(diff_dict[t][l][e]) > 0:
-                    logging.info(f"Writing new workers to shared lists on S3: {diff_dict[t][l][e]}")
+                    add_workers_to_quals(diff_dict[t][l][e], qual_dict[t][l])
+
+                elif e == "local_exclusive" and len(diff_dict[t][l][e]) > 0:
+                    logging.info(f"Writing new workers to {t} {l} shared list on S3: {diff_dict[t][l][e]}")
 
                     filename = l + ".txt"
                     with open(filename, "w") as f:
-                        f.write(line + '\n' for line in diff_dict[t][l][e])
+                        for line in diff_dict[t][l][e]:
+                            f.write(line.strip('\n') + '\n')
                     
                     upload_key = t + "/" + filename
                     s3.upload_file(filename, bucket, upload_key)
@@ -138,13 +168,13 @@ def update_lists(bucket:str, diff_dict: dict):
                     
                     os.remove(filename)
 
-                elif e == "local_exclusive" and len(diff_dict[t][l][e]) > 0:
-                    add_workers_to_quals(diff_dict[t][l][e], qual_dict[t][l])
+                else:
+                    logging.info(f"No {e} workers on {t} {l} list, no update performed")
 
     return
 
 
-def main(bucket):
+def main(bucket: str):
     # Pull shared lists from S3 and local qual lists
     s3_list_dict = import_s3_lists(bucket)
     local_list_dict = pull_local_lists()
@@ -153,7 +183,7 @@ def main(bucket):
     diff_dict = compare_qual_lists(s3_list_dict, local_list_dict)
     
     # Update local and s3 lists to match
-    update_lists(diff_dict)
+    update_lists(bucket, diff_dict)
 
     return
 
