@@ -21,7 +21,9 @@ Status PolymetisControllerServerImpl::GetRobotState(ServerContext *context,
 Status PolymetisControllerServerImpl::GetRobotClientMetadata(
     ServerContext *context, const Empty *, RobotClientMetadata *metadata) {
   if (!validRobotContext()) {
-    return Status::CANCELLED;
+    return Status(
+        StatusCode::CANCELLED,
+        "Robot context not valid when calling GetRobotClientMetadata!");
   }
   *metadata = robot_client_context_.metadata;
   return Status::OK;
@@ -90,9 +92,9 @@ Status PolymetisControllerServerImpl::InitRobotClient(
     robot_client_context_.default_controller = new TorchScriptedController(
         controller_model_buffer_.data(), controller_model_buffer_.size());
   } catch (const std::exception &e) {
-    spdlog::error("error loading default controller:");
-    spdlog::error(e.what());
-    return Status::CANCELLED;
+    std::string error_msg =
+        "Failed to load default controller: " + std::string(e.what());
+    return Status(StatusCode::CANCELLED, error_msg);
   }
 
   // Set URDF file of new context
@@ -177,7 +179,17 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     controller = robot_client_context_.default_controller;
   }
 
-  std::vector<float> desired_torque = controller->forward(*torch_robot_state_);
+  try {
+    std::vector<float> desired_torque =
+        controller->forward(*torch_robot_state_);
+  } catch (const std::exception &e) {
+    custom_controller_context_.controller_mtx.unlock();
+    std::string error_msg =
+        "Failed to run controller forward function: " + std::string(e.what());
+    spdlog::error(error_msg);
+    return Status(StatusCode::CANCELLED, error_msg);
+  }
+
   // Unlock
   custom_controller_context_.controller_mtx.unlock();
   for (int i = 0; i < num_dofs_; i++) {
@@ -239,9 +251,10 @@ Status PolymetisControllerServerImpl::SetController(
     spdlog::info("Loaded new controller.");
 
   } catch (const std::exception &e) {
-    spdlog::error("error loading the model: {}", e.what());
-
-    return Status::CANCELLED;
+    std::string error_msg =
+        "Failed to load new controller: " + std::string(e.what());
+    spdlog::error(error_msg);
+    return Status(StatusCode::CANCELLED, error_msg);
   }
 
   // Respond with start index
@@ -273,7 +286,9 @@ Status PolymetisControllerServerImpl::UpdateController(
   // Load param container
   if (!custom_controller_context_.custom_controller->param_dict_load(
           updates_model_buffer_.data(), updates_model_buffer_.size())) {
-    return Status::CANCELLED;
+    std::string error_msg = "Failed to load new controller params.";
+    spdlog::error(error_msg);
+    return Status(StatusCode::CANCELLED, error_msg);
   }
 
   // Update controller & set intervals
