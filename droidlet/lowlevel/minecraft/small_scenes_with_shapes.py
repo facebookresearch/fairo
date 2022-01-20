@@ -57,6 +57,18 @@ def build_base_world(sl, h, g, fence=False):
     return W
 
 
+def shift(blocks, s):
+    for i in range(len(blocks)):
+        b = blocks[i]
+        if len(b) == 2:
+            l, idm = b
+            blocks[i] = ((l[0] + s[0], l[1] + s[1], l[2] + s[2]), idm)
+        else:
+            assert len(b) == 3
+            blocks[i] = (b[0] + s[0], b[1] + s[1], b[2] + s[2])
+    return blocks
+
+
 def build_shape_scene(args):
     """
     Build a scene using basic shapes,
@@ -69,37 +81,46 @@ def build_shape_scene(args):
     """
     fence = getattr(args, "fence", False)
     blocks = build_base_world(args.SL, args.H, args.GROUND_DEPTH, fence=fence)
-    print(len(blocks))
     num_shapes = np.random.randint(1, args.MAX_NUM_SHAPES + 1)
-    print(num_shapes)
+    occupied_by_shapes = {}
+    inst_segs = []
     for t in range(num_shapes):
         shape = random.choice(SHAPE_NAMES)
         opts = SHAPE_OPTION_FUNCTION_MAP[shape]()
         opts["bid"] = bid()
         S = SHAPE_FNS[shape](**opts)
-        m = np.mean([l for l, idm in S], axis=0)
+        m = np.round(np.mean([l for l, idm in S], axis=0)).astype("int32")
         offsets = np.random.randint((args.SL, args.H, args.SL)) - m
+        inst_seg = []
         for l, idm in S:
             ln = np.add(l, offsets)
             if ln[0] >= 0 and ln[1] >= 0 and ln[2] >= 0:
                 if ln[0] < args.SL and ln[1] < args.H and ln[2] < args.SL:
-                    blocks.append((ln, idm))
-        print(len(blocks))
+                    ln = tuple(ln.tolist())
+                    if not occupied_by_shapes.get(ln):
+                        blocks.append((ln, idm))
+                        inst_seg.append(ln)
+                        occupied_by_shapes[ln] = True
+        inst_segs.append({"tags": [shape], "locs": inst_seg})
+
     J = {}
+    # not shifting y for gridworld
+    o = (args.cuberite_x_offset, 0, args.cuberite_z_offset)
+    blocks = shift(blocks, o)
+    for i in inst_segs:
+        i["locs"] = shift(i["locs"], o)
+    # FIXME not using the avatar and agent position in cuberite...
     J["avatarInfo"] = {"pos": avatar_pos(args, blocks), "look": avatar_look(args, blocks)}
     J["agentInfo"] = {"pos": agent_pos(args, blocks), "look": agent_look(args, blocks)}
+    J["inst_seg_tags"] = inst_segs
+    mapped_blocks = [(l[0], l[1], l[2], IGLU_BLOCK_MAP[idm]) for l, idm in blocks]
+    J["blocks"] = mapped_blocks
+
+    o = (0, args.cuberite_y_offset, 0)
+    blocks = shift(blocks, o)
     J["schematic_for_cuberite"] = [
-        {
-            "x": l[0] + args.cuberite_x_offset,
-            "y": l[1] + args.cuberite_y_offset,
-            "z": l[2] + args.cuberite_z_offset,
-            "id": idm[0],
-            "meta": idm[1],
-        }
-        for l, idm in blocks
+        {"x": l[0], "y": l[1], "z": l[2], "id": idm[0], "meta": idm[1]} for l, idm in blocks
     ]
-    transformed_blocks = [(l[0], l[1], l[2], IGLU_BLOCK_MAP[idm]) for l, idm in blocks]
-    J["blocks"] = transformed_blocks
     return J
 
 
@@ -123,8 +144,6 @@ if __name__ == "__main__":
     scenes = []
     for i in range(args.NUM_SCENES):
         scenes.append(build_shape_scene(args))
-    if args.NUM_SCENES == 1:
-        scenes = scenes[0]
     if args.save_data_path:
         with open(args.save_data_path, "w") as f:
             json.dump(scenes, f)

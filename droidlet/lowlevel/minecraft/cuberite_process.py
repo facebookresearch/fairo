@@ -168,6 +168,8 @@ if __name__ == "__main__":
         else:
             with open(args.schematic, "rb") as f:
                 J = json.load(f)
+                if type(J) is list and len(J) == 1:
+                    J = J[0]
                 schematic = J["schematic_for_cuberite"]
         if args.random_shapes:
             # TODO allow both?
