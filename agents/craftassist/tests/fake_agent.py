@@ -16,7 +16,6 @@ from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from agents.craftassist.craftassist_agent import CraftAssistAgent
 from droidlet.shared_data_structs import MockOpt
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
     BORING_BLOCKS,
@@ -147,7 +146,6 @@ class FakeAgent(DroidletAgent):
         self.dialogue_manager = DialogueManager(
             self.memory,
             dialogue_object_classes,
-            DialogueObjectMapper,
             self.opts,
             low_level_interpreter_data=low_level_interpreter_data,
         )

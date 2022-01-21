@@ -16,7 +16,6 @@ spacy_model = spacy.load("en_core_web_sm")
 
 class GreetingType(Enum):
     """Types of bot greetings."""
-
     HELLO = "hello"
     GOODBYE = "goodbye"
 
