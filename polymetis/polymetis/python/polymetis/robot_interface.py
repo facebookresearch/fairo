@@ -8,6 +8,7 @@ import time
 import tempfile
 import threading
 import atexit
+import logging
 
 import grpc  # This requires `conda install grpcio protobuf`
 import torch
@@ -19,6 +20,8 @@ from polymetis_pb2_grpc import PolymetisControllerServerStub
 import torchcontrol as toco
 from torchcontrol.transform import Rotation as R
 from torchcontrol.transform import Transformation as T
+
+log = logging.getLogger(__name__)
 
 
 # Maximum bytes we send per message to server (so as not to overload it).
@@ -122,9 +125,9 @@ class BaseRobotInterface:
         robot_state_generator = self.grpc_connection.GetRobotStateLog(log_interval)
 
         def cancel_rpc():
-            print("Cancelling attempt to get robot state log.")
+            logging.info("Cancelling attempt to get robot state log.")
             robot_state_generator.cancel()
-            print(f"Cancellation completed.")
+            logging.info(f"Cancellation completed.")
 
         atexit.register(cancel_rpc)
 
@@ -134,8 +137,8 @@ class BaseRobotInterface:
             try:
                 for state in robot_state_generator:
                     results.append(state)
-            except grpc.RpcError as exc:
-                print(exc)
+            except grpc.RpcError as e:
+                log.error(f"Unable to read stream of robot states: {e}")
 
         read_thread = threading.Thread(target=read_stream)
         read_thread.start()
@@ -197,7 +200,7 @@ class BaseRobotInterface:
         try:
             log_interval = self.grpc_connection.SetController(msg_generator())
         except grpc.RpcError as e:
-            print(e)
+            log.error(f"Unable to set controller: {e}")
             return
 
         if blocking:
@@ -233,7 +236,7 @@ class BaseRobotInterface:
         try:
             update_interval = self.grpc_connection.UpdateController(msg_generator())
         except grpc.RpcError as e:
-            print(e)
+            log.error(f"Unable to update current policy: {e}")
             return
 
         episode_interval = self.grpc_connection.GetEpisodeInterval(EMPTY)
