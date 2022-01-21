@@ -94,7 +94,7 @@ if __name__ == "__main__":
     parser.add_argument("--cuda", action="store_true", help="use cuda")
     parser.add_argument("--gpu_id", type=int, default=0, help="which gpu to use")
     parser.add_argument("--batchsize", type=int, default=32, help="batch size")
-    parser.add_argument("--data_dir", default="/checkpoint/aszlam/minecraft/segmentation_data/")
+    parser.add_argument("--data_dir", default="")
     parser.add_argument("--save_model", default="", help="where to save model (nowhere if blank)")
     parser.add_argument(
         "--load_model", default="", help="from where to load model (nowhere if blank)"

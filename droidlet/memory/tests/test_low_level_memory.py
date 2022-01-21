@@ -216,11 +216,20 @@ class BasicTest(unittest.TestCase):
         assert abs(vals[0][0] + 2.0) < 0.01
         assert abs(vals[0][1]) < 0.01
 
-        TripleNode.create(self.memory, subj=sam_memid, pred_text="mother_of", obj=robert_memid)
+        triple_memid = TripleNode.create(
+            self.memory, subj=sam_memid, pred_text="mother_of", obj=robert_memid
+        )
         query = "SELECT MEMORY FROM ReferenceObject WHERE <<#{}, mother_of, ?>>".format(sam_memid)
         memids, _ = m.search(self.memory, query=query)
         assert robert_memid in memids
         assert len(memids) == 1
+
+        # test FROM works
+        query = "SELECT MEMORY FROM Triple WHERE create_time > -100"
+        memids, _ = m.search(self.memory, query=query)
+        assert all([type(self.memory.get_mem_by_id(m)) is TripleNode for m in memids])
+        assert triple_memid in memids
+        assert robert_memid not in memids
 
     def test_chat_apis_memory(self):
         self.memory = AgentMemory()

@@ -323,7 +323,7 @@ if __name__ == "__main__":
     parser.add_argument("--embedding_dim", type=int, default=16, help="size of blockid embedding")
     parser.add_argument(
         "--load_dictionary",
-        default="/private/home/aszlam/junk/word_modify_word_ids.pk",
+        default="",
         help="where to get word dict",
     )
     parser.add_argument("--lr", type=float, default=0.01, help="step size for net")

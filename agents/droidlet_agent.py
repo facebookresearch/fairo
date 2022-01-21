@@ -155,17 +155,30 @@ class DroidletAgent(BaseAgent):
                     subj=chat_memids[0], pred_text="has_logical_form"
                 )
                 if logical_form_triples:
-                    logical_form = self.memory.get_logical_form_by_id(
-                        logical_form_triples[0][2]
-                    ).logical_form
+                    logical_form_mem = self.memory.get_mem_by_id(logical_form_triples[0][2])
+                    logical_form = logical_form_mem.logical_form
                 if logical_form:
                     logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
-                        speaker="dashboard", chat=chat, logical_form=logical_form
+                        speaker="dashboard", chat=chat, logical_form=logical_form_mem.logical_form
                     )
+                    where = "WHERE <<?, attended_while_interpreting, #{}>>".format(
+                        logical_form_mem.memid
+                    )
+                    _, refobjs = self.memory.basic_search(
+                        "SELECT MEMORY FROM ReferenceObject " + where
+                    )
+                    ref_obj_data = [
+                        {
+                            "point_target": r.get_point_at_target(),
+                            "node_type": r.NODE_TYPE,
+                            "tags": r.get_tags(),
+                        }
+                        for r in refobjs
+                    ]
             except Exception as e:
                 logging.debug(f"Failed to find any action dict for command [{chat}] in memory")
 
-            payload = {"action_dict": logical_form}
+            payload = {"action_dict": logical_form, "lf_refobj_data": ref_obj_data}
             sio.emit("setLastChatActionDict", payload)
 
         @sio.on("terminateAgent")
