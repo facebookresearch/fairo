@@ -54,6 +54,8 @@ service PolymetisControllerServer {
   rpc ControlUpdate(RobotState) returns(TorqueCommand) {}
 
   rpc GetRobotClientMetadata(Empty) returns(RobotClientMetadata) {}
+
+  rpc ShutdownServer(Empty) returns (Empty) {}
 }
 
 service GripperServer {

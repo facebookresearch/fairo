@@ -11,6 +11,16 @@ PolymetisControllerServerImpl::PolymetisControllerServerImpl() {
   updates_model_buffer_.reserve(MAX_MODEL_BYTES);
 }
 
+PolymetisControllerServerImpl::PolymetisControllerServerImpl(
+    std::promise<void> &shutdown_promise) {shutdown_promise_ = shutdown_promise;}
+
+Status PolymetisControllerServerImpl::Shutdown(
+    ServerContext *context, const Empty *, RobotClientMetadata *metadata) {
+      spdlog::info("Shutdown request received. Signalling shutdown...");
+      shutdown_promise_.set_value();
+      return Status::OK();
+    }
+
 Status PolymetisControllerServerImpl::GetRobotState(ServerContext *context,
                                                     const Empty *,
                                                     RobotState *robot_state) {

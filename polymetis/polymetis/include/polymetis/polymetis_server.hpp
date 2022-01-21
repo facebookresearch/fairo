@@ -8,6 +8,7 @@
 #include "spdlog/spdlog.h"
 #include <chrono>
 #include <fstream>
+#include <future>
 #include <mutex>
 #include <string>
 #include <unistd.h>
@@ -82,6 +83,8 @@ public:
   TODO
   */
   explicit PolymetisControllerServerImpl();
+
+  explicit PolymetisControllerServerImpl(std::promise<void> &shutdown_promise);
 
   /**
   TODO
@@ -173,6 +176,8 @@ private:
   RobotClientContext robot_client_context_;
 
   std::unique_ptr<TorchRobotState> torch_robot_state_;
+
+  std::promise<void> shutdown_promise_;
 };
 
 #endif
