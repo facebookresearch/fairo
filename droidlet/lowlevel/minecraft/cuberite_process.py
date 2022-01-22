@@ -149,6 +149,7 @@ if __name__ == "__main__":
     parser.add_argument("--fence", action="store_true", default=False)
     parser.add_argument("--MAX_NUM_SHAPES", type=int, default=3)
     parser.add_argument("--GROUND_DEPTH", type=int, default=5)
+    parser.add_argument("--MAX_NUM_GROUND_HOLES", type=int, default=0)
     parser.add_argument("--SL", type=int, default=17)
     parser.add_argument("--H", type=int, default=13)
     args = parser.parse_args()
