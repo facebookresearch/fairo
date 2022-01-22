@@ -1,7 +1,7 @@
 /*
    Copyright (c) Facebook, Inc. and its affiliates.
 
- * Question.js handles the template for the question and answers in NSP error labeling
+ * Question.js handles the template for the question and answers in  error labeling
  */
 
 import React, { Component } from "react";
