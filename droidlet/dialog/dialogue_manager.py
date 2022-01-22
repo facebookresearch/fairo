@@ -133,7 +133,7 @@ class DialogueManager(object):
         """Return the appropriate interpreter to handle a logical form in memory
         the logical form should have spans filled (via process_spans_and_remove_fixed_value).
         """
-        memory = self.dialogue_manager.memory
+        memory = self.memory
         logical_form = memory.get_mem_by_id(logical_form_memid).logical_form
 
         if logical_form["dialogue_type"] == "NOOP":

@@ -27,7 +27,7 @@ DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
 DEFAULT_BEHAVIOUR_TIMEOUT = 20
 MEMORY_DUMP_KEYFRAME_TIME = 0.5
 
-def postprocess_logical_form(self, speaker: str, chat: str, logical_form: Dict) -> Dict:
+def postprocess_logical_form(memory, speaker: str, chat: str, logical_form: Dict) -> Dict:
     """This function performs some postprocessing on the logical form:
     substitutes indices with words and resolves coreference"""
     # perform lemmatization on the chat
@@ -59,7 +59,7 @@ def postprocess_logical_form(self, speaker: str, chat: str, logical_form: Dict) 
 
     # Resolve any co-references like "this", "that" "there" using heuristics
     # and make updates in the dictionary in place.
-    coref_resolve(self.dialogue_manager.memory, logical_form, chat)
+    coref_resolve(memory, logical_form, chat)
     logging.info(
         'logical form post co-ref and process_spans "{}" -> {}'.format(
             hash_user(speaker), logical_form
@@ -204,7 +204,7 @@ class DroidletAgent(BaseAgent):
                     logical_form = logical_form_mem.logical_form
                 if logical_form:
                     logical_form = postprocess_logical_form(
-                        speaker="dashboard", chat=chat, logical_form=logical_form_mem.logical_form
+                        self.memory, speaker="dashboard", chat=chat, logical_form=logical_form_mem.logical_form
                     )
                     where = "WHERE <<?, attended_while_interpreting, #{}>>".format(
                         logical_form_mem.memid
@@ -377,7 +377,7 @@ class DroidletAgent(BaseAgent):
             self.memory.get_player_by_name(speaker).memid, preprocessed_chat
         )
         post_processed_parse = postprocess_logical_form(
-            speaker=speaker, chat=chat, logical_form=chat_parse
+            self.memory, speaker=speaker, chat=chat, logical_form=chat_parse
         )
         logical_form_memid = self.memory.add_logical_form(post_processed_parse)
         self.memory.add_triple(
