@@ -1,5 +1,5 @@
+#include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
-#include <iostream>
 
 #include <franka/exception.h>
 #include <franka/gripper.h>
@@ -28,7 +28,7 @@ using grpc::Status;
 class GripperControllerImpl final : public GripperServer::Service {
 public:
   explicit GripperControllerImpl(std::string robot_ip) {
-    std::cout << "Connecting to robot_ip " << robot_ip << std::endl;
+    spdlog::info("Connecting to robot_ip {}", robot_ip);
     gripper_ = new franka::Gripper(robot_ip);
     gripper_state_ = new franka::GripperState;
     is_moving_ = false;
@@ -53,8 +53,8 @@ public:
 
   Status Goto(ServerContext *context, const GripperCommand *gripper_command,
               Empty *) override {
-    std::cout << "Moving to width " << gripper_command->width()
-              << " at speed=" << gripper_command->speed() << std::endl;
+    spdlog::info("Moving to width {} at speed={}", gripper_command->width(),
+                 gripper_command->speed());
 
     is_moving_ = true;
     gripper_->move(gripper_command->width(), gripper_command->speed());
@@ -65,8 +65,8 @@ public:
 
   Status Grasp(ServerContext *context, const GripperCommand *gripper_command,
                Empty *) override {
-    std::cout << "Grasping at width " << gripper_command->width()
-              << " at speed=" << gripper_command->speed() << std::endl;
+    spdlog::info("Grasping at width {} at speed={}", gripper_command->width(),
+                 gripper_command->speed());
 
     is_moving_ = true;
     gripper_->grasp(gripper_command->width(), gripper_command->speed(),
@@ -85,8 +85,7 @@ private:
 int main(int argc, char *argv[]) {
   // Parse config
   if (argc != 2) {
-    std::cout << "Usage: ./franka_gripper_server /path/to/cfg.yaml"
-              << std::endl;
+    spdlog::error("Usage: ./franka_gripper_server /path/to/cfg.yaml");
     return 1;
   }
   YAML::Node config = YAML::LoadFile(argv[1]);
@@ -102,8 +101,7 @@ int main(int argc, char *argv[]) {
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
   builder.RegisterService(&service);
   std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "Franka Hand server listening on " << server_address
-            << std::endl;
+  spdlog::info("Franka Hand server listening on {}", server_address);
   server->Wait();
 
   return 0;

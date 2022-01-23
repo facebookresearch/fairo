@@ -21,7 +21,9 @@ Status PolymetisControllerServerImpl::GetRobotState(ServerContext *context,
 Status PolymetisControllerServerImpl::GetRobotClientMetadata(
     ServerContext *context, const Empty *, RobotClientMetadata *metadata) {
   if (!validRobotContext()) {
-    return Status::CANCELLED;
+    return Status(
+        StatusCode::CANCELLED,
+        "Robot context not valid when calling GetRobotClientMetadata!");
   }
   *metadata = robot_client_context_.metadata;
   return Status::OK;
@@ -71,7 +73,7 @@ Status PolymetisControllerServerImpl::GetRobotStateLog(
 Status PolymetisControllerServerImpl::InitRobotClient(
     ServerContext *context, const RobotClientMetadata *robot_client_metadata,
     Empty *) {
-  std::cout << "\n\n==== Initializing new RobotClient... ====" << std::endl;
+  spdlog::info("==== Initializing new RobotClient... ====");
 
   num_dofs_ = robot_client_metadata->dof();
 
@@ -90,9 +92,9 @@ Status PolymetisControllerServerImpl::InitRobotClient(
     robot_client_context_.default_controller = new TorchScriptedController(
         controller_model_buffer_.data(), controller_model_buffer_.size());
   } catch (const std::exception &e) {
-    std::cerr << "error loading default controller:\n";
-    std::cerr << e.what() << std::endl;
-    return Status::CANCELLED;
+    std::string error_msg =
+        "Failed to load default controller: " + std::string(e.what());
+    return Status(StatusCode::CANCELLED, error_msg);
   }
 
   // Set URDF file of new context
@@ -103,7 +105,7 @@ Status PolymetisControllerServerImpl::InitRobotClient(
 
   resetControllerContext();
 
-  std::cout << "Success.\n\n";
+  spdlog::info("Success.");
   return Status::OK;
 }
 
@@ -129,10 +131,9 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
                                              TorqueCommand *torque_command) {
   // Check if last update is stale
   if (!validRobotContext()) {
-    std::cout
-        << "Warning: Interrupted control update greater than threshold of "
-        << threshold_ns_ << " ns. Reverting to default controller..."
-        << std::endl;
+    spdlog::warn("Interrupted control update greater than threshold of {} ns. "
+                 "Reverting to default controller...",
+                 threshold_ns_);
     custom_controller_context_.status = TERMINATING;
   }
 
@@ -166,9 +167,8 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
 
     robot_client_context_.default_controller->reset();
 
-    std::cout
-        << "Terminating custom controller, switching to default controller."
-        << std::endl;
+    spdlog::info(
+        "Terminating custom controller, switching to default controller.");
   }
 
   // Select controller
@@ -178,8 +178,17 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   } else {
     controller = robot_client_context_.default_controller;
   }
+  std::vector<float> desired_torque;
+  try {
+    desired_torque = controller->forward(*torch_robot_state_);
+  } catch (const std::exception &e) {
+    custom_controller_context_.controller_mtx.unlock();
+    std::string error_msg =
+        "Failed to run controller forward function: " + std::string(e.what());
+    spdlog::error(error_msg);
+    return Status(StatusCode::CANCELLED, error_msg);
+  }
 
-  std::vector<float> desired_torque = controller->forward(*torch_robot_state_);
   // Unlock
   custom_controller_context_.controller_mtx.unlock();
   for (int i = 0; i < num_dofs_; i++) {
@@ -238,13 +247,13 @@ Status PolymetisControllerServerImpl::SetController(
     custom_controller_context_.status = READY;
 
     custom_controller_context_.controller_mtx.unlock();
-    std::cout << "Loaded new controller.\n";
+    spdlog::info("Loaded new controller.");
 
   } catch (const std::exception &e) {
-    std::cerr << "error loading the model:\n";
-    std::cerr << e.what() << std::endl;
-
-    return Status::CANCELLED;
+    std::string error_msg =
+        "Failed to load new controller: " + std::string(e.what());
+    spdlog::error(error_msg);
+    return Status(StatusCode::CANCELLED, error_msg);
   }
 
   // Respond with start index
@@ -276,7 +285,9 @@ Status PolymetisControllerServerImpl::UpdateController(
   // Load param container
   if (!custom_controller_context_.custom_controller->param_dict_load(
           updates_model_buffer_.data(), updates_model_buffer_.size())) {
-    return Status::CANCELLED;
+    std::string error_msg = "Failed to load new controller params.";
+    spdlog::error(error_msg);
+    return Status(StatusCode::CANCELLED, error_msg);
   }
 
   // Update controller & set intervals
@@ -286,8 +297,8 @@ Status PolymetisControllerServerImpl::UpdateController(
     custom_controller_context_.custom_controller->param_dict_update_module();
     custom_controller_context_.controller_mtx.unlock();
   } else {
-    std::cout << "Warning: Tried to perform a controller update with no "
-                 "controller running.\n";
+    spdlog::warn(
+        "Tried to perform a controller update with no controller running.");
     interval->set_start(-1);
   }
 
@@ -312,8 +323,7 @@ Status PolymetisControllerServerImpl::TerminateController(
     interval->set_start(custom_controller_context_.episode_begin);
     interval->set_end(custom_controller_context_.episode_end);
   } else {
-    std::cout << "Warning: Tried to terminate controller with no controller "
-                 "running.\n";
+    spdlog::warn("Tried to terminate controller with no controller running.");
     interval->set_start(-1);
     interval->set_end(-1);
   }

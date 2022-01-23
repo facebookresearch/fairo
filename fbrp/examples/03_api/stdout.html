@@ -68,7 +68,6 @@
           idx: 0,
         },
         mounted() {
-          console.log("mounted")
           const vm = this;
           vm.discovery_ws = new WebSocket(`ws://localhost:24880/wsapi/discover`)
           vm.discovery_ws.onopen = () => {

@@ -5,7 +5,7 @@
 import pytest
 import torch
 
-from .test_policies import test_parametrized_data
+from polymetis.utils.test_policies import test_parametrized_data
 
 
 perf_parametrized_data = [x for x in test_parametrized_data if not x[2]]

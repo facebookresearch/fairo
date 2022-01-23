@@ -1,0 +1,17 @@
+#@package _global_
+mephisto:
+  blueprint:
+    data_csv: ${task_dir}/data.csv
+    task_source: ${task_dir}/server_files/vision_annotation_pilot.html
+    preview_source: ${task_dir}/server_files/vision_annotation_pilot_preview.html
+    extra_source_dir: ${task_dir}/server_files/extra_refs
+    units_per_assignment: 1
+  task:
+    task_title: "Mark images in 3D"
+    task_description: "Mark the blocks that make up a shape"
+    task_reward: 3.00
+    allowed_concurrent: 1
+    maximum_units_per_worker: 1
+    task_tags: "3D, annotate, shapes"
+    task_name: "ca-vision-pilot"
+
