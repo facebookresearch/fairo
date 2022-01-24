@@ -127,10 +127,13 @@ def main(opts) -> None:
     os.remove(results_csv)
     os.remove(scene_path)
 
-    logging.info(f"Labeling job {id} complete, launching corresponding annotation job")
+    logging.info(f"Labeling job {id} complete")
+    
+    if opts.annotate:
+        logging.info(f"Launching corresponding annotation job")
 
-    aj = VisionAnnotationJob(id, scene_list, label_list, 300)
-    aj.run()
+        aj = VisionAnnotationJob(id, scene_list, label_list, 300)
+        aj.run()
 
 
 if __name__ == "__main__":
@@ -141,5 +144,7 @@ if __name__ == "__main__":
     parser.add_argument("--max_num_shapes", type=int, default=4)
     parser.add_argument("--num_hits", type=int, default=1, help="Number of HITs to request")
     parser.add_argument("--mephisto_requester", type=str, default="ethancarlson_sandbox", help="Your Mephisto requester name")
+    parser.add_argument("--annotate", action='store_true', help="Set to include annotate the scenes automatically")
     opts = parser.parse_args()
+    os.environ["MEPHISTO_REQUESTER"] = opts.mephisto_requester
     main(opts)
