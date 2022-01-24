@@ -293,7 +293,7 @@ class MoveBetweenTest(BaseCraftassistTestCase):
                 [loc for loc, idm in self.cube_right],
                 [loc for loc, idm in self.cube_left],
             ],
-            get_locs_from_entity=self.agent.dialogue_manager.dialogue_object_mapper.low_level_interpreter_data["get_locs_from_entity"]
+            get_locs_from_entity=self.agent.dialogue_manager.low_level_interpreter_data["get_locs_from_entity"]
         )
 
 
