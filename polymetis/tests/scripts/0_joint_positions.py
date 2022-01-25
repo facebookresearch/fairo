@@ -40,7 +40,9 @@ if __name__ == "__main__":
     time.sleep(0.5)
 
     joint_pos = test_new_joint_pos(robot, joint_pos_desired)
-    check_episode_log(state_log, int(robot.time_to_go_default * hz))
+    check_episode_log(
+        state_log, int(robot.time_to_go_default * hz), check_timestamps=True
+    )
 
     # Move by delta joint positions
     print("=== RobotInterface.move_joint_positions ===")
