@@ -68,24 +68,27 @@ class Launcher(BaseLauncher):
         self,
         run_command: typing.List[str],
         name: str,
+        env_name: str,
         proc_def: ProcDef,
         args: argparse.Namespace,
     ):
         self.run_command = run_command
         self.name = name
+        self.env_name = env_name
         self.proc_def = proc_def
         self.args = args
 
-    async def activate_conda_env(self) -> dict:
+    async def activate_conda_envvar(self) -> dict:
         # We grab the conda env variables separate from executing the run
         # command to simplify detecting pid and removing some race conditions.
         subprocess_env = os.environ.copy()
         subprocess_env.update(self.proc_def.env)
-        envinfo = await asyncio.create_subprocess_shell(
+        envvar_file = f"/tmp/fbrp_conda_{self.name}.env"
+        envvar_info = await asyncio.create_subprocess_shell(
             f"""
                 eval "$(conda shell.bash hook)"
-                conda activate fbrp_{self.name}
-                cp -f /proc/self/environ /tmp/fbrp_conda_{self.name}.env
+                conda activate {self.env_name}
+                cp -f /proc/self/environ {envvar_file}
             """,
             stdout=asyncio.subprocess.PIPE,
             executable="/bin/bash",
@@ -93,12 +96,11 @@ class Launcher(BaseLauncher):
             env=subprocess_env,
         )
 
-        await envinfo.wait()
-        lines = open(f"/tmp/fbrp_conda_{self.name}.env").read().split("\0")
-        conda_env = dict(line.split("=", 1) for line in lines if "=" in line)
-        return conda_env
+        await envvar_info.wait()
+        lines = open(envvar_file).read().split("\0")
+        return dict(line.split("=", 1) for line in lines if "=" in line)
 
-    async def run_cmd_in_env(self, conda_env):
+    async def run_cmd_with_envvar(self, conda_env):
         self.proc = await asyncio.create_subprocess_shell(
             util.shell_join(self.run_command),
             stdout=asyncio.subprocess.PIPE,
@@ -127,8 +129,8 @@ class Launcher(BaseLauncher):
 
     async def run(self):
         life_cycle.set_state(self.name, life_cycle.State.STARTING)
-        conda_env = await self.activate_conda_env()
-        await self.run_cmd_in_env(conda_env)
+        conda_env = await self.activate_conda_envvar()
+        await self.run_cmd_with_envvar(conda_env)
         life_cycle.set_state(self.name, life_cycle.State.STARTED)
         await self.gather_cmd_outputs()
 
@@ -170,13 +172,20 @@ class Conda(BaseRuntime):
         run_command,
         yaml=None,
         env=None,
+        env_nosandbox=None,
         channels=[],
         dependencies=[],
         setup_commands=[],
         use_mamba=None,
     ):
+        if env_nosandbox and any([yaml, env, channels, dependencies]):
+            util.fail(
+                f"'env_nosandbox' cannot be mixed with other Conda environment commands."
+            )
+
         self.yaml = yaml
         self.env = env
+        self.env_nosandbox = env_nosandbox
         self.run_command = run_command
         self.conda_env = CondaEnv(channels[:], dependencies[:])
         self.setup_commands = setup_commands
@@ -184,7 +193,26 @@ class Conda(BaseRuntime):
             use_mamba if use_mamba is not None else bool(shutil.which("mamba"))
         )
 
-    def _build(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
+        if env_nosandbox:
+            self._validate_env_nosandbox()
+
+    def _validate_env_nosandbox(self):
+        result = subprocess.run(
+            f"""
+                eval "$(conda shell.bash hook)"
+                conda activate {self.env_nosandbox}
+            """,
+            shell=True,
+            executable="/bin/bash",
+            stderr=subprocess.PIPE,
+        )
+        if result.returncode:
+            util.fail(f"'env_nosandbox' not valid: {result.stderr}")
+
+    def _env_name(self, name):
+        return self.env_nosandbox or f"fbrp_{name}"
+
+    def _create_env(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
         if self.yaml:
             yaml_path = os.path.join(proc_def.root, self.yaml)
             self.conda_env = CondaEnv.merge(
@@ -196,13 +224,12 @@ class Conda(BaseRuntime):
 
         self.conda_env.fix_pip()
 
-        env_name = f"fbrp_{name}"
         env_path = f"/tmp/fbrp_conda_{name}.yml"
 
         with open(env_path, "w") as env_fp:
             json.dump(
                 {
-                    "name": env_name,
+                    "name": self._env_name(name),
                     "channels": self.conda_env.channels,
                     "dependencies": self.conda_env.dependencies,
                 },
@@ -216,7 +243,7 @@ class Conda(BaseRuntime):
         # https://github.com/conda/conda/issues/7279
         # Updating an existing environment does not remove old packages, even with --prune.
         subprocess.run(
-            [update_bin, "env", "remove", "-n", env_name],
+            [update_bin, "env", "remove", "-n", self._env_name(name)],
             capture_output=not args.verbose,
         )
         result = subprocess.run(
@@ -226,6 +253,10 @@ class Conda(BaseRuntime):
         if result.returncode:
             util.fail(f"Failed to set up conda env: {result.stderr}")
 
+    def _build(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
+        if not self.env_nosandbox:
+            self._create_env(name, proc_def, args)
+
         if self.setup_commands:
             print(f"setting up conda env for {name}")
             setup_command = "\n".join(
@@ -234,7 +265,7 @@ class Conda(BaseRuntime):
             result = subprocess.run(
                 f"""
                     eval "$(conda shell.bash hook)"
-                    conda activate {env_name}
+                    conda activate {self._env_name(name)}
                     cd {proc_def.root}
                     {setup_command}
                 """,
@@ -246,7 +277,7 @@ class Conda(BaseRuntime):
                 util.fail(f"Failed to set up conda env: {result.stderr}")
 
     def _launcher(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
-        return Launcher(self.run_command, name, proc_def, args)
+        return Launcher(self.run_command, name, self._env_name(name), proc_def, args)
 
 
 __all__ = ["Conda"]

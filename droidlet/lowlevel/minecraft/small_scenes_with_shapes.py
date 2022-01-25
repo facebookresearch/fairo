@@ -14,6 +14,8 @@ SL = 17
 GROUND_DEPTH = 5
 H = 13
 
+HOLE_NAMES = ["RECTANGULOID", "ELLIPSOID"]
+
 
 def bid():
     return (35, np.random.randint(16))
@@ -102,7 +104,36 @@ def build_shape_scene(args):
                         inst_seg.append(ln)
                         occupied_by_shapes[ln] = True
         inst_segs.append({"tags": [shape], "locs": inst_seg})
-
+    num_holes = np.random.randint(0, args.MAX_NUM_GROUND_HOLES)
+    # TODO merge contiguous holes
+    ML = args.SL
+    mL = 0
+    if args.fence:
+        ML -= 1
+        mL = 1
+    for t in range(num_holes):
+        shape = random.choice(HOLE_NAMES)
+        opts = SHAPE_OPTION_FUNCTION_MAP[shape]()
+        S = SHAPE_FNS[shape](**opts)
+        m = np.round(np.mean([l for l, idm in S], axis=0)).astype("int32")
+        miny = min([l[1] for l, idm in S])
+        maxy = max([l[1] for l, idm in S])
+        offsets = np.random.randint((args.SL, args.H, args.SL))
+        offsets[0] -= m[0]
+        offsets[2] -= m[2]
+        # make the top block of the hole shape above ground, and bottom above 1
+        offsets[1] = max(-miny + 1, -maxy)
+        inst_seg = []
+        for l, idm in S:
+            ln = np.add(l, offsets)
+            if ln[0] >= mL and ln[1] >= mL and ln[2] >= 0:
+                if ln[0] < ML and ln[1] < args.GROUND_DEPTH + 1 and ln[2] < ML:
+                    ln = tuple(ln.tolist())
+                    if not occupied_by_shapes.get(ln):
+                        blocks.append((ln, (0, 0)))
+                        inst_seg.append(ln)
+                        occupied_by_shapes[ln] = True
+        inst_segs.append({"tags": ["hole"], "locs": inst_seg})
     J = {}
     # not shifting y for gridworld
     o = (args.cuberite_x_offset, 0, args.cuberite_z_offset)
@@ -134,6 +165,7 @@ if __name__ == "__main__":
     parser.add_argument("--GROUND_DEPTH", type=int, default=GROUND_DEPTH)
     parser.add_argument("--MAX_NUM_SHAPES", type=int, default=3)
     parser.add_argument("--NUM_SCENES", type=int, default=3)
+    parser.add_argument("--MAX_NUM_GROUND_HOLES", type=int, default=0)
     parser.add_argument("--fence", action="store_true", default=False)
     parser.add_argument("--cuberite_x_offset", type=int, default=-SL // 2)
     parser.add_argument("--cuberite_y_offset", type=int, default=63 - GROUND_DEPTH)
@@ -144,8 +176,6 @@ if __name__ == "__main__":
     scenes = []
     for i in range(args.NUM_SCENES):
         scenes.append(build_shape_scene(args))
-    # if args.NUM_SCENES == 1:
-    #     scenes = scenes[0]
     if args.save_data_path:
         with open(args.save_data_path, "w") as f:
             json.dump(scenes, f)
