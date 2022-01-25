@@ -13,17 +13,18 @@
             <button type="button" class="center btn btn-success" id="finish-annotation">Finish Annotation</button>
             <div id="response" class="center"></div>
         </div>
-        <input type="hidden" id="markedBlocks" name="markedBlocks" value="">  <!--Where the annotation output appears-->
+        <input type="hidden" id="inst_seg_tags" name="inst_seg_tags" value="">  <!--Where the annotation output appears-->
     </body>
     <script type='module' id="voxelPainter" src='voxel_painter.mjs'></script>  <!--three.js canvases-->
     <script>
         // Pull scene key from URL
         const urlParams = new URLSearchParams(window.location.search);
-        const module_key = urlParams.get('batch_id') + "_" + urlParams.get('error_idx');
+        const module_key = urlParams.get('batch_id') + "_" + urlParams.get('scene_idx');
 
         // Event listeners for buttons
         document.getElementById("finish-annotation").addEventListener("click", function() {
-            let output_obj = JSON.parse('{"' + module_key + '_output": ' + JSON.stringify(document.getElementById("markedBlocks").value) + '}');
+            let output_obj = JSON.parse('{"' + module_key + '_output": ' + JSON.stringify(document.getElementById("inst_seg_tags").value) + '}');
+            console.log("annotation result: " + JSON.stringify(output_obj));
             finishAnnotation(output_obj);
         });
         document.getElementById("null-result").addEventListener("click", function() {

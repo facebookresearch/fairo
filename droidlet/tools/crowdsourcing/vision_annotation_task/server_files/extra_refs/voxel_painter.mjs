@@ -8,14 +8,14 @@ import { GLTFLoader } from './GLTFLoader.mjs';
 import { staticShapes } from './staticShapes.mjs';
 import { BLOCK_MAP } from './blockMap.mjs';
 
-let cameras = {1: [], 2: []};
-let controls = {1: [], 2: []};
-let scenes = {1: [], 2: []};
-let renderers = {1: [], 2: []};
-let planes = {1: [], 2: []};
-let pointers = {1: [], 2: []};
-let raycasters = {1: [], 2: []};
-let user_raycasters = {1: [], 2: []};
+let cameras = {1: null, 2: null};
+let controls = {1: null, 2: null};
+let scenes = {1: null, 2: null};
+let renderers = {1: null, 2: null};
+let planes = {1: null, 2: null};
+let pointers = {1: null, 2: null};
+let raycasters = {1: null, 2: null};
+let user_raycasters = {1: null, 2: null};
 let objects = {1: [], 2: []};
 
 let marked_blocks = [];
@@ -27,6 +27,8 @@ let isSDown = false;
 let isDDown = false;
 let startedHIT = false;
 let isQual = false;
+let avatarsOff = false;
+let twoWindows = true;
 
 let origin_offset;  // Scene needs to be recentered on 0,0 and then annotation output needs to be reindexed to the original origin reference
 
@@ -53,6 +55,7 @@ else if (urlParams.get('scene_filename')){
     module_key = urlParams.get('scene_filename');
     scene_idx = urlParams.get('scene_idx');
     avatarsOff = true;
+    twoWindows = false;
 }
 console.log("Module key: " + module_key);
 
@@ -69,33 +72,24 @@ else if (module_key[0] === 'q') {  // This is the qualification HIT, load the ap
     if (!shapes) console.error("Scene for " + module_key + " did not load correctly");
     else init(shapes.scene, true);
 }
-else if (module_key.includes("scene")){  // This is the scene labeling HIT
-    let s3URL = "https://craftassist.s3-us-west-2.amazonaws.com/pubr/scenes/" + module_key;
-    fetch(s3URL)
+else {  // Not a test or qual HIT, look for the scene list file
+    fetch("./scene_list.json")
     .then(response => {
         return response.json();
     })
     .then(jsondata => {
-        return jsondata[parseInt(scene_idx)];
+        return jsondata[parseInt(scene_idx)];  // Pull the appropriate scene from the file
     })
     .then(scene => {
-        init(scene, false);
+        init(scene);
     })
-}
-else if (module_key.includes("batch")){  // This is an annotation HIT
-    fetch('./scene_list.json')
-    .then(response => {
-        return response.json();
-    })
-    .then(jsondata => {
-        return jsondata[parseInt(scene_idx)];
-    })
-    .then(scene => {
-        init(scene, true);
-    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
 }
 
-function init(scene, twoWindows) {
+function init(scene) {
+    console.log("Initializing scene");
     loadScene(scene, 1);
     if (twoWindows) loadScene(scene, 2);
     addEventListeners();
@@ -170,7 +164,7 @@ function loadScene(scene, idx) {
         scenes[idx].add( new THREE.AxesHelper( 10000 ) );
     }
 
-    if (scene.avatarInfo && scene.agentInfo) {
+    if (scene.avatarInfo && scene.agentInfo && !avatarsOff) {
         let user_pos = scene.avatarInfo.pos;
         let agent_pos = scene.agentInfo.pos;
         let user_look = lookRadsToVec(scene.avatarInfo.look);
@@ -284,110 +278,117 @@ function onWheel ( event ) {
 
 function matchCameras() {
     // Set camera two to match camera one
-    cameras[2].position.set( cameras[1].position.x, cameras[1].position.y, cameras[1].position.z );
-    cameras[2].lookAt( 0, 0, 0 );
+    if (cameras[2]) {
+        cameras[2].position.set( cameras[1].position.x, cameras[1].position.y, cameras[1].position.z );
+        cameras[2].lookAt( 0, 0, 0 );
+    }
 }
 
 function onPointerMove( event ) {
-    pointers[2].set( ( (event.clientX - (window.innerWidth/1.9)) / (window.innerWidth/2.1) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
-    raycasters[2].setFromCamera( pointers[2], cameras[2] );
-    // Select which blocks the raycaster should intersect with
-    let objs_to_intersect = objects[2];
-    if (isSDown) objs_to_intersect = objects[2].concat(marked_blocks);
-    else if (isDDown) objs_to_intersect = marked_blocks;
-    const intersects = raycasters[2].intersectObjects( objs_to_intersect, false );
+    if (pointers[2]) {
+        pointers[2].set( ( (event.clientX - (window.innerWidth/1.9)) / (window.innerWidth/2.1) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
+        raycasters[2].setFromCamera( pointers[2], cameras[2] );
+        // Select which blocks the raycaster should intersect with
+        let objs_to_intersect = objects[2];
+        if (isSDown) objs_to_intersect = objects[2].concat(marked_blocks);
+        else if (isDDown) objs_to_intersect = marked_blocks;
+        const intersects = raycasters[2].intersectObjects( objs_to_intersect, false );
 
-    if ( intersects.length > 0 ) {
-        const intersect = intersects[ 0 ];
-        if (isADown || isDDown){ // overlap existing cubes or marked blocks
-            rollOverMesh.position.copy( intersect.object.position );
-        } else {  // S down is also the default, with is to show the rollover on top of existing blocks
-            rollOverMesh.position.copy( intersect.point ).add( intersect.face.normal );
-            rollOverMesh.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
+        if ( intersects.length > 0 ) {
+            const intersect = intersects[ 0 ];
+            if (isADown || isDDown){ // overlap existing cubes or marked blocks
+                rollOverMesh.position.copy( intersect.object.position );
+            } else {  // S down is also the default, with is to show the rollover on top of existing blocks
+                rollOverMesh.position.copy( intersect.point ).add( intersect.face.normal );
+                rollOverMesh.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
+            }
+            
         }
-        
+        matchCameras();
+        render();
     }
-    matchCameras();
-    render();
 }
 
 function onPointerDown( event ) {
-    pointers[2].set( ( (event.clientX - (window.innerWidth/1.9)) / (window.innerWidth/2.1) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
-    raycasters[2].setFromCamera( pointers[2], cameras[2] );
-    
-    // Select which blocks the raycaster should intersect with
-    let objs_to_intersect = [];
-    if (isADown) objs_to_intersect = objects[2];
-    else if (isSDown) objs_to_intersect = objects[2].concat(marked_blocks);
-    else if (isDDown) objs_to_intersect = marked_blocks;
-    const intersects = raycasters[2].intersectObjects( objs_to_intersect, false );
+    if (pointers[2]) {
+        pointers[2].set( ( (event.clientX - (window.innerWidth/1.9)) / (window.innerWidth/2.1) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
+        raycasters[2].setFromCamera( pointers[2], cameras[2] );
+        
+        // Select which blocks the raycaster should intersect with
+        let objs_to_intersect = [];
+        if (isADown) objs_to_intersect = objects[2];
+        else if (isSDown) objs_to_intersect = objects[2].concat(marked_blocks);
+        else if (isDDown) objs_to_intersect = marked_blocks;
+        const intersects = raycasters[2].intersectObjects( objs_to_intersect, false );
 
-    if ( intersects.length > 0 ) {
-        const intersect = intersects[ 0 ];
+        if ( intersects.length > 0 ) {
+            const intersect = intersects[ 0 ];
 
-        // mark cube
-        if ( isADown ) {
-            if ( intersect.object !== planes[2] ) {
-                // Remove the old block from the scene
-                scenes[2].remove( intersect.object );
-                objects[2].splice( objects[2].indexOf( intersect.object ), 1 );
-                // Add in a marked block in the same spot
+            // mark cube
+            if ( isADown ) {
+                if ( intersect.object !== planes[2] ) {
+                    // Remove the old block from the scene
+                    scenes[2].remove( intersect.object );
+                    objects[2].splice( objects[2].indexOf( intersect.object ), 1 );
+                    // Add in a marked block in the same spot
+                    const voxel = new THREE.Mesh( geo, cubeMaterial_mark );
+                    voxel.position.set(intersect.object.position.x,intersect.object.position.y,intersect.object.position.z);
+                    scenes[2].add( voxel );
+                    marked_blocks.push( voxel );
+                    // Record the action to be able to undo
+                    actions_taken.push( [intersect.object, voxel, "mark_cube"] );
+                }
+
+            // mark air
+            } else if (isSDown) {
+                // Create new marked block and place on the surface
                 const voxel = new THREE.Mesh( geo, cubeMaterial_mark );
-                voxel.position.set(intersect.object.position.x,intersect.object.position.y,intersect.object.position.z);
+                voxel.position.copy( intersect.point ).add( intersect.face.normal );
+                voxel.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
                 scenes[2].add( voxel );
                 marked_blocks.push( voxel );
                 // Record the action to be able to undo
-                actions_taken.push( [intersect.object, voxel, "mark_cube"] );
+                actions_taken.push( [null, voxel, "mark_air"] );
+
+            // unmark block
+            } else if (isDDown) {
+                if ( intersect.object !== planes[2] ) {
+                    // Remove the marked block from the scene
+                    scenes[2].remove( intersect.object );
+                    marked_blocks.splice( marked_blocks.indexOf( intersect.object ), 1 );
+                    // If it existed originally, replace with a the original object
+                    let voxel = null;
+                    objects[1].forEach(obj => {
+                        if (obj.position.equals(intersect.object.position)) {
+                            voxel = obj.clone()
+                            scenes[2].add( voxel );
+                            objects[2].push( voxel );
+                        }
+                    });
+                    // Record the action to be able to undo
+                    actions_taken.push( [intersect.object, voxel, "unmark_block"] );
+                }
             }
 
-        // mark air
-        } else if (isSDown) {
-            // Create new marked block and place on the surface
-            const voxel = new THREE.Mesh( geo, cubeMaterial_mark );
-            voxel.position.copy( intersect.point ).add( intersect.face.normal );
-            voxel.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-            scenes[2].add( voxel );
-            marked_blocks.push( voxel );
-            // Record the action to be able to undo
-            actions_taken.push( [null, voxel, "mark_air"] );
-
-        // unmark block
-        } else if (isDDown) {
-            if ( intersect.object !== planes[2] ) {
-                // Remove the marked block from the scene
-                scenes[2].remove( intersect.object );
-                marked_blocks.splice( marked_blocks.indexOf( intersect.object ), 1 );
-                // If it existed originally, replace with a the original object
-                let voxel = null;
-                objects[1].forEach(obj => {
-                    if (obj.position.equals(intersect.object.position)) {
-                        voxel = obj.clone()
-                        scenes[2].add( voxel );
-                        objects[2].push( voxel );
-                    }
-                });
-                // Record the action to be able to undo
-                actions_taken.push( [intersect.object, voxel, "unmark_block"] );
+            // Signal to the HIT that annotation was at least attempted
+            if ((marked_blocks.length > 0) && (!startedHIT)) {
+                startedHIT = true;
+                window.parent.postMessage(JSON.stringify({ msg: "block_marked" }), "*");
             }
-        }
+        
+            // Store marked blocks in parent HTML.
+            inst_seg_tags[0]["locs"] = [];
+            marked_blocks.forEach((block) => {
+                let positionArray = block.position.toArray();
+                let scaledArray = positionArray.map(function(item) { return (item-25)/50 });
+                scaledArray[0] += origin_offset;  // Reset the origin in x and z
+                scaledArray[2] += origin_offset;
+                inst_seg_tags[0]["locs"].push(scaledArray);
+            })
+            document.getElementById("inst_seg_tags").value = JSON.stringify(inst_seg_tags);
 
-        // Signal to the HIT that annotation was at least attempted
-        if ((marked_blocks.length > 0) && (!startedHIT)) {
-            startedHIT = true;
-            window.parent.postMessage(JSON.stringify({ msg: "block_marked" }), "*");
+            render();
         }
-    
-        // Store marked blocks in parent HTML.
-        marked_blocks.forEach((block) => {
-            let positionArray = block.position.toArray();
-            let scaledArray = positionArray.map(function(item) { return (item-25)/50 });
-            scaledArray[0] += origin_offset;  // Reset the origin in x and z
-            scaledArray[2] += origin_offset;
-            inst_seg_tags[0]["locs"].push(scaledArray);
-        })
-        document.getElementById("inst_seg_tags").value = JSON.stringify(inst_seg_tags);
-
-        render();
     }
 }
 
@@ -440,5 +441,5 @@ function onDocumentKeyUp( event ) {
 
 function render() {
     renderers[1].render( scenes[1], cameras[1] );
-    renderers[2].render( scenes[2], cameras[2] );
+    if (renderers[2]) renderers[2].render( scenes[2], cameras[2] );
 }
