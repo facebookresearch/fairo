@@ -377,6 +377,7 @@ function onPointerDown( event ) {
             }
         
             // Store marked blocks in parent HTML.
+            inst_seg_tags[0]["locs"] = [];
             marked_blocks.forEach((block) => {
                 let positionArray = block.position.toArray();
                 let scaledArray = positionArray.map(function(item) { return (item-25)/50 });

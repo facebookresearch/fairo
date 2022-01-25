@@ -24,6 +24,7 @@
         // Event listeners for buttons
         document.getElementById("finish-annotation").addEventListener("click", function() {
             let output_obj = JSON.parse('{"' + module_key + '_output": ' + JSON.stringify(document.getElementById("inst_seg_tags").value) + '}');
+            console.log("annotation result: " + JSON.stringify(output_obj));
             finishAnnotation(output_obj);
         });
         document.getElementById("null-result").addEventListener("click", function() {
