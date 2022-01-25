@@ -307,7 +307,7 @@ class RobotInterface(BaseRobotInterface):
     """
 
     def set_home_pose(self, home_pose: torch.Tensor):
-        """Sets the home pose for `go_home()` to use."""
+        """Sets the home pose for `goto_home_pose()` to use."""
         self.home_pose = home_pose
 
     def set_robot_model(self, robot_description_path: str, ee_link_name: str):
@@ -371,7 +371,7 @@ class RobotInterface(BaseRobotInterface):
             Kqd = self.Kqd_default
 
         # Plan trajectory
-        joint_pos_current = self.get_joint_angles()
+        joint_pos_current = self.get_joint_positions()
         waypoints = toco.planning.generate_joint_space_min_jerk(
             start=joint_pos_current,
             goal=desired_positions,
@@ -394,12 +394,12 @@ class RobotInterface(BaseRobotInterface):
     def goto_joint_positions_delta(
         self, delta_positions, *args, **kwargs
     ) -> List[RobotState]:
-        """Calls set_joint_positions by adding delta_positions to the curent positions."""
-        desired_positions = self.get_joint_angles() + torch.Tensor(delta_positions)
-        return self.set_joint_positions(desired_positions, *args, **kwargs)
+        """Calls goto_joint_positions by adding delta_positions to the curent positions."""
+        desired_positions = self.get_joint_positions() + torch.Tensor(delta_positions)
+        return self.goto_joint_positions(desired_positions, *args, **kwargs)
 
     def goto_home_pose(self, *args, **kwargs) -> List[RobotState]:
-        """Calls set_joint_positions to the current home positions."""
+        """Calls goto_joint_positions to the current home positions."""
         assert (
             self.home_pose is not None
         ), "Home pose not assigned! Call 'set_home_pose(<joint_angles>)' to enable homing"
@@ -421,7 +421,7 @@ class RobotInterface(BaseRobotInterface):
             self.robot_model is not None
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
 
-        ee_pos_current, ee_quat_current = self.pose_ee()
+        ee_pos_current, ee_quat_current = self.get_ee_pose()
 
         # Parse parameters
         if time_to_go is None:
@@ -462,17 +462,17 @@ class RobotInterface(BaseRobotInterface):
     def goto_ee_pose_delta(
         self, delta_position: torch.Tensor, use_orient: bool = True, **kwargs
     ) -> List[RobotState]:
-        """Moves to a desired end-effector position by adding `displacement` to the current end effector position.
+        """Moves to a desired end-effector position by displacing the current end effector position.
 
         Args:
             delta_position: 3D delta end-effector position.
             use_orient: Use the current end-effector orientation as the desired orientation.
         """
-        ee_pos, ee_orient = self.pose_ee()
+        ee_pos, ee_orient = self.get_ee_pose()
         if not use_orient:
             ee_orient = None
         target_ee_pos = ee_pos + torch.Tensor(displacement)
-        return self.set_ee_pose(target_ee_pos, ee_orient, **kwargs)
+        return self.goto_ee_pose(target_ee_pos, ee_orient, **kwargs)
 
     """
     PyRobot backward compatibility methods
