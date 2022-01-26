@@ -195,6 +195,7 @@ class TrajectoryDataSaver:
             self.create(x)
 
         self.pose_dict = {}
+        self.pose_dict_hab = {}
         self.img_count = 0
         self.dbg_str = "None"
         self.init_logger()
@@ -222,7 +223,7 @@ class TrajectoryDataSaver:
     def get_total_frames(self):
         return self.img_count
 
-    def save(self, rgb, depth, seg, pos):
+    def save(self, rgb, depth, seg, pos, habitat_pos, habitat_rot):
         self.img_count = len(glob.glob(self.img_folder + '/*.jpg'))
         self.logger.info(f'Saving to {self.save_folder}, {self.img_count}, {self.dbg_str}')
         print(f'saving {rgb.shape, depth.shape, seg.shape}')
@@ -258,6 +259,19 @@ class TrajectoryDataSaver:
         
         with open(os.path.join(self.save_folder, "data.json"), "w") as fp:
             json.dump(self.pose_dict, fp)
+
+        # store habitat pos
+        if os.path.isfile(os.path.join(self.save_folder, "data_hab.json")):
+            with open(os.path.join(self.save_folder, "data_hab.json"), "r") as fp:
+                self.pose_dict_hab = json.load(fp)
+
+        self.pose_dict_hab[self.img_count] = {
+                "position": copy(habitat_pos),
+                "rotation": copy(habitat_rot),
+            }
+
+        with open(os.path.join(self.save_folder, "data_hab.json"), "w") as fp:
+            json.dump(self.pose_dict_hab, fp)
 
 
 def visualize_examine(agent, robot_poses, object_xyz, label, obstacle_map, save_path, gt_pts=None):

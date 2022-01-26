@@ -217,10 +217,15 @@ void FrankaTorqueControlClient::updateServerCommand(
 
   // Retrieve torques
   grpc::ClientContext context;
+  long int pre_update_ns = getNanoseconds();
   status_ = stub_->ControlUpdate(&context, robot_state_, &torque_command_);
+  long int post_update_ns = getNanoseconds();
   if (!status_.ok()) {
     throw std::runtime_error("ControlUpdate rpc failed.");
   }
+
+  robot_state_.set_prev_controller_latency_ms(
+      float(post_update_ns - pre_update_ns) / 1e6);
 
   assert(torque_command_.joint_torques_size() == NUM_DOFS);
   for (int i = 0; i < NUM_DOFS; i++) {
