@@ -39,12 +39,12 @@ if __name__ == "__main__":
     print(f"Initial ee pose: pos={ee_pos}, quat={ee_quat}")
 
     # Go to ee_pose
-    print("=== RobotInterface.set_ee_pose ===")
+    print("=== RobotInterface.move_to_ee_pose ===")
     ee_pos_desired = ee_pos + torch.Tensor([0.0, 0.05, -0.05])
     ee_quat_desired = torch.Tensor([1, 0, 0, 0])  # pointing straight down
     time_to_go = 4.0
 
-    state_log = robot.set_ee_pose(
+    state_log = robot.move_to_ee_pose(
         ee_pos_desired, ee_quat_desired, time_to_go=time_to_go
     )
     time.sleep(0.5)
@@ -53,14 +53,14 @@ if __name__ == "__main__":
     check_episode_log(state_log, int(time_to_go * hz))
 
     # Go to ee_pose (larger movement)
-    print("=== RobotInterface.set_ee_pose ===")
+    print("=== RobotInterface.move_to_ee_pose (larger_movement) ===")
     ee_pos_desired = ee_pos + torch.Tensor([0.1, -0.1, 0.2])
     ee_quat_desired = torch.Tensor(
         [0.7071, 0, 0, 0.7071]
     )  # rotate by 90 degrees around x axis
     time_to_go = 6.0
 
-    state_log = robot.set_ee_pose(
+    state_log = robot.move_to_ee_pose(
         ee_pos_desired, ee_quat_desired, time_to_go=time_to_go
     )
     time.sleep(0.5)
@@ -69,14 +69,14 @@ if __name__ == "__main__":
     check_episode_log(state_log, int(time_to_go * hz))
 
     # Move by delta ee pose
-    print("=== RobotInterface.move_ee_xyz ===")
+    print("=== RobotInterface.move_to_ee_pose (delta) ===")
     delta_ee_pos_desired = torch.Tensor([-0.1, 0.0, -0.1])
     ee_pos_desired = ee_pos + delta_ee_pos_desired
     ee_quat_desired = ee_quat
     time_to_go = 6.0
 
-    state_log = robot.move_ee_xyz(
-        delta_ee_pos_desired, time_to_go=time_to_go, use_orient=False
+    state_log = robot.move_to_ee_pose(
+        delta_ee_pos_desired, time_to_go=time_to_go, delta=True
     )
     time.sleep(0.5)
 

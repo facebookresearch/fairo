@@ -32,11 +32,11 @@ if __name__ == "__main__":
     print(f"Initial joint positions: {joint_pos}")
 
     # Go to joint positions
-    print("=== RobotInterface.set_joint_positions ===")
+    print("=== RobotInterface.move_to_joint_positions ===")
     delta_joint_pos_desired = torch.Tensor([0.0, 0.0, 0.0, 0.5, 0.0, -0.5, 0.0])
     joint_pos_desired = joint_pos + delta_joint_pos_desired
 
-    state_log = robot.set_joint_positions(joint_pos_desired)
+    state_log = robot.move_to_joint_positions(joint_pos_desired)
     time.sleep(0.5)
 
     joint_pos = test_new_joint_pos(robot, joint_pos_desired)
@@ -45,11 +45,11 @@ if __name__ == "__main__":
     )
 
     # Move by delta joint positions
-    print("=== RobotInterface.move_joint_positions ===")
+    print("=== RobotInterface.move_to_joint_positions (delta) ===")
     delta_joint_pos_desired = torch.Tensor([0.0, 0.0, 0.0, 0.0, 0.5, 0.0, -0.5])
     joint_pos_desired = joint_pos + delta_joint_pos_desired
 
-    state_log = robot.move_joint_positions(delta_joint_pos_desired)
+    state_log = robot.move_to_joint_positions(delta_joint_pos_desired, delta=True)
     time.sleep(0.5)
 
     joint_pos = test_new_joint_pos(robot, joint_pos_desired)
