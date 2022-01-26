@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     # Get joint positions
     joint_positions = robot.get_joint_positions()
-    print(f"Current joint positions: {joint_pos}")
+    print(f"Current joint positions: {joint_positions}")
 
     # Command robot to pose (move 4th and 6th joint)
     joint_positions_desired = torch.Tensor(
@@ -28,5 +28,5 @@ if __name__ == "__main__":
     state_log = robot.move_to_joint_positions(joint_positions_desired, time_to_go=2.0)
 
     # Get updated joint positions
-    joint_pos = robot.get_joint_positions()
-    print(f"New joint positions: {joint_pos}")
+    joint_positions = robot.get_joint_positions()
+    print(f"New joint positions: {joint_positions}")
