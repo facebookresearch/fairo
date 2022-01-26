@@ -16,14 +16,13 @@ let objects = {1: [], 2: []};
 
 let avatarsOff = false;
 
-let origin_offset;  // Scene needs to be recentered on 0,0 and then annotation output needs to be reindexed to the original origin reference
+let origin_offset;  // Scene needs to be recentered on 0,0
 
 const minCameraPitch = (0.5 * Math.PI) / 4;
 const maxCameraPitch = (2.0 * Math.PI) / 4;
 
 // Define cube geometry and materials
 const geo = new THREE.BoxGeometry( 50, 50, 50 );
-const rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.3, transparent: true } );
 
 // Pull scene paths from input
 let gtScenePath = sessionStorage.getItem('gtScene');
@@ -79,27 +78,46 @@ function loadScene(scene, idx) {
     let Xs = scene.blocks.map(function(x) { return x[0]; });
     origin_offset = Math.floor( (Math.max(...Xs) + Math.min(...Xs)) / 2)
 
-    // Load labels to populate legends
+    // Populate legend and mask colors
+    let color_idx = 47;  // Increment mask color coding with each tag
     scene.inst_seg_tags.forEach(tag => {
-        let block_lookup = scene.blocks.find(block => (block[0] == tag.locs[0][0] && block[1] == tag.locs[0][1] && block[2] == tag.locs[0][2] && block[3] != 46));
-        let obj = {msg: {idx: idx, label: tag, color: BLOCK_MAP[block_lookup[3]]}};
+        // For each mask block location, find the corresponding block in the block list and set the color to a unique value
+        tag.locs.forEach((loc) => {
+            let match_block_idx = scene.blocks.findIndex((block) => block[0] == loc[0] && block[1] == loc[1] && block[2] == loc[2] && block[3] != 46);
+            if (tag.tags[0] != "hole") scene.blocks[match_block_idx][3] = color_idx;
+            else scene.blocks[match_block_idx][3] = color_idx + 20;  // Holes need their own number so they don't get texture later
+            // Get rid of any ground blocks that overlap with tags while we're at it
+            match_block_idx = scene.blocks.findIndex((block) => block[0] == loc[0] && block[1] == loc[1] && block[2] == loc[2] && block[3] == 46);
+            if (match_block_idx != -1) scene.blocks[match_block_idx][3] = 0;
+        });
+        let obj = {msg: {idx: idx, label: tag, color: BLOCK_MAP[color_idx++]}};
         window.parent.postMessage(JSON.stringify(obj), "*");
     });
 
     // load scene
+    let cubeMaterial;
     for (let i=0; i<scene.blocks.length; i++) {
-        let cubeMaterial;
-        if (scene.blocks[i][3] === 46) {  // if it's the ground, skip the texture and add lines instead
-            cubeMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, opacity: 1.0 } );
+        if (scene.blocks[i][3] === 0) {  // if it's a hole, don't add anything
+            continue;
+        }
+        else if (scene.blocks[i][3] === 46) {  // if it's the ground, skip the texture and add lines instead
+            cubeMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, opacity: 0.3, transparent: true } );
             const edges = new THREE.EdgesGeometry( geo );  // outline the white blocks for visibility
             const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
             line.position.set(((scene.blocks[i][0] - origin_offset)*50)+25, (scene.blocks[i][1]*50)+25, ((scene.blocks[i][2] - origin_offset)*50)+25);
             scenes[idx].add( line );
         }
+        else if (scene.blocks[i][3] < 65) {
+            cubeMaterial = new THREE.MeshLambertMaterial({ 
+                color: BLOCK_MAP[scene.blocks[i][3]],
+                map: new THREE.TextureLoader().load( 'square-outline-textured.png' )
+            });
+        }
         else {
-            cubeMaterial = new THREE.MeshLambertMaterial( { 
-                color: BLOCK_MAP[scene.blocks[i][3]], 
-                map: new THREE.TextureLoader().load( 'square-outline-textured.png' ) 
+            cubeMaterial = new THREE.MeshLambertMaterial({ 
+                color: BLOCK_MAP[scene.blocks[i][3]],
+                opacity: 0.7,
+                transparent: true
             });
         }
         const voxel = new THREE.Mesh( geo, cubeMaterial );

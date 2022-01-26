@@ -19,6 +19,22 @@ const BLOCK_MAP = {
     59: 0x8fce00, // Green Wool
     60: 0xff0000, // Red Wool
     61: 0x1a1a1a, // Black Wool
+
+    67: 0xffa500, // Orange Hole
+    68: 0xff00ff, // Magenta Hole
+    69: 0x75bdff, // Light Blue Hole
+    70: 0xffff00, // Yellow Hole
+    71: 0x00ff00, // Lime Hole
+    72: 0xffc0cb, // Pink Hole
+    73: 0x5b5b5b, // Gray Hole
+    74: 0xbcbcbc, // Light Gray Hole
+    75: 0x00ffff, // Cyan Hole
+    76: 0x800080, // Purple Hole
+    77: 0x2986cc, // Blue Hole
+    78: 0xdd992c, // Brown Hole
+    79: 0x8fce00, // Green Hole
+    80: 0xff0000, // Red Hole
+    81: 0x1a1a1a, // Black Hole
 };
 
 export { BLOCK_MAP };
