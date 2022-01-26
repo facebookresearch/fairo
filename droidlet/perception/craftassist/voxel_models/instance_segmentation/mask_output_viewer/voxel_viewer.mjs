@@ -2,7 +2,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-import * as THREE from 'https://cdn.skypack.dev/three';
+import * as THREE from './three.module.mjs';
 import { OrbitControls } from './OrbitControls.mjs';
 import { GLTFLoader } from './GLTFLoader.mjs';
 import { BLOCK_MAP } from './blockMap.mjs';
