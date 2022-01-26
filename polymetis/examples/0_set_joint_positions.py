@@ -21,11 +21,11 @@ if __name__ == "__main__":
     print(f"Current joint positions: {joint_pos}")
 
     # Command robot to pose (move 4th and 6th joint)
-    # note: can also be done with robot.move_by_joint_positions
     delta_joint_pos_desired = torch.Tensor([0.0, 0.0, 0.0, 0.5, 0.0, -0.5, 0.0])
-    joint_pos_desired = joint_pos + delta_joint_pos_desired
     print(f"\nMoving joints to: {joint_pos_desired} ...\n")
-    state_log = robot.move_to_joint_positions(joint_pos_desired, time_to_go=2.0)
+    state_log = robot.move_to_joint_positions(
+        joint_pos_desired, time_to_go=2.0, delta=True
+    )
 
     # Get updated joint positions
     joint_pos = robot.get_joint_positions()
