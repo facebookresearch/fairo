@@ -53,12 +53,15 @@ class FakeAgent(DroidletAgent):
     default_frame = CraftAssistAgent.default_frame
     coordinate_transforms = CraftAssistAgent.coordinate_transforms
 
-    def __init__(self, world, opts=None, do_heuristic_perception=False):
+    def __init__(self, world, opts=None, do_heuristic_perception=False, prebuilt_perception=None):
         self.head_height = HEAD_HEIGHT
         self.world = world
         self.chat_count = 0
+        # use these to not have to re-init models if running many tests:
+        self.prebuilt_perception = prebuilt_perception
         if not opts:
             opts = MockOpt()
+        self.e2e_mode = getattr(opts, "e2e_mode", False)
         self.low_level_data = {
             "mobs": SPAWN_OBJECTS,
             "mob_property_data": craftassist_specs.get_mob_property_data(),
@@ -96,7 +99,13 @@ class FakeAgent(DroidletAgent):
 
     def init_perception(self):
         self.perception_modules = {}
-        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
+        if self.prebuilt_perception:
+            for k, v in self.prebuilt_perception:
+                self.perception_modules[k] = v
+                # make a method to do this....
+                self.perception_modules[k].agent = self
+        else:
+            self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         self.perception_modules["low_level"] = LowLevelMCPerception(self, perceive_freq=1)
         self.perception_modules["heuristic"] = PerceptionWrapper(
             self, low_level_data=self.low_level_data
@@ -153,6 +162,16 @@ class FakeAgent(DroidletAgent):
         super().step()
 
     def perceive(self, force=False):
+        if self.e2e_mode:
+            perception_output = self.perception_modules["low_level"].perceive(force=force)
+            self.areas_to_perceive = self.memory.update(perception_output, self.areas_to_perceive)[
+                "areas_to_perceive"
+            ]
+            super().perceive(force=force)
+            if "semseg" in self.perception_modules:
+                sem_seg_perception_output = self.perception_modules["semseg"].perceive()
+                self.memory.update(sem_seg_perception_output)
+            return
         # clear the chat buffer
         self.get_incoming_chats()
         if self.logical_form:  # use the logical form as given...

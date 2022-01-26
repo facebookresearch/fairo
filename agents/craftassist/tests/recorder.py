@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
 import pickle
-from droidlet.lowlevel.minecraft.world import build_coord_shifts
+from droidlet.lowlevel.minecraft.pyworld.world import build_coord_shifts
 
 # TODO replay instantiates world, replays in world
 class Recorder:
@@ -61,8 +61,10 @@ class Recorder:
         player_list = self.agent.get_other_players()
         self.tape[self.agent.count]["players"] = []
         for player_struct in player_list:
-            loc = self.agent.get_player_line_of_sight(player_struct)
-            self.tape[self.agent.count]["players"].append((player_struct, loc))
+            los = self.agent.get_player_line_of_sight(player_struct)
+            self.tape[self.agent.count]["players"].append(
+                {"player_struct": player_struct, "player_los": los}
+            )
 
     def record_agent(self):
         self.maybe_add_entry()
