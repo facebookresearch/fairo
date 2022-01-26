@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     # Command robot to pose (move 4th and 6th joint)
     delta_joint_pos_desired = torch.Tensor([0.0, 0.0, 0.0, 0.5, 0.0, -0.5, 0.0])
-    print(f"\nMoving joints to: {joint_pos_desired} ...\n")
+    print(f"\nMoving joints by: {delta_ee_pos_desired} ...\n")
     state_log = robot.move_to_joint_positions(
         joint_pos_desired, time_to_go=2.0, delta=True
     )
