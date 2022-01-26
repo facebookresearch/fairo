@@ -443,7 +443,7 @@ class RobotInterface(BaseRobotInterface):
             ee_quat_desired = torch.Tensor(orientation)
             if delta:
                 ee_quat_desired = (
-                    R.from_quat(ee_quat_current) * R.from_quat(ee_quat_desired)
+                    R.from_quat(ee_quat_desired) * R.from_quat(ee_quat_current)
                 ).as_quat()
 
         # Plan trajectory
