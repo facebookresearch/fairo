@@ -471,7 +471,7 @@ class RobotInterface(BaseRobotInterface):
         ee_pos, ee_orient = self.get_ee_pose()
         if not use_orient:
             ee_orient = None
-        target_ee_pos = ee_pos + torch.Tensor(displacement)
+        target_ee_pos = ee_pos + torch.Tensor(delta_position)
         return self.goto_ee_pose(target_ee_pos, ee_orient, **kwargs)
 
     """
