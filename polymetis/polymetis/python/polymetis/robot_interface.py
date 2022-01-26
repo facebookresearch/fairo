@@ -349,7 +349,7 @@ class RobotInterface(BaseRobotInterface):
     Movement methods
     """
 
-    def goto_joint_positions(
+    def move_to_joint_positions(
         self,
         desired_positions: torch.Tensor,
         time_to_go: float = None,
@@ -391,23 +391,21 @@ class RobotInterface(BaseRobotInterface):
 
         return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
 
-    def goto_joint_positions_delta(
-        self, delta_positions, *args, **kwargs
-    ) -> List[RobotState]:
-        """Calls goto_joint_positions by adding delta_positions to the curent positions."""
-        desired_positions = self.get_joint_positions() + torch.Tensor(delta_positions)
-        return self.goto_joint_positions(desired_positions, *args, **kwargs)
+    def move_by_joint_positions(self, positions, *args, **kwargs) -> List[RobotState]:
+        """Calls move_to_joint_positions by adding delta_positions to the curent positions."""
+        desired_positions = self.get_joint_positions() + torch.Tensor(positions)
+        return self.move_to_joint_positions(desired_positions, *args, **kwargs)
 
     def go_home(self, *args, **kwargs) -> List[RobotState]:
-        """Calls goto_joint_positions to the current home positions."""
+        """Calls move_to_joint_positions to the current home positions."""
         assert (
             self.home_pose is not None
         ), "Home pose not assigned! Call 'set_home_pose(<joint_angles>)' to enable homing"
-        return self.goto_joint_positions(
+        return self.move_to_joint_positions(
             desired_positions=self.home_pose, *args, **kwargs
         )
 
-    def goto_ee_pose(
+    def move_to_ee_pose(
         self,
         position: torch.Tensor,
         orientation: torch.Tensor = None,
@@ -459,8 +457,8 @@ class RobotInterface(BaseRobotInterface):
 
         return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
 
-    def goto_ee_pose_delta(
-        self, delta_position: torch.Tensor, use_orient: bool = True, **kwargs
+    def move_by_ee_pose(
+        self, position: torch.Tensor, use_orient: bool = True, **kwargs
     ) -> List[RobotState]:
         """Moves to a desired end-effector position by displacing the current end effector position.
 
@@ -471,8 +469,8 @@ class RobotInterface(BaseRobotInterface):
         ee_pos, ee_orient = self.get_ee_pose()
         if not use_orient:
             ee_orient = None
-        target_ee_pos = ee_pos + torch.Tensor(delta_position)
-        return self.goto_ee_pose(target_ee_pos, ee_orient, **kwargs)
+        target_ee_pos = ee_pos + torch.Tensor(position)
+        return self.move_to_ee_pose(target_ee_pos, ee_orient, **kwargs)
 
     """
     PyRobot backward compatibility methods
@@ -485,17 +483,17 @@ class RobotInterface(BaseRobotInterface):
         return self.get_ee_pose()
 
     def set_joint_positions(self, *args, **kwargs) -> List[RobotState]:
-        return self.goto_joint_positions(*args, **kwargs)
+        return self.move_to_joint_positions(*args, **kwargs)
 
     def move_joint_positions(self, *args, **kwargs) -> List[RobotState]:
-        return self.goto_joint_positions_delta(*args, **kwargs)
+        return self.move_by_joint_positions(*args, **kwargs)
 
     def set_ee_pose(self, *args, **kwargs) -> List[RobotState]:
-        return self.goto_ee_pose(*args, **kwargs)
+        return self.move_to_ee_pose(*args, **kwargs)
 
     def move_ee_xyz(
         self, displacement: torch.Tensor, use_orient: bool = True, **kwargs
     ) -> List[RobotState]:
-        return self.goto_ee_pose_delta(
-            delta_position=displacement, use_orient=use_orient, **kwargs
+        return self.move_by_ee_pose(
+            position=displacement, use_orient=use_orient, **kwargs
         )
