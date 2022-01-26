@@ -138,9 +138,12 @@ function loadScene(scene, idx) {
     origin_offset = Math.floor( (Math.max(...Xs) + Math.min(...Xs)) / 2)
 
     // load scene
+    let cubeMaterial;
     for (let i=0; i<scene.blocks.length; i++) {
-        let cubeMaterial;
-        if (scene.blocks[i][3] === 46) {  // if it's the ground, skip the texture and add lines instead
+        if (scene.blocks[i][3] === 0) {  // if it's a hole, don't add anything
+            continue;
+        }
+        else if (scene.blocks[i][3] === 46) {  // if it's the ground, skip the texture and add lines instead
             cubeMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, opacity: 1.0 } );
             const edges = new THREE.EdgesGeometry( geo );  // outline the white blocks for visibility
             const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
