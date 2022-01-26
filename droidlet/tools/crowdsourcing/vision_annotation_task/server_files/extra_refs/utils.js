@@ -21,7 +21,7 @@ function recordClick(ele) {
     if (taskID.includes("output")) {  // Store the annotation result in Mephisto
       console.log("Recording output for taskID: " + taskID);
       document.getElementById("taskID").value = taskID;
-      document.getElementById("markedBlocks").value = ele[taskID];
+      document.getElementById("inst_seg_tags").value = ele[taskID];
     }
   }
 
@@ -84,6 +84,9 @@ function giveFeedback() {
 
 // Bug report onclick
 function bugReport() {
+  blockMarked = true;
+  annotationFinished = true;
+  checkSubmitDisplay();
   document.getElementById('bug').value = "true";
   document.getElementById('bugButton').disabled = true;
 }

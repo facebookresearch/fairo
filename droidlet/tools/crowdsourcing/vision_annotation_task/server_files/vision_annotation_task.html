@@ -116,7 +116,10 @@
         Press 'z' to undo an action
       </p>
     </div>
-    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper.html?batch_id=${batch_id}&error_idx=${error_idx}" scrolling="no"></iframe>
+    <div class="col-xs-12">
+      <h3 class="center">Please mark the blocks corresponding with: "${label}"</h3>
+    </div>
+    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper.html?batch_id=${batch_id}&scene_idx=${scene_idx}&label=${label}" scrolling="no"></iframe>
   </div>
 </section>
 
@@ -143,7 +146,9 @@
         <input type="hidden" id="clickedElements" name="clickedElements" value="0">
         <input type="hidden" id="bug" name="bug" value="false">
         <input type="hidden" id="taskID" name="taskID" value="0">
-        <input type="hidden" id="markedBlocks" name="markedBlocks" value="0">
+        <input type="hidden" id="scene_idx" name="scene_idx" value="${scene_idx}">
+        <input type="hidden" id="label" name="label" value="${label}">
+        <input type="hidden" id="inst_seg_tags" name="inst_seg_tags" value="0">
         <input type="hidden" id="userAgent" name="userAgent" value="0">
       </div>
     </fieldset>
