@@ -479,23 +479,23 @@ class RobotInterface(BaseRobotInterface):
     """
 
     def get_joint_angles(self) -> torch.Tensor:
-        return self.get_joint_positions
+        return self.get_joint_positions()
 
     def pose_ee(self) -> Tuple[torch.Tensor, torch.Tensor]:
         return self.get_ee_pose()
 
-    def set_joint_positions(self, *args, **kwargs):
+    def set_joint_positions(self, *args, **kwargs) -> List[RobotState]:
         return self.goto_joint_positions(*args, **kwargs)
 
-    def move_joint_positions(self, *args, **kwargs):
+    def move_joint_positions(self, *args, **kwargs) -> List[RobotState]:
         return self.goto_joint_positions_delta(*args, **kwargs)
 
-    def set_ee_pose(self, *args, **kwargs):
+    def set_ee_pose(self, *args, **kwargs) -> List[RobotState]:
         return self.goto_ee_pose(*args, **kwargs)
 
     def move_ee_xyz(
         self, displacement: torch.Tensor, use_orient: bool = True, **kwargs
-    ):
+    ) -> List[RobotState]:
         return self.goto_ee_pose_delta(
             delta_position=displacement, use_orient=use_orient, **kwargs
         )
