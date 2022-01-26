@@ -23,9 +23,9 @@ if __name__ == "__main__":
     print("Control loop latency stats in milliseconds (avg / std / max / min): ")
 
     # Test joint PD
-    robot_states = robot.set_joint_positions(robot.get_joint_angles())
+    robot_states = robot.move_to_joint_positions(robot.get_joint_positions())
     output_episode_stats("Joint PD", robot_states)
 
     # Test cartesian PD
-    robot_states = robot.set_ee_pose(robot.pose_ee()[0])
+    robot_states = robot.move_to_ee_pose(robot.get_ee_pose()[0])
     output_episode_stats("Cartesian PD", robot_states)

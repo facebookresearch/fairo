@@ -11,7 +11,7 @@ from utils import check_episode_log
 
 
 def test_new_joint_pos(robot, joint_pos_desired):
-    joint_pos = robot.get_joint_angles()
+    joint_pos = robot.get_joint_positions()
     print(f"Desired joint positions: {joint_pos_desired}")
     print(f"New joint positions: {joint_pos}")
     assert torch.allclose(joint_pos, joint_pos_desired, atol=0.01)
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     time.sleep(0.5)
 
     # Get joint positions
-    joint_pos = robot.get_joint_angles()
+    joint_pos = robot.get_joint_positions()
     print(f"Initial joint positions: {joint_pos}")
 
     # Go to joint positions

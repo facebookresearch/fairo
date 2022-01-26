@@ -12,7 +12,7 @@ from utils import check_episode_log
 
 
 def test_new_ee_pose(robot, ee_pos_desired, ee_quat_desired):
-    ee_pos, ee_quat = robot.pose_ee()
+    ee_pos, ee_quat = robot.get_ee_pose()
     print(f"Desired ee pose: pos={ee_pos_desired}, quat={ee_quat_desired}")
     print(f"New ee pose: pos={ee_pos}, quat={ee_quat}")
 
@@ -34,8 +34,7 @@ if __name__ == "__main__":
     time.sleep(0.5)
 
     # Get joint positions
-    joint_pos = robot.get_joint_angles()
-    ee_pos, ee_quat = robot.pose_ee()
+    ee_pos, ee_quat = robot.get_ee_pose()
     print(f"Initial ee pose: pos={ee_pos}, quat={ee_quat}")
 
     # Go to ee_pose
