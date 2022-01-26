@@ -83,12 +83,14 @@ function loadScene(scene, idx) {
     scene.inst_seg_tags.forEach(tag => {
         // For each mask block location, find the corresponding block in the block list and set the color to a unique value
         tag.locs.forEach((loc) => {
-            let match_block_idx = scene.blocks.findIndex((block) => block[0] == loc[0] && block[1] == loc[1] && block[2] == loc[2] && block[3] != 46);
-            if (tag.tags[0] != "hole") scene.blocks[match_block_idx][3] = color_idx;
-            else scene.blocks[match_block_idx][3] = color_idx + 20;  // Holes need their own number so they don't get texture later
+            let match_block_idx = scene.blocks.findIndex((block) => block[0] == loc[0] && block[1] == loc[1] && block[2] == loc[2] && block[3] != 46 && block[3] != 0);
+            if (match_block_idx != -1) scene.blocks[match_block_idx][3] = color_idx;
+            // Holes need their own number so they don't get texture later
+            match_block_idx = scene.blocks.findIndex((block) => block[0] == loc[0] && block[1] == loc[1] && block[2] == loc[2] && block[3] == 0);
+            if (match_block_idx != -1) scene.blocks[match_block_idx][3] = color_idx + 20;
             // Get rid of any ground blocks that overlap with tags while we're at it
             match_block_idx = scene.blocks.findIndex((block) => block[0] == loc[0] && block[1] == loc[1] && block[2] == loc[2] && block[3] == 46);
-            if (match_block_idx != -1) scene.blocks[match_block_idx][3] = 0;
+            if (match_block_idx != -1) scene.blocks.splice(match_block_idx, 1);
         });
         let obj = {msg: {idx: idx, label: tag, color: BLOCK_MAP[color_idx++]}};
         window.parent.postMessage(JSON.stringify(obj), "*");
