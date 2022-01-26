@@ -307,7 +307,7 @@ class RobotInterface(BaseRobotInterface):
     """
 
     def set_home_pose(self, home_pose: torch.Tensor):
-        """Sets the home pose for `goto_home_pose()` to use."""
+        """Sets the home pose for `go_home()` to use."""
         self.home_pose = home_pose
 
     def set_robot_model(self, robot_description_path: str, ee_link_name: str):
@@ -398,7 +398,7 @@ class RobotInterface(BaseRobotInterface):
         desired_positions = self.get_joint_positions() + torch.Tensor(delta_positions)
         return self.goto_joint_positions(desired_positions, *args, **kwargs)
 
-    def goto_home_pose(self, *args, **kwargs) -> List[RobotState]:
+    def go_home(self, *args, **kwargs) -> List[RobotState]:
         """Calls goto_joint_positions to the current home positions."""
         assert (
             self.home_pose is not None
@@ -488,10 +488,7 @@ class RobotInterface(BaseRobotInterface):
         return self.goto_joint_positions(*args, **kwargs)
 
     def move_joint_positions(self, *args, **kwargs):
-        return self.goto_joint_positions(*args, **kwargs)
-
-    def go_home(self, *args, **kwargs):
-        return self.goto_home_pose(*args, **kwargs)
+        return self.goto_joint_positions_delta(*args, **kwargs)
 
     def set_ee_pose(self, *args, **kwargs):
         return self.goto_ee_pose(*args, **kwargs)

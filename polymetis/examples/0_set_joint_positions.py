@@ -17,16 +17,16 @@ if __name__ == "__main__":
     robot.go_home()
 
     # Get joint positions
-    joint_pos = robot.get_joint_angles()
+    joint_pos = robot.get_joint_positions()
     print(f"Current joint positions: {joint_pos}")
 
     # Command robot to pose (move 4th and 6th joint)
-    # note: can also be done with robot.move_joint_positions
+    # note: can also be done with robot.set_joint_positions_delta
     delta_joint_pos_desired = torch.Tensor([0.0, 0.0, 0.0, 0.5, 0.0, -0.5, 0.0])
     joint_pos_desired = joint_pos + delta_joint_pos_desired
     print(f"\nMoving joints to: {joint_pos_desired} ...\n")
-    state_log = robot.set_joint_positions(joint_pos_desired, time_to_go=2.0)
+    state_log = robot.goto_joint_positions(joint_pos_desired, time_to_go=2.0)
 
     # Get updated joint positions
-    joint_pos = robot.get_joint_angles()
+    joint_pos = robot.get_joint_positions()
     print(f"New joint positions: {joint_pos}")
