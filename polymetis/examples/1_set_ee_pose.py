@@ -21,11 +21,11 @@ if __name__ == "__main__":
     print(f"Current ee position: {ee_pos}")
     print(f"Current ee orientation: {ee_quat}  (xyzw)")
 
-    # Command robot to ee pose (move ee downwards)
-    delta_ee_pos_desired = torch.Tensor([0.0, 0.0, -0.1])
-    print(f"\nMoving ee pos by: {ee_pos_desired} ...\n")
+    # Command robot to ee xyz position
+    ee_pos_desired = torch.Tensor([0.5, 0.0, 0.4])
+    print(f"\nMoving ee pos to: {ee_pos_desired} ...\n")
     state_log = robot.move_to_ee_pose(
-        position=ee_pos_desired, orientation=None, delta=True, time_to_go=2.0
+        position=ee_pos_desired, orientation=None, time_to_go=2.0
     )
 
     # Get updated ee pose

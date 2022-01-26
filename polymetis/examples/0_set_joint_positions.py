@@ -17,15 +17,15 @@ if __name__ == "__main__":
     robot.go_home()
 
     # Get joint positions
-    joint_pos = robot.get_joint_positions()
+    joint_positions = robot.get_joint_positions()
     print(f"Current joint positions: {joint_pos}")
 
     # Command robot to pose (move 4th and 6th joint)
-    delta_joint_pos_desired = torch.Tensor([0.0, 0.0, 0.0, 0.5, 0.0, -0.5, 0.0])
-    print(f"\nMoving joints by: {delta_ee_pos_desired} ...\n")
-    state_log = robot.move_to_joint_positions(
-        joint_pos_desired, time_to_go=2.0, delta=True
+    joint_positions_desired = torch.Tensor(
+        [-0.14, -0.02, -0.05, -1.57, 0.05, 1.50, -0.91]
     )
+    print(f"\nMoving joints to: {joint_positions_desired} ...\n")
+    state_log = robot.move_to_joint_positions(joint_positions_desired, time_to_go=2.0)
 
     # Get updated joint positions
     joint_pos = robot.get_joint_positions()

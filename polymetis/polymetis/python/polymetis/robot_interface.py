@@ -451,7 +451,7 @@ class RobotInterface(BaseRobotInterface):
             rotation=R.from_quat(ee_quat_current), translation=ee_pos_current
         )
         ee_pose_desired = T.from_rot_xyz(
-            rotation=R.from_quat(orientation), translation=position
+            rotation=R.from_quat(ee_quat_desired), translation=ee_pos_desired
         )
         waypoints = toco.planning.generate_cartesian_space_min_jerk(
             start=ee_pose_current,
