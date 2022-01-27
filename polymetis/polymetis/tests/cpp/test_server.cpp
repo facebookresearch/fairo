@@ -183,7 +183,7 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   if (argc != 2) {
-    std::cout << "Usage: ./test_server /path/to/cfg.yaml" << std::endl;
+    spdlog::error("Usage: ./test_server /path/to/cfg.yaml");
     return 1;
   }
   YAML::Node config = YAML::LoadFile(argv[1]);

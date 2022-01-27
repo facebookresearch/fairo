@@ -53,7 +53,7 @@ if __name__ == "__main__":
     robot.go_home()
 
     # Create policy instance
-    q_initial = robot.get_joint_angles()
+    q_initial = robot.get_joint_positions()
     default_kq = torch.Tensor(robot.metadata.default_Kq)
     default_kqd = torch.Tensor(robot.metadata.default_Kqd)
     policy = MyPDPolicy(

@@ -3,7 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-#include <iostream>
+#include "spdlog/spdlog.h"
 #include <string>
 
 #include "pinocchio/algorithm/frames.hpp"
@@ -135,8 +135,7 @@ void inverse_kinematics(State *state, const Eigen::Vector3d &ee_pos_,
 
     // Check termination
     if (err.norm() < eps) {
-      std::cout << "Ending IK at " << i + 1 << "/" << max_iters << " iteration."
-                << std::endl;
+      spdlog::info("Ending IK at {}/{} iteration.", i + 1, max_iters);
       break;
     }
 
@@ -152,7 +151,7 @@ void inverse_kinematics(State *state, const Eigen::Vector3d &ee_pos_,
   }
 
   if (err.norm() >= eps) {
-    std::cerr << "WARNING: IK did not converge!" << std::endl;
+    spdlog::warn("WARNING: IK did not converge!");
   }
 }
 

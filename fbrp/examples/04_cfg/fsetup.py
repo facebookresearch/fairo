@@ -3,7 +3,7 @@ import fbrp
 fbrp.process(
     name="proc",
     runtime=fbrp.Conda(
-        dependencies=["python>=3.7", {"pip": ["alephzero"]}],
+        yaml="env.yml",
         run_command=["python3", "proc.py"],
     ),
     cfg={

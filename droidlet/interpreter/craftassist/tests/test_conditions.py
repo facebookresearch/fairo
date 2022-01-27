@@ -7,7 +7,7 @@ import numpy as np
 from droidlet.interpreter.tests.all_test_commands import *
 from droidlet.shared_data_structs import TICKS_PER_SEC
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
-from agents.craftassist.tests.fake_mobs import LoopMob, make_mob_opts
+from droidlet.lowlevel.minecraft.pyworld.fake_mobs import LoopMob, make_mob_opts
 
 
 def add_sequence_mob(test, mobname, sequence):
@@ -122,12 +122,13 @@ class FollowUntilTest(BaseCraftassistTestCase):
 #            abs(self.agent.pos[0] - cow.pos[0]) + abs(self.agent.pos[2] - cow.pos[2]), 1.01
 #        )
 
+
 class DigRemoveConditionTest(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
 
     def test_dig_n_times(self):
-        s  = deepcopy(STOP_CONDITION_COMMANDS["dig a hole 2 times"])
+        s = deepcopy(STOP_CONDITION_COMMANDS["dig a hole 2 times"])
         changes = self.handle_logical_form(s)
 
 
