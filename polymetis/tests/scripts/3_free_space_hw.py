@@ -40,7 +40,7 @@ def main(argv):
     time.sleep(0.5)
 
     # Get reference state
-    pos0, quat0 = robot.pose_ee()
+    pos0, quat0 = robot.get_ee_pose()
 
     # Setup sampling
     pos_range_upper = torch.Tensor(POS_RANGE_UPPER)
@@ -63,7 +63,7 @@ def main(argv):
             print(
                 f"Moving to random pose ({i + 1}): pos={pos_sampled}, quat={ori_sampled.as_quat()}"
             )
-            state_log = robot.set_ee_pose(
+            state_log = robot.move_to_ee_pose(
                 position=pos_sampled,
                 orientation=ori_sampled.as_quat(),
             )

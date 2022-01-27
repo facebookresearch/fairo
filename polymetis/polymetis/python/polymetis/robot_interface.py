@@ -321,7 +321,7 @@ class RobotInterface(BaseRobotInterface):
     Getter methods
     """
 
-    def get_joint_angles(self) -> torch.Tensor:
+    def get_joint_positions(self) -> torch.Tensor:
         return torch.Tensor(self.get_robot_state().joint_positions)
 
     def get_joint_velocities(self) -> torch.Tensor:
@@ -331,14 +331,14 @@ class RobotInterface(BaseRobotInterface):
     End-effector computation methods
     """
 
-    def pose_ee(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_ee_pose(self) -> Tuple[torch.Tensor, torch.Tensor]:
         """Computes forward kinematics on the current joint angles.
 
         Returns:
             torch.Tensor: 3D end-effector position
             torch.Tensor: 4D end-effector orientation as quaternion
         """
-        joint_pos = self.get_joint_angles()
+        joint_pos = self.get_joint_positions()
         pos, quat = self.robot_model.forward_kinematics(joint_pos)
         return pos, quat
 
@@ -349,10 +349,11 @@ class RobotInterface(BaseRobotInterface):
     Movement methods
     """
 
-    def set_joint_positions(
+    def move_to_joint_positions(
         self,
-        desired_positions: torch.Tensor,
+        positions: torch.Tensor,
         time_to_go: float = None,
+        delta: bool = False,
         Kq: torch.Tensor = None,
         Kqd: torch.Tensor = None,
         **kwargs,
@@ -370,11 +371,15 @@ class RobotInterface(BaseRobotInterface):
         if Kqd is None:
             Kqd = self.Kqd_default
 
+        joint_pos_desired = torch.Tensor(positions)
+        if delta:
+            joint_pos_desired += self.get_joint_positions()
+
         # Plan trajectory
-        joint_pos_current = self.get_joint_angles()
+        joint_pos_current = self.get_joint_positions()
         waypoints = toco.planning.generate_joint_space_min_jerk(
             start=joint_pos_current,
-            goal=desired_positions,
+            goal=joint_pos_desired,
             time_to_go=time_to_go,
             hz=self.hz,
         )
@@ -391,27 +396,21 @@ class RobotInterface(BaseRobotInterface):
 
         return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
 
-    def move_joint_positions(
-        self, delta_positions, *args, **kwargs
-    ) -> List[RobotState]:
-        """Calls set_joint_positions by adding delta_positions to the curent positions."""
-        desired_positions = self.get_joint_angles() + torch.Tensor(delta_positions)
-        return self.set_joint_positions(desired_positions, *args, **kwargs)
-
     def go_home(self, *args, **kwargs) -> List[RobotState]:
-        """Calls set_joint_positions to the current home positions."""
+        """Calls move_to_joint_positions to the current home positions."""
         assert (
             self.home_pose is not None
         ), "Home pose not assigned! Call 'set_home_pose(<joint_angles>)' to enable homing"
-        return self.set_joint_positions(
-            desired_positions=self.home_pose, *args, **kwargs
+        return self.move_to_joint_positions(
+            positions=self.home_pose, delta=False, *args, **kwargs
         )
 
-    def set_ee_pose(
+    def move_to_ee_pose(
         self,
         position: torch.Tensor,
         orientation: torch.Tensor = None,
         time_to_go: float = None,
+        delta: bool = False,
         Kx: torch.Tensor = None,
         Kxd: torch.Tensor = None,
         **kwargs,
@@ -421,7 +420,7 @@ class RobotInterface(BaseRobotInterface):
             self.robot_model is not None
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
 
-        ee_pos_current, ee_quat_current = self.pose_ee()
+        ee_pos_current, ee_quat_current = self.get_ee_pose()
 
         # Parse parameters
         if time_to_go is None:
@@ -430,15 +429,29 @@ class RobotInterface(BaseRobotInterface):
             Kx = self.Kx_default
         if Kxd is None:
             Kxd = self.Kxd_default
+
+        ee_pos_desired = torch.Tensor(position)
+        if delta:
+            ee_pos_desired += ee_pos_current
+
         if orientation is None:
-            orientation = ee_quat_current
+            ee_quat_desired = ee_quat_current
+        else:
+            assert (
+                len(orientation) == 4
+            ), "Only quaternions are accepted as orientation inputs."
+            ee_quat_desired = torch.Tensor(orientation)
+            if delta:
+                ee_quat_desired = (
+                    R.from_quat(ee_quat_desired) * R.from_quat(ee_quat_current)
+                ).as_quat()
 
         # Plan trajectory
         ee_pose_current = T.from_rot_xyz(
             rotation=R.from_quat(ee_quat_current), translation=ee_pos_current
         )
         ee_pose_desired = T.from_rot_xyz(
-            rotation=R.from_quat(orientation), translation=position
+            rotation=R.from_quat(ee_quat_desired), translation=ee_pos_desired
         )
         waypoints = toco.planning.generate_cartesian_space_min_jerk(
             start=ee_pose_current,
@@ -459,17 +472,70 @@ class RobotInterface(BaseRobotInterface):
 
         return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
 
+    """
+    PyRobot backward compatibility methods
+    """
+
+    def get_joint_angles(self) -> torch.Tensor:
+        """Functionally identical to `get_joint_positions`.
+        **This method is being deprecated in favor of `get_joint_positions`.**
+        """
+        logging.warning(
+            "The method 'get_joint_angles' is deprecated, use 'get_joint_positions' instead."
+        )
+        return self.get_joint_positions()
+
+    def pose_ee(self) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Functionally identical to `get_ee_pose`.
+        **This method is being deprecated in favor of `get_ee_pose`.**
+        """
+        logging.warning(
+            "The method 'pose_ee' is deprecated, use 'get_ee_pose' instead."
+        )
+        return self.get_ee_pose()
+
+    def set_joint_positions(
+        self, desired_positions, *args, **kwargs
+    ) -> List[RobotState]:
+        """Functionally identical to `move_to_joint_positions`.
+        **This method is being deprecated in favor of `move_to_joint_positions`.**
+        """
+        logging.warning(
+            "The method 'set_joint_positions' is deprecated, use 'move_to_joint_positions' instead."
+        )
+        return self.move_to_joint_positions(
+            positions=desired_positions, *args, **kwargs
+        )
+
+    def move_joint_positions(
+        self, delta_positions, *args, **kwargs
+    ) -> List[RobotState]:
+        """Functionally identical to calling `move_to_joint_positions` with the argument `delta=True`.
+        **This method is being deprecated in favor of `move_to_joint_positions`.**
+        """
+        logging.warning(
+            "The method 'set_joint_positions' is deprecated, use 'move_to_joint_positions' with 'delta=True' instead."
+        )
+        return self.move_to_joint_positions(
+            positions=delta_positions, delta=True, *args, **kwargs
+        )
+
+    def set_ee_pose(self, *args, **kwargs) -> List[RobotState]:
+        """Functionally identical to `move_to_ee_pose`.
+        **This method is being deprecated in favor of `move_to_ee_pose`.**
+        """
+        logging.warning(
+            "The method 'set_ee_pose' is deprecated, use 'move_to_ee_pose' instead."
+        )
+        return self.move_to_ee_pose(*args, **kwargs)
+
     def move_ee_xyz(
         self, displacement: torch.Tensor, use_orient: bool = True, **kwargs
     ) -> List[RobotState]:
-        """Moves to a desired end-effector position by adding `displacement` to the current end effector position.
-
-        Args:
-            displacement: 3D delta end-effector position.
-            use_orient: Use the current end-effector orientation as the desired orientation.
+        """Functionally identical to calling `move_to_ee_pose` with the argument `delta=True`.
+        **This method is being deprecated in favor of `move_to_ee_pose`.**
         """
-        ee_pos, ee_orient = self.pose_ee()
-        if not use_orient:
-            ee_orient = None
-        target_ee_pos = ee_pos + torch.Tensor(displacement)
-        return self.set_ee_pose(target_ee_pos, ee_orient, **kwargs)
+        logging.warning(
+            "The method 'move_ee_xyz' is deprecated, use 'move_to_ee_pose' with 'delta=True' instead."
+        )
+        return self.move_to_ee_pose(position=displacement, delta=True, **kwargs)
