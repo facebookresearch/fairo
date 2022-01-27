@@ -482,6 +482,10 @@ class RobotInterface(BaseRobotInterface):
     """
 
     def start_joint_impedance(self, Kq=None, Kqd=None, **kwargs):
+        """Starts joint position control mode.
+        Runs an non-blocking joint impedance controller.
+        The desired joint positions can be updated using `update_desired_joint_positions`
+        """
         self._mode = self.ControlMode.JOINT_IMP
 
         torch_policy = toco.policies.JointImpedanceControl(
@@ -495,6 +499,10 @@ class RobotInterface(BaseRobotInterface):
         return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
 
     def start_cartesian_impedance(self, Kx=None, Kxd=None, **kwargs):
+        """Starts Cartesian position control mode.
+        Runs an non-blocking Cartesian impedance controller.
+        The desired EE pose can be updated using `update_desired_ee_pose`
+        """
         self._mode = self.ControlMode.CARTESIAN_IMP
 
         torch_policy = toco.policies.CartesianImpedanceControl(
@@ -508,6 +516,9 @@ class RobotInterface(BaseRobotInterface):
         return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
 
     def update_desired_joint_positions(self, positions: torch.Tensor):
+        """Update the desired joint positions used by the joint position control mode.
+        Requires starting a joint impedance controller with `start_joint_impedance` beforehand.
+        """
         if self._mode != self.ControlMode.JOINT_IMP:
             log.warning(
                 "No joint impedance controller running, use 'start_joint_impedance' to start one."
@@ -523,6 +534,9 @@ class RobotInterface(BaseRobotInterface):
         position: torch.Tensor = None,
         orientation: torch.Tensor = None,
     ):
+        """Update the desired EE pose used by the Cartesian position control mode.
+        Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
+        """
         if self._mode != self.ControlMode.CARTESIAN_IMP:
             log.warning(
                 "No cartesian impedance controller running, use 'start_cartesian_impedance' to start one."
@@ -538,6 +552,7 @@ class RobotInterface(BaseRobotInterface):
         return self.update_current_policy(param_dict)
 
     def terminate_impedance_controller(self):
+        """Terminates the current position control mode."""
         if self._mode == self.ControlMode.NORMAL:
             log.warning("No impedance controller to terminate.")
             return
