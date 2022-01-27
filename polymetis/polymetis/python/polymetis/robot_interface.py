@@ -381,13 +381,6 @@ class RobotInterface(BaseRobotInterface):
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
 
         # Parse parameters
-        if time_to_go is None:
-            time_to_go = self.time_to_go_default
-        if Kq is None:
-            Kq = self.Kq_default
-        if Kqd is None:
-            Kqd = self.Kqd_default
-
         joint_pos_desired = torch.Tensor(positions)
         if delta:
             joint_pos_desired += self.get_joint_positions()
@@ -397,7 +390,7 @@ class RobotInterface(BaseRobotInterface):
         waypoints = toco.planning.generate_joint_space_min_jerk(
             start=joint_pos_current,
             goal=joint_pos_desired,
-            time_to_go=time_to_go,
+            time_to_go=time_to_go or self.time_to_go_default,
             hz=self.hz,
         )
 
@@ -405,8 +398,8 @@ class RobotInterface(BaseRobotInterface):
         torch_policy = toco.policies.JointTrajectoryExecutor(
             joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
             joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
-            Kp=Kq,
-            Kd=Kqd,
+            Kp=Kq or self.Kq_default,
+            Kd=Kqd or self.Kqd_default,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
@@ -442,13 +435,6 @@ class RobotInterface(BaseRobotInterface):
         ee_pos_current, ee_quat_current = self.get_ee_pose()
 
         # Parse parameters
-        if time_to_go is None:
-            time_to_go = self.time_to_go_default
-        if Kx is None:
-            Kx = self.Kx_default
-        if Kxd is None:
-            Kxd = self.Kxd_default
-
         ee_pos_desired = torch.Tensor(position)
         if delta:
             ee_pos_desired += ee_pos_current
@@ -475,7 +461,7 @@ class RobotInterface(BaseRobotInterface):
         waypoints = toco.planning.generate_cartesian_space_min_jerk(
             start=ee_pose_current,
             goal=ee_pose_desired,
-            time_to_go=time_to_go,
+            time_to_go=time_to_go or self.time_to_go_default,
             hz=self.hz,
         )
 
@@ -483,8 +469,8 @@ class RobotInterface(BaseRobotInterface):
         torch_policy = toco.policies.EndEffectorTrajectoryExecutor(
             ee_pose_trajectory=[waypoint["pose"] for waypoint in waypoints],
             ee_twist_trajectory=[waypoint["twist"] for waypoint in waypoints],
-            Kp=Kx,
-            Kd=Kxd,
+            Kp=Kx or self.Kx_default,
+            Kd=Kxd or self.Kxd_default,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
