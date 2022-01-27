@@ -245,7 +245,7 @@ class BaseRobotInterface:
         return update_interval.start - episode_interval.start
 
     def terminate_current_policy(
-        self, return_log: LogInterval = True, timeout: float = None
+        self, return_log: bool = True, timeout: float = None
     ) -> List[RobotState]:
         """Terminates the currently running policy and (optionally) return its trajectory.
 
