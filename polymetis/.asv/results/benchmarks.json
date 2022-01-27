@@ -46,14 +46,14 @@
         "warmup_time": -1
     },
     "benchmark_robustness.track_num_successes_per_100": {
-        "code": "def track_num_successes_per_100():\n    iters = 2\n    robot_kwargs = {}\n    gripper_kwargs = {}\n    robot = ManipulatorSystem(robot_kwargs, gripper_kwargs)\n    total_successes, total_tries = robot.continuously_grasp(iters)\n    return total_successes",
+        "code": "def track_num_successes_per_100():\n    iters = 100\n    robot_kwargs = {}\n    gripper_kwargs = {}\n    robot = ManipulatorSystem(robot_kwargs, gripper_kwargs)\n    total_successes, total_tries = robot.continuously_grasp(iters)\n    return total_successes",
         "name": "benchmark_robustness.track_num_successes_per_100",
         "param_names": [],
         "params": [],
         "timeout": 60.0,
         "type": "track",
         "unit": "num_successes",
-        "version": "f42b94b0b0fb29bfa5ee7708730f838c5b6177208e47870e280561c67cca821a"
+        "version": "a79d70954ee43c919fb62cc5191512b3ee3f67d9e1d9b9509c725b21d9bd650c"
     },
     "version": 2
 }
