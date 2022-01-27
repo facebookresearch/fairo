@@ -3,12 +3,13 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 import io
-from typing import Dict, Generator, List, Tuple
+from typing import Dict, Generator, List, Tuple, Optional
 import time
 import tempfile
 import threading
 import atexit
 import logging
+from enum import Enum
 
 import grpc  # This requires `conda install grpcio protobuf`
 import torch
@@ -277,6 +278,19 @@ class RobotInterface(BaseRobotInterface):
 
     """
 
+    # Enums and decorators for identifying joint pd and cartesian pd control modes
+    class ControlMode(Enum):
+        NORMAL = 1
+        JOINT_IMP = 2
+        CARTESIAN_IMP = 3
+
+    def policymethod(function):
+        def wrapper(self, *args, **kwargs):
+            self._mode = ControlMode.NORMAL
+            return function(self, *args, **kwargs)
+
+        return wrapper
+
     def __init__(
         self,
         time_to_go_default: float = 4.0,
@@ -301,6 +315,8 @@ class RobotInterface(BaseRobotInterface):
         self.time_to_go_default = time_to_go_default
 
         self.use_grav_comp = use_grav_comp
+
+        self._mode = ControlMode.IDLE
 
     """
     Setter methods
@@ -349,6 +365,7 @@ class RobotInterface(BaseRobotInterface):
     Movement methods
     """
 
+    @policymethod
     def move_to_joint_positions(
         self,
         positions: torch.Tensor,
@@ -396,6 +413,7 @@ class RobotInterface(BaseRobotInterface):
 
         return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
 
+    @policymethod
     def go_home(self, *args, **kwargs) -> List[RobotState]:
         """Calls move_to_joint_positions to the current home positions."""
         assert (
@@ -405,6 +423,7 @@ class RobotInterface(BaseRobotInterface):
             positions=self.home_pose, delta=False, *args, **kwargs
         )
 
+    @policymethod
     def move_to_ee_pose(
         self,
         position: torch.Tensor,
@@ -471,6 +490,74 @@ class RobotInterface(BaseRobotInterface):
         )
 
         return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
+
+    """
+    Continuous control methods
+    """
+
+    def start_joint_impedance(self, Kq, Kqd, **kwargs):
+        self._mode = ControlMode.JOINT_IMP
+
+        torch_policy = toco.policies.JointImpedanceControl(
+            joint_pos_current=self.get_joint_positions(),
+            Kp=Kq,
+            Kd=Kqd,
+            robot_model=self.robot_model,
+            ignore_gravity=self.use_grav_comp,
+        )
+
+        return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
+
+    def start_cartesian_impedance(self, Kx, Kxd, **kwargs):
+        self._mode = ControlMode.CARTESIAN_IMP
+
+        torch_policy = toco.policies.CartesianImpedanceControl(
+            joint_pos_current=self.get_joint_positions(),
+            Kp=Kx,
+            Kd=Kxd,
+            robot_model=self.robot_model,
+            ignore_gravity=self.use_grav_comp,
+        )
+
+        return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
+
+    def update_desired_joint_positions(self, positions: torch.Tensor):
+        if self._mode != ControlMode.JOINT_IMP:
+            log.warning(
+                "No joint impedance controller running, use 'start_joint_impedance' to start one."
+            )
+            return
+
+        param_dict = {"joint_pos_desired": positions}
+
+        return self.update_current_policy(param_dict)
+
+    def update_desired_ee_pose(
+        self,
+        position: Optional[torch.Tensor] = None,
+        orientation: Optional[torch.Tensor] = None,
+    ):
+        if self._mode != ControlMode.JOINT_IMP:
+            log.warning(
+                "No cartesian impedance controller running, use 'start_cartesian_impedance' to start one."
+            )
+            return
+
+        param_dict = {}
+        if position is not None:
+            param_dict["ee_pos_desired"] = position
+        if orientation is not None:
+            param_dict["ee_quat_desired"] = orientation
+
+        return self.update_current_policy(param_dict)
+
+    def terminate_impedance_controller(self):
+        assert (
+            self._mode == ControlMode.JOINT_IMP
+            or self._mode == ControlMode.CARTESIAN_IMP
+        ), "No impedance controller to terminate."
+        self._mode = ControlMode.NORMAL
+        return self.terminate_current_policy()
 
     """
     PyRobot backward compatibility methods
