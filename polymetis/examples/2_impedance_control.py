@@ -20,6 +20,7 @@ if __name__ == "__main__":
     # Joint impedance control
     joint_positions = robot.get_joint_positions()
 
+    print("Performing joint impedance control...")
     robot.start_joint_impedance()
 
     for i in range(20):
@@ -30,6 +31,7 @@ if __name__ == "__main__":
     robot.terminate_impedance_controller()
 
     # Cartesian impedance control
+    print("Performing Cartesian impedance control...")
     ee_pos, ee_quat = robot.get_ee_pose()
 
     robot.start_cartesian_impedance()
