@@ -477,14 +477,32 @@ class RobotInterface(BaseRobotInterface):
     """
 
     def get_joint_angles(self) -> torch.Tensor:
+        """Functionally identical to `get_joint_positions`.
+        **This method is being deprecated in favor of `get_joint_positions`.**
+        """
+        logging.warning(
+            "The method 'get_joint_angles' is deprecated, use 'get_joint_positions' instead."
+        )
         return self.get_joint_positions()
 
     def pose_ee(self) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Functionally identical to `get_ee_pose`.
+        **This method is being deprecated in favor of `get_ee_pose`.**
+        """
+        logging.warning(
+            "The method 'pose_ee' is deprecated, use 'get_ee_pose' instead."
+        )
         return self.get_ee_pose()
 
     def set_joint_positions(
         self, desired_positions, *args, **kwargs
     ) -> List[RobotState]:
+        """Functionally identical to `move_to_joint_positions`.
+        **This method is being deprecated in favor of `move_to_joint_positions`.**
+        """
+        logging.warning(
+            "The method 'set_joint_positions' is deprecated, use 'move_to_joint_positions' instead."
+        )
         return self.move_to_joint_positions(
             positions=desired_positions, *args, **kwargs
         )
@@ -492,14 +510,32 @@ class RobotInterface(BaseRobotInterface):
     def move_joint_positions(
         self, delta_positions, *args, **kwargs
     ) -> List[RobotState]:
+        """Functionally identical to calling `move_to_joint_positions` with the argument `delta=True`.
+        **This method is being deprecated in favor of `move_to_joint_positions`.**
+        """
+        logging.warning(
+            "The method 'set_joint_positions' is deprecated, use 'move_to_joint_positions' with 'delta=True' instead."
+        )
         return self.move_to_joint_positions(
             positions=delta_positions, delta=True, *args, **kwargs
         )
 
     def set_ee_pose(self, *args, **kwargs) -> List[RobotState]:
+        """Functionally identical to `move_to_ee_pose`.
+        **This method is being deprecated in favor of `move_to_ee_pose`.**
+        """
+        logging.warning(
+            "The method 'set_ee_pose' is deprecated, use 'move_to_ee_pose' instead."
+        )
         return self.move_to_ee_pose(*args, **kwargs)
 
     def move_ee_xyz(
         self, displacement: torch.Tensor, use_orient: bool = True, **kwargs
     ) -> List[RobotState]:
+        """Functionally identical to calling `move_to_ee_pose` with the argument `delta=True`.
+        **This method is being deprecated in favor of `move_to_ee_pose`.**
+        """
+        logging.warning(
+            "The method 'move_ee_xyz' is deprecated, use 'move_to_ee_pose' with 'delta=True' instead."
+        )
         return self.move_to_ee_pose(position=displacement, delta=True, **kwargs)
