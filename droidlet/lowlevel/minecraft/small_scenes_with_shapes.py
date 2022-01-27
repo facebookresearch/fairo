@@ -153,6 +153,7 @@ def build_shape_scene(args):
     J["schematic_for_cuberite"] = [
         {"x": l[0], "y": l[1], "z": l[2], "id": idm[0], "meta": idm[1]} for l, idm in blocks
     ]
+    J["offset"] = (args.cuberite_x_offset, args.cuberite_y_offset, args.cuberite_z_offset)
     return J
 
 
