@@ -338,6 +338,9 @@ class StateManager {
       if (ref instanceof Message) {
         ref.setState({ connected: status });
       }
+      if (ref instanceof InteractApp) {
+        ref.setState({ connected: status });
+      }
     });
   }
 
