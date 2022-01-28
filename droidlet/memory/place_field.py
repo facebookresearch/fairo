@@ -6,32 +6,20 @@ import numpy as np
 
 MAX_MAP_SIZE = 4097
 MAP_INIT_SIZE = 1025
-
-
-def maybe_recursive_pop(d, s):
-    """ 
-    s is a sequence of keys into the nested dict d.
-    this method pops the final value from d 
-    and if the parent is now empty, pops it, etc.
-
-    if the sequence doesn't correspond to a branch of the nested
-    dict, this does nothing
-    """
-    levels = [d]
-    for i in s:
-        v = levels[-1].get(i)
-        if v is None:
-            return
-        levels.append(v)
-    for j in range(len(s), 0, -1):
-        l = levels[j - 1]
-        if j == len(s) or len(levels[j]) == 0:
-            l.pop(s[j - 1])
+BIG_I = MAX_MAP_SIZE
+BIG_J = MAX_MAP_SIZE
 
 
 def no_y_l1(self, xyz, k):
     """ returns the l1 distance between two standard coordinates"""
     return np.linalg.norm(np.asarray([xyz[0], xyz[2]]) - np.asarray([k[0], k[2]]), ord=1)
+
+
+# TODO tighter integration with reference objects table, main memory update
+# should probably sync PlaceField maps without explicit perception updates
+# Node type for complicated-shaped obstacles that aren't "objects" e.g. walls?
+#    currently just represented as occupancy cells with no memid
+# FIXME allow multiple memids at a single location in the map
 
 
 class PlaceField:
@@ -61,7 +49,6 @@ class PlaceField:
     it is not explored, since a 'close-enough' region in space has already been explored. 
     """
 
-    # FIXME allow multiple memids at a single location in the map
     def __init__(self, memory, pixels_per_unit=1):
         self.get_time = memory.get_time
 
@@ -73,8 +60,8 @@ class PlaceField:
         self.last = None
 
         self.maps = {}
-        self.add_memid("NULL")
-        self.add_memid(memory.self_memid)
+        self.maybe_add_memid("NULL")
+        self.maybe_add_memid(memory.self_memid)
         # FIXME, want slices, esp for mc... init after first perception
         # with h=y2slice(y) instead of using 0
         self.map_size = self.extend_map(h=0)
@@ -82,22 +69,42 @@ class PlaceField:
         self.pixels_per_unit = pixels_per_unit
 
         # gives an index allowing quick lookup by memid
-        # each entry is keyed by a memid and has nested {h: {i: {j1:True, j2:True, ...}}}
-        # dicts as values
+        # each entry is keyed by a memid and is a dict
+        # {str(h*BIG_I*BIG_J + i*BIG_J + j) : True}
+        # for each placed h, i ,j
         self.memid2locs = {}
+
+    def ijh2idx(self, i, j, h):
+        return str(h * BIG_I * BIG_J + i * BIG_J + j)
+
+    def idx2ijh(self, idx):
+        idx = int(idx)
+        j = idx % BIG_J
+        idx = (idx - j) // BIG_J
+        i = idx % BIG_I
+        h = (idx - i) // BIG_I
+        return i, j, h
+
+    def pop_memid_loc(self, memid, i, j, h):
+        idx = self.hij2idx(h, i, j)
+        del self.memid2locs[memid][idx]
 
     def maybe_delete_loc(self, i, j, h, t, memid="NULL"):
         """
         remove a loc from the maps and from memid2loc index.
         if memid is set, only removes the loc if the memid matches
         """
-        current_memid = self.index2memid.get(self.maps[h]["memids"][i, j], "NULL")
+        current_memid = self.index2memid[int(self.maps[h]["memids"][i, j])]
         if memid == "NULL" or current_memid == memid:
             self.maps[h]["memids"][i, j] = self.memid2index["NULL"]
             self.maps[h]["map"][i, j] = 0
             self.maps[h]["updated"][i, j] = t
-            if current_memid != "NULL":
-                maybe_recursive_pop(self.memid2locs, [current_memid, h, i, j])
+            idx = self.ijh2idx(i, j, h)
+            # maybe error/warn if its not there?
+            if self.memid2locs.get(memid):
+                self.memid2locs[memid].pop(idx, None)
+                if len(self.memid2locs[memid]) == 0:
+                    self.memid2locs.pop(memid, None)
 
     def delete_loc_by_memid(self, memid, t, is_move=False):
         """
@@ -105,18 +112,20 @@ class PlaceField:
         if is_move is set, asserts that there is precisely one loc
         corresponding to the memid
         """
+        assert memid
+        assert memid != "NULL"
         count = 0
-        for h in self.memid2locs[memid]:
-            for i in self.memid2locs[memid][h]:
-                for j in self.memid2locs[memid][h][i]:
-                    self.maps[h]["memids"][i, j] = self.memid2index["NULL"]
-                    self.maps[h]["map"][i, j] = 0
-                    self.maps[h]["updated"][i, j] = t
-                    count = count + 1
-                    if is_move and count > 1:
-                        raise Exception(
-                            "tried to delete more than one pixel from the place_field by memid with is_move set"
-                        )
+        for idx in self.memid2locs[memid]:
+            i, j, h = self.idx2ijh(idx)
+            self.maps[h]["memids"][i, j] = 0
+            self.maps[h]["map"][i, j] = 0
+            self.maps[h]["updated"][i, j] = t
+            count = count + 1
+            if is_move and count > 1:
+                # eventually allow moving "large" objects
+                raise Exception(
+                    "tried to delete more than one pixel from the place_field by memid with is_move set"
+                )
         self.memid2locs.pop(memid, None)
 
     def update_map(self, changes):
@@ -172,14 +181,16 @@ class PlaceField:
                     self.maybe_delete_loc(i, j, h, t, memid=memid)
                 else:
                     if is_move:
-                        if memid != "NULL":
-                            self.delete_loc_by_memid(memid, t, is_move=True)
-
+                        assert memid != "NULL"
+                        self.delete_loc_by_memid(memid, t, is_move=True)
                     self.maps[h]["memids"][i, j] = self.memid2index.get(
-                        memid, self.add_memid(memid)
+                        memid, self.maybe_add_memid(memid)
                     )
                     self.maps[h]["map"][i, j] = c.get("is_obstacle", 1)
                     self.maps[h]["updated"][i, j] = t
+                    if not self.memid2locs.get(memid):
+                        self.memid2locs[memid] = {}
+                    self.memid2locs[memid][self.ijh2idx(i, j, h)] = True
 
     # FIXME, want slices, esp for mc
     def y2slice(self, y):
@@ -192,25 +203,31 @@ class PlaceField:
         n = self.maps[h]["map"].shape[0]
         i = x * self.pixels_per_unit
         j = z * self.pixels_per_unit
-        i = i - n // 2
-        j = j - n // 2
+        i = i + n // 2
+        j = j + n // 2
         return i, j
 
     def map2real(self, i, j, h):
         """
-        convert an x, z coordinate in agent space to a pixel on the map
+        convert an i, j pixel coordinate in the map to agent space
         """
         n = self.maps[h]["map"].shape[0]
-        i = i + n // 2
-        j = j + n // 2
+        i = i - n // 2
+        j = j - n // 2
         x = i / self.pixels_per_unit
         z = j / self.pixels_per_unit
         return x, z
 
-    def add_memid(self, memid):
-        self.index2memid.append(memid)
-        idx = len(self.index2memid)
-        self.memid2index[memid] = idx
+    def maybe_add_memid(self, memid):
+        """ 
+        adds an entry to the mapping from memids to ints to put on map.
+        these are never removed
+        """
+        idx = self.memid2index.get(memid)
+        if idx is None:
+            idx = len(self.index2memid)
+            self.index2memid.append(memid)
+            self.memid2index[memid] = idx
         return idx
 
     def extend_map(self, h=None, extension=1):
