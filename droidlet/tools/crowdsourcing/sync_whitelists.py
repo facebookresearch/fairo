@@ -47,28 +47,18 @@ def import_s3_lists(bucket: str):
     
     output_dict = copy.deepcopy(qual_dict)
     
-    for folder in output_dict.keys():
-        key = folder + "/allow.txt"
-        try:
-            with open('list.txt', 'wb') as f:
-                s3.download_fileobj(bucket, key, f)
-            logging.info(f"{folder} whitelist downloaded successfully")
-            with open('list.txt', 'r') as f:
-                output_dict[folder]["allow"] = [line.strip() for line in f.readlines()]
-        except:
-            logging.info(f"{folder} whitelist not found on S3, creating new S3 whitelist")
-            output_dict[folder]["allow"] = []
-
-        key = folder + "/block.txt"
-        try:
-            with open('list.txt', 'wb') as f:
-                s3.download_fileobj(bucket, key, f)
-            logging.info(f"{folder} blacklist downloaded successfully")
-            with open('list.txt', 'r') as f:
-                output_dict[folder]["block"] = [line.strip() for line in f.readlines()]
-        except:
-            logging.info(f"{folder} blacklist not found on S3, creating new S3 blacklist")
-            output_dict[folder]["block"] = []
+    for task in output_dict.keys():
+        for list_type in output_dict[task].keys():
+            key = f"{task}/{list_type}.txt"
+            try:
+                with open('list.txt', 'wb') as f:
+                    s3.download_fileobj(bucket, key, f)
+                logging.info(f"{task} {list_type}list downloaded successfully")
+                with open('list.txt', 'r') as f:
+                    output_dict[task][list_type] = [line.strip() for line in f.readlines()]
+            except:
+                logging.info(f"{task} {list_type}list not found on S3, creating new S3 {list_type}list")
+                output_dict[task][list_type] = []
 
     os.remove("list.txt")
     return output_dict
@@ -101,30 +91,22 @@ def add_workers_to_quals(add_list: list, qual: str):
 
 
 def pull_local_lists():
-    # Pull the allowlists and blocklists from local Mephisto DB into a formatted dict
+    # Pull the qual lists from local Mephisto DB into a formatted dict
 
     output_dict = copy.deepcopy(qual_dict)
 
     logging.info(f"Retrieving qualification lists from local Mephisto DB")
     for task in output_dict.keys():
-        # If syncing for the first time, qualifications may not yet exist
-        try:
-            logging.info(f'attempting to make qualification: {qual_dict[task]["allow"]}')
-            db.make_qualification(qual_dict[task]["allow"])
-        except:
-            logging.info(f'Qualification {qual_dict[task]["allow"]} already exists')
-            pass
-        whitelist = mephisto_data_browser.get_workers_with_qualification(qual_dict[task]["allow"])
-        output_dict[task]["allow"] = [worker.worker_name.strip("\n") for worker in whitelist]
-
-        try:
-            logging.info(f'attempting to make qualification: {qual_dict[task]["block"]}')
-            db.make_qualification(qual_dict[task]["block"])
-        except:
-            logging.info(f'Qualification {qual_dict[task]["block"]} already exists')
-            pass
-        blacklist = mephisto_data_browser.get_workers_with_qualification(qual_dict[task]["block"])
-        output_dict[task]["block"] = [worker.worker_name.strip("\n") for worker in blacklist]
+        for list_type in output_dict[task].keys():
+            # If syncing for the first time, qualifications may not yet exist
+            try:
+                logging.info(f'attempting to make qualification: {qual_dict[task][list_type]}')
+                db.make_qualification(qual_dict[task][list_type])
+            except:
+                logging.info(f'Qualification {qual_dict[task][list_type]} already exists')
+                pass
+            qual_list = mephisto_data_browser.get_workers_with_qualification(qual_dict[task][list_type])
+            output_dict[task][list_type] = [worker.worker_name.strip("\n") for worker in qual_list]
 
     return output_dict
 
