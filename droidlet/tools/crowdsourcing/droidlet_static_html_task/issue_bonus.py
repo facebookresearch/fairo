@@ -26,20 +26,21 @@ s3 = boto3.client('s3')
 def issue_bonuses(task_name: str) -> list:
     logging.info(f"Initializing bonus script for Mephisto task_name: {task_name}")
 
+    # Download the shared list of issued bonuses and pull out unique reference tuples to check against
     logging.info(f"Downloading interaction bonus records from S3...")
     with open("bonus_records.csv", "wb") as f:
         s3.download_fileobj('droidlet-hitl', 'bonus_records.csv', f)
 
     logging.info(f"Building list of already issued bonuses...")
-    issued_units = []
+    previously_issued_units = []
     with open('bonus_records.csv', newline='') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
-            issued_units.append(row[1])  # unit_id should be unique to each interaction HIT
+            previously_issued_units.append((row[0],row[1]))  # the combination of task_name and unit_id is essentially unique
 
     # Get completed units from the run_id
     logging.info(f"Retrieving units from Mephisto based on task_name...")
-    units = DataBrowser.get_units_for_task_name(task_name)
+    units = data_browser.get_units_for_task_name(task_name)
     completed_units = []
     for unit in units:
         if unit.db_status == "completed":
@@ -55,7 +56,7 @@ def issue_bonuses(task_name: str) -> list:
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         unit_id = data["unit_id"]
-        if unit_id not in issued_units:
+        if (task_name, unit_id) not in previously_issued_units:
             worker = Worker(db, data["worker_id"])
             outputs = data["data"]["outputs"]
             clean_click_string = outputs["clickedElements"].replace("'", "")
@@ -87,8 +88,7 @@ def issue_bonuses(task_name: str) -> list:
             writer = csv.writer(f)
             for record in new_bonus_records:
                 writer.writerow(record)
-        with open("bonus_records.csv", "rb") as f:
-            s3.upload_fileobj('droidlet-hitl', 'bonus_records.csv', f)
+        s3.upload_file('bonus_records.csv', 'droidlet-hitl', 'bonus_records.csv')
 
     os.remove("bonus_records.csv")
     logging.info(f"Finished issuing bonuses!")
@@ -101,4 +101,4 @@ if __name__ == "__main__":
     parser.add_argument("--task_name", type=str, help="Mephisto task name", required=True)
     args = parser.parse_args()
 
-    issue_bonuses(args.run_id)
+    issue_bonuses(args.task_name)
