@@ -205,7 +205,7 @@ class PlaceField:
         j = z * self.pixels_per_unit
         i = i + n // 2
         j = j + n // 2
-        return i, j
+        return round(i), round(j)
 
     def map2real(self, i, j, h):
         """
