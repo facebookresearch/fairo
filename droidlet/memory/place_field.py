@@ -115,7 +115,7 @@ class PlaceField:
         assert memid
         assert memid != "NULL"
         count = 0
-        for idx in self.memid2locs[memid]:
+        for idx in self.memid2locs.get(memid, []):
             i, j, h = self.idx2ijh(idx)
             self.maps[h]["memids"][i, j] = 0
             self.maps[h]["map"][i, j] = 0
