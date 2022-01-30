@@ -2,6 +2,13 @@
 
 Python 3.6+ only.
 
+## To-Fix in this ReadME
+- The first step is to give instructions for setting up environment. Currently this readme perhaps assumes that users follow what's written in parent level ReadMe first. Even if that's the expectation, the read me should ask to start with instructions from that file (by mentioning a link). 
+
+- Assuming this folder can run in a separate conda environment, tailoring instructions to run specific environment for this code would make it more complete. I am looking for something similar to instructions in https://github.com/facebookresearch/fairo/blob/main/README.md 
+
+- There is no context on what the code is for, of course, perhaps it was assumed that the user first reads the paper but either linking to or duplicating content from c++ Github repository readme https://github.com/DLR-RM/3DObjectTracking/blob/master/readme.md would be nice! 
+
 ## Model-based Approach: A Sparse Gaussian Approach to Region-Based 6DoF Object Tracking
 Manuel Stoiber, Martin Pfanne, Klaus H. Strobl, Rudolph Triebel, and Alin Albu-Schäffer  
 Best Paper Award, ACCV 2020: [paper](https://openaccess.thecvf.com/content/ACCV2020/papers/Stoiber_A_Sparse_Gaussian_Approach_to_Region-Based_6DoF_Object_Tracking_ACCV_2020_paper.pdf), [supplementary](https://openaccess.thecvf.com/content/ACCV2020/supplemental/Stoiber_A_Sparse_Gaussian_ACCV_2020_supplemental.zip)
