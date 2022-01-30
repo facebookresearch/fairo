@@ -7,7 +7,18 @@ Python 3.6+ only.
 
 - Assuming this folder can run in a separate conda environment, tailoring instructions to run specific environment for this code would make it more complete. I am looking for something similar to instructions in https://github.com/facebookresearch/fairo/blob/main/README.md 
 
-- There is no context on what the code is for, of course, perhaps it was assumed that the user first reads the paper but either linking to or duplicating content from c++ Github repository readme https://github.com/DLR-RM/3DObjectTracking/blob/master/readme.md would be nice! 
+- There is no context on what the code is for, of course, perhaps it was assumed that the user first reads the paper but either linking to or duplicating content from c++ Github repository readme https://github.com/DLR-RM/3DObjectTracking/blob/master/readme.md would be nice!
+
+- What I tried so far?
+  - I tried this on branch : yixinlin/pyrbgt
+  - After installing MiniConda on my robodev, I went into this folder (pyrbgt) and ran:
+```
+conda create -n pyrbgt
+conda activate pyrbgt
+pip install -r requirements.txt
+python3 setup.py # Is this step required?
+``` 
+  - The last step resulted in error: ModuleNotFoundError: No module named 'pybind11' (I haven't used pybind before, so there's perhaps additional steps to compile the c++ code using pybind in conda environment that I still need to figure out)
 
 ## Model-based Approach: A Sparse Gaussian Approach to Region-Based 6DoF Object Tracking
 Manuel Stoiber, Martin Pfanne, Klaus H. Strobl, Rudolph Triebel, and Alin Albu-Schäffer  
