@@ -92,7 +92,7 @@ if __name__ == "__main__":
     # multiplexing (which isn't too bad)
     Pyro4.config.SERVERTYPE = "multiplex"
     robot = RemoteFranka()
-    print("Deamen server created")
+    print("Daemon server created")
     daemon = Pyro4.Daemon.serveSimple(
         {
             robot: "remotefranka",
