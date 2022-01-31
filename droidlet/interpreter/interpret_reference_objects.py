@@ -156,7 +156,7 @@ def interpret_reference_object(
     # does a clarification task referencing this interpreter exist?
     if not clarification_task_mems:
 
-        mems = maybe_get_text_span_mems(interpeter, speaker, d)
+        mems = maybe_get_text_span_mems(interpreter, speaker, d)
         if mems:
             update_attended_and_link_lf(interpreter, mems)
             # No filter by sublocation etc if a mem matches the text_span exactly...
