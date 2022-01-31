@@ -80,6 +80,19 @@ def get_special_reference_object(interpreter, speaker, S, agent_memory=None, eid
     return mems[0]
 
 
+def maybe_get_text_span_mems(interpreter, speaker, lf):
+    """
+    get any memories that exactly match the text span of the reference object sought by the logical
+    form lf
+    """
+    query = "SELECT MEMORY FROM ReferenceObject WHERE "
+    query += "<< ?, has_description, {} >>".format(lf.get("text_span", "NULL"))
+    _, mems = interpreter.memory.basic_search(query + " ORDER BY updated DESC")
+    if len(mems) > 0:
+        mems = [mems[0]]
+    return mems
+
+
 ###########################################################################
 # FIXME!!!!! rewrite interpret_reference_object, filter_by_sublocation,
 #            ReferenceLocationInterpreter to use FILTERS cleanly
@@ -142,6 +155,13 @@ def interpret_reference_object(
     _, clarification_task_mems = interpreter.memory.basic_search(clarification_query)
     # does a clarification task referencing this interpreter exist?
     if not clarification_task_mems:
+
+        mems = maybe_get_text_span_mems(interpeter, speaker, d)
+        if mems:
+            update_attended_and_link_lf(interpreter, mems)
+            # No filter by sublocation etc if a mem matches the text_span exactly...
+            return mems
+
         if any(extra_tags):
             extra_clauses = []
             for tag in extra_tags:
@@ -232,7 +252,7 @@ def filter_by_sublocation(
     filters_d = d.get("filters")
     assert filters_d is not None, "no filters: {}".format(d)
     default_loc = getattr(interpreter, "default_loc", SPEAKERLOOK)
-    location = filters_d.get("location", default_loc)
+    location = filters_d.get("selector", {}).get("location", default_loc)
     reldir = location.get("relative_direction")
     distance_sorted = False
     location_filtered_candidates = []

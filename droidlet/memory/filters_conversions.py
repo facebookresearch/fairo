@@ -1,5 +1,6 @@
 from copy import deepcopy
 import json
+import uuid
 
 FILTERS_KW = ["SELECT", "FROM", "WHERE", "ORDER BY", "LIMIT", "SAME", "CONTAINS_COREFERENCE"]
 LIMITS = {"FIRST": "1", "SECOND": "2", "THIRD": "3"}
@@ -441,11 +442,19 @@ def triple_str_to_dict(clause):
     << #dd2ca5a4c5204fc09c71279f8956a2b1, parent_of, ? >>  -->
           {"pred_text": "parent_of", "subj": "dd2ca5a4c5204fc09c71279f8956a2b1"}
 
+    commmas in obj text or subj text need to be escaped with \
+    "find me a record whose name is bob, the sailor":
+    << ?, has_name, bob >> --> {"pred_text": "has_name", "obj_text": "bob\, the sailor"}
+
     TODO:
     This does not currently handle nested queries.
     This does not currently handle multiple "?"
+    moar escapes?
     """
+    comma = uuid.uuid4().hex
+    clause = clause.replace("\,", comma)
     terms = remove_enclosing_symbol(clause, ("<<", ">>")).split(",")
+    terms = [t.replace(comma, ",") for t in terms]
     terms = [t.strip() for t in terms]
     assert terms[1] and terms[1] != "?"
     out = {"pred_text": terms[1]}
