@@ -6,7 +6,7 @@ from .tracker import ObjectTracking
 from .core import WorldObject
 from droidlet.shared_data_structs import RGBDepth
 from .deduplicator import ObjectDeduplicator
-from .label_propagate import LabelPropagate
+from .label_propagate import LabelPropagate, convert_depth_to_pcd, compute_uvone
 
 __all__ = [
     ObjectDetection,
@@ -21,4 +21,6 @@ __all__ = [
     Detection,
     WorldObject,
     LabelPropagate,
+    convert_depth_to_pcd,
+    compute_uvone,
 ]
