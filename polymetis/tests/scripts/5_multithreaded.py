@@ -26,18 +26,18 @@ def connect_and_send_policy():
         time.sleep(0.5)
 
         # Get joint positions
-        joint_pos = robot.get_joint_angles()
+        joint_pos = robot.get_joint_positions()
         print(f"Initial joint positions: {joint_pos}")
 
         # Go to joint positions
-        print("=== RobotInterface.set_joint_positions ===")
+        print("=== RobotInterface.move_to_joint_positions ===")
         delta_joint_pos_desired = torch.Tensor([0.0, 0.0, 0.0, 0.5, 0.0, -0.5, 0.0])
         joint_pos_desired = joint_pos + delta_joint_pos_desired
 
-        state_log = robot.set_joint_positions(joint_pos_desired)
+        state_log = robot.move_to_joint_positions(joint_pos_desired)
         check_episode_log(state_log, int(robot.time_to_go_default * hz))
 
-        joint_pos = robot.get_joint_angles()
+        joint_pos = robot.get_joint_positions()
         assert torch.allclose(joint_pos, joint_pos_desired, atol=0.01)
 
         success.append(True)

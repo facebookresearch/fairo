@@ -9,10 +9,17 @@ from typing import List, Sequence, Dict
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from droidlet.lowlevel.minecraft.mc_util import XYZ, Block, IDM
 from droidlet.perception.craftassist.rotation import yaw_pitch
+from droidlet.lowlevel.minecraft.pyworld.world import World, Opt, flat_ground_generator
+from droidlet.lowlevel.minecraft.pyworld.utils import (
+    Player,
+    Pos,
+    Look,
+    Item,
+    Look,
+    to_relative_pos,
+)
 
 from .fake_agent import FakeAgent, FakePlayer
-from .utils import Player, Pos, Look, Item, Look, to_relative_pos
-from .world import World, Opt, flat_ground_generator
 
 
 class BaseCraftassistTestCase(unittest.TestCase):

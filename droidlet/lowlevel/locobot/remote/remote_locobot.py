@@ -11,6 +11,8 @@ import logging
 import os
 import skfmm
 import skimage
+import quaternion
+import habitat_sim
 from pyrobot.locobot.camera import DepthImgProcessor
 from pyrobot.locobot.base_control_utils import LocalActionStatus
 from slam_pkg.utils import depth_util as du
@@ -65,6 +67,23 @@ class RemoteLocobot(object):
         if hasattr(self, "_dip"):
             del self._dip
         self._dip = DepthImgProcessor(cfg_filename="realsense_habitat.yaml")
+
+    def get_habitat_state(self):
+        """Returns the habitat position and rotation of the agent as lists"""
+        sim = self._robot.base.sim
+        agent = sim.get_agent(0)
+        position = agent.get_state().position.tolist()
+        rotation = quaternion.as_float_array(agent.get_state().rotation).tolist()
+        return position, rotation
+
+    def respawn_agent(self, position, rotation):
+        """Respawns the agent at the position and rotation specified"""
+        sim = self._robot.base.sim
+        agent = sim.get_agent(0)
+        new_agent_state = habitat_sim.AgentState()
+        new_agent_state.position = position
+        new_agent_state.rotation = quaternion.from_float_array(rotation)
+        agent.set_state(new_agent_state)
 
     def test_connection(self):
         print("Connected!!")  # should print on server terminal

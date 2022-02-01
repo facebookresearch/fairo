@@ -35,9 +35,9 @@ def _min_jerk_spaces(
     assert N > 1, "Number of planning steps must be larger than 1."
 
     t_traj = torch.linspace(0, 1, N)
-    p_traj = 10 * t_traj ** 3 - 15 * t_traj ** 4 + 6 * t_traj ** 5
-    pd_traj = (30 * t_traj ** 2 - 60 * t_traj ** 3 + 30 * t_traj ** 4) / T
-    pdd_traj = (60 * t_traj - 180 * t_traj ** 2 + 120 * t_traj ** 3) / (T ** 2)
+    p_traj = 10 * t_traj**3 - 15 * t_traj**4 + 6 * t_traj**5
+    pd_traj = (30 * t_traj**2 - 60 * t_traj**3 + 30 * t_traj**4) / T
+    pdd_traj = (60 * t_traj - 180 * t_traj**2 + 120 * t_traj**3) / (T**2)
 
     return p_traj, pd_traj, pdd_traj
 

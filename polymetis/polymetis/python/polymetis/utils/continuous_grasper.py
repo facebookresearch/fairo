@@ -52,7 +52,7 @@ class ManipulatorSystem:
         self.arm.go_home()
 
         # Send PD controller
-        joint_pos_current = self.arm.get_joint_angles()
+        joint_pos_current = self.arm.get_joint_positions()
         policy = toco.policies.CartesianImpedanceControl(
             joint_pos_current=joint_pos_current,
             Kp=torch.Tensor(self.arm.metadata.default_Kx),
@@ -71,7 +71,7 @@ class ManipulatorSystem:
         Returns (num successes, num attempts)
         """
         # Plan trajectory
-        pos_curr, quat_curr = self.arm.pose_ee()
+        pos_curr, quat_curr = self.arm.get_ee_pose()
         N = int(time_to_go / PLANNER_DT)
 
         waypoints = toco.planning.generate_cartesian_space_min_jerk(
