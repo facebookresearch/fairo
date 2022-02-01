@@ -344,9 +344,9 @@ def get_nearby_airtouching_blocks(
     xyzb = yzxb.transpose([2, 0, 1, 3]).copy()
     components = connected_components(xyzb, unique_idm=True)
     blocktypes = []
-    shifted_c = []
+    all_components = []
+    all_tags = []
     for c in components:
-        tags = None
         for loc in c:
             idm = tuple(xyzb[loc[0], loc[1], loc[2], :])
             for coord in range(3):
@@ -374,7 +374,7 @@ def get_nearby_airtouching_blocks(
                                         idm[0], idm[1]
                                     )
                                 )
-    return blocktypes, shifted_c, tags
+    return blocktypes, all_components, all_tags
 
 
 def get_all_nearby_holes(agent, location, block_data, fill_idmeta, radius=15, store_inst_seg=True):
