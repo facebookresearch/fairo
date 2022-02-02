@@ -292,10 +292,20 @@ Status PolymetisControllerServerImpl::UpdateController(
 
   // Update controller & set intervals
   if (custom_controller_context_.status == RUNNING) {
+    bool success;
+    std::string error_msg;
+
     custom_controller_context_.controller_mtx.lock();
     interval->set_start(robot_state_buffer_.size());
-    custom_controller_context_.custom_controller->param_dict_update_module();
+    success =
+        custom_controller_context_.custom_controller->param_dict_update_module(
+            error_msg);
     custom_controller_context_.controller_mtx.unlock();
+
+    if (!success) {
+      return Status(StatusCode::CANCELLED, error_msg);
+    }
+
   } else {
     spdlog::warn(
         "Tried to perform a controller update with no controller running.");

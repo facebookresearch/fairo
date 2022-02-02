@@ -76,7 +76,7 @@ if __name__ == "__main__":
     hz = 50  # update frequency
     for i in range(int(time_to_go * hz)):
         q_desired[5] = q_initial[5] + m * np.sin(np.pi * i / (T * hz))
-        robot.update_current_policy({"q_desired": q_desired})
+        robot.update_current_policy({"qq_desired": q_desired})
         time.sleep(1 / hz)
 
     print("Terminating PD policy...")

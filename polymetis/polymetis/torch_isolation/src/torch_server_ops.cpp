@@ -171,8 +171,20 @@ bool TorchScriptedController::param_dict_load(char *data, size_t size) {
   return true;
 }
 
-void TorchScriptedController::param_dict_update_module() {
-  module_->data.get_method("update")(param_dict_input_->data);
+bool TorchScriptedController::param_dict_update_module(std::string &error_msg) {
+  int code =
+      module_->data.get_method("update")(param_dict_input_->data).toInt();
+
+  if (code) {
+    if (code == 1) {
+      error_msg = "error updating controller: Invalid parameter name.";
+    } else if (code == 2) {
+      error_msg = "error updating controller: Tensor shape mismatch.";
+    }
+    return false;
+  }
+
+  return true;
 }
 
 } /* extern "C" */
