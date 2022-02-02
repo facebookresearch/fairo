@@ -272,6 +272,9 @@ Status PolymetisControllerServerImpl::UpdateController(
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
 
+  interval->set_start(-1);
+  interval->set_end(-1);
+
   // Read chunks of the binary serialized controller params container.
   updates_model_buffer_.clear();
   ControllerChunk chunk;
@@ -292,29 +295,28 @@ Status PolymetisControllerServerImpl::UpdateController(
 
   // Update controller & set intervals
   if (custom_controller_context_.status == RUNNING) {
-    custom_controller_context_.controller_mtx.lock();
-    interval->set_start(robot_state_buffer_.size());
-    int code = custom_controller_context_.custom_controller
-                   ->param_dict_update_module();
-    custom_controller_context_.controller_mtx.unlock();
+    try {
+      custom_controller_context_.controller_mtx.lock();
+      interval->set_start(robot_state_buffer_.size());
+      custom_controller_context_.custom_controller->param_dict_update_module();
+      custom_controller_context_.controller_mtx.unlock();
 
-    if (code) {
-      std::string error_msg;
-      if (code == 1) {
-        error_msg = "error updating controller: Invalid parameter name.";
-      } else if (code == 2) {
-        error_msg = "error updating controller: Tensor shape mismatch.";
-      }
+    } catch (const std::exception &e) {
+      custom_controller_context_.controller_mtx.unlock();
+
+      std::string error_msg =
+          "Failed to update controller: " + std::string(e.what());
+      spdlog::error(error_msg);
       return Status(StatusCode::CANCELLED, error_msg);
     }
 
   } else {
-    spdlog::warn(
-        "Tried to perform a controller update with no controller running.");
-    interval->set_start(-1);
-  }
+    std::string error_msg =
+        "Tried to perform a controller update with no controller running.";
+    spdlog::warn(error_msg);
 
-  interval->set_end(-1);
+    return Status(StatusCode::CANCELLED, error_msg);
+  }
 
   return Status::OK;
 }
