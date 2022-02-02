@@ -125,9 +125,9 @@ class BaseRobotInterface:
         robot_state_generator = self.grpc_connection.GetRobotStateLog(log_interval)
 
         def cancel_rpc():
-            logging.info("Cancelling attempt to get robot state log.")
+            log.info("Cancelling attempt to get robot state log.")
             robot_state_generator.cancel()
-            logging.info(f"Cancellation completed.")
+            log.info(f"Cancellation completed.")
 
         atexit.register(cancel_rpc)
 
@@ -471,7 +471,7 @@ class RobotInterface(BaseRobotInterface):
         """Functionally identical to `get_joint_positions`.
         **This method is being deprecated in favor of `get_joint_positions`.**
         """
-        logging.warning(
+        log.warning(
             "The method 'get_joint_angles' is deprecated, use 'get_joint_positions' instead."
         )
         return self.get_joint_positions()
@@ -480,9 +480,7 @@ class RobotInterface(BaseRobotInterface):
         """Functionally identical to `get_ee_pose`.
         **This method is being deprecated in favor of `get_ee_pose`.**
         """
-        logging.warning(
-            "The method 'pose_ee' is deprecated, use 'get_ee_pose' instead."
-        )
+        log.warning("The method 'pose_ee' is deprecated, use 'get_ee_pose' instead.")
         return self.get_ee_pose()
 
     def set_joint_positions(
@@ -491,7 +489,7 @@ class RobotInterface(BaseRobotInterface):
         """Functionally identical to `move_to_joint_positions`.
         **This method is being deprecated in favor of `move_to_joint_positions`.**
         """
-        logging.warning(
+        log.warning(
             "The method 'set_joint_positions' is deprecated, use 'move_to_joint_positions' instead."
         )
         return self.move_to_joint_positions(
@@ -504,7 +502,7 @@ class RobotInterface(BaseRobotInterface):
         """Functionally identical to calling `move_to_joint_positions` with the argument `delta=True`.
         **This method is being deprecated in favor of `move_to_joint_positions`.**
         """
-        logging.warning(
+        log.warning(
             "The method 'set_joint_positions' is deprecated, use 'move_to_joint_positions' with 'delta=True' instead."
         )
         return self.move_to_joint_positions(
@@ -515,7 +513,7 @@ class RobotInterface(BaseRobotInterface):
         """Functionally identical to `move_to_ee_pose`.
         **This method is being deprecated in favor of `move_to_ee_pose`.**
         """
-        logging.warning(
+        log.warning(
             "The method 'set_ee_pose' is deprecated, use 'move_to_ee_pose' instead."
         )
         return self.move_to_ee_pose(*args, **kwargs)
@@ -526,7 +524,7 @@ class RobotInterface(BaseRobotInterface):
         """Functionally identical to calling `move_to_ee_pose` with the argument `delta=True`.
         **This method is being deprecated in favor of `move_to_ee_pose`.**
         """
-        logging.warning(
+        log.warning(
             "The method 'move_ee_xyz' is deprecated, use 'move_to_ee_pose' with 'delta=True' instead."
         )
         return self.move_to_ee_pose(position=displacement, delta=True, **kwargs)
