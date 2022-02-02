@@ -89,8 +89,8 @@ class CraftAssistAgent(DroidletAgent):
             "fill_idmeta": fill_idmeta,
             "color_bid_map": COLOR_BID_MAP,
         }
-        super(CraftAssistAgent, self).__init__(opts)
         self.mark_airtouching_blocks = opts.mark_airtouching_blocks
+        super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
         self.agent_type = "craftassist"
         self.point_targets = []
