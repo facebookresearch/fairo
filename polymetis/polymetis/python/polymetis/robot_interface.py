@@ -197,7 +197,12 @@ class BaseRobotInterface:
         msg_generator = self._get_msg_generator(scripted_policy)
 
         # Send policy as stream
-        log_interval = self.grpc_connection.SetController(msg_generator())
+        try:
+            log_interval = self.grpc_connection.SetController(msg_generator())
+        except grpc.RpcError as e:
+            raise grpc.RpcError(
+                f"Error encountered on server side --\n{e.details()}"
+            ) from None
 
         if blocking:
             # Check policy termination
@@ -229,7 +234,12 @@ class BaseRobotInterface:
         msg_generator = self._get_msg_generator(scripted_params)
 
         # Send params container as stream
-        update_interval = self.grpc_connection.UpdateController(msg_generator())
+        try:
+            update_interval = self.grpc_connection.UpdateController(msg_generator())
+        except grpc.RpcError as e:
+            raise grpc.RpcError(
+                f"Error encountered on server side --\n{e.details()}"
+            ) from None
         episode_interval = self.grpc_connection.GetEpisodeInterval(EMPTY)
 
         return update_interval.start - episode_interval.start
