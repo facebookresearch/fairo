@@ -1,2 +1,2 @@
-batch_id,error_idx
+batch_id,scene_idx,label
 test_cube,
