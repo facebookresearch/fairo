@@ -289,32 +289,31 @@ Status PolymetisControllerServerImpl::UpdateController(
   if (!custom_controller_context_.custom_controller->param_dict_load(
           updates_model_buffer_.data(), updates_model_buffer_.size())) {
     std::string error_msg = "Failed to load new controller params.";
-    spdlog::warn(error_msg);
+    spdlog::error(error_msg);
     return Status(StatusCode::CANCELLED, error_msg);
   }
 
   // Update controller & set intervals
   if (custom_controller_context_.status == RUNNING) {
-    custom_controller_context_.controller_mtx.lock();
-    interval->set_start(robot_state_buffer_.size());
-    int code = custom_controller_context_.custom_controller
-                   ->param_dict_update_module();
-    custom_controller_context_.controller_mtx.unlock();
+    try {
+      custom_controller_context_.controller_mtx.lock();
+      interval->set_start(robot_state_buffer_.size());
+      custom_controller_context_.custom_controller->param_dict_update_module();
+      custom_controller_context_.controller_mtx.unlock();
 
-    if (code) {
-      std::string error_msg;
-      if (code == 1) {
-        error_msg = "Error updating controller: Invalid parameter name.";
-      } else if (code == 2) {
-        error_msg = "Error updating controller: Tensor shape mismatch.";
-      }
-      spdlog::error(error_msg) return Status(StatusCode::CANCELLED, error_msg);
+    } catch (const std::exception &e) {
+      custom_controller_context_.controller_mtx.unlock();
+
+      std::string error_msg =
+          "Failed to update controller: " + std::string(e.what());
+      spdlog::error(error_msg);
+      return Status(StatusCode::CANCELLED, error_msg);
     }
 
   } else {
     std::string error_msg =
         "Tried to perform a controller update with no controller running.";
-    spdlog::error(error_msg);
+    spdlog::warn(error_msg);
 
     return Status(StatusCode::CANCELLED, error_msg);
   }
