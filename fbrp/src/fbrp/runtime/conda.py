@@ -110,6 +110,7 @@ class Launcher(BaseLauncher):
             env=conda_env,
             start_new_session=True,
         )
+        # TODO(lshamis): Handle the case where proc dies before we can query getpgid.
         self.proc_pgrp = os.getpgid(self.proc.pid)
 
     async def gather_cmd_outputs(self):
