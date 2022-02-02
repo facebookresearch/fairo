@@ -24,7 +24,7 @@ HITL_TMP_DIR = (
     os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
 )
 ANNOTATION_JOB_POLL_TIME = 30
-ANNOTATION_PROCESS_TIMEOUT_DEFAULT = 7200
+ANNOTATION_PROCESS_TIMEOUT_DEFAULT = 300
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
 
@@ -58,7 +58,7 @@ class VisionAnnotationJob(DataGenerator):
 
     """
 
-    def __init__(self, batch_id: int, timestamp: str, scenes: list, timeout: float = -1) -> None:
+    def __init__(self, batch_id: int, timestamp: str, scenes: list, timeout: float = ANNOTATION_PROCESS_TIMEOUT_DEFAULT) -> None:
         super(VisionAnnotationJob, self).__init__(timeout)
         self._batch_id = batch_id
         self._timestamp = timestamp
@@ -82,11 +82,13 @@ class VisionAnnotationJob(DataGenerator):
                     csv_writer.writerow([str(self._batch_id), str(i), self._scenes[i]["obj_ref"]])
 
             # Edit Mephisto config file to have the right task name and data csv file
+            maximum_units_per_worker = 10 if len(self._scenes) < 50 else int(len(self._scenes)/6)
             with open("../../crowdsourcing/vision_annotation_task/conf/annotation.yaml", "r") as stream:
                 config = yaml.safe_load(stream)
                 task_name = "ca-vis-anno" + str(self._batch_id)
                 config["mephisto"]["blueprint"]["data_csv"] = f"${{task_dir}}/{self._timestamp}data.csv"
                 config["mephisto"]["task"]["task_name"] = task_name
+                config["mephisto"]["task"]["maximum_units_per_worker"] = maximum_units_per_worker
             logging.info(f"Updating Mephisto config file to have task_name: {task_name}")
             with open("../../crowdsourcing/vision_annotation_task/conf/annotation.yaml", "w") as stream:
                 stream.write("#@package _global_\n")
@@ -94,7 +96,7 @@ class VisionAnnotationJob(DataGenerator):
 
             # Launch the batch of HITs
             anno_job_path = os.path.join(os.getcwd(), "../../crowdsourcing/vision_annotation_task/run_annotation_with_qual.py")
-            anno_cmd = "python3 " + anno_job_path + \
+            anno_cmd = "echo -ne '\n' | python3 " + anno_job_path + \
                 " mephisto.provider.requester_name=" + MEPHISTO_REQUESTER + \
                 " mephisto.architect.profile_name=mephisto-router-iam"
             p = subprocess.Popen(anno_cmd, shell=True, preexec_fn=os.setsid)
