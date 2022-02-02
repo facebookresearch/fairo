@@ -292,17 +292,19 @@ Status PolymetisControllerServerImpl::UpdateController(
 
   // Update controller & set intervals
   if (custom_controller_context_.status == RUNNING) {
-    bool success;
-    std::string error_msg;
-
     custom_controller_context_.controller_mtx.lock();
     interval->set_start(robot_state_buffer_.size());
-    success =
-        custom_controller_context_.custom_controller->param_dict_update_module(
-            error_msg);
+    int code = custom_controller_context_.custom_controller
+                   ->param_dict_update_module();
     custom_controller_context_.controller_mtx.unlock();
 
-    if (!success) {
+    if (code) {
+      std::string error_msg;
+      if (code == 1) {
+        error_msg = "error updating controller: Invalid parameter name.";
+      } else if (code == 2) {
+        error_msg = "error updating controller: Tensor shape mismatch.";
+      }
       return Status(StatusCode::CANCELLED, error_msg);
     }
 
