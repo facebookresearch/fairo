@@ -82,13 +82,11 @@ class VisionAnnotationJob(DataGenerator):
                     csv_writer.writerow([str(self._batch_id), str(i), self._scenes[i]["obj_ref"]])
 
             # Edit Mephisto config file to have the right task name and data csv file
-            maximum_units_per_worker = 10 if len(self._scenes) < 50 else int(len(self._scenes)/6)
             with open("../../crowdsourcing/vision_annotation_task/conf/annotation.yaml", "r") as stream:
                 config = yaml.safe_load(stream)
                 task_name = "ca-vis-anno" + str(self._batch_id)
                 config["mephisto"]["blueprint"]["data_csv"] = f"${{task_dir}}/{self._timestamp}data.csv"
                 config["mephisto"]["task"]["task_name"] = task_name
-                config["mephisto"]["task"]["maximum_units_per_worker"] = maximum_units_per_worker
             logging.info(f"Updating Mephisto config file to have task_name: {task_name}")
             with open("../../crowdsourcing/vision_annotation_task/conf/annotation.yaml", "w") as stream:
                 stream.write("#@package _global_\n")

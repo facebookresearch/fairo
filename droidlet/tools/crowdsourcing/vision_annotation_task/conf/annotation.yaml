@@ -7,7 +7,6 @@ mephisto:
     units_per_assignment: 1
   task:
     assignment_duration_in_seconds: 600
-    maximum_units_per_worker: 10
     task_description: Mark the blocks that make up a shape
     task_name: ca-vis-anno
     task_reward: 1.0
