@@ -108,7 +108,9 @@ class Launcher(BaseLauncher):
             executable="/bin/bash",
             cwd=self.proc_def.root,
             env=conda_env,
+            preexec_fn=os.setsid,
         )
+        self.proc_pgrp = os.getpgid(self.proc.pid)
 
     async def gather_cmd_outputs(self):
         async def log_pipe(logger, pipe):
@@ -148,20 +150,19 @@ class Launcher(BaseLauncher):
 
     async def handle_down(self):
         try:
-            if self.proc.returncode is not None:
-                return
-            proc_pid = self.get_pid()
+            if self.proc.returncode is None:
+                proc_pid = self.get_pid()
 
-            life_cycle.set_state(self.name, life_cycle.State.STOPPING)
-            os.kill(proc_pid, signal.SIGTERM)
+                life_cycle.set_state(self.name, life_cycle.State.STOPPING)
+                os.kill(proc_pid, signal.SIGTERM)
 
-            for _ in range(100):
-                if not os.kill(proc_pid, 0):
-                    break
-                await asyncio.sleep(0.03)
+                for _ in range(100):
+                    if not os.kill(proc_pid, 0):
+                        break
+                    await asyncio.sleep(0.03)
 
-            if os.kill(proc_pid, 0):
-                os.kill(proc_pid, signal.SIGKILL)
+            # Clean up zombie sub-sub-processes.
+            os.killpg(self.proc_pgrp, signal.SIGKILL)
         except:
             pass
 
