@@ -13,7 +13,7 @@
 <pre>
 {
   "dialogue_type": "GET_MEMORY",
-  "filters": <a href="#filters">&ltFILTERS&gt</a>,
+  "filters": <a href="#filters">&ltFILTERS&gt</a>
 }
 </pre>
 
@@ -58,7 +58,7 @@ This is the action to Build a schematic at an optional location.
 <pre>
 {"action_type" : BUILD,
   <a href="#location">&ltLOCATION&gt</a>,
-  <a href="#schematic">&ltSCHEMATIC&gt</a>,
+  <a href="#schematic">&ltSCHEMATIC&gt</a>
 }
 </pre>
 
@@ -68,7 +68,7 @@ This is the action to copy a block object to an optional location. The copy acti
 <pre>
 {"action_type" : 'BUILD',
   <a href="#location">&ltLOCATION&gt</a>,
-  <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>,
+  <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>
 }
 </pre>
 
@@ -96,8 +96,8 @@ This action states that a hole / negative shape needs to be filled up.
 
 <pre>
 { "action_type" : 'FILL',
-  <a href="#schematic">&ltSCHEMATIC&gt</a>,,
-  <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>,
+  <a href="#schematic">&ltSCHEMATIC&gt</a>,
+  <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>
 }
 </pre>
 
@@ -115,7 +115,7 @@ This action states that the agent should move to the specified location.
 
 <pre>
 { "action_type" : 'MOVE',
-  <a href="#location">&ltLOCATION&gt</a>,
+  <a href="#location">&ltLOCATION&gt</a>
 }
 </pre>
 
@@ -155,8 +155,7 @@ This action represents that the agent should complete an already existing half-f
 <pre>
 { "action_type" : 'FREEBUILD',
   <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a>,
-  <a href="#location">&ltLOCATION&gt</a>,
-  "replace": True
+  <a href="#location">&ltLOCATION&gt</a>
 }
 </pre>
 
@@ -167,7 +166,7 @@ Also has support for Point / Turn / Look.
 <pre>
 { "action_type" : 'DANCE',
   <a href="#reference_object">&ltREFERENCE_OBJECT&gt</a> (additional relative_direction values: ['CLOCKWISE', 'ANTICLOCKWISE']),
-  DanceType
+  <a href="#dance_type">&ltDANCE_TYPE&gt</a>
 }
 </pre>
 
@@ -276,7 +275,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 
 #### DanceType ####
 <pre>
-"dance_type" : {
+<a id="dance_type"> : {
   "filters": <a href="#filters">&ltFILTERS&gt</a>,
   "point": <a href="#facing">&ltFACING&gt</a>,
   "look_turn":  <a href="#facing">&ltFACING&gt</a>,
