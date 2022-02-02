@@ -197,11 +197,7 @@ class BaseRobotInterface:
         msg_generator = self._get_msg_generator(scripted_policy)
 
         # Send policy as stream
-        try:
-            log_interval = self.grpc_connection.SetController(msg_generator())
-        except grpc.RpcError as e:
-            log.error(f"Unable to set controller: {e}")
-            return
+        log_interval = self.grpc_connection.SetController(msg_generator())
 
         if blocking:
             # Check policy termination
@@ -233,12 +229,7 @@ class BaseRobotInterface:
         msg_generator = self._get_msg_generator(scripted_params)
 
         # Send params container as stream
-        try:
-            update_interval = self.grpc_connection.UpdateController(msg_generator())
-        except grpc.RpcError as e:
-            log.error(f"Unable to update current policy: {e}")
-            return
-
+        update_interval = self.grpc_connection.UpdateController(msg_generator())
         episode_interval = self.grpc_connection.GetEpisodeInterval(EMPTY)
 
         return update_interval.start - episode_interval.start
