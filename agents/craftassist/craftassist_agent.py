@@ -90,6 +90,7 @@ class CraftAssistAgent(DroidletAgent):
             "color_bid_map": COLOR_BID_MAP,
         }
         super(CraftAssistAgent, self).__init__(opts)
+        self.mark_airtouching_blocks = opts.mark_airtouching_blocks
         self.no_default_behavior = opts.no_default_behavior
         self.agent_type = "craftassist"
         self.point_targets = []
@@ -215,7 +216,9 @@ class CraftAssistAgent(DroidletAgent):
         self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         self.perception_modules["low_level"] = LowLevelMCPerception(self)
         self.perception_modules["heuristic"] = heuristic_perception.PerceptionWrapper(
-            self, low_level_data=self.low_level_data
+            self,
+            low_level_data=self.low_level_data,
+            mark_airtouching_blocks=self.mark_airtouching_blocks,
         )
         # set up the SubComponentClassifier model
         if os.path.isfile(self.opts.semseg_model_path):
@@ -262,7 +265,8 @@ class CraftAssistAgent(DroidletAgent):
         low_level_perception_output = self.perception_modules["low_level"].perceive()
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
         self.areas_to_perceive = self.memory.update(
-            low_level_perception_output, self.areas_to_perceive)["areas_to_perceive"]
+            low_level_perception_output, self.areas_to_perceive
+        )["areas_to_perceive"]
         # 3. with the updated areas_to_perceive, perceive from heuristic perception module
         if force or not self.memory.task_stack_peek():
             # perceive from heuristic perception module
