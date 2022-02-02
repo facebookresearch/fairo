@@ -43,15 +43,18 @@ class ControlModule(torch.nn.Module):
         self._param_dict[name] = param
 
     @torch.jit.export
-    def update(self, update_dict: Dict[str, torch.Tensor]) -> None:
-        """
-        Method for updating module parameters
+    def update(self, update_dict: Dict[str, torch.Tensor]) -> int:
+        """Method for updating module parameters.
+        Returns: Error code (0: Successful; 1: Invalid parameter name; 2: Tensor shape mismatch)
         """
         for name in update_dict.keys():
-            if name in self._param_dict.keys():
-                self._param_dict[name].data.copy_(update_dict[name])
-            else:
-                raise AttributeError
+            if name not in self._param_dict.keys():
+                return 1
+            if self._param_dict[name].shape != update_dict[name].shape:
+                return 2
+            self._param_dict[name].data.copy_(update_dict[name])
+
+        return 0
 
     # TODO: Implicitly check input/output format/dimensions?
     # TODO: Warn users against common error of not calling 'super().__init__()'?

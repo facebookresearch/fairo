@@ -171,8 +171,8 @@ bool TorchScriptedController::param_dict_load(char *data, size_t size) {
   return true;
 }
 
-void TorchScriptedController::param_dict_update_module() {
-  module_->data.get_method("update")(param_dict_input_->data);
+int TorchScriptedController::param_dict_update_module() {
+  return module_->data.get_method("update")(param_dict_input_->data).toInt();
 }
 
 } /* extern "C" */

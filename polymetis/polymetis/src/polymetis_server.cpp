@@ -294,8 +294,20 @@ Status PolymetisControllerServerImpl::UpdateController(
   if (custom_controller_context_.status == RUNNING) {
     custom_controller_context_.controller_mtx.lock();
     interval->set_start(robot_state_buffer_.size());
-    custom_controller_context_.custom_controller->param_dict_update_module();
+    int code = custom_controller_context_.custom_controller
+                   ->param_dict_update_module();
     custom_controller_context_.controller_mtx.unlock();
+
+    if (code) {
+      std::string error_msg;
+      if (code == 1) {
+        error_msg = "error updating controller: Invalid parameter name.";
+      } else if (code == 2) {
+        error_msg = "error updating controller: Tensor shape mismatch.";
+      }
+      return Status(StatusCode::CANCELLED, error_msg);
+    }
+
   } else {
     spdlog::warn(
         "Tried to perform a controller update with no controller running.");

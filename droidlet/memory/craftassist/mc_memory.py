@@ -17,7 +17,7 @@ from droidlet.memory.memory_nodes import (  # noqa
     LocationNode,
     SetNode,
     ReferenceObjectNode,
-    AttentionNode
+    AttentionNode,
 )
 from .mc_memory_nodes import (  # noqa
     DanceNode,
@@ -100,7 +100,7 @@ class MCAgentMemory(AgentMemory):
     ### Update world with perception updates ###
     ############################################
 
-    def update(self, perception_output: namedtuple=None, areas_to_perceive: List=[]):
+    def update(self, perception_output: namedtuple = None, areas_to_perceive: List = []):
         """
         Updates the world with updates from agent's perception module.
 
@@ -127,14 +127,22 @@ class MCAgentMemory(AgentMemory):
         """Perform update the memory with input from low_level perception module"""
         # 1. Handle all mobs in agent's perception range
         if perception_output.mobs:
+            map_changes = []
             for mob in perception_output.mobs:
-                self.set_mob_position(mob)
-
+                mob_memid = self.set_mob_position(mob)
+                mp = (mob.pos.x, mob.pos.y, mob.pos.z)
+                map_changes.append(
+                    {"pos": mp, "is_obstacle": False, "memid": mob_memid, "is_move": True}
+                )
+            self.place_field.update_map(map_changes)
         # 2. Handle all items that the agent can pick up in-game
         if perception_output.agent_pickable_items:
+            # FIXME PUT IN MEMORY PROPERLY
             # 2.1 Items that are in perception range
             if perception_output.agent_pickable_items["in_perception_items"]:
-                for pickable_items in perception_output.agent_pickable_items["in_perception_items"]:
+                for pickable_items in perception_output.agent_pickable_items[
+                    "in_perception_items"
+                ]:
                     self.set_item_stack_position(pickable_items)
             # 2.2 Update previous pickable_item_stack based on perception
             if perception_output.agent_pickable_items["all_items"]:
@@ -154,11 +162,24 @@ class MCAgentMemory(AgentMemory):
         if perception_output.agent_attributes:
             agent_player = perception_output.agent_attributes
             memid = self.get_player_by_eid(agent_player.entityId).memid
-            cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
+            cmd = (
+                "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
+            )
             cmd = cmd + "uuid=?"
             self.db_write(
-                cmd, agent_player.entityId, agent_player.name, agent_player.pos.x, agent_player.pos.y,
-                agent_player.pos.z, agent_player.look.pitch, agent_player.look.yaw, memid
+                cmd,
+                agent_player.entityId,
+                agent_player.name,
+                agent_player.pos.x,
+                agent_player.pos.y,
+                agent_player.pos.z,
+                agent_player.look.pitch,
+                agent_player.look.yaw,
+                memid,
+            )
+            ap = (agent_player.pos.x, agent_player.pos.y, agent_player.pos.z)
+            self.place_field.update_map(
+                [{"pos": ap, "is_obstacle": True, "memid": memid, "is_move": True}]
             )
 
         # 4. Update other in-game players in agent's memory
@@ -170,13 +191,22 @@ class MCAgentMemory(AgentMemory):
                     memid = PlayerNode.create(self, player)
                 else:
                     memid = mem.memid
-                cmd = (
-                    "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
-                )
+                cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
                 cmd = cmd + "uuid=?"
                 self.db_write(
-                    cmd, player.entityId, player.name, player.pos.x, player.pos.y, player.pos.z,
-                    player.look.pitch, player.look.yaw, memid
+                    cmd,
+                    player.entityId,
+                    player.name,
+                    player.pos.x,
+                    player.pos.y,
+                    player.pos.z,
+                    player.look.pitch,
+                    player.look.yaw,
+                    memid,
+                )
+                pp = (player.pos.x, player.pos.y, player.pos.z)
+                self.place_field.update_map(
+                    [{"pos": pp, "is_obstacle": True, "memid": memid, "is_move": True}]
                 )
                 memids = self._db_read_one(
                     'SELECT uuid FROM ReferenceObjects WHERE ref_type="attention" AND type_name=?',
@@ -200,10 +230,14 @@ class MCAgentMemory(AgentMemory):
                 self.maybe_remove_inst_seg(xyz)
 
                 # 5.2 Update agent's memory with blocks that have been destroyed.
-                updated_areas_to_perceive = self.maybe_remove_block_from_memory(xyz, idm, areas_to_perceive)
+                updated_areas_to_perceive = self.maybe_remove_block_from_memory(
+                    xyz, idm, areas_to_perceive
+                )
 
                 # 5.3 Update blocks in memory when any change in the environment is caused either by agent or player
-                interesting, player_placed, agent_placed = perception_output.changed_block_attributes[(xyz, idm)]
+                interesting, player_placed, agent_placed = perception_output.changed_block_attributes[
+                    (xyz, idm)
+                ]
                 self.maybe_add_block_to_memory(interesting, player_placed, agent_placed, xyz, idm)
 
         """Now perform update the memory with input from heuristic perception module"""
@@ -211,13 +245,13 @@ class MCAgentMemory(AgentMemory):
         if perception_output.in_perceive_area:
             # 1.1 Add colors of all block objects
             if perception_output.in_perceive_area["block_object_attributes"]:
-                for block_object_attr in perception_output.in_perceive_area["block_object_attributes"]:
+                for block_object_attr in perception_output.in_perceive_area[
+                    "block_object_attributes"
+                ]:
                     block_object, color_tags = block_object_attr
                     memid = BlockObjectNode.create(self, block_object)
                     for color_tag in list(set(color_tags)):
-                        self.add_triple(
-                            subj=memid, pred_text="has_colour", obj_text=color_tag
-                        )
+                        self.add_triple(subj=memid, pred_text="has_colour", obj_text=color_tag)
             # 1.2 Update all holes with their block type in memory
             if perception_output.in_perceive_area["holes"]:
                 self.add_holes_to_mem(perception_output.in_perceive_area["holes"])
@@ -233,9 +267,7 @@ class MCAgentMemory(AgentMemory):
                     block_object, color_tags = block_object_attr
                     memid = BlockObjectNode.create(self, block_object)
                     for color_tag in list(set(color_tags)):
-                        self.add_triple(
-                            subj=memid, pred_text="has_colour", obj_text=color_tag
-                        )
+                        self.add_triple(subj=memid, pred_text="has_colour", obj_text=color_tag)
             # 2.2 Update all holes with their block type in memory
             if perception_output.near_agent["holes"]:
                 self.add_holes_to_mem(perception_output.near_agent["holes"])
@@ -257,7 +289,6 @@ class MCAgentMemory(AgentMemory):
         output["areas_to_perceive"] = updated_areas_to_perceive
         return output
 
-
     def maybe_add_block_to_memory(self, interesting, player_placed, agent_placed, xyz, idm):
         if not interesting:
             return
@@ -275,13 +306,13 @@ class MCAgentMemory(AgentMemory):
         adjacent_memids = list(set(adjacent_memids))
         if len(adjacent_memids) == 0:
             # new block object
-            BlockObjectNode.create(self, [(xyz, idm)])
+            memid = BlockObjectNode.create(self, [(xyz, idm)])
+            self.place_field.update_map([{"pos": xyz, "is_obstacle": True, "memid": memid}])
         elif len(adjacent_memids) == 1:
             # update block object
             memid = adjacent_memids[0]
-            self.upsert_block(
-                (xyz, idm), memid, "BlockObjects", player_placed, agent_placed
-            )
+            self.upsert_block((xyz, idm), memid, "BlockObjects", player_placed, agent_placed)
+            self.place_field.update_map([{"pos": xyz, "is_obstacle": True, "memid": memid}])
             self.set_memory_updated_time(memid)
             self.set_memory_attended_time(memid)
         else:
@@ -305,7 +336,6 @@ class MCAgentMemory(AgentMemory):
                 (xyz, idm), chosen_memid, "BlockObjects", player_placed, agent_placed
             )
 
-
     def add_holes_to_mem(self, holes):
         """
         Adds the list of holes to memory and return hole memories.
@@ -326,7 +356,6 @@ class MCAgentMemory(AgentMemory):
             hole_memories.append(self.get_mem_by_id(memid))
         return hole_memories
 
-
     def maybe_remove_block_from_memory(self, xyz: XYZ, idm: IDM, areas_to_perceive):
         """Update agent's memory with blocks that have been destroyed."""
         tables = ["BlockObjects"]
@@ -340,9 +369,18 @@ class MCAgentMemory(AgentMemory):
             delete = (b == 0 and idm[0] > 0) or (b > 0 and idm[0] == 0)
             if delete:
                 self.remove_voxel(*xyz, table)
+                # check if the whole column is removed:
+                # FIXME, eventually want y slices
+                r = self._db_read(
+                    "SELECT uuid FROM VoxelObjects WHERE x=? AND z=? and ref_type=?",
+                    xyz[0],
+                    xyz[2],
+                    tables[0],
+                )
+                if len(r) == 0:
+                    self.place_field.update_map([{"pos": xyz, "is_delete": True}])
                 local_areas_to_perceive.append((xyz, 3))
         return local_areas_to_perceive
-
 
     def maybe_remove_inst_seg(self, xyz: XYZ):
         """if the block is changed, the old instance segmentation
@@ -356,7 +394,6 @@ class MCAgentMemory(AgentMemory):
             # ask the models to recompute.  if the tags are the same, keep it
             for i in inst_seg_memids:
                 self.forget(i[0])
-
 
     ###########################
     ### For Animate objects ###
