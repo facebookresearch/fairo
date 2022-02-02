@@ -488,7 +488,15 @@ class RobotInterface(BaseRobotInterface):
         """Update the desired joint positions used by the joint position control mode.
         Requires starting a joint impedance controller with `start_joint_impedance` beforehand.
         """
-        return self.update_current_policy({"joint_pos_desired": positions})
+        try:
+            update_idx = self.update_current_policy({"joint_pos_desired": positions})
+        except grpc.RpcError as e:
+            log.error(
+                "Unable to update desired joint positions. Use 'start_joint_impedance' to start a joint impedance controller."
+            )
+            raise e
+
+        return update_idx
 
     def update_desired_ee_pose(
         self,
@@ -504,7 +512,15 @@ class RobotInterface(BaseRobotInterface):
         if orientation is not None:
             param_dict["ee_quat_desired"] = orientation
 
-        return self.update_current_policy(param_dict)
+        try:
+            update_idx = self.update_current_policy(param_dict)
+        except grpc.RpcError as e:
+            log.error(
+                "Unable to update desired EE pose. Use 'start_cartesian_impedance' to start a Cartesian impedance controller."
+            )
+            raise e
+
+        return update_idx
 
     """
     PyRobot backward compatibility methods
