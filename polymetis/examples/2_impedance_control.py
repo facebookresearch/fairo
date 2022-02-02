@@ -28,7 +28,7 @@ if __name__ == "__main__":
         robot.update_desired_joint_positions(joint_positions)
         time.sleep(0.1)
 
-    robot.terminate_impedance_controller()
+    robot.terminate_current_policy()
 
     # Cartesian impedance control
     print("Performing Cartesian impedance control...")
@@ -41,4 +41,4 @@ if __name__ == "__main__":
         robot.update_desired_ee_pose(position=ee_pos)
         time.sleep(0.1)
 
-    robot.terminate_impedance_controller()
+    robot.terminate_current_policy()

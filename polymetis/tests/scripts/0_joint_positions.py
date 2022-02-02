@@ -76,7 +76,7 @@ if __name__ == "__main__":
         joint_pos += 0.05 * delta_joint_pos_desired
         robot.update_desired_joint_positions(joint_pos)
         time.sleep(0.1)
-    state_log = robot.terminate_impedance_controller()
+    state_log = robot.terminate_current_policy()
     time.sleep(0.5)
 
     joint_pos = test_new_joint_pos(robot, joint_pos_desired)

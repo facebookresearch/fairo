@@ -94,7 +94,7 @@ if __name__ == "__main__":
         ee_pos += 0.05 * delta_ee_pos_desired
         robot.update_desired_ee_pose(position=ee_pos)
         time.sleep(0.1)
-    state_log = robot.terminate_impedance_controller()
+    state_log = robot.terminate_current_policy()
     time.sleep(0.5)
 
     ee_pos, ee_quat = test_new_ee_pose(robot, ee_pos_desired, ee_quat_desired)
