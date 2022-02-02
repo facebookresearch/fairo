@@ -136,9 +136,14 @@ function setBlock(x, y, z, idm) {
   world.setBlock(x, y, z, idm);
 }
 
+function flashBlocks(bbox) {
+  world.flashBlocks(bbox);
+}
+
 module.exports.updateAgents = updateAgents;
 module.exports.updateBlocks = updateBlocks;
 module.exports.setBlock = setBlock;
+module.exports.flashBlocks = flashBlocks;
 
 },{"./world":53}],3:[function(require,module,exports){
 /*
@@ -46828,6 +46833,70 @@ function World() {
         this.game.createBlock(xyz, id);
       }
     }
+  };
+
+  function flash(originalBlocks, bbox, remains) {
+    if (remains == 0) {
+      var idx = 0;
+      for (var ix = bbox[0]; ix <= bbox[3]; ++ix) {
+        for (var iy = bbox[1]; iy <= bbox[4]; ++iy) {
+          for (var iz = bbox[2]; iz <= bbox[5]; ++iz) {
+            game.setBlock([ix, iy, iz], originalBlocks[idx]);
+            idx += 1;
+          }
+        }
+      }
+      return;
+    }
+    // position1 = [5, 64, 5]
+    // position2 = [5, 65, 5]
+    // position3 = [5, 66, 5]
+    // if (remains % 2 == 0) {
+    //   game.setBlock(position1, 91);
+    //   game.setBlock(position2, 91);
+    //   game.setBlock(position3, 91);
+    // } else {
+    //   game.setBlock(position1, 88);
+    //   game.setBlock(position2, 88);
+    //   game.setBlock(position3, 88);
+    // }
+    if (remains % 2 == 0) {
+      var idx = 0;
+      for (var ix = bbox[0]; ix <= bbox[3]; ++ix) {
+        for (var iy = bbox[1]; iy <= bbox[4]; ++iy) {
+          for (var iz = bbox[2]; iz <= bbox[5]; ++iz) {
+            game.setBlock([ix, iy, iz], originalBlocks[idx]);
+            idx += 1;
+          }
+        }
+      }
+    } else {
+      for (var ix = bbox[0]; ix <= bbox[3]; ++ix) {
+        for (var iy = bbox[1]; iy <= bbox[4]; ++iy) {
+          for (var iz = bbox[2]; iz <= bbox[5]; ++iz) {
+            game.setBlock([ix, iy, iz], 88);
+            idx += 1;
+          }
+        }
+      }
+    }
+    remains -= 1;
+    setTimeout(() => {
+      flash(originalBlocks, bbox, remains);
+    }, 100);
+    // setTimeout(flash(remains), 1000 * remains)
+  }
+
+  this.flashBlocks = function (bbox) {
+    var originalBlocks = [];
+    for (var ix = bbox[0]; ix <= bbox[3]; ++ix) {
+      for (var iy = bbox[1]; iy <= bbox[4]; ++iy) {
+        for (var iz = bbox[2]; iz <= bbox[5]; ++iz) {
+          originalBlocks.push(game.getBlock([ix, iy, iz]));
+        }
+      }
+    }
+    flash(originalBlocks, bbox, 20);
   };
 
   this.setBlock = function (x, y, z, idm) {
