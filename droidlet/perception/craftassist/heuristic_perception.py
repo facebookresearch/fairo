@@ -374,6 +374,11 @@ def get_nearby_airtouching_blocks(
                                         idm[0], idm[1]
                                     )
                                 )
+        if tags:
+            shifted_c = [(l[0] + x - radius, l[1] + ymin, l[2] + z - radius) for l in c]
+            if len(shifted_c) > 0:
+                all_components.append(shifted_c)
+                all_tags.append(tags)
     return blocktypes, all_components, all_tags
 
 
@@ -546,8 +551,12 @@ class PerceptionWrapper:
             - airtouching_blocks(list) - List of [shifted_coordinates, list of tags]
         """
         perceive_info = {}
-        perceive_info["in_perceive_area"] = {} # dictionary with children: block objects and holes in perception area
-        perceive_info["near_agent"] = {} # dictionary with children: block objects and holes near the agent
+        perceive_info[
+            "in_perceive_area"
+        ] = {}  # dictionary with children: block objects and holes in perception area
+        perceive_info[
+            "near_agent"
+        ] = {}  # dictionary with children: block objects and holes near the agent
         # 1. perceive blocks in marked areas to perceive
         for pos, radius in self.agent.areas_to_perceive:
             # 1.1 Get block objects and their colors
@@ -579,7 +588,9 @@ class PerceptionWrapper:
                 radius,
             )
             if tags and len(shifted_c) > 0:
-                perceive_info["in_perceive_area"]["airtouching_blocks"] = [shifted_c, tags]
+                perceive_info["in_perceive_area"]["airtouching_blocks"] = list(
+                    zip(shifted_c, tags)
+                )
 
         # 2. perceive blocks and their colors near the agent
         near_obj_tag_list = []
@@ -616,7 +627,7 @@ class PerceptionWrapper:
             radius=self.radius,
         )
         if tags and len(shifted_c) > 0:
-            perceive_info["near_agent"]["airtouching_blocks"] = [shifted_c, tags]
+            perceive_info["near_agent"]["airtouching_blocks"] = list(zip(shifted_c, tags))
 
         return CraftAssistPerceptionData(
             in_perceive_area=perceive_info["in_perceive_area"],
