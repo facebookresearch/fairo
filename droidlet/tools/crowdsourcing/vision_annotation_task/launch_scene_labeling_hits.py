@@ -14,6 +14,7 @@ import sys
 import yaml
 import logging
 import json
+import time
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
@@ -25,7 +26,7 @@ db = LocalMephistoDB()
 mephisto_data_browser = MephistoDataBrowser(db=db)
 s3 = boto3.client('s3')
 SCENE_GEN_TIMEOUT = 30
-LABELING_JOB_TIMEOUT = 18000
+LABELING_JOB_TIMEOUT = 5000
 
 logging.basicConfig(level="INFO")
 
@@ -59,7 +60,7 @@ def main(opts) -> None:
         scene_gen.wait(timeout=SCENE_GEN_TIMEOUT)
     except subprocess.TimeoutExpired:
         scene_gen.kill()
-        logging.info("Scene generation script timed out after {SCENE_GEN_TIMEOUT} seconds")
+        logging.info(f"Scene generation script timed out after {SCENE_GEN_TIMEOUT} seconds")
 
     #Populate data.csv with scene filename and indeces
     with open("labeling_data.csv", "w") as f:
@@ -69,17 +70,19 @@ def main(opts) -> None:
             csv_writer.writerow(["scene_list.json", str(i)])
 
     # Edit Mephisto config file task name
+    maximum_units_per_worker = 15 if opts.num_hits < 50 else int(opts.num_hits/4)
     with open("conf/labeling.yaml", "r") as stream:
         config = yaml.safe_load(stream)
         task_name = "ca-vis-label" + str(id)
         config["mephisto"]["task"]["task_name"] = task_name
+        config["mephisto"]["task"]["maximum_units_per_worker"] = maximum_units_per_worker
     logging.info(f"Updating Mephisto config file to have task_name: {task_name}")
     with open("conf/labeling.yaml", "w") as stream:
         stream.write("#@package _global_\n")
         yaml.dump(config, stream)
 
     #Launch via Mephisto
-    job_launch_cmd = "python3 run_labeling_with_qual.py" + \
+    job_launch_cmd = "echo -ne '\n' | python3 run_labeling_with_qual.py" + \
         " mephisto.provider.requester_name=" + opts.mephisto_requester + \
         " mephisto.architect.profile_name=mephisto-router-iam"
     try:
@@ -92,8 +95,10 @@ def main(opts) -> None:
     try:
         job_launch.wait(timeout=LABELING_JOB_TIMEOUT)
     except subprocess.TimeoutExpired:
+        job_launch.terminate()
+        time.sleep(10)
         job_launch.kill()
-        logging.info("Scene labeling job timed out after {LABELING_JOB_TIMEOUT} seconds")
+        logging.info(f"Scene labeling job timed out after {LABELING_JOB_TIMEOUT} seconds")
     
     # Pull results from local DB    
     results_csv = id + ".csv"
@@ -130,7 +135,7 @@ def main(opts) -> None:
     if opts.annotate:
         logging.info(f"Launching corresponding annotation job")
 
-        aj = VisionAnnotationJob(batch_id=id, timestamp=int(datetime.utcnow().timestamp()), scenes=scene_list, timeout=300)
+        aj = VisionAnnotationJob(batch_id=id, timestamp=int(datetime.utcnow().timestamp()), scenes=scene_list, timeout=120)
         aj.run()
 
 

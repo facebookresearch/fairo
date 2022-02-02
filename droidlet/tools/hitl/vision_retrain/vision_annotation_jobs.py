@@ -24,7 +24,7 @@ HITL_TMP_DIR = (
     os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
 )
 ANNOTATION_JOB_POLL_TIME = 30
-ANNOTATION_PROCESS_TIMEOUT_DEFAULT = 7200
+ANNOTATION_PROCESS_TIMEOUT_DEFAULT = 300
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
 
@@ -58,7 +58,7 @@ class VisionAnnotationJob(DataGenerator):
 
     """
 
-    def __init__(self, batch_id: int, timestamp: str, scenes: list, timeout: float = -1) -> None:
+    def __init__(self, batch_id: int, timestamp: str, scenes: list, timeout: float = ANNOTATION_PROCESS_TIMEOUT_DEFAULT) -> None:
         super(VisionAnnotationJob, self).__init__(timeout)
         self._batch_id = batch_id
         self._timestamp = timestamp
@@ -94,7 +94,7 @@ class VisionAnnotationJob(DataGenerator):
 
             # Launch the batch of HITs
             anno_job_path = os.path.join(os.getcwd(), "../../crowdsourcing/vision_annotation_task/run_annotation_with_qual.py")
-            anno_cmd = "python3 " + anno_job_path + \
+            anno_cmd = "echo -ne '\n' | python3 " + anno_job_path + \
                 " mephisto.provider.requester_name=" + MEPHISTO_REQUESTER + \
                 " mephisto.architect.profile_name=mephisto-router-iam"
             p = subprocess.Popen(anno_cmd, shell=True, preexec_fn=os.setsid)
