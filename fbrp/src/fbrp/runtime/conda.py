@@ -108,7 +108,7 @@ class Launcher(BaseLauncher):
             executable="/bin/bash",
             cwd=self.proc_def.root,
             env=conda_env,
-            preexec_fn=os.setsid,
+            start_new_session=True,
         )
         self.proc_pgrp = os.getpgid(self.proc.pid)
 
@@ -151,15 +151,13 @@ class Launcher(BaseLauncher):
     async def handle_down(self):
         try:
             if self.proc.returncode is None:
-                proc_pid = self.get_pid()
-
                 life_cycle.set_state(self.name, life_cycle.State.STOPPING)
-                os.kill(proc_pid, signal.SIGTERM)
+                self.proc.send_signal(signal.SIGTERM)
 
-                for _ in range(100):
-                    if not os.kill(proc_pid, 0):
-                        break
-                    await asyncio.sleep(0.03)
+                try:
+                    await asyncio.wait_for(self.proc.wait(), timeout=3.0)
+                except asyncio.TimeoutError:
+                    pass
 
             # Clean up zombie sub-sub-processes.
             os.killpg(self.proc_pgrp, signal.SIGKILL)
