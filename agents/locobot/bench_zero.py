@@ -81,16 +81,17 @@ def print_log(title, rank="time (ms)"):
         rt.add_row(*[str(r) for r in row])
     print(rt)
 
-for attr in ['jpg', 'png', 'webp']:
-    tm = timeit.timeit(lambda: bench(attr), number=count)
-    rgb, size = bench(attr)
-    psnr= hello_data.psnr(rgb, hello_data.rgb)
-    print("RGB PSNR", psnr)
-    log("RGB-8", attr, "", tm, count, rgb, hello_data.rgb, size)
+# for attr in ['jpg', 'png', 'webp']:
+#     tm = timeit.timeit(lambda: bench(attr), number=count)
+#     rgb, size = bench(attr)
+#     psnr= hello_data.psnr(rgb, hello_data.rgb)
+#     print("RGB PSNR", psnr)
+#     log("RGB-8", attr, "", tm, count, rgb, hello_data.rgb, size)
     
-print_log("RGB-8")
+# print_log("RGB-8")
 # for attr in ['int', 'float', 'npz', 'bloscx']:
-for attr in ['zstd', 'zlib', 'bz2', 'zip', 'npz', 'rvl', 'bloscx']: #  'bloscrvl']: # 'bloscptr', 
+# for attr in ['zstd', 'zlib', 'bz2', 'zip', 'npz', 'rvl', 'bloscx']: #  'bloscrvl']: # 'bloscptr', 
+for attr in ['zstd', 'bloscx']: #  'bloscrvl']: # 'bloscptr', 
     if attr == 'bloscx' or attr == 'bloscptr' or attr == 'bloscrvl':
         # for opts in itertools.product(['lz4', 'lz4hc', 'zlib', 'zstd'], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]):
         for opts in itertools.product(['zlib', 'zstd'], [1, 2, 3, 4, 5, 6], [blosc.NOSHUFFLE]):

@@ -9,6 +9,8 @@ import zipfile
 import bz2
 import zlib
 import pyzstd as zstd_
+import pickle
+from pyzstd import CParameter
 
 def compute_psnr(img1, img2, r=255.):
     img1 = img1.astype(np.float64) / r
@@ -27,7 +29,10 @@ class HelloData(object):
         self.df32 = self.depth.astype(np.float32)
         self.rf32 = self.rgb.astype(np.float32)
 
-        self.zstd_ = zstd_.RichMemZstdCompressor(-1)
+        with open("zstd_dict_depth.pkl", "rb") as f:
+            self.zstd_dict = zstd_.ZstdDict(pickle.load(f))
+        self.zstd_option = {CParameter.nbWorkers : 4, CParameter.compressionLevel : 1}
+        #        self.zstd_ = zstd_.ZstdCompressor(level_or_option=option, zstd_dict = zstd_dict) # RichMemZstdCompressor(-1)
 
     def float(self):
         return self.rf32, self.df32
@@ -163,12 +168,12 @@ class HelloData(object):
 
     def zstd(self):
         shape = self.depth.shape
-        compressed = self.zstd_.compress(self.depth.tobytes()) # , 0
+        compressed = zstd_.compress(self.depth.tobytes(), level_or_option=self.zstd_option, zstd_dict=self.zstd_dict)
         return [compressed, shape]
 
     def zstd_decode(self, depth_):
         depth, shape = depth_
-        buf = zstd_.decompress(depth)
+        buf = zstd_.decompress(depth, zstd_dict=self.zstd_dict)
         depth_out = np.frombuffer(buf, dtype=np.uint16).reshape(shape)
         return depth_out
         
