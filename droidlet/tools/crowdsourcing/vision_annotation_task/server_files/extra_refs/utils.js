@@ -10,7 +10,7 @@ $('link[rel=stylesheet][href~="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulm
 var blockMarked = false;
 var annotationFinished = false;
 var ratingComplete = false;
-var feedbackGiven = false;
+var feedbackGiven = true;
 var clickedElements = new Array();
 
 // recordClick logs user actions as well as messages from the dashboard to the Mephisto form

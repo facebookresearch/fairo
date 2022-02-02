@@ -13,6 +13,7 @@ import csv
 import sys
 import yaml
 import logging
+import json
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
@@ -45,6 +46,7 @@ def main(opts) -> None:
         " --GROUND_DEPTH=" + str(opts.ground_depth) + \
         " --MAX_NUM_SHAPES=" + str(opts.max_num_shapes) + \
         " --NUM_SCENES=" + str(opts.num_hits) + \
+        " --MAX_NUM_GROUND_HOLES=" + str(opts.max_num_holes) + \
         " --save_data_path=" + scene_path
     try:
         logging.info(f"Starting scene generation script")
@@ -58,11 +60,6 @@ def main(opts) -> None:
     except subprocess.TimeoutExpired:
         scene_gen.kill()
         logging.info("Scene generation script timed out after {SCENE_GEN_TIMEOUT} seconds")
-
-    #Send scene file to S3 for future annotation
-    upload_key = id + "/vision_annotation/scene_list.json"
-    response = s3.upload_file(scene_path, 'droidlet-hitl', upload_key)
-    if response: logging.info(f"S3 upload response: {response}")
 
     #Populate data.csv with scene filename and indeces
     with open("labeling_data.csv", "w") as f:
@@ -106,16 +103,17 @@ def main(opts) -> None:
 
         units = mephisto_data_browser.get_units_for_task_name(task_name)
         scene_list = []
-        label_list = []
         for unit in units:
             data = mephisto_data_browser.get_data_from_unit(unit)
             worker_name = Worker(db, data["worker_id"]).worker_name
-            object = data["data"]["outputs"]["object"]
-            label_list.append(object)
-            location = data["data"]["outputs"]["location"]
-            scene_idx = data["data"]["outputs"]["scene_idx"]
-            scene_list.append(scene_idx)
-            csv_writer.writerow(["scene_list.json", scene_idx, worker_name, object, location])
+            outputs = data["data"]["outputs"]
+            csv_writer.writerow([outputs["scene_filename"], outputs["scene_idx"], worker_name, outputs["object"], outputs["location"]])
+
+            # Build the list of scenes and populate the obj_ref (label) field
+            with open(f"server_files/extra_refs/{outputs['scene_filename']}", "r") as js:
+                scene = json.load(js)[int(outputs["scene_idx"])]
+                scene["obj_ref"] = outputs["object"]
+                scene_list.append(scene)
 
     # Upload results to S3
     upload_key = id + "/vision_labeling_results/" + results_csv
@@ -132,7 +130,7 @@ def main(opts) -> None:
     if opts.annotate:
         logging.info(f"Launching corresponding annotation job")
 
-        aj = VisionAnnotationJob(id, scene_list, label_list, 300)
+        aj = VisionAnnotationJob(batch_id=id, timestamp=int(datetime.utcnow().timestamp()), scenes=scene_list, timeout=300)
         aj.run()
 
 
@@ -140,11 +138,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--scene_length", type=int, default=20)
     parser.add_argument("--scene_height", type=int, default=14)
-    parser.add_argument("--ground_depth", type=int, default=3)
+    parser.add_argument("--ground_depth", type=int, default=4)
     parser.add_argument("--max_num_shapes", type=int, default=4)
+    parser.add_argument("--max_num_holes", type=int, default=3)
     parser.add_argument("--num_hits", type=int, default=1, help="Number of HITs to request")
     parser.add_argument("--mephisto_requester", type=str, default="ethancarlson_sandbox", help="Your Mephisto requester name")
     parser.add_argument("--annotate", action='store_true', help="Set to include annotate the scenes automatically")
     opts = parser.parse_args()
-    os.environ["MEPHISTO_REQUESTER"] = opts.mephisto_requester
     main(opts)
