@@ -219,6 +219,7 @@ var BLOCK_MAP = {
   "38,0": 63, // Poppy
   "39,0": 64, // Brown Mushroom
   "40,0": 65, // Red Mushroom
+  "95,4": 66, // Yellow Stained Glass
 };
 
 var MATERIAL_MAP = [
@@ -291,6 +292,7 @@ var MATERIAL_MAP = [
   "blocks/flower_tulip_red", // no poppy
   "blocks/mushroom_brown",
   "blocks/mushroom_red",
+  "blocks/glass_yellow",
   "blocks/hardened_clay_stained_lime", // use as default
 ];
 
@@ -46692,7 +46694,8 @@ var MATERIAL_MAP = require("./blockmap.js").MATERIAL_MAP;
 TEXTURE_PATH = "./textures/";
 SPEAKER_SKIN_PATH = TEXTURE_PATH + "speaker.png";
 AGENT_SKIN_PATH = TEXTURE_PATH + "agent.png";
-DEFAULT_BLOCK_ID = 66;
+FLASH_BLOCK_ID = 66; // use yellow glass as flash block
+DEFAULT_BLOCK_ID = 67;
 
 function enableFly(game, target) {
   var makeFly = fly(game);
@@ -46836,30 +46839,6 @@ function World() {
   };
 
   function flash(originalBlocks, bbox, remains) {
-    if (remains == 0) {
-      var idx = 0;
-      for (var ix = bbox[0]; ix <= bbox[3]; ++ix) {
-        for (var iy = bbox[1]; iy <= bbox[4]; ++iy) {
-          for (var iz = bbox[2]; iz <= bbox[5]; ++iz) {
-            game.setBlock([ix, iy, iz], originalBlocks[idx]);
-            idx += 1;
-          }
-        }
-      }
-      return;
-    }
-    // position1 = [5, 64, 5]
-    // position2 = [5, 65, 5]
-    // position3 = [5, 66, 5]
-    // if (remains % 2 == 0) {
-    //   game.setBlock(position1, 91);
-    //   game.setBlock(position2, 91);
-    //   game.setBlock(position3, 91);
-    // } else {
-    //   game.setBlock(position1, 88);
-    //   game.setBlock(position2, 88);
-    //   game.setBlock(position3, 88);
-    // }
     if (remains % 2 == 0) {
       var idx = 0;
       for (var ix = bbox[0]; ix <= bbox[3]; ++ix) {
@@ -46869,6 +46848,9 @@ function World() {
             idx += 1;
           }
         }
+      }
+      if (remains == 0) {
+        return;
       }
     } else {
       for (var ix = bbox[0]; ix <= bbox[3]; ++ix) {
@@ -46884,7 +46866,6 @@ function World() {
     setTimeout(() => {
       flash(originalBlocks, bbox, remains);
     }, 100);
-    // setTimeout(flash(remains), 1000 * remains)
   }
 
   this.flashBlocks = function (bbox) {
@@ -46896,7 +46877,7 @@ function World() {
         }
       }
     }
-    flash(originalBlocks, bbox, 20);
+    flash(originalBlocks, bbox, 40);
   };
 
   this.setBlock = function (x, y, z, idm) {
