@@ -219,7 +219,7 @@ var BLOCK_MAP = {
   "38,0": 63, // Poppy
   "39,0": 64, // Brown Mushroom
   "40,0": 65, // Red Mushroom
-  "95,4": 66  // Yellow Stained Glass
+  "95,4": 66, // Yellow Stained Glass
 };
 
 var MATERIAL_MAP = [
@@ -46694,7 +46694,7 @@ var MATERIAL_MAP = require("./blockmap.js").MATERIAL_MAP;
 TEXTURE_PATH = "./textures/";
 SPEAKER_SKIN_PATH = TEXTURE_PATH + "speaker.png";
 AGENT_SKIN_PATH = TEXTURE_PATH + "agent.png";
-FLASH_BLOCK_ID = 66 // use yellow glass as flash block
+FLASH_BLOCK_ID = 66; // use yellow glass as flash block
 DEFAULT_BLOCK_ID = 67;
 
 function enableFly(game, target) {
@@ -46729,7 +46729,7 @@ function defaultSetup(game, avatar) {
   });
 
   window.addEventListener("keydown", function (ev) {
-    if (ev.keyCode === "F".charCodeAt(0)) game.flash([0, 63, 0, 5, 67, 5])
+    if (ev.keyCode === "F".charCodeAt(0)) game.flashBlocks([0, 63, 0, 5, 67, 5]);
   });
 
   // block interaction stuff, uses highlight data
@@ -46854,7 +46854,7 @@ function World() {
         }
       }
       if (remains == 0) {
-        return
+        return;
       }
     } else {
       for (var ix = bbox[0]; ix <= bbox[3]; ++ix) {

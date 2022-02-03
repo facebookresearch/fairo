@@ -51,7 +51,8 @@ function defaultSetup(game, avatar) {
   });
 
   window.addEventListener("keydown", function (ev) {
-    if (ev.keyCode === "F".charCodeAt(0)) game.flash([0, 63, 0, 5, 67, 5]);
+    if (ev.keyCode === "F".charCodeAt(0))
+      game.flashBlocks([0, 63, 0, 5, 67, 5]);
   });
 
   // block interaction stuff, uses highlight data
