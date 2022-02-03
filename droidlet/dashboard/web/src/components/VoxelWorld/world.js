@@ -50,11 +50,6 @@ function defaultSetup(game, avatar) {
     if (ev.keyCode === "R".charCodeAt(0)) avatar.toggle();
   });
 
-  window.addEventListener("keydown", function (ev) {
-    if (ev.keyCode === "F".charCodeAt(0))
-      game.flashBlocks([0, 63, 0, 5, 67, 5]);
-  });
-
   // block interaction stuff, uses highlight data
   var currentMaterial = 1;
 
