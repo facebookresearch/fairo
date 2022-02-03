@@ -92,13 +92,14 @@ def main(opts) -> None:
         logging.info(f"Likely error: Popen called with invalid arguments")
         raise
 
+    labeling_timeout = opts.labeling_timeout * 60
     try:
-        job_launch.wait(timeout=LABELING_JOB_TIMEOUT)
+        job_launch.wait(timeout=labeling_timeout)
     except subprocess.TimeoutExpired:
         job_launch.terminate()
         time.sleep(10)
         job_launch.kill()
-        logging.info(f"Scene labeling job timed out after {LABELING_JOB_TIMEOUT} seconds")
+        logging.info(f"Scene labeling job timed out after {labeling_timeout} seconds")
     
     # Pull results from local DB    
     results_csv = id + ".csv"
@@ -135,19 +136,21 @@ def main(opts) -> None:
     if opts.annotate:
         logging.info(f"Launching corresponding annotation job")
 
-        aj = VisionAnnotationJob(batch_id=id, timestamp=int(datetime.utcnow().timestamp()), scenes=scene_list, timeout=120)
+        aj = VisionAnnotationJob(batch_id=id, timestamp=int(datetime.utcnow().timestamp()), scenes=scene_list, timeout=opts.annotation_timeout)
         aj.run()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--scene_length", type=int, default=20)
-    parser.add_argument("--scene_height", type=int, default=14)
+    parser.add_argument("--scene_length", type=int, default=18)
+    parser.add_argument("--scene_height", type=int, default=13)
     parser.add_argument("--ground_depth", type=int, default=4)
     parser.add_argument("--max_num_shapes", type=int, default=4)
     parser.add_argument("--max_num_holes", type=int, default=3)
     parser.add_argument("--num_hits", type=int, default=1, help="Number of HITs to request")
     parser.add_argument("--mephisto_requester", type=str, default="ethancarlson_sandbox", help="Your Mephisto requester name")
     parser.add_argument("--annotate", action='store_true', help="Set to include annotate the scenes automatically")
+    parser.add_argument("--labeling_timeout", type=int, default=200, help="Number of minutes before labeling job times out")
+    parser.add_argument("--annotation_timeout", type=int, default=200, help="Number of minutes before annotation job times out")
     opts = parser.parse_args()
     main(opts)
