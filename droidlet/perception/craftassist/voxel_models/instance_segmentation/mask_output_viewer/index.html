@@ -34,7 +34,7 @@
                 </div>
                 <div class="instructions-section">
                     <h4 class="instruction-headings">Block Colors:</h4>
-                    The "ground" in the scene is made up of white blocks.
+                    The "ground" in the scene is made up of translucent white blocks outlined in black.
                     The "air" in the scene is transparent.
                     The instance segment masks are shown in colored blocks with darker edges.  The labels for each mask are below the windows.
                 </div>
@@ -75,16 +75,29 @@
                 if (typeof(event.data) === "string") {
                 data = JSON.parse(event.data);
                 } else data = event.data;
-                console.log(data);
                 if (data.msg) populateLegend(data.msg);
             }, false);
 
             function populateLegend(msg) {
+                if (msg === "clear") { 
+                    clearLegend();
+                    return;
+                }
+
                 let li = document.createElement("li");
                 li.appendChild(document.createTextNode(msg.label.tags[0]));
                 li.style.color = "#" + msg.color.toString(16);
                 let eleID = "legend" + msg.idx
                 document.getElementById(eleID).appendChild(li);
+            }
+
+            function clearLegend() {
+                legends = document.getElementsByClassName("legend");
+                Array.from(legends).forEach((leg) => {
+                    while (leg.firstChild) {
+                        leg.removeChild(leg.firstChild);
+                    }
+                });
             }
         </script>
     </body>

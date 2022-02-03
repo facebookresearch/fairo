@@ -28,25 +28,24 @@ const geo = new THREE.BoxGeometry( 50, 50, 50 );
 let gtScenePath = sessionStorage.getItem('gtScene');
 let modelOutputPath = sessionStorage.getItem('modelOutput');
 
-fetch(gtScenePath)  // Load the first file
+let gtScene, modelScene, numScenes;
+let sceneIdx = 0;
+fetch(gtScenePath)  // Load the first file and save json data to object
 .then(response => {
     return response.json();
 })
-.then(jsondata => {
-    return jsondata[0];  // Pull the scene object out of the list
-})
-.then(scene => {
-    loadScene(scene, 1);
-    return fetch(modelOutputPath)  // Load the second file
+.then(json => {
+    gtScene = json;
+    numScenes = gtScene.length;
+    return fetch(modelOutputPath);  // Load the second file
 })
 .then(response => {
     return response.json();
 })
-.then(jsondata => {
-    return jsondata[0];  // Pull the scene object out of the list
-})
-.then(scene => {
-    loadScene(scene, 2);
+.then(json => {
+    modelScene = json;
+    loadScene(gtScene[sceneIdx], 1);
+    loadScene(modelScene[sceneIdx], 2);
     addEventListeners();
     render();
     var canvii = document.getElementsByTagName("canvas");
@@ -55,7 +54,40 @@ fetch(gtScenePath)  // Load the first file
         canv.style.margin = "auto";
     });
     canvii[1].style.float = "right";
+    return modelScene.length < numScenes ? modelScene.length : numScenes;
 })
+.then(sceneLimit => {
+    document.getElementById("prevScene").addEventListener("click", function() {
+        sceneIdx > 0 ? sceneIdx-- : sceneIdx = sceneLimit - 1;
+        refreshCanvii();
+    });
+    document.getElementById("nextScene").addEventListener("click", function() {
+        sceneIdx < (sceneLimit - 1) ? sceneIdx++ : sceneIdx = 0;
+        refreshCanvii();
+    });
+})
+
+
+function refreshCanvii() {
+    var canvii = document.getElementsByTagName("canvas");
+    Array.from(canvii).forEach((canv) => {
+        canv.parentNode.removeChild(canv);
+    });
+    let obj = {msg: "clear"};
+    window.parent.postMessage(JSON.stringify(obj), "*");
+
+    objects = {1: [], 2: []};
+    loadScene(gtScene[sceneIdx], 1);
+    loadScene(modelScene[sceneIdx], 2);
+    render();
+
+    canvii = document.getElementsByTagName("canvas");
+    Array.from(canvii).forEach((canv) => {
+        canv.style.display = "inline";
+        canv.style.margin = "auto";
+    });
+    canvii[1].style.float = "right";
+}
 
 
 function loadScene(scene, idx) {
@@ -80,21 +112,20 @@ function loadScene(scene, idx) {
 
     // Populate legend and mask colors
     let color_idx = 47;  // Increment mask color coding with each tag
-    scene.inst_seg_tags.forEach(tag => {
-        // For each mask block location, find the corresponding block in the block list and set the color to a unique value
-        tag.locs.forEach((loc) => {
-            let match_block_idx = scene.blocks.findIndex((block) => block[0] == loc[0] && block[1] == loc[1] && block[2] == loc[2] && block[3] != 46 && block[3] != 0);
-            if (match_block_idx != -1) scene.blocks[match_block_idx][3] = color_idx;
-            // Holes need their own number so they don't get texture later
-            match_block_idx = scene.blocks.findIndex((block) => block[0] == loc[0] && block[1] == loc[1] && block[2] == loc[2] && block[3] == 0);
-            if (match_block_idx != -1) scene.blocks[match_block_idx][3] = color_idx + 20;
-            // Get rid of any ground blocks that overlap with tags while we're at it
-            match_block_idx = scene.blocks.findIndex((block) => block[0] == loc[0] && block[1] == loc[1] && block[2] == loc[2] && block[3] == 46);
-            if (match_block_idx != -1) scene.blocks.splice(match_block_idx, 1);
+    if (scene.inst_seg_tags) {
+        scene.inst_seg_tags.forEach(tag => {
+            // For each mask block location, find the corresponding block in the block list and set the color to a unique value
+            tag.locs.forEach((loc) => {
+                let match_block_idx = scene.blocks.findIndex((block) => block[0] == loc[0] && block[1] == loc[1] && block[2] == loc[2] && block[3] != 46 && block[3] != 0);
+                if (match_block_idx != -1) scene.blocks[match_block_idx][3] = color_idx;
+                // Holes need their own number so they don't get texture later
+                match_block_idx = scene.blocks.findIndex((block) => block[0] == loc[0] && block[1] == loc[1] && block[2] == loc[2] && (block[3] == 0 || block[3] == 46) );
+                if (match_block_idx != -1) scene.blocks[match_block_idx][3] = color_idx + 20;
+            });
+            let obj = {msg: {idx: idx, label: tag, color: BLOCK_MAP[color_idx++]}};
+            window.parent.postMessage(JSON.stringify(obj), "*");
         });
-        let obj = {msg: {idx: idx, label: tag, color: BLOCK_MAP[color_idx++]}};
-        window.parent.postMessage(JSON.stringify(obj), "*");
-    });
+    }
 
     // load scene
     let cubeMaterial;
