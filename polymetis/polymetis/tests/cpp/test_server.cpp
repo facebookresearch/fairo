@@ -159,11 +159,12 @@ TEST_F(ServiceTest, SetController) {
   EXPECT_EQ(interval3.end(), 2);
 }
 
-TEST_F(ServiceTest, TestServiceLock) {
+TEST_F(ServiceTest, TestInvalidRequests) {
   // Init
   stub_.get()->InitRobotClient(new grpc::ClientContext, metadata_, new Empty);
 
-  // Send invalid controller
+  // Send invalid controller, expect fail while server continues to run default
+  // controller
   auto writer =
       stub_.get()->SetController(new grpc::ClientContext, new LogInterval);
   ControllerChunk chunk;
@@ -172,10 +173,18 @@ TEST_F(ServiceTest, TestServiceLock) {
   writer->WritesDone();
   ASSERT_FALSE((writer->Finish()).ok());
 
-  // Call termination and make sure it runs
-  EXPECT_TRUE(stub_.get()
-                  ->TerminateController(new grpc::ClientContext, empty_,
-                                        new LogInterval)
+  // Call termination => expect fail since no custom controller is being run
+  ASSERT_FALSE(stub_.get()
+                   ->TerminateController(new grpc::ClientContext, empty_,
+                                         new LogInterval)
+                   .ok());
+
+  // Send valid ControlUpdate request => expect server is still functioning
+  // normally
+  TorqueCommand torque_command;
+  ASSERT_TRUE(stub_.get()
+                  ->ControlUpdate(new grpc::ClientContext, dummy_robot_state_,
+                                  &torque_command)
                   .ok());
 }
 
