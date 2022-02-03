@@ -159,23 +159,32 @@ TEST_F(ServiceTest, SetController) {
   EXPECT_EQ(interval3.end(), 2);
 }
 
-TEST_F(ServiceTest, TestServiceLock) {
+TEST_F(ServiceTest, TestInvalidRequests) {
   // Init
   stub_.get()->InitRobotClient(new grpc::ClientContext, metadata_, new Empty);
 
-  // Send invalid controller
+  // Send invalid controller, expect fail while server continues to run default
+  // controller
   auto writer =
       stub_.get()->SetController(new grpc::ClientContext, new LogInterval);
   ControllerChunk chunk;
   chunk.set_torchscript_binary_chunk("invalid string");
   writer->Write(chunk);
   writer->WritesDone();
-  ASSERT_FALSE((writer->Finish()).ok());
+  EXPECT_EQ(writer->Finish().error_code(), StatusCode::CANCELLED);
 
-  // Call termination and make sure it runs
+  // Call termination => expect fail since no custom controller is being run
+  EXPECT_EQ(stub_.get()
+                ->TerminateController(new grpc::ClientContext, empty_,
+                                      new LogInterval)
+                .error_code(),
+            StatusCode::CANCELLED);
+
+  // Send valid get state request => expect server is still functioning normally
+  RobotState acquired_robot_state;
   EXPECT_TRUE(stub_.get()
-                  ->TerminateController(new grpc::ClientContext, empty_,
-                                        new LogInterval)
+                  ->GetRobotState(new grpc::ClientContext, empty_,
+                                  &acquired_robot_state)
                   .ok());
 }
 
