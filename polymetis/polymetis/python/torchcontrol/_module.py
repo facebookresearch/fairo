@@ -44,14 +44,9 @@ class ControlModule(torch.nn.Module):
 
     @torch.jit.export
     def update(self, update_dict: Dict[str, torch.Tensor]) -> None:
-        """
-        Method for updating module parameters
-        """
+        """Method for updating module parameters."""
         for name in update_dict.keys():
-            if name in self._param_dict.keys():
-                self._param_dict[name].data.copy_(update_dict[name])
-            else:
-                raise AttributeError
+            self._param_dict[name].data.copy_(update_dict[name])
 
     # TODO: Implicitly check input/output format/dimensions?
     # TODO: Warn users against common error of not calling 'super().__init__()'?
