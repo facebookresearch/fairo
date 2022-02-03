@@ -3,69 +3,25 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
 import random
-import re
-import sentry_sdk
-import spacy
 import time
 import numpy as np
 import datetime
 import os
-from typing import Dict
 
 from agents.core import BaseAgent
 from agents.scheduler import EmptyScheduler
-from droidlet.base_util import hash_user
+
 from droidlet.event import sio, dispatch
-from droidlet.interpreter import InterpreterBase, coref_resolve, process_spans_and_remove_fixed_value
+from droidlet.interpreter import InterpreterBase
 from droidlet.memory.save_and_fetch_commands import *
 from droidlet.shared_data_structs import ErrorWithResponse
-
+from droidlet.perception.semantic_parsing.semantic_parsing_util import postprocess_logical_form
 random.seed(0)
-spacy_model = spacy.load("en_core_web_sm")
 
 DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
 DEFAULT_BEHAVIOUR_TIMEOUT = 20
 MEMORY_DUMP_KEYFRAME_TIME = 0.5
 
-def postprocess_logical_form(memory, speaker: str, chat: str, logical_form: Dict) -> Dict:
-    """This function performs some postprocessing on the logical form:
-    substitutes indices with words and resolves coreference"""
-    # perform lemmatization on the chat
-    logging.debug('chat before lemmatization "{}"'.format(chat))
-    lemmatized_chat = spacy_model(chat)
-    lemmatized_chat_str = " ".join(str(word.lemma_) for word in lemmatized_chat)
-    logging.debug('chat after lemmatization "{}"'.format(lemmatized_chat_str))
-
-    # Get the words from indices in spans and substitute fixed_values
-    # NOTE: updates are made to the dictionary in-place
-    process_spans_and_remove_fixed_value(
-        logical_form, re.split(r" +", chat), re.split(r" +", lemmatized_chat_str)
-    )
-
-    # log to sentry
-    sentry_sdk.capture_message(
-        json.dumps({"type": "ttad_pre_coref", "in_original": chat, "out": logical_form})
-    )
-    sentry_sdk.capture_message(
-        json.dumps(
-            {
-                "type": "ttad_pre_coref",
-                "in_lemmatized": lemmatized_chat_str,
-                "out": logical_form,
-            }
-        )
-    )
-    logging.debug('ttad pre-coref "{}" -> {}'.format(lemmatized_chat_str, logical_form))
-
-    # Resolve any co-references like "this", "that" "there" using heuristics
-    # and make updates in the dictionary in place.
-    coref_resolve(memory, logical_form, chat)
-    logging.info(
-        'logical form post co-ref and process_spans "{}" -> {}'.format(
-            hash_user(speaker), logical_form
-        )
-    )
-    return logical_form
 
 # a BaseAgent with:
 # 1: a controller that is (mostly) a scripted interpreter + neural semantic parser.
