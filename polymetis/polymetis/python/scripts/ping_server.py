@@ -27,4 +27,6 @@ if __name__ == "__main__":
     log.info(f"{curr_state.timestamp}")
 
     num_seconds_stale = 1
-    assert time_diff < num_seconds_stale, f"Robot state too stale by {time_diff}, expected within {num_seconds_stale}."
+    assert (
+        time_diff < num_seconds_stale
+    ), f"Robot state too stale by {time_diff}, expected within {num_seconds_stale}."
