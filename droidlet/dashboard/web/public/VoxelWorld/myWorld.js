@@ -46856,7 +46856,7 @@ function World() {
       for (var ix = bbox[0]; ix <= bbox[3]; ++ix) {
         for (var iy = bbox[1]; iy <= bbox[4]; ++iy) {
           for (var iz = bbox[2]; iz <= bbox[5]; ++iz) {
-            game.setBlock([ix, iy, iz], 88);
+            game.setBlock([ix, iy, iz], FLASH_BLOCK_ID);
             idx += 1;
           }
         }
