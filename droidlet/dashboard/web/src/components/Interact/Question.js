@@ -43,6 +43,7 @@ class Question extends Component {
       perception_error: false,
       task_error: false,
       action_dict: {},
+      lf_ref_obj_data: null,
       feedback: "",
     };
   }
@@ -50,8 +51,11 @@ class Question extends Component {
   componentDidMount() {
     this.props.stateManager.memory.commandState = "idle";
     var lastChatActionDict = this.props.stateManager.memory.lastChatActionDict;
+    var lastChatLFRefObjData =
+      this.props.stateManager.memory.lastChatLFRefObjData;
     this.setState({
       action_dict: lastChatActionDict,
+      lf_ref_obj_data: lastChatLFRefObjData,
       agent_reply: this.props.stateManager.memory.last_reply,
     });
   }
@@ -433,8 +437,10 @@ class Question extends Component {
     let user_message = null;
     // NOTE: this should come from the state setter sio event.
     this.state.memory_entries = null;
-
-    if (this.state.memory_entries) {
+    if (this.state.lf_ref_obj_data[0]["point_target"]) {
+      this.props.stateManager.flashVoxelWorldBlocks(
+        this.state.lf_ref_obj_data[0]["point_target"]
+      );
       return (
         <div className="question">
           <h3>

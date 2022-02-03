@@ -58,6 +58,7 @@ class StateManager {
     objects: new Map(),
     humans: new Map(),
     lastChatActionDict: null,
+    lastChatLFRefObjData: null,
     chats: [
       { msg: "", failed: false },
       { msg: "", failed: false },
@@ -122,6 +123,8 @@ class StateManager {
     this.setMephistoAgentId(mephistoAgentId);
     this.setTurkWorkerId(turkWorkerId);
 
+    this.flashVoxelWorldBlocks = this.flashVoxelWorldBlocks.bind(this);
+
     // set default url to actual ip:port
     this.default_url = window.location.host;
 
@@ -177,6 +180,14 @@ class StateManager {
       this.socket.removeAllListeners();
     }
     this.restart(this.url);
+  }
+
+  flashVoxelWorldBlocks(bbox) {
+    this.refs.forEach((ref) => {
+      if (ref instanceof VoxelWorld) {
+        ref.flashVoxelWorldBlocks(bbox);
+      }
+    });
   }
 
   setTurkExperimentId(turk_experiment_id) {
@@ -373,6 +384,7 @@ class StateManager {
 
   setLastChatActionDict(res) {
     this.memory.lastChatActionDict = res.action_dict;
+    this.memory.lastChatLFRefObjData = res.lf_refobj_data;
   }
 
   updateVoxelWorld(res) {
