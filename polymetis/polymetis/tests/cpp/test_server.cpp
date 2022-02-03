@@ -171,20 +171,20 @@ TEST_F(ServiceTest, TestInvalidRequests) {
   chunk.set_torchscript_binary_chunk("invalid string");
   writer->Write(chunk);
   writer->WritesDone();
-  EXPECT_EQ(writer->Finish().error_code(), StatusCode::CANCELLED);
+  ASSERT_FALSE((writer->Finish()).ok());
 
   // Call termination => expect fail since no custom controller is being run
-  EXPECT_EQ(stub_.get()
-                ->TerminateController(new grpc::ClientContext, empty_,
-                                      new LogInterval)
-                .error_code(),
-            StatusCode::CANCELLED);
+  ASSERT_FALSE(stub_.get()
+                   ->TerminateController(new grpc::ClientContext, empty_,
+                                         new LogInterval)
+                   .ok());
 
-  // Send valid get state request => expect server is still functioning normally
-  RobotState acquired_robot_state;
-  EXPECT_TRUE(stub_.get()
-                  ->GetRobotState(new grpc::ClientContext, empty_,
-                                  &acquired_robot_state)
+  // Send valid ControlUpdate request => expect server is still functioning
+  // normally
+  TorqueCommand torque_command;
+  ASSERT_TRUE(stub_.get()
+                  ->ControlUpdate(new grpc::ClientContext, dummy_robot_state_,
+                                  &torque_command)
                   .ok());
 }
 
