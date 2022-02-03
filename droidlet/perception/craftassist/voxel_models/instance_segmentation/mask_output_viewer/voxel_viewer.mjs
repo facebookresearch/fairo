@@ -126,6 +126,9 @@ function loadScene(scene, idx) {
                 // Holes need their own number so they don't get texture later
                 match_block_idx = scene.blocks.findIndex((block) => block[0] == loc[0] && block[1] == loc[1] && block[2] == loc[2] && (block[3] == 0 || block[3] == 46) );
                 if (match_block_idx != -1) scene.blocks[match_block_idx][3] = color_idx + 20;
+                // If the block doesn't exist, they marked the air
+                match_block_idx = scene.blocks.findIndex((block) => block[0] == loc[0] && block[1] == loc[1] && block[2] == loc[2]);
+                if (match_block_idx == -1) scene.blocks.push([loc[0], loc[1], loc[2], (color_idx + 20)]);
             });
             let obj = {msg: {idx: idx, label: tag, color: BLOCK_MAP[color_idx++]}};
             window.parent.postMessage(JSON.stringify(obj), "*");
