@@ -16,7 +16,8 @@ var MATERIAL_MAP = require("./blockmap.js").MATERIAL_MAP;
 TEXTURE_PATH = "./textures/";
 SPEAKER_SKIN_PATH = TEXTURE_PATH + "speaker.png";
 AGENT_SKIN_PATH = TEXTURE_PATH + "agent.png";
-DEFAULT_BLOCK_ID = 66;
+FLASH_BLOCK_ID = 66; // use yellow glass as flash block
+DEFAULT_BLOCK_ID = 67;
 
 function enableFly(game, target) {
   var makeFly = fly(game);
@@ -47,6 +48,10 @@ function defaultSetup(game, avatar) {
   // toggle between first and third person modes
   window.addEventListener("keydown", function (ev) {
     if (ev.keyCode === "R".charCodeAt(0)) avatar.toggle();
+  });
+
+  window.addEventListener("keydown", function (ev) {
+    if (ev.keyCode === "F".charCodeAt(0)) game.flash([0, 63, 0, 5, 67, 5]);
   });
 
   // block interaction stuff, uses highlight data
@@ -157,6 +162,48 @@ function World() {
         this.game.createBlock(xyz, id);
       }
     }
+  };
+
+  function flash(originalBlocks, bbox, remains) {
+    if (remains % 2 == 0) {
+      var idx = 0;
+      for (var ix = bbox[0]; ix <= bbox[3]; ++ix) {
+        for (var iy = bbox[1]; iy <= bbox[4]; ++iy) {
+          for (var iz = bbox[2]; iz <= bbox[5]; ++iz) {
+            game.setBlock([ix, iy, iz], originalBlocks[idx]);
+            idx += 1;
+          }
+        }
+      }
+      if (remains == 0) {
+        return;
+      }
+    } else {
+      for (var ix = bbox[0]; ix <= bbox[3]; ++ix) {
+        for (var iy = bbox[1]; iy <= bbox[4]; ++iy) {
+          for (var iz = bbox[2]; iz <= bbox[5]; ++iz) {
+            game.setBlock([ix, iy, iz], FLASH_BLOCK_ID);
+            idx += 1;
+          }
+        }
+      }
+    }
+    remains -= 1;
+    setTimeout(() => {
+      flash(originalBlocks, bbox, remains);
+    }, 100);
+  }
+
+  this.flashBlocks = function (bbox) {
+    var originalBlocks = [];
+    for (var ix = bbox[0]; ix <= bbox[3]; ++ix) {
+      for (var iy = bbox[1]; iy <= bbox[4]; ++iy) {
+        for (var iz = bbox[2]; iz <= bbox[5]; ++iz) {
+          originalBlocks.push(game.getBlock([ix, iy, iz]));
+        }
+      }
+    }
+    flash(originalBlocks, bbox, 40);
   };
 
   this.setBlock = function (x, y, z, idm) {
