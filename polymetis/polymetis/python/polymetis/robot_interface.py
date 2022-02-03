@@ -200,9 +200,7 @@ class BaseRobotInterface:
         try:
             log_interval = self.grpc_connection.SetController(msg_generator())
         except grpc.RpcError as e:
-            raise grpc.RpcError(
-                f"Error encountered on server side --\n{e.details()}"
-            ) from None
+            raise grpc.RpcError(f"POLYMETIS SERVER ERROR --\n{e.details()}") from None
 
         if blocking:
             # Check policy termination
@@ -237,9 +235,7 @@ class BaseRobotInterface:
         try:
             update_interval = self.grpc_connection.UpdateController(msg_generator())
         except grpc.RpcError as e:
-            raise grpc.RpcError(
-                f"Error encountered on server side --\n{e.details()}"
-            ) from None
+            raise grpc.RpcError(f"POLYMETIS SERVER ERROR --\n{e.details()}") from None
         episode_interval = self.grpc_connection.GetEpisodeInterval(EMPTY)
 
         return update_interval.start - episode_interval.start
