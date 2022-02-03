@@ -9,6 +9,7 @@ import tempfile
 import threading
 import atexit
 import logging
+from enum import Enum
 
 import grpc  # This requires `conda install grpcio protobuf`
 import torch
@@ -241,7 +242,7 @@ class BaseRobotInterface:
         return update_interval.start - episode_interval.start
 
     def terminate_current_policy(
-        self, return_log: LogInterval = True, timeout: float = None
+        self, return_log: bool = True, timeout: float = None
     ) -> List[RobotState]:
         """Terminates the currently running policy and (optionally) return its trajectory.
 
@@ -361,13 +362,6 @@ class RobotInterface(BaseRobotInterface):
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
 
         # Parse parameters
-        if time_to_go is None:
-            time_to_go = self.time_to_go_default
-        if Kq is None:
-            Kq = self.Kq_default
-        if Kqd is None:
-            Kqd = self.Kqd_default
-
         joint_pos_desired = torch.Tensor(positions)
         if delta:
             joint_pos_desired += self.get_joint_positions()
@@ -377,7 +371,7 @@ class RobotInterface(BaseRobotInterface):
         waypoints = toco.planning.generate_joint_space_min_jerk(
             start=joint_pos_current,
             goal=joint_pos_desired,
-            time_to_go=time_to_go,
+            time_to_go=time_to_go or self.time_to_go_default,
             hz=self.hz,
         )
 
@@ -385,8 +379,8 @@ class RobotInterface(BaseRobotInterface):
         torch_policy = toco.policies.JointTrajectoryExecutor(
             joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
             joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
-            Kp=Kq,
-            Kd=Kqd,
+            Kp=Kq or self.Kq_default,
+            Kd=Kqd or self.Kqd_default,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
@@ -420,13 +414,6 @@ class RobotInterface(BaseRobotInterface):
         ee_pos_current, ee_quat_current = self.get_ee_pose()
 
         # Parse parameters
-        if time_to_go is None:
-            time_to_go = self.time_to_go_default
-        if Kx is None:
-            Kx = self.Kx_default
-        if Kxd is None:
-            Kxd = self.Kxd_default
-
         ee_pos_desired = torch.Tensor(position)
         if delta:
             ee_pos_desired += ee_pos_current
@@ -453,7 +440,7 @@ class RobotInterface(BaseRobotInterface):
         waypoints = toco.planning.generate_cartesian_space_min_jerk(
             start=ee_pose_current,
             goal=ee_pose_desired,
-            time_to_go=time_to_go,
+            time_to_go=time_to_go or self.time_to_go_default,
             hz=self.hz,
         )
 
@@ -461,13 +448,85 @@ class RobotInterface(BaseRobotInterface):
         torch_policy = toco.policies.EndEffectorTrajectoryExecutor(
             ee_pose_trajectory=[waypoint["pose"] for waypoint in waypoints],
             ee_twist_trajectory=[waypoint["twist"] for waypoint in waypoints],
-            Kp=Kx,
-            Kd=Kxd,
+            Kp=Kx or self.Kx_default,
+            Kd=Kxd or self.Kxd_default,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
 
         return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
+
+    """
+    Continuous control methods
+    """
+
+    def start_joint_impedance(self, Kq=None, Kqd=None, **kwargs):
+        """Starts joint position control mode.
+        Runs an non-blocking joint impedance controller.
+        The desired joint positions can be updated using `update_desired_joint_positions`
+        """
+        torch_policy = toco.policies.JointImpedanceControl(
+            joint_pos_current=self.get_joint_positions(),
+            Kp=Kq or self.Kq_default,
+            Kd=Kqd or self.Kqd_default,
+            robot_model=self.robot_model,
+            ignore_gravity=self.use_grav_comp,
+        )
+
+        return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
+
+    def start_cartesian_impedance(self, Kx=None, Kxd=None, **kwargs):
+        """Starts Cartesian position control mode.
+        Runs an non-blocking Cartesian impedance controller.
+        The desired EE pose can be updated using `update_desired_ee_pose`
+        """
+        torch_policy = toco.policies.CartesianImpedanceControl(
+            joint_pos_current=self.get_joint_positions(),
+            Kp=Kx or self.Kx_default,
+            Kd=Kxd or self.Kxd_default,
+            robot_model=self.robot_model,
+            ignore_gravity=self.use_grav_comp,
+        )
+
+        return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
+
+    def update_desired_joint_positions(self, positions: torch.Tensor):
+        """Update the desired joint positions used by the joint position control mode.
+        Requires starting a joint impedance controller with `start_joint_impedance` beforehand.
+        """
+        try:
+            update_idx = self.update_current_policy({"joint_pos_desired": positions})
+        except grpc.RpcError as e:
+            log.error(
+                "Unable to update desired joint positions. Use 'start_joint_impedance' to start a joint impedance controller."
+            )
+            raise e
+
+        return update_idx
+
+    def update_desired_ee_pose(
+        self,
+        position: torch.Tensor = None,
+        orientation: torch.Tensor = None,
+    ):
+        """Update the desired EE pose used by the Cartesian position control mode.
+        Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
+        """
+        param_dict = {}
+        if position is not None:
+            param_dict["ee_pos_desired"] = position
+        if orientation is not None:
+            param_dict["ee_quat_desired"] = orientation
+
+        try:
+            update_idx = self.update_current_policy(param_dict)
+        except grpc.RpcError as e:
+            log.error(
+                "Unable to update desired EE pose. Use 'start_cartesian_impedance' to start a Cartesian impedance controller."
+            )
+            raise e
+
+        return update_idx
 
     """
     PyRobot backward compatibility methods

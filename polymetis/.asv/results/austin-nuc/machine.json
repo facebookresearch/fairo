@@ -1,0 +1,9 @@
+{
+    "arch": "x86_64",
+    "cpu": "Intel(R) Core(TM) i7-10710U CPU @ 1.10GHz",
+    "machine": "austin-nuc",
+    "num_cpu": "12",
+    "os": "Linux 5.4.87-rt48",
+    "ram": "32560808",
+    "version": 1
+}
