@@ -112,8 +112,13 @@ function loadScene(scene, idx) {
 
     // Populate legend and mask colors
     let color_idx = 47;  // Increment mask color coding with each tag
+    let blockColorList = [];
+    scene.blocks.forEach((block) => {
+        if (!blockColorList.includes(block[3])) { blockColorList.push(block[3]) };
+    });
     if (scene.inst_seg_tags) {
         scene.inst_seg_tags.forEach(tag => {
+            while (blockColorList.includes(color_idx)) { color_idx++ }; // avoid colors of other blocks
             // For each mask block location, find the corresponding block in the block list and set the color to a unique value
             tag.locs.forEach((loc) => {
                 let match_block_idx = scene.blocks.findIndex((block) => block[0] == loc[0] && block[1] == loc[1] && block[2] == loc[2] && block[3] != 46 && block[3] != 0);
