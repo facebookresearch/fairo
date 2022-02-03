@@ -104,7 +104,10 @@ def build_shape_scene(args):
                         inst_seg.append(ln)
                         occupied_by_shapes[ln] = True
         inst_segs.append({"tags": [shape], "locs": inst_seg})
-    num_holes = np.random.randint(0, args.MAX_NUM_GROUND_HOLES)
+    if args.MAX_NUM_GROUND_HOLES == 0:
+        num_holes = 0
+    else:
+        num_holes = np.random.randint(0, args.MAX_NUM_GROUND_HOLES)
     # TODO merge contiguous holes
     ML = args.SL
     mL = 0
