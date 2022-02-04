@@ -182,7 +182,7 @@ void FrankaTorqueControlClient::run() {
     }
 
   } else {
-    // Run mocked robot that returns dummy states
+    // Run mocked robot control loops
     franka::RobotState robot_state;
     franka::Duration duration;
 
@@ -194,9 +194,13 @@ void FrankaTorqueControlClient::run() {
       clock_gettime(CLOCK_REALTIME, &abs_target_time);
       abs_target_time.tv_nsec += period_ns;
 
+      // Pull data from robot if in readonly mode
       if (readonly_mode_) {
         robot_state = robot_ptr_->readOnce();
       }
+
+      // Perform control loop with dummy variables (robot_state is populated if
+      // in readonly mode)
       control_callback(robot_state, duration);
 
       clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &abs_target_time, nullptr);
