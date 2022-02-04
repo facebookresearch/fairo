@@ -8,6 +8,7 @@ import subprocess
 import torch
 import pytest
 
+from polymetis.utils.test_policies import test_parametrized_data
 import torchcontrol as toco
 from torchcontrol.transform import Rotation as R
 from torchcontrol.transform import Transformation as T
@@ -31,71 +32,6 @@ time_to_go = 0.5
 time_horizon = int(time_to_go * hz)
 
 # (policy, kwargs, is_terminating, update_params)
-test_parametrized_data = [
-    (
-        toco.policies.JointImpedanceControl,
-        dict(
-            joint_pos_current=torch.rand(num_dofs),
-            Kp=torch.rand(num_dofs, num_dofs),
-            Kd=torch.rand(num_dofs, num_dofs),
-            robot_model=robot_model,
-        ),
-        False,
-        {"joint_pos_desired": torch.rand(num_dofs)},
-    ),
-    (
-        toco.policies.CartesianImpedanceControl,
-        dict(
-            joint_pos_current=torch.rand(num_dofs),
-            Kp=torch.rand(6, 6),
-            Kd=torch.rand(6, 6),
-            robot_model=robot_model,
-        ),
-        False,
-        {"ee_pos_desired": torch.rand(3)},
-    ),
-    (
-        toco.policies.JointTrajectoryExecutor,
-        dict(
-            joint_pos_trajectory=[torch.rand(num_dofs) for _ in range(time_horizon)],
-            joint_vel_trajectory=[torch.rand(num_dofs) for _ in range(time_horizon)],
-            Kp=torch.rand(num_dofs, num_dofs),
-            Kd=torch.rand(num_dofs, num_dofs),
-            robot_model=robot_model,
-            ignore_gravity=True,
-        ),
-        True,
-        None,
-    ),
-    (
-        toco.policies.EndEffectorTrajectoryExecutor,
-        dict(
-            ee_pose_trajectory=[
-                T.from_rot_xyz(
-                    rotation=R.from_rotvec(torch.rand(3)), translation=torch.rand(3)
-                )
-                for _ in range(time_horizon)
-            ],
-            ee_twist_trajectory=[torch.rand(6) for _ in range(time_horizon)],
-            Kp=torch.rand(6, 6),
-            Kd=torch.rand(6, 6),
-            robot_model=robot_model,
-            ignore_gravity=True,
-        ),
-        True,
-        None,
-    ),
-    (
-        toco.policies.iLQR,
-        dict(
-            Kxs=torch.rand(time_horizon, num_dofs, 2 * num_dofs),
-            x_desireds=torch.rand(time_horizon, 2 * num_dofs),
-            u_ffs=torch.rand(time_horizon, num_dofs),
-        ),
-        True,
-        None,
-    ),
-]
 
 
 @pytest.mark.parametrize(

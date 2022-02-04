@@ -121,6 +121,7 @@ class GrpcSimulationClient(AbstractRobotClient):
         self.max_ping = max_ping
         self.i = 0
         self.interval_log = []
+        self.round_trip_time_buffer = 0.0
 
     def __del__(self):
         """Close connection in destructor"""
@@ -157,6 +158,7 @@ class GrpcSimulationClient(AbstractRobotClient):
             robot_state.motor_torques_external[:] = torques_external
 
             robot_state.timestamp.GetCurrentTime()
+            robot_state.prev_controller_latency_ms = self.round_trip_time_buffer
 
             # Query controller manager server for action
             # TODO: have option for async mode through async calls, see
@@ -199,6 +201,7 @@ class GrpcSimulationClient(AbstractRobotClient):
             )
 
         # Log round trip times
+        self.round_trip_time_buffer = round_trip_time
         if self.log_interval > 0:
             self.interval_log.append(round_trip_time)
             if log_request_time:

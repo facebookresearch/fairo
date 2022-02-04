@@ -39,7 +39,6 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
 
 #include <Eigen/Dense>
 #include <torch/torch.h>

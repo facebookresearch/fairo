@@ -1,0 +1,9 @@
+{
+    "arch": "x86_64",
+    "cpu": "Intel(R) Core(TM) i7-7567U CPU @ 3.50GHz",
+    "machine": "yixin-nuc-20",
+    "num_cpu": "4",
+    "os": "Linux 5.11.0-38-generic",
+    "ram": "32767544",
+    "version": 1
+}

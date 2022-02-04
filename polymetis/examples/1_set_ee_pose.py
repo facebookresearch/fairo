@@ -17,20 +17,18 @@ if __name__ == "__main__":
     robot.go_home()
 
     # Get ee pose
-    ee_pos, ee_quat = robot.pose_ee()
+    ee_pos, ee_quat = robot.get_ee_pose()
     print(f"Current ee position: {ee_pos}")
     print(f"Current ee orientation: {ee_quat}  (xyzw)")
 
-    # Command robot to ee pose (move ee downwards)
-    # note: can also be done with robot.move_ee_xyz
-    delta_ee_pos_desired = torch.Tensor([0.0, 0.0, -0.1])
-    ee_pos_desired = ee_pos + delta_ee_pos_desired
+    # Command robot to ee xyz position
+    ee_pos_desired = torch.Tensor([0.5, 0.0, 0.4])
     print(f"\nMoving ee pos to: {ee_pos_desired} ...\n")
-    state_log = robot.set_ee_pose(
+    state_log = robot.move_to_ee_pose(
         position=ee_pos_desired, orientation=None, time_to_go=2.0
     )
 
     # Get updated ee pose
-    ee_pos, ee_quat = robot.pose_ee()
+    ee_pos, ee_quat = robot.get_ee_pose()
     print(f"New ee position: {ee_pos}")
     print(f"New ee orientation: {ee_quat}  (xyzw)")

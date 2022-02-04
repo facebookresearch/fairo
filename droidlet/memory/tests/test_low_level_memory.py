@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
+import numpy as np
 from droidlet.memory.memory_nodes import (
     SelfNode,
     PlayerNode,
@@ -314,6 +315,40 @@ class BasicTest(unittest.TestCase):
         self.memory.forget(joe_memid)
         triples = self.memory.get_triples(subj=jane_memid, pred_text="sister_of")
         assert len(triples) == 0
+
+
+class PlaceFieldTest(unittest.TestCase):
+    def test_place_field(self):
+        memory = AgentMemory()
+        PF = memory.place_field
+        joe_x = 1
+        joe_z = 2
+        joe_loc = (joe_x, 0, joe_z)
+        jane_loc = (-1, 0, 1)
+        joe_memid = PlayerNode.create(memory, Player(10, "joe", Pos(*joe_loc), Look(0, 0)))
+        jane_memid = PlayerNode.create(memory, Player(11, "jane", Pos(*jane_loc), Look(0, 0)))
+        wall_locs = [{"pos": (-i, 0, 4)} for i in range(5)]
+        changes = [{"pos": joe_loc, "memid": joe_memid}, {"pos": jane_loc, "memid": jane_memid}]
+        changes.extend(wall_locs)
+        PF.update_map(changes)
+        assert PF.maps[0]["map"].sum() == 7
+        jl = PF.memid2locs[joe_memid]
+        assert len(jl) == 1
+        recovered_pos = tuple(int(i) for i in PF.map2real(*PF.idx2ijh(list(jl.keys())[0])))
+        assert recovered_pos == (joe_x, joe_z)
+        assert len(PF.memid2locs["NULL"]) == 5
+        changes = [{"pos": (-1, 0, 4), "is_delete": True}]
+        PF.update_map(changes)
+        assert len(PF.memid2locs["NULL"]) == 4
+        new_jane_x = -5
+        new_jane_z = 5
+        changes = [{"pos": (new_jane_x, 0, new_jane_z), "memid": jane_memid, "is_move": True}]
+        PF.update_map(changes)
+        jl = PF.memid2locs[jane_memid]
+        assert len(jl) == 1
+        recovered_pos = tuple(int(i) for i in PF.map2real(*PF.idx2ijh(list(jl.keys())[0])))
+        assert recovered_pos == (new_jane_x, new_jane_z)
+        assert PF.maps[0]["map"].sum() == 6
 
 
 if __name__ == "__main__":

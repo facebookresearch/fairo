@@ -42,7 +42,7 @@ class LocoAgentMemory(AgentMemory):
     ### Update world with perception updates ###
     ############################################
 
-    def update(self, perception_output: namedtuple=None):
+    def update(self, perception_output: namedtuple = None):
         """
         Updates the world with updates from agent's perception module.
 
@@ -56,13 +56,28 @@ class LocoAgentMemory(AgentMemory):
             return
         if perception_output.new_objects:
             for detection in perception_output.new_objects:
-                DetectedObjectNode.create(self, detection)
+                memid = DetectedObjectNode.create(self, detection)
+                # TODO use the bounds, not just the center
+                pos = (
+                    detection.get_xyz()["x"],
+                    detection.get_xyz()["y"],
+                    detection.get_xyz()["z"],
+                )
+                self.place_field.update_map([{"pos": pos, "memid": memid}])
         if perception_output.updated_objects:
             for detection in perception_output.updated_objects:
-                DetectedObjectNode.update(self, detection)
+                memid = DetectedObjectNode.update(self, detection)
+                # TODO use the bounds, not just the center
+                pos = (
+                    detection.get_xyz()["x"],
+                    detection.get_xyz()["y"],
+                    detection.get_xyz()["z"],
+                )
+                self.place_field.update_map([{"pos": pos, "memid": memid, "is_move": True}])
         if perception_output.humans:
             for human in perception_output.humans:
                 HumanPoseNode.create(self, human)
+                # FIXME, not putting in map, need to dedup?
 
     #################
     ###  Players  ###
@@ -97,5 +112,5 @@ class LocoAgentMemory(AgentMemory):
 
     def clear(self, objects):
         for o in objects:
-            if o['memid'] != self.self_memid:
-                self.forget(o['memid'])
+            if o["memid"] != self.self_memid:
+                self.forget(o["memid"])

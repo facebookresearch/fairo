@@ -20,7 +20,7 @@ void *RunServer(void *server_address_ptr) {
   std::unique_ptr<Server> server(builder.BuildAndStart());
 
   // Start server
-  std::cout << "Server listening on " << server_address << std::endl;
+  spdlog::info("Server listening on {}", server_address);
   server->Wait();
 
   return NULL;
@@ -31,11 +31,11 @@ int main(int argc, char **argv) {
   InputParser input(argc, argv);
 
   if (input.cmdOptionExists("-h")) {
-    std::cout << "Usage: polymetis_server [OPTION]\n" << std::endl;
-    std::cout << "Starts a controller manager server.\n" << std::endl;
-    std::cout << "  -h   Help" << std::endl;
-    std::cout << "  -r   Use real-time (requires sudo)" << std::endl;
-    std::cout << "  -s   Change server address" << std::endl;
+    spdlog::info("Usage: polymetis_server [OPTION]");
+    spdlog::info("Starts a controller manager server.");
+    spdlog::info("  -h   Help");
+    spdlog::info("  -r   Use real-time (requires sudo)");
+    spdlog::info("  -s   Change server address");
     return 0;
   }
 
@@ -54,8 +54,8 @@ int main(int argc, char **argv) {
   }
   std::string server_address = ip + ":" + port;
 
-  std::cout << "Using real time: " << use_real_time << std::endl;
-  std::cout << "Using server address: " << server_address << std::endl;
+  spdlog::info("Using real time: {}", use_real_time);
+  spdlog::info("Using server address: {}", server_address);
 
   // Start real-time thread
   void *server_address_ptr = static_cast<void *>(&server_address);
