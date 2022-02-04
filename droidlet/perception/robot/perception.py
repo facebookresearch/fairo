@@ -80,7 +80,7 @@ class Perception:
         SlowPerception if they are ready.
 
         Args:
-            
+
             force (boolean): set to True to force waiting on the SlowPerception models to finish, and execute
                 all perceptual models to execute sequentially (doing that is a good debugging tool)
                 (default: False)
