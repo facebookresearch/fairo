@@ -26,7 +26,8 @@
         "memory_type": "REWARD" / "TRIPLE",
         "reward_value": "POSITIVE" / "NEGATIVE",
         "triples": [{"pred_text": "has_x", "obj_text": {"fixed_value" : text} / span}]
-      } }
+      } 
+   }
 }
 </pre>
 where `has_x` is one of : `has_tag`, `has_colour`, `has_size`.  The value of the "filters" key tells the agent which memory to modify or tag.
@@ -39,7 +40,7 @@ where `has_x` is one of : `has_tag`, `has_colour`, `has_size`.  The value of the
 
 <pre>
 <a id="event">EVENT</a> = { 
-  "event_sequence": [<a href="#event">&ltEVENT&gt</a>/<a href="#action">&ltACTION&gt</a> , …, <a href="#event">&ltEVENT&gt</a>/<a href="#action">&ltACTION&gt</a>],
+  "event_sequence": [<a href="#event">&ltEVENT&gt</a>/<a href="#action">&ltACTION&gt</a>, …, <a href="#event">&ltEVENT&gt</a>/<a href="#action">&ltACTION&gt</a>],
   "init_condition": <a href="#condition">&ltCONDITION&gt</a>,
   "terminate_condition": <a href="#condition">&ltCONDITION&gt</a>,
   "spatial_control": SPATIAL_CONTROL
@@ -202,7 +203,7 @@ This command expresses the intent to look for / find or scout something.
 ## CONDITION ##
 <pre>
 <a id="condition"> CONDITION = { </a>
-  "condition": <a href="#comparator">&ltCOMPARATOR&gt</a> /<a href="#time_condition">&ltTIME_CONDITION&gt</a>/<a href="#and_condition">&ltAND_CONDITION&gt</a>/<a href="#or_condition">&ltOR_CONDITION&gt</a>/<a href="#not_condition">&ltNOT_CONDITION&gt</a>,
+  "condition": <a href="#comparator">&ltCOMPARATOR&gt</a>/<a href="#time_condition">&ltTIME_CONDITION&gt</a>/<a href="#and_condition">&ltAND_CONDITION&gt</a>/<a href="#or_condition">&ltOR_CONDITION&gt</a>/<a href="#not_condition">&ltNOT_CONDITION&gt</a>,
   "condition_span": span}
 </pre>
 AND OR and NOT modify other conditions:
@@ -278,7 +279,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 <a id="dance_type"> : {
   "filters": <a href="#filters">&ltFILTERS&gt</a>,
   "point": <a href="#facing">&ltFACING&gt</a>,
-  "look_turn":  <a href="#facing">&ltFACING&gt</a>,
+  "look_turn": <a href="#facing">&ltFACING&gt</a>,
   "body_turn": <a href="#facing">&ltFACING&gt</a>
 }
 </pre>
@@ -304,20 +305,20 @@ The supported fields are :
       "contains_coreference": "yes",
       "memory_type": "TASKS" / "REFERENCE_OBJECT" / "CHAT" / "PROGRAM" / "ALL",
       "selector": {
-        "return_quantity": <a href="#argval"> &ltARGVAL&gt </a> / "RANDOM" / "ALL" / span,
+        "return_quantity":<a href="#argval"> &ltARGVAL&gt</a> / "RANDOM" / "ALL" / span,
         "ordinal": {"fixed_value" : "FIRST"} / <span>, 
         "location":  <a href="#location">&ltLOCATION&gt</a>,
         "same":"ALLOWED"/"DISALLOWED"/"REQUIRED"
       },
       "where_clause" : {
-        "AND": [<a href="#comparator"> &ltCOMPARATOR&gt </a> / <a href="#triple"> &ltTRIPLE&gt</a>], 
-        "OR": [<a href="#comparator"> &ltCOMPARATOR&gt </a> / <a href="#triple">&ltTRIPLE&gt</a>], 
-        "NOT": [<a href="#comparator">&ltCOMPARATOR&gt </a> / <a href="#triple">&ltTRIPLE&gt</a>]
+        "AND": [<a href="#comparator">&ltCOMPARATOR&gt</a> / <a href="#triple">&ltTRIPLE&gt</a>], 
+        "OR": [<a href="#comparator">&ltCOMPARATOR&gt</a> / <a href="#triple">&ltTRIPLE&gt</a>], 
+        "NOT": [<a href="#comparator">&ltCOMPARATOR&gt</a> / <a href="#triple">&ltTRIPLE&gt</a>]
         }
       }
 </pre>
 ## Where clause ##
-The value of this key determines the `WHERE` clause in a SQL query. The where clause allows these three keys:
+The value of this key is analagous to the `WHERE` clause in a SQL query. The where clause allows these three keys:
 "AND" , "OR" and "NOT".
 The values for these keys are a lit of dictionaries where each dictionary is either: a 
 <a href="#comparator">\<COMPARATOR\></a> or <a href="#triple"> \<TRIPLE\></a>.
@@ -379,7 +380,7 @@ Comparator compares two values.
 - `input_left` can be either a <a href="#filters"> \<FILTERS\></a> , a span, or an <a href="#attribute">\<ATTRIBUTE\></a>; `input_right` can be either a <a href="#filter">\<FILTERS\> </a> or a span (but not an <a href="#attribute">\<ATTRIBUTE\></a>).   
 - `comparison_measure` is the unit (seconds, minutes, blocks etc).
 - `set_comparison` specifies the behavior when the input_right or input_left return a list (e.g. from <a href="#filters">\<FILTERS\></a>).  Default is `"ANY"`; which means that if any of the comparisons are True, the comparator returns True.
-- <a href="#attribute"> \<ATTRIBUTE\> </a> in `input_left` is used when the comparator is a WHERE clause; and the <a href="#attribute">\<ATTRIBUTE\></a> applied to a record is compared against the `input_right` to decide if the record is accepted by the clause.  When the comparator is used in a \<CONDITION\>, both `input_left` and `input_right` are "fixed" ( <a href="#filters">\<FILTERS\></a> or a span)
+- <a href="#attribute"> \<ATTRIBUTE\> </a> in `input_left` is used when the comparator is a WHERE clause; and the <a href="#attribute">\<ATTRIBUTE\></a> applied to a record is compared against the `input_right` to decide if the record is accepted by the clause.  When the comparator is used in a <a href="#condition">\<CONDITION\></a>, both `input_left` and `input_right` are "fixed" ( <a href="#filters">\<FILTERS\></a> or a span)
 		
 <pre>
 <a id="comparator"> COMPARATOR =  </a>
@@ -422,7 +423,7 @@ Each of these keys can be one of:
 - `obj` or `obj_text`
 In e.g. `obj` vs. `obj_text`, the former would be used to fix an explicit memid, and the latter to refer to the text associated to a NamedAbstraction 
 <pre>
-<a id="triple"> Triple =  </a>
+<a id="triple"> TRIPLE =  </a>
 {
   "pred_text" / "pred": "has_x", 
   "obj_text" / "obj" : {"fixed_value" : text} / span / <a href="#filters">FILTERS</a>, 
