@@ -13,9 +13,12 @@ if [ -z "$PYTHON" ]; then PYTHON=python; fi
 if [ -z "$BUILD_TESTS" ]; then BUILD_TESTS=ON; fi
 if [ -z "$BUILD_DOCS" ]; then BUILD_DOCS=OFF; fi
 
+# Build alephzero
+../scripts/build_alephzero.sh
+
 # Build libfranka
 # (Note: Build if libfranka is not built locally or if forced by setting BUILD_FRANKA)
-LIBFRANKA_PATH="src/clients/franka_panda_client/third_party/libfranka"
+LIBFRANKA_PATH="third_party/libfranka"
 BUILD_PATH="${LIBFRANKA_PATH}/build"
 
 if [ -z "$BUILD_FRANKA" ]; then 

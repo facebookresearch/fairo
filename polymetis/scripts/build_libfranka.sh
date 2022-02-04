@@ -7,7 +7,7 @@
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
 
-LIBFRANKA_PATH="$GIT_ROOT/polymetis/polymetis/src/clients/franka_panda_client/third_party/libfranka"
+LIBFRANKA_PATH="$GIT_ROOT/polymetis/polymetis/third_party/libfranka"
 
 # Check to make sure directory exists
 [ ! -d $LIBFRANKA_PATH ] && echo "Directory $LIBFRANKA_PATH does not exist" && exit 1
@@ -20,7 +20,7 @@ BUILD_PATH="${LIBFRANKA_PATH}/build"
 mkdir -p $BUILD_PATH && cd $BUILD_PATH
 echo "Building libfranka at $BUILD_PATH"
 
-cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF ..
+cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=ON ..
 cmake --build .
 
 cd -

@@ -25,6 +25,8 @@
 #include "torch_server_ops.hpp"
 #include "yaml-cpp/yaml.h"
 
+#include "a0.h"
+
 #define MAX_CIRCULAR_BUFFER_SIZE 300000 // 5 minutes of data at 1kHz
 #define MAX_MODEL_BYTES 1048576         // 1 megabyte
 #define THRESHOLD_NS 1000000000         // 1s

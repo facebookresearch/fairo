@@ -106,6 +106,7 @@ include_directories(
     ${pinocchio_INCLUDE_DIRS} 
     "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/pinocchio_isolation/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/alephzero/build/include"
 )
 
 # Add server
@@ -134,7 +135,7 @@ target_link_libraries(empty_statistics_client
 
 if(BUILD_FRANKA)
   if(NOT DEFINED Franka_DIR)
-    set(Franka_DIR "src/clients/franka_panda_client/third_party/libfranka/build")
+    set(Franka_DIR "third_party/libfranka/build")
   endif()
   message("Compiling Franka client with libfranka from ${Franka_DIR}")
   find_package(Franka REQUIRED)

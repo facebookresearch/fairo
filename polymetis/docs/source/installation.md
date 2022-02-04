@@ -42,6 +42,10 @@
     ```
 
 1. Build from source:
+    - Build [alephzero](https://github.com/alephzero/alephzero):
+        ```bash
+        ./scripts/build_alephzero.sh
+        ```
     - Optionally, build [libfranka](https://frankaemika.github.io/docs/libfranka.html) for use on Franka Panda hardware:
         ```bash
         ./scripts/build_libfranka.sh

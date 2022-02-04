@@ -30,6 +30,8 @@ requirements:
     - urdfdom=2.3.3=hc9558a2_0
     - urdfdom_headers=1.0.5=hc9558a2_2
     - yaml-cpp
+    - pip:
+      - alephzero
 
   run:
     - asv
@@ -63,6 +65,8 @@ requirements:
     - sphinx-book-theme
     - tqdm
     - withbullet
+    - pip:
+      - alephzero
 
 about:
   home:
