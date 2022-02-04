@@ -37,7 +37,7 @@ class FactorGraph:
         if noise is None:
             return gtsam.noiseModel.Constrained.All(6)
         else:
-            noise_gt = np.concatenate([np.array(noise[:3]), np.array(noise[:3])])
+            noise_gt = np.concatenate([np.array(noise[3:]), np.array(noise[:3])])
             return gtsam.noiseModel.Robust(
                 gtsam.noiseModel.mEstimator.Huber(DEFAULT_HUBER_C),
                 gtsam.noiseModel.Diagonal.Sigmas(noise_gt),
@@ -103,7 +103,7 @@ class FactorGraph:
         var0 = self.vars[root_var_name]
 
         queue = [(var0, self.values.atPose3(var0))]
-        visited = set([var0])
+        visited = set()
 
         while queue:
             curr_var, pose = queue.pop(0)
@@ -112,7 +112,8 @@ class FactorGraph:
             for next_var, transform in self.factor_edges[curr_var]:
                 if next_var not in visited:
                     queue.append((next_var, pose * transform))
-                    visited.add(curr_var)
+
+            visited.add(curr_var)
 
     def optimize(self, verbosity=0):
         params = gtsam.LevenbergMarquardtParams()
