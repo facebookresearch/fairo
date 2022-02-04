@@ -139,6 +139,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_epochs", type=int, default=50, help="training epochs")
     parser.add_argument("--augment", default="none", help="none or maxshift:K_underdirt:J")
     parser.add_argument("--cuda", action="store_true", help="use cuda")
+    parser.add_argument("--eval", action="store_true", help="use cuda")
     parser.add_argument("--gpu_id", type=int, default=0, help="which gpu to use")
     parser.add_argument("--batchsize", type=int, default=32, help="batch size")
     parser.add_argument("--data_dir", default="")
@@ -189,7 +190,7 @@ if __name__ == "__main__":
 
     print("making validation dataloader")
     vDL = torch.utils.data.DataLoader(
-        train_data,
+        valid_data,
         batch_size=args.batchsize,
         shuffle=shuffle,
         pin_memory=True,
@@ -211,6 +212,11 @@ if __name__ == "__main__":
         nll.cuda()
 
     optimizer = optim.Adagrad(model.parameters(), lr=args.lr)
+
+    if args.eval:
+        validate(model, rDL, nll, optimizer, args)
+        print("[Valid] loss: {}\n".format(sum(losses) / len(losses)))
+        exit()
 
     print("training")
     for m in range(args.num_epochs):
