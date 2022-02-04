@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import torch
 import torch.nn as nn
-from .data_loaders import make_example_from_raw
+from data_loaders import make_example_from_raw
 
 
 class SemSegNet(nn.Module):
@@ -15,6 +15,7 @@ class SemSegNet(nn.Module):
         super(SemSegNet, self).__init__()
         if opts.load:
             if opts.load_model != "":
+                print(f"Loading pretrained semseg model...")
                 self.load(opts.load_model)
             else:
                 raise ("loading from file specified but no load_filepath specified")
