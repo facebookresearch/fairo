@@ -47,6 +47,7 @@ class Scene:
         # Initialize data containers
         self._frames = {}
         self._objects = {}
+        self._snapshots = []
 
         # Noise
         if camera_noise is None:
@@ -270,13 +271,13 @@ class Scene:
     def update_pose_estimations(
         self,
         detected_markers: Dict[str, List[MarkerInfo]],
-        frame_transforms: Optional[List[Tuple[str, str, sp.SE3, np.ndarray]]] = None,
+        frame_transforms: Optional[List[Tuple[str, str, sp.SE3]]] = None,
         verbosity=0,
     ):
         """Estimate relative poses between frames
 
         Auxilliary observations between frames:
-            frame_transform => (frame1_name, frame2_name, transform, noise)
+            frame_transform => (frame1_name, frame2_name, transform)
             frame_transforms => List[frame_transform] - all frame transforms in snapshot
         """
         graph = FactorGraph()
@@ -293,40 +294,54 @@ class Scene:
         # Optimize graph & update data
         self._optimize_and_update(graph, verbosity=verbosity)
 
-    def calibrate_extrinsics(
+    def add_snapshot(
         self,
-        detected_markers_ls: List[Dict[str, List[MarkerInfo]]],
-        frame_transforms_ls: Optional[List[List[Tuple[str, str, sp.SE3, np.ndarray]]]] = None,
-        verbosity=0,
+        detected_markers: Dict[str, List[MarkerInfo]],
+        frame_transforms: Optional[List[Tuple[str, str, sp.SE3]]] = None,
     ):
-        """Calibrate extrinsics between cameras & markers in each frame
+        """Add a snapshot for calibrating extrinsics
 
         Auxilliary observations between frames:
-            frame_transform => (frame1_name, frame2_name, transform, noise)
-            frame_transforms => List[frame_transform] - all frame transforms in one snapshot
-            frame_transforms_ls => List[frame_transforms] - all snapshots (same length as detected_markers_ls)
+            frame_transform => (frame1_name, frame2_name, transform)
+            frame_transforms => List[frame_transform] - all frame transforms in snapshot
         """
+        self._snapshots.append((detected_markers, frame_transforms))
+
+    def clear_snapshots(self):
+        self._snapshots = []
+
+    def calibrate_extrinsics(
+        self,
+        init_node=None,
+        clear_snapshots=True,
+        verbosity=0,
+    ):
+        """Calibrate extrinsics between cameras & markers in each frame"""
         graph = FactorGraph()
 
         # Reset visibility
         self._reset_visibility()
 
         # Add factors
-        n_samples = len(detected_markers_ls)
+        n_samples = len(self._snapshots)
         self._add_world_prior(graph, lock_frames=False, cost_multiplier=n_samples)
 
-        for i in range(len(detected_markers_ls)):
-            self._add_detected_markers(graph, detected_markers_ls[i], prefix=i, lock_frames=False)
-            if frame_transforms_ls is not None:
-                self._add_frame_transforms(
-                    graph, frame_transforms_ls[i], prefix=i, lock_frames=False
-                )
+        for i in range(n_samples):
+            detected_markers, frame_transforms = self._snapshots[i]
+
+            self._add_detected_markers(graph, detected_markers, prefix=i, lock_frames=False)
+            if frame_transforms is not None:
+                self._add_frame_transforms(graph, frame_transforms, prefix=i, lock_frames=False)
 
         # Initialize variables using BFS
-        graph.bfs_initialization("f__world")
+        graph.bfs_initialization(init_node or "f__world")
 
         # Optimize graph & update data
         self._optimize_and_update(graph, verbosity)
+
+        # Clear snapshots
+        if clear_snapshots:
+            self.clear_snapshots()
 
     # Rendering
     def visualize(self, show_marker_id=False):
