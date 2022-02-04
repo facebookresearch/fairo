@@ -102,6 +102,10 @@ class TestStore {
   connect(o) {
     this.refs.push(o);
   }
+
+  disconnect(o) {
+    return
+  }
 }
 var testStore = new TestStore();
 
