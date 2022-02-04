@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import torch
 import torch.nn as nn
-from data_loaders import make_example_from_raw
+from .data_loaders import make_example_from_raw
 
 
 class SemSegNet(nn.Module):
