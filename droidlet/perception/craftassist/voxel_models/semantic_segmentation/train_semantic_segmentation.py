@@ -223,7 +223,7 @@ if __name__ == "__main__":
         print(f"========== Epoch {m} =============")
         losses = train_epoch(model, rDL, nll, optimizer, args)
         print("[Train] loss: {}\n".format(sum(losses) / len(losses)))
-        losses = validate(model, rDL, nll, optimizer, args)
+        losses = validate(model, vDL, nll, optimizer, args)
         print("[Valid] loss: {}\n".format(sum(losses) / len(losses)))
         if args.save_model != "":
             model.save(args.save_model)
