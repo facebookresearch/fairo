@@ -682,7 +682,7 @@ class Reexplore(Task):
         self.interrupted = False
         self.finished = False
         logger = logging.getLogger('reexplore')
-        task_name = self.tasks.pop(0)
+        task_name = self.tasks.pop(0) if len(self.tasks) > 0 else None
 
         # execute a straigtline examine
         if task_name == "straight":
