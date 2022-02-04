@@ -140,7 +140,6 @@ def swallow_classes(classes, predator, prey_classes, class_map):
 
 
 def organize_classes(classes, min_occurence):
-    """Organize classes"""
     class_map = {}
     new_classes = deepcopy(classes)
     for cname in classes["name2count"]:
@@ -151,8 +150,11 @@ def organize_classes(classes, min_occurence):
     for cname, count in new_classes["name2count"].items():
         if count < min_occurence:
             small_classes.append(cname)
+    if "none" in small_classes:
+        small_classes.remove("none")
     new_classes, class_map = swallow_classes(new_classes, "none", small_classes, class_map)
-    new_classes, class_map = swallow_classes(new_classes, "none", ["nothing"], class_map)
+    if "nothing" in new_classes["name2idx"]:
+        new_classes, class_map = swallow_classes(new_classes, "none", ["nothing"], class_map)
     counts = sorted(list(new_classes["name2count"].items()), key=lambda x: x[1], reverse=True)
     new_classes["name2idx"]["none"] = 0
     new_classes["idx2name"].append("none")
@@ -175,7 +177,7 @@ class SemSegData(tds.Dataset):
         sidelength=32,
         classes=None,
         augment={},
-        min_class_occurence=250,
+        min_class_occurence=1,
         useid=True,
     ):
         self.sidelength = sidelength
@@ -188,6 +190,7 @@ class SemSegData(tds.Dataset):
             self.nexamples = len(self.inst_data)
         else:
             self.nexamples = min(len(self.inst_data), self.nexamples)
+        preload_classes = None
         if classes is None:
             classes = {"name2idx": {}, "idx2name": [], "name2count": {}}
             for i in range(len(self.inst_data)):
@@ -196,15 +199,19 @@ class SemSegData(tds.Dataset):
                         classes["name2count"][cname] = 1
                     else:
                         classes["name2count"][cname] += 1
+        else:
+            preload_classes = classes
         if classes["name2count"].get("none") is None:
             classes["name2count"]["none"] = 1
         merged_classes, class_map = organize_classes(classes, min_class_occurence)
+        # print(f"merged classes: {merged_classes}, classmap: {class_map}")
+        if preload_classes:
+            merged_classes = preload_classes
         for cname in merged_classes["name2idx"]:
             class_map[cname] = cname
         self.classes = merged_classes
         # this should be 0...
         self.nothing_id = self.classes["name2idx"]["none"]
-
         c = self.classes["name2idx"]
         for i in range(len(self.inst_data)):
             self.inst_data[i] = list(self.inst_data[i])
@@ -212,6 +219,7 @@ class SemSegData(tds.Dataset):
             x[0] = torch.from_numpy(x[0]).long()
             x[1] = torch.from_numpy(x[1]).long()
             x[1].apply_(lambda z: c[class_map[x[2][z]]] if z > 0 else self.nothing_id)
+        print(f"CLASS MAP: {self.classes}")
 
     def get_classes(self):
         return self.classes
