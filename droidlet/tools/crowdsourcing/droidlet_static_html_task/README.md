@@ -20,7 +20,7 @@ This folder contains the scripts and files necessary to run the Craftassist inte
 
 Users are presented with the /turk.js endpoint of the [dashboard](https://github.com/facebookresearch/fairo/tree/main/droidlet/dashboard/web).
 
-![dashboard image](https://craftassist.s3.us-west-2.amazonaws.com/pubr/dashboard-screenshot-2022.png)
+![dashboard image](https://craftassist.s3.us-west-2.amazonaws.com/pubr/mturk_dashboard_new.png)
 
 After reading the instructions and pressing the start button, workers are instructed to interact with the agent for 5 minutes, issuing text commands through a chat box.  On the top right of the screen there is a window where workers can view and navigate a voxel-based world similar to Minecraft that they share with the assistant bot. On the bottom of the screen there is a "stoplight" which serves as visual feedback of the quality of the interaction.  Based on the number of commands issued (more is better), the diversity of commands issued from each other, and the creativity of commands compared to the corpus of previous commands, the stoplight will change from red to yellow to green.  Workers are also given a text prompt below the stoplight how they might improve their score.
 
