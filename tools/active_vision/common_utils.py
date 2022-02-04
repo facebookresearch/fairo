@@ -38,3 +38,6 @@ def log_time(path_to_logfile: str) -> None:
                 f.write(f"\nstart {start_time_str} end {end_time_str}")
         return wrapped
     return log
+
+class EarlyStoppingException(Exception):
+    pass
