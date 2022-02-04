@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import cv2
 import json
 
-def get_cache_key(data_dir, img_id):
-    return data_dir + '_' + str(img_id)
+def get_cache_key(data_dir, setting, img_id):
+    return data_dir + '_' + setting + '_' + str(img_id)
 
 def cached(file_name):
     def decorator(original_func):
@@ -16,7 +16,7 @@ def cached(file_name):
             cache = {}
         
         def new_func(sample_class, img_id):
-            k = get_cache_key(sample_class.data_dir, img_id)
+            k = get_cache_key(sample_class.data_dir, sample_class.setting, img_id)
             if k in cache:
                 return cache[k]
             val = original_func(sample_class, img_id)
@@ -28,13 +28,14 @@ def cached(file_name):
     return decorator
 
 class SampleGoodCandidates:
-    def __init__(self, data_dir, is_annot_validfn):
+    def __init__(self, data_dir, is_annot_validfn, setting):
         self.data_dir = data_dir
         self.img_dir = os.path.join(data_dir, 'rgb')
         self.seg_dir = os.path.join(data_dir, 'seg')
         self.good_candidates = []
         self.bad_candidates = []
         self.is_annot_validfn = is_annot_validfn
+        self.setting = setting
         self.filter_candidates()
     
     def filter_candidates(self):
@@ -49,7 +50,7 @@ class SampleGoodCandidates:
                 
         print(f'{len(self.good_candidates)} good candidates found!')
     
-    @cached('candidates_cached.json')
+    @cached('/checkpoint/apratik/candidates_cached_reexplore.json')
     def is_good_candidate(self, x):
         """
         checks if an image is a good candidate by checking that the mask is within a certain distance from the 
@@ -67,6 +68,8 @@ class SampleGoodCandidates:
         for i in np.sort(np.unique(annot.reshape(-1), axis=0)):
             if self.is_annot_validfn(i):
                 binary_mask = (annot == i).astype(np.uint8)
+                # if binary_mask.sum() < 5000:
+                #     return False
                 all_binary_mask = np.bitwise_or(binary_mask, all_binary_mask)
                 
         if not all_binary_mask.any():
@@ -81,15 +84,24 @@ class SampleGoodCandidates:
             return False
         
         return True
-        
-    def get_n_candidates(self, n, good=True):
+    
+    def get_n_candidates(self, n, good, evenly_spaced=False):
         # go through the images and filter candidates
         # mark all the good candidates and then uniformly sample from them 
         # Pick n things uniformly from all the good candidates
+        def sample_even_or_random(arr, n, evenly_spaced=False):
+            if len(arr) == 0:
+                return []
+
+            if evenly_spaced:
+                return [arr[int(x)] for x in np.linspace(0, len(arr), n, endpoint=False)]
+            else:
+                return random.sample(arr, min(len(arr), n))
+
         if good:
-            return random.sample(self.good_candidates, min(len(self.good_candidates), n))
+            return sample_even_or_random(self.good_candidates, n, evenly_spaced)
         else:
-            return random.sample(self.bad_candidates, min(len(self.bad_candidates), n))
+            return sample_even_or_random(self.bad_candidates, n, evenly_spaced)
     
     def visualize(self, candidates):
         fig, axs = plt.subplots(1, len(candidates), figsize=(2*len(candidates),4))
