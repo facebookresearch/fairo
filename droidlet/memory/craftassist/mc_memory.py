@@ -257,8 +257,8 @@ class MCAgentMemory(AgentMemory):
                 self.add_holes_to_mem(perception_output.in_perceive_area["holes"])
             # 1.3 Update tags of air-touching blocks
             if "airtouching_blocks" in perception_output.in_perceive_area:
-                shifted_c, tags = perception_output.in_perceive_area["airtouching_blocks"]
-                InstSegNode.create(self, shifted_c, tags=tags)
+                for c, tags in perception_output.in_perceive_area["airtouching_blocks"]:
+                    InstSegNode.create(self, c, tags=tags)
         # 2. Process everything near agent's current position
         if perception_output.near_agent:
             # 2.1 Add colors of all block objects
@@ -273,8 +273,8 @@ class MCAgentMemory(AgentMemory):
                 self.add_holes_to_mem(perception_output.near_agent["holes"])
             # 2.3 Update tags of air-touching blocks
             if "airtouching_blocks" in perception_output.near_agent:
-                shifted_c, tags = perception_output.near_agent["airtouching_blocks"]
-                InstSegNode.create(self, shifted_c, tags=tags)
+                for c, tags in perception_output.near_agent["airtouching_blocks"]:
+                    InstSegNode.create(self, c, tags=tags)
 
         """Update the memory with labeled blocks from SubComponent classifier"""
         if perception_output.labeled_blocks:

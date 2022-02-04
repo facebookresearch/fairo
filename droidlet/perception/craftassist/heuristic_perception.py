@@ -344,9 +344,9 @@ def get_nearby_airtouching_blocks(
     xyzb = yzxb.transpose([2, 0, 1, 3]).copy()
     components = connected_components(xyzb, unique_idm=True)
     blocktypes = []
-    shifted_c = []
+    all_components = []
+    all_tags = []
     for c in components:
-        tags = None
         for loc in c:
             idm = tuple(xyzb[loc[0], loc[1], loc[2], :])
             for coord in range(3):
@@ -374,7 +374,12 @@ def get_nearby_airtouching_blocks(
                                         idm[0], idm[1]
                                     )
                                 )
-    return blocktypes, shifted_c, tags
+        if tags:
+            shifted_c = [(l[0] + x - radius, l[1] + ymin, l[2] + z - radius) for l in c]
+            if len(shifted_c) > 0:
+                all_components.append(shifted_c)
+                all_tags.append(tags)
+    return blocktypes, all_components, all_tags
 
 
 def get_all_nearby_holes(agent, location, block_data, fill_idmeta, radius=15, store_inst_seg=True):
@@ -509,7 +514,8 @@ class PerceptionWrapper:
         perceive_freq (int): if not forced, how many Agent steps between perception
     """
 
-    def __init__(self, agent, low_level_data, perceive_freq=20):
+    def __init__(self, agent, low_level_data, perceive_freq=20, mark_airtouching_blocks=False):
+        self.mark_airtouching_blocks = mark_airtouching_blocks
         self.perceive_freq = perceive_freq
         self.agent = agent
         self.radius = 15
@@ -546,8 +552,12 @@ class PerceptionWrapper:
             - airtouching_blocks(list) - List of [shifted_coordinates, list of tags]
         """
         perceive_info = {}
-        perceive_info["in_perceive_area"] = {} # dictionary with children: block objects and holes in perception area
-        perceive_info["near_agent"] = {} # dictionary with children: block objects and holes near the agent
+        perceive_info[
+            "in_perceive_area"
+        ] = {}  # dictionary with children: block objects and holes in perception area
+        perceive_info[
+            "near_agent"
+        ] = {}  # dictionary with children: block objects and holes near the agent
         # 1. perceive blocks in marked areas to perceive
         for pos, radius in self.agent.areas_to_perceive:
             # 1.1 Get block objects and their colors
@@ -569,17 +579,20 @@ class PerceptionWrapper:
             )
             perceive_info["in_perceive_area"]["holes"] = holes if holes else None
             # 1.3 Get all air-touching blocks in perception area
-            blocktypes, shifted_c, tags = get_nearby_airtouching_blocks(
-                self.agent,
-                pos,
-                self.block_data,
-                self.color_data,
-                self.block_property_data,
-                color_list,
-                radius,
-            )
-            if tags and len(shifted_c) > 0:
-                perceive_info["in_perceive_area"]["airtouching_blocks"] = [shifted_c, tags]
+            if self.mark_airtouching_blocks:
+                blocktypes, shifted_c, tags = get_nearby_airtouching_blocks(
+                    self.agent,
+                    pos,
+                    self.block_data,
+                    self.color_data,
+                    self.block_property_data,
+                    color_list,
+                    radius,
+                )
+                if tags and len(shifted_c) > 0:
+                    perceive_info["in_perceive_area"]["airtouching_blocks"] = list(
+                        zip(shifted_c, tags)
+                    )
 
         # 2. perceive blocks and their colors near the agent
         near_obj_tag_list = []
@@ -606,17 +619,18 @@ class PerceptionWrapper:
         )
         perceive_info["near_agent"]["holes"] = holes if holes else None
         # 4. Get all air-touching blocks near agent
-        blocktypes, shifted_c, tags = get_nearby_airtouching_blocks(
-            self.agent,
-            self.agent.pos,
-            self.block_data,
-            self.color_data,
-            self.block_property_data,
-            color_list,
-            radius=self.radius,
-        )
-        if tags and len(shifted_c) > 0:
-            perceive_info["near_agent"]["airtouching_blocks"] = [shifted_c, tags]
+        if self.mark_airtouching_blocks:
+            blocktypes, shifted_c, tags = get_nearby_airtouching_blocks(
+                self.agent,
+                self.agent.pos,
+                self.block_data,
+                self.color_data,
+                self.block_property_data,
+                color_list,
+                radius=self.radius,
+            )
+            if tags and len(shifted_c) > 0:
+                perceive_info["near_agent"]["airtouching_blocks"] = list(zip(shifted_c, tags))
 
         return CraftAssistPerceptionData(
             in_perceive_area=perceive_info["in_perceive_area"],
