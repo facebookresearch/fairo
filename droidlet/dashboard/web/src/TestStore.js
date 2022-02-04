@@ -50,6 +50,10 @@ class TestStore {
       });
   }
 
+  forceErrorLabeling(b) {
+    return;
+  }
+
   updateMemory(res) {
     res.objects.forEach((obj) => {
       let key = JSON.stringify(obj); // I'm horrible person for doing this!!!
