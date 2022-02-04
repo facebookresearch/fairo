@@ -17,6 +17,7 @@ robot_client:
     robot_ip: "172.16.0.2"
     control_ip: ${ip}
     control_port: ${port}
+    readonly: false
     mock: false
     use_real_time: ${use_real_time}
     hz: ${hz}

@@ -45,6 +45,7 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
 
   // Connect to robot
   mock_franka_ = config["mock"].as<bool>();
+  readonly_mode_ = config["readonly"].as<bool>();
   if (!mock_franka_) {
     spdlog::info("Connecting to Franka Emika...");
     robot_ptr_.reset(new franka::Robot(config["robot_ip"].as<std::string>()));
@@ -53,6 +54,11 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
   } else {
     spdlog::info(
         "Launching Franka client in mock mode. No robot is connected.");
+  }
+
+  if (readonly_mode_) {
+    spdlog::info("Launching Franka client in read only mode. No control will "
+                 "be executed.");
   }
 
   // Set initial state & action
@@ -140,7 +146,7 @@ void FrankaTorqueControlClient::run() {
   };
 
   // Run robot
-  if (!mock_franka_) {
+  if (!mock_franka_ && !readonly_mode_) {
     bool is_robot_operational = true;
     while (is_robot_operational) {
       // Send lambda function
@@ -177,8 +183,8 @@ void FrankaTorqueControlClient::run() {
 
   } else {
     // Run mocked robot that returns dummy states
-    franka::RobotState dummy_robot_state;
-    franka::Duration dummy_duration;
+    franka::RobotState robot_state;
+    franka::Duration duration;
 
     int period = 1.0 / FRANKA_HZ;
     int period_ns = period * 1.0e9;
@@ -188,7 +194,10 @@ void FrankaTorqueControlClient::run() {
       clock_gettime(CLOCK_REALTIME, &abs_target_time);
       abs_target_time.tv_nsec += period_ns;
 
-      control_callback(dummy_robot_state, dummy_duration);
+      if (readonly_mode_) {
+        robot_state = robot_ptr_->readOnce();
+      }
+      control_callback(robot_state, duration);
 
       clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &abs_target_time, nullptr);
     }
