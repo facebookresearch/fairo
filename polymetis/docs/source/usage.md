@@ -29,6 +29,14 @@ launch_robot.py robot_client=franka_hardware
 ```
 
 For hardware, `use_real_time` acquires the necessary `sudo` rights for real-time optimizations (see [here](https://github.com/facebookresearch/fairo/blob/main/polymetis/polymetis/include/real_time.hpp) for the specific optimizations.)
+
+
+For debugging and calibration purposes, we provide a read-only mode for the robot client, where no torques will be applied to the robot but robot states are still recorded normally. To launch the robot client in read-only mode:
+```bash
+# On the NUC
+launch_robot.py robot_client=franka_hardware robot_client.executable_cfg.readonly=true
+```
+
 ### Running user-code controllers **on your machine**:
 
 Once you start an instance of `launch_robot.py`, you can send commands by utilizing the example user code, found in [scripts](https://github.com/facebookresearch/fairo/tree/main/polymetis/examples).
