@@ -136,7 +136,7 @@ if __name__ == "__main__":
         "--debug", type=int, default=-1, help="no shuffle, keep only debug num examples"
     )
     parser.add_argument("--num_labels", type=int, default=50, help="How many top labels to use")
-    parser.add_argument("--num_epochs", type=int, default=50, help="training epochs")
+    parser.add_argument("--num_epochs", type=int, default=500, help="training epochs")
     parser.add_argument("--augment", default="none", help="none or maxshift:K_underdirt:J")
     parser.add_argument("--cuda", action="store_true", help="use cuda")
     parser.add_argument("--eval", action="store_true", help="use cuda")
@@ -149,10 +149,10 @@ if __name__ == "__main__":
     )
     parser.add_argument("--save_logs", default="/dev/null", help="where to save logs")
     parser.add_argument(
-        "--hidden_dim", type=int, default=128, help="size of hidden dim in fc layer"
+        "--hidden_dim", type=int, default=64, help="size of hidden dim in fc layer"
     )
     parser.add_argument("--embedding_dim", type=int, default=4, help="size of blockid embedding")
-    parser.add_argument("--lr", type=float, default=0.01, help="step size for net")
+    parser.add_argument("--lr", type=float, default=0.02, help="step size for net")
     parser.add_argument(
         "--sample_empty_prob",
         type=float,
@@ -172,7 +172,8 @@ if __name__ == "__main__":
         print("warning debug and augmentation together?")
 
     train_data = SemSegData(args.data_dir + "training_data.pkl", nexamples=args.debug, augment=aug)
-    valid_data = SemSegData(args.data_dir + "validation_data.pkl", nexamples=args.debug, augment=aug)
+    train_classes = train_data.get_classes()
+    valid_data = SemSegData(args.data_dir + "validation_data.pkl", nexamples=args.debug, augment=aug, classes=train_classes)
 
     shuffle = True
     if args.debug > 0:
@@ -187,6 +188,8 @@ if __name__ == "__main__":
         drop_last=True,
         num_workers=args.ndonkeys,
     )
+
+    
 
     print("making validation dataloader")
     vDL = torch.utils.data.DataLoader(

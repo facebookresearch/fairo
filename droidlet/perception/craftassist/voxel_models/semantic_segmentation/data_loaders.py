@@ -190,6 +190,7 @@ class SemSegData(tds.Dataset):
             self.nexamples = len(self.inst_data)
         else:
             self.nexamples = min(len(self.inst_data), self.nexamples)
+        preload_classes = None
         if classes is None:
             classes = {"name2idx": {}, "idx2name": [], "name2count": {}}
             for i in range(len(self.inst_data)):
@@ -198,9 +199,14 @@ class SemSegData(tds.Dataset):
                         classes["name2count"][cname] = 1
                     else:
                         classes["name2count"][cname] += 1
+        else:
+            preload_classes = classes
         if classes["name2count"].get("none") is None:
             classes["name2count"]["none"] = 1
         merged_classes, class_map = organize_classes(classes, min_class_occurence)
+        # print(f"merged classes: {merged_classes}, classmap: {class_map}")
+        if preload_classes:
+            merged_classes = preload_classes
         for cname in merged_classes["name2idx"]:
             class_map[cname] = cname
         self.classes = merged_classes
@@ -213,6 +219,7 @@ class SemSegData(tds.Dataset):
             x[0] = torch.from_numpy(x[0]).long()
             x[1] = torch.from_numpy(x[1]).long()
             x[1].apply_(lambda z: c[class_map[x[2][z]]] if z > 0 else self.nothing_id)
+        print(f"CLASS MAP: {self.classes}")
 
     def get_classes(self):
         return self.classes
