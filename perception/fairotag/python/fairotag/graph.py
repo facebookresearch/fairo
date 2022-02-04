@@ -118,6 +118,8 @@ class FactorGraph:
     def optimize(self, verbosity=0):
         params = gtsam.LevenbergMarquardtParams()
         params.setVerbosity(["SILENT", "TERMINATION"][verbosity])
+        params.setAbsoluteErrorTol(1e-10)
+        params.setRelativeErrorTol(1e-10)
         optimizer = gtsam.LevenbergMarquardtOptimizer(self.gtsam_graph, self.values, params)
 
         result_values = optimizer.optimize()
