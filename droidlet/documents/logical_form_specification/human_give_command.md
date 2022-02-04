@@ -333,7 +333,7 @@ This defines attributes of the memory node that can be exposed as outputs and th
                'HEAD_PITCH' / 'HEAD_YAW' / 'BODY_YAW'/ 'NAME' / 
                'BORN_TIME' / 'MODIFY_TIME' / 'SPEAKER' / 'VISIT_TIME' /  
                'FINISHED_TIME' / 'CHAT' / 'LOGICAL_FORM' /  'NAME' / 
-               'SIZE' / 'COLOUR' / 'LOCATION' /'TAG' / <a href="#num_blocks"> &ltNUM_BLOCKS&gt</a> /   <a href="#linear_extent">&ltLINEAR_EXTENT&gt</a> / {"task_info" : {"reference_object" : <a href="#attribute">&ltATTRIBUTE&gt</a> }}
+               'SIZE' / 'COLOUR' / 'LOCATION' /'TAG' / <a href="#num_blocks">&ltNUM_BLOCKS&gt</a> / <a href="#linear_extent">&ltLINEAR_EXTENT&gt</a> / {"task_info" : {"reference_object" : <a href="#attribute">&ltATTRIBUTE&gt</a> }}
 }
 </pre>
 
