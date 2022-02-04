@@ -70,13 +70,14 @@ class TestLauncher(IsolatedAsyncioTestCase):
         )
         launcher = Launcher(
             name="test_conda",
+            env_name="fbrp_test_conda",
             run_command=["python3", "alice.py"],
             proc_def=proc_def,
             args=mock_namespace,
         )
         os_env_patch = mock.patch.dict(os.environ, {"my_path": "path"})
         os_env_patch.start()
-        conda_env = await launcher.activate_conda_env()
+        conda_env = await launcher.activate_conda_envvar()
         mock_file.assert_called_with(f"/tmp/fbrp_conda_test_conda.env")
         assert len(conda_env) == 1
         self.assertDictEqual(conda_env, {"env_var": "data"})
@@ -84,14 +85,14 @@ class TestLauncher(IsolatedAsyncioTestCase):
 
     @patch("fbrp.life_cycle.set_state")
     @patch("fbrp.runtime.conda.Launcher.gather_cmd_outputs")
-    @patch("fbrp.runtime.conda.Launcher.run_cmd_in_env")
-    @patch("fbrp.runtime.conda.Launcher.activate_conda_env")
+    @patch("fbrp.runtime.conda.Launcher.run_cmd_with_envvar")
+    @patch("fbrp.runtime.conda.Launcher.activate_conda_envvar")
     @patch("argparse.Namespace")
     async def test_run(
         self,
         mock_namespace,
         mock_activate_conda_env,
-        mock_run_cmd_in_env,
+        mock_run_cmd_with_envvar,
         mock_gather_cmd_outputs,
         mock_set_state,
     ):
@@ -106,13 +107,14 @@ class TestLauncher(IsolatedAsyncioTestCase):
         )
         launcher = Launcher(
             name="test_conda",
+            env_name="fbrp_test_conda",
             run_command=["python3", "alice.py"],
             proc_def=proc_def,
             args=mock_namespace,
         )
         await launcher.run()
         mock_activate_conda_env.assert_called_once()
-        mock_run_cmd_in_env.assert_called_once()
+        mock_run_cmd_with_envvar.assert_called_once()
         mock_gather_cmd_outputs.assert_called_once()
         assert mock_set_state.call_count == 2
         mock_set_state.assert_has_calls(
@@ -137,6 +139,7 @@ class TestLauncher(IsolatedAsyncioTestCase):
         )
         launcher = Launcher(
             name="test_conda",
+            env_name="fbrp_test_conda",
             run_command=["python3", "alice.py"],
             proc_def=proc_def,
             args=mock_namespace,

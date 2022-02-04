@@ -8,6 +8,11 @@ project(pinocchio_isolation)
 SET(CMAKE_CXX_FLAGS "-std=c++14 -O3")
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
 
+# Find spdlog (C++ logger)
+if(NOT TARGET spdlog)
+    find_package(spdlog REQUIRED)
+endif()
+
 # Find Eigen
 find_package(Eigen3 REQUIRED)
 
@@ -25,4 +30,5 @@ add_library(pinocchio_wrapper SHARED src/pinocchio_wrapper.cpp)
 set_target_properties(pinocchio_wrapper PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_link_libraries(pinocchio_wrapper
     ${pinocchio_LIBRARIES}
+    spdlog::spdlog
 )

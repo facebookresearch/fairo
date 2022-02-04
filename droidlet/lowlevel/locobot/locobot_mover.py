@@ -392,6 +392,9 @@ class LoCoBotMover:
         else:
             print("navigator executing another call right now")
         return self.nav_result
+    
+    def is_done_exploring(self):
+        return self.nav.is_done_exploring().value
 
     def get_obstacles_in_canonical_coords(self):
         """

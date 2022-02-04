@@ -30,7 +30,7 @@ if __name__ == "__main__":
     # Params
     hz = robot.metadata.hz
     robot_model = robot.robot_model
-    joint_pos_current = robot.get_joint_angles()
+    joint_pos_current = robot.get_joint_positions()
     time_horizon = int(time_to_go * hz)
 
     # Run torchcontrol policies

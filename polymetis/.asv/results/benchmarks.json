@@ -1,0 +1,59 @@
+{
+    "benchmark_policy_performance.TimePolicyPerformance.time_policy_performance": {
+        "code": "class TimePolicyPerformance:\n    def time_policy_performance(self, i):\n        with torch.no_grad():\n            self.policy.forward(inputs)\n\n    def setup(self, i):\n        policy_class, policy_args = policy_info[i]\n        self.policy = policy_class(**policy_args)\n        self.scripted_policy = torch.jit.script(self.policy)\n        self.repeat = 20",
+        "min_run_count": 2,
+        "name": "benchmark_policy_performance.TimePolicyPerformance.time_policy_performance",
+        "number": 0,
+        "param_names": [
+            "param1"
+        ],
+        "params": [
+            [
+                "0",
+                "1"
+            ]
+        ],
+        "processes": 2,
+        "repeat": 0,
+        "sample_time": 0.01,
+        "timeout": 60.0,
+        "type": "time",
+        "unit": "seconds",
+        "version": "035b2eddb454213bbf6b3150ba59001daea584d034f5e94621fe4750f2043c83",
+        "warmup_time": -1
+    },
+    "benchmark_policy_performance.TimePolicyPerformance.time_scripted_policy_performance": {
+        "code": "class TimePolicyPerformance:\n    def time_scripted_policy_performance(self, i):\n        with torch.no_grad():\n            self.scripted_policy.forward(inputs)\n\n    def setup(self, i):\n        policy_class, policy_args = policy_info[i]\n        self.policy = policy_class(**policy_args)\n        self.scripted_policy = torch.jit.script(self.policy)\n        self.repeat = 20",
+        "min_run_count": 2,
+        "name": "benchmark_policy_performance.TimePolicyPerformance.time_scripted_policy_performance",
+        "number": 0,
+        "param_names": [
+            "param1"
+        ],
+        "params": [
+            [
+                "0",
+                "1"
+            ]
+        ],
+        "processes": 2,
+        "repeat": 0,
+        "sample_time": 0.01,
+        "timeout": 60.0,
+        "type": "time",
+        "unit": "seconds",
+        "version": "9a7dd00f34a3c57010f0d83d2b3cb9d1400e8ef721148c92206736b4483c49c7",
+        "warmup_time": -1
+    },
+    "benchmark_robustness.track_num_successes_per_100": {
+        "code": "def track_num_successes_per_100():\n    iters = 100\n    robot_kwargs = {}\n    gripper_kwargs = {}\n    robot = ManipulatorSystem(robot_kwargs, gripper_kwargs)\n    total_successes, total_tries = robot.continuously_grasp(iters)\n    return total_successes",
+        "name": "benchmark_robustness.track_num_successes_per_100",
+        "param_names": [],
+        "params": [],
+        "timeout": 60.0,
+        "type": "track",
+        "unit": "num_successes",
+        "version": "a79d70954ee43c919fb62cc5191512b3ee3f67d9e1d9b9509c725b21d9bd650c"
+    },
+    "version": 2
+}

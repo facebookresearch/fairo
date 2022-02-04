@@ -1,0 +1,155 @@
+<!-- craftassist_task.html -->	
+<!-- Bootstrap v3.0.3 -->	
+<link	
+  rel="stylesheet"	
+  href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"	
+/>	
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>	
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>	
+
+<section class="container"	id="heading">	
+  <div class="row col-xs-12 col-md-12">
+    <div class="panel panel-primary">		
+      <div class="panel-heading">	
+        <button class="btn btn-warning" type="button" onclick="showHideInstructions()" aria-expanded="false" aria-controls="instructionsWrapper">	
+          Click here to view/hide instructions	
+        </button>	
+      </div>	
+      <div class="collapse in" id="instructionsWrapper">	
+        <h2 class="center">Mark or unmark blocks or air to complete each task</h2>
+        <hr>
+        <div class="instructions-section">
+          Each question will prompt you to mark (paint translucent green) or unmark a subset of the blocks pictured by clicking on the appropriate blocks.
+        </div>
+        <div class="instructions-section">
+          <h4 class="instruction-headings">Two Scene Windows:</h4>
+          <ul>
+            <li>The window on the <b>left</b> shows the Original Scene before any annotation has taken place.  You can't edit this window, but you can use it to rotate or zoom the camera.</li>
+            <li>The window on the <b>right</b> is the Annotation Window that you will edit to complete the task.</li>
+          </ul>
+          <b>To begin each task, click your mouse anywhere in the Annotation Window.</b>  
+          You can use the arrow keys to rotate the view, or click and drag in the left window. You can also zoom in left window with your scroll wheel. Both windows will move at the same time.
+        </div>
+        <div class="instructions-section">
+          <h4 class="instruction-headings">Block Colors:</h4>
+          Unmarked blocks are any opaque color.  
+          Marked blocks are shown in translucent green.  
+          Air blocks are transparent.
+          Your cursor will turn the block you are about to mark/unmark translucent red if you are holding the correct action key.
+        </div>
+        <div class="instructions-section">
+          <h4 class="instruction-headings">Three Action Keys:</h4>
+          <ul>
+            <li><b>Hold down 'a' and click</b> on an unmarked opaque block to mark it (paint it translucent green)</li>
+            <li><b>Hold down 's' and click</b> on an air block to mark it (paint it translucent green)</li>
+            <li><b>Hold down 'd' and click</b> on a marked (translucent green) block to change it back to what it was before</li>
+          </ul>
+          You may also <b>press z to undo</b> your last action.
+        </div>
+        <div class="instructions-section">
+          <figure id="avatars-fig">
+            <img id="avatars" src="avatars.png">
+            <figcaption>User & Assistant Avatars</figcaption>
+          </figure>
+          <h4 class="instruction-headings">Marking Suspended/Floating Blocks</h4>
+          To mark air blocks that are not touching any other blocks, you must first mark the blocks in between, 
+          like building a support to reach it.  Then once you've marked the target block you can unmark the supporting blocks. 
+          See the rightmost demonstration gif for an example.
+        </div>
+        <div class="instructions-section">
+          <h4 class="instruction-headings">User and Assistant Avatars:</h4>
+          Sometimes you will see two avatars, one yellow and one blue.  The yellow avatar is called the "User" and the blue avatar is called the "Assistant".
+        </div>
+        <div class="instructions-section">
+          <h4 class="instruction-headings">Finishing:</h4>
+          When you are finished annotating, you must click the green 'Finish Annotation' button
+          below each pair of windows to record your answer.
+          If you do not see the shape described, instead click the red 'The Object is Not Present' button.
+          At any time, even after pressing the other buttons, you can press the 'Reset to Starting State' button to start over.
+        </div>
+        <div class="instructions-section">
+          When you are finished with the HIT, please answer the question at the bottom and click 'Submit'.
+        </div>
+      </div>	
+    </div>	
+  </div>
+</section>
+
+<section class="container" id="demos">	
+  <div class="row">	
+    <div class="col-xs-12">
+      <h2 class="center">Annotation Function Demonstrations - Click Mouse to Mark</h2>
+    </div>
+    <div class="col-xs-3">
+      <h4 class="center">Marking Opaque Blocks</h4>
+      <img src="marking_cubes.gif" class="instruction-gifs"></iframe>	
+    </div>
+    <div class="col-xs-3">
+      <h4 class="center">Marking Air</h4>
+      <img src="marking_air.gif" class="instruction-gifs"></iframe>
+    </div>
+    <div class="col-xs-3">
+      <h4 class="center">Unmarking</h4>
+      <img src="unmarking.gif" class="instruction-gifs"></iframe>	
+    </div>
+    <div class="col-xs-3">
+      <h4 class="center">Marking Suspended Blocks</h4>
+      <img src="suspended.gif" class="instruction-gifs"></iframe>	
+    </div>
+  </div>
+
+  <hr>
+  
+  <div class="row">
+    <div class="col-xs-6">
+      <h3 class="center">Original Scene</h3>
+      <p class="center">
+        Perform annotation in the other window<br>
+        Rotate in this window using mouse or arrow keys<br>
+        Zoom in this window using the scroll wheel
+      </p>
+    </div>
+    <div class="col-xs-6">
+      <h3 class="center">Annotation Window</h3>
+      <p class="center">
+        Click in this window to start task<br>
+        Press 'z' to undo an action
+      </p>
+    </div>
+    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper.html?batch_id=test_cube&error_idx=" scrolling="no"></iframe>
+  </div>
+</section>
+
+<section class="container" style="margin-bottom: 20px">
+  <div class="col-xs-2"></div>
+  <div class="col-xs-8">
+    <fieldset>
+      <div class="input-group center">
+        <h4>Please rate the clarity and usability of this HIT</h4>
+        <select class="form-control" style="margin-bottom: 15px;" name="usability-rating" onchange="usabilityRated()">
+          <option selected="selected" value="">(select one)</option>
+          <option value="7">7 - Perfect</option>
+          <option value="6">6 - Very Good</option>
+          <option value="5">5 - Decent</option>
+          <option value="4">4 - OK</option>
+          <option value="3">3 - Poor</option>
+          <option value="2">2 - Very Poor</option>
+          <option value="1">1 - Unusable</option>
+        </select>
+        <br>
+        <h4>Please provide feedback on how we can improve the usability of this HIT</h4>
+        <input type="text" class="form-control" id="feedback" name="feedback" onchange="giveFeedback()">
+        <input type="hidden" id="clickedElements" name="clickedElements" value="0">
+        <input type="hidden" id="taskID" name="taskID" value="0">
+        <input type="hidden" id="markedBlocks" name="markedBlocks" value="0">
+        <input type="hidden" id="userAgent" name="userAgent" value="0">
+      </div>
+    </fieldset>
+  </div>
+  <div class="col-xs-2"></div>
+</section>
+
+<script src="utils.js"></script>	
+<script src="formatting.js"></script>	
+<script src="browserInfo.js"></script>
+<link rel="stylesheet" href="vision_annotation_task.css">
