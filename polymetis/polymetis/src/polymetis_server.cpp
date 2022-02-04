@@ -222,6 +222,9 @@ Status PolymetisControllerServerImpl::SetController(
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
 
+  interval->set_start(-1);
+  interval->set_end(-1);
+
   // Read chunks of the binary serialized controller. The binary messages
   // would be written into the preallocated buffer used for the Torch
   // controllers.
@@ -261,7 +264,6 @@ Status PolymetisControllerServerImpl::SetController(
     usleep(SPIN_INTERVAL_USEC);
   }
   interval->set_start(custom_controller_context_.episode_begin);
-  interval->set_end(-1);
 
   // Return success.
   return Status::OK;
@@ -271,6 +273,9 @@ Status PolymetisControllerServerImpl::UpdateController(
     ServerContext *context, ServerReader<ControllerChunk> *stream,
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
+
+  interval->set_start(-1);
+  interval->set_end(-1);
 
   // Read chunks of the binary serialized controller params container.
   updates_model_buffer_.clear();
@@ -292,17 +297,27 @@ Status PolymetisControllerServerImpl::UpdateController(
 
   // Update controller & set intervals
   if (custom_controller_context_.status == RUNNING) {
-    custom_controller_context_.controller_mtx.lock();
-    interval->set_start(robot_state_buffer_.size());
-    custom_controller_context_.custom_controller->param_dict_update_module();
-    custom_controller_context_.controller_mtx.unlock();
-  } else {
-    spdlog::warn(
-        "Tried to perform a controller update with no controller running.");
-    interval->set_start(-1);
-  }
+    try {
+      custom_controller_context_.controller_mtx.lock();
+      interval->set_start(robot_state_buffer_.size());
+      custom_controller_context_.custom_controller->param_dict_update_module();
+      custom_controller_context_.controller_mtx.unlock();
 
-  interval->set_end(-1);
+    } catch (const std::exception &e) {
+      custom_controller_context_.controller_mtx.unlock();
+
+      std::string error_msg =
+          "Failed to update controller: " + std::string(e.what());
+      spdlog::error(error_msg);
+      return Status(StatusCode::CANCELLED, error_msg);
+    }
+
+  } else {
+    std::string error_msg =
+        "Tried to perform a controller update with no controller running.";
+    spdlog::warn(error_msg);
+    return Status(StatusCode::CANCELLED, error_msg);
+  }
 
   return Status::OK;
 }
@@ -310,6 +325,9 @@ Status PolymetisControllerServerImpl::UpdateController(
 Status PolymetisControllerServerImpl::TerminateController(
     ServerContext *context, const Empty *, LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
+
+  interval->set_start(-1);
+  interval->set_end(-1);
 
   if (custom_controller_context_.status == RUNNING) {
     custom_controller_context_.controller_mtx.lock();
@@ -322,10 +340,12 @@ Status PolymetisControllerServerImpl::TerminateController(
     }
     interval->set_start(custom_controller_context_.episode_begin);
     interval->set_end(custom_controller_context_.episode_end);
+
   } else {
-    spdlog::warn("Tried to terminate controller with no controller running.");
-    interval->set_start(-1);
-    interval->set_end(-1);
+    std::string error_msg =
+        "Tried to terminate controller with no controller running.";
+    spdlog::warn(error_msg);
+    return Status(StatusCode::CANCELLED, error_msg);
   }
 
   return Status::OK;
@@ -333,12 +353,12 @@ Status PolymetisControllerServerImpl::TerminateController(
 
 Status PolymetisControllerServerImpl::GetEpisodeInterval(
     ServerContext *context, const Empty *, LogInterval *interval) {
+  interval->set_start(-1);
+  interval->set_end(-1);
+
   if (custom_controller_context_.status != UNINITIALIZED) {
     interval->set_start(custom_controller_context_.episode_begin);
     interval->set_end(custom_controller_context_.episode_end);
-  } else {
-    interval->set_start(-1);
-    interval->set_end(-1);
   }
 
   return Status::OK;

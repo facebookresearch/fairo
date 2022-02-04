@@ -33,7 +33,7 @@ if __name__ == "__main__":
     robot.go_home()
     time.sleep(0.5)
 
-    # Get joint positions
+    # Get ee pose
     ee_pos, ee_quat = robot.get_ee_pose()
     print(f"Initial ee pose: pos={ee_pos}, quat={ee_quat}")
 
@@ -81,3 +81,20 @@ if __name__ == "__main__":
 
     ee_pos, ee_quat = test_new_ee_pose(robot, ee_pos_desired, ee_quat_desired)
     check_episode_log(state_log, int(time_to_go * hz))
+
+    # Cartesian impedance control
+    print("=== RobotInterface.move_to_ee_pose ===")
+    ee_pos, ee_quat = robot.get_ee_pose()
+    delta_ee_pos_desired = torch.Tensor([0.0, 0.01, -0.01])
+    ee_pos_desired = ee_pos + delta_ee_pos_desired
+    ee_quat_desired = ee_quat
+
+    robot.start_cartesian_impedance()
+    for _ in range(20):
+        ee_pos += 0.05 * delta_ee_pos_desired
+        robot.update_desired_ee_pose(position=ee_pos)
+        time.sleep(0.1)
+    state_log = robot.terminate_current_policy()
+    time.sleep(0.5)
+
+    ee_pos, ee_quat = test_new_ee_pose(robot, ee_pos_desired, ee_quat_desired)

@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
+import pickle
 import random
 from droidlet.lowlevel.minecraft.iglu_util import IGLU_BLOCK_MAP
 from droidlet.lowlevel.minecraft.shape_util import (
@@ -103,13 +104,62 @@ def collect_scene(blocks, inst_segs, args):
     mapped_blocks = [(l[0], l[1], l[2], IGLU_BLOCK_MAP[idm]) for l, idm in blocks]
     J["blocks"] = mapped_blocks
 
-    o = (0, args.cuberite_y_offset, 0)
+    return collect_scene(blocks, inst_segs, args)
+
+
+def build_extra_simple_shape_scene(args):
+    """
+    Build a scene with a sphere and a cube, non-overlapping.
+    outputs a json dict with fields
+    "avatarInfo" = {"pos": (x,y,z), "look": (yaw, pitch)}
+    "agentInfo" = {"pos": (x,y,z), "look": (yaw, pitch)}
+    "blocks" = [(x,y,z,bid) ... (x,y,z,bid)]
+    "schematic_for_cuberite" = [{"x": x, "y":y, "z":z, "id":blockid, "meta": meta} ...]
+    where bid is the output of the BLOCK_MAP applied to a minecraft blockid, meta pair.
+    """
+    CUBE_SIZE = 3
+    SPHERE_RADIUS = 2
+    fence = getattr(args, "fence", False)
+    blocks = build_base_world(args.SL, args.H, args.GROUND_DEPTH, fence=fence)
+    inst_segs = []
+    shape_opts = {"SPHERE": {"radius": SPHERE_RADIUS}, "CUBE": {"size": CUBE_SIZE}}
+    shapes = np.random.permutation(["SPHERE", "CUBE"])
+    occupied_by_shapes = {}
+    old_offset = [-100, -100, -100]
+    for shape in shapes:
+        opts = shape_opts[shape]
+        opts["bid"] = bid()
+        S = SHAPE_FNS[shape](**opts)
+        m = np.round(np.mean([l for l, idm in S], axis=0)).astype("int32")
+        offsets = np.random.randint(
+            (0, args.GROUND_DEPTH, 0),
+            (args.SL - CUBE_SIZE, args.H - CUBE_SIZE, args.SL - CUBE_SIZE),
+        )
+        count = 0
+        while (
+            abs(old_offset[0] - offsets[0]) + abs(old_offset[2] - offsets[2])
+            < CUBE_SIZE + SPHERE_RADIUS
+        ):
+            offsets = np.random.randint(
+                (0, args.GROUND_DEPTH, 0),
+                (args.SL - CUBE_SIZE, args.H - CUBE_SIZE, args.SL - CUBE_SIZE),
+            )
+            count += 1
+            assert (count < 100, "Is world too small? can't place shapes")
+        old_offset = offsets
+        inst_seg = []
+        in_box = in_box_builder(0, 0, 0, args.SL, args.H, args.SL)
+        record_shape(S, in_box, offsets, blocks, inst_seg, occupied_by_shapes)
+        inst_segs.append({"tags": [shape], "locs": inst_seg})
+
+    # not shifting y for gridworld
+    o = (args.cuberite_x_offset, 0, args.cuberite_z_offset)
+    blocks = [(l, idm) for l, idm in blocks.items()]
     blocks = shift(blocks, o)
-    J["schematic_for_cuberite"] = [
-        {"x": l[0], "y": l[1], "z": l[2], "id": idm[0], "meta": idm[1]} for l, idm in blocks
-    ]
-    J["offset"] = (args.cuberite_x_offset, args.cuberite_y_offset, args.cuberite_z_offset)
-    return J
+    for i in inst_segs:
+        i["locs"] = shift(i["locs"], o)
+
+    return collect_scene(blocks, inst_segs, args)
 
 
 def build_shape_scene(args):
@@ -124,6 +174,25 @@ def build_shape_scene(args):
     """
     fence = getattr(args, "fence", False)
     blocks = build_base_world(args.SL, args.H, args.GROUND_DEPTH, fence=fence)
+    if args.iglu_scenes:
+        import pickle
+
+        with open(args.iglu_scenes, "rb") as f:
+            assets = pickle.load(f)
+            sid = np.random.choice(list(assets.keys()))
+            scene = assets[sid]
+            scene = scene.transpose(1, 0, 2)
+            for i in range(11):
+                for j in range(9):
+                    for k in range(11):
+                        h = j + args.GROUND_DEPTH
+                        if h < args.H:
+                            # TODO? fix colors
+                            # TODO: assuming  this world bigger in xz than iglu
+                            c = scene[i, j, k] % 16
+                            if c > 0:
+                                blocks[(i + 1, h, k + 1)] = (35, c)
+
     num_shapes = np.random.randint(0, args.MAX_NUM_SHAPES + 1)
     occupied_by_shapes = {}
     inst_segs = []
@@ -138,6 +207,7 @@ def build_shape_scene(args):
         in_box = in_box_builder(0, 0, 0, args.SL, args.H, args.SL)
         record_shape(S, in_box, offsets, blocks, inst_seg, occupied_by_shapes)
         inst_segs.append({"tags": [shape], "locs": inst_seg})
+
     if args.MAX_NUM_GROUND_HOLES == 0:
         num_holes = 0
     else:
@@ -247,6 +317,7 @@ if __name__ == "__main__":
     parser.add_argument("--cuberite_y_offset", type=int, default=63 - GROUND_DEPTH)
     parser.add_argument("--cuberite_z_offset", type=int, default=-SL // 2)
     parser.add_argument("--save_data_path", default="")
+    parser.add_argument("--iglu_scenes", default="")
     parser.add_argument("--extra_simple", action="store_true", default=False)
     args = parser.parse_args()
 

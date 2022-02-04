@@ -64,3 +64,19 @@ if __name__ == "__main__":
 
     joint_pos = test_new_joint_pos(robot, joint_pos_desired)
     check_episode_log(state_log, int(robot.time_to_go_default * hz))
+
+    # Joint impedance control
+    print("=== RobotInterface.start_joint_impedance ===")
+    joint_pos = robot.get_joint_positions()
+    delta_joint_pos_desired = torch.Tensor([0.0, 0.0, 0.0, 0.1, 0.0, -0.1, 0.0])
+    joint_pos_desired = joint_pos + delta_joint_pos_desired
+
+    robot.start_joint_impedance()
+    for _ in range(20):
+        joint_pos += 0.05 * delta_joint_pos_desired
+        robot.update_desired_joint_positions(joint_pos)
+        time.sleep(0.1)
+    state_log = robot.terminate_current_policy()
+    time.sleep(0.5)
+
+    joint_pos = test_new_joint_pos(robot, joint_pos_desired)

@@ -1,7 +1,8 @@
 import heapq
 import numpy as np
 import time
-#rename for now, FIXME!
+
+# rename for now, FIXME!
 from droidlet.lowlevel.robot_coordinate_utils import xyz_pyrobot_to_canonical_coords
 
 
@@ -32,7 +33,8 @@ class ErrorWithResponse(Exception):
 class NextDialogueStep(Exception):
     pass
 
-#FIXME!  why is this here?
+
+# FIXME!  why is this here?
 class RGBDepth:
     """Class for the current RGB, depth and point cloud fetched from the robot.
 
@@ -54,10 +56,12 @@ class RGBDepth:
 
     def get_pillow_image(self):
         from PIL import Image
+
         return Image.fromarray(self.rgb, "RGB")
 
     def get_bounds_for_mask(self, mask):
         import open3d as o3d
+
         """for all points in the mask, returns the bounds as an axis-aligned bounding box.
         """
         if mask is None:
@@ -114,6 +118,7 @@ class MockOpt:
         self.ground_truth_data_dir = ""
         self.semseg_model_path = ""
         self.no_ground_truth = True
+        self.mark_airtouching_blocks = False
         # test does not instantiate cpp client
         self.port = -1
         self.no_default_behavior = False

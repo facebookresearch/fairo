@@ -147,7 +147,7 @@ void FrankaTorqueControlClient::run() {
       try {
         robot_ptr_->control(control_callback);
       } catch (const std::exception &ex) {
-        spdlog::error("Robot is uanble to be controlled: {}", ex.what());
+        spdlog::error("Robot is unable to be controlled: {}", ex.what());
         is_robot_operational = false;
       }
 

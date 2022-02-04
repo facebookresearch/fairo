@@ -54,6 +54,7 @@ class FakeAgent(DroidletAgent):
     coordinate_transforms = CraftAssistAgent.coordinate_transforms
 
     def __init__(self, world, opts=None, do_heuristic_perception=False, prebuilt_perception=None):
+        self.mark_airtouching_blocks = do_heuristic_perception
         self.head_height = HEAD_HEIGHT
         self.world = world
         self.chat_count = 0
@@ -108,7 +109,9 @@ class FakeAgent(DroidletAgent):
             self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         self.perception_modules["low_level"] = LowLevelMCPerception(self, perceive_freq=1)
         self.perception_modules["heuristic"] = PerceptionWrapper(
-            self, low_level_data=self.low_level_data
+            self,
+            low_level_data=self.low_level_data,
+            mark_airtouching_blocks=self.mark_airtouching_blocks,
         )
 
     def init_physical_interfaces(self):
