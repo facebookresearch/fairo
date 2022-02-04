@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
+import pickle
 import random
 from droidlet.lowlevel.minecraft.iglu_util import IGLU_BLOCK_MAP
 from droidlet.lowlevel.minecraft.shape_util import (
@@ -124,6 +125,25 @@ def build_shape_scene(args):
     """
     fence = getattr(args, "fence", False)
     blocks = build_base_world(args.SL, args.H, args.GROUND_DEPTH, fence=fence)
+    if args.iglu_scenes:
+        import pickle
+
+        with open(args.iglu_scenes, "rb") as f:
+            assets = pickle.load(f)
+            sid = np.random.choice(list(assets.keys()))
+            scene = assets[sid]
+            scene = scene.transpose(1, 0, 2)
+            for i in range(11):
+                for j in range(9):
+                    for k in range(11):
+                        h = j + args.GROUND_DEPTH
+                        if h < args.H:
+                            # TODO? fix colors
+                            # TODO: assuming  this world bigger in xz than iglu
+                            c = scene[i, j, k] % 16
+                            if c > 0:
+                                blocks[(i + 1, h, k + 1)] = (35, c)
+
     num_shapes = np.random.randint(0, args.MAX_NUM_SHAPES + 1)
     occupied_by_shapes = {}
     inst_segs = []
@@ -248,6 +268,7 @@ if __name__ == "__main__":
     parser.add_argument("--cuberite_y_offset", type=int, default=63 - GROUND_DEPTH)
     parser.add_argument("--cuberite_z_offset", type=int, default=-SL // 2)
     parser.add_argument("--save_data_path", default="")
+    parser.add_argument("--iglu_scenes", default="")
     parser.add_argument("--extra_simple", action="store_true", default=False)
     args = parser.parse_args()
 
