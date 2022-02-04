@@ -239,8 +239,8 @@ Note that `event` in time_condition represents when to start the timer and
           }
  </pre>
 
-Note: for "relative_direction" == 'BETWEEN' the location dict will have two children: 'reference_object_1' : <&ltREFERENCE_OBJECT&gt> and 
-'reference_object_2' : <&ltREFERENCE_OBJECT&gt> in the sub-dictionary to represent the two distinct reference objects.
+Note: for "relative_direction" == 'BETWEEN' the location dict will have two children: 'reference_object_1' : <a href="#reference_object"> \<REFERENCE_OBJECT\></a>, and 
+'reference_object_2' : <a href="#reference_object">\<REFERENCE_OBJECT\></a>, in the sub-dictionary to represent the two distinct reference objects.
 
 #### Reference Object ####
 <pre>
@@ -299,20 +299,20 @@ The supported fields are :
   - `location` : <a href="#location">location</a> special shortcut for selections based on spatial location.
 
 <pre>
-<a id="filters"> FILTERS </a> = {
-      "output" : "MEMORY" / "COUNT" / <a href="#attribute">Attribute</a>,
+<a id="filters">&ltFILTERS&gt </a> = {
+      "output" : "MEMORY" / "COUNT" / <a href="#attribute">&ltATTRIBUTE&gt</a>,
       "contains_coreference": "yes",
       "memory_type": "TASKS" / "REFERENCE_OBJECT" / "CHAT" / "PROGRAM" / "ALL",
       "selector": {
-        "return_quantity": <a href="#argval">Argval</a> / "RANDOM" / "ALL" / span,
+        "return_quantity": <a href="#argval"> &ltARGVAL&gt </a> / "RANDOM" / "ALL" / span,
         "ordinal": {"fixed_value" : "FIRST"} / <span>, 
         "location":  <a href="#location">&ltLOCATION&gt</a>,
         "same":"ALLOWED"/"DISALLOWED"/"REQUIRED"
       },
       "where_clause" : {
-        "AND": [<a href="#comparator">Comparator</a> / <a href="#triple">Triple</a>], 
-        "OR": [<a href="#comparator">Comparator</a> / <a href="#triple">Triple</a>], 
-        "NOT": [<a href="#comparator">Comparator</a> / <a href="#triple">Triple</a>]
+        "AND": [<a href="#comparator"> &ltCOMPARATOR&gt </a> / <a href="#triple"> &ltTRIPLE&gt</a>], 
+        "OR": [<a href="#comparator"> &ltCOMPARATOR&gt </a> / <a href="#triple">&ltTRIPLE&gt</a>], 
+        "NOT": [<a href="#comparator">&ltCOMPARATOR&gt </a> / <a href="#triple">&ltTRIPLE&gt</a>]
         }
       }
 </pre>
@@ -320,7 +320,7 @@ The supported fields are :
 The value of this key determines the `WHERE` clause in a SQL query. The where clause allows these three keys:
 "AND" , "OR" and "NOT".
 The values for these keys are a lit of dictionaries where each dictionary is either: a 
-<a href="#comparator">Comparator</a> or <a href="#triple">Triple</a>.
+<a href="#comparator">\<COMPARATOR\></a> or <a href="#triple"> \<TRIPLE\></a>.
 
 ## ATTRIBUTE ##
 
@@ -332,7 +332,7 @@ This defines attributes of the memory node that can be exposed as outputs and th
                'HEAD_PITCH' / 'HEAD_YAW' / 'BODY_YAW'/ 'NAME' / 
                'BORN_TIME' / 'MODIFY_TIME' / 'SPEAKER' / 'VISIT_TIME' /  
                'FINISHED_TIME' / 'CHAT' / 'LOGICAL_FORM' /  'NAME' / 
-               'SIZE' / 'COLOUR' / 'LOCATION' /'TAG' / <a href="#num_blocks">NUM_BLOCKS</a> /   <a href="#linear_extent">LINEAR_EXTENT</a> / {"task_info" : {"reference_object" : <ATTRIBUTE>}}
+               'SIZE' / 'COLOUR' / 'LOCATION' /'TAG' / <a href="#num_blocks"> &ltNUM_BLOCKS&gt</a> /   <a href="#linear_extent">&ltLINEAR_EXTENT&gt</a> / {"task_info" : {"reference_object" : <a href="#attribute">&ltATTRIBUTE&gt</a> }}
 }
 </pre>
 
@@ -341,12 +341,12 @@ This represents number of blocks and hence a filter over those. For example: "go
 Representation:
 <pre>
 {<a id="num_blocks"> "num_blocks" </a> :  {
-    "block_filters":  <a href="#filters">FILTERS</a>}
+    "block_filters":  <a href="#filters">&ltFILTERS&gt</a>}
 }
 </pre>
 
 ### LINEAR EXTENT ###
-This is used to mean the number of steps (in "has_measure" units, default is "blocks=meters") in the direction "relative_direction" from the "source" location in the frame of reference of "frame".  If "source" and "destination" are specified, LINEAR_EXTENT evaluates to a number; otherwise, LINEAR_EXTENT evaluates to an <a href="#ttribute">Attribute</a>, a function that takes a (list of) memor(ies) and outputs a (list of) number(s)).  LINEAR_EXTENT can be used for "distance to" via relative_direction "AWAY".  "ABSOLUTE" is the coordinate system in which the agent starts.
+This is used to mean the number of steps (in "has_measure" units, default is "blocks=meters") in the direction "relative_direction" from the "source" location in the frame of reference of "frame".  If "source" and "destination" are specified, LINEAR_EXTENT evaluates to a number; otherwise, LINEAR_EXTENT evaluates to an <a href="#ttribute">\<ATTRIBUTE\></a>, a function that takes a (list of) memor(ies) and outputs a (list of) number(s)).  LINEAR_EXTENT can be used for "distance to" via relative_direction "AWAY".  "ABSOLUTE" is the coordinate system in which the agent starts.
 <pre>
 {
 <a id="linear_extent"> "linear_extent" : { </a>
@@ -367,7 +367,7 @@ This defines either:
 <pre>
 {<a id="argval"> "argval"</a> : {
     "polarity" : "MAX" / "MIN", 
-    "quantity": <a href="#attribute">Attribute</a>
+    "quantity": <a href="#attribute"> &ltATTRIBUTE&gt </a>
     }
 }
 </pre>
@@ -376,10 +376,10 @@ This defines either:
 ### COMPARATOR ###
 Comparator compares two values.
 - `comparison_type` represents the kind of comparison (>, <, >=, != , =)
-- `input_left` can be either a \<FILTER\>, a span, or an \<ATTRIBUTE\>; `input_right` can be either a \<FILTER\> or a span (but not an \<ATTRIBUTE\>).   
+- `input_left` can be either a <a href="#filters"> \<FILTERS\></a> , a span, or an <a href="#attribute">\<ATTRIBUTE\></a>; `input_right` can be either a <a href="#filter">\<FILTERS\> </a> or a span (but not an <a href="#attribute">\<ATTRIBUTE\></a>).   
 - `comparison_measure` is the unit (seconds, minutes, blocks etc).
-- `set_comparison` specifies the behavior when the input_right or input_left return a list (e.g. from <a href="#filters">FILTERS</a>).  Default is `"ANY"`; which means that if any of the comparisons are True, the comparator returns True.
-- <a href="#attribute">Attribute</a> in `input_left` is used when the comparator is a WHERE clause; and the <a href="#attribute">Attribute</a> applied to a record is compared against the `input_right` to decide if the record is accepted by the clause.  When the comparator is used in a \<CONDITION\>, both `input_left` and `input_right` are "fixed" ( <a href="#filters">FILTERS</a> or a span)
+- `set_comparison` specifies the behavior when the input_right or input_left return a list (e.g. from <a href="#filters">\<FILTERS\></a>).  Default is `"ANY"`; which means that if any of the comparisons are True, the comparator returns True.
+- <a href="#attribute"> \<ATTRIBUTE\> </a> in `input_left` is used when the comparator is a WHERE clause; and the <a href="#attribute">\<ATTRIBUTE\></a> applied to a record is compared against the `input_right` to decide if the record is accepted by the clause.  When the comparator is used in a \<CONDITION\>, both `input_left` and `input_right` are "fixed" ( <a href="#filters">\<FILTERS\></a> or a span)
 		
 <pre>
 <a id="comparator"> COMPARATOR =  </a>
