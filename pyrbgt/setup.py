@@ -42,6 +42,7 @@ ext_modules = [
             "-lopencv_core",
             "-lopencv_highgui",
             "-lopencv_imgproc",
+            "-lopencv_imgcodecs",
             "-lglfw",
             "-lstdc++fs",
         ],
