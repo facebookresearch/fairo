@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 import os
 from droidlet.shared_data_structs import MockOpt
-from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
+from droidlet.dialog.dialogue_manager import DialogueManager
 
 GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../droidlet/artifacts/datasets/ground_truth/")
 
@@ -17,19 +17,19 @@ class SafetyTest(unittest.TestCase):
     def setUp(self):
         opts = MockOpt()
         opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR
-        self.dialogue_object_mapper = DialogueObjectMapper(
+        self.dialogue_manager = DialogueManager(
+            memory=None,
             dialogue_object_classes={},
             opts=opts,
             low_level_interpreter_data={},
-            dialogue_manager=None
         )
 
     def test_unsafe_word(self):
-        is_safe = self.dialogue_object_mapper.is_safe("bad Clinton")
+        is_safe = self.dialogue_manager.is_safe("bad Clinton")
         self.assertFalse(is_safe)
 
     def test_safe_word(self):
-        is_safe = self.dialogue_object_mapper.is_safe("build a house")
+        is_safe = self.dialogue_manager.is_safe("build a house")
         self.assertTrue(is_safe)
 
 

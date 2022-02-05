@@ -22,7 +22,6 @@ if __name__ == "__main__":
     dashboard.start()
 
 from droidlet.dialog.swarm_dialogue_manager import SwarmDialogueManager
-from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
 from droidlet.interpreter.craftassist import (
@@ -117,7 +116,6 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
         self.dialogue_manager = SwarmDialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
-            dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
             low_level_interpreter_data=low_level_interpreter_data,
         )

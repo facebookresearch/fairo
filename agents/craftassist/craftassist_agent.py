@@ -27,7 +27,6 @@ if __name__ == "__main__":
 
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.base_util import Pos, Look, npy_to_blocks_list
-from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from agents.droidlet_agent import DroidletAgent
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
@@ -243,7 +242,6 @@ class CraftAssistAgent(DroidletAgent):
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
-            dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
             low_level_interpreter_data=low_level_interpreter_data,
         )
