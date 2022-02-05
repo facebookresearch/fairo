@@ -15,7 +15,7 @@ import quaternion
 import habitat_sim
 from pyrobot.locobot.camera import DepthImgProcessor
 from pyrobot.locobot.base_control_utils import LocalActionStatus
-from slam_pkg.utils import depth_util as du
+from .slam_pkg.utils import depth_util as du
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
