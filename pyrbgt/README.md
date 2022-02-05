@@ -1,30 +1,49 @@
-# PyRobot Vision Module
+# 3D Object Tracking (Python based)
 
 Python 3.6+ only.
 
-## To-Fix in this ReadME
-- The first step is to give instructions for setting up environment. Currently this readme perhaps assumes that users follow what's written in parent level ReadMe first. Even if that's the expectation, the read me should ask to start with instructions from that file (by mentioning a link). 
+## About
+The folder is a python wrapper based on pybind11 for the C++ implementation of the original paper. It's still work in progress.
 
-- Assuming this folder can run in a separate conda environment, tailoring instructions to run specific environment for this code would make it more complete. I am looking for something similar to instructions in https://github.com/facebookresearch/fairo/blob/main/README.md 
-
-- There is no context on what the code is for, of course, perhaps it was assumed that the user first reads the paper but either linking to or duplicating content from c++ Github repository readme https://github.com/DLR-RM/3DObjectTracking/blob/master/readme.md would be nice!
-
-- What I tried so far?
-  - I tried this on branch : yixinlin/pyrbgt
-  - After installing MiniConda on my robodev, I went into this folder (pyrbgt) and ran:
-```
-conda create -n pyrbgt
-conda activate pyrbgt
-pip install -r requirements.txt
-python3 setup.py # Is this step required?
-``` 
-  - The last step resulted in error: ModuleNotFoundError: No module named 'pybind11' (I haven't used pybind before, so there's perhaps additional steps to compile the c++ code using pybind in conda environment that I still need to figure out)
-
-## Model-based Approach: A Sparse Gaussian Approach to Region-Based 6DoF Object Tracking
+### Original paper: Model-based Approach: A Sparse Gaussian Approach to Region-Based 6DoF Object Tracking
 Manuel Stoiber, Martin Pfanne, Klaus H. Strobl, Rudolph Triebel, and Alin Albu-Schäffer  
-Best Paper Award, ACCV 2020: [paper](https://openaccess.thecvf.com/content/ACCV2020/papers/Stoiber_A_Sparse_Gaussian_Approach_to_Region-Based_6DoF_Object_Tracking_ACCV_2020_paper.pdf), [supplementary](https://openaccess.thecvf.com/content/ACCV2020/supplemental/Stoiber_A_Sparse_Gaussian_ACCV_2020_supplemental.zip)
+Best Paper Award, ACCV 2020: [paper](https://openaccess.thecvf.com/content/ACCV2020/papers/Stoiber_A_Sparse_Gaussian_Approach_to_Region-Based_6DoF_Object_Tracking_ACCV_2020_paper.pdf), [supplementary](https://openaccess.thecvf.com/content/ACCV2020/supplemental/Stoiber_A_Sparse_Gaussian_ACCV_2020_supplemental.zip), [code](https://github.com/DLR-RM/3DObjectTracking)
 
-### Installation
+## Setup
+This was tested on Ubuntu 20.04. Following the instructions on other OS's or versions may require debugging any errors that happen along the way.
+
+### Conda (Recommended way)
+```
+cd fairo/pyrbgt # change current directory to this folder
+conda create -f environment.yml
+conda activate pyrbgt
+pip install -e .
+```
+### Docker (doesn't seem to be working anymore)
+Build the docker container
+```
+cd fairo/pyrbgt
+docker build -t pyrbgt .
+```
+
+Running the example
+```
+cd fairo/pyrbgt
+xhost +local:docker
+docker run --rm -it \
+  --privileged \
+  --gpus=all \
+  --network host \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -e DISPLAY=${DISPLAY} \
+  -v ~/data:/data \
+  -v $(pwd):/pyrbgt \
+  pyrbgt \
+  python3 /pyrbgt/examples/rbot_example/multi_obj_tracking_example.py
+```
+Note that this expects the `RBOT_dataset` to be available in `~/data/RBOT_dataset`.
+
+### Manual (obsolete - not recommended)
 **Step 1: install core dependencies**
 ```
 sudo apt install \
@@ -59,13 +78,8 @@ python3 -m pip install -r ./requirements.txt
 python3 -m pip install .
 ```
 
-**Alternatively, you may use the provided docker image**
-```
-cd fairo/pyrbgt
-docker build -t pyrbgt .
-```
 
-### Usage
+## Usage
 A minimal example is provided in `examples/multi_obj_tracking_example.py`. In order to use this tracker, two components are needed:
 
 - a configuration specifying:
@@ -79,25 +93,6 @@ The configuration can be found at the top of `multi_obj_tracking_example.py`; an
 
 The result video can be found here: https://drive.google.com/file/d/1j3tayDE09-JzOdyNnzkIqhGjPGbYjYZz/view?usp=sharing. Note that this is a test tracking, not an evaluation tracking (that is to say we run normal tracking as we would in real life, with no access to ground truth pose after each iteration, and no resetting).
 
-### Running in Docker
-
-If you built the docker image, you can run the example, as given or modified with:
-```
-cd fairo/pyrbgt
-xhost +local:docker
-docker run --rm -it \
-  --privileged \
-  --gpus=all \
-  --network host \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -e DISPLAY=${DISPLAY} \
-  -v ~/data:/data \
-  -v $(pwd):/pyrbgt \
-  pyrbgt \
-  python3 /pyrbgt/examples/rbot_example/multi_obj_tracking_example.py
-```
-Note that this expects the `RBOT_dataset` to be available in `~/data/RBOT_dataset`.
-
 ### WIP
 - **Renderer is now fixed.**
 - Current WIP:
@@ -105,7 +100,7 @@ Note that this expects the `RBOT_dataset` to be available in `~/data/RBOT_datase
   - Extracting of mask information, and keypoints through UV map.
 
 
-### Azure Kinect Installation Notes
+## Azure Kinect Installation Notes
 
 Follow instructions for setting up the Azure Kinect [here](https://docs.microsoft.com/en-us/azure/Kinect-dk/set-up-azure-kinect-dk).  Summarized below:
 - Configure MS package repository:
