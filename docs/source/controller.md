@@ -47,12 +47,12 @@ The training of the semantic parsing model is described in detail [here](https:/
 ```
 ## Dialogue Task ##
 The generic Dialogue Task is a Task
-```eval_rst
- .. autoclass:: droidlet.task.task.Task
-   :members: step, get_default_conditions, interrupt, check_finished, add_child_task
+```eval_rst 
+:ref:`tasks_label`
 ```
+
 A Task's main method is .step(),
-Some others:
+Some other dialogue tasks:
 
 ```eval_rst
  .. autoclass:: droidlet.dialog.dialogue_task.Say

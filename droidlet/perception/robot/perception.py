@@ -76,7 +76,7 @@ class Perception:
 
     def perceive(self, rgb_depth, xyz, previous_objects, force=False):
         """Called by the core event loop for the agent to run all perceptual
-        
+
         models and get the state. It fetches the results of
         SlowPerception if they are ready.
 
