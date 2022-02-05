@@ -3,8 +3,8 @@ import time
 import numpy as np
 import Pyro4
 import select
-from .slam_pkg.utils.map_builder import MapBuilder as mb
-from .slam_pkg.utils import depth_util as du
+from slam_pkg.utils.map_builder import MapBuilder as mb
+from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
 
 
