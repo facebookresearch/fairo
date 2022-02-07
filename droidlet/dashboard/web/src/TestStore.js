@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import Memory2D from "./components/Memory2D";
 import LiveImage from "./components/LiveImage";
 import MainPane from "./MainPane";
+import io from "socket.io-client";
 
 class TestStore {
   base_url = "https://locobot-bucket.s3-us-west-2.amazonaws.com/";
@@ -12,7 +13,29 @@ class TestStore {
   memory = {
     objects: new Map(),
     humans: new Map(),
+    commandState: "thinking",
+    commandPollTime: 400,
+    last_reply: "I finished digging this.",
+    lastChatActionDict: {
+      dialogue_type: "HUMAN_GIVE_COMMAND",
+      action_sequence: [
+        {
+          action_type: "DIG",
+          schematic: {
+            filters: {
+              where_clause: {
+                AND: [{ pred_text: "has_name", obj_text: "hole" }],
+              },
+            },
+            text_span: "blue hole",
+          },
+        },
+      ],
+    },
   };
+  socket = io.connect("./", {
+    transports: ["polling", "websocket"],
+  });
   constructor() {
     this.updateMemory = this.updateMemory.bind(this);
     this.loopState = this.loopState.bind(this);
@@ -25,6 +48,10 @@ class TestStore {
         this.looped_once = false;
         this.loopState();
       });
+  }
+
+  forceErrorLabeling(b) {
+    return;
   }
 
   updateMemory(res) {
@@ -74,6 +101,10 @@ class TestStore {
 
   connect(o) {
     this.refs.push(o);
+  }
+
+  disconnect(o) {
+    return
   }
 }
 var testStore = new TestStore();
