@@ -101,13 +101,16 @@ def collect_scene(blocks, inst_segs, args):
     J["avatarInfo"] = {"pos": avatar_pos(args, blocks), "look": avatar_look(args, blocks)}
     J["agentInfo"] = {"pos": agent_pos(args, blocks), "look": agent_look(args, blocks)}
     J["inst_seg_tags"] = inst_segs
-    mapped_blocks = [(l[0], l[1], l[2], IGLU_BLOCK_MAP[idm]) for l, idm in blocks]
+    mapped_blocks = [
+        (int(l[0]), int(l[1]), int(l[2]), int(IGLU_BLOCK_MAP[idm])) for l, idm in blocks
+    ]
     J["blocks"] = mapped_blocks
 
     o = (0, args.cuberite_y_offset, 0)
     blocks = shift(blocks, o)
     J["schematic_for_cuberite"] = [
-        {"x": l[0], "y": l[1], "z": l[2], "id": idm[0], "meta": idm[1]} for l, idm in blocks
+        {"x": int(l[0]), "y": int(l[1]), "z": int(l[2]), "id": int(idm[0]), "meta": int(idm[1])}
+        for l, idm in blocks
     ]
     J["offset"] = (args.cuberite_x_offset, args.cuberite_y_offset, args.cuberite_z_offset)
     return J
@@ -235,7 +238,7 @@ def build_extra_simple_shape_scene(args):
                 (args.SL - CUBE_SIZE, args.H - CUBE_SIZE, args.SL - CUBE_SIZE),
             )
             count += 1
-            assert (count < 100, "Is world too small? can't place shapes")
+            assert count < 100, "Is world too small? can't place shapes"
         old_offset = offsets
         inst_seg = []
         in_box = in_box_builder(0, 0, 0, args.SL, args.H, args.SL)
