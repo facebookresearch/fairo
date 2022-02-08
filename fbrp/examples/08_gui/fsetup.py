@@ -19,6 +19,8 @@ fbrp.process(
         dockerfile="./Dockerfile",
         mount=["/tmp/.X11-unix:/tmp/.X11-unix"],
         run_kwargs={
+            # This just shows off run_kwargs.
+            # DISPLAY can also be set in env.
             "Env": [f"DISPLAY={os.getenv('DISPLAY')}"],
         },
     ),
@@ -33,11 +35,10 @@ fbrp.process(
     runtime=fbrp.Docker(
         dockerfile="./Dockerfile.opengl",
         mount=["/tmp/.X11-unix:/tmp/.X11-unix"],
-        run_kwargs={
-            "Env": [f"DISPLAY={os.getenv('DISPLAY')}"],
-            "HostConfig": {"Runtime": "nvidia"},  #  default "runc"
-        },
     ),
+    env={
+        "DISPLAY": os.getenv("DISPLAY"),
+    },
 )
 
 fbrp.main()
