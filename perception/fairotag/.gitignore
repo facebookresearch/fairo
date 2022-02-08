@@ -174,3 +174,6 @@ dmypy.json
 
 # Vim
 *.swp
+
+# Data
+!*.jpg
