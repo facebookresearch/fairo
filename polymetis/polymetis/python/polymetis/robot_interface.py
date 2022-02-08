@@ -362,12 +362,12 @@ class RobotInterface(BaseRobotInterface):
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
 
         # Parse parameters
+        joint_pos_current = self.get_joint_positions()
         joint_pos_desired = torch.Tensor(positions)
         if delta:
-            joint_pos_desired += self.get_joint_positions()
+            joint_pos_desired += joint_pos_current
 
         # Plan trajectory
-        joint_pos_current = self.get_joint_positions()
         waypoints = toco.planning.generate_joint_space_min_jerk(
             start=joint_pos_current,
             goal=joint_pos_desired,
