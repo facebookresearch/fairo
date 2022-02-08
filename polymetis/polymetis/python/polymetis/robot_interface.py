@@ -12,6 +12,7 @@ import logging
 from enum import Enum
 
 import grpc  # This requires `conda install grpcio protobuf`
+import numpy as np
 import torch
 
 import polymetis
@@ -300,6 +301,14 @@ class RobotInterface(BaseRobotInterface):
 
         self.use_grav_comp = use_grav_comp
 
+    def _adaptive_time_to_go(self, joint_pos_current, joint_pos_desired):
+        """Compute adaptive time_to_go
+        Uses time_to_go_default as a reference for moving 90 degrees
+        Also caps the minimum at 1/4 time_to_go_default
+        """
+        max_joint_diff = torch.max(torch.abs(joint_pos_current - joint_pos_desired))
+        return self.time_to_go_default * max(0.25, 2 * max_joint_diff / np.pi)
+
     """
     Setter methods
     """
@@ -371,7 +380,8 @@ class RobotInterface(BaseRobotInterface):
         waypoints = toco.planning.generate_joint_space_min_jerk(
             start=joint_pos_current,
             goal=joint_pos_desired,
-            time_to_go=time_to_go or self.time_to_go_default,
+            time_to_go=time_to_go
+            or self._adaptive_time_to_go(joint_pos_current, joint_pos_desired),
             hz=self.hz,
         )
 
