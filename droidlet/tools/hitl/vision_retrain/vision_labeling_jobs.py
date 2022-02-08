@@ -149,7 +149,7 @@ class VisionLabelingJob(DataGenerator):
                 " mephisto.architect.profile_name=mephisto-router-iam"
             try:
                 logging.info(f"Launching job with {self._NUM_SCENES} HITs")
-                job_launch = subprocess.Popen(job_launch_cmd, shell=True, stdout=sys.stdout, stderr=sys.stderr, stdin=sys.stdin, text=True)
+                job_launch = subprocess.Popen(job_launch_cmd, shell=True, preexec_fn=os.setsid)
             except ValueError:
                 logging.info(f"Likely error: Popen called with invalid arguments")
                 raise
@@ -163,7 +163,9 @@ class VisionLabelingJob(DataGenerator):
                 # if mturk job is still running after timeout, terminate it
                 logging.info(f"Manually terminate turk job after timeout...")
                 os.killpg(os.getpgid(job_launch.pid), signal.SIGINT)
-                time.sleep(10)
+                time.sleep(300)
+                os.killpg(os.getpgid(job_launch.pid), signal.SIGINT)
+                time.sleep(300)
                 os.killpg(os.getpgid(job_launch.pid), signal.SIGKILL)
 
             # Pull results from local DB
@@ -244,20 +246,21 @@ class VisionLabelingListener(JobListener):
                     f"[Vision Labeling Job Listener] No new data for {batch_id} ... Remaining time: {self.get_remaining_time()}"
                 )
             else:
-                logging.info(f"Vision labeling data found for batch_id [{batch_id}], downloading new labeled data")
+                logging.info(f"[Vision Labeling Job Listener] data found for batch_id [{batch_id}], downloading new labeled data")
                 with open('scene_list.json', 'r') as js:
                     scene_list = json.load(js)
-                logging.info(f"Data downloaded, pushing {batch_id} annotation job to runner...")
+                logging.info(f"[Vision Labeling Job Listener] Data downloaded, pushing {batch_id} annotation job to runner...")
 
                 os.remove('scene_list.json')
 
                 aj = VisionAnnotationJob(batch_id=batch_id, timestamp=int(datetime.utcnow().timestamp()), scenes=scene_list, timeout=self.get_remaining_time())
                 runner.register_data_generators([aj])
 
-                logging.info(f"Data listener finished, shutting down listener [{batch_id}]")
+                logging.info(f"[Vision Labeling Job Listener] finished, shutting down listener [{batch_id}]")
                 self.set_finished()
 
             if self.check_is_timeout():
+                logging.info(f"[Vision Labeling Job Listener] timeout, shutting down {batch_id} listener")
                 self.set_finished()
             time.sleep(VIS_LABELING_LISTENER_POLL_TIME)
 
