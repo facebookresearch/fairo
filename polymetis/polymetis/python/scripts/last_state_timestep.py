@@ -4,7 +4,7 @@ import time
 if __name__ == "__main__":
     s = a0.SubscriberSync("latest_robot_state", a0.INIT_MOST_RECENT)
 
-    seconds = int(s.read())
+    seconds = int(s.read().payload)
 
     time_diff = time.time() - curr_state.timestamp.seconds
     log.info(f"Last robot state retrieved within {time_diff}s.")
