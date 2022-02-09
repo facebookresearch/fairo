@@ -278,7 +278,7 @@ class RobotInterface(BaseRobotInterface):
 
     def __init__(
         self,
-        time_to_go_default: float = 2.0,
+        time_to_go_default: float = 3.0,
         use_grav_comp: bool = True,
         *args,
         **kwargs,
