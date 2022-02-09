@@ -1,5 +1,6 @@
 name: polymetis-local
 channels:
+  - pytorch
   - fair-robotics
   - aihabitat
   - conda-forge
