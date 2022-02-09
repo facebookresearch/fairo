@@ -35,5 +35,6 @@ if __name__ == "__main__":
                 log.info("Attempting to retrieve latest robot state...")
                 curr_state = robot_interface.get_robot_state()
                 publisher.pub(f"{curr_state.timestamp.seconds}")
+                time.sleep(robot_state_sleep_s)
         except Exception as e:
             log.error(f"Failed to retrieve robot state! Attempting to reconnect...")
