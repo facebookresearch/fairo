@@ -9,8 +9,9 @@ trap ctrl_c INT TERM
 
 function cleanup() {
   echo "=== (Cleanup): Killing server and clients ==="
-  pkill -9 run_server
-  pkill -9 ".*franka.*"
+  pkill -9 "run_server"
+  pkill -9 "franka_panda_cl"
+  pkill -9 "ping_server.py"
 }
 
 function ctrl_c() {
@@ -20,6 +21,7 @@ function ctrl_c() {
 
 . /home/box/miniconda3/etc/profile.d/conda.sh
 conda activate nuc_polymetis_env
+$(which ping_server.py) &
 
 while true
 do
@@ -29,7 +31,7 @@ do
   sleep 10
   while true
   do
-    $(which ping_server.py)
+    $(which last_state_timestep.py)
     ret=$?
     if [ $ret -ne 0 ]; then
         echo "=== Server died! Restarting server... ==="

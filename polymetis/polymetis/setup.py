@@ -26,6 +26,7 @@ install_requires = [
     "pybullet==3.1.7",
     "pyserial",
     "pymodbus",
+    "alephzero",
 ]
 
 script_dir = "python/scripts"

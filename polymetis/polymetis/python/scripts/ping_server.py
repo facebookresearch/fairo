@@ -7,6 +7,7 @@
 import time
 import logging
 import polymetis
+import a0
 
 logging.basicConfig()
 log = logging.getLogger(__name__)
@@ -14,19 +15,22 @@ log.setLevel(logging.INFO)
 
 
 if __name__ == "__main__":
-    log.warning("Connecting to server...")
-    robot_interface = polymetis.RobotInterface()
-    log.info("Connected.")
+    publisher = a0.Publisher("latest_robot_state")
 
-    log.info("Attempting to retrieve latest robot state...")
-    curr_state = robot_interface.get_robot_state()
-    time_diff = time.time() - curr_state.timestamp.seconds
-    log.info(f"Robot state retrieved within {time_diff}s.")
+    while True:
+        log.warning("Connecting to server...")
+        try:
+            robot_interface = polymetis.RobotInterface()
+        except Exception as e:
+            log.error(f"Failed to connect to server: {e}")
+            time.sleep(1)
+            continue
+        log.info("Connected.")
 
-    log.info("Timestamp: ")
-    log.info(f"{curr_state.timestamp}")
-
-    num_seconds_stale = 1
-    assert (
-        time_diff < num_seconds_stale
-    ), f"Robot state too stale by {time_diff}, expected within {num_seconds_stale}."
+        try:
+            while True:
+                log.info("Attempting to retrieve latest robot state...")
+                curr_state = robot_interface.get_robot_state()
+                publisher.pub(f"{curr_state.timestamp.seconds}")
+        except Exception as e:
+            log.error(f"Failed to retrieve robot state! Attempting to reconnect...")
