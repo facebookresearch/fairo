@@ -40,6 +40,8 @@ IGLU_BLOCK_MAP = {
     (12,0): 28,  # Sand
     (12,1): 29,  # Red Sand
     (13,0): 30,  # Gravel
+    (15,0): 30,  # Gravel DUMMY ENTRY NUKE LATER
+    (16,0): 30,  # Gravel DUMMY ENTRY NUKE LATER
     (17,0): 31,  # Oak Wood
     (17,1): 32,  # Spruce Wood
     (17,2): 33,  # Birch Wood
