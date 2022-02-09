@@ -20,7 +20,7 @@ function ctrl_c() {
 }
 
 . /home/box/miniconda3/etc/profile.d/conda.sh
-conda activate nuc_polymetis_env
+conda activate polymetis-local
 $(which ping_server.py) &
 
 while true
