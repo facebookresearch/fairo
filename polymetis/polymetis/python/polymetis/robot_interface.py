@@ -301,15 +301,15 @@ class RobotInterface(BaseRobotInterface):
 
         self.use_grav_comp = use_grav_comp
 
-    def _adaptive_time_to_go(self, joint_pos_current, joint_pos_desired):
+    def _adaptive_time_to_go(self, joint_displacement: torch.Tensor):
         """Compute adaptive time_to_go
         In a min-jerk trajectory, maximum velocity is equal to 1.875 * mean velocity.
-        Thus, we limit the mean velocity to half of the velocity limit.
-        time_to_go = max_i(joint_displacement[i] / joint_velocity_limit[i])
+        Thus, we limit the mean velocity to one-eighth of the velocity limit.
+        time_to_go = max_i(joint_displacement[i] / (joint_velocity_limit[i] / 8))
         """
         joint_vel_limits = self.robot_model.get_joint_velocity_limits()
-        joint_pos_diff = torch.abs(joint_pos_current - joint_pos_desired)
-        time_to_go = torch.max(joint_pos_diff * joint_vel_limits / 2)
+        joint_pos_diff = torch.abs(joint_displacement)
+        time_to_go = torch.max(joint_pos_diff / joint_vel_limits * 8.)
         return max(time_to_go, self.time_to_go_default)
 
     """
@@ -379,12 +379,14 @@ class RobotInterface(BaseRobotInterface):
         if delta:
             joint_pos_desired += joint_pos_current
 
+        if time_to_go is None:
+            time_to_go = self._adaptive_time_to_go(joint_pos_desired - joint_pos_current)
+
         # Plan trajectory
         waypoints = toco.planning.generate_joint_space_min_jerk(
             start=joint_pos_current,
             goal=joint_pos_desired,
-            time_to_go=time_to_go
-            or self._adaptive_time_to_go(joint_pos_current, joint_pos_desired),
+            time_to_go=time_to_go,
             hz=self.hz,
         )
 
@@ -443,17 +445,26 @@ class RobotInterface(BaseRobotInterface):
                     R.from_quat(ee_quat_desired) * R.from_quat(ee_quat_current)
                 ).as_quat()
 
-        # Plan trajectory
         ee_pose_current = T.from_rot_xyz(
             rotation=R.from_quat(ee_quat_current), translation=ee_pos_current
         )
         ee_pose_desired = T.from_rot_xyz(
             rotation=R.from_quat(ee_quat_desired), translation=ee_pos_desired
         )
+        if time_to_go is None:
+            # Roughly estimate joint diff by linearizing around current joint pose
+            joint_pos_current = self.get_joint_positions()
+            jacobian = self.robot_model.compute_jacobian(joint_pos_current)
+
+            ee_pose_diff = ee_pose_desired * ee_pose_current.inv()
+            joint_pos_diff = torch.linalg.pinv(jacobian) @ ee_pose_diff.as_twist()
+            time_to_go = self._adaptive_time_to_go(joint_pos_diff)
+
+        # Plan trajectory
         waypoints = toco.planning.generate_cartesian_space_min_jerk(
             start=ee_pose_current,
             goal=ee_pose_desired,
-            time_to_go=time_to_go or self.time_to_go_default,
+            time_to_go=time_to_go,
             hz=self.hz,
         )
 
