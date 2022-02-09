@@ -278,7 +278,7 @@ class RobotInterface(BaseRobotInterface):
 
     def __init__(
         self,
-        time_to_go_default: float = 4.0,
+        time_to_go_default: float = 2.0,
         use_grav_comp: bool = True,
         *args,
         **kwargs,
@@ -303,11 +303,14 @@ class RobotInterface(BaseRobotInterface):
 
     def _adaptive_time_to_go(self, joint_pos_current, joint_pos_desired):
         """Compute adaptive time_to_go
-        Uses time_to_go_default as a reference for moving 90 degrees
-        Also caps the minimum at 1/4 time_to_go_default
+        In a min-jerk trajectory, maximum velocity is equal to 1.875 * mean velocity.
+        Thus, we limit the mean velocity to half of the velocity limit.
+        time_to_go = max_i(joint_displacement[i] / joint_velocity_limit[i])
         """
-        max_joint_diff = torch.max(torch.abs(joint_pos_current - joint_pos_desired))
-        return self.time_to_go_default * max(0.25, 2 * max_joint_diff / np.pi)
+        joint_vel_limits = self.robot_model.get_joint_velocity_limits()
+        joint_pos_diff = torch.abs(joint_pos_current - joint_pos_desired)
+        time_to_go = torch.max(joint_pos_diff * joint_vel_limits / 2)
+        return max(time_to_go, self.time_to_go_default)
 
     """
     Setter methods
