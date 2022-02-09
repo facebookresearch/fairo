@@ -437,10 +437,9 @@ class Question extends Component {
     let user_message = null;
     // NOTE: this should come from the state setter sio event.
     this.state.memory_entries = null;
-    if (this.state.lf_ref_obj_data[0]["point_target"]) {
-      this.props.stateManager.flashVoxelWorldBlocks(
-        this.state.lf_ref_obj_data[0]["point_target"]
-      );
+    try {
+      var point_target = this.state.lf_ref_obj_data[0]["point_target"];
+      this.props.stateManager.flashVoxelWorldBlocks(point_target);
       return (
         <div className="question">
           <h3>
@@ -461,8 +460,7 @@ class Question extends Component {
           </List>
         </div>
       );
-    } else {
-      // No entries found for this reference object in memory
+    } catch (err) {
       return (
         <div className="question">
           <h3>
