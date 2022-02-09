@@ -303,13 +303,17 @@ class RobotInterface(BaseRobotInterface):
 
     def _adaptive_time_to_go(self, joint_displacement: torch.Tensor):
         """Compute adaptive time_to_go
-        In a min-jerk trajectory, maximum velocity is equal to 1.875 * mean velocity.
-        Thus, we limit the mean velocity to one-eighth of the velocity limit.
+        Computes the corresponding time_to_go such that the mean velocity is equal to one-eighth
+        of the joint velocity limit:
         time_to_go = max_i(joint_displacement[i] / (joint_velocity_limit[i] / 8))
+        (Note 1: The magic number 8 is deemed reasonable from hardware tests on a Franka Emika.)
+        (Note 2: In a min-jerk trajectory, maximum velocity is equal to 1.875 * mean velocity.)
+
+        The resulting time_to_go is also clipped to a minimum value of the default time_to_go.
         """
         joint_vel_limits = self.robot_model.get_joint_velocity_limits()
         joint_pos_diff = torch.abs(joint_displacement)
-        time_to_go = torch.max(joint_pos_diff / joint_vel_limits * 8.)
+        time_to_go = torch.max(joint_pos_diff / joint_vel_limits * 8.0)
         return max(time_to_go, self.time_to_go_default)
 
     """
@@ -380,7 +384,9 @@ class RobotInterface(BaseRobotInterface):
             joint_pos_desired += joint_pos_current
 
         if time_to_go is None:
-            time_to_go = self._adaptive_time_to_go(joint_pos_desired - joint_pos_current)
+            time_to_go = self._adaptive_time_to_go(
+                joint_pos_desired - joint_pos_current
+            )
 
         # Plan trajectory
         waypoints = toco.planning.generate_joint_space_min_jerk(
