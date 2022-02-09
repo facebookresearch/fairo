@@ -11,7 +11,6 @@ function cleanup() {
   echo "=== (Cleanup): Killing server and clients ==="
   pkill -9 "run_server"
   pkill -9 "franka_panda_cl"
-  pkill -9 "ping_server.py"
 }
 
 function ctrl_c() {
