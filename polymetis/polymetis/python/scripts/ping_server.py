@@ -17,13 +17,16 @@ log.setLevel(logging.INFO)
 if __name__ == "__main__":
     publisher = a0.Publisher("latest_robot_state")
 
+    reconnect_server_sleep_s = 5
+    robot_state_sleep_s = 1
+
     while True:
         log.warning("Connecting to server...")
         try:
             robot_interface = polymetis.RobotInterface()
         except Exception as e:
             log.error(f"Failed to connect to server: {e}")
-            time.sleep(1)
+            time.sleep(reconnect_server_sleep_s)
             continue
         log.info("Connected.")
 
