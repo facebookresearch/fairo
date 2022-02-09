@@ -6,7 +6,7 @@ if __name__ == "__main__":
 
     seconds = int(s.read().payload)
 
-    time_diff = time.time() - curr_state.timestamp.seconds
+    time_diff = time.time() - seconds
     log.info(f"Last robot state retrieved within {time_diff}s.")
 
     num_seconds_stale = 10
