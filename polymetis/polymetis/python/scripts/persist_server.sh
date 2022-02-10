@@ -42,6 +42,7 @@ do
     /home/box/miniconda3/envs/polymetis-local/bin/last_state_timestep.py
     ret=$?
     if [ $ret -ne 0 ]; then
+        echo "Ret code $ret"
         echo "=== Server died! Restarting server... ==="
         cleanup
         break
