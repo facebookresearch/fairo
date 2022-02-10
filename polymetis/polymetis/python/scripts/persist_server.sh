@@ -37,9 +37,7 @@ do
   sleep 10
   while true
   do
-    # $(which last_state_timestep.py)
-    # $(which last_state_timestep.py)
-    /home/box/miniconda3/envs/polymetis-local/bin/last_state_timestep.py
+    $(which last_state_timestep.py) > last_state_timestep.out
     ret=$?
     if [ $ret -ne 0 ]; then
         echo "Ret code $ret"
