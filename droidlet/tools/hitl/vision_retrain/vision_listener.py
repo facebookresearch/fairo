@@ -5,8 +5,9 @@ import boto3
 import json
 import logging
 import os
+import time
 
-from droidlet.tools.hitl.data_generator import DataGenerator
+from droidlet.tools.hitl.job_listener import JobListener
 
 
 HITL_TMP_DIR = (
@@ -44,7 +45,7 @@ class VisionListener(JobListener):
     """
 
     def __init__(self, batch_id: int, command: str, cmd_id: int, timeout: float = -1) -> None:
-        super(AnnotationJob, self).__init__(timeout)
+        super(VisionListener, self).__init__(timeout)
         self._batch_id = batch_id
         self._command = command
         self._cmd_id = cmd_id
@@ -53,14 +54,14 @@ class VisionListener(JobListener):
     
         while not self.check_is_finished():
             try:
-                s3_prefix = "droidlet-hitl/" + batch_id + "/interaction/"
-                s3_objects = s3_resource.list_objects(Bucket = bucket, Prefix=s3_prefix)
+                s3_prefix = f"{self._batch_id}/interaction/"
+                s3_objects = s3_resource.list_objects(Bucket=s3_bucket, Prefix=s3_prefix)
                 for file in s3_objects.get('Contents'):
                     name = file.key[len(s3_prefix)]
                     timestamp = name.split('/')[0]
                     body = file.get()['Body'].read()
                     parsed = json.loads(body)
-                    vision_annotation(batch_id, timestamp, parsed)
+                    vision_annotation(self._batch_id, timestamp, parsed)
                     # file.delete() # todo: uncomment when ready to run in production
 
                 logging.info(f"Vision annotation completed")
@@ -76,5 +77,5 @@ class VisionListener(JobListener):
 
 
 if __name__ == "__main__":
-    aj = AnnotationJob(987, "destory the biggest house behind me", 1, 300)
-    aj.run()
+    vl = VisionListener(987, "destory the biggest house behind me", 1, 300)
+    vl.run()
