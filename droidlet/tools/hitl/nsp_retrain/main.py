@@ -7,6 +7,7 @@ import logging
 
 from interaction_jobs import InteractionJob, InteractionLogListener
 from droidlet.tools.hitl.task_runner import TaskRunner
+from droidlet.tools.hitl.vision_retrain.vision_listener import VisionListener
 
 log_formatter = logging.Formatter(
     "%(asctime)s [%(filename)s:%(lineno)s - %(funcName)s() %(levelname)s]: %(message)s"
@@ -20,8 +21,8 @@ logger.addHandler(sh)
 
 # TODO: Parameterize those
 # This specifies how long jobs should be running before we manually kill them
-IJ_TIMEOUT = 10
-IL_TIMEOUT = IJ_TIMEOUT + 10
+IJ_TIMEOUT = 30
+IL_TIMEOUT = IJ_TIMEOUT + 30
 NDL_TIMEOUT = IL_TIMEOUT + 20
 
 if __name__ == "__main__":
@@ -40,8 +41,10 @@ if __name__ == "__main__":
     ij = InteractionJob(instance_num, opts.image_tag, opts.task_name, timeout=IJ_TIMEOUT)
     batch_id = ij.get_batch_id()
     listener = InteractionLogListener(batch_id, IL_TIMEOUT)
+    vis_listener = VisionListener(batch_id, IL_TIMEOUT)
 
     runner = TaskRunner()
     runner.register_data_generators([ij])
-    runner.register_job_listeners([listener])
+    runner.register_job_listeners([vis_listener])
+    # runner.register_job_listeners([listener])
     runner.run()

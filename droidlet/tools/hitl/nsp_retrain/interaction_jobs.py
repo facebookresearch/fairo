@@ -164,6 +164,7 @@ class InteractionJob(DataGenerator):
         vision_error_list = read_vision_logs(parsed_logs_dir, VIS_OUTPUT_FNAME)
         logging.info(f"vision error list from interactions: {vision_error_list}")
 
+        logging.info(f"Uploading vision error list to S3...")
         content = json.dumps(vision_error_list)
         s3.Object(f"{S3_BUCKET_NAME}", f"{batch_id}/vision_errors.json").put(Body=content)
 
