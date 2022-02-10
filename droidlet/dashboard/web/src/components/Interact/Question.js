@@ -490,7 +490,7 @@ class Question extends Component {
       this.setState({ view: 6 });
     } else if (index === 2) {
       // no, so vision error
-      this.setState({ vision_error: true, view: 4 });
+      this.setState({ perception_error: true, view: 4 });
     }
   }
 
