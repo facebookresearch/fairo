@@ -41,8 +41,7 @@ do
     $(which last_state_timestep.py)
     ret=$?
     if [ $ret -ne 0 ]; then
-        echo "Ret code $ret"
-        echo "=== Server died! Restarting server... ==="
+        echo "=== Server died with exit code $ret! Restarting server... ==="
         cleanup
         break
     fi
