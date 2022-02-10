@@ -76,5 +76,7 @@ class VisionListener(JobListener):
 
 
 if __name__ == "__main__":
-    vl = VisionListener(987, 30)
-    vl.run()
+    runner = TaskRunner()
+    vl = VisionListener(20220209160459, 30)
+    runner.register_job_listeners([vl])
+    runner.run()
