@@ -565,6 +565,7 @@ class Question extends Component {
       action_dict: this.state.action_dict,
       parsing_error: this.state.parsing_error,
       perception_error: this.state.perception_error,
+      reference_object_description: this.state.reference_object_description,
       task_error: this.state.task_error,
       msg: this.props.chats[this.props.failidx].msg,
       feedback: this.state.feedback,

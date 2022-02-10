@@ -40,21 +40,21 @@ class LowLevelMCPerception:
         self.pending_agent_placed_blocks = set()
         self.perceive_freq = perceive_freq
         self.perception_logger = PerceptionLogger(
-            "vision_error_details.csv", ["command", "action_dict", "time", "perception_error", "world_state"]
+            "vision_error_details.csv", ["command", "action_dict", "reference_object_description", "time", "perception_error", "world_state"]
         )
 
         @sio.on("saveErrorDetailsToCSV")
         def save_error_details(sid, data):
             """Save error details to error logs.
             The fields are
-                ["command", "action_dict", "time", "perception_error", "world_state"]
+                ["command", "action_dict", "reference_object_description", "time", "perception_error", "world_state"]
             """
             logging.info("Saving vision error details: %r" % (data))
             if "msg" not in data:
                 logging.info("Could not save vision error details due to error in dashboard backend.")
                 return
             is_perception_error = data["perception_error"]
-            if True:
+            if is_perception_error:
                 XMIN = -SL // 2
                 YMIN = 63 - GROUND_DEPTH
                 ZMIN = -SL // 2
@@ -75,7 +75,7 @@ class LowLevelMCPerception:
                     (int(xyz[0]), int(xyz[1]), int(xyz[2]), IGLU_BLOCK_MAP[(int(idm[0]), int(idm[1]))])
                     for xyz, idm in blocks
                 ]
-                self.perception_logger.log_perception_outputs([data["msg"], data["action_dict"], None, True, world_state])
+                self.perception_logger.log_perception_outputs([data["msg"], data["action_dict"], data["reference_object_description"], None, True, world_state])
 
     def perceive(self, force=False):
         """

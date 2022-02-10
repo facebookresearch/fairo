@@ -10,6 +10,7 @@ import shutil
 import signal
 import subprocess
 import time
+import json
 
 from typing import List
 
@@ -19,7 +20,7 @@ import botocore
 from annotation_jobs import AnnotationJob
 from droidlet.tools.hitl.utils.allocate_instances import allocate_instances, free_ecs_instances
 from droidlet.tools.hitl.utils.hitl_utils import generate_batch_id, deregister_dashboard_subdomain, dedup_commands
-from droidlet.tools.hitl.utils.process_s3_logs import read_s3_bucket, read_turk_logs
+from droidlet.tools.hitl.utils.process_s3_logs import read_s3_bucket, read_turk_logs, read_vision_logs
 
 from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.job_listener import JobListener
@@ -36,6 +37,7 @@ HITL_TMP_DIR = (
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
 NSP_OUTPUT_FNAME = "nsp_outputs"
+VIS_OUTPUT_FNAME = "vision_error_details"
 ANNOTATED_COMMANDS_FNAME = "nsp_data.txt"
 
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
@@ -158,6 +160,12 @@ class InteractionJob(DataGenerator):
         s3.Object(f"{S3_BUCKET_NAME}", f"{batch_id}/collected_commands").put(Body=content)
         content = "commands_ready"
         s3.Object(f"{S3_BUCKET_NAME}", f"{batch_id}/commands_ready").put(Body=content)
+
+        vision_error_list = read_vision_logs(parsed_logs_dir, VIS_OUTPUT_FNAME)
+        logging.info(f"vision error list from interactions: {vision_error_list}")
+
+        content = json.dumps(vision_error_list)
+        s3.Object(f"{S3_BUCKET_NAME}", f"{batch_id}/vision_errors.json").put(Body=content)
 
     def get_batch_id(self):
         return self._batch_id

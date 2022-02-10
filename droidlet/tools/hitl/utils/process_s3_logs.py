@@ -88,6 +88,48 @@ def read_turk_logs(turk_output_directory, filename):
     # Drop duplicates
     all_turk_interactions.drop_duplicates()
 
+    scene_list = []
+    for _, row in all_turk_interactions.iterrows():
+        scene_list.append({
+            "avatarInfo": None,
+            "agentInfo": None,
+            "blocks": row["world_state"],
+            "obj_ref": row["reference_object_description"]
+        })
+
+    # return all commands as a list
+    return scene_list
+
+
+def read_vision_logs(turk_output_directory, filename):
+    # Crawl turk logs directory
+    all_turk_interactions = None
+    for csv_path in glob.glob(
+        "{turk_logs_dir}/**/{csv_filename}".format(
+            turk_logs_dir=turk_output_directory, csv_filename=filename + ".csv"
+        )
+    ):
+        with open(csv_path) as fd:
+            # collect the vision errors CSV
+            csv_file = pd.read_csv(csv_path, delimiter="|")
+            # add a column with the interaction log ID
+            interaction_log_id = re.search(r"\/([^\/]*)\/{}.csv".format(filename), csv_path).group(
+                1
+            )
+            csv_file["turk_log_id"] = interaction_log_id
+            if all_turk_interactions is None:
+                all_turk_interactions = csv_file
+            else:
+                all_turk_interactions = pd.concat(
+                    [all_turk_interactions, csv_file], ignore_index=True
+                )
+
+    if all_turk_interactions is None:
+        return []
+
+    # Drop duplicates
+    all_turk_interactions.drop_duplicates()
+
     get_stats(list(all_turk_interactions["command"]))
     # return all commands as a list
     return list(set(all_turk_interactions["command"]))
