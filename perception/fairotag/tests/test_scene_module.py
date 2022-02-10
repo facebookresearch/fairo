@@ -75,7 +75,7 @@ def test_scene_calibration1(setup_dict):
     scene.add_marker(2, frame="ee", pose_in_frame=sp.SE3())
 
     # Parse observation data
-    for t02, t12 in zip(setup_dict["t02_samples"], setup_dict["t12_samples"]):
+    for t02, t12 in zip(setup_dict["t02_samples"][::-1], setup_dict["t12_samples"][::-1]):
         detected_markers = {
             "0": [frt.MarkerInfo(id=2, pose=t02, corner=None, length=None)],
             "1": [frt.MarkerInfo(id=2, pose=t12, corner=None, length=None)],
@@ -90,6 +90,17 @@ def test_scene_calibration1(setup_dict):
     t01_gt = setup_dict["t01"]
     print(t01_inferred.log() - t01_gt.log())
     assert np.allclose(t01_inferred.log(), t01_gt.log(), atol=1e-2)
+
+    # Try state estimation
+    t12_sample = setup_dict["t12_samples"][-1]
+    detected_markers = {
+        "1": [frt.MarkerInfo(id=2, pose=t12_sample, corner=None, length=None)],
+    }
+    scene.update_pose_estimations(detected_markers)
+
+    t02_inferred = scene.get_marker_info(2)["pose"]
+    t02_gt = setup_dict["t02_samples"][-1]
+    assert np.allclose(t02_inferred.log(), t02_gt.log(), atol=1e-2)
 
 
 def _test_scene_calibration2(setup_dict):
