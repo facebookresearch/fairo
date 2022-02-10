@@ -54,7 +54,7 @@ class LowLevelMCPerception:
                 logging.info("Could not save vision error details due to error in dashboard backend.")
                 return
             is_perception_error = data["perception_error"]
-            if True:
+            if is_perception_error:
                 XMIN = -SL // 2
                 YMIN = 63 - GROUND_DEPTH
                 ZMIN = -SL // 2
