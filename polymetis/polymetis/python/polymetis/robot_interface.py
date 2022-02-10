@@ -372,7 +372,17 @@ class RobotInterface(BaseRobotInterface):
         Kqd: torch.Tensor = None,
         **kwargs,
     ) -> List[RobotState]:
-        """Uses JointGoToPolicy to move to the desired positions with the given gains."""
+        """Uses JointGoToPolicy to move to the desired positions with the given gains.
+        Args:
+            positions: Desired target joint positions.
+            time_to_go: Amount of time to execute the motion. Uses an adaptive value if not specified (see `_adaptive_time_to_go` for details).
+            delta: Whether the specified `positions` are relative to current pose or absolute.
+            Kq: Joint P gains for the tracking controller. Uses default values if not specified.
+            Kqd: Joint D gains for the tracking controller. Uses default values if not specified.
+
+        Returns:
+            Same as `send_torch_policy`
+        """
         assert (
             self.robot_model is not None
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
@@ -427,7 +437,18 @@ class RobotInterface(BaseRobotInterface):
         Kxd: torch.Tensor = None,
         **kwargs,
     ) -> List[RobotState]:
-        """Uses an operational space controller to move to a desired end-effector position (and, optionally orientation)."""
+        """Uses an operational space controller to move to a desired end-effector position (and, optionally orientation).
+        Args:
+            positions: Desired target end-effector position.
+            positions: Desired target end-effector orientation (quaternion).
+            time_to_go: Amount of time to execute the motion. Uses an adaptive value if not specified (see `_adaptive_time_to_go` for details).
+            delta: Whether the specified `position` and `orientation` are relative to current pose or absolute.
+            Kx: P gains for the tracking controller. Uses default values if not specified.
+            Kxd: D gains for the tracking controller. Uses default values if not specified.
+
+        Returns:
+            Same as `send_torch_policy`
+        """
         assert (
             self.robot_model is not None
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
