@@ -14,7 +14,8 @@
 
 
 if __name__ == "__main__":
-    print("here")
+    pass
+    # print("here")
     # s = a0.SubscriberSync("latest_robot_state", a0.INIT_MOST_RECENT)
 
     # seconds = int(s.read().payload)
