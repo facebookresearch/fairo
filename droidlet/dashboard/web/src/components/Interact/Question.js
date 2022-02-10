@@ -465,13 +465,14 @@ class Question extends Component {
         <div className="question">
           <h3>
             I did not find anything called :{reference_object_description} in
-            the world. Does that seem right from your view of the world ?
+            the world. Does a [{reference_object_description}] definitely exist
+            in your view of the world?
           </h3>
           <List className="answers" component="nav">
-            <ListItem button onClick={() => this.answerVision(1)}>
+            <ListItem button onClick={() => this.answerVision(2)}>
               <ListItemText className="listButton" primary="Yes" />
             </ListItem>
-            <ListItem button onClick={() => this.answerVision(2)}>
+            <ListItem button onClick={() => this.answerVision(1)}>
               <ListItemText className="listButton" primary="No" />
             </ListItem>
             <ListItem button onClick={() => this.setState({ view: 1 })}>
@@ -486,10 +487,10 @@ class Question extends Component {
   answerVision(index) {
     //handles after the user submits the answer (y/n) to if NSP errored or not
     if (index === 1) {
-      // yes, so not a vision error
+      // no, object doesn't exist, so not a vision error
       this.setState({ view: 6 });
     } else if (index === 2) {
-      // no, so vision error
+      // yes, user says object exists, so vision error
       this.setState({ perception_error: true, view: 4 });
     }
   }
