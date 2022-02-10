@@ -22,6 +22,11 @@ function recordClick(ele) {
       console.log("Recording output for taskID: " + taskID);
       document.getElementById("taskID").value = taskID;
       document.getElementById("inst_seg_tags").value = ele[taskID];
+
+      if (ele[taskID] == "null") {
+        blockMarked = true;
+        checkSubmitDisplay();    
+      }
     }
   }
 
