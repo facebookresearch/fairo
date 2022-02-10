@@ -17,7 +17,7 @@ if __name__ == "__main__":
     reconnect_server_sleep_s = 5
     robot_state_sleep_s = 1
 
-    with open('readme.txt', 'w') as f:
+    with open("/tmp/last_robot_state", "w") as f:
         while True:
             log.warning("Connecting to server...")
             try:
