@@ -18,14 +18,15 @@ function ctrl_c() {
   exit 130
 }
 
-# . /home/box/miniconda3/etc/profile.d/conda.sh
-# conda activate polymetis-local
-# $(which ping_server.py) > ping_server.out &
-# ret=$?
-# if [ $ret -ne 0 ]; then
-#   echo "Unable to start ping_server.py"
-#   exit 1
-# fi
+. /home/box/miniconda3/etc/profile.d/conda.sh
+conda activate polymetis-local
+
+$(which ping_server.py) > ping_server.out &
+ret=$?
+if [ $ret -ne 0 ]; then
+  echo "Unable to start ping_server.py"
+  exit 1
+fi
 
 
 while true
