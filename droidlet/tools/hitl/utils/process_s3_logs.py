@@ -88,17 +88,10 @@ def read_turk_logs(turk_output_directory, filename):
     # Drop duplicates
     all_turk_interactions.drop_duplicates()
 
-    scene_list = []
-    for _, row in all_turk_interactions.iterrows():
-        scene_list.append({
-            "avatarInfo": None,
-            "agentInfo": None,
-            "blocks": row["world_state"],
-            "obj_ref": row["reference_object_description"]
-        })
-
+    get_stats(list(all_turk_interactions["command"]))
     # return all commands as a list
-    return scene_list
+    return list(set(all_turk_interactions["command"]))
+    
 
 
 def read_vision_logs(turk_output_directory, filename):
@@ -128,11 +121,19 @@ def read_vision_logs(turk_output_directory, filename):
         return []
 
     # Drop duplicates
-    all_turk_interactions.drop_duplicates()
+    all_turk_interactions.drop_duplicates()  
 
-    get_stats(list(all_turk_interactions["command"]))
+    scene_list = []
+    for _, row in all_turk_interactions.iterrows():
+        scene_list.append({
+            "avatarInfo": None,
+            "agentInfo": None,
+            "blocks": row["world_state"],
+            "obj_ref": row["reference_object_description"]
+        })
+
     # return all commands as a list
-    return list(set(all_turk_interactions["command"]))
+    return scene_list
 
 
 if __name__ == "__main__":
