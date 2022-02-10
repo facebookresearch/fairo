@@ -37,13 +37,13 @@ class ArgumentParser:
         )
         self.parser.add_argument(
             "--log_timeline",
-            action="store_true", 
+            action="store_true",
             default=False,
             help="enables timeline logging for dashboard",
         )
         self.parser.add_argument(
             "--enable_timeline",
-            action="store_true", 
+            action="store_true",
             default=False,
             help="enables the dashboard timeline to display events",
         )
@@ -62,9 +62,9 @@ class ArgumentParser:
             help="path to semantic parsing models",
         )
         nsp_parser.add_argument(
-            "--nsp_data_dir", 
-            default="../../droidlet/artifacts/datasets/annotated_data/", 
-            help="path to annotated data"
+            "--nsp_data_dir",
+            default="../../droidlet/artifacts/datasets/annotated_data/",
+            help="path to annotated data",
         )
         nsp_parser.add_argument(
             "--ground_truth_data_dir",
@@ -92,6 +92,12 @@ class ArgumentParser:
         mc_parser.add_argument(
             "--geoscorer_model_path", default="", help="path to geoscorer model"
         )
+        mc_parser.add_argument(
+            "--mark_airtouching_blocks",
+            action="store_true",
+            default=False,
+            help="run thenearby_airtouching_blocks heuristic?",
+        )
         mc_parser.add_argument("--port", type=int, default=25565)
 
     def add_loco_parser(self):
@@ -116,15 +122,9 @@ class ArgumentParser:
             help="sanity checks the robot's movement, camera, arm.",
         )
         loco_parser.add_argument(
-            "--data_store_path",
-            default='',
-            help="path for storing data collected by the robot",
+            "--data_store_path", default="", help="path for storing data collected by the robot"
         )
-        loco_parser.add_argument(
-            "--reexplore_json",
-            default='',
-            help="json for reexplore task",
-        )
+        loco_parser.add_argument("--reexplore_json", default="", help="json for reexplore task")
 
     def fix_path(self, opts):
         if opts.model_base_path == "#relative":

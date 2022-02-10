@@ -10,22 +10,23 @@ import os
 
 from agents.core import BaseAgent
 from agents.scheduler import EmptyScheduler
-from droidlet.shared_data_structs import ErrorWithResponse
-from droidlet.interpreter import InterpreterBase
-from droidlet.event import sio, dispatch
-from droidlet.memory.save_and_fetch_commands import *
 
+from droidlet.event import sio, dispatch
+from droidlet.interpreter import InterpreterBase
+from droidlet.memory.save_and_fetch_commands import *
+from droidlet.shared_data_structs import ErrorWithResponse
+from droidlet.perception.semantic_parsing.semantic_parsing_util import postprocess_logical_form
 random.seed(0)
 
 DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
 DEFAULT_BEHAVIOUR_TIMEOUT = 20
 MEMORY_DUMP_KEYFRAME_TIME = 0.5
+
+
 # a BaseAgent with:
 # 1: a controller that is (mostly) a scripted interpreter + neural semantic parser.
 # 2: has a turnable head, can point, and has basic locomotion
 # 3: can send and receive chats
-
-
 class DroidletAgent(BaseAgent):
     def __init__(self, opts, name=None):
         logging.info("Agent.__init__ started")
@@ -158,8 +159,8 @@ class DroidletAgent(BaseAgent):
                     logical_form_mem = self.memory.get_mem_by_id(logical_form_triples[0][2])
                     logical_form = logical_form_mem.logical_form
                 if logical_form:
-                    logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
-                        speaker="dashboard", chat=chat, logical_form=logical_form_mem.logical_form
+                    logical_form = postprocess_logical_form(
+                        self.memory, speaker="dashboard", chat=chat, logical_form=logical_form_mem.logical_form
                     )
                     where = "WHERE <<?, attended_while_interpreting, #{}>>".format(
                         logical_form_mem.memid
@@ -331,8 +332,8 @@ class DroidletAgent(BaseAgent):
         chat_memid = self.memory.add_chat(
             self.memory.get_player_by_name(speaker).memid, preprocessed_chat
         )
-        post_processed_parse = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
-            speaker=speaker, chat=chat, logical_form=chat_parse
+        post_processed_parse = postprocess_logical_form(
+            self.memory, speaker=speaker, chat=chat, logical_form=chat_parse
         )
         logical_form_memid = self.memory.add_logical_form(post_processed_parse)
         self.memory.add_triple(

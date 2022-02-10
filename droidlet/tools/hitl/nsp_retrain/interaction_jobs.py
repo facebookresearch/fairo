@@ -25,6 +25,8 @@ from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.job_listener import JobListener
 from droidlet.tools.hitl.task_runner import TaskRunner
 
+from droidlet.tools.crowdsourcing.droidlet_static_html_task.issue_bonus import issue_bonuses
+
 ECS_INSTANCE_TIMEOUT = 45
 INTERACTION_JOB_POLL_TIME = 30
 INTERACTION_LISTENER_POLL_TIME = 30
@@ -121,6 +123,9 @@ class InteractionJob(DataGenerator):
 
         logging.info(f"Free ECS instances...")
         free_ecs_instances(self.instance_ids)
+
+        logging.info(f"Issuing performance incentive bonuses...")
+        issue_bonuses(self._task_name)
 
         logging.info(f"Processing S3 logs...")
         self.process_s3_logs(batch_id)

@@ -4,7 +4,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.droidlet_agent import DroidletAgent
 from droidlet.perception.robot import Detection, Human, HumanKeypointsOrdering
@@ -31,7 +30,6 @@ class FakeAgent(DroidletAgent):
         self.dialogue_manager = DialogueManager(
             agent=self,
             dialogue_object_classes=dialogue_object_classes,
-            dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts
         )
 

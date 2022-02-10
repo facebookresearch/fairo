@@ -13,7 +13,6 @@ from droidlet.memory.memory_nodes import PlayerNode
 from agents.droidlet_agent import DroidletAgent
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 from droidlet.lowlevel.robot_mover_utils import (
@@ -434,7 +433,7 @@ class FakeAgent(DroidletAgent):
         dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = DialogueManager(
-            self.memory, dialogue_object_classes, DialogueObjectMapper, self.opts
+            self.memory, dialogue_object_classes, self.opts
         )
 
     def perceive(self, force=False):

@@ -4,7 +4,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.droidlet_agent import DroidletAgent
 from droidlet.shared_data_structs import MockOpt
@@ -43,7 +42,7 @@ class FakeAgent(DroidletAgent):
     def init_controller(self):
         dialogue_object_classes = {}
         self.dialogue_manager = DialogueManager(
-            self.memory, dialogue_object_classes, DialogueObjectMapper, opts=self.opts
+            self.memory, dialogue_object_classes, opts=self.opts
         )
 
 

@@ -1,7 +1,6 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from copy import deepcopy
 import logging
 from typing import Dict, Tuple, Any, Optional, Sequence
 
@@ -30,7 +29,7 @@ class GetMemoryHandler(InterpreterBase):
         super().__init__(
             speaker, logical_form_memid, agent_memory, memid=memid, interpreter_type="get_memory"
         )
-        self.logical_form_orig = deepcopy(self.logical_form)
+        self.output_type = self.logical_form["filters"].get("output")
         # fill in subclasses
         self.subinterpret = {}  # noqa
         self.task_objects = {}  # noqa
@@ -106,7 +105,7 @@ class GetMemoryHandler(InterpreterBase):
             step_data: Any other data that this step would like to send to the task
         """
         self.finished = True  # noqa
-        output_type = self.logical_form_orig["filters"].get("output")
+        output_type = self.output_type
         try:
             if type(output_type) is str and output_type.lower() == "count":
                 # FIXME will multiple count if getting tags

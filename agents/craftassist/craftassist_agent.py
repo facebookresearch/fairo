@@ -27,7 +27,6 @@ if __name__ == "__main__":
 
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.base_util import Pos, Look, npy_to_blocks_list
-from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from agents.droidlet_agent import DroidletAgent
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
@@ -89,6 +88,7 @@ class CraftAssistAgent(DroidletAgent):
             "fill_idmeta": fill_idmeta,
             "color_bid_map": COLOR_BID_MAP,
         }
+        self.mark_airtouching_blocks = opts.mark_airtouching_blocks
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
         self.agent_type = "craftassist"
@@ -215,7 +215,9 @@ class CraftAssistAgent(DroidletAgent):
         self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         self.perception_modules["low_level"] = LowLevelMCPerception(self)
         self.perception_modules["heuristic"] = heuristic_perception.PerceptionWrapper(
-            self, low_level_data=self.low_level_data
+            self,
+            low_level_data=self.low_level_data,
+            mark_airtouching_blocks=self.mark_airtouching_blocks,
         )
         # set up the SubComponentClassifier model
         if os.path.isfile(self.opts.semseg_model_path):
@@ -240,7 +242,6 @@ class CraftAssistAgent(DroidletAgent):
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
-            dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
             low_level_interpreter_data=low_level_interpreter_data,
         )
@@ -262,7 +263,8 @@ class CraftAssistAgent(DroidletAgent):
         low_level_perception_output = self.perception_modules["low_level"].perceive()
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
         self.areas_to_perceive = self.memory.update(
-            low_level_perception_output, self.areas_to_perceive)["areas_to_perceive"]
+            low_level_perception_output, self.areas_to_perceive
+        )["areas_to_perceive"]
         # 3. with the updated areas_to_perceive, perceive from heuristic perception module
         if force or not self.memory.task_stack_peek():
             # perceive from heuristic perception module
