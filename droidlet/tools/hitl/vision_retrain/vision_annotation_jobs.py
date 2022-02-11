@@ -108,7 +108,9 @@ class VisionAnnotationJob(DataGenerator):
                 # If mturk job is still running after timeout, terminate it
                 logging.info(f"Manually terminate turk job after timeout...")
                 os.killpg(os.getpgid(p.pid), signal.SIGINT)
-                time.sleep(10)
+                time.sleep(300)
+                os.killpg(os.getpgid(p.pid), signal.SIGINT)
+                time.sleep(300)
                 os.killpg(os.getpgid(p.pid), signal.SIGKILL)
 
             # Load annotated scene data into output format
