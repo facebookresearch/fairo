@@ -30,9 +30,9 @@ const BLOCK_MAP = {
     25: 0xbcbcbc,  // Bedrock
     26: 0x75bdff,  // Flowing Water
     27: 0x75bdff,  // Still Water
-    28: 0xffa500,  // Sand
-    29: 0xff0000,  // Red Sand
-    30: 0xdd992c,  // Gravel
+    28: 0xddd8ac,  // Sand
+    29: 0xd47831,  // Red Sand
+    30: 0xbcbcbc,  // Gravel
     31: 0xdd992c,  // Oak Wood
     32: 0xdd992c,  // Spruce Wood
     33: 0xdd992c,  // Birch Wood
@@ -41,9 +41,9 @@ const BLOCK_MAP = {
     36: 0x8fce00,  // Spruce Leaves
     37: 0x8fce00,  // Birch Leaves
     38: 0x8fce00,  // Jungle Leaves
-    39: 0xdd992c,  // Sandstone
-    40: 0xdd992c,  // Chiseled Sandstone
-    41: 0xdd992c,  // Smooth Sandstone
+    39: 0xddd8ac,  // Sandstone
+    40: 0xddd8ac,  // Chiseled Sandstone
+    41: 0xddd8ac,  // Smooth Sandstone
     42: 0xdd992c,  // Dead Shrub
     43: 0x8fce00,  // Grass
     44: 0x8fce00,  // Fern

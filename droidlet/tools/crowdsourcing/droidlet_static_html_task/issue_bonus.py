@@ -67,7 +67,11 @@ def issue_bonuses(task_name: str) -> list:
                         amount = float(f'{(click["id"]["interactionScores"]["stoplight"] * 0.30):.2f}')
                         total_bonus += amount
                         new_bonus_records.append((task_name, unit_id, worker.worker_name, amount))
-                        bonus_result, _ = worker.bonus_worker(amount, "Virtual assistant interaction quality bonus", unit)
+                        bonus_result = False
+                        try:
+                            bonus_result, _ = worker.bonus_worker(amount, "Virtual assistant interaction quality bonus", unit)
+                        except:
+                            pass
                         bonus_results.append(bonus_result)
                         if not bonus_result:
                             logging.info(f"Bonus NOT successfully issued for worker {worker.worker_name} , debug")
