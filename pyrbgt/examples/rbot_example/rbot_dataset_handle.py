@@ -24,7 +24,6 @@ class RBOTDatasetHandle(ImageHandle):
             self.intrinsics.ppv = float(intrinsic_lst[3])
             self.intrinsics.width = 640
             self.intrinsics.height = 512
-            f.close()
 
     def get_intrinsics(self):
         return self.intrinsics
