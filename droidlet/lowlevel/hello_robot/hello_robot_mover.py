@@ -34,6 +34,7 @@ from droidlet.lowlevel.hello_robot.rotation import (
 
 from tenacity import retry, stop_after_attempt, wait_fixed
 from droidlet.lowlevel.pyro_utils import safe_call
+from .data_compression import *
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
@@ -279,6 +280,8 @@ class HelloRobotMover(MoverInterface):
             an RGBDepth object
         """
         rgb, depth, rot, trans = self.cam.get_pcd_data(rotate=False)
+        rgb, depth = jpg_decode(rgb), blosc_decode(depth)
+        depth = np.divide(depth, 1000, dtype=np.float32) # convert from mm to metres
         base_state = self.bot.get_base_state().value
         uv_one_in_cam = self.uv_one_in_cam
 
