@@ -164,7 +164,7 @@ class O3dViz():
         self.counter += 1
         iter_time = time.time_ns() - self.start_time
         if float(iter_time) / 1e9 > 1:
-            print("Drawing FPS: ", round(self.counter / (float(iter_time) / 1e9), 1), "  ", int(iter_time / 1e6 / self.counter), "ms")
+            # print("Drawing FPS: ", round(self.counter / (float(iter_time) / 1e9), 1), "  ", int(iter_time / 1e6 / self.counter), "ms")
             self.counter = 0
             self.start_time = time.time_ns()
 
