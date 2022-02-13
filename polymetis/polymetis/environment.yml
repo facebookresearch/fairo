@@ -44,6 +44,7 @@ dependencies:
     - scipy
     - spdlog
     - sphinx
+    - sphinx-copybutton
     - sphinx-book-theme
     - tqdm
     - withbullet
