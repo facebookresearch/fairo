@@ -8,9 +8,9 @@ mephisto:
     units_per_assignment: 1
   task:
     assignment_duration_in_seconds: 600
-    maximum_units_per_worker: 10
+    maximum_units_per_worker: 50
     task_description: Look at the 3D scene and tell us what is in it
-    task_name: ca-vis-label20220119200125
+    task_name: ca-vis-label20220214113405
     task_reward: 0.75
     task_tags: 3D, annotate, shapes
     task_title: Tell us what is in the scene
