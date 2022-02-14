@@ -1,3 +1,5 @@
 droidlet_static_html_task/outputs/
 droidlet_static_html_task/*.csv
 vision_annotation_task/outputs/
+vision_annotation_task/*.csv
+vision_annotation_task/server_files/extra_refs/scene_list.json
