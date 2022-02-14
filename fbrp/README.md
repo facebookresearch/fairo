@@ -1,6 +1,6 @@
 # Facebook Robotics Platform
 
-Deploy, launch, manage, and orchestrate heteronigious robots with ease!
+Deploy, launch, manage, and orchestrate heterogeneous robots with ease!
 
 ## Install
 
