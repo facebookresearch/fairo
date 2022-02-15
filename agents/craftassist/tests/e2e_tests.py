@@ -4,18 +4,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import os
 import numpy as np
+from copy import deepcopy
 from agents.craftassist.tests.recorder import Recorder
 from agents.craftassist.tests.fake_agent import FakeAgent, FakePlayer
 from droidlet.lowlevel.minecraft.pyworld.world import World
 from droidlet.shared_data_structs import MockOpt
-from droidlet.lowlevel.minecraft.pyworld.utils import (
-    Player,
-    Pos,
-    Look,
-    Item,
-    Look,
-    to_relative_pos,
-)
+from droidlet.lowlevel.minecraft.pyworld.utils import Player, Pos, Item, Look
+from droidlet.perception.craftassist import rotation
 from droidlet.lowlevel.minecraft.small_scenes_with_shapes import (
     build_shape_scene,
     SL,
@@ -31,12 +26,19 @@ TTAD_BERT_DATA_DIR = os.path.join(
     os.path.dirname(__file__), "../../../droidlet/artifacts/datasets/annotated_data/"
 )
 
-
-def default_scenario(args, command_text, verifier):
-    scenario = {}
-    scenario["command_text"] = command_text
-
+# FIXME! USE CONSTRAINTS TO MAKE TRACTABLE TASK
+def build_shape_scene_with_constraints(args, task_data):
     J = build_shape_scene(args)
+    return J
+
+
+def default_scenario(args, task_data):
+    scenario = {}
+    scenario["task"] = deepcopy(task_data)
+    scenario["command_text"] = task_data["command_text"]
+
+    J = build_shape_scene_with_constraints(args, task_data)
+    scenario["task"]["scene"] = J
     world_spec = {}
     world_spec["coord_shift"] = J["offset"]
 
@@ -68,6 +70,7 @@ def default_scenario(args, command_text, verifier):
     agent_opts.e2e_mode = True
     scenario["agent_opts"] = agent_opts
     scenario["max_execution_steps"] = 100
+    verifier = task_data["verifier_gen"](scenario)
     scenario["verifier"] = verifier
     return scenario
 
@@ -84,7 +87,6 @@ class BaseE2ETest:
         for k, v in self.cached_perception_models.items():
             # FIXME make a method to do this
             v.agent = None
-        world_spec = self.scenario["world_spec"]
         self.world = World(scenario["world_opts"], scenario["world_spec"])
         self.agent = FakeAgent(
             self.world,
@@ -125,6 +127,67 @@ class BaseE2ETest:
         return stop
 
 
+def gen_come_here_verifier(data):
+    def f(recorder):
+        ax, ay, az = recorder.tape[S.agent.recorder.last_entry]["agent"].pos
+        px, py, pz = recorder.tape[S.agent.recorder.last_entry]["players"][0]["player_struct"].pos
+        if abs(ax - px) + abs(ay - py) + abs(az - pz) < 4:
+            return True
+        else:
+            return False
+
+    return f
+
+
+def gen_move_reldir_verifier(data):
+    # assumes that the correct refobj is in the world, if there is a refobj.
+    reldir = data["task"]["reldir"]
+    num_steps = data["task"].get("num_steps")
+    ref_obj_name = data["task"].get("ref_obj_name", "AGENT")
+    frame = data["task"].get("frame", "SPEAKER")
+    abs_reldir_vec = rotation.DIRECTIONS[reldir]
+    if not ref_obj_name:
+        ref_obj_name = "AGENT"
+    ip_tol = data.get("ip_tol", 0.8)
+    steps_tol = data.get("steps_tol", 1.1)
+    S = data["task"]["scene"]
+
+    def f(recorder):
+        tape = recorder.tape
+        if ref_obj_name == "AGENT":
+            rpos_list = [np.array(tape[0]["agent"].pos)]
+        elif ref_obj_name == "SPEAKER":
+            rpos_list = [np.array(tape[0]["players"][0]["player_struct"].pos)]
+        else:
+            rpos_list = []
+            for i in S["inst_seg_tags"]:
+                if ref_obj_name.lower() in i["tags"]:
+                    rpos_list.append(np.mean(i["locs"], axis=0))
+        if frame == "SPEAKER":
+            yaw = tape[0]["players"][0]["player_struct"].look.yaw
+        else:  # frame == "AGENT"
+            yaw = tape[0]["agent"].look.yaw
+        dir_vec = rotation.transform(abs_reldir_vec, yaw, 0, inverted=True)
+        last_pos = np.array(tape[recorder.last_entry]["agent"].pos)
+        success = False
+        # check each possible matching object; if agent moved approximately the right angle
+        # and the right distance verify correct
+        for p in rpos_list:
+            d = last_pos - p
+            dn = np.linalg.norm(d + 0.00001)
+            d = d / dn
+            ip = d @ dir_vec
+            if ip > ip_tol:
+                if num_steps:
+                    if abs(dn - num_steps) < steps_tol:
+                        success = True
+                else:
+                    success = True
+        return success
+
+    return f
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -133,25 +196,21 @@ if __name__ == "__main__":
     parser.add_argument("--H", type=int, default=H)
     parser.add_argument("--GROUND_DEPTH", type=int, default=GROUND_DEPTH)
     parser.add_argument("--MAX_NUM_SHAPES", type=int, default=3)
-    parser.add_argument("--NUM_SCENES", type=int, default=3)
+    parser.add_argument("--MAX_NUM_GROUND_HOLES", type=int, default=0)
     parser.add_argument("--fence", action="store_true", default=False)
     parser.add_argument("--cuberite_x_offset", type=int, default=-SL // 2)
     parser.add_argument("--cuberite_y_offset", type=int, default=63 - GROUND_DEPTH)
     parser.add_argument("--cuberite_z_offset", type=int, default=-SL // 2)
+    parser.add_argument("--iglu_scenes", default="")
     parser.add_argument("--save_data_path", default="")
     args = parser.parse_args()
 
-    def come_here_verifier(recorder):
-        ax, ay, az = S.agent.recorder.tape[S.agent.recorder.last_entry]["agent"].pos
-        px, py, pz = S.agent.recorder.tape[S.agent.recorder.last_entry]["players"][0][
-            "player_struct"
-        ].pos
-        if abs(ax - px) + abs(ay - py) + abs(az - pz) < 4:
-            return True
-        else:
-            return False
-
-    scenario = default_scenario(args, "come_here", come_here_verifier)
+    task_data = {
+        "reldir": "LEFT",
+        "command_text": "move left",
+        "verifier_gen": gen_move_reldir_verifier,
+    }
+    scenario = default_scenario(args, task_data)
 
     S = BaseE2ETest(scenario)
     S.agent_execute_command()
