@@ -1,6 +1,8 @@
 # Fairo
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)[![codecov](https://codecov.io/gh/facebookresearch/fairo/branch/main/graph/badge.svg?token=8ERT95OC8G)](https://codecov.io/gh/facebookresearch/fairo)
+[![CircleCI](https://circleci.com/gh/facebookresearch/fairo/tree/main.svg?style=svg&circle-token=7fadbd3989ab8e76003fd5193ad62e26686bc4a6)](https://circleci.com/gh/facebookresearch/fairo/tree/main)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![codecov](https://codecov.io/gh/facebookresearch/fairo/branch/main/graph/badge.svg?token=8ERT95OC8G)](https://codecov.io/gh/facebookresearch/fairo)
 
 **Fairo** (pronounced _"pharaoh"_) is a unified robotics platform developed by researchers at [Meta AI](https://ai.facebook.com/). It currently comprises of a set of projects:
 

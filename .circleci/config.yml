@@ -63,29 +63,18 @@ commands:
             cd ./polymetis/docs/
             make html
 
+            # copy to persist to workspace
+            mkdir -p /tmp/workspace/docs/polymetis/
+            cp -r ./_build/html/* /tmp/workspace/docs/polymetis/
+
+            # tar to save as artifact
             tar -cvf html.tar ./_build/html
+      - persist_to_workspace:
+          root: /tmp/workspace/
+          paths: docs/polymetis
       - store_artifacts:
           path: ./polymetis/docs/html.tar
           destination: autogen_docs
-      - add_ssh_keys:
-          fingerprints:
-            - "05:58:c3:0a:cc:07:69:b1:c2:be:41:7b:df:18:a5:b6"
-      - run:
-          name: Upload documentation if on main branch
-          command: |
-            if [[ $(git symbolic-ref -q --short HEAD) = "main" ]]
-              then
-                git config --global user.email "yixinlin@fb.com"
-                git config --global user.name "Yixin Lin (automated build)"
-
-                git clone git@github.com:polymetis-docs/polymetis-docs.github.io.git ~/polymetis-docs.github.io
-                cp -r ./polymetis/docs/_build/html/* ~/polymetis-docs.github.io/
-
-                cd ~/polymetis-docs.github.io/
-                git add -A
-                git commit -m "Automatic documentation update" || echo "No changes to commit"
-                git push origin main --force
-            fi
   polymetis_build_conda_pkg:
     steps:
       - run:
@@ -312,7 +301,7 @@ jobs:
       - polymetis_build_conda_pkg
   polymetis-formatting:
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.8
     steps:
       - checkout
       - run:
@@ -343,6 +332,29 @@ jobs:
       - run:
           name: Run PyTest
           command: pytest ./fbrp
+  update-docs:
+    docker:
+      - image: cimg/node:current
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace/
+      - checkout
+      - run:
+          name: Copy all docs into repo
+          command: |
+            cp -r /tmp/workspace/docs/* docs/
+      - run:
+          name: Install gh-pages utility
+          command: |
+            sudo npm install -g gh-pages
+            git config user.email "doc-push@fb.com"
+            git config user.name "doc-push"
+      - add_ssh_keys:
+          fingerprints:
+            - "6b:61:ef:6e:de:62:db:11:5e:f0:90:39:02:49:63:73"
+      - run:
+          name: Publish docs to gh-pages branch
+          command: gh-pages --dotfiles --message "[skip ci] Updates" --dist docs/
 
 workflows:
   build:
@@ -355,3 +367,9 @@ workflows:
       - polymetis-conda-ubuntu-20
       - polymetis-formatting
       - fbrp
+      - update-docs
+          requires:
+            - polymetis-local-ubuntu-20
+          # filters:
+          #   branches:
+          #     only: main
