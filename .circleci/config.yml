@@ -367,7 +367,7 @@ workflows:
       - polymetis-conda-ubuntu-20
       - polymetis-formatting
       - fbrp
-      - update-docs
+      - update-docs:
           requires:
             - polymetis-local-ubuntu-20
           # filters:
