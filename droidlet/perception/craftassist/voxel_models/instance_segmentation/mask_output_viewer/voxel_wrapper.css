@@ -16,6 +16,10 @@ canvas {
     padding: 5px;
 }
 
+.btn {
+    width: 200px;
+}
+
 #buttons {
     text-align: center;
 }

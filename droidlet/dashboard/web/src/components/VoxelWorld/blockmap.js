@@ -71,6 +71,7 @@ var BLOCK_MAP = {
   "38,0": 63, // Poppy
   "39,0": 64, // Brown Mushroom
   "40,0": 65, // Red Mushroom
+  "95,4": 66, // Yellow Stained Glass
 };
 
 var MATERIAL_MAP = [
@@ -143,6 +144,7 @@ var MATERIAL_MAP = [
   "blocks/flower_tulip_red", // no poppy
   "blocks/mushroom_brown",
   "blocks/mushroom_red",
+  "blocks/glass_yellow",
   "blocks/hardened_clay_stained_lime", // use as default
 ];
 
