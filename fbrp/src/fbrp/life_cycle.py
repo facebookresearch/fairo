@@ -31,6 +31,7 @@ class ProcInfo:
     state: State
     return_code: int
     launcher_running: bool
+    error_info: str
 
     def asdict(self):
         return dict(
@@ -38,6 +39,7 @@ class ProcInfo:
             state=self.state.value,
             return_code=self.return_code,
             launcher_running=self.launcher_running,
+            error_info=self.error_info,
         )
 
     @classmethod
@@ -47,6 +49,7 @@ class ProcInfo:
             state=State(dict_.get("state", State.UNKNOWN)),
             return_code=dict_.get("return_code", 0),
             launcher_running=dict_.get("launcher_running", False),
+            error_info=dict_.get("error_info", ""),
         )
 
 
@@ -118,9 +121,17 @@ def set_ask(proc_name, ask):
     _CFG.mergepatch({"procs": {proc_name: {"ask": ask.value}}})
 
 
-def set_state(proc_name, state, return_code=0):
+def set_state(proc_name, state, return_code=0, error_info=""):
     _CFG.mergepatch(
-        {"procs": {proc_name: {"state": state.value, "return_code": return_code}}}
+        {
+            "procs": {
+                proc_name: {
+                    "state": state.value,
+                    "return_code": return_code,
+                    "error_info": error_info,
+                }
+            }
+        }
     )
 
 

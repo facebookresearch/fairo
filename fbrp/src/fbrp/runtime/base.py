@@ -2,9 +2,9 @@ import asyncio
 from fbrp import life_cycle
 from fbrp.process import ProcDef
 import a0
-import argparse
 import asyncio
 import contextlib
+import pathlib
 import psutil
 import json
 
@@ -13,7 +13,7 @@ class BaseLauncher:
     def __init__(self):
         pass
 
-    async def run(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
+    async def run(self, name: str, proc_def: ProcDef):
         raise NotImplementedError("Launcher hasn't implemented run!")
 
     def get_pid(self):
@@ -56,10 +56,11 @@ class BaseRuntime:
     def __init__(self):
         pass
 
-    def _build(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
+    def asdict(self, root: pathlib.Path):
+        raise NotImplementedError("Runtime hasn't implemented asdict!")
+
+    def _build(self, name: str, proc_def: ProcDef):
         raise NotImplementedError("Runtime hasn't implemented build!")
 
-    def _launcher(
-        self, name: str, proc_def: ProcDef, args: argparse.Namespace
-    ) -> BaseLauncher:
+    def _launcher(self, name: str, proc_def: ProcDef) -> BaseLauncher:
         raise NotImplementedError("Runtime hasn't implemented a launcher!")

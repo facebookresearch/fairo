@@ -1,21 +1,14 @@
 from fbrp import life_cycle
-from fbrp import registrar
-import argparse
+import click
 
 
-@registrar.register_command("down")
-class down_cmd:
-    @classmethod
-    def define_argparse(cls, parser: argparse.ArgumentParser):
-        parser.add_argument("proc", action="append", nargs="*")
+@click.command()
+@click.argument("procs", nargs=-1)
+def cli(procs):
+    down_procs = life_cycle.system_state().procs.keys()
 
-    @staticmethod
-    def exec(args: argparse.Namespace):
-        procs = life_cycle.system_state().procs.keys()
+    if procs:
+        down_procs = set(down_procs) & set(procs)
 
-        given_proc_names = args.proc[0]
-        if given_proc_names:
-            procs = set(procs) & set(given_proc_names)
-
-        for proc_name in procs:
-            life_cycle.set_ask(proc_name, life_cycle.Ask.DOWN)
+    for proc in down_procs:
+        life_cycle.set_ask(proc, life_cycle.Ask.DOWN)
