@@ -1,7 +1,7 @@
 #@package _global_
 mephisto:
   blueprint:
-    data_csv: ${task_dir}/1644558886data.csv
+    data_csv: ${task_dir}/1644900217data.csv
     extra_source_dir: ${task_dir}/server_files/extra_refs
     preview_source: ${task_dir}/server_files/vision_annotation_task_preview.html
     task_source: ${task_dir}/server_files/vision_annotation_task.html
@@ -9,7 +9,7 @@ mephisto:
   task:
     assignment_duration_in_seconds: 600
     task_description: Mark the blocks that make up a shape
-    task_name: ca-vis-anno20220210133907
+    task_name: ca-vis-anno20220214113405
     task_reward: 1.0
     task_tags: 3D, annotate, shapes
     task_title: Mark images in 3D
