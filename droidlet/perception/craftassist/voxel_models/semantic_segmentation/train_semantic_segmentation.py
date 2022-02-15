@@ -9,7 +9,7 @@ from data_loaders import SemSegData
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import semseg_models as models
+import vision as models
 
 
 ##################################################
@@ -51,7 +51,8 @@ def semseg_output(S, n, data):
 
 
 def validate(model, DL, loss, optimizer, args):
-    model.train()
+    prob_threshold = args.prob_threshold
+    model.eval()
     losses = []
     correct_num = 0
     total_num = 0
@@ -61,15 +62,19 @@ def validate(model, DL, loss, optimizer, args):
     for b in DL:
         x = b[0]
         y = b[1]
+        c = b[2]
+        t = b[3]
         if args.cuda:
             x = x.cuda()
             y = y.cuda()
-        yhat = model(x)
+            c = c.cuda()
+            t = t.cuda()
+        yhat = model(x, t)
         ##### calculate acc
-        non_zero_idx = (y != 0)
+        non_zero_idx = (c != 0)
         non_zero_total += torch.sum(non_zero_idx)
 
-        pred = torch.argmax(yhat, dim=1)
+        pred = yhat > prob_threshold
         correct_num += torch.sum(pred == y)
         non_zero_correct += torch.sum((pred == y) * non_zero_idx)
         total_num += torch.numel(y)
@@ -77,7 +82,8 @@ def validate(model, DL, loss, optimizer, args):
         # loss is expected to not reduce
         preloss = loss(yhat, y)
         mask = torch.zeros_like(y).float()
-        u = x.float() + x.float().uniform_(0, 1)
+        y_clone = y.clone().detach()
+        u = y_clone.float() + y_clone.float().uniform_(0, 1)
         idx = u.view(-1).gt((1 - args.sample_empty_prob)).nonzero().squeeze()
         mask.view(-1)[idx] = 1
         M = float(idx.size(0))
@@ -90,6 +96,7 @@ def validate(model, DL, loss, optimizer, args):
 
 
 def train_epoch(model, DL, loss, optimizer, args):
+    prob_threshold = args.prob_threshold
     model.train()
     losses = []
     correct_num = 0
@@ -99,24 +106,31 @@ def train_epoch(model, DL, loss, optimizer, args):
     for b in DL:
         x = b[0]
         y = b[1]
+        c = b[2]
+        t = b[3]
         if args.cuda:
             x = x.cuda()
             y = y.cuda()
+            c = c.cuda()
+            t = t.cuda()
         model.train()
-        yhat = model(x)
+        yhat = model(x, t)
+
         ##### calculate acc
-        non_zero_idx = (y != 0)
+        non_zero_idx = (c != 0)
         non_zero_total += torch.sum(non_zero_idx)
 
-        pred = torch.argmax(yhat, dim=1)
+        pred = yhat > prob_threshold
         correct_num += torch.sum(pred == y)
         non_zero_correct += torch.sum((pred == y) * non_zero_idx)
         total_num += torch.numel(y)
         #####
+
         # loss is expected to not reduce
         preloss = loss(yhat, y)
         mask = torch.zeros_like(y).float()
-        u = x.float() + x.float().uniform_(0, 1)
+        y_clone = y.clone().detach()
+        u = y_clone.float() + y_clone.float().uniform_(0, 1)
         idx = u.view(-1).gt((1 - args.sample_empty_prob)).nonzero().squeeze()
         mask.view(-1)[idx] = 1
         M = float(idx.size(0))
@@ -126,6 +140,7 @@ def train_epoch(model, DL, loss, optimizer, args):
         losses.append(l.item())
         l.backward()
         optimizer.step()
+        print(f"non zero total: {non_zero_total}, total: {total_num}")
     print(f"[Train] Accuracy: {correct_num / total_num}, non empty acc: {non_zero_correct / non_zero_total}")
     return losses
 
@@ -159,6 +174,18 @@ if __name__ == "__main__":
         default=0.0001,
         help="prob of taking gradients on empty locations",
     )
+    parser.add_argument(
+        "--prob_threshold",
+        type=float,
+        default=0.5,
+        help="prob threshold of being considered positive",
+    )
+    parser.add_argument(
+        "--no_target_prob",
+        type=float,
+        default=0.2,
+        help="prob of no target object in the scene",
+    )
     parser.add_argument("--ndonkeys", type=int, default=4, help="workers in dataloader")
     args = parser.parse_args()
 
@@ -171,9 +198,9 @@ if __name__ == "__main__":
     if args.debug > 0 and len(aug) > 0:
         print("warning debug and augmentation together?")
 
-    train_data = SemSegData(args.data_dir + "training_data.pkl", nexamples=args.debug, augment=aug)
+    train_data = SemSegData(args.data_dir + "training_data.pkl", nexamples=args.debug, augment=aug, no_target_prob=args.no_target_prob)
     train_classes = train_data.get_classes()
-    valid_data = SemSegData(args.data_dir + "validation_data.pkl", nexamples=args.debug, augment=aug, classes=train_classes)
+    valid_data = SemSegData(args.data_dir + "validation_data.pkl", nexamples=args.debug, augment=aug, classes=train_classes, no_target_prob=args.no_target_prob)
 
     shuffle = True
     if args.debug > 0:
@@ -208,25 +235,26 @@ if __name__ == "__main__":
     if args.load_model != "":
         args.load = True
     model = models.SemSegNet(args, classes=train_data.classes)
-    nll = nn.NLLLoss(reduction="none")
+    # nll = nn.NLLLoss(reduction="none")
+    bceloss = nn.BCELoss(reduction='none')
 
     if args.cuda:
         model.cuda()
-        nll.cuda()
+        bceloss.cuda()
 
     optimizer = optim.Adagrad(model.parameters(), lr=args.lr)
 
     if args.eval:
-        validate(model, rDL, nll, optimizer, args)
+        validate(model, rDL, bceloss, optimizer, args)
         print("[Valid] loss: {}\n".format(sum(losses) / len(losses)))
         exit()
 
     print("training")
     for m in range(args.num_epochs):
         print(f"========== Epoch {m} =============")
-        losses = train_epoch(model, rDL, nll, optimizer, args)
+        losses = train_epoch(model, rDL, bceloss, optimizer, args)
         print("[Train] loss: {}\n".format(sum(losses) / len(losses)))
-        losses = validate(model, vDL, nll, optimizer, args)
+        losses = validate(model, vDL, bceloss, optimizer, args)
         print("[Valid] loss: {}\n".format(sum(losses) / len(losses)))
         if args.save_model != "":
             model.save(args.save_model)

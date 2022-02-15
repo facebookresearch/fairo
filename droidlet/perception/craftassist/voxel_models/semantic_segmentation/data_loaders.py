@@ -4,9 +4,18 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import pickle
 import numpy as np
+import random
 import torch
 from torch.utils import data as tds
 from copy import deepcopy
+
+from droidlet.lowlevel.minecraft.shape_util import (
+    SHAPE_NAMES,
+    SHAPE_FNS,
+    SHAPE_OPTION_FUNCTION_MAP,
+)
+
+from transformers import DistilBertTokenizer, DistilBertModel
 
 
 def underdirt(schematic, labels=None, max_shift=0, nothing_id=0):
@@ -110,7 +119,7 @@ def make_example_from_raw(schematic, labels=None, augment={}, nothing_id=0, sl=3
     """Preprocess raw data and make good examples out of it"""
     max_shift = augment.get("max_shift", 0)
     s, l, o = fit_in_sidelength(
-        schematic, labels=labels, nothing_id=nothing_id, max_shift=max_shift
+        schematic, labels=labels, nothing_id=nothing_id, max_shift=max_shift, sl=sl
     )
     if len(augment) > 0:
         if augment.get("flip_rotate", False):
@@ -174,11 +183,12 @@ class SemSegData(tds.Dataset):
         self,
         data_path,
         nexamples=-1,
-        sidelength=32,
+        sidelength=17,
         classes=None,
         augment={},
         min_class_occurence=1,
         useid=True,
+        no_target_prob=0.2
     ):
         self.sidelength = sidelength
         self.useid = useid
@@ -186,6 +196,9 @@ class SemSegData(tds.Dataset):
         self.inst_data = pickle.load(open(data_path, "rb"))
         self.nexamples = nexamples
         self.augment = augment
+
+        self.tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+        self.model = DistilBertModel.from_pretrained('distilbert-base-uncased', return_dict=True)
         if self.nexamples < 0:
             self.nexamples = len(self.inst_data)
         else:
@@ -229,10 +242,32 @@ class SemSegData(tds.Dataset):
 
     def __getitem__(self, index):
         x = self.inst_data[index]
-        s, l, _ = make_example_from_raw(
+        text = x[2][1] # FIXME always
+        with torch.no_grad():
+            text_inputs = self.tokenizer(text, return_tensors="pt")
+            text_outputs = self.model(**text_inputs)
+            last_hidden_state = text_outputs.last_hidden_state
+            text_embed = torch.squeeze(torch.sum(last_hidden_state, 1))
+        s, c, _ = make_example_from_raw(
             x[0], labels=x[1], nothing_id=self.nothing_id, sl=self.sidelength, augment=self.augment
         )
-        return s, l
+
+        def pick_no_target_shape(all_shapes, shapes):
+            # pick a shape from all_shapes that is not in shapes
+            for shape in random.shuffle(all_shapes):
+                if shape not in shapes:
+                    return shape
+            
+            return None
+
+        # Choose another shape that is not in the scene based on probability
+        if random.random() < self.no_target_prob:
+            new_text =  pick_no_target_shape
+            text = new_text if new_text else text
+
+        l = (c == self.classes["name2idx"][text]).to(torch.float)
+
+        return s, l, c, text_embed
 
     def __len__(self):
         return self.nexamples
