@@ -1,0 +1,2 @@
+class CommonFlags:
+    verbose = False
