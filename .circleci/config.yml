@@ -354,7 +354,7 @@ jobs:
             - "6b:61:ef:6e:de:62:db:11:5e:f0:90:39:02:49:63:73"
       - run:
           name: Publish docs to gh-pages branch
-          command: gh-pages --dotfiles --message "[skip ci] Updates" --dist docs/
+          command: CACHE_DIR=~/cache gh-pages --dotfiles --message "[skip ci] Updates" --dist docs/
 
 workflows:
   build:
