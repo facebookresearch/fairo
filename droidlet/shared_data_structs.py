@@ -116,6 +116,7 @@ class MockOpt:
         self.nsp_data_dir = ""
         self.ground_truth_data_dir = ""
         self.semseg_model_path = ""
+        self.detection_model_path = ""
         self.no_ground_truth = True
         self.mark_airtouching_blocks = False
         # test does not instantiate cpp client
