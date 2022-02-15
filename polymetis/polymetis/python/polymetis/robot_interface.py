@@ -393,9 +393,14 @@ class RobotInterface(BaseRobotInterface):
         if delta:
             joint_pos_desired += joint_pos_current
 
+        time_to_go_adaptive = self._adaptive_time_to_go(
+            joint_pos_desired - joint_pos_current
+        )
         if time_to_go is None:
-            time_to_go = self._adaptive_time_to_go(
-                joint_pos_desired - joint_pos_current
+            time_to_go = time_to_go_adaptive
+        elif time_to_go < time_to_go_adaptive:
+            log.warn(
+                "The specified 'time_to_go' might not be large enough to ensure accurate movement."
             )
 
         # Plan trajectory
@@ -478,14 +483,20 @@ class RobotInterface(BaseRobotInterface):
         ee_pose_desired = T.from_rot_xyz(
             rotation=R.from_quat(ee_quat_desired), translation=ee_pos_desired
         )
-        if time_to_go is None:
-            # Roughly estimate joint diff by linearizing around current joint pose
-            joint_pos_current = self.get_joint_positions()
-            jacobian = self.robot_model.compute_jacobian(joint_pos_current)
+        # Roughly estimate joint diff by linearizing around current joint pose
+        joint_pos_current = self.get_joint_positions()
+        jacobian = self.robot_model.compute_jacobian(joint_pos_current)
 
-            ee_pose_diff = ee_pose_desired * ee_pose_current.inv()
-            joint_pos_diff = torch.linalg.pinv(jacobian) @ ee_pose_diff.as_twist()
-            time_to_go = self._adaptive_time_to_go(joint_pos_diff)
+        ee_pose_diff = ee_pose_desired * ee_pose_current.inv()
+        joint_pos_diff = torch.linalg.pinv(jacobian) @ ee_pose_diff.as_twist()
+        time_to_go_adaptive = self._adaptive_time_to_go(joint_pos_diff)
+
+        if time_to_go is None:
+            time_to_go = time_to_go_adaptive
+        elif time_to_go < time_to_go_adaptive:
+            log.warn(
+                "The specified 'time_to_go' might not be large enough to ensure accurate movement."
+            )
 
         # Plan trajectory
         waypoints = toco.planning.generate_cartesian_space_min_jerk(
