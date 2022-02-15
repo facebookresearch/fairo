@@ -45,6 +45,7 @@ from droidlet.lowlevel.minecraft.mc_util import (
 from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import (
     SubcomponentClassifierWrapper,
 )
+from droidlet.perception.craftassist.detection_model_perception import DetectionWrapper
 from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
     COLOR_BID_MAP,
@@ -224,6 +225,14 @@ class CraftAssistAgent(DroidletAgent):
             self.perception_modules["semseg"] = SubcomponentClassifierWrapper(
                 self, self.opts.semseg_model_path, low_level_data=self.low_level_data
             )
+        # set up the detection model
+        # TODO: @kavya to check that this gets passed in when running the agent
+        # TODO: fetch text_span here ?
+        if os.path.isfile(self.opts.detection_model_path):
+            self.perception_modules["detection_model"] = DetectionWrapper(agent=self,
+                                                                          model_path=self.opts.detection_model_path,
+                                                                          text_span=text_span
+                                                                          ) # <Initialize the detection model>
 
     def init_controller(self):
         """Initialize all controllers"""
@@ -275,6 +284,14 @@ class CraftAssistAgent(DroidletAgent):
             sem_seg_perception_output = self.perception_modules["semseg"].perceive()
             self.memory.update(sem_seg_perception_output)
         self.areas_to_perceive = []
+        # 5. If detection model is initialized and text_span exists in logical form, call perceive()
+        # TODO: Add a check for checking whether "text_span" exists in logical form
+        # TODO: fetch text_span from logical form
+        text_span_from_lf = None
+        if "detection_model" in self.perception_modules:
+            detection_model_output = self.perception_modules["detection_model"].perceive(text_form=text_span_from_lf)
+            self.memory.update(detection_model_output)
+
         self.update_dashboard_world()
 
     def get_time(self):
