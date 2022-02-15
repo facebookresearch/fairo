@@ -40,8 +40,11 @@ class HungarianMatcher(nn.Module):
         return indices
 
     def _get_cost_matrix(self, out, tgt):
+        # print(f'DETRdebug out: {out}')
+        # print(f'DETRdebug tgt: {tgt}')
         out_prob, out_bbox = out["pred_scores"], out["pred_boxes"]
         tgt_ids, tgt_bbox = tgt["labels"], tgt["boxes"]
+        
         cost_class = -out_prob[:, tgt_ids]
         cost_bbox = torch.cdist(out_bbox, tgt_bbox, p=1)
         cost_giou = -generalized_box_iou(

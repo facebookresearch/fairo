@@ -69,7 +69,7 @@ def get_args_parser():
     parser.add_argument("--position_embedding", default="v2", type=str, choices=("v1", "v2", "v3"))
     parser.add_argument("--resample_features_to_size", default=-1, type=int)
     parser.add_argument("--eos_coef", default=0.1, type=float)
-    parser.add_argument("--num_queries", default=99, type=int)
+    parser.add_argument("--num_queries", default=3, type=int)
     parser.add_argument("--pre_norm", action="store_true")
     parser.add_argument("--aux_loss", action="store_true")
     parser.add_argument("--pass_pos_and_query", action="store_true")
@@ -152,7 +152,7 @@ def main(args):
 
     dataset_train = build_dataset(image_set="trainval", args=args)
     dataset_val = build_dataset(image_set="test", args=args)
-
+    print(f"DATASET LEN: {len(dataset_train)}")
     if args.distributed:
         sampler_train = DistributedSampler(dataset_train)
         sampler_val = DistributedSampler(dataset_val, shuffle=False)

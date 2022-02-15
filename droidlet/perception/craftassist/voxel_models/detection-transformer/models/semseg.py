@@ -129,6 +129,7 @@ class SemSegNet(nn.Module):
         #     self._build()
         #     self.classes = classes
         self._build()
+        self.load("/checkpoint/yuxuans/models/sem_seg_4kind_1000_2.pkl")
         self.classes = classes
 
     def _build(self):
@@ -145,7 +146,7 @@ class SemSegNet(nn.Module):
         except:
             num_layers = 4  # 32x32x32 input
         try:
-            hidden_dim = 128
+            hidden_dim = 32#128
         except:
             hidden_dim = 64
 
@@ -227,7 +228,7 @@ class SemSegNet(nn.Module):
         print("loading from file, using opts")
         print(self.opts)
         self._build()
-        self.load_state_dict(sds["state_dict"])
+        self.load_state_dict(sds["state_dict"], strict=False)
         self.zero_grad()
         self.classes = sds["classes"]
 

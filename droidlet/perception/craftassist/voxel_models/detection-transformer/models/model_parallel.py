@@ -34,16 +34,16 @@ class DETR(nn.Module):
         self.aux_loss = aux_loss
 
     def forward(self, samples: NestedTensor):
-        print("... DTER Forwarding ... ")
-        print(samples.tensors.shape)
+        # print("... DTER Forwarding ... ")
+        # print(samples.tensors.shape)
         if not isinstance(samples, NestedTensor):
             samples = NestedTensor.from_tensor_list(samples)
         features, pos = self.backbone(samples)
         src, mask = features[-1].decompose()
         # (6, bs, num_queries, hidden_dim)
         hs = self.transformer(self.input_proj(src), mask, self.query_embed.weight, pos[-1])[0]
-        print("---- hs size ----")
-        print(hs.shape)
+        # print("---- hs size ----")
+        # print(hs.shape)
         outputs_class = self.class_embed(hs)
         outputs_coord = self.bbox_embed(hs).sigmoid()
         out = {"pred_logits": outputs_class[-1], "pred_boxes": outputs_coord[-1]}
@@ -74,6 +74,12 @@ class SetCriterion(nn.Module):
     def loss_labels(self, outputs, targets, indices, num_boxes, log=True):
         assert "pred_logits" in outputs
         src_logits = outputs["pred_logits"]
+        # print(f'======== label targets ===========')
+        # print(len(targets))
+        # print(targets)
+        # print(f'======== label outputs ===========')
+        # print(outputs)
+        # print(f'pred logits size: {src_logits.size()}')
 
         # class loss
         target_classes_o = [t["labels"][J] for t, (_, J) in zip(targets, indices)]
@@ -84,6 +90,8 @@ class SetCriterion(nn.Module):
         for k, (I, _) in enumerate(indices):
             target_classes[k][I] = target_classes_o[k]
 
+        print(f"======== src logits: {src_logits.size()} =============")
+        print(f"======== tgt class: {target_classes.size()} ============")
         loss_ce = F.cross_entropy(
             src_logits.flatten(0, 1), target_classes.flatten(0, 1), self.empty_weight
         )
@@ -119,6 +127,10 @@ class SetCriterion(nn.Module):
         assert "pred_boxes" in outputs
         # print('------ outputs ---------')
         # print(outputs['pred_logits'].shape)
+        # print(f'------ box outputs --------')
+        # print(outputs["pred_boxes"][0])
+        # print(f'------- box targets --------')
+        # print(targets[0]["boxes"])
         idx = self._get_src_permutation_idx(indices)
         src_boxes = outputs["pred_boxes"][idx]
         target_boxes = torch.cat([t["boxes"][i] for t, (_, i) in zip(targets, indices)], dim=0)
@@ -288,6 +300,9 @@ def build(args):
         num_classes = 1235
     if args.dataset_file == "coco_panoptic":
         num_classes = 250  # TODO: what is correct number? would be nice to refactor this anyways
+    if args.dataset_file == "house":
+        num_classes = 5
+        print(f"===== house dataset, class num: {num_classes} =======")
     device = torch.device(args.device)
 
     assert not args.masks or args.mask_model != "none"

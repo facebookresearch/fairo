@@ -138,6 +138,7 @@ class SemSegBackBone(nn.Module):
     def __init__(self):
         super().__init__()
         self.backbone = SemSegNet()
+        print(f"using SEMSEG Net")
 
     def forward(self, tensor_list):
         xs = self.backbone(tensor_list.tensors.long())
@@ -183,5 +184,5 @@ def build_backbone(args):
         backbone = Backbone(args.backbone, train_backbone, return_interm_layers, args.dilation)
     model = Joiner(backbone, position_embedding)
     # 128 for semseg net, should pass arg here instead of hard coding
-    model.num_channels = 128  # backbone.num_channels
+    model.num_channels = 32  # backbone.num_channels
     return model

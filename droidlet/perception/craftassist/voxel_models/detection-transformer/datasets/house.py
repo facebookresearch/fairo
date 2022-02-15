@@ -349,7 +349,7 @@ class SemSegHouseData(tds.Dataset):
 
 def build(image_set, args):
     # data_path = "/checkpoint/aszlam/minecraft/segmentation_data/training_data.pkl" # Path to data
-    data_path = "/checkpoint/yuxuans/datasets/inst_seg/shapes_5000.pkl"
+    data_path = "/checkpoint/yuxuans/datasets/inst_seg/shapes_4kind_1000/training_data.pkl"
     nexamples = -1
     min_class_occurence = 1
 
@@ -358,6 +358,6 @@ def build(image_set, args):
 
 
 if __name__ == "__main__":
-    nexamples = 100
+    nexamples = -1#100
     shape_dataset = SemSegShapeData(nexamples=nexamples)
     print(shape_dataset)

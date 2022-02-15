@@ -36,8 +36,10 @@ def train_one_epoch(
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
         outputs = model(samples)
-        print("------ outputs 1---------")
-        print(outputs["pred_masks"].shape)
+        # print("------ outputs 1---------")
+        # print(outputs.keys())
+        # print(outputs["pred_logits"].shape)
+        # print(targets)
         loss_dict = criterion(outputs, targets)
         weight_dict = criterion.weight_dict
         losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
