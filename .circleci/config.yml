@@ -307,6 +307,9 @@ jobs:
       - image: cimg/python:3.8
     steps:
       - checkout
+      - add_ssh_keys:  # read & write access for bot
+          fingerprints:
+            - "6b:61:ef:6e:de:62:db:11:5e:f0:90:39:02:49:63:73"
       - run:
           name: Run black formatting
           command: |
@@ -351,7 +354,7 @@ jobs:
             sudo npm install -g gh-pages
             git config user.email "doc-push@fb.com"
             git config user.name "doc-push"
-      - add_ssh_keys:
+      - add_ssh_keys:  # read & write access for bot
           fingerprints:
             - "6b:61:ef:6e:de:62:db:11:5e:f0:90:39:02:49:63:73"
       - run:
