@@ -46,7 +46,7 @@ class DroidletAgent(BaseAgent):
         self.last_chat_time = 0
         self.last_task_memid = None
         self.dashboard_chat = None
-        self.agent.perceive_on_chat = False
+        self.perceive_on_chat = False
         self.areas_to_perceive = []
         self.agent_type = None
         self.scheduler = EmptyScheduler()
