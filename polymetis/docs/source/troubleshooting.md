@@ -48,16 +48,8 @@ The average should be well below 0.5 milliseconds in order to run on Franka hard
 
 ## Inaccurate tracking performance
 
-### End-effector configuration - Desk
+### End-effector configuration
 
 The gravity compensation onboard the Franka Robot relies on an accurate end-effector configuration within Desk, which can be accessed at Settings > End-Effector: ![Desk End-Effector Page](img/desk_ee_cfg.png)
 Desk provides configurations for the Franka Hand and for when no gripper is attached. 
 If you have a different gripper, or have force torque sensors or adapters installed, then you will need to supply the inertia fields using the end-effector type "Other".
-
-### End-effector configuration - Polymetis
-
-Polymetis also implements inverse dynamics that uses the urdf file supplied, which by default does not have an end-effector attached.
-To update the urdf, launch the server with:
-```bash
-launch_robot.py robot_model.robot_description_path=<path/to/urdf/file>
-```
