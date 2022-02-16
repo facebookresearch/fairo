@@ -16,13 +16,10 @@ class DetectionWrapper:
 
     def __init__(self, agent, model_path):
         self.agent = agent
-        # Note remove the following
-        self.memory = self.agent.memory
         if model_path is not None:
-            logging.info(
-                "Using detection_model_path={}".format(model_path))
+            logging.info("Using detection_model_path={}".format(model_path))
             # TODO: Yuxuan to add detection model wrapper / querier here
-            self.detection_model = None # DetectionModelWrapper(model_path, text_span)
+            self.detection_model = None  # DetectionModelWrapper(model_path, text_span)
         else:
             self.detection_model = None
 

@@ -125,7 +125,6 @@ class CraftAssistAgent(DroidletAgent):
             (0.001, (default_behaviors.build_random_shape, shape_util_dict)),
             (0.005, default_behaviors.come_to_player),
         ]
-        self.perceive_on_chat = True
 
     def get_chats(self):
         """This function is a wrapper around self.mover.get_incoming_chats and adds a new
@@ -249,11 +248,10 @@ class CraftAssistAgent(DroidletAgent):
         # set up the detection model
         # TODO: @kavya to check that this gets passed in when running the agent
         # TODO: fetch text_span here ?
-        if os.path.isfile(self.opts.detection_model_path):
-            self.perception_modules["detection_model"] = DetectionWrapper(agent=self,
-                                                                          model_path=self.opts.detection_model_path,
-                                                                          text_span=text_span
-                                                                          ) # <Initialize the detection model>
+        if self.opts.detection_model_path and os.path.isfile(self.opts.detection_model_path):
+            self.perception_modules["detection_model"] = DetectionWrapper(
+                agent=self, model_path=self.opts.detection_model_path
+            )
 
     def init_controller(self):
         """Initialize all controllers"""
@@ -314,6 +312,24 @@ class CraftAssistAgent(DroidletAgent):
             detection_model_output = self.perception_modules["detection_model"].perceive(text_form=text_span_from_lf)
             self.memory.update(detection_model_output)
         # 6. update dashboard world and map
+            # FIXME . notation for triple walk
+            chat_memids, _ = self.memory.basic_search(
+                "SELECT MEMORIES FROM Chat WHERE has_tag=uninterpreted"
+            )
+            if chat_memids:
+                # should only be one, assert?
+                lf_memids, lfs = self.memory.basic_search(
+                    "SELECT MEMORIES FROM Program WHERE <<{}, has_logical_form, ?>>".format(
+                        chat_memids[0]
+                    )
+                )
+                if lfs:
+                    # should only be one, assert?
+                    textsSpans = self.memory.nodes["Program"].get_refobj_text_spans(lfs[0])
+                    model_out = self.perception_modules["detection_model"].perceive(
+                        text_form=text_span_from_lf
+                    )
+                    self.memory.update(model_out)
         self.update_dashboard_world()
 
         @sio.on("toggle_map")
