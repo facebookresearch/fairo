@@ -158,6 +158,7 @@ class Task(object):
         Returns:
             bool: If the task has finished
         """
+
         if self.finished:
             return self.finished
 

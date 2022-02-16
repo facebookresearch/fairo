@@ -12,7 +12,7 @@ The Task objects themselves are *not* generic across agents; and can be heuristi
 The base Task object is
 
 ```eval_rst
- .. autoclass:: droidlet.interpreter.task.Task
+ .. autoclass:: droidlet.task.task.Task
   :members:    step, add_child_task, interrupt, check_finished
 ```
 
