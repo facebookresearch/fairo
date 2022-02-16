@@ -151,12 +151,6 @@ jobs:
           command: make -C tools/docker build
 
       - run:
-          name: Python style checks (black and awscli)
-          command: |
-            pip3 install $(cat requirements.txt | grep -e black -e awscli)
-            sh ./tools/codetools/check_and_fix_black_failures.sh --ci
-
-      - run:
           name: CraftAssist Python unit tests
           command: |
               docker run --name mc-tests -v $(pwd):/shared -w /fairo --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && /fairo/.circleci/craftassist_tests.sh"
@@ -168,6 +162,7 @@ jobs:
       - run:
           name: Push versioned docker containers
           command: |
+            pip3 install $(cat requirements.txt | grep -e awscli)
             tools/docker/login.sh
             make -C tools/docker push-versioned
       - run:
@@ -308,17 +303,19 @@ jobs:
     steps:
       - checkout
       - polymetis_build_conda_pkg
-  polymetis-formatting:
+  formatting:
     docker:
       - image: cimg/python:3.8
     steps:
       - checkout
+      - add_ssh_keys:  # read & write access for bot
+          fingerprints:
+            - "6b:61:ef:6e:de:62:db:11:5e:f0:90:39:02:49:63:73"
       - run:
           name: Run black formatting
           command: |
-            cd ./polymetis
             pip install black
-            black --check .
+            ./tools/codetools/check_and_fix_black_failures.sh --ci
       - run:
           name: Run clang-format
           command: |
@@ -356,9 +353,9 @@ jobs:
           name: Install gh-pages utility
           command: |
             sudo npm install -g gh-pages
-            git config user.email "doc-push@fb.com"
-            git config user.name "doc-push"
-      - add_ssh_keys:
+            git config user.email "bot@fb.com"
+            git config user.name "bot"
+      - add_ssh_keys:  # read & write access for bot
           fingerprints:
             - "6b:61:ef:6e:de:62:db:11:5e:f0:90:39:02:49:63:73"
       - run:
@@ -374,7 +371,7 @@ workflows:
       - polymetis-local-ubuntu-20
       - polymetis-conda-ubuntu-18
       - polymetis-conda-ubuntu-20
-      - polymetis-formatting
+      - formatting
       - fbrp
       - update-docs:
           requires:

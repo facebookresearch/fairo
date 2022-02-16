@@ -76,10 +76,14 @@ def apply_chunking_to_forward(
         num_chunks = input_tensors[0].shape[chunk_dim] // chunk_size
 
         # chunk input tensor into tuples
-        input_tensors_chunks = tuple(input_tensor.chunk(num_chunks, dim=chunk_dim) for input_tensor in input_tensors)
+        input_tensors_chunks = tuple(
+            input_tensor.chunk(num_chunks, dim=chunk_dim) for input_tensor in input_tensors
+        )
         # apply forward fn to every tuple
-        output_chunks = tuple(forward_fn(*input_tensors_chunk) for input_tensors_chunk in zip(*input_tensors_chunks))
+        output_chunks = tuple(
+            forward_fn(*input_tensors_chunk) for input_tensors_chunk in zip(*input_tensors_chunks)
+        )
         # concatenate output at same dimension
         return torch.cat(output_chunks, dim=chunk_dim)
 
-    return forward_fn(*input_tensors) 
+    return forward_fn(*input_tensors)

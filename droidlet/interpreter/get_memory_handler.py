@@ -144,8 +144,8 @@ class GetMemoryHandler(InterpreterBase):
         # and the interpret reference object failed to find the object
         # so it does not have the proper tag.  this is an unused opportunity to learn...
         # also note if the answer is going to be no, bot will always ask.  maybe should fix this.
-        clarification_query = "SELECT MEMORY FROM Task WHERE reference_object_confirmation=#={}".format(
-            self.memid
+        clarification_query = (
+            "SELECT MEMORY FROM Task WHERE reference_object_confirmation=#={}".format(self.memid)
         )
         _, clarification_task_mems = self.memory.basic_search(clarification_query)
         if len(mems) > 0 and len(clarification_task_mems) == 0:

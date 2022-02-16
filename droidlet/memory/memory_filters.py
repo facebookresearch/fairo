@@ -65,7 +65,7 @@ def get_all_memids_of_node_type(agent_memory, memtype, allow_archives=False):
 def filter_memids_by_nodetype(agent_memory, memids, nodetype):
     """
     filters the list memids by corresponding MemoryNode's nodetype;
-    outputs a (sub) list of memids 
+    outputs a (sub) list of memids
     """
     node_children = agent_memory.node_children[nodetype]
     return [m for m in memids if agent_memory.get_node_from_memid(m) in node_children]
@@ -192,7 +192,7 @@ def search_by_attribute(agent_memory, attribute, value, comparison_symbol, memty
 
     Args:
         agent_memory: an AgentMemory object
-        attribute: a callable that inputs a list of MemoryNodes and 
+        attribute: a callable that inputs a list of MemoryNodes and
             outputs a list of values
         value: the value to match.  if comparison_symbol is <>,
             should be a tuple of (low, high); and if comparison symbol is
@@ -312,7 +312,7 @@ class MemorySearcher:
             return query
 
     def handle_comparator_where_leaf(self, agent_memory, where_clause, memtype):
-        """ 
+        """
         find all records matching a single comparator
         """
         # TODO: if input_left or input_right are subqueries...

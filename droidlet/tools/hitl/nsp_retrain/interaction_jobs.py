@@ -18,7 +18,11 @@ import botocore
 
 from annotation_jobs import AnnotationJob
 from droidlet.tools.hitl.utils.allocate_instances import allocate_instances, free_ecs_instances
-from droidlet.tools.hitl.utils.hitl_utils import generate_batch_id, deregister_dashboard_subdomain, dedup_commands
+from droidlet.tools.hitl.utils.hitl_utils import (
+    generate_batch_id,
+    deregister_dashboard_subdomain,
+    dedup_commands,
+)
 from droidlet.tools.hitl.utils.process_s3_logs import read_s3_bucket, read_turk_logs
 
 from droidlet.tools.hitl.data_generator import DataGenerator
@@ -72,7 +76,9 @@ class InteractionJob(DataGenerator):
 
     """
 
-    def __init__(self, instance_num: int, image_tag: str, task_name: str, timeout: float = -1) -> None:
+    def __init__(
+        self, instance_num: int, image_tag: str, task_name: str, timeout: float = -1
+    ) -> None:
         super(InteractionJob, self).__init__(timeout)
         self._instance_num = instance_num
         self._image_tag = image_tag
@@ -85,7 +91,9 @@ class InteractionJob(DataGenerator):
 
         # allocate AWS ECS instances and register DNS records
         logging.info(f"Allocate AWS ECS instances and register DNS records...")
-        _, instance_ids = allocate_instances(self._instance_num, batch_id, self._image_tag, self._task_name, ECS_INSTANCE_TIMEOUT)
+        _, instance_ids = allocate_instances(
+            self._instance_num, batch_id, self._image_tag, self._task_name, ECS_INSTANCE_TIMEOUT
+        )
         self.instance_ids = instance_ids
 
         # run Mephisto to spin up & monitor turk jobs

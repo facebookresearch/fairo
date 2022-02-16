@@ -58,7 +58,7 @@ class DetectedObjectNode(ReferenceObjectNode):
             bounds[4],
             bounds[5],
             pickle.dumps(detected_obj.bbox),
-            pickle.dumps(detected_obj.mask)
+            pickle.dumps(detected_obj.mask),
         )
 
         cls.safe_tag(detected_obj, memory, memid, "has_name", "label")
@@ -135,7 +135,8 @@ class DetectedObjectNode(ReferenceObjectNode):
         # Get DetectedObjectFeatures
         feature_blob, minx, miny, minz, maxx, maxy, maxz, bbox, mask = memory._db_read(
             "SELECT featureBlob, minx, miny, minz, maxx, maxy, maxz, bbox, mask \
-                FROM DetectedObjectFeatures WHERE uuid=?", node[0]
+                FROM DetectedObjectFeatures WHERE uuid=?",
+            node[0],
         )[0]
         feature_repr = pickle.loads(feature_blob)
         bbox = pickle.loads(bbox)
@@ -163,7 +164,8 @@ class DetectedObjectNode(ReferenceObjectNode):
 
     def get_bounds(self):
         minx, miny, minz, maxx, maxy, maxz = self.agent_memory._db_read_one(
-            "SELECT minx, miny, minz, maxx, maxy, maxz FROM DetectedObjectFeatures WHERE uuid=?", self.memid
+            "SELECT minx, miny, minz, maxx, maxy, maxz FROM DetectedObjectFeatures WHERE uuid=?",
+            self.memid,
         )
         return (minx, miny, minz, maxx, maxy, maxz)
 
