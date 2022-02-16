@@ -348,8 +348,8 @@ class DroidletAgent(BaseAgent):
         self.memory.tag(subj_memid=chat_memid, tag_text="uninterpreted")
 
         # Fetch text span of reference object from logical form
-        reference_object_spans = ProgramNode.get_refobj_text_spans(lf=chat_parse)
-
+        reference_object_spans = self.memory.nodes["Program"].get_refobj_text_spans(lf=post_processed_parse)
+        
         return logical_form_memid, chat_memid, reference_object_spans
 
     def perceive(self, force=False):
