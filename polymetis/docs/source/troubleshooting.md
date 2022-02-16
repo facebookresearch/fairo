@@ -10,7 +10,7 @@ The robot expects a command from the controller every millisecond. If the robot 
 1. The CPU not being able to compute the controller outputs in time.
 2. The network not being able to transfer the commands in time.
 
-### CPU performance
+### CPU performance (of the NUC)
 
 First, confirm that the system is correctly running a real-time kernel:
 1. The output of `uname -a` should contain the string `PREEMPT_RT`.
@@ -18,7 +18,9 @@ First, confirm that the system is correctly running a real-time kernel:
 
 Then, follow instructions to [disable CPU frequency scaling](https://frankaemika.github.io/docs/troubleshooting.html#disabling-cpu-frequency-scaling).
 
-### Networking
+It is recommended to have a minimum CPU spec of an 8th gen i7 processor to control a Franka robot with Polymetis.
+
+### Networking (between the NUC and the robot)
 
 Run the simple ping test and the `communication_test` as documented in the libfranka docs [here](https://frankaemika.github.io/docs/troubleshooting.html#running-a-libfranka-executable-fails-with-connection-timeout). The `communcation_test` command is installed with Polymetis and should be directly accessible in the command line.
 
