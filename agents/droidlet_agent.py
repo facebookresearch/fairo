@@ -16,6 +16,7 @@ from droidlet.interpreter import InterpreterBase
 from droidlet.memory.save_and_fetch_commands import *
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.perception.semantic_parsing.semantic_parsing_util import postprocess_logical_form
+
 random.seed(0)
 
 DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
@@ -40,7 +41,6 @@ class DroidletAgent(BaseAgent):
         self.last_task_memid = None
         self.dashboard_chat = None
         self.areas_to_perceive = []
-        self.perceive_on_chat = False
         self.agent_type = None
         self.scheduler = EmptyScheduler()
 
@@ -160,7 +160,10 @@ class DroidletAgent(BaseAgent):
                     logical_form = logical_form_mem.logical_form
                 if logical_form:
                     logical_form = postprocess_logical_form(
-                        self.memory, speaker="dashboard", chat=chat, logical_form=logical_form_mem.logical_form
+                        self.memory,
+                        speaker="dashboard",
+                        chat=chat,
+                        logical_form=logical_form_mem.logical_form,
                     )
                     where = "WHERE <<?, attended_while_interpreting, #{}>>".format(
                         logical_form_mem.memid

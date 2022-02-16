@@ -113,7 +113,6 @@ class CraftAssistAgent(DroidletAgent):
             (0.001, (default_behaviors.build_random_shape, shape_util_dict)),
             (0.005, default_behaviors.come_to_player),
         ]
-        self.perceive_on_chat = True
 
     def get_chats(self):
         """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
@@ -220,19 +219,13 @@ class CraftAssistAgent(DroidletAgent):
             low_level_data=self.low_level_data,
             mark_airtouching_blocks=self.mark_airtouching_blocks,
         )
-        # set up the SubComponentClassifier model
-        if os.path.isfile(self.opts.semseg_model_path):
-            self.perception_modules["semseg"] = SubcomponentClassifierWrapper(
-                self, self.opts.semseg_model_path, low_level_data=self.low_level_data
-            )
         # set up the detection model
         # TODO: @kavya to check that this gets passed in when running the agent
         # TODO: fetch text_span here ?
-        if os.path.isfile(self.opts.detection_model_path):
-            self.perception_modules["detection_model"] = DetectionWrapper(agent=self,
-                                                                          model_path=self.opts.detection_model_path,
-                                                                          text_span=text_span
-                                                                          ) # <Initialize the detection model>
+        if self.opts.detection_model_path and os.path.isfile(self.opts.detection_model_path):
+            self.perception_modules["detection_model"] = DetectionWrapper(
+                agent=self, model_path=self.opts.detection_model_path
+            )
 
     def init_controller(self):
         """Initialize all controllers"""
@@ -279,19 +272,29 @@ class CraftAssistAgent(DroidletAgent):
             # perceive from heuristic perception module
             heuristic_perception_output = self.perception_modules["heuristic"].perceive()
             self.memory.update(heuristic_perception_output)
-        # 4. if semantic segmentation model is initialized, call perceive
-        if "semseg" in self.perception_modules:
-            sem_seg_perception_output = self.perception_modules["semseg"].perceive()
-            self.memory.update(sem_seg_perception_output)
-        self.areas_to_perceive = []
-        # 5. If detection model is initialized and text_span exists in logical form, call perceive()
+        # 4. If detection model is initialized and text_span exists in logical form, call perceive()
         # TODO: Add a check for checking whether "text_span" exists in logical form
         # TODO: fetch text_span from logical form
         text_span_from_lf = None
         if "detection_model" in self.perception_modules:
-            detection_model_output = self.perception_modules["detection_model"].perceive(text_form=text_span_from_lf)
-            self.memory.update(detection_model_output)
-
+            # FIXME . notation for triple walk
+            chat_memids, _ = self.memory.basic_search(
+                "SELECT MEMORIES FROM Chat WHERE has_tag=uninterpreted"
+            )
+            if chat_memids:
+                # should only be one, assert?
+                lf_memids, lfs = self.memory.basic_search(
+                    "SELECT MEMORIES FROM Program WHERE <<{}, has_logical_form, ?>>".format(
+                        chat_memids[0]
+                    )
+                )
+                if lfs:
+                    # should only be one, assert?
+                    textsSpans = self.memory.nodes["Program"].get_refobj_text_spans(lfs[0])
+                    model_out = self.perception_modules["detection_model"].perceive(
+                        text_form=text_span_from_lf
+                    )
+                    self.memory.update(model_out)
         self.update_dashboard_world()
 
     def get_time(self):
