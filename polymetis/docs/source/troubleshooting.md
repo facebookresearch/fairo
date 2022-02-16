@@ -31,7 +31,7 @@ launch_robot.py robot_client=franka_hardware robot_client.executable_cfg.mock=tr
 
 Then download and run [`scripts/benchmark_pd_control.py`](https://github.com/facebookresearch/fairo/tree/main/polymetis/scripts/benchmark_pd_control.py) to measure statistics of the control loop time. 
 Example output:
-```
+```txt
 Control loop latency stats in milliseconds (avg / std / max / min):
 Joint PD: 0.2243/ 0.0932 / 4.1315 / 0.1522
 Cartesian PD: 0.3051/ 0.1358 / 5.9305 / 0.1383
@@ -41,11 +41,16 @@ The average should be well below 0.5 milliseconds in order to run on an actual r
 
 ## Inaccurate tracking performance
 
-Joint PD
-EE PD
+### End-effector configuration - Desk
 
-### End-effector configuration
-Update Desk and Polymetis URDF with the correct end-effector
+The gravity compensation onboard the Franka Robot relies on an accurate end-effector configuration within Desk, which can be accessed at Settings > End-Effector: ![Desk End-Effector Page](img/desk_ee_cfg.png)
+Desk provides configurations for the Franka Hand and for when no gripper is attached. 
+If you have a different gripper, or have force torque sensors or adapters installed, then you will need to supply the inertia fields using the end-effector type "Other".
 
-### Controller parameters
-Tune gains
+### End-effector configuration - Polymetis
+
+Polymetis also implements inverse dynamics that uses the urdf file supplied, which by default does not have an end-effector attached.
+To update the urdf, launch the server with:
+```bash
+launch_robot.py robot_model.robot_description_path=<path/to/urdf/file>
+```
