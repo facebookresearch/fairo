@@ -360,7 +360,11 @@ class DroidletAgent(BaseAgent):
         self.memory.nodes[TripleNode.NODE_TYPE].tag(
             self.memory, subj_memid=chat_memid, tag_text="uninterpreted"
         )
-        return logical_form_memid, chat_memid
+
+        # Fetch text span of reference object from logical form
+        reference_object_span = ProgramNode.get_refobj_text_spans(lf=chat_parse)
+
+        return logical_form_memid, chat_memid, reference_object_span
 
     def perceive(self, force=False):
         start_time = datetime.datetime.now()
@@ -380,7 +384,7 @@ class DroidletAgent(BaseAgent):
         ) = nlu_perceive_output
         if received_chats_flag:
             # put results from semantic parsing model into memory, if necessary
-            self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)
+            _, _, reference_object_span = self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)
 
             # Send data to the dashboard timeline
             end_time = datetime.datetime.now()
