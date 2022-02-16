@@ -379,6 +379,6 @@ workflows:
       - update-docs:
           requires:
             - polymetis-local-ubuntu-20
-          # filters:
-          #   branches:
-          #     only: main
+          filters:
+            branches:
+              only: main
