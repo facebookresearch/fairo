@@ -1,7 +1,7 @@
 /*
    Copyright (c) Facebook, Inc. and its affiliates.
 
- * Message.js implements ASR, send the chat message, switch to the fail or back to settings view
+ * InteractApp.js implements ASR, send the chat message, switch to the fail or back to settings view
  */
 
 import React, { Component } from "react";
@@ -184,7 +184,10 @@ class InteractApp extends Component {
 
   goToQuestionWindow() {
     // Send a message to the parent iframe for analytics logging
-    window.parent.postMessage(JSON.stringify({ msg: "goToQuestionWindow" }), "*");
+    window.parent.postMessage(
+      JSON.stringify({ msg: "goToQuestionWindow" }),
+      "*"
+    );
     // Don't proliferate sio listeners
     this.props.stateManager.socket.off(
       "setLastChatActionDict",
