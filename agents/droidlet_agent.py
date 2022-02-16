@@ -14,6 +14,7 @@ from agents.scheduler import EmptyScheduler
 from droidlet.event import sio, dispatch
 from droidlet.interpreter import InterpreterBase
 from droidlet.memory.save_and_fetch_commands import *
+from droidlet.memory.memory_nodes import ProgramNode
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.perception.semantic_parsing.semantic_parsing_util import postprocess_logical_form
 
@@ -345,7 +346,11 @@ class DroidletAgent(BaseAgent):
         )
         # New chat, mark as uninterpreted.
         self.memory.tag(subj_memid=chat_memid, tag_text="uninterpreted")
-        return logical_form_memid, chat_memid
+
+        # Fetch text span of reference object from logical form
+        reference_object_span = ProgramNode.get_refobj_text_spans(lf=chat_parse)
+
+        return logical_form_memid, chat_memid, reference_object_span
 
     def perceive(self, force=False):
         start_time = datetime.datetime.now()
@@ -360,7 +365,7 @@ class DroidletAgent(BaseAgent):
         )
         if received_chats_flag:
             # put results from semantic parsing model into memory, if necessary
-            self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)
+            _, _, reference_object_span = self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)
 
             # Send data to the dashboard timeline
             end_time = datetime.datetime.now()
