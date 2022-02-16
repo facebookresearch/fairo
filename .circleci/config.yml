@@ -352,8 +352,8 @@ jobs:
           name: Install gh-pages utility
           command: |
             sudo npm install -g gh-pages
-            git config user.email "doc-push@fb.com"
-            git config user.name "doc-push"
+            git config user.email "bot@fb.com"
+            git config user.name "bot"
       - add_ssh_keys:  # read & write access for bot
           fingerprints:
             - "6b:61:ef:6e:de:62:db:11:5e:f0:90:39:02:49:63:73"
