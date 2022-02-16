@@ -348,9 +348,9 @@ class DroidletAgent(BaseAgent):
         self.memory.tag(subj_memid=chat_memid, tag_text="uninterpreted")
 
         # Fetch text span of reference object from logical form
-        reference_object_span = ProgramNode.get_refobj_text_spans(lf=chat_parse)
+        reference_object_spans = ProgramNode.get_refobj_text_spans(lf=chat_parse)
 
-        return logical_form_memid, chat_memid, reference_object_span
+        return logical_form_memid, chat_memid, reference_object_spans
 
     def perceive(self, force=False):
         start_time = datetime.datetime.now()
@@ -365,7 +365,7 @@ class DroidletAgent(BaseAgent):
         )
         if received_chats_flag:
             # put results from semantic parsing model into memory, if necessary
-            _, _, reference_object_span = self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)
+            _, _, ref_obj_spans = self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)
 
             # Send data to the dashboard timeline
             end_time = datetime.datetime.now()
@@ -381,6 +381,7 @@ class DroidletAgent(BaseAgent):
                 "logical_form": chat_parse,
             }
             dispatch.send("perceive", data=hook_data)
+        return ref_obj_spans
 
     def controller_step(self):
         """Process incoming chats and modify task stack"""

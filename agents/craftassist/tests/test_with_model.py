@@ -41,7 +41,7 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
         )
         if received_chats_flag:
             # put results from semantic parsing model into memory, if necessary
-            _, _, ref_object_span = DroidletAgent.process_language_perception(
+            _, _, ref_object_spans = DroidletAgent.process_language_perception(
                 self.agent, speaker, chat, preprocessed_chat, chat_parse
             )
         self.flush()
@@ -58,7 +58,7 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
         )
         if received_chats_flag:
             # put results from semantic parsing model into memory, if necessary
-            _, _, ref_object_span = DroidletAgent.process_language_perception(
+            _, _, ref_object_spans = DroidletAgent.process_language_perception(
                 self.agent, speaker, chat, preprocessed_chat, chat_parse
             )
         self.flush()
