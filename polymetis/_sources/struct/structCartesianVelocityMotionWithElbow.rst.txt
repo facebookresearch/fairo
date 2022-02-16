@@ -1,0 +1,4 @@
+Struct CartesianVelocityMotionWithElbow
+=======================================
+
+.. doxygenstruct:: CartesianVelocityMotionWithElbow

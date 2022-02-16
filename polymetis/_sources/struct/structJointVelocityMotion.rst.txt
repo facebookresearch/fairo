@@ -1,0 +1,4 @@
+Struct JointVelocityMotion
+==========================
+
+.. doxygenstruct:: JointVelocityMotion

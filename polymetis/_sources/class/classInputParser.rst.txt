@@ -1,0 +1,4 @@
+Class InputParser
+=================
+
+.. doxygenclass:: InputParser

@@ -1,0 +1,4 @@
+Struct CartesianVelocityMotion
+==============================
+
+.. doxygenstruct:: CartesianVelocityMotion

@@ -1,0 +1,4 @@
+Namespace testing
+=================
+
+.. doxygennamespace:: testing

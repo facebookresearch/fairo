@@ -1,0 +1,4 @@
+Struct RobotModelPinocchio
+==========================
+
+.. doxygenstruct:: RobotModelPinocchio

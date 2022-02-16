@@ -1,0 +1,4 @@
+Class FrankaTorqueControlClient
+===============================
+
+.. doxygenclass:: FrankaTorqueControlClient

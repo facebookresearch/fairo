@@ -1,0 +1,4 @@
+Class memstream
+===============
+
+.. doxygenclass:: memstream

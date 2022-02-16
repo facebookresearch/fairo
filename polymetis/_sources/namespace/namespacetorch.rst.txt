@@ -1,0 +1,4 @@
+Namespace torch
+===============
+
+.. doxygennamespace:: torch
