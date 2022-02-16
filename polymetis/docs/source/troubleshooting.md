@@ -4,6 +4,7 @@
 
 Refer to libfranka docs [here](https://frankaemika.github.io/docs/troubleshooting.html#running-a-libfranka-executable-fails-with-connection-timeout).
 
+
 ## Motion stopped due to discontinuities or `communication_constraints_violation`
 
 The robot expects a command from the controller every millisecond. If the robot fails to receive a command packet in time for 20 steps in a row, this error is triggered and the robot stops operation for safety considerations. Common reasons include:
