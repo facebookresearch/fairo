@@ -205,17 +205,18 @@ class ProgramNode(MemoryNode):
         """
         recursively extracts all reference object text spans into a list
         """
-        for k, v in lf.items():
-            if k == "reference_object":
-                text_span = v.get("text_span")
-                if text_span is not None:
-                    ref_obj_spans.append(text_span)
-            else:
-                if type(v) is dict:
-                    refobj_spans.extend(cls.get_refobj_text_spans(v))
-                elif type(v) is list:
-                    for d in v:
+        for logical_form in lf:
+            for k, v in logical_form.items():
+                if k == "reference_object":
+                    text_span = v.get("text_span")
+                    if text_span is not None:
+                        ref_obj_spans.append(text_span)
+                else:
+                    if type(v) is dict:
                         refobj_spans.extend(cls.get_refobj_text_spans(v))
+                    elif type(v) is list:
+                        for d in v:
+                            refobj_spans.extend(cls.get_refobj_text_spans(v))
         return refobj_spans
 
 
