@@ -1,4 +1,3 @@
-import click
 import fbrp
 import os
 import sys
