@@ -32,7 +32,11 @@ To test real-time performance, start a polymetis server connected to a fake Fran
 launch_robot.py robot_client=franka_hardware robot_client.executable_cfg.mock=true
 ```
 
-Then download and run [`scripts/benchmark_pd_control.py`](https://github.com/facebookresearch/fairo/tree/main/polymetis/scripts/benchmark_pd_control.py) to measure statistics of the control loop time. 
+Then run 
+```bash
+benchmark_control_latency.py
+```
+to measure statistics of the control loop time. 
 Example output:
 ```txt
 Control loop latency stats in milliseconds (avg / std / max / min):
