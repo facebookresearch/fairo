@@ -15,7 +15,7 @@ from .data_generator import DataGenerator
 class JobListener:
     """
     This class is an abstraction of a job listener which listen to a certain location,
-    waits for an event/data to occur and perform some actions. Note that the actions 
+    waits for an event/data to occur and perform some actions. Note that the actions
     should be high level operations and should be differentiated from DataGenerator.
     You should always encapsulate the logic into a DataGenerator job and push the job to runner
     if you want to process the listenered data and generate new kinds of data (or none),
@@ -23,7 +23,7 @@ class JobListener:
 
     It maintains details such as start time, timeout value, etc. and is responsible for
     starting the listener process, monitoring the status, ending the listener at the correct
-    time and cleaning up the process properly when terminated.    
+    time and cleaning up the process properly when terminated.
     """
 
     def __init__(self, timeout: float = -1) -> None:
@@ -31,9 +31,7 @@ class JobListener:
         self._started = False
         self._parent_jobs = []
         self.start_time = time.time()
-        self.timeout = (
-            timeout
-        )  # in minutes, -1 if no timeout is set (run indefinitely until killed by runner)
+        self.timeout = timeout  # in minutes, -1 if no timeout is set (run indefinitely until killed by runner)
 
     @abstractmethod
     def run(self) -> None:

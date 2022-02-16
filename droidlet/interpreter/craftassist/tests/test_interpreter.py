@@ -19,11 +19,15 @@ def add_two_cubes(test):
     triples = {"has_name": "cube", "has_shape": "cube"}
     test.cube_right: List[Block] = list(
         test.add_object(
-            xyzbms=droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)), origin=(9, 63, 4), relations=triples
+            xyzbms=droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)),
+            origin=(9, 63, 4),
+            relations=triples,
         ).blocks.items()
     )
     test.cube_left: List[Block] = list(
-        test.add_object(xyzbms=droidlet.lowlevel.minecraft.shapes.cube(), origin=(9, 63, 10), relations=triples).blocks.items()
+        test.add_object(
+            xyzbms=droidlet.lowlevel.minecraft.shapes.cube(), origin=(9, 63, 10), relations=triples
+        ).blocks.items()
     )
     test.set_looking_at(test.cube_right[0][0])
 
@@ -178,7 +182,7 @@ class DigTest(BaseCraftassistTestCase):
         self.assertEqual(len(changes), 9)
         # check that all changes replaced blocks with air:
         assert not any([l[0] for l in list(changes.values())])
-        
+
 
 # doesn't actually check if the bot dances, just if it crashes FIXME!
 # use recorder class from e2e_env
@@ -197,7 +201,9 @@ class ModifyTest(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
         self.cube_right: List[Block] = list(
-            self.add_object(droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)), (9, 63, 4)).blocks.items()
+            self.add_object(
+                droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)), (9, 63, 4)
+            ).blocks.items()
         )
         self.set_looking_at(self.cube_right[0][0])
 
@@ -293,7 +299,9 @@ class MoveBetweenTest(BaseCraftassistTestCase):
                 [loc for loc, idm in self.cube_right],
                 [loc for loc, idm in self.cube_left],
             ],
-            get_locs_from_entity=self.agent.dialogue_manager.low_level_interpreter_data["get_locs_from_entity"]
+            get_locs_from_entity=self.agent.dialogue_manager.low_level_interpreter_data[
+                "get_locs_from_entity"
+            ],
         )
 
 

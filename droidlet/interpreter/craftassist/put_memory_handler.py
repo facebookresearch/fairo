@@ -143,7 +143,7 @@ class PutMemoryHandler(InterpreterBase):
         return
 
     def handle_set(self, agent) -> Tuple[Optional[str], Any]:
-        """ creates a set of memories
+        """creates a set of memories
 
         Returns:
             output_chat: An optional string for when the agent wants to send a chat

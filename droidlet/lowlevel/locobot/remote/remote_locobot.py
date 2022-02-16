@@ -60,6 +60,7 @@ class RemoteLocobot(object):
 
         self._robot = Robot("habitat", common_config=backend_config)
         from habitat_utils import reconfigure_scene
+
         # adds objects to the scene, doing scene-specific configurations
         reconfigure_scene(self, backend_config["scene_path"], self.add_humans)
         from pyrobot.locobot.camera import DepthImgProcessor
@@ -139,7 +140,8 @@ class RemoteLocobot(object):
         if self._done:
             self._done = False
             self._robot.base.go_to_absolute(
-                xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=wait)
+                xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=wait
+            )
             self._done = True
 
     def go_to_relative(
@@ -171,7 +173,7 @@ class RemoteLocobot(object):
             self._done = False
             self._robot.base.go_to_relative(
                 xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=wait
-                )
+            )
             self._done = True
 
     @Pyro4.oneway
@@ -449,19 +451,19 @@ if __name__ == "__main__":
         help="Optional config argument to be passed to the backend."
         "Currently mainly used to pass Habitat environment path",
         type=str,
-        default='/Replica-Dataset/apartment_0/habitat/mesh_semantic.ply',
+        default="/Replica-Dataset/apartment_0/habitat/mesh_semantic.ply",
     )
     parser.add_argument(
-         "--noisy",
+        "--noisy",
         type=bool,
         default=os.getenv("NOISY_HABITAT", "False").lower() in ("true"),
-        help="Set to True to load habitat with rgb, depth and movement noise models"
+        help="Set to True to load habitat with rgb, depth and movement noise models",
     )
     parser.add_argument(
-         "--add_humans",
+        "--add_humans",
         type=bool,
         default=os.getenv("ADD_HUMANS", "True").lower() in ("true"),
-        help="Set to True to load habitat without any humans"
+        help="Set to True to load habitat without any humans",
     )
 
     args = parser.parse_args()

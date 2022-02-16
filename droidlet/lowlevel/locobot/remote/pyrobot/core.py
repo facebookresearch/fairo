@@ -19,6 +19,7 @@ from .utils.util import try_cv2_import
 
 cv2 = try_cv2_import()
 
+
 class Robot:
     """
     This is the main interface class that is composed of
@@ -76,9 +77,7 @@ class Robot:
         for srobot in robot_pool:
             if srobot in robot_name:
                 this_robot = srobot
-                mod = importlib.import_module(
-                    root_node + "cfg." + "{:s}_config".format(srobot)
-                )
+                mod = importlib.import_module(root_node + "cfg." + "{:s}_config".format(srobot))
                 cfg_func = getattr(mod, "get_cfg")
                 if srobot == "locobot" and "lite" in robot_name:
                     self.configs = cfg_func("create")
@@ -105,33 +104,25 @@ class Robot:
             mod = importlib.import_module(root_node + "arm")
             arm_class = getattr(mod, self.configs.ARM.CLASS)
             if self.configs.HAS_COMMON:
-                arm_config[self.configs.COMMON.NAME] = getattr(
-                    self, self.configs.COMMON.NAME
-                )
+                arm_config[self.configs.COMMON.NAME] = getattr(self, self.configs.COMMON.NAME)
             self.arm = arm_class(self.configs, **arm_config)
         if self.configs.HAS_BASE and use_base:
             mod = importlib.import_module(root_node + "base")
             base_class = getattr(mod, self.configs.BASE.CLASS)
             if self.configs.HAS_COMMON:
-                base_config[self.configs.COMMON.NAME] = getattr(
-                    self, self.configs.COMMON.NAME
-                )
+                base_config[self.configs.COMMON.NAME] = getattr(self, self.configs.COMMON.NAME)
             self.base = base_class(self.configs, **base_config)
         if self.configs.HAS_CAMERA and use_camera:
             mod = importlib.import_module(root_node + "camera")
             camera_class = getattr(mod, self.configs.CAMERA.CLASS)
             if self.configs.HAS_COMMON:
-                camera_config[self.configs.COMMON.NAME] = getattr(
-                    self, self.configs.COMMON.NAME
-                )
+                camera_config[self.configs.COMMON.NAME] = getattr(self, self.configs.COMMON.NAME)
             self.camera = camera_class(self.configs, **camera_config)
         if self.configs.HAS_GRIPPER and use_gripper and use_arm:
             mod = importlib.import_module(root_node + "gripper")
             gripper_class = getattr(mod, self.configs.GRIPPER.CLASS)
             if self.configs.HAS_COMMON:
-                gripper_config[self.configs.COMMON.NAME] = getattr(
-                    self, self.configs.COMMON.NAME
-                )
+                gripper_config[self.configs.COMMON.NAME] = getattr(self, self.configs.COMMON.NAME)
             self.gripper = gripper_class(self.configs, **gripper_config)
 
         # sleep some time for tf listeners in subclasses
@@ -152,9 +143,7 @@ class Base(object):
         :type configs: YACS CfgNode
         """
         self.configs = configs
-        self.ctrl_pub = rospy.Publisher(
-            configs.BASE.ROSTOPIC_BASE_COMMAND, Twist, queue_size=1
-        )
+        self.ctrl_pub = rospy.Publisher(configs.BASE.ROSTOPIC_BASE_COMMAND, Twist, queue_size=1)
 
     def stop(self):
         """
@@ -300,9 +289,7 @@ class Camera(object):
         depth_topic = self.configs.CAMERA.ROSTOPIC_CAMERA_DEPTH_STREAM
         self.depth_sub = message_filters.Subscriber(depth_topic, Image)
         img_subs = [self.rgb_sub, self.depth_sub]
-        self.sync = message_filters.ApproximateTimeSynchronizer(
-            img_subs, queue_size=10, slop=0.2
-        )
+        self.sync = message_filters.ApproximateTimeSynchronizer(img_subs, queue_size=10, slop=0.2)
         self.sync.registerCallback(self._sync_callback)
 
     def _sync_callback(self, rgb, depth):
@@ -374,5 +361,3 @@ class Camera(object):
         P = copy.deepcopy(self.camera_P)
         self.camera_info_lock.release()
         return P[:3, :3]
-
-
