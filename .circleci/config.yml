@@ -170,6 +170,15 @@ jobs:
           command: |
             tools/docker/login.sh
             make -C tools/docker push-versioned
+      - run:
+          name: Generate documentation
+          command: |
+            docker run -v $PWD:/shared -w /shared --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && cd droidlet/docs && python3 -m pip install -r requirements.txt && make html"
+            mkdir -p /tmp/workspace/docs/droidlet/
+            cp -r ./droidlet/docs/_build/html/* /tmp/workspace/docs/droidlet/
+      - persist_to_workspace:
+          root: /tmp/workspace/
+          paths: docs/droidlet
 
   locobot:
     machine:

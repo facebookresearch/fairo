@@ -30,11 +30,10 @@ if TaskStack is empty:
      maybe place default behaviors on the stack
 ```
 
-
 ## Dialogue Stack and Manager ##
 The Dialogue Stack holds Dialogue Objects, and steps them.
 ```eval_rst
- .. autoclass:: droidlet.memory.dialogue_stack.DialogueStack
+ .. autoclass:: droidlet.dialogue.dialogue_stack.DialogueStack
   :members: peek, clear, append, step
 ```
 The Dialogue Manager operates the Stack, and chooses whether to place Dialogue objects
