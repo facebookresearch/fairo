@@ -151,12 +151,6 @@ jobs:
           command: make -C tools/docker build
 
       - run:
-          name: Python style checks (black and awscli)
-          command: |
-            pip3 install $(cat requirements.txt | grep -e black -e awscli)
-            sh ./tools/codetools/check_and_fix_black_failures.sh --ci
-
-      - run:
           name: CraftAssist Python unit tests
           command: |
               docker run --name mc-tests -v $(pwd):/shared -w /fairo --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && /fairo/.circleci/craftassist_tests.sh"
@@ -308,7 +302,7 @@ jobs:
     steps:
       - checkout
       - polymetis_build_conda_pkg
-  polymetis-formatting:
+  formatting:
     docker:
       - image: cimg/python:3.8
     steps:
@@ -316,9 +310,8 @@ jobs:
       - run:
           name: Run black formatting
           command: |
-            cd ./polymetis
             pip install black
-            black --check .
+            ./tools/codetools/check_and_fix_black_failures.sh --ci
       - run:
           name: Run clang-format
           command: |
@@ -374,7 +367,7 @@ workflows:
       - polymetis-local-ubuntu-20
       - polymetis-conda-ubuntu-18
       - polymetis-conda-ubuntu-20
-      - polymetis-formatting
+      - formatting
       - fbrp
       - update-docs:
           requires:
