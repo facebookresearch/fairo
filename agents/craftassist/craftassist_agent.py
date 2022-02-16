@@ -111,7 +111,7 @@ class CraftAssistAgent(DroidletAgent):
         # areas must be perceived at each step
         # List of tuple (XYZ, radius), each defines a cube
         self.areas_to_perceive = []
-        self.agent.perceive_on_chat = True
+        self.perceive_on_chat = True
         self.add_self_memory_node()
         self.init_event_handlers()
 
