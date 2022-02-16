@@ -380,6 +380,6 @@ workflows:
           requires:
             - polymetis-local-ubuntu-20
             - minecraft
-          filters:
-            branches:
-              only: main
+          # filters:
+          #   branches:
+          #     only: main
