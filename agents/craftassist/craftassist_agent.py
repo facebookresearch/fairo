@@ -288,7 +288,7 @@ class CraftAssistAgent(DroidletAgent):
         update the memory state.
         """
         # 1. perceive from NLU parser
-        super().perceive()
+        ref_obj_spans = super().perceive()
         # 2. perceive from low_level perception module
         low_level_perception_output = self.perception_modules["low_level"].perceive()
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
@@ -313,6 +313,9 @@ class CraftAssistAgent(DroidletAgent):
             detection_model_output = self.perception_modules["detection_model"].perceive(text_form=text_span_from_lf)
             self.memory.update(detection_model_output)
         # 6. update dashboard world and map
+        # 4. If detection model is initialized and text_span for reference object exists in 
+        # logical form, call perceive().
+        if "detection_model" in self.perception_modules and ref_obj_spans:
             # FIXME . notation for triple walk
             chat_memids, _ = self.memory.basic_search(
                 "SELECT MEMORIES FROM Chat WHERE has_tag=uninterpreted"
@@ -326,9 +329,11 @@ class CraftAssistAgent(DroidletAgent):
                 )
                 if lfs:
                     # should only be one, assert?
-                    textsSpans = self.memory.nodes["Program"].get_refobj_text_spans(lfs[0])
+                    # NOTE: I have commented this for now, returning from super.perceive(), if that 
+                    # design doesn't look okay, we can revert that and use this instead.
+                    # textsSpans = self.memory.nodes["Program"].get_refobj_text_spans(lfs[0])
                     model_out = self.perception_modules["detection_model"].perceive(
-                        text_form=text_span_from_lf
+                        text_form=ref_obj_spans
                     )
                     self.memory.update(model_out)
         self.update_dashboard_world()

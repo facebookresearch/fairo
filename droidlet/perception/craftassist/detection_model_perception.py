@@ -11,7 +11,6 @@ class DetectionWrapper:
     Args:
         agent (LocoMCAgent): reference to the minecraft Agent
         model_path (str): path to the segmentation model
-        text_span (str): Any text span of reference object
     """
 
     def __init__(self, agent, model_path):
@@ -23,7 +22,7 @@ class DetectionWrapper:
         else:
             self.detection_model = None
 
-    def perceive(self, text_span=None):
+    def perceive(self, ref_obj_text_span=None):
         """
         Run the detection classifier and get the resulting voxel predictions
 
@@ -32,11 +31,11 @@ class DetectionWrapper:
             used to detect a specific reference object.
 
         """
-        if text_span is None:
+        if ref_obj_text_span is None:
             return CraftAssistPerceptionData()
         if self.detection_model is None:
             return CraftAssistPerceptionData()
-        voxel_predictions = self.detection_model.parse()
+        voxel_predictions = self.detection_model.parse(ref_obj_text_span)
         if not voxel_predictions:
             return CraftAssistPerceptionData()
         # TODO: write a method to parse through voxels and check if they pass a threshold
