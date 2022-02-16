@@ -30,38 +30,36 @@ if TaskStack is empty:
      maybe place default behaviors on the stack
 ```
 
-## Dialogue Stack and Manager ##
-The Dialogue Stack holds Dialogue Objects, and steps them.
-```eval_rst
- .. autoclass:: droidlet.dialogue.dialogue_stack.DialogueStack
-  :members: peek, clear, append, step
-```
-The Dialogue Manager operates the Stack, and chooses whether to place Dialogue objects
+
+## Dialogue Manager ##
+
+The Dialogue Manager operates the logical forms and places dialogue tasks in the agent's memory.
 ```eval_rst
  .. autoclass:: droidlet.dialog.dialogue_manager.DialogueManager
-  :members: step
+  :members: get_last_m_chats, step
 ```
 ### Semantic Parser ###
 The training of the semantic parsing model is described in detail [here](https://github.com/facebookresearch/fairo/blob/main/droidlet/perception/semantic_parsing/nsp_transformer_model/train_model.py) and the model architecture has been described [here](https://github.com/facebookresearch/fairo/blob/main/droidlet/perception/semantic_parsing/nsp_transformer_model/encoder_decoder.py) and [here](https://github.com/facebookresearch/fairo/blob/main/droidlet/perception/semantic_parsing/nsp_transformer_model/decoder_with_loss.py).
 ; the interface is
 ```eval_rst
- .. autoclass:: droidlet.dialog.ttad.ttad_transformer_model.query_model.NSPBertModel
+ .. autoclass:: droidlet.perception.semantic_parsing.nsp_transformer_model.query_model.NSPBertModel
   :members: parse
 ```
-## Dialogue Objects ##
-The generic Dialogue Object is
-```eval_rst
- .. autoclass:: droidlet.dialog.dialogue_objects.dialogue_object.DialogueObject
-   :members: step, check_finished
+## Dialogue Task ##
+The generic Dialogue Task is a Task
+```eval_rst 
+:ref:`tasks_label`
 ```
-A DialogueObject's main method is .step(),
-Some others:
+
+A Task's main method is .step(),
+Some other dialogue tasks:
 
 ```eval_rst
- .. autoclass:: droidlet.dialog.dialogue_objects.dialogue_object.Say
- .. autoclass:: droidlet.dialog.dialogue_objects.dialogue_object.AwaitResponse
- .. autoclass:: droidlet.dialog.dialogue_objects.dialogue_object.ConfirmTask
- .. autoclass:: droidlet.dialog.dialogue_objects.dialogue_object.ConfirmReferenceObject
+ .. autoclass:: droidlet.dialog.dialogue_task.Say
+ .. autoclass:: droidlet.dialog.dialogue_task.AwaitResponse
+ .. autoclass:: droidlet.dialog.dialogue_task.BotCapabilities
+ .. autoclass:: droidlet.dialog.dialogue_task.ConfirmTask
+ .. autoclass:: droidlet.dialog.dialogue_task.ConfirmReferenceObject
 
 ```
 

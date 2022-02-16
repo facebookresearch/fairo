@@ -76,13 +76,18 @@ class Perception:
 
     def perceive(self, rgb_depth, xyz, previous_objects, force=False):
         """Called by the core event loop for the agent to run all perceptual
+
         models and get the state. It fetches the results of
         SlowPerception if they are ready.
+
         Args:
+
             force (boolean): set to True to force waiting on the SlowPerception models to finish, and execute
                 all perceptual models to execute sequentially (doing that is a good debugging tool)
                 (default: False)
+
         """
+
         if self.slow_vision_ready:
             self.vprocess.put(rgb_depth, xyz)
             self.slow_vision_ready = False
