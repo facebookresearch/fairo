@@ -1,11 +1,10 @@
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, to_block_pos, pos_to_np
 
-
 class SwarmLowLevelMCPerception(LowLevelMCPerception):
     def __init__(self, agent, perceive_freq=5):
         super(SwarmLowLevelMCPerception, self).__init__(agent, perceive_freq)
-
+    
     def perceive(self, force=False):
         """
         minimal perception modules for swarmworker
@@ -18,3 +17,4 @@ class SwarmLowLevelMCPerception(LowLevelMCPerception):
         perception = {}
         perception["agent_pos"] = self.agent.pos
         return perception
+

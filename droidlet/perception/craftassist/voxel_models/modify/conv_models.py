@@ -39,12 +39,7 @@ def model_filename_from_opts(opts, savedir=None, uid=None):
 
 
 def get_colors():
-    ims = pickle.load(
-        open(
-            os.path.join(MC_DIR, "lowlevel/minecraft/minecraft_specs/block_images/block_data"),
-            "rb",
-        )
-    )
+    ims = pickle.load(open(os.path.join(MC_DIR, "lowlevel/minecraft/minecraft_specs/block_images/block_data"), "rb"))
     colors = {}
     for b, I in ims["bid_to_image"].items():
         I = I.reshape(1024, 4)
@@ -117,7 +112,7 @@ def color_hash(x, nbins=3):
     b = x[:, 3] < 0.02
     q[b] = 0
     b = 1 - b.to(dtype=torch.long)
-    return b + q[:, 0] * nbins**2 + q[:, 1] * nbins + q[:, 2]
+    return b + q[:, 0] * nbins ** 2 + q[:, 1] * nbins + q[:, 2]
 
 
 class ConvNLL(nn.Module):
@@ -308,7 +303,7 @@ class SimpleConv(SimpleBase):
             )
 
         if self.opts.color_hash > 0:
-            self.out = nn.Conv3d(hidden_dim, self.opts.color_hash**3 + 1, kernel_size=1)
+            self.out = nn.Conv3d(hidden_dim, self.opts.color_hash ** 3 + 1, kernel_size=1)
         else:
             self.out = nn.Conv3d(hidden_dim, self.embedding_dim, kernel_size=1)
 
@@ -394,7 +389,7 @@ class AE(SimpleBase):
             )
             current_dim = current_dim // 2
         if self.opts.color_hash > 0:
-            self.pre_out = nn.Conv3d(current_dim, self.opts.color_hash**3 + 1, kernel_size=1)
+            self.pre_out = nn.Conv3d(current_dim, self.opts.color_hash ** 3 + 1, kernel_size=1)
         else:
             self.pre_out = nn.Conv3d(current_dim, self.embedding_dim, kernel_size=1)
 
@@ -427,9 +422,9 @@ class ConvGenerator(nn.Module):
         self.layers = nn.ModuleList()
         self.num_layers = opts.num_layers
         self.expected_output_size = opts.expected_output_size
-        self.base_grid = opts.expected_output_size // 2**self.num_layers
+        self.base_grid = opts.expected_output_size // 2 ** self.num_layers
         current_dim = self.hidden_dim
-        self.layers.append(nn.Linear(self.zdim, self.hidden_dim * self.base_grid**3))
+        self.layers.append(nn.Linear(self.zdim, self.hidden_dim * self.base_grid ** 3))
 
         for i in range(self.num_layers):
             self.layers.append(
@@ -489,8 +484,8 @@ class ConvDiscriminator(nn.Module):
             )
             current_dim = hdim
 
-        self.base_grid = opts.expected_input_size // 2**self.num_layers
-        self.pre_out = nn.Linear(current_dim * self.base_grid**3, 1)
+        self.base_grid = opts.expected_input_size // 2 ** self.num_layers
+        self.pre_out = nn.Linear(current_dim * self.base_grid ** 3, 1)
 
     def forward(self, z, c=None):
         for i in range(self.num_layers):

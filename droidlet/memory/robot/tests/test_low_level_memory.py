@@ -31,7 +31,7 @@ class BasicTest(unittest.TestCase):
         self.memory = LocoAgentMemory()
         player_list = [
             Player(20, "xyz", Pos(1, 1, 1), Look(1, 1)),
-            Player(10, "abc", Pos(0, 0, 3), Look(0, 0)),
+            Player(10, "abc", Pos(0, 0, 3), Look(0, 0))
         ]
         # test update_other_players
         self.memory.update_other_players(player_list)
@@ -41,15 +41,15 @@ class BasicTest(unittest.TestCase):
     def test_detected_object_apis(self):
         self.memory = LocoAgentMemory()
         d = DO(
-            eid=33,
-            label="smaug",
-            properties=["red_golden", "dragon", "lonely_mountain"],
-            color="mauve",
-            xyz=[-0.4, -0.08, 0.0],
-            bounds=[0, 0, 0, 0, 0, 0],
-            bbox=[0.1, 0.1, 1.0, 1.0],  # not a real bbox, just mocked
-            mask=[1, 2, 3, 4, 5],  # not a real mask, just mocked
-        )
+                  eid=33,
+                  label="smaug",
+                  properties=["red_golden", "dragon", "lonely_mountain"],
+                  color="mauve",
+                  xyz=[-0.4, -0.08, 0.0],
+                  bounds=[0, 0, 0, 0, 0, 0],
+                  bbox=[0.1, 0.1, 1.0, 1.0], # not a real bbox, just mocked
+                  mask=[1, 2, 3, 4, 5], # not a real mask, just mocked
+            )
 
         detected_object_mem_id = DetectedObjectNode.create(self.memory, d)
         # test get_detected_objects_tagged
@@ -63,13 +63,11 @@ class BasicTest(unittest.TestCase):
 
         def return_num():
             return 10
-
-        self.memory.add_dance(
-            return_num, "generate_num_10_dance", ["generate_num_10", "dance_with_numbers"]
-        )
+        self.memory.add_dance(return_num, "generate_num_10_dance", ["generate_num_10", "dance_with_numbers"])
         assert len(self.memory.get_triples(obj_text="generate_num_10")) == 1
         assert len(self.memory.get_triples(obj_text="dance_with_numbers")) == 1
 
 
 if __name__ == "__main__":
     unittest.main()
+

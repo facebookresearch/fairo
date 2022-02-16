@@ -30,7 +30,7 @@ def check_run_status(run_id: int, qual_name: str) -> None:
     for unit in units:
         if unit.db_status == "completed":
             completed_num += 1
-            completed_units.append(unit)
+            completed_units .append(unit)
         elif unit.db_status == "launched":
             launched_num += 1
         elif unit.db_status == "assigned":
@@ -58,10 +58,8 @@ def check_run_status(run_id: int, qual_name: str) -> None:
     turkers_with_mturk_qual_cnt = 0
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
-        duration = (
-            data["data"]["times"]["task_end"] - data["data"]["times"]["task_start"]
-        ) / 60  # in minutes
-        if duration > 0:
+        duration = (data["data"]["times"]["task_end"] - data["data"]["times"]["task_start"]) / 60 # in minutes
+        if (duration > 0):
             total_time_completed_in_min += duration
             total_cnt += 1
         worker_name = db.get_worker(worker_id=unit.worker_id)["worker_name"]
@@ -71,22 +69,13 @@ def check_run_status(run_id: int, qual_name: str) -> None:
             passed_time += duration
             passed_cnt += 1
 
-    print(
-        f"For mephisto/mturk debug: total num: {total_cnt}, # who pass mturk qual: {turkers_with_mturk_qual_cnt}"
-    )
-    print(
-        f"Total completed HITS\t\t{total_cnt}\tavg time spent\t{total_time_completed_in_min / total_cnt} mins"
-    )
-    print(
-        f"HITS passed qualification\t{passed_cnt}\tavg time spent\t{passed_time / passed_cnt} mins"
-    )
+    print(f"For mephisto/mturk debug: total num: {total_cnt}, # who pass mturk qual: {turkers_with_mturk_qual_cnt}")
+    print(f"Total completed HITS\t\t{total_cnt}\tavg time spent\t{total_time_completed_in_min / total_cnt} mins")
+    print(f"HITS passed qualification\t{passed_cnt}\tavg time spent\t{passed_time / passed_cnt} mins")
     try:
-        print(
-            f"HITS failed qualification\t{total_cnt - passed_cnt}\tavg time spent\t{(total_time_completed_in_min - passed_time) / (total_cnt - passed_cnt)} mins"
-        )
+        print(f"HITS failed qualification\t{total_cnt - passed_cnt}\tavg time spent\t{(total_time_completed_in_min - passed_time) / (total_cnt - passed_cnt)} mins")
     except:
         pass
-
 
 #%%
 def retrieve_units(run_id: int) -> list:
@@ -130,18 +119,17 @@ def plot_OS_browser(run_id: int) -> None:
             mobile["yes"] += 1
         else:
             mobile["no"] += 1
-
+    
     plot_hist(browsers, xlabel="Browsers", ylabel=None)
     plot_hist(browser_versions, xlabel="Browser Versions", ylabel=None)
     plot_hist(OSs, xlabel="OS's", ylabel=None)
     plot_hist(mobile, xlabel="On Mobile", ylabel=None)
     return
 
-
 #%%
 def timing_charts(run_id: int) -> None:
     completed_units = retrieve_units(run_id)
-    db = LocalMephistoDB()
+    db=LocalMephistoDB()
     data_browser = DataBrowser(db=db)
     workers = {"total": []}
     unit_timing = {"total": [], "end": []}
@@ -157,39 +145,30 @@ def timing_charts(run_id: int) -> None:
         worker = Worker(db, data["worker_id"]).worker_name
         workers["total"].append(worker)
         starttime, endtime, unit_timing = hit_timing(data["data"], starttime, endtime, unit_timing)
-
+        
         outputs = data["data"]["outputs"]
         feedback.append(outputs["feedback"])
-        if outputs["bug"] == "true":
-            bug_count += 1
+        if outputs["bug"] == 'true': bug_count += 1
         num_correct = 0
         for q in question_results.keys():
             key = "q" + str(q) + "Answer"
             question_results[q].append(outputs[key])
-            if outputs[key] == "true":
+            if outputs[key] == 'true':
                 num_correct += 1
         num_correct_hist.append(num_correct)
 
     print(f"Job start time: {datetime.fromtimestamp(starttime)}")
     print(f"Job end time: {datetime.fromtimestamp(endtime)}")
 
-    plot_hist_sorted(
-        unit_timing["total"], cutoff=1200, target_val=600, xlabel="", ylabel="Total HIT Time (sec)"
-    )
+    plot_hist_sorted(unit_timing["total"], cutoff=1200, target_val=600, xlabel="", ylabel="Total HIT Time (sec)")
     calc_percentiles(unit_timing["total"], "HIT Length")
-
+    
     for q in question_results.keys():
         results_dict = Counter(question_results[q])
-        pass_rates[q] = (
-            results_dict["true"] / (results_dict["true"] + results_dict["false"])
-        ) * 100
-        print(
-            f"Question #{q} pass rate: {(results_dict['true']/(results_dict['true'] + results_dict['false']))*100:.1f}%"
-        )
+        pass_rates[q] = (results_dict['true']/(results_dict['true'] + results_dict['false']))*100
+        print(f"Question #{q} pass rate: {(results_dict['true']/(results_dict['true'] + results_dict['false']))*100:.1f}%")
     plot_hist(pass_rates, xlabel="Question #", ylabel=f"Pass Rate %")
-    print(
-        f"Number of workers who didn't get any right: {len([x for x in num_correct_hist if x == 0])}"
-    )
+    print(f"Number of workers who didn't get any right: {len([x for x in num_correct_hist if x == 0])}")
 
     keys = range(len(num_correct_hist))
     vals_dict = dict(zip(keys, num_correct_hist))
@@ -197,21 +176,19 @@ def timing_charts(run_id: int) -> None:
 
     print(f"Number of workers who experienced a window crash: {bug_count}")
     print(feedback)
-
-
+        
 #%%
-def hit_timing(
-    content: dict, starttime: int, endtime: int, unit_timing: dict
-) -> Tuple[int, int, dict]:
+def hit_timing(content: dict, starttime: int, endtime: int, unit_timing: dict) -> Tuple[int, int, dict]:
     HIT_start_time = content["times"]["task_start"]
     HIT_end_time = content["times"]["task_end"]
     unit_timing["total"].append(HIT_end_time - HIT_start_time)
     unit_timing["end"].append(HIT_end_time)
-    if HIT_start_time < starttime:
+    if (HIT_start_time < starttime):
         starttime = HIT_start_time
-    if HIT_start_time > endtime:
+    if (HIT_start_time > endtime):
         endtime = HIT_end_time
     return starttime, endtime, unit_timing
+
 
 
 #%%
@@ -226,55 +203,31 @@ def calc_percentiles(data: list, label: str) -> None:
 
 
 #%%
-def plot_hist(
-    dictionary: dict,
-    ylabel: str,
-    target_val: float = None,
-    xlabel: str = "Turker Id",
-    ymax: float = None,
-) -> None:
-    plt.bar(list(dictionary.keys()), dictionary.values(), color="g")
+def plot_hist(dictionary: dict, ylabel: str, target_val: float=None, xlabel: str="Turker Id", ymax: float=None) -> None:
+    plt.bar(list(dictionary.keys()), dictionary.values(), color='g')
     if target_val:
         line = [target_val] * len(dictionary)
-        plt.plot(dictionary.keys(), line, color="r")
+        plt.plot(dictionary.keys(), line, color='r')
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     if ymax:
         plt.ylim(0, ymax)
     plt.show()
 
-
 #%%
-def plot_hist_sorted(
-    values: list,
-    ylabel: str,
-    cutoff: float = None,
-    target_val: float = None,
-    xlabel: str = None,
-    ymax: float = None,
-) -> None:
-    if cutoff:
-        values = [cutoff if x > cutoff else x for x in values]
+def plot_hist_sorted(values: list, ylabel: str, cutoff: float=None, target_val: float=None, xlabel: str=None, ymax: float=None) -> None:
+    if cutoff: values = [cutoff if x>cutoff else x for x in values]
     values.sort()
     keys = range(len(values))
     vals_dict = dict(zip(keys, values))
     plot_hist(vals_dict, target_val=target_val, xlabel=xlabel, ylabel=ylabel, ymax=ymax)
 
-
 #%%
-def plot_scatter(
-    xs: list,
-    ys: list,
-    ylabel: str,
-    s: list = None,
-    target_val: float = None,
-    xlabel: str = "Turker Id",
-    ymax: float = None,
-) -> None:
-    plt.scatter(xs, ys, s, color="g")
+def plot_scatter(xs: list, ys: list, ylabel: str, s: list=None, target_val: float=None, xlabel: str="Turker Id", ymax: float=None) -> None:
+    plt.scatter(xs, ys, s, color='g')
     if target_val:
         line = [target_val] * len(xs)
-        plt.plot(xs, line, color="r")
+        plt.plot(xs, line, color='r')
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     if ymax:

@@ -28,7 +28,6 @@ Pyro4.config.ITER_STREAMING = True
 
 # #####################################################
 
-
 @Pyro4.expose
 class RemoteHelloRobot(object):
     """Hello Robot interface"""
@@ -38,18 +37,16 @@ class RemoteHelloRobot(object):
         self._done = True
         self._connect_to_realsense()
         # Slam stuff
-        # uv_one_in_cam
+        #uv_one_in_cam
         intrinsic_mat = np.asarray(self.get_intrinsics())
         intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
         img_resolution = self.get_img_resolution()
-        img_pixs = np.mgrid[
-            0 : img_resolution[1] : 1, 0 : img_resolution[0] : 1
-        ]  # Camera on the hello is oriented vertically
+        img_pixs = np.mgrid[0 : img_resolution[1] : 1, 0 : img_resolution[0] : 1] # Camera on the hello is oriented vertically
         img_pixs = img_pixs.reshape(2, -1)
         img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
-
+    
     def get_camera_transform(self):
         return self.bot.get_camera_transform()
 
@@ -63,7 +60,7 @@ class RemoteHelloRobot(object):
         dev = cfg.get_device()
 
         depth_sensor = dev.first_depth_sensor()
-        # set high accuracy: https://github.com/IntelRealSense/librealsense/issues/2577#issuecomment-432137634
+        #set high accuracy: https://github.com/IntelRealSense/librealsense/issues/2577#issuecomment-432137634
         depth_sensor.set_option(rs.option.visual_preset, 3)
         self.realsense = pipeline
 
@@ -72,7 +69,9 @@ class RemoteHelloRobot(object):
         # we need to use the intrinsics of the color frame
         color_profile = rs.video_stream_profile(profile.get_stream(rs.stream.color))
         i = color_profile.get_intrinsics()
-        self.intrinsic_mat = np.array([[i.fx, 0, i.ppx], [0, i.fy, i.ppy], [0, 0, 1]])
+        self.intrinsic_mat = np.array([[i.fx, 0,    i.ppx],
+                                       [0,    i.fy, i.ppy],
+                                       [0,    0,    1]])
         align_to = rs.stream.color
         self.align = rs.align(align_to)
         print("connected to realsense")
@@ -98,22 +97,20 @@ class RemoteHelloRobot(object):
             aligned_frames = self.align.process(frames)
 
             # Get aligned frames
-            aligned_depth_frame = (
-                aligned_frames.get_depth_frame()
-            )  # aligned_depth_frame is a 640x480 depth image
+            aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
             color_frame = aligned_frames.get_color_frame()
 
             # Validate that both frames are valid
             if not aligned_depth_frame or not color_frame:
                 continue
 
-            depth_image = np.asanyarray(aligned_depth_frame.get_data()) / 1000  # convert to meters
+            depth_image = np.asanyarray(aligned_depth_frame.get_data()) / 1000 # convert to meters
             color_image = np.asanyarray(color_frame.get_data())
 
             # rotate
             if rotate:
-                depth_image = np.rot90(depth_image, k=1, axes=(1, 0))
-                color_image = np.rot90(color_image, k=1, axes=(1, 0))
+                depth_image = np.rot90(depth_image, k=1, axes=(1,0))
+                color_image = np.rot90(color_image, k=1, axes=(1,0))
 
         return color_image, depth_image
 
@@ -130,7 +127,6 @@ class RemoteHelloRobot(object):
         base2cam_trans = np.array(trans).reshape(-1, 1)
         base2cam_rot = np.array(rot)
         return rgb, depth, base2cam_rot, base2cam_trans
-
 
 if __name__ == "__main__":
     import argparse
@@ -158,7 +154,7 @@ if __name__ == "__main__":
         # try:
         #     while True:
         #         print(time.asctime(), "Waiting for requests...")
-
+                
         #         sockets = daemon.sockets
         #         ready_socks = select.select(sockets, [], [], 0)
         #         events = []
@@ -169,7 +165,6 @@ if __name__ == "__main__":
         # except KeyboardInterrupt:
         #     pass
         def callback():
-            time.sleep(0.0)
+            time.sleep(0.)
             return True
-
         daemon.requestLoop(callback)

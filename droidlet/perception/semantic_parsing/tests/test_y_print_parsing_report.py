@@ -43,7 +43,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+            },
         },
     },
     "point at the table": {
@@ -134,7 +136,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "NAME"},
-            "where_clause": {"AND": [{"pred_text": "has_colour", "obj_text": [0, [6, 6]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_colour", "obj_text": [0, [6, 6]]}]
+            },
         },
     },
     "what can you do": {"dialogue_type": "GET_CAPABILITIES", "action_type": "ANY"},
@@ -142,7 +146,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "NAME"},
-            "where_clause": {"AND": [{"pred_text": "has_colour", "obj_text": [0, [3, 3]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_colour", "obj_text": [0, [3, 3]]}]
+            },
             "contains_coreference": "yes",
         },
     },
@@ -154,8 +160,8 @@ common_functional_commands = {
                     "filters": {
                         "where_clause": {
                             "AND": [
-                                {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
-                                {"pred_text": "has_colour", "obj_text": [0, [2, 2]]},
+                            {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
+                            {"pred_text": "has_colour", "obj_text": [0, [2, 2]]},
                             ]
                         },
                         "selector": {
@@ -268,7 +274,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "SIZE"},
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
         },
     },
     "what is outside the window": {
@@ -335,7 +343,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "COUNT",
-            "where_clause": {"AND": [{"pred_text": "has_colour", "obj_text": [0, [2, 2]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_colour", "obj_text": [0, [2, 2]]}]
+            },
         },
     },
     "can you topple the circle": {"dialogue_type": "GET_CAPABILITIES", "action_type": "UNKNOWN"},
@@ -412,14 +422,18 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
         },
     },
     "what size is the square": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "SIZE"},
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
         },
     },
     "destroy that": {
@@ -472,9 +486,9 @@ common_functional_commands = {
                     "filters": {
                         "where_clause": {
                             "AND": [
-                                {"pred_text": "has_name", "obj_text": [0, [4, 4]]},
-                                {"pred_text": "has_colour", "obj_text": [0, [3, 3]]},
-                                {"pred_text": "has_size", "obj_text": [0, [2, 2]]},
+                            {"pred_text": "has_name", "obj_text": [0, [4, 4]]},
+                            {"pred_text": "has_colour", "obj_text": [0, [3, 3]]},
+                            {"pred_text": "has_size", "obj_text": [0, [2, 2]]},
                             ]
                         }
                     }
@@ -509,7 +523,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
+            },
         },
     },
     "can you climb on top of the couch": {
@@ -544,13 +560,17 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "COUNT",
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
+            },
         },
     },
     "what color is the chair": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
             "output": {"attribute": "COLOUR"},
         },
     },
@@ -562,7 +582,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+            },
         },
     },
     "make two circles there": {
@@ -590,7 +612,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
         },
     },
     "point to the jacket": {
@@ -652,35 +676,45 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "COUNT",
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
+            },
         },
     },
     "is there anything big": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "MEMORY",
-            "where_clause": {"AND": [{"pred_text": "has_size", "obj_text": [0, [3, 3]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_size", "obj_text": [0, [3, 3]]}]
+            },
         },
     },
     "what color is the square": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "COLOUR"},
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
         },
     },
     "show me to the square": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
         },
     },
     "have you seen the pig": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
         },
     },
     "can you topple the chair": {"dialogue_type": "GET_CAPABILITIES", "action_type": "UNKNOWN"},
@@ -726,7 +760,7 @@ common_functional_commands = {
                             }
                         },
                     }
-                },
+                }
             },
         },
     },
@@ -734,7 +768,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "MEMORY",
-            "where_clause": {"AND": [{"pred_text": "has_size", "obj_text": [0, [3, 3]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_size", "obj_text": [0, [3, 3]]}]
+            },
         },
     },
     "look at the hole": {
@@ -762,21 +798,27 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "COUNT",
-            "where_clause": {"AND": [{"pred_text": "has_colour", "obj_text": [0, [2, 2]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_colour", "obj_text": [0, [2, 2]]}]
+            },
         },
     },
     "is there anything red": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "MEMORY",
-            "where_clause": {"AND": [{"pred_text": "has_colour", "obj_text": [0, [3, 3]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_colour", "obj_text": [0, [3, 3]]}]
+            },
         },
     },
     "where is the circle": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+            },
         },
     },
     "turn left": {
@@ -831,7 +873,7 @@ common_functional_commands = {
                             }
                         },
                     }
-                },
+                }
             },
         },
     },
@@ -851,7 +893,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]},
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
+            },
         },
     },
 }
@@ -1035,7 +1079,9 @@ GROUND_TRUTH_PARSES = {
                 "action_type": "DANCE",
                 "dance_type": {
                     "filters": {
-                        "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "wave"}]}
+                        "where_clause": {
+                            "AND" : [{"pred_text": "has_name", "obj_text": "wave"}]
+                        }
                     }
                 },
             }
@@ -1066,7 +1112,9 @@ GROUND_TRUTH_PARSES = {
                 "action_type": "SCOUT",
                 "reference_object": {
                     "filters": {
-                        "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "Laurens"}]}
+                        "where_clause": {
+                            "AND": [{"pred_text": "has_name", "obj_text": "Laurens"}]
+                        }
                     }
                 },
             }
@@ -1088,7 +1136,9 @@ GROUND_TRUTH_PARSES = {
                 },
                 "reference_object": {
                     "filters": {
-                        "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "cup"}]}
+                        "where_clause": {
+                            "AND": [{"pred_text": "has_name", "obj_text": "cup"}]
+                        }
                     }
                 },
             }
@@ -1102,7 +1152,9 @@ GROUND_TRUTH_PARSES = {
                 "receiver": {"reference_object": {"special_reference": "SPEAKER"}},
                 "reference_object": {
                     "filters": {
-                        "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "lunch"}]}
+                        "where_clause": {
+                            "AND": [{"pred_text": "has_name", "obj_text": "lunch"}]
+                        }
                     }
                 },
             }
@@ -1186,7 +1238,7 @@ def compare_full_dictionaries(d1, d2):
 
 
 class TestDialogueManager(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) :
         opts = MockOpt()
         opts.nsp_data_dir = TTAD_BERT_DATA_DIR
         opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR

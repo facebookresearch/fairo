@@ -28,7 +28,6 @@ class BasicTest(unittest.TestCase):
             if x % 2:
                 return "False"
             return "True"
-
         items = [1, 2, 3, 4, 5, 6]
         out_dict = group_by(items, even_num_detector)
         expected_dict = {"True": [2, 4, 6], "False": [1, 3, 5]}
@@ -65,9 +64,10 @@ class BasicTest(unittest.TestCase):
         assert player.look.pitch == 2.0
 
     def test_npy_to_blocks_list(self):
-        test_array = np.array(
-            [[[[190, 0], [190, 0]], [[190, 0], [0, 0]], [[190, 0], [0, 0]], [[190, 0], [0, 0]]]]
-        )
+        test_array = np.array([[[[190, 0], [190, 0]],
+                                [[190, 0], [0, 0]],
+                                [[190, 0], [0, 0]],
+                                [[190, 0], [0, 0]]]])
         assert type(test_array) == np.ndarray
         output = npy_to_blocks_list(test_array)
         assert type(output) == list
@@ -76,12 +76,12 @@ class BasicTest(unittest.TestCase):
 
     def test_cube(self):
         cube_struct = cube()
-        assert len(cube_struct) == 27  # number of blocks
+        assert len(cube_struct) == 27   # number of blocks
         cube_struct = cube(size=2)
         assert len(cube_struct) == 8
         cube_struct = cube(size=4, bid=(1, 1))
         assert len(cube_struct) == 64
-        assert cube_struct[10][1] == (1, 1)  # check block id, meta
+        assert cube_struct[10][1] == (1, 1) # check block id, meta
         assert cube_struct[0][0] == (0, 0, 0)
 
 

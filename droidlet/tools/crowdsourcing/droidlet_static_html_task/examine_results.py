@@ -80,12 +80,12 @@ def format_for_printing_data(data):
         output_string += f"User Feeback: {outputs['feedback']}\n"
     except:
         pass
-    # found_files = outputs.get("files")
-    # if found_files is not None:
+    #found_files = outputs.get("files")
+    #if found_files is not None:
     #    file_dir = Unit(db, data["unit_id"]).get_assigned_agent().get_data_dir()
     #    output_string += f"   Files: {found_files}\n"
     #    output_string += f"   File directory {file_dir}\n"
-    # else:
+    #else:
     #    output_string += f"   Files: No files attached\n"
     return f"-------------------\n{metadata_string}{inputs_string}{output_string}"
 

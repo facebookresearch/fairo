@@ -83,32 +83,34 @@ class LoCoBotBase(object):
         self, xyt_position, use_map=False, close_loop=False, smooth=False, wait=True
     ):
         """
-                Moves the robot to the robot to given
-                goal state relative to its initial pose.
+		Moves the robot to the robot to given
+		goal state relative to its initial pose.
 
-                :param xyt_position: The  relative goal state of the form (x,y,t)
-                :param use_map: When set to "True", ensures that controler is
-                                using only free space on the map to move the robot.
-                :param close_loop: When set to "True", ensures that controler is
-                                   operating in open loop by
-                                   taking account of odometry.
-                :param smooth: When set to "True", ensures that the motion
-                               leading to the goal is a smooth one.
-        :param wait: Makes the process wait at this funciton until the execution is
+		:param xyt_position: The  relative goal state of the form (x,y,t)
+		:param use_map: When set to "True", ensures that controler is
+		                using only free space on the map to move the robot.
+		:param close_loop: When set to "True", ensures that controler is
+		                   operating in open loop by
+		                   taking account of odometry.
+		:param smooth: When set to "True", ensures that the motion
+		               leading to the goal is a smooth one.
+        :param wait: Makes the process wait at this funciton until the execution is 
                        complete
 
-                :type xyt_position: list
-                :type use_map: bool
-                :type close_loop: bool
-                :type smooth: bool
+		:type xyt_position: list
+		:type use_map: bool
+		:type close_loop: bool
+		:type smooth: bool
 
-                :return: True if successful; False otherwise (timeout, etc.)
-                :rtype: bool
-        """
+		:return: True if successful; False otherwise (timeout, etc.)
+		:rtype: bool
+		"""
 
         try:
             if use_map:
-                raise NotImplementedError("Using map feature is not yet supported for Habitat-Sim")
+                raise NotImplementedError(
+                    "Using map feature is not yet supported for Habitat-Sim"
+                )
             if close_loop:
                 raise NotImplementedError(
                     "Closed-loop postion control is not supported in Habitat-Sim!"
@@ -128,13 +130,10 @@ class LoCoBotBase(object):
             self._as.set_active()
             self.collided = False
             if wait:
-                return self._go_to_relative_pose(
-                    xyt_position[0], xyt_position[1], abs_yaw, wait=True
-                )
+                return self._go_to_relative_pose(xyt_position[0], xyt_position[1], abs_yaw, wait=True)
             else:
                 x = threading.Thread(
-                    target=self._go_to_relative_pose,
-                    args=(xyt_position[0], xyt_position[1], abs_yaw, wait),
+                    target=self._go_to_relative_pose, args=(xyt_position[0], xyt_position[1], abs_yaw, wait)
                 )
                 x.start()
             return True
@@ -146,30 +145,32 @@ class LoCoBotBase(object):
         self, xyt_position, use_map=False, close_loop=False, smooth=False, wait=True
     ):
         """
-        Moves the robot to the robot to given goal state in the world frame.
+		Moves the robot to the robot to given goal state in the world frame.
 
-        :param xyt_position: The goal state of the form (x,y,t)
-                             in the world (map) frame.
-        :param use_map: When set to "True", ensures that controler is using
-                        only free space on the map to move the robot.
-        :param close_loop: When set to "True", ensures that controler is
-                           operating in open loop by
-                           taking account of odometry.
-        :param smooth: When set to "True", ensures that the motion
-                       leading to the goal is a smooth one.
+		:param xyt_position: The goal state of the form (x,y,t)
+		                     in the world (map) frame.
+		:param use_map: When set to "True", ensures that controler is using
+		                only free space on the map to move the robot.
+		:param close_loop: When set to "True", ensures that controler is
+		                   operating in open loop by
+		                   taking account of odometry.
+		:param smooth: When set to "True", ensures that the motion
+		               leading to the goal is a smooth one.
 
-        :type xyt_position: list
-        :type use_map: bool
-        :type close_loop: bool
-        :type smooth: bool
+		:type xyt_position: list
+		:type use_map: bool
+		:type close_loop: bool
+		:type smooth: bool
 
-        :return: True if successful; False otherwise (timeout, etc.)
-        :rtype: bool
-        """
+		:return: True if successful; False otherwise (timeout, etc.)
+		:rtype: bool
+		"""
 
         try:
             if use_map:
-                raise NotImplementedError("Using map feature is not yet supported for Habitat-Sim")
+                raise NotImplementedError(
+                    "Using map feature is not yet supported for Habitat-Sim"
+                )
             if close_loop:
                 raise NotImplementedError(
                     "Closed-loop postion control is not supported in Habitat-Sim!"
@@ -197,21 +198,20 @@ class LoCoBotBase(object):
                 return self._go_to_relative_pose(rel_x[0], rel_y[0], abs_yaw, wait=True)
             else:
                 x = threading.Thread(
-                    target=self._go_to_relative_pose,
-                    args=(rel_x[0], rel_y[0], abs_yaw, wait),
+                    target=self._go_to_relative_pose, args=(rel_x[0], rel_y[0], abs_yaw, wait), 
                 )
                 x.start()
         else:
             print("Robot is still moving, can't take another move commend")
             return False
 
-    def _act(self, action_name, actuation, cont_action=True, direct_call=False):
+    def _act(self, action_name, actuation, cont_action = True, direct_call=False):
         """Take the action specified by action_id
 
-        :param action_id: ID of the action. Retreives the action from
-            `agent_config.action_space <AgentConfiguration.action_space>`
-        :return: Whether or not the action taken resulted in a collision
-        """
+		:param action_id: ID of the action. Retreives the action from
+		    `agent_config.action_space <AgentConfiguration.action_space>`
+		:return: Whether or not the action taken resulted in a collision
+		"""
         did_collide = False
         if cont_action:
             dist_moved = 0
@@ -250,7 +250,7 @@ class LoCoBotBase(object):
         if abs(rel_y) < 1e-5:
             rel_y = 0
 
-        if math.sqrt(rel_x**2 + rel_y**2) > 0.0:
+        if math.sqrt(rel_x ** 2 + rel_y ** 2) > 0.0:
             # rotate to point to (x, y) point
             action_name = "turn_left"
             if rel_y < 0.0:
@@ -261,7 +261,7 @@ class LoCoBotBase(object):
             cosine_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
             angle = np.arccos(cosine_angle)
 
-            did_collide = self._act(action_name, math.degrees(angle), cont_action=not (wait))
+            did_collide = self._act(action_name, math.degrees(angle), cont_action=not(wait))
 
             if did_collide:
                 print("Error: Collision accured while 1st rotating!")
@@ -269,9 +269,7 @@ class LoCoBotBase(object):
                 return False
 
             # move to (x,y) point
-            did_collide = self._act(
-                "move_forward", math.sqrt(rel_x**2 + rel_y**2), cont_action=not (wait)
-            )
+            did_collide = self._act("move_forward", math.sqrt(rel_x ** 2 + rel_y ** 2), cont_action=not(wait))
             if did_collide:
                 print("Error: Collision accured while moving straight!")
                 self._as.set_preempted()
@@ -292,7 +290,7 @@ class LoCoBotBase(object):
             action_name = "turn_right"
             rel_yaw *= -1
 
-        did_collide = self._act(action_name, math.degrees(rel_yaw), cont_action=not (wait))
+        did_collide = self._act(action_name, math.degrees(rel_yaw), cont_action=not(wait))
         if did_collide:
             print("Error: Collision accured while rotating!")
             self._as.set_preempted()
@@ -302,18 +300,18 @@ class LoCoBotBase(object):
 
     def track_trajectory(self, states, controls, close_loop):
         """
-        State trajectory that the robot should track.
+		State trajectory that the robot should track.
 
-        :param states: sequence of (x,y,t) states that the robot should track.
-        :param controls: optionally specify control sequence as well.
-        :param close_loop: whether to close loop on the
-                           computed control sequence or not.
+		:param states: sequence of (x,y,t) states that the robot should track.
+		:param controls: optionally specify control sequence as well.
+		:param close_loop: whether to close loop on the
+		                   computed control sequence or not.
 
-        :type states: list
-        :type controls: list
-        :type close_loop: bool
+		:type states: list
+		:type controls: list
+		:type close_loop: bool
 
-        :return: True if successful; False otherwise (timeout, etc.)
-        :rtype: bool
-        """
+		:return: True if successful; False otherwise (timeout, etc.)
+		:rtype: bool
+		"""
         raise NotImplementedError

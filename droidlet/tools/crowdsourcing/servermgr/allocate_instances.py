@@ -129,16 +129,13 @@ def get_instance_ip(instance_id):
         eni = next(y for y in attachment["details"] if y["name"] == "networkInterfaceId")["value"]
         ip = ec2.NetworkInterface(eni).private_ip_addresses[0]["Association"]["PublicIp"]
     except:
-        raise ValueError(f"This instance {instance_id} should have been up, but failed to get ip")
+        raise ValueError(f'This instance {instance_id} should have been up, but failed to get ip')
     return ip
 
-
+    
 def request_instance(instance_num):
     logging.info(f"Requesting {instance_num} instances from AWS")
-    instances = [
-        launch_instance(task="craftassist", config="flat_world", debug=False)[0]
-        for _ in range(instance_num)
-    ]
+    instances = [launch_instance(task="craftassist", config="flat_world", debug=False)[0] for _ in range(instance_num)]
     instance_status = [False] * instance_num
 
     while not all(instance_status):
@@ -146,7 +143,7 @@ def request_instance(instance_num):
         logging.info(f"Checking status of {instance_num} instances... Not ready!")
         for i in range(instance_num):
             instance_status[i] = is_instance_up(instances[i])
-
+    
     instance_ips = [get_instance_ip(instance) for instance in instances]
     logging.info(f"All {instance_num} are up, ip list: {instance_ips}")
     return instance_ips
@@ -159,7 +156,7 @@ def register_dashboard_subdomain(cf, zone_id, ip, subdomain):
     cf -- CloudFlare context with R/W permissions.
     zone_id -- zone ID used to locate DNS records.
     ip -- IP of the ECS container that runs dashboard.
-    subdomain -- subdomain contains a unique identifier for this task run,
+    subdomain -- subdomain contains a unique identifier for this task run, 
     which is the batch ID concatenated with the run number.
     """
     # Check that DNS record does not already exist
@@ -172,26 +169,16 @@ def register_dashboard_subdomain(cf, zone_id, ip, subdomain):
 
     dns_record = {"name": subdomain, "type": "A", "content": ip, "proxied": True}
     try:
-        r = cf.zones.dns_records.post(zone_id, data=dns_record)
+        r = cf.zones.dns_records.post(zone_id, data=dns_record)   
         print("Registered IP {} at subdomain {}".format(ip, subdomain))
     except Exception as e:
-        raise e
-
+        raise e 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--instance_num", type=int, default=1, help="number of instances requested"
-    )
-    parser.add_argument(
-        "--batch_id",
-        type=int,
-        default=0,
-        help="ID of the current batch, used to track which group of runs the task was run in",
-    )
-    parser.add_argument(
-        "--user", type=str, default="rebeccaqian@fb.com", help="Email of the CloudFlare account"
-    )
+    parser.add_argument("--instance_num", type=int, default=1, help="number of instances requested")
+    parser.add_argument("--batch_id", type=int, default=0, help="ID of the current batch, used to track which group of runs the task was run in")
+    parser.add_argument("--user", type=str, default="rebeccaqian@fb.com", help="Email of the CloudFlare account")
     args = parser.parse_args()
     instance_ips = request_instance(args.instance_num)
     # register subdomain to proxy instance IP

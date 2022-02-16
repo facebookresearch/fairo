@@ -37,26 +37,8 @@ def read_s3_bucket(s3_logs_dir, output_dir):
         timestamp = pattern.match(csv_path).group(1)
         tf.extractall(path="{}/{}/".format(output_dir, timestamp))
 
-
 def get_stats(command_list):
-    AC = [
-        "build",
-        "move",
-        "destroy",
-        "dance",
-        "get",
-        "tag",
-        "dig",
-        "copy",
-        "undo",
-        "fill",
-        "spawn",
-        "answer",
-        "stop",
-        "resume",
-        "come",
-        "go",
-    ]
+    AC = ["build", "move", "destroy", "dance", "get", "tag", "dig", "copy", "undo", "fill", "spawn", "answer", "stop", "resume", "come", "go"]
     command_list = [c.lower() for c in command_list]
     len_ori = len(command_list)
     l = list(set(command_list))
@@ -70,13 +52,12 @@ def get_stats(command_list):
         total_len += len(c.split())
     avg_len = total_len / len_dedup
 
-    print(f"num_ori {len_ori}")
-    print(f"num_dedup {len_dedup}")
-    print(f"dup_rate {(len_ori - len_dedup) / len_ori * 100}%")
-    print(f"avg_len {avg_len}")
-    print(f"valid {interested}")
-    print(f"valid rate {interested / len_dedup * 100}%")
-
+    print(f'num_ori {len_ori}')
+    print(f'num_dedup {len_dedup}')
+    print(f'dup_rate {(len_ori - len_dedup) / len_ori * 100}%')
+    print(f'avg_len {avg_len}')
+    print(f'valid {interested}')
+    print(f'valid rate {interested / len_dedup * 100}%')
 
 def read_turk_logs(turk_output_directory, filename):
     # Crawl turk logs directory

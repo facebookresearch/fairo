@@ -72,7 +72,7 @@ def format_for_printing_data(data):
         output_string += f"User Feeback: {outputs['feedback']}\n"
     except:
         pass
-
+    
     return f"-------------------\n{metadata_string}{inputs_string}{output_string}"
 
 

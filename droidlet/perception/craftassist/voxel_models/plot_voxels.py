@@ -33,7 +33,7 @@ def draw_color_hash(schematic, vis, title="", threshold=0.05, win=None, bins=3):
         r = r - clrs[i][2]
         clrs[i][1] = r / bins % bins
         r = r - clrs[i][1] * bins
-        clrs[i][0] = r / bins**2
+        clrs[i][0] = r / bins ** 2
     clrs = (256 * clrs / bins).astype("int64")
     w = vis.scatter(
         X=X.numpy(),
@@ -122,10 +122,7 @@ class SchematicPlotter:
     def __init__(self, viz):
         self.viz = viz
         ims = pickle.load(
-            open(
-                os.path.join(MC_DIR, "lowlevel/minecraft/minecraft_specs/block_images/block_data"),
-                "rb",
-            )
+            open(os.path.join(MC_DIR, "lowlevel/minecraft/minecraft_specs/block_images/block_data"), "rb")
         )
         colors = []
         alpha = []

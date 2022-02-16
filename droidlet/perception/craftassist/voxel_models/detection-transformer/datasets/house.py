@@ -173,7 +173,6 @@ class SemSegHouseData(tds.Dataset):
     x[3]: string, contain meta data -- directory info
 
     """
-
     def __init__(
         self,
         data_path,
@@ -314,7 +313,7 @@ class SemSegHouseData(tds.Dataset):
         labels = []
         for i, inst_name in enumerate(x[2][1:]):
             cls_id = self.classes["name2idx"][self.class_map[inst_name]]
-            x[1][x[1] == (i + 1)] = cls_id  # replace local class id with global id
+            x[1][x[1] == (i + 1)] = cls_id # replace local class id with global id
             idx = x[1] == cls_id
             masks[i][idx] = 1
             # try catch here because some class may not exist in data point
@@ -354,9 +353,7 @@ def build(image_set, args):
     nexamples = -1
     min_class_occurence = 1
 
-    house_dataset = SemSegHouseData(
-        data_path=data_path, nexamples=nexamples, min_class_occurence=min_class_occurence
-    )
+    house_dataset = SemSegHouseData(data_path=data_path, nexamples=nexamples, min_class_occurence=min_class_occurence)
     return house_dataset
 
 

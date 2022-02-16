@@ -303,18 +303,18 @@ class AgentMemory:
     def check_memid_exists(self, memid: str, table: str) -> bool:
         """Given the table and memid, check if an entry exists
 
-                Args:
-                    memid (string): Memory id
-                    table (string): Name of table
+        Args:
+            memid (string): Memory id
+            table (string): Name of table
 
-                Returns:
-                    bool: whther an object with the memory id exists
+        Returns:
+            bool: whther an object with the memory id exists
 
-                Examples::
-                    >>> memid = '10517cc584844659907ccfa6161e9d32'
-                    >>> table = 'ReferenceObjects'
-                    >>> check_memid_exists(memid, table)
-        et"""
+        Examples::
+            >>> memid = '10517cc584844659907ccfa6161e9d32'
+            >>> table = 'ReferenceObjects'
+            >>> check_memid_exists(memid, table)
+et        """
         return bool(self._db_read_one("SELECT * FROM {} WHERE uuid=?".format(table), memid))
 
     # TODO forget should be a method of the memory object

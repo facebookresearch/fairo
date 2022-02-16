@@ -43,7 +43,6 @@ from mephisto.operations.hydra_config import RunScriptConfig, register_script_co
 db = LocalMephistoDB()
 mephisto_data_browser = MephistoDataBrowser(db=db)
 
-
 @dataclass
 class TestScriptConfig(RunScriptConfig):
     defaults: List[Any] = field(default_factory=lambda: defaults)
@@ -56,16 +55,13 @@ register_script_config(name="scriptconfig", module=TestScriptConfig)
 def validate_answers(answers):
     logging.info(f"Answers: {answers}")
     # Validate annotation question answers
-    if (
-        answers["q1Answer"] != "true"
-        or answers["q2Answer"] != "true"
-        or answers["q3Answer"] != "true"
-        or answers["q4Answer"] != "true"
-    ):
+    if answers["q1Answer"] != "true" or \
+        answers["q2Answer"] != "true" or \
+        answers["q3Answer"] != "true" or \
+        answers["q4Answer"] != "true":
         return False
 
     return True
-
 
 def validate_unit(unit):
     if unit.get_assigned_agent() is None:
@@ -87,7 +83,7 @@ def validate_unit(unit):
     else:
         logging.debug(f"{PILOT_BLOCK_QUAL_NAME} qualification not exists, so create one")
     worker.grant_qualification(PILOT_BLOCK_QUAL_NAME, 1)
-
+    
     # Validate pilot task answers, workers who pass the validation will be put into an allowlist
     # by granting a qualification task to them and specify the task as a req in the full task
     try:
@@ -99,12 +95,9 @@ def validate_unit(unit):
 
     if validate_answers(answers):
         worker.grant_qualification(PILOT_ALLOWLIST_QUAL_NAME, 1)
-        logging.info(
-            f"Worker {worker.worker_name} passed the pilot task, put him/her into allowlist"
-        )
+        logging.info(f"Worker {worker.worker_name} passed the pilot task, put him/her into allowlist")
 
     return
-
 
 @hydra.main(config_name="scriptconfig")
 def main(cfg: DictConfig) -> None:

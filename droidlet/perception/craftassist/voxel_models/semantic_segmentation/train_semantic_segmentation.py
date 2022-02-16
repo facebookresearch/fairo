@@ -66,7 +66,7 @@ def validate(model, DL, loss, optimizer, args):
             y = y.cuda()
         yhat = model(x)
         ##### calculate acc
-        non_zero_idx = y != 0
+        non_zero_idx = (y != 0)
         non_zero_total += torch.sum(non_zero_idx)
 
         pred = torch.argmax(yhat, dim=1)
@@ -85,9 +85,7 @@ def validate(model, DL, loss, optimizer, args):
         preloss *= mask
         l = preloss.sum() / M
         losses.append(l.item())
-    print(
-        f"[Valid] Accuracy: {correct_num / total_num}, non empty acc: {non_zero_correct / non_zero_total}"
-    )
+    print(f"[Valid] Accuracy: {correct_num / total_num}, non empty acc: {non_zero_correct / non_zero_total}")
     return losses
 
 
@@ -107,7 +105,7 @@ def train_epoch(model, DL, loss, optimizer, args):
         model.train()
         yhat = model(x)
         ##### calculate acc
-        non_zero_idx = y != 0
+        non_zero_idx = (y != 0)
         non_zero_total += torch.sum(non_zero_idx)
 
         pred = torch.argmax(yhat, dim=1)
@@ -128,9 +126,7 @@ def train_epoch(model, DL, loss, optimizer, args):
         losses.append(l.item())
         l.backward()
         optimizer.step()
-    print(
-        f"[Train] Accuracy: {correct_num / total_num}, non empty acc: {non_zero_correct / non_zero_total}"
-    )
+    print(f"[Train] Accuracy: {correct_num / total_num}, non empty acc: {non_zero_correct / non_zero_total}")
     return losses
 
 
@@ -177,12 +173,7 @@ if __name__ == "__main__":
 
     train_data = SemSegData(args.data_dir + "training_data.pkl", nexamples=args.debug, augment=aug)
     train_classes = train_data.get_classes()
-    valid_data = SemSegData(
-        args.data_dir + "validation_data.pkl",
-        nexamples=args.debug,
-        augment=aug,
-        classes=train_classes,
-    )
+    valid_data = SemSegData(args.data_dir + "validation_data.pkl", nexamples=args.debug, augment=aug, classes=train_classes)
 
     shuffle = True
     if args.debug > 0:
@@ -197,6 +188,8 @@ if __name__ == "__main__":
         drop_last=True,
         num_workers=args.ndonkeys,
     )
+
+    
 
     print("making validation dataloader")
     vDL = torch.utils.data.DataLoader(

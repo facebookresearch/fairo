@@ -9,8 +9,10 @@ if __name__ == "__main__":
     from build_scene import *
     from block_data import COLOR_BID_MAP
 
-    block_data_file = ""  # NOTE: insert path to your block data file, perhaps at: minecraft_specs/block_images/block_data
-    BLOCK_DATA = pickle.load(open(block_data_file, "rb"))
+    block_data_file = "" #NOTE: insert path to your block data file, perhaps at: minecraft_specs/block_images/block_data
+    BLOCK_DATA = pickle.load(
+        open(block_data_file, "rb")
+    )
 
     allowed_blocktypes = []
     count = 0
@@ -20,7 +22,8 @@ if __name__ == "__main__":
             count += 1
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--target", default="")  # path to target
+    parser.add_argument("--target", default="") # path to target
+
 
     parser.add_argument("--N", type=int, default=10000000)
     #    parser.add_argument("--num_per_chunk", type=int, default=10000000)

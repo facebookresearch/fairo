@@ -179,6 +179,7 @@ class LocoInterpreter(Interpreter):
         else:
             return new_tasks(), None, None
 
+
     def handle_drop(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         """
         Drops whatever object in hand

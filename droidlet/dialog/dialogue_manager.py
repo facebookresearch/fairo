@@ -11,7 +11,6 @@ from .load_datasets import get_greetings, get_safety_words
 
 class GreetingType(Enum):
     """Types of bot greetings."""
-
     HELLO = "hello"
     GOODBYE = "goodbye"
 
@@ -31,7 +30,6 @@ class DialogueManager(object):
         agent: a droidlet agent
 
     """
-
     def __init__(
         self,
         memory,
@@ -102,7 +100,9 @@ class DialogueManager(object):
                     )
                 )
 
-        _, active_task_mems = self.memory.basic_search("SELECT MEMORY FROM Task WHERE prio > -1")
+        _, active_task_mems = self.memory.basic_search(
+            "SELECT MEMORY FROM Task WHERE prio > -1"
+        )
         dialogue_task_busy = any(
             [getattr(m, "awaiting_response", False) for m in active_task_mems]
         )

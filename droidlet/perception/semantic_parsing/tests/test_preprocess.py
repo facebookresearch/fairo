@@ -14,5 +14,5 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(preprocess_chat("hi there! how are you"), "hi there ! how are you")
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()
