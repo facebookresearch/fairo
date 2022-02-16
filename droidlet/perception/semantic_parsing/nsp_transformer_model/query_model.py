@@ -50,7 +50,7 @@ class NSPBertModel(object):
 
     def parse(self, chat, noop_thres=0.95, beam_size=5, well_formed_pen=1e2):
         """Given an incoming chat, query the parser and return a logical form.
-        Uses beam search decoding, see :any:`beam_search`
+        Uses beam search decoding, see `beam_search`
 
         Args:
             chat (str): Preprocessed chat command from a player. Used as text input to parser.
