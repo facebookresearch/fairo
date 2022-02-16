@@ -196,6 +196,7 @@ class SemSegData(tds.Dataset):
         self.inst_data = pickle.load(open(data_path, "rb"))
         self.nexamples = nexamples
         self.augment = augment
+        self.no_target_prob = no_target_prob
 
         self.tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
         self.model = DistilBertModel.from_pretrained('distilbert-base-uncased', return_dict=True)
@@ -254,7 +255,9 @@ class SemSegData(tds.Dataset):
 
         def pick_no_target_shape(all_shapes, shapes):
             # pick a shape from all_shapes that is not in shapes
-            for shape in random.shuffle(all_shapes):
+            random_shapes = deepcopy(all_shapes)
+            random.shuffle(random_shapes)
+            for shape in random_shapes:
                 if shape not in shapes:
                     return shape
             
@@ -262,7 +265,7 @@ class SemSegData(tds.Dataset):
 
         # Choose another shape that is not in the scene based on probability
         if random.random() < self.no_target_prob:
-            new_text =  pick_no_target_shape
+            new_text =  pick_no_target_shape(SHAPE_NAMES, [])
             text = new_text if new_text else text
 
         l = (c == self.classes["name2idx"][text]).to(torch.float)

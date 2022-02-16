@@ -29,12 +29,14 @@ if __name__ == "__main__":
     parser.add_argument("--H", type=int, default=H)
     parser.add_argument("--GROUND_DEPTH", type=int, default=GROUND_DEPTH)
     parser.add_argument("--MAX_NUM_SHAPES", type=int, default=3)
+    parser.add_argument("--MAX_NUM_GROUND_HOLES", type=int, default=0)
     parser.add_argument("--NUM_SCENES", type=int, default=3)
     parser.add_argument("--fence", action="store_true", default=False)
     parser.add_argument("--cuberite_x_offset", type=int, default=-SL // 2)
     parser.add_argument("--cuberite_y_offset", type=int, default=63 - GROUND_DEPTH)
     parser.add_argument("--cuberite_z_offset", type=int, default=-SL // 2)
     parser.add_argument("--save_data_path", default="")
+    parser.add_argument("--iglu_scenes", default="")
     args = parser.parse_args()
 
     data = []
