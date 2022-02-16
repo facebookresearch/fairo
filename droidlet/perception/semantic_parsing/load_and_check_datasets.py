@@ -18,4 +18,3 @@ def get_ground_truth(no_ground_truth, ground_truth_data_dir):
                             ground_truth_actions[clean_text] = json.loads(logical_form)
 
     return ground_truth_actions
-

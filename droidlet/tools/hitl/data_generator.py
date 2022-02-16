@@ -21,9 +21,7 @@ class DataGenerator(ABC):
         self._finished = False
         self._started = False
         self.start_time = time.time()
-        self.timeout = (
-            timeout
-        )  # in minutes, -1 if no timeout is set (run indefinitely until killed by runner)
+        self.timeout = timeout  # in minutes, -1 if no timeout is set (run indefinitely until killed by runner)
 
     @abstractmethod
     def run(self) -> None:
