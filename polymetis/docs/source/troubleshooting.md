@@ -39,7 +39,7 @@ Control loop latency stats in milliseconds (avg / std / max / min):
 Joint PD: 0.2243/ 0.0932 / 4.1315 / 0.1522
 Cartesian PD: 0.3051/ 0.1358 / 5.9305 / 0.1383
 ```
-The average should be well below 0.5 milliseconds in order to run on an actual robot.
+The average should be well below 0.5 milliseconds in order to run on Franka hardware.
 
 
 ## Inaccurate tracking performance
