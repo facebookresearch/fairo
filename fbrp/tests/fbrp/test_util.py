@@ -1,6 +1,7 @@
 from fbrp import util
 import unittest
 
+
 class TestShellJoin(unittest.TestCase):
     def test_empty(self):
         assert util.shell_join([]) == ""

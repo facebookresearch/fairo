@@ -4,8 +4,6 @@ import os
 import pathlib
 import typing
 
-from fbrp import registrar
-
 
 @dataclasses.dataclass
 class ProcDef:
@@ -17,6 +15,20 @@ class ProcDef:
     deps: typing.List[str]
     env: dict
 
+    def asdict(self):
+        return {
+            "name": self.name,
+            "root": str(self.root),
+            "rule_file": str(self.rule_file),
+            "runtime": self.runtime.asdict(self.root),
+            "cfg": self.cfg,
+            "deps": self.deps,
+            "env": self.env,
+        }
+
+
+defined_processes: typing.Dict[str, ProcDef] = {}
+
 
 def process(
     name: str,
@@ -26,7 +38,7 @@ def process(
     deps: typing.List[str] = [],
     env: dict = {},
 ):
-    if name in registrar.defined_processes:
+    if name in defined_processes:
         raise ValueError(f"fbrp.process({name=}) defined multiple times.")
 
     rule_file = os.path.abspath(inspect.stack()[1].filename)
@@ -37,7 +49,7 @@ def process(
     else:
         root = rule_dir
 
-    registrar.defined_processes[name] = ProcDef(
+    defined_processes[name] = ProcDef(
         name=name,
         root=root,
         runtime=runtime,

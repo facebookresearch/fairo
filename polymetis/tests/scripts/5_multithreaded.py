@@ -34,8 +34,11 @@ def connect_and_send_policy():
         delta_joint_pos_desired = torch.Tensor([0.0, 0.0, 0.0, 0.5, 0.0, -0.5, 0.0])
         joint_pos_desired = joint_pos + delta_joint_pos_desired
 
-        state_log = robot.move_to_joint_positions(joint_pos_desired)
-        check_episode_log(state_log, int(robot.time_to_go_default * hz))
+        time_to_go = 4.0
+        state_log = robot.move_to_joint_positions(
+            joint_pos_desired, time_to_go=time_to_go
+        )
+        check_episode_log(state_log, int(time_to_go * hz))
 
         joint_pos = robot.get_joint_positions()
         assert torch.allclose(joint_pos, joint_pos_desired, atol=0.01)

@@ -12,6 +12,7 @@ import logging
 from enum import Enum
 
 import grpc  # This requires `conda install grpcio protobuf`
+import numpy as np
 import torch
 
 import polymetis
@@ -277,7 +278,7 @@ class RobotInterface(BaseRobotInterface):
 
     def __init__(
         self,
-        time_to_go_default: float = 4.0,
+        time_to_go_default: float = 3.0,
         use_grav_comp: bool = True,
         *args,
         **kwargs,
@@ -299,6 +300,21 @@ class RobotInterface(BaseRobotInterface):
         self.time_to_go_default = time_to_go_default
 
         self.use_grav_comp = use_grav_comp
+
+    def _adaptive_time_to_go(self, joint_displacement: torch.Tensor):
+        """Compute adaptive time_to_go
+        Computes the corresponding time_to_go such that the mean velocity is equal to one-eighth
+        of the joint velocity limit:
+        time_to_go = max_i(joint_displacement[i] / (joint_velocity_limit[i] / 8))
+        (Note 1: The magic number 8 is deemed reasonable from hardware tests on a Franka Emika.)
+        (Note 2: In a min-jerk trajectory, maximum velocity is equal to 1.875 * mean velocity.)
+
+        The resulting time_to_go is also clipped to a minimum value of the default time_to_go.
+        """
+        joint_vel_limits = self.robot_model.get_joint_velocity_limits()
+        joint_pos_diff = torch.abs(joint_displacement)
+        time_to_go = torch.max(joint_pos_diff / joint_vel_limits * 8.0)
+        return max(time_to_go, self.time_to_go_default)
 
     """
     Setter methods
@@ -356,22 +372,42 @@ class RobotInterface(BaseRobotInterface):
         Kqd: torch.Tensor = None,
         **kwargs,
     ) -> List[RobotState]:
-        """Uses JointGoToPolicy to move to the desired positions with the given gains."""
+        """Uses JointGoToPolicy to move to the desired positions with the given gains.
+        Args:
+            positions: Desired target joint positions.
+            time_to_go: Amount of time to execute the motion. Uses an adaptive value if not specified (see `_adaptive_time_to_go` for details).
+            delta: Whether the specified `positions` are relative to current pose or absolute.
+            Kq: Joint P gains for the tracking controller. Uses default values if not specified.
+            Kqd: Joint D gains for the tracking controller. Uses default values if not specified.
+
+        Returns:
+            Same as `send_torch_policy`
+        """
         assert (
             self.robot_model is not None
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
 
         # Parse parameters
+        joint_pos_current = self.get_joint_positions()
         joint_pos_desired = torch.Tensor(positions)
         if delta:
-            joint_pos_desired += self.get_joint_positions()
+            joint_pos_desired += joint_pos_current
+
+        time_to_go_adaptive = self._adaptive_time_to_go(
+            joint_pos_desired - joint_pos_current
+        )
+        if time_to_go is None:
+            time_to_go = time_to_go_adaptive
+        elif time_to_go < time_to_go_adaptive:
+            log.warn(
+                "The specified 'time_to_go' might not be large enough to ensure accurate movement."
+            )
 
         # Plan trajectory
-        joint_pos_current = self.get_joint_positions()
         waypoints = toco.planning.generate_joint_space_min_jerk(
             start=joint_pos_current,
             goal=joint_pos_desired,
-            time_to_go=time_to_go or self.time_to_go_default,
+            time_to_go=time_to_go,
             hz=self.hz,
         )
 
@@ -406,7 +442,18 @@ class RobotInterface(BaseRobotInterface):
         Kxd: torch.Tensor = None,
         **kwargs,
     ) -> List[RobotState]:
-        """Uses an operational space controller to move to a desired end-effector position (and, optionally orientation)."""
+        """Uses an operational space controller to move to a desired end-effector position (and, optionally orientation).
+        Args:
+            positions: Desired target end-effector position.
+            positions: Desired target end-effector orientation (quaternion).
+            time_to_go: Amount of time to execute the motion. Uses an adaptive value if not specified (see `_adaptive_time_to_go` for details).
+            delta: Whether the specified `position` and `orientation` are relative to current pose or absolute.
+            Kx: P gains for the tracking controller. Uses default values if not specified.
+            Kxd: D gains for the tracking controller. Uses default values if not specified.
+
+        Returns:
+            Same as `send_torch_policy`
+        """
         assert (
             self.robot_model is not None
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
@@ -430,17 +477,32 @@ class RobotInterface(BaseRobotInterface):
                     R.from_quat(ee_quat_desired) * R.from_quat(ee_quat_current)
                 ).as_quat()
 
-        # Plan trajectory
         ee_pose_current = T.from_rot_xyz(
             rotation=R.from_quat(ee_quat_current), translation=ee_pos_current
         )
         ee_pose_desired = T.from_rot_xyz(
             rotation=R.from_quat(ee_quat_desired), translation=ee_pos_desired
         )
+        # Roughly estimate joint diff by linearizing around current joint pose
+        joint_pos_current = self.get_joint_positions()
+        jacobian = self.robot_model.compute_jacobian(joint_pos_current)
+
+        ee_pose_diff = ee_pose_desired * ee_pose_current.inv()
+        joint_pos_diff = torch.linalg.pinv(jacobian) @ ee_pose_diff.as_twist()
+        time_to_go_adaptive = self._adaptive_time_to_go(joint_pos_diff)
+
+        if time_to_go is None:
+            time_to_go = time_to_go_adaptive
+        elif time_to_go < time_to_go_adaptive:
+            log.warn(
+                "The specified 'time_to_go' might not be large enough to ensure accurate movement."
+            )
+
+        # Plan trajectory
         waypoints = toco.planning.generate_cartesian_space_min_jerk(
             start=ee_pose_current,
             goal=ee_pose_desired,
-            time_to_go=time_to_go or self.time_to_go_default,
+            time_to_go=time_to_go,
             hz=self.hz,
         )
 

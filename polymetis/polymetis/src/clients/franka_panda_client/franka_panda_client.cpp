@@ -234,7 +234,8 @@ void FrankaTorqueControlClient::updateServerCommand(
   status_ = stub_->ControlUpdate(&context, robot_state_, &torque_command_);
   long int post_update_ns = getNanoseconds();
   if (!status_.ok()) {
-    throw std::runtime_error("ControlUpdate rpc failed.");
+    std::string error_msg = "ControlUpdate rpc failed. ";
+    throw std::runtime_error(error_msg + status_.error_message());
   }
 
   robot_state_.set_prev_controller_latency_ms(

@@ -1,18 +1,17 @@
 from fbrp import life_cycle
 from fbrp import util
-from fbrp.runtime.base import BaseLauncher, BaseRuntime
+from fbrp.cmd._common import CommonFlags
 from fbrp.process import ProcDef
-import a0
+from fbrp.runtime.base import BaseLauncher, BaseRuntime
 import aiodocker
-import argparse
 import asyncio
 import contextlib
 import docker
 import io
 import json
 import os
+import pathlib
 import pwd
-import sys
 import typing
 
 
@@ -23,20 +22,15 @@ class Launcher(BaseLauncher):
         mount: typing.List[str],
         name: str,
         proc_def: ProcDef,
-        args: argparse.Namespace,
         **kwargs,
     ):
         self.image = image
         self.mount = mount
         self.name = name
         self.proc_def = proc_def
-        self.args = args
         self.kwargs = kwargs
 
     async def run(self):
-        life_cycle.set_state(self.name, life_cycle.State.STARTING)
-        docker = aiodocker.Docker()
-
         container = f"fbrp_{self.name}"
 
         # Environmental variables.
@@ -91,16 +85,20 @@ class Launcher(BaseLauncher):
         }
         util.nested_dict_update(run_kwargs, self.kwargs)
 
+        life_cycle.set_state(self.name, life_cycle.State.STARTING)
+        docker = aiodocker.Docker()
+
         try:
             self.proc = await docker.containers.create_or_replace(container, run_kwargs)
+            await self.proc.start()
+            proc_info = await self.proc.show()
         except Exception as e:
-            life_cycle.set_state(self.name, life_cycle.State.STOPPED, return_code=-1)
+            life_cycle.set_state(
+                self.name, life_cycle.State.STOPPED, return_code=-1, error_info=str(e)
+            )
             await docker.close()
             util.fail(f"Failed to start docker process: name={self.name} reason={e}")
 
-        await self.proc.start()
-
-        proc_info = await self.proc.show()
         self.proc_pid = proc_info["State"]["Pid"]
         life_cycle.set_state(self.name, life_cycle.State.STARTED)
 
@@ -108,13 +106,18 @@ class Launcher(BaseLauncher):
             async for line in pipe:
                 logger(line)
 
-        await asyncio.gather(
-            log_pipe(util.stdout_logger(), self.proc.log(stdout=True, follow=True)),
-            log_pipe(util.stderr_logger(), self.proc.log(stderr=True, follow=True)),
-            self.log_psutil(),
-            self.death_handler(),
-            self.down_watcher(self.handle_down),
-        )
+        self.down_task = asyncio.create_task(self.down_watcher(self.handle_down))
+        try:
+            await asyncio.gather(
+                log_pipe(util.stdout_logger(), self.proc.log(stdout=True, follow=True)),
+                log_pipe(util.stderr_logger(), self.proc.log(stderr=True, follow=True)),
+                self.log_psutil(),
+                self.death_handler(),
+                self.down_task,
+            )
+        except asyncio.exceptions.CancelledError:
+            # death_handler cancelled down listener.
+            pass
         await docker.close()
 
     def get_pid(self):
@@ -127,8 +130,10 @@ class Launcher(BaseLauncher):
         )
         # TODO(lshamis): Restart policy goes here.
 
+        # Release the down listener.
+        self.down_task.cancel()
+
     async def handle_down(self):
-        life_cycle.set_state(self.name, life_cycle.State.STOPPING)
         await self.proc.stop()
         with contextlib.suppress(asyncio.TimeoutError):
             await self.proc.wait(timeout=3.0)
@@ -147,12 +152,26 @@ class Docker(BaseRuntime):
         self.build_kwargs = build_kwargs
         self.run_kwargs = run_kwargs
 
-    def _build(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
+    def asdict(self, root: pathlib.Path):
+        ret = {}
+        if self.image:
+            ret["image"] = self.image
+        if self.dockerfile:
+            ret["dockerfile"] = self.dockerfile
+        if self.mount:
+            ret["mount"] = self.mount
+        if self.build_kwargs:
+            ret["build_kwargs"] = self.build_kwargs
+        if self.run_kwargs:
+            ret["run_kwargs"] = self.run_kwargs
+        return ret
+
+    def _build(self, name: str, proc_def: ProcDef):
         docker_api = docker.from_env()
         docker_api.lowlevel = docker.APIClient()
 
         if self.dockerfile:
-            self.image = f"fbrp/netext:{util.random_string()}"
+            self.image = f"fbrp/{name}"
 
             dockerfile_path = os.path.join(
                 os.path.dirname(proc_def.rule_file), self.dockerfile
@@ -168,7 +187,7 @@ class Docker(BaseRuntime):
 
             for line in docker_api.lowlevel.build(**build_kwargs):
                 lineinfo = json.loads(line.decode())
-                if args.verbose and "stream" in lineinfo:
+                if CommonFlags.verbose and "stream" in lineinfo:
                     print(lineinfo["stream"].strip())
                 elif "errorDetail" in lineinfo:
                     util.fail(json.dumps(lineinfo["errorDetail"], indent=2))
@@ -179,7 +198,7 @@ class Docker(BaseRuntime):
                 try:
                     for line in docker_api.lowlevel.pull(self.image, stream=True):
                         lineinfo = json.loads(line.decode())
-                        if args.verbose and "status" in lineinfo:
+                        if CommonFlags.verbose and "status" in lineinfo:
                             print(lineinfo["status"].strip())
                 except docker.errors.NotFound as e:
                     util.fail(e)
@@ -246,7 +265,7 @@ class Docker(BaseRuntime):
                     "",
                 )
 
-            self.image = f"fbrp/netext:{util.random_string()}"
+            self.image = f"fbrp/{name}:netext"
 
             for line in docker_api.lowlevel.build(
                 fileobj=io.BytesIO("\n".join(dockerfile).encode("utf-8")),
@@ -258,7 +277,7 @@ class Docker(BaseRuntime):
                 },
             ):
                 lineinfo = json.loads(line.decode())
-                if args.verbose and "stream" in lineinfo:
+                if CommonFlags.verbose and "stream" in lineinfo:
                     print(lineinfo["stream"].strip())
                 elif "errorDetail" in lineinfo:
                     util.fail(json.dumps(lineinfo["errorDetail"], indent=2))
@@ -268,5 +287,5 @@ class Docker(BaseRuntime):
             for host_path, (container_path, options) in mount_map.items()
         ]
 
-    def _launcher(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
-        return Launcher(self.image, self.mount, name, proc_def, args, **self.run_kwargs)
+    def _launcher(self, name: str, proc_def: ProcDef):
+        return Launcher(self.image, self.mount, name, proc_def, **self.run_kwargs)
