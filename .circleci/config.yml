@@ -142,7 +142,7 @@ jobs:
   minecraft:
     machine:
       image: ubuntu-2004:202104-01
-    resource_class: gpu.small
+    resource_class: gpu.nvidia.small
     steps:
       - run:
           name: Install dependencies
@@ -185,7 +185,7 @@ jobs:
   locobot:
     machine:
       image: ubuntu-2004:202104-01
-    resource_class: gpu.small
+    resource_class: gpu.nvidia.small
     steps:
     - checkout
     - run:
