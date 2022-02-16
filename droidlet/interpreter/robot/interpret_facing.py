@@ -96,13 +96,11 @@ class FacingInterpreter:
                 interpreter, speaker, d["location"]
             )
             steps, reldir = interpret_relative_direction(interpreter, d["location"])
-            loc, _ = interpreter.subinterpret["specify_locations"](
-                interpreter, speaker, loc_mems, steps, reldir
-            )
+            loc, _ = interpreter.subinterpret["specify_locations"](interpreter, speaker, loc_mems, steps, reldir)
             # FIXME:  do this right!
             # this is a hack for robot bc agent position is base position,
             # and head is on mast; so if loc is based on self, add 1m to height
-            if d["location"].get("reference_object", {}).get("special_reference") == "AGENT":
+            if d["location"].get("reference_object",{}).get("special_reference") == "AGENT":
                 loc = (loc[0], loc[1] + 1.0, loc[2])
             return {"target": loc}
         else:

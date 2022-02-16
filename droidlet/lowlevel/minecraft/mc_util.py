@@ -134,6 +134,8 @@ def get_locs_from_entity(e):
     return None
 
 
+
+
 def strip_idmeta(blockobj):
     """Return a list of (x, y, z) and drop the id_meta for blockobj"""
     if blockobj is not None:

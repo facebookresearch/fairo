@@ -235,11 +235,9 @@ class MCAgentMemory(AgentMemory):
                 )
 
                 # 5.3 Update blocks in memory when any change in the environment is caused either by agent or player
-                (
-                    interesting,
-                    player_placed,
-                    agent_placed,
-                ) = perception_output.changed_block_attributes[(xyz, idm)]
+                interesting, player_placed, agent_placed = perception_output.changed_block_attributes[
+                    (xyz, idm)
+                ]
                 self.maybe_add_block_to_memory(interesting, player_placed, agent_placed, xyz, idm)
 
         """Now perform update the memory with input from heuristic perception module"""
@@ -516,7 +514,7 @@ class MCAgentMemory(AgentMemory):
         )
 
     def check_inside(self, mems):
-        """mems is a sequence of two ReferenceObjectNodes.
+        """ mems is a sequence of two ReferenceObjectNodes.
         this just wraps the heuristic perception check_inside method
         """
         return self.check_inside_perception(mems)

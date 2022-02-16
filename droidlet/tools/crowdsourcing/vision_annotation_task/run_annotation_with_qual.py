@@ -39,7 +39,6 @@ class TestScriptConfig(RunScriptConfig):
     defaults: List[Any] = field(default_factory=lambda: defaults)
     task_dir: str = TASK_DIRECTORY
 
-
 register_script_config(name="scriptconfig", module=TestScriptConfig)
 
 
@@ -47,8 +46,12 @@ register_script_config(name="scriptconfig", module=TestScriptConfig)
 def main(cfg: DictConfig) -> None:
 
     shared_state = SharedStaticTaskState(
-        qualifications=[
-            make_qualification_dict(ALLOWLIST_QUALIFICATION, QUAL_EXISTS, None),
+        qualifications = [
+            make_qualification_dict(
+                ALLOWLIST_QUALIFICATION,
+                QUAL_EXISTS,
+                None
+            ),
         ],
     )
 

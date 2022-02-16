@@ -96,7 +96,7 @@ class BotCapabilities(Say):
 
 
 class ConfirmTask(Task):
-    """Confirm that a Task should be executed
+    """Confirm that a Task should be executed 
 
     Args:
         question: the question to ask the user

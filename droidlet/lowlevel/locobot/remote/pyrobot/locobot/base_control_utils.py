@@ -5,7 +5,6 @@
 
 import numpy as np
 
-
 class LocalActionStatus:
     ACTIVE = 1
     PREEMPTED = 2

@@ -28,7 +28,9 @@ class FakeAgent(DroidletAgent):
     def init_controller(self):
         dialogue_object_classes = {}
         self.dialogue_manager = DialogueManager(
-            agent=self, dialogue_object_classes=dialogue_object_classes, opts=self.opts
+            agent=self,
+            dialogue_object_classes=dialogue_object_classes,
+            opts=self.opts
         )
 
 

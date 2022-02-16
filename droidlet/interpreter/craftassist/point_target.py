@@ -1,7 +1,6 @@
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.interpreter import interpret_relative_direction
 
-
 class PointTargetInterpreter:
     def __call__(self, interpreter, speaker, d):
         if d.get("location") is None:
@@ -22,16 +21,7 @@ class PointTargetInterpreter:
 
     def point_to_region(self, pointed_target):
         # mc pointed target is either a point (x, y, z) or a region represented as (xmin, ymin, zmin, xmax, ymax, zmax)
-        assert (
-            len(pointed_target) == 6 or len(pointed_target) == 3
-        ), "pointed target should either be (x, y, z) or (xmin, ymin, zmin, xmax, ymax, zmax)"
+        assert len(pointed_target) == 6 or len(pointed_target) == 3, "pointed target should either be (x, y, z) or (xmin, ymin, zmin, xmax, ymax, zmax)"
         if len(pointed_target) == 3:
-            pointed_target = (
-                pointed_target[0],
-                pointed_target[1],
-                pointed_target[2],
-                pointed_target[0],
-                pointed_target[1],
-                pointed_target[2],
-            )
+            pointed_target = (pointed_target[0], pointed_target[1], pointed_target[2], pointed_target[0], pointed_target[1], pointed_target[2])
         return pointed_target

@@ -14,7 +14,6 @@ import Pyro4
 from stretch_body.robot import Robot
 from colorama import Fore, Back, Style
 import stretch_body.hello_utils as hu
-
 hu.print_stretch_re_use()
 import numpy as np
 import cv2
@@ -25,27 +24,14 @@ Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
 
-
-def val_in_range(val_name, val, vmin, vmax):
-    p = val <= vmax and val >= vmin
+def val_in_range(val_name, val,vmin, vmax):
+    p=val <=vmax and val>=vmin
     if p:
-        print(Fore.GREEN + "[Pass] " + val_name + " with " + str(val))
+        print(Fore.GREEN +'[Pass] ' + val_name + ' with ' + str(val))
     else:
-        print(
-            Fore.RED
-            + "[Fail] "
-            + val_name
-            + " with "
-            + str(val)
-            + " out of range "
-            + str(vmin)
-            + " to "
-            + str(vmax)
-        )
-
+        print(Fore.RED +'[Fail] ' + val_name + ' with ' +str(val)+ ' out of range ' +str(vmin) + ' to ' + str(vmax))
 
 # #####################################################
-
 
 @Pyro4.expose
 class RemoteHelloRobot(object):
@@ -61,24 +47,18 @@ class RemoteHelloRobot(object):
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
         self._check_battery()
         self._load_urdf()
-
+    
     def _check_battery(self):
         p = self._robot.pimu
         p.pull_status()
-        val_in_range("Voltage", p.status["voltage"], vmin=p.config["low_voltage_alert"], vmax=14.0)
-        val_in_range("Current", p.status["current"], vmin=0.1, vmax=p.config["high_current_alert"])
-        val_in_range("CPU Temp", p.status["cpu_temp"], vmin=15, vmax=80)
+        val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.0)
+        val_in_range('Current',p.status['current'], vmin=0.1, vmax=p.config['high_current_alert'])
+        val_in_range('CPU Temp',p.status['cpu_temp'], vmin=15, vmax=80)
         print(Style.RESET_ALL)
-
+    
     def _load_urdf(self):
         import os
-
-        urdf_path = os.path.join(
-            os.getenv("HELLO_FLEET_PATH"),
-            os.getenv("HELLO_FLEET_ID"),
-            "exported_urdf",
-            "stretch.urdf",
-        )
+        urdf_path = os.path.join(os.getenv("HELLO_FLEET_PATH"), os.getenv("HELLO_FLEET_ID"), "exported_urdf", "stretch.urdf")
 
         from pytransform3d.urdf import UrdfTransformManager
         import pytransform3d.transformations as pt
@@ -89,16 +69,16 @@ class RemoteHelloRobot(object):
         with open(urdf_path, "r") as f:
             urdf = f.read()
             self.tm.load_urdf(urdf)
-
+        
     def get_camera_transform(self):
         s = self._robot.get_status()
-        head_pan = s["head"]["head_pan"]["pos"]
-        head_tilt = s["head"]["head_tilt"]["pos"]
+        head_pan = s['head']['head_pan']['pos']
+        head_tilt = s['head']['head_tilt']['pos']
 
         # Get Camera transform
         self.tm.set_joint("joint_head_pan", head_pan)
         self.tm.set_joint("joint_head_tilt", head_tilt)
-        camera_transform = self.tm.get_transform("camera_link", "base_link")
+        camera_transform = self.tm.get_transform('camera_link', 'base_link')
 
         return camera_transform
 
@@ -107,22 +87,22 @@ class RemoteHelloRobot(object):
 
     def get_base_state(self):
         s = self._robot.get_status()
-        return (s["base"]["x"], s["base"]["y"], s["base"]["theta"])
+        return (s['base']['x'], s['base']['y'], s['base']['theta'])
 
     def get_pan(self):
         s = self._robot.get_status()
-        return s["head"]["head_pan"]["pos"]
+        return s['head']['head_pan']['pos']
 
     def get_tilt(self):
         s = self._robot.get_status()
-        return s["head"]["head_tilt"]["pos"]
+        return s['head']['head_tilt']['pos']
 
     def set_pan(self, pan):
-        self._robot.head.move_to("head_pan", pan)
+        self._robot.head.move_to('head_pan', pan)
 
     def set_tilt(self, tilt):
-        self._robot.head.move_to("head_tilt", tilt)
-
+        self._robot.head.move_to('head_tilt', tilt)
+    
     def reset_camera(self):
         self.set_pan(0)
         self.set_tilt(0)
@@ -138,8 +118,8 @@ class RemoteHelloRobot(object):
         :type tilt: float
         :type wait: bool
         """
-        self._robot.head.move_to("head_pan", pan)
-        self._robot.head.move_to("head_tilt", tilt)
+        self._robot.head.move_to('head_pan', pan)
+        self._robot.head.move_to('head_tilt', tilt)
 
     def test_connection(self):
         print("Connected!!")  # should print on server terminal
@@ -196,7 +176,7 @@ class RemoteHelloRobot(object):
         robot.push_command()
 
     def remove_runstop(self):
-        if robot.pimu.status["runstop_event"]:
+        if robot.pimu.status['runstop_event']:
             robot.pimu.runstop_event_reset()
             robot.push_command()
 

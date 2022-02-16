@@ -43,6 +43,7 @@ register_script_config(name="scriptconfig", module=TestScriptConfig)
 
 @hydra.main(config_name="scriptconfig")
 def main(cfg: DictConfig) -> None:
+
     def onboarding_is_valid(onboarding_data):
         outputs = onboarding_data["outputs"]
         answer_str = outputs["answer"]

@@ -28,7 +28,7 @@ class EncoderDecoderWithLoss(nn.Module):
         """
         Shapes of inputs to forward:
 
-        x: [B, x_len]
+        x: [B, x_len] 
         x_mask: [B, x_len]
         y: [B, y_len, num_heads]
         y_mask: [B, y_len]

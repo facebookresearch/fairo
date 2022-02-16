@@ -35,15 +35,14 @@ def deregister_dashboard_subdomain(batch_id):
         cf_email = os.getenv("CLOUDFLARE_EMAIL")
         cf = CloudFlare.CloudFlare(email=cf_email, token=cf_token)
         dns_records = cf.zones.dns_records.get(zone_id)
-
+            
         for record in dns_records:
             print(f'{record["name"]} pattern : {batch_id}')
-            if re.match(rf"dashboard-{batch_id}-\d+.craftassist.io", record["name"]):
+            if re.match(fr"dashboard-{batch_id}-\d+.craftassist.io", record["name"]):
                 print(f"matched cf record to be deleted: {record['name']}")
                 cf.zones.dns_records.delete(zone_id, record["id"])
                 logging.debug(f'Deleted cf dns record: {record["name"]}')
                 print(f'Deleted cf dns record: {record["name"]}')
-
 
 def dedup_commands(command_list):
     """
@@ -57,7 +56,6 @@ def dedup_commands(command_list):
             cmd_set.add(command.lower())
             deduped_cmd_list.append(command)
     return deduped_cmd_list
-
 
 def examine_hit(hit_id):
     """
@@ -80,7 +78,9 @@ def examine_hit(hit_id):
         endpoint_url=MTURK_URL,
     )
 
-    worker_results = mturk.list_assignments_for_hit(HITId=hit_id, AssignmentStatuses=["Submitted"])
+    worker_results = mturk.list_assignments_for_hit(
+        HITId=hit_id, AssignmentStatuses=["Submitted"]
+    )
     print(worker_results["NumResults"])
     print(worker_results["Assignments"])
 
@@ -120,7 +120,7 @@ def delete_all_mturk_hits():
         except:
             pass
         print(f"Hit {hit_id}, status: {status}")
-
+    
 
 if __name__ == "__main__":
     # pass

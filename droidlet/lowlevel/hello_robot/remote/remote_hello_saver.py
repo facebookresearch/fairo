@@ -8,8 +8,7 @@ import Pyro4
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
-Pyro4.config.PICKLE_PROTOCOL_VERSION = 2
-
+Pyro4.config.PICKLE_PROTOCOL_VERSION=2
 
 def safe_call(f, *args, **kwargs):
     try:
@@ -22,16 +21,15 @@ def safe_call(f, *args, **kwargs):
         print("".join(Pyro4.util.getPyroTraceback()))
         raise e
 
-
 @Pyro4.expose
 class LabelPropSaver:
     def __init__(self, root, bot, cam):
         self.bot = bot
         self.cam = cam
-
+        
         self.save_folder = root
-        self.save_frequency = 1  # save every 10 frames
-        self.skip_frame_count = 0  # internal counter
+        self.save_frequency = 1 # save every 10 frames
+        self.skip_frame_count = 0 # internal counter
         self.dbg_str = "None"
         self.save_id = 0
         self._stop = False
@@ -55,7 +53,7 @@ class LabelPropSaver:
         self._stop = True
 
     def save_batch(self, seconds):
-        print("Logging data for {} seconds".format(seconds), end="", flush=True)
+        print("Logging data for {} seconds".format(seconds), end='', flush=True)
         self._stop = False
         pose_dict = {}
         self.save_id += 1
@@ -63,7 +61,7 @@ class LabelPropSaver:
         start_time = time.time()
         frame_count = 0
         end_time = seconds
-        while time.time() - start_time <= seconds:
+        while time.time() - start_time <= seconds :
             rgb, depth = safe_call(self.cam.get_rgb_depth)
             base_pos = safe_call(self.bot.get_base_state)
             cam_pan = safe_call(self.bot.get_pan)
@@ -71,27 +69,18 @@ class LabelPropSaver:
             cam_transform = safe_call(self.bot.get_camera_transform)
 
             name = "{}".format(frame_count)
-            self.save(
-                self.save_id,
-                name,
-                rgb,
-                depth,
-                base_pos,
-                cam_pan,
-                cam_tilt,
-                cam_transform,
-                pose_dict,
-            )
+            self.save(self.save_id, name, rgb, depth, base_pos, cam_pan, cam_tilt, cam_transform, pose_dict)
             frame_count += 1
-            print(".", end="", flush=True)
+            print('.', end='', flush=True)
             if self._stop:
                 end_time = time.time() - start_time
-                print("pre-emptively stopped after {} seconds", round(end_time, 1))
+                print('pre-emptively stopped after {} seconds', round(end_time, 1))
                 break
-        print(" {} frames at {} fps".format(frame_count, round(float(frame_count) / end_time, 1)))
+        print(' {} frames at {} fps'.format(frame_count, round(float(frame_count) / end_time, 1)))
 
     def ready(self):
         return True
+            
 
     def save(self, id_, name, rgb, depth, pos, cam_pan, cam_tilt, cam_transform, pose_dict):
         img_folder, img_folder_dbg, depth_folder, data_file = self.return_paths(id_)
@@ -104,7 +93,7 @@ class LabelPropSaver:
                 rgb,
             )
 
-            cv2.putText(rgb, self.dbg_str, (40, 40), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255))
+            cv2.putText(rgb, self.dbg_str, (40,40), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
 
             cv2.imwrite(
                 img_folder_dbg + "/{}.jpg".format(name),
@@ -117,18 +106,18 @@ class LabelPropSaver:
             # saturate maximum depth to 65,535mm or 65.53cm
             max_depth = np.power(2, 16) - 1
             depth[depth > max_depth] = max_depth
-
+            
             depth = depth.astype(np.uint16)
             np.save(depth_folder + "/{}.npy".format(name), depth)
 
             # store pos
             if pos is not None:
                 pose_dict[name] = {
-                    "base_xyt": pos,
-                    "cam_pan_tilt": [cam_pan, cam_tilt],
-                    "cam_transform": cam_transform.tolist(),
-                }
-
+                    'base_xyt': pos,
+                    'cam_pan_tilt': [cam_pan, cam_tilt],
+                    'cam_transform': cam_transform.tolist(),
+                    }
+            
             with open(data_file, "w") as fp:
                 json.dump(pose_dict, fp)
 
@@ -151,7 +140,7 @@ if __name__ == "__main__":
     with Pyro4.Daemon(args.ip) as daemon:
         bot = Pyro4.Proxy("PYRONAME:hello_robot@" + args.ip)
         cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + args.ip)
-        data_logger = LabelPropSaver("hello_data_log_" + str(time.time()), bot, cam)
+        data_logger = LabelPropSaver('hello_data_log_' + str(time.time()), bot, cam)
         data_logger_uri = daemon.register(data_logger)
         with Pyro4.locateNS() as ns:
             ns.register("hello_data_logger", data_logger_uri)

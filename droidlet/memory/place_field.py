@@ -11,7 +11,7 @@ BIG_J = MAX_MAP_SIZE
 
 
 def no_y_l1(self, xyz, k):
-    """returns the l1 distance between two standard coordinates"""
+    """ returns the l1 distance between two standard coordinates"""
     return np.linalg.norm(np.asarray([xyz[0], xyz[2]]) - np.asarray([k[0], k[2]]), ord=1)
 
 
@@ -24,16 +24,16 @@ def no_y_l1(self, xyz, k):
 
 class PlaceField:
     """
-    maintains a grid-based map of some slice(s) of the world, and
+    maintains a grid-based map of some slice(s) of the world, and 
     the state representations needed to track active exploration.
 
-    the .place_fields attribute is a dict with keys corresponding to heights,
+    the .place_fields attribute is a dict with keys corresponding to heights, 
     and values {"map": 2d numpy array, "updated": 2d numpy array, "memids": 2d numpy array}
     place_fields[h]["map"] is an occupany map at the the height h (in agent coordinates)
-                           a location is 0 if there is nothing there or it is unseen, 1 if occupied
-    place_fields[h]["memids"] gives a memid index for the ReferenceObject at that location,
+                           a location is 0 if there is nothing there or it is unseen, 1 if occupied  
+    place_fields[h]["memids"] gives a memid index for the ReferenceObject at that location, 
                               if there is a ReferenceObject linked to that spatial location.
-                              the PlaceField keeps a mappping from the indices to memids in
+                              the PlaceField keeps a mappping from the indices to memids in 
                               self.index2memid and self.memid2index
     place_fields[h]["updated"] gives the last update time of that location (in agent's internal time)
                                if -1, it has neer been updated
@@ -41,12 +41,12 @@ class PlaceField:
     the .map2real method converts a location from a map to world coords
     the .real2map method converts a location from the world to the map coords
 
-    droidlet.interpreter.robot.tasks.CuriousExplore uses the can_examine method to decide
+    droidlet.interpreter.robot.tasks.CuriousExplore uses the can_examine method to decide 
     which objects to explore next:
     1. for each new candidate coordinate, it fetches the closest examined coordinate.
-    2. if this closest coordinate is within a certain threshold (1 meter) of the current coordinate,
+    2. if this closest coordinate is within a certain threshold (1 meter) of the current coordinate, 
     or if that region has been explored upto a certain number of times (2, for redundancy),
-    it is not explored, since a 'close-enough' region in space has already been explored.
+    it is not explored, since a 'close-enough' region in space has already been explored. 
     """
 
     def __init__(self, memory, pixels_per_unit=1):
@@ -108,7 +108,7 @@ class PlaceField:
 
     def delete_loc_by_memid(self, memid, t, is_move=False):
         """
-        remove all locs corresponding to a memid.
+        remove all locs corresponding to a memid.  
         if is_move is set, asserts that there is precisely one loc
         corresponding to the memid
         """
@@ -130,15 +130,15 @@ class PlaceField:
 
     def update_map(self, changes):
         """
-        changes is a list of dicts of the form
+        changes is a list of dicts of the form 
         {"pos": (x, y, z),
         "memid": str (default "NULL"),
         "is_obstacle": bool (default True),
         "is_move": bool (default False),
         "is_delete": bool (default False) }
-        pos is required if is_delete is False.
+        pos is required if is_delete is False. 
         all other fields are always optional.
-
+        
         "is_obstacle" tells whether the agent can traverse that location
         if "is_move" is False, the change is taken as is; if "is_move" is True, if the
             change corresponds to a memid, and the memid is located somewhere on the map,
@@ -148,7 +148,7 @@ class PlaceField:
             new now-filled locations
         "is_delete" True without a memid means whatever is in that location is to be removed.
             if a memid is set, the remove will occur only if the memid matches.
-
+        
         the "is_obstacle" status can be changed without changing memid etc.
         """
         t = self.get_time()
@@ -219,7 +219,7 @@ class PlaceField:
         return x, z
 
     def maybe_add_memid(self, memid):
-        """
+        """ 
         adds an entry to the mapping from memids to ints to put on map.
         these are never removed
         """

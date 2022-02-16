@@ -1,7 +1,7 @@
 import abc
 
-
 class MoverInterface(abc.ABC):
+
     @abc.abstractmethod
     def bot_step(self):
         pass

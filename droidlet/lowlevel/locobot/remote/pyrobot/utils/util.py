@@ -5,11 +5,9 @@
 
 import sys
 import numpy as np
-
 # import rospy
 # import tf
 from ..habitat import transformations as tf_transformations
-
 # import geometry_msgs.msg
 # from geometry_msgs.msg import PoseStamped, Pose
 
@@ -57,7 +55,9 @@ def list_to_pose(pose_list):
         pose_msg.position.x = pose_list[0]
         pose_msg.position.y = pose_list[1]
         pose_msg.position.z = pose_list[2]
-        q = tf_transformations.quaternion_from_euler(pose_list[3], pose_list[4], pose_list[5])
+        q = tf_transformations.quaternion_from_euler(
+            pose_list[3], pose_list[4], pose_list[5]
+        )
         pose_msg.orientation.x = q[0]
         pose_msg.orientation.y = q[1]
         pose_msg.orientation.z = q[2]
@@ -82,11 +82,14 @@ def get_tf_transform(tf_listener, tgt_frame, src_frame):
     :rtype: tuple (of floats)
     """
     try:
-        tf_listener.waitForTransform(tgt_frame, src_frame, rospy.Time(0), rospy.Duration(3))
+        tf_listener.waitForTransform(
+            tgt_frame, src_frame, rospy.Time(0), rospy.Duration(3)
+        )
         (trans, quat) = tf_listener.lookupTransform(tgt_frame, src_frame, rospy.Time(0))
     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
         raise RuntimeError(
-            "Cannot fetch the transform from" " {0:s} to {1:s}".format(tgt_frame, src_frame)
+            "Cannot fetch the transform from"
+            " {0:s} to {1:s}".format(tgt_frame, src_frame)
         )
     return trans, quat
 
@@ -115,7 +118,9 @@ def euler_to_quat(euler):
     :return: quaternion [x, y, z, w] (shape: :math:`[4,]`)
     :rtype: numpy.ndarray
     """
-    return tf_transformations.quaternion_from_euler(euler[0], euler[1], euler[2], axes="rzyx")
+    return tf_transformations.quaternion_from_euler(
+        euler[0], euler[1], euler[2], axes="rzyx"
+    )
 
 
 def rot_mat_to_quat(rot):
@@ -187,28 +192,42 @@ def pix_to_3dpt(depth_im, rs, cs, intrinsic_mat, depth_map_factor, reduce=None, 
     elif reduce == "mean":
         depth_im = np.array(
             [
-                np.mean(depth_im[max(i - k, 0) : min(i + k, R), max(j - k, 0) : min(j + k, C)])
+                np.mean(
+                    depth_im[
+                        max(i - k, 0) : min(i + k, R), max(j - k, 0) : min(j + k, C)
+                    ]
+                )
                 for i, j in zip(rs, cs)
             ]
         )
     elif reduce == "max":
         depth_im = np.array(
             [
-                np.max(depth_im[max(i - k, 0) : min(i + k, R), max(j - k, 0) : min(j + k, C)])
+                np.max(
+                    depth_im[
+                        max(i - k, 0) : min(i + k, R), max(j - k, 0) : min(j + k, C)
+                    ]
+                )
                 for i, j in zip(rs, cs)
             ]
         )
     elif reduce == "min":
         depth_im = np.array(
             [
-                np.min(depth_im[max(i - k, 0) : min(i + k, R), max(j - k, 0) : min(j + k, C)])
+                np.min(
+                    depth_im[
+                        max(i - k, 0) : min(i + k, R), max(j - k, 0) : min(j + k, C)
+                    ]
+                )
                 for i, j in zip(rs, cs)
             ]
         )
     else:
         raise ValueError(
             "Invalid reduce name provided, only the following"
-            " are currently available: [{}, {}, {}, {}]".format("none", "mean", "max", "min")
+            " are currently available: [{}, {}, {}, {}]".format(
+                "none", "mean", "max", "min"
+            )
         )
 
     depth = depth_im.reshape(-1) / depth_map_factor
@@ -221,3 +240,5 @@ def pix_to_3dpt(depth_im, rs, cs, intrinsic_mat, depth_map_factor, reduce=None, 
     pts_in_cam = np.multiply(uv_one_in_cam, depth)
     pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
     return pts_in_cam
+
+

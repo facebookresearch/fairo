@@ -41,7 +41,8 @@ class BaseSwarmTask(Task):
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def distribute(self, task_data):
-        """divide task to swarm workers"""
+        """divide task to swarm workers
+        """
         raise NotImplementedError
 
 

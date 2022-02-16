@@ -74,8 +74,8 @@ def maybe_handle_specific_mem(interpreter, speaker, filters_d, val_map):
 def interpret_where_clause(
     interpreter, speaker, where_d, memory_type="ReferenceObject", ignore_self=False
 ):
-    """
-    where_d is a sentence (nested dict/list) of the recursive form
+    """ 
+    where_d is a sentence (nested dict/list) of the recursive form 
     COMPARATOR, TRIPLE, or {CONJUNCTION, [where_clauses]}
     where each CONJUCTION is either "AND", "OR", or "NOT"
     """

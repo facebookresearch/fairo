@@ -3,7 +3,7 @@ import os
 import Pyro4
 import Pyro4.errors
 
-f = open(os.devnull, "w")
+f = open(os.devnull, 'w')
 sys.stdout = f
 sys.stderr = f
 

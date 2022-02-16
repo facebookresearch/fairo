@@ -187,11 +187,11 @@ class MCInterpreter(Interpreter):
         return maybe_task_list_to_control_block(tasks, agent), None, None
 
     def get_block_task_data(self, speaker, schematic_info, d):
-        """
+        """ 
         takes schematic_info returned e.g. from interpret_schematic
         and the location logical form
         and returns task data for a list of build or dig tasks
-
+        
         """
         # Get the locations to build
         location_d = d.get("location", SPEAKERLOOK)

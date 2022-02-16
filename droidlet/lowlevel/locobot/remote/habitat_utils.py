@@ -79,7 +79,7 @@ def reconfigure_scene(env, scene_path, add_humans):
         # make the objects STATIC so that collisions work
         for obj in [id_male, id_female]:
             sim.set_object_motion_type(habitat_sim.physics.MotionType.STATIC, obj)
-
+    
     navmesh_settings = habitat_sim.NavMeshSettings()
     navmesh_settings.set_defaults()
     sim.recompute_navmesh(sim.pathfinder, navmesh_settings, include_static_objects=True)
