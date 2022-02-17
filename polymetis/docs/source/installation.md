@@ -27,7 +27,7 @@
 1. Clone repo:
     ```bash
     git clone git@github.com:facebookresearch/fairo
-    cd droidlet/polymetis
+    cd fairo/polymetis
     ```
 
 1. Create environment
