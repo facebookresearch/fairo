@@ -133,6 +133,25 @@ target_link_libraries(empty_statistics_client
     spdlog::spdlog
 )
 
+if(BUILD_ALLEGRO)
+  # Add Allegro Hand client
+  find_library(PCANBASIC_LIB pcanbasic REQUIRED)
+
+  add_executable(allegro_hand_client
+          src/clients/allegro_hand_client/allegro_hand_client.cpp
+          src/clients/allegro_hand_client/allegro_hand.cpp
+          src/clients/allegro_hand_client/event_watcher.cpp
+          src/clients/allegro_hand_client/pcan_interface.cpp
+          src/clients/allegro_hand_client/utility.hpp)
+
+  target_link_libraries(allegro_hand_client
+          generated_grpc_protos
+          ${PCANBASIC_LIB}
+          yaml-cpp
+          spdlog::spdlog
+          )
+endif()
+
 if(BUILD_FRANKA)
   if(NOT DEFINED Franka_DIR)
     set(Franka_DIR "src/clients/franka_panda_client/third_party/libfranka/build")
