@@ -344,6 +344,35 @@ jobs:
           name: Run PyTest
           command: pytest ./fbrp
 
+  fairotag:
+    docker:
+      - image: continuumio/miniconda3
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "perception/fairotag/environment.yml" }}
+      - run:
+          name: Setup env
+          command: |
+            apt-get update
+            apt-get install -y build-essential libgl1-mesa-dev
+            [ -d ~/testenv ] || conda env create -f perception/fairotag/environment.yml -p ~/testenv
+      - save_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "perception/fairotag/environment.yml" }}
+          paths:
+            - "~/testenv"
+            - "/usr/lib"
+      - run:
+          name: Run tests
+          command: |
+            conda init bash
+            source ~/.bashrc
+            conda activate ~/testenv
+            cd perception/fairotag
+            pip install -e .
+            pytest
+
 workflows:
   build:
     jobs:
@@ -355,3 +384,4 @@ workflows:
       - polymetis-conda-ubuntu-20
       - polymetis-formatting
       - fbrp
+      - fairotag
