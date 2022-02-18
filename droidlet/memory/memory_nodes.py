@@ -567,6 +567,20 @@ class PlayerNode(ReferenceObjectNode):
     def get_struct(self):
         return to_player_struct(self.pos, self.yaw, self.pitch, self.eid, self.name)
 
+    # TODO consolidate anything using eid
+    @classmethod
+    def get_player_by_eid(cls, agent_memory, eid) -> Optional["PlayerNode"]:
+        """Given eid, retrieve PlayerNode
+
+        Args:
+            eid (int): Entity ID
+        """
+        r = agent_memory._db_read_one("SELECT uuid FROM ReferenceObjects WHERE eid=?", eid)
+        if r:
+            return PlayerNode(agent_memory, r[0])
+        else:
+            return None
+
 
 class SelfNode(PlayerNode):
     """This class is a special PLayerNode for representing the

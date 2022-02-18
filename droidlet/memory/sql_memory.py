@@ -652,19 +652,6 @@ et        """
     ###  Players  ###
     #################
 
-    # TODO consolidate anything using eid
-    def get_player_by_eid(self, eid) -> Optional["PlayerNode"]:
-        """Given eid, retrieve PlayerNode
-
-        Args:
-            eid (int): Entity ID
-        """
-        r = self._db_read_one("SELECT uuid FROM ReferenceObjects WHERE eid=?", eid)
-        if r:
-            return PlayerNode(self, r[0])
-        else:
-            return None
-
     # TODO get all if there are more than one?
     def get_player_by_name(self, name) -> Optional["PlayerNode"]:
         """Given player name, retrieve PlayerNode
