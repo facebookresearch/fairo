@@ -10,8 +10,7 @@
 #include <experimental/optional>
 
 namespace std {
-    template <typename C>
-    using optional = std::experimental::optional<C>;
+template <typename C> using optional = std::experimental::optional<C>;
 }
 
 #endif

@@ -12,7 +12,6 @@
 #include "pcan_interface.hpp"
 
 #include "allegro_hand.hpp"
-#include "./optional.hpp"
 #include "utility.hpp"
 
 #define ALLEGRO_MSG_ID_SERVO_ON 0x40u

@@ -9,18 +9,19 @@
 #include "PCANBasic.h"
 
 class PcanInterface {
- public:
-    explicit PcanInterface(TPCANHandle bus_id);
-    PcanInterface(PcanInterface &&pcan);
-    PcanInterface& operator=(PcanInterface &&rhs) = delete;
-    ~PcanInterface();
+public:
+  explicit PcanInterface(TPCANHandle bus_id);
+  PcanInterface(PcanInterface &&pcan);
+  PcanInterface &operator=(PcanInterface &&rhs) = delete;
+  ~PcanInterface();
 
-    bool readPcan(TPCANMsg *msg);
-    bool writePcan(const TPCANMsg &msg);
+  bool readPcan(TPCANMsg *msg);
+  bool writePcan(const TPCANMsg &msg);
 
-    static void printError(TPCANStatus status);
-    static void printMsg(const TPCANMsg &msg, const TPCANTimestamp &timestamp);
- private:
-    bool initialized_ {false};
-    const TPCANHandle bus_id_;
+  static void printError(TPCANStatus status);
+  static void printMsg(const TPCANMsg &msg, const TPCANTimestamp &timestamp);
+
+private:
+  bool initialized_{false};
+  const TPCANHandle bus_id_;
 };

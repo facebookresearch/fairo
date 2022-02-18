@@ -24,8 +24,8 @@ struct AllegroHandState;
 
 class AllegroHandTorqueControlClient {
 private:
-    void updateServerCommand(const AllegroHandState &robot_state,
-                             std::array<double, NUM_DOFS> &torque_out);
+  void updateServerCommand(const AllegroHandState &robot_state,
+                           std::array<double, NUM_DOFS> &torque_out);
 
   // gRPC
   std::unique_ptr<PolymetisControllerServer::Stub> stub_;
@@ -39,12 +39,14 @@ private:
   bool mock_allegro_;
   bool readonly_mode_;
 
-  std::array<double, NUM_DOFS> torque_commanded_, torque_safety_, torque_applied_;
+  std::array<double, NUM_DOFS> torque_commanded_, torque_safety_,
+      torque_applied_;
+
 public:
   /**
   TODO
   */
   AllegroHandTorqueControlClient(std::shared_ptr<grpc::Channel> channel,
-                            YAML::Node config);
+                                 YAML::Node config);
   void run();
 };
