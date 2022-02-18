@@ -668,6 +668,48 @@ MOVE_COMMANDS = {
             }
         ],
     },
+    "go to the iron rectanguloid": {
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {
+                        "text_span": "iron rectanguloid",
+                        "filters": {
+                            "where_clause": {
+                                "AND": [
+                                    {"pred_text": "has_tag", "obj_text": "rectanguloid"},
+                                    {"pred_text": "has_tag", "obj_text": "iron"},
+                                ]
+                            }
+                        },
+                    }
+                },
+            }
+        ],
+    },
+    "go to the gold rectanguloid": {
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {
+                        "text_span": "gold rectanguloid",
+                        "filters": {
+                            "where_clause": {
+                                "AND": [
+                                    {"pred_text": "has_tag", "obj_text": "rectanguloid"},
+                                    {"pred_text": "has_tag", "obj_text": "gold"},
+                                ]
+                            }
+                        },
+                    }
+                },
+            }
+        ],
+    },
     "move here": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
         "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["move_speaker_pos"]],

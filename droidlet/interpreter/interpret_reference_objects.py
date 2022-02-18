@@ -110,8 +110,8 @@ def maybe_get_text_span_mems(interpreter, speaker, lf):
     if not text_span:
         text_span = "NULL"
     query = "SELECT MEMORY FROM ReferenceObject WHERE "
-    query += "<< ?, has_description, {} >>".format(text_span)
-    _, mems = interpreter.memory.basic_search(query + " ORDER BY updated DESC")
+    query += "<< ?, has_description, {} >>".format(lf.get("text_span", "NULL"))
+    _, mems = interpreter.memory.basic_search(query + " ORDER BY updated_time LIMIT 1 DESC")
     if len(mems) > 0:
         mems = [mems[0]]
     return mems
