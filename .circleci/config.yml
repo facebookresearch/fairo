@@ -5,7 +5,7 @@ commands:
       project_name:
         type: string
       relative_path:
-        type:string
+        type: string
     steps:
       - run:
           name: Copy to tmp directory
