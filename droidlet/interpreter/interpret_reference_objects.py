@@ -149,8 +149,10 @@ def interpret_reference_object(
         else:
             logging.error("bad coref_resolve -> {}".format(mem))
 
-    clarification_query = "SELECT MEMORY FROM Task WHERE reference_object_confirmation=#={}".format(
-        interpreter.memid
+    clarification_query = (
+        "SELECT MEMORY FROM Task WHERE reference_object_confirmation=#={}".format(
+            interpreter.memid
+        )
     )
     _, clarification_task_mems = interpreter.memory.basic_search(clarification_query)
     # does a clarification task referencing this interpreter exist?

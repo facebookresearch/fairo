@@ -87,7 +87,7 @@ class ObjectDeduplicator(AbstractHandler):
                         "Similarity {}.{} = {}, {}".format(
                             current_object.label, previous_object.label, score.item(), dist
                         )
-                )
+                    )
                 # FIXME pick best match?
                 if self.is_match(score.item(), dist):
                     is_novel = False

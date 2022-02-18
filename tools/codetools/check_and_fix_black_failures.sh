@@ -10,20 +10,22 @@ cd "${0%/*}"/../..
 
 echo '==== Black ====='
 
-CHECK_FILES="droidlet"
+CHECK_DIRECTORIES="droidlet polymetis"
+for CHECK_DIR in $CHECK_DIRECTORIES
+do
+  black $CHECK_DIR
 
-black $CHECK_FILES
-
-if [[ $1 == "--ci" ]]; then
-  if [ -n "$(git status --porcelain)" ]; then
-    git config user.name >/dev/null || git config --global user.name "Yuxuan Sun"
-    git config user.email >/dev/null || git config --global user.email "yuxuans@fb.com"
-    git add $CHECK_FILES && git commit -m "[skip ci] Automatic style fix" && git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)
-    echo "Auto fix style."
-  else
-    echo "Style is perfect. No need to fix."
+  if [[ $1 == "--ci" ]]; then
+    if [ -n "$(git status --porcelain)" ]; then
+      git config user.name >/dev/null || git config --global user.name "bot"
+      git config user.email >/dev/null || git config --global user.email "bot@fb.com"
+      git add $CHECK_DIR && git commit -m "[skip ci] Automatic style fix for $CHECK_DIR" && git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)
+      echo "Auto fix style."
+    else
+      echo "Style is perfect. No need to fix."
+    fi
   fi
-fi
+done
 
 echo
 echo

@@ -8,16 +8,18 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.ping_cuberite import
 
 
 class CuberiteBasicTest(unittest.TestCase):
-
     def test_create_workdir(self):
         # diverse_world
         plugins = ["debug", "chatlog", "point_blocks"]
-        workdir = create_workdir(config_name="flat_world",
-                                 seed=0, game_mode="creative",
-                                 port=25565,
-                                 plugins=plugins,
-                                 place_blocks_yzx=None,
-                                 workdir_root=None)
+        workdir = create_workdir(
+            config_name="flat_world",
+            seed=0,
+            game_mode="creative",
+            port=25565,
+            plugins=plugins,
+            place_blocks_yzx=None,
+            workdir_root=None,
+        )
         self.assertIsNotNone(workdir)
         self.assertIn("tmp", workdir)
         self.assertIn("cuberite", workdir)
@@ -29,11 +31,8 @@ class CuberiteBasicTest(unittest.TestCase):
     def test_launch_cuberite_process(self):
         plugins = ["debug", "chatlog", "point_blocks"]
         p = CuberiteProcess(
-            config_name="flat_world",
-            seed=0,
-            game_mode="creative",
-            port=25565,
-            plugins=plugins)
+            config_name="flat_world", seed=0, game_mode="creative", port=25565, plugins=plugins
+        )
         try:
             ping("localhost", 25565)
             print("Successfully pinged an existing cuberite instance.")
@@ -43,5 +42,6 @@ class CuberiteBasicTest(unittest.TestCase):
         # Assert that ping raises an exception.
         self.assertRaises(ConnectionRefusedError, ping, **{"host": "localhost", "port": 25565})
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -61,7 +61,7 @@ class InterpreterBase:
 class Interpreter(InterpreterBase):
     """
     | This class takes a logical form from the semantic parser that specifies a
-    | (world affecting) action for the agent 
+    | (world affecting) action for the agent
     | and the world state (from the agent's memory),
     | and uses these to intialize tasks to run
     | Most of the logic of the interpreter is run in the subinterpreters and task handlers.

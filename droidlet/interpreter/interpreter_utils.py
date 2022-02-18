@@ -36,7 +36,7 @@ def strip_prefix(s, pre):
 # their exact place in the logical form
 def update_attended_and_link_lf(interpreter, mems):
     """
-    for each mem in mems (a list of MemoryNodes), updates its attended time to now, 
+    for each mem in mems (a list of MemoryNodes), updates its attended time to now,
     and links it to the interpreters logical form (if it has one).
     """
     interpreter.memory.update_recent_entities(mems)
