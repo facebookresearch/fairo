@@ -8,7 +8,7 @@ FBRP relays process stdout/stderr through AlephZero topics, allowing us to build
 
 To launch all the processes, we run the same command as before:
 ```sh
-python fsetup.py -v up
+fbrp -v up
 ```
 
 Now open your browser to `file:///path/to/fbrp/examples/03_api/stdout.html`
@@ -19,5 +19,5 @@ You should see the print/log statements from `alice` and `bob`.
 
 Finally, to stop all processes:
 ```sh
-python fsetup.py down
+fbrp down
 ```
