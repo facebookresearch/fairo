@@ -2,7 +2,12 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
+import torch
 from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
+
+RADIUSX = 6
+RADIUSY = 5
+RADIUSZ = 6
 
 
 class DetectionWrapper:
@@ -13,32 +18,43 @@ class DetectionWrapper:
         model_path (str): path to the segmentation model
     """
 
-    def __init__(self, agent, model_path):
-        self.agent = agent
-        if model_path is not None:
-            logging.info("Using detection_model_path={}".format(model_path))
-            # TODO: Yuxuan to add detection model wrapper / querier here
-            self.detection_model = None  # DetectionModelWrapper(model_path, text_span)
+    def __init__(self, model=None, threshold=0.5, radius=(RADIUSX, RADIUSY, RADIUSZ)):
+        if type(model) is str or type(model) is dict:
+            self.model = load_torch_detector(model)
         else:
-            self.detection_model = None
+            self.model = model
+        self.threshold = threshold
+        self.radius = radius
 
-    def perceive(self, ref_obj_text_span=None):
+    def perceive(self, blocks, text_spans=[], offset=(0, 0, 0)):
         """
         Run the detection classifier and get the resulting voxel predictions
 
         Args:
-            text_span (str): text span of a reference object from logical form. This is
-            used to detect a specific reference object.
+            text_spans (list[str]): list of text spans of reference objects from logical form. This is
+                             used to detect a specific reference object.
+            blocks: WxHxWx2 numpy array
+                    corresponding to x, y, z, bid, meta
+            offset: (x, y, z) offsets.  these will be _added_ back to the locations
+                    of each instance segmentation block
 
         """
-        if ref_obj_text_span is None:
-            return CraftAssistPerceptionData()
-        if self.detection_model is None:
-            return CraftAssistPerceptionData()
-        voxel_predictions = self.detection_model.parse(ref_obj_text_span)
-        if not voxel_predictions:
-            return CraftAssistPerceptionData()
-        # TODO: write a method to parse through voxels and check if they pass a threshold
-        updated_voxel_predictions = voxel_predictions
-        # TODO: check if voxels pass a certain threshold, if not return blank
-        return CraftAssistPerceptionData(detected_voxels=updated_voxel_predictions)
+        out = CraftAssistPerceptionData()
+        if not text_spans:
+            return out
+        if self.model is None:
+            return out
+        # masks should be a list of HxWxW torch arrays with values between 0 and 1
+        masks = self.model(text_spans, blocks)
+        for i in range(len(text_spans)):
+            t = text_spans[i]
+            mask = masks[i]
+            seg = torch.nonzero(mask > self.threshold).tolist()
+            out.labeled_blocks[t] = [
+                (l[0] + offset[0], l[1] + offset[1], l[2] + offset[2]) for l in seg
+            ]
+        return out
+
+
+def load_torch_detector(model_data):
+    raise NotImplementedError

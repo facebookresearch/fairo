@@ -8,6 +8,7 @@ import signal
 import random
 import sentry_sdk
 import time
+import numpy as np
 from multiprocessing import set_start_method
 from collections import namedtuple
 
@@ -225,7 +226,7 @@ class CraftAssistAgent(DroidletAgent):
         # TODO: fetch text_span here ?
         if self.opts.detection_model_path and os.path.isfile(self.opts.detection_model_path):
             self.perception_modules["detection_model"] = DetectionWrapper(
-                agent=self, model_path=self.opts.detection_model_path
+                model=self.opts.detection_model_path
             )
 
     def init_controller(self):
@@ -248,6 +249,14 @@ class CraftAssistAgent(DroidletAgent):
             opts=self.opts,
             low_level_interpreter_data=low_level_interpreter_data,
         )
+
+    def run_voxel_model(self, model, spans):
+        rx, ry, rz = model.radius
+        x, y, z = self.pos
+        yzxb = self.get_blocks(x - rx, x + rx, y - ry, y + ry, z - rz, z + rz)
+        blocks = np.ascontiguousarray(yzxb.transpose([2, 0, 1, 3]))
+        model_out = model.perceive(blocks, text_spans=spans, offset=(x - rx, y - ry, z - rz))
+        return model_out
 
     def perceive(self, force=False):
         """Whenever something is changed, that area is be put into a
@@ -273,29 +282,11 @@ class CraftAssistAgent(DroidletAgent):
             # perceive from heuristic perception module
             heuristic_perception_output = self.perception_modules["heuristic"].perceive()
             self.memory.update(heuristic_perception_output)
-        # 4. If detection model is initialized and text_span for reference object exists in 
+        # 4. If detection model is initialized and text_span for reference object exists in
         # logical form, call perceive().
         if "detection_model" in self.perception_modules and ref_obj_spans:
-            # FIXME . notation for triple walk
-            chat_memids, _ = self.memory.basic_search(
-                "SELECT MEMORIES FROM Chat WHERE has_tag=uninterpreted"
-            )
-            if chat_memids:
-                # should only be one, assert?
-                lf_memids, lfs = self.memory.basic_search(
-                    "SELECT MEMORIES FROM Program WHERE <<{}, has_logical_form, ?>>".format(
-                        chat_memids[0]
-                    )
-                )
-                if lfs:
-                    # should only be one, assert?
-                    # NOTE: I have commented this for now, returning from super.perceive(), if that 
-                    # design doesn't look okay, we can revert that and use this instead.
-                    # textsSpans = self.memory.nodes["Program"].get_refobj_text_spans(lfs[0])
-                    model_out = self.perception_modules["detection_model"].perceive(
-                        text_form=ref_obj_spans
-                    )
-                    self.memory.update(model_out)
+            model = self.perception_modules["detection_model"]
+            self.memory.update(self.run_voxel_model(model, ref_obj_spans))
         self.update_dashboard_world()
 
     def get_time(self):
