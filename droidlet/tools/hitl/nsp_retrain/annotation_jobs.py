@@ -17,7 +17,7 @@ HITL_TMP_DIR = (
     os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
 )
 ANNOTATION_JOB_POLL_TIME = 30
-ANNOTATION_PROCESS_TIMEOUT_DEFAULT = 360
+ANNOTATION_PROCESS_TIMEOUT_DEFAULT = 600
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
 
@@ -91,18 +91,18 @@ class AnnotationJob(DataGenerator):
                 os.killpg(os.getpgid(p.pid), signal.SIGKILL)
 
             logging.info(
-                f"Uploading annotated data {self._batch_id}/annotated/{self._cmd_id}_all_combined.txt to S3..."
+                f"Uploading annotated data {self._batch_id}/annotated/{self._cmd_id}_final_dict_postprocessed.txt to S3..."
             )
             # upload annotated commands to S3
-            combined_fname = f"{HITL_TMP_DIR}/{self._batch_id}/{self._cmd_id}/all_combined.txt"
+            combined_fname = f"{HITL_TMP_DIR}/{self._batch_id}/{self._cmd_id}/final_dict_postprocessed.txt"
             with open(combined_fname, "rb") as f:
                 s3.upload_fileobj(
                     f,
                     f"{S3_BUCKET_NAME}",
-                    f"{self._batch_id}/annotated/{self._cmd_id}_all_combined.txt",
+                    f"{self._batch_id}/annotated/{self._cmd_id}_final_dict_postprocessed.txt",
                 )
             logging.info(
-                f"Uploading completed: {self._batch_id}/annotated/{self._cmd_id}_all_combined.txt"
+                f"Uploading completed: {self._batch_id}/annotated/{self._cmd_id}_final_dict_postprocessed.txt"
             )
         except:
             logging.info(

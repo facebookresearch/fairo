@@ -34,7 +34,8 @@ HITL_TMP_DIR = (
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
 NSP_OUTPUT_FNAME = "error_details"
-ANNOTATED_COMMANDS_FNAME = "nsp_data.txt"
+# ANNOTATED_COMMANDS_FNAME = "nsp_data_v1.txt"
+ANNOTATED_COMMANDS_FNAME = "kavya_anno_1.txt"
 
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
@@ -76,7 +77,7 @@ class InteractionJob(DataGenerator):
         self._image_tag = image_tag
         self._task_name = task_name
         self.instance_ids = None
-        self._batch_id = 20211115024843#generate_batch_id()
+        self._batch_id = generate_batch_id()
 
     def run(self) -> None:
         batch_id = self._batch_id
@@ -183,34 +184,34 @@ class InteractionLogListener(JobListener):
 
         # Keep checking if there is any new command uploaded to S3. Once found,
         # create an annotation job for the command and register the job to the runner
-        while not self.check_is_finished():
-            try:
-                s3.Object(f"{S3_BUCKET_NAME}", f"{batch_id}/commands_ready").load()
-                s3.Object(f"{S3_BUCKET_NAME}", f"{batch_id}/collected_commands").load()
-            except botocore.exceptions.ClientError as e:
-                logging.info(
-                    f"[Interaction Log Listener] No new data for {batch_id} ... Remaining time: {self.get_remaining_time()}"
-                )
-            else:
-                response = s3.Object(f"{S3_BUCKET_NAME}", f"{batch_id}/collected_commands").get()
-                commands = response["Body"].read().decode("utf-8").split("\n")
-                cmd_id = 0
-                cmd_list = dedup_commands(commands)
-                for cmd in cmd_list:
-                    logging.info(
-                        f"Pushing Annotation Job [{batch_id}-{cmd_id}-{cmd}] to runner..."
-                    )
-                    annotation_job = AnnotationJob(
-                        batch_id, cmd, cmd_id, self.get_remaining_time()
-                    )
-                    runner.register_data_generators([annotation_job])
-                    cmd_id += 1
+        # while not self.check_is_finished():
+        #     try:
+        #         s3.Object(f"{S3_BUCKET_NAME}", f"{batch_id}/commands_ready").load()
+        #         s3.Object(f"{S3_BUCKET_NAME}", f"{batch_id}/collected_commands").load()
+        #     except botocore.exceptions.ClientError as e:
+        #         logging.info(
+        #             f"[Interaction Log Listener] No new data for {batch_id} ... Remaining time: {self.get_remaining_time()}"
+        #         )
+        #     else:
+        #         response = s3.Object(f"{S3_BUCKET_NAME}", f"{batch_id}/collected_commands").get()
+        #         commands = response["Body"].read().decode("utf-8").split("\n")
+        #         cmd_id = 0
+        #         cmd_list = dedup_commands(commands)
+        #         for cmd in cmd_list:
+        #             logging.info(
+        #                 f"Pushing Annotation Job [{batch_id}-{cmd_id}-{cmd}] to runner..."
+        #             )
+        #             annotation_job = AnnotationJob(
+        #                 batch_id, cmd, cmd_id, self.get_remaining_time()
+        #             )
+        #             runner.register_data_generators([annotation_job])
+        #             cmd_id += 1
 
-                s3.Object(f"{S3_BUCKET_NAME}", f"{batch_id}/commands_ready").delete()
+        #         s3.Object(f"{S3_BUCKET_NAME}", f"{batch_id}/commands_ready").delete()
 
-            if self.check_is_timeout():
-                self.set_finished()
-            time.sleep(INTERACTION_LISTENER_POLL_TIME)
+        #     if self.check_is_timeout():
+        #         self.set_finished()
+        #     time.sleep(INTERACTION_LISTENER_POLL_TIME)
 
         logging.info(f"[Interaction Log Listener] Finished, collate and upload data to S3")
         # Finally, consolidate all annotated data and upload to s3
@@ -220,7 +221,7 @@ class InteractionLogListener(JobListener):
         for obj in bucket.objects.filter(Prefix=f"{batch_id}/"):
             try:
                 fname = obj.key
-                if "_all_combined.txt" in fname:
+                if "_final_dict_postprocessed.txt" in fname:
                     response = s3.Object(f"{S3_BUCKET_NAME}", f"{fname}").get()
                     annotated_pairs.append(
                         response["Body"].read().decode("utf-8").split("\n")[0].split("\t")
@@ -253,15 +254,19 @@ class InteractionLogListener(JobListener):
             idx_list = []
             annotated_pairs_with_idx = copy.deepcopy(prev_annotated_pairs_with_idx)
             for annotated_pair in annotated_pairs:
-                cmd = annotated_pair[0].lower().strip()
-                if cmd in cmd_set:
-                    logging.info(f"Annotated command '{cmd}' is already in the dataset, so discard it.")
-                    continue
-                annotated_pairs_with_idx.append([str(idx), annotated_pair[0], annotated_pair[1]])
-                idx_list.append(str(idx))
-                idx += 1
+                try:
+                    cmd = annotated_pair[0].lower().strip()
+                    if cmd in cmd_set:
+                        logging.info(f"Annotated command '{cmd}' is already in the dataset, so discard it.")
+                        continue
+                    annotated_pairs_with_idx.append([str(idx), annotated_pair[0], annotated_pair[1]])
+                    idx_list.append(str(idx))
+                    idx += 1
+                except:
+                    logging.info(f"Something went wrong while adding this pair: {annotated_pair}")
             return annotated_pairs_with_idx, idx_list
 
+        
         annotated_pairs_with_idx, idx_list = collate_datasets(prev_annotated_pairs_with_idx, annotated_pairs)
         logging.info(f"Original dataset size: {len(prev_annotated_pairs_with_idx)} | Added commands / Annotated commands: {len(idx_list)} / {len(annotated_pairs)}")
 

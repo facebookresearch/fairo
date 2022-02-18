@@ -624,7 +624,9 @@ if __name__ == "__main__":
     else:
         logging.info("====== Making Grammar ======")
         build_grammar(args)
+    args.tree_voc_file = "/checkpoint/yuxuans/nsp/tree_vocs/caip_test_model_tree_v1_9347.json"
     with open(args.tree_voc_file) as fd:
+        print(f"Loading pre defined tree voc file: /checkpoint/yuxuans/nsp/tree_vocs/caip_test_model_tree_v1_9347.json")
         full_tree, tree_i2w = json.load(fd)
 
     logging.info("====== Setting up Model ======")

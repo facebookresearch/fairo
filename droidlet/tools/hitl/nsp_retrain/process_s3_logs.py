@@ -88,6 +88,9 @@ def read_turk_logs(turk_output_directory, filename):
 
     # Drop duplicates
     all_turk_interactions.drop_duplicates()
+    # all_turk_interactions = all_turk_interactions.loc[all_turk_interactions["parser_error"] == True]
+    print(all_turk_interactions)
+    # print(all_turk_interactions.loc[all_turk_interactions["parser_error"] == True])
     # print(all_turk_interactions.head())
     # print(all_turk_interactions.shape)
 
@@ -118,8 +121,8 @@ if __name__ == "__main__":
 
     # read_s3_bucket("/private/home/yuxuans/.tmp/turk_logs", "/private/home/yuxuans/.tmp/parsed")
     NSP_OUTPUT_FNAME = "nsp_outputs"
-    print('-------NSP---------')
-    read_turk_logs("/private/home/yuxuans/.tmp/parsed", NSP_OUTPUT_FNAME)
+    # print('-------NSP---------')
+    # read_turk_logs("/private/home/yuxuans/.tmp/parsed", NSP_OUTPUT_FNAME)
     print('-------error---------')
     NSP_OUTPUT_FNAME = "error_details"
-    read_turk_logs("/private/home/yuxuans/.tmp/parsed", NSP_OUTPUT_FNAME)
+    read_turk_logs("/private/home/yuxuans/.hitl/20211228220209/parsed_turk_logs", NSP_OUTPUT_FNAME)

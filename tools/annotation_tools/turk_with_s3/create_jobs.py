@@ -99,7 +99,7 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
                     Keywords="text, categorization, quick",
                     Reward="0.3",
                     MaxAssignments=1,
-                    LifetimeInSeconds=21600,
+                    LifetimeInSeconds=24400,
                     AssignmentDurationInSeconds=600,
                     AutoApprovalDelayInSeconds=14400,
                     Question=curr_question
@@ -111,7 +111,7 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
                     Keywords="text, categorization, quick",
                     Reward="0.3",
                     MaxAssignments=1,
-                    LifetimeInSeconds=21600,
+                    LifetimeInSeconds=24400,
                     AssignmentDurationInSeconds=600,
                     AutoApprovalDelayInSeconds=13400,
                     Question=curr_question,

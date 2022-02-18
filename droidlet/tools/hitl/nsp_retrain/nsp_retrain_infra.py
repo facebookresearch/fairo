@@ -381,6 +381,7 @@ from subprocess import Popen, PIPE, TimeoutExpired
 import boto3
 from datetime import datetime
 import torch
+import random
 
 from typing import List
 
@@ -402,7 +403,7 @@ logger.addHandler(sh)
 LISTENER_SLEEP_TIME = 10  # Seconds to wait before listener looks for new data
 NSP_RETRAIN_TIMEOUT = 18000  # Wait a max of 5h for the NSP retraining script to finish
 MODEL_OUTPUT_POLL_TIME = 60  # Seconds to wait between looking for model output logs
-NUM_MODEL_OUTPUT_POLLS = 500  # Number of times to poll model output files before assuming finished
+NUM_MODEL_OUTPUT_POLLS = 300  # Number of times to poll model output files before assuming finished
 
 s3 = boto3.client('s3')
 
@@ -410,13 +411,20 @@ NUM_TRAINING_RUNS = 6
 MODEL_NAME = "best_model.pth"
 MODEL_INFO_NAME = "best_model_info.txt"
 
+NSP_DATA_FNAME = "nsp_data_v1_9275.txt"
+SPLIT_MASK_FNAME = "split_masks_8997.pth"
+
 
 class NSPRetrainingJob(DataGenerator):
-    def __init__(self, batch_id, opts):
+    def __init__(self, batch_id, opts, nsp_data_fname=None, split_mask_fname=None, random_seed=None, idx=None):
         super(NSPRetrainingJob, self).__init__()
         self.batch_id = batch_id
         self.opts = opts
         self.exec_training_run = True
+        self.nsp_data_fname = nsp_data_fname
+        self.split_mask_fname = split_mask_fname
+        self.random_seed = random_seed if random_seed is not None else batch_id
+        self.idx = idx
 
 
     def max_and_argmax(self,l):
@@ -425,6 +433,7 @@ class NSPRetrainingJob(DataGenerator):
 
 
     def get_accs(self):
+        logging.info(f"[NSP Retrain] Getting accs...")
         accs = {}
         logs = [l for l in os.listdir() if l[-4:] == ".log"]
         if len(logs) < NUM_TRAINING_RUNS:  # Wait until all logs have appeared, takes ~30 min from first to last
@@ -442,6 +451,7 @@ class NSPRetrainingJob(DataGenerator):
 
 
     def copy_best_model(self,accs):
+        logging.info(f"[NSP Retrain] Copying best model...")
         macc = 0.0
         mname = ""
         midx = 0
@@ -464,9 +474,9 @@ class NSPRetrainingJob(DataGenerator):
         base_data_dir = os.path.join(opts.droidlet_dir, opts.full_data_dir)
         download_dir = os.path.join(base_data_dir, batch_id) # Currently downloads data to a new dir each time
         os.makedirs(download_dir, exist_ok=True)
-        data_filepath = download_dir + '/nsp_data.txt'
+        data_filepath = download_dir + '/' + self.nsp_data_fname#NSP_DATA_FNAME
         try:
-            s3.download_file('droidlet-hitl', 'nsp_data.txt', data_filepath)  # Will overwrite file if exists
+            s3.download_file('droidlet-hitl', self.nsp_data_fname, data_filepath)  # Will overwrite file if exists
         except:
             logging.info(f"Exception raised on S3 data file download")
             self.set_finished(True)
@@ -510,6 +520,17 @@ class NSPRetrainingJob(DataGenerator):
             raise
         logging.info(f"Meta.txt download completed successfully")
 
+        exclude_ids_filepath = batch_config_dir + '/exclude_ids.txt'
+        download_key = 'exclude_ids.txt'
+        logging.info(f"Download key: {download_key}")
+        try:
+            s3.download_file('droidlet-hitl', download_key, exclude_ids_filepath)  # Will overwrite file if exists
+        except:
+            logging.info(f"Exception raised on S3 exclude_ids.txt file download")
+            self.set_finished(True)
+            raise
+        logging.info(f"exclude_ids.txt download completed successfully")
+
         # Copy in sweep config file so mask and config file are in one place
         og_sweep_config = os.path.join(opts.sweep_config_folder, 'sweep_config.txt')
         batch_sweep_config = os.path.join(batch_config_dir, 'sweep_config.txt')
@@ -520,8 +541,13 @@ class NSPRetrainingJob(DataGenerator):
         with open(meta_filepath, "r") as metafile:
             for line in metafile:
                 new_data_indices.append(int(line))
-        new_data_rows = len(new_data_indices)
+        # Pull indices from action_type_answer.txt to know which lines of data file should be excluded for train and valid
+        exculde_indices = []
+        # with open(exclude_ids_filepath, "r") as exclude_ids_file:
+        #     for line in exclude_ids_file:
+        #         exculde_indices.append(int(line))
 
+        new_data_rows = len(new_data_indices)
         if (new_data_rows < opts.new_data_training_threshold):
             logging.warning(f"Not enough new data to trigger a training run, one will not be performed")
             self.exec_training_run = False
@@ -529,48 +555,60 @@ class NSPRetrainingJob(DataGenerator):
 
         # Create train, valid, and test masks based on user input
         total_rows = sum(1 for line in open(data_filepath))
+        exclude_mask = [True if idx in exculde_indices else False for idx in range(total_rows)]
         logging.info(f"Model training data masks are being generated:")
-        if  not opts.resample:
-            logging.info(f"Model will be trained with old+new training data, valid/test are static old data (not resampled)")
-
-            # Lengthen valid and test masks to be the length of all data
-            old_mask_filepath = os.path.join(opts.sweep_config_folder, 'split_masks.pth')
-            old_masks = torch.load(old_mask_filepath)['annotated']
-            valid_mask = [x for x in old_masks['valid']]
-            valid_mask.extend([False] * (total_rows - len(valid_mask)))
-            test_mask = [x for x in old_masks['test']]
-            test_mask.extend([False] * (total_rows - len(test_mask)))
-            train_mask = [False if valid_mask[i] or test_mask[i] else True for i in range(total_rows)]  # Rest of the data are train
+        
+        if self.split_mask_fname is not None:
+            old_mask_filepath = self.split_mask_fname
         else:
-            logging.info(f"Model train/valid/test data will be resampled from combined old+new dataset in 80/10/10 split")
+            old_mask_filepath = os.path.join(opts.sweep_config_folder, SPLIT_MASK_FNAME)
+        old_masks_tensor = torch.load(old_mask_filepath)['annotated']
+        old_masks = {'train': old_masks_tensor['train'].tolist(), 'valid': old_masks_tensor['valid'].tolist(), 'test': old_masks_tensor['test'].tolist()}
 
-            # Generate random splits and populate masks
-            mask_designation = ['test'] * int(total_rows * 0.1)
-            mask_designation.extend(['valid'] * int(total_rows * 0.1))
-            mask_designation.extend(['train'] * (total_rows - len(mask_designation)))
-            random.shuffle(mask_designation)
-            train_mask = [True if x == 'train' else False for x in mask_designation]
-            valid_mask = [True if x == 'valid' else False for x in mask_designation]
-            test_mask = [True if x == 'test' else False for x in mask_designation]
+        # Set random seed for reproducability and shuffle new mask splits
+        # Splits are hard coded as 80% training, 10% validation, 10% test for consistency
+        random.seed(batch_id)
+        new_masks = (['test'] * int(new_data_rows * 0.1)) + (['valid'] * int(new_data_rows * 0.1))
+        new_masks.extend(['train'] * (new_data_rows - len(new_masks)))
+        random.shuffle(new_masks)
+        # Prepend False for old data
+        new_masks[:0] = [False] * (total_rows - new_data_rows)
 
-        perc_new = (new_data_rows / total_rows)*100
-        perc_train = sum(1 for i in train_mask if i)*100 / total_rows
-        perc_valid = sum(1 for i in valid_mask if i)*100 / total_rows
-        perc_test = sum(1 for i in test_mask if i)*100 / total_rows
-        logging.info(f"Percent of data that is new: {perc_new:.2f}%")
-        logging.info(f"Percent of data used for training: {perc_train:.2f}%")
-        logging.info(f"Percent of data used for validation: {perc_valid:.2f}%")
-        logging.info(f"Percent of data used for testing: {perc_test:.2f}%")
+        all_masks = {'old_masks': old_masks, 'new_masks': {}, 'both_masks': {}}
+        split_keys = ['train', 'valid', 'test']
+        for mask_type in split_keys:
+            # Old masks are static, just extend to be the length of the total dataset
+            all_masks['old_masks'][mask_type].extend([False] * (total_rows - len(old_masks[mask_type])))
+            # Split the shuffled new splits into three boolean masks
+            all_masks['new_masks'][mask_type] = [True if x == mask_type else False for x in new_masks]
+            # Combine old and new masks for each split and store
+            all_masks['both_masks'][mask_type] = [True if all_masks['old_masks'][mask_type][i] or all_masks['new_masks'][mask_type][i] else False for i in range(len(new_masks))]
 
-        #reformat as dict with the appropriate keys and save
-        train_mask = torch.Tensor(train_mask).bool()
-        valid_mask = torch.Tensor(valid_mask).bool()
-        test_mask = torch.Tensor(test_mask).bool()
-        mask_dict = {'annotated': {'train': train_mask, 'valid': valid_mask, 'test': test_mask}}
-        logging.info(f"Mask dictionary: {mask_dict}")
-        mask_filepath = batch_config_dir + '/split_masks.pth'
-        torch.save(mask_dict, mask_filepath)
 
+        # Mix and match old and new data based on user input and convert to a tensor
+        final_masks = {}
+        mask_config_keys = ['old_masks', 'new_masks', 'both_masks']
+        for i in range(len(opts.retrain_data_splits)):
+            final_masks[split_keys[i]] = torch.Tensor(all_masks[mask_config_keys[opts.retrain_data_splits[i]]][split_keys[i]]).bool()
+
+        # Report summary stats
+        logging.info(f"Percent of data that is new: {((new_data_rows / total_rows)*100):.2f}%")
+        logging.info(f"Percent of data used for training: {(sum(1 for i in final_masks['train'] if i)*100 / total_rows):.2f}%")
+        logging.info(f"Percent of data used for validation: {(sum(1 for i in final_masks['valid'] if i)*100 / total_rows):.2f}%")
+        logging.info(f"Percent of data used for testing: {(sum(1 for i in final_masks['test'] if i)*100 / total_rows):.2f}%")
+
+        # Save locally and upload to S3
+        mask_filepath = os.path.join(batch_config_dir, "split_masks.pth")
+        torch.save({'annotated': final_masks}, mask_filepath)
+        if self.idx is not None:
+            saved_path = f"/checkpoint/yuxuans/nsp/sweeps/scripts/configs/auto_sweep_configs/config_{self.idx}/split_masks_{total_rows}.pth"
+            torch.save({'annotated': final_masks}, saved_path)
+
+        upload_key = batch_id + f"/split_masks/{opts.retrain_data_splits[0]}_{opts.retrain_data_splits[1]}_{opts.retrain_data_splits[2]}/split_masks.pth" 
+        response = s3.upload_file(mask_filepath, 'droidlet-hitl', upload_key)
+        if response: logging.info("S3 response: " + response)
+
+        print(f"batch config dir: {batch_config_dir}")
         return batch_config_dir
 
 
@@ -613,6 +651,8 @@ class NSPRetrainingJob(DataGenerator):
             raise FileNotFoundError("checkpoint_dir not found or arg not pathlike")
         if (opts.new_data_training_threshold < 0):
             raise ValueError("new_data_training_threshold must be >= 0")
+        if (len(opts.retrain_data_splits) != 3):
+            raise TypeError("retrain_data_splits takes exactly three arguments")
 
         batch_id = str(self.batch_id)
         download_dir, config_dir = self.download_data(opts, batch_id)
@@ -622,9 +662,10 @@ class NSPRetrainingJob(DataGenerator):
             self.set_finished(True)
             return
 
+
         # Setup sweep_runner args
         full_data_dir = download_dir[len(opts.droidlet_dir):]  # Need to slice off the base droidlet filepath b/c sweep_runner adds it back
-        sweep_name = batch_id + '_resampled' if opts.resample else batch_id + "_notresampled"
+        sweep_name = batch_id + '_mask_opts_' + str(opts.retrain_data_splits[0]) + '_' + str(opts.retrain_data_splits[1]) + '_' + str(opts.retrain_data_splits[2])
         sweep_args = "python3 " + \
             os.path.join(opts.sweep_runner_dir, "sweep_runner.py") + \
             " --sweep_config_folder " + config_dir + \
@@ -698,11 +739,16 @@ class NSPRetrainingJob(DataGenerator):
 
 
 class NSPNewDataListener(JobListener):
-    def __init__(self, batch_id, opts):
+    def __init__(self, batch_id, opts, nsp_data_fname=None, split_mask_fname=None, random_seed=None, idx=None):
         super(NSPNewDataListener, self).__init__()
         self.batch_id = batch_id
         self.new_data_found = False
         self.opts = opts
+        self.nsp_data_fname = nsp_data_fname
+        self.split_mask_fname = split_mask_fname
+        self.random_seed = random_seed
+        self.idx = idx
+
 
     def run(self, runner):
         logging.info(f"NSP New Data Listener running")
@@ -726,7 +772,7 @@ class NSPNewDataListener(JobListener):
                 logging.info(f"NSP Listener has found new data")
 
                 # Initialize retraining job
-                nsp_rt = NSPRetrainingJob(batch_id=self.batch_id, opts=self.opts)
+                nsp_rt = NSPRetrainingJob(batch_id=self.batch_id, opts=self.opts, nsp_data_fname=self.nsp_data_fname, split_mask_fname=self.split_mask_fname, random_seed=self.random_seed, idx=self.idx)
                 runner.register_data_generators([nsp_rt])
 
                 logging.info(f"NSP data gen job registered, listener return")
@@ -743,7 +789,7 @@ if __name__ == "__main__":
     parser.add_argument("--sweep_scripts_output_dir", default="/checkpoint/yuxuans/nsp/sweeps/scripts/", type=str, help="Absolute location for sweep shell scripts")
     parser.add_argument("--output_dir", default="/checkpoint/yuxuans/nsp/sweeps/job_output/", type=str, help="Absolute location for sweep job outputs")
     parser.add_argument("--checkpoint_dir", default="/checkpoint/yuxuans/nsp/", type=str, help="Absolute location of NSP checkpoint folder")
-    parser.add_argument("--resample", default=False, action="store_true", help="Include to resample entire dataset into new train/valid/test splits, abstain to retrain against old valid/test")
+    parser.add_argument("--retrain_data_splits", type=int, nargs='+', choices=[0,1,2], help="Three int args in the order 'train valid test' where 0=old data only, 1=new data only, 2=all data. Eg. '--retrain_data_splits 2 1 1'")
     parser.add_argument("--new_data_training_threshold", default=100, type=int, help="Number of new data samples below which no training occurs")
     opts = parser.parse_args()
     

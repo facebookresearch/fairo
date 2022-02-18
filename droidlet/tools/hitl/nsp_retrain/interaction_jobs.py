@@ -216,7 +216,7 @@ class InteractionLogListener(JobListener):
         for obj in bucket.objects.filter(Prefix=f"{batch_id}/"):
             try:
                 fname = obj.key
-                if "_all_combined.txt" in fname:
+                if "_final_dict_postprocessed.txt" in fname:
                     response = s3.Object(f"{S3_BUCKET_NAME}", f"{fname}").get()
                     annotated_pairs.append(
                         response["Body"].read().decode("utf-8").split("\n")[0].split("\t")
