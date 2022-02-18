@@ -1,0 +1,14 @@
+#@package _global_
+mephisto:
+  blueprint:
+    data_csv: ${task_dir}/data.csv
+    task_source: ${task_dir}/server_files/hitl_pilot.html
+    preview_source: ${task_dir}/server_files/hitl_pilot_preview.html
+    extra_source_dir: ${task_dir}/server_files/extra_refs
+    units_per_assignment: 1
+  task:
+    task_title: "Craftassist Task"
+    task_description: "Interact with an assistant in a 3-D world creative game."
+    task_reward: 2.0
+    task_tags: "static,task,testing"
+    task_name: "hitl-pilot"
