@@ -350,7 +350,9 @@ class MCAgentMemory(AgentMemory):
         """Update the memory with labeled blocks from SubComponent classifier"""
         if perception_output.labeled_blocks:
             for label, locations in perception_output.labeled_blocks.items():
-                InstSegNode.create(self, locations, [label])
+                memid = InstSegNode.create(self, locations, [label])
+                # FIXME more general labeled_blocks format, allowing for different triples etc
+                self.add_triple(subj=memid, pred_text="has_description", obj_text=label)
 
         """Update the memory with holes"""
         if perception_output.holes:

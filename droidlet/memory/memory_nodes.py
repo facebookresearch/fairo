@@ -201,22 +201,22 @@ class ProgramNode(MemoryNode):
                     self.rehydrate(d)
 
     @classmethod
-    def get_refobj_text_spans(cls, lf, refobj_spans=[]):
+    def get_refobj_text_spans(cls, lf):
         """
         recursively extracts all reference object text spans into a list
         """
-        for logical_form in lf:
-            for k, v in logical_form.items():
-                if k == "reference_object":
-                    text_span = v.get("text_span")
-                    if text_span is not None:
-                        ref_obj_spans.append(text_span)
-                else:
-                    if type(v) is dict:
-                        refobj_spans.extend(cls.get_refobj_text_spans(v))
-                    elif type(v) is list:
-                        for d in v:
-                            refobj_spans.extend(cls.get_refobj_text_spans(v))
+        refobj_spans = []
+        for k, v in lf.items():
+            if k == "reference_object":
+                text_span = v.get("text_span")
+                if text_span is not None:
+                    refobj_spans.append(text_span)
+            else:
+                if type(v) is dict:
+                    refobj_spans.extend(cls.get_refobj_text_spans(v))
+                elif type(v) is list:
+                    for d in v:
+                        refobj_spans.extend(cls.get_refobj_text_spans(d))
         return refobj_spans
 
 
