@@ -94,7 +94,7 @@ class InteractionJob(DataGenerator):
         MEPHISTO_REQUESTER = os.environ["MEPHISTO_REQUESTER"]
         p = subprocess.Popen(
             [
-                    f"echo -ne '\n' |  AWS_ACCESS_KEY_ID='{MEPHISTO_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MEPHISTO_AWS_SECRET_ACCESS_KEY}' python ../../../../tools/crowdsourcing/droidlet_static_html_task/static_run_with_qual.py mephisto.provider.requester_name={MEPHISTO_REQUESTER}"
+                    f"echo -ne '\n' |  AWS_ACCESS_KEY_ID='{MEPHISTO_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MEPHISTO_AWS_SECRET_ACCESS_KEY}' python ../../../../tools/crowdsourcing/droidlet_static_html_task/static_run_with_qual.py mephisto/architect=ec2 mephisto.architect.profile_name=mephisto-router-iam mephisto.provider.requester_name={MEPHISTO_REQUESTER}"
                 ],
             #     f"echo -ne '\n' |  AWS_ACCESS_KEY_ID='{MEPHISTO_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MEPHISTO_AWS_SECRET_ACCESS_KEY}' python ../../../../tools/crowdsourcing/droidlet_static_html_task/static_run_with_qual.py mephisto/architect=local"
             # ],
