@@ -260,7 +260,7 @@ class BasicTest(unittest.TestCase):
         self.memory.tag(ann_memid, "swimmer")
 
         # Test get_player_by_eid
-        assert self.memory.get_player_by_eid(10).name == "joey"
+        assert self.memory.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self.memory, 10).name == "joey"
 
         # Test get_player_by_name
         assert self.memory.get_player_by_name("joey").eid == 10
