@@ -1,5 +1,20 @@
 version: 2.1
 commands:
+  persist_docs:
+    parameters:
+      project_name:
+        type: string
+      relative_path:
+        type:string
+    steps:
+      - run:
+          name: Copy to tmp directory
+          command: |
+            mkdir -p /tmp/workspace/docs/<<parameters.project_name>>/
+            cp -r ./<<parameters.relative_path>>/* /tmp/workspace/docs/<<parameters.project_name>>/
+      - persist_to_workspace:
+          root: /tmp/workspace/
+          paths: docs/<<parameters.project_name>>/
   polymetis_tests:
     steps:
       - run:
@@ -63,15 +78,11 @@ commands:
             cd ./polymetis/docs/
             make html
 
-            # copy to persist to workspace
-            mkdir -p /tmp/workspace/docs/polymetis/
-            cp -r ./_build/html/* /tmp/workspace/docs/polymetis/
-
             # tar to save as artifact
             tar -cvf html.tar ./_build/html
-      - persist_to_workspace:
-          root: /tmp/workspace/
-          paths: docs/polymetis
+      - persist_docs:
+          project_name: polymetis
+          relative_path: polymetis/docs/_build/html
       - store_artifacts:
           path: ./polymetis/docs/html.tar
           destination: autogen_docs
@@ -174,11 +185,9 @@ jobs:
           name: Generate documentation
           command: |
             docker run -v $PWD:/shared -w /shared --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && cd droidlet/docs && python3 -m pip install -r requirements.txt && make html"
-            mkdir -p /tmp/workspace/docs/droidlet/
-            cp -r ./droidlet/docs/build/html/* /tmp/workspace/docs/droidlet/
-      - persist_to_workspace:
-          root: /tmp/workspace/
-          paths: docs/droidlet
+      - persist_docs:
+          project_name: droidlet
+          relative_path: droidlet/docs/build/html
 
   locobot:
     machine:
