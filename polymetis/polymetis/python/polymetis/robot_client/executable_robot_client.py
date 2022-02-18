@@ -66,6 +66,8 @@ class ExecutableRobotClient(AbstractRobotClient):
 
                 # Find path to executable
                 path_to_exec = which(self.executable_cfg.exec)
+                log.warn("Executing " + path_to_exec)
+
                 assert path_to_exec, f"Unable to find binary {self.executable_cfg.exec}"
 
                 # Add sudo if realtime; also, inherit $PATH variable

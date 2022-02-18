@@ -13,11 +13,11 @@
 void PcanInterface::printError(TPCANStatus status) {
     char err_msg[256];
     CAN_GetErrorText(status, 0, err_msg);
-    spdlog::error("CAN Bus Error: %s", err_msg);
+    spdlog::error("CAN Bus Error: {}", err_msg);
 }
 
 void PcanInterface::printMsg(const TPCANMsg& msg, const TPCANTimestamp& timestamp) {
-    spdlog::info("%12u:%06u ID:%x TYPE:%x",
+    spdlog::info("{12u}:{06u} ID:{x} TYPE:{x}",
            timestamp.millis, timestamp.micros, msg.ID>>2, msg.MSGTYPE);
 }
 
@@ -52,7 +52,7 @@ bool PcanInterface::readPcan(TPCANMsg *msg) {
 bool PcanInterface::writePcan(const TPCANMsg& msg) {
     TPCANStatus status;
     if (msg.LEN > 8) {
-        spdlog::error("Bad MSG Len: tried to write a message with length %d (max data len is 8 bytes).", msg.LEN);
+        spdlog::error("Bad MSG Len: tried to write a message with length {} (max data len is 8 bytes).", msg.LEN);
         return false;
     }
 

@@ -40,15 +40,6 @@ private:
   bool readonly_mode_;
 
   std::array<double, NUM_DOFS> torque_commanded_, torque_safety_, torque_applied_;
-  double k_joint_pos_, k_joint_vel_;
-
-  // limits
-  bool limits_exceeded_;
-  std::string error_str_;
-
-  std::array<double, NUM_DOFS> joint_pos_ulimits_, joint_pos_llimits_,
-      joint_vel_limits_, joint_torques_limits_;
-
 public:
   /**
   TODO

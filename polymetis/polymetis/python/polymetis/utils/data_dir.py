@@ -31,13 +31,18 @@ def which(program: str):
     """
 
     def is_exe(fpath):
+        print("Checking: " + fpath)
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    print("Looking for: " + program)
 
     fpath, _fname = os.path.split(program)
     if fpath:
         if is_exe(program):
+            print("Found it!")
             return program
     else:
+        print(fpath + " didn't work, looking elsewhere..." + os.environ["PATH"])
         for path in os.environ["PATH"].split(os.pathsep):
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):

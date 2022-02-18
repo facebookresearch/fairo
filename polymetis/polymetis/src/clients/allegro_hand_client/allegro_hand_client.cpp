@@ -25,9 +25,9 @@ struct AllegroHandState {
     std::array<double, kNDofs> q, dq;
 };
 
-AllegroHandTorqueControlClient::AllegroHandTorqueControlClient(std::shared_ptr<grpc::Channel> channel,
-                                                               YAML::Node config) {
-    std::string robot_client_metadata_path =
+AllegroHandTorqueControlClient::AllegroHandTorqueControlClient(
+        std::shared_ptr<grpc::Channel> channel, YAML::Node config)
+        : stub_(PolymetisControllerServer::NewStub(channel)) { std::string robot_client_metadata_path =
             config["robot_client_metadata_path"].as<std::string>();
 
     // Load robot client metadata
@@ -88,40 +88,31 @@ AllegroHandTorqueControlClient::AllegroHandTorqueControlClient(std::shared_ptr<g
         robot_state_.add_motor_torques_measured(0.0);
         robot_state_.add_motor_torques_external(0.0);
     }
-
-    // Parse yaml
-    joint_pos_ulimits_ =
-            config["limits"]["joint_pos_upper"].as<std::array<double, NUM_DOFS>>();
-    joint_pos_llimits_ =
-            config["limits"]["joint_pos_lower"].as<std::array<double, NUM_DOFS>>();
-    joint_vel_limits_ =
-            config["limits"]["joint_vel"].as<std::array<double, NUM_DOFS>>();
-    joint_torques_limits_ =
-            config["limits"]["joint_torques"].as<std::array<double, NUM_DOFS>>();
-
-    k_joint_pos_ =
-            config["safety_controller"]["stiffness"]["joint_pos"].as<double>();
-    k_joint_vel_ =
-            config["safety_controller"]["stiffness"]["joint_vel"].as<double>();
 }
 
 void AllegroHandTorqueControlClient::run() {
     // Run robot
     bool is_robot_operational = true;
+    allegro_hand_ptr_->setServoEnable(true);
+    allegro_hand_ptr_->requestStatus();
     while (is_robot_operational) {
         try {
             AllegroHandState robot_state;
+            while(!allegro_hand_ptr_->allStatesUpdated()) {
+                allegro_hand_ptr_->poll();
+            }
+            allegro_hand_ptr_->resetStateUpdateTracker();
 
             std::copy_n(allegro_hand_ptr_->getPositions(), kNDofs, robot_state.q.begin());
 
+            for(int i=0; i < robot_state.dq.size(); i++) {
+                robot_state.dq[i] = 0;
+            }
             // Compute torque components
             updateServerCommand(robot_state, torque_commanded_);
 
-            // Record final applied torques
-            for (int i = 0; i < NUM_DOFS; i++) {
-                robot_state_.set_prev_joint_torques_computed_safened(i,
-                                                                     torque_applied_[i]);
-            }
+            allegro_hand_ptr_->setTorques(torque_commanded_.begin());
+
         } catch (const std::exception &ex) {
             spdlog::error("Robot is unable to be controlled: {}", ex.what());
             is_robot_operational = false;
@@ -129,36 +120,6 @@ void AllegroHandTorqueControlClient::run() {
     }
 }
 
-void *rt_main(void *cfg_ptr) {
-    YAML::Node &config = *(static_cast<YAML::Node *>(cfg_ptr));
-
-    // Launch adapter
-    std::string control_address = config["control_ip"].as<std::string>() + ":" +
-                                  config["control_port"].as<std::string>();
-    AllegroHandTorqueControlClient allegro_hand_client(
-            grpc::CreateChannel(control_address, grpc::InsecureChannelCredentials()),
-            config);
-    allegro_hand_client.run();
-
-    return NULL;
-}
-
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        spdlog::error("Usage: allegro_hand_client /path/to/cfg.yaml");
-        return 1;
-    }
-    YAML::Node config = YAML::LoadFile(argv[1]);
-    void *config_void_ptr = static_cast<void *>(&config);
-
-    // Launch thread
-    create_real_time_thread(rt_main, config_void_ptr);
-
-    // Termination
-    spdlog::info("Wait for shutdown; press CTRL+C to close.");
-
-    return 0;
-}
 
 void AllegroHandTorqueControlClient::updateServerCommand(
         /*
@@ -193,4 +154,35 @@ void AllegroHandTorqueControlClient::updateServerCommand(
         robot_state_.set_prev_joint_torques_computed(
                 i, torque_command_.joint_torques(i));
     }
+}
+
+void *rt_main(void *cfg_ptr) {
+    YAML::Node &config = *(static_cast<YAML::Node *>(cfg_ptr));
+
+    // Launch adapter
+    std::string control_address = config["control_ip"].as<std::string>() + ":" +
+                                  config["control_port"].as<std::string>();
+    AllegroHandTorqueControlClient allegro_hand_client(
+            grpc::CreateChannel(control_address, grpc::InsecureChannelCredentials()),
+            config);
+    allegro_hand_client.run();
+
+    return NULL;
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        spdlog::error("Usage: allegro_hand_client /path/to/cfg.yaml");
+        return 1;
+    }
+    YAML::Node config = YAML::LoadFile(argv[1]);
+    void *config_void_ptr = static_cast<void *>(&config);
+
+    // Launch thread
+    create_real_time_thread(rt_main, config_void_ptr);
+
+    // Termination
+    spdlog::info("Wait for shutdown; press CTRL+C to close.");
+
+    return 0;
 }
