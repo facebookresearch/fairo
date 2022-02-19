@@ -1,5 +1,5 @@
 # @package _group_
-robot_description_path: "franka_panda/panda_arm.urdf"
+robot_description_path: "allegro_hand/allegro_hand_description_right.urdf"
 controlled_joints:  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 num_dofs: 16
 ee_link_idx: 0
