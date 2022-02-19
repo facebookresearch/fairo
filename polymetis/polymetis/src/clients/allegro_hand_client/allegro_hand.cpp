@@ -48,6 +48,10 @@ struct AllegroInfo {
 
 AllegroHandImpl::AllegroHandImpl(PcanInterface &&pcan)
     : pcan_(std::move(pcan)) {
+  initialize();
+}
+
+void AllegroHandImpl::initialize() {
   setPeriodicRead(3);
 
   for (int f = 0; f < kNFinger; f++) {
@@ -58,6 +62,7 @@ AllegroHandImpl::AllegroHandImpl(PcanInterface &&pcan)
   memset(position_, 0, sizeof(position_));
   memset(state_updated_, 0, sizeof(state_updated_));
 }
+
 void AllegroHandImpl::setPeriodicRead(uint16_t millis) {
   WORD periods[4];
   periods[0] = millis;
@@ -188,4 +193,9 @@ inline double AllegroHandImpl::convertPosition(int16_t raw_pos) const {
   // documentation.
   return raw_pos * (M_PI / 180) *
          (333.3 / 65536); // WARNING: Matches example code, not docs.
+}
+
+void AllegroHandImpl::resetCommunication() {
+  pcan_.initialize();
+  initialize();
 }

@@ -16,6 +16,7 @@
 #include <grpc/grpc.h>
 
 #include "./allegro_hand.hpp"
+#include "./event_watcher.hpp"
 #include "./finger_velocity_filter.hpp"
 
 using grpc::ClientContext;
@@ -98,36 +99,53 @@ AllegroHandTorqueControlClient::AllegroHandTorqueControlClient(
 
 void AllegroHandTorqueControlClient::run() {
   // Run robot
-  bool is_robot_operational = true;
+  EventData poll_success_event;
+  AllegroHandState robot_state;
+
+  int recovery_attempts = 0;
   allegro_hand_ptr_->setServoEnable(true);
   allegro_hand_ptr_->requestStatus();
-  while (is_robot_operational) {
+  while (recovery_attempts < RECOVERY_MAX_TRIES) {
     try {
-      AllegroHandState robot_state;
-      while (!allegro_hand_ptr_->allStatesUpdated()) {
-        int finger = allegro_hand_ptr_->poll();
-        if (finger >= 0) {
-          std::copy_n(allegro_hand_ptr_->getPositions(), kNDofs,
-                      robot_state.q.begin());
-
-          Eigen::Map<Eigen::VectorXd> positions(robot_state.q.data(), kNDofs);
-          Eigen::Map<Eigen::VectorXd> velocities(robot_state.dq.data(), kNDofs);
-          velocity_filter_->filter_position(positions, finger, velocities);
+      while (true) {
+        while (!allegro_hand_ptr_->allStatesUpdated()) {
+          int finger = allegro_hand_ptr_->poll();
+          if (finger >= 0) {
+            std::copy_n(allegro_hand_ptr_->getPositions(), kNDofs,
+                        robot_state.q.begin());
+            Eigen::Map<Eigen::VectorXd> positions(robot_state.q.data(), kNDofs);
+            Eigen::Map<Eigen::VectorXd> velocities(robot_state.dq.data(),
+                                                   kNDofs);
+            velocity_filter_->filter_position(positions, finger, velocities);
+            poll_success_event.checkpoint();
+            recovery_attempts = 0;  // Comms are working / restored.
+          } else if (poll_success_event.secondsSinceCheckpoint() > 3) {
+            throw std::runtime_error("No recent communication from hand.");
+          }
         }
+        allegro_hand_ptr_->resetStateUpdateTracker();
+
+        // Compute torque components
+        updateServerCommand(robot_state, torque_commanded_);
+
+        allegro_hand_ptr_->setTorques(torque_commanded_.begin());
       }
-      allegro_hand_ptr_->resetStateUpdateTracker();
-
-      // Compute torque components
-      updateServerCommand(robot_state, torque_commanded_);
-
-      allegro_hand_ptr_->setTorques(torque_commanded_.begin());
-
     } catch (const std::exception &ex) {
       spdlog::error("Robot is unable to be controlled: {}", ex.what());
-      is_robot_operational = false;
     }
+
+    // Attempt recovery
+    spdlog::warn("Attempting to reconnect to Allegro Hand");
+    allegro_hand_ptr_->resetCommunication();
+    allegro_hand_ptr_->setServoEnable(true);
+    allegro_hand_ptr_->requestStatus();
+    poll_success_event.checkpoint(); // reset the comm heartbeat timer
+
+    recovery_attempts++;
   }
+  spdlog::error("Max recovery attempts exhausted.");
 }
+
 
 void AllegroHandTorqueControlClient::updateServerCommand(
     /*

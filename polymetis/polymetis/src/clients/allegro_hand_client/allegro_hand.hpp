@@ -47,6 +47,9 @@ public:
 
   // Reset the state update tracker
   virtual void resetStateUpdateTracker() = 0;
+
+  // Reset the communication channel
+  virtual void resetCommunication() {};
 };
 
 class AllegroHandImpl : public AllegroHand {
@@ -84,9 +87,12 @@ public:
     memset(state_updated_, 0, sizeof(state_updated_));
   }
 
+  void resetCommunication() final;
+
 private:
   bool send(unsigned char msg_id, char data_len = 0, const void *data = NULL,
             bool expect_return = false);
+  void initialize();
   inline double convertPosition(int16_t raw_pos) const;
 
   double torques_[kNDofs];

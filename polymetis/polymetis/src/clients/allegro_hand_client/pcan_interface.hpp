@@ -15,6 +15,8 @@ public:
   PcanInterface &operator=(PcanInterface &&rhs) = delete;
   ~PcanInterface();
 
+  void initialize();
+
   bool readPcan(TPCANMsg *msg);
   bool writePcan(const TPCANMsg &msg);
 
