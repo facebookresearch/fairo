@@ -1,3 +1,6 @@
+defaults:
+  - robot_client/executable_cfg/velocity_filter: filters/butterworth_filters
+
 hz: 300
 use_real_time: false
 exec: allegro_hand_client
@@ -10,8 +13,8 @@ robot_client:
   use_real_time: ${use_real_time}
   metadata_cfg:
     _target_: polymetis.robot_client.metadata.RobotClientMetadata
-    default_Kq: [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    default_Kqd: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    default_Kq: [ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    default_Kqd: [.1, .1, .1, .1, .1, .1, .1, .1, .1, .1, .1, .1, .1, .1, .1, .1]
     default_Kx: [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     default_Kxd: [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     hz: ${hz}
@@ -25,7 +28,10 @@ robot_client:
     hz: ${hz}
     exec: ${exec}
     robot_client_metadata_path: ???
-
+    velocity_filter:
+      A: [ 1.000000000000000,  -1.561018075800718,   0.641351538057563 ]
+      B: [ 0.0200833655642112,   0.0401667311284225,   0.0200833655642112 ]
+      dt: .003
     limits: 
       # bounding box of the workspace
       cartesian_pos_upper:

@@ -6,6 +6,7 @@
 
 #include "pcan_interface.hpp"
 #include "periodic_event.hpp"
+
 constexpr int kNFinger = 4;
 constexpr int kNJoint = 4;
 constexpr int kNDofs = kNFinger * kNJoint;

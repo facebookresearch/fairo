@@ -10,9 +10,9 @@
 
 #include "event_watcher.hpp"
 #include "pcan_interface.hpp"
-
-#include "allegro_hand.hpp"
 #include "utility.hpp"
+
+#include "./allegro_hand.hpp"
 
 #define ALLEGRO_MSG_ID_SERVO_ON 0x40u
 #define ALLEGRO_MSG_ID_SERVO_OFF 0x41

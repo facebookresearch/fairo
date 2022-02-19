@@ -20,6 +20,7 @@
 #define RECOVERY_MAX_TRIES 3
 
 class AllegroHand;
+class FingerVelocityFilter;
 struct AllegroHandState;
 
 class AllegroHandTorqueControlClient {
@@ -41,6 +42,8 @@ private:
 
   std::array<double, NUM_DOFS> torque_commanded_, torque_safety_,
       torque_applied_;
+
+  std::unique_ptr<FingerVelocityFilter> velocity_filter_;
 
 public:
   /**

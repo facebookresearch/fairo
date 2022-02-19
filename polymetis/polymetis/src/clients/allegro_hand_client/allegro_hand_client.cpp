@@ -15,8 +15,8 @@
 
 #include <grpc/grpc.h>
 
-#include "allegro_hand.hpp"
-#include "utility.hpp"
+#include "./allegro_hand.hpp"
+#include "./finger_velocity_filter.hpp"
 
 using grpc::ClientContext;
 using grpc::Status;
@@ -30,6 +30,9 @@ AllegroHandTorqueControlClient::AllegroHandTorqueControlClient(
     : stub_(PolymetisControllerServer::NewStub(channel)) {
   std::string robot_client_metadata_path =
       config["robot_client_metadata_path"].as<std::string>();
+
+  velocity_filter_ =
+      std::make_unique<FingerVelocityFilter>(config["velocity_filter"]);
 
   // Load robot client metadata
   std::ifstream file(robot_client_metadata_path);
@@ -102,16 +105,18 @@ void AllegroHandTorqueControlClient::run() {
     try {
       AllegroHandState robot_state;
       while (!allegro_hand_ptr_->allStatesUpdated()) {
-        allegro_hand_ptr_->poll();
+        int finger = allegro_hand_ptr_->poll();
+        if (finger >= 0) {
+          std::copy_n(allegro_hand_ptr_->getPositions(), kNDofs,
+                      robot_state.q.begin());
+
+          Eigen::Map<Eigen::VectorXd> positions(robot_state.q.data(), kNDofs);
+          Eigen::Map<Eigen::VectorXd> velocities(robot_state.dq.data(), kNDofs);
+          velocity_filter_->filter_position(positions, finger, velocities);
+        }
       }
       allegro_hand_ptr_->resetStateUpdateTracker();
 
-      std::copy_n(allegro_hand_ptr_->getPositions(), kNDofs,
-                  robot_state.q.begin());
-
-      for (int i = 0; i < robot_state.dq.size(); i++) {
-        robot_state.dq[i] = 0;
-      }
       // Compute torque components
       updateServerCommand(robot_state, torque_commanded_);
 
@@ -174,6 +179,7 @@ void *rt_main(void *cfg_ptr) {
 }
 
 int main(int argc, char *argv[]) {
+  getchar();
   if (argc != 2) {
     spdlog::error("Usage: allegro_hand_client /path/to/cfg.yaml");
     return 1;
