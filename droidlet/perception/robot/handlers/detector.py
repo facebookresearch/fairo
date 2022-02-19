@@ -26,7 +26,9 @@ from droidlet.perception.robot.perception_util import get_color_tag
 
 lvis_yaml = "configs/mask_rcnn_R_101_FPN_1x.yaml"
 detector_weights = "model_999.pth"
-default_json_dir = os.path.abspath(os.path.dirname(__file__)) + "/../../../../annotation_data/model/v0"
+default_json_dir = (
+    os.path.abspath(os.path.dirname(__file__)) + "/../../../../annotation_data/model/v0"
+)
 props_filename = "props.json"
 things_filename = "things.json"
 
@@ -87,12 +89,16 @@ class DetectorBase:
     def __init__(self, model_data_dir, verbose=1):
         self.verbose = verbose
         files = os.listdir(model_data_dir)
-        props_file = os.path.join(model_data_dir, props_filename) \
-            if props_filename in files \
+        props_file = (
+            os.path.join(model_data_dir, props_filename)
+            if props_filename in files
             else os.path.join(default_json_dir, props_filename)
-        things_file = os.path.join(model_data_dir, things_filename) \
-            if things_filename in files \
+        )
+        things_file = (
+            os.path.join(model_data_dir, things_filename)
+            if things_filename in files
             else os.path.join(default_json_dir, things_filename)
+        )
 
         with open(props_file, "r") as h:
             self.properties = json.load(h)["items"]
@@ -200,8 +206,8 @@ class Detection(WorldObject):
         bbox = self._maybe_bbox(self.bbox, self.mask)
         mask_arr = []
         if self.mask is not None and isinstance(self.mask, np.ndarray):
-            mask_arr =  self.mask
-        if self.mask is not None and isinstance(self.mask, torch.Tensor): 
+            mask_arr = self.mask
+        if self.mask is not None and isinstance(self.mask, torch.Tensor):
             mask_arr = self.mask.cpu().detach().numpy()
         mask_points_nd = Mask(mask_arr).polygons().points
         mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
@@ -222,5 +228,5 @@ class Detection(WorldObject):
         mask = np.zeros((h, w), np.uint8)
         cv2.rectangle(mask, (x1, y1), (x2, y2), 255, -1, 4)
         im = cv2.bitwise_and(rgb, rgb, mask=mask)
-        #logging.debug("Calculating feature repr for {}".format(self.label))
+        # logging.debug("Calculating feature repr for {}".format(self.label))
         return im

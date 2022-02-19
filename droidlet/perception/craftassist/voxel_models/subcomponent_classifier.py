@@ -48,7 +48,9 @@ class SubcomponentClassifierWrapper:
         """
 
         perceive_info = {}
-        perceive_info["labeled_blocks"] = {} # Dict with mapping: label -> [location of blocks with this label]
+        perceive_info[
+            "labeled_blocks"
+        ] = {}  # Dict with mapping: label -> [location of blocks with this label]
         if self.perceive_freq == 0 and not force:
             return CraftAssistPerceptionData()
         if self.perceive_freq > 0 and self.agent.count % self.perceive_freq != 0 and not force:
@@ -59,10 +61,14 @@ class SubcomponentClassifierWrapper:
         to_label = []
         # add all blocks in marked areas
         for pos, radius in self.agent.areas_to_perceive:
-            for obj in all_nearby_objects(self.agent.get_blocks, pos, self.boring_blocks, self.passable_blocks, radius):
+            for obj in all_nearby_objects(
+                self.agent.get_blocks, pos, self.boring_blocks, self.passable_blocks, radius
+            ):
                 to_label.append(obj)
         # add all blocks near the agent
-        for obj in all_nearby_objects(self.agent.get_blocks, self.agent.pos, self.boring_blocks, self.passable_blocks):
+        for obj in all_nearby_objects(
+            self.agent.get_blocks, self.agent.pos, self.boring_blocks, self.passable_blocks
+        ):
             to_label.append(obj)
 
         for obj in to_label:

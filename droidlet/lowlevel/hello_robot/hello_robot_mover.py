@@ -14,7 +14,8 @@ import numpy as np
 
 import cv2
 from droidlet.shared_data_structs import ErrorWithResponse
-#from agents.argument_parser import ArgumentParser
+
+# from agents.argument_parser import ArgumentParser
 from droidlet.shared_data_structs import RGBDepth
 
 from droidlet.lowlevel.robot_coordinate_utils import base_canonical_coords_to_pyrobot_coords
@@ -36,11 +37,12 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
-Pyro4.config.PICKLE_PROTOCOL_VERSION=2
+Pyro4.config.PICKLE_PROTOCOL_VERSION = 2
 
-MAX_PAN_RAD = math.pi/4
+MAX_PAN_RAD = math.pi / 4
 
 # TODO/FIXME: state machines.  state machines everywhere
+
 
 def safe_call(f, *args, **kwargs):
     try:
@@ -52,6 +54,7 @@ def safe_call(f, *args, **kwargs):
         print("Pyro traceback:")
         print("".join(Pyro4.util.getPyroTraceback()))
         raise e
+
 
 class HelloRobotMover(MoverInterface):
     """Implements methods that call the physical interfaces of the Robot.
@@ -92,22 +95,22 @@ class HelloRobotMover(MoverInterface):
         return f
 
     def relative_pan_tilt(self, dpan, dtilt, turn_base=True):
-        """ 
-        move the head so its new tilt is current_tilt + dtilt 
-        and pan is current_pan + dpan 
-        
-        Args: 
-            dpan (float): angle in radians to turn head left-right.  
+        """
+        move the head so its new tilt is current_tilt + dtilt
+        and pan is current_pan + dpan
+
+        Args:
+            dpan (float): angle in radians to turn head left-right.
                 positive is right
-            dtilt (float): angle in radians to turn head up-down.  
+            dtilt (float): angle in radians to turn head up-down.
                 positive is up
         """
         # FIXME handle out-of-range values properly
         dtilt = dtilt or 0
         dpan = dpan or 0
-        
+
         new_tilt = self.get_tilt() + dtilt
-        
+
         # FIXME: make a safe_base_turn method
         if np.abs(dpan) > MAX_PAN_RAD and turn_base:
             dyaw = np.sign(dpan) * (np.abs(dpan) - MAX_PAN_RAD)
@@ -118,7 +121,6 @@ class HelloRobotMover(MoverInterface):
         new_pan = self.get_pan() + pan_rad
         self.bot.set_pan_tilt(new_pan, new_tilt)
         return "finished"
-        
 
     def set_look(self, pan_rad, tilt_rad, turn_base=True, world=False):
         """
@@ -126,11 +128,11 @@ class HelloRobotMover(MoverInterface):
         These are  "absolute" w.r.t. robot current base, if world==False
         and absolute w.r.t. world coords if world=True
 
-        Args: 
-            pan_rad (float): angle in radians to turn head left-right.  
+        Args:
+            pan_rad (float): angle in radians to turn head left-right.
                 positive is right
             tilt_rad (float): angle in radians to to turn head up-down.
-                positive is down. 
+                positive is down.
         """
         tilt_rad = tilt_rad or self.get_tilt()
         # TODO handle out-of-range properly
@@ -144,14 +146,13 @@ class HelloRobotMover(MoverInterface):
             dpan = angle_diff(base_pan + self.get_pan(), pan_rad)
         return self.relative_pan_tilt(dpan, dtilt, turn_base=turn_base)
 
-    
     def look_at(self, target, turn_base=True, face=False):
         """
         Executes "look at" by setting the pan, tilt of the camera
         or turning the base if required.
-        Uses both the base state and object coordinates in 
+        Uses both the base state and object coordinates in
         canonical world coordinates to calculate expected yaw and pitch.
-        if face == True will move body so head yaw is 0 
+        if face == True will move body so head yaw is 0
 
         Args:
             target (list): object coordinates as saved in memory.
@@ -169,9 +170,9 @@ class HelloRobotMover(MoverInterface):
 
         logging.info(f"Current base state (x, z, yaw): {pos}, camera state (x, y, z): {cam_pos}")
         logging.info(f"looking at x,y,z: {target}")
-        
+
         pan_rad, tilt_rad = get_camera_angles(cam_pos, target)
-#        pan_res = angle_diff(pos[2], pan_rad)
+        #        pan_res = angle_diff(pos[2], pan_rad)
         # For the Hello camera, negative tilt seems to be up, and positive tilt is down
         # For the locobot camera, it is the opposite
         # TODO: debug this further, and make things across robots consistent
@@ -183,7 +184,6 @@ class HelloRobotMover(MoverInterface):
             return self.set_look(0, tilt_rad)
         else:
             self.set_look(pan_rad, tilt_rad, turn_base=True, world=True)
-
 
     def stop(self):
         """immediately stop the robot."""
@@ -245,10 +245,10 @@ class HelloRobotMover(MoverInterface):
 
     def get_base_pos_in_canonical_coords(self):
         """get the current robot position in the canonical coordinate system
-       
-        the canonical coordinate systems:                           
+
+        the canonical coordinate systems:
         from the origin, at yaw=0, front is (x, y, z) = (0, 0, 1),
-        its right direction is (x,y,z) = (1, 0, 0) 
+        its right direction is (x,y,z) = (1, 0, 0)
         its up direction is (x,y,z) = (0, 1, 0)
         yaw is + counterclockwise
 
@@ -264,7 +264,7 @@ class HelloRobotMover(MoverInterface):
     def get_current_pcd(self, in_cam=False, in_global=False):
         """Gets the current point cloud"""
         return self.cam.get_current_pcd()
-        
+
     def get_rgb_depth(self):
         """Fetches rgb, depth and pointcloud in pyrobot world coordinates.
 
@@ -312,7 +312,6 @@ class HelloRobotMover(MoverInterface):
         #                             |
         #                             |
 
-
         # We now need to transform this to pyrobot frame, where
         # x is into the camera, y is positive to the left,
         # z is positive upwards
@@ -347,8 +346,8 @@ class HelloRobotMover(MoverInterface):
         pts = np.rot90(pts, k=1, axes=(1, 0))
         pts = pts.reshape(rgb.shape[0] * rgb.shape[1], 3)
 
-        depth_rotated = np.rot90(depth_copy, k=1, axes=(1,0))
-        rgb_rotated = np.rot90(rgb, k=1, axes=(1,0))
+        depth_rotated = np.rot90(depth_copy, k=1, axes=(1, 0))
+        rgb_rotated = np.rot90(rgb, k=1, axes=(1, 0))
 
         return RGBDepth(rgb_rotated, depth_rotated, pts)
 
@@ -364,8 +363,10 @@ class HelloRobotMover(MoverInterface):
     def explore(self):
         return self.bot.explore()
 
+
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--ip", default="")
     opts = parser.parse_args()
