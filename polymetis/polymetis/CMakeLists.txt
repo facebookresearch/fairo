@@ -142,14 +142,14 @@ if(BUILD_ALLEGRO)
           src/clients/allegro_hand_client/allegro_hand.cpp
           src/clients/allegro_hand_client/event_watcher.cpp
           src/clients/allegro_hand_client/pcan_interface.cpp
-          src/clients/allegro_hand_client/utility.hpp)
+  )
 
   target_link_libraries(allegro_hand_client
           generated_grpc_protos
           ${PCANBASIC_LIB}
           yaml-cpp
           spdlog::spdlog
-          )
+  )
 endif()
 
 if(BUILD_FRANKA)
