@@ -1,11 +1,6 @@
 Installation:
 ```
-conda install -c eyeware librealsense
-pip install pyrealsense2
-
-git clone git@github.com:facebookresearch/fairo.git
-cd fairo/perception/realsense_driver
-pip install .
+pip install git+https://github.com/facebookresearch/fairo.git@main#subdirectory=perception/realsense_driver
 ```
 
 
