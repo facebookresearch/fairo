@@ -32,7 +32,7 @@ robot_client:
       A: [ 1.000000000000000,  -1.561018075800718,   0.641351538057563 ]
       B: [ 0.0200833655642112,   0.0401667311284225,   0.0200833655642112 ]
       dt: .003
-    limits: 
+    limits:
       # bounding box of the workspace
       cartesian_pos_upper:
         - 1.0
