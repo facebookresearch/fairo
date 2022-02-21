@@ -1,0 +1,10 @@
+name: eyehandcal
+channels:
+  - fair-robotics
+  - conda-forge
+  - defaults
+dependencies:
+  - polymetis=341_g59cc9971=py38_341
+  - libopencv=4.5.1=py38h703c3c0_0
+  - librealsense=2.50.0=py3.8
+  - scipy=1.7.3=py38hc147768_0
