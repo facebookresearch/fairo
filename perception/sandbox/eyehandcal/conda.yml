@@ -1,0 +1,16 @@
+name: eyehandcal
+channels:
+  - fair-robotics
+  - pytorch
+  - conda-forge
+  - defaults
+  - aihabitat
+dependencies:
+  - polymetis=685_g1d486298
+  - opencv=4.5.1
+  - librealsense=2.50.0
+  - scipy=1.7.3
+  - pip:
+    - ../../realsense_driver/
+
+
