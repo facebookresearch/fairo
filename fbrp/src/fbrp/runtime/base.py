@@ -9,6 +9,29 @@ import psutil
 import json
 
 
+# psutil as_dict() does not produce a json-serializable dict.
+# https://github.com/giampaolo/psutil/issues/967
+#
+# When converted to a dict, fields like memory_info generate
+#     [11984896, 31031296, ...]
+# instead of
+#     {"rss": 11984896, "vms": 31031296, ...}
+# Losing field names.
+#
+# We cannot use a custom JSONEncoder, since psutil objects, like memory_info,
+# inherit from tuples.
+#
+# This is a workaround.
+def _walk_asdict(obj):
+    if hasattr(obj, "_asdict"):
+        return _walk_asdict(obj._asdict())
+    if isinstance(obj, dict):
+        return {k: _walk_asdict(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_walk_asdict(v) for v in obj]
+    return obj
+
+
 class BaseLauncher:
     def __init__(self):
         pass
@@ -47,7 +70,7 @@ class BaseLauncher:
 
             try:
                 proc = psutil.Process(pid)
-                out.pub(json.dumps(proc.as_dict()))
+                out.pub(json.dumps(_walk_asdict(proc.as_dict())))
             except psutil.NoSuchProcess:
                 pass
 
