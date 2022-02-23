@@ -151,7 +151,8 @@ void FrankaTorqueControlClient::run() {
     while (is_robot_operational) {
       // Send lambda function
       try {
-        robot_ptr_->control(control_callback);
+        robot_ptr_->control(control_callback, true,
+                            franka::kMaxCutoffFrequency);
       } catch (const std::exception &ex) {
         spdlog::error("Robot is unable to be controlled: {}", ex.what());
         is_robot_operational = false;
