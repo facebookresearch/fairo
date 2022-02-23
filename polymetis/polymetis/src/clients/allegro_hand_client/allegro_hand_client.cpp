@@ -197,7 +197,6 @@ void *rt_main(void *cfg_ptr) {
 }
 
 int main(int argc, char *argv[]) {
-  getchar();
   if (argc != 2) {
     spdlog::error("Usage: allegro_hand_client /path/to/cfg.yaml");
     return 1;

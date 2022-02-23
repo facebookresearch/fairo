@@ -30,7 +30,6 @@ void PcanInterface::initialize() {
   if (initialized_) {
     CAN_Uninitialize(bus_id_);
   }
-  spdlog::warn("Init PCAN");
   TPCANStatus pcan_status = CAN_Initialize(bus_id_, PCAN_BAUD_1M, 0);
   if (pcan_status != PCAN_ERROR_OK) {
     printError(pcan_status);
