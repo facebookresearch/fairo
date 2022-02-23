@@ -8,7 +8,7 @@ set -x -e
 
 # Default values
 if [ -z "$CFG" ]; then CFG="Release"; fi
-if [ -z "$EDITABLE" ]; then EDITABLE=ON; fi
+if [ -z "$DEV_PYTHON" ]; then DEV_PYTHON=ON; fi
 if [ -z "$PREFIX" ]; then PREFIX=$CONDA_PREFIX; fi
 if [ -z "$PYTHON" ]; then PYTHON=python; fi
 if [ -z "$BUILD_TESTS" ]; then BUILD_TESTS=ON; fi
@@ -50,7 +50,7 @@ cmake --build .
 cd ..
 
 # Install python package
-if [ "$EDITABLE" == "ON" ]; then
+if [ "$DEV_PYTHON" == "ON" ]; then
     $PYTHON -m pip install -vvv -e .
 else
     $PYTHON -m pip install -vvv -e .
