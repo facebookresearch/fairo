@@ -1,5 +1,6 @@
 from fbrp import util
-from fbrp.process import defined_processes
+from fbrp.cmd import _autocomplete
+from fbrp import process_def
 import a0
 import click
 import random
@@ -8,11 +9,18 @@ import sys
 
 
 @click.command()
-@click.argument("procs", nargs=-1)
+@click.argument("procs", nargs=-1, shell_complete=_autocomplete.conditional(
+    lambda ctx, unused_param, unused_incomplete: ctx.params["old"],
+    _autocomplete.intersection(
+        _autocomplete.alephzero_topics(protocol="log"),
+        _autocomplete.defined_processes,
+    ),
+    _autocomplete.running_processes,
+))
 @click.option("-o", "--old", is_flag=True, default=False)
 def cli(procs, old):
     # Find all defined processes.
-    display_procs = defined_processes.items()
+    display_procs = process_def.defined_processes.items()
     # Filter out processes that have no runtime defined.
     # These processes were meant to chain or combine other processes, but haven't
     # gotten much use yet. Do we want to keep them?

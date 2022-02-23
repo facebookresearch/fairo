@@ -1,7 +1,7 @@
 from fbrp import life_cycle
 from fbrp import util
 from fbrp.cmd._common import CommonFlags
-from fbrp.process import ProcDef
+from fbrp.process_def import ProcDef
 from fbrp.runtime.base import BaseLauncher, BaseRuntime
 import aiodocker
 import asyncio

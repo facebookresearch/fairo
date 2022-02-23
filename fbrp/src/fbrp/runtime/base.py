@@ -1,12 +1,11 @@
-import asyncio
 from fbrp import life_cycle
-from fbrp.process import ProcDef
+from fbrp.process_def import ProcDef
 import a0
 import asyncio
 import contextlib
+import json
 import pathlib
 import psutil
-import json
 
 
 # psutil as_dict() does not produce a json-serializable dict.
