@@ -161,7 +161,11 @@ class MCAgentMemory(AgentMemory):
         # 3. Update agent's current position and attributes in memory
         if perception_output.agent_attributes:
             agent_player = perception_output.agent_attributes
-            memid = self.get_player_by_eid(agent_player.entityId).memid
+            memid = (
+                self.nodes[PlayerNode.NODE_TYPE]
+                .get_player_by_eid(self, agent_player.entityId)
+                .memid
+            )
             cmd = (
                 "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
             )
@@ -186,7 +190,7 @@ class MCAgentMemory(AgentMemory):
         if perception_output.other_player_list:
             player_list = perception_output.other_player_list
             for player, location in player_list:
-                mem = self.get_player_by_eid(player.entityId)
+                mem = self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self, player.entityId)
                 if mem is None:
                     memid = PlayerNode.create(self, player)
                 else:
@@ -235,9 +239,11 @@ class MCAgentMemory(AgentMemory):
                 )
 
                 # 5.3 Update blocks in memory when any change in the environment is caused either by agent or player
-                interesting, player_placed, agent_placed = perception_output.changed_block_attributes[
-                    (xyz, idm)
-                ]
+                (
+                    interesting,
+                    player_placed,
+                    agent_placed,
+                ) = perception_output.changed_block_attributes[(xyz, idm)]
                 self.maybe_add_block_to_memory(interesting, player_placed, agent_placed, xyz, idm)
 
         """Now perform update the memory with input from heuristic perception module"""
@@ -514,7 +520,7 @@ class MCAgentMemory(AgentMemory):
         )
 
     def check_inside(self, mems):
-        """ mems is a sequence of two ReferenceObjectNodes.
+        """mems is a sequence of two ReferenceObjectNodes.
         this just wraps the heuristic perception check_inside method
         """
         return self.check_inside_perception(mems)

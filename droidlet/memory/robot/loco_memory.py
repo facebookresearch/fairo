@@ -86,7 +86,7 @@ class LocoAgentMemory(AgentMemory):
     def update_other_players(self, player_list: List):
         # input is a list of player_structs from agent
         for p in player_list:
-            mem = self.get_player_by_eid(p.entityId)
+            mem = self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self, p.entityId)
             if mem is None:
                 memid = PlayerNode.create(self, p)
             else:

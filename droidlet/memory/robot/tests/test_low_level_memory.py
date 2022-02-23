@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
+from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 from droidlet.base_util import Pos, Look, Player
@@ -36,7 +37,7 @@ class BasicTest(unittest.TestCase):
         # test update_other_players
         self.memory.update_other_players(player_list)
         assert self.memory.get_player_by_name("xyz").pos == (1.0, 1.0, 1.0)
-        assert self.memory.get_player_by_eid(10).name == "abc"
+        assert self.memory.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self.memory, 10).name == "abc"
 
     def test_detected_object_apis(self):
         self.memory = LocoAgentMemory()
