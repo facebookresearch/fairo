@@ -90,9 +90,9 @@ def test_autocomplete_running_processes():
         def asdict(self):
             return {
                 "procs": {
-                    "a": {"state": "UP"},
-                    "b": {"state": "UP"},
-                    "c": {"state": "DOWN"},
+                    "a": {"state": "STARTED"},
+                    "b": {"state": "STARTED"},
+                    "c": {"state": "STOPPED"},
                 }
             }
 
