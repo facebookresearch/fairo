@@ -87,7 +87,7 @@ add_custom_command(
 )
 
 add_library(
-    generated_grpc_protos 
+    generated_grpc_protos
       ${loader_proto_srcs}
       ${loader_proto_hdrs}
       ${loader_grpc_srcs}
@@ -104,7 +104,7 @@ include_directories(
     "${CMAKE_CURRENT_BINARY_DIR}"
     "$ENV{CONDA_PREFIX}/include/"
     ${EIGEN3_INCLUDE_DIR}
-    ${pinocchio_INCLUDE_DIRS} 
+    ${pinocchio_INCLUDE_DIRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/pinocchio_isolation/include"
 )
@@ -137,19 +137,45 @@ if(BUILD_ALLEGRO)
   # Add Allegro Hand client
   find_library(PCANBASIC_LIB pcanbasic REQUIRED)
 
+  add_library(allegro_hand
+    src/clients/allegro_hand_client/allegro_hand.cpp
+    src/clients/allegro_hand_client/event_watcher.cpp
+    src/clients/allegro_hand_client/pcan_interface.cpp
+    )
+
+  target_link_libraries(allegro_hand
+    ${PCANBASIC_LIB}
+    yaml-cpp
+    spdlog::spdlog
+    )
+
   add_executable(allegro_hand_client
-          src/clients/allegro_hand_client/allegro_hand_client.cpp
-          src/clients/allegro_hand_client/allegro_hand.cpp
-          src/clients/allegro_hand_client/event_watcher.cpp
-          src/clients/allegro_hand_client/pcan_interface.cpp
-  )
+    src/clients/allegro_hand_client/allegro_hand_client.cpp
+    )
 
   target_link_libraries(allegro_hand_client
-          generated_grpc_protos
-          ${PCANBASIC_LIB}
-          yaml-cpp
-          spdlog::spdlog
-  )
+    allegro_hand
+    generated_grpc_protos
+    )
+
+  if(BUILD_TESTS)
+    add_subdirectory(tests/cpp/fake_clock)
+    add_executable(test_allegro_hand_client
+      tests/cpp/test_allegro_hand_client.cpp
+      )
+
+    target_include_directories(test_allegro_hand_client PRIVATE
+      src/clients/allegro_hand_client
+      ${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR}
+      )
+
+    target_link_libraries(test_allegro_hand_client
+      allegro_hand
+      fake_clock
+      gtest
+      gtest_main
+      )
+  endif()
 endif()
 
 if(BUILD_FRANKA)
