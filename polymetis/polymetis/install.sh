@@ -53,5 +53,5 @@ cd ..
 if [ "$DEV_PYTHON" == "ON" ]; then
     $PYTHON -m pip install -vvv -e .
 else
-    $PYTHON -m pip install -vvv -e .
+    $PYTHON -m pip install -vvv .
 fi
