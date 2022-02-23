@@ -35,7 +35,9 @@ def get_proc_names(proc_names, include_deps):
     if include_deps:
         proc_names = transitive_closure(proc_names)
     unknown_proc_names = [
-        proc_name for proc_name in proc_names if proc_name not in process_def.defined_processes
+        proc_name
+        for proc_name in proc_names
+        if proc_name not in process_def.defined_processes
     ]
     if unknown_proc_names:
         util.fail(f"Unknown proc_names: {', '.join(unknown_proc_names)}")

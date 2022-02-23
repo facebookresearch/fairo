@@ -12,7 +12,10 @@ def cli():
     print("Defined Processes:")
     print(
         json.dumps(
-            {name: proc_def.asdict() for name, proc_def in process_def.defined_processes.items()},
+            {
+                name: proc_def.asdict()
+                for name, proc_def in process_def.defined_processes.items()
+            },
             indent="  ",
         )
     )

@@ -9,14 +9,18 @@ import sys
 
 
 @click.command()
-@click.argument("procs", nargs=-1, shell_complete=_autocomplete.conditional(
-    lambda ctx, unused_param, unused_incomplete: ctx.params["old"],
-    _autocomplete.intersection(
-        _autocomplete.alephzero_topics(protocol="log"),
-        _autocomplete.defined_processes,
+@click.argument(
+    "procs",
+    nargs=-1,
+    shell_complete=_autocomplete.conditional(
+        lambda ctx, unused_param, unused_incomplete: ctx.params["old"],
+        _autocomplete.intersection(
+            _autocomplete.alephzero_topics(protocol="log"),
+            _autocomplete.defined_processes,
+        ),
+        _autocomplete.running_processes,
     ),
-    _autocomplete.running_processes,
-))
+)
 @click.option("-o", "--old", is_flag=True, default=False)
 def cli(procs, old):
     # Find all defined processes.
