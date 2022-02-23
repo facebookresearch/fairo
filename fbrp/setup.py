@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name="fbrp",
-    version="0.1.2",
+    version="0.1.3",
     author="Leonid Shamis",
     package_dir={"": "src"},
     packages=find_packages(

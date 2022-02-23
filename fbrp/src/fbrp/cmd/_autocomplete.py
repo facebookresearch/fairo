@@ -51,7 +51,7 @@ def running_processes(ctx, param, incomplete):
     return [
         name
         for name, info in state.get("procs", {}).items()
-        if info.get("state") == "UP" and name.startswith(incomplete)
+        if info.get("state") == "STARTED" and name.startswith(incomplete)
     ]
 
 
