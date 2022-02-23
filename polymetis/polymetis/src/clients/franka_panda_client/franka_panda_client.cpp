@@ -217,6 +217,8 @@ void FrankaTorqueControlClient::updateServerCommand(
     std::array<double, NUM_DOFS> &torque_out) {
   // Record robot states
   if (!mock_franka_) {
+    prev_command_successful_ = true;
+
     for (int i = 0; i < NUM_DOFS; i++) {
       robot_state_.set_joint_positions(i, libfranka_robot_state.q[i]);
       robot_state_.set_joint_velocities(i, libfranka_robot_state.dq[i]);
@@ -224,7 +226,15 @@ void FrankaTorqueControlClient::updateServerCommand(
                                               libfranka_robot_state.tau_J[i]);
       robot_state_.set_motor_torques_external(
           i, libfranka_robot_state.tau_ext_hat_filtered[i]);
+
+      // Check if previous command is successful by comparing whether sent
+      // torques equals desired torques
+      if (libfranka_robot_state.tau_J_d[i] != torque_applied_[i]) {
+        prev_command_successful_ = false;
+      }
     }
+
+    robot_state_.set_prev_command_successful(prev_command_successful_);
   }
   setTimestampToNow(robot_state_.mutable_timestamp());
 

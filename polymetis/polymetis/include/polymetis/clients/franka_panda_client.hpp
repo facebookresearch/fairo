@@ -49,9 +49,10 @@ private:
   bool mock_franka_;
   bool readonly_mode_;
   std::unique_ptr<franka::Robot> robot_ptr_;
+  std::unique_ptr<franka::Model> model_ptr_;
   std::array<double, NUM_DOFS> torque_commanded_, torque_safety_,
       torque_applied_;
-  std::unique_ptr<franka::Model> model_ptr_;
+  bool prev_command_successful_;
 
   // limits
   bool limits_exceeded_;
