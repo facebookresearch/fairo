@@ -58,6 +58,7 @@ def running_processes(ctx, param, incomplete):
 def alephzero_topics(protocol):
     def fn(ctx, param, incomplete):
         topics = []
+        # TODO(lshamis): Use the a0 pathglob.
         detected = glob.glob(
             os.path.join(a0.env.root(), f"**/*.{protocol}.a0"), recursive=True
         )

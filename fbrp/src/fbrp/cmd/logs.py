@@ -12,6 +12,10 @@ import sys
 @click.argument(
     "procs",
     nargs=-1,
+    # Logs connects to live feeds unless --old is set.
+    # This autocomplete checks for the old flag.
+    #   If --old is set, suggest any defined process that has logs.
+    #   Otherwise, suggest running processes.
     shell_complete=_autocomplete.conditional(
         lambda ctx, unused_param, unused_incomplete: ctx.params["old"],
         _autocomplete.intersection(
