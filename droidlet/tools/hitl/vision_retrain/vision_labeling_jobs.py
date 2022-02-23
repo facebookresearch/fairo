@@ -121,8 +121,8 @@ class VisionLabelingJob(DataGenerator):
             response = s3.upload_file(scene_save_path, 'droidlet-hitl', upload_key)
             if response: logging.info("S3 response: " + response)
 
-            #Populate data.csv with scene filename and indeces
-            logging.info("Populating 'labeling_data.csv'")
+            #Populate labeling_data.csv with scene filename and indeces for internal Mephisto per-HIT reference
+            logging.info("Populating 'labeling_data.csv' with scene references for internal Mephisto use")
             with open("../../crowdsourcing/vision_annotation_task/labeling_data.csv", "w") as f:
                 csv_writer = csv.writer(f, delimiter=",")
                 csv_writer.writerow(["scene_filename", "scene_idx"])
@@ -130,7 +130,7 @@ class VisionLabelingJob(DataGenerator):
                     csv_writer.writerow(["scene_list.json", str(i)])
 
             # Edit Mephisto config file task name
-            logging.info("Editing Mephisto config file")
+            logging.info("Editing Mephisto config file to have parameterized task anme and units/worker")
             maximum_units_per_worker = 15 if self._NUM_SCENES < 50 else int(self._NUM_SCENES/4)
             with open("../../crowdsourcing/vision_annotation_task/conf/labeling.yaml", "r") as stream:
                 config = yaml.safe_load(stream)
