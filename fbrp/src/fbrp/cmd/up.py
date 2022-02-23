@@ -1,6 +1,7 @@
 from fbrp import life_cycle
-from fbrp.process import defined_processes
+from fbrp import process_def
 from fbrp import util
+from fbrp.cmd import _autocomplete
 import a0
 import asyncio
 import click
@@ -20,7 +21,7 @@ def transitive_closure(proc_names):
         if proc_name in all_proc_names:
             continue
         try:
-            fringe.extend(defined_processes[proc_name].deps)
+            fringe.extend(process_def.defined_processes[proc_name].deps)
         except KeyError:
             util.fail(f"Unknown process: {proc_name}")
         all_proc_names.add(proc_name)
@@ -29,12 +30,14 @@ def transitive_closure(proc_names):
 
 def get_proc_names(proc_names, include_deps):
     if not proc_names:
-        return defined_processes.keys()
+        return process_def.defined_processes.keys()
 
     if include_deps:
         proc_names = transitive_closure(proc_names)
     unknown_proc_names = [
-        proc_name for proc_name in proc_names if proc_name not in defined_processes
+        proc_name
+        for proc_name in proc_names
+        if proc_name not in process_def.defined_processes
     ]
     if unknown_proc_names:
         util.fail(f"Unknown proc_names: {', '.join(unknown_proc_names)}")
@@ -82,7 +85,7 @@ def down_existing(names: typing.List[str], force: bool):
 
 
 @click.command()
-@click.argument("procs", nargs=-1)
+@click.argument("procs", nargs=-1, shell_complete=_autocomplete.defined_processes)
 @click.option("--deps/--nodeps", is_flag=True, default=True)
 @click.option("--build/--nobuild", is_flag=True, default=True)
 @click.option("--run/--norun", is_flag=True, default=True)
@@ -90,7 +93,7 @@ def down_existing(names: typing.List[str], force: bool):
 @click.option("--reset_logs", is_flag=True, default=False)
 def cli(procs, deps, build, run, force, reset_logs):
     names = get_proc_names(procs, deps)
-    names = [name for name in names if defined_processes[name].runtime]
+    names = [name for name in names if process_def.defined_processes[name].runtime]
     if not names:
         util.fail(f"No processes found")
 
@@ -102,7 +105,7 @@ def cli(procs, deps, build, run, force, reset_logs):
 
     if build:
         for name in names:
-            proc_def = defined_processes[name]
+            proc_def = process_def.defined_processes[name]
             print(f"building {name}...")
             proc_def.runtime._build(name, proc_def)
             print(f"built {name}\n")
@@ -122,7 +125,7 @@ def cli(procs, deps, build, run, force, reset_logs):
             if os.fork() != 0:
                 sys.exit(0)
 
-            proc_def = defined_processes[name]
+            proc_def = process_def.defined_processes[name]
 
             # Set up configuration.
             with util.common_env_context(proc_def):
