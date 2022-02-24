@@ -132,13 +132,14 @@ def timing_charts(run_id: int) -> None:
         starttime, endtime, unit_timing = hit_timing(data["data"], starttime, endtime, unit_timing)
         
         outputs = data["data"]["outputs"]
-        try:
-            objects.append(outputs["object"])
-            locations.append(outputs["location"])
-        except:
-            pass
-        feedback.append(outputs["feedback"])
-        if outputs["bug"] == 'true': bug_count += 1
+        if outputs:
+            try:
+                objects.append(outputs["object"])
+                locations.append(outputs["location"])
+            except:
+                pass
+            feedback.append(outputs["feedback"])
+            if outputs["bug"] == 'true': bug_count += 1
 
 
     print(f"Job start time: {datetime.fromtimestamp(starttime)}")
@@ -157,7 +158,11 @@ def timing_charts(run_id: int) -> None:
 def hit_timing(content: dict, starttime: int, endtime: int, unit_timing: dict) -> Tuple[int, int, dict]:
     HIT_start_time = content["times"]["task_start"]
     HIT_end_time = content["times"]["task_end"]
-    unit_timing["total"].append(HIT_end_time - HIT_start_time)
+    length = HIT_end_time - HIT_start_time
+    if length > 0:
+        unit_timing["total"].append(HIT_end_time - HIT_start_time)
+    else:
+        unit_timing["total"].append(0)
     unit_timing["end"].append(HIT_end_time)
     if (HIT_start_time < starttime):
         starttime = HIT_start_time
