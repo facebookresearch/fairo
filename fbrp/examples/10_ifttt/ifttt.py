@@ -24,9 +24,6 @@ def call_robo_crit_event(pkt):
     # "Congratulations! You've fired TRIGGER_EVENT_NAME event"
 
 
-s = a0.Subscriber(
-    f"{EVENT_TOPIC}",
-    lambda pkt: call_robo_crit_event(pkt),
-)
+s = a0.Subscriber(f"{EVENT_TOPIC}", call_robo_crit_event)
 
 signal.pause()
