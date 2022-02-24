@@ -115,7 +115,7 @@ message RobotState {
   repeated float motor_torques_measured = 7;              //Measured torque signals from the robot motors
   repeated float motor_torques_external = 8;              //Measured external torques exerted on the robot motors
   float prev_controller_latency_ms = 9;                   //Latency of previous ControlUpdate call
-  bool prev_command_successful = 10;
+  bool prev_command_successful = 10;                      //Whether previous command packet is successfully transmitted
 }
 
 message TorqueCommand {
