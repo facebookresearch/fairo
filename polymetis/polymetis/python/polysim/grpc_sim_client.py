@@ -160,6 +160,7 @@ class GrpcSimulationClient(AbstractRobotClient):
             robot_state.timestamp.GetCurrentTime()
             robot_state.prev_controller_latency_ms = self.round_trip_time_buffer
             robot_state.prev_command_successful = True
+            robot_state.error_code = 0
 
             # Query controller manager server for action
             # TODO: have option for async mode through async calls, see

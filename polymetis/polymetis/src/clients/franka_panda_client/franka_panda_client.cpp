@@ -245,6 +245,10 @@ void FrankaTorqueControlClient::updateServerCommand(
     }
 
     robot_state_.set_prev_command_successful(prev_command_successful_);
+
+    // Error code: can only set to 0 if no errors and 1 if any errors exist for
+    // now
+    robot_state_.set_error_code(bool(libfranka_robot_state.current_errors));
   }
   setTimestampToNow(robot_state_.mutable_timestamp());
 
