@@ -6,14 +6,13 @@ import requests
 EVENT_NAME = a0.cfg(a0.env.topic(), "/ifttt/event_name", str)
 KEY = a0.cfg(a0.env.topic(), "/ifttt/key", str)
 EVENT_TOPIC = a0.cfg(a0.env.topic(), "/event_topic", str)
-a0.update_configs()
 
 
-def call_robo_crit_event(topic_name, pkt):
+def call_robo_crit_event(pkt):
     print(f"Pinging IFTTT Event {EVENT_NAME}")
 
     # create a json object to hold the message data and other relevant info
-    msg_data = {"Topic": topic_name, "msg": pkt.payload}
+    msg_data = {"Topic": EVENT_TOPIC, "msg": pkt.payload}
     resp = requests.post(
         f"https://maker.ifttt.com/trigger/{EVENT_NAME}/json/with/key/{KEY}",
         data=msg_data,
@@ -27,7 +26,7 @@ def call_robo_crit_event(topic_name, pkt):
 
 s = a0.Subscriber(
     f"{EVENT_TOPIC}",
-    lambda pkt: call_robo_crit_event(f"{EVENT_TOPIC}", pkt),
+    lambda pkt: call_robo_crit_event(pkt),
 )
 
 signal.pause()
