@@ -79,11 +79,11 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
 
   // Parse yaml
   double lpf_cutoff_freq = config["lpf_cutoff_frequency"].as<double>();
-  double tmp = 2 * M_PI * lpf_cutoff_freq / FRANKA_HZ;
-  if (lpf_cutoff_freq >= FRANKA_HZ) {
-    lpf_alpha_ = 1.0;
-  } else {
+  if (lpf_cutoff_freq > 0.0) {
+    double tmp = 2 * M_PI * lpf_cutoff_freq / FRANKA_HZ;
     lpf_alpha_ = tmp / (tmp + 1.0);
+  } else {
+    lpf_alpha_ = 1.0;
   }
 
   cartesian_pos_ulimits_ =
