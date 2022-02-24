@@ -229,7 +229,7 @@ void FrankaTorqueControlClient::updateServerCommand(
     std::array<double, NUM_DOFS> &torque_out) {
   // Record robot states
   if (!mock_franka_) {
-    prev_command_successful_ = false;
+    bool prev_command_successful = false;
 
     for (int i = 0; i < NUM_DOFS; i++) {
       robot_state_.set_joint_positions(i, libfranka_robot_state.q[i]);
@@ -242,15 +242,16 @@ void FrankaTorqueControlClient::updateServerCommand(
       // Check if previous command is successful by checking whether
       // constant torque policy for packet drops is applied
       // (If applied, desired torques will be exactly the same as last timestep)
-      if (libfranka_robot_state.tau_J_d[i] !=
-          robot_state_.motor_torques_desired(i)) {
-        prev_command_successful_ = true;
+      if (!prev_command_successful &&
+          float(libfranka_robot_state.tau_J_d[i]) !=
+              robot_state_.motor_torques_desired(i)) {
+        prev_command_successful = true;
       }
       robot_state_.set_motor_torques_desired(i,
                                              libfranka_robot_state.tau_J_d[i]);
     }
 
-    robot_state_.set_prev_command_successful(prev_command_successful_);
+    robot_state_.set_prev_command_successful(prev_command_successful);
 
     // Error code: can only set to 0 if no errors and 1 if any errors exist for
     // now

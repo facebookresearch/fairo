@@ -54,7 +54,6 @@ private:
   std::unique_ptr<franka::Model> model_ptr_;
   std::array<double, NUM_DOFS> torque_commanded_, torque_safety_,
       torque_applied_;
-  bool prev_command_successful_;
 
   // Torque processing
   bool limit_rate_;
