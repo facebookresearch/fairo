@@ -8,6 +8,7 @@ import signal
 import random
 import sentry_sdk
 import time
+import numpy as np
 from multiprocessing import set_start_method
 from collections import namedtuple
 
@@ -45,6 +46,7 @@ from droidlet.lowlevel.minecraft.mc_util import (
 from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import (
     SubcomponentClassifierWrapper,
 )
+from droidlet.perception.craftassist.detection_model_perception import DetectionWrapper
 from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
     COLOR_BID_MAP,
@@ -97,6 +99,7 @@ class CraftAssistAgent(DroidletAgent):
         # areas must be perceived at each step
         # List of tuple (XYZ, radius), each defines a cube
         self.areas_to_perceive = []
+        self.perceive_on_chat = True
         self.add_self_memory_node()
         self.init_inventory()
         self.init_event_handlers()
@@ -112,7 +115,6 @@ class CraftAssistAgent(DroidletAgent):
             (0.001, (default_behaviors.build_random_shape, shape_util_dict)),
             (0.005, default_behaviors.come_to_player),
         ]
-        self.perceive_on_chat = True
 
     def get_chats(self):
         """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
@@ -219,10 +221,12 @@ class CraftAssistAgent(DroidletAgent):
             low_level_data=self.low_level_data,
             mark_airtouching_blocks=self.mark_airtouching_blocks,
         )
-        # set up the SubComponentClassifier model
-        if os.path.isfile(self.opts.semseg_model_path):
-            self.perception_modules["semseg"] = SubcomponentClassifierWrapper(
-                self, self.opts.semseg_model_path, low_level_data=self.low_level_data
+        # set up the detection model
+        # TODO: @kavya to check that this gets passed in when running the agent
+        # TODO: fetch text_span here ?
+        if self.opts.detection_model_path and os.path.isfile(self.opts.detection_model_path):
+            self.perception_modules["detection_model"] = DetectionWrapper(
+                model=self.opts.detection_model_path
             )
 
     def init_controller(self):
@@ -246,6 +250,14 @@ class CraftAssistAgent(DroidletAgent):
             low_level_interpreter_data=low_level_interpreter_data,
         )
 
+    def run_voxel_model(self, model, spans):
+        rx, ry, rz = model.radius
+        x, y, z = self.pos
+        yzxb = self.get_blocks(x - rx, x + rx, y - ry, y + ry, z - rz, z + rz)
+        blocks = np.ascontiguousarray(yzxb.transpose([2, 0, 1, 3]))
+        model_out = model.perceive(blocks, text_spans=spans, offset=(x - rx, y - ry, z - rz))
+        return model_out
+
     def perceive(self, force=False):
         """Whenever something is changed, that area is be put into a
         buffer which will be force-perceived by the agent in the next step.
@@ -258,7 +270,7 @@ class CraftAssistAgent(DroidletAgent):
         update the memory state.
         """
         # 1. perceive from NLU parser
-        super().perceive()
+        ref_obj_spans = super().perceive()
         # 2. perceive from low_level perception module
         low_level_perception_output = self.perception_modules["low_level"].perceive()
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
@@ -270,11 +282,11 @@ class CraftAssistAgent(DroidletAgent):
             # perceive from heuristic perception module
             heuristic_perception_output = self.perception_modules["heuristic"].perceive()
             self.memory.update(heuristic_perception_output)
-        # 4. if semantic segmentation model is initialized, call perceive
-        if "semseg" in self.perception_modules:
-            sem_seg_perception_output = self.perception_modules["semseg"].perceive()
-            self.memory.update(sem_seg_perception_output)
-        self.areas_to_perceive = []
+        # 4. If detection model is initialized and text_span for reference object exists in
+        # logical form, call perceive().
+        if "detection_model" in self.perception_modules and ref_obj_spans:
+            model = self.perception_modules["detection_model"]
+            self.memory.update(self.run_voxel_model(model, ref_obj_spans))
         self.update_dashboard_world()
 
     def get_time(self):

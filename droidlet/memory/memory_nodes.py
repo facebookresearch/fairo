@@ -194,6 +194,25 @@ class ProgramNode(MemoryNode):
                 for d in v:
                     self.rehydrate(d)
 
+    @classmethod
+    def get_refobj_text_spans(cls, lf):
+        """
+        recursively extracts all reference object text spans into a list
+        """
+        refobj_spans = []
+        for k, v in lf.items():
+            if k == "reference_object":
+                text_span = v.get("text_span")
+                if text_span is not None:
+                    refobj_spans.append(text_span)
+            else:
+                if type(v) is dict:
+                    refobj_spans.extend(cls.get_refobj_text_spans(v))
+                elif type(v) is list:
+                    for d in v:
+                        refobj_spans.extend(cls.get_refobj_text_spans(d))
+        return refobj_spans
+
 
 # TODO FIXME instantiate as a side effect of making triples
 class NamedAbstractionNode(MemoryNode):

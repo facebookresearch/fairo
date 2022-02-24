@@ -14,8 +14,10 @@ from agents.scheduler import EmptyScheduler
 from droidlet.event import sio, dispatch
 from droidlet.interpreter import InterpreterBase
 from droidlet.memory.save_and_fetch_commands import *
+from droidlet.memory.memory_nodes import ProgramNode
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.perception.semantic_parsing.semantic_parsing_util import postprocess_logical_form
+
 random.seed(0)
 
 DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
@@ -39,8 +41,8 @@ class DroidletAgent(BaseAgent):
         self.last_chat_time = 0
         self.last_task_memid = None
         self.dashboard_chat = None
-        self.areas_to_perceive = []
         self.perceive_on_chat = False
+        self.areas_to_perceive = []
         self.agent_type = None
         self.scheduler = EmptyScheduler()
 
@@ -160,7 +162,10 @@ class DroidletAgent(BaseAgent):
                     logical_form = logical_form_mem.logical_form
                 if logical_form:
                     logical_form = postprocess_logical_form(
-                        self.memory, speaker="dashboard", chat=chat, logical_form=logical_form_mem.logical_form
+                        self.memory,
+                        speaker="dashboard",
+                        chat=chat,
+                        logical_form=logical_form_mem.logical_form,
                     )
                     where = "WHERE <<?, attended_while_interpreting, #{}>>".format(
                         logical_form_mem.memid
@@ -341,7 +346,11 @@ class DroidletAgent(BaseAgent):
         )
         # New chat, mark as uninterpreted.
         self.memory.tag(subj_memid=chat_memid, tag_text="uninterpreted")
-        return logical_form_memid, chat_memid
+
+        # Fetch text span of reference object from logical form
+        reference_object_spans = self.memory.nodes["Program"].get_refobj_text_spans(lf=post_processed_parse)
+        
+        return logical_form_memid, chat_memid, reference_object_spans
 
     def perceive(self, force=False):
         start_time = datetime.datetime.now()
@@ -356,7 +365,7 @@ class DroidletAgent(BaseAgent):
         )
         if received_chats_flag:
             # put results from semantic parsing model into memory, if necessary
-            self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)
+            _, _, ref_obj_spans = self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)
 
             # Send data to the dashboard timeline
             end_time = datetime.datetime.now()
@@ -372,6 +381,7 @@ class DroidletAgent(BaseAgent):
                 "logical_form": chat_parse,
             }
             dispatch.send("perceive", data=hook_data)
+        return ref_obj_spans
 
     def controller_step(self):
         """Process incoming chats and modify task stack"""

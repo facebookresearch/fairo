@@ -438,7 +438,7 @@ class FakeAgent(DroidletAgent):
         # clear the chat buffer
         self.get_incoming_chats()
         if self.logical_form:  # use the logical form as given...
-            DroidletAgent.process_language_perception(
+            _, _, ref_object_spans = DroidletAgent.process_language_perception(
                 self,
                 self.logical_form["speaker"],
                 self.logical_form["chatstr"],
