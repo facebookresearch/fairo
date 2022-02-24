@@ -25,6 +25,8 @@ robot_client:
     exec: ${exec}
     robot_client_metadata_path: ???
 
+    lpf_cutoff_frequency: 100
+
     limits: 
       # bounding box of the workspace
       cartesian_pos_upper:
