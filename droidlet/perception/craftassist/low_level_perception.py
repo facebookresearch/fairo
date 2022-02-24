@@ -1,10 +1,15 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+import logging
 import numpy as np
 from typing import Tuple, List
-from droidlet.base_util import to_block_pos, XYZ, IDM, pos_to_np, euclid_dist
+from droidlet.base_util import to_block_pos, XYZ, IDM, pos_to_np, euclid_dist, npy_to_blocks_list
+from droidlet.event import sio
 from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
+from droidlet.lowlevel.minecraft.small_scenes_with_shapes import SL, GROUND_DEPTH, H
+from droidlet.lowlevel.minecraft.iglu_util import IGLU_BLOCK_MAP
+from .utils.perception_logger import PerceptionLogger
 
 
 def capped_line_of_sight(agent, player_struct, cap=20):
@@ -34,6 +39,43 @@ class LowLevelMCPerception:
         self.memory = agent.memory  # NOTE: remove this once done
         self.pending_agent_placed_blocks = set()
         self.perceive_freq = perceive_freq
+        self.perception_logger = PerceptionLogger(
+            "vision_error_details.csv", ["command", "action_dict", "time", "perception_error", "world_state"]
+        )
+
+        @sio.on("saveErrorDetailsToCSV")
+        def save_error_details(sid, data):
+            """Save error details to error logs.
+            The fields are
+                ["command", "action_dict", "time", "perception_error", "world_state"]
+            """
+            logging.info("Saving vision error details: %r" % (data))
+            if "msg" not in data:
+                logging.info("Could not save vision error details due to error in dashboard backend.")
+                return
+            is_perception_error = data["perception_error"]
+            if is_perception_error:
+                XMIN = -SL // 2
+                YMIN = 63 - GROUND_DEPTH
+                ZMIN = -SL // 2
+                XMAX = -SL // 2 + SL - 1
+                YMAX = 63 - GROUND_DEPTH + H - 1
+                ZMAX = -SL // 2 + SL - 1
+                origin = (-SL // 2, 63 - GROUND_DEPTH, -SL // 2)
+                yzxb = self.agent.get_blocks(
+                    XMIN,
+                    XMAX,
+                    YMIN,
+                    YMAX,
+                    ZMIN,
+                    ZMAX,
+                )
+                blocks = npy_to_blocks_list(yzxb, origin=origin)
+                world_state = [
+                    (int(xyz[0]), int(xyz[1]), int(xyz[2]), IGLU_BLOCK_MAP[(int(idm[0]), int(idm[1]))])
+                    for xyz, idm in blocks
+                ]
+                self.perception_logger.log_perception_outputs([data["msg"], data["action_dict"], None, True, world_state])
 
     def perceive(self, force=False):
         """
