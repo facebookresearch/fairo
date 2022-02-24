@@ -11,7 +11,7 @@ fbrp.process(
         run_command=["python3", "trigger_event_detector.py"],
     ),
     cfg={
-        "event_topic": f"{TRIGGER_EVENT_TOPIC}",
+        "event_topic": TRIGGER_EVENT_TOPIC,
     },
 )
 
@@ -22,14 +22,9 @@ fbrp.process(
         run_command=["python3", "ifttt.py"],
     ),
     cfg={
-        "ifttt": {"key": f"{IFTTT_KEY}", "event_name": f"{TRIGGER_EVENT_NAME}"},
-        "event_topic": f"{TRIGGER_EVENT_TOPIC}",
+        "ifttt": {"key": IFTTT_KEY, "event_name": TRIGGER_EVENT_NAME},
+        "event_topic": TRIGGER_EVENT_TOPIC,
     },
-)
-
-fbrp.process(
-    name="api",
-    runtime=fbrp.Docker(image="ghcr.io/alephzero/api:latest"),
 )
 
 fbrp.main()
