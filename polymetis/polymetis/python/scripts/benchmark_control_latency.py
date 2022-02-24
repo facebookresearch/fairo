@@ -25,7 +25,9 @@ def output_episode_stats(episode_name, robot_states):
 if __name__ == "__main__":
     robot = RobotInterface()
 
-    print("Control loop stats in milliseconds (avg / std / max / min / success_rate): ")
+    print(
+        "Control loop latency stats in milliseconds (avg / std / max / min / success_rate): "
+    )
 
     # Test joint PD
     robot_states = robot.move_to_joint_positions(robot.get_joint_positions())
