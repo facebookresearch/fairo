@@ -25,6 +25,7 @@ robot_client:
     exec: ${exec}
     robot_client_metadata_path: ???
 
+    limit_rate: true
     lpf_cutoff_frequency: 100
 
     limits: 

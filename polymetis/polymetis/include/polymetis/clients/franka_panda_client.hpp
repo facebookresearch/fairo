@@ -56,11 +56,11 @@ private:
       torque_applied_;
   bool prev_command_successful_;
 
-  // Low pass filter
+  // Torque processing
+  bool limit_rate_;
   double lpf_alpha_;
   std::array<double, NUM_DOFS> torque_applied_prev_;
 
-  // limits
   bool limits_exceeded_;
   std::string error_str_;
 

@@ -78,6 +78,7 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
   }
 
   // Parse yaml
+  bool limit_rate_ = config["limit_rate"].as<bool>();
   double lpf_cutoff_freq = config["lpf_cutoff_frequency"].as<double>();
   if (lpf_cutoff_freq > 0.0) {
     double tmp = 2 * M_PI * lpf_cutoff_freq / FRANKA_HZ;
@@ -160,7 +161,7 @@ void FrankaTorqueControlClient::run() {
     while (is_robot_operational) {
       // Send lambda function
       try {
-        robot_ptr_->control(control_callback, false,
+        robot_ptr_->control(control_callback, limit_rate_,
                             franka::kMaxCutoffFrequency);
       } catch (const std::exception &ex) {
         spdlog::error("Robot is unable to be controlled: {}", ex.what());
