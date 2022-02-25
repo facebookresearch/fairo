@@ -10,4 +10,4 @@ def test_invalid_env(capsys):
 
     stdout, stderr = capsys.readouterr()
     assert stdout == ""
-    assert stderr == "fbrp process [foo] invalid. env is not dict[str, str]"
+    assert stderr == "fbrp process [foo] invalid. env is not dict[str, str]\n"
