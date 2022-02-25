@@ -49,7 +49,7 @@ public:
   virtual void resetStateUpdateTracker() = 0;
 
   // Reset the communication channel
-  virtual void resetCommunication() {};
+  virtual void resetCommunication(){};
 };
 
 class AllegroHandImpl : public AllegroHand {

@@ -118,7 +118,7 @@ void AllegroHandTorqueControlClient::run() {
                                                    kNDofs);
             velocity_filter_->filter_position(positions, finger, velocities);
             poll_success_event.checkpoint();
-            recovery_attempts = 0;  // Comms are working / restored.
+            recovery_attempts = 0; // Comms are working / restored.
           } else if (poll_success_event.secondsSinceCheckpoint() > 3) {
             throw std::runtime_error("No recent communication from hand.");
           }
@@ -145,7 +145,6 @@ void AllegroHandTorqueControlClient::run() {
   }
   spdlog::error("Max recovery attempts exhausted.");
 }
-
 
 void AllegroHandTorqueControlClient::updateServerCommand(
     /*
