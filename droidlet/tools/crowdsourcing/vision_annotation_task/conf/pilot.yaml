@@ -6,6 +6,8 @@ mephisto:
     preview_source: ${task_dir}/server_files/vision_annotation_pilot_preview.html
     extra_source_dir: ${task_dir}/server_files/extra_refs
     units_per_assignment: 1
+  database:
+    _database_type: singleton
   task:
     task_title: "Mark images in 3D"
     task_description: "Mark the blocks that make up a shape"

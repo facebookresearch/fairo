@@ -6,6 +6,8 @@ mephisto:
     preview_source: ${task_dir}/server_files/vision_annotation_task_preview.html
     task_source: ${task_dir}/server_files/vision_annotation_task.html
     units_per_assignment: 1
+  database:
+    _database_type: singleton
   task:
     assignment_duration_in_seconds: 600
     task_description: Mark the blocks that make up a shape
