@@ -1,3 +1,4 @@
+from fbrp import util
 import dataclasses
 import inspect
 import os
@@ -48,6 +49,11 @@ def process(
         root = os.path.normpath(os.path.join(rule_dir, root))
     else:
         root = rule_dir
+
+    # Validate env is dict[str, str]
+    for k, v in env.items():
+        if [type(k), type(v)] != [str, str]:
+            util.fail(f"fbrp process [{name}] invalid. env is not dict[str, str]")
 
     defined_processes[name] = ProcDef(
         name=name,
