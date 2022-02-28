@@ -1190,7 +1190,7 @@ def remove_key_text_span(dictionary):
 
 def remove_text_span(dictionary):
     updated_d = {}
-    if dictionary["dialogue_type"] == "HUMAN_GIVE_COMMAND":
+    if "dialogue_type" in dictionary and dictionary["dialogue_type"] == "HUMAN_GIVE_COMMAND":
         updated_d["action_sequence"] = []
         for action_dict in dictionary["action_sequence"]:
             updated_action_dict = remove_key_text_span(action_dict)
