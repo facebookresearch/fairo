@@ -25,12 +25,12 @@ fbrp.process(
     },
 )
 
-# # Kibana visualizes the ElasticSearch database.
-# # http://0.0.0.0:5601
-# fbrp.process(
-#     name="kibana",
-#     runtime=fbrp.Docker(image="kibana:8.0.0"),
-# )
+# Kibana visualizes the ElasticSearch database.
+# http://0.0.0.0:5601
+fbrp.process(
+    name="kibana",
+    runtime=fbrp.Docker(image="kibana:8.0.0"),
+)
 
 # Simple process that generates data.
 fbrp.process(
