@@ -40,8 +40,7 @@ private:
                            double k, const char *item_name);
 
   // gRPC
-  std::unique_ptr<PolymetisControllerServer::Stub> stub_;
-  grpc::Status status_;
+  std::unique_ptr<PolymetisControllerServerImpl> controller_server_;
 
   TorqueCommand torque_command_;
   RobotState robot_state_;
@@ -77,7 +76,8 @@ public:
   /**
   TODO
   */
-  FrankaTorqueControlClient(std::shared_ptr<grpc::Channel> channel,
-                            YAML::Node config);
+  FrankaTorqueControlClient(
+      std::shared_ptr<PolymetisControllerServerImpl> controller_service,
+      YAML::Node config);
   void run();
 };

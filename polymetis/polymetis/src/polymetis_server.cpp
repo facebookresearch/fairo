@@ -70,9 +70,8 @@ Status PolymetisControllerServerImpl::GetRobotStateLog(
   return Status::OK;
 }
 
-Status PolymetisControllerServerImpl::InitRobotClient(
-    ServerContext *context, const RobotClientMetadata *robot_client_metadata,
-    Empty *) {
+void PolymetisControllerServerImpl::InitRobotClient(
+    const RobotClientMetadata *robot_client_metadata, Empty *) {
   spdlog::info("==== Initializing new RobotClient... ====");
 
   num_dofs_ = robot_client_metadata->dof();
@@ -94,7 +93,7 @@ Status PolymetisControllerServerImpl::InitRobotClient(
   } catch (const std::exception &e) {
     std::string error_msg =
         "Failed to load default controller: " + std::string(e.what());
-    return Status(StatusCode::CANCELLED, error_msg);
+    return
   }
 
   // Set URDF file of new context
@@ -106,7 +105,6 @@ Status PolymetisControllerServerImpl::InitRobotClient(
   resetControllerContext();
 
   spdlog::info("Success.");
-  return Status::OK;
 }
 
 bool PolymetisControllerServerImpl::validRobotContext() {
@@ -125,10 +123,8 @@ void PolymetisControllerServerImpl::resetControllerContext() {
   custom_controller_context_.status = UNINITIALIZED;
 }
 
-Status
-PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
-                                             const RobotState *robot_state,
-                                             TorqueCommand *torque_command) {
+void PolymetisControllerServerImpl::ControlUpdate(
+    const RobotState *robot_state, TorqueCommand *torque_command) {
   // Check if last update is stale
   if (!validRobotContext()) {
     spdlog::warn("Interrupted control update greater than threshold of {} ns. "
@@ -186,7 +182,7 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     std::string error_msg =
         "Failed to run controller forward function: " + std::string(e.what());
     spdlog::error(error_msg);
-    return Status(StatusCode::CANCELLED, error_msg);
+    return
   }
 
   // Unlock
@@ -213,8 +209,6 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   }
 
   robot_client_context_.last_update_ns = getNanoseconds();
-
-  return Status::OK;
 }
 
 Status PolymetisControllerServerImpl::SetController(
