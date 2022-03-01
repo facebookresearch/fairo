@@ -53,7 +53,8 @@ private:
   struct TorchInput *empty_input_ = nullptr;
 
 public:
-  TorchScriptedController(char *data, size_t size, int num_dofs);
+  TorchScriptedController(char *data, size_t size,
+                          TorchRobotState &init_robot_state);
   ~TorchScriptedController();
 
   std::vector<float> forward(TorchRobotState &input);

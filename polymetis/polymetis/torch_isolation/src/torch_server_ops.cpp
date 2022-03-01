@@ -113,8 +113,8 @@ void TorchRobotState::update_state(int timestamp_s, int timestamp_ns,
   }
 }
 
-TorchScriptedController::TorchScriptedController(char *data, size_t size,
-                                                 int num_dofs) {
+TorchScriptedController::TorchScriptedController(
+    char *data, size_t size, TorchRobotState &init_robot_state) {
   memstream stream(data, size);
   module_ = new TorchScriptModule{torch::jit::load(stream)};
 
@@ -124,9 +124,8 @@ TorchScriptedController::TorchScriptedController(char *data, size_t size,
   // Backup, warm up, and reload module
   auto tmp_module_data = module_->data.deepcopy();
 
-  TorchRobotState dummy_robot_state(num_dofs);
   for (int i = 0; i < WARM_UP_ITERS; i++) {
-    this->forward(dummy_robot_state);
+    this->forward(init_robot_state);
   }
 
   module_->data = tmp_module_data;
