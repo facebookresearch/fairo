@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #define C_TORCH_EXPORT __attribute__((visibility("default")))
+#define WARM_UP_ITERS 5
 
 struct TorchTensor;       // torch::Tensor
 struct TorchScriptModule; // torch::jit::script::Module
@@ -52,7 +53,7 @@ private:
   struct TorchInput *empty_input_ = nullptr;
 
 public:
-  TorchScriptedController(char *data, size_t size);
+  TorchScriptedController(char *data, size_t size, int num_dofs);
   ~TorchScriptedController();
 
   std::vector<float> forward(TorchRobotState &input);
