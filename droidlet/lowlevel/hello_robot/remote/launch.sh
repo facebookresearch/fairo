@@ -10,6 +10,7 @@ export PYRO_PICKLE_PROTOCOL_VERSION=2
 
 default_ip=$(hostname -I | cut -f1 -d" ")
 ip=${LOCOBOT_IP:-$default_ip}
+export LOCAL_IP=$ip
 export PYRO_IP=$ip
 export LOCOBOT_IP=$ip
 echo "Binding to Host IP" $ip
