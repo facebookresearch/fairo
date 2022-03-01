@@ -33,6 +33,7 @@ s3 = boto3.client(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
 
+
 def main(opts):
     # List all of the log files in S3 bucket for the given batch_id
     response = s3.list_objects_v2(Bucket=S3_BUCKET_NAME, Prefix=f"{opts.batch_id}/interaction")
@@ -41,8 +42,8 @@ def main(opts):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('batch_id', type=str, required=True, hint="batch ID for interaction job")
-    parser.add_argument('nsp_data', type=str, required=True, default="nsp_data_v3.txt")
+    parser.add_argument("batch_id", type=str, required=True, hint="batch ID for interaction job")
+    parser.add_argument("nsp_data", type=str, required=True, default="nsp_data_v3.txt")
     opts = parser.parse_args()
 
     main(opts)
