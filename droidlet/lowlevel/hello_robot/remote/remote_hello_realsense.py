@@ -19,6 +19,7 @@ from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base,
 from slam_pkg.utils import depth_util as du
 from obstacle_utils import is_obstacle
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
+from data_compression import *
 
 
 # Configure depth and color streams
@@ -95,7 +96,7 @@ class RemoteHelloRealsense(object):
         print("Connected!!")  # should print on server terminal
         return "Connected!"  # should print on client terminal
 
-    def get_rgb_depth(self, rotate=True):
+    def get_rgb_depth(self, rotate=True, compressed=False):
         tm = time.time()
         frames = None
         while not frames:
@@ -110,8 +111,11 @@ class RemoteHelloRealsense(object):
             if not aligned_depth_frame or not color_frame:
                 continue
 
-            depth_image = np.asanyarray(aligned_depth_frame.get_data()) / 1000 # convert to meters
+            depth_image = np.asanyarray(aligned_depth_frame.get_data())            
             color_image = np.asanyarray(color_frame.get_data())
+
+            if not compressed:
+                depth_image = depth_image / 1000 # convert to meters
 
             # rotate
             if rotate:
@@ -123,7 +127,7 @@ class RemoteHelloRealsense(object):
     def get_open3d_pcd(self, rgb_depth=None, cam_transform=None, base_state=None):
         # get data
         if rgb_depth is None:
-            rgb, depth = self.get_rgb_depth(rotate=False)
+            rgb, depth = self.get_rgb_depth(rotate=False, compressed=False)
         else:
             rgb, depth = rgb_depth
 
@@ -158,7 +162,7 @@ class RemoteHelloRealsense(object):
         return opcd
 
     def get_current_pcd(self):
-        rgb, depth = self.get_rgb_depth(rotate=False)
+        rgb, depth = self.get_rgb_depth(rotate=False, compressed=False)
         opcd = self.get_open3d_pcd(rgb_depth=[rgb, depth])
         pcd = np.asarray(opcd.points)
         return pcd, rgb        
@@ -170,25 +174,29 @@ class RemoteHelloRealsense(object):
                           max_dist=0.5, return_viz=return_viz)
         if return_viz:
             obstacle, cpcd, crop, bbox, rest = ret
-            cpcd = o3d_pickle(cpcd)
+            # cpcd = o3d_pickle(cpcd)
             crop = o3d_pickle(crop)
             bbox = o3d_pickle(bbox)
             rest = o3d_pickle(rest)
-            return obstacle, cpcd, crop, bbox, rest
+            # return obstacle, cpcd, crop, bbox, rest
+            return obstacle, crop, bbox, rest
         else:
             obstacle = ret
             return obstacle
 
     def get_pcd_data(self, rotate=True):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
-        rgb, depth = self.get_rgb_depth(rotate=rotate)
-        # cap anything more than np.power(2,6)~ 64 meter
-        depth[depth > np.power(2, 6) - 1] = np.power(2, 6) - 1
+        rgb, depth = self.get_rgb_depth(rotate=rotate, compressed=True)
+        # cap anything more than np.power(2,9)~ 64 meter
+        depth[depth > np.power(2, 9) - 1] = np.power(2, 9) - 1
         T = self.get_camera_transform()
         rot = T[:3, :3]
         trans = T[:3, 3]
         base2cam_trans = np.array(trans).reshape(-1, 1)
         base2cam_rot = np.array(rot)
+
+        rgb = jpg_encode(rgb)
+        depth = blosc_encode(depth)
         return rgb, depth, base2cam_rot, base2cam_trans
 
 if __name__ == "__main__":
