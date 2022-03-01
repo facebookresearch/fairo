@@ -283,7 +283,6 @@ class HelloRobotMover(MoverInterface):
         depth = np.divide(depth, 1000, dtype=np.float32) # convert from mm to metres
         base_state = self.bot.get_base_state().value
         uv_one_in_cam = self.uv_one_in_cam
-        base_state = base_state.value
         return HelloRobotMover.compute_pcd(rgb, depth, rot, trans, base_state, uv_one_in_cam)
 
     @staticmethod
