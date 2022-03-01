@@ -407,34 +407,3 @@ void FrankaTorqueControlClient::computeSafetyReflex(
     }
   }
 }
-
-void *rt_main(void *cfg_ptr) {
-  YAML::Node &config = *(static_cast<YAML::Node *>(cfg_ptr));
-
-  // Launch adapter
-  std::string control_address = config["control_ip"].as<std::string>() + ":" +
-                                config["control_port"].as<std::string>();
-  FrankaTorqueControlClient franka_panda_client(
-      grpc::CreateChannel(control_address, grpc::InsecureChannelCredentials()),
-      config);
-  franka_panda_client.run();
-
-  return NULL;
-}
-
-int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    spdlog::error("Usage: franka_panda_client /path/to/cfg.yaml");
-    return 1;
-  }
-  YAML::Node config = YAML::LoadFile(argv[1]);
-  void *config_void_ptr = static_cast<void *>(&config);
-
-  // Launch thread
-  create_real_time_thread(rt_main, config_void_ptr);
-
-  // Termination
-  spdlog::info("Wait for shutdown; press CTRL+C to close.");
-
-  return 0;
-}

@@ -2,25 +2,41 @@
 
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
+#include "polymetis/clients/franka_panda_client.hpp"
 #include "polymetis/polymetis_server.hpp"
 #include "real_time.hpp"
 #include "torch_server_ops.hpp"
 
-void *RunServer(void *server_address_ptr) {
-  std::string &server_address =
-      *(static_cast<std::string *>(server_address_ptr));
+struct ServerInfo {
+  std::string server_address, YAML::Node cfg,
+};
+
+void *RunServer(void *server_info_ptr) {
+  ServerInfo &server_info = *(static_cast<ServerInfo *>(server_info_ptr));
 
   // Instantiate service
   PolymetisControllerServerImpl service;
 
   // Build service
   ServerBuilder builder;
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  builder.AddListeningPort(server_info.server_address,
+                           grpc::InsecureServerCredentials());
   builder.RegisterService(&service);
   std::unique_ptr<Server> server(builder.BuildAndStart());
 
   // Start server
   spdlog::info("Server listening on {}", server_address);
+
+  // Launch franka client
+  std::string control_address =
+      server_info.cfg["control_ip"].as<std::string>() + ":" +
+      server_info.cfg["control_port"].as<std::string>();
+  FrankaTorqueControlClient franka_panda_client(
+      std::shared_ptr<PolymetisControllerServerImpl>(&service),
+      server_info.cfg);
+  franka_panda_client.run();
+
+  // Wait
   server->Wait();
 
   return NULL;
@@ -57,13 +73,19 @@ int main(int argc, char **argv) {
   spdlog::info("Using real time: {}", use_real_time);
   spdlog::info("Using server address: {}", server_address);
 
+  // Config
+  YAML::Node config = input.getCmdOption("-c");
+
   // Start real-time thread
-  void *server_address_ptr = static_cast<void *>(&server_address);
+  ServerInfo server_info;
+  server_info.server_address = server_address;
+  server_info.cfg = config;
+  void *server_info_ptr = static_cast<void *>(&server_info);
 
   if (!use_real_time) {
-    RunServer(server_address_ptr);
+    RunServer(server_info_ptr);
   } else {
-    create_real_time_thread(RunServer, server_address_ptr);
+    create_real_time_thread(RunServer, server_info_ptr);
   }
 
   return 0;
