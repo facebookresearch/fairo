@@ -188,7 +188,7 @@ void PolymetisControllerServerImpl::ControlUpdate(
   // Unlock
   custom_controller_context_.controller_mtx.unlock();
   for (int i = 0; i < num_dofs_; i++) {
-    torque_command->add_joint_torques(desired_torque[i]);
+    torque_command->set_joint_torques(i, desired_torque[i]);
   }
   setTimestampToNow(torque_command->mutable_timestamp());
 

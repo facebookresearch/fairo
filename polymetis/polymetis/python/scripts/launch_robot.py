@@ -13,8 +13,11 @@ import atexit
 import sys
 import time
 import signal
+import tempfile
 
 import hydra
+import omegaconf
+from omegaconf import OmegaConf
 
 from polymetis.utils.data_dir import PKG_ROOT_DIR, which
 
@@ -67,8 +70,17 @@ def main(cfg):
         subprocess.run(["sudo", "echo", '"Acquired sudo."'], check=True)
 
         server_cmd = ["sudo", "-s", "env", '"PATH=$PATH"'] + server_cmd + ["-r"]
+    """
     server_output = subprocess.Popen(
         server_cmd, stdout=sys.stdout, stderr=sys.stderr, preexec_fn=os.setpgrp
+    )
+    """
+    subprocess.run(
+        server_cmd,
+        stdin=sys.stdin,
+        stdout=sys.stdout,
+        stderr=sys.stderr,
+        check=True,
     )
     pgid = os.getpgid(server_output.pid)
 
