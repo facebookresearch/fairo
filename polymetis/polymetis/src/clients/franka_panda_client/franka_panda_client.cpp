@@ -4,7 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 #include "polymetis/clients/franka_panda_client.hpp"
 
-#include "real_time.hpp"
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
 #include <Eigen/Dense>

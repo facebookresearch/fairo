@@ -11,6 +11,7 @@
 
 #include "yaml-cpp/yaml.h"
 
+#include "polymetis/polymetis_server.hpp"
 #include "polymetis/utils.h"
 #include <grpcpp/grpcpp.h>
 
@@ -40,7 +41,7 @@ private:
                            double k, const char *item_name);
 
   // gRPC
-  std::unique_ptr<PolymetisControllerServerImpl> controller_server_;
+  std::shared_ptr<PolymetisControllerServerImpl> controller_server_;
 
   TorqueCommand torque_command_;
   RobotState robot_state_;

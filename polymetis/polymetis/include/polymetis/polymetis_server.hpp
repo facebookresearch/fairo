@@ -96,14 +96,14 @@ public:
   /**
   TODO
   */
-  Status InitRobotClient(const RobotClientMetadata *robot_client_metadata,
-                         Empty *);
+  void InitRobotClient(const RobotClientMetadata *robot_client_metadata,
+                       Empty *);
 
   /**
   TODO
   */
-  Status ControlUpdate(const RobotState *robot_state,
-                       TorqueCommand *torque_command);
+  void ControlUpdate(const RobotState *robot_state,
+                     TorqueCommand *torque_command);
 
   // User client methods
 

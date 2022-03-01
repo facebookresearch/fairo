@@ -3,12 +3,16 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 #include "polymetis/clients/franka_panda_client.hpp"
+
+#include "yaml-cpp/yaml.h"
+
 #include "polymetis/polymetis_server.hpp"
 #include "real_time.hpp"
 #include "torch_server_ops.hpp"
 
 struct ServerInfo {
-  std::string server_address, YAML::Node cfg,
+  std::string server_address;
+  YAML::Node cfg;
 };
 
 void *RunServer(void *server_info_ptr) {
@@ -25,7 +29,7 @@ void *RunServer(void *server_info_ptr) {
   std::unique_ptr<Server> server(builder.BuildAndStart());
 
   // Start server
-  spdlog::info("Server listening on {}", server_address);
+  spdlog::info("Server listening on {}", server_info.server_address);
 
   // Launch franka client
   std::string control_address =
@@ -74,7 +78,8 @@ int main(int argc, char **argv) {
   spdlog::info("Using server address: {}", server_address);
 
   // Config
-  YAML::Node config = input.getCmdOption("-c");
+  std::string cfg_path = input.getCmdOption("-c");
+  YAML::Node config = YAML::LoadFile(cfg_path);
 
   // Start real-time thread
   ServerInfo server_info;

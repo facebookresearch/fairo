@@ -93,7 +93,7 @@ void PolymetisControllerServerImpl::InitRobotClient(
   } catch (const std::exception &e) {
     std::string error_msg =
         "Failed to load default controller: " + std::string(e.what());
-    return
+    return;
   }
 
   // Set URDF file of new context
@@ -182,7 +182,7 @@ void PolymetisControllerServerImpl::ControlUpdate(
     std::string error_msg =
         "Failed to run controller forward function: " + std::string(e.what());
     spdlog::error(error_msg);
-    return
+    return;
   }
 
   // Unlock
