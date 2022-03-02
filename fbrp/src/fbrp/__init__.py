@@ -1,4 +1,3 @@
-from fbrp.cmd._common import CommonFlags
 from fbrp.process_def import process
 from fbrp.runtime.conda import Conda
 from fbrp.runtime.docker import Docker
@@ -9,9 +8,8 @@ import os
 
 
 @click.group()
-@click.option("-v/-q", "--verbose/--quiet", is_flag=True, default=False)
-def cli(verbose):
-    CommonFlags.verbose = verbose
+def cli():
+    pass
 
 
 def main():
