@@ -9,7 +9,7 @@
 
 #include "digital_filter.hpp"
 #include "event_watcher.hpp"
-#include "pcan_interface.hpp"
+#include "pcan_netdev_interface.hpp"
 #include "periodic_event.hpp"
 
 #include "./fake_clock/fake_clock.hh"
@@ -77,11 +77,10 @@ TEST(EventData, basic) {
   EXPECT_EQ(event_data.count(), 4);
 }
 
-void TestPcan(TPCANHandle bus) {
-  TPCANMsg msg;
+void TestPcan(std::string device_name) {
   try {
     testing::internal::CaptureStdout();
-    PcanInterface pcan(bus);
+    PcanInterface pcan(device_name);
 
     EXPECT_FALSE(pcan.readPcan(nullptr));
     EXPECT_NE(testing::internal::GetCapturedStdout().find(
@@ -89,6 +88,7 @@ void TestPcan(TPCANHandle bus) {
               std::string::npos);
 
     testing::internal::CaptureStdout();
+    can_frame msg;
     if (!pcan.readPcan(&msg)) {
       const std::string &capturedStdout =
           testing::internal::GetCapturedStdout();
@@ -102,8 +102,8 @@ void TestPcan(TPCANHandle bus) {
       testing::internal::GetCapturedStdout();
     }
     testing::internal::CaptureStdout();
-    msg.MSGTYPE = PCAN_MESSAGE_STANDARD;
-    msg.LEN = 1;
+    msg.can_id = 0;
+    msg.can_dlc = 1;
     if (!pcan.writePcan(msg)) {
       EXPECT_NE(testing::internal::GetCapturedStdout().find(
                     "CAN Bus Error: A PCAN Channel has not been initialized "
@@ -114,8 +114,8 @@ void TestPcan(TPCANHandle bus) {
     }
 
     testing::internal::CaptureStdout();
-    msg.MSGTYPE = PCAN_MESSAGE_STANDARD;
-    msg.LEN = 10;
+    msg.can_id = 0;
+    msg.can_dlc = 10;
     if (!pcan.writePcan(msg)) {
       EXPECT_NE(testing::internal::GetCapturedStdout().find("Bad MSG Len"),
                 std::string::npos);
@@ -131,8 +131,7 @@ void TestPcan(TPCANHandle bus) {
 }
 
 TEST(PCAN, BasicFailures) {
-  TestPcan(PCAN_USBBUS1);
-  TestPcan(PCAN_PCIBUS1);
+  TestPcan("can0");
 }
 
 TEST(DigitalFilter, Butter) {

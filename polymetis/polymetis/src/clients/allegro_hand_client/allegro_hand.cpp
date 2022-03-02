@@ -9,7 +9,7 @@
 #include <utility>
 
 #include "event_watcher.hpp"
-#include "pcan_interface.hpp"
+#include "pcan_netdev_interface.hpp"
 #include "utility.hpp"
 
 #include "./allegro_hand.hpp"
@@ -37,6 +37,9 @@
 #define ALLEGRO_MSG_ID_STATUS 0x10u
 
 constexpr double kTorqueMax = 1200.0;
+
+typedef __u16 WORD;
+typedef __u8 BYTE;
 
 struct AllegroInfo {
   WORD hw_version;
@@ -93,7 +96,7 @@ void AllegroHandImpl::requestStatus() {
 }
 
 int AllegroHandImpl::poll() {
-  TPCANMsg msg;
+  can_frame msg;
 
   for (int f = 0; f < kNFinger; f++) {
     if (send_pending_[f]) {
@@ -103,10 +106,10 @@ int AllegroHandImpl::poll() {
   }
 
   if (pcan_.readPcan(&msg)) {
-    int message_id = msg.ID >> 2;
+    int message_id = msg.can_id >> 2;
     switch (message_id) {
     case ALLEGRO_MSG_ID_INFORMATION: {
-      AllegroInfo *info = reinterpret_cast<AllegroInfo *>(msg.DATA);
+      AllegroInfo *info = reinterpret_cast<AllegroInfo *>(msg.data);
       printf("Info: hw_ver: %u, firmware_ver:%u, chirality: %u, temp:%u, "
              "stat:%x\n",
              info->hw_version, info->firmware_version, info->chirality,
@@ -120,7 +123,7 @@ int AllegroHandImpl::poll() {
              ((info->stat & (1 << 4)) != 0) ? "True" : "False");
     } break;
     case ALLEGRO_MSG_ID_SERIAL:
-      printf("Serial: %.*s\n", msg.LEN, msg.DATA);
+      printf("Serial: %.*s\n", msg.can_dlc, msg.data);
       break;
     case ALLEGRO_MSG_ID_POS1:
     case ALLEGRO_MSG_ID_POS2:
@@ -129,7 +132,7 @@ int AllegroHandImpl::poll() {
       gEventWatcher.observe("joint_msg_recv");
       int finger = message_id & 0x07;
       send_pending_[finger] = true;
-      int16_t *raw_pos = reinterpret_cast<int16_t *>(msg.DATA);
+      int16_t *raw_pos = reinterpret_cast<int16_t *>(msg.data);
       for (int j = 0; j < kNJoint; j++) {
         position_[finger * kNJoint + j] = convertPosition(raw_pos[j]);
       }
@@ -146,7 +149,7 @@ int AllegroHandImpl::poll() {
       gEventWatcher.observe("temp_msg_recv");
       break;
     default:
-      printf("Unknown ID: %x type:%x\n", message_id, msg.MSGTYPE);
+      printf("Unknown ID: %x\n", message_id);
       break;
     }
   } else {
@@ -178,12 +181,12 @@ double *AllegroHandImpl::getPositions() { return position_; }
 
 bool AllegroHandImpl::send(unsigned char msg_id, char data_len,
                            const void *data, bool expect_return) {
-  TPCANMsg msg;
-  msg.ID = msg_id << 2 | device_id_;
-  msg.MSGTYPE = expect_return ? PCAN_MESSAGE_RTR : PCAN_MESSAGE_STANDARD;
-  msg.LEN = data_len;
+  can_frame msg;
+  msg.can_id = msg_id << 2 | device_id_;
+  msg.can_id |= expect_return ? CAN_RTR_FLAG : 0;
+  msg.can_dlc = data_len;
   if (data != nullptr) {
-    memcpy(msg.DATA, data, data_len);
+    memcpy(msg.data, data, data_len);
   }
   return pcan_.writePcan(msg);
 }

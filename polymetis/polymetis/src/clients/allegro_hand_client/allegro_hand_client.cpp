@@ -56,18 +56,8 @@ AllegroHandTorqueControlClient::AllegroHandTorqueControlClient(
   if (!mock_allegro_) {
     spdlog::info("Connecting to Allegro Hand...");
 
-    TPCANHandle bus_handle;
-    const std::string can_bus_name = config["can_bus"].as<std::string>();
-    if (can_bus_name == "USB") {
-      bus_handle = PCAN_USBBUS1;
-    } else if (can_bus_name == "PCI") {
-      bus_handle = PCAN_PCIBUS1;
-    } else {
-      throw std::runtime_error("Unknown CAN bus identifier in config: " +
-                               can_bus_name);
-    }
-
-    allegro_hand_ptr_.reset(new AllegroHandImpl(PcanInterface(bus_handle)));
+    const std::string can_bus_id = config["can_bus"].as<std::string>();
+    allegro_hand_ptr_.reset(new AllegroHandImpl(PcanInterface(can_bus_id)));
     spdlog::info("Connected.");
   } else {
     spdlog::info(

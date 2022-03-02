@@ -4,7 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 #pragma once
 
-#include "pcan_interface.hpp"
+#include "pcan_netdev_interface.hpp"
 #include "periodic_event.hpp"
 
 constexpr int kNFinger = 4;

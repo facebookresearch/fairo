@@ -140,8 +140,7 @@ if(BUILD_ALLEGRO)
   add_library(allegro_hand
     src/clients/allegro_hand_client/allegro_hand.cpp
     src/clients/allegro_hand_client/event_watcher.cpp
-    src/clients/allegro_hand_client/pcan_interface.cpp
-    )
+    src/clients/allegro_hand_client/pcan_netdev_interface.cpp)
 
   target_link_libraries(allegro_hand
     ${PCANBASIC_LIB}
