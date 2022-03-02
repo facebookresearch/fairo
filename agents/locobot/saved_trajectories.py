@@ -5,13 +5,19 @@ import shutil
 import json
 import math
 import cv2
+import sys
 import numpy as np
 import open3d as o3d
 from droidlet import dashboard
-from droidlet.dashboard.o3dviz import o3dviz
+from droidlet.dashboard.o3dviz import O3DViz
 from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
 
 if __name__ == "__main__":
+    if sys.platform == "darwin":
+        webrtc_streaming=False
+    else:
+        webrtc_streaming=True
+    o3dviz = O3DViz(webrtc_streaming)
     o3dviz.start()
 
 height, width = 480, 640
@@ -34,7 +40,8 @@ uv_one_in_cam, intrinsic = compute_uvone(height, width)
 
 def load_data(idx):
     # root = "/home/soumith/appended/baseline/"
-    root = "/home/soumith/collision/hello_data_log_1637169407.7004237/17"
+    # root = "/home/soumith/collision/hello_data_log_1637169407.7004237/12"
+    root = "/Users/soumith/collision/hello_data_log_1637169407.7004237/12"
     # root = "/home/soumith/collision/hello_data_log_1638331896.0773966/1"
     # root = "/home/soumith/collision/hello_data_log_1638338130.298805/2"
 
@@ -87,30 +94,31 @@ def load_data(idx):
     return rgb_depth, opcd, base_state, cam_transform, extrinsic
 
 
-opcd = o3d.geometry.PointCloud()
+if __name__ == "__main__":
+    opcd = o3d.geometry.PointCloud()
 
-for i in range(0, 1, 1):
-# for i in range(0, 51, 10):
-# for i in range(1900, 2100, 10):
-    rgb_depth, cpcd, base_state, cam_transform, extrinsic = load_data(i)
-    print(i)
-    time.sleep(1)
+    for i in range(0, 1, 1):
+    # for i in range(0, 51, 10):
+    # for i in range(1900, 2100, 10):
+        rgb_depth, cpcd, base_state, cam_transform, extrinsic = load_data(i)
+        print(i)
+        time.sleep(1)
 
-    opcd += cpcd
-    # opcd = opcd.voxel_down_sample(0.05)
-    o3dviz.put('pointcloud', opcd)
+        opcd += cpcd
+        # opcd = opcd.voxel_down_sample(0.05)
+        o3dviz.put('pointcloud', opcd)
 
-    R = extrinsic[:3, :3]
-    t = extrinsic[:3, 3]
-    eye = - R.T @ t
-    up = -extrinsic[1, :3]     # Y camera axis in world frame
-    front = -extrinsic[2, :3]  # Z camera axis in world frame
-    center = eye - front       # any point on the ray through the camera center
-    o3dviz.set_camera(look_at=center, position=eye, y_axis=up)
+        R = extrinsic[:3, :3]
+        t = extrinsic[:3, 3]
+        eye = - R.T @ t
+        up = -extrinsic[1, :3]     # Y camera axis in world frame
+        front = -extrinsic[2, :3]  # Z camera axis in world frame
+        center = eye - front       # any point on the ray through the camera center
+        # o3dviz.set_camera(look_at=center, position=eye, y_axis=up)
     
-    o3dviz.add_robot(base_state, canonical=False, base=False)
+        o3dviz.add_robot(base_state, canonical=False, base=False)
 
-    x, y, yaw = base_state.tolist()
+        x, y, yaw = base_state.tolist()
 
 
-o3dviz.join()
+    o3dviz.join()
