@@ -131,7 +131,7 @@ def main(opts):
                     continue
                 else:
                     error_dict[row["command"]] = json.loads(row["action_dict"].replace("'", '"'))
-            
+
             tf.extract("./nsp_outputs.csv")
             csv_file = pd.read_csv("nsp_outputs.csv", delimiter="|")
             for idx, row in csv_file.iterrows():
@@ -140,7 +140,9 @@ def main(opts):
                     continue
                 else:
                     # The error_details csv has already been postprocessed, but nsp_outputs.csv has not
-                    command_dict[row["command"]] = postprocess_logical_form(row["command"], json.loads(row["action_dict"].replace("'", '"')))
+                    command_dict[row["command"]] = postprocess_logical_form(
+                        row["command"], json.loads(row["action_dict"].replace("'", '"'))
+                    )
 
         # Remove text_span from command dict and save
         cd_copy = copy.deepcopy(command_dict)
@@ -166,11 +168,15 @@ def main(opts):
         print(f"Total number of errors labeled: {tot_num_errors}")
         print(f"Total number of errors dedup: {len(error_dict)}")
 
-        #Check the number of errors against collected_commands
-        s3.download_file(S3_BUCKET_NAME, f"{opts.batch_id}/collected_commands", "collected_commands.txt")
+        # Check the number of errors against collected_commands
+        s3.download_file(
+            S3_BUCKET_NAME, f"{opts.batch_id}/collected_commands", "collected_commands.txt"
+        )
         with open("collected_commands.txt", "r") as f:
             collected_commands = f.readlines()
-        print(f"Total number of errors according to `collected_commands` (should match above): {len(collected_commands)}")
+        print(
+            f"Total number of errors according to `collected_commands` (should match above): {len(collected_commands)}"
+        )
 
         # Download nsp_data and build a annotated command dict
         s3.download_file(S3_BUCKET_NAME, opts.nsp_data, "nsp_data.txt")
