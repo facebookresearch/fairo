@@ -1,0 +1,1 @@
+tell me once you are done filling hole	{"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": [{"action_type": "OTHERACTION"}]}
