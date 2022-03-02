@@ -56,7 +56,7 @@ fbrp.process(
         "rules": [
             {
                 "protocol": "pubsub",
-                "topic": "data",
+                "topic": "**/*",
                 "policies": [{"type": "save_all"}],
             },
         ],
