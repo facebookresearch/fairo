@@ -81,7 +81,7 @@ class BaseRuntime:
     def asdict(self, root: pathlib.Path):
         raise NotImplementedError("Runtime hasn't implemented asdict!")
 
-    def _build(self, name: str, proc_def: ProcDef):
+    def _build(self, name: str, proc_def: ProcDef, verbose: bool):
         raise NotImplementedError("Runtime hasn't implemented build!")
 
     def _launcher(self, name: str, proc_def: ProcDef) -> BaseLauncher:
