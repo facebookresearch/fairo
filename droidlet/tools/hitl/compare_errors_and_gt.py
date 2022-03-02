@@ -103,6 +103,8 @@ def remove_text_span(d: dict):
 
 def main(opts):
     if opts.load_local:
+        with open("command_dict.json", "r") as f:
+            command_dict = json.load(f)
         with open("error_dict.json", "r") as f:
             error_dict = json.load(f)
         with open("annotated_dict.json", "r") as f:
@@ -113,31 +115,62 @@ def main(opts):
         response = s3.list_objects_v2(Bucket=S3_BUCKET_NAME, Prefix=f"{opts.batch_id}/interaction")
         log_keys = [item["Key"] for item in response["Contents"]]
 
-        # Download each log file, extract, and pull the errors into a dictionary
+        # Download each log file, extract, and pull the errors/commands into a dictionary
         error_dict = {}
+        command_dict = {}
+        tot_num_errors = 0
+        tot_num_cmds = 0
         for key in log_keys:
             s3.download_file(S3_BUCKET_NAME, key, "logs.tar.gz")
             tf = tarfile.open("logs.tar.gz")
             tf.extract("./error_details.csv")
             csv_file = pd.read_csv("error_details.csv", delimiter="|")
             for idx, row in csv_file.iterrows():
+                tot_num_errors += 1
                 if row["command"] in error_dict:
-                    error_dict[row["command"]].append(
-                        json.loads(row["action_dict"].replace("'", '"'))
-                    )
+                    continue
                 else:
-                    error_dict[row["command"]] = [json.loads(row["action_dict"].replace("'", '"'))]
+                    error_dict[row["command"]] = json.loads(row["action_dict"].replace("'", '"'))
+            
+            tf.extract("./nsp_outputs.csv")
+            csv_file = pd.read_csv("nsp_outputs.csv", delimiter="|")
+            for idx, row in csv_file.iterrows():
+                tot_num_cmds += 1
+                if row["command"] in command_dict:
+                    continue
+                else:
+                    # The error_details csv has already been postprocessed, but nsp_outputs.csv has not
+                    command_dict[row["command"]] = postprocess_logical_form(row["command"], json.loads(row["action_dict"].replace("'", '"')))
 
-        # Remove text_span from error dict
+        # Remove text_span from command dict and save
+        cd_copy = copy.deepcopy(command_dict)
+        for key in error_dict.keys():
+            cd_copy[key] = remove_text_span(command_dict[key])
+        command_dict = copy.deepcopy(cd_copy)
+
+        with open("command_dict.json", "w") as f:
+            json.dump(command_dict, f)
+
+        print(f"Total number of commands issued: {tot_num_cmds}")
+        print(f"Total number of commands dedup: {len(command_dict)}")
+
+        # Remove text_span from error dict and save
         ed_copy = copy.deepcopy(error_dict)
         for key in error_dict.keys():
-            for i in range(len(error_dict[key])):
-                ed_copy[key][i] = remove_text_span(error_dict[key][i])
+            ed_copy[key] = remove_text_span(error_dict[key])
         error_dict = copy.deepcopy(ed_copy)
 
-        # Save to be loaded later
         with open("error_dict.json", "w") as f:
             json.dump(error_dict, f)
+
+        print(f"Total number of errors labeled: {tot_num_errors}")
+        print(f"Total number of errors dedup: {len(error_dict)}")
+
+        #Check the number of errors against collected_commands
+        s3.download_file(S3_BUCKET_NAME, f"{opts.batch_id}/collected_commands", "collected_commands.txt")
+        with open("collected_commands.txt", "r") as f:
+            collected_commands = f.readlines()
+        print(f"Total number of errors according to `collected_commands` (should match above): {len(collected_commands)}")
 
         # Download nsp_data and build a annotated command dict
         s3.download_file(S3_BUCKET_NAME, opts.nsp_data, "nsp_data.txt")
@@ -166,8 +199,7 @@ def main(opts):
         for page in pages:
             anno_keys += [item["Key"] for item in page["Contents"]]
 
-        print(f"Size of error dict: {len(error_dict)}")
-        print(f"Number of annotated commands (keys): {len(anno_keys)}")
+        print(f"Number of commands annotated: {len(anno_keys)}")
         print(
             f"Size of annotated dict before adding batch-specific annotations: {len(annotated_dict)}"
         )
@@ -196,33 +228,51 @@ def main(opts):
             ad_copy[key] = remove_text_span(annotated_dict[key])
         annotated_dict = copy.deepcopy(ad_copy)
 
-        # Save constructed dicts locally to save time on previous runs
         with open("annotated_dict.json", "w") as f:
             json.dump(annotated_dict, f)
 
-    # Compare the two dicts and report results
+    # Compare the error and annotated dicts
     correct_errors = 0
-    total_errors = 0
+    errors_annotated = 0
     not_found = 0
     for key in error_dict.keys():
-        for ad in error_dict[key]:
-            if key not in annotated_dict:
-                not_found += 1
-                continue
-            if ad != annotated_dict[key]:
-                correct_errors += 1
-            total_errors += 1
+        if key not in annotated_dict:
+            not_found += 1
+            continue
+        if error_dict[key] != annotated_dict[key]:
+            correct_errors += 1
+        errors_annotated += 1
 
-    print(f"# no annotated GT found: {not_found}")
-    print(f"Errors labeled correctly: {correct_errors}")
-    print(f"Incorrect errors (model parse was right): {total_errors - correct_errors}")
-    print(f"Total Errors Labeled: {total_errors + not_found}")
+    print(f"Num errors with NO annotated GT: {not_found}")
+    print(f"Implied # of labeled errors annotated (at some point): {errors_annotated}")
+    print(f"(Known) Errors labeled correctly: {correct_errors}")
+    print(f"(Known) Incorrect errors (model parse was right): {errors_annotated - correct_errors}")
+    print(f"Total Errors Labeled: {errors_annotated + not_found}")
+    print("\n")
+
+    # Compare the command and annotated dicts
+    nsp_errors = 0
+    commands_annotated = 0
+    not_found = 0
+    for key in command_dict.keys():
+        if key not in annotated_dict:
+            not_found += 1
+            continue
+        if command_dict[key] != annotated_dict[key]:
+            nsp_errors += 1
+        commands_annotated += 1
+
+    print(f"Num commands with NO annotated GT: {not_found}")
+    print(f"Implied # of commands annotated (at some point): {commands_annotated}")
+    print(f"(Known) NSP Errors: {nsp_errors}")
+    print(f"(Known) NSP Successes: {commands_annotated - nsp_errors}")
+    print(f"Total Errors Labeled: {commands_annotated + not_found}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--batch_id", type=str, default="20220104011348", help="batch ID for interaction job"
+        "--batch_id", type=str, default="20220224132033", help="batch ID for interaction job"
     )
     parser.add_argument("--nsp_data", type=str, default="nsp_data_v4.txt")
     parser.add_argument("--load_local", action="store_true", default=False)
