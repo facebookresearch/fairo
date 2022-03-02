@@ -2,6 +2,7 @@ import unittest
 import os
 from droidlet.test_utils import skipIfOfflineDecorator
 import cv2
+import open3d as o3d
 import numpy as np
 import json
 from functools import partial
@@ -59,10 +60,8 @@ class TransformsTest(unittest.TestCase):
         opcd = o3d.geometry.PointCloud()
         opcd.points = o3d.utility.Vector3dVector(points)
         opcd.colors = o3d.utility.Vector3dVector(colors)
-
         
-        
-        return rgb_depth
+        return opcd
 
     @skipIfOffline
     def test_open3d_pcd_transform(self):
@@ -70,4 +69,14 @@ class TransformsTest(unittest.TestCase):
 
 if __name__ == "__main__":
 
-    unittest.main()
+    # unittest.main()
+    from droidlet.dashboard.o3dviz import O3DViz
+    o3dviz = O3DViz(True)
+    o3dviz.start()
+
+    tests = TransformsTest()
+    opcd = tests.test_native_pcd_transform()
+    print("HERE")
+    o3dviz.put("pointcloud", opcd)
+    import time
+    time.sleep(1000)
