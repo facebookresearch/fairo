@@ -113,9 +113,13 @@ class Launcher(BaseLauncher):
     async def gather_cmd_outputs(self):
         async def log_pipe(logger, pipe):
             while True:
-                line = await pipe.readline()
-                if line:
-                    logger(line)
+                try:
+                    async for line in pipe:
+                        logger(line)
+                except ValueError:
+                    # TODO(lshamis): Can we grab the line in chucks?
+                    logger("<[FBRP] line length exceeded. skipping>")
+                    continue
                 else:
                     break
 
