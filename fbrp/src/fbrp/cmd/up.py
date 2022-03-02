@@ -5,6 +5,7 @@ from fbrp.cmd import _autocomplete
 import a0
 import asyncio
 import click
+import contextlib
 import json
 import os
 import sys
@@ -130,10 +131,14 @@ def cli(procs, deps, build, run, force, reset_logs):
             # Set up configuration.
             with util.common_env_context(proc_def):
                 a0.Cfg(a0.env.topic()).write(json.dumps(proc_def.cfg))
-                life_cycle.set_launcher_running(name, True)
-                try:
-                    asyncio.run(proc_def.runtime._launcher(name, proc_def).run())
-                except:
-                    pass
-                life_cycle.set_launcher_running(name, False)
-                sys.exit(0)
+
+                with open(f"/tmp/fbrp_{name}.log", "w", buffering=1) as logfile:
+                    with contextlib.redirect_stdout(logfile), contextlib.redirect_stderr(logfile):
+                        print(f"-- Process start time {a0.TimeWall.now()}")
+                        life_cycle.set_launcher_running(name, True)
+                        try:
+                            asyncio.run(proc_def.runtime._launcher(name, proc_def).run())
+                        except BaseException as e:
+                            print(f"FATAL: {e}")
+                        life_cycle.set_launcher_running(name, False)
+                        sys.exit(0)
