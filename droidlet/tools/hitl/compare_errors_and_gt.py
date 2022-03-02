@@ -95,7 +95,7 @@ def remove_text_span(d: dict):
             for i in range(len(v)):
                 if type(v[i]) == dict:
                     d_copy[k][i] = remove_text_span(d_copy[k][i])
-        if k == 'text_span':
+        if k == "text_span":
             del d_copy[k]
 
     return d_copy
@@ -112,49 +112,55 @@ def main(opts):
         # Retrieve all of the log file keys from S3 bucket for the given batch_id
         response = s3.list_objects_v2(Bucket=S3_BUCKET_NAME, Prefix=f"{opts.batch_id}/interaction")
         log_keys = [item["Key"] for item in response["Contents"]]
-        
-        #Download each log file, extract, and pull the errors into a dictionary
+
+        # Download each log file, extract, and pull the errors into a dictionary
         error_dict = {}
         for key in log_keys:
             s3.download_file(S3_BUCKET_NAME, key, "logs.tar.gz")
             tf = tarfile.open("logs.tar.gz")
-            tf.extract('./error_details.csv')
+            tf.extract("./error_details.csv")
             csv_file = pd.read_csv("error_details.csv", delimiter="|")
             for idx, row in csv_file.iterrows():
                 if row["command"] in error_dict:
-                    error_dict[row["command"]].append(json.loads(row["action_dict"].replace("'", "\"")))
+                    error_dict[row["command"]].append(
+                        json.loads(row["action_dict"].replace("'", '"'))
+                    )
                 else:
-                    error_dict[row["command"]] = [json.loads(row["action_dict"].replace("'", "\""))]
+                    error_dict[row["command"]] = [json.loads(row["action_dict"].replace("'", '"'))]
 
-        #Remove text_span from error dict
+        # Remove text_span from error dict
         ed_copy = copy.deepcopy(error_dict)
         for key in error_dict.keys():
             for i in range(len(error_dict[key])):
                 ed_copy[key][i] = remove_text_span(error_dict[key][i])
         error_dict = copy.deepcopy(ed_copy)
 
-        #Save to be loaded later
+        # Save to be loaded later
         with open("error_dict.json", "w") as f:
             json.dump(error_dict, f)
-        
-        #Download nsp_data and build a annotated command dict
+
+        # Download nsp_data and build a annotated command dict
         s3.download_file(S3_BUCKET_NAME, opts.nsp_data, "nsp_data.txt")
         with open("nsp_data.txt", "r") as f:
             nsp_data = f.readlines()
         annotated_dict = {}
         for line in nsp_data:
-            split_line = line.strip().split('|')
+            split_line = line.strip().split("|")
             try:
                 if len(split_line) == 2:
-                    annotated_dict[split_line[0].strip()] = postprocess_logical_form(split_line[0].strip(), json.loads(split_line[1].strip()))
+                    annotated_dict[split_line[0].strip()] = postprocess_logical_form(
+                        split_line[0].strip(), json.loads(split_line[1].strip())
+                    )
                 else:
-                    annotated_dict[split_line[1].strip()] = postprocess_logical_form(split_line[1].strip(), json.loads(split_line[2].strip()))
+                    annotated_dict[split_line[1].strip()] = postprocess_logical_form(
+                        split_line[1].strip(), json.loads(split_line[2].strip())
+                    )
             except:
                 print(split_line)
                 raise
 
         # Retrieve all of the annotated command file keys from S3 bucket for the given batch_id
-        paginator = s3.get_paginator('list_objects_v2')
+        paginator = s3.get_paginator("list_objects_v2")
         pages = paginator.paginate(Bucket=S3_BUCKET_NAME, Prefix=f"{opts.batch_id}/annotated")
         anno_keys = []
         for page in pages:
@@ -162,7 +168,9 @@ def main(opts):
 
         print(f"Size of error dict: {len(error_dict)}")
         print(f"Number of annotated commands (keys): {len(anno_keys)}")
-        print(f"Size of annotated dict before adding batch-specific annotations: {len(annotated_dict)}")
+        print(
+            f"Size of annotated dict before adding batch-specific annotations: {len(annotated_dict)}"
+        )
 
         # Download the annotation txt files and add them to annotated_dict if they don't already exist
         for key in anno_keys:
@@ -174,11 +182,15 @@ def main(opts):
                 if vals[0] in annotated_dict:
                     continue
                 else:
-                    annotated_dict[vals[0].strip()] = postprocess_logical_form(vals[0].strip(), json.loads(vals[1].strip()))
+                    annotated_dict[vals[0].strip()] = postprocess_logical_form(
+                        vals[0].strip(), json.loads(vals[1].strip())
+                    )
 
-        print(f"Size of annotated dict after adding batch-specific annotations: {len(annotated_dict)}")
+        print(
+            f"Size of annotated dict after adding batch-specific annotations: {len(annotated_dict)}"
+        )
 
-        #Remove text_span from annotated dict
+        # Remove text_span from annotated dict
         ad_copy = copy.deepcopy(annotated_dict)
         for key in annotated_dict.keys():
             ad_copy[key] = remove_text_span(annotated_dict[key])
@@ -209,9 +221,11 @@ def main(opts):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--batch_id', type=str, default="20220104011348", help="batch ID for interaction job")
-    parser.add_argument('--nsp_data', type=str, default="nsp_data_v4.txt")
-    parser.add_argument('--load_local', action="store_true", default=False)
+    parser.add_argument(
+        "--batch_id", type=str, default="20220104011348", help="batch ID for interaction job"
+    )
+    parser.add_argument("--nsp_data", type=str, default="nsp_data_v4.txt")
+    parser.add_argument("--load_local", action="store_true", default=False)
     opts = parser.parse_args()
 
     main(opts)
