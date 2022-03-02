@@ -7,6 +7,7 @@
 #include "real_time.hpp"
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
+#include <exception>
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
@@ -175,8 +176,14 @@ void *rt_main(void *cfg_ptr) {
   YAML::Node &config = *(static_cast<YAML::Node *>(cfg_ptr));
 
   // Launch adapter
-  std::string control_address = config["control_ip"].as<std::string>() + ":" +
-                                config["control_port"].as<std::string>();
+  std::string control_address;
+  try {
+    control_address = config["control_ip"].as<std::string>() + ":" +
+                      config["control_port"].as<std::string>();
+  } catch (...) {
+    std::throw_with_nested(std::runtime_error(
+        "Failed to read Polymetis server address from config."));
+  }
   AllegroHandTorqueControlClient allegro_hand_client(
       grpc::CreateChannel(control_address, grpc::InsecureChannelCredentials()),
       config);

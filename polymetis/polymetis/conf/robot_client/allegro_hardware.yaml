@@ -1,6 +1,3 @@
-defaults:
-  - robot_client/executable_cfg/velocity_filter: filters/butterworth_filters
-
 hz: 300
 use_real_time: false
 exec: allegro_hand_client

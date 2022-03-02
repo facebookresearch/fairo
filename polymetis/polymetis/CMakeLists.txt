@@ -158,7 +158,12 @@ if(BUILD_ALLEGRO)
     )
 
   if(BUILD_TESTS)
-    add_subdirectory(tests/cpp/fake_clock)
+    find_package(Git REQUIRED QUIET)
+    execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive -- tests/cpp/fake_clock
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      COMMAND_ERROR_IS_FATAL ANY)
+
+    add_library(fake_clock tests/cpp/fake_clock/fake_clock.cc)
     add_executable(test_allegro_hand_client
       tests/cpp/test_allegro_hand_client.cpp
       )
