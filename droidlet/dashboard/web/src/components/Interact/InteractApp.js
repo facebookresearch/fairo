@@ -48,6 +48,7 @@ class InteractApp extends Component {
     this.goToQuestionWindow = this.goToQuestionWindow.bind(this);
     this.MessageRef = React.createRef();
     this.intervalId = null;
+    this.messagesEnd = null;
   }
 
   updateChat(chat) {
@@ -153,6 +154,8 @@ class InteractApp extends Component {
         connected: this.props.stateManager.connected,
       });
     }
+    // Scroll messsage panel to bottom
+    this.scrollToBottom();
   }
 
   componentWillUnmount() {
@@ -310,6 +313,12 @@ class InteractApp extends Component {
     }
   }
 
+  // Scroll to bottom when submit new message
+  scrollToBottom = () => {
+    if (this.messagesEnd)
+      this.messagesEnd.scrollIntoView({ behavior: "smooth" });
+  };
+
   componentDidUpdate(prevProps, prevState) {
     // Show command message like an agent reply
     if (this.state.commandState !== prevState.commandState) {
@@ -344,6 +353,8 @@ class InteractApp extends Component {
         });
       }
     }
+    // Scroll messsage panel to bottom
+    this.scrollToBottom();
   }
 
   render() {
@@ -369,9 +380,17 @@ class InteractApp extends Component {
                     )}
                   </div>
                   <div className="messages">
-                    <ul className="messagelist" id="chat">
-                      {this.renderChatHistory()}
-                    </ul>
+                    <div className="messsages-content" id="scrollbar">
+                      <ul className="messagelist" id="chat">
+                        {this.renderChatHistory()}
+                      </ul>
+                      <div
+                        style={{ float: "left", clear: "both" }}
+                        ref={(el) => {
+                          this.messagesEnd = el;
+                        }}
+                      ></div>
+                    </div>
                   </div>
                   <div className="input">
                     <input
