@@ -121,14 +121,9 @@ TorchScriptedController::TorchScriptedController(
   param_dict_input_ = new TorchInput{std::vector<torch::jit::IValue>()};
   empty_input_ = new TorchInput{std::vector<torch::jit::IValue>()};
 
-  // Backup, warm up, and reload module
-  auto tmp_module_data = module_->data.deepcopy();
-
-  for (int i = 0; i < WARM_UP_ITERS; i++) {
-    this->forward(init_robot_state);
-  }
-
-  module_->data = tmp_module_data;
+  // Warm up controller (TorchScript models take time to compile during first 2
+  // queries)
+  this->warmup_controller(WARM_UP_ITERS, init_robot_state);
 }
 
 TorchScriptedController::~TorchScriptedController() {
@@ -151,6 +146,20 @@ std::vector<float> TorchScriptedController::forward(TorchRobotState &input) {
     result.push_back(desired_torque[i].item<float>());
   }
   return result;
+}
+
+void TorchScriptedController::warmup_controller(
+    int warmup_iters, TorchRobotState &init_robot_state) {
+  // Backup
+  auto tmp_module_data = module_->data.deepcopy();
+
+  // Warmup
+  for (int i = 0; i < warmup_iters; i++) {
+    this->forward(init_robot_state);
+  }
+
+  // Reload
+  module_->data = tmp_module_data;
 }
 
 bool TorchScriptedController::is_terminated() {

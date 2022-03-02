@@ -57,6 +57,8 @@ public:
                           TorchRobotState &init_robot_state);
   ~TorchScriptedController();
 
+  void warmup_controller(int warmup_iters, TorchRobotState &init_robot_state);
+
   std::vector<float> forward(TorchRobotState &input);
 
   bool param_dict_load(char *data, size_t size);
