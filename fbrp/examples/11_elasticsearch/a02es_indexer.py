@@ -29,23 +29,26 @@ class A02ES_Indexer:
 
         # Per-packet callback.
         def read_handle(tlk, fpkt):
+            # Add standard fields.
+            data = {
+                "id": fpkt.id,
+                "abspath": abspath,
+                "relpath": relpath,
+                "original_path": original_path,
+                "offset": tlk.frame().off,
+                "payload_size": len(fpkt.payload_view)
+            }
+
+            # Add all headers.
+            # TODO(lshamis): Add directive headers like "_index.payload".
+            for k, v in fpkt.headers:
+                data.setdefault(k, []).append(v)
+
             try:
-                # Index the fields of interest.
-                # TODO(lshamis): Add header flags to index user desired values, such as mime.
+                # Index the data into ES.
                 # TODO(lshamis): Can we batch the operation across multiple packets?
-                self._es.index(
-                    index="myindex",
-                    document={
-                        "id": fpkt.id,
-                        "abspath": abspath,
-                        "relpath": relpath,
-                        "original_path": original_path,
-                        "offset": tlk.frame().off,
-                        "walltime": dict(fpkt.headers).get("a0_time_wall"),
-                        "deps": [v for k, v in fpkt.headers if k == a0.DEP],
-                    },
-                )
-            except ConnectionError as err:
+                self._es.index(index="myindex", document=data)
+            except Exception as err:
                 # TODO(lshamis): Maybe retry.
                 print(f"skipping pkt: {err}")
 

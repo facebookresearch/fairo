@@ -69,7 +69,10 @@ class BaseLauncher:
 
             try:
                 proc = psutil.Process(pid)
-                out.pub(json.dumps(_walk_asdict(proc.as_dict())))
+                pkt = a0.Packet(
+                    [("content-type", "application/json")],
+                    json.dumps(_walk_asdict(proc.as_dict())))
+                out.pub(pkt)
             except psutil.NoSuchProcess:
                 pass
 
