@@ -86,12 +86,13 @@ def down_existing(names: typing.List[str], force: bool):
 
 @click.command()
 @click.argument("procs", nargs=-1, shell_complete=_autocomplete.defined_processes)
+@click.option("-v/-q", "--verbose/--quiet", is_flag=True, default=True)
 @click.option("--deps/--nodeps", is_flag=True, default=True)
 @click.option("--build/--nobuild", is_flag=True, default=True)
 @click.option("--run/--norun", is_flag=True, default=True)
 @click.option("-f", "--force/--noforce", is_flag=True, default=False)
 @click.option("--reset_logs", is_flag=True, default=False)
-def cli(procs, deps, build, run, force, reset_logs):
+def cli(procs, verbose, deps, build, run, force, reset_logs):
     names = get_proc_names(procs, deps)
     names = [name for name in names if process_def.defined_processes[name].runtime]
     if not names:
@@ -107,7 +108,7 @@ def cli(procs, deps, build, run, force, reset_logs):
         for name in names:
             proc_def = process_def.defined_processes[name]
             print(f"building {name}...")
-            proc_def.runtime._build(name, proc_def)
+            proc_def.runtime._build(name, proc_def, verbose)
             print(f"built {name}\n")
 
     if run:

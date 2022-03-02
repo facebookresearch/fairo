@@ -271,7 +271,7 @@ class Conda(BaseRuntime):
 
     def _build(self, name: str, proc_def: ProcDef, verbose: bool):
         if not self.env_nosandbox:
-            self._create_env(name, proc_def)
+            self._create_env(name, proc_def, verbose)
 
         if self.setup_commands:
             print(f"setting up conda env for {name}")
