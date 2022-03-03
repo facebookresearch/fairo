@@ -123,7 +123,9 @@ class BasicTest(unittest.TestCase):
         self.memory.tag(subj_memid=player_memid, tag_text="girl")
         self.memory.tag(subj_memid=player_memid, tag_text="plays_football")
         assert len(self.memory.get_triples(subj=player_memid, obj_text="girl")) == 1
-        self.memory.nodes[TripleNode.NODE_TYPE].untag(self.memory, subj_memid=player_memid, tag_text="girl")
+        self.memory.nodes[TripleNode.NODE_TYPE].untag(
+            self.memory, subj_memid=player_memid, tag_text="girl"
+        )
         assert len(self.memory.get_triples(subj=player_memid, obj_text="girl")) == 0
 
     def test_memids_and_tags(self):
