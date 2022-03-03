@@ -445,7 +445,7 @@ class FakePlayer(FakeAgent):
                 C = ChatNode(m, ChatNode.create(self.memory, self.name, ""))
             return C
 
-        self.memory.get_most_recent_incoming_chat = get_recent_chat
+        self.memory.nodes["Chat"].get_most_recent_incoming_chat = get_recent_chat
 
     def step(self):
         if self.active:
