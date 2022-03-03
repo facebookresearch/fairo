@@ -400,7 +400,6 @@ class TripleNode(MemoryNode):
         return [x for (x,) in r]
 
 
-
 class InterpreterNode(MemoryNode):
     """for representing interpreter objects"""
 
