@@ -156,7 +156,7 @@ class Interpreter(InterpreterBase):
                 #                task_mem = TaskNode(self.memory, tasks_to_push[0].memid)
                 task_mem = TaskNode(self.memory, T.memid)
             if task_mem:
-                chat = self.memory.nodes["Chat"].get_most_recent_incoming_chat(self.memory)
+                chat = self.memory.get_most_recent_incoming_chat()
                 TripleNode.create(
                     self.memory, subj=chat.memid, pred_text="chat_effect_", obj=task_mem.memid
                 )
