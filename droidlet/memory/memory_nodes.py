@@ -881,7 +881,9 @@ class ChatNode(MemoryNode):
             speaker_id: memid of speaker
             chat: chat string
         """
-        r = agent_memory._db_read("SELECT uuid FROM Chats where speaker = ? and chat = ?", speaker, chat)
+        r = agent_memory._db_read(
+            "SELECT uuid FROM Chats where speaker = ? and chat = ?", speaker, chat
+        )
         return r[0][0]
 
 
