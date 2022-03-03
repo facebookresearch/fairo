@@ -587,16 +587,6 @@ class AgentMemory:
         """
         return ChatNode(self, memid)
 
-    def get_chat_id(self, speaker: str, chat: str) -> str:
-        """Return memid of ChatNode, given speaker and chat
-
-        Args:
-            speaker_id: memid of speaker
-            chat: chat string
-        """
-        r = self._db_read("SELECT uuid FROM Chats where speaker = ? and chat = ?", speaker, chat)
-        return r[0][0]
-
     ###################
     ## Logical form ###
     ###################

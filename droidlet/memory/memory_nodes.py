@@ -873,6 +873,17 @@ class ChatNode(MemoryNode):
         r = agent_memory._db_read("SELECT uuid FROM Chats ORDER BY time DESC LIMIT ?", n)
         return [ChatNode(agent_memory, m) for m, in reversed(r)]
 
+    @classmethod
+    def get_chat_id(self, agent_memory, speaker: str, chat: str) -> str:
+        """Return memid of ChatNode, given speaker and chat
+
+        Args:
+            speaker_id: memid of speaker
+            chat: chat string
+        """
+        r = agent_memory._db_read("SELECT uuid FROM Chats where speaker = ? and chat = ?", speaker, chat)
+        return r[0][0]
+
 
 class TaskNode(MemoryNode):
     """This node represents a task object that was placed on
