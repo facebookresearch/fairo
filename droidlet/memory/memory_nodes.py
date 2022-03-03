@@ -349,7 +349,9 @@ class TripleNode(MemoryNode):
         return memid
 
     @classmethod
-    def get_tags_by_memid(self, agent_memory, subj_memid: str, return_text: bool = True) -> List[str]:
+    def get_tags_by_memid(
+        self, agent_memory, subj_memid: str, return_text: bool = True
+    ) -> List[str]:
         """Find all tag for a given memid
 
         Args:
@@ -374,7 +376,6 @@ class TripleNode(MemoryNode):
         )
         r = agent_memory._db_read(q, subj_memid)
         return [x for (x,) in r]
-
 
 
 class InterpreterNode(MemoryNode):

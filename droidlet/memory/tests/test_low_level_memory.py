@@ -141,7 +141,9 @@ class BasicTest(unittest.TestCase):
         assert self.memory.get_memids_by_tag(tag="girl")[0] == player_memid
 
         # test_get_tags_by_memid
-        assert "girl" in self.memory.nodes[TripleNode.NODE_TYPE].get_tags_by_memid(self.memory, player_memid)
+        assert "girl" in self.memory.nodes[TripleNode.NODE_TYPE].get_tags_by_memid(
+            self.memory, player_memid
+        )
 
         # test get_triples
         assert len(self.memory.get_triples(subj=player_memid, obj_text="girl")) == 1
