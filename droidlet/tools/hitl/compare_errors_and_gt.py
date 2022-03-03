@@ -170,11 +170,15 @@ def main(opts):
         print(f"Total number of NSP errors: {tot_parse_errors}")
         print(f"Total number of NSP errors dedup: {len(error_dict)}")
 
-        #Check the number of errors against collected_commands
-        s3.download_file(S3_BUCKET_NAME, f"{opts.batch_id}/collected_commands", "collected_commands.txt")
+        # Check the number of errors against collected_commands
+        s3.download_file(
+            S3_BUCKET_NAME, f"{opts.batch_id}/collected_commands", "collected_commands.txt"
+        )
         with open("collected_commands.txt", "r") as f:
             collected_commands = f.readlines()
-        print(f"Total number of errors according to `collected_commands` (should match above): {len(collected_commands)}")
+        print(
+            f"Total number of errors according to `collected_commands` (should match above): {len(collected_commands)}"
+        )
 
         # Download nsp_data and build a annotated command dict
         s3.download_file(S3_BUCKET_NAME, opts.nsp_data, "nsp_data.txt")
