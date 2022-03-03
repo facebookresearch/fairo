@@ -422,6 +422,7 @@ class TripleNode(MemoryNode):
         if triple_memids:
             agent_memory.forget(triple_memids[0][0])
 
+
 class InterpreterNode(MemoryNode):
     """for representing interpreter objects"""
 
