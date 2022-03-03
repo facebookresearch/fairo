@@ -35,7 +35,9 @@ class AwaitResponse(Task):
     def step(self):
         """Wait for wait_time for an answer. Mark finished when a chat comes in."""
         # FIXME: don't need a memory method for this, use query
-        chatmem = self.agent.memory.nodes["Chat"].get_most_recent_incoming_chat(self.agent.memory, after=self.init_time + 1)
+        chatmem = self.agent.memory.nodes["Chat"].get_most_recent_incoming_chat(
+            self.agent.memory, after=self.init_time + 1
+        )
         if chatmem is not None:
             self.finished = True
             if self.asker_memid:
