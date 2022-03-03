@@ -863,6 +863,16 @@ class ChatNode(MemoryNode):
         else:
             return None
 
+    @classmethod
+    def get_recent_chats(self, agent_memory, n=1) -> List["ChatNode"]:
+        """Return a list of at most n chats
+
+        Args:
+            n (int): number of recent chats
+        """
+        r = agent_memory._db_read("SELECT uuid FROM Chats ORDER BY time DESC LIMIT ?", n)
+        return [ChatNode(agent_memory, m) for m, in reversed(r)]
+
 
 class TaskNode(MemoryNode):
     """This node represents a task object that was placed on

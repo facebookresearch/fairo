@@ -48,7 +48,7 @@ class DialogueManager(object):
 
     def get_last_m_chats(self, m=1):
         # fetch last m chats from memory
-        all_chats = self.memory.get_recent_chats(n=m)
+        all_chats = self.memory.nodes["Chat"].get_recent_chats(self.memory, n=m)
         chat_list_text = []
         for chat in all_chats:
             speaker = self.memory.get_player_by_id(chat.speaker_id).name

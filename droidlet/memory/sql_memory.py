@@ -597,15 +597,6 @@ class AgentMemory:
         r = self._db_read("SELECT uuid FROM Chats where speaker = ? and chat = ?", speaker, chat)
         return r[0][0]
 
-    def get_recent_chats(self, n=1) -> List["ChatNode"]:
-        """Return a list of at most n chats
-
-        Args:
-            n (int): number of recent chats
-        """
-        r = self._db_read("SELECT uuid FROM Chats ORDER BY time DESC LIMIT ?", n)
-        return [ChatNode(self, m) for m, in reversed(r)]
-
     ###################
     ## Logical form ###
     ###################

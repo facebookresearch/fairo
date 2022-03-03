@@ -243,9 +243,9 @@ class BasicTest(unittest.TestCase):
         assert self.memory.get_chat_by_id(chat_memid).TABLE == "Chats"
 
         # test get_recent_chats
-        assert len(self.memory.get_recent_chats(n=5)) == 1
+        assert len(self.memory.nodes[ChatNode.NODE_TYPE].get_recent_chats(self.memory, n=5)) == 1
         _ = chat_memid = self.memory.add_chat(speaker_memid="fsfagfhgaft3764", chat="hello hello")
-        assert len(self.memory.get_recent_chats(n=5)) == 2
+        assert len(self.memory.nodes[ChatNode.NODE_TYPE].get_recent_chats(self.memory, n=5)) == 2
 
         # test get_most_recent_incoming_chat
         assert self.memory.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(self.memory).chat_text == "hello hello"
