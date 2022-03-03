@@ -606,28 +606,6 @@ et        """
         r = self._db_read("SELECT uuid FROM Chats ORDER BY time DESC LIMIT ?", n)
         return [ChatNode(self, m) for m, in reversed(r)]
 
-    def get_most_recent_incoming_chat(self, after=-1) -> Optional["ChatNode"]:
-        """Get the most recent chat that came in since 'after'
-
-        Args:
-            after (int): Marks the beginning of time window (from now)
-        """
-        r = self._db_read_one(
-            """
-            SELECT uuid
-            FROM Chats
-            WHERE speaker != ? AND time >= ?
-            ORDER BY time DESC
-            LIMIT 1
-            """,
-            self.self_memid,
-            after,
-        )
-        if r:
-            return ChatNode(self, r[0])
-        else:
-            return None
-
     ###################
     ## Logical form ###
     ###################
@@ -769,7 +747,7 @@ et        """
         if parent_memid:
             self.add_triple(subj=memid, pred_text="_has_parent_task", obj=parent_memid)
         if chat_effect:
-            chat = self.get_most_recent_incoming_chat()
+            chat = self.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(self)
             assert chat is not None, "chat_effect=True with no incoming chats"
             self.add_triple(subj=chat.memid, pred_text="chat_effect_", obj=memid)
 

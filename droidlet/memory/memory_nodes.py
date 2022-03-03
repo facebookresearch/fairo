@@ -840,6 +840,29 @@ class ChatNode(MemoryNode):
         )
         return memid
 
+    @classmethod
+    def get_most_recent_incoming_chat(self, agent_memory, after=-1) -> Optional["ChatNode"]:
+        """Get the most recent chat that came in since 'after'
+
+        Args:
+            after (int): Marks the beginning of time window (from now)
+        """
+        r = agent_memory._db_read_one(
+            """
+            SELECT uuid
+            FROM Chats
+            WHERE speaker != ? AND time >= ?
+            ORDER BY time DESC
+            LIMIT 1
+            """,
+            agent_memory.self_memid,
+            after,
+        )
+        if r:
+            return ChatNode(agent_memory, r[0])
+        else:
+            return None
+
 
 class TaskNode(MemoryNode):
     """This node represents a task object that was placed on

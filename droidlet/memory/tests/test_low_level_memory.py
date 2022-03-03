@@ -248,9 +248,9 @@ class BasicTest(unittest.TestCase):
         assert len(self.memory.get_recent_chats(n=5)) == 2
 
         # test get_most_recent_incoming_chat
-        assert self.memory.get_most_recent_incoming_chat().chat_text == "hello hello"
+        assert self.memory.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(self.memory).chat_text == "hello hello"
         self.memory.forget(chat_memid)
-        assert self.memory.get_most_recent_incoming_chat().chat_text == "are you around"
+        assert self.memory.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(self.memory).chat_text == "are you around"
 
     def test_player_apis_memory(self):
         self.memory = AgentMemory()
