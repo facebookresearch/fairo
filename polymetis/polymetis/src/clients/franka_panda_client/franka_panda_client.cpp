@@ -79,14 +79,8 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
   }
 
   // Parse yaml
-  bool limit_rate_ = config["limit_rate"].as<bool>();
-  double lpf_cutoff_freq = config["lpf_cutoff_frequency"].as<double>();
-  if (lpf_cutoff_freq > 0.0) {
-    double tmp = 2 * M_PI * lpf_cutoff_freq / FRANKA_HZ;
-    lpf_alpha_ = tmp / (tmp + 1.0);
-  } else {
-    lpf_alpha_ = 1.0;
-  }
+  limit_rate_ = config["limit_rate"].as<bool>();
+  lpf_cutoff_freq_ = config["lpf_cutoff_frequency"].as<double>();
 
   cartesian_pos_ulimits_ =
       config["limits"]["cartesian_pos_upper"].as<std::array<double, 3>>();
@@ -162,8 +156,7 @@ void FrankaTorqueControlClient::run() {
     while (is_robot_operational) {
       // Send lambda function
       try {
-        robot_ptr_->control(control_callback, limit_rate_,
-                            franka::kMaxCutoffFrequency);
+        robot_ptr_->control(control_callback, limit_rate_, lpf_cutoff_freq_);
       } catch (const std::exception &ex) {
         spdlog::error("Robot is unable to be controlled: {}", ex.what());
         is_robot_operational = false;
@@ -347,11 +340,6 @@ void FrankaTorqueControlClient::postprocessTorques(
      */
     std::array<double, NUM_DOFS> &torque_applied) {
   for (int i = 0; i < 7; i++) {
-    // Apply low pass filter
-    torque_applied[i] = lpf_alpha_ * torque_applied[i] +
-                        (1.0 - lpf_alpha_) * torque_applied_prev_[i];
-    torque_applied_prev_[i] = torque_applied[i];
-
     // Clamp torques
     if (torque_applied[i] > joint_torques_limits_[i]) {
       torque_applied[i] = joint_torques_limits_[i];

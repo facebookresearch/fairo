@@ -57,7 +57,7 @@ private:
 
   // Torque processing
   bool limit_rate_;
-  double lpf_alpha_;
+  double lpf_cutoff_freq_;
   std::array<double, NUM_DOFS> torque_applied_prev_;
 
   bool limits_exceeded_;
