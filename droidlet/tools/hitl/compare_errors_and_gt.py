@@ -133,8 +133,10 @@ def main(opts):
                     if row["command"].strip() in error_dict:
                         continue
                     else:
-                        error_dict[row["command"].strip()] = json.loads(row["action_dict"].replace("'", '"'))
-            
+                        error_dict[row["command"].strip()] = json.loads(
+                            row["action_dict"].replace("'", '"')
+                        )
+
             tf.extract("./nsp_outputs.csv")
             csv_file = pd.read_csv("nsp_outputs.csv", delimiter="|")
             for idx, row in csv_file.iterrows():
@@ -143,7 +145,9 @@ def main(opts):
                     continue
                 else:
                     # error_details.csv has already been postprocessed, but nsp_outputs.csv has not
-                    command_dict[row["command"].strip()] = postprocess_logical_form(row["command"].strip(), json.loads(row["action_dict"].replace("'", '"')))
+                    command_dict[row["command"].strip()] = postprocess_logical_form(
+                        row["command"].strip(), json.loads(row["action_dict"].replace("'", '"'))
+                    )
 
         # Remove text_span from command dict and save
         cd_copy = copy.deepcopy(command_dict)
@@ -255,7 +259,9 @@ def main(opts):
     print(f"Num NSP errors with NO annotated GT: {not_found}")
     print(f"Implied # of labeled NSP errors annotated (at some point): {errors_annotated}")
     print(f"(Known) NSP Errors labeled correctly: {correct_errors}")
-    print(f"(Known) Incorrect NSP errors (model parse was right): {errors_annotated - correct_errors}")
+    print(
+        f"(Known) Incorrect NSP errors (model parse was right): {errors_annotated - correct_errors}"
+    )
     print("\n")
 
     # Compare the command and annotated dicts
