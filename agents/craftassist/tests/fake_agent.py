@@ -437,8 +437,8 @@ class FakePlayer(FakeAgent):
         self.lf_list = []
         self.look_towards_move = True
 
-        def get_recent_chat():
-            m = self.memory
+        def get_recent_chat(agent_memory):
+            m = agent_memory
             if self.lf_list:
                 C = ChatNode(m, ChatNode.create(m, self.name, self.lf_list[0]["chatstr"]))
             else:
