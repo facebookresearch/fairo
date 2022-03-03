@@ -248,9 +248,19 @@ class BasicTest(unittest.TestCase):
         assert len(self.memory.nodes[ChatNode.NODE_TYPE].get_recent_chats(self.memory, n=5)) == 2
 
         # test get_most_recent_incoming_chat
-        assert self.memory.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(self.memory).chat_text == "hello hello"
+        assert (
+            self.memory.nodes[ChatNode.NODE_TYPE]
+            .get_most_recent_incoming_chat(self.memory)
+            .chat_text
+            == "hello hello"
+        )
         self.memory.forget(chat_memid)
-        assert self.memory.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(self.memory).chat_text == "are you around"
+        assert (
+            self.memory.nodes[ChatNode.NODE_TYPE]
+            .get_most_recent_incoming_chat(self.memory)
+            .chat_text
+            == "are you around"
+        )
 
     def test_player_apis_memory(self):
         self.memory = AgentMemory()
@@ -260,7 +270,10 @@ class BasicTest(unittest.TestCase):
         self.memory.tag(ann_memid, "swimmer")
 
         # Test get_player_by_eid
-        assert self.memory.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self.memory, 10).name == "joey"
+        assert (
+            self.memory.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self.memory, 10).name
+            == "joey"
+        )
 
         # Test get_player_by_name
         assert self.memory.get_player_by_name("joey").eid == 10

@@ -37,7 +37,10 @@ class BasicTest(unittest.TestCase):
         # test update_other_players
         self.memory.update_other_players(player_list)
         assert self.memory.get_player_by_name("xyz").pos == (1.0, 1.0, 1.0)
-        assert self.memory.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self.memory, 10).name == "abc"
+        assert (
+            self.memory.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self.memory, 10).name
+            == "abc"
+        )
 
     def test_detected_object_apis(self):
         self.memory = LocoAgentMemory()
