@@ -79,7 +79,7 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
   }
 
   // Parse yaml
-  bool limit_rate_ = config["limit_rate"].as<bool>();
+  limit_rate_ = config["limit_rate"].as<bool>();
   double lpf_cutoff_freq = config["lpf_cutoff_frequency"].as<double>();
   if (lpf_cutoff_freq > 0.0) {
     double tmp = 2 * M_PI * lpf_cutoff_freq / FRANKA_HZ;
@@ -347,11 +347,6 @@ void FrankaTorqueControlClient::postprocessTorques(
      */
     std::array<double, NUM_DOFS> &torque_applied) {
   for (int i = 0; i < 7; i++) {
-    // Apply low pass filter
-    torque_applied[i] = lpf_alpha_ * torque_applied[i] +
-                        (1.0 - lpf_alpha_) * torque_applied_prev_[i];
-    torque_applied_prev_[i] = torque_applied[i];
-
     // Clamp torques
     if (torque_applied[i] > joint_torques_limits_[i]) {
       torque_applied[i] = joint_torques_limits_[i];
