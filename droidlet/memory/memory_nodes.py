@@ -47,7 +47,7 @@ class MemoryNode:
         self.memid = memid
 
     def get_tags(self) -> List[str]:
-        return self.agent_memory.get_tags_by_memid(self.memid)
+        return self.agent_memory.nodes["Triple"].get_tags_by_memid(self.agent_memory, self.memid)
 
     def get_properties(self) -> Dict[str, str]:
         blacklist = self.PROPERTIES_BLACKLIST + self._more_properties_blacklist()
@@ -421,6 +421,7 @@ class TripleNode(MemoryNode):
         )
         if triple_memids:
             agent_memory.forget(triple_memids[0][0])
+
 
 class InterpreterNode(MemoryNode):
     """for representing interpreter objects"""
