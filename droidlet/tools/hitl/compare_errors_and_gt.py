@@ -119,6 +119,7 @@ def main(opts):
         error_dict = {}
         command_dict = {}
         tot_num_errors = 0
+        tot_parse_errors = 0
         tot_num_cmds = 0
         for key in log_keys:
             s3.download_file(S3_BUCKET_NAME, key, "logs.tar.gz")
@@ -127,20 +128,22 @@ def main(opts):
             csv_file = pd.read_csv("error_details.csv", delimiter="|")
             for idx, row in csv_file.iterrows():
                 tot_num_errors += 1
-                if row["command"] in error_dict:
-                    continue
-                else:
-                    error_dict[row["command"]] = json.loads(row["action_dict"].replace("'", '"'))
+                if row["parser_error"] == True:
+                    tot_parse_errors += 1
+                    if row["command"].strip() in error_dict:
+                        continue
+                    else:
+                        error_dict[row["command"].strip()] = json.loads(row["action_dict"].replace("'", '"'))
             
             tf.extract("./nsp_outputs.csv")
             csv_file = pd.read_csv("nsp_outputs.csv", delimiter="|")
             for idx, row in csv_file.iterrows():
                 tot_num_cmds += 1
-                if row["command"] in command_dict:
+                if row["command"].strip() in command_dict:
                     continue
                 else:
-                    # The error_details csv has already been postprocessed, but nsp_outputs.csv has not
-                    command_dict[row["command"]] = postprocess_logical_form(row["command"], json.loads(row["action_dict"].replace("'", '"')))
+                    # error_details.csv has already been postprocessed, but nsp_outputs.csv has not
+                    command_dict[row["command"].strip()] = postprocess_logical_form(row["command"].strip(), json.loads(row["action_dict"].replace("'", '"')))
 
         # Remove text_span from command dict and save
         cd_copy = copy.deepcopy(command_dict)
@@ -163,8 +166,9 @@ def main(opts):
         with open("error_dict.json", "w") as f:
             json.dump(error_dict, f)
 
-        print(f"Total number of errors labeled: {tot_num_errors}")
-        print(f"Total number of errors dedup: {len(error_dict)}")
+        print(f"Total number of agent errors: {tot_num_errors}")
+        print(f"Total number of NSP errors: {tot_parse_errors}")
+        print(f"Total number of NSP errors dedup: {len(error_dict)}")
 
         #Check the number of errors against collected_commands
         s3.download_file(S3_BUCKET_NAME, f"{opts.batch_id}/collected_commands", "collected_commands.txt")
@@ -205,24 +209,25 @@ def main(opts):
         )
 
         # Download the annotation txt files and add them to annotated_dict if they don't already exist
-        for key in anno_keys:
-            s3.download_file(S3_BUCKET_NAME, key, "anno.txt")
-            with open("anno.txt", "r") as f:
-                lines = f.readlines()
-            for line in lines:
-                vals = line.strip().split("\t")
-                if vals[0] in annotated_dict:
-                    continue
-                else:
-                    annotated_dict[vals[0].strip()] = postprocess_logical_form(
-                        vals[0].strip(), json.loads(vals[1].strip())
-                    )
+        # for key in anno_keys:
+        #     s3.download_file(S3_BUCKET_NAME, key, "anno.txt")
+        #     with open("anno.txt", "r") as f:
+        #         lines = f.readlines()
+        #     for line in lines:
+        #         vals = line.strip().split("\t")
+        #         if vals[0].strip() in annotated_dict:
+        #             continue
+        #         else:
+        #             annotated_dict[vals[0].strip()] = postprocess_logical_form(
+        #                 vals[0].strip(), json.loads(vals[1].strip())
+        #             )
 
         print(
             f"Size of annotated dict after adding batch-specific annotations: {len(annotated_dict)}"
         )
+        print("\n")
 
-        # Remove text_span from annotated dict
+        # Remove text_span from annotated dict (some LFs have it and some don't)
         ad_copy = copy.deepcopy(annotated_dict)
         for key in annotated_dict.keys():
             ad_copy[key] = remove_text_span(annotated_dict[key])
@@ -243,11 +248,10 @@ def main(opts):
             correct_errors += 1
         errors_annotated += 1
 
-    print(f"Num errors with NO annotated GT: {not_found}")
-    print(f"Implied # of labeled errors annotated (at some point): {errors_annotated}")
-    print(f"(Known) Errors labeled correctly: {correct_errors}")
-    print(f"(Known) Incorrect errors (model parse was right): {errors_annotated - correct_errors}")
-    print(f"Total Errors Labeled: {errors_annotated + not_found}")
+    print(f"Num NSP errors with NO annotated GT: {not_found}")
+    print(f"Implied # of labeled NSP errors annotated (at some point): {errors_annotated}")
+    print(f"(Known) NSP Errors labeled correctly: {correct_errors}")
+    print(f"(Known) Incorrect NSP errors (model parse was right): {errors_annotated - correct_errors}")
     print("\n")
 
     # Compare the command and annotated dicts
@@ -266,7 +270,6 @@ def main(opts):
     print(f"Implied # of commands annotated (at some point): {commands_annotated}")
     print(f"(Known) NSP Errors: {nsp_errors}")
     print(f"(Known) NSP Successes: {commands_annotated - nsp_errors}")
-    print(f"Total Errors Labeled: {commands_annotated + not_found}")
 
 
 if __name__ == "__main__":
