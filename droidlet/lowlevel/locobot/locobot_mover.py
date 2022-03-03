@@ -22,12 +22,12 @@ from ..robot_mover_utils import (
     MAX_PAN_RAD,
     CAMERA_HEIGHT,
     ARM_HEIGHT,
-    transform_pose
+    transform_pose,
 )
 
 from droidlet.lowlevel.robot_coordinate_utils import (
     xyz_pyrobot_to_canonical_coords,
-    base_canonical_coords_to_pyrobot_coords
+    base_canonical_coords_to_pyrobot_coords,
 )
 
 Pyro4.config.SERIALIZER = "pickle"
@@ -55,6 +55,7 @@ class LoCoBotMover:
         ip (string): IP of the Locobot.
         backend (string): backend where the Locobot lives, either "habitat" or "locobot"
     """
+
     def __init__(self, ip=None, backend="habitat"):
         self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + ip)
         self.slam = Pyro4.Proxy("PYRONAME:slam@" + ip)
@@ -200,7 +201,7 @@ class LoCoBotMover:
             # single xyt position given
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
-            self.nav_result.wait() # wait for the previous navigation command to finish
+            self.nav_result.wait()  # wait for the previous navigation command to finish
             self.nav_result = safe_call(self.nav.go_to_relative, xyt)
             if blocking:
                 self.nav_result.wait()
@@ -221,7 +222,7 @@ class LoCoBotMover:
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
             logging.info("Move absolute in canonical coordinates {}".format(xyt))
-            self.nav_result.wait() # wait for the previous navigation command to finish
+            self.nav_result.wait()  # wait for the previous navigation command to finish
             self.nav_result = self.nav.go_to_absolute(
                 base_canonical_coords_to_pyrobot_coords(xyt),
             )
@@ -358,7 +359,7 @@ class LoCoBotMover:
         return RGBDepth(rgb, d, pts)
 
     def get_rgb_depth_segm(self):
-        if self.backend != 'habitat':
+        if self.backend != "habitat":
             return None
         return self.bot.get_rgb_depth_segm()
 
@@ -392,7 +393,7 @@ class LoCoBotMover:
         else:
             print("navigator executing another call right now")
         return self.nav_result
-    
+
     def is_done_exploring(self):
         return self.nav.is_done_exploring().value
 

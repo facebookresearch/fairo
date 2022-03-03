@@ -90,7 +90,8 @@ Status PolymetisControllerServerImpl::InitRobotClient(
   // Load default controller from model buffer
   try {
     robot_client_context_.default_controller = new TorchScriptedController(
-        controller_model_buffer_.data(), controller_model_buffer_.size());
+        controller_model_buffer_.data(), controller_model_buffer_.size(),
+        *torch_robot_state_);
   } catch (const std::exception &e) {
     std::string error_msg =
         "Failed to load default controller: " + std::string(e.what());
@@ -240,7 +241,8 @@ Status PolymetisControllerServerImpl::SetController(
   try {
     // Load new controller
     auto new_controller = new TorchScriptedController(
-        controller_model_buffer_.data(), controller_model_buffer_.size());
+        controller_model_buffer_.data(), controller_model_buffer_.size(),
+        *torch_robot_state_);
 
     // Switch in new controller by updating controller context
     custom_controller_context_.controller_mtx.lock();

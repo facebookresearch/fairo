@@ -77,10 +77,10 @@ def shasum_file(path):
     """Return shasum of the file at a given path"""
     sha = hashlib.sha1()
     with open(path, "rb") as f:
-        block = f.read(2 ** 16)
+        block = f.read(2**16)
         while len(block) != 0:
             sha.update(block)
-            block = f.read(2 ** 16)
+            block = f.read(2**16)
     return binascii.hexlify(sha.digest())
 
 

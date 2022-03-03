@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name="fbrp",
-    version="0.1.0",
+    version="0.1.4",
     author="Leonid Shamis",
     package_dir={"": "src"},
     packages=find_packages(
@@ -21,4 +21,7 @@ setup(
         "pyyaml>=6.0",
         "six>=1.16.0",
     ],
+    entry_points={
+        "console_scripts": ["fbrp = fbrp.tool:main"],
+    },
 )

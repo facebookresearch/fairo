@@ -98,10 +98,10 @@ def link_archive_to_mem(agent_memory, memid, archive_memid):
 
 
 def dehydrate(lf):
-    """ 
+    """
     replace any MemoryNode m in a logical form with {"dehydrated_mem": m.memid}
     This is used to store a logical form in the db; as logical forms may contain
-    MemoryNodes as values, this makes it easier to serialize (text instead of python object).  
+    MemoryNodes as values, this makes it easier to serialize (text instead of python object).
     """
     for k, v in lf.items():
         if isinstance(v, MemoryNode):
@@ -178,7 +178,7 @@ class ProgramNode(MemoryNode):
         return memid
 
     def rehydrate(self, lf):
-        """ 
+        """
         replace any {"dehydrated_mem": m.memid} with the associated MemoryNode
         This is used when retrieving a logical form in the db; as logical forms may contain
         MemoryNodes as values, this makes it easier to serialize (text instead of python object).
@@ -932,7 +932,7 @@ class TaskNode(MemoryNode):
     def create(cls, memory, task) -> str:
         """Creates a new entry into the Tasks table
 
-        the input task can be an instantiated Task 
+        the input task can be an instantiated Task
             or a dict with followng structure:
             {"class": TaskClass,
              "task_data": {...}}

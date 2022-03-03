@@ -26,7 +26,12 @@ from omegaconf import DictConfig
 from dataclasses import dataclass, field
 from typing import List, Any
 
-from pilot_config import PILOT_ALLOWLIST_QUAL_NAME, PILOT_BLOCK_QUAL_NAME, PILOT_QUAL_ANSWERS, KEYWORD_LIST
+from pilot_config import (
+    PILOT_ALLOWLIST_QUAL_NAME,
+    PILOT_BLOCK_QUAL_NAME,
+    PILOT_QUAL_ANSWERS,
+    KEYWORD_LIST,
+)
 
 from droidlet.dialog.load_datasets import get_safety_words
 
@@ -44,6 +49,7 @@ from mephisto.operations.hydra_config import RunScriptConfig, register_script_co
 db = LocalMephistoDB()
 mephisto_data_browser = MephistoDataBrowser(db=db)
 SAFETY_WORDS = get_safety_words()
+
 
 @dataclass
 class TestScriptConfig(RunScriptConfig):
@@ -72,7 +78,13 @@ def validate_answers(answers, gt):
         return False
 
     # 3: Keyword matching: Check that at least 2 keywords appear in the commands
-    occurrence = sum([True if keyword in command.lower() else False for command in filtered_commands for keyword in KEYWORD_LIST])
+    occurrence = sum(
+        [
+            True if keyword in command.lower() else False
+            for command in filtered_commands
+            for keyword in KEYWORD_LIST
+        ]
+    )
     if occurrence < 2:
         return False
 
@@ -81,12 +93,15 @@ def validate_answers(answers, gt):
         return False
 
     # Validate multiple choice questions
-    if answers["answer_0"] != gt["answer_0"] or \
-       answers["answer_1"] != gt["answer_1"] or \
-       answers["answer_2"] != gt["answer_2"]:
-       return False
+    if (
+        answers["answer_0"] != gt["answer_0"]
+        or answers["answer_1"] != gt["answer_1"]
+        or answers["answer_2"] != gt["answer_2"]
+    ):
+        return False
 
     return True
+
 
 def validate_unit(unit):
     if unit.get_assigned_agent() is None:
@@ -108,7 +123,7 @@ def validate_unit(unit):
     else:
         logging.debug(f"{PILOT_BLOCK_QUAL_NAME} qualification not exists, so create one")
     worker.grant_qualification(PILOT_BLOCK_QUAL_NAME, 1)
-    
+
     # Validate pilot task answers, workers who pass the validation will be put into an allowlist
     # by granting a qualification task to them and specify the task as a req in the full task
     try:
@@ -120,9 +135,12 @@ def validate_unit(unit):
 
     if validate_answers(answers, PILOT_QUAL_ANSWERS):
         worker.grant_qualification(PILOT_ALLOWLIST_QUAL_NAME, 1)
-        logging.info(f"Worker {worker.worker_name} passed the pilot task, put him/her into allowlist")
+        logging.info(
+            f"Worker {worker.worker_name} passed the pilot task, put him/her into allowlist"
+        )
 
     return
+
 
 @hydra.main(config_name="scriptconfig")
 def main(cfg: DictConfig) -> None:

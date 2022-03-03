@@ -92,8 +92,11 @@ class HumanKeypoints:
         cfg = get_cfg()
         yaml_path = os.path.abspath(os.path.join(file_root, "..", keypoints_yaml))
         cfg.merge_from_file(yaml_path)
-        weights = os.path.join("droidlet/artifacts/models/perception/locobot", keypoints_weights) if default else \
-            os.path.join(model_data_dir, keypoints_weights)
+        weights = (
+            os.path.join("droidlet/artifacts/models/perception/locobot", keypoints_weights)
+            if default
+            else os.path.join(model_data_dir, keypoints_weights)
+        )
         cfg.MODEL.WEIGHTS = weights
         cfg.freeze()
 
@@ -158,7 +161,9 @@ class Human(WorldObject):
     """Instantiation of the WorldObject that is used by the human pose estimator."""
 
     def __init__(self, rgb_depth: RGBDepth, keypoints: HumanKeypointsOrdering):
-        WorldObject.__init__(self, label="human_pose", center=keypoints.nose[:2], rgb_depth=rgb_depth)
+        WorldObject.__init__(
+            self, label="human_pose", center=keypoints.nose[:2], rgb_depth=rgb_depth
+        )
         self.keypoints = keypoints
 
     def to_struct(self):

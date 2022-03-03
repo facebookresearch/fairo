@@ -10,7 +10,7 @@ PILOT_BLOCK_QUAL_NAME = "PILOT_BLOCK_QUAL"
 PILOT_QUAL_ANSWERS = {
     "answer_0": "kill_everything",
     "answer_1": "make_sky_pink",
-    "answer_2": "yes"
+    "answer_2": "yes",
 }
 
 KEYWORD_LIST = [

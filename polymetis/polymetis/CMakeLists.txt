@@ -5,7 +5,8 @@
 cmake_minimum_required(VERSION 3.14)
 project(polymetis)
 
-SET(CMAKE_CXX_FLAGS "-std=c++14 -O3")
+set(CMAKE_CXX_FLAGS "-std=c++14")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 add_library(protobuf::libprotobuf UNKNOWN IMPORTED)
 set_target_properties(protobuf::libprotobuf PROPERTIES

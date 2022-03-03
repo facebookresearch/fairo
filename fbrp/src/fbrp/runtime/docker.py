@@ -1,7 +1,6 @@
 from fbrp import life_cycle
 from fbrp import util
-from fbrp.cmd._common import CommonFlags
-from fbrp.process import ProcDef
+from fbrp.process_def import ProcDef
 from fbrp.runtime.base import BaseLauncher, BaseRuntime
 import aiodocker
 import asyncio
@@ -166,7 +165,7 @@ class Docker(BaseRuntime):
             ret["run_kwargs"] = self.run_kwargs
         return ret
 
-    def _build(self, name: str, proc_def: ProcDef):
+    def _build(self, name: str, proc_def: ProcDef, verbose: bool):
         docker_api = docker.from_env()
         docker_api.lowlevel = docker.APIClient()
 
@@ -187,7 +186,7 @@ class Docker(BaseRuntime):
 
             for line in docker_api.lowlevel.build(**build_kwargs):
                 lineinfo = json.loads(line.decode())
-                if CommonFlags.verbose and "stream" in lineinfo:
+                if verbose and "stream" in lineinfo:
                     print(lineinfo["stream"].strip())
                 elif "errorDetail" in lineinfo:
                     util.fail(json.dumps(lineinfo["errorDetail"], indent=2))
@@ -198,7 +197,7 @@ class Docker(BaseRuntime):
                 try:
                     for line in docker_api.lowlevel.pull(self.image, stream=True):
                         lineinfo = json.loads(line.decode())
-                        if CommonFlags.verbose and "status" in lineinfo:
+                        if verbose and "status" in lineinfo:
                             print(lineinfo["status"].strip())
                 except docker.errors.NotFound as e:
                     util.fail(e)
@@ -277,7 +276,7 @@ class Docker(BaseRuntime):
                 },
             ):
                 lineinfo = json.loads(line.decode())
-                if CommonFlags.verbose and "stream" in lineinfo:
+                if verbose and "stream" in lineinfo:
                     print(lineinfo["stream"].strip())
                 elif "errorDetail" in lineinfo:
                     util.fail(json.dumps(lineinfo["errorDetail"], indent=2))

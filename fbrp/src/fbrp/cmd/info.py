@@ -1,5 +1,5 @@
 from fbrp import life_cycle
-from fbrp.process import defined_processes
+from fbrp import process_def
 import click
 import json
 
@@ -12,7 +12,10 @@ def cli():
     print("Defined Processes:")
     print(
         json.dumps(
-            {name: proc_def.asdict() for name, proc_def in defined_processes.items()},
+            {
+                name: proc_def.asdict()
+                for name, proc_def in process_def.defined_processes.items()
+            },
             indent="  ",
         )
     )
