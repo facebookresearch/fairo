@@ -141,7 +141,7 @@ def build_comparison_dicts(batch_id):
 
     # Remove text_span from dicts
     cd_copy = copy.deepcopy(command_dict)
-    for key in error_dict.keys():
+    for key in command_dict.keys():
         cd_copy[key] = remove_text_span(command_dict[key])
     command_dict = copy.deepcopy(cd_copy)
 
@@ -150,7 +150,7 @@ def build_comparison_dicts(batch_id):
         ed_copy[key] = remove_text_span(error_dict[key])
     error_dict = copy.deepcopy(ed_copy)
 
-    print("***Finished building dicts for batch cmd:LF and err:LF***")
+    print("\n*** Finished building dicts for batch cmd:LF and err:LF ***\n")
     print(f"Total number of commands issued: {tot_num_cmds}")
     print(f"Total number of commands dedup: {len(command_dict)}")
     print(f"Total number of agent errors: {tot_num_errors}")
@@ -171,6 +171,11 @@ def compare_against_gt(d: dict, anno_d: dict, label: str):
             continue
         if d[key] != anno_d[key]:
             nsp_errors += 1
+            # if label == "commands":
+            #     print(key)
+            #     print(d[key])
+            #     print(anno_d[key])
+            #     print("\n")
         commands_annotated += 1
 
     print(f"Num {label} with NO annotated GT: {not_found}")
@@ -245,8 +250,7 @@ def build_annotated_dict(nsp_fname: str, scrape_anno_outs: bool):
         ad_copy[key] = remove_text_span(annotated_dict[key])
     annotated_dict = copy.deepcopy(ad_copy)
 
-    print("***Finished building annotated command dict for batch***")
-    print("\n")
+    print("\n*** Finished building annotated command dict for batch ***\n")
 
     return anno_cmd_list, annotated_dict
 
@@ -286,10 +290,8 @@ def main(opts):
             with open("error_dict.json", "w") as f:
                 json.dump(error_dict, f)
 
-        print("\n")
-
     # Compare the error v. annotated and command v. annotated dicts
-    compare_against_gt(error_dict, annotated_dict, "NSP errors")
+    compare_against_gt(error_dict, annotated_dict, "Labeled NSP errors")
     compare_against_gt(command_dict, annotated_dict, "commands")
 
 
