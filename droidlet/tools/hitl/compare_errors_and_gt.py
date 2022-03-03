@@ -124,9 +124,7 @@ def build_comparison_dicts(batch_id):
                 if cmd in error_dict:
                     continue
                 else:
-                    error_dict[cmd] = json.loads(
-                        row["action_dict"].replace("'", '"')
-                    )
+                    error_dict[cmd] = json.loads(row["action_dict"].replace("'", '"'))
 
         tf.extract("./nsp_outputs.csv")
         csv_file = pd.read_csv("nsp_outputs.csv", delimiter="|")
@@ -195,10 +193,9 @@ def build_annotated_dict(nsp_fname: str, scrape_anno_outs: bool):
         cmd = split_line[cmd_idx].replace("&nbsp ;", "").replace("?", "").strip().lower()
         anno_cmd_list.append(cmd)
         annotated_dict[cmd] = postprocess_logical_form(
-            cmd,
-            json.loads(split_line[cmd_idx + 1].strip())
+            cmd, json.loads(split_line[cmd_idx + 1].strip())
         )
-    
+
     if scrape_anno_outs:
         # Retrieve all of the annotated command file keys from S3 bucket for the given batch_id
         paginator = s3.get_paginator("list_objects_v2")
@@ -224,8 +221,7 @@ def build_annotated_dict(nsp_fname: str, scrape_anno_outs: bool):
                     continue
                 else:
                     annotated_dict[cmd] = postprocess_logical_form(
-                        cmd,
-                        json.loads(vals[1].strip())
+                        cmd, json.loads(vals[1].strip())
                     )
 
         print(
@@ -236,9 +232,7 @@ def build_annotated_dict(nsp_fname: str, scrape_anno_outs: bool):
     #   - command_dict (from each nsp_outputs.csv)
     #   - collected_commands
     #   - the rows of nsp_data corresponding to the indices in meta.txt
-    s3.download_file(
-        S3_BUCKET_NAME, f"{opts.batch_id}/meta.txt", "meta.txt"
-    )
+    s3.download_file(S3_BUCKET_NAME, f"{opts.batch_id}/meta.txt", "meta.txt")
     with open("meta.txt", "r") as f:
         meta = f.readlines()
     meta = [int(x.strip()) for x in meta]
@@ -250,7 +244,7 @@ def build_annotated_dict(nsp_fname: str, scrape_anno_outs: bool):
     for key in annotated_dict.keys():
         ad_copy[key] = remove_text_span(annotated_dict[key])
     annotated_dict = copy.deepcopy(ad_copy)
-    
+
     print("***Finished building annotated command dict for batch***")
     print("\n")
 
@@ -275,7 +269,9 @@ def main(opts):
         )
         with open("collected_commands.txt", "r") as f:
             collected_commands = f.readlines()
-        collected_commands = [x.replace("&nbsp ;", "").replace("?", "").strip().lower() for x in collected_commands]
+        collected_commands = [
+            x.replace("&nbsp ;", "").replace("?", "").strip().lower() for x in collected_commands
+        ]
         print(
             f"Total number of errors according to `collected_commands` (should match above): {len(collected_commands)}"
         )
@@ -291,7 +287,7 @@ def main(opts):
                 json.dump(error_dict, f)
 
         print("\n")
-    
+
     # Compare the error v. annotated and command v. annotated dicts
     compare_against_gt(error_dict, annotated_dict, "NSP errors")
     compare_against_gt(command_dict, annotated_dict, "commands")
