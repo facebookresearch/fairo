@@ -136,9 +136,15 @@ class BasicTest(unittest.TestCase):
         self.memory.tag(subj_memid=player_memid, tag_text="plays_football")
 
         # test get_memids_by_tag
-        self.memory.get_memids_by_tag(tag="girl")
-        assert len(self.memory.get_memids_by_tag(tag="girl")) == 1
-        assert self.memory.get_memids_by_tag(tag="girl")[0] == player_memid
+        self.memory.nodes[TripleNode.NODE_TYPE].get_memids_by_tag(self.memory, tag="girl")
+        assert (
+            len(self.memory.nodes[TripleNode.NODE_TYPE].get_memids_by_tag(self.memory, tag="girl"))
+            == 1
+        )
+        assert (
+            self.memory.nodes[TripleNode.NODE_TYPE].get_memids_by_tag(self.memory, tag="girl")[0]
+            == player_memid
+        )
 
         # test_get_tags_by_memid
         assert "girl" in self.memory.nodes[TripleNode.NODE_TYPE].get_tags_by_memid(

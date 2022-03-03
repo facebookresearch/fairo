@@ -377,6 +377,29 @@ class TripleNode(MemoryNode):
         r = agent_memory._db_read(q, subj_memid)
         return [x for (x,) in r]
 
+    # does not search archived mems for now
+    # assumes tag is tag text
+    @classmethod
+    def get_memids_by_tag(self, agent_memory, tag: str) -> List[str]:
+        """Find all memids with a given tag
+
+        Args:
+            tag (string): string representation of the tag
+
+        Returns:
+            list[string]: list of memory ids (which are strings)
+
+        Examples::
+            >>> tag = "round"
+            >>> get_memids_by_tag(agent_memory, tag)
+        """
+        r = agent_memory._db_read(
+            'SELECT DISTINCT(Memories.uuid) FROM Memories INNER JOIN Triples as T ON T.subj=Memories.uuid WHERE T.pred_text="has_tag" AND T.obj_text=? AND Memories.is_snapshot=0',
+            tag,
+        )
+        return [x for (x,) in r]
+
+
 
 class InterpreterNode(MemoryNode):
     """for representing interpreter objects"""

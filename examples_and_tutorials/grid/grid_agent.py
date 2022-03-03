@@ -41,7 +41,7 @@ class GridAgent(BaseAgent):
             perception_module.perceive()
 
     def controller_step(self):
-        bot_memids = self.memory.get_memids_by_tag("bot")
+        bot_memids = self.memory.nodes["Triple"].get_memids_by_tag(self.memory, "bot")
         if self.memory.task_stack_peek() is None:
             if bot_memids:
                 task_data = {"target_memid": bot_memids[0]}

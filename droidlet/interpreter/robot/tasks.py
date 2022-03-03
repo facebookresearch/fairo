@@ -260,7 +260,9 @@ class Get(Task):
         if self.steps[0] == "not_started":
             # check if already holding target object for pure give, when object is grasped
             # its added to memory with tag "_in_inventory"
-            if self.get_target in agent.memory.get_memids_by_tag("_in_inventory"):
+            if self.get_target in agent.memory.nodes["Triple"].get_memids_by_tag(
+                agent.memory, "_in_inventory"
+            ):
                 self.steps[0] = "finished"
                 self.steps[1] = "finished"
                 self.steps[2] = "finished"
@@ -353,7 +355,9 @@ class Drop(Task):
                 agent.memory.untag(self.object_to_drop, "_in_inventory")
                 if self.object_to_drop is None:
                     # assumed there is only one object with tag "_in_inventory"
-                    for mmid in agent.memory.get_memids_by_tag("_in_inventory"):
+                    for mmid in agent.memory.nodes["Triple"].get_memids_by_tag(
+                        agent.memory, "_in_inventory"
+                    ):
                         agent.memory.untag(mmid, "_in_inventory")
 
 

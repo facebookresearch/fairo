@@ -19,7 +19,7 @@ class HeuristicPerception:
                 f"[Memory INFO]: update bot [{bot.name}] position: ({bot.pos.x}, {bot.pos.y}, {bot.pos.z})"
             )
 
-        bot_memids = self.agent.memory.get_memids_by_tag("bot")
+        bot_memids = self.agent.memory.nodes["Triple"].get_memids_by_tag(self.agent.memory, "bot")
         bots_in_world = [b.entityId for b in bots]
         for memid in bot_memids:
             bot_eid = self.agent.memory.get_mem_by_id(memid).eid

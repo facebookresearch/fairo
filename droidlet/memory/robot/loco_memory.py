@@ -98,7 +98,9 @@ class LocoAgentMemory(AgentMemory):
     ######################
 
     def get_detected_objects_tagged(self, *tags) -> List["DetectedObjectNode"]:
-        memids = set.intersection(*[set(self.get_memids_by_tag(t)) for t in tags])
+        memids = set.intersection(
+            *[set(self.nodes["Triple"].get_memids_by_tag(self, t)) for t in tags]
+        )
         logging.info("get_detected_objects_tagged {}, tags {}".format(memids, tags))
         return memids
 

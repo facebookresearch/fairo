@@ -449,27 +449,6 @@ class AgentMemory:
             self.forget(triple_memids[0][0])
 
     # does not search archived mems for now
-    # assumes tag is tag text
-    def get_memids_by_tag(self, tag: str) -> List[str]:
-        """Find all memids with a given tag
-
-        Args:
-            tag (string): string representation of the tag
-
-        Returns:
-            list[string]: list of memory ids (which are strings)
-
-        Examples::
-            >>> tag = "round"
-            >>> get_memids_by_tag(tag)
-        """
-        r = self._db_read(
-            'SELECT DISTINCT(Memories.uuid) FROM Memories INNER JOIN Triples as T ON T.subj=Memories.uuid WHERE T.pred_text="has_tag" AND T.obj_text=? AND Memories.is_snapshot=0',
-            tag,
-        )
-        return [x for (x,) in r]
-
-    # does not search archived mems for now
     # TODO clean up input?
     def get_triples(
         self,
@@ -608,7 +587,9 @@ class AgentMemory:
             tags (list): list of tags
         """
         tags += ("PLAYER",)
-        memids = set.intersection(*[set(self.get_memids_by_tag(t)) for t in tags])
+        memids = set.intersection(
+            *[set(self.nodes["Triple"].get_memids_by_tag(self, t)) for t in tags]
+        )
         return [self.get_player_by_id(memid) for memid in memids]
 
     def get_player_by_id(self, memid) -> "PlayerNode":
