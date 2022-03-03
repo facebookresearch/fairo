@@ -469,32 +469,6 @@ class AgentMemory:
         )
         return [x for (x,) in r]
 
-    def get_tags_by_memid(self, subj_memid: str, return_text: bool = True) -> List[str]:
-        """Find all tag for a given memid
-
-        Args:
-            subj_memid (string): the subject's memid (uuid from Memories table)
-            return_text (bool): if true, return the object text, otherwise return object memid
-
-        Returns:
-            list[string]: list of tags.
-
-        Examples::
-            >>> subj_memid = '10517cc584844659907ccfa6161e9d32'
-            >>> get_tags_by_memid(subj_memid=subj_memid, return_text=True)
-        """
-        if return_text:
-            return_clause = "obj_text"
-        else:
-            return_clause = "obj"
-        q = (
-            "SELECT DISTINCT("
-            + return_clause
-            + ') FROM Triples WHERE pred_text="has_tag" AND subj=?'
-        )
-        r = self._db_read(q, subj_memid)
-        return [x for (x,) in r]
-
     # does not search archived mems for now
     # TODO clean up input?
     def get_triples(
