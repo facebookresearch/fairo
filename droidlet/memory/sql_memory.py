@@ -426,28 +426,6 @@ class AgentMemory:
         """
         return self.add_triple(subj=subj_memid, pred_text="has_tag", obj_text=tag_text)
 
-    # TODO remove_triple
-    def untag(self, subj_memid: str, tag_text: str):
-        """Delete tag for subject
-
-        Args:
-            subj_memid (string): memid of subject
-            tag_text (string): string representation of the tag
-
-        Examples::
-            >>> subj_memid = '10517cc584844659907ccfa6161e9d32'
-            >>> tag_text = "shiny"
-            >>> untag(subj_memid, tag_text)
-        """
-        # FIXME replace me with a basic filters when _self handled better
-        triple_memids = self._db_read(
-            'SELECT uuid FROM Triples WHERE subj=? AND pred_text="has_tag" AND obj_text=?',
-            subj_memid,
-            tag_text,
-        )
-        if triple_memids:
-            self.forget(triple_memids[0][0])
-
     # does not search archived mems for now
     # TODO clean up input?
     def get_triples(

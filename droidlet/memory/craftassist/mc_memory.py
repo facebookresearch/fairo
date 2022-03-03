@@ -154,7 +154,7 @@ class MCAgentMemory(AgentMemory):
                         eid = old_item_stack[1]
                         # NIT3: return untag set and tag set
                         if eid not in perception_output.agent_pickable_items["all_items"]:
-                            self.untag(memid, "_on_ground")
+                            self.nodes["Triple"].untag(self, memid, "_on_ground")
                         else:
                             self.tag(memid, "_on_ground")
 

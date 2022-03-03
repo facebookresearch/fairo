@@ -113,7 +113,7 @@ class DialogueManager(object):
         if not chat_status:
             return None
         # Mark chat as processed
-        self.memory.untag(chat_memid, "uninterpreted")
+        self.memory.nodes["Triple"].untag(self.memory, chat_memid, "uninterpreted")
 
         # FIXME handle this in gt (all of this will be folded into manager
         # 1. Check against safety phrase list

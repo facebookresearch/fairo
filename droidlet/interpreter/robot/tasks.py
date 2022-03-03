@@ -352,13 +352,15 @@ class Drop(Task):
         else:
             self.finished = agent.mover.bot_step() and not agent.mover.is_object_in_gripper()
             if self.finished:
-                agent.memory.untag(self.object_to_drop, "_in_inventory")
+                agent.memory.nodes["Triple"].untag(
+                    agent.memory, self.object_to_drop, "_in_inventory"
+                )
                 if self.object_to_drop is None:
                     # assumed there is only one object with tag "_in_inventory"
                     for mmid in agent.memory.nodes["Triple"].get_memids_by_tag(
                         agent.memory, "_in_inventory"
                     ):
-                        agent.memory.untag(mmid, "_in_inventory")
+                        agent.memory.nodes["Triple"].untag(agent.memory, mmid, "_in_inventory")
 
 
 class TrajectorySaverTask(Task):

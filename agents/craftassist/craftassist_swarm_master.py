@@ -126,7 +126,7 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
             "_db_write": self.memory._db_write,
             "db_write": self.memory.db_write,
             "tag": self.memory.tag,
-            "untag": self.memory.untag,
+            "untag": self.memory.nodes["Triple"].untag,
             "forget": self.memory.forget,
             "add_triple": self.memory.add_triple,
             "get_triples": self.memory.get_triples,

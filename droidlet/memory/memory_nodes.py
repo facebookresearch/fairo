@@ -399,6 +399,28 @@ class TripleNode(MemoryNode):
         )
         return [x for (x,) in r]
 
+    @classmethod
+    # TODO remove_triple
+    def untag(self, agent_memory, subj_memid: str, tag_text: str):
+        """Delete tag for subject
+
+        Args:
+            subj_memid (string): memid of subject
+            tag_text (string): string representation of the tag
+
+        Examples::
+            >>> subj_memid = '10517cc584844659907ccfa6161e9d32'
+            >>> tag_text = "shiny"
+            >>> untag(agent_memory, subj_memid, tag_text)
+        """
+        # FIXME replace me with a basic filters when _self handled better
+        triple_memids = agent_memory._db_read(
+            'SELECT uuid FROM Triples WHERE subj=? AND pred_text="has_tag" AND obj_text=?',
+            subj_memid,
+            tag_text,
+        )
+        if triple_memids:
+            agent_memory.forget(triple_memids[0][0])
 
 
 class InterpreterNode(MemoryNode):

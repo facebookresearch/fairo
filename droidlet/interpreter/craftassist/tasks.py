@@ -545,7 +545,7 @@ class Build(Task):
 
     def finish(self, agent):
         if self.blockobj_memid is not None:
-            agent.memory.untag(self.blockobj_memid, "_in_progress")
+            agent.memory.nodes["Triple"].untag(agent.memory, self.blockobj_memid, "_in_progress")
         if self.verbose:
             if self.is_destroy_schm:
                 agent.send_chat("I finished destroying this")
