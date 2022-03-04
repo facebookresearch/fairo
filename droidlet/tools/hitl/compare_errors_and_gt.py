@@ -171,11 +171,6 @@ def compare_against_gt(d: dict, anno_d: dict, label: str):
             continue
         if d[key] != anno_d[key]:
             nsp_errors += 1
-            # if label == "commands":
-            #     print(key)
-            #     print(d[key])
-            #     print(anno_d[key])
-            #     print("\n")
         commands_annotated += 1
 
     print(f"Num {label} with NO annotated GT: {not_found}")
@@ -233,15 +228,13 @@ def build_annotated_dict(nsp_fname: str, scrape_anno_outs: bool):
             f"Size of annotated dict after adding batch-specific annotations: {len(annotated_dict)}"
         )
 
-    # Download meta.txt and compare the three lists of commands from this batch:
-    #   - command_dict (from each nsp_outputs.csv)
-    #   - collected_commands
-    #   - the rows of nsp_data corresponding to the indices in meta.txt
+    # Download meta.txt and check length
     s3.download_file(S3_BUCKET_NAME, f"{opts.batch_id}/meta.txt", "meta.txt")
     with open("meta.txt", "r") as f:
         meta = f.readlines()
     meta = [int(x.strip()) for x in meta]
     print(f"Length of meta.txt: {len(meta)}")
+    # anno_cmd_list is not currently used, but left here if useful for future analysis
     anno_cmd_list = [anno_cmd_list[i] for i in range(len(anno_cmd_list)) if i in meta]
 
     # Remove text_span from annotated dict (some LFs have it and some don't)
@@ -252,7 +245,7 @@ def build_annotated_dict(nsp_fname: str, scrape_anno_outs: bool):
 
     print("\n*** Finished building annotated command dict for batch ***\n")
 
-    return anno_cmd_list, annotated_dict
+    return annotated_dict
 
 
 def main(opts):
@@ -280,7 +273,7 @@ def main(opts):
             f"Total number of errors according to `collected_commands` (should match above): {len(collected_commands)}"
         )
 
-        anno_cmd_list, annotated_dict = build_annotated_dict(opts.nsp_data, opts.scrape_anno_outs)
+        annotated_dict = build_annotated_dict(opts.nsp_data, opts.scrape_anno_outs)
 
         if opts.save_dicts:
             with open("annotated_dict.json", "w") as f:
@@ -298,7 +291,7 @@ def main(opts):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--batch_id", type=str, default="20220104011348", help="batch ID for interaction job"
+        "--batch_id", type=str, default="20220304025542", help="batch ID for interaction job"
     )
     parser.add_argument("--nsp_data", type=str, default="nsp_data_v4.txt")
     parser.add_argument("--save_dicts", action="store_true", default=True)

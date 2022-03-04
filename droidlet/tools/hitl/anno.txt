@@ -1,1 +1,1 @@
-tell me once you are done filling hole	{"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": [{"action_type": "OTHERACTION"}]}
+build square	{"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": [{"action_type": "BUILD", "schematic": {"filters": {"where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [1, 1]]}]}}}}]}
