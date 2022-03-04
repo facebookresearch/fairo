@@ -9,7 +9,7 @@ import time
 import cv2
 import os 
 import pickle
-import tqdm
+from tqdm import tqdm
 
 from realsense_wrapper import RealsenseAPI
 
