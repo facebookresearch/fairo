@@ -1,4 +1,4 @@
-#  conda create -n eyehandcal polymetis librealsense opencv -c fair-robotics -c conda-forge
+#  conda create -n eyehandcal polymetis librealsense opencv tqdm -c fair-robotics -c conda-forge
 from torchcontrol.transform import Rotation as R
 from torchcontrol.transform import Transformation as T
 from polymetis import RobotInterface
@@ -9,6 +9,7 @@ import time
 import cv2
 import os 
 import pickle
+import tqdm
 
 from realsense_wrapper import RealsenseAPI
 
@@ -49,32 +50,55 @@ def robot_poses(ip_address):
     # Initialize robot interface
     robot = RobotInterface(
         ip_address=ip_address,
+        enforce_version=False,
     )
 
     # Get reference state
     robot.go_home()
-    for i, (pos_sampled, ori_sampled) in enumerate(sample_poses()):
-        print( f"Moving to pose ({i}): pos={pos_sampled}, quat={ori_sampled.as_quat()}")
-        state_log = robot.set_ee_pose(
-            position=pos_sampled,
-            orientation=ori_sampled.as_quat(),
-            time_to_go = 3
-        )
-        pos, quat = robot.pose_ee()
-        print(f"Current pose  pos={pos}, quat={quat}")
-        yield pos, quat
+    time_to_go = 5
+
+    i = 0
+    poses = list(sample_poses())
+    with tqdm(total=len(poses)) as progress_bar:
+        while i < len(poses):
+            pos_sampled, ori_sampled = poses[i]
+            print( f"Moving to pose ({i}): pos={pos_sampled}, quat={ori_sampled.as_quat()}")
+            state_log = robot.move_to_ee_pose(
+                position=pos_sampled,
+                orientation=ori_sampled.as_quat(),
+                time_to_go = time_to_go
+            )
+            print(f"Length of state_log: {len(state_log)}")
+            if len(state_log) == time_to_go * robot.hz:
+                i += 1
+                pos, quat = robot.get_ee_pose()
+                print(f"Current pose  pos={pos}, quat={quat}")
+                progress_bar.update(1)
+                yield pos, quat
+            else:
+                print(f"State log incorrect length. Trying again...")
 
 
+if __name__ == "__main__":
+    data = []
+    ip_address = "100.96.135.66"
+    i = 0
+    poses = robot_poses(ip_address)
+    images = realsense_images()
+    while True:
+        try:
+            pos, ori = next(poses)
+            imgs, intrinsics = next(images)
+        except StopIteration as e:
+            break
+        cv2.imwrite(f'debug_{i}.jpg', imgs[0])
+        data.append({
+            'pos': pos,
+            'ori': ori,
+            'imgs': imgs,
+            'intrinsics': intrinsics
+        })
+        i += 1
 
-data = []
-for i, (pos,ori), (imgs,intrinsics) in enumerate(zip(robot_poses('100.96.135.68'), realsense_images())):
-    cv2.imwrite(f'debug_{i}.jpg', imgs[0])
-    data.append({
-        'pos': pos,
-        'ori': ori,
-        'imgs': imgs,
-        'intrinsics': intrinsics
-    })
-
-with open('caldata.pkl', 'wb') as f:
-    pickle.dump(f, data)
+    with open('caldata.pkl', 'wb') as f:
+        pickle.dump(f, data)
