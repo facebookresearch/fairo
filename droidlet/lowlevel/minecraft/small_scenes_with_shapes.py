@@ -108,10 +108,10 @@ def white():
 
 def make_pose(args, loc=None, pitchyaw=None, height_map=None):
     """
-    make a random pose for player or mob. 
+    make a random pose for player or mob.
     if loc or pitchyaw is specified, use those
     if height_map is specified, finds a point close to the loc
-        1 block higher than the height_map, but less than ENTITY_HEIGHT from 
+        1 block higher than the height_map, but less than ENTITY_HEIGHT from
         args.H
     TODO option to input object locations and pick pitchyaw to look at one
     """
