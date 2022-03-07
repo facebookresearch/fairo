@@ -6,7 +6,6 @@
 
 import React, { Component } from "react";
 import Button from "@material-ui/core/Button";
-import Question from "./Question";
 import "./InteractApp.css";
 
 class InteractApp extends Component {
@@ -36,7 +35,6 @@ class InteractApp extends Component {
       agent_replies: [{}],
       agentType: null,
       isTurk: false,
-      answerIndex: null,
     };
     this.state = this.initialState;
     this.elementRef = React.createRef();
@@ -140,17 +138,11 @@ class InteractApp extends Component {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => this.setAnswerIndex(1)}
                 className="yes-button"
               >
                 Yes
               </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => this.setAnswerIndex(2)}
-                className="no-button"
-              >
+              <Button variant="contained" color="primary" className="no-button">
                 No
               </Button>
             </div>
@@ -226,6 +218,11 @@ class InteractApp extends Component {
     );
 
     const chats_len = this.state.chats.length;
+
+    this.addNewAgentReplies(
+      true,
+      "Did I successfully do the task you asked me to complete?"
+    );
 
     this.setState({
       agent_replies: this.props.stateManager.memory.agent_replies,
@@ -455,17 +452,6 @@ class InteractApp extends Component {
                 </div>
               </div>
             </div>
-          )}
-          {this.state.chats.length > 1 && (
-            <Question
-              stateManager={this.props.stateManager}
-              chats={this.state.chats}
-              failidx={this.state.chats.length - 1}
-              goToMessage={this.goToMessage}
-              failmsg={this.state.chats[this.state.chats.length - 1].msg}
-              addNewAgentReplies={this.addNewAgentReplies}
-              answerIndex={this.state.answerIndex}
-            />
           )}
         </div>
       </div>
