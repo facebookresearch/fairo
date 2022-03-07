@@ -66,15 +66,15 @@ class DetectedObjectNode(ReferenceObjectNode):
         if hasattr(detected_obj, "properties") and detected_obj.properties is not None:
             cls.safe_tag(detected_obj, memory, memid, "has_properties", "properties")
             for prop in detected_obj.properties:
-                memory.tag(memid, prop)
+                memory.nodes["Triple"].tag(memory, memid, prop)
 
         # Tag everything with has_tag predicate
         if hasattr(detected_obj, "color") and detected_obj.color is not None:
-            memory.tag(memid, detected_obj.color)
+            memory.nodes["Triple"].tag(memory, memid, detected_obj.color)
         if hasattr(detected_obj, "label") and detected_obj.label is not None:
-            memory.tag(memid, detected_obj.label)
-        memory.tag(memid, "_physical_object")
-        memory.tag(memid, "_not_location")
+            memory.nodes["Triple"].tag(memory, memid, detected_obj.label)
+        memory.nodes["Triple"].tag(memory, memid, "_physical_object")
+        memory.nodes["Triple"].tag(memory, memid, "_not_location")
         return memid
 
     @classmethod
@@ -227,7 +227,7 @@ class HumanPoseNode(ReferenceObjectNode):
             memid,
             pickle.dumps(humanpose.keypoints),
         )
-        memory.tag(memid, "_human_pose")
+        memory.nodes["Triple"].tag(memory, memid, "_human_pose")
         return memid
 
     @classmethod

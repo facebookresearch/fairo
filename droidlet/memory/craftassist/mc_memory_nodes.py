@@ -166,12 +166,12 @@ class BlockObjectNode(VoxelObjectNode):
         memory.db_write(cmd, memid, 0, 0, 0, "BlockObjects", 0)
         for block in blocks:
             memory.upsert_block(block, memid, "BlockObjects")
-        memory.tag(memid, "_block_object")
-        memory.tag(memid, "VOXEL_OBJECT")
-        memory.tag(memid, "_physical_object")
-        memory.tag(memid, "_destructible")
+        memory.nodes["Triple"].tag(memory, memid, "_block_object")
+        memory.nodes["Triple"].tag(memory, memid, "VOXEL_OBJECT")
+        memory.nodes["Triple"].tag(memory, memid, "_physical_object")
+        memory.nodes["Triple"].tag(memory, memid, "_destructible")
         # this is a hack until memory_filters does "not"
-        memory.tag(memid, "_not_location")
+        memory.nodes["Triple"].tag(memory, memid, "_not_location")
         logging.debug(
             "Added block object {} with {} blocks, {}".format(
                 memid, len(blocks), Counter([idm for _, idm in blocks])
@@ -253,14 +253,14 @@ class InstSegNode(VoxelObjectNode):
         for loc in locs:
             cmd = "INSERT INTO VoxelObjects (uuid, x, y, z, ref_type) VALUES ( ?, ?, ?, ?, ?)"
             memory.db_write(cmd, memid, loc[0], loc[1], loc[2], "inst_seg")
-        memory.tag(memid, "VOXEL_OBJECT")
-        memory.tag(memid, "_inst_seg")
-        memory.tag(memid, "_destructible")
+        memory.nodes["Triple"].tag(memory, memid, "VOXEL_OBJECT")
+        memory.nodes["Triple"].tag(memory, memid, "_inst_seg")
+        memory.nodes["Triple"].tag(memory, memid, "_destructible")
         # this is a hack until memory_filters does "not"
-        memory.tag(memid, "_not_location")
+        memory.nodes["Triple"].tag(memory, memid, "_not_location")
         for tag in tags:
             if type(tag) is str:
-                memory.tag(memid, tag)
+                memory.nodes["Triple"].tag(memory, memid, tag)
             elif type(tag) is dict:
                 for k, v in tag.items():
                     memory.add_triple(subj=memid, pred_text=k, obj_text=v)
@@ -363,12 +363,12 @@ class MobNode(ReferenceObjectNode):
             agent_placed,
             memory.get_time(),
         )
-        memory.tag(memid, "mob")
-        memory.tag(memid, "_physical_object")
-        memory.tag(memid, "_animate")
+        memory.nodes["Triple"].tag(memory, memid, "mob")
+        memory.nodes["Triple"].tag(memory, memid, "_physical_object")
+        memory.nodes["Triple"].tag(memory, memid, "_animate")
         # this is a hack until memory_filters does "not"
-        memory.tag(memid, "_not_location")
-        memory.tag(memid, mobtype)
+        memory.nodes["Triple"].tag(memory, memid, "_not_location")
+        memory.nodes["Triple"].tag(memory, memid, mobtype)
         memory.add_triple(subj=memid, pred_text="has_name", obj_text=mobtype)
         return memid
 
@@ -465,12 +465,12 @@ class ItemStackNode(ReferenceObjectNode):
             "item_stack",
             memory.get_time(),
         )
-        memory.tag(memid, type_name)
-        memory.tag(memid, "_item_stack")
-        memory.tag(memid, "_on_ground")
-        memory.tag(memid, "_physical_object")
+        memory.nodes["Triple"].tag(memory, memid, type_name)
+        memory.nodes["Triple"].tag(memory, memid, "_item_stack")
+        memory.nodes["Triple"].tag(memory, memid, "_on_ground")
+        memory.nodes["Triple"].tag(memory, memid, "_physical_object")
         # this is a hack until memory_filters does "not"
-        memory.tag(memid, "_not_location")
+        memory.nodes["Triple"].tag(memory, memid, "_not_location")
         return memid
 
     def get_pos(self) -> XYZ:

@@ -156,7 +156,7 @@ class MCAgentMemory(AgentMemory):
                         if eid not in perception_output.agent_pickable_items["all_items"]:
                             self.nodes["Triple"].untag(self, memid, "_on_ground")
                         else:
-                            self.tag(memid, "_on_ground")
+                            self.nodes["Triple"].tag(self, memid, "_on_ground")
 
         # 3. Update agent's current position and attributes in memory
         if perception_output.agent_attributes:
@@ -756,17 +756,17 @@ class MCAgentMemory(AgentMemory):
             # load single mob as schematics
             memid = SchematicNode.create(self, [((0, 0, 0), (383, m))])
             self.add_triple(subj=memid, pred_text="has_name", obj_text=type_name)
-            self.tag(memid, "_spawn")
-            self.tag(memid, name)
+            self.nodes["Triple"].tag(self, memid, "_spawn")
+            self.nodes["Triple"].tag(self, memid, name)
             if "block" in name:
-                self.tag(memid, name.strip("block").strip())
+                self.nodes["Triple"].tag(self, memid, name.strip("block").strip())
 
             # then load properties
             memid = MobTypeNode.create(self, type_name, (383, m))
             self.add_triple(subj=memid, pred_text="has_name", obj_text=type_name)
             if mob_name_to_properties.get(type_name) is not None:
                 for prop in mob_name_to_properties[type_name]:
-                    self.tag(memid, prop)
+                    self.nodes["Triple"].tag(self, memid, prop)
 
     ##############
     ###  Mobs  ###

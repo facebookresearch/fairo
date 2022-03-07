@@ -319,7 +319,7 @@ class FakeAgent(DroidletAgent):
             self.memory.add_triple(subj=memid, pred_text=pred, obj_text=obj)
             # sooooorrry  FIXME? when we handle triples better in interpreter_helper
             if "has_" in pred:
-                self.memory.tag(memid, obj)
+                self.memory.nodes["Triple"].tag(self.memory, memid, obj)
         return self.memory.get_object_by_id(memid)
 
     # WARNING!! this does not step the world, but directly fast-forwards

@@ -24,8 +24,8 @@ class ObjectsTest(BaseCraftassistTestCase):
         self.obj_b = self.add_object([((0, 0, z), (41, 0)) for z in [-4, -5]])
 
         # give them unique tags
-        self.agent.memory.tag(self.obj_a.memid, "tag_A")
-        self.agent.memory.tag(self.obj_b.memid, "tag_B")
+        self.agent.memory.nodes["Triple"].tag(self.agent.memory, self.obj_a.memid, "tag_A")
+        self.agent.memory.nodes["Triple"].tag(self.agent.memory, self.obj_b.memid, "tag_B")
 
     def test_merge_tags(self):
         obj = self.add_object([((0, 0, -3), (41, 0))])

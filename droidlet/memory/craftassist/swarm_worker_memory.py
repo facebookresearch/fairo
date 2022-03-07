@@ -53,12 +53,12 @@ class SwarmWorkerMemory:
         self.db_write(
             "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, "Player", 0, 0, -1, False
         )
-        self.tag(self.self_memid, "_physical_object")
-        self.tag(self.self_memid, "_animate")
+        self.nodes["Triple"].tag(self, self.self_memid, "_physical_object")
+        self.nodes["Triple"].tag(self, self.self_memid, "_animate")
         # this is a hack until memory_filters does "not"
-        self.tag(self.self_memid, "_not_location")
-        self.tag(self.self_memid, "AGENT")
-        # self.tag(self.self_memid, "SELF")
+        self.nodes["Triple"].tag(self, self.self_memid, "_not_location")
+        self.nodes["Triple"].tag(self, self.self_memid, "AGENT")
+        # self.nodes["Triple"].tag(self, self.self_memid, "SELF")
 
     def init_time_interface(self, agent_time=None):
         """Initialiaze the current time in memory
@@ -131,7 +131,7 @@ class SwarmWorkerMemory:
             == "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, run_count, created) VALUES (?,?,?,?,?,?,?)"
         ):
             memid = args[0]
-            self.tag(memid, self.memory_tag)
+            self.nodes["Triple"].tag(self, memid, self.memory_tag)
         to_return = self._db_command("_db_write", query, *args)
         return to_return
 

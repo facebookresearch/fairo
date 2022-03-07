@@ -327,7 +327,9 @@ class AutoGrasp(Task):
             # TODO tag this in the grip task, not here
             if self.finished:
                 if self.agent.mover.is_object_in_gripper():
-                    self.agent.memory.tag(self.target, "_in_inventory")
+                    self.agent.memory.nodes["Triple"].tag(
+                        self.agent.memory, self.target, "_in_inventory"
+                    )
 
 
 class Drop(Task):
