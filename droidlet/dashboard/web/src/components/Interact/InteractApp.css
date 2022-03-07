@@ -107,7 +107,7 @@
   background-color: #d5d5d5;
 }
 
-.chat .messages .messages-content .messagelist {
+.chat .messages .messagelist {
   /* position: absolute; */
   bottom: 0;
   width: 100%;
@@ -115,10 +115,41 @@
   padding-left: 0;
   margin: 0;
 }
+.chat .message-item {
+  margin: 1rem;
+}
+.chat .answer-buttons {
+  display: flex;
+  margin-top: 0.5rem;
+}
+
+.chat .answer-buttons button {
+  box-shadow: none;
+}
+
+.chat .answer-buttons .yes-button {
+  margin-right: 1rem;
+  border: 1px solid #4aa96c;
+  color: #4aa96c;
+}
+
+.chat .answer-buttons .yes-button:hover {
+  background-color: rgba(74, 169, 108, 0.1);
+}
+
+.chat .answer-buttons .no-button {
+  border: 1px solid #f55c47;
+  color: #f55c47;
+}
+
+.chat .answer-buttons .no-button:hover {
+  background-color: rgba(245, 57, 57, 0.1);
+}
+
 .chat .messages .message {
   box-sizing: border-box;
   padding: 0.5rem 1rem;
-  margin: 1rem;
+  /* margin: 1rem; */
   background: #fff;
   border-radius: 1.125rem 1.125rem 1.125rem 0;
   min-height: 2.25rem;
@@ -130,6 +161,7 @@
     0rem 1rem 1rem -1rem rgba(0, 0, 0, 0.1);
   color: black;
   text-align: left;
+  margin-top: 10px;
 }
 .chat .messages .message.user {
   margin: 1rem 1rem 1rem auto;

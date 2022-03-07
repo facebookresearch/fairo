@@ -36,6 +36,7 @@ class InteractApp extends Component {
       agent_replies: [{}],
       agentType: null,
       isTurk: false,
+      answerIndex: null,
     };
     this.state = this.initialState;
     this.elementRef = React.createRef();
@@ -49,6 +50,13 @@ class InteractApp extends Component {
     this.MessageRef = React.createRef();
     this.intervalId = null;
     this.messagesEnd = null;
+    this.addNewAgentReplies = this.addNewAgentReplies.bind(this);
+  }
+
+  setAnswerIndex(index) {
+    this.setState({
+      answerIndex: index,
+    });
   }
 
   updateChat(chat) {
@@ -125,8 +133,28 @@ class InteractApp extends Component {
 
     return chat_history.map((chat) =>
       React.cloneElement(
-        <li className={chat.sender} key={chat.timestamp.toString()}>
-          {chat.msg}
+        <li className="message-item" key={chat.timestamp.toString()}>
+          <div className={chat.sender}>{chat.msg}</div>
+          {chat.isQestion && (
+            <div className="answer-buttons">
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => this.setAnswerIndex(1)}
+                className="yes-button"
+              >
+                Yes
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => this.setAnswerIndex(2)}
+                className="no-button"
+              >
+                No
+              </Button>
+            </div>
+          )}
         </li>
       )
     );
@@ -357,6 +385,17 @@ class InteractApp extends Component {
     this.scrollToBottom();
   }
 
+  addNewAgentReplies(isQestion, agentReply) {
+    console.log(agentReply);
+    const newAgentReplies = [
+      ...this.state.agent_replies,
+      { msg: agentReply, timestamp: Date.now(), isQestion: isQestion },
+    ];
+    this.setState({
+      agent_replies: newAgentReplies,
+    });
+  }
+
   render() {
     return (
       <div className="App" style={{ padding: 0 }}>
@@ -417,13 +456,15 @@ class InteractApp extends Component {
               </div>
             </div>
           )}
-          {this.state.currentView === 2 && (
+          {this.state.chats.length > 1 && (
             <Question
               stateManager={this.props.stateManager}
               chats={this.state.chats}
-              failidx={this.state.failidx}
-              goToMessage={this.goToMessage.bind(this)}
-              failmsg={this.state.chats[this.state.failidx].msg}
+              failidx={this.state.chats.length - 1}
+              goToMessage={this.goToMessage}
+              failmsg={this.state.chats[this.state.chats.length - 1].msg}
+              addNewAgentReplies={this.addNewAgentReplies}
+              answerIndex={this.state.answerIndex}
             />
           )}
         </div>
