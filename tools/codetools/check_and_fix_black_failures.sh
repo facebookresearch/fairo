@@ -19,7 +19,7 @@ do
     if [ -n "$(git status --porcelain)" ]; then
       git config user.name >/dev/null || git config --global user.name "bot"
       git config user.email >/dev/null || git config --global user.email "bot@fb.com"
-      git add $CHECK_DIR && git commit -m "[skip ci] Automatic style fix for $CHECK_DIR" && git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)
+      git add $CHECK_DIR && git commit -m "Automatic style fix for $CHECK_DIR" && git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)
       echo "Auto fix style."
     else
       echo "Style is perfect. No need to fix."
