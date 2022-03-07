@@ -55,11 +55,11 @@ class DialogueManager(object):
             chat_memid = chat.memid
             # get logical form if any else None
             logical_form_memid, chat_status = None, ""
-            logical_form_triples = self.memory.get_triples(
-                subj=chat_memid, pred_text="has_logical_form"
+            logical_form_triples = self.memory.nodes["Triple"].get_triples(
+                self.memory, subj=chat_memid, pred_text="has_logical_form"
             )
-            processed_status = self.memory.get_triples(
-                subj=chat_memid, pred_text="has_tag", obj_text="uninterpreted"
+            processed_status = self.memory.nodes["Triple"].get_triples(
+                self.memory, subj=chat_memid, pred_text="has_tag", obj_text="uninterpreted"
             )
             if logical_form_triples:
                 logical_form_memid = logical_form_triples[0][2]

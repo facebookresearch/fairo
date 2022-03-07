@@ -315,7 +315,9 @@ class Build(Task):
             if mem and all(xyz in xyzs for xyz in mem.blocks.keys()):
                 for pred in ["has_tag", "has_name", "has_colour"]:
                     self.destroyed_block_object_triples.extend(
-                        agent.memory.get_triples(subj=mem.memid, pred_text=pred)
+                        agent.memory.nodes["Triple"].get_triples(
+                            agent.memory, subj=mem.memid, pred_text=pred
+                        )
                     )
                 logging.debug(
                     "Destroying block object {} tags={}".format(
@@ -870,8 +872,8 @@ class Spawn(Task):
                     )
                     # the chat_effect_ triple was already made when the task is added if there was a chat...
                     # but it points to the task memory.  link the chat to the mob memory:
-                    chat_mem_triples = agent.memory.get_triples(
-                        subj=None, pred_text="chat_effect_", obj=self.memid
+                    chat_mem_triples = agent.memory.nodes["Triple"].get_triples(
+                        agent.memory, subj=None, pred_text="chat_effect_", obj=self.memid
                     )
                     if len(chat_mem_triples) > 0:
                         chat_memid = chat_mem_triples[0][0]

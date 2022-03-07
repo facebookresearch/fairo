@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import uuid
 import json
-from typing import Optional, List, Dict, cast
+from typing import Optional, List, Dict, cast, Tuple
 from droidlet.base_util import XYZ, POINT_AT_TARGET, to_player_struct
 
 
@@ -348,6 +348,82 @@ class TripleNode(MemoryNode):
         )
         return memid
 
+    # does not search archived mems for now
+    # TODO clean up input?
+    @classmethod
+    def get_triples(
+        self,
+        agent_memory,
+        subj: str = None,
+        obj: str = None,
+        subj_text: str = None,
+        pred_text: str = None,
+        obj_text: str = None,
+        return_obj_text: str = "if_exists",
+    ) -> List[Tuple[str, str, str]]:
+        """gets triples from the triplestore.
+        subj is always returned as a memid even when searched as text.
+        need at least one non-None part of the triple, and
+        text should not not be input for a part of a triple where a memid is set.
+
+        Args:
+            subj (string): memid of subject
+            obj (string): memid of object
+            subj_text (string): text of the subject (if applicable, as opposed to subject memid)
+            pred_text (string): text of the predicate
+            obj_text (string): text of the subject (if applicable, as opposed to subject memid)
+            return_obj_text (string): if return_obj_text == "if_exists", will return the obj_text
+                             if it exists, and the memid otherwise. If return_obj_text
+                             == "always", returns the obj_text even if it is None. If
+                             return_obj_text == "never", returns the obj memid.
+
+        Returns:
+            list[tuple]: A list of tuples of the form : (subject, predicate, object)
+
+        Examples::
+            >>> subj = '10517cc584844659907ccfa6161e9d32'
+            >>> obj_text = 'blue'
+            >>> pred_text = "has_colour"
+            >>> get_triples(agent_memory,
+                            subj=subj,
+                            pred_text=pred_text,
+                            obj_text=obj_text)
+        """
+        assert any([subj or subj_text, pred_text, obj or obj_text])
+        # search by memid or by text, but not both
+        assert not (subj and subj_text)
+        assert not (obj and obj_text)
+        pairs = [
+            ("subj", subj),
+            ("subj_text", subj_text),
+            ("pred_text", pred_text),
+            ("obj", obj),
+            ("obj_text", obj_text),
+        ]
+        args = [x[1] for x in pairs if x[1] is not None]
+        where = [x[0] + "=?" for x in pairs if x[1] is not None]
+        if len(where) == 1:
+            where_clause = where[0]
+        else:
+            where_clause = " AND ".join(where)
+        return_clause = "subj, pred_text, obj, obj_text "
+        sql = (
+            "SELECT "
+            + return_clause
+            + "FROM Triples INNER JOIN Memories as M ON Triples.subj=M.uuid WHERE M.is_snapshot=0 AND "
+            + where_clause
+        )
+        r = agent_memory._db_read(sql, *args)
+        # subj is always returned as memid, even if pred and obj are returned as text
+        # pred is always returned as text
+        if return_obj_text == "if_exists":
+            l = [(s, pt, ot) if ot else (s, pt, o) for (s, pt, o, ot) in r]
+        elif return_obj_text == "always":
+            l = [(s, pt, ot) for (s, pt, o, ot) in r]
+        else:
+            l = [(s, pt, o) for (s, pt, o, ot) in r]
+        return cast(List[Tuple[str, str, str]], l)
+
     @classmethod
     def get_tags_by_memid(
         self, agent_memory, subj_memid: str, return_text: bool = True
@@ -486,7 +562,9 @@ class SetNode(MemoryNode):
         return memid
 
     def get_members(self):
-        return self.agent_memory.get_triples(pred_text="member_of", obj=self.memid)
+        return self.agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            self.agent_memory, pred_text="member_of", obj=self.memid
+        )
 
     def snapshot(self, agent_memory):
         return SetNode.create(agent_memory, snapshot=True)
@@ -1173,7 +1251,9 @@ class TaskNode(MemoryNode):
 
     def get_chat(self) -> Optional[ChatNode]:
         """Return the memory of the chat that caused this task's creation, or None"""
-        triples = self.agent_memory.get_triples(pred_text="chat_effect_", obj=self.memid)
+        triples = self.agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            self.agent_memory, pred_text="chat_effect_", obj=self.memid
+        )
         if triples:
             chat_id, _, _ = triples[0]
             return ChatNode(self.agent_memory, chat_id)
@@ -1182,7 +1262,9 @@ class TaskNode(MemoryNode):
 
     def get_parent_task(self) -> Optional["TaskNode"]:
         """Return the 'TaskNode' of the parent task, or None"""
-        triples = self.agent_memory.get_triples(subj=self.memid, pred_text="_has_parent_task")
+        triples = self.agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            self.agent_memory, subj=self.memid, pred_text="_has_parent_task"
+        )
         if len(triples) == 0:
             return None
         elif len(triples) == 1:
@@ -1201,7 +1283,9 @@ class TaskNode(MemoryNode):
 
     def get_child_tasks(self) -> List["TaskNode"]:
         """Return tasks that were spawned beause of this task"""
-        r = self.agent_memory.get_triples(pred_text="_has_parent_task", obj=self.memid)
+        r = self.agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            self.agent_memory, pred_text="_has_parent_task", obj=self.memid
+        )
         memids = [m for m, _, _ in r]
         return [TaskNode(self.agent_memory, m) for m in memids]
 

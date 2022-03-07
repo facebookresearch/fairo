@@ -12,7 +12,7 @@ from droidlet.memory.craftassist.mc_memory_nodes import (
     ItemStackNode,
     DanceNode,
 )
-from droidlet.memory.memory_nodes import PlayerNode
+from droidlet.memory.memory_nodes import PlayerNode, TripleNode
 from droidlet.base_util import Pos, Look, Player
 
 Mob = namedtuple("Mob", "entityId, mobType, pos, look")
@@ -75,7 +75,14 @@ class BasicTest(unittest.TestCase):
         )
         bo1_memid = BlockObjectNode.create(self.memory, (((0, 0, 2), (1, 0)), ((0, 0, 3), (2, 0))))
         self.memory.tag_block_object_from_schematic(bo1_memid, sch_memid)
-        assert len(self.memory.get_triples(pred_text="_from_schematic")) == 1
+        assert (
+            len(
+                self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                    self.memory, pred_text="_from_schematic"
+                )
+            )
+            == 1
+        )
 
     def test_inst_seg_node(self):
         self.memory = MCAgentMemory()
@@ -137,8 +144,22 @@ class BasicTest(unittest.TestCase):
             return 2
 
         self.memory.add_dance(x, "generate_num_dance", ["generate_2", "dance_with_numbers"])
-        assert len(self.memory.get_triples(obj_text="generate_2")) == 1
-        assert len(self.memory.get_triples(obj_text="dance_with_numbers")) == 1
+        assert (
+            len(
+                self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                    self.memory, obj_text="generate_2"
+                )
+            )
+            == 1
+        )
+        assert (
+            len(
+                self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                    self.memory, obj_text="dance_with_numbers"
+                )
+            )
+            == 1
+        )
 
 
 if __name__ == "__main__":

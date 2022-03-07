@@ -223,7 +223,12 @@ def interpret_named_schematic(
         schematic = interpreter.memory.get_schematic_by_name(stemmed_name)
         if schematic is None:
             raise ErrorWithResponse("I don't know what you want me to build.")
-    triples = [(p, v) for (_, p, v) in interpreter.memory.get_triples(subj=schematic.memid)]
+    triples = [
+        (p, v)
+        for (_, p, v) in interpreter.memory.nodes["Triple"].get_triples(
+            interpreter.memory, subj=schematic.memid
+        )
+    ]
     blocks = schematic.blocks
     # TODO generalize to more general block properties
     # Longer term: remove and put a call to the modify model here

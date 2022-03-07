@@ -134,7 +134,9 @@ class ConfirmTask(Task):
         # FIXME: change this to sqly when syntax for obj searches is settled:
         # search for a response to the confirmation question, which will be a triple
         # (self.memid, "dialogue_task_reponse", chat_memid)
-        t = self.agent.memory.get_triples(subj=self.memid, pred_text="dialogue_task_response")
+        t = self.agent.memory.nodes["Triple"].get_triples(
+            self.agent.memory, subj=self.memid, pred_text="dialogue_task_response"
+        )
         if not t:
             return
         chat_mems = [self.agent.memory.get_mem_by_id(triples[2]) for triples in t]
@@ -196,7 +198,9 @@ class ConfirmReferenceObject(Task):
             return
         self.finished = True
         # FIXME: change this to sqly when syntax for obj searches is settled:
-        t = self.agent.memory.get_triples(subj=self.memid, pred_text="dialogue_task_response")
+        t = self.agent.memory.nodes["Triple"].get_triples(
+            self.agent.memory, subj=self.memid, pred_text="dialogue_task_response"
+        )
         chat_mems = [self.agent.memory.get_mem_by_id(triples[2]) for triples in t]
         response = "no"
         if chat_mems:
