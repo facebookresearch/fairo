@@ -57,7 +57,9 @@ def get_unique_val_from_memory(agent, pred_text, typ):
         if typ == str:
             return ""
 
-    t = agent.memory.get_triples(subj=agent.memory.self_memid, pred_text=pred_text)
+    t = agent.memory.nodes["Triple"].get_triples(
+        agent.memory, subj=agent.memory.self_memid, pred_text=pred_text
+    )
     # get_triples returns a list of tuples of the form (subject, predicate, object)
     assert len(t) <= 1, f"More than 1 ({len(t)}) triple for {pred_text}"
     return typ(t[0][2]) if len(t) == 1 else get_default(typ)
