@@ -120,8 +120,8 @@ class DetectedObjectNode(ReferenceObjectNode):
     @classmethod
     def from_node(cls, memory, node) -> list:
         def get_value(memid, pred_text):
-            triple = memory.get_triples(
-                subj=memid, pred_text=pred_text, return_obj_text="if_exists"
+            triple = memory.nodes["Triple"].get_triples(
+                memory, subj=memid, pred_text=pred_text, return_obj_text="if_exists"
             )
             if len(triple) > 0 and len(triple[0]) >= 3 and triple[0][2] != memid:
                 return triple[0][2]
