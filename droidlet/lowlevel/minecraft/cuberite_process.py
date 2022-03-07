@@ -148,6 +148,9 @@ if __name__ == "__main__":
     # in a "schematic_for_cuberite" field
     parser.add_argument("--schematic", default="")
     # args for random shape generation, if used:
+    parser.add_argument(
+        "--mob_config", type=str, default=""
+    )  # this doesn't work in cuberite yet!, FIXME
     parser.add_argument("--random_shapes", action="store_true")
     parser.add_argument("--fence", action="store_true", default=False)
     parser.add_argument("--MAX_NUM_SHAPES", type=int, default=3)
