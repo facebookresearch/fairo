@@ -425,6 +425,24 @@ class TripleNode(MemoryNode):
         return cast(List[Tuple[str, str, str]], l)
 
     @classmethod
+    def tag(self, agent_memory, subj_memid: str, tag_text: str):
+        """Tag the subject with tag text.
+
+        Args:
+            subj_memid (string): memid of subject
+            tag_text (string): string representation of the tag
+
+        Returns:
+            memid of triple representing the tag
+
+        Examples::
+            >>> subj_memid = '10517cc584844659907ccfa6161e9d32'
+            >>> tag_text = "shiny"
+            >>> tag(agent_memory, subj_memid, tag_text)
+        """
+        return agent_memory.add_triple(subj=subj_memid, pred_text="has_tag", obj_text=tag_text)
+
+    @classmethod
     def get_tags_by_memid(
         self, agent_memory, subj_memid: str, return_text: bool = True
     ) -> List[str]:
@@ -672,11 +690,11 @@ class PlayerNode(ReferenceObjectNode):
             player_struct.look.yaw,
             "player",
         )
-        memory.tag(memid, "_player")
-        memory.tag(memid, "_physical_object")
-        memory.tag(memid, "_animate")
+        memory.nodes["Triple"].tag(memory, memid, "_player")
+        memory.nodes["Triple"].tag(memory, memid, "_physical_object")
+        memory.nodes["Triple"].tag(memory, memid, "_animate")
         # this is a hack until memory_filters does "not"
-        memory.tag(memid, "_not_location")
+        memory.nodes["Triple"].tag(memory, memid, "_not_location")
 
         if player_struct.name is not None:
             memory.add_triple(subj=memid, pred_text="has_name", obj_text=player_struct.name)

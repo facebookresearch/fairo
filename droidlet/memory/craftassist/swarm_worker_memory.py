@@ -58,7 +58,7 @@ class SwarmWorkerMemory:
         # this is a hack until memory_filters does "not"
         self.tag(self.self_memid, "_not_location")
         self.tag(self.self_memid, "AGENT")
-        # self.tag(self.self_memid, "SELF")
+        # self.tag(self, self.self_memid, "SELF")
 
     def init_time_interface(self, agent_time=None):
         """Initialiaze the current time in memory

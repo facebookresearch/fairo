@@ -16,6 +16,7 @@ from droidlet.interpreter import InterpreterBase
 from droidlet.memory.save_and_fetch_commands import *
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.perception.semantic_parsing.semantic_parsing_util import postprocess_logical_form
+
 random.seed(0)
 
 DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
@@ -343,7 +344,9 @@ class DroidletAgent(BaseAgent):
             subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
         )
         # New chat, mark as uninterpreted.
-        self.memory.tag(subj_memid=chat_memid, tag_text="uninterpreted")
+        self.memory.nodes["Triple"].tag(
+            self.memory, subj_memid=chat_memid, tag_text="uninterpreted"
+        )
         return logical_form_memid, chat_memid
 
     def perceive(self, force=False):
@@ -354,9 +357,14 @@ class DroidletAgent(BaseAgent):
             force=force
         )
         # unpack the results from the semantic parsing model
-        force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
-            nlu_perceive_output
-        )
+        (
+            force,
+            received_chats_flag,
+            speaker,
+            chat,
+            preprocessed_chat,
+            chat_parse,
+        ) = nlu_perceive_output
         if received_chats_flag:
             # put results from semantic parsing model into memory, if necessary
             self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)

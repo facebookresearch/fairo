@@ -13,7 +13,7 @@ class HeuristicPerception:
             if bot_node is None:
                 memid = PlayerNode.create(self.agent.memory, bot)
                 bot_node = PlayerNode(self.agent.memory, memid)
-                self.agent.memory.tag(memid, "bot")
+                self.agent.memory.nodes["Triple"].tag(self.agent.memory, memid, "bot")
             bot_node.update(self.agent.memory, bot, bot_node.memid)
             print(
                 f"[Memory INFO]: update bot [{bot.name}] position: ({bot.pos.x}, {bot.pos.y}, {bot.pos.z})"

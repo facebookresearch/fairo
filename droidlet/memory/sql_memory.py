@@ -129,12 +129,12 @@ class AgentMemory:
         self.db_write(
             "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, "Self", 0, 0, -1, False
         )
-        self.tag(self.self_memid, "_physical_object")
-        self.tag(self.self_memid, "_animate")
+        self.nodes["Triple"].tag(self, self.self_memid, "_physical_object")
+        self.nodes["Triple"].tag(self, self.self_memid, "_animate")
         # this is a hack until memory_filters does "not"
-        self.tag(self.self_memid, "_not_location")
-        self.tag(self.self_memid, "AGENT")
-        self.tag(self.self_memid, "SELF")
+        self.nodes["Triple"].tag(self, self.self_memid, "_not_location")
+        self.nodes["Triple"].tag(self, self.self_memid, "AGENT")
+        self.nodes["Triple"].tag(self, self.self_memid, "SELF")
 
         self.searcher = MemorySearcher()
         self.place_field = PlaceField(self)
@@ -408,23 +408,6 @@ class AgentMemory:
             obj_text=obj_text,
             confidence=confidence,
         )
-
-    def tag(self, subj_memid: str, tag_text: str):
-        """Tag the subject with tag text.
-
-        Args:
-            subj_memid (string): memid of subject
-            tag_text (string): string representation of the tag
-
-        Returns:
-            memid of triple representing the tag
-
-        Examples::
-            >>> subj_memid = '10517cc584844659907ccfa6161e9d32'
-            >>> tag_text = "shiny"
-            >>> tag(subj_memid, tag_text)
-        """
-        return self.add_triple(subj=subj_memid, pred_text="has_tag", obj_text=tag_text)
 
     ###############
     ###  Chats  ###

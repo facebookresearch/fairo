@@ -539,11 +539,11 @@ class Build(Task):
                 TripleNode.create(agent.memory, subj=blockobj_memid, pred_text=pred, obj_text=obj)
                 # sooooorrry  FIXME? when we handle triples better
                 if "has_" in pred:
-                    agent.memory.tag(self.blockobj_memid, obj)
+                    agent.memory.nodes["Triple"].tag(agent.memory, self.blockobj_memid, obj)
 
-        agent.memory.tag(blockobj_memid, "_in_progress")
+        agent.memory.nodes["Triple"].tag(agent.memory, blockobj_memid, "_in_progress")
         if self.dig_message:
-            agent.memory.tag(blockobj_memid, "hole")
+            agent.memory.nodes["Triple"].tag(agent.memory, blockobj_memid, "hole")
 
     def finish(self, agent):
         if self.blockobj_memid is not None:
@@ -970,7 +970,7 @@ class Get(Task):
         if delta > 0:
             agent.inventory.add_item_stack(self.idm, (self.obj_memid, delta))
             agent.send_chat("Got Item!")
-            agent.memory.tag(self.obj_memid, "_in_inventory")
+            agent.memory.nodes["Triple"].tag(agent.memory, self.obj_memid, "_in_inventory")
             self.finished = True
             return
 
@@ -1046,7 +1046,7 @@ class Drop(Task):
         if dropped_item_stack:
             agent.memory.update_item_stack_eid(self.obj_memid, dropped_item_stack.entityId)
             agent.memory.set_item_stack_position(dropped_item_stack)
-            agent.memory.tag(self.obj_memid, "_on_ground")
+            agent.memory.nodes["Triple"].tag(agent.memory, self.obj_memid, "_on_ground")
 
         x, y, z = agent.get_player().pos
         target = (x, y + 2, z)
