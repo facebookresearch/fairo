@@ -248,7 +248,13 @@ class MCInterpreter(Interpreter):
             if len(objs) == 0:
                 raise ErrorWithResponse("I don't understand what you want me to build")
             tagss = [
-                [(p, v) for (_, p, v) in self.memory.get_triples(subj=obj.memid)] for obj in objs
+                [
+                    (p, v)
+                    for (_, p, v) in self.memory.nodes["Triple"].get_triples(
+                        self.memory, subj=obj.memid
+                    )
+                ]
+                for obj in objs
             ]
             interprets = [
                 [list(obj.blocks.items()), obj.memid, tags] for (obj, tags) in zip(objs, tagss)
@@ -313,9 +319,9 @@ class MCInterpreter(Interpreter):
         for hole in holes:
             poss = list(hole.blocks.keys())
             try:
-                fill_memid = agent.memory.get_triples(subj=hole.memid, pred_text="has_fill_type")[
-                    0
-                ][2]
+                fill_memid = agent.memory.nodes["Triple"].get_triples(
+                    self.memory, subj=hole.memid, pred_text="has_fill_type"
+                )[0][2]
                 fill_block_mem = self.memory.get_mem_by_id(fill_memid)
                 fill_idm = (fill_block_mem.b, fill_block_mem.m)
             except:

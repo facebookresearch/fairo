@@ -152,15 +152,18 @@ class DroidletAgent(BaseAgent):
                 chat_memids, _ = self.memory.basic_search(
                     f"SELECT MEMORY FROM Chat WHERE chat={chat}"
                 )
-                logical_form_triples = self.memory.get_triples(
-                    subj=chat_memids[0], pred_text="has_logical_form"
+                logical_form_triples = self.memory.nodes["Triple"].get_triples(
+                    self.memory, subj=chat_memids[0], pred_text="has_logical_form"
                 )
                 if logical_form_triples:
                     logical_form_mem = self.memory.get_mem_by_id(logical_form_triples[0][2])
                     logical_form = logical_form_mem.logical_form
                 if logical_form:
                     logical_form = postprocess_logical_form(
-                        self.memory, speaker="dashboard", chat=chat, logical_form=logical_form_mem.logical_form
+                        self.memory,
+                        speaker="dashboard",
+                        chat=chat,
+                        logical_form=logical_form_mem.logical_form,
                     )
                     where = "WHERE <<?, attended_while_interpreting, #{}>>".format(
                         logical_form_mem.memid

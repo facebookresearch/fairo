@@ -113,7 +113,9 @@ class PutMemoryHandler(InterpreterBase):
         mem = r[0]
 
         name = "it"
-        triples = self.memory.get_triples(subj=mem.memid, pred_text="has_tag")
+        triples = self.memory.nodes["Triple"].get_triples(
+            self.memory, subj=mem.memid, pred_text="has_tag"
+        )
         if len(triples) > 0:
             name = triples[0][2].strip("_")
 

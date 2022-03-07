@@ -99,8 +99,18 @@ class BasicTest(unittest.TestCase):
 
         self.memory.add_triple(subj=sheep_memid, pred_text="has_property", obj=fluff_memid)
         self.memory.add_triple(subj=sheep_memid, pred_text="has_fur_color", obj_text="white")
-        assert len(self.memory.get_triples(subj=sheep_memid)) == 2
-        assert len(self.memory.get_triples(subj=sheep_memid, pred_text="has_property")) == 1
+        assert (
+            len(self.memory.nodes[TripleNode.NODE_TYPE].get_triples(self.memory, subj=sheep_memid))
+            == 2
+        )
+        assert (
+            len(
+                self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                    self.memory, subj=sheep_memid, pred_text="has_property"
+                )
+            )
+            == 1
+        )
 
     def test_tag(self):
         self.memory = AgentMemory()
@@ -111,8 +121,18 @@ class BasicTest(unittest.TestCase):
         self.memory.add_triple(subj=sheep_memid, pred_text="has_home_location", obj=loc_memid)
         self.memory.add_triple(subj=sheep_memid, pred_text="has_fur_color", obj_text="white")
 
-        assert len(self.memory.get_triples(subj=sheep_memid)) == 3
-        assert len(self.memory.get_triples(subj=sheep_memid, pred_text="has_home_location")) == 1
+        assert (
+            len(self.memory.nodes[TripleNode.NODE_TYPE].get_triples(self.memory, subj=sheep_memid))
+            == 3
+        )
+        assert (
+            len(
+                self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                    self.memory, subj=sheep_memid, pred_text="has_home_location"
+                )
+            )
+            == 1
+        )
 
     def test_untag(self):
         self.memory = AgentMemory()
@@ -122,11 +142,25 @@ class BasicTest(unittest.TestCase):
 
         self.memory.tag(subj_memid=player_memid, tag_text="girl")
         self.memory.tag(subj_memid=player_memid, tag_text="plays_football")
-        assert len(self.memory.get_triples(subj=player_memid, obj_text="girl")) == 1
+        assert (
+            len(
+                self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                    self.memory, subj=player_memid, obj_text="girl"
+                )
+            )
+            == 1
+        )
         self.memory.nodes[TripleNode.NODE_TYPE].untag(
             self.memory, subj_memid=player_memid, tag_text="girl"
         )
-        assert len(self.memory.get_triples(subj=player_memid, obj_text="girl")) == 0
+        assert (
+            len(
+                self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                    self.memory, subj=player_memid, obj_text="girl"
+                )
+            )
+            == 0
+        )
 
     def test_memids_and_tags(self):
         self.memory = AgentMemory()
@@ -154,7 +188,14 @@ class BasicTest(unittest.TestCase):
         )
 
         # test get_triples
-        assert len(self.memory.get_triples(subj=player_memid, obj_text="girl")) == 1
+        assert (
+            len(
+                self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                    self.memory, subj=player_memid, obj_text="girl"
+                )
+            )
+            == 1
+        )
 
     # TODO: expand these
     def test_sql_form(self):
@@ -324,7 +365,9 @@ class BasicTest(unittest.TestCase):
             subj=jane_memid, pred_text="sister_of", obj=joe_memid
         )
 
-        triples = self.memory.get_triples(subj=jane_memid, pred_text="sister_of")
+        triples = self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            self.memory, subj=jane_memid, pred_text="sister_of"
+        )
         assert len(triples) == 1
 
         self.time.add_tick()
@@ -336,7 +379,9 @@ class BasicTest(unittest.TestCase):
         assert jane_t == 0
 
         self.memory.forget(joe_memid)
-        triples = self.memory.get_triples(subj=jane_memid, pred_text="sister_of")
+        triples = self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            self.memory, subj=jane_memid, pred_text="sister_of"
+        )
         assert len(triples) == 0
 
 
