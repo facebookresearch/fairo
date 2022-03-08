@@ -52,6 +52,18 @@ fbrp ps
 
 ## Runtime
 
+### Host
+
+Run a process without sandboxing:
+```py
+fbrp.process(
+    name="proc",
+    runtime=fbrp.Host(
+        run_command=["python3", "proc.py"],
+    ),
+)
+```
+
 ### Conda
 
 Run a process within a conda environment:
@@ -92,4 +104,4 @@ Other kwargs passed to Docker will be passed directly to the docker engine.
 
 Add the following snippet to your `~/.bashrc` to get tab completion:
 
-eval "$(_FBRP_COMPLETE=bash_source fbrp)"
+`eval "$(_FBRP_COMPLETE=bash_source fbrp)"`
