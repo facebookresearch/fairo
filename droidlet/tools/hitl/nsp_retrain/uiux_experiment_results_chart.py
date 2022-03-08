@@ -41,15 +41,17 @@ def retrieve_units(run_id: int) -> list:
             completed_units.append(unit)
     return completed_units
 
+
 #%%
 def read_turk_logs(turk_output_directory, filename):
-    
+
     cnt_list = []
     for csv_path in glob.glob(
         "{turk_logs_dir}/**/{csv_filename}".format(
             turk_logs_dir=turk_output_directory, csv_filename=filename + ".csv"
-        )):
-        
+        )
+    ):
+
         with open(csv_path) as fd:
             # collect the NSP outputs CSV
             csv_file = pd.read_csv(csv_path, delimiter="|")
@@ -59,36 +61,39 @@ def read_turk_logs(turk_output_directory, filename):
 
     return cnt_list
 
+
 #%%
 def compute_stats(epd, exp):
     avg = np.average(epd)
     stdev = np.std(epd)
-    sterr = stdev / ((len(epd))**0.5)
+    sterr = stdev / ((len(epd)) ** 0.5)
 
     print(f"{exp} Average: {avg}")
     print(f"{exp} Standard Error: {sterr}")
 
     return (avg, sterr)
 
+
 #%%
 def plot_hist(xs, ys, errs, ylabel, target_val=None, xlabel="UI/UX Experiments", ymax=None):
-    plt.bar(xs, ys, yerr=errs, color='g')
+    plt.bar(xs, ys, yerr=errs, color="g")
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     if ymax:
         plt.ylim(0, ymax)
     plt.show()
 
+
 #%%
 # errs / (cost * #logs)
 stats = []
-exp1_epd = [(7/(3*16)), (65/(3*98))]
+exp1_epd = [(7 / (3 * 16)), (65 / (3 * 98))]
 stats.append(compute_stats(exp1_epd, "Exp 1"))
-exp2_epd = [(172/297), (123/300)]
+exp2_epd = [(172 / 297), (123 / 300)]
 stats.append(compute_stats(exp2_epd, "Exp 2"))
-exp3_epd = [(171/294), (176/279)]
+exp3_epd = [(171 / 294), (176 / 279)]
 stats.append(compute_stats(exp3_epd, "Exp 3"))
-exp4_epd = [(133/190.14), (140/184.3), (113/197.75)]
+exp4_epd = [(133 / 190.14), (140 / 184.3), (113 / 197.75)]
 stats.append(compute_stats(exp4_epd, "Exp 4"))
 
 xs = ["Exp1", "Exp2", "Exp3", "Exp4"]
@@ -105,11 +110,13 @@ plot_hist(xs, ys, errs, "Data Generation Efficiency (% / Baseline)")
 Scrape data for Exp 1 from logs
 """
 cost_per = 3.00
-logs_dirs = ['/private/home/ethancarlson/.hitl/parsed/20211025173851',
-            '/private/home/ethancarlson/.hitl/parsed/20211027100532']
+logs_dirs = [
+    "/private/home/ethancarlson/.hitl/parsed/20211025173851",
+    "/private/home/ethancarlson/.hitl/parsed/20211027100532",
+]
 errors_per_dollar = []
 for dir in logs_dirs:
-    errors_per_dollar += [x/cost_per for x in read_turk_logs(dir, "error_details")]
+    errors_per_dollar += [x / cost_per for x in read_turk_logs(dir, "error_details")]
 
 #%%
 """
