@@ -50,12 +50,16 @@ class Launcher(BaseLauncher):
     async def run(self):
         life_cycle.set_state(self.name, life_cycle.State.STARTING)
 
+        subprocess_env = os.environ.copy()
+        subprocess_env.update(self.proc_def.env)
+
         self.proc = await asyncio.create_subprocess_shell(
             util.shell_join(self.run_command),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             executable="/bin/bash",
             cwd=self.proc_def.root,
+            env=subprocess_env,
             start_new_session=True,
         )
         # TODO(lshamis): Handle the case where proc dies before we can query getpgid.
