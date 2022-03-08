@@ -19,8 +19,6 @@ import Retrainer from "./components/Retrainer";
 import Navigator from "./components/Navigator";
 import { isMobile } from "react-device-detect";
 import MainPane from "./MainPane";
-import AgentThinking from "./components/Interact/AgentThinking";
-import Message from "./components/Interact/Message";
 import TurkInfo from "./components/Turk/TurkInfo";
 
 /**
@@ -317,11 +315,6 @@ class StateManager {
           agent_replies: this.memory.agent_replies,
         });
       }
-      if (ref instanceof Message) {
-        ref.setState({
-          agent_replies: this.memory.agent_replies,
-        });
-      }
     });
   }
 
@@ -335,7 +328,7 @@ class StateManager {
       if (ref instanceof Settings) {
         ref.setState({ connected: status });
       }
-      if (ref instanceof Message) {
+      if (ref instanceof InteractApp) {
         ref.setState({ connected: status });
       }
     });
@@ -410,11 +403,6 @@ class StateManager {
           agent_replies: this.memory.agent_replies,
         });
       }
-      if (ref instanceof Message) {
-        ref.setState({
-          agent_replies: this.memory.agent_replies,
-        });
-      }
     });
   }
 
@@ -444,7 +432,7 @@ class StateManager {
     if (JSON.parse(res).name === "perceive") {
       this.memory.commandState = "done_thinking";
       this.refs.forEach((ref) => {
-        if (ref instanceof AgentThinking) {
+        if (ref instanceof InteractApp) {
           ref.sendTaskStackPoll(); // Do this once from here
         }
       });

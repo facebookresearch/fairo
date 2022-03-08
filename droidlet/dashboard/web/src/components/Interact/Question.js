@@ -50,16 +50,29 @@ class Question extends Component {
   componentDidMount() {
     this.props.stateManager.memory.commandState = "idle";
     var lastChatActionDict = this.props.stateManager.memory.lastChatActionDict;
+    this.props.addNewAgentReplies(
+      true,
+      "Did I successfully do the task you asked me to complete?"
+    );
     this.setState({
       action_dict: lastChatActionDict,
       agent_reply: this.props.stateManager.memory.last_reply,
     });
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      this.props.answerIndex &&
+      this.props.answerIndex !== prevProps.answerIndex
+    ) {
+      this.answerAction(this.props.answerIndex);
+    }
+  }
+
   renderActionQuestion() {
     return (
       <div>
-        <h3> Did I successfully do the task you asked me to complete? </h3>
+        {/* <h3> Did I successfully do the task you asked me to complete? </h3>
         <List className="answers" component="nav">
           <ListItem button onClick={() => this.answerAction(1)}>
             <ListItemText className="listButton" primary="Yes" />
@@ -67,7 +80,7 @@ class Question extends Component {
           <ListItem button onClick={() => this.answerAction(2)}>
             <ListItemText className="listButton" primary="No" />
           </ListItem>
-        </List>
+        </List> */}
       </div>
     );
   }
@@ -242,17 +255,19 @@ class Question extends Component {
       }
     } else {
       // shouldn't happen
+      // this.props.addNewAgentReplies(false, "Thanks! Press to continue.");
       return (
-        <div>
-          <h3> Thanks! Press to continue.</h3>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => this.props.goToMessage()}
-          >
-            Done
-          </Button>
-        </div>
+        <div></div>
+        // <div>
+        //   <h3> Thanks! Press to continue.</h3>
+        //   <Button
+        //     variant="contained"
+        //     color="primary"
+        //     onClick={() => this.props.goToMessage()}
+        //   >
+        //     Done
+        //   </Button>
+        // </div>
       );
     }
     return (
@@ -570,7 +585,7 @@ class Question extends Component {
     // Parsed: data.msg.data = data
     window.parent.postMessage(JSON.stringify({ msg: data }), "*");
     // go back to message page after writing to database
-    this.props.goToMessage();
+    // this.props.goToMessage();
   }
 
   render() {
