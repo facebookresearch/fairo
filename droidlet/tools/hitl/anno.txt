@@ -1,1 +1,1 @@
-build square	{"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": [{"action_type": "BUILD", "schematic": {"filters": {"where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [1, 1]]}]}}}}]}
+get a large block	{"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": [{"action_type": "GET", "reference_object": {"filters": {"where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}, {"pred_text": "has_size", "obj_text": [0, [2, 2]]}]}}}}]}
