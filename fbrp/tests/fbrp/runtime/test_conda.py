@@ -2,7 +2,7 @@ import os
 import unittest
 
 from fbrp.life_cycle import State
-from fbrp.process import ProcDef
+from fbrp.process_def import ProcDef
 from fbrp.runtime.conda import CondaEnv, Launcher
 
 from unittest import IsolatedAsyncioTestCase

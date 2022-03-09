@@ -1,10 +1,8 @@
 from fbrp import life_cycle
 from fbrp import util
-from fbrp.cmd._common import CommonFlags
-from fbrp.process import ProcDef
+from fbrp.process_def import ProcDef
 from fbrp.runtime.base import BaseLauncher, BaseRuntime
 import asyncio
-import dataclasses
 import dataclasses
 import json
 import os
@@ -114,9 +112,13 @@ class Launcher(BaseLauncher):
     async def gather_cmd_outputs(self):
         async def log_pipe(logger, pipe):
             while True:
-                line = await pipe.readline()
-                if line:
-                    logger(line)
+                try:
+                    async for line in pipe:
+                        logger(line)
+                except ValueError:
+                    # TODO(lshamis): Can we grab the line in chucks?
+                    logger("<[FBRP] line length exceeded. skipping>")
+                    continue
                 else:
                     break
 
@@ -246,7 +248,7 @@ class Conda(BaseRuntime):
             "dependencies": self.conda_env.dependencies,
         }
 
-    def _create_env(self, name: str, proc_def: ProcDef):
+    def _create_env(self, name: str, proc_def: ProcDef, verbose: bool):
         env_path = f"/tmp/fbrp_conda_{name}.yml"
 
         env_content = self._generate_env_content(proc_def.root)
@@ -262,18 +264,18 @@ class Conda(BaseRuntime):
         # Updating an existing environment does not remove old packages, even with --prune.
         subprocess.run(
             [update_bin, "env", "remove", "-n", self._env_name(name)],
-            capture_output=not CommonFlags.verbose,
+            capture_output=not verbose,
         )
         result = subprocess.run(
             [update_bin, "env", "update", "--prune", "-f", env_path],
-            capture_output=not CommonFlags.verbose,
+            capture_output=not verbose,
         )
         if result.returncode:
             util.fail(f"Failed to set up conda env: {result.stderr}")
 
-    def _build(self, name: str, proc_def: ProcDef):
+    def _build(self, name: str, proc_def: ProcDef, verbose: bool):
         if not self.env_nosandbox:
-            self._create_env(name, proc_def)
+            self._create_env(name, proc_def, verbose)
 
         if self.setup_commands:
             print(f"setting up conda env for {name}")
@@ -289,7 +291,7 @@ class Conda(BaseRuntime):
                 """,
                 shell=True,
                 executable="/bin/bash",
-                capture_output=not CommonFlags.verbose,
+                capture_output=not verbose,
             )
             if result.returncode:
                 util.fail(f"Failed to set up conda env: {result.stderr}")

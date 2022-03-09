@@ -1,11 +1,12 @@
 from fbrp import life_cycle
+from fbrp.cmd import _autocomplete
 import click
 import threading
 import types
 
 
 @click.command()
-@click.argument("procs", nargs=-1)
+@click.argument("procs", nargs=-1, shell_complete=_autocomplete.running_processes)
 @click.option("-t", "--timeout", type=float, default=0)
 def cli(procs, timeout):
     wait_procs = set(life_cycle.system_state().procs.keys())

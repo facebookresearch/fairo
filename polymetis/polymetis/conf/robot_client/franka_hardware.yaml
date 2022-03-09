@@ -9,8 +9,8 @@ robot_client:
     _target_: polymetis.robot_client.metadata.RobotClientMetadata
     default_Kq: [80, 120, 100, 100, 70, 50, 20]
     default_Kqd: [10, 10, 10, 10, 5, 5, 5]
-    default_Kx: [300, 300, 300, 40, 40, 40]
-    default_Kxd: [35, 35, 35, 14, 14, 14]
+    default_Kx: [150, 150, 150, 10, 10, 10]
+    default_Kxd: [25, 25, 25, 7, 7, 7]
     hz: ${hz}
     robot_model_cfg: ${robot_model}
   executable_cfg:
@@ -24,6 +24,9 @@ robot_client:
     num_dofs: ${robot_model.num_dofs}
     exec: ${exec}
     robot_client_metadata_path: ???
+
+    limit_rate: true
+    lpf_cutoff_frequency: 100
 
     limits: 
       # bounding box of the workspace
