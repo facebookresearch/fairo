@@ -1,12 +1,34 @@
-import asyncio
 from fbrp import life_cycle
-from fbrp.process import ProcDef
+from fbrp.process_def import ProcDef
 import a0
 import asyncio
 import contextlib
+import json
 import pathlib
 import psutil
-import json
+
+
+# psutil as_dict() does not produce a json-serializable dict.
+# https://github.com/giampaolo/psutil/issues/967
+#
+# When converted to a dict, fields like memory_info generate
+#     [11984896, 31031296, ...]
+# instead of
+#     {"rss": 11984896, "vms": 31031296, ...}
+# Losing field names.
+#
+# We cannot use a custom JSONEncoder, since psutil objects, like memory_info,
+# inherit from tuples.
+#
+# This is a workaround.
+def _walk_asdict(obj):
+    if hasattr(obj, "_asdict"):
+        return _walk_asdict(obj._asdict())
+    if isinstance(obj, dict):
+        return {k: _walk_asdict(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_walk_asdict(v) for v in obj]
+    return obj
 
 
 class BaseLauncher:
@@ -47,7 +69,10 @@ class BaseLauncher:
 
             try:
                 proc = psutil.Process(pid)
-                out.pub(json.dumps(proc.as_dict()))
+                pkt = a0.Packet(
+                    [("content-type", "application/json")],
+                    json.dumps(_walk_asdict(proc.as_dict())))
+                out.pub(pkt)
             except psutil.NoSuchProcess:
                 pass
 
@@ -59,7 +84,7 @@ class BaseRuntime:
     def asdict(self, root: pathlib.Path):
         raise NotImplementedError("Runtime hasn't implemented asdict!")
 
-    def _build(self, name: str, proc_def: ProcDef):
+    def _build(self, name: str, proc_def: ProcDef, verbose: bool):
         raise NotImplementedError("Runtime hasn't implemented build!")
 
     def _launcher(self, name: str, proc_def: ProcDef) -> BaseLauncher:
