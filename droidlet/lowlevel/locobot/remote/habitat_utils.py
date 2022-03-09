@@ -29,9 +29,9 @@ def reconfigure_scene(env, scene_path, add_humans):
     new_agent_state = habitat_sim.AgentState()
 
     # apartment_0 default position on linux
-    new_agent_state.position = np.asarray([0.18430093, -1.3747652 ,  5.265953])
+    new_agent_state.position = np.asarray([0.18430093, -1.3747652, 5.265953])
     new_agent_state.rotation = np.quaternion(1.0, 0.0, 0.0, 0.0)
-    agent.set_state(new_agent_state,  reset_sensors=True, infer_sensor_states=True, is_initial=True)
+    agent.set_state(new_agent_state, reset_sensors=True, infer_sensor_states=True, is_initial=True)
     env._robot.base.init_state = agent.get_state()
 
     ###########################

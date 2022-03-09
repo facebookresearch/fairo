@@ -7,6 +7,7 @@ import sys
 import numpy as np
 from ..habitat import transformations as tf_transformations
 
+
 def quat_to_rot_mat(quat):
     """
     Convert the quaternion into rotation matrix. The quaternion we used

@@ -172,7 +172,6 @@ class RemoteHelloRobot(object):
                 cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + self._ip)
             self.cam = cam
 
-
     def go_to_absolute(self, xyt_position):
         """Moves the robot base to given goal state in the world frame.
 
@@ -186,10 +185,11 @@ class RemoteHelloRobot(object):
             global_xyt = xyt_position
             base_state = self.get_base_state()
             base_xyt = transform_global_to_base(global_xyt, base_state)
+
             def obstacle_fn():
                 return self.cam.is_obstacle_in_front()
-            status = goto(self._robot, list(base_xyt),
-                          dryrun=False, obstacle_fn=obstacle_fn)
+
+            status = goto(self._robot, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
         return status
 
@@ -200,14 +200,15 @@ class RemoteHelloRobot(object):
         :param xyt_position: The  relative goal state of the form (x,y,yaw)
         """
         status = "SUCCEEDED"
-        
+
         if self._done:
             self.initialize_cam()
             self._done = False
+
             def obstacle_fn():
                 return self.cam.is_obstacle_in_front()
-            status = goto(self._robot, list(xyt_position),
-                          dryrun=False, obstacle_fn=obstacle_fn)
+
+            status = goto(self._robot, list(xyt_position), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
         return status
 

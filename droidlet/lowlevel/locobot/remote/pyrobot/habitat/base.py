@@ -36,7 +36,7 @@ class LoCoBotBase(object):
         return prutil.quat_to_rot_mat(quat_list)
 
     def obstacle_check(self):
-        assert(self.parent is not None)
+        assert self.parent is not None
         obstacle = self.parent.is_obstacle_in_front()
         return obstacle
 
@@ -60,23 +60,21 @@ class LoCoBotBase(object):
         # Here ROS_X = -1 * habitat_z and ROS_Y = -1*habitat_x
         return (-1 * true_position[2], -1 * true_position[0], yaw)
 
-    def go_to_relative(
-        self, xyt_position, wait=True
-    ):
+    def go_to_relative(self, xyt_position, wait=True):
         """
-	Moves the robot to the robot to given
-	goal state relative to its initial pose.
+        Moves the robot to the robot to given
+        goal state relative to its initial pose.
 
-	:param xyt_position: The  relative goal state of the form (x,y,t)
+        :param xyt_position: The  relative goal state of the form (x,y,t)
 
-	:type xyt_position: list
+        :type xyt_position: list
 
-	:return: True if successful; False otherwise (timeout, etc.)
-	:rtype: bool
-	"""
+        :return: True if successful; False otherwise (timeout, etc.)
+        :rtype: bool
+        """
         if sys.platform == "darwin":
             # FYI: obstacle checks will fail in threading because, because of a macOS/Open3D/GLFW
-            # bug (limitation in macOS where GLFW can't run in non-main thread)            
+            # bug (limitation in macOS where GLFW can't run in non-main thread)
             wait = True
         (cur_x, cur_y, cur_yaw) = self.get_state()
         abs_yaw = cur_yaw + xyt_position[2]
@@ -86,8 +84,10 @@ class LoCoBotBase(object):
             self.collided = False
             self.obstacle = False
             if wait:
-                return self._go_to_relative_pose(xyt_position[0], xyt_position[1], abs_yaw, wait=True)
-            else:                
+                return self._go_to_relative_pose(
+                    xyt_position[0], xyt_position[1], abs_yaw, wait=True
+                )
+            else:
                 x = threading.Thread(
                     target=self._go_to_relative_pose,
                     args=(xyt_position[0], xyt_position[1], abs_yaw, wait),
@@ -98,11 +98,9 @@ class LoCoBotBase(object):
             print("Robot is still moving, can't take another move commend")
             return False
 
-    def go_to_absolute(
-        self, xyt_position, wait=True
-    ):
+    def go_to_absolute(self, xyt_position, wait=True):
         """
-	Moves the robot to the robot to given goal state in the world frame.
+        Moves the robot to the robot to given goal state in the world frame.
 
         :param xyt_position: The goal state of the form (x,y,t)
                              in the world (map) frame.
@@ -111,7 +109,7 @@ class LoCoBotBase(object):
 
         :return: True if successful; False otherwise (timeout, etc.)
         :rtype: bool
-		"""
+        """
         if sys.platform == "darwin":
             # FYI: obstacle checks will fail in threading because, because of a macOS/Open3D/GLFW
             # bug (limitation in macOS where GLFW can't run in non-main thread)
@@ -144,10 +142,10 @@ class LoCoBotBase(object):
     def _act(self, action_name, actuation, cont_action=True, direct_call=False):
         """Take the action specified by action_id
 
-	:param action_id: ID of the action. Retreives the action from
+        :param action_id: ID of the action. Retreives the action from
             `agent_config.action_space <AgentConfiguration.action_space>`
         :return: Whether or not the action taken resulted in a collision
-		"""
+        """
         did_collide = False
         if cont_action:
             dist_moved = 0
@@ -203,7 +201,9 @@ class LoCoBotBase(object):
             cosine_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
             angle = np.arccos(cosine_angle)
 
-            did_collide, is_obstacle = self._act(action_name, math.degrees(angle), cont_action=not(wait))
+            did_collide, is_obstacle = self._act(
+                action_name, math.degrees(angle), cont_action=not (wait)
+            )
 
             if did_collide:
                 print("Error: Collision accured while 1st rotating!")
@@ -215,7 +215,9 @@ class LoCoBotBase(object):
                 return False
 
             # move to (x,y) point
-            did_collide, is_obstacle = self._act("move_forward", math.sqrt(rel_x ** 2 + rel_y ** 2), cont_action=True)
+            did_collide, is_obstacle = self._act(
+                "move_forward", math.sqrt(rel_x**2 + rel_y**2), cont_action=True
+            )
             if did_collide:
                 print("Error: Collision accured while moving straight!")
                 self._as.set_preempted()
@@ -240,7 +242,9 @@ class LoCoBotBase(object):
             action_name = "turn_right"
             rel_yaw *= -1
 
-        did_collide, is_obstacle = self._act(action_name, math.degrees(rel_yaw), cont_action=not(wait))
+        did_collide, is_obstacle = self._act(
+            action_name, math.degrees(rel_yaw), cont_action=not (wait)
+        )
         if did_collide:
             print("Error: Collision accured while rotating!")
             self._as.set_preempted()
