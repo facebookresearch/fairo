@@ -1,4 +1,4 @@
-# Understanding Eye Hand Calibraton 
+# Understanding Eye Hand Calibration 
 
 
 ## Assumption
