@@ -1,6 +1,7 @@
 from fbrp.process_def import process
 from fbrp.runtime.conda import Conda
 from fbrp.runtime.docker import Docker
+from fbrp.runtime.host import Host
 from fbrp.util import NoEscape
 from importlib.machinery import SourceFileLoader
 import click
@@ -31,4 +32,4 @@ def main():
     cli()
 
 
-__all__ = ["main", "process", "NoEscape", "Docker", "Conda"]
+__all__ = ["main", "process", "NoEscape", "Docker", "Conda", "Host"]
