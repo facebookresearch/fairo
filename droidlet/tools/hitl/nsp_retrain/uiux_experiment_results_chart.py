@@ -87,7 +87,9 @@ def plot_hist(xs, ys, errs, ylabel, target_val=None, xlabel="UI/UX Experiments",
 #%%
 # errs / (cost * #logs)
 stats = []
-exp1_epd = [(7 / (3 * 16)), (65 / (3 * 98))]
+base_epd = [(515 / (3 * 947))]
+stats.append(compute_stats(base_epd, "Baseline"))
+exp1_epd = [(65 / (3 * 98))]
 stats.append(compute_stats(exp1_epd, "Exp 1"))
 exp2_epd = [(172 / 297), (123 / 300)]
 stats.append(compute_stats(exp2_epd, "Exp 2"))
@@ -99,8 +101,10 @@ stats.append(compute_stats(exp4_epd, "Exp 4"))
 xs = ["Exp1", "Exp2", "Exp3", "Exp4"]
 ys = [y[0] for y in stats]
 errs = [y[1] for y in stats]
+ratios = [stats[i][0]/stats[0][0] for i in range(len(stats))]
 
-plot_hist(xs, ys, errs, "Data Generation Efficiency (% / Baseline)")
+print(ratios)
+# plot_hist(xs, ys, errs, "Data Generation Efficiency (% / Baseline)")
 
 #%%
 
