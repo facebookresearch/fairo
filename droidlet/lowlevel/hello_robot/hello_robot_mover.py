@@ -44,6 +44,7 @@ MAX_PAN_RAD = math.pi / 4
 
 # TODO/FIXME: state machines.  state machines everywhere
 
+
 class HelloRobotMover(MoverInterface):
     """Implements methods that call the physical interfaces of the Robot.
 
@@ -65,7 +66,6 @@ class HelloRobotMover(MoverInterface):
         # put in async mode
         self.nav._pyroAsync()
         self.nav_result = self.nav.is_busy()
-        
 
         self.data_logger = Pyro4.Proxy("PYRONAME:hello_data_logger@" + ip)
         self.data_logger._pyroAsync()
@@ -137,7 +137,6 @@ class HelloRobotMover(MoverInterface):
             dpan = angle_diff(base_pan + self.get_pan(), pan_rad)
         return self.relative_pan_tilt(dpan, dtilt, turn_base=turn_base)
 
-    
     def is_obstacle_in_front(self, return_viz=False):
         ret = safe_call(self.cam.is_obstacle_in_front, return_viz)
         if return_viz:
@@ -280,7 +279,7 @@ class HelloRobotMover(MoverInterface):
         base_state = self.bot.get_base_state()
         rgb, depth, rot, trans = self.cam.get_pcd_data(rotate=False)
         rgb, depth = jpg_decode(rgb), blosc_decode(depth)
-        depth = np.divide(depth, 1000, dtype=np.float32) # convert from mm to metres
+        depth = np.divide(depth, 1000, dtype=np.float32)  # convert from mm to metres
         base_state = self.bot.get_base_state().value
         uv_one_in_cam = self.uv_one_in_cam
         return HelloRobotMover.compute_pcd(rgb, depth, rot, trans, base_state, uv_one_in_cam)
@@ -288,13 +287,12 @@ class HelloRobotMover(MoverInterface):
     @staticmethod
     def compute_uvone(intrinsic_mat, height, width):
         intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
-        img_pixs = np.mgrid[0 : height : 1, 0 : width : 1]
+        img_pixs = np.mgrid[0:height:1, 0:width:1]
         img_pixs = img_pixs.reshape(2, -1)
         img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
         return uv_one_in_cam
-        
 
     @staticmethod
     def compute_pcd(rgb, depth, rot_cam, trans_cam, base_state, uv_one_in_cam):
@@ -358,9 +356,9 @@ class HelloRobotMover(MoverInterface):
         rot_base = rotation_matrix_z(math.degrees(base_state[2]))
 
         rotation_matrix = rot_base @ rot_cam @ rotxn90 @ roty90
-        translation_vector = np.array([trans_cam[0] + base_state[0],
-                                trans_cam[1] + base_state[1],
-                                trans_cam[2] + 0]).reshape(-1)
+        translation_vector = np.array(
+            [trans_cam[0] + base_state[0], trans_cam[1] + base_state[1], trans_cam[2] + 0]
+        ).reshape(-1)
 
         pts = np.dot(pts, rotation_matrix.T)
         pts = pts + translation_vector

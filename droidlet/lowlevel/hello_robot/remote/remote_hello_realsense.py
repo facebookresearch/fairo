@@ -77,11 +77,9 @@ class RemoteHelloRealsense(object):
         # we need to use the intrinsics of the color frame
         color_profile = rs.video_stream_profile(profile.get_stream(rs.stream.color))
         i = color_profile.get_intrinsics()
-        self.intrinsic_mat = np.array([[i.fx, 0,    i.ppx],
-                                       [0,    i.fy, i.ppy],
-                                       [0,    0,    1]])
+        self.intrinsic_mat = np.array([[i.fx, 0, i.ppx], [0, i.fy, i.ppy], [0, 0, 1]])
         self.intrinsic_o3d = o3d.camera.PinholeCameraIntrinsic(CW, CH, i.fx, i.fy, i.ppx, i.ppy)
-        
+
         align_to = rs.stream.color
         self.align = rs.align(align_to)
         print("connected to realsense")
@@ -116,11 +114,11 @@ class RemoteHelloRealsense(object):
             if not aligned_depth_frame or not color_frame:
                 continue
 
-            depth_image = np.asanyarray(aligned_depth_frame.get_data())            
+            depth_image = np.asanyarray(aligned_depth_frame.get_data())
             color_image = np.asanyarray(color_frame.get_data())
 
             if not compressed:
-                depth_image = depth_image / 1000 # convert to meters
+                depth_image = depth_image / 1000  # convert to meters
 
             # rotate
             if rotate:
@@ -147,7 +145,9 @@ class RemoteHelloRealsense(object):
         depth_f32 = np.ascontiguousarray(depth, dtype=np.float32) * 1000
         orgb = o3d.geometry.Image(rgb_u8)
         odepth = o3d.geometry.Image(depth_f32)
-        orgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(orgb, odepth, depth_trunc=10.0, convert_rgb_to_intensity=False)
+        orgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(
+            orgb, odepth, depth_trunc=10.0, convert_rgb_to_intensity=False
+        )
 
         # create transform matrix
         roty90 = o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi / 2, 0])
@@ -156,7 +156,11 @@ class RemoteHelloRealsense(object):
         rot_cam = cam_transform[:3, :3]
         trans_cam = cam_transform[:3, 3]
         final_rotation = rotz @ rot_cam @ rotxn90 @ roty90
-        final_translation = [trans_cam[0] + base_state[0], trans_cam[1] + base_state[1], trans_cam[2] + 0]
+        final_translation = [
+            trans_cam[0] + base_state[0],
+            trans_cam[1] + base_state[1],
+            trans_cam[2] + 0,
+        ]
         final_transform = cam_transform.copy()
         final_transform[:3, :3] = final_rotation
         final_transform[:3, 3] = final_translation
@@ -170,13 +174,12 @@ class RemoteHelloRealsense(object):
         rgb, depth = self.get_rgb_depth(rotate=False, compressed=False)
         opcd = self.get_open3d_pcd(rgb_depth=[rgb, depth])
         pcd = np.asarray(opcd.points)
-        return pcd, rgb        
+        return pcd, rgb
 
     def is_obstacle_in_front(self, return_viz=False):
         base_state = self.bot.get_base_state()
         pcd = self.get_open3d_pcd()
-        ret = is_obstacle(pcd, base_state,
-                          max_dist=0.5, return_viz=return_viz)
+        ret = is_obstacle(pcd, base_state, max_dist=0.5, return_viz=return_viz)
         if return_viz:
             obstacle, cpcd, crop, bbox, rest = ret
             # cpcd = o3d_pickle(cpcd)

@@ -3,14 +3,16 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+
 class Robot:
     def __init__(
-            self,
-            robot_name,
-            common_config={},
-            parent=None,
+        self,
+        robot_name,
+        common_config={},
+        parent=None,
     ):
         import pyrobot.cfg.habitat_config as habitat_config
+
         self.configs = habitat_config.get_cfg()
         self.configs.freeze()
 

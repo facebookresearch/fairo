@@ -37,6 +37,7 @@ Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
 
+
 class LoCoBotMover:
     """
     Implements methods that call the physical interfaces of the Locobot.

@@ -1,5 +1,6 @@
 import Pyro4
 
+
 def safe_call(f, *args, **kwargs):
     try:
         return f(*args, **kwargs)

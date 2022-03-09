@@ -124,9 +124,8 @@ class RemoteLocobot(object):
         rgb = rgb[valid]
         uv_one_in_cam = self.uv_one_in_cam[:, valid.reshape(-1)]
 
-
         depth = depth.reshape(-1)
-        
+
         pts_in_cam = np.multiply(uv_one_in_cam, depth)
         pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
         pts = pts_in_cam[:3, :].T
@@ -136,13 +135,13 @@ class RemoteLocobot(object):
         pts = ros_to_habitat_frame.T @ pts.T
         pts = pts.T
         pts = transform_pose(pts, base_state)
-        
+
         return pts, rgb
 
     def get_open3d_pcd(self):
         pts, rgb = self.get_current_pcd()
         points, colors = pts.reshape(-1, 3), rgb.reshape(-1, 3)
-        colors = colors / 255.
+        colors = colors / 255.0
 
         opcd = o3d.geometry.PointCloud()
         opcd.points = o3d.utility.Vector3dVector(points)
@@ -152,8 +151,7 @@ class RemoteLocobot(object):
     def is_obstacle_in_front(self, return_viz=False):
         base_state = self.get_base_state()
         pcd = self.get_open3d_pcd()
-        ret = is_obstacle(pcd, base_state,
-                          max_dist=0.5, return_viz=return_viz)
+        ret = is_obstacle(pcd, base_state, max_dist=0.5, return_viz=return_viz)
         if return_viz:
             obstacle, cpcd, crop, bbox, rest = ret
             cpcd = o3d_pickle(cpcd)

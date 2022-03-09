@@ -116,14 +116,14 @@ class SLAM(object):
         self.map_builder.reset_map(self.map_size)
 
 
-robot_ip = os.getenv('LOCOBOT_IP')
-ip = os.getenv('LOCAL_IP')
+robot_ip = os.getenv("LOCOBOT_IP")
+ip = os.getenv("LOCAL_IP")
 robot_name = "remotelocobot"
 if len(sys.argv) > 1:
     robot_name = sys.argv[1]
 with Pyro4.Daemon(ip) as daemon:
     robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
-    obj = SLAM(robot)    
+    obj = SLAM(robot)
     obj_uri = daemon.register(obj)
     with Pyro4.locateNS(robot_ip) as ns:
         ns.register("slam", obj_uri)

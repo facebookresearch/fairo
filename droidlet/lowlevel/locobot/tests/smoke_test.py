@@ -23,6 +23,7 @@ class LoCoBotMover:
         depth = self.bot.get_depth()
         return rgb, depth
 
+
 if __name__ == "__main__":
     IP = "127.0.0.1"
     if os.getenv("LOCOBOT_IP"):
