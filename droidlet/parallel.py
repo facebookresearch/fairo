@@ -9,7 +9,7 @@ import queue
 if sys.platform != "darwin":
     # you're wondering wtf? why is numpy needed in this file?
     # it's a workaround for https://github.com/pytorch/pytorch/issues/37377
-    import numpy 
+    import numpy
     from torch import multiprocessing as mp
 else:
     import multiprocessing as mp
@@ -97,6 +97,7 @@ class PropagatingThread(threading.Thread):
             raise self.exc
         return self.ret
 
+
 class BackgroundTask:
     def __init__(self, init_fn: Callable, init_args: List, process_fn: Callable, use_thread=False):
         self._init_fn = init_fn
@@ -112,20 +113,23 @@ class BackgroundTask:
             self._recv_queue = multiprocessing.Queue()
             self._shutdown_event = multiprocessing.Event()
 
-    def start(self, exec_empty = False):
+    def start(self, exec_empty=False):
         if self._use_thread:
             Runner = PropagatingThread
         else:
             Runner = Process
-        self._process = Runner(target=_runner,
-                                args=(
-                                    cloudpickle.dumps(self._init_fn),
-                                    self._init_args,
-                                    cloudpickle.dumps(self._process_fn),
-                                    self._shutdown_event,
-                                    self._send_queue, self._recv_queue,
-                                    exec_empty,
-                                ),)
+        self._process = Runner(
+            target=_runner,
+            args=(
+                cloudpickle.dumps(self._init_fn),
+                self._init_args,
+                cloudpickle.dumps(self._process_fn),
+                self._shutdown_event,
+                self._send_queue,
+                self._recv_queue,
+                exec_empty,
+            ),
+        )
         self._process.daemon = True
         self._process.start()
 
@@ -134,8 +138,9 @@ class BackgroundTask:
 
     def _raise(self):
         if not hasattr(self, "_process"):
-            raise RuntimeError("BackgroundTask has not yet been started."
-                               " Did you forget to call .start()?")
+            raise RuntimeError(
+                "BackgroundTask has not yet been started." " Did you forget to call .start()?"
+            )
         if self._use_thread:
             if self._process.exc:
                 raise self._process.exc

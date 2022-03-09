@@ -279,7 +279,7 @@ class HelloRobotMover(MoverInterface):
         base_state = self.bot.get_base_state()
         rgb, depth, rot, trans = self.cam.get_pcd_data(rotate=False)
         rgb, depth = jpg_decode(rgb), blosc_decode(depth)
-        depth = np.divide(depth, 1000, dtype=np.float32) # convert from mm to metres
+        depth = np.divide(depth, 1000, dtype=np.float32)  # convert from mm to metres
         base_state = base_state.value
         uv_one_in_cam = self.uv_one_in_cam
         return HelloRobotMover.compute_pcd(rgb, depth, rot, trans, base_state, uv_one_in_cam)
@@ -300,7 +300,7 @@ class HelloRobotMover(MoverInterface):
         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
 
         if depth.dtype == np.uint16 or depth.dtype == np.int16:
-            depth = np.divide(depth, 1000, dtype=np.float32) # convert from mm to metres
+            depth = np.divide(depth, 1000, dtype=np.float32)  # convert from mm to metres
         elif depth != np.float32:
             depth = depth.astype(np.float32)
 

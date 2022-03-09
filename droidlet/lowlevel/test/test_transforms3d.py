@@ -1,4 +1,4 @@
-from droidlet.dashboard.o3dviz import O3DViz    
+from droidlet.dashboard.o3dviz import O3DViz
 import unittest
 import os
 from droidlet.test_utils import skipIfOfflineDecorator
@@ -38,9 +38,9 @@ def load_ground_truth_pcd(name="pcd_test_1", key=0, prefix=folder_prefix):
     rgb = cv2.imread(rgb_path)
     depth = np.load(depth_path)
     # account for how the ground-truth data is stored and unrotate it
-    rgb = np.rot90(rgb, k=-1, axes=(1,0))
-    depth = np.rot90(depth, k=-1, axes=(1,0))
-    
+    rgb = np.rot90(rgb, k=-1, axes=(1, 0))
+    depth = np.rot90(depth, k=-1, axes=(1, 0))
+
     with open(data_path, "r") as fp:
         pose_dict = json.load(fp)
     data = pose_dict[str(key)]
@@ -90,4 +90,5 @@ if __name__ == "__main__":
     # cv2.imshow("depth", depth)
     # cv2.waitKey()
     import time
+
     time.sleep(1000)

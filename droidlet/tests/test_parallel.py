@@ -16,12 +16,12 @@ class Foo:
             print(x)
             return x, x
 
-        use_thread=False
-        if sys.platform == 'darwin':
+        use_thread = False
+        if sys.platform == "darwin":
             use_thread = True
-        b = BackgroundTask(init_fn=init_fn, init_args=(2,),
-                           process_fn=process_fn,
-                           use_thread=use_thread)
+        b = BackgroundTask(
+            init_fn=init_fn, init_args=(2,), process_fn=process_fn, use_thread=use_thread
+        )
         b.start()
         self.b = b
 
