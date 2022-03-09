@@ -299,14 +299,14 @@ class HelloRobotMover(MoverInterface):
         rgb = np.asarray(rgb).astype(np.uint8)
         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
 
-        if depth.dtype == np.int16:
+        if depth.dtype == np.uint16 or depth.dtype == np.int16:
             depth = np.divide(depth, 1000, dtype=np.float32) # convert from mm to metres
         elif depth != np.float32:
             depth = depth.astype(np.float32)
 
         # the realsense pointcloud seems to produce some spurious points
         # really far away. So, limit the depth to 8 metres
-        thres = 8000
+        thres = 8
         depth[depth > thres] = thres
 
         depth_copy = np.copy(depth)
