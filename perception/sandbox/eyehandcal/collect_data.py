@@ -1,13 +1,11 @@
 #  conda create -n eyehandcal polymetis librealsense opencv tqdm -c fair-robotics -c conda-forge
 from torchcontrol.transform import Rotation as R
-from torchcontrol.transform import Transformation as T
 from polymetis import RobotInterface
 from math import pi
 import numpy as np
 import torch
 import time
 import cv2
-import os 
 import pickle
 from tqdm import tqdm
 
@@ -72,7 +70,7 @@ def robot_poses(ip_address):
     time_to_go = 5
 
     sampled_poses = list(sample_poses())
-    for i, (pos_sampled, ori_sampled) in tqdm(enumerate(sampled_poses)):
+    for i, (pos_sampled, ori_sampled) in enumerate(tqdm(sampled_poses)):
         while True:
             print( f"Moving to pose ({i}): pos={pos_sampled}, quat={ori_sampled.as_quat()}")
             state_log = robot.move_to_ee_pose(
@@ -92,11 +90,11 @@ def robot_poses(ip_address):
 
 if __name__ == "__main__":
     data = []
-    ip_address = "100.96.135.66"
+    ip_address = "192.168.1.65"
     poses = robot_poses(ip_address)
     images = realsense_images()
-    for i, ((pos, ori), (imgs, intrinsics)) in enumerate(tqdm(zip(poses, images))):
-        cv2.imwrite(f'debug_{i}.jpg', imgs[0])
+    for i, ((pos, ori), (imgs, intrinsics)) in enumerate(zip(poses, images)):
+        cv2.imwrite(f'debug/debug_{i}.jpg', imgs[0])
         data.append({
             'pos': pos,
             'ori': ori,
