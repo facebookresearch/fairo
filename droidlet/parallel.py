@@ -38,7 +38,10 @@ class Process(multiprocessing.Process):
             self._exception = self._parent_conn.recv()
         return self._exception
 
-def _runner(_init_fn, init_args, _process_fn, shutdown_event, input_queue, output_queue, exec_empty):
+
+def _runner(
+    _init_fn, init_args, _process_fn, shutdown_event, input_queue, output_queue, exec_empty
+):
     try:
         init_fn = cloudpickle.loads(_init_fn)
         process_fn = cloudpickle.loads(_process_fn)
@@ -75,16 +78,19 @@ class BackgroundTask:
         self._recv_queue = multiprocessing.Queue()
         self._shutdown_event = multiprocessing.Event()
 
-    def start(self, exec_empty = False):
-        self._process = Process(target=_runner,
-                                args=(
-                                    cloudpickle.dumps(self._init_fn),
-                                    self._init_args,
-                                    cloudpickle.dumps(self._process_fn),
-                                    self._shutdown_event,
-                                    self._send_queue, self._recv_queue,
-                                    exec_empty,
-                                ),)
+    def start(self, exec_empty=False):
+        self._process = Process(
+            target=_runner,
+            args=(
+                cloudpickle.dumps(self._init_fn),
+                self._init_args,
+                cloudpickle.dumps(self._process_fn),
+                self._shutdown_event,
+                self._send_queue,
+                self._recv_queue,
+                exec_empty,
+            ),
+        )
         self._process.daemon = True
         self._process.start()
 

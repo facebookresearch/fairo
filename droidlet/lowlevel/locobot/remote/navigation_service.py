@@ -78,18 +78,29 @@ class Navigation(object):
             stg = self.planner.get_short_term_goal(robot_loc, goal)
             if stg == False:
                 # no path to end-goal
-                print("Could not find a path to the end goal {} from current robot location {}, aborting move".format(goal, robot_loc))
+                print(
+                    "Could not find a path to the end goal {} from current robot location {}, aborting move".format(
+                        goal, robot_loc
+                    )
+                )
                 return_code = False
                 break
             robot_loc = self.robot.get_base_state()
             status = self.robot.go_to_absolute(stg)
 
-            print('go_to_absolute',
-                  ' initial location: ', initial_robot_loc,
-                  ' goal: ', goal,
-                  ' short-term goal:', stg,
-                  ' reached location: ', robot_loc,
-                  ' robot status: ', status)
+            print(
+                "go_to_absolute",
+                " initial location: ",
+                initial_robot_loc,
+                " goal: ",
+                goal,
+                " short-term goal:",
+                stg,
+                " reached location: ",
+                robot_loc,
+                " robot status: ",
+                status,
+            )
             if status == "SUCCEEDED":
                 goal_reached = self.planner.goal_within_threshold(robot_loc, goal)
                 self.trackback.update(robot_loc)
@@ -100,8 +111,10 @@ class Navigation(object):
                 # trackback to a known good location
                 trackback_loc = self.trackback.get_loc(robot_loc)
 
-                print(f"Collided at {robot_loc}. Marking point {collision_loc} as obstacle."
-                      f"Tracking back to {trackback_loc}")
+                print(
+                    f"Collided at {robot_loc}. Marking point {collision_loc} as obstacle."
+                    f"Tracking back to {trackback_loc}"
+                )
                 self.robot.go_to_absolute(trackback_loc)
                 # TODO: if the trackback fails, we're screwed. Handle this robustly.
             steps = steps - 1
