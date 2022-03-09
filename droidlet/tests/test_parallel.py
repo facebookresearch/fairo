@@ -1,3 +1,4 @@
+import sys
 from droidlet.parallel import BackgroundTask
 
 
@@ -15,7 +16,12 @@ class Foo:
             print(x)
             return x, x
 
-        b = BackgroundTask(init_fn=init_fn, init_args=(2,), process_fn=process_fn)
+        use_thread=False
+        if sys.platform == 'darwin':
+            use_thread = True
+        b = BackgroundTask(init_fn=init_fn, init_args=(2,),
+                           process_fn=process_fn,
+                           use_thread=use_thread)
         b.start()
         self.b = b
 

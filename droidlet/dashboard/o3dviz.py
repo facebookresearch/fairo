@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import pickle
 import queue
@@ -94,7 +95,9 @@ class O3dViz:
         self.reset_camera = True
 
     def add_robot(self, base_state, base=True, canonical=True, height=1.41):
-        x, y, yaw = base_state.tolist()
+        if isinstance(base_state, np.ndarray):
+            base_state = base_state.tolist()
+        x, y, yaw = base_state
         if canonical:
             x_old, y_old = x, y
             x, y = y, -x

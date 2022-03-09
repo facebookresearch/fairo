@@ -1,3 +1,4 @@
+from droidlet.dashboard.o3dviz import O3DViz    
 import unittest
 import os
 from droidlet.test_utils import skipIfOfflineDecorator
@@ -36,6 +37,10 @@ def load_ground_truth_pcd(name="pcd_test_1", key=0, prefix=folder_prefix):
     data_path = os.path.join(prefix, name + ".json")
     rgb = cv2.imread(rgb_path)
     depth = np.load(depth_path)
+    # account for how the ground-truth data is stored and unrotate it
+    rgb = np.rot90(rgb, k=-1, axes=(1,0))
+    depth = np.rot90(depth, k=-1, axes=(1,0))
+    
     with open(data_path, "r") as fp:
         pose_dict = json.load(fp)
     data = pose_dict[str(key)]
@@ -48,7 +53,8 @@ class TransformsTest(unittest.TestCase):
     @skipIfOffline
     def test_native_pcd_transform(self):
         intrinsic_mat, resolution = load_intrinsic()
-        height, width = resolution
+        # width, height instead of height, width because image is rotated
+        width, height = resolution
         uv_one_in_cam = HelloRobotMover.compute_uvone(intrinsic_mat, height, width)
 
         rgb, depth, base_xyt, cam_transform = load_ground_truth_pcd()
@@ -62,8 +68,7 @@ class TransformsTest(unittest.TestCase):
         opcd = o3d.geometry.PointCloud()
         opcd.points = o3d.utility.Vector3dVector(points)
         opcd.colors = o3d.utility.Vector3dVector(colors)
-
-        return opcd
+        return opcd, rgb, depth, base_xyt
 
     @skipIfOffline
     def test_open3d_pcd_transform(self):
@@ -73,13 +78,16 @@ class TransformsTest(unittest.TestCase):
 if __name__ == "__main__":
 
     # unittest.main()
-    from droidlet.dashboard.o3dviz import O3DViz
-    o3dviz = O3DViz(True)
+    o3dviz = O3DViz(False)
     o3dviz.start()
 
     tests = TransformsTest()
-    opcd = tests.test_native_pcd_transform()
-    print("HERE")
+    opcd, rgb, depth, base_xyt = tests.test_native_pcd_transform()
+    o3dviz.add_robot(base_xyt, canonical=False)
     o3dviz.put("pointcloud", opcd)
+    # import cv2
+    # cv2.imshow("rgb", rgb)
+    # cv2.imshow("depth", depth)
+    # cv2.waitKey()
     import time
     time.sleep(1000)

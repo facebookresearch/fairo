@@ -2,14 +2,20 @@ import traceback
 import queue
 from typing import Callable, List
 import cloudpickle
+import sys
+import threading
+import queue
 
-# you're wondering wtf? why is numpy needed in this file?
-# it's a workaround for https://github.com/pytorch/pytorch/issues/37377
-import numpy
-from torch import multiprocessing as mp
-from threading import Thread
+if sys.platform != "darwin":
+    # you're wondering wtf? why is numpy needed in this file?
+    # it's a workaround for https://github.com/pytorch/pytorch/issues/37377
+    import numpy 
+    from torch import multiprocessing as mp
+else:
+    import multiprocessing as mp
 
 multiprocessing = mp.get_context("spawn")
+import numpy as np
 
 
 class Process(multiprocessing.Process):
@@ -43,8 +49,14 @@ def _runner(
     _init_fn, init_args, _process_fn, shutdown_event, input_queue, output_queue, exec_empty
 ):
     try:
-        init_fn = cloudpickle.loads(_init_fn)
-        process_fn = cloudpickle.loads(_process_fn)
+        if callable(_init_fn):
+            init_fn = _init_fn
+        else:
+            init_fn = cloudpickle.loads(_init_fn)
+        if callable(_process_fn):
+            process_fn = _process_fn
+        else:
+            process_fn = cloudpickle.loads(_process_fn)
         initial_state = init_fn(*init_args)
 
         while not shutdown_event.is_set():
@@ -69,28 +81,51 @@ def _runner(
         raise
 
 
+# https://stackoverflow.com/a/31614591
+# CC BY-SA 4.0
+class PropagatingThread(threading.Thread):
+    def run(self):
+        self.exc = None
+        try:
+            self.ret = self._target(*self._args, **self._kwargs)
+        except BaseException as e:
+            self.exc = e
+
+    def join(self):
+        super(PropagatingThread, self).join()
+        if self.exc:
+            raise self.exc
+        return self.ret
+
 class BackgroundTask:
-    def __init__(self, init_fn: Callable, init_args: List, process_fn: Callable):
+    def __init__(self, init_fn: Callable, init_args: List, process_fn: Callable, use_thread=False):
         self._init_fn = init_fn
         self._init_args = init_args
         self._process_fn = process_fn
-        self._send_queue = multiprocessing.Queue()
-        self._recv_queue = multiprocessing.Queue()
-        self._shutdown_event = multiprocessing.Event()
+        self._use_thread = use_thread
+        if use_thread:
+            self._send_queue = queue.Queue()
+            self._recv_queue = queue.Queue()
+            self._shutdown_event = threading.Event()
+        else:
+            self._send_queue = multiprocessing.Queue()
+            self._recv_queue = multiprocessing.Queue()
+            self._shutdown_event = multiprocessing.Event()
 
-    def start(self, exec_empty=False):
-        self._process = Process(
-            target=_runner,
-            args=(
-                cloudpickle.dumps(self._init_fn),
-                self._init_args,
-                cloudpickle.dumps(self._process_fn),
-                self._shutdown_event,
-                self._send_queue,
-                self._recv_queue,
-                exec_empty,
-            ),
-        )
+    def start(self, exec_empty = False):
+        if self._use_thread:
+            Runner = PropagatingThread
+        else:
+            Runner = Process
+        self._process = Runner(target=_runner,
+                                args=(
+                                    cloudpickle.dumps(self._init_fn),
+                                    self._init_args,
+                                    cloudpickle.dumps(self._process_fn),
+                                    self._shutdown_event,
+                                    self._send_queue, self._recv_queue,
+                                    exec_empty,
+                                ),)
         self._process.daemon = True
         self._process.start()
 
@@ -99,12 +134,15 @@ class BackgroundTask:
 
     def _raise(self):
         if not hasattr(self, "_process"):
-            raise RuntimeError(
-                "BackgroundTask has not yet been started." " Did you forget to call .start()?"
-            )
-        if self._process.exception:
-            error, _traceback = self._process.exception
-            raise ChildProcessError(_traceback)
+            raise RuntimeError("BackgroundTask has not yet been started."
+                               " Did you forget to call .start()?")
+        if self._use_thread:
+            if self._process.exc:
+                raise self._process.exc
+        else:
+            if self._process.exception:
+                error, _traceback = self._process.exception
+                raise ChildProcessError(_traceback)
 
     def stop(self):
         self._raise()
@@ -121,20 +159,3 @@ class BackgroundTask:
     def get_nowait(self):
         self._raise()
         return self._recv_queue.get_nowait()
-
-
-# https://stackoverflow.com/a/31614591
-# CC BY-SA 4.0
-class PropagatingThread(Thread):
-    def run(self):
-        self.exc = None
-        try:
-            self.ret = self._target(*self._args, **self._kwargs)
-        except BaseException as e:
-            self.exc = e
-
-    def join(self):
-        super(PropagatingThread, self).join()
-        if self.exc:
-            raise self.exc
-        return self.ret
