@@ -59,7 +59,7 @@ def get_relative_state(cur_state, init_state):
     helpful for calculating the relative state of cur_state wrt to init_state [both states are wrt same frame]
     :param cur_state: frame for which position to be calculated
     :param init_state: frame in which position to be calculated
-    
+
     :type cur_state: tuple [x_robot, y_robot, yaw_robot]
     :type init_state: tuple [x_robot, y_robot, yaw_robot]
 
@@ -79,4 +79,3 @@ def get_relative_state(cur_state, init_state):
     rel_x, rel_y = np.matmul(R, np.array([rel_X, rel_Y]).reshape(-1, 1))
 
     return rel_x[0], rel_y[0], cur_state[2] - init_state[2]
-

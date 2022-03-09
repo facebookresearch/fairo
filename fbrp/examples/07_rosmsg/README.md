@@ -8,17 +8,17 @@ In this example we split off the traditional `fsetup.py` into two files: `fsetup
 
 To run them in order,
 ```sh
-python fsetup.py -v up && \
-python fsetup.py wait && \
-python frun.py -v up
+fbrp -v up && \
+fbrp wait && \
+fbrp -f frun.py -v up
 ```
 
 To see the rosmsg in use:
 ```sh
-python frun.py logs
+fbrp -f frun.py logs
 ```
 
 To kill the running `proc`:
 ```sh
-python frun.py down
+fbrp -f frun.py down
 ```

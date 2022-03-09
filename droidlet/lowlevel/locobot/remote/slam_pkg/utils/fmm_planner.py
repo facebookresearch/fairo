@@ -52,8 +52,8 @@ class FMMPlanner(object):
         )
         # take subset of distance around the start
         subset = dist[
-            state[1] + self.step_size - self.step_size : state[1] + 2*self.step_size + 1,
-            state[0] + self.step_size - self.step_size : state[0] + 2*self.step_size + 1,
+            state[1] + self.step_size - self.step_size : state[1] + 2 * self.step_size + 1,
+            state[0] + self.step_size - self.step_size : state[0] + 2 * self.step_size + 1,
         ]
 
         # print(f'subset.shape {subset.shape}')
@@ -62,9 +62,9 @@ class FMMPlanner(object):
         np.set_printoptions(precision=3)
         (stg_y, stg_x) = np.unravel_index(np.argmin(subset), subset.shape)
         # print(stg_y, stg_x, subset[stg_y][stg_x], self.step_size)
-        
+
         # convert index from subset frame (return x,y)
         sx = stg_x - self.step_size + state[0]
         sy = stg_y - self.step_size + state[1]
         # print(f'self.fmm_dist {self.fmm_dist[sy][sx], self.fmm_dist[state[1]][state[0]]}')
-        return sx, sy  
+        return sx, sy

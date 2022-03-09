@@ -432,9 +432,7 @@ class FakeAgent(DroidletAgent):
         dialogue_object_classes["interpreter"] = LocoInterpreter
         dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
-        self.dialogue_manager = DialogueManager(
-            self.memory, dialogue_object_classes, self.opts
-        )
+        self.dialogue_manager = DialogueManager(self.memory, dialogue_object_classes, self.opts)
 
     def perceive(self, force=False):
         # clear the chat buffer

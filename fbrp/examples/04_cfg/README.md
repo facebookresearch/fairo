@@ -13,7 +13,7 @@ We use the same alephzero/api image as the last example to allow easy edit from 
 
 Launch all the processes as before:
 ```sh
-python fsetup.py -v up
+fbrp -v up
 ```
 
 Now open your browser to `file:///path/to/fbrp/examples/04_api/cfgedit.html`
@@ -24,10 +24,10 @@ You should see the different processes and their config variables and values. Ch
 
 You'll see the new prefix by checking the logs:
 ```sh
-python fsetup.py logs --old
+fbrp logs --old
 ```
 
 Finally, to stop all processes:
 ```sh
-python fsetup.py down
+fbrp down
 ```

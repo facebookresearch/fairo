@@ -1,4 +1,3 @@
-from fbrp.cmd._common import CommonFlags
 from fbrp import life_cycle
 import click
 
