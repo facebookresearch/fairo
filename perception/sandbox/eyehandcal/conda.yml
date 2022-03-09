@@ -1,11 +1,14 @@
 name: eyehandcal
 channels:
+  - pytorch
   - fair-robotics
+  - aihabitat
   - conda-forge
   - defaults
 dependencies:
-  - polymetis=341_g59cc9971=py38_341
-  - libopencv=4.5.1=py38h703c3c0_0
-  - librealsense=2.50.0=py3.8
-  - scipy=1.7.3=py38hc147768_0
-  - tqdm
+  - python=3.8.12=ha38a3c6_3_cpython
+  - libopencv=4.5.3=py38h66b0e6b_6
+  - polymetis=714_g1a617e97=py38_714
+  - librealsense=2.50.0=h9c3ff4c_0
+  - scipy=1.8.0=py38h56a6a73_1
+  - tqdm=4.63.0=pyhd8ed1ab_0

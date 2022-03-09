@@ -13,14 +13,28 @@ from tqdm import tqdm
 
 from realsense_wrapper import RealsenseAPI
 
+def intrinsics2dict(intrinsics):
+    if isinstance(intrinsics, list):
+        return [intrinsics2dict(x) for x in intrinsics]
+    return {
+        "coeffs": intrinsics.coeffs,
+        "fx": intrinsics.fx,
+        "fy": intrinsics.fy,
+        "height": intrinsics.height,
+        "model": intrinsics.model,
+        "ppx": intrinsics.ppx,
+        "ppy": intrinsics.ppy,
+        "width": intrinsics.width,
+    }
+
+
 def realsense_images():
     rs = RealsenseAPI()
     num_cameras = rs.get_num_cameras()
     assert num_cameras > 0, "no camera found"
 
-    intrinsics = rs.get_intrinsics()
+    intrinsics = intrinsics2dict(rs.get_intrinsics())
     while True:
-
         imgs0 = rs.get_images()
         imgs1 = rs.get_images()
         diff=0
@@ -57,11 +71,9 @@ def robot_poses(ip_address):
     robot.go_home()
     time_to_go = 5
 
-    i = 0
-    poses = list(sample_poses())
-    with tqdm(total=len(poses)) as progress_bar:
-        while i < len(poses):
-            pos_sampled, ori_sampled = poses[i]
+    sampled_poses = list(sample_poses())
+    for i, (pos_sampled, ori_sampled) in tqdm(enumerate(sampled_poses)):
+        while True:
             print( f"Moving to pose ({i}): pos={pos_sampled}, quat={ori_sampled.as_quat()}")
             state_log = robot.move_to_ee_pose(
                 position=pos_sampled,
@@ -70,11 +82,10 @@ def robot_poses(ip_address):
             )
             print(f"Length of state_log: {len(state_log)}")
             if len(state_log) == time_to_go * robot.hz:
-                i += 1
                 pos, quat = robot.get_ee_pose()
                 print(f"Current pose  pos={pos}, quat={quat}")
-                progress_bar.update(1)
                 yield pos, quat
+                break
             else:
                 print(f"State log incorrect length. Trying again...")
 
@@ -82,15 +93,9 @@ def robot_poses(ip_address):
 if __name__ == "__main__":
     data = []
     ip_address = "100.96.135.66"
-    i = 0
     poses = robot_poses(ip_address)
     images = realsense_images()
-    while True:
-        try:
-            pos, ori = next(poses)
-            imgs, intrinsics = next(images)
-        except StopIteration as e:
-            break
+    for i, ((pos, ori), (imgs, intrinsics)) in enumerate(tqdm(zip(poses, images))):
         cv2.imwrite(f'debug_{i}.jpg', imgs[0])
         data.append({
             'pos': pos,
@@ -98,7 +103,6 @@ if __name__ == "__main__":
             'imgs': imgs,
             'intrinsics': intrinsics
         })
-        i += 1
-
+    
     with open('caldata.pkl', 'wb') as f:
-        pickle.dump(f, data)
+        pickle.dump(data, f)
