@@ -128,12 +128,15 @@ class PutMemoryHandler(InterpreterBase):
         for t in self.logical_form["upsert"]["memory_data"].get("triples", []):
             if t.get("pred_text") and t.get("obj_text"):
                 logging.debug("Tagging {} {} {}".format(mem.memid, t["pred_text"], t["obj_text"]))
-                self.memory.nodes["Triple"].create(self.memory, 
-                    subj=mem.memid, pred_text=t["pred_text"], obj_text=t["obj_text"]
+                self.memory.nodes["Triple"].create(
+                    self.memory, subj=mem.memid, pred_text=t["pred_text"], obj_text=t["obj_text"]
                 )
                 if schematic_memid:
-                    self.memory.nodes["Triple"].create(self.memory, 
-                        subj=schematic_memid, pred_text=t["pred_text"], obj_text=t["obj_text"]
+                    self.memory.nodes["Triple"].create(
+                        self.memory,
+                        subj=schematic_memid,
+                        pred_text=t["pred_text"],
+                        obj_text=t["obj_text"],
                     )
             point_at_target = mem.get_point_at_target()
             # FIXME agent : This is the only place in file using the agent from the .step()
@@ -169,7 +172,9 @@ class PutMemoryHandler(InterpreterBase):
             if not set_memids:
                 # make a new set, and name it
                 set_memid = SetNode.create(self.memory)
-                self.memory.nodes["Triple"].create(self.memory, subj=set_memid, pred_text="has_name", obj_text=name)
+                self.memory.nodes["Triple"].create(
+                    self.memory, subj=set_memid, pred_text="has_name", obj_text=name
+                )
             else:
                 # FIXME, which one
                 set_memid = set_memids[0]
@@ -177,11 +182,13 @@ class PutMemoryHandler(InterpreterBase):
             # an anonymous set, assuming its new, and defined to hold the triple(s)
             set_memid = SetNode.create(self.memory)
             for t in triples_d:
-                self.memory.nodes["Triple"].create(self.memory, 
-                    subj=set_memid, pred_text=t["pred_text"], obj_text=t["obj_text"]
+                self.memory.nodes["Triple"].create(
+                    self.memory, subj=set_memid, pred_text=t["pred_text"], obj_text=t["obj_text"]
                 )
         for r in ref_objs:
-            self.memory.nodes["Triple"].create(self.memory, subj=r.memid, pred_text="member_of", obj=set_memid)
+            self.memory.nodes["Triple"].create(
+                self.memory, subj=r.memid, pred_text="member_of", obj=set_memid
+            )
 
         # FIXME point to the objects put in the set, otherwise explain this better
         Say(agent, task_data={"response_options": "OK made those objects into a set "})
