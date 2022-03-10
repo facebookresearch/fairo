@@ -123,6 +123,32 @@ class VoxelObjectNode(ReferenceObjectNode):
         else:
             return None
 
+    def _update_voxel_mean(self, memory, memid, count, loc):
+        """update the x, y, z entries in ReferenceObjects
+        to account for the removal or addition of a block.
+        count should be the number of voxels *after* addition if >0
+        and -count the number *after* removal if count < 0
+        count should not be 0- handle that outside
+        """
+        old_loc = memory._db_read_one("SELECT x, y, z  FROM ReferenceObjects WHERE uuid=?", memid)
+        # TODO warn/error if no such memory?
+        assert count != 0
+        if old_loc:
+            b = 1 / count
+            if count > 0:
+                a = (count - 1) / count
+            else:
+                a = (1 - count) / (-count)
+            new_loc = (
+                old_loc[0] * a + loc[0] * b,
+                old_loc[1] * a + loc[1] * b,
+                old_loc[2] * a + loc[2] * b,
+            )
+            memory.db_write(
+                "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?", *new_loc, memid
+            )
+            return new_loc
+
 
 class BlockObjectNode(VoxelObjectNode):
     """This is a voxel object that represents a set of physically present blocks.

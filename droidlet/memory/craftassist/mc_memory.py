@@ -427,32 +427,6 @@ class MCAgentMemory(AgentMemory):
     ###############
 
     # FIXME: move these to VoxelObjectNode
-    def _update_voxel_mean(self, memid, count, loc):
-        """update the x, y, z entries in ReferenceObjects
-        to account for the removal or addition of a block.
-        count should be the number of voxels *after* addition if >0
-        and -count the number *after* removal if count < 0
-        count should not be 0- handle that outside
-        """
-        old_loc = self._db_read_one("SELECT x, y, z  FROM ReferenceObjects WHERE uuid=?", memid)
-        # TODO warn/error if no such memory?
-        assert count != 0
-        if old_loc:
-            b = 1 / count
-            if count > 0:
-                a = (count - 1) / count
-            else:
-                a = (1 - count) / (-count)
-            new_loc = (
-                old_loc[0] * a + loc[0] * b,
-                old_loc[1] * a + loc[1] * b,
-                old_loc[2] * a + loc[2] * b,
-            )
-            self.db_write(
-                "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?", *new_loc, memid
-            )
-            return new_loc
-
     def remove_voxel(self, x, y, z, ref_type):
         """Remove a voxel at (x, y, z) and of a given ref_type,
         and update the voxel count and mean as a result of the change"""
@@ -469,7 +443,7 @@ class MCAgentMemory(AgentMemory):
         memid = memids[0]
         c = VoxelObjectNode._update_voxel_count(self, memid, -1)
         if c > 0:
-            self._update_voxel_mean(memid, c, (x, y, z))
+            VoxelObjectNode._update_voxel_mean(self, memid, c, (x, y, z))
         self.db_write(
             "DELETE FROM VoxelObjects WHERE x=? AND y=? AND z=? and ref_type=?", x, y, z, ref_type
         )
@@ -499,7 +473,7 @@ class MCAgentMemory(AgentMemory):
         # add to voxel count
         new_count = VoxelObjectNode._update_voxel_count(self, memid, 1)
         assert new_count
-        self._update_voxel_mean(memid, new_count, (x, y, z))
+        VoxelObjectNode._update_voxel_mean(self, memid, new_count, (x, y, z))
         if old_memid and update:
             if old_memid != memid:
                 self.remove_voxel(x, y, z, ref_type)
