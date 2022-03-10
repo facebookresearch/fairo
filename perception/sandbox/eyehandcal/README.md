@@ -1,5 +1,12 @@
 # Understanding Eye Hand Calibration 
 
+## Setup
+
+```bash
+conda env create -f environment.yml
+pip install -e ../../fairotag ../../realsensedriver
+```
+
 
 ## Assumption
 * Using a realsense camera
