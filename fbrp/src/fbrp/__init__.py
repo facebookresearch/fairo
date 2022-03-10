@@ -13,7 +13,7 @@ def cli():
     pass
 
 
-def main():
+def main(*args):
     cmd_list = [
         "down",
         "info",
@@ -29,7 +29,14 @@ def main():
         module = SourceFileLoader(cmd, path).load_module()
         cli.add_command(module.cli, cmd)
 
-    cli()
+    try:
+        cli(*args)
+    except SystemExit as sys_exit:
+        if sys_exit.code == 0:
+            return
+        raise RuntimeError(
+            f"fbrp.main failed with exit code {sys_exit.code}"
+        ) from sys_exit
 
 
 __all__ = ["main", "process", "NoEscape", "Docker", "Conda", "Host"]
