@@ -363,27 +363,6 @@ class AgentMemory:
         """
         return self.searcher.search(self, query=query)
 
-    ###############
-    ###  Chats  ###
-    ###############
-
-    def add_chat(self, speaker_memid: str, chat: str) -> str:
-        """Create a new chatNode
-
-        Args:
-            speaker_memid (string): memory ID of speaker
-            chat (string): text representing chat
-        """
-        return ChatNode.create(self, speaker_memid, chat)
-
-    def get_chat_by_id(self, memid: str) -> "ChatNode":
-        """Return ChatNode, given memid
-
-        Args:
-            memid (string): Memory ID
-        """
-        return ChatNode(self, memid)
-
     ###################
     ## Logical form ###
     ###################

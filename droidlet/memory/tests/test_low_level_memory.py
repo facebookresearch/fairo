@@ -305,16 +305,16 @@ class BasicTest(unittest.TestCase):
         self.memory = AgentMemory()
         # Test add_chat
         chat_memid = self.memory.nodes["Chat"].create(
-            self.memory, speaker_memid="463546548923408fdsgdsgfd", chat="are you around"
+            self.memory, speaker="463546548923408fdsgdsgfd", chat="are you around"
         )
 
         # test get_chat_by_id
-        assert self.memory.get_chat_by_id(chat_memid).TABLE == "Chats"
+        assert self.memory.nodes["Chat"](self.memory, chat_memid).TABLE == "Chats"
 
         # test get_recent_chats
         assert len(self.memory.nodes[ChatNode.NODE_TYPE].get_recent_chats(self.memory, n=5)) == 1
         _ = chat_memid = self.memory.nodes["Chat"].create(
-            self.memory, speaker_memid="fsfagfhgaft3764", chat="hello hello"
+            self.memory, speaker="fsfagfhgaft3764", chat="hello hello"
         )
         assert len(self.memory.nodes[ChatNode.NODE_TYPE].get_recent_chats(self.memory, n=5)) == 2
 
