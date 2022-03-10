@@ -44,8 +44,11 @@ def update_attended_and_link_lf(interpreter, mems):
     # a dummy interpreter may have no logical form memid associated to it...
     if lf_memid:
         for m in mems:
-            interpreter.memory.add_triple(
-                subj=m.memid, pred_text="attended_while_interpreting", obj=lf_memid
+            interpreter.memory.nodes["Triple"].create(
+                interpreter.memory,
+                subj=m.memid,
+                pred_text="attended_while_interpreting",
+                obj=lf_memid,
             )
 
 

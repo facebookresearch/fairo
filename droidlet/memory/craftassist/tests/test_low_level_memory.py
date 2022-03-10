@@ -105,7 +105,9 @@ class BasicTest(unittest.TestCase):
             == self.memory.get_mem_by_id(schematic_memid).blocks
         )
         # test get_schematic_by_name
-        self.memory.add_triple(subj=schematic_memid, pred_text="has_name", obj_text="house")
+        self.memory.nodes["Triple"].create(
+            self.memory, subj=schematic_memid, pred_text="has_name", obj_text="house"
+        )
         assert (
             self.memory.get_schematic_by_name("house").blocks
             == self.memory.get_mem_by_id(schematic_memid).blocks

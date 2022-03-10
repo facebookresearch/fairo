@@ -97,8 +97,12 @@ class BasicTest(unittest.TestCase):
         sheep_memid = NamedAbstractionNode.create(self.memory, "sheep")
         fluff_memid = NamedAbstractionNode.create(self.memory, "fluffy")
 
-        self.memory.add_triple(subj=sheep_memid, pred_text="has_property", obj=fluff_memid)
-        self.memory.add_triple(subj=sheep_memid, pred_text="has_fur_color", obj_text="white")
+        self.memory.nodes["Triple"].create(
+            self.memory, subj=sheep_memid, pred_text="has_property", obj=fluff_memid
+        )
+        self.memory.nodes["Triple"].create(
+            self.memory, subj=sheep_memid, pred_text="has_fur_color", obj_text="white"
+        )
         assert (
             len(self.memory.nodes[TripleNode.NODE_TYPE].get_triples(self.memory, subj=sheep_memid))
             == 2
@@ -118,8 +122,12 @@ class BasicTest(unittest.TestCase):
         loc_memid = LocationNode.create(self.memory, (1, 2, 3))
 
         self.memory.nodes["Triple"].tag(self.memory, subj_memid=sheep_memid, tag_text="furry")
-        self.memory.add_triple(subj=sheep_memid, pred_text="has_home_location", obj=loc_memid)
-        self.memory.add_triple(subj=sheep_memid, pred_text="has_fur_color", obj_text="white")
+        self.memory.nodes["Triple"].create(
+            self.memory, subj=sheep_memid, pred_text="has_home_location", obj=loc_memid
+        )
+        self.memory.nodes["Triple"].create(
+            self.memory, subj=sheep_memid, pred_text="has_fur_color", obj_text="white"
+        )
 
         assert (
             len(self.memory.nodes[TripleNode.NODE_TYPE].get_triples(self.memory, subj=sheep_memid))
@@ -368,11 +376,11 @@ class BasicTest(unittest.TestCase):
         assert len(jane_mems_from_tag) == 0
 
         self.time.add_tick()
-        brother_of_memid = self.memory.add_triple(
-            subj=joe_memid, pred_text="brother_of", obj=jane_memid
+        brother_of_memid = self.memory.nodes["Triple"].create(
+            self.memory, subj=joe_memid, pred_text="brother_of", obj=jane_memid
         )
-        sister_of_memid = self.memory.add_triple(
-            subj=jane_memid, pred_text="sister_of", obj=joe_memid
+        sister_of_memid = self.memory.nodes["Triple"].create(
+            self.memory, subj=jane_memid, pred_text="sister_of", obj=joe_memid
         )
 
         triples = self.memory.nodes[TripleNode.NODE_TYPE].get_triples(

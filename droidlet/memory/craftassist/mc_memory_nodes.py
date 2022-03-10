@@ -263,7 +263,7 @@ class InstSegNode(VoxelObjectNode):
                 memory.nodes["Triple"].tag(memory, memid, tag)
             elif type(tag) is dict:
                 for k, v in tag.items():
-                    memory.add_triple(subj=memid, pred_text=k, obj_text=v)
+                    memory.nodes["Triple"].create(memory, subj=memid, pred_text=k, obj_text=v)
         return memid
 
     def __init__(self, memory, memid: str):
@@ -369,7 +369,7 @@ class MobNode(ReferenceObjectNode):
         # this is a hack until memory_filters does "not"
         memory.nodes["Triple"].tag(memory, memid, "_not_location")
         memory.nodes["Triple"].tag(memory, memid, mobtype)
-        memory.add_triple(subj=memid, pred_text="has_name", obj_text=mobtype)
+        memory.nodes["Triple"].create(memory, subj=memid, pred_text="has_name", obj_text=mobtype)
         return memid
 
     def get_pos(self) -> XYZ:
@@ -742,10 +742,12 @@ class DanceNode(MemoryNode):
         # TODO put in db via pickle like tasks?
         memory.dances[memid] = dance_fn
         if name is not None:
-            memory.add_triple(subj=memid, pred_text="has_name", obj_text=name)
+            memory.nodes["Triple"].create(memory, subj=memid, pred_text="has_name", obj_text=name)
         if len(tags) > 0:
             for tag in tags:
-                memory.add_triple(subj=memid, pred_text="has_tag", obj_text=tag)
+                memory.nodes["Triple"].create(
+                    memory, subj=memid, pred_text="has_tag", obj_text=tag
+                )
         return memid
 
 

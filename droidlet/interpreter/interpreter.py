@@ -31,8 +31,11 @@ class InterpreterBase:
             if (
                 logical_form_memid != "NULL"
             ):  # if it were "NULL", this is a dummy interpreter of some sort...
-                self.memory.add_triple(
-                    subj=self.memid, pred_text="logical_form_memid", obj=logical_form_memid
+                self.memory.nodes["Triple"].create(
+                    self.memory,
+                    subj=self.memid,
+                    pred_text="logical_form_memid",
+                    obj=logical_form_memid,
                 )
         else:
             # ALL state is stored in memory, associated to the interpreter memid.

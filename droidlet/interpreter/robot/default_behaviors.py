@@ -47,7 +47,9 @@ def add_or_replace(agent, pred_text, obj_text):
     assert len(memids) <= 1, f"more than 1 {len(memids)} returned"
     if len(memids) > 0:
         agent.memory.forget(memids[0])
-    agent.memory.add_triple(subj=agent.memory.self_memid, pred_text=pred_text, obj_text=obj_text)
+    agent.memory.nodes["Triple"].create(
+        agent.memory, subj=agent.memory.self_memid, pred_text=pred_text, obj_text=obj_text
+    )
 
 
 def get_unique_val_from_memory(agent, pred_text, typ):

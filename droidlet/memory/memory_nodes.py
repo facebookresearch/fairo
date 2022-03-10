@@ -93,8 +93,12 @@ class MemoryNode:
 
 
 def link_archive_to_mem(agent_memory, memid, archive_memid):
-    agent_memory.add_triple(subj=archive_memid, pred_text="_archive_of", obj=memid)
-    agent_memory.add_triple(subj=memid, pred_text="_has_archive", obj=archive_memid)
+    agent_memory.nodes["Triple"].create(
+        agent_memory, subj=archive_memid, pred_text="_archive_of", obj=memid
+    )
+    agent_memory.nodes["Triple"].create(
+        agent_memory, subj=memid, pred_text="_has_archive", obj=archive_memid
+    )
 
 
 def dehydrate(lf):
@@ -440,7 +444,9 @@ class TripleNode(MemoryNode):
             >>> tag_text = "shiny"
             >>> tag(agent_memory, subj_memid, tag_text)
         """
-        return agent_memory.add_triple(subj=subj_memid, pred_text="has_tag", obj_text=tag_text)
+        return agent_memory.nodes["Triple"].create(
+            agent_memory, subj=subj_memid, pred_text="has_tag", obj_text=tag_text
+        )
 
     @classmethod
     def get_tags_by_memid(
@@ -697,7 +703,9 @@ class PlayerNode(ReferenceObjectNode):
         memory.nodes["Triple"].tag(memory, memid, "_not_location")
 
         if player_struct.name is not None:
-            memory.add_triple(subj=memid, pred_text="has_name", obj_text=player_struct.name)
+            memory.nodes["Triple"].create(
+                memory, subj=memid, pred_text="has_name", obj_text=player_struct.name
+            )
         return memid
 
     @classmethod

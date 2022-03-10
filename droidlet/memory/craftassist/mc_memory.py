@@ -257,7 +257,9 @@ class MCAgentMemory(AgentMemory):
                     block_object, color_tags = block_object_attr
                     memid = BlockObjectNode.create(self, block_object)
                     for color_tag in list(set(color_tags)):
-                        self.add_triple(subj=memid, pred_text="has_colour", obj_text=color_tag)
+                        self.nodes["Triple"].create(
+                            self, subj=memid, pred_text="has_colour", obj_text=color_tag
+                        )
             # 1.2 Update all holes with their block type in memory
             if perception_output.in_perceive_area["holes"]:
                 self.add_holes_to_mem(perception_output.in_perceive_area["holes"])
@@ -273,7 +275,9 @@ class MCAgentMemory(AgentMemory):
                     block_object, color_tags = block_object_attr
                     memid = BlockObjectNode.create(self, block_object)
                     for color_tag in list(set(color_tags)):
-                        self.add_triple(subj=memid, pred_text="has_colour", obj_text=color_tag)
+                        self.nodes["Triple"].create(
+                            self, subj=memid, pred_text="has_colour", obj_text=color_tag
+                        )
             # 2.2 Update all holes with their block type in memory
             if perception_output.near_agent["holes"]:
                 self.add_holes_to_mem(perception_output.near_agent["holes"])
@@ -358,7 +362,9 @@ class MCAgentMemory(AgentMemory):
                 query = "SELECT MEMORY FROM BlockType WHERE has_name={}".format(fill_block_name)
                 _, fill_block_mems = self.basic_search(query)
                 fill_block_memid = fill_block_mems[0].memid
-                self.add_triple(subj=memid, pred_text="has_fill_type", obj=fill_block_memid)
+                self.nodes["Triple"].create(
+                    self, subj=memid, pred_text="has_fill_type", obj=fill_block_memid
+                )
             hole_memories.append(self.get_mem_by_id(memid))
         return hole_memories
 
@@ -576,7 +582,9 @@ class MCAgentMemory(AgentMemory):
 
     def tag_block_object_from_schematic(self, block_object_memid: str, schematic_memid: str):
         """Tag a block object that came from a schematic"""
-        self.add_triple(subj=block_object_memid, pred_text="_from_schematic", obj=schematic_memid)
+        self.nodes["Triple"].create(
+            self, subj=block_object_memid, pred_text="_from_schematic", obj=schematic_memid
+        )
 
     #####################
     ### InstSegObject ###
@@ -664,7 +672,9 @@ class MCAgentMemory(AgentMemory):
             memid = SchematicNode.create(self, list(block_object.blocks.items()))
 
             # add triple linking the object to the schematic
-            self.add_triple(subj=memid, pred_text="_source_block_object", obj=block_object.memid)
+            self.nodes["Triple"].create(
+                self, subj=memid, pred_text="_source_block_object", obj=block_object.memid
+            )
 
             return self.get_schematic_by_id(memid)
 
@@ -680,11 +690,17 @@ class MCAgentMemory(AgentMemory):
 
                 if premem.get("name"):
                     for n in premem["name"]:
-                        self.add_triple(subj=memid, pred_text="has_name", obj_text=n)
-                        self.add_triple(subj=memid, pred_text="has_tag", obj_text=n)
+                        self.nodes["Triple"].create(
+                            self, subj=memid, pred_text="has_name", obj_text=n
+                        )
+                        self.nodes["Triple"].create(
+                            self, subj=memid, pred_text="has_tag", obj_text=n
+                        )
                 if premem.get("tags"):
                     for t in premem["tags"]:
-                        self.add_triple(subj=memid, pred_text="has_tag", obj_text=t)
+                        self.nodes["Triple"].create(
+                            self, subj=memid, pred_text="has_tag", obj_text=t
+                        )
 
         # load single blocks as schematics
         bid_to_name = block_data.get("bid_to_name", {})
@@ -692,13 +708,13 @@ class MCAgentMemory(AgentMemory):
             if d >= 256:
                 continue
             memid = SchematicNode.create(self, [((0, 0, 0), (d, m))])
-            self.add_triple(subj=memid, pred_text="has_name", obj_text=name)
+            self.nodes["Triple"].create(self, subj=memid, pred_text="has_name", obj_text=name)
             if "block" in name:
-                self.add_triple(
-                    subj=memid, pred_text="has_name", obj_text=name.strip("block").strip()
+                self.nodes["Triple"].create(
+                    self, subj=memid, pred_text="has_name", obj_text=name.strip("block").strip()
                 )
             # tag single blocks with 'block'
-            self.add_triple(subj=memid, pred_text="has_name", obj_text="block")
+            self.nodes["Triple"].create(self, subj=memid, pred_text="has_name", obj_text="block")
 
     def _load_block_types(
         self,
@@ -728,21 +744,28 @@ class MCAgentMemory(AgentMemory):
             if b >= 256:
                 continue
             memid = BlockTypeNode.create(self, type_name, (b, m))
-            self.add_triple(subj=memid, pred_text="has_name", obj_text=type_name)
+            self.nodes["Triple"].create(self, subj=memid, pred_text="has_name", obj_text=type_name)
             if "block" in type_name:
-                self.add_triple(
-                    subj=memid, pred_text="has_name", obj_text=type_name.strip("block").strip()
+                self.nodes["Triple"].create(
+                    self,
+                    subj=memid,
+                    pred_text="has_name",
+                    obj_text=type_name.strip("block").strip(),
                 )
 
             if load_color:
                 if name_to_colors.get(type_name) is not None:
                     for color in name_to_colors[type_name]:
-                        self.add_triple(subj=memid, pred_text="has_colour", obj_text=color)
+                        self.nodes["Triple"].create(
+                            self, subj=memid, pred_text="has_colour", obj_text=color
+                        )
 
             if load_block_property:
                 if block_name_to_properties.get(type_name) is not None:
                     for property in block_name_to_properties[type_name]:
-                        self.add_triple(subj_text=memid, pred_text="has_name", obj_text=property)
+                        self.nodes["Triple"].create(
+                            self, subj_text=memid, pred_text="has_name", obj_text=property
+                        )
 
     def _load_mob_types(self, mobs, mob_property_data, load_mob_types=True):
         """Load all mob types into agent memory"""
@@ -755,7 +778,7 @@ class MCAgentMemory(AgentMemory):
 
             # load single mob as schematics
             memid = SchematicNode.create(self, [((0, 0, 0), (383, m))])
-            self.add_triple(subj=memid, pred_text="has_name", obj_text=type_name)
+            self.nodes["Triple"].create(self, subj=memid, pred_text="has_name", obj_text=type_name)
             self.nodes["Triple"].tag(self, memid, "_spawn")
             self.nodes["Triple"].tag(self, memid, name)
             if "block" in name:
@@ -763,7 +786,7 @@ class MCAgentMemory(AgentMemory):
 
             # then load properties
             memid = MobTypeNode.create(self, type_name, (383, m))
-            self.add_triple(subj=memid, pred_text="has_name", obj_text=type_name)
+            self.nodes["Triple"].create(self, subj=memid, pred_text="has_name", obj_text=type_name)
             if mob_name_to_properties.get(type_name) is not None:
                 for prop in mob_name_to_properties[type_name]:
                     self.nodes["Triple"].tag(self, memid, prop)

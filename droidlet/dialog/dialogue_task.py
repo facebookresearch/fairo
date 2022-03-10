@@ -41,8 +41,11 @@ class AwaitResponse(Task):
         if chatmem is not None:
             self.finished = True
             if self.asker_memid:
-                self.agent.memory.add_triple(
-                    subj=self.asker_memid, pred_text="dialogue_task_response", obj=chatmem.memid
+                self.agent.memory.nodes["Triple"].create(
+                    self.agent.memory,
+                    subj=self.asker_memid,
+                    pred_text="dialogue_task_response",
+                    obj=chatmem.memid,
                 )
             return
         if self.agent.memory.get_time() - self.init_time > self.wait_time:
@@ -207,7 +210,7 @@ class ConfirmReferenceObject(Task):
             # FIXME...
             if chat_mems[0].chat_text in MAP_YES:
                 response = "yes"
-        self.agent.memory.add_triple(
-            subj=self.memid, pred_text="dialogue_task_output", obj_text=response
+        self.agent.memory.nodes["Triple"].create(
+            self.agent.memory, subj=self.memid, pred_text="dialogue_task_output", obj_text=response
         )
         return

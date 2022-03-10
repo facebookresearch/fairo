@@ -160,7 +160,7 @@ class SwarmWorkerMemory:
         confidence: float = 1.0,
     ):
         return self._db_command(
-            "add_triple", subj, obj, subj_text, pred_text, obj_text, confidence
+            "add_triple", self, subj, obj, subj_text, pred_text, obj_text, confidence
         )
 
     def get_triples(
@@ -173,7 +173,7 @@ class SwarmWorkerMemory:
         return_obj_text: str = "if_exists",
     ) -> List[Tuple[str, str, str]]:
         return self._db_command(
-            "get_triples", subj, obj, subj_text, pred_text, obj_text, return_obj_text
+            "get_triples", self, subj, obj, subj_text, pred_text, obj_text, return_obj_text
         )
 
     def check_memid_exists(self, memid: str, table: str) -> bool:

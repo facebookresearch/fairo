@@ -316,7 +316,7 @@ class FakeAgent(DroidletAgent):
         abs_xyz = tuple(np.array(xyzbms[0][0]) + origin)
         memid = self.memory.get_block_object_ids_by_xyz(abs_xyz)[0]
         for pred, obj in relations.items():
-            self.memory.add_triple(subj=memid, pred_text=pred, obj_text=obj)
+            self.memory.nodes["Triple"].create(self.memory, subj=memid, pred_text=pred, obj_text=obj)
             # sooooorrry  FIXME? when we handle triples better in interpreter_helper
             if "has_" in pred:
                 self.memory.nodes["Triple"].tag(self.memory, memid, obj)

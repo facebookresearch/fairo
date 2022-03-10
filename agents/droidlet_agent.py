@@ -340,7 +340,7 @@ class DroidletAgent(BaseAgent):
             self.memory, speaker=speaker, chat=chat, logical_form=chat_parse
         )
         logical_form_memid = self.memory.add_logical_form(post_processed_parse)
-        self.memory.add_triple(
+        self.memory.nodes["Triple"].create(self.memory,
             subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
         )
         # New chat, mark as uninterpreted.

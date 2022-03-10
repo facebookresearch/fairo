@@ -867,8 +867,8 @@ class Spawn(Task):
                 mobmem = agent.memory.get_mem_by_id(memid)
                 agent.memory.update_recent_entities(mems=[mobmem])
                 if self.memid is not None:
-                    agent.memory.add_triple(
-                        subj=self.memid, pred_text="task_effect_", obj=mobmem.memid
+                    agent.memory.nodes["Triple"].create(
+                        agent.memory, subj=self.memid, pred_text="task_effect_", obj=mobmem.memid
                     )
                     # the chat_effect_ triple was already made when the task is added if there was a chat...
                     # but it points to the task memory.  link the chat to the mob memory:
@@ -877,8 +877,11 @@ class Spawn(Task):
                     )
                     if len(chat_mem_triples) > 0:
                         chat_memid = chat_mem_triples[0][0]
-                        agent.memory.add_triple(
-                            subj=chat_memid, pred_text="chat_effect_", obj=mobmem.memid
+                        agent.memory.nodes["Triple"].create(
+                            agent.memory,
+                            subj=chat_memid,
+                            pred_text="chat_effect_",
+                            obj=mobmem.memid,
                         )
             self.finished = True
 

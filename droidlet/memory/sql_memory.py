@@ -363,52 +363,6 @@ class AgentMemory:
         """
         return self.searcher.search(self, query=query)
 
-    #################
-    ###  Triples  ###
-    #################
-
-    def add_triple(
-        self,
-        subj: str = None,  # this is a memid if given
-        obj: str = None,  # this is a memid if given
-        subj_text: str = None,
-        pred_text: str = "has_tag",
-        obj_text: str = None,
-        confidence: float = 1.0,
-    ):
-        """Adds (subj, pred, obj) triple to the triplestore.
-            _text is the name field of a NamedAbstraction; if
-            such a NamedAbstraction does not exist, this builds it as a side effect.
-            subj and obj can be memids or text, but pred_text is required
-
-        Args:
-            subj (string): memid of subject
-            obj (string): memid of object
-            subj_text (string): text representation for subject
-            pred_text (string): predicate text
-            obj_text (string): text representation for object
-            confidence (float): The confidence score for the triple
-
-        Returns:
-            memid of triple
-
-        Examples::
-            >>> subj = '10517cc584844659907ccfa6161e9d32'
-            >>> obj_text = 'blue'
-            >>> pred_text = "has_colour"
-            >>> add_triple(subj=subj, pred_text=pred_text, obj_text=obj_text)
-
-        """
-        return TripleNode.create(
-            self,
-            subj=subj,
-            obj=obj,
-            subj_text=subj_text,
-            pred_text=pred_text,
-            obj_text=obj_text,
-            confidence=confidence,
-        )
-
     ###############
     ###  Chats  ###
     ###############
@@ -571,11 +525,13 @@ class AgentMemory:
 
         # Relations
         if parent_memid:
-            self.add_triple(subj=memid, pred_text="_has_parent_task", obj=parent_memid)
+            self.nodes["Triple"].create(
+                self, subj=memid, pred_text="_has_parent_task", obj=parent_memid
+            )
         if chat_effect:
             chat = self.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(self)
             assert chat is not None, "chat_effect=True with no incoming chats"
-            self.add_triple(subj=chat.memid, pred_text="chat_effect_", obj=memid)
+            self.nodes["Triple"].create(self, subj=chat.memid, pred_text="chat_effect_", obj=memid)
 
         # Return newly created object
         return TaskNode(self, memid)

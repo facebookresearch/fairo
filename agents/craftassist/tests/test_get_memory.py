@@ -27,7 +27,7 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
     def test_get_name_and_left_of(self):
         # set the name
         name = "fluffball"
-        self.agent.memory.add_triple(subj=self.cube.memid, pred_text="has_name", obj_text=name)
+        self.agent.memory.nodes["Triple"].create(self.agent.memory, subj=self.cube.memid, pred_text="has_name", obj_text=name)
 
         # get the name
         d = GET_MEMORY_COMMANDS["what is where I am looking"]

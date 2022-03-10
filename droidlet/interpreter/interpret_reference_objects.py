@@ -202,12 +202,12 @@ def interpret_reference_object(
             if len(objects) == 0:
                 raise ErrorWithResponse("I don't know what you're referring to")
             _, mem = objects[0]
-            interpreter.memory.add_triple(
+            interpreter.memory.nodes["Triple"].create(interpreter.memory, 
                 subj=interpreter.memid, pred_text="provisional_refobj_memid", obj=mem.memid
             )
             task_egg = {"class": ConfirmReferenceObject, "task_data": {"reference_object": mem}}
             cmemid = TaskNode.create(interpreter.memory, task_egg)
-            interpreter.memory.add_triple(
+            interpreter.memory.nodes["Triple"].create(interpreter.memory, 
                 subj=cmemid, pred_text="reference_object_confirmation", obj=self.memid
             )
             raise NextDialogueStep()

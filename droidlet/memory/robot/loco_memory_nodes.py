@@ -105,7 +105,9 @@ class DetectedObjectNode(ReferenceObjectNode):
     def safe_tag(cls, detected_obj, memory, subj_memid, pred_text, attr):
         attr = getattr(detected_obj, attr, None)
         if attr is not None:
-            memory.add_triple(subj=subj_memid, pred_text=pred_text, obj_text=str(attr))
+            memory.nodes["Triple"].create(
+                memory, subj=subj_memid, pred_text=pred_text, obj_text=str(attr)
+            )
 
     @classmethod
     def get_all(cls, memory) -> list:
@@ -284,10 +286,12 @@ class DanceNode(MemoryNode):
         # TODO put in db via pickle like tasks?
         memory.dances[memid] = dance_fn
         if name is not None:
-            memory.add_triple(subj=memid, pred_text="has_name", obj_text=name)
+            memory.nodes["Triple"].create(memory, subj=memid, pred_text="has_name", obj_text=name)
         if len(tags) > 0:
             for tag in tags:
-                memory.add_triple(subj=memid, pred_text="has_tag", obj_text=tag)
+                memory.nodes["Triple"].create(
+                    memory, subj=memid, pred_text="has_tag", obj_text=tag
+                )
         return memid
 
 
