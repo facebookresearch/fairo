@@ -125,7 +125,11 @@ class BasicTest(unittest.TestCase):
     def test_set_mob_position(self):
         self.memory = MCAgentMemory()
         m = Mob(10, 65, Pos(1, 2, 3), Look(0, 0))
-        assert self.memory.set_mob_position(m).pos == (1.0, 2.0, 3.0)
+        assert self.memory.nodes[MobNode.NODE_TYPE].set_mob_position(self.memory, m).pos == (
+            1.0,
+            2.0,
+            3.0,
+        )
 
     def test_items_apis(self):
         self.memory = MCAgentMemory()

@@ -130,7 +130,7 @@ class MCAgentMemory(AgentMemory):
         if perception_output.mobs:
             map_changes = []
             for mob in perception_output.mobs:
-                mob_memid = self.set_mob_position(mob)
+                mob_memid = self.nodes["Mob"].set_mob_position(self, mob)
                 mp = (mob.pos.x, mob.pos.y, mob.pos.z)
                 map_changes.append(
                     {"pos": mp, "is_obstacle": False, "memid": mob_memid, "is_move": True}
@@ -632,28 +632,6 @@ class MCAgentMemory(AgentMemory):
             if mob_name_to_properties.get(type_name) is not None:
                 for prop in mob_name_to_properties[type_name]:
                     self.nodes["Triple"].tag(self, memid, prop)
-
-    ##############
-    ###  Mobs  ###
-    ##############
-
-    def set_mob_position(self, mob) -> "MobNode":
-        """Update the position of mob in memory"""
-        r = self._db_read_one("SELECT uuid FROM ReferenceObjects WHERE eid=?", mob.entityId)
-        if r:
-            self.db_write(
-                "UPDATE ReferenceObjects SET x=?, y=?, z=?, yaw=?, pitch=? WHERE eid=?",
-                mob.pos.x,
-                mob.pos.y,
-                mob.pos.z,
-                mob.look.yaw,
-                mob.look.pitch,
-                mob.entityId,
-            )
-            (memid,) = r
-        else:
-            memid = MobNode.create(self, mob)
-        return self.get_mem_by_id(memid)
 
     ####################
     ###  ItemStacks  ###

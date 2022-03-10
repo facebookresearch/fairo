@@ -7,7 +7,7 @@ import numpy as np
 import logging
 from collections import Counter
 from typing import cast, List, Sequence, Dict
-from droidlet.base_util import XYZ, POINT_AT_TARGET, IDM, Block, Look
+from droidlet.base_util import XYZ, POINT_AT_TARGET, IDM, Block, Look, npy_to_blocks_list
 from droidlet.shared_data_struct.craftassist_shared_utils import MOBS_BY_ID
 from droidlet.memory.memory_nodes import (
     link_archive_to_mem,
@@ -501,6 +501,27 @@ class MobNode(ReferenceObjectNode):
         x, y, z = self.pos
         return x, x, y, y, z, z
 
+    @classmethod
+    def set_mob_position(self, agent_memory, mob) -> "MobNode":
+        """Update the position of mob in memory"""
+        r = agent_memory._db_read_one(
+            "SELECT uuid FROM ReferenceObjects WHERE eid=?", mob.entityId
+        )
+        if r:
+            agent_memory.db_write(
+                "UPDATE ReferenceObjects SET x=?, y=?, z=?, yaw=?, pitch=? WHERE eid=?",
+                mob.pos.x,
+                mob.pos.y,
+                mob.pos.z,
+                mob.look.yaw,
+                mob.look.pitch,
+                mob.entityId,
+            )
+            (memid,) = r
+        else:
+            memid = MobNode.create(agent_memory, mob)
+        return agent_memory.get_mem_by_id(memid)
+
 
 class ItemStackNode(ReferenceObjectNode):
     """A memory node for an item stack, which is something on the ground,
@@ -720,14 +741,21 @@ class SchematicNode(MemoryNode):
         for (d, m), name in bid_to_name.items():
             if d >= 256:
                 continue
-            memid = SchematicNode.create(self, [((0, 0, 0), (d, m))])
-            self.nodes["Triple"].create(self, subj=memid, pred_text="has_name", obj_text=name)
+            memid = SchematicNode.create(agent_memory, [((0, 0, 0), (d, m))])
+            agent_memory.nodes["Triple"].create(
+                agent_memory, subj=memid, pred_text="has_name", obj_text=name
+            )
             if "block" in name:
-                self.nodes["Triple"].create(
-                    self, subj=memid, pred_text="has_name", obj_text=name.strip("block").strip()
+                agent_memory.nodes["Triple"].create(
+                    agent_memory,
+                    subj=memid,
+                    pred_text="has_name",
+                    obj_text=name.strip("block").strip(),
                 )
             # tag single blocks with 'block'
-            self.nodes["Triple"].create(self, subj=memid, pred_text="has_name", obj_text="block")
+            agent_memory.nodes["Triple"].create(
+                agent_memory, subj=memid, pred_text="has_name", obj_text="block"
+            )
 
 
 class BlockTypeNode(MemoryNode):
