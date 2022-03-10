@@ -5,7 +5,7 @@ import click
 
 @click.command()
 @click.argument("procs", nargs=-1, shell_complete=_autocomplete.running_processes)
-def cli(procs):
+def cli(procs=[]):
     down_procs = life_cycle.system_state().procs.keys()
 
     if procs:

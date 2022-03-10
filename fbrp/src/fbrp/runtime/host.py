@@ -48,8 +48,6 @@ class Launcher(BaseLauncher):
             pass
 
     async def run(self):
-        life_cycle.set_state(self.name, life_cycle.State.STARTING)
-
         subprocess_env = os.environ.copy()
         subprocess_env.update(self.proc_def.env)
 

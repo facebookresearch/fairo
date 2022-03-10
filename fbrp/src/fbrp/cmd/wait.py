@@ -8,14 +8,15 @@ import types
 @click.command()
 @click.argument("procs", nargs=-1, shell_complete=_autocomplete.running_processes)
 @click.option("-t", "--timeout", type=float, default=0)
-def cli(procs, timeout):
+def cli(procs=[], timeout=0):
     wait_procs = set(life_cycle.system_state().procs.keys())
     if procs:
         wait_procs = set(wait_procs) & set(procs)
 
-    ns = types.SimpleNamespace()
-    ns.cv = threading.Condition()
-    ns.sat = False
+    ns = types.SimpleNamespace(
+        cv=threading.Condition(),
+        sat=False,
+    )
 
     def callback(sys_state):
         for proc, info in sys_state.procs.items():
