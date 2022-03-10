@@ -690,6 +690,45 @@ class SchematicNode(MemoryNode):
 
             return agent_memory.get_schematic_by_id(memid)
 
+    @classmethod
+    def _load_schematics(self, agent_memory, schematics, block_data, load_minecraft_specs=True):
+        """Load all Minecraft schematics into agent memory"""
+        if load_minecraft_specs:
+            for premem in schematics:
+                npy = premem["schematic"]
+
+                # lazy loading, only store memid in db, ((0, 0, 0), (0, 0)) as a placeholder
+                memid = SchematicNode.create(agent_memory, [((0, 0, 0), (0, 0))])
+                agent_memory.schematics[memid] = npy_to_blocks_list(npy)
+
+                if premem.get("name"):
+                    for n in premem["name"]:
+                        agent_memory.nodes["Triple"].create(
+                            agent_memory, subj=memid, pred_text="has_name", obj_text=n
+                        )
+                        agent_memory.nodes["Triple"].create(
+                            agent_memory, subj=memid, pred_text="has_tag", obj_text=n
+                        )
+                if premem.get("tags"):
+                    for t in premem["tags"]:
+                        agent_memory.nodes["Triple"].create(
+                            agent_memory, subj=memid, pred_text="has_tag", obj_text=t
+                        )
+
+        # load single blocks as schematics
+        bid_to_name = block_data.get("bid_to_name", {})
+        for (d, m), name in bid_to_name.items():
+            if d >= 256:
+                continue
+            memid = SchematicNode.create(self, [((0, 0, 0), (d, m))])
+            self.nodes["Triple"].create(self, subj=memid, pred_text="has_name", obj_text=name)
+            if "block" in name:
+                self.nodes["Triple"].create(
+                    self, subj=memid, pred_text="has_name", obj_text=name.strip("block").strip()
+                )
+            # tag single blocks with 'block'
+            self.nodes["Triple"].create(self, subj=memid, pred_text="has_name", obj_text="block")
+
 
 class BlockTypeNode(MemoryNode):
     """This is a memory node representing the type of a block in Minecraft

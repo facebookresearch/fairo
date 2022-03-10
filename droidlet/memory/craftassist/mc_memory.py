@@ -78,7 +78,8 @@ class MCAgentMemory(AgentMemory):
         self.schematics = {}
         self.check_inside_perception = agent_low_level_data.get("check_inside", None)
 
-        self._load_schematics(
+        self.nodes["Schematic"]._load_schematics(
+            self,
             schematics=agent_low_level_data.get("schematics", {}),
             block_data=agent_low_level_data.get("block_data", {}),
             load_minecraft_specs=load_minecraft_specs,
@@ -556,44 +557,6 @@ class MCAgentMemory(AgentMemory):
         # with matched property name instead
         else:
             return self._get_schematic_by_property_name(name, "BlockTypes")
-
-    def _load_schematics(self, schematics, block_data, load_minecraft_specs=True):
-        """Load all Minecraft schematics into agent memory"""
-        if load_minecraft_specs:
-            for premem in schematics:
-                npy = premem["schematic"]
-
-                # lazy loading, only store memid in db, ((0, 0, 0), (0, 0)) as a placeholder
-                memid = SchematicNode.create(self, [((0, 0, 0), (0, 0))])
-                self.schematics[memid] = npy_to_blocks_list(npy)
-
-                if premem.get("name"):
-                    for n in premem["name"]:
-                        self.nodes["Triple"].create(
-                            self, subj=memid, pred_text="has_name", obj_text=n
-                        )
-                        self.nodes["Triple"].create(
-                            self, subj=memid, pred_text="has_tag", obj_text=n
-                        )
-                if premem.get("tags"):
-                    for t in premem["tags"]:
-                        self.nodes["Triple"].create(
-                            self, subj=memid, pred_text="has_tag", obj_text=t
-                        )
-
-        # load single blocks as schematics
-        bid_to_name = block_data.get("bid_to_name", {})
-        for (d, m), name in bid_to_name.items():
-            if d >= 256:
-                continue
-            memid = SchematicNode.create(self, [((0, 0, 0), (d, m))])
-            self.nodes["Triple"].create(self, subj=memid, pred_text="has_name", obj_text=name)
-            if "block" in name:
-                self.nodes["Triple"].create(
-                    self, subj=memid, pred_text="has_name", obj_text=name.strip("block").strip()
-                )
-            # tag single blocks with 'block'
-            self.nodes["Triple"].create(self, subj=memid, pred_text="has_name", obj_text="block")
 
     def _load_block_types(
         self,
