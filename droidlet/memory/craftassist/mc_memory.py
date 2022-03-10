@@ -380,7 +380,7 @@ class MCAgentMemory(AgentMemory):
             memid, b, m = info[0]
             delete = (b == 0 and idm[0] > 0) or (b > 0 and idm[0] == 0)
             if delete:
-                self.remove_voxel(*xyz, table)
+                VoxelObjectNode.remove_voxel(self, *xyz, table)
                 # check if the whole column is removed:
                 # FIXME, eventually want y slices
                 r = self._db_read(
@@ -427,27 +427,6 @@ class MCAgentMemory(AgentMemory):
     ###############
 
     # FIXME: move these to VoxelObjectNode
-    def remove_voxel(self, x, y, z, ref_type):
-        """Remove a voxel at (x, y, z) and of a given ref_type,
-        and update the voxel count and mean as a result of the change"""
-        memids = self._db_read_one(
-            "SELECT uuid FROM VoxelObjects WHERE x=? and y=? and z=? and ref_type=?",
-            x,
-            y,
-            z,
-            ref_type,
-        )
-        if not memids:
-            # TODO error/warning?
-            return
-        memid = memids[0]
-        c = VoxelObjectNode._update_voxel_count(self, memid, -1)
-        if c > 0:
-            VoxelObjectNode._update_voxel_mean(self, memid, c, (x, y, z))
-        self.db_write(
-            "DELETE FROM VoxelObjects WHERE x=? AND y=? AND z=? and ref_type=?", x, y, z, ref_type
-        )
-
     def upsert_block(
         self,
         block: Block,
@@ -476,7 +455,7 @@ class MCAgentMemory(AgentMemory):
         VoxelObjectNode._update_voxel_mean(self, memid, new_count, (x, y, z))
         if old_memid and update:
             if old_memid != memid:
-                self.remove_voxel(x, y, z, ref_type)
+                VoxelObjectNode.remove_voxel(self, x, y, z, ref_type)
                 cmd = "INSERT INTO VoxelObjects (uuid, bid, meta, updated, player_placed, agent_placed, ref_type, x, y, z) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             else:
                 cmd = "UPDATE VoxelObjects SET uuid=?, bid=?, meta=?, updated=?, player_placed=?, agent_placed=? WHERE ref_type=? AND x=? AND y=? AND z=?"

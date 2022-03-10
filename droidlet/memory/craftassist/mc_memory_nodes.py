@@ -123,6 +123,7 @@ class VoxelObjectNode(ReferenceObjectNode):
         else:
             return None
 
+    @classmethod
     def _update_voxel_mean(self, memory, memid, count, loc):
         """update the x, y, z entries in ReferenceObjects
         to account for the removal or addition of a block.
@@ -148,6 +149,28 @@ class VoxelObjectNode(ReferenceObjectNode):
                 "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?", *new_loc, memid
             )
             return new_loc
+
+    @classmethod
+    def remove_voxel(self, memory, x, y, z, ref_type):
+        """Remove a voxel at (x, y, z) and of a given ref_type,
+        and update the voxel count and mean as a result of the change"""
+        memids = memory._db_read_one(
+            "SELECT uuid FROM VoxelObjects WHERE x=? and y=? and z=? and ref_type=?",
+            x,
+            y,
+            z,
+            ref_type,
+        )
+        if not memids:
+            # TODO error/warning?
+            return
+        memid = memids[0]
+        c = self._update_voxel_count(memory, memid, -1)
+        if c > 0:
+            self._update_voxel_mean(memory, memid, c, (x, y, z))
+        memory.db_write(
+            "DELETE FROM VoxelObjects WHERE x=? AND y=? AND z=? and ref_type=?", x, y, z, ref_type
+        )
 
 
 class BlockObjectNode(VoxelObjectNode):

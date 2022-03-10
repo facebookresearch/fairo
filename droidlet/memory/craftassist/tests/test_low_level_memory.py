@@ -11,6 +11,7 @@ from droidlet.memory.craftassist.mc_memory_nodes import (
     InstSegNode,
     ItemStackNode,
     DanceNode,
+    VoxelObjectNode,
 )
 from droidlet.memory.memory_nodes import PlayerNode, TripleNode
 from droidlet.base_util import Pos, Look, Player
@@ -35,7 +36,7 @@ class BasicTest(unittest.TestCase):
         bo_memid = BlockObjectNode.create(self.memory, [((1, 1, 1), (1, 2)), ((2, 2, 2), (2, 3))])
         assert len(self.memory.get_mem_by_id(bo_memid).blocks) == 2
         # Test remove_voxel and test total number of blocks
-        self.memory.remove_voxel(1, 1, 1, "BlockObjects")
+        VoxelObjectNode.remove_voxel(self.memory, 1, 1, 1, "BlockObjects")
         assert len(self.memory.get_mem_by_id(bo_memid).blocks) == 1
 
         # Test upsert_block (add a new block and assert that now there are two
