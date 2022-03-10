@@ -333,15 +333,15 @@ class DroidletAgent(BaseAgent):
         """this munges the results of the semantic parser and writes them to memory"""
 
         # add postprocessed chat here
-        chat_memid = self.memory.add_chat(
-            self.memory.get_player_by_name(speaker).memid, preprocessed_chat
+        chat_memid = self.memory.nodes["Chat"].create(
+            self.memory, self.memory.get_player_by_name(speaker).memid, preprocessed_chat
         )
         post_processed_parse = postprocess_logical_form(
             self.memory, speaker=speaker, chat=chat, logical_form=chat_parse
         )
         logical_form_memid = self.memory.add_logical_form(post_processed_parse)
-        self.memory.nodes["Triple"].create(self.memory,
-            subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
+        self.memory.nodes["Triple"].create(
+            self.memory, subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
         )
         # New chat, mark as uninterpreted.
         self.memory.nodes["Triple"].tag(

@@ -125,7 +125,7 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
             "_db_read_one": self.memory._db_read_one,
             "_db_write": self.memory._db_write,
             "db_write": self.memory.db_write,
-            "tag": self.memory.tag,
+            "tag": self.memory.nodes["Triple"].tag,
             "untag": self.memory.nodes["Triple"].untag,
             "forget": self.memory.forget,
             "add_triple": self.memory.nodes["Triple"].create,
@@ -145,7 +145,7 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
             "remove_voxel": self.memory.remove_voxel,
             "set_memory_updated_time": self.memory.set_memory_updated_time,
             "set_memory_attended_time": self.memory.set_memory_attended_time,
-            "add_chat": self.memory.add_chat,
+            "add_chat": self.memory.nodes["Chat"].create,
         }
 
     def if_swarm_task(self, mem):

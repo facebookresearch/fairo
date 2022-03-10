@@ -138,8 +138,8 @@ class BaseCraftassistTestCase(unittest.TestCase):
         """Add a chat to memory as if it was just spoken by SPEAKER"""
         self.world.chat_log.append("<" + speaker_name + ">" + " " + chat)
         if add_to_memory:
-            self.agent.memory.add_chat(
-                self.agent.memory.get_player_by_name(self.speaker).memid, chat
+            self.agent.memory.nodes["Chat"].create(
+                self.agent.memory, self.agent.memory.get_player_by_name(self.speaker).memid, chat
             )
 
     def assert_schematics_equal(self, a, b):

@@ -304,8 +304,8 @@ class BasicTest(unittest.TestCase):
     def test_chat_apis_memory(self):
         self.memory = AgentMemory()
         # Test add_chat
-        chat_memid = self.memory.add_chat(
-            speaker_memid="463546548923408fdsgdsgfd", chat="are you around"
+        chat_memid = self.memory.nodes["Chat"].create(
+            self.memory, speaker_memid="463546548923408fdsgdsgfd", chat="are you around"
         )
 
         # test get_chat_by_id
@@ -313,7 +313,9 @@ class BasicTest(unittest.TestCase):
 
         # test get_recent_chats
         assert len(self.memory.nodes[ChatNode.NODE_TYPE].get_recent_chats(self.memory, n=5)) == 1
-        _ = chat_memid = self.memory.add_chat(speaker_memid="fsfagfhgaft3764", chat="hello hello")
+        _ = chat_memid = self.memory.nodes["Chat"].create(
+            self.memory, speaker_memid="fsfagfhgaft3764", chat="hello hello"
+        )
         assert len(self.memory.nodes[ChatNode.NODE_TYPE].get_recent_chats(self.memory, n=5)) == 2
 
         # test get_most_recent_incoming_chat

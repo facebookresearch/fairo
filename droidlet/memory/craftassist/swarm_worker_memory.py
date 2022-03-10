@@ -142,10 +142,10 @@ class SwarmWorkerMemory:
         return self._db_command("_db_read", query, *args)
 
     def tag(self, subj_memid: str, tag_text: str):
-        return self._db_command("tag", subj_memid, tag_text)
+        return self._db_command("tag", self, subj_memid, tag_text)
 
     def untag(self, subj_memid: str, tag_text: str):
-        return self._db_command("untag", subj_memid, tag_text)
+        return self._db_command("untag", self, subj_memid, tag_text)
 
     def forget(self, memid):
         return self._db_command("forget", memid)
@@ -235,4 +235,4 @@ class SwarmWorkerMemory:
     #     return self._db_command("set_mob_position", mob)
 
     def add_chat(self, speaker_memid: str, chat: str) -> str:
-        return self._db_command("add_chat", speaker_memid, chat)
+        return self._db_command("add_chat", self, speaker_memid, chat)
