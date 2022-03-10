@@ -120,7 +120,9 @@ class PutMemoryHandler(InterpreterBase):
             name = triples[0][2].strip("_")
 
         schematic_memid = (
-            self.memory.convert_block_object_to_schematic(mem.memid).memid
+            self.memory.nodes["Schematic"]
+            .convert_block_object_to_schematic(self.memory, mem.memid)
+            .memid
             if isinstance(mem, VoxelObjectNode) and len(mem.blocks) > 0
             else None
         )

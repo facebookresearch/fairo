@@ -115,7 +115,12 @@ class BasicTest(unittest.TestCase):
         )
         bo1_memid = BlockObjectNode.create(self.memory, (((0, 0, 2), (1, 0)), ((0, 0, 3), (2, 0))))
         # Test convert_block_object_to_schematic
-        assert self.memory.convert_block_object_to_schematic(bo1_memid).NODE_TYPE == "Schematic"
+        assert (
+            self.memory.nodes["Schematic"]
+            .convert_block_object_to_schematic(self.memory, bo1_memid)
+            .NODE_TYPE
+            == "Schematic"
+        )
 
     def test_set_mob_position(self):
         self.memory = MCAgentMemory()

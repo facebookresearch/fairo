@@ -663,6 +663,33 @@ class SchematicNode(MemoryNode):
             )
         return memid
 
+    @classmethod
+    def convert_block_object_to_schematic(
+        self, agent_memory, block_object_memid: str
+    ) -> "SchematicNode":
+        """Save a BlockObject as a Schematic node along with the link"""
+        r = agent_memory._db_read_one(
+            'SELECT subj FROM Triples WHERE pred_text="_source_block_object" AND obj=?',
+            block_object_memid,
+        )
+        if r:
+            # previously converted; return old schematic
+            return agent_memory.get_schematic_by_id(r[0])
+
+        else:
+            # get up to date BlockObject
+            block_object = agent_memory.get_block_object_by_id(block_object_memid)
+
+            # create schematic
+            memid = SchematicNode.create(agent_memory, list(block_object.blocks.items()))
+
+            # add triple linking the object to the schematic
+            agent_memory.nodes["Triple"].create(
+                agent_memory, subj=memid, pred_text="_source_block_object", obj=block_object.memid
+            )
+
+            return agent_memory.get_schematic_by_id(memid)
+
 
 class BlockTypeNode(MemoryNode):
     """This is a memory node representing the type of a block in Minecraft

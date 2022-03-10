@@ -557,30 +557,6 @@ class MCAgentMemory(AgentMemory):
         else:
             return self._get_schematic_by_property_name(name, "BlockTypes")
 
-    def convert_block_object_to_schematic(self, block_object_memid: str) -> "SchematicNode":
-        """Save a BlockObject as a Schematic node along with the link"""
-        r = self._db_read_one(
-            'SELECT subj FROM Triples WHERE pred_text="_source_block_object" AND obj=?',
-            block_object_memid,
-        )
-        if r:
-            # previously converted; return old schematic
-            return self.get_schematic_by_id(r[0])
-
-        else:
-            # get up to date BlockObject
-            block_object = self.get_block_object_by_id(block_object_memid)
-
-            # create schematic
-            memid = SchematicNode.create(self, list(block_object.blocks.items()))
-
-            # add triple linking the object to the schematic
-            self.nodes["Triple"].create(
-                self, subj=memid, pred_text="_source_block_object", obj=block_object.memid
-            )
-
-            return self.get_schematic_by_id(memid)
-
     def _load_schematics(self, schematics, block_data, load_minecraft_specs=True):
         """Load all Minecraft schematics into agent memory"""
         if load_minecraft_specs:
