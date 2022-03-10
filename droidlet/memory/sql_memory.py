@@ -367,14 +367,6 @@ class AgentMemory:
     ## Logical form ###
     ###################
 
-    def add_logical_form(self, logical_form: dict):
-        """Create a new ProgramNode
-
-        Args:
-            logical_form: the semantic parser's output
-        """
-        return ProgramNode.create(self, logical_form)
-
     def get_logical_form_by_id(self, memid: str) -> "ProgramNode":
         """Return ProgramNode, given memid
 
