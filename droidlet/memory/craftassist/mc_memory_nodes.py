@@ -109,6 +109,20 @@ class VoxelObjectNode(ReferenceObjectNode):
         link_archive_to_mem(agent_memory, self.memid, archive_memid)
         return archive_memid
 
+    # count updates are done by hand to not need to count all voxels every time
+    # use these functions, don't add/delete/modify voxels with raw sql
+    @classmethod
+    def _update_voxel_count(self, memory, memid, dn):
+        """Update voxel count of a reference object with an amount
+        equal to : dn"""
+        c = memory._db_read_one("SELECT voxel_count FROM ReferenceObjects WHERE uuid=?", memid)
+        if c:
+            count = c[0] + dn
+            memory.db_write("UPDATE ReferenceObjects SET voxel_count=? WHERE uuid=?", count, memid)
+            return count
+        else:
+            return None
+
 
 class BlockObjectNode(VoxelObjectNode):
     """This is a voxel object that represents a set of physically present blocks.

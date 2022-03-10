@@ -217,7 +217,7 @@ class SwarmWorkerMemory:
         )
 
     def _update_voxel_count(self, memid, dn):
-        return self._db_command("_update_voxel_count", memid, dn)
+        return self._db_command("_update_voxel_count", self, memid, dn)
 
     def _update_voxel_mean(self, memid, count, loc):
         return self._db_command("_update_voxel_mean", memid, count, loc)

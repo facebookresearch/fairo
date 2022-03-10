@@ -427,19 +427,6 @@ class MCAgentMemory(AgentMemory):
     ###############
 
     # FIXME: move these to VoxelObjectNode
-    # count updates are done by hand to not need to count all voxels every time
-    # use these functions, don't add/delete/modify voxels with raw sql
-    def _update_voxel_count(self, memid, dn):
-        """Update voxel count of a reference object with an amount
-        equal to : dn"""
-        c = self._db_read_one("SELECT voxel_count FROM ReferenceObjects WHERE uuid=?", memid)
-        if c:
-            count = c[0] + dn
-            self.db_write("UPDATE ReferenceObjects SET voxel_count=? WHERE uuid=?", count, memid)
-            return count
-        else:
-            return None
-
     def _update_voxel_mean(self, memid, count, loc):
         """update the x, y, z entries in ReferenceObjects
         to account for the removal or addition of a block.
@@ -480,7 +467,7 @@ class MCAgentMemory(AgentMemory):
             # TODO error/warning?
             return
         memid = memids[0]
-        c = self._update_voxel_count(memid, -1)
+        c = VoxelObjectNode._update_voxel_count(self, memid, -1)
         if c > 0:
             self._update_voxel_mean(memid, c, (x, y, z))
         self.db_write(
@@ -510,7 +497,7 @@ class MCAgentMemory(AgentMemory):
             ref_type,
         )
         # add to voxel count
-        new_count = self._update_voxel_count(memid, 1)
+        new_count = VoxelObjectNode._update_voxel_count(self, memid, 1)
         assert new_count
         self._update_voxel_mean(memid, new_count, (x, y, z))
         if old_memid and update:

@@ -49,6 +49,7 @@ from droidlet.memory.memory_nodes import (  # noqa
     AttentionNode,
     NODELIST,
 )
+from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from droidlet.interpreter.craftassist.tasks import *
 
 import time
@@ -140,7 +141,7 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
             "get_object_by_id": self.memory.get_object_by_id,
             "get_instseg_object_ids_by_xyz": self.memory.get_instseg_object_ids_by_xyz,
             "upsert_block": self.memory.upsert_block,
-            "_update_voxel_count": self.memory._update_voxel_count,
+            "_update_voxel_count": VoxelObjectNode._update_voxel_count,
             "_update_voxel_mean": self.memory._update_voxel_mean,
             "remove_voxel": self.memory.remove_voxel,
             "set_memory_updated_time": self.memory.set_memory_updated_time,
