@@ -213,7 +213,7 @@ class SwarmWorkerMemory:
         update: bool = True,  # if update is set to False, forces a write
     ):
         return self._db_command(
-            "upsert_block", block, memid, ref_type, player_placed, agent_placed, update
+            "upsert_block", self, block, memid, ref_type, player_placed, agent_placed, update
         )
 
     def _update_voxel_count(self, memid, dn):

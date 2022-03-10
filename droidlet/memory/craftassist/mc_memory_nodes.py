@@ -172,6 +172,46 @@ class VoxelObjectNode(ReferenceObjectNode):
             "DELETE FROM VoxelObjects WHERE x=? AND y=? AND z=? and ref_type=?", x, y, z, ref_type
         )
 
+    @classmethod
+    def upsert_block(
+        self,
+        memory,
+        block: Block,
+        memid: str,
+        ref_type: str,
+        player_placed: bool = False,
+        agent_placed: bool = False,
+        update: bool = True,  # if update is set to False, forces a write
+    ):
+        """This function upserts a block of ref_type in memory.
+        Note:
+        This functions only upserts to the same ref_type- if the voxel is
+        occupied by a different ref_type it will insert a new ref object even if update is True"""
+
+        ((x, y, z), (b, m)) = block
+        old_memid = memory._db_read_one(
+            "SELECT uuid FROM VoxelObjects WHERE x=? AND y=? AND z=? and ref_type=?",
+            x,
+            y,
+            z,
+            ref_type,
+        )
+        # add to voxel count
+        new_count = self._update_voxel_count(memory, memid, 1)
+        assert new_count
+        self._update_voxel_mean(memory, memid, new_count, (x, y, z))
+        if old_memid and update:
+            if old_memid != memid:
+                self.remove_voxel(memory, x, y, z, ref_type)
+                cmd = "INSERT INTO VoxelObjects (uuid, bid, meta, updated, player_placed, agent_placed, ref_type, x, y, z) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            else:
+                cmd = "UPDATE VoxelObjects SET uuid=?, bid=?, meta=?, updated=?, player_placed=?, agent_placed=? WHERE ref_type=? AND x=? AND y=? AND z=?"
+        else:
+            cmd = "INSERT INTO VoxelObjects (uuid, bid, meta, updated, player_placed, agent_placed, ref_type, x, y, z) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        memory.db_write(
+            cmd, memid, b, m, memory.get_time(), player_placed, agent_placed, ref_type, x, y, z
+        )
+
 
 class BlockObjectNode(VoxelObjectNode):
     """This is a voxel object that represents a set of physically present blocks.
@@ -228,7 +268,7 @@ class BlockObjectNode(VoxelObjectNode):
         # TODO this is going to cause a bug, need better way to initialize and track mean loc
         memory.db_write(cmd, memid, 0, 0, 0, "BlockObjects", 0)
         for block in blocks:
-            memory.upsert_block(block, memid, "BlockObjects")
+            VoxelObjectNode.upsert_block(memory, block, memid, "BlockObjects")
         memory.nodes["Triple"].tag(memory, memid, "_block_object")
         memory.nodes["Triple"].tag(memory, memid, "VOXEL_OBJECT")
         memory.nodes["Triple"].tag(memory, memid, "_physical_object")

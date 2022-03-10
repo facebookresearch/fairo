@@ -321,7 +321,9 @@ class MCAgentMemory(AgentMemory):
         elif len(adjacent_memids) == 1:
             # update block object
             memid = adjacent_memids[0]
-            self.upsert_block((xyz, idm), memid, "BlockObjects", player_placed, agent_placed)
+            VoxelObjectNode.upsert_block(
+                self, (xyz, idm), memid, "BlockObjects", player_placed, agent_placed
+            )
             self.place_field.update_map([{"pos": xyz, "is_obstacle": True, "memid": memid}])
             self.set_memory_updated_time(memid)
             self.set_memory_attended_time(memid)
@@ -342,8 +344,8 @@ class MCAgentMemory(AgentMemory):
             self.db_write(cmd + where, chosen_memid, *adjacent_memids)
 
             # insert new block
-            self.upsert_block(
-                (xyz, idm), chosen_memid, "BlockObjects", player_placed, agent_placed
+            VoxelObjectNode.upsert_block(
+                self, (xyz, idm), chosen_memid, "BlockObjects", player_placed, agent_placed
             )
 
     def add_holes_to_mem(self, holes):
@@ -425,45 +427,6 @@ class MCAgentMemory(AgentMemory):
     ###############
     ### Voxels  ###
     ###############
-
-    # FIXME: move these to VoxelObjectNode
-    def upsert_block(
-        self,
-        block: Block,
-        memid: str,
-        ref_type: str,
-        player_placed: bool = False,
-        agent_placed: bool = False,
-        update: bool = True,  # if update is set to False, forces a write
-    ):
-        """This function upserts a block of ref_type in memory.
-        Note:
-        This functions only upserts to the same ref_type- if the voxel is
-        occupied by a different ref_type it will insert a new ref object even if update is True"""
-
-        ((x, y, z), (b, m)) = block
-        old_memid = self._db_read_one(
-            "SELECT uuid FROM VoxelObjects WHERE x=? AND y=? AND z=? and ref_type=?",
-            x,
-            y,
-            z,
-            ref_type,
-        )
-        # add to voxel count
-        new_count = VoxelObjectNode._update_voxel_count(self, memid, 1)
-        assert new_count
-        VoxelObjectNode._update_voxel_mean(self, memid, new_count, (x, y, z))
-        if old_memid and update:
-            if old_memid != memid:
-                VoxelObjectNode.remove_voxel(self, x, y, z, ref_type)
-                cmd = "INSERT INTO VoxelObjects (uuid, bid, meta, updated, player_placed, agent_placed, ref_type, x, y, z) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-            else:
-                cmd = "UPDATE VoxelObjects SET uuid=?, bid=?, meta=?, updated=?, player_placed=?, agent_placed=? WHERE ref_type=? AND x=? AND y=? AND z=?"
-        else:
-            cmd = "INSERT INTO VoxelObjects (uuid, bid, meta, updated, player_placed, agent_placed, ref_type, x, y, z) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        self.db_write(
-            cmd, memid, b, m, self.get_time(), player_placed, agent_placed, ref_type, x, y, z
-        )
 
     def check_inside(self, mems):
         """mems is a sequence of two ReferenceObjectNodes.

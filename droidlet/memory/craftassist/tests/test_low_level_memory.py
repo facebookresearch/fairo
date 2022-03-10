@@ -40,7 +40,7 @@ class BasicTest(unittest.TestCase):
         assert len(self.memory.get_mem_by_id(bo_memid).blocks) == 1
 
         # Test upsert_block (add a new block and assert that now there are two
-        self.memory.upsert_block(((3, 3, 3), (1, 1)), bo_memid, "BlockObjects")
+        VoxelObjectNode.upsert_block(self.memory, ((3, 3, 3), (1, 1)), bo_memid, "BlockObjects")
         assert len(self.memory.get_mem_by_id(bo_memid).blocks) == 2
 
     def test_block_objects_methods(self):
