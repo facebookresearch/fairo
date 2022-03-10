@@ -154,11 +154,3 @@ void ControllerManger::terminateController(std::string &error_msg) {
     return;
   }
 }
-
-// Status getter & updater
-
-ControllerStatus getControllerStatus(void) { return controller_status_; }
-
-void setControllerStatus(ControllerStatus status) {
-  controller_status_ = status;
-}
