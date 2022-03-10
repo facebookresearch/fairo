@@ -14,21 +14,6 @@ def cli():
 
 
 def main(*args):
-    cmd_list = [
-        "down",
-        "info",
-        "logs",
-        "ps",
-        "up",
-        "wait",
-    ]
-
-    this_file_path = os.path.dirname(os.path.realpath(__file__))
-    for cmd in cmd_list:
-        path = os.path.join(this_file_path, f"cmd/{cmd}.py")
-        module = SourceFileLoader(cmd, path).load_module()
-        cli.add_command(module.cli, cmd)
-
     try:
         cli(*args)
     except SystemExit as sys_exit:
@@ -39,4 +24,30 @@ def main(*args):
         ) from sys_exit
 
 
-__all__ = ["main", "process", "NoEscape", "Docker", "Conda", "Host"]
+class cmd:
+    pass
+
+
+# Register all commands dynamically into the cli and cmd classes
+# to allow execution directly without cli+argv.
+#
+# TODO(lshamis): Maybe do something similar for runtimes.
+#
+# For example:
+#   fbrp.cmd.up(procs=["foo"])
+#
+#   sys.argv = ["foo"]
+#   fbrp.main()
+
+this_file_path = os.path.dirname(os.path.realpath(__file__))
+cmds_path = os.path.join(this_file_path, "cmd")
+for cmd_file in os.listdir(cmds_path):
+    if not cmd_file.startswith("_") and cmd_file.endswith(".py"):
+        cmd_path = os.path.join(cmds_path, cmd_file)
+        cmd_name = cmd_file[: -len(".py")]
+        module = SourceFileLoader(cmd_name, cmd_path).load_module()
+
+        setattr(cmd, cmd_name, module.cli.callback)
+        cli.add_command(module.cli, cmd_name)
+
+__all__ = ["main", "process", "NoEscape", "Docker", "Conda", "Host", "cmd"]
