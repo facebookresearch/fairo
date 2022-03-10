@@ -363,18 +363,6 @@ class AgentMemory:
         """
         return self.searcher.search(self, query=query)
 
-    ###################
-    ## Logical form ###
-    ###################
-
-    def get_logical_form_by_id(self, memid: str) -> "ProgramNode":
-        """Return ProgramNode, given memid
-
-        Args:
-            memid (string): Memory ID
-        """
-        return ProgramNode(self, memid)
-
     #################
     ###  Players  ###
     #################
