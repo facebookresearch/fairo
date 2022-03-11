@@ -5,6 +5,8 @@
 
 #define MAX_CIRCULAR_BUFFER_SIZE 300000 // 5 minutes of data at 1kHz
 #define MAX_MODEL_BYTES 1048576         // 1 megabyte
+#define THRESHOLD_NS 1000000000         // 1s
+#define SPIN_INTERVAL_USEC 20000        // 0.02s (50hz)
 
 /**
 TODO
@@ -15,6 +17,20 @@ enum ControllerStatus {
   RUNNING,
   TERMINATING,
   TERMINATED
+};
+
+/**
+TODO
+*/
+struct CustomControllerContext {
+  uint episode_begin = -1;
+  uint episode_end = -1;
+  uint timestep = 0;
+  ControllerStatus status = UNINITIALIZED;
+  std::mutex controller_mtx;
+  TorchScriptedController *custom_controller = nullptr;
+
+  ~CustomControllerContext() { delete custom_controller; }
 };
 
 /**
@@ -31,7 +47,8 @@ public:
   ControllerManager(int num_dofs, std::vector<char> &default_controller_buffer);
 
   void controlUpdate(TorchRobotState torch_robot_state,
-                     std::vector<float> desired_torque, std::string &error_msg);
+                     std::vector<float> &desired_torque,
+                     std::string &error_msg);
 
   void setController(std::vector<char> &model_buffer, std::string &error_msg);
 
@@ -50,14 +67,11 @@ private:
   int num_dofs_;
   long int threshold_ns_ = THRESHOLD_NS;
 
-  // Concurrency management
-  ControllerStatus controller_status_;
   std::mutex service_mtx_;
-  std::mutex controller_mutex_;
 
-  // Logging
   CircularBuffer<TorchRobotState> robot_state_buffer_ =
       CircularBuffer<TorchRobotState>(MAX_CIRCULAR_BUFFER_SIZE);
 
-  std::shared_ptr<TorchScriptedController> current_custom_controller_(nullptr);
+  CustomControllerContext custom_controller_context_;
+  RobotClientContext robot_client_context_;
 };
