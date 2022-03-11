@@ -367,18 +367,6 @@ class AgentMemory:
     ###  Players  ###
     #################
 
-    def get_players_tagged(self, *tags) -> List["PlayerNode"]:
-        """Given a list of tags, retrieve all players with the tags
-
-        Args:
-            tags (list): list of tags
-        """
-        tags += ("PLAYER",)
-        memids = set.intersection(
-            *[set(self.nodes["Triple"].get_memids_by_tag(self, t)) for t in tags]
-        )
-        return [self.get_player_by_id(memid) for memid in memids]
-
     def get_player_by_id(self, memid) -> "PlayerNode":
         """Given memid, retrieve PlayerNode
 
