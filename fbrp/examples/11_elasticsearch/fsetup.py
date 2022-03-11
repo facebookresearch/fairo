@@ -72,4 +72,13 @@ fbrp.process(
     ),
 )
 
+# Converts completed AlephZero logfiles into the OpenSearch database.
+fbrp.process(
+    name="a02os_indexer",
+    runtime=fbrp.Conda(
+        dependencies=["python=3.8", {"pip": ["alephzero", "opensearch-py"]}],
+        run_command=["python3", "a02os_indexer.py"],
+    ),
+)
+
 fbrp.main()
