@@ -124,15 +124,11 @@ void TestPcan(std::string device_name) {
     }
   } catch (const std::runtime_error &e) {
     testing::internal::GetCapturedStdout();
-    EXPECT_STREQ(
-        e.what(),
-        "PCAN initialization failed.  Perhaps you need to 'modprobe pcan'?");
+    EXPECT_STREQ(e.what(), "Failed to initialize CAN interface");
   }
 }
 
-TEST(PCAN, BasicFailures) {
-  TestPcan("can0");
-}
+TEST(PCAN, BasicFailures) { TestPcan("bad_can_id"); }
 
 TEST(DigitalFilter, Butter) {
   Eigen::VectorXd a(3);
