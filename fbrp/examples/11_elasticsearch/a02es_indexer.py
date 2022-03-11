@@ -1,6 +1,7 @@
 """Demo AlephZero logs -> ElasticSearch."""
 
 import a0
+import base64
 import elasticsearch
 import json
 import signal
@@ -35,8 +36,7 @@ class A02ES_Indexer:
                 "abspath": abspath,
                 "relpath": relpath,
                 "original_path": original_path,
-                "offset": tlk.frame().off,
-                "payload_size": len(fpkt.payload_view)
+                "payload": base64.b64encode(fpkt.payload_view)
             }
 
             # Add all headers.
