@@ -26,7 +26,10 @@ import sys
     ),
 )
 @click.option("-o", "--old", is_flag=True, default=False)
-def cli(procs=[], old=False):
+def cli(*cmd_procs, procs=[], old=False):
+    # Support procs as *args when using cmd syntax.
+    procs += cmd_procs
+
     # Find all defined processes.
     display_procs = process_def.defined_processes.items()
     # Filter out processes that have no runtime defined.
