@@ -1,15 +1,18 @@
 #!/usr/bin/env python
+import math
+import pickle
+
+import torch
+import scipy.optimize as opt
+import numpy as np
+from numpy.linalg import norm
+
 from polymetis import RobotInterface
 from torchcontrol.transform import Rotation as R
 from torchcontrol.transform import Transformation as T
 # from scipy.spatial.transform import Rotation as R
 # from scipy.spatial.transform import Transformation as T
 
-import torch
-import math
-import scipy.optimize as opt
-import numpy as np
-from numpy.linalg import norm
 np.set_printoptions(linewidth=200)
 
 
@@ -94,7 +97,7 @@ def test_opt(obs_data, gt_param):
     obs_data, gt_param = sim_data(n=10, K=K)
 
     # loss function
-    L = lambda p: data_loss (torch.tensor(p), obs_data, K)
+    L = lambda p: data_loss(torch.tensor(p), obs_data, K)
 
     print('gt_param', gt_param)
 
@@ -158,6 +161,8 @@ def plotdata(obs_data):
 def main():
     K = build_proj_matrix(fx=613.9306030273438,  fy=614.3072713216146, ppx=322.1438802083333, ppy=241.59906514485678)
     obs_data, gt_param = sim_data(n=100, K=K)
+
+    import pdb; pdb.set_trace()
     plotdata(obs_data)
     test_opt(obs_data, gt_param)
 

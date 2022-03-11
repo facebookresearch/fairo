@@ -76,7 +76,7 @@ class CameraModule:
                     corner,
                     length,
                     self._intrinsics2matrix(self.intrinsics),
-                    self.intrinsics.coeffs,
+                    np.array(self.intrinsics.coeffs),
                 )
                 r = rvecs[0].squeeze()
                 t = tvecs[0].squeeze()

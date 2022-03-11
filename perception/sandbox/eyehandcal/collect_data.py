@@ -81,8 +81,9 @@ def robot_poses(ip_address):
             print(f"Length of state_log: {len(state_log)}")
             if len(state_log) == time_to_go * robot.hz:
                 pos, quat = robot.get_ee_pose()
-                print(f"Current pose  pos={pos}, quat={quat}")
-                yield pos, quat
+                joint_angles = robot.get_joint_positions()
+                print(f"Current pose  pos={pos}, quat={quat}, joint_angles={joint_angles}")
+                yield pos, quat, joint_angles
                 break
             else:
                 print(f"State log incorrect length. Trying again...")
@@ -90,15 +91,16 @@ def robot_poses(ip_address):
 
 if __name__ == "__main__":
     data = []
-    ip_address = "192.168.1.65"
+    ip_address = "192.168.0.242"
     poses = robot_poses(ip_address)
     images = realsense_images()
-    for i, ((pos, ori), (imgs, intrinsics)) in enumerate(zip(poses, images)):
+    for i, ((pos, ori, joint_angles), (imgs, intrinsics)) in enumerate(zip(poses, images)):
         cv2.imwrite(f'debug/debug_{i}.jpg', imgs[0])
         data.append({
             'pos': pos,
             'ori': ori,
             'imgs': imgs,
+            'joint_angles': joint_angles,
             'intrinsics': intrinsics
         })
     
