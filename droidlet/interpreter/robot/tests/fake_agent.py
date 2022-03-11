@@ -503,8 +503,8 @@ class FakeAgent(DroidletAgent):
         for raw_chatstr in self.world.chat_log[c:]:
             match = re.search("^<([^>]+)> (.*)", raw_chatstr)
             speaker_name = match.group(1)
-            _, memnode = self.memory.basic_search(
-                f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player and name={speaker_name}"
+            memid, memnode = self.memory.basic_search(
+                f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker_name}"
             )
             if len(memnode) == 0:
                 # FIXME! name used as eid
