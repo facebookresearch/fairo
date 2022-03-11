@@ -367,22 +367,6 @@ class AgentMemory:
     ###  Players  ###
     #################
 
-    # TODO get all if there are more than one?
-    def get_player_by_name(self, name) -> Optional["PlayerNode"]:
-        """Given player name, retrieve PlayerNode
-
-        Args:
-            name (string): Player name
-        """
-        r = self._db_read_one(
-            'SELECT uuid FROM ReferenceObjects WHERE ref_type="player" AND name=?', name
-        )
-        #        r = self._db_read_one("SELECT uuid FROM Players WHERE name=?", name)
-        if r:
-            return PlayerNode(self, r[0])
-        else:
-            return None
-
     def get_players_tagged(self, *tags) -> List["PlayerNode"]:
         """Given a list of tags, retrieve all players with the tags
 

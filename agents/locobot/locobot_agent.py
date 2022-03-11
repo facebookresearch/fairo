@@ -284,7 +284,8 @@ class LocobotAgent(DroidletAgent):
             self.mover = HelloRobotMover(ip=self.opts.ip)
 
     def get_player_struct_by_name(self, speaker_name):
-        p = self.memory.get_player_by_name(speaker_name)
+        _, memnode = self.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker_name}')
+        p = memnode[0] if len(memnode)==1 else None
         if p:
             return p.get_struct()
         else:
@@ -297,7 +298,8 @@ class LocobotAgent(DroidletAgent):
         all_chats = []
         speaker_name = "dashboard"
         if self.dashboard_chat is not None:
-            if not self.memory.get_player_by_name(speaker_name):
+            memids, _ = self.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker_name}')
+            if len(memids)==0:
                 PlayerNode.create(
                     self.memory,
                     to_player_struct((None, None, None), None, None, None, speaker_name),

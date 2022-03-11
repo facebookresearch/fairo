@@ -195,7 +195,10 @@ def handle_replace(interpreter, speaker, modify_dict, obj, block_data, color_bid
         elif reldir == "BOTTOM":
             reldir = "DOWN"
         reldir_vec = rotation.DIRECTIONS[reldir]
-        player_mem = interpreter.memory.get_player_by_name(speaker)
+        _, result_mem = interpreter.memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}"
+        )
+        player_mem = result_mem[0] if len(result_mem) == 1 else None
         yaw, pitch = player_mem.get_yaw_pitch()
         dir_vec = rotation.transform(reldir_vec, yaw, 0, inverted=True)
         geometry["v"] = dir_vec

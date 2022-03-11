@@ -36,7 +36,11 @@ class BasicTest(unittest.TestCase):
         ]
         # test update_other_players
         self.memory.update_other_players(player_list)
-        assert self.memory.get_player_by_name("xyz").pos == (1.0, 1.0, 1.0)
+        _, memnode = self.memory.basic_search(
+            "SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name=xyz"
+        )
+        assert len(memnode) == 1
+        assert memnode[0].pos == (1.0, 1.0, 1.0)
         assert (
             self.memory.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self.memory, 10).name
             == "abc"

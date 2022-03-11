@@ -12,7 +12,7 @@ from droidlet.dialog.dialogue_task import ConfirmReferenceObject
 from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
-from droidlet.memory.memory_nodes import ReferenceObjectNode
+from droidlet.memory.memory_nodes import ReferenceObjectNode, TaskNode
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 from .interpret_filters import interpret_selector
 
@@ -23,7 +23,10 @@ def get_eid_from_special(agent_memory, S="AGENT", speaker=None):
     if S == "SPEAKER_LOOK" or S == "SPEAKER":
         if not speaker:
             raise Exception("Asked for speakers memid but did not give speaker name")
-        eid = agent_memory.get_player_by_name(speaker).eid
+        _, memnode = agent_memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}"
+        )
+        eid = memnode[0].eid
     # FIXME both of these seem to appear in lfs, probably just want one of them?
     elif S == "AGENT" or S == "SELF":
         eid = agent_memory.get_mem_by_id(agent_memory.self_memid).eid
@@ -210,6 +213,7 @@ def interpret_reference_object(
             )
             task_egg = {"class": ConfirmReferenceObject, "task_data": {"reference_object": mem}}
             cmemid = TaskNode.create(interpreter.memory, task_egg)
+            # FIXME this self refers to nothing
             interpreter.memory.nodes["Triple"].create(
                 interpreter.memory,
                 subj=cmemid,
@@ -230,6 +234,7 @@ def interpret_reference_object(
         _, r = interpreter.memory.basic_search(query)
         if r and r[0] == "yes":
             # TODO: learn from the tag!  put it in memory!
+            # FIXME there is a dangling "self" here
             query = "SELECT MEMORY FROM ReferenceObject WHERE << {}, reference_object_confirmation, ?>>".format(
                 self.memid
             )
@@ -305,7 +310,10 @@ def filter_by_sublocation(
 
             # FIXME!!! handle frame better, might want agent's frame instead
             # FIXME use the subinterpreter, don't directly call the attribute
-            eid = interpreter.memory.get_player_by_name(speaker).eid
+            _, memnode = interpreter.memory.basic_search(
+                f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}"
+            )
+            eid = memnode[0].eid
             self_mem = interpreter.memory.get_mem_by_id(interpreter.memory.self_memid)
             L = LinearExtentAttribute(
                 interpreter.memory, {"frame": eid, "relative_direction": reldir}, mem=self_mem
@@ -370,7 +378,10 @@ def object_looked_at(
         return []
     assert eid or speaker
     if not eid:
-        eid = memory.get_player_by_name(speaker).eid
+        _, memnode = memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}"
+        )
+        eid = memnode[0].eid
     # TODO wrap in try/catch, handle failures in finding speaker or not having speakers LOS
     xsect = capped_line_of_sight(memory, eid=eid, cap=25)
     _, mems = memory.basic_search("SELECT MEMORY FROM Player WHERE eid={}".format(eid))
@@ -420,7 +431,10 @@ def capped_line_of_sight(memory, speaker=None, eid=None, cap=20):
 
     assert eid or speaker
     if not eid:
-        eid = memory.get_player_by_name(speaker).eid
+        _, memnode = memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}"
+        )
+        eid = memnode[0].eid
 
     xsect_mem = get_special_reference_object(
         None, speaker, "SPEAKER_LOOK", agent_memory=memory, eid=eid

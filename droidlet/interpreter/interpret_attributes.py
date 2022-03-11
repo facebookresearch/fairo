@@ -110,7 +110,10 @@ def interpret_linear_extent(interpreter, speaker, d, force_value=False):
     if frame == "AGENT":
         location_data["frame"] = "AGENT"
     else:
-        p = interpreter.memory.get_player_by_name(frame)
+        _, memnode = interpreter.memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={frame}"
+        )
+        p = memnode[0] if len(memnode) == 1 else None
         if p:
             location_data["frame"] = p.eid
         else:

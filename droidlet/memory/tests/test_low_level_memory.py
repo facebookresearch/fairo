@@ -346,8 +346,12 @@ class BasicTest(unittest.TestCase):
             == "joey"
         )
 
-        # Test get_player_by_name
-        assert self.memory.get_player_by_name("joey").eid == 10
+        # Test basic_search to get player by name
+        memid, memnode = self.memory.basic_search(
+            "SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name=joey"
+        )
+        assert len(memnode) == 1
+        assert memnode[0].eid == 10
 
         # Test get_players_tagged
 
