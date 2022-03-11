@@ -341,6 +341,11 @@
    </strong>
   </a>
  </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#using-the-allegro-hand-client">
+   Using the Allegro Hand Client
+  </a>
+ </li>
 </ul>
 
             </nav>
@@ -410,6 +415,11 @@
    </strong>
   </a>
  </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#using-the-allegro-hand-client">
+   Using the Allegro Hand Client
+  </a>
+ </li>
 </ul>
 
                         </nav>
@@ -473,6 +483,26 @@ launch_robot.py <span class="nv">robot_client</span><span class="o">=</span>fran
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launch_gripper.py <span class="nv">gripper</span><span class="o">=</span>robotiq_2f gripper.comport<span class="o">=</span>/dev/ttyUSB1
 </pre></div>
 </div>
+</div>
+<div class="section" id="using-the-allegro-hand-client">
+<h2>Using the Allegro Hand Client<a class="headerlink" href="#using-the-allegro-hand-client" title="Permalink to this headline">¶</a></h2>
+<p>The Allegro Hand client communicates using the SocketCAN interface which is included with modern Linux kernels.
+Before starting the Allegro Hand client you must configure your CAN netdev interface and specify the CAN bus network interface name in the <code class="docutils literal notranslate"><span class="pre">allegro_hardware.yaml</span></code> configuration file.</p>
+<p>One way to configure the CAN netdev interface is:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo ip link <span class="nb">set</span> can0 <span class="nb">type</span> can bitrate <span class="m">1000000</span>
+sudo ip link <span class="nb">set</span> can0 up
+</pre></div>
+</div>
+<p>you can use the command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ip link ls 
+</pre></div>
+</div>
+<p>to check the names of the available CAN interfaces in your system.</p>
+<p>To launch the Allegro Hand client run the command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launch_robot.py <span class="nv">robot_client</span><span class="o">=</span>allegro_hardware <span class="nv">robot_model</span><span class="o">=</span>allegro_hand
+</pre></div>
+</div>
+<p><em>Note:</em> if you previously installed the PEAK pcan kernel modules for libpcanbasic, the SocketCAN drivers have likely been blocklisted.  On Ubuntu systems you can undo this by commenting out all lines in the file <code class="docutils literal notranslate"><span class="pre">/etc/modprobe.d/blacklist-peak.conf</span> </code></p>
 </div>
 </div>
 
