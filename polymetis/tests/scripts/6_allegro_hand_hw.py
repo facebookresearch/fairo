@@ -15,12 +15,9 @@ if __name__ == "__main__":
         ip_address="localhost",
     )
 
-    # Get metadata
-    num_dofs = robot.metadata.robot_model_cfg.num_dofs
-
     # Get joint positions
     joint_pos = robot.get_joint_positions()
-    assert len(joint_pos) == num_dofs
+    num_dofs = len(joint_pos)
 
     # Go home
     robot.go_home()
