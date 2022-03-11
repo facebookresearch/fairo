@@ -96,9 +96,15 @@ void AllegroHandTorqueControlClient::run() {
   int recovery_attempts = 0;
   allegro_hand_ptr_->setServoEnable(true);
   allegro_hand_ptr_->requestStatus();
+  PeriodicEvent statdump_event(60);
   while (recovery_attempts < RECOVERY_MAX_TRIES) {
     try {
       while (true) {
+        if (statdump_event) {
+          std::ostringstream log_writer;
+          log_writer << std::endl << gEventWatcher;
+          spdlog::info(log_writer.str());
+        }
         while (!allegro_hand_ptr_->allStatesUpdated()) {
           int finger = allegro_hand_ptr_->poll();
           if (finger >= 0) {

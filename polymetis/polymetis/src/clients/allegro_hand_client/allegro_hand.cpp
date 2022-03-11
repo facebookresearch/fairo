@@ -149,7 +149,7 @@ int AllegroHandImpl::poll() {
       gEventWatcher.observe("temp_msg_recv");
       break;
     default:
-      printf("Unknown ID: %x\n", message_id);
+      spdlog::warn("Unknown CAN message ID: {:X}", message_id);
       break;
     }
   } else {
@@ -169,12 +169,10 @@ bool AllegroHandImpl::allStatesUpdated() const {
 
 void AllegroHandImpl::sendTorque(int finger) {
   int16_t finger_torques[kNJoint];
-  for (int finger = 0; finger < kNFinger; finger++) {
-    for (int joint = 0; joint < kNJoint; joint++) {
-      finger_torques[joint] = torques_[finger * kNJoint + joint] * kTorqueMax;
-    }
-    send(ALLEGRO_MSG_ID_SET_TORQUE + finger, 8, finger_torques);
+  for (int joint = 0; joint < kNJoint; joint++) {
+    finger_torques[joint] = torques_[finger * kNJoint + joint] * kTorqueMax;
   }
+  send(ALLEGRO_MSG_ID_SET_TORQUE + finger, 8, finger_torques);
 }
 
 double *AllegroHandImpl::getPositions() { return position_; }

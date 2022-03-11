@@ -10,14 +10,17 @@ robot_client:
   use_real_time: ${use_real_time}
   metadata_cfg:
     _target_: polymetis.robot_client.metadata.RobotClientMetadata
-    default_Kq: [ 3, 6, 3, 3, 6, 3, 3,3, 6, 3, 3, 3, 6, 3, 3, 3]
-    default_Kqd: [.1, .1, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06]
-    default_Kx: [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    default_Kxd: [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    default_Kq: [ 3, 6, 3, 3, 6, 3, 3,3, 6, 3, 3, 3, 6, 3, 3, 3 ]
+    default_Kqd: [ .1, .1, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06 ]
+    default_Kx: [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+    default_Kxd: [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
     hz: ${hz}
     robot_model_cfg: ${robot_model}
   executable_cfg:
     can_bus: can0
+    control_ip: ${ip}
+    control_port: ${port}
+
     readonly: false
     mock: false
     hz: ${hz}

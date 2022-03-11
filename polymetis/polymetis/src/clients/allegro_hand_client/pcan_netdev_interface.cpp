@@ -41,7 +41,7 @@ void PcanInterface::initialize() {
   }
 
   strcpy(ifr.ifr_name, device_id_.c_str());
-  if(ioctl(socket_, SIOCGIFINDEX, &ifr) == -1) {
+  if (ioctl(socket_, SIOCGIFINDEX, &ifr) == -1) {
     spdlog::warn("Trouble finding CAN bus {}: {}", device_id_, strerror(errno));
     throw std::runtime_error("Failed to initialize CAN interface");
   };
@@ -71,15 +71,19 @@ void PcanInterface::initialize() {
 bool PcanInterface::readPcan(can_frame *msg) {
   int result = read(socket_, msg, sizeof(struct can_frame));
 
-  if (result == -1 && errno != EAGAIN) {
-    throw std::runtime_error("Error reading CAN socket:" +
-                             std::string(strerror(errno)));
+  if (result == -1) {
+    if (errno != EAGAIN) {
+      throw std::runtime_error("Error reading CAN socket:" +
+                               std::string(strerror(errno)));
+    }
+    return false;
   }
-  if (result < sizeof(can_frame)) {
+
+  if (result != sizeof(can_frame)) {
     throw std::runtime_error("Read incomplete CAN frame.");
   }
 
-  if (msg->can_id | CAN_ERR_FLAG) {
+  if (msg->can_id & CAN_ERR_FLAG) {
     printMsg(*msg);
     spdlog::error("Recieved CAN error.");
     return false;
@@ -97,5 +101,5 @@ bool PcanInterface::writePcan(const can_frame &msg) {
 }
 
 void PcanInterface::printMsg(const can_frame &msg) {
-  spdlog::warn("msg: {:x}, {}", msg.can_id, msg.can_dlc);
+  spdlog::warn("msg: {:X}, {}", msg.can_id, msg.can_dlc);
 }
