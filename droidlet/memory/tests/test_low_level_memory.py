@@ -336,7 +336,9 @@ class BasicTest(unittest.TestCase):
     def test_player_apis_memory(self):
         self.memory = AgentMemory()
         joe_memid = PlayerNode.create(self.memory, Player(10, "joey", Pos(1, 0, 1), Look(0, 0)))
-        self.memory.nodes["Triple"].tag(self.memory, subj_memid=joe_memid, tag_text="basketball_player")
+        self.memory.nodes["Triple"].tag(
+            self.memory, subj_memid=joe_memid, tag_text="basketball_player"
+        )
         ann_memid = PlayerNode.create(self.memory, Player(20, "ann", Pos(1, 0, 4), Look(0, 0)))
         self.memory.nodes["Triple"].tag(self.memory, subj_memid=ann_memid, tag_text="swimmer")
 
@@ -354,10 +356,14 @@ class BasicTest(unittest.TestCase):
         assert memnode[0].eid == 10
 
         # Test get_players_tagged
-        p_id, p_nodes = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND has_tag=basketball_player")
+        p_id, p_nodes = self.memory.basic_search(
+            "SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND has_tag=basketball_player"
+        )
         assert len(p_id) == len(p_nodes) == 1
         assert p_nodes[0].eid == 10
-        p_id, p_nodes = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND has_tag=swimmer")
+        p_id, p_nodes = self.memory.basic_search(
+            "SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND has_tag=swimmer"
+        )
         assert len(p_id) == len(p_nodes) == 1
         assert p_nodes[0].eid == 20
 
