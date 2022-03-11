@@ -39,12 +39,12 @@ def base_distance(x, y):
 # TODO move this to "reasoning"
 # THIS NEEDS TO BE REWRITTEN TO MATCH LOCOBOT
 def object_looked_at(
-        agent,
-        candidates: Sequence[Tuple[XYZ, T]],
-        player_struct,
-        limit=1,
-        max_distance=30,
-        loose=False,
+    agent,
+    candidates: Sequence[Tuple[XYZ, T]],
+    player_struct,
+    limit=1,
+    max_distance=30,
+    loose=False,
 ) -> List[Tuple[XYZ, T]]:
     """Return the object that `player` is looking at.
 
@@ -90,7 +90,7 @@ def object_looked_at(
             (p, o, r)
             for (p, o, r) in candidates_
             if xsect in getattr(o, "blocks", {})
-               or r @ FRONT > ((r @ LEFT) ** 2 + (r @ UP) ** 2) ** 0.5
+            or r @ FRONT > ((r @ LEFT) ** 2 + (r @ UP) ** 2) ** 0.5
         ]
 
     # if looking directly at an object, sort by proximity to look intersection

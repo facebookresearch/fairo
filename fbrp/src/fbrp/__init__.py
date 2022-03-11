@@ -1,7 +1,7 @@
-from fbrp.cmd._common import CommonFlags
-from fbrp.process import process
+from fbrp.process_def import process
 from fbrp.runtime.conda import Conda
 from fbrp.runtime.docker import Docker
+from fbrp.runtime.host import Host
 from fbrp.util import NoEscape
 from importlib.machinery import SourceFileLoader
 import click
@@ -9,12 +9,11 @@ import os
 
 
 @click.group()
-@click.option("-v/-q", "--verbose/--quiet", is_flag=True, default=False)
-def cli(verbose):
-    CommonFlags.verbose = verbose
+def cli():
+    pass
 
 
-def main():
+def main(*args):
     cmd_list = [
         "down",
         "info",
@@ -30,7 +29,14 @@ def main():
         module = SourceFileLoader(cmd, path).load_module()
         cli.add_command(module.cli, cmd)
 
-    cli()
+    try:
+        cli(*args)
+    except SystemExit as sys_exit:
+        if sys_exit.code == 0:
+            return
+        raise RuntimeError(
+            f"fbrp.main failed with exit code {sys_exit.code}"
+        ) from sys_exit
 
 
-__all__ = ["main", "process", "NoEscape", "Docker", "Conda"]
+__all__ = ["main", "process", "NoEscape", "Docker", "Conda", "Host"]

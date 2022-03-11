@@ -84,7 +84,7 @@ def register_dashboard_subdomain(cf, zone_id, ip):
     dns_record_exists = True
     # Check that DNS record does not already exist
     while dns_record_exists:
-        subdomain_name = "dashboard-{}".format(randint(0, 10 ** 9))
+        subdomain_name = "dashboard-{}".format(randint(0, 10**9))
         dns_record_exists = cf.zones.dns_records.get(
             zone_id, params={"name": "{}.craftassist.io".format(subdomain_name)}
         )
