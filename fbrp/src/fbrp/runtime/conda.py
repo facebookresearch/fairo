@@ -136,7 +136,6 @@ class Launcher(BaseLauncher):
             pass
 
     async def run(self):
-        life_cycle.set_state(self.name, life_cycle.State.STARTING)
         conda_env = await self.activate_conda_envvar()
         await self.run_cmd_with_envvar(conda_env)
         life_cycle.set_state(self.name, life_cycle.State.STARTED)

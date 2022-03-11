@@ -38,7 +38,7 @@ def process(
     cfg: dict = {},
     deps: typing.List[str] = [],
     env: dict = {},
-):
+) -> ProcDef:
     if name in defined_processes:
         raise ValueError(f"fbrp.process({name=}) defined multiple times.")
 
@@ -64,3 +64,5 @@ def process(
         rule_file=rule_file,
         env=env,
     )
+
+    return defined_processes[name]

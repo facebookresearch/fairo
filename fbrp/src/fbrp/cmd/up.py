@@ -93,7 +93,7 @@ def down_existing(names: typing.List[str], force: bool):
 @click.option("--run/--norun", is_flag=True, default=True)
 @click.option("-f", "--force/--noforce", is_flag=True, default=False)
 @click.option("--reset_logs", is_flag=True, default=False)
-def cli(procs, verbose, deps, build, run, force, reset_logs):
+def cli(procs=[], verbose=True, deps=True, build=True, run=True, force=False, reset_logs=False):
     names = get_proc_names(procs, deps)
     names = [name for name in names if process_def.defined_processes[name].runtime]
     if not names:
@@ -116,6 +116,7 @@ def cli(procs, verbose, deps, build, run, force, reset_logs):
         for name in names:
             print(f"running {name}...")
             life_cycle.set_ask(name, life_cycle.Ask.UP)
+            life_cycle.set_state(name, life_cycle.State.STARTING)
 
             if os.fork() != 0:
                 continue

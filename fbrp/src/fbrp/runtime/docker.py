@@ -84,7 +84,6 @@ class Launcher(BaseLauncher):
         }
         util.nested_dict_update(run_kwargs, self.kwargs)
 
-        life_cycle.set_state(self.name, life_cycle.State.STARTING)
         docker = aiodocker.Docker()
 
         try:
