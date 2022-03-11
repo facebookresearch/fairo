@@ -14,70 +14,100 @@ ControllerManager::ControllerManager(
 
 // Interface methods
 
-void ControllerManager::controlUpdate(TorchRobotState *torch_robot_state,
-                                      std::vector<float> desired_torque,
-                                      std::string &error_msg);
-// Check if last update is stale
-if (!validRobotContext()) {
-  spdlog::warn("Interrupted control update greater than threshold of {} ns. "
-               "Reverting to default controller...",
-               threshold_ns_);
-  controller_status_ = TERMINATING;
-}
-
-// Lock to prevent 1) controller updates while controller is running; 2)
-// external termination during controller selection, which might cause loading
-// of a uninitialized default controller
-controller_mtx_.lock();
-
-// Update episode markers
-if (status_ == READY) {
-  // First step of episode: update episode marker
-  controller_status_ = RUNNING;
-
-} else if (status_ == TERMINATING) {
-  // Last step of episode: update episode marker & reset default controller
-  controller_status_ = TERMINATED;
-  default_controller_->reset();
-
-  spdlog::info(
-      "Terminating custom controller, switching to default controller.");
-}
-
-// Select controller
-std::shared_ptr<TorchScriptedController> controller(nullptr);
-if (custom_controller_context_.status == RUNNING) {
-  controller = current_custom_controller_;
-} else {
-  controller = default_controller_;
-}
-std::vector<float> desired_torque;
-try {
-  desired_torque = controller->forward(*torch_robot_state_);
-} catch (const std::exception &e) {
-  controller_mtx_.unlock();
-  error_msg =
-      "Failed to run controller forward function: " + std::string(e.what());
-  spdlog::error(error_msg);
-  return;
-}
-
-// Unlock
-controller_mtx_.unlock();
-for (int i = 0; i < num_dofs_; i++) {
-  torque_command->add_joint_torques(desired_torque[i]);
-}
-setTimestampToNow(torque_command->mutable_timestamp());
-
-// Update timestep & check termination
-if (controller_status_ == RUNNING) {
-  if (controller->is_terminated()) {
-    controller_status_ = TERMINATING;
+void ControllerManager::controlUpdate(const RobotState *robot_state,
+                                      std::vector<float> &desired_torque,
+                                      std::string &error_msg) {
+  // Check if last update is stale
+  if (!validRobotContext()) {
+    spdlog::warn("Interrupted control update greater than threshold of {} ns. "
+                 "Reverting to default controller...",
+                 threshold_ns_);
+    custom_controller_context_.status = TERMINATING;
   }
-}
+
+  // Parse robot state
+  torch_robot_state_->update_state(
+      robot_state->timestamp().seconds(), robot_state->timestamp().nanos(),
+      std::vector<float>(robot_state->joint_positions().begin(),
+                          robot_state->joint_positions().end()),
+      std::vector<float>(robot_state->joint_velocities().begin(),
+                         robot_state->joint_velocities().end()),
+      std::vector<float>(robot_state->motor_torques_measured().begin(),
+                         robot_state->motor_torques_measured().end()),
+      std::vector<float>(robot_state->motor_torques_external().begin(),
+                         robot_state->motor_torques_external().end()));
+
+  // Lock to prevent 1) controller updates while controller is running; 2)
+  // external termination during controller selection, which might cause loading
+  // of a uninitialized default controller
+  custom_controller_context_.controller_mtx.lock();
+
+  // Update episode markers
+  if (custom_controller_context_.status == READY) {
+    // First step of episode: update episode marker
+    custom_controller_context_.episode_begin = robot_state_buffer_.size();
+    custom_controller_context_.status = RUNNING;
+
+  } else if (custom_controller_context_.status == TERMINATING) {
+    // Last step of episode: update episode marker & reset default controller
+    custom_controller_context_.episode_end = robot_state_buffer_.size() - 1;
+    custom_controller_context_.status = TERMINATED;
+
+    robot_client_context_.default_controller->reset();
+
+    spdlog::info(
+        "Terminating custom controller, switching to default controller.");
+  }
+
+  // Select controller
+  TorchScriptedController *controller;
+  if (custom_controller_context_.status == RUNNING) {
+    controller = custom_controller_context_.custom_controller;
+  } else {
+    controller = robot_client_context_.default_controller;
+  }
+  try {
+    desired_torque = controller->forward(*torch_robot_state_);
+  } catch (const std::exception &e) {
+    custom_controller_context_.controller_mtx.unlock();
+    error_msg =
+        "Failed to run controller forward function: " + std::string(e.what());
+    spdlog::error(error_msg);
+    return;
+  }
+
+  // Unlock
+  custom_controller_context_.controller_mtx.unlock();
+  for (int i = 0; i < num_dofs_; i++) {
+    torque_command->add_joint_torques(desired_torque[i]);
+  }
+  setTimestampToNow(torque_command->mutable_timestamp());
+
+  // Record robot state
+  RobotState robot_state_copy(*robot_state);
+  for (int i = 0; i < num_dofs_; i++) {
+    robot_state_copy.add_joint_torques_computed(
+        torque_command->joint_torques(i));
+  }
+  robot_state_buffer_.append(robot_state_copy);
+
+  // Update timestep & check termination
+  if (custom_controller_context_.status == RUNNING) {
+    custom_controller_context_.timestep++;
+    if (controller->is_terminated()) {
+      custom_controller_context_.status = TERMINATING;
+    }
+  }
+
+  robot_client_context_.last_update_ns = getNanoseconds();
 }
 
 void ControllerManger::setController(std::string &error_msg) {
+  std::lock_guard<std::mutex> service_lock(service_mtx_);
+
+  interval->set_start(-1);
+  interval->set_end(-1);
+
   try {
     // Load new controller
     auto new_controller = std::make_shared<TorchScriptedController>(

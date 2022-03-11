@@ -162,11 +162,6 @@ private:
   std::vector<char> controller_model_buffer_; // buffer for loading controllers
   std::vector<char>
       updates_model_buffer_; // buffer for loading controller update params
-  int num_dofs_;
-  long int threshold_ns_ = THRESHOLD_NS;
-
-  std::mutex service_mtx_;
-
   CircularBuffer<RobotState> robot_state_buffer_ =
       CircularBuffer<RobotState>(MAX_CIRCULAR_BUFFER_SIZE);
 

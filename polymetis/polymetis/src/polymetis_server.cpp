@@ -14,18 +14,18 @@ PolymetisControllerServerImpl::PolymetisControllerServerImpl() {
 Status PolymetisControllerServerImpl::GetRobotState(ServerContext *context,
                                                     const Empty *,
                                                     RobotState *robot_state) {
-  *robot_state = *robot_state_buffer_.get(robot_state_buffer_.size() - 1);
+  controller_manager_.getRobotState(robot_state);
   return Status::OK;
 }
 
 Status PolymetisControllerServerImpl::GetRobotClientMetadata(
     ServerContext *context, const Empty *, RobotClientMetadata *metadata) {
-  if (!validRobotContext()) {
-    return Status(
-        StatusCode::CANCELLED,
-        "Robot context not valid when calling GetRobotClientMetadata!");
+  std::string error_msg;
+  controller_manager_.GetRobotClientMetadata(metadata, error_msg);
+
+  if (error_msg) {
+    return Status(StatusCode::CANCELLED, error_msg);
   }
-  *metadata = robot_client_context_.metadata;
   return Status::OK;
 }
 
@@ -90,8 +90,7 @@ Status PolymetisControllerServerImpl::InitRobotClient(
   // Load default controller from model buffer
   try {
     robot_client_context_.default_controller = new TorchScriptedController(
-        controller_model_buffer_.data(), controller_model_buffer_.size(),
-        *torch_robot_state_);
+        controller_model_buffer_.data(), controller_model_buffer_.size());
   } catch (const std::exception &e) {
     std::string error_msg =
         "Failed to load default controller: " + std::string(e.what());
@@ -130,90 +129,13 @@ Status
 PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
                                              const RobotState *robot_state,
                                              TorqueCommand *torque_command) {
-  // Check if last update is stale
-  if (!validRobotContext()) {
-    spdlog::warn("Interrupted control update greater than threshold of {} ns. "
-                 "Reverting to default controller...",
-                 threshold_ns_);
-    custom_controller_context_.status = TERMINATING;
-  }
+  std::string error_msg;
+  controller_manager_.controlUpdate(robot_state, error_msg);
 
-  // Parse robot state
-  torch_robot_state_->update_state(
-      robot_state->timestamp().seconds(), robot_state->timestamp().nanos(),
-      std::vector<float>(robot_state->joint_positions().begin(),
-                         robot_state->joint_positions().end()),
-      std::vector<float>(robot_state->joint_velocities().begin(),
-                         robot_state->joint_velocities().end()),
-      std::vector<float>(robot_state->motor_torques_measured().begin(),
-                         robot_state->motor_torques_measured().end()),
-      std::vector<float>(robot_state->motor_torques_external().begin(),
-                         robot_state->motor_torques_external().end()));
-
-  // Lock to prevent 1) controller updates while controller is running; 2)
-  // external termination during controller selection, which might cause loading
-  // of a uninitialized default controller
-  custom_controller_context_.controller_mtx.lock();
-
-  // Update episode markers
-  if (custom_controller_context_.status == READY) {
-    // First step of episode: update episode marker
-    custom_controller_context_.episode_begin = robot_state_buffer_.size();
-    custom_controller_context_.status = RUNNING;
-
-  } else if (custom_controller_context_.status == TERMINATING) {
-    // Last step of episode: update episode marker & reset default controller
-    custom_controller_context_.episode_end = robot_state_buffer_.size() - 1;
-    custom_controller_context_.status = TERMINATED;
-
-    robot_client_context_.default_controller->reset();
-
-    spdlog::info(
-        "Terminating custom controller, switching to default controller.");
-  }
-
-  // Select controller
-  TorchScriptedController *controller;
-  if (custom_controller_context_.status == RUNNING) {
-    controller = custom_controller_context_.custom_controller;
-  } else {
-    controller = robot_client_context_.default_controller;
-  }
-  std::vector<float> desired_torque;
-  try {
-    desired_torque = controller->forward(*torch_robot_state_);
-  } catch (const std::exception &e) {
-    custom_controller_context_.controller_mtx.unlock();
-    std::string error_msg =
-        "Failed to run controller forward function: " + std::string(e.what());
+  if (error_msg) {
     spdlog::error(error_msg);
     return Status(StatusCode::CANCELLED, error_msg);
   }
-
-  // Unlock
-  custom_controller_context_.controller_mtx.unlock();
-  for (int i = 0; i < num_dofs_; i++) {
-    torque_command->add_joint_torques(desired_torque[i]);
-  }
-  setTimestampToNow(torque_command->mutable_timestamp());
-
-  // Record robot state
-  RobotState robot_state_copy(*robot_state);
-  for (int i = 0; i < num_dofs_; i++) {
-    robot_state_copy.add_joint_torques_computed(
-        torque_command->joint_torques(i));
-  }
-  robot_state_buffer_.append(robot_state_copy);
-
-  // Update timestep & check termination
-  if (custom_controller_context_.status == RUNNING) {
-    custom_controller_context_.timestep++;
-    if (controller->is_terminated()) {
-      custom_controller_context_.status = TERMINATING;
-    }
-  }
-
-  robot_client_context_.last_update_ns = getNanoseconds();
 
   return Status::OK;
 }
@@ -241,8 +163,7 @@ Status PolymetisControllerServerImpl::SetController(
   try {
     // Load new controller
     auto new_controller = new TorchScriptedController(
-        controller_model_buffer_.data(), controller_model_buffer_.size(),
-        *torch_robot_state_);
+        controller_model_buffer_.data(), controller_model_buffer_.size());
 
     // Switch in new controller by updating controller context
     custom_controller_context_.controller_mtx.lock();
