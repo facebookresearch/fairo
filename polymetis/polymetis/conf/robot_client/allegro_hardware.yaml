@@ -1,0 +1,32 @@
+hz: 300
+use_real_time: false
+exec: allegro_hand_client
+
+control_port: 50051
+control_ip: 0.0.0.0
+
+robot_client:
+  _target_: polymetis.robot_client.executable_robot_client.ExecutableRobotClient
+  use_real_time: ${use_real_time}
+  metadata_cfg:
+    _target_: polymetis.robot_client.metadata.RobotClientMetadata
+    default_Kq: [ 3, 6, 3, 3, 6, 3, 3,3, 6, 3, 3, 3, 6, 3, 3, 3 ]
+    default_Kqd: [ .1, .1, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06, .06 ]
+    default_Kx: [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+    default_Kxd: [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ]
+    hz: ${hz}
+    robot_model_cfg: ${robot_model}
+  executable_cfg:
+    can_bus: can0
+    control_ip: ${ip}
+    control_port: ${port}
+
+    readonly: false
+    mock: false
+    hz: ${hz}
+    exec: ${exec}
+    robot_client_metadata_path: ???
+    velocity_filter:
+      A: [ 1.000000000000000,  -1.561018075800718,   0.641351538057563 ]
+      B: [ 0.0200833655642112,   0.0401667311284225,   0.0200833655642112 ]
+      dt: .003

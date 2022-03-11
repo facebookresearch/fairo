@@ -26,7 +26,7 @@ import sys
     ),
 )
 @click.option("-o", "--old", is_flag=True, default=False)
-def cli(procs, old):
+def cli(procs=[], old=False):
     # Find all defined processes.
     display_procs = process_def.defined_processes.items()
     # Filter out processes that have no runtime defined.

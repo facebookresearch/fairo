@@ -113,9 +113,9 @@ class TestLauncher(IsolatedAsyncioTestCase):
         mock_activate_conda_env.assert_called_once()
         mock_run_cmd_with_envvar.assert_called_once()
         mock_gather_cmd_outputs.assert_called_once()
-        assert mock_set_state.call_count == 2
+        assert mock_set_state.call_count == 1
         mock_set_state.assert_has_calls(
-            [call("test_conda", State.STARTING), call("test_conda", State.STARTED)]
+            [call("test_conda", State.STARTED)]
         )
 
 
