@@ -35,7 +35,7 @@ if [ "$BUILD_FRANKA" == "ON" ]; then
         -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=$PREFIX/lib \
         -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=$PREFIX/lib \
         -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PREFIX/bin ..
-    cmake --build .
+    cmake --build . -j
     cd -
 fi
 
@@ -47,7 +47,7 @@ cmake -DCMAKE_BUILD_TYPE=$CFG -DBUILD_FRANKA=$BUILD_FRANKA -DBUILD_TESTS=$BUILD_
     -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=$PREFIX/lib \
     -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=$PREFIX/lib \
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PREFIX/bin ..
-cmake --build .
+cmake --build . -j
 
 cd ..
 
