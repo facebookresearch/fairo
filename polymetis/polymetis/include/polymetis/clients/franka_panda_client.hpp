@@ -20,6 +20,7 @@
 
 #define NUM_DOFS 7
 #define FRANKA_HZ 1000.0
+#define M_PI 3.14159265358979323846
 #define RECOVERY_WAIT_SECS 1
 #define RECOVERY_MAX_TRIES 3
 
@@ -29,7 +30,7 @@ private:
                            std::array<double, NUM_DOFS> &torque_out);
   void checkStateLimits(const franka::RobotState &libfranka_robot_state,
                         std::array<double, NUM_DOFS> &torque_out);
-  void checkTorqueLimits(std::array<double, NUM_DOFS> &torque_applied);
+  void postprocessTorques(std::array<double, NUM_DOFS> &torque_applied);
 
   template <std::size_t N>
   void computeSafetyReflex(std::array<double, N> values,
@@ -48,12 +49,17 @@ private:
   // libfranka
   bool mock_franka_;
   bool readonly_mode_;
+
   std::unique_ptr<franka::Robot> robot_ptr_;
+  std::unique_ptr<franka::Model> model_ptr_;
   std::array<double, NUM_DOFS> torque_commanded_, torque_safety_,
       torque_applied_;
-  std::unique_ptr<franka::Model> model_ptr_;
 
-  // limits
+  // Torque processing
+  bool limit_rate_;
+  double lpf_cutoff_freq_;
+  std::array<double, NUM_DOFS> torque_applied_prev_;
+
   bool limits_exceeded_;
   std::string error_str_;
 

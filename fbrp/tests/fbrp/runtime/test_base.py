@@ -3,7 +3,7 @@ import unittest
 
 
 from fbrp.life_cycle import Ask, ProcInfo, State
-from fbrp.process import ProcDef
+from fbrp.process_def import ProcDef
 from fbrp.runtime.base import BaseLauncher
 
 from unittest import IsolatedAsyncioTestCase

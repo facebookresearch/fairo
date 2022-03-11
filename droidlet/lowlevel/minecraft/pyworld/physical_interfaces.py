@@ -9,7 +9,6 @@ WORLD_STEP = 10
 WORLD_STEPS_PER_DAY = 480
 
 
-
 class FakeMCTime(Time):
     def __init__(self, world):
         self.world = world

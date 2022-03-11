@@ -1,11 +1,8 @@
 # Documentation
 
-Modify code in [source](./source) to change documentation.
+Modify code in [source](./source) to change documentation. They will be published at [Github Pages](https://facebookresearch.github.io/fairo/polymetis/) when merged to `main`.
 
 You can start a webserver in [_build/html](_build/html) to see local changes: `python -m http.server`
-
-To update the documentation hosted at [Github Pages](https://polymetis-docs.github.io/), you
-can update the [repository](https://github.com/polymetis-docs/polymetis-docs.github.io).
 
 # Auto-generated documentation
 

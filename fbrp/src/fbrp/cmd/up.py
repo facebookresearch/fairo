@@ -1,9 +1,11 @@
 from fbrp import life_cycle
-from fbrp.process import defined_processes
+from fbrp import process_def
 from fbrp import util
+from fbrp.cmd import _autocomplete
 import a0
 import asyncio
 import click
+import contextlib
 import json
 import os
 import sys
@@ -20,7 +22,7 @@ def transitive_closure(proc_names):
         if proc_name in all_proc_names:
             continue
         try:
-            fringe.extend(defined_processes[proc_name].deps)
+            fringe.extend(process_def.defined_processes[proc_name].deps)
         except KeyError:
             util.fail(f"Unknown process: {proc_name}")
         all_proc_names.add(proc_name)
@@ -29,12 +31,14 @@ def transitive_closure(proc_names):
 
 def get_proc_names(proc_names, include_deps):
     if not proc_names:
-        return defined_processes.keys()
+        return process_def.defined_processes.keys()
 
     if include_deps:
         proc_names = transitive_closure(proc_names)
     unknown_proc_names = [
-        proc_name for proc_name in proc_names if proc_name not in defined_processes
+        proc_name
+        for proc_name in proc_names
+        if proc_name not in process_def.defined_processes
     ]
     if unknown_proc_names:
         util.fail(f"Unknown proc_names: {', '.join(unknown_proc_names)}")
@@ -82,15 +86,16 @@ def down_existing(names: typing.List[str], force: bool):
 
 
 @click.command()
-@click.argument("procs", nargs=-1)
+@click.argument("procs", nargs=-1, shell_complete=_autocomplete.defined_processes)
+@click.option("-v/-q", "--verbose/--quiet", is_flag=True, default=True)
 @click.option("--deps/--nodeps", is_flag=True, default=True)
 @click.option("--build/--nobuild", is_flag=True, default=True)
 @click.option("--run/--norun", is_flag=True, default=True)
 @click.option("-f", "--force/--noforce", is_flag=True, default=False)
 @click.option("--reset_logs", is_flag=True, default=False)
-def cli(procs, deps, build, run, force, reset_logs):
+def cli(procs, verbose, deps, build, run, force, reset_logs):
     names = get_proc_names(procs, deps)
-    names = [name for name in names if defined_processes[name].runtime]
+    names = [name for name in names if process_def.defined_processes[name].runtime]
     if not names:
         util.fail(f"No processes found")
 
@@ -102,9 +107,9 @@ def cli(procs, deps, build, run, force, reset_logs):
 
     if build:
         for name in names:
-            proc_def = defined_processes[name]
+            proc_def = process_def.defined_processes[name]
             print(f"building {name}...")
-            proc_def.runtime._build(name, proc_def)
+            proc_def.runtime._build(name, proc_def, verbose)
             print(f"built {name}\n")
 
     if run:
@@ -122,15 +127,19 @@ def cli(procs, deps, build, run, force, reset_logs):
             if os.fork() != 0:
                 sys.exit(0)
 
-            proc_def = defined_processes[name]
+            proc_def = process_def.defined_processes[name]
 
             # Set up configuration.
             with util.common_env_context(proc_def):
                 a0.Cfg(a0.env.topic()).write(json.dumps(proc_def.cfg))
-                life_cycle.set_launcher_running(name, True)
-                try:
-                    asyncio.run(proc_def.runtime._launcher(name, proc_def).run())
-                except:
-                    pass
-                life_cycle.set_launcher_running(name, False)
-                sys.exit(0)
+
+                with open(f"/tmp/fbrp_{name}.log", "w", buffering=1) as logfile:
+                    with contextlib.redirect_stdout(logfile), contextlib.redirect_stderr(logfile):
+                        print(f"-- Process start time {a0.TimeWall.now()}")
+                        life_cycle.set_launcher_running(name, True)
+                        try:
+                            asyncio.run(proc_def.runtime._launcher(name, proc_def).run())
+                        except BaseException as e:
+                            print(f"FATAL: {e}")
+                        life_cycle.set_launcher_running(name, False)
+                        sys.exit(0)
