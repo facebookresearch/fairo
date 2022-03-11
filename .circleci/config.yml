@@ -37,7 +37,9 @@ commands:
             python ./polymetis/polymetis/tests/cpp/test_server.py
       - run:
           name: Run Allegro Hand client unit tests
-          command: test_allegro_hand_client
+          command: |
+            conda activate polymetis-local
+            test_allegro_hand_client
       - run:
           name: Run integration tests (empty client)
           command: |
