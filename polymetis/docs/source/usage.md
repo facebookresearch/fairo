@@ -62,3 +62,27 @@ You can modify the configuration on the command line through Hydra. For example,
 ```bash
 launch_gripper.py gripper=robotiq_2f gripper.comport=/dev/ttyUSB1
 ```
+
+## Using the Allegro Hand Client
+
+The Allegro Hand client communicates using the SocketCAN interface which is included with modern Linux kernels.
+Before starting the Allegro Hand client you must configure your CAN netdev interface and specify the CAN bus network interface name in the `allegro_hardware.yaml` configuration file.
+
+One way to configure the CAN netdev interface is:
+```bash
+sudo ip link set can0 type can bitrate 1000000
+sudo ip link set can0 up
+```
+
+you can use the command:
+```bash
+ip link ls 
+```
+to check the names of the available CAN interfaces in your system.
+
+To launch the Allegro Hand client run the command:
+```bash
+launch_robot.py robot_client=allegro_hardware robot_model=allegro_hand
+```
+
+*Note:* if you previously installed the PEAK pcan kernel modules for libpcanbasic, the SocketCAN drivers have likely been blocklisted.  On Ubuntu systems you can undo this by commenting out all lines in the file `/etc/modprobe.d/blacklist-peak.conf `
