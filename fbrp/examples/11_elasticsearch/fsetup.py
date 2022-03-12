@@ -10,27 +10,27 @@ if not os.path.exists(A0_LOG_PATH):
 if not os.path.exists(ES_DATA_PATH):
     os.makedirs(ES_DATA_PATH)
 
-# Local ElasticSearch database.
-# Saves data in ./es_data
-# http://0.0.0.0:9200
-fbrp.process(
-    name="elasticsearch",
-    runtime=fbrp.Docker(
-        image="elasticsearch:8.0.0",
-        mount=[f"{ES_DATA_PATH}:/usr/share/elasticsearch/data"],
-    ),
-    env={
-        "discovery.type": "single-node",
-        "xpack.security.enabled": "false",
-    },
-)
+# # Local ElasticSearch database.
+# # Saves data in ./es_data
+# # http://0.0.0.0:9200
+# fbrp.process(
+#     name="elasticsearch",
+#     runtime=fbrp.Docker(
+#         image="elasticsearch:8.0.0",
+#         mount=[f"{ES_DATA_PATH}:/usr/share/elasticsearch/data"],
+#     ),
+#     env={
+#         "discovery.type": "single-node",
+#         "xpack.security.enabled": "false",
+#     },
+# )
 
-# Kibana visualizes the ElasticSearch database.
-# http://0.0.0.0:5601
-fbrp.process(
-    name="kibana",
-    runtime=fbrp.Docker(image="kibana:8.0.0"),
-)
+# # Kibana visualizes the ElasticSearch database.
+# # http://0.0.0.0:5601
+# fbrp.process(
+#     name="kibana",
+#     runtime=fbrp.Docker(image="kibana:8.0.0"),
+# )
 
 # Simple process that generates data.
 fbrp.process(
@@ -63,22 +63,27 @@ fbrp.process(
     },
 )
 
-# Converts completed AlephZero logfiles into the ElasticSearch database.
-fbrp.process(
-    name="a02es_indexer",
-    runtime=fbrp.Conda(
-        dependencies=["python=3.8", {"pip": ["alephzero", "elasticsearch"]}],
-        run_command=["python3", "a02es_indexer.py"],
-    ),
-)
+# # Converts completed AlephZero logfiles into the ElasticSearch database.
+# fbrp.process(
+#     name="a02es_indexer",
+#     runtime=fbrp.Conda(
+#         dependencies=["python=3.8", {"pip": ["alephzero", "elasticsearch"]}],
+#         run_command=["python3", "a02es_indexer.py"],
+#     ),
+# )
 
 # Converts completed AlephZero logfiles into the OpenSearch database.
 fbrp.process(
     name="a02os_indexer",
     runtime=fbrp.Conda(
-        dependencies=["python=3.8", {"pip": ["alephzero", "opensearch-py"]}],
+        dependencies=["python=3.9", {"pip": ["alephzero", "opensearch-py"]}],
         run_command=["python3", "a02os_indexer.py"],
     ),
+    env={
+        "host": open("os.host").read(),
+        "port": "443",
+        "auth": open("os.auth").read(),
+    }
 )
 
 fbrp.main()

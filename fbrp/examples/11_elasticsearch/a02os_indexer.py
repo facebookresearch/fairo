@@ -2,16 +2,28 @@
 
 import a0
 import base64
-import opensearchpy
 import json
+import opensearchpy
+import os
 import signal
 
 
 class A02OS_Indexer:
     def __init__(self):
         # Connect to the local opensearch engine.
-        self._os = opensearchpy.Opensearch(
-            "http://localhost:9200", request_timeout=10
+        self._os = opensearchpy.OpenSearch(
+            request_timeout=10,
+
+            hosts = [{'host': os.environ["host"], 'port': int(os.environ["port"])}],
+            http_compress = True, # enables gzip compression for request bodies
+            http_auth = json.loads(os.environ["auth"]),
+            # client_cert = client_cert_path,
+            # client_key = client_key_path,
+            use_ssl = True,
+            verify_certs = True,
+            ssl_assert_hostname = False,
+            ssl_show_warn = False,
+
         )
         # Connect to the alephzero logger.
         self._a0 = a0.Subscriber("log/announce", self.on_log_announce)
@@ -36,7 +48,7 @@ class A02OS_Indexer:
                 "abspath": abspath,
                 "relpath": relpath,
                 "original_path": original_path,
-                "payload": base64.b64encode(fpkt.payload_view)
+                "payload": base64.b64encode(fpkt.payload_view).decode(),
             }
 
             # Add all headers.
@@ -47,7 +59,7 @@ class A02OS_Indexer:
             try:
                 # Index the data into OS.
                 # TODO(lshamis): Can we batch the operation across multiple packets?
-                self._os.index(index="myindex", document=data)
+                self._os.index(index="myindex", body=data)
             except Exception as err:
                 # TODO(lshamis): Maybe retry.
                 print(f"skipping pkt: {err}")
