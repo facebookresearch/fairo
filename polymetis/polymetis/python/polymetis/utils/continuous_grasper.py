@@ -2,28 +2,21 @@
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-import a0
-import json
-import numpy as np
-import os
-import pickle
-import platform
+
 import time
+
+import numpy
 import torch
 import torchcontrol as toco
-
-from polymetis import RobotInterface, GripperInterface
-from polymetis_pb2 import RobotState, GripperState
+from polymetis import GripperInterface, RobotInterface
 from torchcontrol.transform import Rotation as R
 from torchcontrol.transform import Transformation as T
-from typing import Dict, List
-
 
 DEFAULT_MAX_ITERS = 3
 
 # Sampling params
-DEFAULT_GP_RANGE_UPPER = [0.7, 0.1, np.pi / 2]
-DEFAULT_GP_RANGE_LOWER = [0.4, -0.1, -np.pi / 2]
+DEFAULT_GP_RANGE_UPPER = [0.7, 0.1, numpy.pi / 2]
+DEFAULT_GP_RANGE_LOWER = [0.4, -0.1, -numpy.pi / 2]
 
 # Grasp params
 DEFAULT_REST_POSE = ([0.5, 0.0, 0.7], [1.0, 0.0, 0.0, 0.0])
@@ -31,6 +24,8 @@ DEFAULT_PREGRASP_HEIGHT = 0.55
 DEFAULT_GRASP_HEIGHT = 0.15
 DEFAULT_PLANNER_DT = 0.02
 DEFAULT_TIME_TO_GO_SECS = 2.0
+
+DEFAULT_GAIN_MULTIPLIER = 1.0
 
 
 class ManipulatorSystem:
@@ -42,22 +37,23 @@ class ManipulatorSystem:
             ip_address=ip_address, enforce_version=enforce_version
         )
         self.gripper = GripperInterface(ip_address=gripper_ip_address)
-        self.rest_pose = DEFAULT_REST_POSE
-        self.pregrasp_height = DEFAULT_PREGRASP_HEIGHT
-        self.grasp_height = DEFAULT_GRASP_HEIGHT
-        self.planner_dt = DEFAULT_PLANNER_DT
-        self.gp_range_upper = torch.Tensor(DEFAULT_GP_RANGE_UPPER)
-        self.gp_range_lower = torch.Tensor(DEFAULT_GP_RANGE_LOWER)
-        self.up_time_seconds = DEFAULT_TIME_TO_GO_SECS
-        self.down_time_seconds = DEFAULT_TIME_TO_GO_SECS
+        self._rest_pose = DEFAULT_REST_POSE
+        self._pregrasp_height = DEFAULT_PREGRASP_HEIGHT
+        self._grasp_height = DEFAULT_GRASP_HEIGHT
+        self._planner_dt = DEFAULT_PLANNER_DT
+        self._gp_range_upper = torch.Tensor(DEFAULT_GP_RANGE_UPPER)
+        self._gp_range_lower = torch.Tensor(DEFAULT_GP_RANGE_LOWER)
+        self._up_time_seconds = DEFAULT_TIME_TO_GO_SECS
+        self._down_time_seconds = DEFAULT_TIME_TO_GO_SECS
+        self._gain_multiplier = DEFAULT_GAIN_MULTIPLIER
         time.sleep(0.5)
 
         # Set continuous control policy
         self.reset_policy()
 
         # Reset to rest pose
-        self.rest_pos = torch.Tensor(self.rest_pose[0])
-        self.rest_quat = torch.Tensor(self.rest_pose[1])
+        self.rest_pos = torch.Tensor(self._rest_pose[0])
+        self.rest_quat = torch.Tensor(self._rest_pose[1])
         self.reset()
 
     def __del__(self):
@@ -75,8 +71,8 @@ class ManipulatorSystem:
         joint_pos_current = self.arm.get_joint_positions()
         policy = toco.policies.CartesianImpedanceControl(
             joint_pos_current=joint_pos_current,
-            Kp=(0.5 * torch.Tensor(self.arm.metadata.default_Kx)),
-            Kd=(0.5 * torch.Tensor(self.arm.metadata.default_Kxd)),
+            Kp=(self._gain_multiplier * torch.Tensor(self.arm.metadata.default_Kx)),
+            Kd=(self._gain_multiplier * torch.Tensor(self.arm.metadata.default_Kxd)),
             robot_model=self.arm.robot_model,
         )
         self.arm.send_torch_policy(policy, blocking=False)
@@ -94,13 +90,13 @@ class ManipulatorSystem:
         """
         # Plan trajectory
         pos_curr, quat_curr = self.arm.get_ee_pose()
-        N = int(time_to_go / self.planner_dt)
+        N = int(time_to_go / self._planner_dt)
 
         waypoints = toco.planning.generate_cartesian_space_min_jerk(
             start=T.from_rot_xyz(R.from_quat(quat_curr), pos_curr),
             goal=T.from_rot_xyz(R.from_quat(quat), pos),
             time_to_go=time_to_go,
-            hz=1 / self.planner_dt,
+            hz=1 / self._planner_dt,
         )
 
         # Execute trajectory
@@ -143,7 +139,7 @@ class ManipulatorSystem:
                 successes += 1
 
             # Spin once
-            t_target += self.planner_dt
+            t_target += self._planner_dt
             t_remaining = t_target - time.time()
             time.sleep(max(t_remaining, 0.0))
 
@@ -194,17 +190,17 @@ class ManipulatorSystem:
         traj_state["grasp_pose"] = grasp_pose0
 
         # Move to pregrasp
-        pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, self.pregrasp_height)
+        pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, self._pregrasp_height)
         successes, N, robot_states = self.move_to(
-            pos, quat, gather_arm_state_func, time_to_go=self.up_time_seconds
+            pos, quat, gather_arm_state_func, time_to_go=self._up_time_seconds
         )
         results.append((successes, N))
         traj_state["move_to_grasp_states"] = robot_states
 
         # Lower (slower than other motions to prevent sudden collisions)
-        pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, self.grasp_height)
+        pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, self._grasp_height)
         successes, N, robot_states = self.move_to(
-            pos, quat, gather_arm_state_func, time_to_go=self.down_time_seconds
+            pos, quat, gather_arm_state_func, time_to_go=self._down_time_seconds
         )
         results.append((successes, N))
         traj_state["lower_to_grasp_states"] = robot_states
@@ -217,17 +213,17 @@ class ManipulatorSystem:
             )
 
         # Lift to pregrasp
-        pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, self.pregrasp_height)
+        pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, self._pregrasp_height)
         successes, N, robot_states = self.move_to(
-            pos, quat, gather_arm_state_func, time_to_go=self.up_time_seconds
+            pos, quat, gather_arm_state_func, time_to_go=self._up_time_seconds
         )
         results.append((successes, N))
         traj_state["lift_to_release_states"] = robot_states
 
         # Move to new pregrasp
-        pos, quat = self.grasp_pose_to_pos_quat(grasp_pose1, self.pregrasp_height)
+        pos, quat = self.grasp_pose_to_pos_quat(grasp_pose1, self._pregrasp_height)
         successes, N, robot_states = self.move_to(
-            pos, quat, gather_arm_state_func, time_to_go=self.up_time_seconds
+            pos, quat, gather_arm_state_func, time_to_go=self._up_time_seconds
         )
         results.append((successes, N))
         traj_state["move_to_release_states"] = robot_states
@@ -263,8 +259,8 @@ class ManipulatorSystem:
         try:
             while True:
                 # Sample grasp
-                grasp_pose0 = uniform_sample(self.gp_range_lower, self.gp_range_upper)
-                grasp_pose1 = uniform_sample(self.gp_range_lower, self.gp_range_upper)
+                grasp_pose0 = uniform_sample(self._gp_range_lower, self._gp_range_upper)
+                grasp_pose1 = uniform_sample(self._gp_range_lower, self._gp_range_upper)
 
                 # Perform grasp
                 print(f"Grasp {i + 1}: grasp={grasp_pose0}, release={grasp_pose1}")
@@ -282,26 +278,69 @@ class ManipulatorSystem:
 
         return total_successes, total_tries
 
-    def set_pregrasp_height(self, pregrasp_height: float):
-        self.pregrasp_height = pregrasp_height
+    @property
+    def pregrasp_height(self) -> float:
+        return self._pregrasp_height
 
-    def set_grasp_height(self, grasp_height: float):
-        self.grasp_height = grasp_height
+    @pregrasp_height.setter
+    def pregrasp_height(self, pregrasp_height: float):
+        self._pregrasp_height = pregrasp_height
 
-    def set_planner_dt(self, planner_dt: float):
-        self.planner_dt = planner_dt
+    @property
+    def grasp_height(self) -> float:
+        return self._grasp_height
 
-    def set_gp_range_upper(self, x: float, y: float, z: float):
-        self.gp_range_upper = torch.Tensor([x, y, z])
+    @grasp_height.setter
+    def grasp_height(self, grasp_height: float):
+        self._grasp_height = grasp_height
 
-    def set_gp_range_lower(self, x: float, y: float, z: float):
-        self.gp_range_lower = torch.Tensor([x, y, z])
+    @property
+    def planner_dt(self) -> float:
+        return self._planner_dt
 
-    def set_up_time_seconds(self, up_time_seconds: float):
-        self.up_time_seconds = up_time_seconds
+    @planner_dt.setter
+    def planner_dt(self, planner_dt: float):
+        self._planner_dt = planner_dt
 
-    def set_down_time_seconds(self, down_time_seconds: float):
-        self.down_time_seconds = down_time_seconds
+    @property 
+    def gp_range_upper(self) -> torch.Tensor:
+        return self._gp_range_upper
+
+    @gp_range_upper.setter    
+    def gp_range_upper(self, gp_range_upper: torch.Tensor):
+        self._gp_range_upper = gp_range_upper
+
+    @property 
+    def gp_range_lower(self) -> torch.Tensor:
+        return self._gp_range_lower
+    
+    @gp_range_lower.setter
+    def gp_range_lower(self, gp_range_lower: torch.Tensor):
+        self._gp_range_lower = gp_range_lower
+
+    @property
+    def up_time_seconds(self) -> float:
+        return self._up_time_seconds
+
+    @up_time_seconds.setter
+    def up_time_seconds(self, up_time_seconds: float):
+        self._up_time_seconds = up_time_seconds
+
+    @property
+    def down_time_seconds(self) -> float:
+        return self._down_time_seconds
+
+    @down_time_seconds.setter
+    def down_time_seconds(self, down_time_seconds: float):
+        self._down_time_seconds = down_time_seconds
+
+    @property
+    def gain_multiplier(self) -> float:
+        return self._gain_multiplier
+    
+    @gain_multiplier.setter
+    def gain_multiplier(self, gain_multiplier: float):
+        self._gain_multiplier = gain_multiplier
 
 
 def uniform_sample(lower, upper):

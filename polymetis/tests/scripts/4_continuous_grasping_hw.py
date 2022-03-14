@@ -13,7 +13,7 @@ def main(max_iterations, **kwargs):
     try:
         max_iters = int(max_iterations)
     except ValueError as exc:
-        print("Malformed iteration count, using default")
+        print(f"Malformed iteration count, using defaults {DEFAULT_MAX_ITERS}")
         max_iters = DEFAULT_MAX_ITERS
     robot = ManipulatorSystem(robot_kwargs=kwargs, gripper_kwargs=kwargs)
     total_successes, total_tries = robot.continuously_grasp(max_iters)
