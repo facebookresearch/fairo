@@ -302,18 +302,18 @@ class ManipulatorSystem:
     def planner_dt(self, planner_dt: float):
         self._planner_dt = planner_dt
 
-    @property 
+    @property
     def gp_range_upper(self) -> torch.Tensor:
         return self._gp_range_upper
 
-    @gp_range_upper.setter    
+    @gp_range_upper.setter
     def gp_range_upper(self, gp_range_upper: torch.Tensor):
         self._gp_range_upper = gp_range_upper
 
-    @property 
+    @property
     def gp_range_lower(self) -> torch.Tensor:
         return self._gp_range_lower
-    
+
     @gp_range_lower.setter
     def gp_range_lower(self, gp_range_lower: torch.Tensor):
         self._gp_range_lower = gp_range_lower
@@ -337,7 +337,7 @@ class ManipulatorSystem:
     @property
     def gain_multiplier(self) -> float:
         return self._gain_multiplier
-    
+
     @gain_multiplier.setter
     def gain_multiplier(self, gain_multiplier: float):
         self._gain_multiplier = gain_multiplier
