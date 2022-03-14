@@ -20,8 +20,6 @@ def main(*args):
     except SystemExit as sys_exit:
         if sys_exit.code == 0:
             return
-        print(sys.exc_info())
-        print(dir(sys.exc_info()[1]))
         raise RuntimeError(
             f"fbrp.main failed with exit code {sys_exit.code}"
         ) from sys_exit
