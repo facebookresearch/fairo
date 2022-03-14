@@ -24,7 +24,7 @@ def transitive_closure(proc_names):
         try:
             fringe.extend(process_def.defined_processes[proc_name].deps)
         except KeyError:
-            util.fail(f"Unknown process: {proc_name}")
+            raise ValueError(f"Unknown process: {proc_name}")
         all_proc_names.add(proc_name)
     return all_proc_names
 
@@ -41,9 +41,9 @@ def get_proc_names(proc_names, include_deps):
         if proc_name not in process_def.defined_processes
     ]
     if unknown_proc_names:
-        util.fail(f"Unknown proc_names: {', '.join(unknown_proc_names)}")
+        raise ValueError(f"Unknown proc_names: {', '.join(unknown_proc_names)}")
     if not proc_names:
-        util.fail(f"No proc_names found")
+        raise ValueError(f"No proc_names found")
     return proc_names
 
 
@@ -61,7 +61,9 @@ def down_existing(names: typing.List[str], force: bool):
         return
 
     if not force:
-        util.fail(f"Conflicting processes already running: {', '.join(active_proc)}")
+        raise RuntimeError(
+            f"Conflicting processes already running: {', '.join(active_proc)}"
+        )
 
     for name in active_proc:
         life_cycle.set_ask(name, life_cycle.Ask.DOWN)
@@ -82,7 +84,7 @@ def down_existing(names: typing.List[str], force: bool):
         success = ns.cv.wait_for(lambda: ns.sat, timeout=3.0)
 
     if not success:
-        util.fail(f"Existing processes did not down in a timely manner.")
+        raise RuntimeError(f"Existing processes did not down in a timely manner.")
 
 
 @click.command()
@@ -90,17 +92,28 @@ def down_existing(names: typing.List[str], force: bool):
 @click.option("-v/-q", "--verbose/--quiet", is_flag=True, default=True)
 @click.option("--deps/--nodeps", is_flag=True, default=True)
 @click.option("--build/--nobuild", is_flag=True, default=True)
+@click.option("--cache/--nocache", is_flag=True, default=True)
 @click.option("--run/--norun", is_flag=True, default=True)
 @click.option("-f", "--force/--noforce", is_flag=True, default=False)
 @click.option("--reset_logs", is_flag=True, default=False)
-def cli(*cmd_procs, procs=[], verbose=True, deps=True, build=True, run=True, force=False, reset_logs=False):
+def cli(
+    *cmd_procs,
+    procs=[],
+    verbose=True,
+    deps=True,
+    build=True,
+    cache=True,
+    run=True,
+    force=False,
+    reset_logs=False,
+):
     # Support procs as *args when using cmd syntax.
     procs += cmd_procs
 
     names = get_proc_names(procs, deps)
     names = [name for name in names if process_def.defined_processes[name].runtime]
     if not names:
-        util.fail(f"No processes found")
+        raise ValueError(f"No processes found")
 
     down_existing(names, force)
 
@@ -111,13 +124,13 @@ def cli(*cmd_procs, procs=[], verbose=True, deps=True, build=True, run=True, for
     if build:
         for name in names:
             proc_def = process_def.defined_processes[name]
-            print(f"building {name}...")
-            proc_def.runtime._build(name, proc_def, verbose)
-            print(f"built {name}\n")
+            click.echo(f"building {name}...")
+            proc_def.runtime._build(name, proc_def, cache, verbose)
+            click.echo(f"built {name}\n")
 
     if run:
         for name in names:
-            print(f"running {name}...")
+            click.echo(f"running {name}...")
             life_cycle.set_ask(name, life_cycle.Ask.UP)
             life_cycle.set_state(name, life_cycle.State.STARTING)
 
@@ -138,12 +151,16 @@ def cli(*cmd_procs, procs=[], verbose=True, deps=True, build=True, run=True, for
                 a0.Cfg(a0.env.topic()).write(json.dumps(proc_def.cfg))
 
                 with open(f"/tmp/fbrp_{name}.log", "w", buffering=1) as logfile:
-                    with contextlib.redirect_stdout(logfile), contextlib.redirect_stderr(logfile):
-                        print(f"-- Process start time {a0.TimeWall.now()}")
+                    with contextlib.redirect_stdout(
+                        logfile
+                    ), contextlib.redirect_stderr(logfile):
+                        click.echo(f"-- Process start time {a0.TimeWall.now()}")
                         life_cycle.set_launcher_running(name, True)
                         try:
-                            asyncio.run(proc_def.runtime._launcher(name, proc_def).run())
+                            asyncio.run(
+                                proc_def.runtime._launcher(name, proc_def).run()
+                            )
                         except BaseException as e:
-                            print(f"FATAL: {e}")
+                            click.echo(f"FATAL: {e}")
                         life_cycle.set_launcher_running(name, False)
                         sys.exit(0)

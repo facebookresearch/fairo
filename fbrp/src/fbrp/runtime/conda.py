@@ -25,11 +25,9 @@ class CondaEnv:
         return CondaEnv(result.get("channels", []), result.get("dependencies", []))
 
     @staticmethod
-    def from_env(name):
+    def from_named_env(name):
         return CondaEnv.load(
-            subprocess.run(
-                ["conda", "env", "export", "-n", name], check=True, capture_output=True
-            ).stdout
+            subprocess.check_output(["conda", "env", "export", "-n", name])
         )
 
     @staticmethod
@@ -174,107 +172,187 @@ class Launcher(BaseLauncher):
 
 
 class Conda(BaseRuntime):
+    class SharedEnv:
+        def __init__(
+            self,
+            name,
+            use_named_env=None,
+            copy_named_env=None,
+            yaml=None,
+            channels=[],
+            dependencies=[],
+            use_mamba=None,
+        ):
+            if use_named_env and any([copy_named_env, yaml, channels, dependencies]):
+                raise ValueError(
+                    f"'use_named_env' cannot be mixed with other Conda environment commands."
+                )
+
+            self.name = name
+            self.use_named_env = use_named_env
+            self.copy_named_env = copy_named_env
+            self.yaml = yaml
+            self.conda_env = CondaEnv(channels[:], dependencies[:])
+            self.use_mamba = (
+                use_mamba if use_mamba is not None else bool(shutil.which("mamba"))
+            )
+            self._built = False
+
+            if use_named_env:
+                self._validate_use_named_env()
+
+        def _validate_use_named_env(self):
+            result = subprocess.run(
+                f"""
+                    eval "$(conda shell.bash hook)"
+                    conda activate {self.use_named_env}
+                """,
+                shell=True,
+                executable="/bin/bash",
+                stderr=subprocess.PIPE,
+            )
+            if result.returncode:
+                raise RuntimeError(f"'use_named_env' not valid: {result.stderr}")
+
+        def _generate_env_content(self, root: pathlib.Path):
+            if self.copy_named_env:
+                self.conda_env = CondaEnv.merge(
+                    self.conda_env, CondaEnv.from_named_env(self.copy_named_env)
+                )
+
+            if self.yaml:
+                yaml_path = os.path.join(root, self.yaml)
+                self.conda_env = CondaEnv.merge(
+                    self.conda_env, CondaEnv.load(open(yaml_path, "r"))
+                )
+
+            self.conda_env.fix_pip()
+            return {
+                "channels": self.conda_env.channels,
+                "dependencies": self.conda_env.dependencies,
+            }
+
+        def _env_name(self):
+            return self.use_named_env or f"fbrp_{self.name}"
+
+        def _cache_valid(self, yaml_path, env_content):
+            try:
+                if not os.path.exists(yaml_path):
+                    return False
+
+                old_content = json.load(open(yaml_path))
+
+                if json.dumps(old_content, sort_keys=True) != json.dumps(
+                    env_content, sort_keys=True
+                ):
+                    return False
+
+                info = json.loads(
+                    subprocess.check_output(
+                        ["conda", "env", "export", "--json", "-n", self._env_name()]
+                    )
+                )
+                history_file = os.path.join(info["prefix"], "conda-meta/history")
+                history = open(history_file).readlines()
+                cmds = [line.strip() for line in history if line.startswith("# cmd: ")]
+                if len(cmds) != 1:
+                    return False
+
+                if not cmds[0].endswith(f"update --prune -f {yaml_path}"):
+                    return False
+
+                return True
+
+            except Exception:
+                return False
+
+        def _create_env(self, root: pathlib.Path, cache: bool, verbose: bool):
+            yaml_path = os.path.expanduser(f"~/.config/fbrp/conda/{self.name}.yaml")
+            os.makedirs(os.path.dirname(yaml_path), exist_ok=True)
+
+            env_content = self._generate_env_content(root)
+            env_content["name"] = self._env_name()
+
+            if cache and self._cache_valid(yaml_path, env_content):
+                return
+
+            with open(yaml_path, "w") as env_fp:
+                json.dump(env_content, env_fp, indent=2)
+
+            print(f"creating conda env for {self.name}. This will take a minute...")
+
+            update_bin = "mamba" if self.use_mamba else "conda"
+            # https://github.com/conda/conda/issues/7279
+            # Updating an existing environment does not remove old packages, even with --prune.
+            subprocess.run(
+                [update_bin, "env", "remove", "-n", self._env_name()],
+                capture_output=not verbose,
+            )
+            result = subprocess.run(
+                [update_bin, "env", "update", "--prune", "-f", yaml_path],
+                capture_output=not verbose,
+            )
+            if result.returncode:
+                raise RuntimeError(f"Failed to set up conda env: {result.stderr}")
+
+        def _build(self, root: pathlib.Path, cache: bool, verbose: bool):
+            if self._built:
+                return
+            if not self.use_named_env:
+                self._create_env(root, cache, verbose)
+            self._built = True
+
     def __init__(
         self,
         run_command,
+        use_named_env=None,
+        copy_named_env=None,
+        shared_env=None,
         yaml=None,
-        env=None,
-        env_nosandbox=None,
         channels=[],
         dependencies=[],
         setup_commands=[],
         use_mamba=None,
     ):
-        if env_nosandbox and any([yaml, env, channels, dependencies]):
-            util.fail(
-                f"'env_nosandbox' cannot be mixed with other Conda environment commands."
+        if shared_env and any(
+            [use_named_env, copy_named_env, yaml, channels, dependencies]
+        ):
+            raise ValueError(
+                f"'shared_env' cannot be mixed with other Conda environment commands."
             )
 
-        self.yaml = yaml
-        self.env = env
-        self.env_nosandbox = env_nosandbox
+        self._env = shared_env
+        self._is_personal_env = not shared_env
+        if self._is_personal_env:
+            self._env = Conda.SharedEnv(
+                "__defer__",
+                use_named_env,
+                copy_named_env,
+                yaml,
+                channels,
+                dependencies,
+                use_mamba,
+            )
+
         self.run_command = run_command
-        self.conda_env = CondaEnv(channels[:], dependencies[:])
         self.setup_commands = setup_commands
-        self.use_mamba = (
-            use_mamba if use_mamba is not None else bool(shutil.which("mamba"))
-        )
-
-        if env_nosandbox:
-            self._validate_env_nosandbox()
-
-    def _validate_env_nosandbox(self):
-        result = subprocess.run(
-            f"""
-                eval "$(conda shell.bash hook)"
-                conda activate {self.env_nosandbox}
-            """,
-            shell=True,
-            executable="/bin/bash",
-            stderr=subprocess.PIPE,
-        )
-        if result.returncode:
-            util.fail(f"'env_nosandbox' not valid: {result.stderr}")
 
     def asdict(self, root: pathlib.Path):
         ret = {}
-        if self.env_nosandbox:
-            ret["env_nosandbox"] = self.env_nosandbox
+        if self._env.use_named_env:
+            ret["use_named_env"] = self._env.use_named_env
         else:
-            ret["env"] = self._generate_env_content(root)
+            ret["env"] = self._env._generate_env_content(root)
         if self.run_command:
             ret["run_command"] = self.run_command
         if self.setup_commands:
             ret["setup_commands"] = self.setup_commands
         return ret
 
-    def _env_name(self, name):
-        return self.env_nosandbox or f"fbrp_{name}"
-
-    def _generate_env_content(self, root: pathlib.Path):
-        if self.yaml:
-            yaml_path = os.path.join(root, self.yaml)
-            self.conda_env = CondaEnv.merge(
-                self.conda_env, CondaEnv.load(open(yaml_path, "r"))
-            )
-
-        if self.env:
-            self.conda_env = CondaEnv.merge(self.conda_env, CondaEnv.from_env(self.env))
-
-        self.conda_env.fix_pip()
-        return {
-            "channels": self.conda_env.channels,
-            "dependencies": self.conda_env.dependencies,
-        }
-
-    def _create_env(self, name: str, proc_def: ProcDef, verbose: bool):
-        env_path = f"/tmp/fbrp_conda_{name}.yml"
-
-        env_content = self._generate_env_content(proc_def.root)
-        env_content["name"] = self._env_name(name)
-
-        with open(env_path, "w") as env_fp:
-            json.dump(env_content, env_fp, indent=2)
-
-        print(f"creating conda env for {name}. This will take a minute...")
-
-        update_bin = "mamba" if self.use_mamba else "conda"
-        # https://github.com/conda/conda/issues/7279
-        # Updating an existing environment does not remove old packages, even with --prune.
-        subprocess.run(
-            [update_bin, "env", "remove", "-n", self._env_name(name)],
-            capture_output=not verbose,
-        )
-        result = subprocess.run(
-            [update_bin, "env", "update", "--prune", "-f", env_path],
-            capture_output=not verbose,
-        )
-        if result.returncode:
-            util.fail(f"Failed to set up conda env: {result.stderr}")
-
-    def _build(self, name: str, proc_def: ProcDef, verbose: bool):
-        if not self.env_nosandbox:
-            self._create_env(name, proc_def, verbose)
+    def _build(self, name: str, proc_def: ProcDef, cache: bool, verbose: bool):
+        if self._is_personal_env:
+            self._env.name = name
+        self._env._build(proc_def.root, cache, verbose)
 
         if self.setup_commands:
             print(f"setting up conda env for {name}")
@@ -284,7 +362,7 @@ class Conda(BaseRuntime):
             result = subprocess.run(
                 f"""
                     eval "$(conda shell.bash hook)"
-                    conda activate {self._env_name(name)}
+                    conda activate {self._env._env_name()}
                     cd {proc_def.root}
                     {setup_command}
                 """,
@@ -293,10 +371,10 @@ class Conda(BaseRuntime):
                 capture_output=not verbose,
             )
             if result.returncode:
-                util.fail(f"Failed to set up conda env: {result.stderr}")
+                raise RuntimeError(f"Failed to set up conda env: {result.stderr}")
 
     def _launcher(self, name: str, proc_def: ProcDef):
-        return Launcher(self.run_command, name, self._env_name(name), proc_def)
+        return Launcher(self.run_command, name, self._env._env_name(), proc_def)
 
 
 __all__ = ["Conda"]

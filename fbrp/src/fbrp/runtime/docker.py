@@ -95,7 +95,9 @@ class Launcher(BaseLauncher):
                 self.name, life_cycle.State.STOPPED, return_code=-1, error_info=str(e)
             )
             await docker.close()
-            util.fail(f"Failed to start docker process: name={self.name} reason={e}")
+            raise RuntimeError(
+                f"Failed to start docker process: name={self.name} reason={e}"
+            )
 
         self.proc_pid = proc_info["State"]["Pid"]
         life_cycle.set_state(self.name, life_cycle.State.STARTED)
@@ -143,7 +145,9 @@ class Docker(BaseRuntime):
         self, image=None, dockerfile=None, mount=[], build_kwargs={}, run_kwargs={}
     ):
         if bool(image) == bool(dockerfile):
-            util.fail("Docker process must define exactly one of image or dockerfile")
+            raise ValueError(
+                "Docker process must define exactly one of image or dockerfile"
+            )
         self.image = image
         self.dockerfile = dockerfile
         self.mount = mount
@@ -164,7 +168,7 @@ class Docker(BaseRuntime):
             ret["run_kwargs"] = self.run_kwargs
         return ret
 
-    def _build(self, name: str, proc_def: ProcDef, verbose: bool):
+    def _build(self, name: str, proc_def: ProcDef, cache: bool, verbose: bool):
         docker_api = docker.from_env()
         docker_api.lowlevel = docker.APIClient()
 
@@ -180,6 +184,7 @@ class Docker(BaseRuntime):
                 "path": proc_def.root,
                 "dockerfile": dockerfile_path,
                 "rm": True,
+                "nocache": not cache,
             }
             build_kwargs.update(self.build_kwargs)
 
@@ -188,18 +193,23 @@ class Docker(BaseRuntime):
                 if verbose and "stream" in lineinfo:
                     print(lineinfo["stream"].strip())
                 elif "errorDetail" in lineinfo:
-                    util.fail(json.dumps(lineinfo["errorDetail"], indent=2))
+                    raise RuntimeError(json.dumps(lineinfo["errorDetail"], indent=2))
         else:
-            try:
-                docker_api.images.get(self.image)
-            except docker.errors.ImageNotFound:
+            should_pull = not cache
+            if cache:
+                try:
+                    docker_api.images.get(self.image)
+                except docker.errors.ImageNotFound:
+                    should_pull = True
+
+            if should_pull:
                 try:
                     for line in docker_api.lowlevel.pull(self.image, stream=True):
                         lineinfo = json.loads(line.decode())
                         if verbose and "status" in lineinfo:
                             print(lineinfo["status"].strip())
                 except docker.errors.NotFound as e:
-                    util.fail(e)
+                    raise RuntimeError(e)
 
         uses_ldap = util.is_ldap_user()
 
@@ -211,7 +221,7 @@ class Docker(BaseRuntime):
             elif len(parts) == 2:
                 mount_map[parts[0]] = (parts[1], "")
             else:
-                util.fail(f"Invalid mount: {mnt}")
+                raise ValueError(f"Invalid mount: {mnt}")
 
         nfs_mounts = []
         for host, (container, _) in mount_map.items():
@@ -278,7 +288,7 @@ class Docker(BaseRuntime):
                 if verbose and "stream" in lineinfo:
                     print(lineinfo["stream"].strip())
                 elif "errorDetail" in lineinfo:
-                    util.fail(json.dumps(lineinfo["errorDetail"], indent=2))
+                    raise RuntimeError(json.dumps(lineinfo["errorDetail"], indent=2))
 
         self.mount = [
             f"{host_path}:{container_path}:{options}"

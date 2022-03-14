@@ -6,6 +6,7 @@ from fbrp.util import NoEscape
 from importlib.machinery import SourceFileLoader
 import click
 import os
+import sys
 
 
 @click.group()
@@ -19,9 +20,13 @@ def main(*args):
     except SystemExit as sys_exit:
         if sys_exit.code == 0:
             return
+        print(sys.exc_info())
+        print(dir(sys.exc_info()[1]))
         raise RuntimeError(
             f"fbrp.main failed with exit code {sys_exit.code}"
         ) from sys_exit
+    except Exception as ex:
+        click.echo(ex, err=True)
 
 
 class cmd:

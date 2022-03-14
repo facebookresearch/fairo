@@ -71,7 +71,9 @@ class Launcher(BaseLauncher):
 
     async def death_handler(self):
         await self.proc.wait()
-        life_cycle.set_state(self.name, life_cycle.State.STOPPED, return_code=self.proc.returncode)
+        life_cycle.set_state(
+            self.name, life_cycle.State.STOPPED, return_code=self.proc.returncode
+        )
         # TODO(lshamis): Restart policy goes here.
 
         # Release the down listener.
@@ -107,7 +109,7 @@ class Host(BaseRuntime):
             ret["build_commands"] = self.build_commands
         return ret
 
-    def _build(self, name: str, proc_def: ProcDef, verbose: bool):
+    def _build(self, name: str, proc_def: ProcDef, cache: bool, verbose: bool):
         if self.build_commands:
             print(f"Building {name}")
             build_command = "\n".join(
@@ -120,7 +122,7 @@ class Host(BaseRuntime):
                 capture_output=not verbose,
             )
             if result.returncode:
-                util.fail(f"Failed to build: {result.stderr}")
+                raise RuntimeError(f"Failed to build: {result.stderr}")
 
     def _launcher(self, name: str, proc_def: ProcDef):
         return Launcher(self.run_command, name, proc_def)
