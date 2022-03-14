@@ -2,6 +2,7 @@ import unittest
 import os
 from droidlet.test_utils import skipIfOfflineDecorator
 import cv2
+import open3d as o3d
 import numpy as np
 import json
 from functools import partial
