@@ -8,11 +8,4 @@ fbrp.process(
     ),
 )
 
-# fbrp.cmd.logs("proc", old=True)
-# fbrp.main()
-
-fbrp.cmd.up("proc", reset_logs=True)
-import time
-time.sleep(1)
-fbrp.cmd.down("proc")
-fbrp.cmd.logs("proc", old=True)
+fbrp.main()
