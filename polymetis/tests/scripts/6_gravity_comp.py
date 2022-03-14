@@ -3,9 +3,11 @@ import polymetis
 import torchcontrol as toco
 from typing import Dict
 
+
 class ZeroController(toco.PolicyModule):
     def forward(self, state_dict: Dict[str, torch.Tensor]):
         return {"joint_torques": torch.zeros_like(state_dict["joint_positions"])}
+
 
 if __name__ == "__main__":
     robot = polymetis.RobotInterface(ip_address="172.16.0.1", enforce_version=False)

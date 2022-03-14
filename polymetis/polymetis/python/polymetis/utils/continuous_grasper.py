@@ -32,21 +32,24 @@ DEFAULT_GRASP_HEIGHT = 0.15
 DEFAULT_PLANNER_DT = 0.02
 DEFAULT_TIME_TO_GO_SECS = 2.0
 
+
 class ManipulatorSystem:
     def __init__(self, robot_kwargs={}, gripper_kwargs={}):
         ip_address = robot_kwargs.get("ip_address", "localhost")
         enforce_version = robot_kwargs.get("enforce_version", "True") == "True"
         gripper_ip_address = gripper_kwargs.get("gripper_ip_address", "localhost")
-        self.arm = RobotInterface(ip_address=ip_address, enforce_version=enforce_version)
+        self.arm = RobotInterface(
+            ip_address=ip_address, enforce_version=enforce_version
+        )
         self.gripper = GripperInterface(ip_address=gripper_ip_address)
         self.rest_pose = DEFAULT_REST_POSE
         self.pregrasp_height = DEFAULT_PREGRASP_HEIGHT
         self.grasp_height = DEFAULT_GRASP_HEIGHT
         self.planner_dt = DEFAULT_PLANNER_DT
         self.gp_range_upper = torch.Tensor(DEFAULT_GP_RANGE_UPPER)
-        self.gp_range_lower = torch.Tensor(DEFAULT_GP_RANGE_LOWER)   
+        self.gp_range_lower = torch.Tensor(DEFAULT_GP_RANGE_LOWER)
         self.up_time_seconds = DEFAULT_TIME_TO_GO_SECS
-        self.down_time_seconds = DEFAULT_TIME_TO_GO_SECS    
+        self.down_time_seconds = DEFAULT_TIME_TO_GO_SECS
         time.sleep(0.5)
 
         # Set continuous control policy
@@ -72,13 +75,15 @@ class ManipulatorSystem:
         joint_pos_current = self.arm.get_joint_positions()
         policy = toco.policies.CartesianImpedanceControl(
             joint_pos_current=joint_pos_current,
-            Kp=(0.5*torch.Tensor(self.arm.metadata.default_Kx)),
-            Kd=(0.5*torch.Tensor(self.arm.metadata.default_Kxd)),
+            Kp=(0.5 * torch.Tensor(self.arm.metadata.default_Kx)),
+            Kd=(0.5 * torch.Tensor(self.arm.metadata.default_Kxd)),
             robot_model=self.arm.robot_model,
         )
         self.arm.send_torch_policy(policy, blocking=False)
 
-    def move_to(self, pos, quat, gather_arm_state_func=None, time_to_go=DEFAULT_TIME_TO_GO_SECS):
+    def move_to(
+        self, pos, quat, gather_arm_state_func=None, time_to_go=DEFAULT_TIME_TO_GO_SECS
+    ):
         """
         Attempts to move to the given position and orientation by
         planning a Cartesian trajectory (a set of min-jerk waypoints)
@@ -127,10 +132,9 @@ class ManipulatorSystem:
                 error_detected = True
                 print(f"Error updating current policy {str(e)}")
 
-
             # Check if policy terminated due to issues
             if self.arm.get_previous_interval().end != -1 or error_detected:
-                error_detected = False 
+                error_detected = False
                 print("Interrupt detected. Reinstantiating control policy...")
                 time.sleep(3)
                 self.reset_policy()
@@ -176,7 +180,14 @@ class ManipulatorSystem:
 
         return pos, quat
 
-    def grasp(self, grasp_pose0, grasp_pose1, gather_arm_state_func=None, gather_gripper_state_func=None, reset_at_end=True):
+    def grasp(
+        self,
+        grasp_pose0,
+        grasp_pose1,
+        gather_arm_state_func=None,
+        gather_gripper_state_func=None,
+        reset_at_end=True,
+    ):
         results = []
         traj_state = {}
 
@@ -184,42 +195,56 @@ class ManipulatorSystem:
 
         # Move to pregrasp
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, self.pregrasp_height)
-        successes, N, robot_states = self.move_to(pos, quat, gather_arm_state_func, time_to_go=self.up_time_seconds)
+        successes, N, robot_states = self.move_to(
+            pos, quat, gather_arm_state_func, time_to_go=self.up_time_seconds
+        )
         results.append((successes, N))
         traj_state["move_to_grasp_states"] = robot_states
 
         # Lower (slower than other motions to prevent sudden collisions)
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, self.grasp_height)
-        successes, N, robot_states = self.move_to(pos, quat, gather_arm_state_func, time_to_go=self.down_time_seconds)
+        successes, N, robot_states = self.move_to(
+            pos, quat, gather_arm_state_func, time_to_go=self.down_time_seconds
+        )
         results.append((successes, N))
-        traj_state["lower_to_grasp_states"] = robot_states       
+        traj_state["lower_to_grasp_states"] = robot_states
 
         # Grasp
         close_gripper_state = self.close_gripper()
         if gather_gripper_state_func:
-            traj_state["close_gripper_state"] = gather_gripper_state_func(close_gripper_state)
+            traj_state["close_gripper_state"] = gather_gripper_state_func(
+                close_gripper_state
+            )
 
         # Lift to pregrasp
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, self.pregrasp_height)
-        successes, N, robot_states = self.move_to(pos, quat, gather_arm_state_func, time_to_go=self.up_time_seconds)
+        successes, N, robot_states = self.move_to(
+            pos, quat, gather_arm_state_func, time_to_go=self.up_time_seconds
+        )
         results.append((successes, N))
-        traj_state["lift_to_release_states"] = robot_states       
+        traj_state["lift_to_release_states"] = robot_states
 
         # Move to new pregrasp
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose1, self.pregrasp_height)
-        successes, N, robot_states = self.move_to(pos, quat, gather_arm_state_func, time_to_go=self.up_time_seconds)
+        successes, N, robot_states = self.move_to(
+            pos, quat, gather_arm_state_func, time_to_go=self.up_time_seconds
+        )
         results.append((successes, N))
-        traj_state["move_to_release_states"] = robot_states       
+        traj_state["move_to_release_states"] = robot_states
 
         # Read gripper state prior to release, in case object had fallen down
         if gather_gripper_state_func:
             preopen_gripper_state = self.gripper.get_state()
-            traj_state["preopen_gripper_state"] = gather_gripper_state_func(preopen_gripper_state)
+            traj_state["preopen_gripper_state"] = gather_gripper_state_func(
+                preopen_gripper_state
+            )
 
         # Release
         open_gripper_state = self.open_gripper()
         if gather_gripper_state_func:
-            traj_state["open_gripper_state"] = gather_gripper_state_func(open_gripper_state)
+            traj_state["open_gripper_state"] = gather_gripper_state_func(
+                open_gripper_state
+            )
 
         traj_state["release_pose"] = grasp_pose1
 
@@ -255,32 +280,29 @@ class ManipulatorSystem:
         except KeyboardInterrupt:
             print("Interrupted by user.")
 
-        return total_successes, total_tries   
+        return total_successes, total_tries
 
     def set_pregrasp_height(self, pregrasp_height: float):
-        self.pregrasp_height = pregrasp_height  
+        self.pregrasp_height = pregrasp_height
 
     def set_grasp_height(self, grasp_height: float):
-        self.grasp_height = grasp_height    
+        self.grasp_height = grasp_height
 
     def set_planner_dt(self, planner_dt: float):
-        self.planner_dt = planner_dt    
+        self.planner_dt = planner_dt
 
     def set_gp_range_upper(self, x: float, y: float, z: float):
         self.gp_range_upper = torch.Tensor([x, y, z])
 
     def set_gp_range_lower(self, x: float, y: float, z: float):
-        self.gp_range_lower = torch.Tensor([x, y, z])     
+        self.gp_range_lower = torch.Tensor([x, y, z])
 
     def set_up_time_seconds(self, up_time_seconds: float):
         self.up_time_seconds = up_time_seconds
 
     def set_down_time_seconds(self, down_time_seconds: float):
-        self.down_time_seconds = down_time_seconds   
+        self.down_time_seconds = down_time_seconds
+
 
 def uniform_sample(lower, upper):
     return lower + (upper - lower) * torch.rand_like(lower)
-
-
-
-    

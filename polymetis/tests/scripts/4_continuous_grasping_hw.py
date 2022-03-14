@@ -6,7 +6,8 @@ import sys
 
 from polymetis.utils.continuous_grasper import ManipulatorSystem
 
-DEFAULT_MAX_ITERS = 3 
+DEFAULT_MAX_ITERS = 3
+
 
 def main(max_iterations, **kwargs):
     try:
@@ -21,6 +22,8 @@ def main(max_iterations, **kwargs):
 
 if __name__ == "__main__":
     if len(sys.argv) < 1:
-        print("Usage: python 4_continuous_grasping.py <max_iterations> <robot and / or gripper parameters>")
+        print(
+            "Usage: python 4_continuous_grasping.py <max_iterations> <robot and / or gripper parameters>"
+        )
     else:
         main(**dict(arg.split("=") for arg in sys.argv[1:]))
