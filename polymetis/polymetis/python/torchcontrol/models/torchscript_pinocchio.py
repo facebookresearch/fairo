@@ -34,11 +34,16 @@ class RobotModelPinocchio(torch.nn.Module):
     a C++ rigid body dynamics library.
     """
 
-    def __init__(self, urdf_filename: str, ee_link_name: str):
+    def __init__(self, urdf_filename: str, ee_link_name: str = None):
         super().__init__()
         self.model = torch.classes.torchscript_pinocchio.RobotModelPinocchio(
-            urdf_filename, ee_link_name
+            urdf_filename, False
         )
+        self.ee_link_name = ee_link_name
+        if self.ee_link_name is not None:
+            self.ee_link_idx = self.model.get_link_idx_from_name(self.ee_link_name)
+        else:
+            self.ee_link_idx = None
 
     def get_joint_angle_limits(self) -> torch.Tensor:
         return self.model.get_joint_angle_limits()
@@ -47,7 +52,9 @@ class RobotModelPinocchio(torch.nn.Module):
         return self.model.get_joint_velocity_limits()
 
     def forward_kinematics(
-        self, joint_positions: torch.Tensor
+        self,
+        joint_positions: torch.Tensor,
+        link_name: str = "",
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """Computes end-effector position and orientation from a given joint position.
 
@@ -57,11 +64,23 @@ class RobotModelPinocchio(torch.nn.Module):
         Returns:
             Tuple[torch.Tensor, torch.Tensor]: End-effector position, end-effector orientation as quaternion
         """
-        pos, quat = self.model.forward_kinematics(joint_positions)
+        if not link_name:
+            frame_idx = self.ee_link_idx
+        else:
+            frame_idx = self.model.get_link_idx_from_name(link_name)
+        pos, quat = self.model.forward_kinematics(joint_positions, frame_idx)
         return pos.to(joint_positions), quat.to(joint_positions)
 
-    def compute_jacobian(self, joint_positions: torch.Tensor) -> torch.Tensor:
-        return self.model.compute_jacobian(joint_positions).to(joint_positions)
+    def compute_jacobian(
+        self, joint_positions: torch.Tensor, link_name: str = ""
+    ) -> torch.Tensor:
+        if not link_name:
+            frame_idx = self.ee_link_idx
+        else:
+            frame_idx = self.model.get_link_idx_from_name(link_name)
+        return self.model.compute_jacobian(joint_positions, frame_idx).to(
+            joint_positions
+        )
 
     def inverse_dynamics(
         self,
@@ -81,8 +100,9 @@ class RobotModelPinocchio(torch.nn.Module):
 
     def inverse_kinematics(
         self,
-        ee_pos: torch.Tensor,
-        ee_quat: torch.Tensor,
+        link_pos: torch.Tensor,
+        link_quat: torch.Tensor,
+        link_name: str = "",
         rest_pose: torch.Tensor = None,
         eps: float = 1e-4,
         max_iters: int = 1000,
@@ -94,8 +114,8 @@ class RobotModelPinocchio(torch.nn.Module):
         https://gepettoweb.laas.fr/doc/stack-of-tasks/pinocchio/master/doxygen-html/md_doc_b-examples_i-inverse-kinematics.html
 
         Args:
-            ee_pos (torch.Tensor): desired end-effector position
-            ee_quat (torch.Tensor): desired end-effector orientation
+            link_pos (torch.Tensor): desired end-effector position
+            link_quat (torch.Tensor): desired end-effector orientation
             rest_pose (torch.Tensor): (optional) initial solution for IK
             eps (float): (optional) maximum allowed error
             max_iters (int): (optional) maximum number of iterations
@@ -105,14 +125,19 @@ class RobotModelPinocchio(torch.nn.Module):
         Returns:
             torch.Tensor: joint positions
         """
+        if not link_name:
+            frame_idx = self.ee_link_idx
+        else:
+            frame_idx = self.model.get_link_idx_from_name(link_name)
         if rest_pose is None:
             rest_pose = torch.zeros(self.model.get_joint_angle_limits()[0].numel())
         return self.model.inverse_kinematics(
-            ee_pos.squeeze(),
-            ee_quat.squeeze(),
+            link_pos.squeeze(),
+            link_quat.squeeze(),
+            frame_idx,
             rest_pose.squeeze(),
             eps,
             max_iters,
             dt,
             damping,
-        ).to(ee_pos)
+        ).to(link_pos)
