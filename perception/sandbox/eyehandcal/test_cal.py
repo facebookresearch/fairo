@@ -31,6 +31,7 @@ def test_with_sim_data():
 
 @pytest.fixture(scope='module')
 def collected_data():
+    # please download from https://drive.google.com/file/d/1w-2jA6jEMqmhrGqt33ClKc_jGCUuyZnL/view?usp=sharing
     with open('caldata_hands_down.pkl', 'rb') as f:
         data=pickle.load(f)
     return data
