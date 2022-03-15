@@ -1,4 +1,5 @@
 import fbrp
+import json
 import os
 
 A0_LOG_PATH = os.path.abspath("./a0_data")
@@ -72,18 +73,33 @@ fbrp.process(
 #     ),
 # )
 
-# Converts completed AlephZero logfiles into the OpenSearch database.
+# # Converts completed AlephZero logfiles into the OpenSearch database.
+# fbrp.process(
+#     name="a02os_indexer",
+#     runtime=fbrp.Conda(
+#         dependencies=["python=3.9", {"pip": ["alephzero", "opensearch-py"]}],
+#         run_command=["python3", "a02os_indexer.py"],
+#     ),
+#     env={
+#         "host": open("os.host").read(),
+#         "port": "443",
+#         "auth": open("os.auth").read(),
+#     }
+# )
+
 fbrp.process(
-    name="a02os_indexer",
+    name="cloud_upload",
     runtime=fbrp.Conda(
-        dependencies=["python=3.9", {"pip": ["alephzero", "opensearch-py"]}],
-        run_command=["python3", "a02os_indexer.py"],
+        dependencies=["python=3.9", "boto3", {"pip": ["alephzero"]}],
+        run_command=["python3", "cloud_upload.py"],
     ),
-    env={
-        "host": open("os.host").read(),
-        "port": "443",
-        "auth": open("os.auth").read(),
-    }
+    cfg={
+        "logpath": A0_LOG_PATH,
+        "cloud": "aws",
+        # "key": json.load(open("...")),
+        "bucket": "/robopen_logs",
+        # "mode": "continuous" / "sync",
+    },
 )
 
 fbrp.main()
