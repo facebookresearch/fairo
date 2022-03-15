@@ -46,14 +46,18 @@ def realsense_images():
 
 
 
-def sample_poses():
+def sample_poses(high_camera=False):
     hand_mount_yaw_offset = -pi/4
     for x in np.linspace(0.3, 0.5, 3):
         for y in np.linspace(-0.2, 0.2, 3):
             for z in np.linspace(0.2, 0.4, 3):
                 for yaw in np.linspace(-pi/8, pi/8, 3):
-                    pos_sampled = torch.Tensor([x, y, z])
-                    ori_sampled = R.from_rotvec(torch.Tensor([0, 0, hand_mount_yaw_offset + yaw]))*R.from_rotvec(torch.Tensor([0, 0, 0]))
+                    if high_cameras:
+                        pos_sampled = torch.Tensor([x, y, z+.5])
+                        ori_sampled = R.from_rotvec(torch.Tensor([pi/2, 0, 0])) * R.from_rotvec(torch.Tensor([0, 0, -pi + hand_mount_yaw_offset + yaw]))
+                    else:
+                        pos_sampled = torch.Tensor([x, y, z])
+                        ori_sampled = R.from_rotvec(torch.Tensor([0, 0, hand_mount_yaw_offset + yaw]))
                     yield pos_sampled, ori_sampled
 
 
