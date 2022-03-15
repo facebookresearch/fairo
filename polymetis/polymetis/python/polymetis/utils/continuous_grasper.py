@@ -27,6 +27,9 @@ DEFAULT_TIME_TO_GO_SECS = 2.0
 
 DEFAULT_GAIN_MULTIPLIER = 1.0
 
+CARTESIAN_SPACE_CONTROLLER = 1
+JOINT_SPACE_CONTROLLER = 2
+
 
 class ManipulatorSystem:
     def __init__(self, robot_kwargs={}, gripper_kwargs={}):
@@ -46,6 +49,7 @@ class ManipulatorSystem:
         self._up_time_seconds = DEFAULT_TIME_TO_GO_SECS
         self._down_time_seconds = DEFAULT_TIME_TO_GO_SECS
         self._gain_multiplier = DEFAULT_GAIN_MULTIPLIER
+        self._controller_type = JOINT_SPACE_CONTROLLER
         time.sleep(0.5)
 
         # Set continuous control policy
@@ -68,14 +72,30 @@ class ManipulatorSystem:
         self.arm.go_home()
 
         # Send PD controller
-        joint_pos_current = self.arm.get_joint_positions()
-        policy = toco.policies.CartesianImpedanceControl(
-            joint_pos_current=joint_pos_current,
-            Kp=(self._gain_multiplier * torch.Tensor(self.arm.metadata.default_Kx)),
-            Kd=(self._gain_multiplier * torch.Tensor(self.arm.metadata.default_Kxd)),
-            robot_model=self.arm.robot_model,
-        )
-        self.arm.send_torch_policy(policy, blocking=False)
+        if self._controller_type == CARTESIAN_SPACE_CONTROLLER:
+            joint_pos_current = self.arm.get_joint_positions()
+            policy = toco.policies.CartesianImpedanceControl(
+                joint_pos_current=joint_pos_current,
+                Kp=(self._gain_multiplier * torch.Tensor(self.arm.metadata.default_Kx)),
+                Kd=(
+                    self._gain_multiplier * torch.Tensor(self.arm.metadata.default_Kxd)
+                ),
+                robot_model=self.arm.robot_model,
+            )
+            self.arm.send_torch_policy(policy, blocking=False)
+        elif self._controller_type == JOINT_SPACE_CONTROLLER:
+            joint_pos_current = self.arm.get_joint_positions()
+            policy = toco.policies.JointImpedanceControl(
+                joint_pos_current=joint_pos_current,
+                Kp=(self._gain_multiplier * torch.Tensor(self.arm.metadata.default_Kx)),
+                Kd=(
+                    self._gain_multiplier * torch.Tensor(self.arm.metadata.default_Kxd)
+                ),
+                robot_model=self.arm.robot_model,
+            )
+            self.arm.send_torch_policy(policy, blocking=False)
+        else:
+            assert "invalid controller type"
 
     def move_to(
         self, pos, quat, gather_arm_state_func=None, time_to_go=DEFAULT_TIME_TO_GO_SECS
@@ -109,21 +129,44 @@ class ManipulatorSystem:
             # Update traj
             ee_pos_desired = waypoints[i]["pose"].translation()
             ee_quat_desired = waypoints[i]["pose"].rotation().as_quat()
-            # ee_twist_desired = waypoints[i]["twist"]
             try:
-                self.arm.update_current_policy(
-                    {
-                        "ee_pos_desired": ee_pos_desired,
-                        "ee_quat_desired": ee_quat_desired,
-                        # "ee_vel_desired": ee_twist_desired[:3],
-                        # "ee_rvel_desired": ee_twist_desired[3:],
-                    }
-                )
-                if gather_arm_state_func:
-                    observed_state = gather_arm_state_func(self.arm.get_robot_state())
-                    observed_state["ee_pos_desired"] = ee_pos_desired
-                    observed_state["ee_quat_desired"] = ee_quat_desired
-                    robot_states.append(observed_state)
+                if self._controller_type == CARTESIAN_SPACE_CONTROLLER:
+                    # ee_twist_desired = waypoints[i]["twist"]
+                    self.arm.update_current_policy(
+                        {
+                            "ee_pos_desired": ee_pos_desired,
+                            "ee_quat_desired": ee_quat_desired,
+                            # "ee_vel_desired": ee_twist_desired[:3],
+                            # "ee_rvel_desired": ee_twist_desired[3:],
+                        }
+                    )
+                    if gather_arm_state_func:
+                        observed_state = gather_arm_state_func(
+                            self.arm.get_robot_state()
+                        )
+                        observed_state["ee_pos_desired"] = ee_pos_desired
+                        observed_state["ee_quat_desired"] = ee_quat_desired
+                        robot_states.append(observed_state)
+                elif self._controller_type == JOINT_SPACE_CONTROLLER:
+                    # causes core dump
+                    joint_pos_desired = self.arm.robot_model.inverse_kinematics(
+                        ee_pos=ee_pos_desired,
+                        ee_quat=ee_quat_desired,
+                        rest_pose=self.rest_pos,
+                    )
+                    self.arm.update_current_policy(
+                        {
+                            "joint_pos_desired": joint_pos_desired,
+                        }
+                    )
+                    if gather_arm_state_func:
+                        observed_state = gather_arm_state_func(
+                            self.arm.get_robot_state()
+                        )
+                        observed_state["joint_pos_desired"] = joint_pos_desired
+                        robot_states.append(observed_state)
+                else:
+                    assert "invalid controller type"
             except Exception as e:
                 error_detected = True
                 print(f"Error updating current policy {str(e)}")
@@ -341,6 +384,14 @@ class ManipulatorSystem:
     @gain_multiplier.setter
     def gain_multiplier(self, gain_multiplier: float):
         self._gain_multiplier = gain_multiplier
+
+    @property
+    def controller_type(self) -> int:
+        return self._controller_type
+
+    @controller_type.setter
+    def controller_type(self, type: int):
+        self._controller_type = type
 
 
 def uniform_sample(lower, upper):
