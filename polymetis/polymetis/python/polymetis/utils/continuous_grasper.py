@@ -87,9 +87,9 @@ class ManipulatorSystem:
             joint_pos_current = self.arm.get_joint_positions()
             policy = toco.policies.JointImpedanceControl(
                 joint_pos_current=joint_pos_current,
-                Kp=(self._gain_multiplier * torch.Tensor(self.arm.metadata.default_Kx)),
+                Kp=(self._gain_multiplier * torch.Tensor(self.arm.metadata.default_Kq)),
                 Kd=(
-                    self._gain_multiplier * torch.Tensor(self.arm.metadata.default_Kxd)
+                    self._gain_multiplier * torch.Tensor(self.arm.metadata.default_Kqd)
                 ),
                 robot_model=self.arm.robot_model,
             )
@@ -112,12 +112,23 @@ class ManipulatorSystem:
         pos_curr, quat_curr = self.arm.get_ee_pose()
         N = int(time_to_go / self._planner_dt)
 
-        waypoints = toco.planning.generate_cartesian_space_min_jerk(
-            start=T.from_rot_xyz(R.from_quat(quat_curr), pos_curr),
-            goal=T.from_rot_xyz(R.from_quat(quat), pos),
-            time_to_go=time_to_go,
-            hz=1 / self._planner_dt,
-        )
+        waypoints = []
+        if self._controller_type == CARTESIAN_SPACE_CONTROLLER:
+            waypoints = toco.planning.generate_cartesian_space_min_jerk(
+                start=T.from_rot_xyz(R.from_quat(quat_curr), pos_curr),
+                goal=T.from_rot_xyz(R.from_quat(quat), pos),
+                time_to_go=time_to_go,
+                hz=1 / self._planner_dt,
+            )
+        elif self._controller_type == JOINT_SPACE_CONTROLLER:
+            # causes core dump
+            waypoints = toco.planning.generate_cartesian_target_joint_min_jerk(
+                joint_pos_start=pos_curr,
+                ee_pose_goal=T.from_rot_xyz(R.from_quat(quat), pos),
+                time_to_go=time_to_go,
+                hz=1 / self._planner_dt,
+                robot_model=self.arm.robot_model
+            )
 
         # Execute trajectory
         t0 = time.time()
@@ -127,10 +138,10 @@ class ManipulatorSystem:
         robot_states = []
         for i in range(N):
             # Update traj
-            ee_pos_desired = waypoints[i]["pose"].translation()
-            ee_quat_desired = waypoints[i]["pose"].rotation().as_quat()
             try:
                 if self._controller_type == CARTESIAN_SPACE_CONTROLLER:
+                    ee_pos_desired = waypoints[i]["pose"].translation()
+                    ee_quat_desired = waypoints[i]["pose"].rotation().as_quat()
                     # ee_twist_desired = waypoints[i]["twist"]
                     self.arm.update_current_policy(
                         {
@@ -148,15 +159,12 @@ class ManipulatorSystem:
                         observed_state["ee_quat_desired"] = ee_quat_desired
                         robot_states.append(observed_state)
                 elif self._controller_type == JOINT_SPACE_CONTROLLER:
-                    # causes core dump
-                    joint_pos_desired = self.arm.robot_model.inverse_kinematics(
-                        ee_pos=ee_pos_desired,
-                        ee_quat=ee_quat_desired,
-                        rest_pose=self.rest_pos,
-                    )
+                    joint_pos_desired = waypoints[i]["position"]
+                    joint_vel_desired = waypoints[i]["velocity"]
                     self.arm.update_current_policy(
                         {
                             "joint_pos_desired": joint_pos_desired,
+                            "joint_vel_desired": joint_vel_desired,
                         }
                     )
                     if gather_arm_state_func:
