@@ -32,6 +32,14 @@ class RobotModelPinocchio(torch.nn.Module):
     Implemented as a ``torch.nn.Module`` wrapped around a C++ custom class that leverages
     `Pinocchio <https://github.com/stack-of-tasks/pinocchio>`_ -
     a C++ rigid body dynamics library.
+
+    Args:
+        urdf_filename (str): path to the urdf file.
+        ee_link_name (str, optional): name of the end-effector link. Defaults to None,
+                                      which would require you to specify link_name
+                                      when using methods which require a link frame;
+                                      otherwise, the end-effector link will be used
+                                      by default.
     """
 
     def __init__(self, urdf_filename: str, ee_link_name: str = None):
@@ -45,6 +53,16 @@ class RobotModelPinocchio(torch.nn.Module):
         else:
             self.ee_link_idx = None
 
+    def _get_link_idx_or_use_ee(self, link_name: str) -> int:
+        if not link_name:
+            frame_idx = self.ee_link_idx
+            assert (
+                frame_idx
+            ), "No end-effector link set during initialization, so link_name must be set."
+        else:
+            frame_idx = self.model.get_link_idx_from_name(link_name)
+        return frame_idx
+
     def get_joint_angle_limits(self) -> torch.Tensor:
         return self.model.get_joint_angle_limits()
 
@@ -56,28 +74,34 @@ class RobotModelPinocchio(torch.nn.Module):
         joint_positions: torch.Tensor,
         link_name: str = "",
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Computes end-effector position and orientation from a given joint position.
+        """Computes link position and orientation from a given joint position.
 
         Args:
             joint_positions: A given set of joint angles.
+            link_name (str, optional): name of the link desired. Defaults to the
+                                       end-effector link, if it was set during initialization.
 
         Returns:
-            Tuple[torch.Tensor, torch.Tensor]: End-effector position, end-effector orientation as quaternion
+            Tuple[torch.Tensor, torch.Tensor]: Link position, link orientation as quaternion
         """
-        if not link_name:
-            frame_idx = self.ee_link_idx
-        else:
-            frame_idx = self.model.get_link_idx_from_name(link_name)
+        frame_idx = self._get_link_idx_or_use_ee(link_name)
         pos, quat = self.model.forward_kinematics(joint_positions, frame_idx)
         return pos.to(joint_positions), quat.to(joint_positions)
 
     def compute_jacobian(
         self, joint_positions: torch.Tensor, link_name: str = ""
     ) -> torch.Tensor:
-        if not link_name:
-            frame_idx = self.ee_link_idx
-        else:
-            frame_idx = self.model.get_link_idx_from_name(link_name)
+        """Computes the Jacobian relative to the link frame.
+
+        Args:
+            joint_positions: A given set of joint angles.
+            link_name (str, optional): name of the link desired. Defaults to the
+                                       end-effector link, if it was set during initialization.
+
+        Returns:
+            torch.Tensor, torch.Tensor: The Jacobian relative to the link frame.
+        """
+        frame_idx = self._get_link_idx_or_use_ee(link_name)
         return self.model.compute_jacobian(joint_positions, frame_idx).to(
             joint_positions
         )
@@ -116,6 +140,8 @@ class RobotModelPinocchio(torch.nn.Module):
         Args:
             link_pos (torch.Tensor): desired end-effector position
             link_quat (torch.Tensor): desired end-effector orientation
+            link_name (str, optional): name of the link desired. Defaults to the
+                                       end-effector link, if it was set during initialization.
             rest_pose (torch.Tensor): (optional) initial solution for IK
             eps (float): (optional) maximum allowed error
             max_iters (int): (optional) maximum number of iterations
@@ -125,10 +151,7 @@ class RobotModelPinocchio(torch.nn.Module):
         Returns:
             torch.Tensor: joint positions
         """
-        if not link_name:
-            frame_idx = self.ee_link_idx
-        else:
-            frame_idx = self.model.get_link_idx_from_name(link_name)
+        frame_idx = self._get_link_idx_or_use_ee(link_name)
         if rest_pose is None:
             rest_pose = torch.zeros(self.model.get_joint_angle_limits()[0].numel())
         return self.model.inverse_kinematics(
