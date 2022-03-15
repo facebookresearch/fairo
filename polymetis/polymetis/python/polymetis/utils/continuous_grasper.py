@@ -173,7 +173,7 @@ class ManipulatorSystem:
                         observed_state["joint_pos_desired"] = joint_pos_desired
                         robot_states.append(observed_state)
                 else:
-                    assert "invalid controller type"
+                    raise Exception(f"Invalid controller type {self._controller_type}")
             except Exception as e:
                 error_detected = True
                 print(f"Error updating current policy {str(e)}")
