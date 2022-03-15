@@ -138,8 +138,8 @@ class RobotModelPinocchio(torch.nn.Module):
         https://gepettoweb.laas.fr/doc/stack-of-tasks/pinocchio/master/doxygen-html/md_doc_b-examples_i-inverse-kinematics.html
 
         Args:
-            link_pos (torch.Tensor): desired end-effector position
-            link_quat (torch.Tensor): desired end-effector orientation
+            link_pos (torch.Tensor): desired link position
+            link_quat (torch.Tensor): desired link orientation
             link_name (str, optional): name of the link desired. Defaults to the
                                        end-effector link, if it was set during initialization.
             rest_pose (torch.Tensor): (optional) initial solution for IK
