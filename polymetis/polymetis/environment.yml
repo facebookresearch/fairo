@@ -42,6 +42,8 @@ dependencies:
     - pip
     - protobuf
     - pybullet ==3.17
+    - pymodbus
+    - pyserial
     - pytest
     - pytest-benchmark
     - scipy
@@ -51,7 +53,3 @@ dependencies:
     - sphinx-book-theme
     - tqdm
     - withbullet
-    - pip:
-        - pyserial
-        - pymodbus
-        - alephzero

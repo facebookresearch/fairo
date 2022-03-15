@@ -54,6 +54,8 @@ requirements:
     - poco ==1.9.0 # needed by libfranka
     - protobuf
     - pybullet ==3.17
+    - pymodbus
+    - pyserial
     - pytest
     - pytest-benchmark
     - python ==3.8
@@ -64,10 +66,6 @@ requirements:
     - sphinx-book-theme
     - tqdm
     - withbullet
-    - pip:
-        - pyserial
-        - pymodbus
-        - alephzero
 
 about:
   home:
