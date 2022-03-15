@@ -39,6 +39,7 @@ dependencies:
     - numpy
     - pandas
     - plotly
+    - pip
     - protobuf
     - pybullet ==3.17
     - pytest
@@ -50,3 +51,7 @@ dependencies:
     - sphinx-book-theme
     - tqdm
     - withbullet
+    - pip:
+        - pyserial
+        - pymodbus
+        - alephzero
