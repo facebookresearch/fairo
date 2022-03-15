@@ -111,7 +111,6 @@ class ManipulatorSystem:
         # Plan trajectory
         N = int(time_to_go / self._planner_dt)
 
-        waypoints = []
         if self._controller_type == CARTESIAN_SPACE_CONTROLLER:
             pos_curr, quat_curr = self.arm.get_ee_pose()
             waypoints = toco.planning.generate_cartesian_space_min_jerk(
@@ -129,6 +128,8 @@ class ManipulatorSystem:
                 hz=1 / self._planner_dt,
                 robot_model=self.arm.robot_model,
             )
+        else:
+            raise Exception(f"Invalid controller type {self._controller_type}")
 
         # Execute trajectory
         t0 = time.time()
@@ -160,7 +161,6 @@ class ManipulatorSystem:
                         robot_states.append(observed_state)
                 elif self._controller_type == JOINT_SPACE_CONTROLLER:
                     joint_pos_desired = waypoints[i]["position"]
-                    joint_vel_desired = waypoints[i]["velocity"]
                     self.arm.update_current_policy(
                         {
                             "joint_pos_desired": joint_pos_desired,
