@@ -3,7 +3,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 import os
-import subprocess
 
 import pytest
 
@@ -25,6 +24,14 @@ urdf_path = os.path.join(
 torch.set_default_tensor_type(torch.FloatTensor)
 
 
+def get_link_idx(sim, robot_id, desired_link_name):
+    for i in range(sim.getNumJoints(robot_id)):
+        link_name = sim.getJointInfo(robot_id, i)[12].decode("utf-8")
+        if link_name == desired_link_name:
+            return i
+    raise Exception(f"Link {desired_link_name} not found")
+
+
 @pytest.fixture
 def pybullet_env():
     sim = bc.BulletClient(connection_mode=pybullet.DIRECT)
@@ -35,18 +42,17 @@ def pybullet_env():
         useFixedBase=True,
     )
 
-    ee_idx = 7
-
     for i in range(7):
         sim.changeDynamics(
             robot_id, i, linearDamping=0, angularDamping=0, jointDamping=0
         )
-    return sim, robot_id, ee_idx
+    return sim, robot_id
 
 
-@pytest.fixture
-def pinocchio_wrapper():
-    return toco.models.RobotModelPinocchio(urdf_path, "panda_link8")
+@pytest.fixture(params=["panda_link7", "panda_link8"])
+def pinocchio_wrapper(request):
+    link_name = request.param
+    return toco.models.RobotModelPinocchio(urdf_path, link_name)
 
 
 @pytest.fixture
@@ -64,7 +70,8 @@ def joint_states():
 
 def test_forward_kinematics(pybullet_env, pinocchio_wrapper, joint_states):
     joint_pos, joint_vel, joint_acc, num_dofs = joint_states
-    sim, robot_id, ee_idx = pybullet_env
+    sim, robot_id = pybullet_env
+    ee_idx = get_link_idx(sim, robot_id, pinocchio_wrapper.ee_link_name)
 
     pinocchio_fwd_kinematics = pinocchio_wrapper.forward_kinematics(
         torch.Tensor(joint_pos)
@@ -90,7 +97,8 @@ def test_forward_kinematics(pybullet_env, pinocchio_wrapper, joint_states):
 
 def test_jacobians(pybullet_env, pinocchio_wrapper, joint_states):
     joint_pos, joint_vel, joint_acc, num_dofs = joint_states
-    sim, robot_id, ee_idx = pybullet_env
+    sim, robot_id = pybullet_env
+    ee_idx = get_link_idx(sim, robot_id, pinocchio_wrapper.ee_link_name)
 
     pybullet_jacobian = torch.Tensor(
         sim.calculateJacobian(
@@ -109,7 +117,7 @@ def test_jacobians(pybullet_env, pinocchio_wrapper, joint_states):
 
 def test_inverse_dynamics(pybullet_env, pinocchio_wrapper, joint_states):
     joint_pos, joint_vel, joint_acc, num_dofs = joint_states
-    sim, robot_id, ee_idx = pybullet_env
+    sim, robot_id = pybullet_env
     pinocchio_id = pinocchio_wrapper.inverse_dynamics(
         torch.Tensor(joint_pos).unsqueeze(1),
         torch.Tensor(joint_vel).unsqueeze(1),
@@ -129,7 +137,8 @@ def test_inverse_kinematics(pybullet_env, pinocchio_wrapper, joint_states):
     max_iter = 1000
     # Setup
     joint_pos, joint_vel, joint_acc, num_dofs = joint_states
-    sim, robot_id, ee_idx = pybullet_env
+    sim, robot_id = pybullet_env
+    ee_idx = get_link_idx(sim, robot_id, pinocchio_wrapper.ee_link_name)
 
     pinocchio_fwd_kinematics = pinocchio_wrapper.forward_kinematics(
         torch.Tensor(joint_pos)
