@@ -109,11 +109,11 @@ class ManipulatorSystem:
         Returns (num successes, num attempts, robot_states)
         """
         # Plan trajectory
-        pos_curr, quat_curr = self.arm.get_ee_pose()
         N = int(time_to_go / self._planner_dt)
 
         waypoints = []
         if self._controller_type == CARTESIAN_SPACE_CONTROLLER:
+            pos_curr, quat_curr = self.arm.get_ee_pose()
             waypoints = toco.planning.generate_cartesian_space_min_jerk(
                 start=T.from_rot_xyz(R.from_quat(quat_curr), pos_curr),
                 goal=T.from_rot_xyz(R.from_quat(quat), pos),
@@ -121,9 +121,9 @@ class ManipulatorSystem:
                 hz=1 / self._planner_dt,
             )
         elif self._controller_type == JOINT_SPACE_CONTROLLER:
-            # causes core dump
+            joint_pos_current = self.arm.get_joint_positions()
             waypoints = toco.planning.generate_cartesian_target_joint_min_jerk(
-                joint_pos_start=pos_curr,
+                joint_pos_start=joint_pos_current,
                 ee_pose_goal=T.from_rot_xyz(R.from_quat(quat), pos),
                 time_to_go=time_to_go,
                 hz=1 / self._planner_dt,
@@ -164,7 +164,6 @@ class ManipulatorSystem:
                     self.arm.update_current_policy(
                         {
                             "joint_pos_desired": joint_pos_desired,
-                            "joint_vel_desired": joint_vel_desired,
                         }
                     )
                     if gather_arm_state_func:
