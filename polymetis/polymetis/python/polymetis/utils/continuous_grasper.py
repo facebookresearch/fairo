@@ -127,7 +127,7 @@ class ManipulatorSystem:
                 ee_pose_goal=T.from_rot_xyz(R.from_quat(quat), pos),
                 time_to_go=time_to_go,
                 hz=1 / self._planner_dt,
-                robot_model=self.arm.robot_model
+                robot_model=self.arm.robot_model,
             )
 
         # Execute trajectory
