@@ -46,22 +46,22 @@ def realsense_images():
 
 
 
-def sample_poses(high_camera=False):
+def sample_poses(overhead_cameras=True):
     hand_mount_yaw_offset = -pi/4
-    for x in np.linspace(0.3, 0.5, 3):
-        for y in np.linspace(-0.2, 0.2, 3):
-            for z in np.linspace(0.2, 0.4, 3):
-                for yaw in np.linspace(-pi/8, pi/8, 3):
-                    if high_cameras:
-                        pos_sampled = torch.Tensor([x, y, z+.5])
-                        ori_sampled = R.from_rotvec(torch.Tensor([pi/2, 0, 0])) * R.from_rotvec(torch.Tensor([0, 0, -pi + hand_mount_yaw_offset + yaw]))
+    for x in np.linspace(0.3, 0.5, 2):
+        for y in np.linspace(-0.2, 0.2, 2):
+            for z in np.linspace(0.2, 0.4, 2):
+                for yaw in np.linspace(-pi/4, pi/4, 3):
+                    if overhead_cameras:
+                        pos_sampled = torch.Tensor([x, y, z+.1])
+                        ori_sampled = R.from_rotvec(torch.Tensor([pi/2, 0, 0])) * R.from_rotvec(torch.Tensor([0, 0, hand_mount_yaw_offset + yaw]))
                     else:
                         pos_sampled = torch.Tensor([x, y, z])
-                        ori_sampled = R.from_rotvec(torch.Tensor([0, 0, hand_mount_yaw_offset + yaw]))
+                        ori_sampled = R.from_rotvec(torch.Tensor([0, 0, hand_mount_yaw_offset + yaw]))*R.from_rotvec(torch.Tensor([pi, 0, 0]))
                     yield pos_sampled, ori_sampled
 
 
-def robot_poses(ip_address):
+def robot_poses(ip_address, pose_generator):
     # Initialize robot interface
     robot = RobotInterface(
         ip_address=ip_address,
@@ -70,7 +70,7 @@ def robot_poses(ip_address):
 
     # Get reference state
     robot.go_home()
-    for i, (pos_sampled, ori_sampled) in enumerate(sample_poses()):
+    for i, (pos_sampled, ori_sampled) in enumerate(pose_generator):
         print( f"Moving to pose ({i}): pos={pos_sampled}, quat={ori_sampled.as_quat()}")
         state_log = robot.move_to_ee_pose(
             position=pos_sampled,
@@ -89,18 +89,27 @@ def robot_poses(ip_address):
         print(f"Current pose  pos={pos0}, quat={quat0}")
         yield pos1, quat1
 
-data = []
-img_gen=realsense_images()
-for i, (pos,ori) in enumerate(robot_poses('100.96.135.66')):
-    imgs, intrinsics=next(img_gen)
-    print(f'write {i}')
-    cv2.imwrite(f'debug_{i}.jpg', imgs[1])
-    data.append({
-        'pos': pos,
-        'ori': ori,
-        'imgs': imgs,
-        'intrinsics': intrinsics
-    })
 
-with open('caldata.pkl', 'wb') as f:
-    pickle.dump(data, f)
+if __name__ == '__main__':
+    import argparse
+    parser=argparse.ArgumentParser()
+    parser.add_argument('-o', '--overheadcam', default=False, action='store_true')
+    args=parser.parse_args()
+    print(args)
+
+    data = []
+    img_gen=realsense_images()
+    pose_gen=sample_poses(overhead_cameras=args.overheadcam)
+    for i, (pos,ori) in enumerate(robot_poses('100.96.135.68', pose_gen)):
+        imgs, intrinsics=next(img_gen)
+        print(f'write {i}')
+        cv2.imwrite(f'debug_{i}.jpg', imgs[1])
+        data.append({
+            'pos': pos,
+            'ori': ori,
+            'imgs': imgs,
+            'intrinsics': intrinsics
+        })
+
+    with open('caldata.pkl', 'wb') as f:
+        pickle.dump(data, f)
