@@ -1,10 +1,10 @@
 import time
 import random
 import pytest
-import unittest
 from unittest.mock import MagicMock
 
 from polymetis import GripperInterface
+from polymetis.robot_drivers.robotiq_gripper.gripper_server import RobotiqGripperServer
 import polymetis_pb2
 
 
