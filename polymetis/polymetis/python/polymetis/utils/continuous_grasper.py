@@ -161,11 +161,12 @@ class ManipulatorSystem:
                         observed_state["ee_quat_desired"] = ee_quat_desired
                         robot_states.append(observed_state)
                 elif self._controller_type == JOINT_SPACE_CONTROLLER:
-                    # causes core dump
                     joint_pos_desired = waypoints[i]["position"]
+                    joint_vel_desired = waypoints[i]["velocity"]
                     self.arm.update_current_policy(
                         {
                             "joint_pos_desired": joint_pos_desired,
+                            "joint_vel_desired": joint_vel_desired,
                         }
                     )
                     if gather_arm_state_func:
