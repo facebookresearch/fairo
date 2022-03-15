@@ -15,4 +15,4 @@ def cli():
         suffix = ""
         if info.state == life_cycle.State.STOPPED:
             suffix = f"(stopped code={info.return_code})"
-        click.echo(name, " " * (name_col_width - len(name)), suffix)
+        click.echo(" ".join([name, " " * (name_col_width - len(name)), suffix]))
