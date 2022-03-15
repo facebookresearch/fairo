@@ -95,7 +95,7 @@ class ManipulatorSystem:
             )
             self.arm.send_torch_policy(policy, blocking=False)
         else:
-            assert "invalid controller type"
+            raise Exception(f"Invalid controller type {self._controller_type}")
 
     def move_to(
         self, pos, quat, gather_arm_state_func=None, time_to_go=DEFAULT_TIME_TO_GO_SECS
