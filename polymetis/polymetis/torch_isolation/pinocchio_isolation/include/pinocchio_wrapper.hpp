@@ -45,8 +45,8 @@ inverse_kinematics(State *state, const Eigen::Vector3d &link_pos,
                    Eigen::VectorXd &rest_pose, double eps = 1e-4,
                    int64_t max_iters = 1000, double dt = 0.1,
                    double damping = 1e-12);
-C_TORCH_EXPORT std::size_t get_link_idx_from_name(State *state,
-                                                  const char *link_name);
+C_TORCH_EXPORT int64_t get_link_idx_from_name(State *state,
+                                              const char *link_name);
 } // namespace pinocchio_wrapper
 
 #ifdef __cplusplus

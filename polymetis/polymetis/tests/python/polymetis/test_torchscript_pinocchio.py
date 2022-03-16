@@ -55,6 +55,13 @@ def pinocchio_wrapper(request):
     return toco.models.RobotModelPinocchio(urdf_path, link_name)
 
 
+def test_incorrect_init(pinocchio_wrapper):
+    with pytest.raises(RuntimeError):
+        toco.models.RobotModelPinocchio(urdf_path, "panda_link_nonexistent")
+    with pytest.raises(RuntimeError):
+        pinocchio_wrapper.set_ee_link("panda_link_nonexistent")
+
+
 @pytest.fixture
 def joint_states():
     num_dofs = 7

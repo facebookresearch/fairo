@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 #include "spdlog/spdlog.h"
+#include <stdexcept>
 #include <string>
 
 #include "pinocchio/algorithm/frames.hpp"
@@ -156,8 +157,13 @@ void inverse_kinematics(State *state, const Eigen::Vector3d &link_pos,
   }
 }
 
-std::size_t get_link_idx_from_name(State *state, const char *link_name) {
-  return state->model->getBodyId(std::string(link_name));
+int64_t get_link_idx_from_name(State *state, const char *link_name) {
+  std::string link_name_(link_name);
+  int64_t result = state->model->getBodyId(link_name_);
+  if (result == state->model->nframes) {
+    throw std::invalid_argument("Unknown link name " + link_name_);
+  }
+  return result;
 }
 
 } // namespace pinocchio_wrapper

@@ -47,6 +47,11 @@ class RobotModelPinocchio(torch.nn.Module):
         self.model = torch.classes.torchscript_pinocchio.RobotModelPinocchio(
             urdf_filename, False
         )
+        self.ee_link_name = None
+        self.ee_link_idx = None
+        self.set_ee_link(ee_link_name)
+
+    def set_ee_link(self, ee_link_name):
         self.ee_link_name = ee_link_name
         if self.ee_link_name is not None:
             self.ee_link_idx = self.model.get_link_idx_from_name(self.ee_link_name)
