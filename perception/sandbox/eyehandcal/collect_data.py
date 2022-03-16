@@ -1,19 +1,22 @@
-#  conda create -n eyehandcal polymetis librealsense opencv -c fair-robotics -c conda-forge
-from torchcontrol.transform import Rotation as R
-from torchcontrol.transform import Transformation as T
-from polymetis import RobotInterface
 from math import pi
-import numpy as np
-import torch
 import time
-import cv2
 import os 
 import pickle
 
+import numpy as np
+import torch
+import cv2
+
+from torchcontrol.transform import Rotation as R
+from torchcontrol.transform import Transformation as T
+from polymetis import RobotInterface
 from realsense_wrapper import RealsenseAPI
 
+from utils import detect_corners, quat2rotvec, build_proj_matrix, mean_loss, find_parameter, rotmat
+   
 
-def realsense_images():
+
+def realsense_images(max_pixel_diff=100):
     rs = RealsenseAPI()
     num_cameras = rs.get_num_cameras()
     assert num_cameras > 0, "no camera found"
@@ -37,7 +40,7 @@ def realsense_images():
         for i in range(num_cameras):
             pixel_diff.append(np.abs(imgs0[i].astype(np.int32)-imgs1[i].astype(np.int32)).reshape(-1))
         diff = np.concatenate(pixel_diff)
-        if diff.max() > 50:
+        if diff.max() > max_pixel_diff:
             print(f'image moving pixeldiff max: {diff.max()} p95: {np.percentile(diff, 95)}')
             continue
         print('get image', count)
@@ -90,26 +93,94 @@ def robot_poses(ip_address, pose_generator):
         yield pos1, quat1
 
 
+# helper function
+def extract_obs_data_std(data, camera_index):
+    obs_data_std = []
+    for d in data:
+        if d['corners'][camera_index] is not None:
+            obs_data_std.append((
+                torch.tensor(d['corners'][camera_index], dtype=torch.float64),
+                d['pos'].double(),
+                quat2rotvec(d['ori'].double())
+            ))
+
+    ic = data[0]['intrinsics'][camera_index]
+    K=build_proj_matrix(
+        fx=ic['fx'],
+        fy=ic['fy'],
+        ppx=ic['ppx'],
+        ppy=ic['ppy'])
+    return obs_data_std, K
+
+
+
 if __name__ == '__main__':
     import argparse
     parser=argparse.ArgumentParser()
+
     parser.add_argument('-o', '--overheadcam', default=False, action='store_true')
+    parser.add_argument('--ip', default='100.96.135.68')
+    parser.add_argument('--datafile', default='caldata.pkl')
+    parser.add_argument('--overwrite', default=False)
+    parser.add_argument('--target-marker-id', default=9, type=int)
+    parser.add_argument('--calibration-file', default='calibration.pkl')
+
     args=parser.parse_args()
-    print(args)
+    print(f"Config: {args}")
 
-    data = []
-    img_gen=realsense_images()
-    pose_gen=sample_poses(overhead_cameras=args.overheadcam)
-    for i, (pos,ori) in enumerate(robot_poses('100.96.135.68', pose_gen)):
-        imgs, intrinsics=next(img_gen)
-        print(f'write {i}')
-        cv2.imwrite(f'debug_{i}.jpg', imgs[1])
-        data.append({
-            'pos': pos,
-            'ori': ori,
-            'imgs': imgs,
-            'intrinsics': intrinsics
-        })
+    if os.path.exists(args.datafile) and not args.overwrite:
+        print(f"Warning: datafile {args.datafile} already exists. Loading data instead of collecting data...")
+        data = pickle.load(open(args.datafile, 'rb'))
+    else:
+        if os.path.exists(args.datafile):
+            print(f"Warning: datafile {args.datafile} already exists. Overwriting...")
+        print(f"Collecting data and saving to {args.datafile}...")
 
-    with open('caldata.pkl', 'wb') as f:
-        pickle.dump(data, f)
+        data = []
+        img_gen=realsense_images()
+        pose_gen=sample_poses(overhead_cameras=args.overheadcam)
+        os.path.mkdirs("debug", exist_ok=True)
+        for i, (pos,ori) in enumerate(robot_poses(args.ip, pose_gen)):
+            imgs, intrinsics=next(img_gen)
+            print(f'write {i}')
+            cv2.imwrite(f'debug/debug_{i}.jpg', imgs[1])
+            data.append({
+                'pos': pos,
+                'ori': ori,
+                'imgs': imgs,
+                'intrinsics': intrinsics
+            })
+
+        with open(args.datafile, 'wb') as f:
+            pickle.dump(data, f)
+
+    print(f"Done. Data has {len(data)} poses.")
+    corner_data = detect_corners(data, target_idx=args.target_marker_id)
+
+    num_of_camera=len(corner_data[0]['intrinsics'])
+    params=[]
+    for i in range(num_of_camera):
+        print(f'Solve camera {i} pose')
+        obs_data_std, K = extract_obs_data_std(corner_data, i)
+        print('number of images with keypoint', len(obs_data_std))
+        param=torch.zeros(9, dtype=torch.float64, requires_grad=True)
+        L = lambda param: mean_loss(obs_data_std, param, K)
+        param_star=find_parameter(param, obs_data_std, K)
+
+        print('found param loss (mean pixel err)', L(param_star).item())
+        params.append(param_star)
+    
+    with torch.no_grad():
+        print(torch.stack(params))
+        param_list = []
+        for param in params:
+            camera_base_ori = rotmat(param[:3])
+            param_list.append({
+                "camera_base_ori": camera_base_ori.cpu().numpy().tolist(),
+                "camera_base_pos": param[3:6].cpu().numpy().tolist(),
+                "p_marker_ee": param[6:9].cpu().numpy().tolist(),
+            })
+        
+        with open(args.calibration_file, 'wb') as f:
+            print(f"Saving calibrated parameters to {args.calibration_file}")
+            pickle.dump(param_list, f)
