@@ -1,10 +1,9 @@
 import torch
-import numpy as np
 import cv2
 import math
 
 
-def detect_corners(data):
+def detect_corners(data, target_idx=9):
     """
         data: [{'img': [np.ndarray]}]
         return: [{'corners', [(x,y)]}]
@@ -12,14 +11,14 @@ def detect_corners(data):
     aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
     aruco_param = cv2.aruco.DetectorParameters_create()
     aruco_param.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
-    target_idx = 9
     for i,d in enumerate(data):
         d['corners']=[]
         for j, img in enumerate(d['imgs']):
             result=cv2.aruco.detectMarkers(img, dictionary=aruco_dict, parameters=aruco_param)
             corners, idx, rej = result
-            if target_idx in idx:
-                target_corner=corners[idx.squeeze().tolist().index(target_idx)][0,0,:].tolist()
+            if idx is not None and target_idx in idx:
+                corner_i = idx.squeeze(axis=0).tolist().index(target_idx)
+                target_corner=corners[corner_i][0,0,:].tolist()
                 d['corners'].append(target_corner)
             else:
                 d['corners'].append(None)
