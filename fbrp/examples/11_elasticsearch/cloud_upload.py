@@ -6,7 +6,8 @@ import queue
 import threading
 import time
 import logging
-boto3.set_stream_logger('boto3.client', logging.CRITICAL)
+import pathlib
+boto3.set_stream_logger('boto3.client', logging.DEBUG)
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
 
@@ -38,9 +39,15 @@ def uploader():
     s3 = session.client('s3')
     while True:
         (path, dst) = job_queue.get()
+        dotupload = path + '.uploaded'
+        if os.path.exists(dotupload):
+            print('skip')
+            continue
+
         print(f'starting {path} -> {dst}')
         s3.upload_file(Filename=path, Bucket=str(bucket), Key=dst)
         print(f'uploaded {path} -> {dst}')
+        pathlib.Path(dotupload).touch()
     
 
 num_worker = 1
