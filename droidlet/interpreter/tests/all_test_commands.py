@@ -1042,9 +1042,7 @@ CONDITIONS = {
     },
     "that cow has x greater than 5": {
         "condition": {
-            "input_left": {
-                "filters": append_output(FILTERS["that cow"], ATTRIBUTES["x"])
-                },
+            "input_left": {"filters": append_output(FILTERS["that cow"], ATTRIBUTES["x"])},
             "comparison_type": "GREATER_THAN",
             "input_right": {"fixed_value": "5"},
         },
@@ -1053,7 +1051,7 @@ CONDITIONS = {
         "condition": {
             "input_left": {
                 "filters": append_output(FILTERS["that cow"], ATTRIBUTES["distance from me"])
-                },
+            },
             "comparison_type": "LESS_THAN",
             "input_right": {"fixed_value": "2"},
         },
@@ -1116,10 +1114,10 @@ STOP_CONDITION_COMMANDS = {
                     "condition": {
                         "comparison_type": "EQUAL",
                         "input_left": {
-                                "filters": {
-                                    "output": {"attribute": "RUN_COUNT"},
-                                    "special": {"fixed_value": "THIS"},
-                                }
+                            "filters": {
+                                "output": {"attribute": "RUN_COUNT"},
+                                "special": {"fixed_value": "THIS"},
+                            }
                         },
                         "input_right": {"fixed_value": "2"},
                     },
@@ -1171,7 +1169,9 @@ STOP_CONDITION_COMMANDS = {
                         }
                     }
                 },
-                "terminate_condition": CONDITIONS["18 seconds after that cow has x greater than 5"],
+                "terminate_condition": CONDITIONS[
+                    "18 seconds after that cow has x greater than 5"
+                ],
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
