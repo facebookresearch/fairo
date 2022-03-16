@@ -95,7 +95,7 @@ fbrp.process(
     cfg={
         "logpath": A0_LOG_PATH,
         "cloud": "aws",
-        "credentail": 'aws_ssos3sync.env',  # run `cloud aws get-creds robopen --role SSOS3Sync > aws_ssos3sync.env` on devserver
+        "credential": 'aws_ssos3sync.env',  # run `cloud aws get-creds robopen --role SSOS3Sync -d 86400 > aws_ssos3sync.env` on devserver
         "bucket": "robopen",
         "prefix": "fairo_example" #socket.gethostname(),
         # "mode": "continuous" / "sync",

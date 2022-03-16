@@ -8,23 +8,23 @@ logpath = a0.cfg(a0.env.topic(), "/logpath", str)
 cloud = a0.cfg(a0.env.topic(), "/cloud", str)
 bucket = a0.cfg(a0.env.topic(), "/bucket", str)
 prefix = a0.cfg(a0.env.topic(), "/prefix", str)
-credentail = a0.cfg(a0.env.topic(), "/credentail", str)
+credential = a0.cfg(a0.env.topic(), "/credential", str)
 
 if cloud != "aws":
     print("Only cloud=aws is supported at the moment.", file=sys.stderr)
     sys.exit(1)
 
 cloud_credential={}
-with open(str(credentail),'r') as f:
+with open(str(credential), 'r') as f:
     for line in f.readlines():
         if 'AWS_' in line:
             k, v=line.split()[1].split('=')[:2]
             cloud_credential[k]=v.strip('\'').strip('"')
 
 s3 = boto3.resource('s3',
-                       aws_access_key_id=cloud_credential['AWS_ACCESS_KEY_ID'],
-                       aws_secret_access_key=cloud_credential['AWS_SECRET_ACCESS_KEY'],
-                       aws_session_token=cloud_credential['AWS_SESSION_TOKEN'])
+                    aws_access_key_id=cloud_credential['AWS_ACCESS_KEY_ID'],
+                    aws_secret_access_key=cloud_credential['AWS_SECRET_ACCESS_KEY'],
+                    aws_session_token=cloud_credential['AWS_SESSION_TOKEN'])
 bucket = s3.Bucket(str(bucket))
 
 def onlogfile(path):
