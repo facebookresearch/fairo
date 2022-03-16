@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from math import pi
 import time
 import os 
@@ -12,7 +14,7 @@ from torchcontrol.transform import Transformation as T
 from polymetis import RobotInterface
 from realsense_wrapper import RealsenseAPI
 
-from utils import detect_corners, quat2rotvec, build_proj_matrix, mean_loss, find_parameter, rotmat
+from eyehandcal.utils import detect_corners, quat2rotvec, build_proj_matrix, mean_loss, find_parameter, rotmat
    
 
 
@@ -119,11 +121,11 @@ if __name__ == '__main__':
     parser=argparse.ArgumentParser()
 
     parser.add_argument('-o', '--overheadcam', default=False, action='store_true')
-    parser.add_argument('--ip', default='100.96.135.68')
-    parser.add_argument('--datafile', default='caldata.pkl')
-    parser.add_argument('--overwrite', default=False)
-    parser.add_argument('--target-marker-id', default=9, type=int)
-    parser.add_argument('--calibration-file', default='calibration.pkl')
+    parser.add_argument('--ip', default='100.96.135.68', help="robot ip address")
+    parser.add_argument('--datafile', default='caldata.pkl', help="file to either load or save camera data")
+    parser.add_argument('--overwrite', default=False, help="overwrite existing datafile, if it exists")
+    parser.add_argument('--target-marker-id', default=9, type=int, help="ID of the ARTag marker in the image")
+    parser.add_argument('--calibration-file', default='calibration.pkl', help="file to save final calibration data")
 
     args=parser.parse_args()
     print(f"Config: {args}")
@@ -171,15 +173,16 @@ if __name__ == '__main__':
         params.append(param_star)
     
     with torch.no_grad():
-        print(torch.stack(params))
         param_list = []
-        for param in params:
+        for i, param in enumerate(params):
             camera_base_ori = rotmat(param[:3])
-            param_list.append({
+            result = {
                 "camera_base_ori": camera_base_ori.cpu().numpy().tolist(),
                 "camera_base_pos": param[3:6].cpu().numpy().tolist(),
                 "p_marker_ee": param[6:9].cpu().numpy().tolist(),
-            })
+            }
+            param_list.append(result)
+            print(f"Camera {i} calibration: {result}")
         
         with open(args.calibration_file, 'wb') as f:
             print(f"Saving calibrated parameters to {args.calibration_file}")
