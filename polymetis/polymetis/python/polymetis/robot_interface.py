@@ -9,10 +9,8 @@ import tempfile
 import threading
 import atexit
 import logging
-from enum import Enum
 
 import grpc  # This requires `conda install grpcio protobuf`
-import numpy as np
 import torch
 
 import polymetis
@@ -324,7 +322,7 @@ class RobotInterface(BaseRobotInterface):
         """Sets the home pose for `go_home()` to use."""
         self.home_pose = home_pose
 
-    def set_robot_model(self, robot_description_path: str, ee_link_name: str):
+    def set_robot_model(self, robot_description_path: str, ee_link_name: str = None):
         """Loads the URDF as a RobotModelPinocchio."""
         # Create Torchscript Pinocchio model for DynamicsControllers
         self.robot_model = toco.models.RobotModelPinocchio(
