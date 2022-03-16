@@ -1,5 +1,13 @@
 # Understanding Eye Hand Calibraton 
 
+## Setup
+
+```bash
+conda env create -f environment.yml
+conda activate eyehandcal  # or direnv allow
+pip install -e .
+```
+
 
 ## Assumption
 * Using a realsense camera
