@@ -45,19 +45,18 @@ def cli(*cmd_procs, procs=[], old=False):
 
     # Fail if no processes are left.
     if not display_procs:
-        util.fail(f"No processes found to log")
+        raise ValueError(f"No processes found to log")
 
     # Give each process a random color.
     colors = [
-        "\u001b[31m",  # "Red"
-        "\u001b[32m",  # "Green"
-        "\u001b[33m",  # "Yellow"
-        "\u001b[34m",  # "Blue"
-        "\u001b[35m",  # "Magenta"
-        "\u001b[36m",  # "Cyan"
+        "red",
+        "green",
+        "yellow",
+        "blue",
+        "magenta",
+        "cyan",
     ]
     random.shuffle(colors)
-    reset_color = "\u001b[0m"
 
     # There will be a left hand column with the process name.
     # Find a common width for the name column.
@@ -67,12 +66,12 @@ def cli(*cmd_procs, procs=[], old=False):
 
     def make_listener(i, name, def_):
         # Cache the left hand column.
-        prefix = f"{colors[i % len(colors)]}{name}" + " " * (width - len(name))
-        msg_tmpl = f"{prefix} | {{msg}}{reset_color}"
+        prefix = f"{name}" + " " * (width - len(name))
+        msg_tmpl = f"{prefix} | {{msg}}"
 
         # On message received, print it to stdout.
         def callback(pkt):
-            print(msg_tmpl.format(msg=pkt.payload))
+            click.secho(msg_tmpl.format(msg=pkt.payload), fg=colors[i % len(colors)])
 
         # Create the listener.
         with util.common_env_context(def_):

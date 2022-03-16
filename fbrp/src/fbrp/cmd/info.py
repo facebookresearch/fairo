@@ -6,11 +6,11 @@ import json
 
 @click.command()
 def cli():
-    print("System State:")
-    print(json.dumps(life_cycle.system_state().asdict(), indent="  "))
+    click.secho("System State:", bold=True)
+    click.echo(json.dumps(life_cycle.system_state().asdict(), indent="  "))
 
-    print("Defined Processes:")
-    print(
+    click.secho("Defined Processes:", bold=True)
+    click.echo(
         json.dumps(
             {
                 name: proc_def.asdict()

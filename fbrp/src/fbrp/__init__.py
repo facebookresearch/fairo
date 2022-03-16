@@ -22,6 +22,8 @@ def main(*args):
         raise RuntimeError(
             f"fbrp.main failed with exit code {sys_exit.code}"
         ) from sys_exit
+    except Exception as ex:
+        click.echo(ex, err=True)
 
 
 class cmd:

@@ -53,7 +53,9 @@ def process(
     # Validate env is dict[str, str]
     for k, v in env.items():
         if [type(k), type(v)] != [str, str]:
-            util.fail(f"fbrp process [{name}] invalid. env is not dict[str, str]")
+            raise ValueError(
+                f"fbrp process [{name}] invalid. env is not dict[str, str]"
+            )
 
     defined_processes[name] = ProcDef(
         name=name,
