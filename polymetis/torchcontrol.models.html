@@ -360,27 +360,59 @@
 <span id="torchcontrol-models-torchscript-pinocchio-module"></span><h2>torchcontrol.models.torchscript_pinocchio module<a class="headerlink" href="#module-torchcontrol.models.torchscript_pinocchio" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">torchcontrol.models.torchscript_pinocchio.</span></span><span class="sig-name descname"><span class="pre">RobotModelPinocchio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">urdf_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ee_link_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">torchcontrol.models.torchscript_pinocchio.</span></span><span class="sig-name descname"><span class="pre">RobotModelPinocchio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">urdf_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ee_link_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
 <p>A robot model able to compute kinematics &amp; dynamics of a robot given an urdf.</p>
 <p>Implemented as a <code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code> wrapped around a C++ custom class that leverages
 <a class="reference external" href="https://github.com/stack-of-tasks/pinocchio">Pinocchio</a> -
 a C++ rigid body dynamics library.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>urdf_filename</strong> (<em>str</em>) – path to the urdf file.</p></li>
+<li><p><strong>ee_link_name</strong> (<em>str</em><em>, </em><em>optional</em>) – name of the end-effector link. Defaults to None,
+which would require you to specify link_name
+when using methods which require a link frame;
+otherwise, the end-effector link will be used
+by default.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.compute_jacobian">
-<span class="sig-name descname"><span class="pre">compute_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_positions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.compute_jacobian" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">compute_jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_positions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.compute_jacobian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the Jacobian relative to the link frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint_positions</strong> – A given set of joint angles.</p></li>
+<li><p><strong>link_name</strong> (<em>str</em><em>, </em><em>optional</em>) – name of the link desired. Defaults to the
+end-effector link, if it was set during initialization.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The Jacobian relative to the link frame.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.Tensor, torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.forward_kinematics">
-<span class="sig-name descname"><span class="pre">forward_kinematics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_positions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.forward_kinematics" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes end-effector position and orientation from a given joint position.</p>
+<span class="sig-name descname"><span class="pre">forward_kinematics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_positions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.forward_kinematics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes link position and orientation from a given joint position.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>joint_positions</strong> – A given set of joint angles.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint_positions</strong> – A given set of joint angles.</p></li>
+<li><p><strong>link_name</strong> (<em>str</em><em>, </em><em>optional</em>) – name of the link desired. Defaults to the
+end-effector link, if it was set during initialization.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>End-effector position, end-effector orientation as quaternion</p>
+<dd class="field-even"><p>Link position, link orientation as quaternion</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>Tuple[torch.Tensor, torch.Tensor]</p>
@@ -415,15 +447,17 @@ given joint positions and velocities.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.inverse_kinematics">
-<span class="sig-name descname"><span class="pre">inverse_kinematics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ee_pos</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ee_quat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest_pose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.inverse_kinematics" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">inverse_kinematics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">link_pos</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_quat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest_pose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.inverse_kinematics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes joint positions that achieve a given end-effector pose.
 Uses CLIK algorithm from
 <a class="reference external" href="https://gepettoweb.laas.fr/doc/stack-of-tasks/pinocchio/master/doxygen-html/md_doc_b-examples_i-inverse-kinematics.html">https://gepettoweb.laas.fr/doc/stack-of-tasks/pinocchio/master/doxygen-html/md_doc_b-examples_i-inverse-kinematics.html</a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ee_pos</strong> (<em>torch.Tensor</em>) – desired end-effector position</p></li>
-<li><p><strong>ee_quat</strong> (<em>torch.Tensor</em>) – desired end-effector orientation</p></li>
+<li><p><strong>link_pos</strong> (<em>torch.Tensor</em>) – desired link position</p></li>
+<li><p><strong>link_quat</strong> (<em>torch.Tensor</em>) – desired link orientation</p></li>
+<li><p><strong>link_name</strong> (<em>str</em><em>, </em><em>optional</em>) – name of the link desired. Defaults to the
+end-effector link, if it was set during initialization.</p></li>
 <li><p><strong>rest_pose</strong> (<em>torch.Tensor</em>) – (optional) initial solution for IK</p></li>
 <li><p><strong>eps</strong> (<em>float</em>) – (optional) maximum allowed error</p></li>
 <li><p><strong>max_iters</strong> (<em>int</em>) – (optional) maximum number of iterations</p></li>
@@ -438,6 +472,12 @@ Uses CLIK algorithm from
 <dd class="field-odd"><p>torch.Tensor</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.set_ee_link">
+<span class="sig-name descname"><span class="pre">set_ee_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ee_link_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.set_ee_link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the <cite>ee_link_name</cite>, <cite>ee_link_idx</cite> using pinocchio::ModelTpl::getBodyId.</p>
 </dd></dl>
 
 <dl class="py attribute">
