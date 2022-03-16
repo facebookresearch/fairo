@@ -61,9 +61,10 @@ class RobotModelPinocchio(torch.nn.Module):
     def _get_link_idx_or_use_ee(self, link_name: str) -> int:
         if not link_name:
             frame_idx = self.ee_link_idx
-            assert (
-                frame_idx
-            ), "No end-effector link set during initialization, so link_name must be set."
+            assert frame_idx, (
+                "No end-effector link set during initialization, so link_name must "
+                + "be either input as parameter or set as default using `set_ee_link`."
+            )
         else:
             frame_idx = self.model.get_link_idx_from_name(link_name)
         return frame_idx
