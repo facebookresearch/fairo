@@ -6,7 +6,6 @@ from fbrp.util import NoEscape
 from importlib.machinery import SourceFileLoader
 import click
 import os
-import sys
 
 
 @click.group()

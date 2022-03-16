@@ -20,18 +20,21 @@ class CondaEnv:
     dependencies: typing.List[typing.Union[str, dict]]
 
     @staticmethod
-    def load(flo):
+    def load(flo) -> "CondaEnv":
+        """Load a conda env definition from a yaml flo."""
         result = pyyaml.safe_load(flo)
         return CondaEnv(result.get("channels", []), result.get("dependencies", []))
 
     @staticmethod
-    def from_named_env(name):
+    def from_named_env(name) -> "CondaEnv":
+        """Load a conda env definition from a named environment."""
         return CondaEnv.load(
             subprocess.check_output(["conda", "env", "export", "-n", name])
         )
 
     @staticmethod
     def merge(lhs: "CondaEnv", rhs: "CondaEnv") -> "CondaEnv":
+        """Merge two conda environments."""
         channels = sorted(set(lhs.channels + rhs.channels))
 
         deps = []
@@ -51,6 +54,14 @@ class CondaEnv:
         return CondaEnv(channels, deps)
 
     def fix_pip(self):
+        """Fix pip dependencies.
+
+        Conda special cases pip dependencies with the form:
+        {"pip": ["pkg_a", "pkg_b"]}
+
+        But still requires a top-level pip dependency.
+        This method adds a top-level pip dependency if not present.
+        """
         if any(dep is str and dep.startswith("pip") for dep in self.dependencies):
             return
         for dep in self.dependencies:
@@ -72,7 +83,8 @@ class Launcher(BaseLauncher):
         self.env_name = env_name
         self.proc_def = proc_def
 
-    async def activate_conda_envvar(self) -> dict:
+    async def envvar_for_conda(self) -> dict:
+        """Detect the envvar set by conda for our env."""
         # We grab the conda env variables separate from executing the run
         # command to simplify detecting pid and removing some race conditions.
         subprocess_env = os.environ.copy()
@@ -94,20 +106,30 @@ class Launcher(BaseLauncher):
         lines = open(envvar_file).read().split("\0")
         return dict(line.split("=", 1) for line in lines if "=" in line)
 
-    async def run_cmd_with_envvar(self, conda_env):
+    async def run_cmd_with_conda_envvar(self, conda_envvar):
+        """Run the command with the conda envvar."""
         self.proc = await asyncio.create_subprocess_shell(
             util.shell_join(self.run_command),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             executable="/bin/bash",
             cwd=self.proc_def.root,
-            env=conda_env,
+            env=conda_envvar,
             start_new_session=True,
         )
         # TODO(lshamis): Handle the case where proc dies before we can query getpgid.
         self.proc_pgrp = os.getpgid(self.proc.pid)
 
     async def gather_cmd_outputs(self):
+        """Track the command.
+
+        This includes:
+        - piping stdout and stderr to the alephzero logger.
+        - logging the processes psutil stats.
+        - watching for process death.
+        - watching for user down request.
+        """
+
         async def log_pipe(logger, pipe):
             while True:
                 try:
@@ -134,38 +156,42 @@ class Launcher(BaseLauncher):
             pass
 
     async def run(self):
-        conda_env = await self.activate_conda_envvar()
-        await self.run_cmd_with_envvar(conda_env)
+        """Run the command."""
+        conda_envvar = await self.envvar_for_conda()
+        await self.run_cmd_with_conda_envvar(conda_envvar)
         life_cycle.set_state(self.name, life_cycle.State.STARTED)
         await self.gather_cmd_outputs()
 
     def get_pid(self):
         return self.proc.pid
 
-    async def exit_cmd_in_env(self) -> int:
-        await self.proc.wait()
-        return self.proc.returncode
-
     async def death_handler(self):
-        ret_code = await self.exit_cmd_in_env()
-        life_cycle.set_state(self.name, life_cycle.State.STOPPED, return_code=ret_code)
+        """Watch for process death."""
+        await self.proc.wait()
+        life_cycle.set_state(
+            self.name, life_cycle.State.STOPPED, return_code=self.proc.returncode
+        )
         # TODO(lshamis): Restart policy goes here.
 
         # Release the down listener.
         self.down_task.cancel()
 
     async def handle_down(self):
+        """Handle user down request."""
         try:
+            # If still running...
             if self.proc.returncode is None:
                 life_cycle.set_state(self.name, life_cycle.State.STOPPING)
+                # Send a gentle SIGTERM to let the process know it's time to die.
                 self.proc.send_signal(signal.SIGTERM)
 
                 try:
+                    # Wait for the process to die.
                     await asyncio.wait_for(self.proc.wait(), timeout=3.0)
                 except asyncio.TimeoutError:
                     pass
 
-            # Clean up zombie sub-sub-processes.
+            # Send a SIGKILL to force the process group to kill stray processes.
             os.killpg(self.proc_pgrp, signal.SIGKILL)
         except:
             pass
@@ -202,6 +228,7 @@ class Conda(BaseRuntime):
                 self._validate_use_named_env()
 
         def _validate_use_named_env(self):
+            """Validate that the named env exists."""
             result = subprocess.run(
                 f"""
                     eval "$(conda shell.bash hook)"
@@ -214,7 +241,14 @@ class Conda(BaseRuntime):
             if result.returncode:
                 raise RuntimeError(f"'use_named_env' not valid: {result.stderr}")
 
-        def _generate_env_content(self, root: pathlib.Path):
+        def _generate_env_content(self, root: pathlib.Path) -> dict:
+            """Generate the conda environment content.
+
+            This includes the channels and dependencies obtained from:
+            - explicit channels and dependencies.
+            - querying a named env to duplicate.
+            - given yaml file.
+            """
             if self.copy_named_env:
                 self.conda_env = CondaEnv.merge(
                     self.conda_env, CondaEnv.from_named_env(self.copy_named_env)
@@ -233,18 +267,27 @@ class Conda(BaseRuntime):
             }
 
         def _env_name(self):
+            """The target environment name."""
             return self.use_named_env or f"fbrp_{self.name}"
 
         def _cache_valid(self, yaml_path, env_content):
+            """Check if the cache is valid.
+
+            To be valid, the cache must:
+            - have the named yaml file.
+            - have the same channels and dependencies as generated in the last up command.
+            - have a single command in the conda env history.
+            - the command must match the creation command.
+            """
             try:
                 if not os.path.exists(yaml_path):
                     return False
 
                 old_content = json.load(open(yaml_path))
 
-                if json.dumps(old_content, sort_keys=True) != json.dumps(
-                    env_content, sort_keys=True
-                ):
+                old_content_compare_key = json.dumps(old_content, sort_keys=True)
+                new_content_compare_key = json.dumps(env_content, sort_keys=True)
+                if old_content_compare_key != new_content_compare_key:
                     return False
 
                 info = json.loads(
@@ -267,6 +310,7 @@ class Conda(BaseRuntime):
                 return False
 
         def _create_env(self, root: pathlib.Path, cache: bool, verbose: bool):
+            """Create the conda environment."""
             yaml_path = os.path.expanduser(f"~/.config/fbrp/conda/{self.name}.yaml")
             os.makedirs(os.path.dirname(yaml_path), exist_ok=True)
 
@@ -314,6 +358,19 @@ class Conda(BaseRuntime):
         setup_commands=[],
         use_mamba=None,
     ):
+        """Declare a conda runtime environment.
+
+        Args:
+            run_command: The command to run in the conda environment.
+            use_named_env: The name of the conda environment to use. This is exclusive from other env definition arguments.
+            copy_named_env: Create a new conda environment by duplicating a named environment.
+            shared_env: A shared Conda.SharedEnv instance. This is exclusive from other env definition arguments.
+            yaml: Create a new conda environment from the definition file.
+            channels: Create a new conda environment using the given channels.
+            dependencies: Create a new conda environment using the given dependencies.
+            setup_commands: Commands to run during the build phase.
+            use_mamba: Use mamba instead of conda. If not set, mamba will be autodetected.
+        """
         if shared_env and any(
             [use_named_env, copy_named_env, yaml, channels, dependencies]
         ):
@@ -350,6 +407,7 @@ class Conda(BaseRuntime):
         return ret
 
     def _build(self, name: str, proc_def: ProcDef, cache: bool, verbose: bool):
+        """Build the conda environment and execute any setup commands."""
         if self._is_personal_env:
             self._env.name = name
         self._env._build(proc_def.root, cache, verbose)
