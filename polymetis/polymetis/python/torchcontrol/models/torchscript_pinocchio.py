@@ -52,6 +52,7 @@ class RobotModelPinocchio(torch.nn.Module):
         self.set_ee_link(ee_link_name)
 
     def set_ee_link(self, ee_link_name):
+        """Sets the `ee_link_name`, `ee_link_idx` using pinocchio::ModelTpl::getBodyId."""
         self.ee_link_name = ee_link_name
         if self.ee_link_name is not None:
             self.ee_link_idx = self.model.get_link_idx_from_name(self.ee_link_name)
@@ -59,6 +60,10 @@ class RobotModelPinocchio(torch.nn.Module):
             self.ee_link_idx = None
 
     def _get_link_idx_or_use_ee(self, link_name: str) -> int:
+        """
+        Get the link index from the link name, or use the end-effector link index
+        if link_name is None.
+        """
         if not link_name:
             frame_idx = self.ee_link_idx
             assert frame_idx, (
