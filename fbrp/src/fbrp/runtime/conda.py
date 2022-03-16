@@ -53,6 +53,14 @@ class CondaEnv:
 
         return CondaEnv(channels, deps)
 
+    def fix_empty(self):
+        """Fix empty dependencies.
+
+        Conda will not create an environment if the dependencies list is empty.
+        """
+        if not self.dependencies:
+            self.dependencies = ["python"]
+
     def fix_pip(self):
         """Fix pip dependencies.
 
@@ -260,6 +268,7 @@ class Conda(BaseRuntime):
                     self.conda_env, CondaEnv.load(open(yaml_path, "r"))
                 )
 
+            self.conda_env.fix_empty()
             self.conda_env.fix_pip()
             return {
                 "channels": self.conda_env.channels,
@@ -295,7 +304,11 @@ class Conda(BaseRuntime):
                         ["conda", "env", "export", "--json", "-n", self._env_name()]
                     )
                 )
+
                 history_file = os.path.join(info["prefix"], "conda-meta/history")
+                if not os.path.exists(history_file):
+                    return False
+
                 history = open(history_file).readlines()
                 cmds = [line.strip() for line in history if line.startswith("# cmd: ")]
                 if len(cmds) != 1:

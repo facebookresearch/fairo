@@ -345,6 +345,12 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install Conda
+          command: |
+            wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+            bash miniconda.sh -b -p /opt/conda
+            echo 'export PATH=/opt/conda/bin:$PATH' >> $BASH_ENV
+      - run:
           name: Install PyTest
           command: pip install pytest
       - run:
