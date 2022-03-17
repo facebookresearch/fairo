@@ -367,14 +367,6 @@ class AgentMemory:
     ###  Times  ###
     ###############
 
-    def add_time(self, t: int) -> str:
-        """Create a new TimeNode
-
-        Args:
-            t (int): time value
-        """
-        return TimeNode.create(self, t)
-
     def get_time_by_id(self, memid: str) -> "TimeNode":
         """Given memid, retrieve TimeNode
 

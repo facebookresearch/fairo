@@ -9,6 +9,7 @@ from droidlet.memory.memory_nodes import (
     LocationNode,
     ChatNode,
     NamedAbstractionNode,
+    TimeNode,
     TripleNode,
 )
 from droidlet.memory.sql_memory import AgentMemory
@@ -58,8 +59,8 @@ class BasicTest(unittest.TestCase):
 
     def test_time_apis(self):
         self.memory = AgentMemory()
-        # Test add_time
-        time_memid = self.memory.add_time(10)
+        # Test adding time
+        time_memid = self.memory.nodes[TimeNode.NODE_TYPE].create(self.memory, 10)
 
         # Test get_time_by_id
         assert self.memory.get_time_by_id(time_memid).time[0] == 10
