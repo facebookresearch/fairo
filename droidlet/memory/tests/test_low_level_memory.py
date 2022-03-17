@@ -54,8 +54,16 @@ class BasicTest(unittest.TestCase):
         loc_memid = self.memory.nodes[LocationNode.NODE_TYPE].create(self.memory, (10, 10, 10))
 
         # Test getting location by id
-        assert self.memory.nodes[LocationNode.NODE_TYPE](self.memory, loc_memid).location == (10.0, 10.0, 10.0)
-        assert self.memory.nodes[LocationNode.NODE_TYPE](self.memory, loc_memid).pos == (10.0, 10.0, 10.0)
+        assert self.memory.nodes[LocationNode.NODE_TYPE](self.memory, loc_memid).location == (
+            10.0,
+            10.0,
+            10.0,
+        )
+        assert self.memory.nodes[LocationNode.NODE_TYPE](self.memory, loc_memid).pos == (
+            10.0,
+            10.0,
+            10.0,
+        )
 
     def test_time_apis(self):
         self.memory = AgentMemory()
