@@ -129,6 +129,10 @@ def interpret_reference_object(
     extra_tags (list of strings): tags added by parent to narrow the search
     allow_clarification (bool): should a Clarification object be put on the DialogueStack
     """
+
+    import ipdb
+    ipdb.set_trace()
+
     filters_d = d.get("filters")
     special = d.get("special_reference")
     # filters_d can be empty...
