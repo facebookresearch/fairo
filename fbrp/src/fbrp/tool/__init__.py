@@ -19,6 +19,7 @@ def main():
         return
 
     # Run the entrypoint file.
+    sys.path.append(os.path.dirname(fsetup_path))
     SourceFileLoader("fsetup", fsetup_path).load_module()
 
 

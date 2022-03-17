@@ -10,6 +10,7 @@ import json
 import os
 import sys
 import threading
+import traceback
 import types
 import typing
 
@@ -162,5 +163,6 @@ def cli(
                             )
                         except BaseException as e:
                             click.echo(f"FATAL: {e}")
+                            traceback.print_exc()
                         life_cycle.set_launcher_running(name, False)
                         sys.exit(0)
