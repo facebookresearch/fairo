@@ -363,18 +363,6 @@ class AgentMemory:
         """
         return self.searcher.search(self, query=query)
 
-    #################
-    ###  Players  ###
-    #################
-
-    def get_player_by_id(self, memid) -> "PlayerNode":
-        """Given memid, retrieve PlayerNode
-
-        Args:
-            memid (string): memory ID
-        """
-        return PlayerNode(self, memid)
-
     ###################
     ###  Locations  ###
     ###################

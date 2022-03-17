@@ -51,7 +51,7 @@ class DialogueManager(object):
         all_chats = self.memory.nodes["Chat"].get_recent_chats(self.memory, n=m)
         chat_list_text = []
         for chat in all_chats:
-            speaker = self.memory.get_player_by_id(chat.speaker_id).name
+            speaker = self.memory.nodes["Player"](self.memory, chat.speaker_id).name
             chat_memid = chat.memid
             # get logical form if any else None
             logical_form_memid, chat_status = None, ""

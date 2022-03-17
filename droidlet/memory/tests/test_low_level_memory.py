@@ -367,8 +367,8 @@ class BasicTest(unittest.TestCase):
         assert len(p_id) == len(p_nodes) == 1
         assert p_nodes[0].eid == 20
 
-        # Test get_player_by_id
-        assert self.memory.get_player_by_id(ann_memid).name == "ann"
+        # Test getting player by id
+        assert self.memory.nodes[PlayerNode.NODE_TYPE](self.memory, ann_memid).name == "ann"
 
     def test_triggers(self):
         self.memory = AgentMemory(agent_time=self.time)
