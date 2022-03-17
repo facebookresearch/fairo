@@ -363,18 +363,6 @@ class AgentMemory:
         """
         return self.searcher.search(self, query=query)
 
-    ###################
-    ###  Locations  ###
-    ###################
-
-    def get_location_by_id(self, memid: str) -> "LocationNode":
-        """Given memory ID, retrieve LocationNode
-
-        Args:
-            memid (string): Memory ID
-        """
-        return LocationNode(self, memid)
-
     ###############
     ###  Times  ###
     ###############
