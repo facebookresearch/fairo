@@ -1103,16 +1103,19 @@ STOP_CONDITION_COMMANDS = {
                     "reference_object": {"special_reference": "AGENT"},
                     "relative_direction": "LEFT",
                 },
-                "terminate_condition": CONDITIONS["that cow is closer than 2 steps to me"],
+                
             }
         ],
+        "terminate_condition": CONDITIONS["that cow is closer than 2 steps to me"],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "dig a hole 2 times": {
         "event_sequence": [
             {
                 "action_type": "DIG",
-                "terminate_condition": {
+            }
+        ],
+        "terminate_condition": {
                     "condition": {
                         "comparison_type": "EQUAL",
                         "input_left": {
@@ -1124,8 +1127,6 @@ STOP_CONDITION_COMMANDS = {
                         "input_right": {"fixed_value": "2"},
                     },
                 },
-            }
-        ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "follow the cow for 2 minutes": {
@@ -1139,9 +1140,10 @@ STOP_CONDITION_COMMANDS = {
                         }
                     }
                 },
-                "terminate_condition": CONDITIONS["2 minutes"],
+                
             }
         ],
+        "terminate_condition": CONDITIONS["2 minutes"],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "follow the cow for 18 seconds": {
@@ -1155,9 +1157,9 @@ STOP_CONDITION_COMMANDS = {
                         }
                     }
                 },
-                "terminate_condition": CONDITIONS["18 seconds"],
             }
         ],
+        "terminate_condition": CONDITIONS["18 seconds"],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "follow the cow for 18 seconds after it has x greater than 5": {
@@ -1171,9 +1173,9 @@ STOP_CONDITION_COMMANDS = {
                         }
                     }
                 },
-                "terminate_condition": CONDITIONS["18 seconds after that cow has x greater than 5"],
             }
         ],
+        "terminate_condition": CONDITIONS["18 seconds after that cow has x greater than 5"],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "follow the cow until it has x greater than 5": {
@@ -1187,9 +1189,9 @@ STOP_CONDITION_COMMANDS = {
                         }
                     }
                 },
-                "terminate_condition": CONDITIONS["that cow has x greater than 5"],
             }
         ],
+        "terminate_condition": CONDITIONS["that cow has x greater than 5"],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
 }
