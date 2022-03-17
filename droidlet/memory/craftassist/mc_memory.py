@@ -448,7 +448,7 @@ class MCAgentMemory(AgentMemory):
         r = self._db_read(
             "SELECT DISTINCT(uuid), bid, meta FROM VoxelObjects WHERE x=? AND y=? AND z=? and ref_type=?",
             *xyz,
-            ref_type
+            ref_type,
         )
         if just_memid:
             return [memid for (memid, bid, meta) in r]
@@ -487,7 +487,7 @@ class MCAgentMemory(AgentMemory):
         location"""
         r = self._db_read(
             'SELECT DISTINCT(uuid) FROM VoxelObjects WHERE ref_type="inst_seg" AND x=? AND y=? AND z=?',
-            *xyz
+            *xyz,
         )
         return r
 
