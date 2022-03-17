@@ -448,7 +448,7 @@ class MCAgentMemory(AgentMemory):
         r = self._db_read(
             "SELECT DISTINCT(uuid), bid, meta FROM VoxelObjects WHERE x=? AND y=? AND z=? and ref_type=?",
             *xyz,
-            ref_type
+            ref_type,
         )
         if just_memid:
             return [memid for (memid, bid, meta) in r]
@@ -470,7 +470,9 @@ class MCAgentMemory(AgentMemory):
         return self.get_block_object_by_id(memids[0])
 
     def get_block_object_by_id(self, memid: str) -> "VoxelObjectNode":
-        return self.basic_search(f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=block AND uuid={memid}")[1][0]
+        return self.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=block AND uuid={memid}"
+        )[1][0]
 
     def tag_block_object_from_schematic(self, block_object_memid: str, schematic_memid: str):
         """Tag a block object that came from a schematic"""
@@ -487,7 +489,7 @@ class MCAgentMemory(AgentMemory):
         location"""
         r = self._db_read(
             'SELECT DISTINCT(uuid) FROM VoxelObjects WHERE ref_type="inst_seg" AND x=? AND y=? AND z=?',
-            *xyz
+            *xyz,
         )
         return r
 

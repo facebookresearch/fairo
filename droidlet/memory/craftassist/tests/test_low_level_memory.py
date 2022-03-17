@@ -28,12 +28,16 @@ class BasicTest(unittest.TestCase):
         player_memid = PlayerNode.create(self.memory, Player(20, "xyz", Pos(1, 1, 1), Look(1, 1)))
 
         # Test getting entity with entityId
-        _, entity_node = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject WHERE eid=10")
+        _, entity_node = self.memory.basic_search(
+            "SELECT MEMORY FROM ReferenceObject WHERE eid=10"
+        )
         assert len(entity_node) == 1
-        assert  entity_node[0].pos == (1.0, 2.0, 3.0)
-        _, entity_node = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject WHERE eid=20")
+        assert entity_node[0].pos == (1.0, 2.0, 3.0)
+        _, entity_node = self.memory.basic_search(
+            "SELECT MEMORY FROM ReferenceObject WHERE eid=20"
+        )
         assert len(entity_node) == 1
-        assert  entity_node[0].pos == (1.0, 1.0, 1.0)
+        assert entity_node[0].pos == (1.0, 1.0, 1.0)
 
     def test_voxel_apis(self):
         self.memory = MCAgentMemory()
@@ -52,12 +56,11 @@ class BasicTest(unittest.TestCase):
         bo_memid = BlockObjectNode.create(self.memory, [((1, 1, 1), (1, 2)), ((2, 2, 2), (2, 3))])
 
         # verify object is created, retrieve based on memid/uuid
-        _, memnode = self.memory.basic_search(f"SELECT MEMORY FROM ReferenceObject WHERE uuid={bo_memid}")
-        assert len(memnode) == 1
-        assert (
-            memnode[0].blocks
-            == self.memory.get_mem_by_id(bo_memid).blocks
+        _, memnode = self.memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE uuid={bo_memid}"
         )
+        assert len(memnode) == 1
+        assert memnode[0].blocks == self.memory.get_mem_by_id(bo_memid).blocks
         # Test get_object_info_by_xyz byt cheking with BlockObject's mean xyz
         assert self.memory.get_object_info_by_xyz((1, 1, 1), "BlockObjects")[0] == bo_memid
         # Test get_block_object_ids_by_xyz
