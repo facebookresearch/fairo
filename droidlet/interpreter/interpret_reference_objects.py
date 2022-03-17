@@ -43,7 +43,9 @@ def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent
         if len(loc) != 3:
             logging.error("Bad coordinates: {}".format(coord_span))
             raise ErrorWithResponse("I don't understand what location you're referring to")
-        memid = agent_memory.nodes["Location"].create(agent_memory, (int(loc[0]), int(loc[1]), int(loc[2])))
+        memid = agent_memory.nodes["Location"].create(
+            agent_memory, (int(loc[0]), int(loc[1]), int(loc[2]))
+        )
         mem = agent_memory.nodes["Location"](agent_memory, memid)
         q = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(memid)
     else:
