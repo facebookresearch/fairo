@@ -1,14 +1,15 @@
 import fbrp
 import fbrp.process_def
 
-def test_env():
+
+def test_host_env():
     # Reset defined processes.
     fbrp.process_def.defined_processes.clear()
 
     # Define process to echo environment variables.
     fbrp.process(
         name="proc",
-        runtime=fbrp.Conda(run_command=["env"]),
+        runtime=fbrp.Host(run_command=["env"]),
         env={"foo": "bar"},
     )
 
@@ -19,8 +20,11 @@ def test_env():
     # Capture the stdout from proc.
     # TODO(lshamis): Modify fbrp.cmd.logs to support output capture for these kinds of tests.
     import a0
+
     output = []
-    r = a0.ReaderSync(a0.File(a0.env.topic_tmpl_log().format(topic="proc")), a0.INIT_OLDEST)
+    r = a0.ReaderSync(
+        a0.File(a0.env.topic_tmpl_log().format(topic="proc")), a0.INIT_OLDEST
+    )
     while r.can_read():
         output.append(r.read().payload.decode())
 
@@ -38,5 +42,4 @@ def test_env():
     assert captured_env["FBRP_NAME"] == "proc"
     assert captured_env["A0_TOPIC"] == "proc"
     assert captured_env["PYTHONUNBUFFERED"] == "1"
-    assert captured_env["CONDA_PREFIX"].endswith("/envs/fbrp_proc")
     assert captured_env["foo"] == "bar"
