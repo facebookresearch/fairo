@@ -22,14 +22,18 @@ ItemStack = namedtuple("ItemStack", "entityId, item, pos")
 
 
 class BasicTest(unittest.TestCase):
-    def test_get_entity_by_id(self):
+    def test_basic_search_entityId(self):
         self.memory = MCAgentMemory()
         mob_memid = MobNode.create(self.memory, Mob(10, 65, Pos(1, 2, 3), Look(0, 0)))
         player_memid = PlayerNode.create(self.memory, Player(20, "xyz", Pos(1, 1, 1), Look(1, 1)))
 
-        # Test get_entity_by_eid with entityId
-        assert self.memory.get_entity_by_eid(10).pos == (1.0, 2.0, 3.0)
-        assert self.memory.get_entity_by_eid(20).pos == (1.0, 1.0, 1.0)
+        # Test getting entity with entityId
+        _, entity_node = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject WHERE eid=10")
+        assert len(entity_node) == 1
+        assert  entity_node[0].pos == (1.0, 2.0, 3.0)
+        _, entity_node = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject WHERE eid=20")
+        assert len(entity_node) == 1
+        assert  entity_node[0].pos == (1.0, 1.0, 1.0)
 
     def test_voxel_apis(self):
         self.memory = MCAgentMemory()
