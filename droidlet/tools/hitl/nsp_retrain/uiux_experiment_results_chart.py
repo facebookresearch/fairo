@@ -102,7 +102,7 @@ stats.append(compute_stats(exp4_epd, "Exp 4"))
 xs = ["Exp1", "Exp2", "Exp3", "Exp4"]
 ys = [y[0] for y in stats]
 errs = [y[1] for y in stats]
-ratios = [stats[i][0]/stats[0][0] for i in range(len(stats))]
+ratios = [stats[i][0] / stats[0][0] for i in range(len(stats))]
 
 print(ratios)
 # plot_hist(xs, ys, errs, "Data Generation Efficiency (% / Baseline)")
