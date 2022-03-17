@@ -367,14 +367,6 @@ class AgentMemory:
     ###  Locations  ###
     ###################
 
-    def add_location(self, xyz: XYZ) -> str:
-        """Create a new LocationNode
-
-        Args:
-            xyz (tuple): XYZ coordinates
-        """
-        return LocationNode.create(self, xyz)
-
     def get_location_by_id(self, memid: str) -> "LocationNode":
         """Given memory ID, retrieve LocationNode
 
