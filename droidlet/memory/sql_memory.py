@@ -363,18 +363,6 @@ class AgentMemory:
         """
         return self.searcher.search(self, query=query)
 
-    ###############
-    ###  Times  ###
-    ###############
-
-    def get_time_by_id(self, memid: str) -> "TimeNode":
-        """Given memid, retrieve TimeNode
-
-        Args:
-            memid (string): Memory ID
-        """
-        return TimeNode(self, memid)
-
     #    ###############
     #    ###  Sets   ###
     #    ###############

@@ -62,8 +62,8 @@ class BasicTest(unittest.TestCase):
         # Test adding time
         time_memid = self.memory.nodes[TimeNode.NODE_TYPE].create(self.memory, 10)
 
-        # Test get_time_by_id
-        assert self.memory.get_time_by_id(time_memid).time[0] == 10
+        # Test getting time by id
+        assert self.memory.nodes[TimeNode.NODE_TYPE](self.memory, time_memid).time[0] == 10
 
     def test_get_mem_by_id(self):
         self.memory = AgentMemory()
