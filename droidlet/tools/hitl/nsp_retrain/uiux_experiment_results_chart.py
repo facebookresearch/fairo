@@ -87,7 +87,8 @@ def plot_hist(xs, ys, errs, ylabel, target_val=None, xlabel="UI/UX Experiments",
 #%%
 # errs / (cost * #logs)
 stats = []
-base_epd = [(515 / (3 * 947))]
+# base_epd = [(515 / (3 * 947))]
+base_epd = [(10 / (3 * 17))]
 stats.append(compute_stats(base_epd, "Baseline"))
 exp1_epd = [(65 / (3 * 98))]
 stats.append(compute_stats(exp1_epd, "Exp 1"))
