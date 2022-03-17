@@ -54,11 +54,22 @@
         }
       }
 
+      function flashBlocks(bbox) {
+        if (flashBlocks != null) {
+          myWorld.flashBlocks(bbox)
+        }
+      }
+
       // document.getElementById("text-container").innerHTML=event.data
       status = event.data['status']
       worldState = event.data['world_state']
       updateAgents(worldState['agent'])
       updateBlocks(worldState['block'])
+      
+      flash_bbox = event.data['flash_bbox']
+      if (flash_bbox) {
+        flashBlocks(flash_bbox);
+      }
     }, false);
   </script>
 </html>

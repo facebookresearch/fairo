@@ -139,7 +139,7 @@ class AgentThinking extends Component {
         JSON.stringify({ msg: "safetyCheckFailed" }),
         "*"
       );
-      this.props.goToQuestion();
+      this.props.goToQuestion(this.props.chats.length - 1);
     } else return true;
   }
 
