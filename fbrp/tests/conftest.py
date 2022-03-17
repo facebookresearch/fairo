@@ -4,16 +4,12 @@ import pytest
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_call(item):
-    """Pytest hook that ignores successful fork exits."""
+    """Pytest hook that ignores forks."""
     pid = os.getpid()
-    outcome = yield
+    yield
 
     if pid != os.getpid():
-        try:
-            outcome.get_result()
-        except SystemExit as err:
-            pytest.exit(err.code)
-        pytest.exit(1)
+        pytest.exit(reason="child process completed")
 
     # Wait for children to complete.
     while True:
