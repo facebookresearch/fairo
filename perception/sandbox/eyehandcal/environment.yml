@@ -10,5 +10,10 @@ dependencies:
   - opencv=4.5.1
   - librealsense=2.50.0
   - scipy=1.7.3
+  - cmake
+  - pybind11
+  - pip
   - pip:
     - ../../realsense_driver/
+    - ../../fairotag #for plotting
+    - sophuspy

@@ -45,7 +45,6 @@ def realsense_images(max_pixel_diff=100):
         if diff.max() > max_pixel_diff:
             print(f'image moving pixeldiff max: {diff.max()} p95: {np.percentile(diff, 95)}')
             continue
-        print('get image', count)
         count+=1
         yield [img.copy() for img in imgs1], intrinsics
 
@@ -123,9 +122,10 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--overheadcam', default=False, action='store_true')
     parser.add_argument('--ip', default='100.96.135.68', help="robot ip address")
     parser.add_argument('--datafile', default='caldata.pkl', help="file to either load or save camera data")
-    parser.add_argument('--overwrite', default=False, help="overwrite existing datafile, if it exists")
+    parser.add_argument('--overwrite', default=False, action='store_true', help="overwrite existing datafile, if it exists")
     parser.add_argument('--target-marker-id', default=9, type=int, help="ID of the ARTag marker in the image")
     parser.add_argument('--calibration-file', default='calibration.pkl', help="file to save final calibration data")
+    parser.add_argument('--imagedir', default=None, help="folder to save debug images")
 
     args=parser.parse_args()
     print(f"Config: {args}")
@@ -141,11 +141,16 @@ if __name__ == '__main__':
         data = []
         img_gen=realsense_images()
         pose_gen=sample_poses(overhead_cameras=args.overheadcam)
-        os.path.mkdirs("debug", exist_ok=True)
         for i, (pos,ori) in enumerate(robot_poses(args.ip, pose_gen)):
             imgs, intrinsics=next(img_gen)
-            print(f'write {i}')
-            cv2.imwrite(f'debug/debug_{i}.jpg', imgs[1])
+
+            if args.imagedir is not None:
+                os.makedirs(args.imagedir, exist_ok=True)
+                for j, img in enumerate(imgs):
+                    img_path=f'{args.imagedir}/capture_{i}_camera_{j}.jpg'
+                    cv2.imwrite(img_path, img)
+                    print(f'save debug images to {img_path}')
+
             data.append({
                 'pos': pos,
                 'ori': ori,
@@ -157,6 +162,7 @@ if __name__ == '__main__':
             pickle.dump(data, f)
 
     print(f"Done. Data has {len(data)} poses.")
+
     corner_data = detect_corners(data, target_idx=args.target_marker_id)
 
     num_of_camera=len(corner_data[0]['intrinsics'])

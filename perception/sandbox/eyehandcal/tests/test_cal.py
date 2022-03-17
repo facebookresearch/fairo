@@ -1,13 +1,16 @@
 #!/usr/bin/env python
-
 import matplotlib.pyplot as plt
 import torch
 import pickle
 torch.set_printoptions(linewidth=160)
-from utils import detect_corners, build_proj_matrix, sim_data, mean_loss, \
+from eyehandcal.utils import detect_corners, build_proj_matrix, sim_data, mean_loss, \
     quat2rotvec, find_parameter, marker_proj, rotmat
 
 import pytest
+import cv2
+import os
+localpath=os.path.abspath(os.path.dirname(__file__))
+
 
 def test_with_sim_data():
     K = build_proj_matrix(fx=613.9306030273438,  fy=614.3072713216146, ppx=322.1438802083333, ppy=241.59906514485678)
@@ -32,15 +35,20 @@ def test_with_sim_data():
 @pytest.fixture(scope='module')
 def collected_data():
     # please download from https://drive.google.com/file/d/1w-2jA6jEMqmhrGqt33ClKc_jGCUuyZnL/view?usp=sharing
-    with open('caldata_hands_down.pkl', 'rb') as f:
+    with open(os.path.join(localpath,'caldata_jpeg.pkl'), 'rb') as f:
         data=pickle.load(f)
+    for d in data:
+        # decode imgs_jpeg_encoded -> imgs
+        if 'imgs_jpeg_encoded' in d:
+            assert 'imgs' not in d
+            d['imgs'] = []
+            for img_jpeg_encoded in d['imgs_jpeg_encoded']:
+                d['imgs'].append(cv2.imdecode(img_jpeg_encoded, cv2.IMREAD_COLOR))
     return data
 
 
 @pytest.fixture(scope='module')
 def data_with_corners(collected_data):
-    # with open('caldata_with_corners.pkl','rb') as f:
-    #     data_with_corners=pickle.load(f)
     data_with_corners = detect_corners(collected_data)
     return data_with_corners
 
