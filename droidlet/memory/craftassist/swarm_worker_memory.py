@@ -197,6 +197,7 @@ class SwarmWorkerMemory:
     def get_block_object_by_id(self, memid: str) -> "VoxelObjectNode":
         return self._db_command("get_block_object_by_id", memid)
 
+    # not sure if to delete this ?
     def get_object_by_id(self, memid: str, table="BlockObjects") -> "VoxelObjectNode":
         return self._db_command("get_object_by_id", memid, table)
 

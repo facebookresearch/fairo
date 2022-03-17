@@ -356,12 +356,13 @@ class BasicTest(unittest.TestCase):
         assert len(memnode) == 1
         assert memnode[0].eid == 10
 
-        # Test get_players_tagged
+        # Test basic_search to get player by tag
         p_id, p_nodes = self.memory.basic_search(
             "SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND has_tag=basketball_player"
         )
         assert len(p_id) == len(p_nodes) == 1
         assert p_nodes[0].eid == 10
+
         p_id, p_nodes = self.memory.basic_search(
             "SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND has_tag=swimmer"
         )

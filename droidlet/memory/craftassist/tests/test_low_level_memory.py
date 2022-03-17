@@ -50,10 +50,13 @@ class BasicTest(unittest.TestCase):
     def test_block_objects_methods(self):
         self.memory = MCAgentMemory()
         bo_memid = BlockObjectNode.create(self.memory, [((1, 1, 1), (1, 2)), ((2, 2, 2), (2, 3))])
-        # Test get_object_by_id
+
+        # verify object is created, retrieve based on memid/uuid
+        _, memnode = self.memory.basic_search(f"SELECT MEMORY FROM ReferenceObject WHERE uuid={bo_memid}")
+        assert len(memnode) == 1
         assert (
-            self.memory.get_mem_by_id(bo_memid).blocks
-            == self.memory.get_object_by_id(bo_memid).blocks
+            memnode[0].blocks
+            == self.memory.get_mem_by_id(bo_memid).blocks
         )
         # Test get_object_info_by_xyz byt cheking with BlockObject's mean xyz
         assert self.memory.get_object_info_by_xyz((1, 1, 1), "BlockObjects")[0] == bo_memid

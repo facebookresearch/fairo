@@ -439,18 +439,6 @@ class MCAgentMemory(AgentMemory):
     ###  BlockObjects  ###
     ######################
 
-    def get_object_by_id(self, memid: str, table="BlockObjects") -> "VoxelObjectNode":
-        """
-        Returns:
-            The memory node for the given memid
-        """
-        if table == "BlockObjects":
-            return BlockObjectNode(self, memid)
-        elif table == "InstSeg":
-            return InstSegNode(self, memid)
-        else:
-            raise ValueError("Bad table={}".format(table))
-
     # and rename this
     def get_object_info_by_xyz(self, xyz: XYZ, ref_type: str, just_memid=True):
         """
@@ -482,7 +470,7 @@ class MCAgentMemory(AgentMemory):
         return self.get_block_object_by_id(memids[0])
 
     def get_block_object_by_id(self, memid: str) -> "VoxelObjectNode":
-        return self.get_object_by_id(memid, "BlockObjects")
+        return self.basic_search(f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=block AND uuid={memid}")[1][0]
 
     def tag_block_object_from_schematic(self, block_object_memid: str, schematic_memid: str):
         """Tag a block object that came from a schematic"""
