@@ -1101,7 +1101,6 @@ STOP_CONDITION_COMMANDS = {
                     "reference_object": {"special_reference": "AGENT"},
                     "relative_direction": "LEFT",
                 },
-                
             }
         ],
         "terminate_condition": CONDITIONS["that cow is closer than 2 steps to me"],
@@ -1114,17 +1113,17 @@ STOP_CONDITION_COMMANDS = {
             }
         ],
         "terminate_condition": {
-                    "condition": {
-                        "comparison_type": "EQUAL",
-                        "input_left": {
-                            "filters": {
-                                "output": {"attribute": "RUN_COUNT"},
-                                "special": {"fixed_value": "THIS"},
-                            }
-                        },
-                        "input_right": {"fixed_value": "2"},
-                    },
+            "condition": {
+                "comparison_type": "EQUAL",
+                "input_left": {
+                    "filters": {
+                        "output": {"attribute": "RUN_COUNT"},
+                        "special": {"fixed_value": "THIS"},
+                    }
                 },
+                "input_right": {"fixed_value": "2"},
+            },
+        },
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "follow the cow for 2 minutes": {
@@ -1138,7 +1137,6 @@ STOP_CONDITION_COMMANDS = {
                         }
                     }
                 },
-                
             }
         ],
         "terminate_condition": CONDITIONS["2 minutes"],
