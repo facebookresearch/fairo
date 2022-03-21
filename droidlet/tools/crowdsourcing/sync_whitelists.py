@@ -39,12 +39,12 @@ qual_dict = {
     "interaction": {
         "allow": interaction_whitelist,
         "block": interaction_blacklist,
-        "softblock": interaction_softblock
+        "softblock": interaction_softblock,
     },
     "vision_annotation": {
         "allow": vision_annotation_whitelist,
         "block": vision_annotation_blacklist,
-        "softblock": vision_softblock
+        "softblock": vision_softblock,
     },
 }
 
@@ -196,6 +196,8 @@ def main(bucket: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--s3_bucket", type=str, required=True, help="S3 bucket where allowlists are stored")
+    parser.add_argument(
+        "--s3_bucket", type=str, required=True, help="S3 bucket where allowlists are stored"
+    )
     opts = parser.parse_args()
     main(opts.s3_bucket)
