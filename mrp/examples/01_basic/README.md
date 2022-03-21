@@ -2,7 +2,7 @@
 
 This is a very basic, single process example.
 
-`fsetup.py` defines a process named `proc`.
+`msetup.py` defines a process named `proc`.
 
 To launch:
 ```sh

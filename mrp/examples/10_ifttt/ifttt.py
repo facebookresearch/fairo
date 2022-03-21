@@ -2,7 +2,7 @@ import a0
 import signal
 import requests
 
-# read in the parameters from fsetup cfg
+# read in the parameters from msetup cfg
 EVENT_NAME = a0.cfg(a0.env.topic(), "/ifttt/event_name", str)
 KEY = a0.cfg(a0.env.topic(), "/ifttt/key", str)
 EVENT_TOPIC = a0.cfg(a0.env.topic(), "/event_topic", str)

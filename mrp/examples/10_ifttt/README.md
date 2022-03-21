@@ -27,7 +27,7 @@ As it is written this script depends on three configuration parameters:
 3. TRIGGER_EVENT_TOPIC: Name of the `alephzero` topic which publishes a message
 when TRIGGER_EVENT_NAME has been detected on client-side
 
-Input your specific strings for the parameters specified above in `fsetup.py`
+Input your specific strings for the parameters specified above in `msetup.py`
 on lines 3, 4 and 5.
 
 ## Running the scripts

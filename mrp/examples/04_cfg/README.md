@@ -2,7 +2,7 @@
 
 In this example we show how to define externally controllable variables.
 
-In `fsetup.py`, `proc` defines a variable named `prefix`, which is initialized with `"In the beginning... "`.
+In `msetup.py`, `proc` defines a variable named `prefix`, which is initialized with `"In the beginning... "`.
 
 In `proc.py`, this variable is declared as a string:
 ```py

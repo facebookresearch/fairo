@@ -2,7 +2,7 @@
 
 In Example 01, we learned how to define and run a process. In this example we define a second.
 
-`fsetup.py`, here, defines two processes: `alice` and `bob`.
+`msetup.py`, here, defines two processes: `alice` and `bob`.
 
 We've removed repetative configuration by moving the environment definition to a conda yaml file named `env.yml`
 
