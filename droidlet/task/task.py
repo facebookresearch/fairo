@@ -143,7 +143,7 @@ class Task(object):
 
     def reset(self):
         """
-        reset the Task.  
+        reset the Task.
         this may require re-interpretation, e.g. if a reference object needs
         to be recomputed.  Set this up in override
         """
