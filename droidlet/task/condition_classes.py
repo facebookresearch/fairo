@@ -14,9 +14,9 @@ class Condition:
 
 
 class SwitchCondition(Condition):
-    """ 
+    """
     switched to True or False by self.set_status(status).
-    this condition is used as if a piece of code wants to 
+    this condition is used as if a piece of code wants to
     determine a condition explicitly
     """
 
