@@ -26,18 +26,25 @@ from droidlet_static_html_task.pilot_config import (
     PILOT_ALLOWLIST_QUAL_NAME as interaction_whitelist,
 )
 from droidlet_static_html_task.pilot_config import PILOT_BLOCK_QUAL_NAME as interaction_blacklist
+from droidlet_static_html_task.pilot_config import SOFTBLOCK_QUAL_NAME as interaction_softblock
 from vision_annotation_task.pilot_config import (
     PILOT_ALLOWLIST_QUAL_NAME as vision_annotation_whitelist,
 )
 from vision_annotation_task.pilot_config import (
     PILOT_BLOCK_QUAL_NAME as vision_annotation_blacklist,
 )
+from vision_annotation_task.pilot_config import SOFTBLOCK_QUAL_NAME as vision_softblock
 
 qual_dict = {
-    "interaction": {"allow": interaction_whitelist, "block": interaction_blacklist},
+    "interaction": {
+        "allow": interaction_whitelist,
+        "block": interaction_blacklist,
+        "softblock": interaction_softblock
+    },
     "vision_annotation": {
         "allow": vision_annotation_whitelist,
         "block": vision_annotation_blacklist,
+        "softblock": vision_softblock
     },
 }
 
@@ -189,6 +196,6 @@ def main(bucket: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--s3_bucket", type=str, help="S3 bucket where allowlists are stored")
+    parser.add_argument("--s3_bucket", type=str, required=True, help="S3 bucket where allowlists are stored")
     opts = parser.parse_args()
     main(opts.s3_bucket)
