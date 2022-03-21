@@ -1,6 +1,6 @@
 # Facebook Robotics Platform
 
-Deploy, launch, manage, and orchestrate heteronigious robots with ease!
+Deploy, launch, manage, and orchestrate heterogeneous robots with ease!
 
 ## Install
 
@@ -17,40 +17,52 @@ pip install fbrp
 Starts all defined processes, or a given subset.
 ```sh
 # To bring up all the processes:
-python fsetup.py up
+fbrp up
 # To bring up myproc:
-python fsetup.py up myproc
+fbrp up myproc
 # Add -v for verbose building print-outs:
-python fsetup.py up -v myproc
+fbrp up -v myproc
 ```
 
 ### down
 Stops all defined processes, or a given subset.
 ```sh
 # To bring down all the processes:
-python fsetup.py down
+fbrp down
 # To bring down myproc:
-python fsetup.py down myproc
+fbrp down myproc
 ```
 
 ### logs
 All the processes default to running in the background. To see the stdout:
 ```sh
 # Attach to the log stream of all processes:
-python fsetup.py logs
+fbrp logs
 # Attach to the log stream of myproc:
-python fsetup.py logs myproc
+fbrp logs myproc
 # Attach to the log stream of all processes, starting from the beginning:
-python fsetup.py logs --old
+fbrp logs --old
 ```
 
 ### ps
 See the state of running processes:
 ```sh
-python fsetup.py ps
+fbrp ps
 ```
 
 ## Runtime
+
+### Host
+
+Run a process without sandboxing:
+```py
+fbrp.process(
+    name="proc",
+    runtime=fbrp.Host(
+        run_command=["python3", "proc.py"],
+    ),
+)
+```
 
 ### Conda
 
@@ -87,3 +99,9 @@ runtime=fbrp.Docker(
 ```
 
 Other kwargs passed to Docker will be passed directly to the docker engine.
+
+## CLI Auto-Complete
+
+Add the following snippet to your `~/.bashrc` to get tab completion:
+
+`eval "$(_FBRP_COMPLETE=bash_source fbrp)"`

@@ -20,7 +20,7 @@ logging.basicConfig(level="INFO")
 db = LocalMephistoDB()
 data_browser = DataBrowser(db=db)
 
-s3 = boto3.client('s3')
+s3 = boto3.client("s3")
 
 
 def issue_bonuses(task_name: str) -> list:
@@ -29,14 +29,16 @@ def issue_bonuses(task_name: str) -> list:
     # Download the shared list of issued bonuses and pull out unique reference tuples to check against
     logging.info(f"Downloading interaction bonus records from S3...")
     with open("bonus_records.csv", "wb") as f:
-        s3.download_fileobj('droidlet-hitl', 'bonus_records.csv', f)
+        s3.download_fileobj("droidlet-hitl", "bonus_records.csv", f)
 
     logging.info(f"Building list of already issued bonuses...")
     previously_issued_units = []
-    with open('bonus_records.csv', newline='') as csvfile:
+    with open("bonus_records.csv", newline="") as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
-            previously_issued_units.append((row[0],row[1]))  # the combination of task_name and unit_id is essentially unique
+            previously_issued_units.append(
+                (row[0], row[1])
+            )  # the combination of task_name and unit_id is essentially unique
 
     # Get completed units from the run_id
     logging.info(f"Retrieving units from Mephisto based on task_name...")
@@ -61,24 +63,48 @@ def issue_bonuses(task_name: str) -> list:
             outputs = data["data"]["outputs"]
             clean_click_string = outputs["clickedElements"].replace("'", "")
             clicks = json.loads(clean_click_string)
+            bonus_result = False
             if clicks:
                 for click in clicks:
                     if "interactionScores" in click["id"]:
-                        amount = float(f'{(click["id"]["interactionScores"]["stoplight"] * 0.30):.2f}')
-                        total_bonus += amount
-                        new_bonus_records.append((task_name, unit_id, worker.worker_name, amount))
-                        bonus_result, _ = worker.bonus_worker(amount, "Virtual assistant interaction quality bonus", unit)
-                        bonus_results.append(bonus_result)
-                        if not bonus_result:
-                            logging.info(f"Bonus NOT successfully issued for worker {worker.worker_name} , debug")
+                        try:
+                            amount = float(
+                                f'{(click["id"]["interactionScores"]["stoplight"] * 0.30):.2f}'
+                            )
+                            bonus_result, _ = worker.bonus_worker(
+                                amount, "Virtual assistant interaction quality bonus", unit
+                            )
+                            total_bonus += amount
+                            new_bonus_records.append(
+                                (task_name, unit_id, worker.worker_name, amount)
+                            )
+                        except:
+                            logging.error(
+                                f"Exception raised on bonus issue for {worker.worker_name}, debug"
+                            )
+                            new_bonus_records.append(
+                                (task_name, unit_id, worker.worker_name, "ERR")
+                            )
+                            pass
+                if not bonus_result:
+                    logging.info(
+                        f"Bonus NOT successfully issued for worker {worker.worker_name}, but no error was raised.  \
+                        Make sure interaction score exists and retry."
+                    )
             else:
-                logging.info(f'Recorded click data not found for {worker.worker_name}, no bonus will be issued')
+                logging.info(
+                    f"Recorded click data not found for {worker.worker_name}, no bonus will be issued"
+                )
+            bonus_results.append(bonus_result)
         else:
             units_skipped += 1
 
     logging.info(f"Num completed units: {len(completed_units)}")
-    logging.info(f"Num bonuses skipped because bonus was issued previously for the same unit: {units_skipped}")
+    logging.info(
+        f"Num bonuses skipped because bonus was issued previously for the same unit: {units_skipped}"
+    )
     logging.info(f"Num new bonuses issued: {len([x for x in bonus_results if x])}")
+    logging.info(f"Num bonuses FAILED: {len([x for x in bonus_results if not x])}")
     logging.info(f"Total bonus amount issued: {total_bonus}")
 
     if new_bonus_records:
@@ -88,7 +114,7 @@ def issue_bonuses(task_name: str) -> list:
             writer = csv.writer(f)
             for record in new_bonus_records:
                 writer.writerow(record)
-        s3.upload_file('bonus_records.csv', 'droidlet-hitl', 'bonus_records.csv')
+        s3.upload_file("bonus_records.csv", "droidlet-hitl", "bonus_records.csv")
 
     os.remove("bonus_records.csv")
     logging.info(f"Finished issuing bonuses!")

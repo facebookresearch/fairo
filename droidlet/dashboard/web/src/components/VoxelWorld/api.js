@@ -16,6 +16,11 @@ function setBlock(x, y, z, idm) {
   world.setBlock(x, y, z, idm);
 }
 
+function flashBlocks(bbox) {
+  world.flashBlocks(bbox);
+}
+
 module.exports.updateAgents = updateAgents;
 module.exports.updateBlocks = updateBlocks;
 module.exports.setBlock = setBlock;
+module.exports.flashBlocks = flashBlocks;

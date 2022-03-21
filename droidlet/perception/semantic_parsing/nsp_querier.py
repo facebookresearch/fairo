@@ -19,10 +19,10 @@ from droidlet.base_util import hash_user
 class NSPQuerier(object):
     def __init__(self, opts, agent=None):
         """This class provides an API that takes in chat as plain text
-         and converts it to logical form. It does so by first checking against
-         ground truth text-logical form pairings and if not found, querying the
-         neural semantic parsing model.
-         """
+        and converts it to logical form. It does so by first checking against
+        ground truth text-logical form pairings and if not found, querying the
+        neural semantic parsing model.
+        """
         self.agent = agent
         self.opts = opts
         # instantiate logger and parsing model
@@ -30,7 +30,15 @@ class NSPQuerier(object):
             "nsp_outputs.csv", ["command", "action_dict", "source", "agent", "time"]
         )
         self.ErrorLogger = NSPLogger(
-            "error_details.csv", ["command", "action_dict", "time", "parser_error", "other_error", "other_error_description"]
+            "error_details.csv",
+            [
+                "command",
+                "action_dict",
+                "time",
+                "parser_error",
+                "other_error",
+                "other_error_description",
+            ],
         )
         try:
             self.parsing_model = DroidletSemanticParsingModel(
@@ -40,7 +48,9 @@ class NSPQuerier(object):
             # No parsing model
             self.parsing_model = None
         # Read the ground truth dataset file: ground_truth/datasets folder
-        self.ground_truth_actions = get_ground_truth(self.opts.no_ground_truth, self.opts.ground_truth_data_dir)
+        self.ground_truth_actions = get_ground_truth(
+            self.opts.no_ground_truth, self.opts.ground_truth_data_dir
+        )
 
         # Socket event listener
         # TODO(kavya): I might want to move this to SemanticParserWrapper
@@ -66,9 +76,13 @@ class NSPQuerier(object):
                 return
             is_parser_error = data["parsing_error"]
             if is_parser_error:
-                self.ErrorLogger.log_dialogue_outputs([data["msg"], data["action_dict"], None, True, None, None])
+                self.ErrorLogger.log_dialogue_outputs(
+                    [data["msg"], data["action_dict"], None, True, None, None]
+                )
             else:
-                self.ErrorLogger.log_dialogue_outputs([data["msg"], data["action_dict"], None, False, True, data["feedback"]])
+                self.ErrorLogger.log_dialogue_outputs(
+                    [data["msg"], data["action_dict"], None, False, True, data["feedback"]]
+                )
 
     def perceive(self, force=False):
         """Get the incoming chats, preprocess the chat, run through the parser
@@ -88,7 +102,9 @@ class NSPQuerier(object):
 
             speaker, chat = match.group(1), match.group(2)
             speaker_hash = hash_user(speaker)
-            logging.debug("In NLU perceive, incoming chat: ['{}' -> {}]".format(speaker_hash, chat))
+            logging.debug(
+                "In NLU perceive, incoming chat: ['{}' -> {}]".format(speaker_hash, chat)
+            )
             if chat.startswith("/"):
                 continue
             incoming_chats.append((speaker, chat))
@@ -135,7 +151,7 @@ class NSPQuerier(object):
 
     def validate_parse_tree(self, parse_tree: Dict, debug: bool = True) -> bool:
         """Validate the parse tree against current grammar.
-        
+
         Args:
             parse_tree (Dict): logical form to be validated.
             debug (bool): whether to print error trace for debugging.
@@ -210,4 +226,3 @@ class NSPQuerier(object):
             logging.error("Returning NOOP")
 
         return logical_form
-

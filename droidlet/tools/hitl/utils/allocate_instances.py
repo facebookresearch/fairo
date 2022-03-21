@@ -48,7 +48,7 @@ def register_task_definition(image_tag, task_name):
     task_definition = ecs.register_task_definition(
         family=task_name,
         executionRoleArn="arn:aws:iam::492338101900:role/ecsTaskExecutionRole",
-        networkMode='awsvpc',
+        networkMode="awsvpc",
         memory="8192",
         cpu="4096",
         containerDefinitions=[
@@ -58,49 +58,22 @@ def register_task_definition(image_tag, task_name):
                 "logConfiguration": {
                     "logDriver": "awslogs",
                     "options": {
-                    "awslogs-group": f"/ecs/craftassist",
-                    "awslogs-region": "us-west-1",
-                    "awslogs-stream-prefix": "ecs"
-                    }
+                        "awslogs-group": f"/ecs/craftassist",
+                        "awslogs-region": "us-west-1",
+                        "awslogs-stream-prefix": "ecs",
+                    },
                 },
                 "portMappings": [
-                    {
-                    "hostPort": 25565,
-                    "protocol": "tcp",
-                    "containerPort": 25565
-                    },
-                    {
-                    "hostPort": 2556,
-                    "protocol": "tcp",
-                    "containerPort": 2556
-                    },
-                    {
-                    "hostPort": 2557,
-                    "protocol": "tcp",
-                    "containerPort": 2557
-                    },
-                    {
-                    "hostPort": 3000,
-                    "protocol": "tcp",
-                    "containerPort": 3000
-                    },
-                    {
-                    "hostPort": 5000,
-                    "protocol": "tcp",
-                    "containerPort": 5000
-                    },
-                    {
-                    "hostPort": 9000,
-                    "protocol": "tcp",
-                    "containerPort": 9000
-                    }
+                    {"hostPort": 25565, "protocol": "tcp", "containerPort": 25565},
+                    {"hostPort": 2556, "protocol": "tcp", "containerPort": 2556},
+                    {"hostPort": 2557, "protocol": "tcp", "containerPort": 2557},
+                    {"hostPort": 3000, "protocol": "tcp", "containerPort": 3000},
+                    {"hostPort": 5000, "protocol": "tcp", "containerPort": 5000},
+                    {"hostPort": 9000, "protocol": "tcp", "containerPort": 9000},
                 ],
             }
         ],
-        requiresCompatibilities=[
-            "EC2",
-            "FARGATE"
-        ]
+        requiresCompatibilities=["EC2", "FARGATE"],
     )
     print(f"Registered task definition: {task_definition}")
 
@@ -207,18 +180,22 @@ def request_instance(instance_num, image_tag, task_name, timeout=-1, batch_id=No
     instances_ids = []
     while cnt < instance_num and NUM_RETRIES > 0:
         try:
-            instance_id, timestamp = launch_instance(task=task_name, config="flat_world", debug=False, batch_id=batch_id)
+            instance_id, timestamp = launch_instance(
+                task=task_name, config="flat_world", debug=False, batch_id=batch_id
+            )
         except Exception as e:
             print(e)
             NUM_RETRIES -= 1
-            logging.info(f"[ECS] Err on launching one ecs instance, discard this one. Remaining num retries: {NUM_RETRIES}")
+            logging.info(
+                f"[ECS] Err on launching one ecs instance, discard this one. Remaining num retries: {NUM_RETRIES}"
+            )
             continue
         else:
             instances_ids.append(instance_id)
             cnt += 1
         finally:
             logging.info(f"[ECS] Progress: {cnt}/{instance_num}")
-    
+
     def is_timeout(start_time, timeout):
         if timeout < 0:
             return False
@@ -227,7 +204,9 @@ def request_instance(instance_num, image_tag, task_name, timeout=-1, batch_id=No
     instance_status = [False] * instance_num
     while not all(instance_status) and not is_timeout(start_time, timeout):
         time.sleep(5)
-        logging.info(f"[ECS] Checking status of {instance_num} instances... Not ready, remaining time {timeout - (time.time() - start_time) // 60}")
+        logging.info(
+            f"[ECS] Checking status of {instance_num} instances... Not ready, remaining time {timeout - (time.time() - start_time) // 60}"
+        )
         for i in range(instance_num):
             instance_status[i] = is_instance_up(instances_ids[i])
 
@@ -237,7 +216,9 @@ def request_instance(instance_num, image_tag, task_name, timeout=-1, batch_id=No
         if is_instance_up(instances_ids[i]):
             up_instances_ids.append(instances_ids[i])
             up_instances_ips.append(get_instance_ip(instances_ids[i]))
-    logging.info(f"[ECS] {len(up_instances_ids)} instances have been launched. Request num: {instance_num}.\nIP list: {up_instances_ips}")
+    logging.info(
+        f"[ECS] {len(up_instances_ids)} instances have been launched. Request num: {instance_num}.\nIP list: {up_instances_ips}"
+    )
     return up_instances_ips, up_instances_ids
 
 
@@ -248,7 +229,7 @@ def register_dashboard_subdomain(cf, zone_id, ip, subdomain):
     cf -- CloudFlare context with R/W permissions.
     zone_id -- zone ID used to locate DNS records.
     ip -- IP of the ECS container that runs dashboard.
-    subdomain -- subdomain contains a unique identifier for this task run, 
+    subdomain -- subdomain contains a unique identifier for this task run,
     which is the batch ID concatenated with the run number.
     """
     # Check that DNS record does not already exist
@@ -267,8 +248,12 @@ def register_dashboard_subdomain(cf, zone_id, ip, subdomain):
         raise e
 
 
-def allocate_instances(instance_num, batch_id, image_tag, task_name, timeout=-1, cf_email="rebeccaqian@fb.com"):
-    instance_ips, instance_ids = request_instance(instance_num, image_tag, task_name, timeout, batch_id)
+def allocate_instances(
+    instance_num, batch_id, image_tag, task_name, timeout=-1, cf_email="rebeccaqian@fb.com"
+):
+    instance_ips, instance_ids = request_instance(
+        instance_num, image_tag, task_name, timeout, batch_id
+    )
     if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
         logging.info("registering subdomains on craftassist.io")
         cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
@@ -300,7 +285,6 @@ def free_ecs_instances(instance_ids):
             )
         except:
             pass
-    
 
 
 if __name__ == "__main__":
@@ -318,13 +302,17 @@ if __name__ == "__main__":
         "--user", type=str, default="rebeccaqian@fb.com", help="Email of the CloudFlare account"
     )
     parser.add_argument(
-        "--image_tag", type=str, help="The tag of docker image that will be used to spin up ecs instance"
+        "--image_tag",
+        type=str,
+        help="The tag of docker image that will be used to spin up ecs instance",
     )
     parser.add_argument(
         "--task_name", type=str, help="Task name of the ecs instance to be requested"
     )
     args = parser.parse_args()
-    instance_ips, instance_ids = request_instance(args.instance_num, args.image_tag, args.task_name, batch_id="0643")
+    instance_ips, instance_ids = request_instance(
+        args.instance_num, args.image_tag, args.task_name, batch_id="0643"
+    )
     batch_id = args.batch_id
     # register subdomain to proxy instance IP
     if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
@@ -346,4 +334,3 @@ if __name__ == "__main__":
                 register_dashboard_subdomain(cf, zone_id, ip, subdomain)
                 # Write record to Mephisto task input CSV
                 csv_writer.writerow([subdomain, batch_id])
-

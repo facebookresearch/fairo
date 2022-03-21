@@ -3,7 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
 import pickle
-import random
 from droidlet.lowlevel.minecraft.iglu_util import IGLU_BLOCK_MAP
 from droidlet.lowlevel.minecraft.shape_util import (
     SHAPE_NAMES,
@@ -16,6 +15,80 @@ GROUND_DEPTH = 5
 H = 13
 
 HOLE_NAMES = ["RECTANGULOID", "ELLIPSOID", "SPHERE"]
+
+
+# FIXME! better control of distribution and put this in a different file
+# also no control of cuberite coloring
+def random_mob_color(mobname):
+    if mobname == "rabbit":
+        return np.random.choice(["brown", "white", "black", "mottled", "gray"])
+    if mobname == "pig":
+        return np.random.choice(["brown", "white", "black", "mottled", "pink"])
+    if mobname == "chicken":
+        return np.random.choice(["white", "yellow", "brown"])
+    if mobname == "sheep":
+        return np.random.choice(["brown", "white", "black", "mottled", "gray"])
+    if mobname == "cow":
+        return np.random.choice(["brown", "white", "black", "mottled", "gray"])
+    return "white"
+
+
+def parse_and_execute_mob_config(args):
+    """
+    mob_config can be a dict of the form
+    {"mobs": [{"mobtype": MOBTYPE,  "pose": (x, y, z, pitch, yaw), "color": COLOR}, ...]}
+    or
+    {"mob_generator": CALLABLE}
+    or
+    {"num_mobs": INT, "mob_probs":{MOBNAME:FLOAT_LOGIT, ..., MOBNAME:FLOAT_LOGIT}}
+    if "mob_probs" is not specified, it is uniform over ["rabbit", "cow", "pig", "chicken", "sheep"]
+    or string of the form
+    num_mobs:x;mobname:float;mobname:float;...
+    the floats are the probability of sampling that mob
+
+    returns a list of [{"mobtype": MOBTYPE,  "pose": (x, y, z, pitch, yaw), "color": COLOR}, ...]
+    """
+
+    mob_config = args.mob_config
+    if type(mob_config) is str:
+        c = {}
+        o = mob_config.split(";")
+        if len(o) > 0:
+            try:
+                assert o[0].startswith("num_mobs")
+                num_mobs = int(o[0].split(":")[1])
+                c["num_mobs"] = num_mobs
+                c["mob_probs"] = {}
+                for p in o[1:]:
+                    name, prob = p.split(":")
+                    c["mob_probs"][name] = float(prob)
+            except:
+                c = {}
+    else:
+        c = mob_config
+    assert type(c) is dict
+    if not c:
+        return []
+    elif c.get("mobs"):
+        return c["mobs"]
+    elif c.get("mob_generator"):
+        return c["mob_generator"](args)
+    elif c.get("num_mobs"):
+        if not c["mob_probs"]:
+            md = [("rabbit", "cow", "pig", "chicken", "sheep"), (1.0, 1.0, 1.0, 1.0, 1.0)]
+        else:
+            md = list(zip(*c["mob_probs"].items()))
+        probs = np.array(md[1])
+        assert probs.min() >= 0.0
+        probs = probs / probs.sum()
+        mobnames = np.random.choice(md[0], size=2, p=probs).tolist()
+        mobs = []
+        for m in mobnames:
+            # mob pose set in collect_scene for now if not specified
+            mobs.append({"mobtype": m, "pose": None, "color": random_mob_color(m)})
+        return mobs
+    else:
+        raise Exception("malformed mob opts {}".format(c))
 
 
 def bid(nowhite=True):
@@ -33,21 +106,39 @@ def white():
     return (35, 0)
 
 
-# ignoring blocks for now
-def avatar_pos(args, blocks):
-    return (1, args.GROUND_DEPTH, 1)
-
-
-def avatar_look(args, blocks):
-    return (0.0, 0.0)
-
-
-def agent_pos(args, blocks):
-    return (3, args.GROUND_DEPTH, 0)
-
-
-def agent_look(args, blocks):
-    return (0.0, 0.0)
+def make_pose(args, loc=None, pitchyaw=None, height_map=None):
+    """
+    make a random pose for player or mob.
+    if loc or pitchyaw is specified, use those
+    if height_map is specified, finds a point close to the loc
+        1 block higher than the height_map, but less than ENTITY_HEIGHT from
+        args.H
+    TODO option to input object locations and pick pitchyaw to look at one
+    """
+    ENTITY_HEIGHT = 2
+    if loc is None:
+        x, y, z = np.random.randint((args.SL, args.H, args.SL))
+    else:
+        x, y, z = loc
+    if pitchyaw is None:
+        pitch = np.random.uniform(-90, 90)
+        yaw = np.random.uniform(-180, 180)
+    else:
+        pitch, yaw = pitchyaw
+    # put the entity above the current height map.  this will break if
+    # there is a big flat slab covering the entire space high, FIXME
+    if height_map is not None:
+        okh = np.array(np.nonzero(height_map < args.H - ENTITY_HEIGHT))
+        if okh.shape[1] == 0:
+            raise Exception(
+                "no space for entities, height map goes up to args.H-ENTITY_HEIGHT everywhere"
+            )
+        d = np.linalg.norm((okh - np.array((x, z)).reshape(2, 1)), 2, 0)
+        minidx = np.argmin(d)
+        x = okh[0, minidx]
+        z = okh[1, minidx]
+        y = int(height_map[x, z] + 1)
+    return x, y, z, pitch, yaw
 
 
 def build_base_world(sl, h, g, fence=False):
@@ -63,16 +154,23 @@ def build_base_world(sl, h, g, fence=False):
     return W
 
 
-def shift(blocks, s):
-    for i in range(len(blocks)):
-        b = blocks[i]
+def shift_list(blocks_list, s):
+    for i in range(len(blocks_list)):
+        b = blocks_list[i]
         if len(b) == 2:
             l, idm = b
-            blocks[i] = ((l[0] + s[0], l[1] + s[1], l[2] + s[2]), idm)
+            blocks_list[i] = ((l[0] + s[0], l[1] + s[1], l[2] + s[2]), idm)
         else:
             assert len(b) == 3
-            blocks[i] = (b[0] + s[0], b[1] + s[1], b[2] + s[2])
-    return blocks
+            blocks_list[i] = (b[0] + s[0], b[1] + s[1], b[2] + s[2])
+    return blocks_list
+
+
+def shift_dict(block_dict, s):
+    out = {}
+    for l, idm in block_dict.items():
+        out[(l[0] + s[0], l[1] + s[1], l[2] + s[2])] = idm
+    return out
 
 
 def in_box_builder(mx, my, mz, Mx, My, Mz):
@@ -95,22 +193,43 @@ def record_shape(S, in_box, offsets, blocks, inst_seg, occupied_by_shapes):
                 occupied_by_shapes[ln] = True
 
 
-def collect_scene(blocks, inst_segs, args):
+def collect_scene(blocks, inst_segs, args, mobs=[]):
     J = {}
-    # FIXME not using the avatar and agent position in cuberite...
-    J["avatarInfo"] = {"pos": avatar_pos(args, blocks), "look": avatar_look(args, blocks)}
-    J["agentInfo"] = {"pos": agent_pos(args, blocks), "look": agent_look(args, blocks)}
     J["inst_seg_tags"] = inst_segs
     mapped_blocks = [
-        (int(l[0]), int(l[1]), int(l[2]), int(IGLU_BLOCK_MAP[idm])) for l, idm in blocks
+        (int(l[0]), int(l[1]), int(l[2]), int(IGLU_BLOCK_MAP[idm])) for l, idm in blocks.items()
     ]
     J["blocks"] = mapped_blocks
 
+    # FIXME not shifting positions of agents and mobs properly for cuberite
+    # FIXME not using the mob positions in cuberite...
+    height_map = np.zeros((args.SL, args.SL))
+    for l, idm in blocks.items():
+        if l[1] > height_map[l[0], l[2]] and idm[0] > 0:
+            height_map[l[0], l[2]] = l[1]
+    J["mobs"] = []
+    for mob in mobs:
+        if mob.get("pose"):
+            x, y, z, p, yaw = mob["pose"]
+            loc = (x, y, z)
+            pitchyaw = (p, yaw)
+        else:
+            loc = None
+            pitchyaw = None
+        mob["pose"] = make_pose(args, loc=loc, pitchyaw=pitchyaw, height_map=height_map)
+        J["mobs"].append(mob)
+    # FIXME not using the avatar and agent position in cuberite...
+
+    x, y, z, p, yaw = make_pose(args, height_map=height_map)
+    J["avatarInfo"] = {"pos": (x, y, z), "look": (p, yaw)}
+    x, y, z, p, yaw = make_pose(args, height_map=height_map)
+    J["agentInfo"] = {"pos": (x, y, z), "look": (p, yaw)}
+
     o = (0, args.cuberite_y_offset, 0)
-    blocks = shift(blocks, o)
+    blocks = shift_dict(blocks, o)
     J["schematic_for_cuberite"] = [
         {"x": int(l[0]), "y": int(l[1]), "z": int(l[2]), "id": int(idm[0]), "meta": int(idm[1])}
-        for l, idm in blocks
+        for l, idm in blocks.items()
     ]
     J["offset"] = (args.cuberite_x_offset, args.cuberite_y_offset, args.cuberite_z_offset)
     return J
@@ -151,7 +270,7 @@ def build_shape_scene(args):
     occupied_by_shapes = {}
     inst_segs = []
     for t in range(num_shapes):
-        shape = random.choice(SHAPE_NAMES)
+        shape = np.random.choice(SHAPE_NAMES)
         opts = SHAPE_OPTION_FUNCTION_MAP[shape]()
         opts["bid"] = bid()
         S = SHAPE_FNS[shape](**opts)
@@ -173,7 +292,7 @@ def build_shape_scene(args):
         ML -= 1
         mL = 1
     for t in range(num_holes):
-        shape = random.choice(HOLE_NAMES)
+        shape = np.random.choice(HOLE_NAMES)
         opts = SHAPE_OPTION_FUNCTION_MAP[shape]()
         S = SHAPE_FNS[shape](**opts)
         S = [(l, (0, 0)) for l, idm in S]
@@ -189,15 +308,15 @@ def build_shape_scene(args):
         in_box = in_box_builder(mL, 0, mL, ML, args.GROUND_DEPTH, ML)
         record_shape(S, in_box, offsets, blocks, inst_seg, occupied_by_shapes)
         inst_segs.append({"tags": ["hole"], "locs": inst_seg})
+    mobs = parse_and_execute_mob_config(args)
     J = {}
     # not shifting y for gridworld
     o = (args.cuberite_x_offset, 0, args.cuberite_z_offset)
-    blocks = [(l, idm) for l, idm in blocks.items()]
-    blocks = shift(blocks, o)
+    blocks = shift_dict(blocks, o)
     for i in inst_segs:
-        i["locs"] = shift(i["locs"], o)
+        i["locs"] = shift_list(i["locs"], o)
 
-    return collect_scene(blocks, inst_segs, args)
+    return collect_scene(blocks, inst_segs, args, mobs=mobs)
 
 
 def build_extra_simple_shape_scene(args):
@@ -262,6 +381,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--SL", type=int, default=SL)
     parser.add_argument("--H", type=int, default=H)
+    parser.add_argument("--mob_config", type=str, default="")
     parser.add_argument("--GROUND_DEPTH", type=int, default=GROUND_DEPTH)
     parser.add_argument("--MAX_NUM_SHAPES", type=int, default=3)
     parser.add_argument("--NUM_SCENES", type=int, default=3)

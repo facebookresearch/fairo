@@ -1,14 +1,16 @@
 from fbrp import life_cycle
-from fbrp import registrar
+from fbrp import process_def
 from fbrp import util
-from fbrp.cmd.base import BaseCommand
+from fbrp.cmd import _autocomplete
 import a0
-import argparse
 import asyncio
+import click
+import contextlib
 import json
 import os
 import sys
 import threading
+import traceback
 import types
 import typing
 
@@ -21,32 +23,32 @@ def transitive_closure(proc_names):
         if proc_name in all_proc_names:
             continue
         try:
-            fringe.extend(registrar.defined_processes[proc_name].deps)
+            fringe.extend(process_def.defined_processes[proc_name].deps)
         except KeyError:
-            util.fail(f"Unknown process: {proc_name}")
+            raise ValueError(f"Unknown process: {proc_name}")
         all_proc_names.add(proc_name)
     return all_proc_names
 
 
 def get_proc_names(proc_names, include_deps):
     if not proc_names:
-        return registrar.defined_processes.keys()
+        return process_def.defined_processes.keys()
 
     if include_deps:
         proc_names = transitive_closure(proc_names)
     unknown_proc_names = [
         proc_name
         for proc_name in proc_names
-        if proc_name not in registrar.defined_processes
+        if proc_name not in process_def.defined_processes
     ]
     if unknown_proc_names:
-        util.fail(f"Unknown proc_names: {', '.join(unknown_proc_names)}")
+        raise ValueError(f"Unknown proc_names: {', '.join(unknown_proc_names)}")
     if not proc_names:
-        util.fail(f"No proc_names found")
+        raise ValueError(f"No proc_names found")
     return proc_names
 
 
-def down_existing(args: argparse.Namespace, names: typing.List[str]):
+def down_existing(names: typing.List[str], force: bool):
     def find_active_proc(system_state):
         return [
             name
@@ -59,8 +61,10 @@ def down_existing(args: argparse.Namespace, names: typing.List[str]):
     if not active_proc:
         return
 
-    if not args.force:
-        util.fail(f"Conflicting processes already running: {', '.join(active_proc)}")
+    if not force:
+        raise RuntimeError(
+            f"Conflicting processes already running: {', '.join(active_proc)}"
+        )
 
     for name in active_proc:
         life_cycle.set_ask(name, life_cycle.Ask.DOWN)
@@ -81,59 +85,84 @@ def down_existing(args: argparse.Namespace, names: typing.List[str]):
         success = ns.cv.wait_for(lambda: ns.sat, timeout=3.0)
 
     if not success:
-        util.fail(f"Existing processes did not down in a timely manner.")
+        raise RuntimeError(f"Existing processes did not down in a timely manner.")
 
 
-@registrar.register_command("up")
-class up_cmd(BaseCommand):
-    @classmethod
-    def define_argparse(cls, parser: argparse.ArgumentParser):
-        parser.add_argument("--deps", default=True, action="store_true")
-        parser.add_argument("--nodeps", dest="deps", action="store_false")
-        parser.add_argument("--build", default=True, action="store_true")
-        parser.add_argument("--nobuild", dest="build", action="store_false")
-        parser.add_argument("--run", default=True, action="store_true")
-        parser.add_argument("--norun", dest="run", action="store_false")
-        parser.add_argument("-f", "--force", default=False, action="store_true")
-        parser.add_argument("proc", action="append", nargs="*")
+@click.command()
+@click.argument("procs", nargs=-1, shell_complete=_autocomplete.defined_processes)
+@click.option("-v/-q", "--verbose/--quiet", is_flag=True, default=True)
+@click.option("--deps/--nodeps", is_flag=True, default=True)
+@click.option("--build/--nobuild", is_flag=True, default=True)
+@click.option("--cache/--nocache", is_flag=True, default=True)
+@click.option("--run/--norun", is_flag=True, default=True)
+@click.option("-f", "--force/--noforce", is_flag=True, default=False)
+@click.option("--reset_logs", is_flag=True, default=False)
+def cli(
+    *cmd_procs,
+    procs=[],
+    verbose=True,
+    deps=True,
+    build=True,
+    cache=True,
+    run=True,
+    force=False,
+    reset_logs=False,
+):
+    # Support procs as *args when using cmd syntax.
+    procs += cmd_procs
 
-    @staticmethod
-    def exec(args: argparse.Namespace):
-        names = get_proc_names(args.proc[0], args.deps)
-        names = [name for name in names if registrar.defined_processes[name].runtime]
-        if not names:
-            util.fail(f"No processes found")
+    names = get_proc_names(procs, deps)
+    names = [name for name in names if process_def.defined_processes[name].runtime]
+    if not names:
+        raise ValueError(f"No processes found")
 
-        down_existing(args, names)
+    down_existing(names, force)
 
-        if args.build:
-            for name in names:
-                proc_def = registrar.defined_processes[name]
-                print(f"building {name}...")
-                proc_def.runtime._build(name, proc_def, args)
-                print(f"built {name}\n")
+    if reset_logs:
+        for name in names:
+            a0.File.remove(f"{name}.log.a0")
 
-        if args.run:
-            for name in names:
-                print(f"running {name}...")
-                life_cycle.set_ask(name, life_cycle.Ask.UP)
+    if build:
+        for name in names:
+            proc_def = process_def.defined_processes[name]
+            click.echo(f"building {name}...")
+            proc_def.runtime._build(name, proc_def, cache, verbose)
+            click.echo(f"built {name}\n")
 
-                if os.fork() != 0:
-                    continue
+    if run:
+        for name in names:
+            click.echo(f"running {name}...")
+            life_cycle.set_ask(name, life_cycle.Ask.UP)
+            life_cycle.set_state(name, life_cycle.State.STARTING)
 
-                os.chdir("/")
-                os.setsid()
-                os.umask(0)
+            if os.fork() != 0:
+                continue
 
-                if os.fork() != 0:
-                    sys.exit(0)
+            os.chdir("/")
+            os.setsid()
+            os.umask(0)
 
-                proc_def = registrar.defined_processes[name]
+            if os.fork() != 0:
+                sys.exit(0)
 
-                # Set up configuration.
-                with util.common_env_context(proc_def):
-                    a0.Cfg(a0.env.topic()).write(json.dumps(proc_def.cfg))
-                    life_cycle.set_launcher_running(name, True)
-                    asyncio.run(proc_def.runtime._launcher(name, proc_def, args).run())
-                    life_cycle.set_launcher_running(name, False)
-                    sys.exit(0)
+            proc_def = process_def.defined_processes[name]
+
+            # Set up configuration.
+            with util.common_env_context(proc_def):
+                a0.Cfg(a0.env.topic()).write(json.dumps(proc_def.cfg))
+
+                with open(f"/tmp/fbrp_{name}.log", "w", buffering=1) as logfile:
+                    with contextlib.redirect_stdout(
+                        logfile
+                    ), contextlib.redirect_stderr(logfile):
+                        click.echo(f"-- Process start time {a0.TimeWall.now()}")
+                        life_cycle.set_launcher_running(name, True)
+                        try:
+                            asyncio.run(
+                                proc_def.runtime._launcher(name, proc_def).run()
+                            )
+                        except BaseException as e:
+                            click.echo(f"FATAL: {e}")
+                            traceback.print_exc()
+                        life_cycle.set_launcher_running(name, False)
+                        sys.exit(0)

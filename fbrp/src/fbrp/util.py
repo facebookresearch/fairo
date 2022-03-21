@@ -8,12 +8,6 @@ import random
 import shlex
 import string
 import subprocess
-import sys
-
-
-def fail(msg):
-    print(msg, file=sys.stderr, flush=True)
-    sys.exit(1)
 
 
 def common_env(proc_def):

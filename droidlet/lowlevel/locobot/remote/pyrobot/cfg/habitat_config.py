@@ -85,10 +85,10 @@ _SIMULATORC.AGENT.SENSORS.TYPES = ["COLOR", "DEPTH", "SEMANTIC"]
 _SIMULATORC.AGENT.SENSORS.POSES = [
     [0.0, 0.6, 0.0, 0.0, 0.0, 0.0],
     [0.0, 0.6, 0.0, 0.0, 0.0, 0.0],
-    [0.0, 0.6, 0.0, 0.0, 0.0, 0.0]
+    [0.0, 0.6, 0.0, 0.0, 0.0, 0.0],
 ]
 # Height and Widhth in Pixels
-_SIMULATORC.AGENT.SENSORS.RESOLUTIONS = [[512, 512], [512, 512], [512,512]]
+_SIMULATORC.AGENT.SENSORS.RESOLUTIONS = [[512, 512], [512, 512], [512, 512]]
 
 
 def get_cfg():

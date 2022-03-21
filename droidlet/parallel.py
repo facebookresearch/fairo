@@ -2,13 +2,15 @@ import traceback
 import queue
 from typing import Callable, List
 import cloudpickle
+
 # you're wondering wtf? why is numpy needed in this file?
 # it's a workaround for https://github.com/pytorch/pytorch/issues/37377
-import numpy 
+import numpy
 from torch import multiprocessing as mp
 from threading import Thread
 
 multiprocessing = mp.get_context("spawn")
+
 
 class Process(multiprocessing.Process):
     """
@@ -35,6 +37,7 @@ class Process(multiprocessing.Process):
         if self._parent_conn.poll():
             self._exception = self._parent_conn.recv()
         return self._exception
+
 
 def _runner(_init_fn, init_args, _process_fn, shutdown_event, input_queue, output_queue):
     try:
@@ -73,21 +76,25 @@ class BackgroundTask:
         self._shutdown_event = multiprocessing.Event()
 
     def start(self):
-        self._process = Process(target=_runner,
-                                args=(
-                                    cloudpickle.dumps(self._init_fn),
-                                    self._init_args,
-                                    cloudpickle.dumps(self._process_fn),
-                                    self._shutdown_event,
-                                    self._send_queue, self._recv_queue
-                                ),)
+        self._process = Process(
+            target=_runner,
+            args=(
+                cloudpickle.dumps(self._init_fn),
+                self._init_args,
+                cloudpickle.dumps(self._process_fn),
+                self._shutdown_event,
+                self._send_queue,
+                self._recv_queue,
+            ),
+        )
         self._process.daemon = True
         self._process.start()
 
     def _raise(self):
         if not hasattr(self, "_process"):
-            raise RuntimeError("BackgroundTask has not yet been started."
-                               " Did you forget to call .start()?")
+            raise RuntimeError(
+                "BackgroundTask has not yet been started." " Did you forget to call .start()?"
+            )
         if self._process.exception:
             error, _traceback = self._process.exception
             raise ChildProcessError(_traceback)
@@ -107,7 +114,6 @@ class BackgroundTask:
     def get_nowait(self):
         self._raise()
         return self._recv_queue.get_nowait()
-
 
 
 # https://stackoverflow.com/a/31614591

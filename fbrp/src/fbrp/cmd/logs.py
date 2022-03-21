@@ -1,75 +1,99 @@
 from fbrp import util
-from fbrp import registrar
+from fbrp.cmd import _autocomplete
+from fbrp import process_def
 import a0
-import argparse
+import click
 import random
 import signal
 import sys
 
 
-@registrar.register_command("logs")
-class logs_cmd:
-    @classmethod
-    def define_argparse(cls, parser: argparse.ArgumentParser):
-        parser.add_argument("--old", default=False, action="store_true")
-        parser.add_argument("proc", action="append", nargs="*")
+@click.command()
+@click.argument(
+    "procs",
+    nargs=-1,
+    # Logs connects to live feeds unless --old is set.
+    # This autocomplete checks for the old flag.
+    #   If --old is set, suggest any defined process that has logs.
+    #   Otherwise, suggest running processes.
+    shell_complete=_autocomplete.conditional(
+        lambda ctx, unused_param, unused_incomplete: ctx.params["old"],
+        _autocomplete.intersection(
+            _autocomplete.alephzero_topics(protocol="log"),
+            _autocomplete.defined_processes,
+        ),
+        _autocomplete.running_processes,
+    ),
+)
+@click.option("-o", "--old", is_flag=True, default=False)
+def cli(*cmd_procs, procs=[], old=False):
+    # Support procs as *args when using cmd syntax.
+    procs += cmd_procs
 
-    @staticmethod
-    def exec(args: argparse.Namespace):
-        procs = {
-            name: def_
-            for name, def_ in registrar.defined_processes.items()
-            if def_.runtime
+    # Find all defined processes.
+    display_procs = process_def.defined_processes.items()
+    # Filter out processes that have no runtime defined.
+    # These processes were meant to chain or combine other processes, but haven't
+    # gotten much use yet. Do we want to keep them?
+    display_procs = {name: def_ for name, def_ in display_procs if def_.runtime}
+
+    # If processes have been specified, filter out the ones that aren't requested.
+    if procs:
+        display_procs = {
+            name: def_ for name, def_ in display_procs.items() if name in procs
         }
 
-        given_proc_names = args.proc[0]
-        if given_proc_names:
-            procs = {
-                name: def_ for name, def_ in procs.items() if name in given_proc_names
-            }
+    # Fail if no processes are left.
+    if not display_procs:
+        raise ValueError(f"No processes found to log")
 
-        if not procs:
-            util.fail(f"No processes found to log")
+    # Give each process a random color.
+    colors = [
+        "red",
+        "green",
+        "yellow",
+        "blue",
+        "magenta",
+        "cyan",
+    ]
+    random.shuffle(colors)
 
-        colors = [
-            "\u001b[31m",  # "Red"
-            "\u001b[32m",  # "Green"
-            "\u001b[33m",  # "Yellow"
-            "\u001b[34m",  # "Blue"
-            "\u001b[35m",  # "Magenta"
-            "\u001b[36m",  # "Cyan"
-        ]
-        random.shuffle(colors)
-        reset_color = "\u001b[0m"
+    # There will be a left hand column with the process name.
+    # Find a common width for the name column.
+    width = max(len(name) for name in display_procs)
 
-        width = max(len(name) for name in procs)
+    log_listeners = []
 
-        log_listeners = []
+    def make_listener(i, name, def_):
+        # Cache the left hand column.
+        prefix = f"{name}" + " " * (width - len(name))
+        msg_tmpl = f"{prefix} | {{msg}}"
 
-        def make_listener(i, name, def_):
-            prefix = f"{colors[i % len(colors)]}{name}" + " " * (width - len(name))
-            msg_tmpl = f"{prefix} | {{msg}}{reset_color}"
+        # On message received, print it to stdout.
+        def callback(pkt):
+            click.secho(msg_tmpl.format(msg=pkt.payload), fg=colors[i % len(colors)])
 
-            def callback(pkt):
-                print(msg_tmpl.format(msg=pkt.payload))
-
-            with util.common_env_context(def_):
-                log_listeners.append(
-                    a0.LogListener(
-                        name,
-                        a0.LogLevel.DBG,
-                        a0.INIT_OLDEST if args.old else a0.INIT_AWAIT_NEW,
-                        a0.ITER_NEXT,
-                        callback,
-                    )
+        # Create the listener.
+        with util.common_env_context(def_):
+            log_listeners.append(
+                a0.LogListener(
+                    name,
+                    # TODO(lshamis): Make a flag for log level.
+                    a0.LogLevel.DBG,
+                    a0.INIT_OLDEST if old else a0.INIT_AWAIT_NEW,
+                    a0.ITER_NEXT,
+                    callback,
                 )
+            )
 
-        for i, (name, def_) in enumerate(procs.items()):
-            make_listener(i, name, def_)
+    # Make a log listener for each process.
+    for i, (name, def_) in enumerate(display_procs.items()):
+        make_listener(i, name, def_)
 
-        def onsignal(signum, frame):
-            sys.exit(0)
+    # Block until ctrl-c is pressed.
+    def onsignal(signum, frame):
+        sys.exit(0)
 
-        signal.signal(signal.SIGINT, onsignal)
-        signal.signal(signal.SIGTERM, onsignal)
-        signal.pause()
+    signal.signal(signal.SIGINT, onsignal)
+    signal.signal(signal.SIGTERM, onsignal)
+    signal.pause()

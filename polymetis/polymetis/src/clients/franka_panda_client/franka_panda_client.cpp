@@ -65,6 +65,7 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
   for (int i = 0; i < NUM_DOFS; i++) {
     torque_commanded_[i] = 0.0;
     torque_safety_[i] = 0.0;
+    torque_applied_prev_[i] = 0.0;
 
     torque_command_.add_joint_torques(0.0);
 
@@ -74,9 +75,13 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
     robot_state_.add_prev_joint_torques_computed_safened(0.0);
     robot_state_.add_motor_torques_measured(0.0);
     robot_state_.add_motor_torques_external(0.0);
+    robot_state_.add_motor_torques_desired(0.0);
   }
 
   // Parse yaml
+  limit_rate_ = config["limit_rate"].as<bool>();
+  lpf_cutoff_freq_ = config["lpf_cutoff_frequency"].as<double>();
+
   cartesian_pos_ulimits_ =
       config["limits"]["cartesian_pos_upper"].as<std::array<double, 3>>();
   cartesian_pos_llimits_ =
@@ -134,7 +139,7 @@ void FrankaTorqueControlClient::run() {
     for (int i = 0; i < NUM_DOFS; i++) {
       torque_applied_[i] = torque_commanded_[i] + torque_safety_[i];
     }
-    checkTorqueLimits(torque_applied_);
+    postprocessTorques(torque_applied_);
 
     // Record final applied torques
     for (int i = 0; i < NUM_DOFS; i++) {
@@ -151,7 +156,7 @@ void FrankaTorqueControlClient::run() {
     while (is_robot_operational) {
       // Send lambda function
       try {
-        robot_ptr_->control(control_callback);
+        robot_ptr_->control(control_callback, limit_rate_, lpf_cutoff_freq_);
       } catch (const std::exception &ex) {
         spdlog::error("Robot is unable to be controlled: {}", ex.what());
         is_robot_operational = false;
@@ -217,6 +222,8 @@ void FrankaTorqueControlClient::updateServerCommand(
     std::array<double, NUM_DOFS> &torque_out) {
   // Record robot states
   if (!mock_franka_) {
+    bool prev_command_successful = false;
+
     for (int i = 0; i < NUM_DOFS; i++) {
       robot_state_.set_joint_positions(i, libfranka_robot_state.q[i]);
       robot_state_.set_joint_velocities(i, libfranka_robot_state.dq[i]);
@@ -224,7 +231,24 @@ void FrankaTorqueControlClient::updateServerCommand(
                                               libfranka_robot_state.tau_J[i]);
       robot_state_.set_motor_torques_external(
           i, libfranka_robot_state.tau_ext_hat_filtered[i]);
+
+      // Check if previous command is successful by checking whether
+      // constant torque policy for packet drops is applied
+      // (If applied, desired torques will be exactly the same as last timestep)
+      if (!prev_command_successful &&
+          float(libfranka_robot_state.tau_J_d[i]) !=
+              robot_state_.motor_torques_desired(i)) {
+        prev_command_successful = true;
+      }
+      robot_state_.set_motor_torques_desired(i,
+                                             libfranka_robot_state.tau_J_d[i]);
     }
+
+    robot_state_.set_prev_command_successful(prev_command_successful);
+
+    // Error code: can only set to 0 if no errors and 1 if any errors exist for
+    // now
+    robot_state_.set_error_code(bool(libfranka_robot_state.current_errors));
   }
   setTimestampToNow(robot_state_.mutable_timestamp());
 
@@ -234,7 +258,8 @@ void FrankaTorqueControlClient::updateServerCommand(
   status_ = stub_->ControlUpdate(&context, robot_state_, &torque_command_);
   long int post_update_ns = getNanoseconds();
   if (!status_.ok()) {
-    throw std::runtime_error("ControlUpdate rpc failed.");
+    std::string error_msg = "ControlUpdate rpc failed. ";
+    throw std::runtime_error(error_msg + status_.error_message());
   }
 
   robot_state_.set_prev_controller_latency_ms(
@@ -309,13 +334,13 @@ void FrankaTorqueControlClient::checkStateLimits(
                       0.0, 0.0, "Elbow velocity");
 }
 
-void FrankaTorqueControlClient::checkTorqueLimits(
+void FrankaTorqueControlClient::postprocessTorques(
     /*
-     * Check & clamp torque to limits
+     * Filter & clamp torque to limits
      */
     std::array<double, NUM_DOFS> &torque_applied) {
-  // Clamp torques
   for (int i = 0; i < 7; i++) {
+    // Clamp torques
     if (torque_applied[i] > joint_torques_limits_[i]) {
       torque_applied[i] = joint_torques_limits_[i];
     }

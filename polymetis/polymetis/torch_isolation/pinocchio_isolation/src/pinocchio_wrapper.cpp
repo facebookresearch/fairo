@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 
 #include "spdlog/spdlog.h"
+#include <stdexcept>
 #include <string>
 
 #include "pinocchio/algorithm/frames.hpp"
@@ -23,18 +24,16 @@ namespace pinocchio_wrapper {
 struct State {
   pinocchio::Model *model = nullptr;
   pinocchio::Data *model_data = nullptr;
-  pinocchio::FrameIndex ee_frame_idx;
   Eigen::VectorXd ik_sol_v;
   pinocchio::Data::Matrix6x ik_sol_J;
 };
 
-State *initialize(const char *ee_link_name, const char *xml_buffer) {
+State *initialize(const char *xml_buffer) {
   auto model = new pinocchio::Model();
   pinocchio::urdf::buildModelFromXML(xml_buffer, *model);
   auto model_data = new pinocchio::Data(*model);
 
-  return new State{model, model_data, model->getBodyId(ee_link_name),
-                   Eigen::VectorXd(model->nv),
+  return new State{model, model_data, Eigen::VectorXd(model->nv),
                    pinocchio::Data::Matrix6x(6, model->nv)};
 }
 
@@ -56,16 +55,18 @@ Eigen::VectorXd get_velocity_limits(State *pinocchio_state) {
 int get_nq(State *pinocchio_state) { return pinocchio_state->model->nq; }
 
 Eigen::VectorXd forward_kinematics(State *pinocchio_state,
-                                   const Eigen::VectorXd &q) {
+                                   const Eigen::VectorXd &q,
+                                   int64_t frame_idx) {
+  pinocchio::FrameIndex frame_idx_ =
+      static_cast<pinocchio::FrameIndex>(frame_idx);
   auto model = *pinocchio_state->model;
   auto model_data = *pinocchio_state->model_data;
-  auto ee_frame_idx = pinocchio_state->ee_frame_idx;
 
   pinocchio::forwardKinematics(model, model_data, q);
-  pinocchio::updateFramePlacement(model, model_data, ee_frame_idx);
+  pinocchio::updateFramePlacement(model, model_data, frame_idx_);
 
-  auto pos_data = model_data.oMf[ee_frame_idx].translation().transpose();
-  auto quat_data = Eigen::Quaterniond(model_data.oMf[ee_frame_idx].rotation());
+  auto pos_data = model_data.oMf[frame_idx_].translation().transpose();
+  auto quat_data = Eigen::Quaterniond(model_data.oMf[frame_idx_].rotation());
 
   Eigen::VectorXd result(7);
   for (int i = 0; i < 3; i++) {
@@ -82,12 +83,14 @@ Eigen::VectorXd forward_kinematics(State *pinocchio_state,
 void compute_jacobian(
     State *state, const Eigen::VectorXd &joint_positions,
     Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic,
-                             Eigen::RowMajor>> &J) {
+                             Eigen::RowMajor>> &J,
+    int64_t frame_idx) {
+  pinocchio::FrameIndex frame_idx_ =
+      static_cast<pinocchio::FrameIndex>(frame_idx);
   auto model = *state->model;
   auto model_data = *state->model_data;
-  auto ee_frame_idx = state->ee_frame_idx;
   pinocchio::computeFrameJacobian(model, model_data, joint_positions,
-                                  ee_frame_idx, pinocchio::LOCAL_WORLD_ALIGNED,
+                                  frame_idx_, pinocchio::LOCAL_WORLD_ALIGNED,
                                   J);
 }
 
@@ -96,41 +99,40 @@ inverse_dynamics(State *state, const Eigen::VectorXd &q,
                  const Eigen::VectorXd &v, const Eigen::VectorXd &a) {
   auto model = *state->model;
   auto model_data = *state->model_data;
-  auto ee_frame_idx = state->ee_frame_idx;
   return pinocchio::rnea(model, model_data, q, v, a);
 }
 
-void inverse_kinematics(State *state, const Eigen::Vector3d &ee_pos_,
-                        const Eigen::Quaterniond &ee_quat_,
+void inverse_kinematics(State *state, const Eigen::Vector3d &link_pos,
+                        const Eigen::Quaterniond &link_quat, int64_t frame_idx,
                         Eigen::VectorXd &ik_sol_p_, double eps,
                         int64_t max_iters, double dt, double damping) {
-  auto model_ = *state->model;
-  auto model_data_ = *state->model_data;
-  auto ee_frame_idx_ = state->ee_frame_idx;
-  auto ik_sol_v_ = state->ik_sol_v;
-  auto ik_sol_J_ = state->ik_sol_J;
+  pinocchio::FrameIndex frame_idx_ =
+      static_cast<pinocchio::FrameIndex>(frame_idx);
+  auto model = *state->model;
+  auto model_data = *state->model_data;
+  auto ik_sol_v = state->ik_sol_v;
+  auto ik_sol_J = state->ik_sol_J;
 
-  auto ee_orient_ = ee_quat_.toRotationMatrix();
+  auto link_orient = link_quat.toRotationMatrix();
 
   // Initialize IK variables
-  const pinocchio::SE3 desired_ee(ee_orient_, ee_pos_);
+  const pinocchio::SE3 desired_ee(link_orient, link_pos);
 
-  ik_sol_J_.setZero();
+  ik_sol_J.setZero();
 
   Eigen::Matrix<double, 6, 1> err;
-  ik_sol_v_.setZero();
+  ik_sol_v.setZero();
 
   // Reset robot pose
-  pinocchio::forwardKinematics(model_, model_data_, ik_sol_p_);
-  pinocchio::updateFramePlacement(model_, model_data_, ee_frame_idx_);
+  pinocchio::forwardKinematics(model, model_data, ik_sol_p_);
+  pinocchio::updateFramePlacement(model, model_data, frame_idx_);
 
   // Solve IK iteratively
   for (int i = 0; i < max_iters; i++) {
     // Compute forward kinematics error
-    pinocchio::forwardKinematics(model_, model_data_, ik_sol_p_);
-    pinocchio::updateFramePlacement(model_, model_data_, ee_frame_idx_);
-    const pinocchio::SE3 dMf =
-        desired_ee.actInv(model_data_.oMf[ee_frame_idx_]);
+    pinocchio::forwardKinematics(model, model_data, ik_sol_p_);
+    pinocchio::updateFramePlacement(model, model_data, frame_idx_);
+    const pinocchio::SE3 dMf = desired_ee.actInv(model_data.oMf[frame_idx_]);
     err = pinocchio::log6(dMf).toVector();
 
     // Check termination
@@ -140,19 +142,28 @@ void inverse_kinematics(State *state, const Eigen::Vector3d &ee_pos_,
     }
 
     // Descent solution
-    pinocchio::computeFrameJacobian(model_, model_data_, ik_sol_p_,
-                                    ee_frame_idx_, pinocchio::LOCAL, ik_sol_J_);
+    pinocchio::computeFrameJacobian(model, model_data, ik_sol_p_, frame_idx_,
+                                    pinocchio::LOCAL, ik_sol_J);
 
     pinocchio::Data::Matrix6 JJt;
-    JJt.noalias() = ik_sol_J_ * ik_sol_J_.transpose();
+    JJt.noalias() = ik_sol_J * ik_sol_J.transpose();
     JJt.diagonal().array() += damping;
-    ik_sol_v_.noalias() = -ik_sol_J_.transpose() * JJt.ldlt().solve(err);
-    ik_sol_p_ = pinocchio::integrate(model_, ik_sol_p_, ik_sol_v_ * dt);
+    ik_sol_v.noalias() = -ik_sol_J.transpose() * JJt.ldlt().solve(err);
+    ik_sol_p_ = pinocchio::integrate(model, ik_sol_p_, ik_sol_v * dt);
   }
 
   if (err.norm() >= eps) {
     spdlog::warn("WARNING: IK did not converge!");
   }
+}
+
+int64_t get_link_idx_from_name(State *state, const char *link_name) {
+  std::string link_name_(link_name);
+  int64_t result = state->model->getBodyId(link_name_);
+  if (result == state->model->nframes) {
+    throw std::invalid_argument("Unknown link name " + link_name_);
+  }
+  return result;
 }
 
 } // namespace pinocchio_wrapper

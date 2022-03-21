@@ -59,7 +59,9 @@ def recover_initial_blockmap(old_workdir):
         f.write(recovery_lua)
 
     # Start craftassist_cuberite_utils and wait until the plugin kills it
-    p = subprocess.Popen([repo_home + "/server/craftassist_cuberite_utils/Server/Cuberite"], cwd=workdir)
+    p = subprocess.Popen(
+        [repo_home + "/server/craftassist_cuberite_utils/Server/Cuberite"], cwd=workdir
+    )
     p.wait()
 
     # Return folder containing region files
