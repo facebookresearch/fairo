@@ -1,8 +1,8 @@
-import fbrp
+import mrp
 
-fbrp.process(
+mrp.process(
     name="proc",
-    runtime=fbrp.Conda(
+    runtime=mrp.Conda(
         channels=[
             "conda-forge",
             "robostack",
@@ -16,16 +16,16 @@ fbrp.process(
                 "g++",
                 "-o",
                 "proc",
-                fbrp.NoEscape("-I${CONDA_PREFIX}/include"),
-                fbrp.NoEscape("-I${CONDA_PREFIX}/include/eigen3"),
-                fbrp.NoEscape("-I${CONDA_PREFIX}/include/ompl-1.5"),
+                mrp.NoEscape("-I${CONDA_PREFIX}/include"),
+                mrp.NoEscape("-I${CONDA_PREFIX}/include/eigen3"),
+                mrp.NoEscape("-I${CONDA_PREFIX}/include/ompl-1.5"),
                 "./proc.cpp",
-                fbrp.NoEscape("-L${CONDA_PREFIX}/lib"),
+                mrp.NoEscape("-L${CONDA_PREFIX}/lib"),
                 "-lompl",
             ],
         ],
-        run_command=[fbrp.NoEscape("LD_LIBRARY_PATH=${CONDA_PREFIX}/lib"), "./proc"],
+        run_command=[mrp.NoEscape("LD_LIBRARY_PATH=${CONDA_PREFIX}/lib"), "./proc"],
     ),
 )
 
-fbrp.main()
+mrp.main()
