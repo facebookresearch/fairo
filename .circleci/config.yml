@@ -338,7 +338,7 @@ jobs:
             pip install clang-format
             export PATH=$PATH
             ./scripts/format_cpp.sh check all
-  fbrp:
+  mrp:
     docker:
       - image: python:3.8
     resource_class: medium+
@@ -354,11 +354,11 @@ jobs:
           name: Install PyTest
           command: pip install pytest
       - run:
-          name: Install FBRP
-          command: python3 -m pip install ./fbrp
+          name: Install MRP
+          command: python3 -m pip install ./mrp
       - run:
           name: Run PyTest
-          command: pytest ./fbrp
+          command: pytest ./mrp
   update-docs:
     docker:
       - image: cimg/node:current
