@@ -14,6 +14,12 @@ class Condition:
 
 
 class SwitchCondition(Condition):
+    """ 
+    switched to True or False by self.set_status(status).
+    this condition is used as if a piece of code wants to 
+    determine a condition explicitly
+    """
+
     def __init__(self, memory):
         super().__init__(memory)
         self.name = "switch"
@@ -207,3 +213,18 @@ class Comparator(Condition):
             return f(value_left, value_right, self.epsilon)
         else:
             raise Exception("unknown comparison type {}".format(self.comparison_type))
+
+
+# FIXME this is just a comparator
+class TaskRunCountCondition(Condition):
+    def __init__(self, memory, task_memid, N=1):
+        super().__init__(memory)
+        self.N = N
+        self.task_memid = task_memid
+
+    def check(self):
+        if self.memory.check_memid_exists(self.task_memid, "Tasks"):
+            T = self.memory.get_mem_by_id(self.task_memid)
+            if t.run_count >= self.N:
+                return True
+        return False

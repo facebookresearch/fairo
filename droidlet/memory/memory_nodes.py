@@ -858,12 +858,16 @@ class TaskNode(MemoryNode):
         "pickled",
         "prio",
         "running",
+        "run_count",
         "paused",
         "created",
         "finished",
     ]
     TABLE = "Tasks"
     NODE_TYPE = "Task"
+    EGG_PRIO = -3
+    CHECK_PRIO = 0
+    FINISHED_PRIO = -2
 
     def __init__(self, agent_memory, memid: str):
         super().__init__(agent_memory, memid)
@@ -955,7 +959,7 @@ class TaskNode(MemoryNode):
     def update_condition(self, conditions):
         """
         conditions is a dict with keys in
-        "init_condition", "run_condition", "stop_condition", "remove_condition"
+        "init_condition", "terminate_condition"
         and values being Condition objects
         """
         for k, condition in conditions.items():
@@ -968,11 +972,10 @@ class TaskNode(MemoryNode):
         """
         status is a dict with possible keys "prio", "running", "paused", "finished".
 
-        prio > 0  :  run me if possible, check my stop condition
-        prio = 0  :  check my run_condition, run if true
-        prio = -1 :  check my init_condition, set prio = 0 if True
-        prio < -1 :  don't even check init_condition or run_condition, I'm done or unhatched
-        prio = -3 :  I'm unhatched
+        prio > CHECK_PRIO  :  run me if possible, check my terminate condition
+        prio = CHECK_PRIO  :  check my init_condition, run if true
+        prio < CHECK_PRIO :  don't even check init_condition, I'm done or unhatched
+        prio = EGG_PRIO :  I'm unhatched
 
         running = 1 :  task should be stepped if possible and not explicitly paused
         running = 0 :  task should not be stepped
@@ -1001,7 +1004,7 @@ class TaskNode(MemoryNode):
                     status_out[k] = self.agent_memory.get_time()
                     # warning: using the order of the iterator!
                     status["running"] = 0
-                    status["prio"] = -2
+                    status["prio"] = FINISHED_PRIO
                 else:
                     status_out[k] = -1
             else:
@@ -1019,7 +1022,7 @@ class TaskNode(MemoryNode):
         # if parent is currently paused and then unpaused, propagate to children
         pass
 
-    def add_child_task(self, t, prio=1):
+    def add_child_task(self, t, prio=CHECK_PRIO + 1):
         """Add (and by default activate) a child task, and pass along the id
         of the parent task (current task).  A task can only have one direct
         descendant any any given time.  To add a list of children use a ControlBlock
@@ -1027,7 +1030,7 @@ class TaskNode(MemoryNode):
         Args:
             t: the task to be added.  a *Task* object, not a TaskNode
                agent: the agent running this task
-            prio: default 1, set to 0 if you want the child task added but not activated,
+            prio: default 1 (CHECK_PRIO + 1), set to 0 (CHECK_PRIO) if you want the child task added but not activated,
                   None if you want it added but its conditions left in charge
         """
         TaskMem = TaskNode(self.memory, t.memid)

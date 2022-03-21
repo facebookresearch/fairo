@@ -8,7 +8,7 @@ import random
 
 from .string_lists import MAP_YES, MAP_NO
 from enum import Enum
-from droidlet.task.task import Task, maybe_task_list_to_control_block
+from droidlet.task.task import Task, task_to_generator
 from droidlet.memory.memory_nodes import TaskNode
 
 
@@ -124,7 +124,8 @@ class ConfirmTask(Task):
                 Say(self.agent, {"response_options": self.question}),
                 AwaitResponse(self.agent, {"asker_memid": self.memid}),
             ]
-            self.add_child_task(maybe_task_list_to_control_block(task_list, self.agent))
+            task_data = {"new_tasks": [task_to_generator(t) for t in task_list]}
+            self.add_child_task(ControlBlock(self.agent, task_data))
             self.asked = True
             return
         # Step 2: check the response and add the task if necessary
@@ -183,7 +184,8 @@ class ConfirmReferenceObject(Task):
                 Say(self.agent, {"response_options": self.question}),
                 AwaitResponse(self.agent, {"asker_memid": self.memid}),
             ]
-            self.add_child_task(task_list)
+            task_data = {"new_tasks": [task_to_generator(t) for t in task_list]}
+            self.add_child_task(ControlBlock(self.agent, task_data))
             self.asked = True
             return
         if not self.pointed:
