@@ -1,0 +1,127 @@
+<!-- craftassist_task.html -->	
+<!-- Bootstrap v3.0.3 -->	
+<link	
+  rel="stylesheet"	
+  href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"	
+/>	
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>	
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>	
+
+<section class="container"	id="heading">	
+  <div class="row col-xs-12 col-md-12">
+    <div class="panel panel-primary">		
+      <div class="panel-heading">	
+        <button class="btn btn-warning" type="button" onclick="showHideInstructions()" aria-expanded="false" aria-controls="instructionsWrapper">	
+          Click here to view/hide instructions	
+        </button>	
+      </div>	
+      <div class="collapse in" id="instructionsWrapper">	
+        <h2 class="center">Tell Us What Is In The Scene</h2>
+        <hr>
+        <div class="instructions-section">
+          <h4 class="instruction-headings">Navigating the Scene:</h4>
+          <b>Click once within the window to get everything inside to fully render.</b>  
+          You can use the arrow keys to rotate the view, or click and drag. You can also zoom with your scroll wheel.
+        </div>
+        <div class="instructions-section">
+          <h4 class="instruction-headings">Block Colors:</h4>
+          The "ground" in the scene is made up of white blocks.
+          The objects in the scene can be made up of any other color blocks and have darker edges.  
+          The "air" in the scene is transparent.
+        </div>
+        <div class="instructions-section">
+          <h4 class="instruction-headings">The Task:</h4>
+          Your task is to tell us one <b>(just one!)</b> "thing" from scene in the text box below it.  Some examples of things you could name are:
+          <ul>
+            <li>An object, like "cube" or "house"</li>
+            <li>Part of an object, like "corner", "edge", "side", etc.</li>
+            <li>A combination of objects, like "the two holes" or </li>
+            <li>An object with a reference to another object, like "the space between the cube and the wall"</li>
+          </ul>
+        </div>
+        <div class="instructions-section">
+          <h4 class="instruction-headings">Separate Object and Location:</h4>
+          Please submit your answer in two parts, first just the object and then where it is in the scene.  Here are some examples:
+          <ul>
+            <li>"A blue cube above the ground" -> Object: "blue cube", Location: "above the ground"</li>
+            <li>"A small step near a big blue ball" -> Object: "small step", Location: "near a big blue ball"</li>
+            <li>"A green ball and a purple walkway next to each other" -> Object: "green ball", Location: "next to a purple walkway" or vice versa</li>
+          </ul>
+        </div>
+        <div class="instructions-section">
+          <h4 class="instruction-headings">Things Not To Do:</h4>
+          In order to pass the HIT successfully, please keep the following in mind:
+          <ul>
+            <li>Please only submit one object</li>
+            <li>Don't respond with any profanity or violent words</li>
+            <li>The object must refer to an object made of non-white blocks, so not "the air", "the ground", "space", "a scene", etc.</li>
+            <li>Please submit a new answer each time if you do the HIT multiple times.</li>
+            <li>Try to be creative.  Think of interesting or non-obvious things to say.</li>
+          </ul>
+        </div>
+        <div class="instructions-section">
+          When you are finished with the HIT, please answer the questions at the bottom and click 'Submit'.
+        </div>
+      </div>	
+    </div>	
+  </div>
+</section>
+
+<section class="container" id="demos">	
+  
+  <div class="row">
+    <div class="col-xs-12">
+      <h3 class="center">Scene</h3>
+      <p class="center">
+        Rotate in this window using mouse or arrow keys<br>
+        Zoom in this window using the scroll wheel
+      </p>
+    </div>
+
+    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper_labeling.html?scene_filename=${scene_filename}&scene_idx=${scene_idx}" scrolling="no"></iframe>
+  
+  </div>
+</section>
+
+<section class="container" style="margin-bottom: 20px">
+  <div class="col-xs-2"></div>
+  <div class="col-xs-8">
+    <fieldset>
+      <div class="input-group center">
+        <input type="button" class="btn btn-warning" id="bugButton" value="Click here if the window failed to load" onclick="bugReport();">
+        <br>
+        <h4>Please enter <b>the object</b> you see in the scene</h4>
+        <input type="text" class="form-control" id="object" name="object" onchange="answerObject()">
+        <br>
+        <h4>Please enter <b>the location</b> of the object you chose</h4>
+        <input type="text" class="form-control" id="location" name="location" onchange="answerLocation()">
+        <br>
+        <h4>Please rate the clarity and usability of this HIT</h4>
+        <select class="form-control" style="margin-bottom: 15px;" name="usability-rating" onchange="usabilityRated()">
+          <option selected="selected" value="">(select one)</option>
+          <option value="7">7 - Perfect</option>
+          <option value="6">6 - Very Good</option>
+          <option value="5">5 - Decent</option>
+          <option value="4">4 - OK</option>
+          <option value="3">3 - Poor</option>
+          <option value="2">2 - Very Poor</option>
+          <option value="1">1 - Unusable</option>
+        </select>
+        <br>
+        <h4>Please provide feedback on how we can improve the usability of this HIT</h4>
+        <input type="text" class="form-control" id="feedback" name="feedback" onchange="giveFeedback()">
+        <input type="hidden" id="clickedElements" name="clickedElements" value="0">
+        <input type="hidden" id="bug" name="bug" value="false">
+        <input type="hidden" id="scene_idx" name="scene_idx" value="${scene_idx}">
+        <input type="hidden" id="markedBlocks" name="markedBlocks" value="0">
+        <input type="hidden" id="userAgent" name="userAgent" value="0">
+      </div>
+    </fieldset>
+  </div>
+  <div class="col-xs-2"></div>
+</section>
+
+<script src="utils.js"></script>
+<script src="formatting.js"></script>	
+<script src="browserInfo.js"></script>
+<link rel="stylesheet" href="vision_annotation_task.css">
