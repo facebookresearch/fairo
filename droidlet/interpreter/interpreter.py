@@ -15,7 +15,7 @@ from .interpret_reference_objects import ReferenceObjectInterpreter, interpret_r
 from .interpret_location import ReferenceLocationInterpreter, interpret_relative_direction
 from .interpret_filters import FilterInterpreter
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
-from droidlet.task.task import maybe_task_list_to_control_block
+from droidlet.task.task import task_to_generator, ControlBlock
 from droidlet.memory.memory_nodes import TripleNode, TaskNode, InterpreterNode
 from droidlet.dialog.dialogue_task import ConfirmTask, Say
 
@@ -101,8 +101,9 @@ class Interpreter(InterpreterBase):
         }
 
         # each action handler should have signature
-        # speaker, logical_form -->  a Task, possible output utterance, possible output data.
-        #     if the action handler builds a list, it should wrap it in a ControlBlock
+        # speaker, logical_form --> callable that returns Tasks
+        # it can place dialogue tasks as a side effect.
+        # TODO remove dialogue task side effects....
         self.action_handlers = {
             "MOVE": self.handle_move,
             "STOP": self.handle_stop,
@@ -118,57 +119,22 @@ class Interpreter(InterpreterBase):
         start_time = datetime.datetime.now()
         assert self.logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND"
         try:
-            actions = []
-            if "action" in self.logical_form:
-                actions.append(self.logical_form["action"])
-            elif "action_sequence" in self.logical_form:
-                actions = self.logical_form["action_sequence"]
-
-            if len(actions) == 0:
-                # The action dict is in an unexpected state
-                raise ErrorWithResponse(
-                    "I thought you wanted me to do something, but now I don't know what"
-                )
-            tasks_to_push = []
-            for action_def in actions:
-                action_type = action_def["action_type"]
-                # FIXME!: THIS IS A HACK to be removed by dec2021:
-                # special case to push loops into the handlers if
-                # there is only one action in the sequence but
-                # there is a control structure around the sequence:
-                if len(actions) == 1 and self.logical_form.get("remove_condition") is not None:
-                    action_def = deepcopy(action_def)
-                    action_def["remove_condition"] = deepcopy(
-                        self.logical_form.get("remove_condition")
-                    )
-                r = self.action_handlers[action_type](agent, self.speaker, action_def)
-                if len(r) == 3:
-                    task, response, dialogue_data = r
-                else:
-                    # FIXME don't use this branch, uniformize the signatures
-                    task = None
-                    response, dialogue_data = r
-                if task:
-                    tasks_to_push.append(task)
-            task_mem = None
-            if tasks_to_push:
-                T = maybe_task_list_to_control_block(tasks_to_push, agent)
-                #                task_mem = TaskNode(self.memory, tasks_to_push[0].memid)
-                task_mem = TaskNode(self.memory, T.memid)
-            if task_mem:
+            C = interpret_event(self, agent, speaker, self.logical_form)
+            if C is not None:
                 chat = self.memory.get_most_recent_incoming_chat()
                 TripleNode.create(
-                    self.memory, subj=chat.memid, pred_text="chat_effect_", obj=task_mem.memid
+                    self.memory, subj=chat.memid, pred_text="chat_effect_", obj=C.memid
                 )
             self.finished = True
             end_time = datetime.datetime.now()
+            # FIXME (tasks to push)
             hook_data = {
                 "name": "interpreter",
                 "start_time": start_time,
                 "end_time": end_time,
                 "elapsed_time": (end_time - start_time).total_seconds(),
                 "agent_time": self.memory.get_time(),
-                "tasks_to_push": tasks_to_push,
+                "tasks_to_push": [],
                 "task_mem": task_mem,
             }
             dispatch.send("interpreter", data=hook_data)
@@ -179,6 +145,48 @@ class Interpreter(InterpreterBase):
             self.finished = True
         return
 
+    def interpret_event(self, agent, speaker, d):
+        """
+        recursively interpret an EVENT sub-lf
+        this returns new_tasks callable if it operates on a leaf
+        and a ControlBlock otherwise.
+        """
+        if "action_type" in d:
+            action_type = d["action_type"]
+            assert "event_sequence" not in d
+            return self.action_handlers[action_type](agent, speaker, action_def)
+        else:
+            assert "event_sequence" in d
+            terminate_condition = None
+            init_condition = None
+            if "terminate_condition" in d:
+                terminate_condition = self.subinterpret["condition"](
+                    self, speaker, d["terminate_condition"]
+                )
+            if "init_condition" in d:
+                init_condition = self.subinterpret["condition"](self, speaker, d["init_condition"])
+            task_gens = []
+            for e_lf in event_sequence:
+                task_gen = self.interpret_event(agent, speaker, e_lf)
+                # FIXME: better handling of empty task_gens, e.g. from undo
+                if task_gen is not None:
+                    if not callable(task_gen):
+                        # this should be a ControlBlock...
+                        assert type(task_gen) is ControlBlock
+                        task_gen = task_to_generator(task_gen)
+                    task_gens.append(task_gen)
+            if task_gens:
+                loop_task_data = {
+                    "new_tasks": task_gens,
+                    "init_condition": init_condition,
+                    "terminate_condition": terminate_condition,
+                    "action_dict": d,
+                }
+                return ControlBlock(agent, loop_task_data)
+            else:
+                return None
+
+    # FIXME! undo is currently non-functional
     def handle_undo(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         Undo = self.task_objects["undo"]
         task_name = d.get("undo_action")
@@ -199,29 +207,18 @@ class Interpreter(InterpreterBase):
         }
         ConfirmTask(agent, confirm_data)
         self.finished = True
-        return None, None
+        return None
 
     def handle_move(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         Move = self.task_objects["move"]
-        Control = self.task_objects["control"]
-
-        loop_mem = None
-        if "remove_condition" in d:
-            condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
-            location_d = d.get("location", SPEAKERLOOK)
-            mems = self.subinterpret["reference_locations"](self, speaker, location_d)
-            if mems:
-                loop_mem = mems[0]
 
         def new_tasks():
             # TODO if we do this better will be able to handle "stay between the x"
             default_loc = getattr(self, "default_loc", SPEAKERLOOK)
             location_d = d.get("location", default_loc)
             # FIXME, this is hacky.  need more careful way of storing this in task
-            if loop_mem:
-                mems = [loop_mem]
-            else:
-                mems = self.subinterpret["reference_locations"](self, speaker, location_d)
+            # and to pass to task generator
+            mems = self.subinterpret["reference_locations"](self, speaker, location_d)
             # FIXME this should go in the ref_location subinterpret:
             steps, reldir = interpret_relative_direction(self, location_d)
             pos, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)
@@ -233,34 +230,24 @@ class Interpreter(InterpreterBase):
             task = Move(agent, task_data)
             return task
 
-        if "remove_condition" in d:
-            # FIXME grammar to handle "remove" vs "stop"
-            loop_task_data = {
-                "new_tasks": new_tasks,
-                "remove_condition": condition,  #!!! semantic parser + GT need updating
-                "action_dict": d,
-            }
-            return Control(agent, loop_task_data), None, None
-        else:
-            return new_tasks(), None, None
+        return new_tasks
 
     # TODO mark in memory it was stopped by command
     def handle_stop(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
         if self.memory.task_stack_pause():
-            return None, "Stopping.  What should I do next?", None
-        else:
-            return None, "I am not doing anything", None
+            Say(agent, task_data={"response_options": "Stopping.  What should I do next?"})
+        return None
 
     # FIXME this is needs updating...
     # TODO mark in memory it was resumed by command
     def handle_resume(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
         if self.memory.task_stack_resume():
-            return None, "resuming", None
+            Say(agent, task_data={"response_options": "Resuming"})
         else:
-            return None, "nothing to resume", None
+            Say(agent, task_data={"response_options": "nothing to resume"})
 
     def handle_otheraction(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
-        return None, "I don't know how to do that yet", None
+        Say(agent, task_data={"response_options": "I don't know how to do that yet"})
