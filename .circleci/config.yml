@@ -449,7 +449,7 @@ workflows:
       - polymetis-conda-ubuntu-18
       - polymetis-conda-ubuntu-20
       - formatting
-      - fbrp
+      - mrp
       - fairotag
       - eyehandcal
       - update-docs:
