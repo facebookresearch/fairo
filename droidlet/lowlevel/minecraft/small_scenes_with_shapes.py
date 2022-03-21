@@ -135,8 +135,8 @@ def make_pose(args, loc=None, pitchyaw=None, height_map=None):
             )
         d = np.linalg.norm((okh - np.array((x, z)).reshape(2, 1)), 2, 0)
         minidx = np.argmin(d)
-        x = okh[0, minidx]
-        z = okh[1, minidx]
+        x = int(okh[0, minidx])
+        z = int(okh[1, minidx])
         y = int(height_map[x, z] + 1)
     return x, y, z, pitch, yaw
 
