@@ -302,16 +302,19 @@ class DroidletAgent(BaseAgent):
         _, task_mems = self.memory.basic_search(query)
         for mem in task_mems:
             if mem.task.init_condition.check():
-                mem.get_update_status({"prio": TaskNode.CHECK_PRIO + 1, "running": 1})
+                mem.get_update_status({"prio": TaskNode.CHECK_PRIO + 1})
 
-        # this is "select TaskNodes that are runnning (running >= 1) and are not paused"
-        query = "SELECT MEMORY FROM Task WHERE ((running>=1) AND (paused <= 0))"
+        query = "SELECT MEMORY FROM Task WHERE ((prio>{}) AND (paused <= 0))".format(
+            TaskNode.CHECK_PRIO
+        )
         _, task_mems = self.memory.basic_search(query)
         if not task_mems:
             time.sleep(sleep_time)
             return
         task_mems = self.scheduler.filter(task_mems)
         for mem in task_mems:
+            # FIXME set the other ones to running=0.  doesn't matter rn bc scheduler is empty, eerything runs
+            mem.get_update_status({"running": 1})
             mem.task.step()
             if mem.task.finished:
                 mem.update_task()

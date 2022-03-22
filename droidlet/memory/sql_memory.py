@@ -40,7 +40,7 @@ NONPICKLE_ATTRS = [
     "agent",
     "memory",
     "agent_memory",
-    "tasks_fns",
+    "task_fns",
     "init_condition",
     "terminate_condition",
     "movement",

@@ -119,7 +119,7 @@ class Interpreter(InterpreterBase):
         start_time = datetime.datetime.now()
         assert self.logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND"
         try:
-            C = interpret_event(self, agent, speaker, self.logical_form)
+            C = self.interpret_event(agent, self.speaker, self.logical_form)
             if C is not None:
                 chat = self.memory.get_most_recent_incoming_chat()
                 TripleNode.create(
@@ -135,7 +135,7 @@ class Interpreter(InterpreterBase):
                 "elapsed_time": (end_time - start_time).total_seconds(),
                 "agent_time": self.memory.get_time(),
                 "tasks_to_push": [],
-                "task_mem": task_mem,
+                "task_mem": C.memid,
             }
             dispatch.send("interpreter", data=hook_data)
         except NextDialogueStep:
@@ -154,7 +154,7 @@ class Interpreter(InterpreterBase):
         if "action_type" in d:
             action_type = d["action_type"]
             assert "event_sequence" not in d
-            return self.action_handlers[action_type](agent, speaker, action_def)
+            return self.action_handlers[action_type](agent, speaker, d)
         else:
             assert "event_sequence" in d
             terminate_condition = None
@@ -166,7 +166,7 @@ class Interpreter(InterpreterBase):
             if "init_condition" in d:
                 init_condition = self.subinterpret["condition"](self, speaker, d["init_condition"])
             task_gens = []
-            for e_lf in event_sequence:
+            for e_lf in d["event_sequence"]:
                 task_gen = self.interpret_event(agent, speaker, e_lf)
                 # FIXME: better handling of empty task_gens, e.g. from undo
                 if task_gen is not None:

@@ -225,6 +225,6 @@ class TaskRunCountCondition(Condition):
     def check(self):
         if self.memory.check_memid_exists(self.task_memid, "Tasks"):
             T = self.memory.get_mem_by_id(self.task_memid)
-            if t.run_count >= self.N:
+            if T.run_count >= self.N:
                 return True
         return False

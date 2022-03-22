@@ -20,9 +20,9 @@ def maybe_bundle_task_list(agent, task_list):
     for t in task_list:
         task_gens.append(task_to_generator(t))
 
-    if len(t) > 1:
+    if len(task_gens) > 1:
         return task_to_generator(ControlBlock(agent, {"new_tasks": task_gens}))
-    elif len(t) == 1:
+    elif len(task_gens) == 1:
         return task_gens[0]
     else:
         return None
@@ -78,8 +78,8 @@ class Task(object):
             self.memid = memid
             N = TaskNode(agent.memory, self.memid).update_task(task=self)
             # this is an egg, hatch it
-            if N.prio == -3:
-                N.get_update_status({"prio": -1})
+            if N.prio == TaskNode.EGG_PRIO:
+                N.get_update_status({"prio": TaskNode.CHECK_PRIO})
         else:
             TaskNode.create(self.agent.memory, self)
 
@@ -190,7 +190,7 @@ class ControlBlock(Task):
         # TODO handle extra info for resets
         if type(task_fns) is not list:
             task_fns = [task_fns]
-        self.tasks_fns = task_fns
+        self.task_fns = task_fns
         TaskNode(self.agent.memory, self.memid).update_task(task=self)
 
     def get_default_conditions(self, task_data, agent):
@@ -201,11 +201,11 @@ class ControlBlock(Task):
             task_data (dict):  this function will try to use the values of "init_condition" and  "terminate_condition"
             agent (Droidlet Agent): the agent that is going to be doing the Task controlled by
                                     condition
-            task (droidlet.shared_data_structs.Task):  the task to be controlled by the conditions
+            task (droidlet.tasks.Task):  the task to be controlled by the conditions
         """
-        init_condition = task_data.get("init_condition", AlwaysCondition(None))
-        terminate_condition = task_data.get(
-            "terminate_condition", TaskRunCountCondition(agent.memory, self.memid, N=1)
+        init_condition = task_data.get("init_condition") or AlwaysCondition(None)
+        terminate_condition = task_data.get("terminate_condition") or TaskRunCountCondition(
+            agent.memory, self.memid, N=1
         )
         # check/maybe update if special "THIS" filter condition
         maybe_update_condition_memid(terminate_condition, self.memid)
@@ -226,12 +226,11 @@ class ControlBlock(Task):
         if not self.finished:
             # NOTE: by modified_step_wrapper, can only be here if
             # there is no child, so previous generated child task is finished
-            g = self.tasks_fns[self.task_list_idx]
+            g = self.task_fns[self.task_list_idx]
             t = g()
+            self.task_list_idx = self.task_list_idx + 1
             if t is not None:
                 self.add_child_task(t, prio=None)
-            else:
-                self.task_list_idx = self.task_list_idx + 1
 
     def reset(self):
         super().reset()
