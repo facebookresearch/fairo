@@ -23,20 +23,35 @@ RUN apt-get install -y \
         libgflags-dev \
         libgoogle-glog-dev \
         make \
-        python3-dev \
-        python3-pip \
         zlib1g-dev \
         libblas-dev \
         liblapack-dev \
         ;
 
-RUN pip3 install -U setuptools cmake
+SHELL ["/bin/bash", "-c"]
+ENV PATH="/root/miniconda3/bin:${PATH}"
+ARG PATH="/root/miniconda3/bin:${PATH}"
+
+RUN wget \
+    https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+    && mkdir /root/.conda \
+    && bash Miniconda3-latest-Linux-x86_64.sh -b \
+    && rm -f Miniconda3-latest-Linux-x86_64.sh 
+RUN conda --version
+SHELL ["/bin/bash", "-c"]
+
+RUN conda install mamba setuptools cmake -y -c conda-forge
+
+RUN mamba create -n droidlet python=3.8 -c conda-forge -y && \
+    conda init bash && \
+    source ~/.bashrc && \
+    source activate /root/miniconda3/envs/droidlet && \
+    pip install -r /pip.txt && \
+    conda clean -a -y && \
+    pip cache purge
 
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash
 RUN apt-get -y install nodejs
-
-RUN pip3 install torch
-
 
 # Install Git LFS
 COPY gitlfs_install.sh /gitlfs_install.sh
