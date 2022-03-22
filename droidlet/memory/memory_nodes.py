@@ -867,7 +867,7 @@ class TaskNode(MemoryNode):
     NODE_TYPE = "Task"
     EGG_PRIO = -3
     CHECK_PRIO = 0
-    FINISHED_PRIO = -2
+    FINISHED_PRIO = -1
 
     def __init__(self, agent_memory, memid: str):
         super().__init__(agent_memory, memid)
@@ -920,13 +920,13 @@ class TaskNode(MemoryNode):
             return old_memid
         if type(task) is dict:
             # this is an egg to be hatched by agent
-            prio = task["task_data"].get("task_node_data", {}).get("prio", -3)
+            prio = task["task_data"].get("task_node_data", {}).get("prio", cls.EGG_PRIO)
             running = task["task_data"].get("task_node_data", {}).get("running", 0)
             run_count = task["task_data"].get("task_node_data", {}).get("run_count", 0)
             action_name = task["class"].__name__.lower()
         else:
             action_name = task.__class__.__name__.lower()
-            prio = -1
+            prio = cls.CHECK_PRIO
             running = 0
             run_count = task.run_count
         memid = cls.new(memory)
@@ -1004,7 +1004,7 @@ class TaskNode(MemoryNode):
                     status_out[k] = self.agent_memory.get_time()
                     # warning: using the order of the iterator!
                     status["running"] = 0
-                    status["prio"] = FINISHED_PRIO
+                    status["prio"] = self.FINISHED_PRIO
                 else:
                     status_out[k] = -1
             else:
