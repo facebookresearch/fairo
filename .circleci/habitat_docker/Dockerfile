@@ -46,12 +46,12 @@ ADD ./requirements.txt /pip.txt
 
 RUN conda install mamba -y -c conda-forge
 
-RUN mamba create -n droidlet python=3.7 \
+RUN mamba create -n droidlet python=3.8 \
     --file /conda.txt -c pytorch -c aihabitat -c open3d-admin -c conda-forge -y && \
     conda init bash && \
     source ~/.bashrc && \
     source activate /root/miniconda3/envs/droidlet && \
-    mamba install https://anaconda.org/aihabitat/habitat-sim/0.2.1/download/linux-64/habitat-sim-0.2.1-py3.7_headless_linux_fc7fb11ccec407753a73ab810d1dbb5f57d0f9b9.tar.bz2 && \
+    mamba install https://anaconda.org/aihabitat/habitat-sim/0.2.1/download/linux-64/habitat-sim-0.2.1-py3.8_headless_linux_fc7fb11ccec407753a73ab810d1dbb5f57d0f9b9.tar.bz2 && \
     pip install -r /pip.txt && \
     conda clean -a -y && \
     pip cache purge
