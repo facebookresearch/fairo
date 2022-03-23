@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
 import os
+
 try:
     from .test_utils import assert_distance_moved, assert_turn_degree
 except:
@@ -22,16 +23,14 @@ class MoverTests(unittest.TestCase):
         self.agent = LoCoBotMover(ip=IP, backend="habitat")
         print("IN INITIAL NAVIGATION")
         self.agent.move_absolute(INIT)
-        
+
         print("DONE INITIAL NAVIGATION")
 
     def test_move_relative(self):
         for task_pos in [(0, 0, 0), (0, -0.1, 1.0), (0, 0.1, 0), (-0.1, -0.1, -1.0)]:
             initial_state = self.agent.bot.get_base_state()
             self.agent.move_relative([task_pos])
-            assert_distance_moved(
-                initial_state, self.agent.bot.get_base_state(), task_pos
-            )
+            assert_distance_moved(initial_state, self.agent.bot.get_base_state(), task_pos)
 
     def test_turn(self):
         # turn a set of a angles
