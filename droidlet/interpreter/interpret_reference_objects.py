@@ -12,7 +12,7 @@ from droidlet.dialog.dialogue_task import ConfirmReferenceObject
 from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
-from droidlet.memory.memory_nodes import LocationNode, ReferenceObjectNode, TaskNode
+from droidlet.memory.memory_nodes import LocationNode, PlayerNode, ReferenceObjectNode, SelfNode, TaskNode
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 from .interpret_filters import interpret_selector
 
@@ -150,98 +150,68 @@ def interpret_reference_object(
         else:
             logging.error("bad coref_resolve -> {}".format(mem))
 
-    clarification_query = (
-        "SELECT MEMORY FROM Task WHERE reference_object_confirmation=#={}".format(
-            interpreter.memid
+    mems = maybe_get_text_span_mems(interpreter, speaker, d)
+    if mems:
+        update_attended_and_link_lf(interpreter, mems)
+        # No filter by sublocation etc if a mem matches the text_span exactly...
+        return mems
+
+    if allow_clarification:
+        import ipdb
+
+        ipdb.set_trace(context=5)
+
+        # no candidates found; ask Clarification
+        clarification_query = "SELECT MEMORY FROM ReferenceObject WHERE x>-1000"
+        _, clarification_ref_obj_mems = interpreter.memory.basic_search(clarification_query)
+        DISALLOWED_REF_OBJS = (LocationNode, SelfNode, PlayerNode) # TODO also filter out mobs?
+        objects = [x for x in clarification_ref_obj_mems if not isinstance(x, DISALLOWED_REF_OBJS)]
+        mems = filter_by_sublocation(
+            interpreter,
+            speaker,
+            objects,
+            d,
+            loose=loose_speakerlook,
+            all_proximity=all_proximity,
         )
-    )
-    _, clarification_task_mems = interpreter.memory.basic_search(clarification_query)
-    # does a clarification task referencing this interpreter exist?
-    if not clarification_task_mems:
-
-        mems = maybe_get_text_span_mems(interpreter, speaker, d)
-        if mems:
-            update_attended_and_link_lf(interpreter, mems)
-            # No filter by sublocation etc if a mem matches the text_span exactly...
-            return mems
-
-        if any(extra_tags):
-            extra_clauses = []
-            for tag in extra_tags:
-                extra_clauses.append({"pred_text": "has_tag", "obj_text": tag})
-            if not filters_d.get("where_clause"):
-                filters_d["where_clause"] = {"AND": []}
-            if filters_d["where_clause"].get("OR") or filters_d["where_clause"].get("NOT"):
-                subclause = deepcopy(filters_d["where_clause"])
-                filters_d["where_clause"] = {"AND": [subclause]}
-            filters_d["where_clause"]["AND"].extend(extra_clauses)
-
-        # TODO Add ignore_player maybe?
-
-        if allow_clarification:
-            import ipdb
-
-            ipdb.set_trace(context=5)
-
-            # no candidates found; ask Clarification
-            clarification_query = "SELECT MEMORY FROM ReferenceObject WHERE x>-1000"
-            _, clarification_ref_obj_mems = interpreter.memory.basic_search(clarification_query)
-            objects = [x for x in clarification_ref_obj_mems if not isinstance(x, LocationNode)]
-            # TODO also filter out mobs?
-            mems = filter_by_sublocation(
-                interpreter,
-                speaker,
-                objects,
-                d,
-                loose=loose_speakerlook,
-                all_proximity=all_proximity,
-            )
-            if len(mems) == 0:
-                raise ErrorWithResponse("I don't know what you're referring to")
-            else:
-                # TODO replace with clarification
-                update_attended_and_link_lf(interpreter, mems)
-                return mems
-
-        # FIXME! see above.  currently removing selector to get candidates, and filtering after
-        # instead of letting filter interpreters handle.
-        filters_no_select = deepcopy(filters_d)
-        filters_no_select.pop("selector", None)
-        #        filters_no_select.pop("location", None)
-        candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
-
-        if len(candidate_mems) > 0:
-            mems = filter_by_sublocation(
-                interpreter,
-                speaker,
-                candidate_mems,
-                d,
-                loose=loose_speakerlook,
-                all_proximity=all_proximity,
-            )
-            update_attended_and_link_lf(interpreter, mems)
-            return mems
-        else:
+        if len(mems) == 0:
             raise ErrorWithResponse("I don't know what you're referring to")
+        else:
+            # TODO replace with clarification
+            update_attended_and_link_lf(interpreter, mems)
+            return mems
 
+    if any(extra_tags):
+        extra_clauses = []
+        for tag in extra_tags:
+            extra_clauses.append({"pred_text": "has_tag", "obj_text": tag})
+        if not filters_d.get("where_clause"):
+            filters_d["where_clause"] = {"AND": []}
+        if filters_d["where_clause"].get("OR") or filters_d["where_clause"].get("NOT"):
+            subclause = deepcopy(filters_d["where_clause"])
+            filters_d["where_clause"] = {"AND": [subclause]}
+        filters_d["where_clause"]["AND"].extend(extra_clauses)
+
+    # FIXME! see above.  currently removing selector to get candidates, and filtering after
+    # instead of letting filter interpreters handle.
+    filters_no_select = deepcopy(filters_d)
+    filters_no_select.pop("selector", None)
+    #        filters_no_select.pop("location", None)
+    candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
+
+    if len(candidate_mems) > 0:
+        mems = filter_by_sublocation(
+            interpreter,
+            speaker,
+            candidate_mems,
+            d,
+            loose=loose_speakerlook,
+            all_proximity=all_proximity,
+        )
+        update_attended_and_link_lf(interpreter, mems)
+        return mems
     else:
-        # there is a clarification task.  is it active?
-        task_mem = clarification_task_mems[0]  # FIXME, error if there are many?
-        if task_mem.prio > -2:
-            raise NextDialogueStep()
-        # clarification task finished.
-        query = "SELECT dialogue_task_output FROM Task WHERE uuid={}".format(task_mem.memid)
-        _, r = interpreter.memory.basic_search(query)
-        if r and r[0] == "yes":
-            # TODO: learn from the tag!  put it in memory!
-            query = "SELECT MEMORY FROM ReferenceObject WHERE << {}, reference_object_confirmation, ?>>".format(
-                mem.memid
-            )
-            _, ref_obj_mems = interpreter.memory.basic_search(query)
-            update_attended_and_link_lf(interpreter, ref_obj_mems)
-            return ref_obj_mems
-        else:
-            raise ErrorWithResponse("I don't know what you're referring to")
+        raise ErrorWithResponse("I don't know what you're referring to")
 
 
 def apply_memory_filters(interpreter, speaker, filters_d) -> List[ReferenceObjectNode]:
