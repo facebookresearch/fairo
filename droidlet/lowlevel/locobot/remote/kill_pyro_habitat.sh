@@ -2,7 +2,7 @@
 echo "Killing navigation, planning, slam, remote and naming processes"
 
 kill_pattern () {
-    ps -ef|grep "$1" | grep "$2" | grep -v grep | tr -s " " | cut -f 3 -d" " | xargs kill -9 >/dev/null 2>&1 || true 
+    ps -exo "pid,args" |grep "$1" | grep "$2" | grep -v grep | tr -s " " | sed "s/^[ \t]*//" | cut -f 1 -d" " | xargs kill -9 >/dev/null 2>&1 || true 
 }
 
 kill_pattern python navigation_service.py
