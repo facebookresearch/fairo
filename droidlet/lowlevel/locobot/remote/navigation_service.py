@@ -112,7 +112,7 @@ class Navigation(object):
                 trackback_loc = self.trackback.get_loc(robot_loc)
 
                 print(
-                    f"Collided at {robot_loc}. Marking point {collision_loc} as obstacle."
+                    f"Collided at {robot_loc}."
                     f"Tracking back to {trackback_loc}"
                 )
                 self.robot.go_to_absolute(trackback_loc)
