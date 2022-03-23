@@ -21,7 +21,7 @@ class SLAM(object):
         robot,
         map_size=4000,
         resolution=5,
-        robot_rad=25,
+        robot_rad=30,
         agent_min_z=5,
         agent_max_z=70,
     ):
