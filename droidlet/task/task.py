@@ -1,7 +1,12 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from droidlet.task.condition_classes import AlwaysCondition, TaskRunCountCondition
+from droidlet.task.condition_classes import (
+    AlwaysCondition,
+    TaskRunCountCondition,
+    SwitchCondition,
+    AndCondition,
+)
 from droidlet.memory.memory_nodes import TaskNode, LocationNode, TripleNode
 
 # FIXME TODO store conditions in memory (new table)
@@ -43,12 +48,19 @@ def maybe_update_condition_memid(condition, memid, pos="value_left"):
                     v.memory_filter.head.memid = memid
 
 
-def task_to_generator(task):
-    def new_tasks():
-        task.reset()
-        return task
+class task_to_generator:
+    def __init__(self, task):
+        self.task = task
+        self.fuse = SwitchCondition(task.agent.memory)
+        self.fuse.set_status(False)
+        self.task.init_condition = AndCondition(
+            task.agent.memory, [task.init_condition, self.fuse]
+        )
+        TaskNode(task.agent.memory, task.memid).update_task(task=task)
 
-    return new_tasks
+    def __call__(self):
+        self.task.reset()
+        return self.task
 
 
 class Task(object):
@@ -59,7 +71,7 @@ class Task(object):
 
     Attributes:
         memid (string): Memory id of the task in agent's memory
-        interrupted (bool): A flag indicating whetherr the task has been interrupted
+        interrupted (bool): A flag indicating whether the task has been interrupted
         finished (bool): A flag indicating whether the task finished
         name (string): Name of the task
         undone (bool): A flag indicating whether the task was undone / reverted
@@ -151,8 +163,9 @@ class Task(object):
         self.finished = False
         self.name = None
         self.last_stepped_time = None
+        self.prio = TaskNode.CHECK_PRIO
 
-    def add_child_task(self, t, prio=1):
+    def add_child_task(self, t, prio=TaskNode.CHECK_PRIO + 1):
         TaskNode(self.agent.memory, self.memid).add_child_task(t, prio=prio)
 
     def __repr__(self):
@@ -188,6 +201,8 @@ class ControlBlock(Task):
         task_fns = task_data.get("new_tasks")
         # TODO remove this, always pass in a list of task_generators
         # TODO handle extra info for resets
+        # (including and up to re-interpreting lf, and DSL support for
+        # forcing re-interpretation)
         if type(task_fns) is not list:
             task_fns = [task_fns]
         self.task_fns = task_fns
@@ -224,9 +239,15 @@ class ControlBlock(Task):
             self.finished = True
 
         if not self.finished:
-            # NOTE: by modified_step_wrapper, can only be here if
-            # there is no child, so previous generated child task is finished
+            # by modified_step_wrapper, can only be here if
+            # there is no child, so previous generated child task is finished.
+            # start the next child in the sequence:
             g = self.task_fns[self.task_list_idx]
+            # if g is a Task that has been wrapped via task_to_generator, light its fuse
+            # if not, we assume that it generates a new Task that has not been activated in agent.task_step()
+            # FIXME! force this assumption
+            if hasattr(g, "fuse"):
+                g.fuse.set_status(True)
             t = g()
             self.task_list_idx = self.task_list_idx + 1
             if t is not None:
