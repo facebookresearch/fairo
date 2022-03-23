@@ -12,7 +12,13 @@ from droidlet.dialog.dialogue_task import ConfirmReferenceObject
 from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
-from droidlet.memory.memory_nodes import LocationNode, PlayerNode, ReferenceObjectNode, SelfNode, TaskNode
+from droidlet.memory.memory_nodes import (
+    LocationNode,
+    PlayerNode,
+    ReferenceObjectNode,
+    SelfNode,
+    TaskNode,
+)
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 from .interpret_filters import interpret_selector
 
@@ -164,7 +170,7 @@ def interpret_reference_object(
         # no candidates found; ask Clarification
         clarification_query = "SELECT MEMORY FROM ReferenceObject WHERE x>-1000"
         _, clarification_ref_obj_mems = interpreter.memory.basic_search(clarification_query)
-        DISALLOWED_REF_OBJS = (LocationNode, SelfNode, PlayerNode) # TODO also filter out mobs?
+        DISALLOWED_REF_OBJS = (LocationNode, SelfNode, PlayerNode)  # TODO also filter out mobs?
         objects = [x for x in clarification_ref_obj_mems if not isinstance(x, DISALLOWED_REF_OBJS)]
         mems = filter_by_sublocation(
             interpreter,
