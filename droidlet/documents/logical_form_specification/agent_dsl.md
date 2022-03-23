@@ -5,7 +5,7 @@
 <pre>
 { 
   "dialogue_type": "HUMAN_GIVE_COMMAND",
-  "event": <a href="#event">&ltEVENT&gt</a>
+  <a href="#event">&ltEVENT&gt</a>
 }
 </pre>
 
@@ -276,7 +276,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 
 #### DanceType ####
 <pre>
-<a id="dance_type"> : {
+<a id="dance_type"/> : { 
   "filters": <a href="#filters">&ltFILTERS&gt</a>,
   "point": <a href="#facing">&ltFACING&gt</a>,
   "look_turn": <a href="#facing">&ltFACING&gt</a>,

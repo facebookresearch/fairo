@@ -1037,14 +1037,14 @@ CONDITIONS = {
         "condition": {
             "input_left": {"filters": append_output(FILTERS["a cow"], ATTRIBUTES["x"])},
             "comparison_type": "GREATER_THAN",
-            "input_right": {"fixed_value": "5"},
+            "input_right": {"value": "5"},
         },
     },
     "that cow has x greater than 5": {
         "condition": {
             "input_left": {"filters": append_output(FILTERS["that cow"], ATTRIBUTES["x"])},
             "comparison_type": "GREATER_THAN",
-            "input_right": {"fixed_value": "5"},
+            "input_right": {"value": "5"},
         },
     },
     "that cow is closer than 2 steps to me": {
@@ -1053,7 +1053,7 @@ CONDITIONS = {
                 "filters": append_output(FILTERS["that cow"], ATTRIBUTES["distance from me"])
             },
             "comparison_type": "LESS_THAN",
-            "input_right": {"fixed_value": "2"},
+            "input_right": {"value": "2"},
         },
     },
     "2 minutes": {
@@ -1062,7 +1062,7 @@ CONDITIONS = {
                 "comparison_measure": {"fixed_value": "minutes"},
                 "input_left": {"fixed_value": "CURRENT_TIME"},
                 "comparison_type": "GREATER_THAN",
-                "input_right": {"fixed_value": "2"},
+                "input_right": {"value": "2"},
             }
         },
     },
@@ -1072,7 +1072,7 @@ CONDITIONS = {
                 "comparison_measure": {"fixed_value": "seconds"},
                 "input_left": {"fixed_value": "CURRENT_TIME"},
                 "comparison_type": "GREATER_THAN",
-                "input_right": {"fixed_value": "18"},
+                "input_right": {"value": "18"},
             }
         },
     },
@@ -1086,7 +1086,7 @@ CONDITIONS["18 seconds after that cow has x greater than 5"] = {
             "comparison_measure": {"fixed_value": "seconds"},
             "input_left": {"fixed_value": "CURRENT_TIME"},
             "comparison_type": "GREATER_THAN",
-            "input_right": {"fixed_value": "18"},
+            "input_right": {"value": "18"},
         }
     },
 }
@@ -1121,7 +1121,7 @@ STOP_CONDITION_COMMANDS = {
                         "special": {"fixed_value": "THIS"},
                     }
                 },
-                "input_right": {"fixed_value": "2"},
+                "input_right": {"value": "2"},
             },
         },
         "dialogue_type": "HUMAN_GIVE_COMMAND",
