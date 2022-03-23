@@ -127,7 +127,11 @@ class Interpreter(InterpreterBase):
                 )
             self.finished = True
             end_time = datetime.datetime.now()
+
             # FIXME (tasks to push)
+            task_memid = "NULL"
+            if C is not None:
+                task_memid = C.memid
             hook_data = {
                 "name": "interpreter",
                 "start_time": start_time,
@@ -135,7 +139,7 @@ class Interpreter(InterpreterBase):
                 "elapsed_time": (end_time - start_time).total_seconds(),
                 "agent_time": self.memory.get_time(),
                 "tasks_to_push": [],
-                "task_mem": C.memid,
+                "task_mem": task_memid,
             }
             dispatch.send("interpreter", data=hook_data)
         except NextDialogueStep:
