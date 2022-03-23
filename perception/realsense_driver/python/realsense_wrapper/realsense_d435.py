@@ -5,7 +5,7 @@ import pyrealsense2 as rs
 
 
 class RealsenseAPI:
-    """ Wrapper that implements boilerplate code for RealSense cameras """
+    """Wrapper that implements boilerplate code for RealSense cameras"""
 
     def __init__(self):
         # Identify devices
@@ -51,12 +51,33 @@ class RealsenseAPI:
     def get_num_cameras(self):
         return len(self.device_ls)
 
-    def get_images(self):
+    def get_images(self, depth=False):
         framesets = self._get_frames()
         imgs = []
+        depth_imgs = []
         for frameset in framesets:
             frame = frameset.get_color_frame()
             img = np.asanyarray(frame.get_data())
+
+            if depth:
+                frame = frameset.get_depth_frame()
+                depth_img = np.asanyarray(frame.get_data())
+                depth_imgs.append(depth_img)
+
             imgs.append(img)
 
-        return imgs
+        if depth:
+            return imgs, depth_imgs
+        else:
+            return imgs
+
+    def get_pointcloud(self):
+        framesets = self._get_frames()
+        pc_ls = []
+        for frameset in framesets:
+            pc = rs.pointcloud()
+            pc.map_to(frameset.get_color_frame())
+            points = pc.calculate(frameset.get_depth_frame())
+            pc_ls.append(points)
+
+        return pc_ls
