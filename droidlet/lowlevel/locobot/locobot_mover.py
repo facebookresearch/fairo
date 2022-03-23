@@ -56,7 +56,6 @@ class LoCoBotMover:
         # put in async mode
         self.nav._pyroAsync()
         self.nav_result = self.nav.is_busy()
-        self.close_loop = False if backend == "habitat" else True
         self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
 
         intrinsic_mat = safe_call(self.bot.get_intrinsics)
@@ -294,7 +293,7 @@ class LoCoBotMover:
             yaw: the yaw to execute in degree.
         """
         turn_rad = yaw * math.pi / 180
-        self.bot.go_to_relative([0, 0, turn_rad], close_loop=self.close_loop)
+        self.bot.go_to_relative([0, 0, turn_rad])
 
     def grab_nearby_object(self, bounding_box=[(240, 480), (100, 540)]):
         """
