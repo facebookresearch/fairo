@@ -37,10 +37,9 @@ def assert_visual(bot, key):
     image = bot.get_rgb()
     assert_image(image, get_asset_path(key + ".png"))
 
-
 def assert_turn_degree(initial, final, degree):
     final_deg = math.degrees(initial[2]) + degree
-    gt_final = (initial[0], initial[1], math.radians(final_deg))
+    gt_final = (initial[0], initial[1], math.radians(final_deg))    
     assert_allclose(gt_final, final, rtol=1e-5)
 
 
@@ -48,33 +47,35 @@ class NavigationTests(unittest.TestCase):
     def setUp(self):
         global IP
         self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + IP)
+        self.nav = Pyro4.Proxy("PYRONAME:navigation@" + IP)
+        
         if not hasattr(self, "initial_state"):
-            self.initial_state = self.bot.get_base_state(state_type="odom")
+            self.initial_state = self.bot.get_base_state()
         else:
             # make sure after every unit test to go back to initial position
-            self.bot.go_to_absolute(self.initial_state, close_loop=False)
+            self.bot.go_to_absolute(self.initial_state)
 
     def test_go_to_absolute(self):
         initial_state = [4.8, 0.16, -1.0]  # in apartment_0, right in front of the humans
-        self.bot.go_to_absolute(initial_state, close_loop=False)
-        self.bot.go_to_absolute(initial_state, close_loop=False)
-        assert_allclose(initial_state, self.bot.get_base_state("odom"), rtol=1e-3)
+        self.nav.go_to_absolute(initial_state)
+        self.nav.go_to_absolute(initial_state)
+        assert_allclose(initial_state, self.bot.get_base_state(), rtol=1e-3)
         # assert_visual(self.bot, "go_to_absolute1")
 
         for i in range(10):
             # test that multiple calls don't create side-effects
-            self.bot.go_to_absolute(initial_state, close_loop=False)
-        assert_allclose(initial_state, self.bot.get_base_state("odom"), rtol=1e-3)
+            self.nav.go_to_absolute(initial_state)
+        assert_allclose(initial_state, self.bot.get_base_state(), rtol=1e-3)
         # assert_visual(self.bot, "go_to_absolute2")
 
     def test_turn(self):
         # turn a set of a angles
         turns_in_degrees = [0, 45, 90, -90, 180]
         for x in turns_in_degrees:
-            self.bot.go_to_absolute([4.8, 0.16, -1.0], close_loop=False)
-            init = self.bot.get_base_state(state_type="odom")
-            self.bot.go_to_relative([0, 0, math.radians(x)], close_loop=False)
-            final = self.bot.get_base_state(state_type="odom")
+            self.nav.go_to_absolute([4.8, 0.16, -1.0])
+            init = self.bot.get_base_state()
+            self.nav.go_to_relative([0, 0, math.radians(x)])
+            final = self.bot.get_base_state()
             assert_turn_degree(init, final, x)
 
 
@@ -82,10 +83,11 @@ class PerceptionTests(unittest.TestCase):
     def setUp(self):
         global IP
         self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + IP)
+        self.nav = Pyro4.Proxy("PYRONAME:navigation@" + IP)
         initial_state = [4.8, 0.16, -1.0]  # in apartment_0, right in front of the humans
         # make sure after every unit test to go back to initial position
-        self.bot.go_to_absolute(initial_state, close_loop=False)
-        self.bot.go_to_absolute(initial_state, close_loop=False)
+        self.nav.go_to_absolute(initial_state)
+        self.nav.go_to_absolute(initial_state)
 
     def test_facerec(self):
         # fill this up
