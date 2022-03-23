@@ -1,7 +1,7 @@
 import open3d as o3d
 import numpy as np
 import copy
-
+import warnings
 
 def get_relative_bbox(base_position, region_shape, relative_position):
     bbox = o3d.geometry.OrientedBoundingBox(
@@ -70,8 +70,7 @@ def is_obstacle(
     num_cropped_points = np.asarray(crop.points).shape[0]
     obstacle = False
     if num_cropped_points < pix_threshold:
-        print("not able to see directly in front of robot, tilt the camera further down")
-        # raise RuntimeError("not able to see directly in front of robot, tilt the camera further down")
+        warnings.warn("[is_obstacle] for obstacle check, not able to see directly in front of robot, tilt the camera further down")
     if fastmath:
         # TODO: make this based on not detecting ground plane, but directly cropping bounding box in front, at a certain height
         raise RuntimeError("Not Implemented")
