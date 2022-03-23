@@ -66,19 +66,15 @@ THIS_SEQUENCE_FINISHED = {
                            "comparator": {
 			     "comparison_type": "EQUAL",
                              "input_left": {
-			       "value_extractor": {
 			         "filter": {
 			           "memory_type": "TASKS",
 				   "triples": [{pred_text:"has_tag", "obj_text": "THIS_SEQUENCE"}],
 				   "output": {"attribute": "RUN_COUNT"}
-				 }
 			       }
 			     },
 			     "input_right": {
-			       "value_extractor": {
 			         "fixed_value": 1
 			       }
-			     }
 			    }
 			   }
 			  }
@@ -90,18 +86,14 @@ For "repeat 10 times" the remove condition is
   "comparator": {
     "comparison_type": "EQUAL",
     "input_left": {
-      "value_extractor": {
-	"filter": {
-	  "memory_type": "TASKS",
-	  "triples": [{pred_text:"has_tag", "obj_text": "THIS_SEQUENCE"}],
-	  "output": {"attribute": "RUN_COUNT"}
-	}
-      }
+        "filter": {
+          "memory_type": "TASKS",
+          "triples": [{pred_text:"has_tag", "obj_text": "THIS_SEQUENCE"}],
+          "output": {"attribute": "RUN_COUNT"}
+        }
     },
     "input_right": {
-      "value_extractor": {
-	"span": [0, [1,1]]
-      }
+        "value": [0, [1,1]]
     }
   }
 }
