@@ -228,18 +228,32 @@ class ControlBlock(Task):
 
         return init_condition, terminate_condition
 
-    @Task.step_wrapper
+    # WARNING: no TaskNode.step_wrapper... doing this by hand to propagate terminate condition
     def step(self):
+        self_mem = TaskNode(self.agent.memory, self.memid)
+        if self.terminate_condition.check():
+            self.finished = True
+            # propagate to children.  TODO some machinery/DSL to be more delicate
+            for task_mem in self_mem.all_descendent_tasks(include_root=True):
+                task_mem.get_update_status({"prio": TaskNode.CHECK_PRIO - 2, "finished": True})
+            return
+        query = "SELECT MEMORY FROM Task WHERE ((prio>=1) AND (_has_parent_task=#={}))".format(
+            self.memid
+        )
+        _, child_task_mems = self.agent.memory.basic_search(query)
+        if (
+            child_task_mems
+        ):  # this task has active children, don't step self, let agent step children
+            return
+
+        # we have reached the end of our task list, go back to beginning
         if self.task_list_idx == len(self.task_fns):
             self.task_list_idx = 0
             self.run_count += 1
-            TaskNode(self.agent.memory, self.memid).update_task(task=self)
-
-        if self.terminate_condition.check():
-            self.finished = True
+            self_mem.update_task(task=self)
 
         if not self.finished:
-            # by modified_step_wrapper, can only be here if
+            # can only be here if
             # there is no child, so previous generated child task is finished.
             # start the next child in the sequence:
             g = self.task_fns[self.task_list_idx]
@@ -252,6 +266,8 @@ class ControlBlock(Task):
             self.task_list_idx = self.task_list_idx + 1
             if t is not None:
                 self.add_child_task(t, prio=None)
+
+        self_mem.update_task(task=self)
 
     def reset(self):
         super().reset()
