@@ -180,6 +180,7 @@ def interpret_reference_object(
 
         if allow_clarification:
             import ipdb
+
             ipdb.set_trace(context=5)
 
             # no candidates found; ask Clarification
