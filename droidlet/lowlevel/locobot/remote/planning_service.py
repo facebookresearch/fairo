@@ -1,4 +1,5 @@
 import os
+import math
 import numpy as np
 import Pyro4
 from slam_pkg.utils.fmm_planner import FMMPlanner
@@ -71,10 +72,21 @@ class Planner(object):
         # in metres. map_resolution is the resolution of the SLAM's 2D map, so the planner can't
         # plan anything lower than this
         threshold = (float(self.map_resolution) - 1e-10) / 100.0
-        within_threshold = distance < threshold
-        print(
-            "goal_within_threshold: ", within_threshold, distance, threshold, robot_location, goal
-        )
+
+        if len(robot_location) == 3 and len(goal) == 3:
+            angle_threshold = 1 # in degrees        
+            angle = robot_location[2] - goal[2]
+            abs_angle = math.fabs(math.degrees(angle))
+        
+            within_threshold = distance < threshold and abs_angle < angle_threshold
+            print(
+                "goal_within_threshold: ", within_threshold, distance, threshold, abs_angle, angle_threshold, robot_location, goal
+            )
+        else:            
+            within_threshold = distance < threshold
+            print(
+                "goal_within_threshold: ", within_threshold, distance, threshold, robot_location, goal
+            )
         return within_threshold
 
 
