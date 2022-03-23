@@ -12,7 +12,7 @@ from droidlet.dialog.dialogue_task import ConfirmReferenceObject
 from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
-from droidlet.memory.memory_nodes import ReferenceObjectNode
+from droidlet.memory.memory_nodes import LocationNode, ReferenceObjectNode, TaskNode
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 from .interpret_filters import interpret_selector
 
@@ -130,8 +130,6 @@ def interpret_reference_object(
     allow_clarification (bool): should a Clarification object be put on the DialogueStack
     """
 
-    import ipdb
-
     filters_d = d.get("filters")
     special = d.get("special_reference")
     # filters_d can be empty...
@@ -180,6 +178,30 @@ def interpret_reference_object(
 
         # TODO Add ignore_player maybe?
 
+        if allow_clarification:
+            import ipdb
+            ipdb.set_trace(context=5)
+
+            # no candidates found; ask Clarification
+            clarification_query = "SELECT MEMORY FROM ReferenceObject WHERE x>-1000"
+            _, clarification_ref_obj_mems = interpreter.memory.basic_search(clarification_query)
+            objects = [x for x in clarification_ref_obj_mems if not isinstance(x, LocationNode)]
+            # TODO also filter out mobs?
+            mems = filter_by_sublocation(
+                interpreter,
+                speaker,
+                objects,
+                d,
+                loose=loose_speakerlook,
+                all_proximity=all_proximity,
+            )
+            if len(mems) == 0:
+                raise ErrorWithResponse("I don't know what you're referring to")
+            else:
+                # TODO replace with clarification
+                update_attended_and_link_lf(interpreter, mems)
+                return mems
+
         # FIXME! see above.  currently removing selector to get candidates, and filtering after
         # instead of letting filter interpreters handle.
         filters_no_select = deepcopy(filters_d)
@@ -187,27 +209,7 @@ def interpret_reference_object(
         #        filters_no_select.pop("location", None)
         candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
 
-        if allow_clarification:
-            # TODO expand candidates to be all candidates in view
-            ipdb.set_trace()
-            clarification_query = "SELECT MEMORY FROM ReferenceObject"
-            _, clarification_task_mems = interpreter.memory.basic_search(clarification_query)
-            # no candidates found; ask Clarification
-            confirm_candidates = apply_memory_filters(interpreter, speaker, filters_d)
-            objects = object_looked_at(interpreter.memory, confirm_candidates, speaker=speaker)
-            if len(objects) == 0:
-                raise ErrorWithResponse("I don't know what you're referring to")
-            _, mem = objects[0]
-            interpreter.memory.add_triple(
-                subj=interpreter.memid, pred_text="provisional_refobj_memid", obj=mem.memid
-            )
-            task_egg = {"class": ConfirmReferenceObject, "task_data": {"reference_object": mem}}
-            cmemid = TaskNode.create(interpreter.memory, task_egg)
-            interpreter.memory.add_triple(
-                subj=cmemid, pred_text="reference_object_confirmation", obj=self.memid
-            )
-            raise NextDialogueStep()
-        elif len(candidate_mems) > 0:
+        if len(candidate_mems) > 0:
             mems = filter_by_sublocation(
                 interpreter,
                 speaker,
@@ -232,7 +234,7 @@ def interpret_reference_object(
         if r and r[0] == "yes":
             # TODO: learn from the tag!  put it in memory!
             query = "SELECT MEMORY FROM ReferenceObject WHERE << {}, reference_object_confirmation, ?>>".format(
-                self.memid
+                mem.memid
             )
             _, ref_obj_mems = interpreter.memory.basic_search(query)
             update_attended_and_link_lf(interpreter, ref_obj_mems)
