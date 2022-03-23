@@ -37,9 +37,10 @@ def assert_visual(bot, key):
     image = bot.get_rgb()
     assert_image(image, get_asset_path(key + ".png"))
 
+
 def assert_turn_degree(initial, final, degree):
     final_deg = math.degrees(initial[2]) + degree
-    gt_final = (initial[0], initial[1], math.radians(final_deg))    
+    gt_final = (initial[0], initial[1], math.radians(final_deg))
     assert_allclose(gt_final, final, rtol=1e-5)
 
 
@@ -48,7 +49,7 @@ class NavigationTests(unittest.TestCase):
         global IP
         self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + IP)
         self.nav = Pyro4.Proxy("PYRONAME:navigation@" + IP)
-        
+
         if not hasattr(self, "initial_state"):
             self.initial_state = self.bot.get_base_state()
         else:

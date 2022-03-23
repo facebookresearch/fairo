@@ -111,10 +111,7 @@ class Navigation(object):
                 # trackback to a known good location
                 trackback_loc = self.trackback.get_loc(robot_loc)
 
-                print(
-                    f"Collided at {robot_loc}."
-                    f"Tracking back to {trackback_loc}"
-                )
+                print(f"Collided at {robot_loc}." f"Tracking back to {trackback_loc}")
                 self.robot.go_to_absolute(trackback_loc)
                 # TODO: if the trackback fails, we're screwed. Handle this robustly.
             steps = steps - 1
