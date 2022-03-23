@@ -8,7 +8,7 @@ import random
 
 from .string_lists import MAP_YES, MAP_NO
 from enum import Enum
-from droidlet.task.task import Task, task_to_generator
+from droidlet.task.task import Task, task_to_generator, ControlBlock
 from droidlet.memory.memory_nodes import TaskNode
 
 
