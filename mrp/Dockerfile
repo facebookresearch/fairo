@@ -12,6 +12,6 @@ ENV PATH=/opt/conda/bin:$PATH
 
 RUN python3 -m pip install alephzero
 
-COPY . /fbrp
-RUN cd /fbrp && \
+COPY . /mrp
+RUN cd /mrp && \
     python3 -m pip install .
