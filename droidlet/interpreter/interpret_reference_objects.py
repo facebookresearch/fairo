@@ -132,8 +132,6 @@ def interpret_reference_object(
 
     import ipdb
 
-    ipdb.set_trace()
-
     filters_d = d.get("filters")
     special = d.get("special_reference")
     # filters_d can be empty...
@@ -188,19 +186,12 @@ def interpret_reference_object(
         filters_no_select.pop("selector", None)
         #        filters_no_select.pop("location", None)
         candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
-        if len(candidate_mems) > 0:
-            mems = filter_by_sublocation(
-                interpreter,
-                speaker,
-                candidate_mems,
-                d,
-                loose=loose_speakerlook,
-                all_proximity=all_proximity,
-            )
-            update_attended_and_link_lf(interpreter, mems)
-            return mems
 
-        elif allow_clarification:
+        if allow_clarification:
+            # TODO expand candidates to be all candidates in view
+            ipdb.set_trace()
+            clarification_query = "SELECT MEMORY FROM ReferenceObject"
+            _, clarification_task_mems = interpreter.memory.basic_search(clarification_query)
             # no candidates found; ask Clarification
             confirm_candidates = apply_memory_filters(interpreter, speaker, filters_d)
             objects = object_looked_at(interpreter.memory, confirm_candidates, speaker=speaker)
@@ -216,6 +207,17 @@ def interpret_reference_object(
                 subj=cmemid, pred_text="reference_object_confirmation", obj=self.memid
             )
             raise NextDialogueStep()
+        elif len(candidate_mems) > 0:
+            mems = filter_by_sublocation(
+                interpreter,
+                speaker,
+                candidate_mems,
+                d,
+                loose=loose_speakerlook,
+                all_proximity=all_proximity,
+            )
+            update_attended_and_link_lf(interpreter, mems)
+            return mems
         else:
             raise ErrorWithResponse("I don't know what you're referring to")
 
