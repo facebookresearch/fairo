@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from typing import Tuple, Dict, Any, Optional
 
 from droidlet.memory.memory_nodes import PlayerNode
-from droidlet.task.task import ControlBlock, maybe_task_list_to_control_block
+from droidlet.task.task import ControlBlock, maybe_bundle_task_list
 from droidlet.interpreter import (
     AGENTPOS,
     ConditionInterpreter,
@@ -103,7 +103,7 @@ class LocoInterpreter(Interpreter):
             task_data = {"get_target": obj.memid, "give_target": receiver, "action_dict": d}
             tasks.append(self.task_objects["get"](agent, task_data))
         #        logging.info("Added {} Get tasks to stack".format(len(tasks)))
-        return maybe_task_list_to_control_block(tasks, agent), None, None
+        return maybe_bundle_task_list(agent, tasks)
 
     def handle_dance(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         def new_tasks():
@@ -172,16 +172,11 @@ class LocoInterpreter(Interpreter):
                     raise ErrorWithResponse("I don't know how to do that movement yet.")
             return t
 
-        if "remove_condition" in d:
-            condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
-            task_data = {"new_tasks": new_tasks, "remove_condition": condition, "action_dict": d}
-            return self.task_objects["control"](agent, task_data), None, None
-        else:
-            return new_tasks(), None, None
+        return new_tasks()
 
     def handle_drop(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         """
         Drops whatever object in hand
         """
 
-        return self.task_objects["drop"](agent, {"action_dict": d}), None, None
+        return maybe_bundle_task_list(agent, self.task_objects["drop"](agent, {"action_dict": d}))
