@@ -312,12 +312,16 @@ class DroidletAgent(BaseAgent):
             time.sleep(sleep_time)
             return
         task_mems = self.scheduler.filter(task_mems)
+        task_mems.sort(reverse=True, key=lambda x: x.prio)
         for mem in task_mems:
-            # FIXME set the other ones to running=0.  doesn't matter rn bc scheduler is empty, eerything runs
-            mem.get_update_status({"running": 1})
-            mem.task.step()
-            if mem.task.finished:
-                mem.update_task()
+            # prio/finished could have been changed by another Task, e.g. a ControlBlock
+            mem.update_node()
+            if mem.prio > TaskNode.CHECK_PRIO:
+                # FIXME set the other ones to running=0.  doesn't matter rn bc scheduler is empty, everything runs
+                mem.get_update_status({"running": 1})
+                mem.task.step()
+                if mem.task.finished:
+                    mem.update_task()
 
     def get_time(self):
         # round to 100th of second, return as
