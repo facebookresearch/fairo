@@ -48,7 +48,7 @@ def convert_depth_to_pcd(depth, pose, uv_one_in_cam, rot, trans):
     return pts_in_world
 
 @njit
-def get_annot(height, width, pts_in_cur_img, src_label):
+def get_annot(height, width, pts_in_cur_img, src_label, valid_z):
     """
     This creates the new semantic labels of the projected points in the current image frame. Each new semantic label is the 
     semantic label corresponding to pts_in_cur_img in src_label. 
@@ -60,7 +60,7 @@ def get_annot(height, width, pts_in_cur_img, src_label):
         x, y, _ = pts_in_cur_img[indx]
         
         # We take ceil and floor combinations to fix quantization errors
-        if floor(x) >= 0 and ceil(x) < height and floor(y) >=0 and ceil(y) < width:
+        if floor(x) >= 0 and ceil(x) < height and floor(y) >=0 and ceil(y) < width and valid_z[indx]:
             annot_img[ceil(y)][ceil(x)] = src_label[r][c]
             annot_img[floor(y)][floor(x)] = src_label[r][c]
             annot_img[ceil(y)][floor(x)] = src_label[r][c]
@@ -74,12 +74,12 @@ class LabelPropagate(AbstractHandler):
         src_depth,
         src_label,
         src_pose,
-        base_pose,
+        cur_pose,
         cur_depth,
     ):
         """
         1. Gets point cloud for the source image 
-        2. Transpose the point cloud based on robot location (base_pose) 
+        2. Transpose the point cloud based on robot location (cur_pose) 
         3. Project the point cloud back into the image frame. The corresponding semantic label for each point from the src_label becomes
         the new semantic label in the current frame.
         Args:
@@ -87,7 +87,7 @@ class LabelPropagate(AbstractHandler):
             src_depth (np.ndarray): source depth to propagte from
             src_label (np.ndarray): source semantic map to propagte from
             src_pose (np.ndarray): (x,y,theta) of the source image
-            base_pose (np.ndarray): (x,y,theta) of current image
+            cur_pose (np.ndarray): (x,y,theta) of current image
             cur_depth (np.ndarray): current depth
         """
 
@@ -97,18 +97,21 @@ class LabelPropagate(AbstractHandler):
         pts_in_world = convert_depth_to_pcd(src_depth, src_pose, uv_one_in_cam, rot, trans)
         
         # TODO: can use cur_pts_in_world for filtering. Not needed for baseline.
-        # cur_pts_in_world = convert_depth_to_pcd(cur_depth, base_pose, uv_one_in_cam, rot, trans)
+        # cur_pts_in_world = convert_depth_to_pcd(cur_depth, cur_pose, uv_one_in_cam, rot, trans)
         
         # convert pts_in_world to current base
-        pts_in_cur_base = transform_pose(pts_in_world, (-base_pose[0], -base_pose[1], 0))
-        pts_in_cur_base = transform_pose(pts_in_cur_base, (0.0, 0.0, -base_pose[2]))
+        pts_in_cur_base = transform_pose(pts_in_world, (-cur_pose[0], -cur_pose[1], 0))
+        pts_in_cur_base = transform_pose(pts_in_cur_base, (0.0, 0.0, -cur_pose[2]))
 
-        # conver point from current base to current camera frame
+        # convert point from current base to current camera frame
         pts_in_cur_cam = pts_in_cur_base - trans.reshape(-1)
         pts_in_cur_cam = np.dot(pts_in_cur_cam, rot)
 
-        # conver pts in current camera frame into 2D pix values
+        # keep positive z coordinates
+        valid_z = pts_in_cur_cam[:,2] > 0
+
+        # convert pts in current camera frame into 2D pix values
         pts_in_cur_img = np.matmul(intrinsic_mat, pts_in_cur_cam.T).T
         pts_in_cur_img /= pts_in_cur_img[:, 2].reshape([-1, 1])
         
-        return get_annot(height, width, pts_in_cur_img, src_label)
+        return get_annot(height, width, pts_in_cur_img, src_label, valid_z)
