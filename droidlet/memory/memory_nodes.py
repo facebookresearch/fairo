@@ -871,29 +871,25 @@ class TaskNode(MemoryNode):
 
     def __init__(self, agent_memory, memid: str):
         super().__init__(agent_memory, memid)
-        (
-            pickled,
-            prio,
-            running,
-            run_count,
-            created,
-            finished,
-            paused,
-            action_name,
-        ) = self.agent_memory._db_read_one(
-            "SELECT pickled, prio, running, run_count, created, finished, paused, action_name FROM Tasks WHERE uuid=?",
-            memid,
+        self.update_node()
+        pickled, created, action_name = self.agent_memory._db_read_one(
+            "SELECT pickled, created, action_name FROM Tasks WHERE uuid=?", memid
+        )
+        self.task = self.agent_memory.safe_unpickle(pickled)
+        self.created = created
+        # TODO changeme to just "name"
+        self.action_name = action_name
+        self.memory = agent_memory
+
+    def update_node(self):
+        prio, running, run_count, finished, paused = self.agent_memory._db_read_one(
+            "SELECT prio, running, run_count, finished, paused FROM Tasks WHERE uuid=?", self.memid
         )
         self.prio = prio
         self.paused = paused
         self.run_count = run_count
         self.running = running
-        self.task = self.agent_memory.safe_unpickle(pickled)
-        self.created = created
         self.finished = finished
-        # TODO changeme to just "name"
-        self.action_name = action_name
-        self.memory = agent_memory
 
     @classmethod
     def create(cls, memory, task) -> str:

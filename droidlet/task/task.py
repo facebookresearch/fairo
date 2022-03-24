@@ -231,11 +231,15 @@ class ControlBlock(Task):
     # WARNING: no TaskNode.step_wrapper... doing this by hand to propagate terminate condition
     def step(self):
         self_mem = TaskNode(self.agent.memory, self.memid)
+        # set prio higher than children, we want this run first
+        # todo if nested controls, keep track of prios and organize
+        # FIXME update the setter so this happens automatically
+        self_mem.get_update_status({"prio": TaskNode.CHECK_PRIO + 2})
         if self.terminate_condition.check():
             self.finished = True
             # propagate to children.  TODO some machinery/DSL to be more delicate
             for task_mem in self_mem.all_descendent_tasks(include_root=True):
-                task_mem.get_update_status({"prio": TaskNode.CHECK_PRIO - 2, "finished": True})
+                task_mem.get_update_status({"finished": True})
             return
         query = "SELECT MEMORY FROM Task WHERE ((prio>=1) AND (_has_parent_task=#={}))".format(
             self.memid
@@ -246,13 +250,12 @@ class ControlBlock(Task):
         ):  # this task has active children, don't step self, let agent step children
             return
 
-        # we have reached the end of our task list, go back to beginning
-        if self.task_list_idx == len(self.task_fns):
-            self.task_list_idx = 0
-            self.run_count += 1
-            self_mem.update_task(task=self)
-
         if not self.finished:
+            # check if we have reached the end of our task list, go back to beginning
+            if self.task_list_idx == len(self.task_fns):
+                self.task_list_idx = 0
+                self.run_count += 1
+                self_mem.update_task(task=self)
             # can only be here if
             # there is no child, so previous generated child task is finished.
             # start the next child in the sequence:
@@ -263,9 +266,9 @@ class ControlBlock(Task):
             if hasattr(g, "fuse"):
                 g.fuse.set_status(True)
             t = g()
-            self.task_list_idx = self.task_list_idx + 1
             if t is not None:
                 self.add_child_task(t, prio=None)
+            self.task_list_idx = self.task_list_idx + 1
 
         self_mem.update_task(task=self)
 

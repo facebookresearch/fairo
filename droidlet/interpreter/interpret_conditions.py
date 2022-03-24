@@ -44,6 +44,8 @@ class ConditionInterpreter:
             for c in d["or_condition"]:
                 conds.append(self(interpreter, speaker, c))
                 return OrCondition(interpreter.memory, conds)
+        elif d.get("input_left") or d.get("input_right"):
+            return interpret_comparator(interpreter, speaker, d)
         else:
             # this condition should have a comparator.
             C = d.get("comparator", {})
@@ -57,7 +59,7 @@ class ConditionInterpreter:
             ):
                 return self.interpret_time(interpreter, speaker, d)
             else:
-                return interpret_comparator(interpreter, speaker, d)
+                return interpret_comparator(interpreter, speaker, C)
 
     def interpret_time(self, interpreter, speaker, d):
         event = None
