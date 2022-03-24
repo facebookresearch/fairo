@@ -2,7 +2,7 @@ Note: Classes used in the dict using `<>` are defined as subsections and their c
 
 # Conditions #
 
-expand "remove_condition" to "conditions" more generally (e.g. allow "if condition" statements outside of loops).  Add an optional "on_condition" internal node to all actions.  This allows things like "move to the house and jump every third step". 
+expand "terminate_condition" to "conditions" more generally (e.g. allow "if condition" statements outside of loops).  Add an optional "init_condition" internal node to all actions.  This allows things like "move to the house and jump every third step". 
 ```
 { "dialogue_type": "HUMAN_GIVE_COMMAND",
   "actions" : ACTION_LIST			    
@@ -12,10 +12,8 @@ Where
 
 ```
 CONTROL = {
-      "repeat_count" : span,
-      "repeat_key" : 'FOR'/'ALL',
-      "on_condition": CONDITION, 
-      "remove_condition": CONDITION
+      "init_condition": CONDITION, 
+      "terminate_condition": CONDITION
       }
 ```
 
@@ -27,14 +25,14 @@ SPATIAL_CONTROL = {
 }
 ```
 
-Note: `remove_condition` now covers number of times an action will be repeated as well.
-`on_condition` implies: when CONDITION (the value of `on_condition`) happens do action.
-`remove_condition` implies: keep doing action until CONDITION (the value of `remove_condition`) is met.
+Note: `terminate_condition` now covers number of times an action will be repeated as well.
+`init_condition` implies: when CONDITION (the value of `init_condition`) happens do action.
+`terminate_condition` implies: keep doing action until CONDITION (the value of `terminate_condition`) is met.
 
-control inside action implies control (with either remove_condition, on a certain condition and along a certain direction) on each instance of the action.
-control outside the action list implies control over the entire sequence of action.
+control inside event_sequence implies control (with either terminate_condition, on a certain condition and along a certain direction) on the sequence of events.
+For a single action, the event_sequence will be a list of length 1. 
 
-If TTAD outputs only a raw CONTROL dict, the interpreter should apply that to the action at the top of the bot's stack.
+If the semantic parser outputs only a raw CONTROL dict, the interpreter should apply that to the action at the top of the bot's stack.
 CONDITION will be more explicitly defined by what works with blockly, but will be a superset of current stop conditions
 
 
@@ -100,9 +98,9 @@ Note that `event` in time_condition represents when to start the timer and
 `input_left` by default in time condition marks the time since the event condition.
 
 
-## RemoveCondition ##
+## TerminateCondition ##
 ```
-"remove_condition": {"condition": {"comparison_type": "EQUAL",
+"terminate_condition": {"condition": {"comparison_type": "EQUAL",
                                     "input_left": {
                                       "filters": {"output": {"attribute": "RUN_COUNT"},
                                                   "special": {"fixed_value": "THIS"}}},
