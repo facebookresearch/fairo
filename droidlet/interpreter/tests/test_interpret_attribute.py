@@ -92,8 +92,8 @@ class BasicSearchWithAttributesTest(unittest.TestCase):
         a = interpret_linear_extent(self.interpreter, "joe", l)
         m = MemorySearcher()
         comparator = {
-            "input_left": {"value_extractor": {"attribute": a}},
-            "input_right": {"value_extractor": 5},
+            "input_left": {"attribute": a},
+            "input_right": 5,
             "comparison_type": "GREATER_THAN",
         }
         query_dict = {
