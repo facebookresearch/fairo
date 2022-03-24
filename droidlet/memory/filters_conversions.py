@@ -224,12 +224,12 @@ def sqlyify_where_clause(c):
             assert len(v) == 1
         for clause in v:
             if clause.get("input_left"):
-                input_left = clause["input_left"]["value_extractor"]
+                input_left = clause["input_left"]
                 if input_left.get("attribute"):
                     input_left = str(input_left["attribute"])
                 else:
                     input_left = str(input_left)
-                input_right = str(clause["input_right"]["value_extractor"])
+                input_right = str(clause["input_right"])
                 inequality_symbol = get_inequality_symbol(clause["comparison_type"])
                 s = input_left + " " + inequality_symbol + " " + input_right
                 if clause.get("comparison_measure"):
@@ -484,8 +484,8 @@ def where_leaf_to_comparator(clause):
     for example
     'has_name = cow'
     -->
-    {"input_left": {"value_extractor": "has_name"},
-     "input_right": {"value_extractor": "cow"},
+    {"input_left": "has_name",
+     "input_right": "cow",
      "comparison_type": "EQUAL"}
     """
     # TODO having_measure
@@ -552,8 +552,8 @@ def where_leaf_to_comparator(clause):
     # TODO warn if right_value was something that needed eval?
     right_value = maybe_eval_literal(right_text.strip())
     f = {
-        "input_left": {"value_extractor": {"attribute": left_value}},
-        "input_right": {"value_extractor": right_value},
+        "input_left": {"attribute": left_value},
+        "input_right": right_value,
         "comparison_type": ct,
     }
 
@@ -635,25 +635,17 @@ def convert_same_from_sqly(clause, d):
 if __name__ == "__main__":
     from droidlet.interpreter.tests import all_test_commands
 
-    has_name_cow = {
-        "input_left": {"value_extractor": "has_name"},
-        "input_right": {"value_extractor": "cow"},
-        "comparison_type": "EQUAL",
-    }
+    has_name_cow = {"input_left": "has_name", "input_right": "cow", "comparison_type": "EQUAL"}
     has_colour_green = {
-        "input_left": {"value_extractor": "has_colour"},
-        "input_right": {"value_extractor": "green"},
+        "input_left": "has_colour",
+        "input_right": "green",
         "comparison_type": "EQUAL",
     }
-    has_colour_red = {
-        "input_left": {"value_extractor": "has_colour"},
-        "input_right": {"value_extractor": "red"},
-        "comparison_type": "EQUAL",
-    }
+    has_colour_red = {"input_left": "has_colour", "input_right": "red", "comparison_type": "EQUAL"}
 
     distance_to_me_greater_5 = {
-        "input_left": {"value_extractor": all_test_commands.ATTRIBUTES["distance from me"]},
-        "input_right": {"value_extractor": 5},
+        "input_left": all_test_commands.ATTRIBUTES["distance from me"],
+        "input_right": "5",
         "comparison_type": "GREATER_THAN",
     }
 
