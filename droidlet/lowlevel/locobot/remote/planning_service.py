@@ -2,6 +2,7 @@ import os
 import math
 import numpy as np
 import Pyro4
+import time
 from slam_pkg.utils.fmm_planner import FMMPlanner
 
 Pyro4.config.SERIALIZER = "pickle"
@@ -102,15 +103,24 @@ class Planner(object):
         return within_threshold
 
 
+def pyro_retry_loop(fn, retry_sleep=0.25):
+    while True:
+        try:
+            return fn()
+        except Pyro4.errors.PyroError:
+            time.sleep(retry_sleep)
+
+
 robot_ip = os.getenv("LOCOBOT_IP")
 ip = os.getenv("LOCAL_IP")
 
 with Pyro4.Daemon(ip) as daemon:
     slam = Pyro4.Proxy("PYRONAME:slam@" + robot_ip)
+    pyro_retry_loop(lambda: slam._pyroBind())
     obj = Planner(slam)
     obj_uri = daemon.register(obj)
-    with Pyro4.locateNS() as ns:
-        ns.register("planner", obj_uri)
+
+    pyro_retry_loop(lambda: Pyro4.locateNS().register("planner", obj_uri))
 
     print("Planner Server is started...")
     daemon.requestLoop()

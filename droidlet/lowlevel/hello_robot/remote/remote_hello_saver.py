@@ -122,6 +122,14 @@ class LabelPropSaver:
                 json.dump(pose_dict, fp)
 
 
+def pyro_retry_loop(fn, retry_sleep=0.25):
+    while True:
+        try:
+            return fn()
+        except Pyro4.errors.PyroError:
+            time.sleep(retry_sleep)
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -140,10 +148,11 @@ if __name__ == "__main__":
     with Pyro4.Daemon(args.ip) as daemon:
         bot = Pyro4.Proxy("PYRONAME:hello_robot@" + args.ip)
         cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + args.ip)
+        pyro_retry_loop(lambda: bot._pyroBind() and cam._pyroBind())
         data_logger = LabelPropSaver("hello_data_log_" + str(time.time()), bot, cam)
         data_logger_uri = daemon.register(data_logger)
-        with Pyro4.locateNS() as ns:
-            ns.register("hello_data_logger", data_logger_uri)
+
+        pyro_retry_loop(lambda: Pyro4.locateNS().register("hello_data_logger", data_logger_uri))
 
         print("Server is started...")
         daemon.requestLoop()

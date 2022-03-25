@@ -116,6 +116,14 @@ class SLAM(object):
         self.map_builder.reset_map(self.map_size)
 
 
+def pyro_retry_loop(fn, retry_sleep=0.25):
+    while True:
+        try:
+            return fn()
+        except Pyro4.errors.PyroError:
+            time.sleep(retry_sleep)
+
+
 robot_ip = os.getenv("LOCOBOT_IP")
 ip = os.getenv("LOCAL_IP")
 robot_name = "remotelocobot"
@@ -123,30 +131,16 @@ if len(sys.argv) > 1:
     robot_name = sys.argv[1]
 with Pyro4.Daemon(ip) as daemon:
     robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
+    pyro_retry_loop(lambda: robot._pyroBind())
     obj = SLAM(robot)
     obj_uri = daemon.register(obj)
-    with Pyro4.locateNS(robot_ip) as ns:
-        ns.register("slam", obj_uri)
+
+    pyro_retry_loop(lambda: Pyro4.locateNS(robot_ip).register("slam", obj_uri))
 
     print("SLAM Server is started...")
 
     def refresh():
         obj.update_map()
-        # print("In refresh: ", time.asctime())
         return True
 
     daemon.requestLoop(refresh)
-
-    # visit this later
-    # try:
-    #     while True:
-    #         print(time.asctime(), "Waiting for requests...")
-
-    #         sockets = daemon.sockets
-    #         ready_socks = select.select(sockets, [], [], 0)
-    #         events = []
-    #         for s in ready_socks:
-    #             events.append(s)
-    #         daemon.events(events)
-    # except KeyboardInterrupt:
-    #     pass

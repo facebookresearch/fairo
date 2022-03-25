@@ -225,6 +225,14 @@ class RemoteHelloRobot(object):
             robot.push_command()
 
 
+def pyro_retry_loop(fn, retry_sleep=0.25):
+    while True:
+        try:
+            return fn()
+        except Pyro4.errors.PyroError:
+            time.sleep(retry_sleep)
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -243,8 +251,8 @@ if __name__ == "__main__":
     with Pyro4.Daemon(args.ip) as daemon:
         robot = RemoteHelloRobot(ip=args.ip)
         robot_uri = daemon.register(robot)
-        with Pyro4.locateNS() as ns:
-            ns.register("hello_robot", robot_uri)
+
+        pyro_retry_loop(lambda: Pyro4.locateNS().register("hello_robot", robot_uri))
 
         print("Server is started...")
         daemon.requestLoop()

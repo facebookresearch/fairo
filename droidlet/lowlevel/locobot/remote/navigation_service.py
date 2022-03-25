@@ -142,6 +142,14 @@ class Navigation(object):
         self._done_exploring = False
 
 
+def pyro_retry_loop(fn, retry_sleep=0.25):
+    while True:
+        try:
+            return fn()
+        except Pyro4.errors.PyroError:
+            time.sleep(retry_sleep)
+
+
 robot_ip = os.getenv("LOCOBOT_IP")
 ip = os.getenv("LOCAL_IP")
 
@@ -153,11 +161,12 @@ with Pyro4.Daemon(ip) as daemon:
     robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
     planner = Pyro4.Proxy("PYRONAME:planner@" + robot_ip)
     slam = Pyro4.Proxy("PYRONAME:slam@" + robot_ip)
+    pyro_retry_loop(lambda: robot._pyroBind() and planner._pyroBind() and slam._pyroBind())
 
     obj = Navigation(planner, slam, robot)
     obj_uri = daemon.register(obj)
-    with Pyro4.locateNS() as ns:
-        ns.register("navigation", obj_uri)
+
+    pyro_retry_loop(lambda: Pyro4.locateNS().register("navigation", obj_uri))
 
     print("Navigation Server is started...")
     daemon.requestLoop()

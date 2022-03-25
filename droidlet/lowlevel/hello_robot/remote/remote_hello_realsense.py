@@ -208,6 +208,14 @@ class RemoteHelloRealsense(object):
         return rgb, depth, base2cam_rot, base2cam_trans
 
 
+def pyro_retry_loop(fn, retry_sleep=0.25):
+    while True:
+        try:
+            return fn()
+        except Pyro4.errors.PyroError:
+            time.sleep(retry_sleep)
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -225,27 +233,11 @@ if __name__ == "__main__":
 
     with Pyro4.Daemon(args.ip) as daemon:
         bot = Pyro4.Proxy("PYRONAME:hello_robot@" + args.ip)
+        pyro_retry_loop(lambda: bot._pyroBind())
         robot = RemoteHelloRealsense(bot)
         robot_uri = daemon.register(robot)
-        with Pyro4.locateNS() as ns:
-            ns.register("hello_realsense", robot_uri)
+
+        pyro_retry_loop(lambda: Pyro4.locateNS().register("hello_realsense", robot_uri))
 
         print("Server is started...")
-        # try:
-        #     while True:
-        #         print(time.asctime(), "Waiting for requests...")
-
-        #         sockets = daemon.sockets
-        #         ready_socks = select.select(sockets, [], [], 0)
-        #         events = []
-        #         for s in ready_socks:
-        #             events.append(s)
-        #         daemon.events(events)
-        #         time.sleep(0.0)
-        # except KeyboardInterrupt:
-        #     pass
-        def callback():
-            time.sleep(0.0)
-            return True
-
-        daemon.requestLoop(callback)
+        daemon.requestLoop()
