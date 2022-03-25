@@ -43,10 +43,9 @@ pip_deps = [
     "scikit-image",
     "torch",
     "torchvision",
-
     # develop facebookresearch/fairo
-    "-e " + os.path.abspath(os.path.join(str(pathlib.Path(__file__).parent.resolve()), "../../../..")),
-
+    "-e "
+    + os.path.abspath(os.path.join(str(pathlib.Path(__file__).parent.resolve()), "../../../..")),
     # These are missing from the requirements file.
     "blosc",
 ]
