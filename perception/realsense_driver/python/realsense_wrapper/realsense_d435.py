@@ -53,19 +53,23 @@ class RealsenseAPI:
 
     def get_images(self, depth=False):
         framesets = self._get_frames()
+
+        align_to = rs.stream.color
+        align = rs.align(align_to)
+        aligned_framesets = [align.process(frameset) for frameset in framesets]
+
         imgs = []
         depth_imgs = []
-        for frameset in framesets:
+        for frameset in aligned_framesets:
             frame = frameset.get_color_frame()
             img = np.asanyarray(frame.get_data())
+            imgs.append(img)
 
             if depth:
                 frame = frameset.get_depth_frame()
                 depth_img = np.asanyarray(frame.get_data())
                 depth_imgs.append(depth_img)
-
-            imgs.append(img)
-
+            
         if depth:
             return imgs, depth_imgs
         else:
