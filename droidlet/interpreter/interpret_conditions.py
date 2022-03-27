@@ -79,18 +79,3 @@ class ConditionInterpreter:
             event = self(interpreter, speaker, d["event"])
 
         return TimeCondition(interpreter.memory, comparator, event=event)
-
-
-# FIXME!!!!!
-# this function needs to be torched
-def get_repeat_num(d) -> Union[int, str]:
-    if "repeat" in d:
-        repeat_dict = d["repeat"]
-        if repeat_dict["repeat_key"] == "FOR":
-            try:
-                return word_to_num(repeat_dict["repeat_count"])
-            except:
-                return 2  # TODO: dialogue instead of default?
-        if repeat_dict["repeat_key"] == "ALL":
-            return "ALL"
-    return 1
