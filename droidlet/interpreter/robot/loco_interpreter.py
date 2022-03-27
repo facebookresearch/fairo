@@ -9,7 +9,6 @@ from droidlet.task.task import ControlBlock, maybe_bundle_task_list
 from droidlet.interpreter import (
     AGENTPOS,
     ConditionInterpreter,
-    get_repeat_num,
     Interpreter,
     AttributeInterpreter,
     interpret_dance_filter,
@@ -107,8 +106,6 @@ class LocoInterpreter(Interpreter):
 
     def handle_dance(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         def new_tasks():
-            repeat = get_repeat_num(d)
-            tasks_to_do = []
             # only go around the x has "around"; FIXME allow other kinds of dances
             location_d = d.get("location")
             if location_d is not None:
@@ -172,7 +169,7 @@ class LocoInterpreter(Interpreter):
                     raise ErrorWithResponse("I don't know how to do that movement yet.")
             return t
 
-        return new_tasks()
+        return new_tasks
 
     def handle_drop(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         """
