@@ -360,7 +360,7 @@ class MobNode(ReferenceObjectNode):
             mob.look.yaw,
             mob.look.pitch,
             "mob",
-            "{}_{}".format(mobtype,random.randint(1,20000)),
+            mob.name
             mobtype,
             player_placed,
             agent_placed,
