@@ -8,7 +8,7 @@ from copy import deepcopy
 from typing import cast, List, Tuple, Dict
 
 from .interpreter_utils import SPEAKERLOOK, update_attended_and_link_lf
-from droidlet.dialog.dialogue_task import ConfirmReferenceObject
+# from droidlet.dialog.dialogue_task import ConfirmReferenceObject
 from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
@@ -20,6 +20,7 @@ from droidlet.memory.memory_nodes import (
     TaskNode,
 )
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
+from droidlet.interpreter.reference_object_clarification import clarify_reference_objects
 from .interpret_filters import interpret_selector
 
 
@@ -162,31 +163,14 @@ def interpret_reference_object(
         # No filter by sublocation etc if a mem matches the text_span exactly...
         return mems
 
-    if allow_clarification:
-        import ipdb
+    # How many reference objects are we looking for?
+    # TODO This needs a lot of work to handle plurals, NOT, etc.
+    num_refs = 1 # default
+    if filters_d.get("where_clause"):
+        if filters_d["where_clause"].get("OR"):
+            num_refs = len(filters_d["where_clause"].get("OR"))
 
-        ipdb.set_trace(context=5)
-
-        # no candidates found; ask Clarification
-        clarification_query = "SELECT MEMORY FROM ReferenceObject WHERE x>-1000"
-        _, clarification_ref_obj_mems = interpreter.memory.basic_search(clarification_query)
-        DISALLOWED_REF_OBJS = (LocationNode, SelfNode, PlayerNode)  # TODO also filter out mobs?
-        objects = [x for x in clarification_ref_obj_mems if not isinstance(x, DISALLOWED_REF_OBJS)]
-        mems = filter_by_sublocation(
-            interpreter,
-            speaker,
-            objects,
-            d,
-            loose=loose_speakerlook,
-            all_proximity=all_proximity,
-        )
-        if len(mems) == 0:
-            raise ErrorWithResponse("I don't know what you're referring to")
-        else:
-            # TODO replace with clarification
-            update_attended_and_link_lf(interpreter, mems)
-            return mems
-
+    # Add any extra_tags to search
     if any(extra_tags):
         extra_clauses = []
         for tag in extra_tags:
@@ -202,8 +186,14 @@ def interpret_reference_object(
     # instead of letting filter interpreters handle.
     filters_no_select = deepcopy(filters_d)
     filters_no_select.pop("selector", None)
-    #        filters_no_select.pop("location", None)
     candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
+
+    # Compare num matches to expected and clarify
+    if (len(candidate_mems) != num_refs) and allow_clarification:
+        mems = clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
+        if len(mems > 0):
+            update_attended_and_link_lf(interpreter, mems)
+            return mems
 
     if len(candidate_mems) > 0:
         mems = filter_by_sublocation(
@@ -216,6 +206,7 @@ def interpret_reference_object(
         )
         update_attended_and_link_lf(interpreter, mems)
         return mems
+
     else:
         raise ErrorWithResponse("I don't know what you're referring to")
 
