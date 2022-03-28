@@ -351,7 +351,7 @@ class MobNode(ReferenceObjectNode):
         memid = cls.new(memory)
         mobtype = MOBS_BY_ID[mob.mobType]
 
-        if hasattr(mob, 'name')
+        if hasattr(mob, 'name'):
             name = mob.name
         else:
             name = random.choice(["patrick","john","trey","richard","bob","alice",
