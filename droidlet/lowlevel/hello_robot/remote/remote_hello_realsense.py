@@ -195,8 +195,8 @@ class RemoteHelloRealsense(object):
     def get_pcd_data(self, rotate=True):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
         rgb, depth = self.get_rgb_depth(rotate=rotate, compressed=True)
-        # cap anything more than np.power(2,9)~ 64 meter
-        depth[depth > np.power(2, 9) - 1] = np.power(2, 9) - 1
+        # cap anything more than np.power(2,16)~ 64 meter
+        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
         T = self.get_camera_transform()
         rot = T[:3, :3]
         trans = T[:3, 3]
