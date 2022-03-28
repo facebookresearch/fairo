@@ -67,7 +67,9 @@ def compute_checksum_for_directory(agent=None, artifact_type=None, model_name=No
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Pass in agent name to compute artifacts checksum.")
+    parser = argparse.ArgumentParser(
+        description="Pass in agent name to compute artifacts checksum."
+    )
     parser.add_argument(
         "--agent_name",
         help="Name of the agent",
