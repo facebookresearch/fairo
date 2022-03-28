@@ -21,7 +21,7 @@ def test_conda_build():
         name="proc",
         runtime=mrp.Conda(
             dependencies=["python=3.7.11"],
-            run_command=["python3", "--version"],
+            run_command=["python", "--version"],
         ),
     )
 
@@ -39,7 +39,7 @@ def test_conda_build():
         name="proc",
         runtime=mrp.Conda(
             dependencies=["python=3.8.8"],
-            run_command=["python3", "--version"],
+            run_command=["python", "--version"],
         ),
     )
 
