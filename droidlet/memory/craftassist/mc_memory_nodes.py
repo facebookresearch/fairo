@@ -15,6 +15,8 @@ from droidlet.memory.memory_nodes import (
     MemoryNode,
     NODELIST,
 )
+from torch import randint
+import random
 
 
 class VoxelObjectNode(ReferenceObjectNode):
@@ -349,7 +351,7 @@ class MobNode(ReferenceObjectNode):
         memid = cls.new(memory)
         mobtype = MOBS_BY_ID[mob.mobType]
         memory.db_write(
-            "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, yaw, pitch, ref_type, type_name, player_placed, agent_placed, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, yaw, pitch, ref_type, name, type_name, player_placed, agent_placed, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             memid,
             mob.entityId,
             mob.pos.x,
@@ -358,6 +360,7 @@ class MobNode(ReferenceObjectNode):
             mob.look.yaw,
             mob.look.pitch,
             "mob",
+            "{}_{}".format(mobtype,random.randint(1,20000)),
             mobtype,
             player_placed,
             agent_placed,
