@@ -350,6 +350,13 @@ class MobNode(ReferenceObjectNode):
         # TODO warn/error if mob already in memory?
         memid = cls.new(memory)
         mobtype = MOBS_BY_ID[mob.mobType]
+
+        if hasattr(mob, 'name')
+            name = mob.name
+        else:
+            name = random.choice(["Patrick","John","Trey","Richard","Bob","Alice",
+                                  "Mary","Eve","Charlotte","Greg","Sophie","Pete",
+                                  "Mike","Kate","Zora","Yasmin","Will","Dan"])
         memory.db_write(
             "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, yaw, pitch, ref_type, name, type_name, player_placed, agent_placed, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             memid,
@@ -360,7 +367,7 @@ class MobNode(ReferenceObjectNode):
             mob.look.yaw,
             mob.look.pitch,
             "mob",
-            mob.name,
+            name,
             mobtype,
             player_placed,
             agent_placed,
