@@ -329,12 +329,12 @@ def process_repeat(valid_dict, act_dict):
     if 'repeat' in act_dict:
         if 'repeat_key' in act_dict["repeat"]:
             if act_dict["repeat"]["repeat_key"] == "FOR":
-                valid_dict["remove_condition"] = {'condition': {'comparison_type': 'EQUAL',
+                valid_dict["terminate_condition"] = {'condition': {'comparison_type': 'EQUAL',
                                                                 'input_left': {
                                                                     'filters': {'output': {'attribute': 'RUN_COUNT'},
                                                                                 'special': {'fixed_value': 'THIS'}}},
                                                                 'input_right': {
-                                                                    'value': act_dict["repeat"]["repeat_count"]}},
+                                                                    'fixed_value': act_dict["repeat"]["repeat_count"]}},
                                                   'condition_type': 'COMPARATOR'}
             elif act_dict["repeat"]["repeat_key"] == "ALL":
                 if "reference_object" not in act_dict:
@@ -345,7 +345,7 @@ def process_repeat(valid_dict, act_dict):
                     act_dict["reference_object"]["filters"]["selector"] = {}
                 act_dict["reference_object"]["filters"]["selector"]["return_quantity"] = "ALL"
         elif 'stop_condition' in act_dict['repeat']:
-            act_dict["remove_condition"] = act_dict['repeat']["stop_condition"]
+            act_dict["terminate_condition"] = act_dict['repeat']["stop_condition"]
         act_dict.pop("repeat", None)
 
     return valid_dict, act_dict
@@ -390,7 +390,7 @@ def update_action_dictionaries(all_combined_path):
                             }
                 act_dict = fix_spans(clean_dict)
                 valid_dict, act_dict = process_repeat(valid_dict, act_dict)
-                valid_dict["action_sequence"] = [act_dict]
+                valid_dict["event_sequence"] = [act_dict]
 
                 f.write(cmd + "\t" + json.dumps(valid_dict) + "\n")
                 continue
@@ -480,10 +480,10 @@ def update_action_dictionaries(all_combined_path):
             # if 'repeat' in act_dict:
             #     if 'repeat_key' in act_dict["repeat"]:
             #         if act_dict["repeat"]["repeat_key"] == "FOR":
-            #             valid_dict["remove_condition"] = {'condition': {'comparison_type': 'EQUAL',
+            #             valid_dict["terminate_condition"] = {'condition': {'comparison_type': 'EQUAL',
             #                                            'input_left': {'filters': {'output': {'attribute': 'RUN_COUNT'},
             #                                                                       'special': {'fixed_value': 'THIS'}}},
-            #                                            'input_right': {'value': act_dict["repeat"]["repeat_count"]}},
+            #                                            'input_right': {'fixed_value': act_dict["repeat"]["repeat_count"]}},
             #                                             'condition_type': 'COMPARATOR'}
             #         elif act_dict["repeat"]["repeat_key"] == "ALL":
             #             if "reference_object" not in act_dict:
@@ -494,12 +494,22 @@ def update_action_dictionaries(all_combined_path):
             #                 act_dict["reference_object"]["filters"]["selector"] = {}
             #             act_dict["reference_object"]["filters"]["selector"]["return_quantity"] = "ALL"
             #     elif 'stop_condition' in act_dict['repeat']:
-            #         act_dict["remove_condition"] = act_dict['repeat']["stop_condition"]
+            #         act_dict["terminate_condition"] = act_dict['repeat']["stop_condition"]
             #     act_dict.pop("repeat", None)
             valid_dict, act_dict = process_repeat(valid_dict, act_dict)
-            valid_dict["action_sequence"] = [act_dict]
+            valid_dict["event_sequence"] = [act_dict]
 
             f.write(cmd + "\t" + json.dumps(valid_dict) + "\n")
+
+
+def find_terminate_condition(ad):
+    for key, val in ad.items():
+        if key == "terminate_condition":
+            return True
+        elif type(val) == dict:
+            if find_terminate_condition(val):
+                return True
+    return False
 
 
 def postprocess_step(combined_path, post_processed_path):
@@ -508,7 +518,7 @@ def postprocess_step(combined_path, post_processed_path):
             line = line.strip()
             text, d = line.split("\t")
             d = json.loads(d)
-            action_dict = d['action_sequence'][0]
+            action_dict = d['event_sequence'][0]
             action_type = action_dict['action_type']
             if action_type == 'TAG':
                 updated_dict = fix_put_mem(action_dict)
@@ -521,7 +531,7 @@ def postprocess_step(combined_path, post_processed_path):
             else:
                 if action_type == 'COPY':
                     action_dict['action_type'] = 'BUILD'
-                d['action_sequence'] = [action_dict]
+                d['event_sequence'] = [action_dict]
                 if "dialogue_target" in action_dict:
                     if action_dict["dialogue_target"] == "f1":
                         if "selector" in action_dict["filters"]:
@@ -550,6 +560,17 @@ def postprocess_step(combined_path, post_processed_path):
                     #     }
                     del action_dict["dialogue_target"]
                 new_d = d
+            flag = False
+            if new_d['dialogue_type'] == 'HUMAN_GIVE_COMMAND':
+                actions = action_dict['event_sequence']
+                # go over actions in a sequence
+                for action in actions:
+                    if find_terminate_condition(action):
+                        flag = True
+            if flag and len(actions) == 1 :
+                new_d['terminate_condition'] = actions[0]["terminate_condition"]
+                new_d['event_sequence'][0].pop("terminate_condition")
+            # This needs to be tested.....
             print(text)
             pprint(new_d)
             print("*" * 40)
