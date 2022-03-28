@@ -120,7 +120,6 @@ class Launcher(BaseLauncher):
             util.shell_join(self.run_command),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
-            executable="/bin/bash",
             cwd=self.proc_def.root,
             env=conda_envvar,
             start_new_session=True,
