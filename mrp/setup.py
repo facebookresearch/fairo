@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name="mrp",
-    version="0.1.5",
+    version="0.1.6",
     author="Leonid Shamis",
     package_dir={"": "src"},
     packages=find_packages(

@@ -445,6 +445,8 @@ class Conda(BaseRuntime):
                 raise RuntimeError(f"Failed to set up conda env: {result.stderr}")
 
     def _launcher(self, name: str, proc_def: ProcDef):
+        if self._env.name == "__defer__":
+            self._env.name = name
         return Launcher(self.run_command, name, self._env._env_name(), proc_def)
 
 
