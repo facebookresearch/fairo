@@ -8,6 +8,7 @@ from copy import deepcopy
 from typing import cast, List, Tuple, Dict
 
 from .interpreter_utils import SPEAKERLOOK, update_attended_and_link_lf
+
 # from droidlet.dialog.dialogue_task import ConfirmReferenceObject
 from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
@@ -165,7 +166,7 @@ def interpret_reference_object(
 
     # How many reference objects are we looking for?
     # TODO This needs a lot of work to handle plurals, NOT, etc.
-    num_refs = 1 # default
+    num_refs = 1  # default
     if filters_d.get("where_clause"):
         if filters_d["where_clause"].get("OR"):
             num_refs = len(filters_d["where_clause"].get("OR"))

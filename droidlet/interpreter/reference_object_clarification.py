@@ -12,6 +12,7 @@ from droidlet.shared_data_structs import ErrorWithResponse
 
 DISALLOWED_REF_OBJS = (LocationNode, SelfNode, PlayerNode)
 
+
 def clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs):
     ipdb.set_trace(context=5)
 
@@ -26,6 +27,7 @@ def clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
         clarification_class = "REF_TOO_FEW"
     else:
         clarification_class = "REF_TOO_MANY"
+
 
 def cc1_to_dlf(interpreter, speaker, d, clarification_class):
     # No reference objects found, expand search and ask for clarification
@@ -44,10 +46,13 @@ def cc1_to_dlf(interpreter, speaker, d, clarification_class):
         # Build the matchind dialog DLF
         action = retrieve_action_dict(interpreter, d)
         if not action:
-            logging.error("Unable to retrieve a matching action dictionary from top level logical form.")
+            logging.error(
+                "Unable to retrieve a matching action dictionary from top level logical form."
+            )
             raise ErrorWithResponse("I don't know what you're referring to")
-        
+
         return build_dlf(clarification_class, mems, action)
+
 
 def retrieve_action_dict(interpreter, d):
     action = False
@@ -57,13 +62,14 @@ def retrieve_action_dict(interpreter, d):
             action = pa
     return action
 
+
 def build_dlf(cc, candidates, action):
     dlf = {
-        "dialogue_type": 'CLARIFICATION',
+        "dialogue_type": "CLARIFICATION",
         "action": action,
         "class": {
             "error_type": cc,
             "candidates": candidates,
-        }
+        },
     }
     return dlf
