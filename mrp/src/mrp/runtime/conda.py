@@ -4,6 +4,7 @@ from mrp.process_def import ProcDef
 from mrp.runtime.base import BaseLauncher, BaseRuntime
 import asyncio
 import dataclasses
+import filecmp
 import json
 import os
 import pathlib
@@ -215,6 +216,7 @@ class Conda(BaseRuntime):
             channels=[],
             dependencies=[],
             use_mamba=None,
+            setup_commands=[],
         ):
             if use_named_env and any([copy_named_env, yaml, channels, dependencies]):
                 raise ValueError(
@@ -229,6 +231,7 @@ class Conda(BaseRuntime):
             self.use_mamba = (
                 use_mamba if use_mamba is not None else bool(shutil.which("mamba"))
             )
+            self.setup_commands = setup_commands
             self._built = False
 
             if use_named_env:
@@ -278,64 +281,72 @@ class Conda(BaseRuntime):
             """The target environment name."""
             return self.use_named_env or f"mrp_{self.name}"
 
-        def _cache_valid(self, yaml_path, env_content):
-            """Check if the cache is valid.
+        def _config_path(self):
+            dirpath = os.path.expanduser(f"~/.config/mrp/conda/{self._env_name()}/")
+            os.makedirs(dirpath, exist_ok=True)
+            return dirpath
 
-            To be valid, the cache must:
-            - have the named yaml file.
-            - have the same channels and dependencies as generated in the last up command.
-            - have a single command in the conda env history.
-            - the command must match the creation command.
-            """
+        def _yaml_path(self):
+            return os.path.join(self._config_path(), "conda_env.yaml")
+
+        def _setup_commands_snapshot_path(self):
+            return os.path.join(self._config_path(), "setup_commands.snapshot")
+
+        def _conda_history_snapshot_path(self):
+            return os.path.join(self._config_path(), "history.snapshot")
+
+        def _conda_history_path(self):
+            info = json.loads(
+                subprocess.check_output(
+                    ["conda", "env", "export", "--json", "-n", self._env_name()]
+                )
+            )
+
+            return os.path.join(info["prefix"], "conda-meta/history")
+
+        def _cache_valid(self, env_content):
             try:
-                if not os.path.exists(yaml_path):
-                    return False
-
-                old_content = json.load(open(yaml_path))
-
+                # Check if the env description has changed.
+                old_content = json.load(open(self._yaml_path()))
                 old_content_compare_key = json.dumps(old_content, sort_keys=True)
                 new_content_compare_key = json.dumps(env_content, sort_keys=True)
                 if old_content_compare_key != new_content_compare_key:
+                    print("detected change in environment definition.")
                     return False
 
-                info = json.loads(
-                    subprocess.check_output(
-                        ["conda", "env", "export", "--json", "-n", self._env_name()]
-                    )
-                )
-
-                history_file = os.path.join(info["prefix"], "conda-meta/history")
-                if not os.path.exists(history_file):
+                # Check if the setup commands have changed.
+                if self.setup_commands != json.load(
+                    open(self._setup_commands_snapshot_path())
+                ):
+                    print("detected change in setup commands.")
                     return False
 
-                history = open(history_file).readlines()
-                cmds = [line.strip() for line in history if line.startswith("# cmd: ")]
-                if len(cmds) != 1:
-                    return False
-
-                if not cmds[0].endswith(f"update --prune -f {yaml_path}"):
+                # Check if unmanaged commands have been executed.
+                if not filecmp.cmp(
+                    self._conda_history_path(), self._conda_history_snapshot_path()
+                ):
+                    print("detected change in conda environment.")
                     return False
 
                 return True
-
             except Exception:
                 return False
 
         def _create_env(self, root: pathlib.Path, cache: bool, verbose: bool):
             """Create the conda environment."""
-            yaml_path = os.path.expanduser(f"~/.config/mrp/conda/{self.name}.yaml")
-            os.makedirs(os.path.dirname(yaml_path), exist_ok=True)
-
+            yaml_path = self._yaml_path()
             env_content = self._generate_env_content(root)
             env_content["name"] = self._env_name()
 
-            if cache and self._cache_valid(yaml_path, env_content):
+            if cache and self._cache_valid(env_content):
                 return
 
             with open(yaml_path, "w") as env_fp:
                 json.dump(env_content, env_fp, indent=2)
 
-            print(f"creating conda env for {self.name}. This will take a minute...")
+            print(
+                f"creating conda env for {self._env_name()}. This will take a minute..."
+            )
 
             update_bin = "mamba" if self.use_mamba else "conda"
             # https://github.com/conda/conda/issues/7279
@@ -350,6 +361,33 @@ class Conda(BaseRuntime):
             )
             if result.returncode:
                 raise RuntimeError(f"Failed to set up conda env: {result.stderr}")
+
+            print(f"running setup commands for {self._env_name()}")
+
+            setup_command = "\n".join(
+                [util.shell_join(cmd) for cmd in self.setup_commands]
+            )
+            result = subprocess.run(
+                f"""
+                    eval "$(conda shell.bash hook)"
+                    conda activate {self._env_name()}
+                    cd {root}
+                    {setup_command}
+                """,
+                shell=True,
+                executable="/bin/bash",
+                capture_output=not verbose,
+            )
+            if result.returncode:
+                raise RuntimeError(f"Failed to set up conda env: {result.stderr}")
+
+            # Snapshot successful build info.
+            shutil.copy2(
+                self._conda_history_path(), self._conda_history_snapshot_path()
+            )
+            json.dump(
+                self.setup_commands, open(self._setup_commands_snapshot_path(), "w")
+            )
 
         def _build(self, root: pathlib.Path, cache: bool, verbose: bool):
             if self._built:
@@ -401,10 +439,10 @@ class Conda(BaseRuntime):
                 channels,
                 dependencies,
                 use_mamba,
+                setup_commands,
             )
 
         self.run_command = run_command
-        self.setup_commands = setup_commands
 
     def asdict(self, root: pathlib.Path):
         ret = {}
@@ -414,8 +452,6 @@ class Conda(BaseRuntime):
             ret["env"] = self._env._generate_env_content(root)
         if self.run_command:
             ret["run_command"] = self.run_command
-        if self.setup_commands:
-            ret["setup_commands"] = self.setup_commands
         return ret
 
     def _build(self, name: str, proc_def: ProcDef, cache: bool, verbose: bool):
@@ -423,25 +459,6 @@ class Conda(BaseRuntime):
         if self._is_personal_env:
             self._env.name = name
         self._env._build(proc_def.root, cache, verbose)
-
-        if self.setup_commands:
-            print(f"setting up conda env for {name}")
-            setup_command = "\n".join(
-                [util.shell_join(cmd) for cmd in self.setup_commands]
-            )
-            result = subprocess.run(
-                f"""
-                    eval "$(conda shell.bash hook)"
-                    conda activate {self._env._env_name()}
-                    cd {proc_def.root}
-                    {setup_command}
-                """,
-                shell=True,
-                executable="/bin/bash",
-                capture_output=not verbose,
-            )
-            if result.returncode:
-                raise RuntimeError(f"Failed to set up conda env: {result.stderr}")
 
     def _launcher(self, name: str, proc_def: ProcDef):
         if self._env.name == "__defer__":
