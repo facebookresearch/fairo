@@ -128,15 +128,15 @@ methods</p></li>
 </dd>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>~AgentMemory._db_log_file</strong> (<em>FileHandler</em>) – File handler for writing database logs</p></li>
-<li><p><strong>~AgentMemory._db_log_idx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Database log index</p></li>
-<li><p><strong>~AgentMemory.db</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><em>object</em></a>) – connection object to the database file</p></li>
-<li><p><strong>~AgentMemory._safe_pickle_saved_attrs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – Dictionary for pickled attributes</p></li>
-<li><p><strong>~AgentMemory.all_tables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a>) – List of all table names</p></li>
-<li><p><strong>~AgentMemory.nodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – Mapping of node name to table name</p></li>
-<li><p><strong>~AgentMemory.self_memid</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – MemoryID for the AgentMemory</p></li>
-<li><p><strong>~AgentMemory.searcher</strong> (<em>MemorySearcher</em>) – A class to process searches through memory</p></li>
-<li><p><strong>~AgentMemory.time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The time of the agent</p></li>
+<li><p><strong>_db_log_file</strong> (<em>FileHandler</em>) – File handler for writing database logs</p></li>
+<li><p><strong>_db_log_idx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Database log index</p></li>
+<li><p><strong>db</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><em>object</em></a>) – connection object to the database file</p></li>
+<li><p><strong>_safe_pickle_saved_attrs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – Dictionary for pickled attributes</p></li>
+<li><p><strong>all_tables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a>) – List of all table names</p></li>
+<li><p><strong>nodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – Mapping of node name to table name</p></li>
+<li><p><strong>self_memid</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – MemoryID for the AgentMemory</p></li>
+<li><p><strong>searcher</strong> (<em>MemorySearcher</em>) – A class to process searches through memory</p></li>
+<li><p><strong>time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The time of the agent</p></li>
 </ul>
 </dd>
 </dl>
@@ -699,7 +699,7 @@ the semantic parser)</p>
 </ul>
 </dd>
 <dt class="field-even">Variables</dt>
-<dd class="field-even"><p><strong>~ProgramNode.logical_form</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – The semantic parser output for text</p>
+<dd class="field-even"><p><strong>logical_form</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – The semantic parser output for text</p>
 </dd>
 </dl>
 <dl>
@@ -730,7 +730,7 @@ to be used in triples</p>
 </ul>
 </dd>
 <dt class="field-even">Variables</dt>
-<dd class="field-even"><p><strong>~NamedAbstractionNode.name</strong> (<em>string</em>) – Name of the abstraction, for example : “has_tag”</p>
+<dd class="field-even"><p><strong>name</strong> (<em>string</em>) – Name of the abstraction, for example : “has_tag”</p>
 </dd>
 </dl>
 <dl>
@@ -790,11 +790,11 @@ the world</p>
 </dd>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>~PlayerNode.eid</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Entity ID</p></li>
-<li><p><strong>~PlayerNode.name</strong> (<em>string</em>) – Name of player</p></li>
-<li><p><strong>~PlayerNode.pos</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>)</em>) – x, y, z coordinates</p></li>
-<li><p><strong>~PlayerNode.pitch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the vertical angle of the agent’s view vector</p></li>
-<li><p><strong>~PlayerNode.yaw</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the horizontal rotation angle of the agent’s view vector</p></li>
+<li><p><strong>eid</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Entity ID</p></li>
+<li><p><strong>name</strong> (<em>string</em>) – Name of player</p></li>
+<li><p><strong>pos</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>)</em>) – x, y, z coordinates</p></li>
+<li><p><strong>pitch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the vertical angle of the agent’s view vector</p></li>
+<li><p><strong>yaw</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the horizontal rotation angle of the agent’s view vector</p></li>
 </ul>
 </dd>
 </dl>
@@ -855,8 +855,8 @@ agent’s self</p>
 </dd>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>~LocationNode.location</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a>) – (x, y, z) coordinates of the node</p></li>
-<li><p><strong>~LocationNode.pos</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a>) – (x, y, z) coordinates of the node</p></li>
+<li><p><strong>location</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a>) – (x, y, z) coordinates of the node</p></li>
+<li><p><strong>pos</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a>) – (x, y, z) coordinates of the node</p></li>
 </ul>
 </dd>
 </dl>
@@ -887,7 +887,7 @@ agent’s self</p>
 </ul>
 </dd>
 <dt class="field-even">Variables</dt>
-<dd class="field-even"><p><strong>~AttentionNode.attended</strong> (<em>string</em>) – name of the node that is attending</p>
+<dd class="field-even"><p><strong>attended</strong> (<em>string</em>) – name of the node that is attending</p>
 </dd>
 </dl>
 <dl>
@@ -917,7 +917,7 @@ agent’s self</p>
 </ul>
 </dd>
 <dt class="field-even">Variables</dt>
-<dd class="field-even"><p><strong>~TimeNode.time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – the value of time</p>
+<dd class="field-even"><p><strong>time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – the value of time</p>
 </dd>
 </dl>
 <dl>
@@ -948,9 +948,9 @@ agent’s self</p>
 </dd>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>~ChatNode.speaker_id</strong> (<em>string</em>) – The memid of the speaker who sent the chat</p></li>
-<li><p><strong>~ChatNode.chat_text</strong> (<em>string</em>) – The chat string</p></li>
-<li><p><strong>~ChatNode.time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The time at which the chat was delivered</p></li>
+<li><p><strong>speaker_id</strong> (<em>string</em>) – The memid of the speaker who sent the chat</p></li>
+<li><p><strong>chat_text</strong> (<em>string</em>) – The chat string</p></li>
+<li><p><strong>time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The time at which the chat was delivered</p></li>
 </ul>
 </dd>
 </dl>
@@ -983,10 +983,10 @@ the agent’s task_stack</p>
 </dd>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>~TaskNode.task</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><em>object</em></a>) – Name of the task</p></li>
-<li><p><strong>~TaskNode.created</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Time at which it was created</p></li>
-<li><p><strong>~TaskNode.finished</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Time at which it was finished</p></li>
-<li><p><strong>~TaskNode.action_name</strong> (<em>string</em>) – The name of action that corresponds to this task</p></li>
+<li><p><strong>task</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><em>object</em></a>) – Name of the task</p></li>
+<li><p><strong>created</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Time at which it was created</p></li>
+<li><p><strong>finished</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Time at which it was finished</p></li>
+<li><p><strong>action_name</strong> (<em>string</em>) – The name of action that corresponds to this task</p></li>
 </ul>
 </dd>
 </dl>
