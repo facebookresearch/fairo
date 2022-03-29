@@ -6,12 +6,8 @@ import shutil
 import subprocess
 
 
-def clear_process_list():
-    mrp.process_def.defined_processes.clear()
-
-
 def reset_state(*procs):
-    clear_process_list()
+    mrp.process_def.defined_processes.clear()
     for proc in procs:
         shutil.rmtree(
             os.path.expanduser(f"~/.config/mrp/conda/mrp_{proc}"), ignore_errors=True
@@ -31,13 +27,12 @@ def read_logs(topic):
 def test_conda_nobuild():
     reset_state("proc")
 
+    proc_def = mrp.process(name="proc")
+
     # Define process to run Python 3.7.11
-    mrp.process(
-        name="proc",
-        runtime=mrp.Conda(
-            dependencies=["python=3.7.11"],
-            run_command=["python", "--version"],
-        ),
+    proc_def.runtime = mrp.Conda(
+        dependencies=["python=3.7.11"],
+        run_command=["python", "--version"],
     )
 
     # Run the proc and wait for it to complete.
@@ -47,13 +42,9 @@ def test_conda_nobuild():
     assert read_logs("proc") == ["Python 3.7.11\n"]
 
     # Define process to run Python 3.8.8
-    clear_process_list()
-    mrp.process(
-        name="proc",
-        runtime=mrp.Conda(
-            dependencies=["python=3.8.8"],
-            run_command=["python", "--version"],
-        ),
+    proc_def.runtime = mrp.Conda(
+        dependencies=["python=3.8.8"],
+        run_command=["python", "--version"],
     )
 
     # Run the proc without building.
@@ -63,13 +54,9 @@ def test_conda_nobuild():
     assert read_logs("proc") == ["Python 3.7.11\n"]
 
     # Run the proc with building.
-    clear_process_list()
-    mrp.process(
-        name="proc",
-        runtime=mrp.Conda(
-            dependencies=["python=3.8.8"],
-            run_command=["python", "--version"],
-        ),
+    proc_def.runtime = mrp.Conda(
+        dependencies=["python=3.8.8"],
+        run_command=["python", "--version"],
     )
 
     mrp.cmd.up("proc", reset_logs=True)
@@ -81,21 +68,20 @@ def test_conda_nobuild():
 def test_conda_build_cache():
     reset_state("proc")
 
+    proc_def = mrp.process(name="proc")
+
     test_counter_path = "/tmp/test_counter"
     test_counter_increment_command = [
         "bash",
         "-c",
-        'bc <<< "1 + $(</tmp/test_counter)" > /tmp/test_counter',
+        "echo $(( $(cat /tmp/test_counter) + 1 )) > /tmp/test_counter",
     ]
     open(test_counter_path, "w").write("0")
 
-    mrp.process(
-        name="proc",
-        runtime=mrp.Conda(
-            dependencies=["python=3.7.11"],
-            setup_commands=[test_counter_increment_command],
-            run_command=[],
-        ),
+    proc_def.runtime = mrp.Conda(
+        dependencies=["python=3.7.11"],
+        setup_commands=[test_counter_increment_command],
+        run_command=[],
     )
 
     # Run the proc and wait for it to complete.
@@ -113,14 +99,10 @@ def test_conda_build_cache():
     assert open(test_counter_path).read() == "1\n"
 
     # Defining the same process shouldn't change anything.
-    clear_process_list()
-    mrp.process(
-        name="proc",
-        runtime=mrp.Conda(
-            dependencies=["python=3.7.11"],
-            setup_commands=[test_counter_increment_command],
-            run_command=[],
-        ),
+    proc_def.runtime = mrp.Conda(
+        dependencies=["python=3.7.11"],
+        setup_commands=[test_counter_increment_command],
+        run_command=[],
     )
     mrp.cmd.up("proc", reset_logs=True)
     mrp.cmd.wait("proc")
@@ -129,14 +111,10 @@ def test_conda_build_cache():
     assert open(test_counter_path).read() == "1\n"
 
     # Changing the dependencies should cause a rebuild.
-    clear_process_list()
-    mrp.process(
-        name="proc",
-        runtime=mrp.Conda(
-            dependencies=["python=3.8.8"],
-            setup_commands=[test_counter_increment_command],
-            run_command=[],
-        ),
+    proc_def.runtime = mrp.Conda(
+        dependencies=["python=3.8.8"],
+        setup_commands=[test_counter_increment_command],
+        run_command=[],
     )
     mrp.cmd.up("proc", reset_logs=True)
     mrp.cmd.wait("proc")
@@ -144,16 +122,11 @@ def test_conda_build_cache():
     # The setup should have run and the counter should be incremented.
     assert open(test_counter_path).read() == "2\n"
 
-    clear_process_list()
-
     # Changing the setup command should cause a rebuild.
-    mrp.process(
-        name="proc",
-        runtime=mrp.Conda(
-            dependencies=["python=3.8.8"],
-            setup_commands=[["echo", "0"], test_counter_increment_command],
-            run_command=[],
-        ),
+    proc_def.runtime = mrp.Conda(
+        dependencies=["python=3.8.8"],
+        setup_commands=[["echo", "0"], test_counter_increment_command],
+        run_command=[],
     )
     mrp.cmd.up("proc", reset_logs=True)
     mrp.cmd.wait("proc")
@@ -162,14 +135,10 @@ def test_conda_build_cache():
     assert open(test_counter_path).read() == "3\n"
 
     # Remake with identical setup.
-    clear_process_list()
-    mrp.process(
-        name="proc",
-        runtime=mrp.Conda(
-            dependencies=["python=3.8.8"],
-            setup_commands=[["echo", "0"], test_counter_increment_command],
-            run_command=[],
-        ),
+    proc_def.runtime = mrp.Conda(
+        dependencies=["python=3.8.8"],
+        setup_commands=[["echo", "0"], test_counter_increment_command],
+        run_command=[],
     )
     mrp.cmd.up("proc", reset_logs=True)
     mrp.cmd.wait("proc")
@@ -181,14 +150,10 @@ def test_conda_build_cache():
     subprocess.run(["conda", "install", "-n", "mrp_proc", "-y", "pycparser"])
 
     # Catch that the conda env has been updated.
-    clear_process_list()
-    mrp.process(
-        name="proc",
-        runtime=mrp.Conda(
-            dependencies=["python=3.8.8"],
-            setup_commands=[["echo", "0"], test_counter_increment_command],
-            run_command=[],
-        ),
+    proc_def.runtime = mrp.Conda(
+        dependencies=["python=3.8.8"],
+        setup_commands=[["echo", "0"], test_counter_increment_command],
+        run_command=[],
     )
     mrp.cmd.up("proc", reset_logs=True)
     mrp.cmd.wait("proc")
