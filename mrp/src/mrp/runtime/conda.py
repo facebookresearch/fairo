@@ -125,8 +125,11 @@ class Launcher(BaseLauncher):
             env=conda_envvar,
             start_new_session=True,
         )
-        # TODO(lshamis): Handle the case where proc dies before we can query getpgid.
-        self.proc_pgrp = os.getpgid(self.proc.pid)
+        try:
+            self.proc_pgrp = os.getpgid(self.proc.pid)
+            return True
+        except Exception:
+            return False
 
     async def gather_cmd_outputs(self):
         """Track the command.
@@ -166,9 +169,12 @@ class Launcher(BaseLauncher):
     async def run(self):
         """Run the command."""
         conda_envvar = await self.envvar_for_conda()
-        await self.run_cmd_with_conda_envvar(conda_envvar)
-        life_cycle.set_state(self.name, life_cycle.State.STARTED)
-        await self.gather_cmd_outputs()
+        if await self.run_cmd_with_conda_envvar(conda_envvar):
+            life_cycle.set_state(self.name, life_cycle.State.STARTED)
+            await self.gather_cmd_outputs()
+        life_cycle.set_state(
+            self.name, life_cycle.State.STOPPED, return_code=self.proc.returncode
+        )
 
     def get_pid(self):
         return self.proc.pid
@@ -176,9 +182,6 @@ class Launcher(BaseLauncher):
     async def death_handler(self):
         """Watch for process death."""
         await self.proc.wait()
-        life_cycle.set_state(
-            self.name, life_cycle.State.STOPPED, return_code=self.proc.returncode
-        )
         # TODO(lshamis): Restart policy goes here.
 
         # Release the down listener.
