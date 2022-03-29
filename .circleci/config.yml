@@ -358,7 +358,7 @@ jobs:
           command: python3 -m pip install ./mrp
       - run:
           name: Run PyTest
-          command: pytest ./mrp
+          command: pytest -s -vvv ./mrp
   update-docs:
     docker:
       - image: cimg/node:current
