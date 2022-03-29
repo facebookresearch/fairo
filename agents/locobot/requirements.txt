@@ -8,3 +8,5 @@ face_recognition
 https://github.com/waspinator/pycococreator/archive/refs/tags/0.2.0.zip
 pycocotools
 yacs
+open3d
+blosc
