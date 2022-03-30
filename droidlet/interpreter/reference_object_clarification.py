@@ -30,16 +30,18 @@ def clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
     elif len(candidate_mems) == 0:
         clarification_class = "REF_NO_MATCH"
         dlf = cc1_to_dlf(interpreter, speaker, d, clarification_class)
-        
+
         # extend the dialogue task class to a new clarification class that launches subtasks based on its status
-            # problem: how to gracefully launch that first task and come back after?
+        # problem: how to gracefully launch that first task and come back after?
 
         task_egg = {"class": ClarifyDLF, "task_data": {"dlf": dlf}}
         cmemid = TaskNode.create(interpreter.memory, task_egg)
         interpreter.memory.add_triple(
-            subj=cmemid, pred_text="dlf_clarification", obj=interpreter.memid  # TODO Is this right???
+            subj=cmemid,
+            pred_text="dlf_clarification",
+            obj=interpreter.memid,  # TODO Is this right???
         )
-        raise NextDialogueStep() # TODO what does this do?
+        raise NextDialogueStep()  # TODO what does this do?
 
     elif num_refs > len(candidate_mems):
         clarification_class = "REF_TOO_FEW"
@@ -96,6 +98,7 @@ def build_dlf(cc, candidates, action):
         },
     }
     return dlf
+
 
 def sort_by_closest(
     interpreter, speaker, candidates: List[T], d: Dict, all_proximity=10, loose=False
