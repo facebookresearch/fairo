@@ -39,8 +39,11 @@ dependencies:
     - numpy
     - pandas
     - plotly
+    - pip
     - protobuf
     - pybullet ==3.17
+    - pymodbus
+    - pyserial
     - pytest
     - pytest-benchmark
     - scipy

@@ -74,6 +74,7 @@ def parse_and_execute_mob_config(args):
     elif c.get("mob_generator"):
         return c["mob_generator"](args)
     elif c.get("num_mobs"):
+        num_mobs = c.get("num_mobs")
         if not c["mob_probs"]:
             md = [("rabbit", "cow", "pig", "chicken", "sheep"), (1.0, 1.0, 1.0, 1.0, 1.0)]
         else:
@@ -81,7 +82,7 @@ def parse_and_execute_mob_config(args):
         probs = np.array(md[1])
         assert probs.min() >= 0.0
         probs = probs / probs.sum()
-        mobnames = np.random.choice(md[0], size=2, p=probs).tolist()
+        mobnames = np.random.choice(md[0], size=num_mobs, p=probs).tolist()
         mobs = []
         for m in mobnames:
             # mob pose set in collect_scene for now if not specified
@@ -135,8 +136,8 @@ def make_pose(args, loc=None, pitchyaw=None, height_map=None):
             )
         d = np.linalg.norm((okh - np.array((x, z)).reshape(2, 1)), 2, 0)
         minidx = np.argmin(d)
-        x = okh[0, minidx]
-        z = okh[1, minidx]
+        x = int(okh[0, minidx])
+        z = int(okh[1, minidx])
         y = int(height_map[x, z] + 1)
     return x, y, z, pitch, yaw
 

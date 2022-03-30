@@ -39,7 +39,7 @@ const maxCameraPitch = (2.0 * Math.PI) / 4;
 // Define cube geometry and materials
 const geo = new THREE.BoxGeometry( 50, 50, 50 );
 const rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.3, transparent: true } );
-const cubeMaterial_mark = new THREE.MeshBasicMaterial( { color: 0x089000, opacity: 0.6, transparent: true } );
+const cubeMaterial_mark = new THREE.MeshBasicMaterial( { color: 0x089000, opacity: 0.5, transparent: true } );
 let rollOverMesh = new THREE.Mesh( geo, rollOverMaterial );
 
 // Pull scene key from URL params

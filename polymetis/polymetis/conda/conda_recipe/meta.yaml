@@ -49,10 +49,13 @@ requirements:
     - openmpi ==2.1.2
     - pandas
     - pinocchio ==2.5.2
+    - pip
     - plotly
     - poco ==1.9.0 # needed by libfranka
     - protobuf
     - pybullet ==3.17
+    - pymodbus
+    - pyserial
     - pytest
     - pytest-benchmark
     - python ==3.8
