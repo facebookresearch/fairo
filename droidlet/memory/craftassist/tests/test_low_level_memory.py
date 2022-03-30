@@ -74,9 +74,9 @@ class BasicTest(unittest.TestCase):
             self.memory.get_block_object_by_xyz((1, 1, 1)).blocks
             == self.memory.get_mem_by_id(bo_memid).blocks
         )
-        # Test get_block_object_by_id
+        # Test block object retrieval using id
         assert (
-            self.memory.get_block_object_by_id(bo_memid).blocks
+            self.memory.basic_search(f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=BlockObjects AND uuid={bo_memid}")[1][0].blocks
             == self.memory.get_mem_by_id(bo_memid).blocks
         )
 

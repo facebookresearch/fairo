@@ -699,7 +699,7 @@ class SchematicNode(MemoryNode):
 
         else:
             # get up to date BlockObject
-            block_object = agent_memory.get_block_object_by_id(block_object_memid)
+            block_object = agent_memory.basic_search(f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=BlockObjects AND uuid={block_object_memid}")[1][0]
 
             # create schematic
             memid = SchematicNode.create(agent_memory, list(block_object.blocks.items()))

@@ -459,6 +459,7 @@ class MCAgentMemory(AgentMemory):
     # TODO replace all these all through the codebase with generic counterparts
     def get_block_object_ids_by_xyz(self, xyz: XYZ) -> List[str]:
         """Only get ids of memory node of type "BlockObjects" at (x, y, z)"""
+        # return self.basic_search("SELECT uuid FROM BlockObject WHERE x={0} AND y={1} AND z={2}".format(*xyz))
         return self.get_object_info_by_xyz(xyz, "BlockObjects")
 
     def get_block_object_by_xyz(self, xyz: XYZ) -> Optional["VoxelObjectNode"]:
@@ -467,12 +468,7 @@ class MCAgentMemory(AgentMemory):
         memids = self.get_block_object_ids_by_xyz(xyz)
         if len(memids) == 0:
             return None
-        return self.get_block_object_by_id(memids[0])
-
-    def get_block_object_by_id(self, memid: str) -> "VoxelObjectNode":
-        return self.basic_search(
-            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=BlockObjects AND uuid={memid}"
-        )[1][0]
+        return self.basic_search(f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=BlockObjects AND uuid={memids[0]}")[1][0]
 
     def tag_block_object_from_schematic(self, block_object_memid: str, schematic_memid: str):
         """Tag a block object that came from a schematic"""
