@@ -196,7 +196,7 @@ def interpret_reference_object(
             update_attended_and_link_lf(interpreter, mems)
             return mems
 
-    if len(candidate_mems) > 0:
+    elif len(candidate_mems) > 0:
         mems = filter_by_sublocation(
             interpreter,
             speaker,

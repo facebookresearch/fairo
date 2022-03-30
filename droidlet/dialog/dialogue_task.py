@@ -205,3 +205,60 @@ class ConfirmReferenceObject(Task):
             subj=self.memid, pred_text="dialogue_task_output", obj_text=response
         )
         return
+
+
+class ClarifyDLF(Task):
+    """This Task interprets the Dialogue logical form and handles
+    sending clarification questions to the player.
+
+    Args:
+        bounds: general area of reference object to point at
+        pointed: flag determining whether the agent pointed at the area
+        asked: flag determining whether the confirmation was asked for
+
+    """
+
+    def __init__(self, agent, task_data={}):
+        task_data["blocking"] = True
+        super().__init__(agent, task_data=task_data)
+        self.dlf = task_data.get("dlf")
+        self.pointed = False
+        self.asked = False
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        """Confirm the block object by pointing and wait for answer."""
+        print("ClarifyDLF stepped")
+        # if hasattr(r, "get_point_at_target"):
+        #     self.bounds = r.get_point_at_target()
+        # else:
+        #     # this should be an error
+        #     self.bounds = tuple(np.min(r, axis=0)) + tuple(np.max(r, axis=0))
+        if not self.asked:
+            task_list = [
+                Say(self.agent, {"response_options": self.question}),
+                AwaitResponse(self.agent, {"asker_memid": self.memid}),
+            ]
+            self.add_child_task(task_list)
+            self.asked = True
+            return
+        if not self.pointed:
+            # FIXME agent shouldn't just point, should make a task etc.
+            self.agent.point_at(self.bounds)
+            self.add_child_task(AwaitResponse(self.agent))
+            self.pointed = True
+            return
+        self.finished = True
+        # FIXME: change this to sqly when syntax for obj searches is settled:
+        t = self.agent.memory.get_triples(subj=self.memid, pred_text="dialogue_task_response")
+        chat_mems = [self.agent.memory.get_mem_by_id(triples[2]) for triples in t]
+        response = "no"
+        if chat_mems:
+            # FIXME...
+            if chat_mems[0].chat_text in MAP_YES:
+                response = "yes"
+        self.agent.memory.add_triple(
+            subj=self.memid, pred_text="dialogue_task_output", obj_text=response
+        )
+        return

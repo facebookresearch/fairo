@@ -914,24 +914,26 @@ class TaskNode(MemoryNode):
         old_memid = getattr(task, "memid", None)
         if old_memid:
             return old_memid
+        memid = cls.new(memory)
         if type(task) is dict:
             # this is an egg to be hatched by agent
             prio = task["task_data"].get("task_node_data", {}).get("prio", -3)
             running = task["task_data"].get("task_node_data", {}).get("running", 0)
             run_count = task["task_data"].get("task_node_data", {}).get("run_count", 0)
             action_name = task["class"].__name__.lower()
+            pickled = "NULL"
         else:
             action_name = task.__class__.__name__.lower()
             prio = -1
             running = 0
             run_count = task.run_count
-        memid = cls.new(memory)
-        task.memid = memid
+            task.memid = memid
+            pickled = memory.safe_pickle(task)
         memory._db_write(
             "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, run_count, created) VALUES (?,?,?,?,?,?,?)",
             memid,
             action_name,
-            memory.safe_pickle(task),
+            pickled,
             prio,
             running,
             run_count,
