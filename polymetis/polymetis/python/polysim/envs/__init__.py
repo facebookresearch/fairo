@@ -1,3 +1,3 @@
 from .abstract_env import AbstractControlledEnv
-from .bullet_manipulator import BulletManipulatorEnv
+from .bullet_manipulator import BulletManipulatorEnv, BulletRobotEnv
 from .habitat_manipulator import HabitatManipulatorEnv

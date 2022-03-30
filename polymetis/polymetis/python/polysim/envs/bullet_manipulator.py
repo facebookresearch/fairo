@@ -18,8 +18,7 @@ from polymetis.utils.data_dir import get_full_path_to_urdf
 
 log = logging.getLogger(__name__)
 
-
-class BulletManipulatorEnv(AbstractControlledEnv):
+class BulletRobotEnv(AbstractControlledEnv):
     """A manipulator environment using PyBullet.
 
     Args:
@@ -48,8 +47,6 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         self.controlled_joints = self.robot_model_cfg.controlled_joints
         self.n_dofs = self.robot_model_cfg.num_dofs
         assert len(self.controlled_joints) == self.n_dofs
-        self.ee_link_idx = self.robot_model_cfg.ee_link_idx
-        self.ee_link_name = self.robot_model_cfg.ee_link_name
         self.rest_pose = self.robot_model_cfg.rest_pose
         self.joint_limits_low = np.array(self.robot_model_cfg.joint_limits_low)
         self.joint_limits_high = np.array(self.robot_model_cfg.joint_limits_high)
@@ -89,7 +86,8 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             self.robot_id,
             self.controlled_joints,
             pybullet.VELOCITY_CONTROL,
-            forces=np.zeros(self.n_dofs),
+            forces=0*np.ones(self.n_dofs),
+            velocityGains=1*np.ones(self.n_dofs),
         )
 
         # Initialize variables
@@ -104,9 +102,8 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         log.info("loading urdf file: {}".format(abs_urdf_path))
         robot_id = sim.loadURDF(
             abs_urdf_path,
-            basePosition=[0.0, 0.0, 0.0],
+            basePosition=[0.0, 0.0, 0.20],
             useFixedBase=True,
-            flags=pybullet.URDF_USE_INERTIA_FROM_FILE,
         )
 
         pybullet.setAdditionalSearchPath(pybullet_data.getDataPath())
@@ -201,6 +198,24 @@ class BulletManipulatorEnv(AbstractControlledEnv):
 
         return applied_torque
 
+
+    def compute_inverse_dynamics(
+        self, joint_pos: np.ndarray, joint_vel: np.ndarray, joint_acc: np.ndarray
+    ):
+        """Computes inverse dynamics by returning the torques necessary to get the desired accelerations
+        at the given joint position and velocity."""
+        torques = self.sim.calculateInverseDynamics(
+            self.robot_id, list(joint_pos), list(joint_vel), list(joint_acc)
+        )
+        return np.asarray(torques)
+
+
+class BulletManipulatorEnv(BulletRobotEnv):
+    def __init__(self, robot_model_cfg: DictConfig, gui: bool, use_grav_comp: bool = True, gravity: float = 9.81):
+        super().__init__(robot_model_cfg, gui, use_grav_comp, gravity)
+        self.ee_link_idx = self.robot_model_cfg.ee_link_idx
+        self.ee_link_name = self.robot_model_cfg.ee_link_name
+
     def compute_forward_kinematics(self, joint_pos: List[float] = None):
         """Computes forward kinematics.
 
@@ -263,13 +278,3 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             ik_kwargs["joint_damping"] = self.joint_damping.tolist()
         joint_des_pos = self.sim.calculateInverseKinematics(**ik_kwargs)
         return np.array(joint_des_pos)
-
-    def compute_inverse_dynamics(
-        self, joint_pos: np.ndarray, joint_vel: np.ndarray, joint_acc: np.ndarray
-    ):
-        """Computes inverse dynamics by returning the torques necessary to get the desired accelerations
-        at the given joint position and velocity."""
-        torques = self.sim.calculateInverseDynamics(
-            self.robot_id, list(joint_pos), list(joint_vel), list(joint_acc)
-        )
-        return np.asarray(torques)
