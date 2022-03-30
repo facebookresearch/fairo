@@ -468,7 +468,9 @@ class MCAgentMemory(AgentMemory):
         memids = self.get_block_object_ids_by_xyz(xyz)
         if len(memids) == 0:
             return None
-        return self.basic_search(f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=BlockObjects AND uuid={memids[0]}")[1][0]
+        return self.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=BlockObjects AND uuid={memids[0]}"
+        )[1][0]
 
     def tag_block_object_from_schematic(self, block_object_memid: str, schematic_memid: str):
         """Tag a block object that came from a schematic"""

@@ -336,7 +336,7 @@ class InstSegNode(VoxelObjectNode):
         for xyz in locs:
             m = memory._db_read(
                 'SELECT uuid from VoxelObjects WHERE ref_type="inst_seg" AND x=? AND y=? AND z=?',
-                *xyz
+                *xyz,
             )
             if len(m) > 0:
                 for memid in m:
@@ -699,7 +699,9 @@ class SchematicNode(MemoryNode):
 
         else:
             # get up to date BlockObject
-            block_object = agent_memory.basic_search(f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=BlockObjects AND uuid={block_object_memid}")[1][0]
+            block_object = agent_memory.basic_search(
+                f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=BlockObjects AND uuid={block_object_memid}"
+            )[1][0]
 
             # create schematic
             memid = SchematicNode.create(agent_memory, list(block_object.blocks.items()))
