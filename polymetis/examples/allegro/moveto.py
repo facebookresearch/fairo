@@ -14,8 +14,8 @@ import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--pose', action='append', default=[])
-    parser.add_argument('-t', '--time2go', default=1, type=float)
+    parser.add_argument("-p", "--pose", action="append", default=[])
+    parser.add_argument("-t", "--time2go", default=1, type=float)
     args = parser.parse_args()
     print(args)
 
@@ -26,15 +26,15 @@ if __name__ == "__main__":
 
     # Move to joint positions
     for pose in args.pose:
-        if ',' in pose:
-            pose, _ = pose.split(',')
+        if "," in pose:
+            pose, _ = pose.split(",")
             time_to_go = float(_)
         else:
             time_to_go = args.time2go
 
-        print(f'pose {pose} {time_to_go}')
+        print(f"pose {pose} {time_to_go}")
         with open(pose) as f:
-            pos=torch.tensor(json.load(f))
+            pos = torch.tensor(json.load(f))
         robot.move_to_joint_positions(pos)
 
 #    for i in range(10):

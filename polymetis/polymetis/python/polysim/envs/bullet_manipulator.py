@@ -18,6 +18,7 @@ from polymetis.utils.data_dir import get_full_path_to_urdf
 
 log = logging.getLogger(__name__)
 
+
 class BulletRobotEnv(AbstractControlledEnv):
     """A manipulator environment using PyBullet.
 
@@ -86,8 +87,8 @@ class BulletRobotEnv(AbstractControlledEnv):
             self.robot_id,
             self.controlled_joints,
             pybullet.VELOCITY_CONTROL,
-            forces=0*np.ones(self.n_dofs),
-            velocityGains=1*np.ones(self.n_dofs),
+            forces=0 * np.ones(self.n_dofs),
+            velocityGains=1 * np.ones(self.n_dofs),
         )
 
         # Initialize variables
@@ -198,7 +199,6 @@ class BulletRobotEnv(AbstractControlledEnv):
 
         return applied_torque
 
-
     def compute_inverse_dynamics(
         self, joint_pos: np.ndarray, joint_vel: np.ndarray, joint_acc: np.ndarray
     ):
@@ -211,7 +211,13 @@ class BulletRobotEnv(AbstractControlledEnv):
 
 
 class BulletManipulatorEnv(BulletRobotEnv):
-    def __init__(self, robot_model_cfg: DictConfig, gui: bool, use_grav_comp: bool = True, gravity: float = 9.81):
+    def __init__(
+        self,
+        robot_model_cfg: DictConfig,
+        gui: bool,
+        use_grav_comp: bool = True,
+        gravity: float = 9.81,
+    ):
         super().__init__(robot_model_cfg, gui, use_grav_comp, gravity)
         self.ee_link_idx = self.robot_model_cfg.ee_link_idx
         self.ee_link_name = self.robot_model_cfg.ee_link_name

@@ -4,15 +4,26 @@ from polymetis_pb2.polymetis_pb2 import RobotState
 import torch
 import torchcontrol as toco
 import logging
+
 log = logging.getLogger(__name__)
 
 
 class ExtRobotInterface(RobotInterface):
-    def __init__(self, time_to_go_default: float = 3,  use_grav_comp: bool = True, *args, **kwargs):
+    def __init__(
+        self, time_to_go_default: float = 3, use_grav_comp: bool = True, *args, **kwargs
+    ):
         super().__init__(time_to_go_default, use_grav_comp, *args, **kwargs)
 
     def move_to_joint_positions(
-        self, positions: torch.Tensor, time_to_go: float = None, time_to_hold: float=0, delta: bool = False, Kq: torch.Tensor = None, Kqd: torch.Tensor = None, **kwargs) -> List[RobotState]:
+        self,
+        positions: torch.Tensor,
+        time_to_go: float = None,
+        time_to_hold: float = 0,
+        delta: bool = False,
+        Kq: torch.Tensor = None,
+        Kqd: torch.Tensor = None,
+        **kwargs,
+    ) -> List[RobotState]:
 
         # Parse parameters
         joint_pos_current = self.get_joint_positions()
@@ -39,13 +50,13 @@ class ExtRobotInterface(RobotInterface):
         )
 
         last_waypoint = waypoints[-1]
-        for t in torch.arange(time_to_go, time_to_hold+time_to_go , 1/self.hz):
+        for t in torch.arange(time_to_go, time_to_hold + time_to_go, 1 / self.hz):
             waypoint = last_waypoint.copy()
-            waypoint['time_from_start'] = t
+            waypoint["time_from_start"] = t
             waypoints.append(waypoint)
 
         if Kq is None:
-            Kq=self.Kq_default
+            Kq = self.Kq_default
         if Kqd is None:
             Kqd = self.Kqd_default
         # Create & execute policy

@@ -148,13 +148,13 @@ class RobotStateVisualizer:
                         values_set = [0]
 
                     if field.name not in dataframes:
-                        df = pd.DataFrame(
-                            columns=["datetime"] + values_set
-                        ).set_index("datetime")
+                        df = pd.DataFrame(columns=["datetime"] + values_set).set_index(
+                            "datetime"
+                        )
                         dataframes[field.name] = df
 
                     df = dataframes[field.name]
-                    value_dict = { j: values[j] for j in values_set}
+                    value_dict = {j: values[j] for j in values_set}
                     df.loc[curr_datetime] = value_dict
         return dataframes
 

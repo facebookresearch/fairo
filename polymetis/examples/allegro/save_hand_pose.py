@@ -18,16 +18,15 @@ class ZeroController(toco.PolicyModule):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--filename')
+    parser.add_argument("-f", "--filename")
     args = parser.parse_args()
 
     robot = polymetis.RobotInterface(ip_address="localhost", enforce_version=False)
     robot.send_torch_policy(ZeroController(), blocking=False)
 
-    q=robot.get_joint_positions().numpy().tolist()
+    q = robot.get_joint_positions().numpy().tolist()
     print(q)
     if args.filename:
-        with open(args.filename, 'w') as f:
+        with open(args.filename, "w") as f:
             f.write(json.dumps(q))
-        print('pose saved to ', args.filename)
-
+        print("pose saved to ", args.filename)
