@@ -75,9 +75,11 @@ class RobotStateVisualizer:
         max_queue_size=10000,
         downsampling_ratio=100,
         log_keys={"joint_positions", "joint_velocities", "joint_torques_computed"},
+        log_joints=None,
         logfile="",
     ):
         self.log_keys = log_keys
+        self.log_joints = log_joints
         if logfile:
             self.stream_live_data = False
             print(f"Reading data from {logfile}")
@@ -138,17 +140,21 @@ class RobotStateVisualizer:
                 if field.name in self.log_keys:
                     try:
                         values_dim = len(values)
+                        if self.log_joints == None:
+                            values_set = list(range(values_dim))
+                        else:
+                            values_set = list(self.log_joints)
                     except TypeError:
-                        values_dim = 1
+                        values_set = [0]
 
                     if field.name not in dataframes:
                         df = pd.DataFrame(
-                            columns=["datetime"] + list(range(values_dim))
+                            columns=["datetime"] + values_set
                         ).set_index("datetime")
                         dataframes[field.name] = df
 
                     df = dataframes[field.name]
-                    value_dict = {x[0]: x[1] for x in enumerate(values)}
+                    value_dict = { j: values[j] for j in values_set}
                     df.loc[curr_datetime] = value_dict
         return dataframes
 
@@ -182,7 +188,7 @@ def initialize_graphs(viz, height=1000):
     # Add graph objects
     row = 1
     for df_name, df in dataframes.items():
-        datetimes = [x.strftime("%H:%M:%S") for x in df.index]
+        datetimes = [x.strftime("%H:%M:%S.%f")[:-3] for x in df.index]
         col = 1
         for column in df.columns:
             fig.append_trace(
@@ -209,6 +215,7 @@ def main(cfg):
         max_queue_size=cfg.max_queue_size,
         downsampling_ratio=cfg.downsampling_ratio,
         log_keys=set(cfg.log_keys),
+        log_joints=cfg.log_joints,
         logfile=cfg.logfile,
     )
 
@@ -244,13 +251,13 @@ def main(cfg):
 
         # Add graph objects
         for df_name, df in dataframes.items():
-            datetimes = [x.strftime("%H:%M:%S") for x in df.index]
+            datetimes = [x.strftime("%H:%M:%S.%f")[:-3] for x in df.index]
             for column in df.columns:
                 num_traces += 1
                 updated_data["x"].append(datetimes)
                 updated_data["y"].append(df[column])
-
         trace_indices = list(range(num_traces))
+        print(updated_data)
         return [updated_data, trace_indices]
 
     app.logger.setLevel(logging.WARNING)

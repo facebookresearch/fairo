@@ -12,6 +12,8 @@ log_keys:
   - "joint_velocities"
   - "joint_torques_computed"
 
+log_joints: 
+
 app:
   debug: false
   host: localhost
