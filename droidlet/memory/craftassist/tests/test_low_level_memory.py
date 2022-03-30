@@ -80,21 +80,6 @@ class BasicTest(unittest.TestCase):
             == self.memory.get_mem_by_id(bo_memid).blocks
         )
 
-        # Test tag_block_object_from_schematic
-        sch_memid = SchematicNode.create(
-            self.memory, (((0, 0, 1), (1, 0)), ((0, 0, 2), (1, 0)), ((0, 0, 3), (2, 0)))
-        )
-        bo1_memid = BlockObjectNode.create(self.memory, (((0, 0, 2), (1, 0)), ((0, 0, 3), (2, 0))))
-        self.memory.tag_block_object_from_schematic(bo1_memid, sch_memid)
-        assert (
-            len(
-                self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
-                    self.memory, pred_text="_from_schematic"
-                )
-            )
-            == 1
-        )
-
     def test_inst_seg_node(self):
         self.memory = MCAgentMemory()
         inst_seg_memid = InstSegNode.create(

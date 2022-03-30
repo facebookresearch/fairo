@@ -470,12 +470,6 @@ class MCAgentMemory(AgentMemory):
             return None
         return self.basic_search(f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=BlockObjects AND uuid={memids[0]}")[1][0]
 
-    def tag_block_object_from_schematic(self, block_object_memid: str, schematic_memid: str):
-        """Tag a block object that came from a schematic"""
-        self.nodes["Triple"].create(
-            self, subj=block_object_memid, pred_text="_from_schematic", obj=schematic_memid
-        )
-
     #####################
     ### InstSegObject ###
     #####################
