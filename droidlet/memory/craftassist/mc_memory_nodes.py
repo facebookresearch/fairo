@@ -354,11 +354,10 @@ class MobNode(ReferenceObjectNode):
         if hasattr(mob, 'name'):
             name = mob.name
         else:
-            name = random.choice(["patrick","john","trey","richard","bob","alice",
-                                  "mary","eve","charlotte","greg","sophie","pete",
-                                  "mike","kate","zora","yasmin","will","dan"])
+            name = ''
+
         memory.db_write(
-            "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, yaw, pitch, ref_type, name, type_name, player_placed, agent_placed, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, yaw, pitch, ref_type, type_name, player_placed, agent_placed, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             memid,
             mob.entityId,
             mob.pos.x,
@@ -367,7 +366,6 @@ class MobNode(ReferenceObjectNode):
             mob.look.yaw,
             mob.look.pitch,
             "mob",
-            name,
             mobtype,
             player_placed,
             agent_placed,
@@ -379,7 +377,7 @@ class MobNode(ReferenceObjectNode):
         # this is a hack until memory_filters does "not"
         memory.tag(memid, "_not_location")
         memory.tag(memid, mobtype)
-        memory.add_triple(subj=memid, pred_text="has_name", obj_text=name)
+        memory.add_triple(subj=memid, pred_text="has_name", obj_text=mobtype)
         return memid
 
     def get_pos(self) -> XYZ:
