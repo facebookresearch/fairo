@@ -227,12 +227,12 @@ class ClarifyDLF(Task):
 
     @Task.step_wrapper
     def step(self):
-        """Issue chats and wait for responses to clarify based on 
+        """Issue chats and wait for responses to clarify based on
         clarification class and number of candidates"""
-        
+
         print("ClarifyDLF stepped")
         clarification_class = self.dlf
-        
+
         # if hasattr(r, "get_point_at_target"):
         #     self.bounds = r.get_point_at_target()
         # else:
