@@ -167,7 +167,7 @@ class BlockObjectNode(VoxelObjectNode):
         for block in blocks:
             memory.upsert_block(block, memid, "BlockObjects")
         memory.tag(memid, "_block_object")
-        memory.tag(memid, "VOXEL_OBJECT")
+        memory.tag(memid, "_VOXEL_OBJECT")
         memory.tag(memid, "_physical_object")
         memory.tag(memid, "_destructible")
         # this is a hack until memory_filters does "not"
@@ -253,7 +253,7 @@ class InstSegNode(VoxelObjectNode):
         for loc in locs:
             cmd = "INSERT INTO VoxelObjects (uuid, x, y, z, ref_type) VALUES ( ?, ?, ?, ?, ?)"
             memory.db_write(cmd, memid, loc[0], loc[1], loc[2], "inst_seg")
-        memory.tag(memid, "VOXEL_OBJECT")
+        memory.tag(memid, "_VOXEL_OBJECT")
         memory.tag(memid, "_inst_seg")
         memory.tag(memid, "_destructible")
         # this is a hack until memory_filters does "not"
