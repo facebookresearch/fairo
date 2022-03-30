@@ -10,6 +10,7 @@ from droidlet.memory.memory_nodes import (
     SelfNode,
     TaskNode,
 )
+from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode
 from .interpret_location import interpret_relative_direction
 from .interpret_filters import interpret_selector
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
@@ -35,6 +36,7 @@ def clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
         # problem: how to gracefully launch that first task and come back after?
 
         task_egg = {"class": ClarifyDLF, "task_data": {"dlf": dlf}}
+        print(task_egg)
         cmemid = TaskNode.create(interpreter.memory, task_egg)
         interpreter.memory.add_triple(
             subj=cmemid,
@@ -75,8 +77,7 @@ def cc1_to_dlf(interpreter, speaker, d, clarification_class):
             raise ErrorWithResponse("I don't know what you're referring to")
 
         dlf = build_dlf(clarification_class, mems, action)
-        print(dlf)
-        return mems
+        return dlf
 
 
 def retrieve_action_dict(interpreter, d):
@@ -94,7 +95,7 @@ def build_dlf(cc, candidates, action):
         "action": action,
         "class": {
             "error_type": cc,
-            "candidates": candidates,
+            "candidates": [mem.memid for mem in candidates],
         },
     }
     return dlf

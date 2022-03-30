@@ -921,19 +921,17 @@ class TaskNode(MemoryNode):
             running = task["task_data"].get("task_node_data", {}).get("running", 0)
             run_count = task["task_data"].get("task_node_data", {}).get("run_count", 0)
             action_name = task["class"].__name__.lower()
-            pickled = "NULL"
         else:
             action_name = task.__class__.__name__.lower()
             prio = -1
             running = 0
             run_count = task.run_count
             task.memid = memid
-            pickled = memory.safe_pickle(task)
         memory._db_write(
             "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, run_count, created) VALUES (?,?,?,?,?,?,?)",
             memid,
             action_name,
-            pickled,
+            memory.safe_pickle(task),
             prio,
             running,
             run_count,

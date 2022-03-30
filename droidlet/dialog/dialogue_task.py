@@ -6,7 +6,7 @@ import logging
 import numpy as np
 import random
 
-from .string_lists import MAP_YES, MAP_NO
+from droidlet.dialog.string_lists import MAP_YES, MAP_NO
 from enum import Enum
 from droidlet.task.task import Task, maybe_task_list_to_control_block
 from droidlet.memory.memory_nodes import TaskNode
@@ -222,14 +222,17 @@ class ClarifyDLF(Task):
         task_data["blocking"] = True
         super().__init__(agent, task_data=task_data)
         self.dlf = task_data.get("dlf")
-        self.pointed = False
-        self.asked = False
+        self.finished = False
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
     def step(self):
-        """Confirm the block object by pointing and wait for answer."""
+        """Issue chats and wait for responses to clarify based on 
+        clarification class and number of candidates"""
+        
         print("ClarifyDLF stepped")
+        clarification_class = self.dlf
+        
         # if hasattr(r, "get_point_at_target"):
         #     self.bounds = r.get_point_at_target()
         # else:
