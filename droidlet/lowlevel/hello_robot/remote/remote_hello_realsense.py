@@ -178,8 +178,9 @@ class RemoteHelloRealsense(object):
 
     def is_obstacle_in_front(self, return_viz=False):
         base_state = self.bot.get_base_state()
+        lidar_scan = self.bot.get_latest_lidar_scan()
         pcd = self.get_open3d_pcd()
-        ret = is_obstacle(pcd, base_state, max_dist=0.5, return_viz=return_viz)
+        ret = is_obstacle(pcd, base_state, lidar=lidar_scan, max_dist=0.5, return_viz=return_viz)
         if return_viz:
             obstacle, cpcd, crop, bbox, rest = ret
             # cpcd = o3d_pickle(cpcd)
