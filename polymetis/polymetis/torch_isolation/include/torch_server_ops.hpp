@@ -7,6 +7,7 @@
 
 #include <map>
 #include <vector>
+#include <cstddef>
 
 #ifdef __cplusplus
 extern "C" {
