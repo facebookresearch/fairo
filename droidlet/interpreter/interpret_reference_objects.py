@@ -162,10 +162,8 @@ def interpret_reference_object(
 
     ipdb.set_trace(context=7)
 
-    clarification_query = (
-        "SELECT MEMORY FROM Task WHERE dlf_clarification=#={}".format(
-            interpreter.memid
-        )
+    clarification_query = "SELECT MEMORY FROM Task WHERE dlf_clarification=#={}".format(
+        interpreter.memid
     )
     _, clarification_task_mems = interpreter.memory.basic_search(clarification_query)
     # does a clarification task referencing this interpreter exist?

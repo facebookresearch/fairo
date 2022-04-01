@@ -233,7 +233,7 @@ class ClarifyDLF(Task):
         print("ClarifyDLF stepped")
 
         clarification_class = self.dlf["class"]["error_type"]
-        if clarification_class != 'REF_NO_MATCH': # Only CC1 implemented right now
+        if clarification_class != "REF_NO_MATCH":  # Only CC1 implemented right now
             raise NotImplementedError
         else:
             if not self.finished:
@@ -270,13 +270,16 @@ class ClarifyCC1(Task):
         task_data["blocking"] = True
         super().__init__(agent, task_data=task_data)
         import ipdb
+
         ipdb.set_trace(context=7)
         self.candidates = task_data["class"]["candidates"]
         self.action = task_data["action"]["action_type"]
-        self.ref_obj_span = task_data["action"]["reference_object"]["text_span"] # FIXME will this always be here?
+        self.ref_obj_span = task_data["action"]["reference_object"][
+            "text_span"
+        ]  # FIXME will this always be here?
         self.finished = False
         self.point = False
-        self.max_asks = len(self.candidates) + 1 # verify action + ref_obj span, then candidates
+        self.max_asks = len(self.candidates) + 1  # verify action + ref_obj span, then candidates
         self.asks = 1
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
