@@ -30,7 +30,8 @@ class PlaceField:
     the .place_fields attribute is a dict with keys corresponding to heights,
     and values {"map": 2d numpy array, "updated": 2d numpy array, "memids": 2d numpy array}
     place_fields[h]["map"] is an occupany map at the the height h (in agent coordinates)
-                           a location is 0 if there is nothing there or it is unseen, 1 if occupied
+                           a location is 0 if it is traversible or it is unseen, 1 if occupied
+                           by a non-traversible obstacle
     place_fields[h]["memids"] gives a memid index for the ReferenceObject at that location,
                               if there is a ReferenceObject linked to that spatial location.
                               the PlaceField keeps a mappping from the indices to memids in
@@ -40,6 +41,8 @@ class PlaceField:
 
     the .map2real method converts a location from a map to world coords
     the .real2map method converts a location from the world to the map coords
+
+    the traversibility map is not currently coupled to the occupancy map
 
     droidlet.interpreter.robot.tasks.CuriousExplore uses the can_examine method to decide
     which objects to explore next:
@@ -106,6 +109,14 @@ class PlaceField:
                 if len(self.memid2locs[memid]) == 0:
                     self.memid2locs.pop(memid, None)
 
+    # this is pretty brutal, using rn on robot to sync with slam service
+    def sync_traversible(self, locs, h=0):
+        self.maps[h]["map"][:] = 0
+        self.maps[h]["updated"][i, j] = self.get_time()
+        for (x, z) in locs:
+            i, j = self.real2map(x, z, h)
+            self.maps[h]["map"][i, j] = 1
+
     def delete_loc_by_memid(self, memid, t, is_move=False):
         """
         remove all locs corresponding to a memid.
@@ -118,6 +129,7 @@ class PlaceField:
         for idx in self.memid2locs.get(memid, []):
             i, j, h = self.idx2ijh(idx)
             self.maps[h]["memids"][i, j] = 0
+            # FIXME: maybe this loc is still not traversible...
             self.maps[h]["map"][i, j] = 0
             self.maps[h]["updated"][i, j] = t
             count = count + 1

@@ -9,6 +9,7 @@ import random
 import logging
 import faulthandler
 from multiprocessing import set_start_method
+
 if __name__ == "__main__":
     set_start_method("spawn", force=True)
 import shutil
@@ -84,12 +85,12 @@ class LocobotAgent(DroidletAgent):
         self.point_targets = []
         self.init_event_handlers()
         # list of (prob, default function) pairs
-        if self.backend == 'habitat':
+        if self.backend == "habitat":
             self.visible_defaults = [(1.0, default_behaviors.explore)]
-        elif self.backend == 'hellorobot':
+        elif self.backend == "hellorobot":
             self.visible_defaults = []
         else:
-            raise RuntimeError("Unknown backend specified {}" % (self.backend, ))
+            raise RuntimeError("Unknown backend specified {}" % (self.backend,))
         self.interaction_logger = InteractionLogger()
         if os.path.exists("annotation_data/rgb"):
             shutil.rmtree("annotation_data/rgb")
@@ -240,20 +241,27 @@ class LocobotAgent(DroidletAgent):
         rgb_depth = self.mover.get_rgb_depth()
         xyz = self.mover.get_base_pos_in_canonical_coords()
         x, y, yaw = xyz
-        if self.backend == 'habitat':
+        if self.backend == "habitat":
             sio.emit(
                 "map",
-                {"x": x, "y": y, "yaw": yaw, "map": self.mover.get_obstacles_in_canonical_coords()},
+                {
+                    "x": x,
+                    "y": y,
+                    "yaw": yaw,
+                    "map": self.mover.get_obstacles_in_canonical_coords(),
+                },
             )
 
         previous_objects = DetectedObjectNode.get_all(self.memory)
         # perception_output is a namedtuple of : new_detections, updated_detections, humans
-        perception_output = self.perception_modules["vision"].perceive(rgb_depth,
-                                                               xyz,
-                                                               previous_objects,
-                                                               force=force)
-        self.memory.update(perception_output)
+        perception_output = self.perception_modules["vision"].perceive(
+            rgb_depth, xyz, previous_objects, force=force
+        )
+        # 3. update the occupancy map
+        # TODO just the diff?
+        perception_output.obstacle_map = self.mover.slam.get_map()
 
+        self.memory.update(perception_output)
 
     def init_controller(self):
         """Instantiates controllers - the components that convert a text chat to task(s)."""
@@ -263,18 +271,18 @@ class LocobotAgent(DroidletAgent):
         dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = DialogueManager(
-            memory=self.memory,
-            dialogue_object_classes=dialogue_object_classes,
-            opts=self.opts,
+            memory=self.memory, dialogue_object_classes=dialogue_object_classes, opts=self.opts
         )
 
     def init_physical_interfaces(self):
         """Instantiates the interface to physically move the robot."""
-        if self.backend == 'habitat':
+        if self.backend == "habitat":
             from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
+
             self.mover = LoCoBotMover(ip=self.opts.ip, backend=self.opts.backend)
         else:
             from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
+
             self.mover = HelloRobotMover(ip=self.opts.ip)
 
     def get_player_struct_by_name(self, speaker_name):
@@ -340,7 +348,6 @@ if __name__ == "__main__":
     # Check that models and datasets are up to date
     if not opts.dev:
         try_download_artifacts(agent="locobot")
-
 
     sa = LocobotAgent(opts)
     sa.start()

@@ -78,6 +78,8 @@ class LocoAgentMemory(AgentMemory):
             for human in perception_output.humans:
                 HumanPoseNode.create(self, human)
                 # FIXME, not putting in map, need to dedup?
+        # FIXME make a proper diff.  what to do about discrepancies with objects?
+        self.place_field.sync_traversible(perception_output.obstacle_map, h=0)
 
     #################
     ###  Players  ###
