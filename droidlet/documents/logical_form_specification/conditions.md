@@ -104,6 +104,6 @@ Note that `event` in time_condition represents when to start the timer and
                                     "input_left": {
                                       "filters": {"output": {"attribute": "RUN_COUNT"},
                                                   "special": {"fixed_value": "THIS"}}},
-                                    "input_right": {"value": span}},
+                                    "input_right": span},
                       "condition_type": "COMPARATOR"}
 ```		      
