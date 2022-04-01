@@ -22,7 +22,7 @@ CC1_SEARCH_RADIUS = 15
 
 
 def clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs):
-    ipdb.set_trace(context=5)
+    # ipdb.set_trace(context=7)
 
     # Decide what clarification class we're in
     if num_refs < 1:
@@ -43,7 +43,7 @@ def clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
             pred_text="dlf_clarification",
             obj=interpreter.memid,  # TODO Is this right???
         )
-        raise NextDialogueStep()  # TODO what does this do?
+        raise NextDialogueStep()  # could also just return nothing, but maybe we want to catch this on the other side
 
     elif num_refs > len(candidate_mems):
         clarification_class = "REF_TOO_FEW"

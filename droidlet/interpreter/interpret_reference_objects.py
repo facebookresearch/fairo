@@ -1,6 +1,8 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+import ipdb
+
 import logging
 import re
 import numpy as np
@@ -158,58 +160,93 @@ def interpret_reference_object(
         else:
             logging.error("bad coref_resolve -> {}".format(mem))
 
-    mems = maybe_get_text_span_mems(interpreter, speaker, d)
-    if mems:
-        update_attended_and_link_lf(interpreter, mems)
-        # No filter by sublocation etc if a mem matches the text_span exactly...
-        return mems
+    ipdb.set_trace(context=7)
 
-    # How many reference objects are we looking for?
-    # TODO This needs a lot of work to handle plurals, NOT, etc.
-    num_refs = 1  # default
-    if filters_d.get("where_clause"):
-        if filters_d["where_clause"].get("OR"):
-            num_refs = len(filters_d["where_clause"].get("OR"))
+    clarification_query = (
+        "SELECT MEMORY FROM Task WHERE dlf_clarification=#={}".format(
+            interpreter.memid
+        )
+    )
+    _, clarification_task_mems = interpreter.memory.basic_search(clarification_query)
+    # does a clarification task referencing this interpreter exist?
+    if not clarification_task_mems:
 
-    # Add any extra_tags to search
-    if any(extra_tags):
-        extra_clauses = []
-        for tag in extra_tags:
-            extra_clauses.append({"pred_text": "has_tag", "obj_text": tag})
-        if not filters_d.get("where_clause"):
-            filters_d["where_clause"] = {"AND": []}
-        if filters_d["where_clause"].get("OR") or filters_d["where_clause"].get("NOT"):
-            subclause = deepcopy(filters_d["where_clause"])
-            filters_d["where_clause"] = {"AND": [subclause]}
-        filters_d["where_clause"]["AND"].extend(extra_clauses)
+        mems = maybe_get_text_span_mems(interpreter, speaker, d)
+        if mems:
+            update_attended_and_link_lf(interpreter, mems)
+            # No filter by sublocation etc if a mem matches the text_span exactly...
+            return mems
 
-    # FIXME! see above.  currently removing selector to get candidates, and filtering after
-    # instead of letting filter interpreters handle.
-    filters_no_select = deepcopy(filters_d)
-    filters_no_select.pop("selector", None)
-    candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
+        # How many reference objects are we looking for?
+        # TODO This needs a lot of work to handle plurals, NOT, etc.
+        num_refs = 1  # default
+        if filters_d.get("where_clause"):
+            if filters_d["where_clause"].get("OR"):
+                num_refs = len(filters_d["where_clause"].get("OR"))
 
-    # Compare num matches to expected and clarify
-    if (len(candidate_mems) != num_refs) and allow_clarification:
-        mems = clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
-        if len(mems > 0):
+        # Add any extra_tags to search
+        if any(extra_tags):
+            extra_clauses = []
+            for tag in extra_tags:
+                extra_clauses.append({"pred_text": "has_tag", "obj_text": tag})
+            if not filters_d.get("where_clause"):
+                filters_d["where_clause"] = {"AND": []}
+            if filters_d["where_clause"].get("OR") or filters_d["where_clause"].get("NOT"):
+                subclause = deepcopy(filters_d["where_clause"])
+                filters_d["where_clause"] = {"AND": [subclause]}
+            filters_d["where_clause"]["AND"].extend(extra_clauses)
+
+        # FIXME! see above.  currently removing selector to get candidates, and filtering after
+        # instead of letting filter interpreters handle.
+        filters_no_select = deepcopy(filters_d)
+        filters_no_select.pop("selector", None)
+        candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
+
+        # Compare num matches to expected and clarify
+        if (len(candidate_mems) != num_refs) and allow_clarification:
+            mems = clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
+            if len(mems > 0):
+                update_attended_and_link_lf(interpreter, mems)
+                return mems
+            else:
+                raise NextDialogueStep()
+
+        elif len(candidate_mems) > 0:
+            mems = filter_by_sublocation(
+                interpreter,
+                speaker,
+                candidate_mems,
+                d,
+                loose=loose_speakerlook,
+                all_proximity=all_proximity,
+            )
             update_attended_and_link_lf(interpreter, mems)
             return mems
 
-    elif len(candidate_mems) > 0:
-        mems = filter_by_sublocation(
-            interpreter,
-            speaker,
-            candidate_mems,
-            d,
-            loose=loose_speakerlook,
-            all_proximity=all_proximity,
-        )
-        update_attended_and_link_lf(interpreter, mems)
-        return mems
+        else:
+            raise ErrorWithResponse("I don't know what you're referring to")
 
     else:
-        raise ErrorWithResponse("I don't know what you're referring to")
+        # there is a clarification task.  is it active?
+        task_mem = clarification_task_mems[0]  # FIXME, error if there are many?
+        if task_mem.prio > -2:
+            raise NextDialogueStep()
+        # clarification task finished.
+
+        # TODO Update everything below here
+
+        query = "SELECT dialogue_task_output FROM Task WHERE uuid={}".format(task_mem.memid)
+        _, r = interpreter.memory.basic_search(query)
+        if r and r[0] == "yes":
+            # TODO: learn from the tag!  put it in memory!
+            query = "SELECT MEMORY FROM ReferenceObject WHERE << {}, reference_object_confirmation, ?>>".format(
+                self.memid
+            )
+            _, ref_obj_mems = interpreter.memory.basic_search(query)
+            update_attended_and_link_lf(interpreter, ref_obj_mems)
+            return ref_obj_mems
+        else:
+            raise ErrorWithResponse("I don't know what you're referring to")
 
 
 def apply_memory_filters(interpreter, speaker, filters_d) -> List[ReferenceObjectNode]:

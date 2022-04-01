@@ -381,9 +381,6 @@ class DroidletAgent(BaseAgent):
             if not self.no_default_behavior:
                 self.maybe_run_slow_defaults()
             self.dialogue_manager.step()
-        elif type(obj) is dict:
-            # this is a dialogue Task, set it to run:
-            obj["task"](self, task_data=obj["data"])
         elif isinstance(obj, InterpreterBase):
             # this object is an Interpreter, step it and check if its finished
             obj.step(self)
@@ -391,14 +388,12 @@ class DroidletAgent(BaseAgent):
                 self.memory.get_mem_by_id(obj.memid).finish()
         else:
             raise Exception(
-                "strange obj (not Interpreter or DialogueTask) returned from dialogue manager {}".format(
-                    obj
-                )
+                "strange obj (not Interpreter) returned from dialogue manager {}".format(obj)
             )
 
         # check to see if some Tasks were put in memory that need to be
         # hatched using agent object (self):
-        query = "SELECT MEMORY FROM Task WHERE prio==-3"
+        query = "SELECT MEMORY FROM Task WHERE prio=-3"
         _, task_mems = self.memory.basic_search(query)
         for task_mem in task_mems:
             task_mem.task["class"](
