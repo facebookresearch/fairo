@@ -78,7 +78,8 @@
             },
             "location_type": {
               "enum": [
-                "Other"
+                "Other",
+                "SPEAKER_POS"
               ]
             },
             "has_measure": {
