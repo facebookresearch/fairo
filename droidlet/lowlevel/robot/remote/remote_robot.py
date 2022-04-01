@@ -25,7 +25,7 @@ Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
 
 @Pyro4.expose
 class RemoteHabitatRobot(object):
-    """ interface for a robot in habitat.
+    """interface for a robot in habitat.
 
     Args:
         scene_path (str): the path to the scene file to load in habitat
