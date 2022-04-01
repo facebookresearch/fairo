@@ -94,7 +94,7 @@
                 },
                 "location": {
                     "$ref": "action_dict_components.schema.json#/definitions/location"
-                },
+                }
             },
             "required": [
                 "action_type"
