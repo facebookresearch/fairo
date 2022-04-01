@@ -112,7 +112,7 @@ class PlaceField:
     # this is pretty brutal, using rn on robot to sync with slam service
     def sync_traversible(self, locs, h=0):
         self.maps[h]["map"][:] = 0
-        self.maps[h]["updated"][i, j] = self.get_time()
+        self.maps[h]["updated"][:] = self.get_time()
         for (x, z) in locs:
             i, j = self.real2map(x, z, h)
             self.maps[h]["map"][i, j] = 1
