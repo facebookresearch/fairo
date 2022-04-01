@@ -105,6 +105,9 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
     file_name = artifact_name + "_" + checksum_val + ".tar.gz"
     """Get tar file from s3 using : agent name, artifact name and checksum combination as unique identifier"""
     final_path = os.path.join(ROOTDIR, file_name)
+    #FIXME! hack until locobot replaced in amazon
+    if "robot" in file_name and "perception" in file_name:
+        file_name = file_name.replace("robot", "locobot")
     print(
         "====== Downloading  http://craftassist.s3-us-west-2.amazonaws.com/pubr/"
         + file_name
