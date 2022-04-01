@@ -51,7 +51,7 @@ class NSPQuerier(object):
         self.ground_truth_actions = get_ground_truth(
             self.opts.no_ground_truth, self.opts.ground_truth_data_dir
         )
-        
+
         # Socket event listener
         # TODO(kavya): I might want to move this to SemanticParserWrapper
         @sio.on("queryParser")
