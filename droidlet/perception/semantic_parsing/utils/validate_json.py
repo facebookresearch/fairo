@@ -65,7 +65,11 @@ class JSONValidator:
         with open(data_path) as fd:
             dataset = fd.readlines()
             for line in dataset:
-                command, action_dict = line.split("|")
+                parts = line.split("|")
+                if len(parts) > 2:
+                    _, command, action_dict = parts
+                else:
+                    command, action_dict = parts
                 parse_tree = json.loads(action_dict)
                 try:
                     validate(instance=parse_tree, schema=self.base_schema, resolver=self.resolver)
