@@ -141,14 +141,14 @@ FILTERS["the first thing that was built"] = {
         "ordinal": "FIRST",
         "return_quantity": {"argval": {"polarity": "MIN", "quantity": ATTRIBUTES["create time"]}},
     },
-    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
+    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "_VOXEL_OBJECT"}]},
 }
 FILTERS["the last thing that was built"] = {
     "selector": {
         "ordinal": "FIRST",
         "return_quantity": {"argval": {"polarity": "MAX", "quantity": ATTRIBUTES["create time"]}},
     },
-    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
+    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "_VOXEL_OBJECT"}]},
 }
 FILTERS["number of blocks in the first thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
@@ -156,7 +156,7 @@ FILTERS["number of blocks in the first thing built"] = {
         "ordinal": "FIRST",
         "return_quantity": {"argval": {"polarity": "MIN", "quantity": ATTRIBUTES["create time"]}},
     },
-    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
+    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "_VOXEL_OBJECT"}]},
 }
 FILTERS["number of blocks in the second thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
@@ -164,7 +164,7 @@ FILTERS["number of blocks in the second thing built"] = {
         "ordinal": "SECOND",
         "return_quantity": {"argval": {"polarity": "MIN", "quantity": ATTRIBUTES["create time"]}},
     },
-    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
+    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "_VOXEL_OBJECT"}]},
 }
 FILTERS["number of blocks in the last thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
@@ -172,7 +172,7 @@ FILTERS["number of blocks in the last thing built"] = {
         "ordinal": "FIRST",
         "return_quantity": {"argval": {"polarity": "MAX", "quantity": ATTRIBUTES["create time"]}},
     },
-    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
+    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "_VOXEL_OBJECT"}]},
 }
 
 
