@@ -22,8 +22,8 @@
     "location": {
       "$ref": "action_dict_components.schema.json#/definitions/location"
     },
-    "remove_condition": {
-      "$ref": "action_dict_components.schema.json#/definitions/remove_condition"
+    "terminate_condition": {
+      "$ref": "action_dict_components.schema.json#/definitions/terminate_condition"
     },
     "stop_condition": {
       "$ref": "action_dict_components.schema.json#/definitions/stop_condition"
@@ -119,12 +119,6 @@
               }
             }
           ]
-        },
-        "remove_condition": {
-          "$ref": "#/definitions/remove_condition"
-        },
-        "stop_condition": {
-          "$ref": "#/definitions/stop_condition"
         }
       }
     },
@@ -364,12 +358,6 @@
         "schematic": {
           "$ref": "#/definitions/schematic"
         },
-        "remove_condition": {
-          "$ref": "#/definitions/remove_condition"
-        },
-        "stop_condition": {
-          "$ref": "#/definitions/stop_condition"
-        },
         "replace": {
           "$ref": "#/definitions/replace"
         }
@@ -406,12 +394,6 @@
         "location": {
           "$ref": "#/definitions/location"
         },
-        "remove_condition": {
-          "$ref": "#/definitions/remove_condition"
-        },
-        "stop_condition": {
-          "$ref": "#/definitions/stop_condition"
-        },
         "replace": {
           "$ref": "#/definitions/replace"
         }
@@ -443,12 +425,6 @@
               }
             }
           ]
-        },
-        "remove_condition": {
-          "$ref": "#/definitions/remove_condition"
-        },
-        "stop_condition": {
-          "$ref": "#/definitions/stop_condition"
         },
         "location": {
           "$ref": "#/definitions/location"
@@ -533,8 +509,8 @@
         "dialogue_type": {
           "const": "HUMAN_GIVE_COMMAND"
         },
-        "action_sequence": {
-          "$ref": "#/definitions/action_sequence"
+        "event_sequence": {
+          "$ref": "#/definitions/event_sequence"
         }
       }
     },
@@ -592,7 +568,7 @@
         }
       }
     },
-    "action_sequence": {
+    "event_sequence": {
       "type": "array",
       "items": {
         "anyOf": [
@@ -648,8 +624,8 @@
         "dialogue_type": {
           "const": "HUMAN_GIVE_COMMAND"
         },
-        "action_sequence": {
-          "$ref": "#/definitions/action_sequence"
+        "event_sequence": {
+          "$ref": "#/definitions/event_sequence"
         }
       }
     },

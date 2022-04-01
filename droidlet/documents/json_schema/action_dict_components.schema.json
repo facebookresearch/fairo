@@ -153,28 +153,9 @@
         }
       ]
     },
-    "remove_condition": {
+    "terminate_condition": {
       "type": "object",
       "description": "Condition for removing an event",
-      "properties": {
-        "condition_type": {
-          "enum": [
-            "ADJACENT_TO_BLOCK_TYPE",
-            "NEVER",
-            "COMPARATOR"
-          ]
-        },
-        "block_type": {
-          "$ref": "#/definitions/span"
-        },
-        "condition": {
-          "$ref": "#/definitions/condition"
-        }
-      }
-    },
-    "stop_condition": {
-      "type": "object",
-      "description": "Condition for stopping",
       "properties": {
         "condition_type": {
           "enum": [
