@@ -190,7 +190,7 @@ jobs:
           project_name: droidlet
           relative_path: droidlet/docs/build/html
 
-  locobot:
+  robot:
     machine:
       image: ubuntu-2004:202104-01
     resource_class: gpu.nvidia.small
@@ -253,10 +253,10 @@ jobs:
           cd ${HOME}/project/
           export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:11.0
           mkdir shared
-          docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
+          docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/robot_tests.sh
           pip3 install codecov
           export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
-          codecov -n "locobot tests" -f test*.xml || echo "Codecov did not collect coverage reports"
+          codecov -n "robot tests" -f test*.xml || echo "Codecov did not collect coverage reports"
   
   polymetis-local-ubuntu-18:
     docker:
@@ -443,7 +443,7 @@ workflows:
   build:
     jobs:
       - minecraft
-      - locobot
+      - robot
       - polymetis-local-ubuntu-18
       - polymetis-local-ubuntu-20
       - polymetis-conda-ubuntu-18

@@ -2,8 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
-from droidlet.memory.robot.loco_memory import LocoAgentMemory
-from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
+from droidlet.memory.robot.robo_memory import RoboAgentMemory
+from droidlet.memory.robot.robo_memory_nodes import DetectedObjectNode
 from droidlet.base_util import Pos, Look, Player
 
 
@@ -28,7 +28,7 @@ class DO:
 
 class BasicTest(unittest.TestCase):
     def test_player_apis(self):
-        self.memory = LocoAgentMemory()
+        self.memory = RoboAgentMemory()
         player_list = [
             Player(20, "xyz", Pos(1, 1, 1), Look(1, 1)),
             Player(10, "abc", Pos(0, 0, 3), Look(0, 0)),
@@ -39,7 +39,7 @@ class BasicTest(unittest.TestCase):
         assert self.memory.get_player_by_eid(10).name == "abc"
 
     def test_detected_object_apis(self):
-        self.memory = LocoAgentMemory()
+        self.memory = RoboAgentMemory()
         d = DO(
             eid=33,
             label="smaug",
@@ -59,7 +59,7 @@ class BasicTest(unittest.TestCase):
             assert self.memory.get_detected_objects_tagged(t).pop() == detected_object_mem_id
 
     def test_dance_api(self):
-        self.memory = LocoAgentMemory()
+        self.memory = RoboAgentMemory()
 
         def return_num():
             return 10

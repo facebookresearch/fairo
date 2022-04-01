@@ -9,7 +9,7 @@ TEST_TIMEOUT=120s
 
 pushd ..
 timeout -k $TEST_TIMEOUT $TEST_TIMEOUT \
-	python locobot_agent.py &
+	python robot_agent.py &
 BGPID=$!
 popd
 
@@ -23,7 +23,7 @@ else
     wait $BGPID
     STATUS2=$?
     if [[ $STATUS2 -gt 0 ]]; then
-	echo "Failed to shutdown locobot_agent.py cleanly."
+	echo "Failed to shutdown robot_agent.py cleanly."
 	exit $STATUS2
     fi
 fi

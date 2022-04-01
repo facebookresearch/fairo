@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 
 """
-Co-ordinate transform utils. Read more at https://github.com/facebookresearch/fairo/blob/main/locobot/coordinates.MD
+Co-ordinate transform utils. Read more at https://github.com/facebookresearch/fairo/blob/main/rocobot/coordinates.MD
 """
 # FIXME! find a new home for this file!
 pyrobot_to_canonical_frame = np.array([[0.0, 0.0, 1.0], [-1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])

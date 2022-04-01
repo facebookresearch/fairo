@@ -16,13 +16,13 @@ import queue
 
 
 class Perception:
-    """Home for all perceptual modules used by the LocobotAgent.
+    """Home for all perceptual modules used by the RobotAgent.
 
     It provides a multiprocessing mechanism to run the more compute intensive perceptual
     models (for example our object detector) as a separate process.
 
     Args:
-        model_data_dir (string): path for all perception models (default: droidlet/artifacts/models/perception/locobot)
+        model_data_dir (string): path for all perception models (default: droidlet/artifacts/models/perception/robot)
     """
 
     def __init__(self, model_data_dir, default_keypoints_path=False):

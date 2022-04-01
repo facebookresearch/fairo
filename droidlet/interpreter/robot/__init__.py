@@ -1,5 +1,5 @@
-from .loco_interpreter import LocoInterpreter
-from .get_memory_handler import LocoGetMemoryHandler
+from .robo_interpreter import RoboInterpreter
+from .get_memory_handler import RoboGetMemoryHandler
 from .put_memory_handler import PutMemoryHandler
 
-__all__ = [LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter]
+__all__ = [RoboGetMemoryHandler, PutMemoryHandler, RoboInterpreter]

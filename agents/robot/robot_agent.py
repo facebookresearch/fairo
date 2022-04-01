@@ -26,19 +26,19 @@ from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.droidlet_agent import DroidletAgent
 from agents.argument_parser import ArgumentParser
-import agents.locobot.label_prop as LP
-from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
+import agents.robot.label_prop as LP
+from droidlet.memory.robot.robo_memory import RoboAgentMemory, DetectedObjectNode
 from droidlet.perception.robot import Perception
 from droidlet.perception.semantic_parsing.utils.interaction_logger import InteractionLogger
 from self_perception import SelfPerception
 from droidlet.interpreter.robot import (
     dance,
     default_behaviors,
-    LocoGetMemoryHandler,
+    RoboGetMemoryHandler,
     PutMemoryHandler,
-    LocoInterpreter,
+    RoboInterpreter,
 )
-from droidlet.dialog.robot import LocoBotCapabilities
+from droidlet.dialog.robot import RobotCapabilities
 import droidlet.lowlevel.hello_robot.rotation as rotation
 from droidlet.event import sio
 
@@ -52,26 +52,26 @@ logging.getLogger().setLevel(logging.DEBUG)
 logging.getLogger().handlers.clear()
 
 
-class LocobotAgent(DroidletAgent):
-    """Implements an instantiation of the LocoMCAgent on a Locobot. It starts
+class RobotAgent(DroidletAgent):
+    """Implements an instantiation of the DroidletAgent on a robot. It starts
     off the agent processes including launching the dashboard.
 
     Args:
         opts (argparse.Namespace): opts returned by the ArgumentParser with defaults set
             that you can override.
-        name (string, optional): a name for your agent (default: Locobot)
+        name (string, optional): a name for your agent (default: robot)
 
     Example:
-        >>> python locobot_agent.py --backend 'habitat'
+        >>> python robot_agent.py --backend 'habitat'
     """
 
     coordinate_transforms = rotation
 
-    def __init__(self, opts, name="Locobot"):
+    def __init__(self, opts, name="robot"):
         self.backend = opts.backend
-        super(LocobotAgent, self).__init__(opts)
-        logging.info("LocobotAgent.__init__ started")
-        self.agent_type = "locobot"
+        super(RobotAgent, self).__init__(opts)
+        logging.info("RobotAgent.__init__ started")
+        self.agent_type = "robot"
         self.opts = opts
         self.entityId = 0
         self.no_default_behavior = opts.no_default_behavior
@@ -212,7 +212,7 @@ class LocobotAgent(DroidletAgent):
         Uses the DB_FILE environment variable to write the memory to a
         file or saves it in-memory otherwise.
         """
-        self.memory = LocoAgentMemory(
+        self.memory = RobotAgentMemory(
             db_file=os.environ.get("DB_FILE", ":memory:"),
             db_log_path=None,
             coordinate_transforms=self.coordinate_transforms,
@@ -258,9 +258,9 @@ class LocobotAgent(DroidletAgent):
     def init_controller(self):
         """Instantiates controllers - the components that convert a text chat to task(s)."""
         dialogue_object_classes = {}
-        dialogue_object_classes["bot_capabilities"] = {"task": LocoBotCapabilities, "data": {}}
-        dialogue_object_classes["interpreter"] = LocoInterpreter
-        dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
+        dialogue_object_classes["bot_capabilities"] = {"task": RobotCapabilities, "data": {}}
+        dialogue_object_classes["interpreter"] = RoboInterpreter
+        dialogue_object_classes["get_memory"] = RoboGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
@@ -271,8 +271,8 @@ class LocobotAgent(DroidletAgent):
     def init_physical_interfaces(self):
         """Instantiates the interface to physically move the robot."""
         if self.backend == 'habitat':
-            from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
-            self.mover = LoCoBotMover(ip=self.opts.ip, backend=self.opts.backend)
+            from droidlet.lowlevel.robot.robot_mover import RobotMover
+            self.mover = RobotMover(ip=self.opts.ip, backend=self.opts.backend)
         else:
             from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
             self.mover = HelloRobotMover(ip=self.opts.ip)
@@ -326,7 +326,7 @@ class LocobotAgent(DroidletAgent):
 
 if __name__ == "__main__":
     base_path = os.path.dirname(__file__)
-    parser = ArgumentParser("Locobot", base_path)
+    parser = ArgumentParser("robot", base_path)
     opts = parser.parse()
 
     logging.basicConfig(level=opts.log_level.upper())
@@ -339,8 +339,8 @@ if __name__ == "__main__":
 
     # Check that models and datasets are up to date
     if not opts.dev:
-        try_download_artifacts(agent="locobot")
+        try_download_artifacts(agent="robot")
 
 
-    sa = LocobotAgent(opts)
+    sa = RobotAgent(opts)
     sa.start()

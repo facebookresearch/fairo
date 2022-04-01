@@ -48,15 +48,15 @@ def get_camera_angles(camera_pos, look_at_pnt):
     return yaw_pitch(look_dir)
 
 
-def get_arm_angle(locobot_pos, marker_pos):
+def get_arm_angle(robot_pos, marker_pos):
     H = 0.2
-    dir_xy_vect = np.array(marker_pos)[:2] - np.array(locobot_pos)[:2]
+    dir_xy_vect = np.array(marker_pos)[:2] - np.array(robot_pos)[:2]
     angle = -np.arctan((marker_pos[2] - H) / np.linalg.norm(dir_xy_vect))
     return angle
 
 
-def get_bot_angle(locobot_pos, marker_pos):
-    dir_xy_vect = np.array(marker_pos)[:2] - np.array(locobot_pos)[:2]
+def get_bot_angle(robot_pos, marker_pos):
+    dir_xy_vect = np.array(marker_pos)[:2] - np.array(robot_pos)[:2]
     angle = np.arctan(dir_xy_vect[1] / dir_xy_vect[0])
     return angle
 

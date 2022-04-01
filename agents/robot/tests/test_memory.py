@@ -7,8 +7,8 @@ from numpy.testing import assert_allclose
 from droidlet.lowlevel.robot_coordinate_utils import xyz_canonical_coords_to_pyrobot_coords
 from droidlet.perception.robot import Detection
 from droidlet.shared_data_structs import RGBDepth
-from droidlet.memory.robot.loco_memory import LocoAgentMemory
-from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
+from droidlet.memory.robot.robo_memory import RoboAgentMemory
+from droidlet.memory.robot.robo_memory_nodes import DetectedObjectNode, HumanPoseNode
 from droidlet.perception.robot.tests.utils import get_fake_detection, get_fake_humanpose, get_fake_bbox
 from droidlet.interpreter.robot import dance
 
@@ -16,7 +16,7 @@ from droidlet.interpreter.robot import dance
 class MemoryTests(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(MemoryTests, self).__init__(*args, **kwargs)
-        self.memory = LocoAgentMemory()
+        self.memory = RoboAgentMemory()
         dance.add_default_dances(self.memory)
 
     def test_detected_object_node_creation(self):
@@ -44,7 +44,7 @@ class MemoryTests(unittest.TestCase):
         ys[::-1].sort()
         ys = np.transpose(np.tile(ys, (p,1)))
 
-        # (x,y,z=1) in row-major form, in locobot coords
+        # (x,y,z=1) in row-major form, in robot coords
         pts = np.asarray([xyz_canonical_coords_to_pyrobot_coords((x,y,1))
             for x,y in zip(xs.ravel(), ys.ravel())])
         

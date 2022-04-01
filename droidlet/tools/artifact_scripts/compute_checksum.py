@@ -45,8 +45,8 @@ def compute_checksum_for_directory(agent=None, artifact_type=None, model_name=No
             checksum_name = "nlu.txt"
         elif model_name == "perception":
             # perception models
-            if agent == "locobot":
-                checksum_name = "locobot_perception.txt"
+            if agent == "robot":
+                checksum_name = "robot_perception.txt"
             elif agent == "craftassist":
                 checksum_name = "craftassist_perception.txt"
     else:

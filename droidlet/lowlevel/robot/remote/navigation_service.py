@@ -142,10 +142,10 @@ class Navigation(object):
         self._done_exploring = False
 
 
-robot_ip = os.getenv("LOCOBOT_IP")
+robot_ip = os.getenv("ROBOT_IP")
 ip = os.getenv("LOCAL_IP")
 
-robot_name = "remotelocobot"
+robot_name = "remoterobot"
 if len(sys.argv) > 1:
     robot_name = sys.argv[1]
 

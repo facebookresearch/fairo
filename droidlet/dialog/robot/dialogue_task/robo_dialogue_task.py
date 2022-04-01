@@ -6,7 +6,7 @@ import os
 from droidlet.dialog.dialogue_task import BotCapabilities
 
 
-class LocoBotCapabilities(BotCapabilities):
+class RobotCapabilities(BotCapabilities):
     """This class represents a sub-type of the Say DialogueObject above to answer
     something about the current capabilities of the bot, to the user.
 
@@ -14,5 +14,5 @@ class LocoBotCapabilities(BotCapabilities):
 
     def __init__(self, agent):
         super().__init__(agent)
-        loco_response_options = ["I can find your jacket", "I can find humans"]
-        self.response_options.extend(loco_response_options)
+        robo_response_options = ["I can find your jacket", "I can find humans"]
+        self.response_options.extend(robo_response_options)

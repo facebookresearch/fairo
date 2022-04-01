@@ -15,9 +15,9 @@ from droidlet.perception.robot import (
     LabelPropagate,
 )
 from droidlet.interpreter.robot import dance
-from droidlet.memory.robot.loco_memory import LocoAgentMemory
-from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
-from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
+from droidlet.memory.robot.robo_memory import RoboAgentMemory
+from droidlet.memory.robot.robo_memory_nodes import DetectedObjectNode, HumanPoseNode
+from droidlet.lowlevel.robot.robot_mover import RobotMover
 from droidlet.shared_data_struct.robot_shared_utils import RobotPerceptionData
 import cv2
 import torch
@@ -35,12 +35,12 @@ import time
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 IP = "127.0.0.1"
-if os.getenv("LOCOBOT_IP"):
-    IP = os.getenv("LOCOBOT_IP")
+if os.getenv("ROBOT_IP"):
+    IP = os.getenv("ROBOT_IP")
 
 PERCEPTION_MODELS_DIR = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
-    "../../../../droidlet/artifacts/models/perception/locobot",
+    "../../../../droidlet/artifacts/models/perception/robot",
 )
 
 OFFICE_IMG_PATH = os.path.join(
@@ -135,7 +135,7 @@ class LabelPropTest(unittest.TestCase):
 
 class PerceiveTimeTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.mover = LoCoBotMover(ip=IP, backend="habitat")
+        self.mover = RobotMover(ip=IP, backend="habitat")
         self.perception = Perception(PERCEPTION_MODELS_DIR)
 
     def test_time(self):
@@ -179,7 +179,7 @@ class MemoryStoringTest(unittest.TestCase):
     def setUp(self) -> None:
         self.detect_handler = ObjectDetection(PERCEPTION_MODELS_DIR)
         self.agent = MagicMock()
-        self.agent.memory = LocoAgentMemory()
+        self.agent.memory = RoboAgentMemory()
         dance.add_default_dances(self.agent.memory)
         self.deduplicator = ObjectDeduplicator()
 

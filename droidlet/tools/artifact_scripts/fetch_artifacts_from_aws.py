@@ -24,7 +24,7 @@ def download_url(url, output_path):
 
 
 def fetch_test_assets_from_aws(agent=None):
-    assert agent == "locobot"
+    assert agent == "robot"
     file_name = "locobot_perception_test_assets.tar.gz"
     aws_asset_file = (
         "https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz"
@@ -66,7 +66,7 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
     and overwrites corresponding local directory.
 
     Args:
-        agent: agent name - "locobot" or "craftassist"
+        agent: agent name - "robot" or "craftassist"
         artifact_name: "datasets" or "models"
         model_name: "nlu" or "perception"
         checksum_file_name: name of the file containing checksum

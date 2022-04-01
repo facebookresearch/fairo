@@ -39,7 +39,7 @@ def try_download_artifacts(agent=None, test_mode=False):
     os.makedirs(os.path.join(artifact_path, "models/perception"), exist_ok=True)
     os.makedirs(os.path.join(artifact_path, "models/perception", agent), exist_ok=True)
     if test_mode:
-        # Download test artifacts for Locobot tests
+        # Download test artifacts for robot tests
         os.makedirs(
             os.path.join(artifact_path, "datasets/robot/perception_test_assets"), exist_ok=True
         )
@@ -98,7 +98,7 @@ def compare_checksum_try_download(agent=None, local_checksum_file=None, artifact
     download if the checksums differ.
 
     Agent:
-        agent: Name of agent - "locobot" or "craftassist"
+        agent: Name of agent - "robot" or "craftassist"
         local_checksum_file: path to local checksum file inside agent folder.
         artifact_name: model name ("perception" or "nlu") or "datasets"
     """
@@ -108,7 +108,7 @@ def compare_checksum_try_download(agent=None, local_checksum_file=None, artifact
 
     artifact_name_file = artifact_name
     if artifact_name == "perception":
-        # We are tracking locobot_perception and craftassist_perception on remote
+        # We are tracking robot_perception and craftassist_perception on remote
         artifact_name_file = agent + "_" + artifact_name
 
     latest_checksum_file = os.path.join(

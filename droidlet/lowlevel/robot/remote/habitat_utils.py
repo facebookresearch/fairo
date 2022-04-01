@@ -9,7 +9,7 @@ import os
 
 def reconfigure_scene(env, scene_path, add_humans):
     """This function takes a habitat scene and adds relevant changes to the
-    scene that make it useful for locobot assistant.
+    scene that make it useful for robot assistant.
 
     For example, it sets initial positions to be deterministic, and it
     adds some humans to the environment a reasonable places

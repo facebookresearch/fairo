@@ -8,7 +8,7 @@ kill_pattern () {
 kill_pattern python navigation_service.py
 kill_pattern python planning_service.py
 kill_pattern python slam_service.py
-kill_pattern python remote_locobot.py
+kill_pattern python remote_robot.py
 kill_pattern python Pyro4.naming
 
 # sleep 3

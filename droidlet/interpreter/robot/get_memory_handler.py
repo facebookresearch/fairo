@@ -19,7 +19,7 @@ from droidlet.base_util import prepend_a_an
 from droidlet.interpreter.robot.tasks import Point
 
 
-class LocoGetMemoryHandler(GetMemoryHandler):
+class RoboGetMemoryHandler(GetMemoryHandler):
     """This class handles logical forms that ask questions about the environment or
     the assistant's current state. This requires querying the assistant's memory.
 

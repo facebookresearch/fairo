@@ -7,7 +7,7 @@ import os
 
 class ArgumentParser:
     def __init__(self, agent_type, base_path):
-        self.agent_parsers = {"Minecraft": self.add_mc_parser, "Locobot": self.add_loco_parser}
+        self.agent_parsers = {"Minecraft": self.add_mc_parser, "robot": self.add_robo_parser}
         self.base_path = base_path
         self.parser = argparse.ArgumentParser()
 
@@ -100,31 +100,31 @@ class ArgumentParser:
         )
         mc_parser.add_argument("--port", type=int, default=25565)
 
-    def add_loco_parser(self):
-        loco_parser = self.parser.add_argument_group("Locobot Agent Args")
+    def add_robo_parser(self):
+        robo_parser = self.parser.add_argument_group("Robot Agent Args")
         IP = "192.168.1.244"
         if os.getenv("LOCOBOT_IP"):
             IP = os.getenv("LOCOBOT_IP")
             print("setting default locobot ip from env variable LOCOBOT_IP={}".format(IP))
-        loco_parser.add_argument("--ip", default=IP, help="IP of the locobot")
-        loco_parser.add_argument(
+        robo_parser.add_argument("--ip", default=IP, help="IP of the robot")
+        robo_parser.add_argument(
             "--incoming_chat_path", default="incoming_chat.txt", help="path to incoming chat file"
         )
-        loco_parser.add_argument("--backend", default="habitat")
-        loco_parser.add_argument(
+        robo_parser.add_argument("--backend", default="habitat")
+        robo_parser.add_argument(
             "--perception_model_dir",
-            default="../../droidlet/artifacts/models/perception/locobot",
+            default="../../droidlet/artifacts/models/perception/rocobot",
             help="path to perception model data dir",
         )
-        loco_parser.add_argument(
+        robo_parser.add_argument(
             "--check_controller",
             action="store_true",
             help="sanity checks the robot's movement, camera, arm.",
         )
-        loco_parser.add_argument(
+        robo_parser.add_argument(
             "--data_store_path", default="", help="path for storing data collected by the robot"
         )
-        loco_parser.add_argument("--reexplore_json", default="", help="json for reexplore task")
+        robo_parser.add_argument("--reexplore_json", default="", help="json for reexplore task")
 
     def fix_path(self, opts):
         if opts.model_base_path == "#relative":

@@ -24,8 +24,8 @@ Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
 
 
 @Pyro4.expose
-class RemoteLocobot(object):
-    """PyRobot interface for the Locobot.
+class RemoteHabitatRobot(object):
+    """ interface for a robot in habitat.
 
     Args:
         scene_path (str): the path to the scene file to load in habitat
@@ -428,14 +428,14 @@ if __name__ == "__main__":
     Pyro4.config.SERVERTYPE = "multiplex"
 
     with Pyro4.Daemon(args.ip) as daemon:
-        robot = RemoteLocobot(
+        robot = RemoteHabitatRobot(
             scene_path=args.scene_path,
             noisy=args.noisy,
             add_humans=args.add_humans,
         )
         robot_uri = daemon.register(robot)
         with Pyro4.locateNS() as ns:
-            ns.register("remotelocobot", robot_uri)
+            ns.register("remoterobot", robot_uri)
 
         print("Server is started...")
         daemon.requestLoop()
@@ -443,5 +443,5 @@ if __name__ == "__main__":
 
 # Below is client code to run in a separate Python shell...
 # import Pyro4
-# robot = Pyro4.Proxy("PYRONAME:remotelocobot")
+# robot = Pyro4.Proxy("PYRONAME:remoterobot")
 # robot.go_home()

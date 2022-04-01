@@ -1,3 +1,3 @@
-from .loco_dialogue_task import LocoBotCapabilities
+from .robo_dialogue_task import RobotCapabilities
 
-__all__ = [LocoBotCapabilities]
+__all__ = [RobotCapabilities]

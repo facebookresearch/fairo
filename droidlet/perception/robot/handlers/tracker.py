@@ -55,7 +55,7 @@ class ObjectTracking(AbstractHandler):
             draw_tracked_objects(img, self.tracked_objects)
             cv2.imshow("Norfair", img)
             tf = tempfile.NamedTemporaryFile(
-                prefix="norfair_" + str(datetime.now()) + "_locobot_capture_" + "_",
+                prefix="norfair_" + str(datetime.now()) + "_robot_capture_" + "_",
                 suffix=".jpg",
                 dir="",
                 delete=False,

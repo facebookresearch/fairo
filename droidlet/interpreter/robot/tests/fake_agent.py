@@ -13,8 +13,8 @@ from droidlet.memory.memory_nodes import PlayerNode
 from agents.droidlet_agent import DroidletAgent
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.memory.robot.loco_memory import LocoAgentMemory
-from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
+from droidlet.memory.robot.robo_memory import RoboAgentMemory
+from droidlet.memory.robot.robo_memory_nodes import DetectedObjectNode
 from droidlet.lowlevel.robot_mover_utils import (
     get_camera_angles,
     angle_diff,
@@ -23,13 +23,13 @@ from droidlet.lowlevel.robot_mover_utils import (
 )
 
 # FXIME!!! everything here should be essentially self-contained
-from agents.locobot.self_perception import SelfPerception
+from agents.robot.self_perception import SelfPerception
 import droidlet.lowlevel.rotation as rotation
 from droidlet.perception.robot.tests.utils import get_fake_detection
 from droidlet.shared_data_struct.robot_shared_utils import Pos, RobotPerceptionData
 
 # marker creation should be somewhwere else....
-from droidlet.interpreter.robot import LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
+from droidlet.interpreter.robot import RoboGetMemoryHandler, PutMemoryHandler, RoboInterpreter
 
 MV_SPEED = 0.2
 ROT_SPEED = 1.0  # rad/tick
@@ -216,7 +216,7 @@ class SendChat(FakeMoverCommand):
         return self.finished
 
 
-# TODO? have a base class, use the same for real and fake locobot mover,
+# TODO? have a base class, use the same for real and fake robot mover,
 # but use different backend
 class LookAt(FakeMoverCommand):
     NAME = "look_at"
@@ -295,7 +295,7 @@ class LookAt(FakeMoverCommand):
 """
 
 
-class FakeLocobot:
+class FakeRobot:
     def __init__(self):
         self._done = True
 
@@ -309,7 +309,7 @@ class FakeLocobot:
 class FakeMover:
     def __init__(self, agent):
         self.agent = agent
-        self.bot = FakeLocobot()
+        self.bot = FakeRobot()
         self.current_action = None
         self.move_absolute = MoveAbsolute(self, agent)
         self.send_chat = SendChat(self, agent)
@@ -424,13 +424,13 @@ class FakeAgent(DroidletAgent):
         self.send_chat = self.mover.send_chat
 
     def init_memory(self):
-        self.memory = LocoAgentMemory(coordinate_transforms=self.coordinate_transforms)
+        self.memory = RoboAgentMemory(coordinate_transforms=self.coordinate_transforms)
         dance.add_default_dances(self.memory)
 
     def init_controller(self):
         dialogue_object_classes = {}
-        dialogue_object_classes["interpreter"] = LocoInterpreter
-        dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
+        dialogue_object_classes["interpreter"] = RoboInterpreter
+        dialogue_object_classes["get_memory"] = RoboGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = DialogueManager(self.memory, dialogue_object_classes, self.opts)
 
@@ -460,7 +460,7 @@ class FakeAgent(DroidletAgent):
             self.recorder.record_world()
         super().step()
 
-    #### use the LocobotAgent.controller_step()
+    #### use the RobotAgent.controller_step()
     def controller_step(self):
         super().controller_step()
         # if the logical form was set explicitly, clear it, so that it won't keep
@@ -497,7 +497,7 @@ class FakeAgent(DroidletAgent):
     def point_at(*args):
         pass
 
-    # TODO mirror this logic in real locobot
+    # TODO mirror this logic in real robot
     def get_incoming_chats(self):
         c = self.chat_count
         for raw_chatstr in self.world.chat_log[c:]:

@@ -38,17 +38,17 @@ Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
 
 
-class LoCoBotMover:
+class RobotMover:
     """
-    Implements methods that call the physical interfaces of the Locobot.
+    Implements methods that call the physical interfaces of the robot.
 
     Arguments:
-        ip (string): IP of the Locobot.
-        backend (string): backend where the Locobot lives, either "habitat" or "locobot"
+        ip (string): IP of the robot.
+        backend (string): backend where the Robot lives, either "habitat" or "robot"
     """
 
     def __init__(self, ip=None, backend="habitat"):
-        self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + ip)
+        self.bot = Pyro4.Proxy("PYRONAME:remoterobot@" + ip)
         self.slam = Pyro4.Proxy("PYRONAME:slam@" + ip)
         self.nav = Pyro4.Proxy("PYRONAME:navigation@" + ip)
         # spin once synchronously
@@ -176,7 +176,7 @@ class LoCoBotMover:
         old_pan = self.get_pan()
         old_tilt = self.get_tilt()
         pos = self.get_base_pos_in_canonical_coords()
-        logging.info(f"Current Locobot state (x, z, yaw): {pos}")
+        logging.info(f"Current Robot state (x, z, yaw): {pos}")
         if yaw_deg:
             pan_rad = old_pan - float(yaw_deg) * np.pi / 180
         if pitch_deg:
@@ -196,7 +196,7 @@ class LoCoBotMover:
             pan_rad = head_res
         logging.info(f"Camera new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
         self.bot.set_pan_tilt(pan_rad, np.clip(tilt_rad, tilt_rad, 0.9))
-        logging.debug(f"locobot pan and tilt now: ({self.bot.get_camera_state()})")
+        logging.debug(f"robot pan and tilt now: ({self.bot.get_camera_state()})")
 
         return "finished"
 
@@ -225,8 +225,8 @@ class LoCoBotMover:
 
     def get_base_pos_in_canonical_coords(self):
         """
-        get the current Locobot position in the canonical coordinate system
-        instead of the Locobot's global coordinates as stated in the Locobot
+        get the current Robot position in the canonical coordinate system
+        instead of the Robot's global coordinates as stated in the Robot
         documentation: https://www.pyrobot.org/docs/navigation.
         The standard coordinate systems:
         Camera looks at (0, 0, 1),
@@ -234,7 +234,7 @@ class LoCoBotMover:
         its up-direction is (0, 1, 0)
 
          return:
-         (x, z, yaw) of the Locobot base in standard coordinates
+         (x, z, yaw) of the Robot base in standard coordinates
         """
 
         x_global, y_global, yaw = safe_call(self.bot.get_base_state)
@@ -244,7 +244,7 @@ class LoCoBotMover:
 
     def get_base_pos(self):
         """
-        Return Locobot (x, y, yaw) in the robot base coordinates as
+        Return Robot (x, y, yaw) in the robot base coordinates as
         illustrated in the docs:
         https://www.pyrobot.org/docs/navigation
         """
@@ -315,7 +315,7 @@ class LoCoBotMover:
     def get_obstacles_in_canonical_coords(self):
         """
         get the positions of obtacles position in the canonical coordinate system
-        instead of the Locobot's global coordinates as stated in the Locobot
+        instead of the Robot's global coordinates as stated in the Robot
         documentation: https://www.pyrobot.org/docs/navigation or
         https://github.com/facebookresearch/pyrobot/blob/master/docs/website/docs/ex_navigation.md
         the standard coordinate systems:
@@ -336,8 +336,8 @@ class LoCoBotMover:
 
 if __name__ == "__main__":
     base_path = os.path.dirname(__file__)
-    parser = ArgumentParser("Locobot", base_path)
+    parser = ArgumentParser("robot", base_path)
     opts = parser.parse()
-    mover = LoCoBotMover(ip=opts.ip, backend=opts.backend)
+    mover = RobotMover(ip=opts.ip, backend=opts.backend)
     if opts.check_controller:
         mover.check()

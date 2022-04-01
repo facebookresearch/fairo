@@ -11,5 +11,5 @@ pytest --cov-report=xml:$SHARED_PATH/droidlet_craftassist_tests.xml --cov=droidl
        --ignore droidlet/memory/robot/ \
        --ignore droidlet/perception/robot/ \
        --ignore droidlet/interpreter/robot/ \
-       --ignore droidlet/lowlevel/locobot/ \
+       --ignore droidlet/lowlevel/robot/ \
        --ignore droidlet/lowlevel/test

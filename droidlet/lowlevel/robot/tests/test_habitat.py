@@ -14,8 +14,8 @@ from numpy.testing import assert_allclose
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 IP = "127.0.0.1"
-if os.getenv("LOCOBOT_IP"):
-    IP = os.getenv("LOCOBOT_IP")
+if os.getenv("ROBOT_IP"):
+    IP = os.getenv("ROBOT_IP")
 
 
 def get_asset_path(name):
@@ -47,7 +47,7 @@ def assert_turn_degree(initial, final, degree):
 class NavigationTests(unittest.TestCase):
     def setUp(self):
         global IP
-        self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + IP)
+        self.bot = Pyro4.Proxy("PYRONAME:remoterobot@" + IP)
         self.nav = Pyro4.Proxy("PYRONAME:navigation@" + IP)
 
         if not hasattr(self, "initial_state"):
@@ -83,7 +83,7 @@ class NavigationTests(unittest.TestCase):
 class PerceptionTests(unittest.TestCase):
     def setUp(self):
         global IP
-        self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + IP)
+        self.bot = Pyro4.Proxy("PYRONAME:remoterobot@" + IP)
         self.nav = Pyro4.Proxy("PYRONAME:navigation@" + IP)
         initial_state = [4.8, 0.16, -1.0]  # in apartment_0, right in front of the humans
         # make sure after every unit test to go back to initial position

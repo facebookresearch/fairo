@@ -21,7 +21,7 @@ python slam.py --robot habitat --goal 10 2 0 --map_size 4000 --robot_rad 25 --vi
     <img src="https://media.giphy.com/media/eTof1wrCZHXw83tGwH/giphy.gif", width="960" height="192">
 </p>
  
-## To run on locobot
+## To run on robot
 
 - launch the camera and robot base (make sure base is turned `on`)
 

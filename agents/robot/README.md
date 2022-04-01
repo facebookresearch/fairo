@@ -46,14 +46,14 @@ In a first shell run:
 
 ```bash
 conda activate droidlet
-cd ../../droidlet/lowlevel/locobot/remote
+cd ../../droidlet/lowlevel/robot/remote
 ./launch_pyro_habitat.sh
 ```
 
 In a second shell, run the agent
 
 ```bash
-python locobot_agent.py --backend habitat
+python robot_agent.py --backend habitat
 ```
 
 Now, you can access the dashboard to interact with the robot, give commands to the robot and to teleop the robot at http://localhost:8000
@@ -68,7 +68,7 @@ Now, you can access the dashboard to interact with the robot, give commands to t
 Once the servers have been started on the Hello Robot via (2), then on the current machine where you've created the `conda` environment, run:
 
 ```bash
-python locobot_agent.py --backend hellorobot --ip [IP address]
+python robot_agent.py --backend hellorobot --ip [IP address]
 ```
 
 Now, you can access the dashboard to interact with the robot, give commands to the robot and to teleop the robot at http://localhost:8000
@@ -84,5 +84,5 @@ The Robot Assistant has some default behaviors (like SLAM mapping shown below), 
 
 To run the Assistant without these default behaviors, use the `--no_default_behavior` flag.
 ```
-python locobot_agent.py --no_default_behavior
+python robot_agent.py --no_default_behavior
 ```

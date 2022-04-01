@@ -37,7 +37,7 @@ def base_distance(x, y):
 
 #######################################!!!!!!!!!!
 # TODO move this to "reasoning"
-# THIS NEEDS TO BE REWRITTEN TO MATCH LOCOBOT
+# THIS NEEDS TO BE REWRITTEN TO MATCH ROBOT
 def object_looked_at(
     agent,
     candidates: Sequence[Tuple[XYZ, T]],
@@ -108,7 +108,7 @@ def object_looked_at(
 
 
 #######################################!!!!!!!!!!
-# THIS NEEDS TO BE REWRITTEN TO MATCH LOCOBOT
+# THIS NEEDS TO BE REWRITTEN TO MATCH ROBOT
 def capped_line_of_sight(agent, player_struct, cap=20):
     """Return the block directly in the entity's line of sight, or a point in
     the distance."""

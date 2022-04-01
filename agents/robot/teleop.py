@@ -33,11 +33,11 @@ if __name__ == "__main__":
 from droidlet.interpreter.robot import (
     dance, 
     default_behaviors,
-    LocoGetMemoryHandler, 
+    RoboGetMemoryHandler, 
     PutMemoryHandler, 
-    LocoInterpreter,
+    RoboInterpreter,
 )
-from droidlet.dialog.robot import LocoBotCapabilities
+from droidlet.dialog.robot import RobotCapabilities
 from droidlet.event import sio
 
 faulthandler.register(signal.SIGUSR1)
@@ -178,8 +178,8 @@ if __name__ == "__main__":
     print("Connecting to robot at ip: ", ip)
 
     if backend == 'habitat':
-        from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
-        mover = LoCoBotMover(ip=ip, backend='habitat')
+        from droidlet.lowlevel.robot.robot_mover import RobotMover
+        mover = RobotMover(ip=ip, backend='habitat')
     elif backend == 'hellorobot':
         from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
         mover = HelloRobotMover(ip=ip)
@@ -270,7 +270,7 @@ if __name__ == "__main__":
         # Plot the robot
         x, y, yaw = base_state.tolist()
 
-        if backend == 'locobot':
+        if backend == 'habitat':
             height=0.63
         else: # hello-robot
             height=1.41

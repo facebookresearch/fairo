@@ -9,18 +9,18 @@ try:
 except:
     from test_utils import assert_distance_moved, assert_turn_degree
 
-from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
+from droidlet.lowlevel.robot.robot_mover import RobotMover
 
 IP = "127.0.0.1"
-if os.getenv("LOCOBOT_IP"):
-    IP = os.getenv("LOCOBOT_IP")
+if os.getenv("ROBOT_IP"):
+    IP = os.getenv("ROBOT_IP")
 
 
 class MoverTests(unittest.TestCase):
     def setUp(self):
         # Good starting global pos to not casue collisons
         INIT = (-0.16, 4.8, 0)
-        self.agent = LoCoBotMover(ip=IP, backend="habitat")
+        self.agent = RobotMover(ip=IP, backend="habitat")
         print("IN INITIAL NAVIGATION")
         self.agent.move_absolute(INIT)
 

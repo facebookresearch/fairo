@@ -52,9 +52,9 @@ class UtilsTest(unittest.TestCase):
         assert_turn_degree(math.radians(-45), math.radians(-45), 360)
 
 
-class LocoboMoverUtilsTest(unittest.TestCase):
+class RobotMoverUtilsTest(unittest.TestCase):
     """
-    Coordinate transform related tests https://github.com/facebookresearch/fairo/blob/main/locobot/coordinates.MD
+    Coordinate transform related tests https://github.com/facebookresearch/fairo/blob/main/robot/coordinates.MD
     """
 
     def test_pyrobot_to_canonical_to_pyrobot(self):

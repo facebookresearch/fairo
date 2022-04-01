@@ -13,14 +13,14 @@ echo "Kill matching processes..."
 echo "Launching environment ..."
 
 default_ip=$(hostname -I | cut -f1 -d" ")
-ip=${LOCOBOT_IP:-$default_ip}
+ip=${ROBOT_IP:-$default_ip}
 export LOCAL_IP=$ip
 export PYRO_IP=$ip
-export LOCOBOT_IP=$ip
+export ROBOT_IP=$ip
 echo "Binding to Host IP" $ip
 
-export ROBOT_NAME="remotelocobot"
-export CAMERA_NAME="remotelocobot"
+export ROBOT_NAME="remoterobot"
+export CAMERA_NAME="remoterobot"
 
 
 python -m Pyro4.naming -n $ip &
@@ -29,9 +29,9 @@ sleep 4
 
 echo $ip
 
-python remote_locobot.py --ip $ip $@ &
+python remote_robot.py --ip $ip $@ &
 # blocking wait for server to start
-timeout 1m bash -c "until python check_connected.py remotelocobot $ip; do sleep 1; done;" || true
+timeout 1m bash -c "until python check_connected.py remoterobot $ip; do sleep 1; done;" || true
 ./launch_navigation.sh
 
 popd

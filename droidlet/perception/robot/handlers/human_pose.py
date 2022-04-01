@@ -93,7 +93,7 @@ class HumanKeypoints:
         yaml_path = os.path.abspath(os.path.join(file_root, "..", keypoints_yaml))
         cfg.merge_from_file(yaml_path)
         weights = (
-            os.path.join("droidlet/artifacts/models/perception/locobot", keypoints_weights)
+            os.path.join("droidlet/artifacts/models/perception/robot", keypoints_weights)
             if default
             else os.path.join(model_data_dir, keypoints_weights)
         )

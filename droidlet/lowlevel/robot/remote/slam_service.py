@@ -116,9 +116,9 @@ class SLAM(object):
         self.map_builder.reset_map(self.map_size)
 
 
-robot_ip = os.getenv("LOCOBOT_IP")
+robot_ip = os.getenv("ROBOT_IP")
 ip = os.getenv("LOCAL_IP")
-robot_name = "remotelocobot"
+robot_name = "remoterobot"
 if len(sys.argv) > 1:
     robot_name = sys.argv[1]
 with Pyro4.Daemon(ip) as daemon:

@@ -35,7 +35,7 @@ def add_default_locs(interpreter):
     interpreter.default_loc = AGENTPOS
 
 
-class LocoInterpreter(Interpreter):
+class RoboInterpreter(Interpreter):
     """This class handles processes incoming chats and modifies the task stack.
 
     Handlers should add/remove/reorder tasks on the stack, but not

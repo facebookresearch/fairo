@@ -8,7 +8,7 @@ import logging
 import numpy as np
 import os
 import math
-from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
+from droidlet.memory.robot.robo_memory_nodes import DetectedObjectNode
 from droidlet.task.task import Task, BaseMovementTask
 from droidlet.memory.memory_nodes import TaskNode
 from droidlet.lowlevel.robot_coordinate_utils import base_canonical_coords_to_pyrobot_coords

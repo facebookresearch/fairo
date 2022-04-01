@@ -8,18 +8,18 @@ from typing import List
 from collections import namedtuple
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.memory.sql_memory import AgentMemory
-from droidlet.memory.robot.loco_memory_nodes import *
+from droidlet.memory.robot.robo_memory_nodes import *
 
 SCHEMAS = [
     os.path.join(os.path.dirname(__file__), "..", "base_memory_schema.sql"),
-    os.path.join(os.path.dirname(__file__), "loco_memory_schema.sql"),
+    os.path.join(os.path.dirname(__file__), "robo_memory_schema.sql"),
 ]
 
 # TODO "snapshot" memory type  (giving a what mob/object/player looked like at a fixed timestamp)
 # TODO when a memory is removed, its last state should be snapshotted to prevent tag weirdness
 
 
-class LocoAgentMemory(AgentMemory):
+class RoboAgentMemory(AgentMemory):
     def __init__(
         self,
         db_file=":memory:",
@@ -27,7 +27,7 @@ class LocoAgentMemory(AgentMemory):
         schema_paths=SCHEMAS,
         coordinate_transforms=None,
     ):
-        super(LocoAgentMemory, self).__init__(
+        super(RoboAgentMemory, self).__init__(
             db_file=db_file,
             schema_paths=schema_paths,
             db_log_path=db_log_path,

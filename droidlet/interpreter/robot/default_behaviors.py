@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
 from droidlet.interpreter.robot import tasks
-from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
+from droidlet.memory.robot.robo_memory_nodes import DetectedObjectNode
 import os
 import random
 import numpy as np

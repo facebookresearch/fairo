@@ -42,7 +42,7 @@ class FacingInterpreter:
             span = d["yaw_pitch"]
             # for now assumed in (yaw, pitch) or yaw, pitch or yaw pitch formats
             yp = span.replace("(", "").replace(")", "").split()
-            # negated in look_at in locobot_mover
+            # negated in look_at in robot_mover
             rel_yaw = current_yaw - float(yp[0])
             rel_pitch = current_pitch - float(yp[1])
             return {"yaw": rel_yaw, "pitch": rel_pitch}

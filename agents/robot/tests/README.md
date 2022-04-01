@@ -13,30 +13,30 @@ There are two sets of tests in this folder:
 An easy way to do this is to run it in a controlled docker environment with all relevant dependencies such as habitat. You can do so, for example with:
 
 ```bash
-cd ../../../              # goes from "minecraft/python/locobot/test" to the root of the repo
-docker run --gpus all  --ipc=host -v $(pwd):/remote -w /remote theh1ghwayman/locobot-assistant:5.0 .circleci/locobot_tests.sh
+cd ../../../              # goes from "minecraft/python/robot/test" to the root of the repo
+docker run --gpus all  --ipc=host -v $(pwd):/remote -w /remote theh1ghwayman/locobot-assistant:5.0 .circleci/robot_tests.sh
 ```
 
 ## Manually and iteratively running particular tests during development
 
-Make sure that the locobot / habitat environment is running.
+Make sure that the robot / habitat environment is running.
 One way to do this is to run the script (relative to this folder):
 
 Open a new Terminal and run:
 
 ```bash
-cd ../../../              # goes from "minecraft/python/locobot/test" to "minecraft/", i.e the root of the repo
+cd ../../../              # goes from "minecraft/python/robot/test" to "minecraft/", i.e the root of the repo
 docker run --gpus all -it --rm --ipc=host -v $(pwd):/remote -w /remote theh1ghwayman/locobot-assistant:5.0 bash
 roscore &
 load_pyrobot_env
-cd locobot/robot
+cd robot/robot
 ./launch_pyro_habitat.sh
 ```
 
 Now that the habitat environment is ready to connect, in your development terminal, run these whenever you want to retest after making code changes:
 
 ```bash
-export LOCOBOT_IP="172.17.0.2" # docker's client IP
+export ROBOT_IP="172.17.0.2" # docker's client IP
 python test_habitat.py # unit tests
 python smoke_test.py   # smoke tests
 ```

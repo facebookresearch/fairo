@@ -11,17 +11,17 @@ from droidlet.lowlevel.robot_mover_utils import transform_pose
 from numba import njit
 from math import ceil, floor
 
-# Values for locobot in habitat.
+# Values in habitat.
 # TODO: generalize this for all robots
 fx, fy = 256, 256
 cx, cy = 256, 256
 intrinsic_mat = np.array([[fx, 0.0, cx], [0.0, fy, cy], [0.0, 0.0, 1.0]])
-# rotation from pyrobot to canonical coordinates (https://github.com/facebookresearch/fairo/blob/main/agents/locobot/coordinates.MD)
+# rotation from pyrobot to canonical coordinates (https://github.com/facebookresearch/fairo/blob/main/agents/robot/coordinates.MD)
 rot = np.array([[0.0, 0.0, 1.0], [-1.0, 0.0, 0.0], [0.0, -1.0, 0.0]])
 CAMERA_HEIGHT = 0.6
 trans = np.array([0, 0, CAMERA_HEIGHT])
 
-# TODO: Consolidate camera intrinsics and their associated utils across locobot and habitat.
+# TODO: Consolidate camera intrinsics and their associated utils across robot and habitat.
 def compute_uvone(height, width):
     intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
     img_resolution = (height, width)

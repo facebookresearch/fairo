@@ -20,8 +20,8 @@
 
 You want to do one of three things:
 
-1. **Robots:** Reproduce and extend the [PyRobot](https://pyrobot.org) based agent on real robots such as [LocoBot](http://www.locobot.org/) or photo-realistic simulators such as [AIHabitat](https://aihabitat.org/).
-2. **Minecraft:** Reproduced and extend the `minecraft` based game agent
+1. **Robots:** Robot based agent on real robots such as [Hello robot](https://hello-robot.com/product) or photo-realistic simulators such as [AIHabitat](https://aihabitat.org/).
+2. **Minecraft:** Reproduce and extend the `minecraft` based game agent
 3. **New Agent:** write your own agent from scratch, starting from our `base_agent` abstraction
 
 
@@ -67,9 +67,9 @@ cd droidlet
         <td> 3. Install dependencies
         <sub><pre lang="bash">
 conda create -n droidlet python=3.7 \
-   --file conda.txt --file agents/locobot/conda.txt -c pytorch -c aihabitat -c open3d-admin -c conda-forge
+   --file conda.txt --file agents/robot/conda.txt -c pytorch -c aihabitat -c open3d-admin -c conda-forge
 conda activate droidlet
-pip install -r agents/locobot/requirements.txt
+pip install -r agents/robot/requirements.txt
 python setup.py develop
         </pre></sub></td>
         <td><sub><pre lang="bash">
@@ -88,7 +88,7 @@ pip install -r requirements.txt
         </pre></sub></td>
     </tr>
     <tr valign="top">        
-        <td> 4. <a href="https://github.com/facebookresearch/fairo/blob/main/agents/locobot/README.md"> Instructions for running the Locobot agent</a>
+        <td> 4. <a href="https://github.com/facebookresearch/fairo/blob/main/agents/robot/README.md"> Instructions for running the Robot agent</a>
         </td>
         <td>
         <a href='https://github.com/facebookresearch/fairo/blob/main/agents/craftassist/README.md'> Instructions for running the Craftassist agent</a>
@@ -110,7 +110,7 @@ pip install -r requirements.txt
         </td>
     </tr>
     <tr valign="top">        
-        <td align="center"><br/><a href="https://facebookresearch.github.io/fairo/droidlet_agents.html#locobot"> Locobot agent API</a>
+        <td align="center"><br/><a href="https://facebookresearch.github.io/fairo/droidlet_agents.html#robot"> Robot agent API</a>
         </td>
         <td align="center">
         <br/><a href="https://facebookresearch.github.io/fairo/droidlet_agents.html#craftassist"> CraftAssist agent API</a>
