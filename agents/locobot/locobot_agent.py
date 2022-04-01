@@ -258,8 +258,8 @@ class LocobotAgent(DroidletAgent):
             rgb_depth, xyz, previous_objects, force=force
         )
         # 3. update the occupancy map
-        # TODO just the diff?
-        perception_output.obstacle_map = self.mover.slam.get_map()
+        # TODO just the diff? otherwise speed up?
+        perception_output = perception_output._replace(obstacle_map = self.mover.slam.get_map())
 
         self.memory.update(perception_output)
 
