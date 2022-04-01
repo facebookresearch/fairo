@@ -76,6 +76,11 @@
             "steps": {
               "$ref": "#/definitions/span"
             },
+            "location_type": {
+              "enum": [
+                "Other"
+              ]
+            },
             "has_measure": {
               "$ref": "#/definitions/has_measure"
             },

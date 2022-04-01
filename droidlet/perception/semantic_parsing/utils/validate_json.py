@@ -66,6 +66,7 @@ class JSONValidator:
             dataset = fd.readlines()
             for line in dataset:
                 parts = line.split("|")
+                command, action_dict = "", {}
                 if len(parts) > 2:
                     _, command, action_dict = parts
                 else:
