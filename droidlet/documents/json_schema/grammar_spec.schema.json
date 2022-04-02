@@ -122,6 +122,14 @@
         }
       }
     },
+    "composite": {
+      "type": "object",
+      "properties": {
+        "action_type": {
+          "enum": ["COMPOSITE_ACTION"]
+        }
+      }
+    },
     "spawn": {
       "type": "object",
       "properties": {
@@ -358,6 +366,9 @@
         "schematic": {
           "$ref": "#/definitions/schematic"
         },
+        "reference_object": {
+          "$ref": "#/definitions/reference_object"
+        },
         "replace": {
           "$ref": "#/definitions/replace"
         }
@@ -574,6 +585,9 @@
         "anyOf": [
           {
             "$ref": "#/definitions/move"
+          },
+          {
+            "$ref": "#/definitions/composite"
           },
           {
             "$ref": "#/definitions/build"
