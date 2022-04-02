@@ -22,20 +22,20 @@ pushd droidlet/lowlevel/robot/tests/
 pytest --cov-report=xml:$SHARED_PATH/test_habitat.xml --cov=../ test_habitat.py --disable-pytest-warnings
 popd
 
-droidlet/lowlevel/robobot/remote/launch_pyro_habitat.sh
-pytest --cov-report=xml:$SHARED_PATH/test_mover.xml --cov=droidlet droidlet/lowlevel/robobot/tests/test_mover.py --disable-pytest-warnings
+droidlet/lowlevel/robot/remote/launch_pyro_habitat.sh
+pytest --cov-report=xml:$SHARED_PATH/test_mover.xml --cov=droidlet droidlet/lowlevel/robot/tests/test_mover.py --disable-pytest-warnings
 
 
-droidlet/lowlevel/robobot/remote/launch_pyro_habitat.sh
+droidlet/lowlevel/robot/remote/launch_pyro_habitat.sh
 pytest --cov-report=xml:$SHARED_PATH/test_handlers.xml --cov=droidlet droidlet/perception/robot/tests/test_perception.py --disable-pytest-warnings
 
 
-pytest --cov-report=xml:$SHARED_PATH/test_memory.xml --cov=agents --cov=droidlet agents/robobot/tests/test_memory.py --disable-pytest-warnings
-pytest --cov-report=xml:$SHARED_PATH/test_interpreter_mock.xml --cov=agents --cov=droidlet agents/robobot/tests/test_interpreter_mock.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_memory.xml --cov=agents --cov=droidlet agents/robot/tests/test_memory.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_interpreter_mock.xml --cov=agents --cov=droidlet agents/robot/tests/test_interpreter_mock.py --disable-pytest-warnings
 pytest --cov-report=xml:$SHARED_PATH/test_memory_low_level.xml --cov=droidlet droidlet/memory/robot/tests/test_low_level_memory.py --disable-pytest-warnings
-pytest --cov-report=xml:$SHARED_PATH/test_utils.xml --cov=droidlet droidlet/lowlevel/robobot/tests/test_utils.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_utils.xml --cov=droidlet droidlet/lowlevel/robot/tests/test_utils.py --disable-pytest-warnings
 
 
-droidlet/lowlevel/robobot/remote/launch_pyro_habitat.sh
-./agents/robobot/tests/test_agent.sh
-droidlet/lowlevel/robobot/remote/kill_pyro_habitat.sh
+droidlet/lowlevel/robot/remote/launch_pyro_habitat.sh
+./agents/robot/tests/test_agent.sh
+droidlet/lowlevel/robot/remote/kill_pyro_habitat.sh
