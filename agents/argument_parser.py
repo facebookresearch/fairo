@@ -103,9 +103,9 @@ class ArgumentParser:
     def add_robo_parser(self):
         robo_parser = self.parser.add_argument_group("Robot Agent Args")
         IP = "192.168.1.244"
-        if os.getenv("LOCOBOT_IP"):
-            IP = os.getenv("LOCOBOT_IP")
-            print("setting default locobot ip from env variable LOCOBOT_IP={}".format(IP))
+        if os.getenv("ROBOT_IP"):
+            IP = os.getenv("ROBOT_IP")
+            print("setting default locobot ip from env variable ROBOT_IP={}".format(IP))
         robo_parser.add_argument("--ip", default=IP, help="IP of the robot")
         robo_parser.add_argument(
             "--incoming_chat_path", default="incoming_chat.txt", help="path to incoming chat file"

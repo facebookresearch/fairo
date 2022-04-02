@@ -13,7 +13,7 @@ from .properties_head import build_properties_head
 
 
 @ROI_HEADS_REGISTRY.register()
-class LocobotROIHeads(StandardROIHeads):
+class RobotROIHeads(StandardROIHeads):
     """A Standard ROIHeads class which contains an addition of a Properties
     prediction head."""
 

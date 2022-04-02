@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 
-"""Locobot Detector Training Script.
+"""Robot Detector Training Script.
 
 This script is a simplified version of the training script in
 detectron2/tools.
@@ -27,10 +27,10 @@ from detectron2 import model_zoo
 from detectron2.data import DatasetCatalog, MetadataCatalog, build_detection_train_loader
 from detectron2.modeling import ROI_HEADS_REGISTRY
 from utils import add_property_config
-from roi_heads import LocobotROIHeads
-from dataset_mapper import LocobotDatasetMapper
+from roi_heads import RobotROIHeads
+from dataset_mapper import RobotDatasetMapper
 
-# ROI_HEADS_REGISTRY.register(LocobotROIHeads)
+# ROI_HEADS_REGISTRY.register(RobotROIHeads)
 
 
 class Trainer(DefaultTrainer):
@@ -43,7 +43,7 @@ class Trainer(DefaultTrainer):
 
     @classmethod
     def build_train_loader(cls, cfg):
-        mapper = LocobotDatasetMapper(cfg, True)
+        mapper = RobotDatasetMapper(cfg, True)
         return build_detection_train_loader(cfg, mapper=mapper)
 
 

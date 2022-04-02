@@ -1,4 +1,4 @@
-from .detector.roi_heads import LocobotROIHeads
-from .detector.visualizer import LocobotVisualizer
+from .detector.roi_heads import RobotROIHeads
+from .detector.visualizer import RobotVisualizer
 
-__all__ = [LocobotROIHeads, LocobotVisualizer]
+__all__ = [RobotROIHeads, RobotVisualizer]

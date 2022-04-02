@@ -26,7 +26,7 @@ if __name__ == "__main__":
 from agents.argument_parser import ArgumentParser
 from droidlet.event import sio
 from droidlet.perception.robot import LabelPropagate
-import agents.locobot.label_prop as LP
+import agents.robot.label_prop as LP
 log_formatter = logging.Formatter(
     "%(asctime)s [%(filename)s:%(lineno)s - %(funcName)s() %(levelname)s]: %(message)s"
 )
@@ -158,7 +158,7 @@ class OfflineInstance():
 if __name__ == "__main__":
     
     base_path = os.path.dirname(__file__)
-    parser = ArgumentParser("Locobot", base_path)
+    parser = ArgumentParser("robot", base_path)
     opts = parser.parse()
 
     logging.basicConfig(level=opts.log_level.upper())

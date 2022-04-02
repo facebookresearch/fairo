@@ -20,7 +20,7 @@ from detectron2.engine.defaults import DefaultPredictor
 from .core import AbstractHandler, WorldObject
 from droidlet.shared_data_structs import RGBDepth
 from ..detectron.detector.utils import get_predictor
-from ..detectron.detector.visualizer import LocobotVisualizer
+from ..detectron.detector.visualizer import RobotVisualizer
 from droidlet.perception.robot.perception_util import get_color_tag
 
 
@@ -148,7 +148,7 @@ class DetectorBase:
         return p_list, predictions
 
     def draw(self, im, predictions, save_to_disk=False):
-        v = LocobotVisualizer(
+        v = RobotVisualizer(
             im[:, :, ::-1],
             metadata=MetadataCatalog.get(self.dataset_name),
             scale=0.8,

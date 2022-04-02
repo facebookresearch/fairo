@@ -102,7 +102,7 @@ class Planner(object):
         return within_threshold
 
 
-robot_ip = os.getenv("LOCOBOT_IP")
+robot_ip = os.getenv("ROBOT_IP")
 ip = os.getenv("LOCAL_IP")
 
 with Pyro4.Daemon(ip) as daemon:

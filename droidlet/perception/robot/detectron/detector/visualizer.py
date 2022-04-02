@@ -41,9 +41,9 @@ def _create_text_labels(classes, scores, class_names):
     return labels
 
 
-class LocobotVisualizer(Visualizer):
+class RobotVisualizer(Visualizer):
     def __init__(self, img_rgb, metadata, scale=1.0, instance_mode=ColorMode.IMAGE):
-        super(LocobotVisualizer, self).__init__(img_rgb, metadata, scale, instance_mode)
+        super(RobotVisualizer, self).__init__(img_rgb, metadata, scale, instance_mode)
 
     def draw_instance_predictions(self, predictions):
         """Draw instance-level prediction results on an image.

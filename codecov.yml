@@ -12,7 +12,7 @@ coverage:
         Robot:
             target: 0%
             paths:
-                - agents/locobot/*
+                - agents/robot/*
         Minecraft:
             target: 0%
             paths:

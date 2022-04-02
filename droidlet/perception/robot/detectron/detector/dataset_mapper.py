@@ -23,7 +23,7 @@ import pycocotools.mask as mask_util
 This file contains the default mapping that's applied to "dataset dicts".
 """
 
-__all__ = ["LocobotDatasetMapper"]
+__all__ = ["RobotDatasetMapper"]
 
 
 def annotations_to_instances(annos, image_size, mask_format="polygon"):
@@ -94,7 +94,7 @@ def annotations_to_instances(annos, image_size, mask_format="polygon"):
     return target
 
 
-class LocobotDatasetMapper:
+class RobotDatasetMapper:
     """A callable which takes a dataset dict in Detectron2 Dataset format, and
     map it into a format used by the model.
 

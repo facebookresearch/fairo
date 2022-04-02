@@ -102,7 +102,7 @@ class FaceRecognition(AbstractHandler):
         """will find all of the faces in a given image and label them if it
         knows what they are then save them in the object.
 
-        :param rgb_depth: the captured picture by Locobot camera
+        :param rgb_depth: the captured picture by Robot camera
         """
         faces = self.encoded_faces
         faces_encoded = list(faces.values())
