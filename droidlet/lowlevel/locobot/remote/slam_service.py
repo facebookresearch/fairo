@@ -35,7 +35,7 @@ class SLAM(object):
             resolution=resolution,
             agent_min_z=agent_min_z,
             agent_max_z=agent_max_z,
-            num_semantic_categories=len(coco_categories)
+            num_semantic_categories=len(coco_categories),
         )
         self.map_size = map_size
         # if the map is a previous map loaded from disk, and
@@ -94,7 +94,7 @@ class SLAM(object):
     def update_map(self):
         pcd = self.robot.get_current_pcd()[0]
         semantics = self.robot.get_rgb_depth_segm()[2]
-        semantic_channels = self.preprocess_habitat_semantics(semantics) 
+        semantic_channels = self.preprocess_habitat_semantics(semantics)
         semantic_channels = semantic_channels.reshape(-1, semantic_channels.shape[2])
         self.map_builder.update_map(pcd)
         self.map_builder.update_semantic_map(pcd, semantic_channels)
@@ -110,9 +110,7 @@ class SLAM(object):
         num_semantic_cats = len(coco_categories)
         category_instance_lists = self.robot.get_category_instance_lists()
         semantic = gt_semantics.astype(np.float32)
-        semantic_channels = np.zeros((semantic.shape[0],
-                                    semantic.shape[1],
-                                    num_semantic_cats+1))
+        semantic_channels = np.zeros((semantic.shape[0], semantic.shape[1], num_semantic_cats + 1))
 
         def add_cat_channel(cat_id):
             mask = np.zeros((semantic.shape), dtype=bool)
@@ -121,20 +119,19 @@ class SLAM(object):
                 for inst_id in instance_list:
                     mask = np.logical_or(mask, semantic == inst_id)
                 semantic[mask] = -(cat_id + 1)
-            return mask*1
+            return mask * 1
 
         for i in range(num_semantic_cats):
-            semantic_channels[:,:,i+1] = add_cat_channel(i)
+            semantic_channels[:, :, i + 1] = add_cat_channel(i)
 
         return semantic_channels
 
     def visualize_sem_map(self):
         sem_map = self.map_builder.semantic_map
-        sem_map[-1,:,:] = 1e-5
+        sem_map[-1, :, :] = 1e-5
         sem_map = sem_map.argmax(0)
-        sem_map_vis = Image.new("P", (sem_map.shape[1],
-                                      sem_map.shape[0]))
-        color_pal = [int(x * 255.) for x in color_palette]                        
+        sem_map_vis = Image.new("P", (sem_map.shape[1], sem_map.shape[0]))
+        color_pal = [int(x * 255.0) for x in color_palette]
         sem_map_vis.putpalette(color_pal)
         sem_map_vis.putdata(sem_map.flatten().astype(np.uint8))
         sem_map_vis = sem_map_vis.convert("RGB")
@@ -142,7 +139,6 @@ class SLAM(object):
 
         sem_map_vis = sem_map_vis[:, :, [2, 1, 0]]
         cv2.imwrite("sem_map.png", sem_map_vis)
-                
 
     def get_map_resolution(self):
         return self.map_resolution
