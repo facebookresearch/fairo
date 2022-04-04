@@ -1,14 +1,16 @@
+from re import I
 import numpy as np
+import torch
 import sys
 import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../"))
-from slam_pkg.utils.depth_util import transform_pose, bin_points
+from slam_pkg.utils.depth_util import transform_pose, bin_points, splat_feat_nd
 from slam_pkg.utils import depth_util as du
 
 
 class MapBuilder(object):
-    def __init__(self, map_size_cm=4000, resolution=5, obs_thr=1, agent_min_z=5, agent_max_z=70):
+    def __init__(self, map_size_cm=4000, resolution=5, obs_thr=1, cat_thr=5, agent_min_z=5, agent_max_z=70, num_semantic_categories=15):
         """
         :param map_size_cm: size of map in cm, assumes square map
         :param resolution: resolution of map, 1 pix = resolution distance(in cm) in real world
@@ -25,13 +27,27 @@ class MapBuilder(object):
         self.map_size_cm = map_size_cm
         self.resolution = resolution
         self.obs_threshold = obs_thr
+        self.cat_pred_threshold = cat_thr
         self.z_bins = [agent_min_z, agent_max_z]
+        self.max_height = int(360 / self.resolution)
+        self.min_height = int(-40 / self.resolution)
+        self.map_size = int(self.map_size_cm // self.resolution)
+        self.num_semantic_categories = num_semantic_categories
 
         self.map = np.zeros(
             (
-                int(self.map_size_cm // self.resolution),
-                int(self.map_size_cm // self.resolution),
+                self.map_size,
+                self.map_size,
                 len(self.z_bins) + 1,
+            ),
+            dtype=np.float32,
+        )
+
+        self.semantic_map = np.zeros(
+            (
+                self.num_semantic_categories + 1, 
+                self.map_size,
+                self.map_size,
             ),
             dtype=np.float32,
         )
@@ -65,6 +81,54 @@ class MapBuilder(object):
 
         return map_gt
 
+    def update_semantic_map(self, pcd, semantic_channels):
+        # convert point from m to cm
+        pcd = pcd * 100
+
+        # for mapping we want global center to be at origin
+        geocentric_pc_for_map = transform_pose(
+            pcd, (self.map_size_cm / 2.0, self.map_size_cm / 2.0, np.pi / 2.0)
+        )
+
+        geometric_pc_t = torch.from_numpy(geocentric_pc_for_map)
+
+        geometric_pc_t[..., :2] = (geometric_pc_t[..., :2] / self.resolution)
+        geometric_pc_t[..., :2] = (geometric_pc_t[..., :2] -
+                               self.map_size // 2.) / self.map_size * 2.
+        max_h = self.max_height
+        min_h = self.min_height
+        geometric_pc_t[..., 2] = geometric_pc_t[..., 2] / self.resolution
+        geometric_pc_t[..., 2] = (geometric_pc_t[..., 2] -
+                              (max_h + min_h) // 2.) / (max_h - min_h) * 2.
+        geometric_pc_t = geometric_pc_t.transpose(0,1).unsqueeze(0).float()
+
+        init_grid = torch.zeros(
+            1, 
+            semantic_channels.shape[1], 
+            self.map_size,
+            self.map_size,
+            self.max_height - self.min_height
+        ).float()
+
+        feat = torch.from_numpy(semantic_channels.T).unsqueeze(0).float()
+        feat[:, 0, :] = 1
+
+        voxels_t = splat_feat_nd(
+            init_grid, feat, geometric_pc_t).transpose(2, 3)
+        
+        top_down_map_t = voxels_t.sum(4)
+        top_down_map = top_down_map_t.squeeze(0).numpy()
+
+        self.semantic_map = self.semantic_map + top_down_map
+
+        map_gt = np.copy(self.semantic_map)
+        map_gt[0, :, :] =  map_gt[0, :, :] / self.obs_threshold
+        map_gt[1:, :, :] =  map_gt[1:, :, :] / self.cat_pred_threshold
+        map_gt[map_gt >= 0.5] = 1.0
+        map_gt[map_gt < 0.5] = 0.0
+
+        return map_gt
+
     def add_obstacle(self, location):
         self.map[round(location[1]), round(location[0]), 1] = 1
 
@@ -75,12 +139,22 @@ class MapBuilder(object):
         :type map_size: int
         """
         self.map_size_cm = map_size
+        self.map_size = int(self.map_size_cm // self.resolution)
 
         self.map = np.zeros(
             (
-                self.map_size_cm // self.resolution,
-                self.map_size_cm // self.resolution,
+                self.map_size,
+                self.map_size,
                 len(self.z_bins) + 1,
+            ),
+            dtype=np.float32,
+        )
+
+        self.semantic_map = np.zeros(
+            (
+                self.num_semantic_categories + 1, 
+                self.map_size,
+                self.map_size,
             ),
             dtype=np.float32,
         )

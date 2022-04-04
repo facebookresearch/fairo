@@ -10,6 +10,7 @@ from scipy.spatial.transform import Rotation
 import logging
 import os
 import open3d as o3d
+import quaternion
 from pyrobot.habitat.base_control_utils import LocalActionStatus
 from slam_pkg.utils import depth_util as du
 from obstacle_utils import is_obstacle
@@ -17,6 +18,7 @@ from droidlet.lowlevel.robot_mover_utils import (
     transform_pose,
 )
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
+from constants import coco_categories
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
@@ -60,6 +62,9 @@ class RemoteLocobot(object):
         img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
+
+        #TODO: Check if semantic annotations exist for the scene
+        self.preprocess_semantic_annotations() 
 
     def restart_habitat(self):
         if hasattr(self, "_robot"):
@@ -135,7 +140,7 @@ class RemoteLocobot(object):
         pts = ros_to_habitat_frame.T @ pts.T
         pts = pts.T
         pts = transform_pose(pts, base_state)
-
+        
         return pts, rgb
 
     def get_open3d_pcd(self):
@@ -385,6 +390,61 @@ class RemoteLocobot(object):
             return "PREEMPTED"
         else:
             return "UNKNOWN"
+
+    def preprocess_semantic_annotations(self):
+        semantic_annotations = self._robot.base.sim.semantic_scene
+        self._category_instance_lists = {}
+        for obj in semantic_annotations.objects:
+            if obj is None or obj.category is None:
+                continue
+            category = obj.category.name()
+
+            if "tv" in category:
+                # replace tv-screen in replica and tv_monitor in mp3d
+                category = "tv"
+
+            if "plant" in category:
+                # replace indoor-plant in replica and plant in mp3d
+                category = "potted plant"
+
+            if category in coco_categories.keys():
+                cat_id = coco_categories[category]
+
+                obj_id = int(obj.id.split("_")[-1])
+
+                if cat_id not in self._category_instance_lists:
+                    self._category_instance_lists[cat_id] = [obj_id]
+                else:
+                    self._category_instance_lists[cat_id].append(obj_id)
+
+    def get_category_instance_lists(self):
+        return self._category_instance_lists
+
+    # def get_sim_location(self):
+    #     """Returns x, y, o pose of the agent in the Habitat simulator."""
+
+    #     agent_state = self._robot.base.sim.get_agent_state(0)
+    #     x = -agent_state.position[2]
+    #     y = -agent_state.position[0]
+    #     axis = quaternion.as_euler_angles(agent_state.rotation)[0]
+    #     if (axis % (2 * np.pi)) < 0.1 or (axis %
+    #                                       (2 * np.pi)) > 2 * np.pi - 0.1:
+    #         o = quaternion.as_euler_angles(agent_state.rotation)[1]
+    #     else:
+    #         o = 2 * np.pi - quaternion.as_euler_angles(agent_state.rotation)[1]
+    #     if o > np.pi:
+    #         o -= 2 * np.pi
+    #     return x, y, o
+
+    # def get_pose_change(self):
+    #     """Returns dx, dy, do pose change of the agent relative to the last
+    #     timestep."""
+    #     curr_sim_pose = self.get_sim_location()
+    #     dx, dy, do = pu.get_rel_pose_change(
+    #         curr_sim_pose, self.last_sim_location)
+    #     self.last_sim_location = curr_sim_pose
+    #     return dx, dy, do
+        
 
 
 if __name__ == "__main__":
