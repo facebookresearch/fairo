@@ -7,6 +7,7 @@ from pyrobot.habitat.sim_utils import make_cfg
 
 import habitat_sim
 
+
 class HabitatSim(object):
     """Class that interfaces with Habitat sim"""
 
@@ -44,8 +45,3 @@ class HabitatSim(object):
 
     def set_seed(self, new_seed):
         self.sim.seed(new_seed)
-
-
-
-
-    

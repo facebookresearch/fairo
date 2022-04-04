@@ -10,7 +10,16 @@ from slam_pkg.utils import depth_util as du
 
 
 class MapBuilder(object):
-    def __init__(self, map_size_cm=4000, resolution=5, obs_thr=1, cat_thr=5, agent_min_z=5, agent_max_z=70, num_semantic_categories=15):
+    def __init__(
+        self,
+        map_size_cm=4000,
+        resolution=5,
+        obs_thr=1,
+        cat_thr=5,
+        agent_min_z=5,
+        agent_max_z=70,
+        num_semantic_categories=15,
+    ):
         """
         :param map_size_cm: size of map in cm, assumes square map
         :param resolution: resolution of map, 1 pix = resolution distance(in cm) in real world
@@ -45,7 +54,7 @@ class MapBuilder(object):
 
         self.semantic_map = np.zeros(
             (
-                self.num_semantic_categories + 1, 
+                self.num_semantic_categories + 1,
                 self.map_size,
                 self.map_size,
             ),
@@ -92,38 +101,39 @@ class MapBuilder(object):
 
         geometric_pc_t = torch.from_numpy(geocentric_pc_for_map)
 
-        geometric_pc_t[..., :2] = (geometric_pc_t[..., :2] / self.resolution)
-        geometric_pc_t[..., :2] = (geometric_pc_t[..., :2] -
-                               self.map_size // 2.) / self.map_size * 2.
+        geometric_pc_t[..., :2] = geometric_pc_t[..., :2] / self.resolution
+        geometric_pc_t[..., :2] = (
+            (geometric_pc_t[..., :2] - self.map_size // 2.0) / self.map_size * 2.0
+        )
         max_h = self.max_height
         min_h = self.min_height
         geometric_pc_t[..., 2] = geometric_pc_t[..., 2] / self.resolution
-        geometric_pc_t[..., 2] = (geometric_pc_t[..., 2] -
-                              (max_h + min_h) // 2.) / (max_h - min_h) * 2.
-        geometric_pc_t = geometric_pc_t.transpose(0,1).unsqueeze(0).float()
+        geometric_pc_t[..., 2] = (
+            (geometric_pc_t[..., 2] - (max_h + min_h) // 2.0) / (max_h - min_h) * 2.0
+        )
+        geometric_pc_t = geometric_pc_t.transpose(0, 1).unsqueeze(0).float()
 
         init_grid = torch.zeros(
-            1, 
-            semantic_channels.shape[1], 
+            1,
+            semantic_channels.shape[1],
             self.map_size,
             self.map_size,
-            self.max_height - self.min_height
+            self.max_height - self.min_height,
         ).float()
 
         feat = torch.from_numpy(semantic_channels.T).unsqueeze(0).float()
         feat[:, 0, :] = 1
 
-        voxels_t = splat_feat_nd(
-            init_grid, feat, geometric_pc_t).transpose(2, 3)
-        
+        voxels_t = splat_feat_nd(init_grid, feat, geometric_pc_t).transpose(2, 3)
+
         top_down_map_t = voxels_t.sum(4)
         top_down_map = top_down_map_t.squeeze(0).numpy()
 
         self.semantic_map = self.semantic_map + top_down_map
 
         map_gt = np.copy(self.semantic_map)
-        map_gt[0, :, :] =  map_gt[0, :, :] / self.obs_threshold
-        map_gt[1:, :, :] =  map_gt[1:, :, :] / self.cat_pred_threshold
+        map_gt[0, :, :] = map_gt[0, :, :] / self.obs_threshold
+        map_gt[1:, :, :] = map_gt[1:, :, :] / self.cat_pred_threshold
         map_gt[map_gt >= 0.5] = 1.0
         map_gt[map_gt < 0.5] = 0.0
 
@@ -152,7 +162,7 @@ class MapBuilder(object):
 
         self.semantic_map = np.zeros(
             (
-                self.num_semantic_categories + 1, 
+                self.num_semantic_categories + 1,
                 self.map_size,
                 self.map_size,
             ),

@@ -63,8 +63,8 @@ class RemoteLocobot(object):
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
 
-        #TODO: Check if semantic annotations exist for the scene
-        self.preprocess_semantic_annotations() 
+        # TODO: Check if semantic annotations exist for the scene
+        self.preprocess_semantic_annotations()
 
     def restart_habitat(self):
         if hasattr(self, "_robot"):
@@ -140,7 +140,7 @@ class RemoteLocobot(object):
         pts = ros_to_habitat_frame.T @ pts.T
         pts = pts.T
         pts = transform_pose(pts, base_state)
-        
+
         return pts, rgb
 
     def get_open3d_pcd(self):
@@ -444,7 +444,6 @@ class RemoteLocobot(object):
     #         curr_sim_pose, self.last_sim_location)
     #     self.last_sim_location = curr_sim_pose
     #     return dx, dy, do
-        
 
 
 if __name__ == "__main__":
