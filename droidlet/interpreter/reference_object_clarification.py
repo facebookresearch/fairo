@@ -15,42 +15,39 @@ from .interpret_location import interpret_relative_direction
 from .interpret_filters import interpret_selector
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
-from droidlet.dialog.dialogue_task import ClarifyDLF
+from droidlet.dialog.dialogue_task import ClarifyCC1
 
 DISALLOWED_REF_OBJS = (LocationNode, SelfNode, PlayerNode)
 CC1_SEARCH_RADIUS = 15
 
 
 def clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs):
-    # ipdb.set_trace(context=7)
-
     # Decide what clarification class we're in
     if num_refs < 1:
         logging.error("There appear to be no references in the command to clarify, debug")
         raise ErrorWithResponse("I don't know what you're referring to")
+
     elif len(candidate_mems) == 0:
         clarification_class = "REF_NO_MATCH"
         dlf = cc1_to_dlf(interpreter, speaker, d, clarification_class)
-
-        # extend the dialogue task class to a new clarification class that launches subtasks based on its status
-        # problem: how to gracefully launch that first task and come back after?
-
-        task_egg = {"class": ClarifyDLF, "task_data": {"dlf": dlf}}
+        task_egg = {"class": ClarifyCC1, "task_data": {"dlf": dlf}}
         print(task_egg)
         cmemid = TaskNode.create(interpreter.memory, task_egg)
         interpreter.memory.add_triple(
             subj=cmemid,
             pred_text="dlf_clarification",
-            obj=interpreter.memid,  # TODO Is this right???
+            obj=interpreter.memid,
         )
-        raise NextDialogueStep()  # could also just return nothing, but maybe we want to catch this on the other side
+        raise NextDialogueStep()
 
     elif num_refs > len(candidate_mems):
         clarification_class = "REF_TOO_FEW"
         # TODO Build out CC2
+        raise NotImplementedError("Only CC1 implemented right now")
     else:
         clarification_class = "REF_TOO_MANY"
         # TODO Build out CC3
+        raise NotImplementedError("Only CC1 implemented right now")
 
 
 def cc1_to_dlf(interpreter, speaker, d, clarification_class):

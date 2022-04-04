@@ -266,22 +266,23 @@ class ClarifyCC1(Task):
 
     """
 
-    def __init__(self, agent, task_data={}):
+    def __init__(self, agent, memid, task_data={}):
+        self.memid = memid
         task_data["blocking"] = True
         super().__init__(agent, task_data=task_data)
-        import ipdb
-
-        ipdb.set_trace(context=7)
-        self.candidates = task_data["class"]["candidates"]
-        self.action = task_data["action"]["action_type"]
-        self.ref_obj_span = task_data["action"]["reference_object"][
+        self.dlf = task_data.get("dlf")
+        self.candidates = self.dlf["class"]["candidates"]
+        self.action = self.dlf["action"]["action_type"]
+        self.ref_obj_span = self.dlf["action"]["reference_object"][
             "text_span"
         ]  # FIXME will this always be here?
         self.finished = False
         self.point = False
         self.max_asks = len(self.candidates) + 1  # verify action + ref_obj span, then candidates
         self.asks = 1
-        TaskNode(agent.memory, self.memid).update_task(task=self)
+        clarify_dlf_task = TaskNode(agent.memory, self.memid)
+        clarify_dlf_task.update_task(task=self)
+        clarify_dlf_task.get_update_status({"prio": 1})
 
     @Task.step_wrapper
     def step(self):
