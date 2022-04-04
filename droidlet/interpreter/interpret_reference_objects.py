@@ -1,7 +1,6 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import ipdb
 
 import logging
 import re
@@ -159,8 +158,6 @@ def interpret_reference_object(
             pass
         else:
             logging.error("bad coref_resolve -> {}".format(mem))
-
-    ipdb.set_trace(context=7)
 
     clarification_query = "SELECT MEMORY FROM Task WHERE dlf_clarification=#={}".format(
         interpreter.memid

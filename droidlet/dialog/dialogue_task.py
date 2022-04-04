@@ -26,7 +26,7 @@ class AwaitResponse(Task):
         task_data["blocking"] = True
         super().__init__(agent, task_data=task_data)
         self.init_time = self.agent.memory.get_time()
-        self.wait_time = task_data.get("wait_time", 800)
+        self.wait_time = task_data.get("wait_time", 5000)
         self.awaiting_response = True
         self.asker_memid = task_data.get("asker_memid")
         TaskNode(agent.memory, self.memid).update_task(task=self)
@@ -207,58 +207,52 @@ class ConfirmReferenceObject(Task):
         return
 
 
-class ClarifyDLF(Task):
-    """This Task interprets the Dialogue logical form and launches
-    subtasks based on the clarification class.
+def check_parse(task):
+    question = f"I'm not sure about something. \
+        I think you wanted me to {task.action.lower()} a {task.ref_obj_span}, is that right?"
+    task_list = [
+        Say(task.agent, {"response_options": question}),
+        AwaitResponse(task.agent, {"asker_memid": task.memid}),
+    ]
+    task.add_child_task(maybe_task_list_to_control_block(task_list, task.agent))
 
-    Args:
+def yes_no_dialogue_response(task):
+    # FIXME: change this to sqly when syntax for obj searches is settled:
+    t = task.agent.memory.get_triples(subj=task.memid, pred_text="dialogue_task_response")
+    chat_mems = [task.agent.memory.get_mem_by_id(triples[2]) for triples in t]
+    response = "no"
+    if chat_mems:
+        # FIXME...
+        if chat_mems[0].chat_text in MAP_YES:
+            response = "yes"
+    return response
 
-    """
 
-    def __init__(self, agent, memid, task_data={}):
-        self.memid = memid
-        task_data["blocking"] = True
-        super().__init__(agent, task_data=task_data)
-        self.dlf = task_data.get("dlf")
-        self.finished = False
-        clarify_dlf_task = TaskNode(agent.memory, self.memid)
-        clarify_dlf_task.update_task(task=self)
-        clarify_dlf_task.get_update_status({"prio": 1})
-
-    @Task.step_wrapper
-    def step(self):
-        """Launch subtasks based on
-        clarification class and number of candidates"""
-
-        print("ClarifyDLF stepped")
-
-        clarification_class = self.dlf["class"]["error_type"]
-        if clarification_class != "REF_NO_MATCH":  # Only CC1 implemented right now
-            raise NotImplementedError
-        else:
-            if not self.finished:
-                self.add_child_task(ClarifyCC1(self.agent, task_data=self.dlf))
-                self.finished = True
-                return
-
-        # TODO from here on
-
-        # FIXME: change this to sqly when syntax for obj searches is settled:
-        # t = self.agent.memory.get_triples(subj=self.memid, pred_text="dialogue_task_response")
-        # chat_mems = [self.agent.memory.get_mem_by_id(triples[2]) for triples in t]
-        # response = "no"
-        # if chat_mems:
-        #     # FIXME...
-        #     if chat_mems[0].chat_text in MAP_YES:
-        #         response = "yes"
-        # self.agent.memory.add_triple(
-        #     subj=self.memid, pred_text="dialogue_task_output", obj_text=response
-        # )
+def point_at(task, target):
+    if hasattr(target, "get_point_at_target"):
+        bounds = target.get_point_at_target()
+    else:
+        # FIXME is there a more graceful way to handle this?
         return
+    # FIXME agent shouldn't just point, should make a task etc.
+    task.agent.point_at(bounds)
+    question = f"Is this the {task.ref_obj_span}? (Look for the flashing object)"
+    task_list = [
+        Say(task.agent, {"response_options": question}),
+        AwaitResponse(task.agent, {"asker_memid": task.memid}),
+    ]
+    task.add_child_task(maybe_task_list_to_control_block(task_list, task.agent))
+
+
+def clarification_failed(task):
+    question = "OK, I didn't understand you correctly.  Please mark this as an error."
+    task.add_child_task(Say(task.agent, {"response_options": question}))
+    task.asks = task.max_asks
+    task.finished = task
 
 
 class ClarifyCC1(Task):
-    """This Task is always a subtask of ClarifyDLF, and is responsible
+    """This Task is responsible
     for Say and AwaitResponse tasks associated with clarifying which
     among an expanded list of candidates is the appropriate ref_obj
 
@@ -277,7 +271,7 @@ class ClarifyCC1(Task):
             "text_span"
         ]  # FIXME will this always be here?
         self.finished = False
-        self.point = False
+        self.pointed = False
         self.max_asks = len(self.candidates) + 1  # verify action + ref_obj span, then candidates
         self.asks = 1
         clarify_dlf_task = TaskNode(agent.memory, self.memid)
@@ -289,40 +283,40 @@ class ClarifyCC1(Task):
         """Issue chats and wait for responses to clarify"""
 
         print("ClarifyCC1 stepped")
+        import ipdb
+        ipdb.set_trace(context=7)
 
-        # if hasattr(r, "get_point_at_target"):
-        #     self.bounds = r.get_point_at_target()
-        # else:
-        #     # this should be an error
-        #     self.bounds = tuple(np.min(r, axis=0)) + tuple(np.max(r, axis=0))
-        if not self.finished and self.asks < self.max_asks:
+        if not self.finished and self.asks <= self.max_asks:
             if self.asks == 1:
                 # ask whether the original parse is nominally right
-                question = f"I think you wanted me to {self.action.lower()} a {self.ref_obj_span}, is that right?"
-                task_list = [
-                    Say(self.agent, {"response_options": question}),
-                    AwaitResponse(self.agent, {"asker_memid": self.memid}),
-                ]
-                self.add_child_task(maybe_task_list_to_control_block(task_list, self.agent))
+                check_parse(self)
                 self.asks += 1
+                return
+
+            elif self.asks == 2:
+                response = yes_no_dialogue_response(self)
+                if response == "yes":
+                    # The parse was at least kind of right, start suggesting objects
+                    point_at(self, self.candidates.pop(0))
+                    self.asks += 1
+                else:
+                    # Seemingly a bad parse, move on to error marking
+                    clarification_failed(self)
+                return
+
             else:
-                self.finished = True
+                # Check if the last obj was right, if not continue
+                response = yes_no_dialogue_response(self)
+                if response == "no":
+                    point_at(self, self.candidates.pop(0))
+                    self.asks += 1
+                else:
+                    # TODO update memory and close out this task
+                    clarification_failed(self)
+                return
+
+        else:
+            self.finished = True
             return
-        if self.point:
-            # FIXME agent shouldn't just point, should make a task etc.
-            self.agent.point_at(self.bounds)
-            self.add_child_task(AwaitResponse(self.agent))
-            self.pointed = True
-            return
-        # FIXME: change this to sqly when syntax for obj searches is settled:
-        # t = self.agent.memory.get_triples(subj=self.memid, pred_text="dialogue_task_response")
-        # chat_mems = [self.agent.memory.get_mem_by_id(triples[2]) for triples in t]
-        # response = "no"
-        # if chat_mems:
-        #     # FIXME...
-        #     if chat_mems[0].chat_text in MAP_YES:
-        #         response = "yes"
-        # self.agent.memory.add_triple(
-        #     subj=self.memid, pred_text="dialogue_task_output", obj_text=response
-        # )
+        
         return
