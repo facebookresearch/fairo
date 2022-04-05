@@ -108,7 +108,7 @@ class SwarmMasterWrapper():
         :return:
         """
         # one perception map for each worker
-        tmp_perceptions = [{} for  i in range(self.num_workers)]
+        tmp_perceptions = [{} for i in range(self.num_workers)]
         worker_eids = dict()
         # Iterate over all workers
         for i in range(self.num_workers):
@@ -121,7 +121,7 @@ class SwarmMasterWrapper():
         # resolve conflicts 
         
                                  
-        # write back to memory
+        # write perception info back to memory
         for i in range(self.num_workers):
             if i not in worker_eids.keys():
                 continue # this shouldn't happen
@@ -150,25 +150,26 @@ class SwarmMasterWrapper():
                 if name == "task_updates":
                     for (memid, cur_task_status) in obj:
                         # memid = task memid
-                        # task status is a tuple
-                        # cur_task_status = (prio, running, finished)
+                        # task status is a tuple of status, so cur_task_status = (prio, running, finished)
                         mem = self.base_agent.memory.get_mem_by_id(memid)
                         mem.get_update_status({"prio": cur_task_status[0], "running": cur_task_status[1]})
-                        if cur_task_status[2]:
+                        if cur_task_status[2]: # if marked as finished
                             mem.task.finished = True
                 elif name == "initialization":
                     # signal indicating the worker initialization is finished
                     # the main loop of the master agent starts after all workers initialization is done
                     self.init_status[i] = True
                 elif name == "memid":
-                    # the master receives each worker's memid and store them
+                    # the master receives each worker's memid and stores them
                     self.swarm_workers_memid[i] = obj
 
     def handle_worker_memory_queries(self):
         """
+        go over each worker's memory query and send response to the
+        query in their receive queues.
         handles the workers' queries of the master agent's memory 
         self.swarm_workers[i].memory_send_queue: the queue where swarm worker
-        i send its memory queries to the master
+        i sends its memory queries to the master
         """
         for i in range(self.num_workers):
             # memory_send_queue: worker send its memory related query to the master through this queue
@@ -180,22 +181,22 @@ class SwarmMasterWrapper():
 
     def handle_memory_query(self, query):
         """
-        handle one memory query from the worker
-        query = (query_id, query_name, query_args)
-        query_id is a unique id for each query,
-        we need the id to send the response back to workers
-        query_name is the query function name. e.g. db_write, tag, etc
-        query_args contain args for the query
+        handle one memory query at a time from a worker. Here:
+        query = (query_id, query_name, query_args) where:
+        query_id is unique id for each query, we need the id to be able to send the response back
+        to the worker,
+        query_name is the query function name. e.g. db_write, tag, etc and
+        query_args contains arguments for the query
         """
         query_id = query[0]
         query_name = query[1]
         query_args = query[2:]
-        if query_name in self.handle_query_dict.keys():
+        if query_name in self.handle_query_dict.keys(): # function name right now, can be made better.
             to_return = self.handle_query_dict[query_name](*query_args)
         else:
             logging.info("swarm master cannot handle memory query: {}".format(query))
             raise NotImplementedError
-        to_return = safe_object(to_return)
+        to_return = safe_object(to_return) # create a picklable object or tuple of picklable objects
         return tuple([query_id, to_return])
 
     def start(self):
@@ -327,10 +328,10 @@ class SwarmWorkerWrapper(Process):
         while not self.input_tasks.empty():
             task_class_name, task_data, task_memid = self.input_tasks.get_nowait()
             if task_class_name not in self.TASK_MAP.keys():
-                logging.info("task not understood by worker")
+                logging.info("task cannot be handled by this worker right now.")
                 continue
             if task_memid is None or ((task_memid not in agent.task_stacks.keys()) and (task_memid not in agent.task_ghosts)):
-                # if it is a new task, check the info completeness and then creat it
+                # if it is a new task, check the info completeness and then create it
                 task_data = self.preprocess_data(task_class_name, task_data)
                 if self.check_task_info(task_class_name, task_data):
                     new_task = self.TASK_MAP[task_class_name](agent, task_data)
@@ -344,14 +345,15 @@ class SwarmWorkerWrapper(Process):
                     agent.running[task_memid] = -1
                     agent.pause[task_memid] = False
             elif task_memid in agent.task_stacks.keys():
-                # if it is an existed task, update the master with the existed task status
+                # if it is an existing task, update the master with the existing task status
                 self.send_task_updates([(task_memid, (agent.prio[task_memid], agent.running[task_memid], agent.task_stacks[task_memid].finished))])
             elif task_memid in agent.task_ghosts:
-                # if it is an ghost task(duplicated task), update the master about task status so that it won't be sent to the worker again
+                # if it is a ghost task(ie: duplicate task), update master about task status so that it won't be
+                # sent to the worker again
                 self.send_task_updates([(task_memid, (0, 0, True))])
     
     def handle_master_query(self, agent):
-        # query_from_master, worker receive the query/commands from the master from the queue
+        # query_from_master, worker receives the query/commands from the master from the queue
         while not self.query_from_master.empty():
             query_name, query_data = self.query_from_master.get_nowait()
             if query_name == "stop":
@@ -379,13 +381,13 @@ class SwarmWorkerWrapper(Process):
         finished_task_memids = []
         for memid, task in agent.task_stacks.items():
             pre_task_status = (agent.prio[memid], agent.running[memid], task.finished)
-            if agent.prio[memid] == -1:
-                if task.init_condition.check():
+            if agent.prio[memid] == -1: # new task
+                if task.init_condition.check(): # if init condition is true, set pri to be run
                     agent.prio[memid] = 0
             cur_task_status = (agent.prio[memid], agent.running[memid], task.finished)
             if cur_task_status!= pre_task_status:
                 task_updates.append((memid, cur_task_status))
-        # send task updates once the task status is changed
+        # send task updates when there's a change in task status
         self.send_task_updates(task_updates)
 
         task_updates = []
@@ -393,10 +395,10 @@ class SwarmWorkerWrapper(Process):
         for memid, task in agent.task_stacks.items():
             pre_task_status = (agent.prio[memid], agent.running[memid], task.finished)
             if (not agent.pause[memid]) and (agent.prio[memid] >=0):
-                if task.run_condition.check():
+                if task.run_condition.check(): # can it be run ?
                     agent.prio[memid] = 1
                     agent.running[memid] = 1
-                if task.stop_condition.check():
+                if task.stop_condition.check(): # does it need to be stoppped ?
                     agent.prio[memid] = 0
                     agent.running[memid] = 0
             cur_task_status = (agent.prio[memid], agent.running[memid], task.finished)
@@ -427,6 +429,7 @@ class SwarmWorkerWrapper(Process):
 
     def run(self):
         agent = CraftAssistAgent(self.opts)
+        # init the worker and let master know of initialization and memid
         self.init_worker(agent)
         self.query_from_worker.put(("initialization", True))
         self.query_from_worker.put(("memid", agent.memory.self_memid))

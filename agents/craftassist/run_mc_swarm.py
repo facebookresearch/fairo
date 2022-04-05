@@ -12,7 +12,8 @@ log_formatter = logging.Formatter(
 )
 
 def test_mc_swarm():
-    num_workers = 1 # Number of workers
+    # TODO: take num_workers as input
+    num_workers = 2 # Number of workers
     base_path = os.path.dirname(__file__)
     parser = ArgumentParser("Minecraft", base_path)
     opts = parser.parse()
@@ -32,7 +33,7 @@ def test_mc_swarm():
         rc = subprocess.call([opts.verify_hash_script_path, "craftassist"])
 
     set_start_method("spawn", force=True)
-    sa = CraftAssistAgent(opts)
+    sa = CraftAssistAgent(opts) # master, show at default location.
     master = SwarmMasterWrapper(sa, [None] * num_workers, opts, get_default_config(sa))
     master.start()
 
