@@ -58,7 +58,7 @@ def get_ground_plane(
 def is_obstacle(
     pcd,
     base_pos,
-    lidar=None,
+    lidar_scan=None,
     pix_threshold=100,
     min_dist=0.3,
     max_dist=1.0,
@@ -85,8 +85,8 @@ def is_obstacle(
         if np.asarray(rest.points).shape[0] > 100:
             obstacle = True
 
-    if lidar is not None:
-        if is_lidar_obstacle(lidar):
+    if lidar_scan is not None:
+        if is_lidar_obstacle(lidar_scan):
             obstacle = True
 
     if return_viz:
@@ -108,7 +108,7 @@ def is_lidar_obstacle(lidar_scan, bbox=(0.0, 0.5, -0.25, 0.25), min_quality=0):
     xmin, xmax, ymin, ymax = bbox
     scan = np.asarray(scan)
 
-    # filter on quality
+    # filter on quality (reflected laser strength, range 0-15).
     scan = scan[scan[:, 0] >= min_quality]
 
     # convert degrees to radians and mm to meters

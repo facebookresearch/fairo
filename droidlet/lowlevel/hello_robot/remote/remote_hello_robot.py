@@ -13,7 +13,6 @@ from math import *
 import Pyro4
 from stretch_body.robot import Robot
 from colorama import Fore, Back, Style
-from droidlet.lowlevel.hello_robot.remote.lidar import Lidar
 import stretch_body.hello_utils as hu
 
 hu.print_stretch_re_use()
@@ -59,13 +58,11 @@ class RemoteHelloRobot(object):
         if not self._robot.is_calibrated():
             self._robot.home()
         self._robot.stow()
-        self._lidar = Lidar()
         self._done = True
         self.cam = None
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
         self._check_battery()
         self._load_urdf()
-        self._lidar.start()
 
     def _check_battery(self):
         p = self._robot.pimu
@@ -113,17 +110,6 @@ class RemoteHelloRobot(object):
     def get_base_state(self):
         s = self._robot.get_status()
         return (s["base"]["x"], s["base"]["y"], s["base"]["theta"])
-
-    def get_latest_lidar_scan(self):
-        return self._lidar.get_latest_scan()
-
-    def is_lidar_obstacle(self):
-        from obstacle_utils import is_lidar_obstacle
-        lidar_scan = self._lidar.get_latest_scan()
-        if lidar_scan is None:
-            print("no scan")
-            return False
-        return is_lidar_obstacle(lidar_scan)
 
     def get_pan(self):
         s = self._robot.get_status()
