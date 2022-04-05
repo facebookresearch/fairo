@@ -53,19 +53,7 @@ def realsense_images(max_pixel_diff=200):
         count+=1
         yield [img.copy() for img in imgs1], intrinsics
 
-# def sample_poses(overhead_cameras=True):
-#     hand_mount_yaw_offset = -pi/4
-#     for x in np.linspace(0.74, 0.76, 2):
-#         for y in np.linspace(-0.2, 0.00, 3):
-#             for z in np.linspace(0.25, 0.35, 2):
-#                 for yaw in np.linspace(-pi/4, pi/4, 3):
-#                     pos_sampled = torch.Tensor([x, y, z])
-#                     # ori_sampled = R.from_rotvec(torch.Tensor([0, 0, hand_mount_yaw_offset + yaw]))*R.from_rotvec(torch.Tensor([pi, 0, 0]))
-#                     ori_sampled = R.from_rotvec(torch.Tensor([0, 0, yaw])) * R.from_quat(torch.Tensor([ 0.7527, -0.2889,  0.4684, -0.3614]))
-#                     yield pos_sampled, ori_sampled
-
 def sample_poses_from_data(xyz_points, orient_points, num_points):
-    num_points = 20
     points = dist_in_hull(points=xyz_points, n=num_points)
     for point in points:
         for orient in orient_points:
@@ -73,7 +61,7 @@ def sample_poses_from_data(xyz_points, orient_points, num_points):
             ori = R.from_quat(torch.Tensor(orient))
             yield pos, ori
 
-def robot_poses(ip_address, pose_generator):
+def robot_poses(ip_address, pose_generator, time_to_go=3):
     # Initialize robot interface
     robot = RobotInterface(
         ip_address=ip_address,
@@ -81,8 +69,7 @@ def robot_poses(ip_address, pose_generator):
     )
 
     # Get reference state
-    time_to_go = 1
-    robot.go_home(time_to_go=5)
+    robot.go_home()
     robot.start_cartesian_impedance()
     for i, (pos_sampled, ori_sampled) in enumerate(pose_generator):
         while True:
@@ -105,7 +92,7 @@ def robot_poses(ip_address, pose_generator):
                 print(f"Current pose  pos={pos0}, quat={quat0}")
                 yield pos1, quat1
                 break
-    robot.go_home(time_to_go=5)
+    robot.go_home()
 
 
 # helper function
@@ -138,8 +125,9 @@ if __name__ == '__main__':
     parser.add_argument('--marker-id', default=9, type=int, help="ID of the ARTag marker in the image")
     parser.add_argument('--calibration-file', default='calibration.json', help="file to save final calibration data")
     parser.add_argument('--points-file', default='calibration_points.json', help="file to load convex hull to sample points from")
-    parser.add_argument('--imagedir', default=None, help="folder to save debug images")
     parser.add_argument('--num-points', default=20, type=int, help="number of points to sample from convex hull")
+    parser.add_argument('--time-to-go', default=3, type=float, help="time_to_go in seconds for each movement")
+    parser.add_argument('--imagedir', default=None, help="folder to save debug images")
 
     args=parser.parse_args()
     print(f"Config: {args}")
@@ -158,7 +146,7 @@ if __name__ == '__main__':
         xyz_points = np.array(points["xyz"])
         orient_points = np.array(points["quat"])
         pose_gen = sample_poses_from_data(xyz_points, orient_points, num_points=args.num_points)
-        poses = robot_poses(args.ip, pose_gen)
+        poses = robot_poses(args.ip, pose_gen, args.time_to_go)
         for i, (pos,ori) in enumerate(poses):
             imgs, intrinsics=next(img_gen)
 
