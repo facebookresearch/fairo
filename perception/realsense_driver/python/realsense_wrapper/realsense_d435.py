@@ -54,13 +54,14 @@ class RealsenseAPI:
     def get_images(self, depth=False):
         framesets = self._get_frames()
 
-        align_to = rs.stream.color
-        align = rs.align(align_to)
-        aligned_framesets = [align.process(frameset) for frameset in framesets]
+        if depth:
+            align_to = rs.stream.color
+            align = rs.align(align_to)
+            framesets = [align.process(frameset) for frameset in framesets]
 
         imgs = []
         depth_imgs = []
-        for frameset in aligned_framesets:
+        for frameset in framesets:
             frame = frameset.get_color_frame()
             img = np.asanyarray(frame.get_data())
             imgs.append(img)
@@ -69,13 +70,13 @@ class RealsenseAPI:
                 frame = frameset.get_depth_frame()
                 depth_img = np.asanyarray(frame.get_data())
                 depth_imgs.append(depth_img)
-            
+
         if depth:
             return imgs, depth_imgs
         else:
             return imgs
 
-    def get_pointcloud(self):
+    def get_pointcloud(self) -> rs.pointcloud:
         framesets = self._get_frames()
         pc_ls = []
         for frameset in framesets:
