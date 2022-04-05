@@ -21,9 +21,9 @@ Note that chats sent from the user to the agent should always be in plaintext, a
 {
 	"title": "Droidlet Chat",
 	"description": "A single chat sent from a Droidlet agent to the user",
-    "version": 1,
+	"version": 1,
 	"type": "object",
-	
+
 	"properties": {
 		"speaker_id": {
 			"description": "The memid of the speaker",
@@ -39,32 +39,32 @@ Note that chats sent from the user to the agent should always be in plaintext, a
 			"description": "The type of content to be rendered to the user",
 			"type": "array",
 			"items": {
-                "enum": [
-                    "chat_string",
-                    "chat_and_media",
-                    "chat_and_text_options",
-                    "chat_and_media_options",
-                    "chat_and_media_and_text_options"
-                ]
+				"enum": [
+					"chat_string",
+					"chat_and_media",
+					"chat_and_text_options",
+					"chat_and_media_options",
+					"chat_and_media_and_text_options"
+				]
 			},
-            "minItems": 1,
-            "maxItems": 1
+			"minItems": 1,
+			"maxItems": 1
 		},
-		
+
 		"content": {
 			"description": "The chat content",
 			"type": "array",
-            "items": {
-                "type": "array",
-                "items": [
-                    {"enum": ["text", "image_link", "response_option", "response_image_link"]},
-                    {"type": "string"}
-                ],
-                "minItems": 2,
-                "maxItems": 2
+			"items": {
+				"type": "array",
+				"items": [
+					{ "enum": [ "text", "image_link", "response_option", "response_image_link" ] },
+					{ "type": "string" }
+				],
+				"minItems": 2,
+				"maxItems": 2
 			},
-            "minItems": 1,
-		},
+			"minItems": 1
+		}
 
 	"required": ["speaker_id", "timestamp", "content_type", "content"]
 }
