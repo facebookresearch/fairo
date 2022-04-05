@@ -41,8 +41,14 @@ pip install -e .
 ### Define workspace and orientations
 
 First, we define the workspace from which we sample end-effector poses to get our data.
+
 To do this, first put the Franka Panda robot in manual control mode (white-colored, activation device off).
+Run Polymetis in read-only mode:
+```bash
+launch_robot.py robot_client=franka_hardware robot_client.executable_cfg.readonly=true
+```
 You may move the end-effector around by lightly pressing on the two buttons on the wrist and dragging the robot around.
+Polymetis will return the current state but otherwise will not control the robot.
 
 Then, run the script `record_calibration_points.py`. This lets you manually select (1) the _M_ points whose convex hull define the workspace the calibration script will sample from, and then (2) the _N_ end-effector orientations the robot will run through for each point. The cameras' images and ARTag will be visualized at each point -- check to ensure the points cover but do not exceed the workspace. _M_ should be around 8 to cover the corners of the volume, while _N_ can be 2-3 orientations per point.
 
@@ -63,7 +69,7 @@ optional arguments:
 
 ### Run calibration
 
-Run `collect_data_and_cal.py` to run the calibration process by sampling from the workspace. This will output a `calibration.json` containing `camera_base_ori`, `camera_base_pos`, and `p_marker_ee` for each camera. Useful parameters include:
+Run `collect_data_and_cal.py` to run the calibration process by sampling from the workspace. (Make sure Polymetis is not in read-only mode now -- the robot will move during calibration.) This will output a `calibration.json` containing `camera_base_ori`, `camera_base_pos`, and `p_marker_ee` for each camera. Useful parameters include:
 
 - Increase the dataset size by changing the number of points sampled using `--num-points`
 - Change the amount of time per movement (in seconds) using `--time-to-go`
