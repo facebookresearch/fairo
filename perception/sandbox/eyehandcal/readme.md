@@ -8,12 +8,13 @@ A minimal version of eyehand calibration feature for a franka + realsense setup.
 * Using a realsense camera
   * Camera is pre-calibrated / intrinsic parameter can be read from system
   * Camera image is rectified
-  * Driver is available in [fairo perception](https://github.com/facebookresearch/fairo/tree/main/perception/realsense_driver)
+  * Driver is available in [fairo/perception/realsense_driver](https://github.com/facebookresearch/fairo/tree/main/perception/realsense_driver)
 * You have a ARTag available in hand 
   * please use `4x4_50` family or change [code](https://github.com/facebookresearch/fairo/blob/9ad466122e1e0674080a6a13ecbb00046978eaa5/perception/sandbox/eyehandcal/src/eyehandcal/utils.py#L11)
   * ARTag marker size does not matter (only for keypoint identification)
   * Generate one here https://chev.me/arucogen/
-* Polymetis is available to control the robot.
+  * Wrapper is available in [fairo/perception/fairotag](https://github.com/facebookresearch/fairo/tree/main/perception/fairotag)
+* [Polymetis](https://facebookresearch.github.io/fairo/polymetis/) is available to control the robot.
 
 ## Coordinate Frame Transformations
 ![Robot and Camera Pose](robot_and_camera_pose.jpg)
@@ -36,21 +37,57 @@ pip install -e .
 
   
 ## Usage
-```
-$ collect_data_and_cal.py --help
-usage: collect_data_and_cal.py [-h] [-o] [--ip IP] [--datafile DATAFILE] [--overwrite] [--target-marker-id TARGET_MARKER_ID] [--calibration-file CALIBRATION_FILE]
-                               [--imagedir IMAGEDIR]
+
+### Define workspace and orientations
+
+First, we define the workspace from which we sample end-effector poses to get our data.
+To do this, first put the Franka Panda robot in manual control mode (white-colored, activation device off).
+You may move the end-effector around by lightly pressing on the two buttons on the wrist and dragging the robot around.
+
+Then, run the script `record_calibration_points.py`. This lets you manually select (1) the _M_ points whose convex hull define the workspace the calibration script will sample from, and then (2) the _N_ end-effector orientations the robot will run through for each point. The cameras' images and ARTag will be visualized at each point -- check to ensure the points cover but do not exceed the workspace. _M_ should be around 8 to cover the corners of the volume, while _N_ can be 2-3 orientations per point.
+
+This will output `calibration_points.json`, which defines the workspace (`xyz` points, as well as `quat` orientations).
+
+```bash
+record_calibration_points.py --help
+usage: record_calibration_points.py [-h] [--ip IP] [--marker-id MARKER_ID] [--marker-length MARKER_LENGTH]
 
 optional arguments:
   -h, --help            show this help message and exit
-  -o, --overheadcam
+  --ip IP               robot ip address
+  --marker-id MARKER_ID
+                        ARTag marker id
+  --marker-length MARKER_LENGTH
+                        ARTag length in meters
+```
+
+### Run calibration
+
+Run `collect_data_and_cal.py` to run the calibration process by sampling from the workspace. This will output a `calibration.json` containing `camera_base_ori`, `camera_base_pos`, and `p_marker_ee` for each camera. Useful parameters include:
+
+- Increase the dataset size by changing the number of points sampled using `--num-points`
+- Change the amount of time per movement (in seconds) using `--time-to-go`
+- Visualize the output images by providing an `--imagedir`.
+
+```bash
+$ collect_data_and_cal.py --help
+usage: collect_data_and_cal.py [-h] [--ip IP] [--datafile DATAFILE] [--overwrite] [--marker-id MARKER_ID] [--calibration-file CALIBRATION_FILE] [--points-file POINTS_FILE] [--num-points NUM_POINTS] [--time-to-go TIME_TO_GO] [--imagedir IMAGEDIR]
+
+optional arguments:
+  -h, --help            show this help message and exit
   --ip IP               robot ip address
   --datafile DATAFILE   file to either load or save camera data
   --overwrite           overwrite existing datafile, if it exists
-  --target-marker-id TARGET_MARKER_ID
+  --marker-id MARKER_ID
                         ID of the ARTag marker in the image
   --calibration-file CALIBRATION_FILE
                         file to save final calibration data
+  --points-file POINTS_FILE
+                        file to load convex hull to sample points from
+  --num-points NUM_POINTS
+                        number of points to sample from convex hull
+  --time-to-go TIME_TO_GO
+                        time_to_go in seconds for each movement
   --imagedir IMAGEDIR   folder to save debug images
   ```
   
@@ -113,7 +150,6 @@ Saving calibrated parameters to calibration.pkl
 
 
 ## Future Work
-* Support Franka manual mode (no need to program motion)
 * ARTag based Intrinsic calibration
 * Detect poor convergence case and automatic recovery
 
