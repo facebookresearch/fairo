@@ -7,7 +7,7 @@ import traceback
 
 class Lidar:
     def __init__(self):
-        self._lidar = RPLidar('/dev/hello-lrf')
+        self._lidar = RPLidar("/dev/hello-lrf")
         self._lock = threading.Lock()
         self._thread = None
         self.latest_scan = None
@@ -32,4 +32,3 @@ class Lidar:
                 self._lidar.stop()
                 self._lidar.stop_motor()
                 # just keep going
-

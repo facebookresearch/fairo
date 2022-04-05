@@ -94,6 +94,7 @@ def is_obstacle(
     else:
         return obstacle
 
+
 def is_lidar_obstacle(lidar_scan, bbox=(0.0, 0.5, -0.25, 0.25), min_quality=0):
     # bbox specifies coordinates of rectangle (xmin, xmax, ymin, ymax) centered
     # at lidar. Any points within this box are considered an obstacle.
@@ -120,6 +121,7 @@ def is_lidar_obstacle(lidar_scan, bbox=(0.0, 0.5, -0.25, 0.25), min_quality=0):
 
     in_bounds = (xs >= xmin) & (xs <= xmax) & (ys >= ymin) & (ys <= ymax)
     return in_bounds.any()
+
 
 def get_o3d_pointcloud(points, colors):
     points, colors = points.reshape(-1, 3), colors.reshape(-1, 3)
