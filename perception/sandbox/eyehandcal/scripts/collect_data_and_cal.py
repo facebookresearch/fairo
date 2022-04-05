@@ -70,7 +70,6 @@ def robot_poses(ip_address, pose_generator, time_to_go=3):
 
     # Get reference state
     robot.go_home()
-    robot.start_cartesian_impedance()
     for i, (pos_sampled, ori_sampled) in enumerate(pose_generator):
         while True:
             print( f"Moving to pose ({i}): pos={pos_sampled}, quat={ori_sampled.as_quat()}")
