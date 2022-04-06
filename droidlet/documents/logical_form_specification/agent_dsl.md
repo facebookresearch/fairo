@@ -386,10 +386,10 @@ Comparator compares two values.
 <a id="comparator"> COMPARATOR =  </a>
 
 {
-  "input_left" : {<a href="#filters">FILTERS</a> / <a href="#attribute">Attribute</a> / {"fixed_value" : text} / span }
+  "input_left" : <a href="#filters">FILTERS</a> / <a href="#attribute">Attribute</a> / {"fixed_value" : text} / span 
   "comparison_type" : "GREATER_THAN" / "LESS_THAN" / "GREATER_THAN_EQUAL" / 
                       "LESS_THAN_EQUAL" / "NOT_EQUAL" / "EQUAL" / <CLOSE_TO> / <MOD_EQUAL> / <MOD_CLOSE>,
-  "input_right" : {<a href="#filters">FILTERS</a> / <a href="#attribute">Attribute</a> / {"fixed_value" : text} /span }
+  "input_right" : <a href="#filters">FILTERS</a> / <a href="#attribute">Attribute</a> / {"fixed_value" : text} /span 
   "comparison_measure" : {"fixed_value" : text} / span,
   "set_comparison": "ANY"/ "ALL"
 }

@@ -92,8 +92,7 @@ For "repeat 10 times" the remove condition is
           "output": {"attribute": "RUN_COUNT"}
         }
     },
-    "input_right": {
-        "value": [0, [1,1]]
+    "input_right": [0, [1,1]]
     }
   }
 }

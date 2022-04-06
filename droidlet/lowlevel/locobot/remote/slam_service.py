@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import numpy as np
 import Pyro4
@@ -20,7 +21,7 @@ class SLAM(object):
         robot,
         map_size=4000,
         resolution=5,
-        robot_rad=25,
+        robot_rad=30,
         agent_min_z=5,
         agent_max_z=70,
     ):
@@ -88,10 +89,8 @@ class SLAM(object):
         self.map_builder.add_obstacle(location)
 
     def update_map(self):
-        robot_relative_pos = du.get_relative_state(self.robot.get_base_state(), self.init_state)
-        pcd = self.robot.get_current_pcd(in_cam=False)[0]
-
-        self.map_builder.update_map(pcd, robot_relative_pos)
+        pcd = self.robot.get_current_pcd()[0]
+        self.map_builder.update_map(pcd)
 
         # explore the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
@@ -119,8 +118,11 @@ class SLAM(object):
 
 robot_ip = os.getenv("LOCOBOT_IP")
 ip = os.getenv("LOCAL_IP")
+robot_name = "remotelocobot"
+if len(sys.argv) > 1:
+    robot_name = sys.argv[1]
 with Pyro4.Daemon(ip) as daemon:
-    robot = Pyro4.Proxy("PYRONAME:remotelocobot@" + robot_ip)
+    robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
     obj = SLAM(robot)
     obj_uri = daemon.register(obj)
     with Pyro4.locateNS(robot_ip) as ns:

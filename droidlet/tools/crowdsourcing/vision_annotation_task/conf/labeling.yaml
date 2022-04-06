@@ -1,0 +1,18 @@
+#@package _global_
+mephisto:
+  blueprint:
+    data_csv: ${task_dir}/labeling_data.csv
+    extra_source_dir: ${task_dir}/server_files/extra_refs
+    preview_source: ${task_dir}/server_files/vision_labeling_task_preview.html
+    task_source: ${task_dir}/server_files/vision_labeling_task.html
+    units_per_assignment: 1
+  database:
+    _database_type: singleton
+  task:
+    assignment_duration_in_seconds: 600
+    maximum_units_per_worker: 10
+    task_description: Look at the 3D scene and tell us what is in it
+    task_name: ca-vis-label
+    task_reward: 0.75
+    task_tags: 3D, annotate, shapes
+    task_title: Tell us what is in the scene

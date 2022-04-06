@@ -34,7 +34,7 @@ class TestValidateParseTree(unittest.TestCase):
     def test_validate_array_span_json(self):
         action_dict = {
             "dialogue_type": "HUMAN_GIVE_COMMAND",
-            "action_sequence": [
+            "event_sequence": [
                 {
                     "action_type": "BUILD",
                     "schematic": {
@@ -54,7 +54,7 @@ class TestValidateParseTree(unittest.TestCase):
     def test_validate_string_span_json(self):
         action_dict = {
             "dialogue_type": "HUMAN_GIVE_COMMAND",
-            "action_sequence": [
+            "event_sequence": [
                 {
                     "action_type": "DANCE",
                     "dance_type": {

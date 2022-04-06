@@ -4,4 +4,3 @@
 # LICENSE file in the root directory of this source tree.
 
 from .core import Robot
-from .version import __version__
