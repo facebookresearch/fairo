@@ -24,6 +24,7 @@ class SwarmMCInterpreter(MCInterpreter):
         self.task_objects["move"] = swarm_tasks.SwarmMove
         self.task_objects["build"] = swarm_tasks.SwarmBuild
         self.task_objects["destroy"] = swarm_tasks.SwarmDestroy
+        self.task_objects["dance"] = swarm_tasks.SwarmDance
         self.task_objects["dig"] = swarm_tasks.SwarmDig
 
     def handle_stop(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
