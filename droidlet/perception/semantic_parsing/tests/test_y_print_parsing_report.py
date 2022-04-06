@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 import json
-from ..nsp_querier import NSPQuerier
+from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from droidlet.shared_data_structs import MockOpt
 from prettytable import PrettyTable
 
@@ -1175,7 +1175,7 @@ def compare_full_dictionaries(d1, d2):
         if d2["dialogue_type"] != d1["dialogue_type"]:
             return False
         actions = d1["event_sequence"]
-        if len(actions) != len(d2["event_sequence"]):
+        if len(actions) != len(d2.get("event_sequence", {})):
             return False
         for i, action_dict in enumerate(actions):
             if not compare_dicts(action_dict, d2["event_sequence"][i]):
@@ -1210,18 +1210,22 @@ class TestDialogueManager(unittest.TestCase):
         records = []
         parsing_model_status = False
         pass_cnt, fail_cnt, model_pass_cnt, model_fail_cnt = 0, 0, 0, 0
+        status = True
         for command in common_functional_commands.keys():
             ground_truth_parse = common_functional_commands[command]
             if command in self.ground_truth_actions:
                 model_prediction = self.ground_truth_actions[command]
             else:
-                # else query the model and remove the value for key "text_span"
-                model_prediction = remove_text_span(
-                    self.chat_parser.parsing_model.query_for_logical_form(chat=command)
-                )
-
+                print(command)
+                try:
+                    # else query the model and remove the value for key "text_span"
+                    model_prediction = remove_text_span(
+                        self.chat_parser.parsing_model.query_for_logical_form(chat=command)
+                    )
+                except:
+                    status = False
             # compute parsing pipeline accuracy
-            status = compare_full_dictionaries(ground_truth_parse, model_prediction)
+            status = status and compare_full_dictionaries(ground_truth_parse, model_prediction)
             if status:
                 pass_cnt += 1
                 record = [
@@ -1235,10 +1239,13 @@ class TestDialogueManager(unittest.TestCase):
                     fontcolors.FAIL + "FAIL" + fontcolors.ENDC,
                 ]
             # compute model correctness status
-            model_output = remove_text_span(
-                self.chat_parser.parsing_model.query_for_logical_form(chat=command)
-            )
-            parsing_model_status = compare_full_dictionaries(ground_truth_parse, model_output)
+            try:
+                model_output = remove_text_span(
+                    self.chat_parser.parsing_model.query_for_logical_form(chat=command)
+                )
+                parsing_model_status = compare_full_dictionaries(ground_truth_parse, model_output)
+            except:
+                parsing_model_status = False
             if parsing_model_status:
                 model_pass_cnt += 1
                 record += [fontcolors.OKGREEN + "PASS" + fontcolors.ENDC]
