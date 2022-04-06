@@ -55,10 +55,12 @@ class LocoAgentMemory(AgentMemory):
         if not perception_output:
             return
 
-        x, z, yaw = perception_output.self_pose
-        self.place_field.update_map(
-            [{"pos": (x, 0, z), "is_obstacle": True, "memid": self.self_memid, "is_move": True}]
-        )
+        # TODO there should be some sort of warning/error if self_pose is not updated
+        if perception_output.self_pose is not None:
+            x, z, yaw = perception_output.self_pose
+            self.place_field.update_map(
+                [{"pos": (x, 0, z), "is_obstacle": True, "memid": self.self_memid, "is_move": True}]
+            )
 
         if perception_output.new_objects:
             for detection in perception_output.new_objects:
