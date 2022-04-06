@@ -474,7 +474,7 @@ class MemorySearcher:
                     prop_vals = get_property_value(agent_memory, m, aname, get_all=True)
                     if prop_vals:
                         if type(prop_vals) is str:
-                            prop_vals =[prop_vals]
+                            prop_vals = [prop_vals]
                         for prop_val in prop_vals:
                             values_dict[m].append(prop_val)
             return sum(values_dict.values(), [])
