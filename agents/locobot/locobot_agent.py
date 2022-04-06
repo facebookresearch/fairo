@@ -237,11 +237,23 @@ class LocobotAgent(DroidletAgent):
         # 1. perceive from NLU parser
         super().perceive(force=force)
         # 2. perceive from robot perception modules
+        previous_objects = DetectedObjectNode.get_all(self.memory)
+        # perception_output is a namedtuple of:
+        # new_detections, updated_detections, humans, self_pose, obstacle_map
         self.perception_modules["self"].perceive(force=force)
+        x, z, yaw = self.mover.get_base_pos_in_canonical_coords()
         rgb_depth = self.mover.get_rgb_depth()
-        xyz = self.mover.get_base_pos_in_canonical_coords()
-        x, y, yaw = xyz
+        perception_output = self.perception_modules["vision"].perceive(
+            rgb_depth, (x, z, yaw), previous_objects, force=force
+        )
+        # 3. update the occupancy map
+        # TODO just the diff? otherwise speed up?
+        obstacles = self.mover.get_obstacles_in_canonical_coords()
+        perception_output = perception_output._replace(obstacle_map=obstacles)
+
+        # 4. self location
         if self.backend == "habitat":
+            # "y" on map is "z" in droidlet coords
             sio.emit(
                 "map",
                 {
@@ -251,16 +263,8 @@ class LocobotAgent(DroidletAgent):
                     "map": self.mover.get_obstacles_in_canonical_coords(),
                 },
             )
-
-        previous_objects = DetectedObjectNode.get_all(self.memory)
-        # perception_output is a namedtuple of : new_detections, updated_detections, humans
-        perception_output = self.perception_modules["vision"].perceive(
-            rgb_depth, xyz, previous_objects, force=force
-        )
-        # 3. update the occupancy map
-        # TODO just the diff? otherwise speed up?
-        obstacles = self.mover.get_obstacles_in_canonical_coords()
-        perception_output = perception_output._replace(obstacle_map=obstacles)
+        # FIXME better pose object
+        perception_output = perception_output._replace(self_pose=(x, z, yaw))
 
         self.memory.update(perception_output)
 

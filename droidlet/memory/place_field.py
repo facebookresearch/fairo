@@ -73,7 +73,7 @@ class PlaceField:
 
         # gives an index allowing quick lookup by memid
         # each entry is keyed by a memid and is a dict
-        # {str(h*BIG_I*BIG_J + i*BIG_J + j) : True}
+        # {str(h*BIG_I*BIG_J + i*BIG_J + j) : Traversible}
         # for each placed h, i ,j
         self.memid2locs = {}
 
@@ -109,13 +109,22 @@ class PlaceField:
                 if len(self.memid2locs[memid]) == 0:
                     self.memid2locs.pop(memid, None)
 
-    # this is pretty brutal, using rn on robot to sync with slam service
+    # this is pretty brutal, using rn on robot to sync with slam service.
+    # overrides slam service for "detections" with memids that have been labeled
+    # as obstacles (e.g. self_memid)
     def sync_traversible(self, locs, h=0):
+        # overwrite traversibility map from slam service
         self.maps[h]["map"][:] = 0
         self.maps[h]["updated"][:] = self.get_time()
         for (x, z) in locs:
             i, j = self.real2map(x, z, h)
             self.maps[h]["map"][i, j] = 1
+        # replace memids that are obstacles if they were clobbered from map
+        for k, v in self.memid2locs.items():
+            for idx, t in v.items():
+                i, j, height = self.idx2ijh(idx)
+                if height == h and t > 0:
+                    self.maps[h]["map"][i, j] = 1
 
     def delete_loc_by_memid(self, memid, t, is_move=False):
         """
@@ -202,7 +211,7 @@ class PlaceField:
                     self.maps[h]["updated"][i, j] = t
                     if not self.memid2locs.get(memid):
                         self.memid2locs[memid] = {}
-                    self.memid2locs[memid][self.ijh2idx(i, j, h)] = True
+                    self.memid2locs[memid][self.ijh2idx(i, j, h)] = c.get("is_obstacle", 1)
 
     # FIXME, want slices, esp for mc
     def y2slice(self, y):
