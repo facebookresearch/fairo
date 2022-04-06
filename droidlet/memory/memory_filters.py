@@ -473,11 +473,12 @@ class MemorySearcher:
                 for m in memids:
                     prop_vals = get_property_value(agent_memory, m, aname, get_all=True)
                     if prop_vals:
-                        if type(prop_vals) is str: # if get_all=False, prop_vals is a str
+                        if type(prop_vals) is str:
                             values_dict[m].append(prop_vals)
                         else:
                             for prop_val in prop_vals:
                                 values_dict[m].append(prop_val)
+            # TODO switch everything to dicts
             return sum(values_dict.values(), [])
 
     def search(self, agent_memory, query=None, default_memtype="ReferenceObject"):
