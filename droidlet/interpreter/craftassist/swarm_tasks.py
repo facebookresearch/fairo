@@ -76,11 +76,13 @@ class SwarmMove(BaseSwarmTask):
 class SwarmDance(BaseSwarmTask):
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
-        self.movement = task_data.get("movement")
 
     def distribute(self, task_data):
+        self.movement = task_data.get("movement")
         for i in range(self.num_agents):
-            self.assign_to_worker(self.task_agents_memid[i], "dance", task_data)
+            tmp_task_data = deepcopy(task_data)
+            self.assign_to_worker(self.task_agents_memid[i], "dance", tmp_task_data)
+
 
 class SwarmDanceMove(BaseSwarmTask):
     def __init__(self, agent, task_data):
