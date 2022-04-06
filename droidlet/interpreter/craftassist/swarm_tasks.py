@@ -62,6 +62,7 @@ class BaseSwarmTask(Task):
             TASK_MAP[task_name](self.agent, task_data)
         else:
             tmp_task = TASK_MAP[task_name](self.agent, task_data)
+            import ipdb;ipdb.set_trace()
             self.agent.memory.tag(tmp_task.memid, self.memory_tag.format(worker_idx))
 
 class SwarmMove(BaseSwarmTask):
