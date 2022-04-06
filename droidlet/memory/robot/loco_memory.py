@@ -54,7 +54,7 @@ class LocoAgentMemory(AgentMemory):
         """
         if not perception_output:
             return
-        
+
         x, z, yaw = perception_output.self_pose
         self.place_field.update_map(
             [{"pos": (x, 0, z), "is_obstacle": True, "memid": self.self_memid, "is_move": True}]
@@ -86,7 +86,7 @@ class LocoAgentMemory(AgentMemory):
                 # FIXME, not putting in map, need to dedup?
         # FIXME make a proper diff.  what to do about discrepancies with objects?
         self.place_field.sync_traversible(perception_output.obstacle_map, h=0)
-        
+
     #################
     ###  Players  ###
     #################

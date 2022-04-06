@@ -19,8 +19,8 @@ from droidlet.shared_data_structs import RGBDepth
 
 from droidlet.lowlevel.robot_coordinate_utils import (
     base_canonical_coords_to_pyrobot_coords,
-    xyz_pyrobot_to_canonical_coords
-)    
+    xyz_pyrobot_to_canonical_coords,
+)
 
 from droidlet.lowlevel.robot_mover import MoverInterface
 from droidlet.lowlevel.robot_mover_utils import (

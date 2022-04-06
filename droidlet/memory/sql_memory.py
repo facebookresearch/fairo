@@ -88,7 +88,7 @@ class AgentMemory:
         nodelist=NODELIST,
         agent_time=None,
         on_delete_callback=None,
-        place_field_pixels_per_unit=DEFAULT_PIXELS_PER_UNIT
+        place_field_pixels_per_unit=DEFAULT_PIXELS_PER_UNIT,
     ):
         if db_log_path:
             self._db_log_file = gzip.open(db_log_path + ".gz", "w")
