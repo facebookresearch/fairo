@@ -21,7 +21,7 @@ class Client {
  public:
   static constexpr double HEIGHT = 1.5;
 
-  Client(const std::string& host, int port, const std::string& username);
+  Client(const std::string& host, int port, const std::string& username, double x, double y, double z);
   ~Client() { disconnect(); }
   void disconnect();
   Pos getPosition() { return gameState_->getPosition(); }

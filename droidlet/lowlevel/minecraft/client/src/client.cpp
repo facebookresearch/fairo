@@ -35,7 +35,7 @@ bool IS_GLOG_INITIALIZED = false;
 ////////////////
 // Public
 
-Client::Client(const string& host, int port, const string& username) {
+Client::Client(const string& host, int port, const string& username, double x, double y, double z) {
   // Init glog. Better place for this?
   if (!IS_GLOG_INITIALIZED) {
     google::InitGoogleLogging("client");
@@ -62,6 +62,12 @@ Client::Client(const string& host, int port, const string& username) {
 
   // Wait until chunks have loaded
   eventHandler_->waitForCondition();
+
+  // teleport to spawn location
+  Pos spawnPos = Pos{x, y, z};
+  if (gameState_->getBlockMap().canWalkthrough(spawnPos)) {
+  doMoveUnsafe(spawnPos);
+  }
 }
 
 void Client::disconnect() {
