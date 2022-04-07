@@ -399,11 +399,20 @@ class StateManager {
   }
 
   showAssistantReply(res) {
+    console.log(res);
+    try {
+      let res_json = JSON.parse(res);
+      let content = res_json.properties.content;
+      var chat = content.filter(entry => entry[0] == "text")[0];
+    } catch (e) {
+      var chat = res.agent_reply;
+    }
+    console.log(chat);
     this.memory.agent_replies.push({
-      msg: res.agent_reply,
+      msg: chat,
       timestamp: Date.now(),
     });
-    this.memory.last_reply = res.agent_reply;
+    this.memory.last_reply = chat;
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
         ref.setState({

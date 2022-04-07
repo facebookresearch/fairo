@@ -8,6 +8,7 @@ import signal
 import random
 import logging
 import faulthandler
+import json
 from multiprocessing import set_start_method
 if __name__ == "__main__":
     set_start_method("spawn", force=True)
@@ -302,10 +303,26 @@ class LocobotAgent(DroidletAgent):
 
     # # FIXME!!!!
     def send_chat(self, chat: str):
-        logging.info("Sending chat: {}".format(chat))
+        chat_js = False
+        try:
+            chat_js = json.loads(chat)
+            chat_text = [x for x in chat_js["properties"]["content"] if x[0] == "text"][0]
+        except:
+            chat_text = chat
+
+        logging.info("Sending chat: {}".format(chat_text))
+        chat_memid = self.memory.add_chat(self.memory.self_memid, chat_text)
+        if chat_js:
+            chat_js["properties"]["chat_id"] = chat_memid
+            chat_time = self.memory.basic_search(f"SELECT time FROM Chat WHERE uuid={chat_memid}")
+            logging.info(f"Chat time retrieved from memory: {chat_time}")
+            chat_js["properties"]["timestamp"] = chat_time
+            chat_out = json.dumps(chat_js)
+        else:
+            chat_out = chat_text
         # Send the socket event to show this reply on dashboard
-        sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat)})
-        self.memory.add_chat(self.memory.self_memid, chat)
+        sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_out)})
+        
         # actually send the chat, FIXME FOR HACKATHON
         # return self._cpp_send_chat(chat)
 

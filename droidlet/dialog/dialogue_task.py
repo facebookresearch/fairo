@@ -5,6 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 import numpy as np
 import random
+import json
 
 from droidlet.dialog.string_lists import MAP_YES, MAP_NO
 from enum import Enum
@@ -206,6 +207,31 @@ class ConfirmReferenceObject(Task):
         )
         return
 
+
+def build_question_json(agent, text, media=None, text_response_options=None, media_response_options=None):
+    chat_obj = {  #based on the schema from droidlet/dialog/chat_schema.md
+        "title": "Droidlet Chat",
+        "description": "A single chat sent from a Droidlet agent to the user",
+        "version": 1,
+        "type": "object",
+
+        "properties": {
+            "speaker_id": "",
+            "timestamp": 0,
+            "content_type": "",
+            "content": [],
+        }
+    }
+    if media_response_options:
+        chat_obj["properties"]["content_type"] = "chat_and_media_options"
+    elif media and text_response_options:
+        chat_obj["properties"]["content_type"] = "chat_and_media_and_text_options"
+    elif text_response_options:
+        chat_obj["properties"]["content_type"] = "chat_and_text_options"
+    elif media:
+        chat_obj["properties"]["content_type"] = "chat_and_media"
+    else:
+        chat_obj["properties"]["content_type"] = "chat_string"
 
 def check_parse(task):
     question = f"I'm not sure about something. \
