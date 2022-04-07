@@ -3,7 +3,7 @@ from droidlet.interpreter.robot import SwarmLocoInterpreter
 
 def get_default_task_info(task_map):
     DEFAULT_TASK_INFO = {
-        "move": ["target"],
+        "move": ["target", "approx"],
         "build": ["blocks_list"],
         "destroy": ["schematic"],
         "dig": ["origin", "length", "width", "depth"],
