@@ -17,6 +17,7 @@ import cv2
 import open3d as o3d
 from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
 from droidlet.lowlevel.hello_robot.remote.lidar import Lidar
+from droidlet.lowlevel.pyro_utils import pyro_retry_loop
 from slam_pkg.utils import depth_util as du
 import obstacle_utils
 from obstacle_utils import is_obstacle
@@ -243,10 +244,10 @@ if __name__ == "__main__":
 
     with Pyro4.Daemon(args.ip) as daemon:
         bot = Pyro4.Proxy("PYRONAME:hello_robot@" + args.ip)
+        pyro_retry_loop(lambda: bot._pyroBind())
         robot = RemoteHelloRealsense(bot)
         robot_uri = daemon.register(robot)
-        with Pyro4.locateNS() as ns:
-            ns.register("hello_realsense", robot_uri)
+        pyro_retry_loop(lambda: Pyro4.locateNS().register("hello_realsense", robot_uri))
 
         print("Server is started...")
         # try:

@@ -19,6 +19,7 @@ hu.print_stretch_re_use()
 import numpy as np
 import cv2
 from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
+from droidlet.lowlevel.pyro_utils import pyro_retry_loop
 
 
 Pyro4.config.SERIALIZER = "pickle"
@@ -243,8 +244,7 @@ if __name__ == "__main__":
     with Pyro4.Daemon(args.ip) as daemon:
         robot = RemoteHelloRobot(ip=args.ip)
         robot_uri = daemon.register(robot)
-        with Pyro4.locateNS() as ns:
-            ns.register("hello_robot", robot_uri)
+        pyro_retry_loop(lambda: Pyro4.locateNS().register("hello_robot", robot_uri))
 
         print("Server is started...")
         daemon.requestLoop()

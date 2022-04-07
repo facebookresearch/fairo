@@ -4,6 +4,7 @@ import time
 import numpy as np
 import Pyro4
 import select
+from droidlet.lowlevel.pyro_utils import pyro_retry_loop
 from slam_pkg.utils.map_builder import MapBuilder as mb
 from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
@@ -123,10 +124,10 @@ if len(sys.argv) > 1:
     robot_name = sys.argv[1]
 with Pyro4.Daemon(ip) as daemon:
     robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
+    pyro_retry_loop(lambda: robot._pyroBind())
     obj = SLAM(robot)
     obj_uri = daemon.register(obj)
-    with Pyro4.locateNS(robot_ip) as ns:
-        ns.register("slam", obj_uri)
+    pyro_retry_loop(lambda: Pyro4.locateNS(robot_ip).register("slam", obj_uri))
 
     print("SLAM Server is started...")
 

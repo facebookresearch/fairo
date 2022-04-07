@@ -5,7 +5,7 @@ import json
 import cv2
 import numpy as np
 import Pyro4
-from droidlet.lowlevel.pyro_utils import safe_call
+from droidlet.lowlevel.pyro_utils import pyro_retry_loop, safe_call
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
@@ -140,10 +140,10 @@ if __name__ == "__main__":
     with Pyro4.Daemon(args.ip) as daemon:
         bot = Pyro4.Proxy("PYRONAME:hello_robot@" + args.ip)
         cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + args.ip)
+        pyro_retry_loop(lambda: bot._pyroBind() and cam._pyroBind())
         data_logger = LabelPropSaver("hello_data_log_" + str(time.time()), bot, cam)
         data_logger_uri = daemon.register(data_logger)
-        with Pyro4.locateNS() as ns:
-            ns.register("hello_data_logger", data_logger_uri)
+        pyro_retry_loop(lambda: Pyro4.locateNS().register("hello_data_logger", data_logger_uri))
 
         print("Server is started...")
         daemon.requestLoop()

@@ -6,6 +6,7 @@ import time
 import numpy as np
 import Pyro4
 from slam_pkg.utils import depth_util as du
+from droidlet.lowlevel.pyro_utils import pyro_retry_loop
 
 random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
@@ -153,11 +154,11 @@ with Pyro4.Daemon(ip) as daemon:
     robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
     planner = Pyro4.Proxy("PYRONAME:planner@" + robot_ip)
     slam = Pyro4.Proxy("PYRONAME:slam@" + robot_ip)
+    pyro_retry_loop(lambda: robot._pyroBind() and planner._pyroBind() and slam._pyroBind())
 
     obj = Navigation(planner, slam, robot)
     obj_uri = daemon.register(obj)
-    with Pyro4.locateNS() as ns:
-        ns.register("navigation", obj_uri)
+    pyro_retry_loop(lambda: Pyro4.locateNS().register("navigation", obj_uri))
 
     print("Navigation Server is started...")
     daemon.requestLoop()

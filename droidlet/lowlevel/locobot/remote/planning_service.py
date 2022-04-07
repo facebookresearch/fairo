@@ -2,6 +2,7 @@ import os
 import math
 import numpy as np
 import Pyro4
+from droidlet.lowlevel.pyro_utils import pyro_retry_loop
 from slam_pkg.utils.fmm_planner import FMMPlanner
 
 Pyro4.config.SERIALIZER = "pickle"
@@ -107,10 +108,10 @@ ip = os.getenv("LOCAL_IP")
 
 with Pyro4.Daemon(ip) as daemon:
     slam = Pyro4.Proxy("PYRONAME:slam@" + robot_ip)
+    pyro_retry_loop(lambda: slam._pyroBind())
     obj = Planner(slam)
     obj_uri = daemon.register(obj)
-    with Pyro4.locateNS() as ns:
-        ns.register("planner", obj_uri)
+    pyro_retry_loop(lambda: Pyro4.locateNS().register("planner", obj_uri))
 
     print("Planner Server is started...")
     daemon.requestLoop()
