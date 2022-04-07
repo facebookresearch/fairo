@@ -445,7 +445,7 @@ class MemorySearcher:
         else:
             return memids
 
-    def handle_output(self, agent_memory, query, memids):
+    def handle_output(self, agent_memory, query, memids, get_all):
         output = query.get("output", "MEMORY")
         if output == "MEMORY":
             return [agent_memory.get_mem_by_id(m) for m in memids]
@@ -471,7 +471,7 @@ class MemorySearcher:
                         )
                     )
                 for m in memids:
-                    prop_vals = get_property_value(agent_memory, m, aname, get_all=True)
+                    prop_vals = get_property_value(agent_memory, m, aname, get_all)
                     if type(prop_vals) is list:
                         for prop_val in prop_vals:
                             values_dict[m].append(prop_val)
@@ -480,7 +480,7 @@ class MemorySearcher:
             # TODO switch everything to dicts
             return [values_dict[m] for m in memids]
 
-    def search(self, agent_memory, query=None, default_memtype="ReferenceObject"):
+    def search(self, agent_memory, query=None, default_memtype="ReferenceObject", get_all=True):
         # returns a list of memids and accompanying values
         # TODO values are MemoryNodes when query is SELECT MEMORIES
         query = query or self.query
@@ -505,7 +505,7 @@ class MemorySearcher:
             except:
                 pass
             # TODO/FIXME switch output format to dicts
-        return memids, self.handle_output(agent_memory, query, memids)
+        return memids, self.handle_output(agent_memory, query, memids, get_all)
 
 
 # TODO subclass for filters that return at most one memory,value?
