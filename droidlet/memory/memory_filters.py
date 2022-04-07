@@ -480,7 +480,7 @@ class MemorySearcher:
             # TODO switch everything to dicts
             return [values_dict[m] for m in memids]
 
-    def search(self, agent_memory, query=None, default_memtype="ReferenceObject", get_all=True):
+    def search(self, agent_memory, query=None, default_memtype="ReferenceObject", get_all=False):
         # returns a list of memids and accompanying values
         # TODO values are MemoryNodes when query is SELECT MEMORIES
         query = query or self.query
