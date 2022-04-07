@@ -510,7 +510,7 @@ class MemorySearcher:
 
         if vals and type(vals[0]) is list:
             # return memids, vals in the form:
-            # [m1, m1, m1, m2, m2, m2], [p0, p1, p2, p3, p4, p5]
+            # [m1, m1, m1, m2, m2], [p0, p1, p2, p3, p4]
             # where m1 and m2 are the memids
 
             # repeat memids for each property
