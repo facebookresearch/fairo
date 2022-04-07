@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 import pyrealsense2 as rs
 
@@ -7,7 +5,11 @@ import pyrealsense2 as rs
 class RealsenseAPI:
     """Wrapper that implements boilerplate code for RealSense cameras"""
 
-    def __init__(self):
+    def __init__(self, height=480, width=640, fps=30, warm_start=60):
+        self.height = height
+        self.width = width
+        self.fps = fps
+
         # Identify devices
         self.device_ls = []
         for c in rs.context().query_devices():
@@ -22,21 +24,24 @@ class RealsenseAPI:
             config = rs.config()
 
             config.enable_device(device_id)
-            config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-            config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+            config.enable_stream(rs.stream.depth, self.width, self.height, rs.format.z16, self.fps)
+            config.enable_stream(
+                rs.stream.color, self.width, self.height, rs.format.rgb8, self.fps
+            )
 
             self.pipes.append(pipe)
             self.profiles.append(pipe.start(config))
 
             print(f"Connected to camera {i+1} ({device_id}).")
-            time.sleep(1)
 
+        self.align = rs.align(rs.stream.color)
         # Warm start camera (realsense automatically adjusts brightness during initial frames)
-        for _ in range(60):
+        for _ in range(warm_start):
             self._get_frames()
 
     def _get_frames(self):
-        return [pipe.wait_for_frames() for pipe in self.pipes]
+        framesets = [pipe.wait_for_frames() for pipe in self.pipes]
+        return [self.align.process(frameset) for frameset in framesets]
 
     def get_intrinsics(self):
         intrinsics_ls = []
@@ -51,38 +56,25 @@ class RealsenseAPI:
     def get_num_cameras(self):
         return len(self.device_ls)
 
-    def get_images(self, depth=False):
+    def get_rgbd(self):
+        """Returns a numpy array of [n_cams, height, width, RGBD]"""
         framesets = self._get_frames()
+        num_cams = self.get_num_cameras()
 
-        if depth:
-            align_to = rs.stream.color
-            align = rs.align(align_to)
-            framesets = [align.process(frameset) for frameset in framesets]
+        rgbd = np.zeros([num_cams, self.height, self.width, 4], dtype=np.uint16)
 
-        imgs = []
-        depth_imgs = []
-        for frameset in framesets:
-            frame = frameset.get_color_frame()
-            img = np.asanyarray(frame.get_data())
-            imgs.append(img)
+        for i, frameset in enumerate(framesets):
+            color_frame = frameset.get_color_frame()
+            rgbd[i, :, :, :3] = np.asanyarray(color_frame.get_data())
 
-            if depth:
-                frame = frameset.get_depth_frame()
-                depth_img = np.asanyarray(frame.get_data())
-                depth_imgs.append(depth_img)
+            depth_frame = frameset.get_depth_frame()
+            rgbd[i, :, :, 3] = np.asanyarray(depth_frame.get_data())
 
-        if depth:
-            return imgs, depth_imgs
-        else:
-            return imgs
+        return rgbd
 
-    def get_pointcloud(self) -> rs.pointcloud:
-        framesets = self._get_frames()
-        pc_ls = []
-        for frameset in framesets:
-            pc = rs.pointcloud()
-            pc.map_to(frameset.get_color_frame())
-            points = pc.calculate(frameset.get_depth_frame())
-            pc_ls.append(points)
 
-        return pc_ls
+if __name__ == "__main__":
+    cams = RealsenseAPI()
+
+    print(f"Num cameras: {cams.get_num_cameras()}")
+    rgbd = cams.get_rgbd()
