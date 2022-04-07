@@ -899,7 +899,9 @@ class AgentMemory:
         else:
             return None
 
-    def get_last_finished_root_task(self, action_name: str = None, recency: int = None):
+    def get_last_finished_root_task(
+        self, action_name: str = None, recency: int = None, ignore_control: bool = False
+    ):
         """Get last task that was marked as finished
 
         Args:
@@ -926,15 +928,24 @@ class AgentMemory:
         args: List = [max(self.get_time() - recency, 0)]
         if action_name:
             args.append(action_name)
-        memids = [r[0] for r in self._db_read(q, *args)]
-        for memid in memids:
-            if self._db_read_one(
-                "SELECT uuid FROM Triples WHERE pred_text='_has_parent_task' AND subj=?", memid
-            ):
-                # not a root task
-                continue
-
-            return TaskNode(self, memid)
+        task_memids_ok = {r[0]: False for r in self._db_read(q, *args)}
+        for memid in task_memids_ok:
+            tmems = self._db_read_one(
+                "SELECT obj FROM Triples WHERE pred_text='_has_parent_task' AND subj=?", memid
+            )
+            if tmems:  # not a root task
+                if ignore_control:
+                    is_parent_control = self.get_mem_by_id(tmems[0]).action_name == "controlblock"
+                    is_self_control = self.get_mem_by_id(memid).action_name == "controlblock"
+                    if is_parent_control and not is_self_control:
+                        task_memids_ok[memid] = True
+            else:  # no parent, this is a root task
+                task_memids_ok[memid] = True
+        ok_memids = [m for m, b in task_memids_ok.items() if b]
+        if ok_memids:
+            return TaskNode(self, ok_memids[0])
+        else:
+            return None
 
     #########################
     ###  Database Access  ###

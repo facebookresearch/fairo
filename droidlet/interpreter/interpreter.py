@@ -190,20 +190,24 @@ class Interpreter(InterpreterBase):
             else:
                 return None
 
-    # FIXME! undo is currently non-functional
+    # FIXME! undo is currently inaccurate due to ControlBlocks
     def handle_undo(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         Undo = self.task_objects["undo"]
         task_name = d.get("undo_action")
         if task_name:
             task_name = task_name.split("_")[0].strip()
-        old_task = self.memory.get_last_finished_root_task(task_name)
+        old_task = self.memory.get_last_finished_root_task(task_name, ignore_control=True)
         if old_task is None:
             raise ErrorWithResponse("Nothing to be undone ...")
         undo_tasks = [Undo(agent, {"memid": old_task.memid})]
         for u in undo_tasks:
             agent.memory.get_mem_by_id(u.memid).get_update_status({"paused": 1})
-        undo_command = old_task.get_chat().chat_text
-
+        try:
+            undo_command = old_task.get_chat().chat_text
+        except:
+            # if parent was a ControlBlock, need to get chat from that
+            old_task_parent = self.memory.get_last_finished_root_task(task_name)
+            undo_command = old_task_parent.get_chat().chat_text
         logging.debug("Pushing ConfirmTask tasks={}".format(undo_tasks))
         confirm_data = {
             "task_memids": [u.memid for u in undo_tasks],
