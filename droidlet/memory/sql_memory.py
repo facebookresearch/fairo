@@ -351,7 +351,7 @@ class AgentMemory:
         for u in uuids:
             self.forget(u[0])
 
-    def basic_search(self, query):
+    def basic_search(self, query, get_all=False):
         """Perform a basic search using the query
 
         Args:
@@ -361,7 +361,7 @@ class AgentMemory:
             list[memid], list[value]: the memids and respective values from the search
 
         """
-        return self.searcher.search(self, query=query)
+        return self.searcher.search(self, query=query, get_all=get_all)
 
     #################
     ###  Triples  ###
