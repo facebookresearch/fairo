@@ -514,7 +514,7 @@ class MemorySearcher:
             # where m1 and m2 are the memids
 
             # repeat memids for each property
-            memids = [[memids[idx]]*len(v) for idx,v in enumerate(vals)]
+            memids = [[memids[idx]] * len(v) for idx, v in enumerate(vals)]
 
             # flatten list of lists
             memids = [m for sublist in memids for m in sublist]
