@@ -208,19 +208,20 @@ class ConfirmReferenceObject(Task):
         return
 
 
-def build_question_json(agent, text, media=None, text_response_options=None, media_response_options=None):
-    chat_obj = {  #based on the schema from droidlet/dialog/chat_schema.md
+def build_question_json(
+    agent, text, media=None, text_response_options=None, media_response_options=None
+):
+    chat_obj = {  # based on the schema from droidlet/dialog/chat_schema.md
         "title": "Droidlet Chat",
         "description": "A single chat sent from a Droidlet agent to the user",
         "version": 1,
         "type": "object",
-
         "properties": {
             "speaker_id": "",
             "timestamp": 0,
             "content_type": "",
             "content": [],
-        }
+        },
     }
     if media_response_options:
         chat_obj["properties"]["content_type"] = "chat_and_media_options"
@@ -232,6 +233,7 @@ def build_question_json(agent, text, media=None, text_response_options=None, med
         chat_obj["properties"]["content_type"] = "chat_and_media"
     else:
         chat_obj["properties"]["content_type"] = "chat_string"
+
 
 def check_parse(task):
     question = f"I'm not sure about something. \
