@@ -477,12 +477,8 @@ class MemorySearcher:
                             values_dict[m].append(prop_val)
                     else:
                         values_dict[m].append(prop_vals)
-                        
-            if len(attribute_name_list) == 1:
-                for m in values_dict:
-                    values_dict[m] = values_dict[m][0]
             # TODO switch everything to dicts
-            return sum(values_dict.values(), [])
+            return [values_dict[m] for m in memids]
 
     def search(self, agent_memory, query=None, default_memtype="ReferenceObject"):
         # returns a list of memids and accompanying values
