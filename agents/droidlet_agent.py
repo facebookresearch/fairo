@@ -381,6 +381,9 @@ class DroidletAgent(BaseAgent):
             if not self.no_default_behavior:
                 self.maybe_run_slow_defaults()
             self.dialogue_manager.step()
+        elif type(obj) is dict:
+            # this is a dialogue Task, set it to run:
+            obj["task"](self, task_data=obj["data"])
         elif isinstance(obj, InterpreterBase):
             # this object is an Interpreter, step it and check if its finished
             obj.step(self)
