@@ -477,6 +477,10 @@ class MemorySearcher:
                             values_dict[m].append(prop_val)
                     else:
                         values_dict[m].append(prop_vals)
+                        
+            if len(attribute_name_list) == 1:
+                for m in values_dict:
+                    values_dict[m] = values_dict[m][0]
             # TODO switch everything to dicts
             return sum(values_dict.values(), [])
 
