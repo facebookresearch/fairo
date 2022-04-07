@@ -62,7 +62,6 @@ class BaseSwarmTask(Task):
             TASK_MAP[task_name](self.agent, task_data)
         else:
             tmp_task = TASK_MAP[task_name](self.agent, task_data)
-            import ipdb;ipdb.set_trace()
             self.agent.memory.tag(tmp_task.memid, self.memory_tag.format(worker_idx))
 
 class SwarmMove(BaseSwarmTask):
@@ -81,8 +80,7 @@ class SwarmDance(BaseSwarmTask):
     def distribute(self, task_data):
         self.movement = task_data.get("movement")
         for i in range(self.num_agents):
-            tmp_task_data = deepcopy(task_data)
-            self.assign_to_worker(self.task_agents_memid[i], "dance", tmp_task_data)
+            self.assign_to_worker(self.task_agents_memid[i], "dance", task_data)
 
 
 class SwarmDanceMove(BaseSwarmTask):

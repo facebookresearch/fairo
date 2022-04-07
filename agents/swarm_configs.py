@@ -7,6 +7,7 @@ def get_default_task_info(task_map):
         "build": ["blocks_list"],
         "destroy": ["schematic"],
         "dig": ["origin", "length", "width", "depth"],
+        "dance": ["movement"],
     }
     task_info = dict()
     for key in task_map:
