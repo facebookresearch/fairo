@@ -482,7 +482,6 @@ class MemorySearcher:
             # TODO switch everything to dicts
             return sum(values_dict.values(), [])
 
-
     def search(self, agent_memory, query=None, default_memtype="ReferenceObject"):
         # returns a list of memids and accompanying values
         # TODO values are MemoryNodes when query is SELECT MEMORIES
