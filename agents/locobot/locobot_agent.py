@@ -258,7 +258,7 @@ class LocobotAgent(DroidletAgent):
                 "map",
                 {
                     "x": x,
-                    "y": y,
+                    "y": z,
                     "yaw": yaw,
                     "map": self.mover.get_obstacles_in_canonical_coords(),
                 },
