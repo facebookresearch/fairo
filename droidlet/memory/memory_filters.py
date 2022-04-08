@@ -515,7 +515,10 @@ class MemorySearcher:
         # given memids m1, m2: return memids, vals in the form:
         # [m1, m1, m1, m2, m2], [p0, p1, p2, p3, p4]
         # where p0, p1 can be a list
-        memids = [[memids[idx]] * len(v) if type(v) is list else [memids[idx]] for idx, v in enumerate(vals)]
+        memids = [
+            [memids[idx]] * len(v) if type(v) is list else [memids[idx]]
+            for idx, v in enumerate(vals)
+        ]
         flattened_memids = [m for sublist in memids for m in sublist]
         flattened_vals = []
         for sublist in vals:
