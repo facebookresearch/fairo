@@ -462,23 +462,56 @@ class MemorySearcher:
                     attribute_name_list = [a["attribute"] for a in output]
                 except:
                     raise Exception("malformed output clause: {}".format(query))
+            # values_dict = {m: [] for m in memids}
+            # for aname in attribute_name_list:
+            #     if type(aname) is not str:
+            #         raise Exception(
+            #             "output attribute in basic search should be (list of) simple properties, instead got: {}".format(
+            #                 attribute_name_list
+            #             )
+            #         )
+            #     for m in memids:
+            #         prop_vals = get_property_value(agent_memory, m, aname, get_all)
+            #         if type(prop_vals) is list:
+            #             for prop_val in prop_vals:
+            #                 values_dict[m].append(prop_val)
+            #         else:
+            #             values_dict[m].append(prop_vals)
+
+            # val_list = [values_dict[m] for m in memids]
+            # print('\n\n\n')
+            # print('query:',query)
+            # print('memid_len:',len(memids))
+            # print('attribute_name_list_len:',len(attribute_name_list))
+            # print(val_list)
+            # print('\n\n\n')
+            # breakpoint()
+
             values_dict = {m: [] for m in memids}
-            for aname in attribute_name_list:
-                if type(aname) is not str:
-                    raise Exception(
-                        "output attribute in basic search should be (list of) simple properties, instead got: {}".format(
-                            attribute_name_list
+            for m in memids:
+                attributes = []
+                for aname in attribute_name_list:
+                    if type(aname) is not str:
+                        raise Exception(
+                            "output attribute in basic search should be (list of) simple properties, instead got: {}".format(
+                                attribute_name_list
+                            )
                         )
-                    )
-                for m in memids:
                     prop_vals = get_property_value(agent_memory, m, aname, get_all)
                     if type(prop_vals) is list:
                         for prop_val in prop_vals:
-                            values_dict[m].append(prop_val)
+                            attributes.append(prop_val)
                     else:
-                        values_dict[m].append(prop_vals)
+                        attributes.append(prop_vals)
+    
+                values_dict[m].append(attributes)
+            
+            if len(attribute_name_list) < 2:
+                val_list = [values_dict[m][0] for m in memids]
+            else:
+                val_list = [values_dict[m] for m in memids]
             # TODO switch everything to dicts
-            return [values_dict[m] for m in memids]
+            return  val_list
 
     def search(self, agent_memory, query=None, default_memtype="ReferenceObject", get_all=False):
         # returns a list of memids and accompanying values
@@ -513,7 +546,6 @@ class MemorySearcher:
             memids = [[memids[idx]] * len(v) for idx, v in enumerate(vals)]
             memids = [m for sublist in memids for m in sublist]
             vals = [v for sublist in vals for v in sublist]
-
         return memids, vals
 
 
