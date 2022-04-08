@@ -448,9 +448,9 @@ class MemorySearcher:
     def handle_output(self, agent_memory, query, memids, get_all):
         output = query.get("output", "MEMORY")
         if output == "MEMORY":
-            return [agent_memory.get_mem_by_id(m) for m in memids]
+            return [[agent_memory.get_mem_by_id(m)] for m in memids]
         elif output == "COUNT":
-            return [len(memids)] * len(memids)
+            return [[len(memids)]] * len(memids)
         else:
             if type(output) is dict:
                 try:
@@ -511,13 +511,13 @@ class MemorySearcher:
             # TODO/FIXME switch output format to dicts
 
         vals = self.handle_output(agent_memory, query, memids, get_all)
-        if vals and type(vals[0]) is list:
-            # given memids m1, m2: return memids, vals in the form:
-            # [m1, m1, m1, m2, m2], [p0, p1, p2, p3, p4]
-            # where p0, p1 can be a list
-            memids = [[memids[idx]] * len(v) for idx, v in enumerate(vals)]
-            memids = [m for sublist in memids for m in sublist]
-            vals = [v for sublist in vals for v in sublist]
+
+        # given memids m1, m2: return memids, vals in the form:
+        # [m1, m1, m1, m2, m2], [p0, p1, p2, p3, p4]
+        # where p0, p1 can be a list
+        memids = [[memids[idx]] * len(v) for idx, v in enumerate(vals)]
+        memids = [m for sublist in memids for m in sublist]
+        vals = [v for sublist in vals for v in sublist]
 
         return memids, vals
 
