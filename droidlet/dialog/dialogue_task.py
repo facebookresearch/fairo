@@ -209,7 +209,10 @@ class ConfirmReferenceObject(Task):
 
 
 def build_question_json(
-    text:str, media:list=None, text_response_options:list=None, media_response_options:list=None
+    text: str,
+    media: list = None,
+    text_response_options: list = None,
+    media_response_options: list = None,
 ):
     chat_obj = {  # based on the schema from droidlet/dialog/chat_schema.md
         "title": "Droidlet agent initiated chat",
@@ -326,6 +329,7 @@ class ClarifyCC1(Task):
 
         print("ClarifyCC1 stepped")
         import ipdb
+
         ipdb.set_trace(context=7)
 
         if not self.finished and self.asks <= self.max_asks:
