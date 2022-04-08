@@ -113,7 +113,7 @@ def get_property_value(agent_memory, mem, prop, get_all=False):
         if get_all:
             return [t[2] for t in triples]
         else:
-            return triples[0][2]
+            return [triples[0][2]]
 
     return None
 
@@ -517,9 +517,6 @@ class MemorySearcher:
             memids = [m for sublist in memids for m in sublist]
             vals = [v for sublist in vals for v in sublist]
 
-        print(query)
-        print(vals)
-        breakpoint()
         return memids, vals
 
 
