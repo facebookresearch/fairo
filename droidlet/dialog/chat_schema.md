@@ -1,5 +1,5 @@
 ## Description ##
-This is the source of truth for the most updated version of the schema to be followed when sending chats from the agent the the user (and perhaps eventually from the agent to other agents).  When updating this document please increment the version number.  Older versions of the schema can be found in git history.
+This is the source of truth for the most updated version of the schema to be followed when sending chats from the agent to the user (and perhaps eventually from the agent to other agents).  When updating this document please increment the version number.  Older versions of the schema can be found in git history.
 
 Note that chats sent from the user to the agent should always be in plaintext, as all messages should be parsed by the NSP and interpreted.  I.e. special pathways and conditionals on agent input are discouraged.  It is possible to help the NSP by including special tokens that are reserved for specific use cases, eg. clarification response.
 
@@ -19,19 +19,19 @@ Note that chats sent from the user to the agent should always be in plaintext, a
 
 <pre>
 {
-	"title": "Droidlet Chat",
+	"title": "Droidlet agent initiated chat",
 	"description": "A single chat sent from a Droidlet agent to the user",
 	"version": 1,
 	"type": "object",
 
 	"properties": {
-		"speaker_id": {
-			"description": "The memid of the speaker",
+		"chat_memid": {
+			"description": "The memid of the chat",
 			"type": "string"
 		},
 
 		"timestamp": {
-			"description": "Unix timestamp of when the chat was sent",
+			"description": "UTC Unix timestamp of when the chat was sent, in milliseconds",
 			"type": "integer"
 		},
 
@@ -59,12 +59,11 @@ Note that chats sent from the user to the agent should always be in plaintext, a
 				"items": [
 					{ "enum": [ "text", "image_link", "response_option", "response_image_link" ] },
 					{ "type": "string" }
-				],
-				"minItems": 2,
-				"maxItems": 2
+				]
 			},
 			"minItems": 1
 		}
+	},
 
 	"required": ["speaker_id", "timestamp", "content_type", "content"]
 }
