@@ -448,9 +448,9 @@ class MemorySearcher:
     def handle_output(self, agent_memory, query, memids, get_all):
         output = query.get("output", "MEMORY")
         if output == "MEMORY":
-            return [[agent_memory.get_mem_by_id(m)] for m in memids]
+            return [agent_memory.get_mem_by_id(m) for m in memids]
         elif output == "COUNT":
-            return [[len(memids)]] * len(memids)
+            return [len(memids)] * len(memids)
         else:
             if type(output) is dict:
                 try:
@@ -515,11 +515,15 @@ class MemorySearcher:
         # given memids m1, m2: return memids, vals in the form:
         # [m1, m1, m1, m2, m2], [p0, p1, p2, p3, p4]
         # where p0, p1 can be a list
-        memids = [[memids[idx]] * len(v) for idx, v in enumerate(vals)]
-        memids = [m for sublist in memids for m in sublist]
-        vals = [v for sublist in vals for v in sublist]
-
-        return memids, vals
+        memids = [[memids[idx]] * len(v) if type(v) is list else [memids[idx]] for idx, v in enumerate(vals)]
+        flattened_memids = [m for sublist in memids for m in sublist]
+        flattened_vals = []
+        for sublist in vals:
+            if type(sublist) is list:
+                flattened_vals += sublist
+            else:
+                flattened_vals.append(sublist)
+        return flattened_memids, flattened_vals
 
 
 # TODO subclass for filters that return at most one memory,value?
