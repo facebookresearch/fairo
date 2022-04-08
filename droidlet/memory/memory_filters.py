@@ -477,7 +477,7 @@ class MemorySearcher:
                         for prop_val in prop_vals:
                             attributes.append(prop_val)
                     else:
-                        attributes.append(prop_vals) 
+                        attributes.append(prop_vals)
                 values_dict[m].append(attributes)
             if len(attribute_name_list) < 2:
                 val_list = [values_dict[m][0] for m in memids]
