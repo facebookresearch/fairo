@@ -472,7 +472,9 @@ class MemorySearcher:
                                 attribute_name_list
                             )
                         )
-                    attributes += get_property_value(agent_memory, m, aname, get_all)
+                    prop_vals = get_property_value(agent_memory, m, aname, get_all)
+                    if prop_vals: 
+                        attributes += prop_vals
                 if len(attribute_name_list) == 1:
                     # attributes for this memid are single values
                     values_dict[m] += attributes
