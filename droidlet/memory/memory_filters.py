@@ -99,14 +99,14 @@ def get_property_value(agent_memory, mem, prop, get_all=False):
     if prop in cols:
         cmd = "SELECT " + prop + " FROM Memories WHERE uuid=?"
         r = agent_memory._db_read(cmd, mem.memid)
-        return r[0][0]
+        return [r[0][0]]
     # is it in the mem.TABLE?
     T = mem.TABLE
     cols = [c[1] for c in agent_memory._db_read("PRAGMA table_info({})".format(T))]
     if prop in cols:
         cmd = "SELECT " + prop + " FROM " + T + " WHERE uuid=?"
         r = agent_memory._db_read(cmd, mem.memid)
-        return r[0][0]
+        return [r[0][0]]
     # is it a triple?
     triples = agent_memory.get_triples(subj=mem.memid, pred_text=prop, return_obj_text="always")
     if len(triples) > 0:
@@ -472,12 +472,7 @@ class MemorySearcher:
                                 attribute_name_list
                             )
                         )
-                    prop_vals = get_property_value(agent_memory, m, aname, get_all)
-                    if type(prop_vals) is list:
-                        for prop_val in prop_vals:
-                            attributes.append(prop_val)
-                    else:
-                        attributes.append(prop_vals)
+                    attributes += get_property_value(agent_memory, m, aname, get_all)
                 if len(attribute_name_list) == 1:
                     # attributes for this memid are single values
                     values_dict[m] += attributes
@@ -521,6 +516,10 @@ class MemorySearcher:
             memids = [[memids[idx]] * len(v) for idx, v in enumerate(vals)]
             memids = [m for sublist in memids for m in sublist]
             vals = [v for sublist in vals for v in sublist]
+
+        print(query)
+        print(vals)
+        breakpoint()
         return memids, vals
 
 
