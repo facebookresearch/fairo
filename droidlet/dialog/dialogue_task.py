@@ -209,15 +209,15 @@ class ConfirmReferenceObject(Task):
 
 
 def build_question_json(
-    agent, text, media=None, text_response_options=None, media_response_options=None
+    text:str, media:list=None, text_response_options:list=None, media_response_options:list=None
 ):
     chat_obj = {  # based on the schema from droidlet/dialog/chat_schema.md
-        "title": "Droidlet Chat",
+        "title": "Droidlet agent initiated chat",
         "description": "A single chat sent from a Droidlet agent to the user",
         "version": 1,
         "type": "object",
         "properties": {
-            "speaker_id": "",
+            "chat_memid": "",
             "timestamp": 0,
             "content_type": "",
             "content": [],
@@ -234,12 +234,25 @@ def build_question_json(
     else:
         chat_obj["properties"]["content_type"] = "chat_string"
 
+    chat_obj["properties"]["content"].append(["text", f"{text}"])
+    if media:
+        for m in media:
+            chat_obj["properties"]["content"].append(["image_link", f"{m}"])
+    if text_response_options:
+        for tro in text_response_options:
+            chat_obj["properties"]["content"].append(["response_option", f"{tro}"])
+    if media_response_options:
+        for mro in media_response_options:
+            chat_obj["properties"]["content"].append(["response_option", f"{mro}"])
+
+    return json.dumps(chat_obj)
+
 
 def check_parse(task):
-    question = f"I'm not sure about something. \
-        I think you wanted me to {task.action.lower()} a {task.ref_obj_span}, is that right?"
+    question = f"I'm not sure about something. I think you wanted me to {task.action.lower()} a {task.ref_obj_span}, is that right?"
+    question_obj = build_question_json(question, text_response_options=["yes", "no"])
     task_list = [
-        Say(task.agent, {"response_options": question}),
+        Say(task.agent, {"response_options": question_obj}),
         AwaitResponse(task.agent, {"asker_memid": task.memid}),
     ]
     task.add_child_task(maybe_task_list_to_control_block(task_list, task.agent))
@@ -313,7 +326,6 @@ class ClarifyCC1(Task):
 
         print("ClarifyCC1 stepped")
         import ipdb
-
         ipdb.set_trace(context=7)
 
         if not self.finished and self.asks <= self.max_asks:

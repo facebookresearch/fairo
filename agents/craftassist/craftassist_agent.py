@@ -8,6 +8,7 @@ import signal
 import random
 import sentry_sdk
 import time
+import json
 from multiprocessing import set_start_method
 from collections import namedtuple
 
@@ -341,13 +342,34 @@ class CraftAssistAgent(DroidletAgent):
         # warning: pitch is flipped!
         new_pitch = self.get_player().look.pitch - angle
         self.set_look(self.get_player().look.yaw, new_pitch)
+        
 
-    def send_chat(self, chat):
+    def send_chat(self, chat: str):
         """Send chat from agent to player"""
-        logging.info("Sending chat: {}".format(chat))
-        sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat)})
-        self.memory.add_chat(self.memory.self_memid, chat)
-        return self.cagent.send_chat(chat)
+        import ipdb
+        ipdb.set_trace(context=7)
+
+        chat_json = False
+        try:
+            chat_json = json.loads(chat)
+            chat_text = [x for x in chat_json["properties"]["content"] if x[0] == "text"][0][1]
+        except:
+            chat_text = chat
+
+        logging.info("Sending chat: {}".format(chat_text))
+        chat_memid = self.memory.add_chat(self.memory.self_memid, chat_text)
+
+        if chat_json:
+            chat_json["properties"]["chat_memid"] = chat_memid
+            _, chat_times = self.memory.basic_search(f"SELECT time FROM Chat WHERE uuid={chat_memid}")
+            chat_json["properties"]["timestamp"] = chat_times[0]
+            # Send the socket event to show this reply on dashboard
+            sio.emit("showAssistantReply", chat_json)
+        else:
+            sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
+        
+        return self.cagent.send_chat(chat_text)
+        
 
     def update_agent_pos_dashboard(self):
         agent_pos = self.get_player().pos
