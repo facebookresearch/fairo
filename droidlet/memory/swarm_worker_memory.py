@@ -8,16 +8,16 @@ from droidlet.interpreter.craftassist.tasks import *
 import pickle
 import uuid
 from droidlet.memory.craftassist.mc_memory_nodes import (  # noqa
-    # DanceNode,
+    DanceNode,
     VoxelObjectNode,
-    # BlockObjectNode,
-    # BlockTypeNode,
-    # MobNode,
-    # ItemStackNode,
-    # MobTypeNode,
-    # InstSegNode,
-    # SchematicNode,
-    # NODELIST,
+    BlockObjectNode,
+    BlockTypeNode,
+    MobNode,
+    ItemStackNode,
+    MobTypeNode,
+    InstSegNode,
+    SchematicNode,
+    NODELIST,
 )
 
 NONPICKLE_ATTRS = [
@@ -349,10 +349,10 @@ class SwarmWorkerMemory():
         return self._db_command("get_instseg_object_ids_by_xyz", xyz)
 
     def get_schematic_by_name(self, name: str) -> Optional["SchematicNode"]:
-        return self.self._db_command("get_schematic_by_name", name)
+        return self._db_command("get_schematic_by_name", name)
     
     def convert_block_object_to_schematic(self, block_object_memid: str) -> "SchematicNode":
-        return self.self._db_command("convert_block_object_to_schematic", block_object_memid)
+        return self._db_command("convert_block_object_to_schematic", block_object_memid)
 
     def set_mob_position(self, mob) -> "MobNode":
         return self._db_command("set_mob_position", mob)

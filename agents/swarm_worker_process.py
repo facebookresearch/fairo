@@ -1,8 +1,7 @@
-from multiprocessing import Process
-from typing import Dict
+
 from agents.craftassist.craftassist_agent import CraftAssistAgent
-from droidlet import dialog
-import os
+import logging
+from agents.swarm_configs import get_default_task_info
 from multiprocessing import Process, Queue
 from droidlet.perception.craftassist.swarm_worker_perception import SwarmLowLevelMCPerception
 from droidlet.memory.swarm_worker_memory import SwarmWorkerMemory

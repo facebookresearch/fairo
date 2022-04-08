@@ -1,7 +1,7 @@
 
 import logging
 from agents.swarm_utils import get_safe_single_object_attr_dict, safe_object
-from agents.swarm_configs import get_default_task_info, get_swarm_interpreter, get_memory_handlers_dict
+from agents.swarm_configs import get_swarm_interpreter, get_memory_handlers_dict
 from droidlet.dialog.swarm_dialogue_manager import SwarmDialogueManager
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from swarm_worker_process import SwarmWorkerWrapper
