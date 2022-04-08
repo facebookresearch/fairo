@@ -189,12 +189,13 @@ class SwarmMasterWrapper():
             try:
                 # wait for all processes to get initialized first
                 if all(self.init_status):
+                    import ipdb;ipdb.set_trace()
                     self.base_agent.step()
                 # What's the point of the following if they haven't been inited ?
                 # self.handle_worker_perception()
                 # self.assign_new_tasks_to_workers()
                 self.update_tasks_with_worker_data() # updates init status.
-                # self.handle_worker_memory_queries()
+                self.handle_worker_memory_queries()
                                 
             except Exception as e:
                 self.base_agent.handle_exception(e)

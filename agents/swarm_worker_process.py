@@ -240,7 +240,6 @@ class SwarmWorkerWrapper(Process):
     def run(self):
         # this is what happens when the process is started -> when
         # process.start() is called.
-        ForkedPdb().set_trace()
         agent = CraftAssistAgent(self.opts)
         # init the worker and let master know of initialization and memid
         self.init_worker(agent)
