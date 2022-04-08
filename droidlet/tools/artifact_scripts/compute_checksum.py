@@ -39,12 +39,13 @@ def compute_checksum_for_directory(agent=None, artifact_type=None, model_name=No
     checksum_name = ""
     artifact_folder_name = ""
     if artifact_type == "models":
-        artifact_folder_name = "models/" + model_name + "/" + agent
         if model_name == "nlu":
             # compute for NLU model
+            artifact_folder_name = "models/" + model_name + "/"
             checksum_name = "nlu.txt"
         elif model_name == "perception":
             # perception models
+            artifact_folder_name = "models/" + model_name + "/" + agent
             if agent == "locobot":
                 checksum_name = "locobot_perception.txt"
             elif agent == "craftassist":
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Pass in agent name to compute artifacts checksum."
+        description="   Pass in agent name to compute artifacts checksum."
     )
     parser.add_argument(
         "--agent_name",
