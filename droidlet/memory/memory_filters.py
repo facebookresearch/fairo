@@ -479,8 +479,10 @@ class MemorySearcher:
                     else:
                         attributes.append(prop_vals)
                 if len(attribute_name_list) == 1:
+                    # attributes for this memid are single values
                     values_dict[m] += attributes
                 else:
+                    # attributes for this memid are a list
                     values_dict[m].append(attributes)
             # TODO switch everything to dicts
             return [values_dict[m] for m in memids]
