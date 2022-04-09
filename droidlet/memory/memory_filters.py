@@ -99,21 +99,21 @@ def get_property_value(agent_memory, mem, prop, get_all=False):
     if prop in cols:
         cmd = "SELECT " + prop + " FROM Memories WHERE uuid=?"
         r = agent_memory._db_read(cmd, mem.memid)
-        return [r[0][0]]
+        return r[0][0]
     # is it in the mem.TABLE?
     T = mem.TABLE
     cols = [c[1] for c in agent_memory._db_read("PRAGMA table_info({})".format(T))]
     if prop in cols:
         cmd = "SELECT " + prop + " FROM " + T + " WHERE uuid=?"
         r = agent_memory._db_read(cmd, mem.memid)
-        return [r[0][0]]
+        return r[0][0]
     # is it a triple?
     triples = agent_memory.get_triples(subj=mem.memid, pred_text=prop, return_obj_text="always")
     if len(triples) > 0:
         if get_all:
             return [t[2] for t in triples]
         else:
-            return [triples[0][2]]
+            return triples[0][2]
 
     return None
 
@@ -473,8 +473,11 @@ class MemorySearcher:
                             )
                         )
                     prop_vals = get_property_value(agent_memory, m, aname, get_all)
-                    if prop_vals:
-                        attributes += prop_vals
+                    if type(prop_vals) is list:
+                        for prop_val in prop_vals:
+                            attributes.append(prop_val)
+                    else:
+                        attributes.append(prop_vals)
                 if len(attribute_name_list) == 1:
                     # attributes for this memid are single values
                     values_dict[m] += attributes
@@ -511,14 +514,16 @@ class MemorySearcher:
             # TODO/FIXME switch output format to dicts
 
         vals = self.handle_output(agent_memory, query, memids, get_all)
-        if vals and type(vals[0]) is list:
-            # given memids m1, m2: return memids, vals in the form:
-            # [m1, m1, m1, m2, m2], [p0, p1, p2, p3, p4]
-            # where p0, p1 can be a list
-            memids = [[memids[idx]] * len(v) for idx, v in enumerate(vals)]
-            memids = [m for sublist in memids for m in sublist]
-            vals = [v for sublist in vals for v in sublist]
-        return memids, vals
+        repeated_memids = []
+        flattened_vals = []
+        for idx, v in enumerate(vals):
+            if type(v) is list:
+                repeated_memids += [memids[idx]] * len(v)
+                flattened_vals += v
+            else:
+                repeated_memids.append(memids[idx])
+                flattened_vals.append(v)
+        return repeated_memids, flattened_vals
 
 
 # TODO subclass for filters that return at most one memory,value?
