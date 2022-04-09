@@ -451,7 +451,7 @@
         <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">uuids</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">forget</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
-<div class="viewcode-block" id="AgentMemory.basic_search"><a class="viewcode-back" href="../../../memory.html#droidlet.memory.sql_memory.AgentMemory.basic_search">[docs]</a>    <span class="k">def</span> <span class="nf">basic_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">):</span>
+<div class="viewcode-block" id="AgentMemory.basic_search"><a class="viewcode-back" href="../../../memory.html#droidlet.memory.sql_memory.AgentMemory.basic_search">[docs]</a>    <span class="k">def</span> <span class="nf">basic_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">get_all</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Perform a basic search using the query</span>
 
 <span class="sd">        Args:</span>
@@ -461,7 +461,7 @@
 <span class="sd">            list[memid], list[value]: the memids and respective values from the search</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">searcher</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">searcher</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">get_all</span><span class="o">=</span><span class="n">get_all</span><span class="p">)</span></div>
 
     <span class="c1">#################</span>
     <span class="c1">###  Triples  ###</span>
