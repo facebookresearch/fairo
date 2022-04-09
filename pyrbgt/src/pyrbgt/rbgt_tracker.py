@@ -176,7 +176,9 @@ class subThreadTracker(threading.Thread):
             if not model.LoadModel(
                 filesystem(model_config.path), model_config.name + "_model"
             ):
-                model.GenerateModel(body, 0.8, 4, 200)
+                generate_result = model.GenerateModel(body, 0.8, 4, 200)
+                if not generate_result:
+                    raise Exception("Model generation failed!")
                 model.SaveModel(
                     filesystem(model_config.path), model_config.name + "_model"
                 )
