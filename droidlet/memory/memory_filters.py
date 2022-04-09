@@ -511,20 +511,14 @@ class MemorySearcher:
             # TODO/FIXME switch output format to dicts
 
         vals = self.handle_output(agent_memory, query, memids, get_all)
-
-        # given memids m1, m2: return memids, vals in the form:
-        # [m1, m1, m1, m2, m2], [p0, p1, p2, p3, p4]
-        # where p0, p1 can be a list
-        repeated_memids = []
-        flattened_vals = []
-        for idx, v in enumerate(vals):
-            if type(v) is list:
-                repeated_memids += [memids[idx]] * len(v)
-                flattened_vals += v
-            else:
-                repeated_memids.append(memids[idx])
-                flattened_vals.append(v)
-        return repeated_memids, flattened_vals
+        if vals and type(vals[0]) is list:
+            # given memids m1, m2: return memids, vals in the form:
+            # [m1, m1, m1, m2, m2], [p0, p1, p2, p3, p4]
+            # where p0, p1 can be a list
+            memids = [[memids[idx]] * len(v) for idx, v in enumerate(vals)]
+            memids = [m for sublist in memids for m in sublist]
+            vals = [v for sublist in vals for v in sublist]
+        return memids, vals
 
 
 # TODO subclass for filters that return at most one memory,value?
