@@ -515,15 +515,16 @@ class MemorySearcher:
         # given memids m1, m2: return memids, vals in the form:
         # [m1, m1, m1, m2, m2], [p0, p1, p2, p3, p4]
         # where p0, p1 can be a list
-        memids = [[memids[idx]] * len(v) if type(v) is list else [memids[idx]] for idx, v in enumerate(vals)]
-        flattened_memids = [m for sublist in memids for m in sublist]
+        repeated_memids = []
         flattened_vals = []
-        for sublist in vals:
-            if type(sublist) is list:
-                flattened_vals += sublist
+        for idx, v in enumerate(vals):
+            if type(v) is list:
+                repeated_memids += [memids[idx]] * len(v)
+                flattened_vals += v
             else:
-                flattened_vals.append(sublist)
-        return flattened_memids, flattened_vals
+                repeated_memids.append(memids[idx])
+                flattened_vals.append(v)
+        return repeated_memids, flattened_vals
 
 
 # TODO subclass for filters that return at most one memory,value?
