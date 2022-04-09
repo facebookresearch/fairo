@@ -5,6 +5,10 @@ source ~/miniconda3/etc/profile.d/conda.sh
 conda activate droidlet
 
 pip3 install -r agents/locobot/requirements.txt
+# TODO: remove hack
+pip3 uninstall tokenizers -y
+pip3 install tokenizers
+
 python setup.py develop
 
 echo "Downloading datasets, models ..."
