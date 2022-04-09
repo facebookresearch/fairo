@@ -117,7 +117,7 @@
 <span class="kn">from</span> <span class="nn">.interpret_location</span> <span class="kn">import</span> <span class="n">ReferenceLocationInterpreter</span><span class="p">,</span> <span class="n">interpret_relative_direction</span>
 <span class="kn">from</span> <span class="nn">.interpret_filters</span> <span class="kn">import</span> <span class="n">FilterInterpreter</span>
 <span class="kn">from</span> <span class="nn">droidlet.shared_data_structs</span> <span class="kn">import</span> <span class="n">ErrorWithResponse</span><span class="p">,</span> <span class="n">NextDialogueStep</span>
-<span class="kn">from</span> <span class="nn">droidlet.task.task</span> <span class="kn">import</span> <span class="n">maybe_task_list_to_control_block</span>
+<span class="kn">from</span> <span class="nn">droidlet.task.task</span> <span class="kn">import</span> <span class="n">task_to_generator</span><span class="p">,</span> <span class="n">ControlBlock</span>
 <span class="kn">from</span> <span class="nn">droidlet.memory.memory_nodes</span> <span class="kn">import</span> <span class="n">TripleNode</span><span class="p">,</span> <span class="n">TaskNode</span><span class="p">,</span> <span class="n">InterpreterNode</span>
 <span class="kn">from</span> <span class="nn">droidlet.dialog.dialogue_task</span> <span class="kn">import</span> <span class="n">ConfirmTask</span><span class="p">,</span> <span class="n">Say</span>
 
@@ -203,8 +203,9 @@
         <span class="p">}</span>
 
         <span class="c1"># each action handler should have signature</span>
-        <span class="c1"># speaker, logical_form --&gt;  a Task, possible output utterance, possible output data.</span>
-        <span class="c1">#     if the action handler builds a list, it should wrap it in a ControlBlock</span>
+        <span class="c1"># speaker, logical_form --&gt; callable that returns Tasks</span>
+        <span class="c1"># it can place dialogue tasks as a side effect.</span>
+        <span class="c1"># TODO remove dialogue task side effects....</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">action_handlers</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;MOVE&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_move</span><span class="p">,</span>
             <span class="s2">&quot;STOP&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_stop</span><span class="p">,</span>
@@ -220,58 +221,27 @@
         <span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">logical_form</span><span class="p">[</span><span class="s2">&quot;dialogue_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;HUMAN_GIVE_COMMAND&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">actions</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">if</span> <span class="s2">&quot;action&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">logical_form</span><span class="p">:</span>
-                <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logical_form</span><span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">])</span>
-            <span class="k">elif</span> <span class="s2">&quot;action_sequence&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">logical_form</span><span class="p">:</span>
-                <span class="n">actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logical_form</span><span class="p">[</span><span class="s2">&quot;action_sequence&quot;</span><span class="p">]</span>
-
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="c1"># The action dict is in an unexpected state</span>
-                <span class="k">raise</span> <span class="n">ErrorWithResponse</span><span class="p">(</span>
-                    <span class="s2">&quot;I thought you wanted me to do something, but now I don&#39;t know what&quot;</span>
-                <span class="p">)</span>
-            <span class="n">tasks_to_push</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">action_def</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">:</span>
-                <span class="n">action_type</span> <span class="o">=</span> <span class="n">action_def</span><span class="p">[</span><span class="s2">&quot;action_type&quot;</span><span class="p">]</span>
-                <span class="c1"># FIXME!: THIS IS A HACK to be removed by dec2021:</span>
-                <span class="c1"># special case to push loops into the handlers if</span>
-                <span class="c1"># there is only one action in the sequence but</span>
-                <span class="c1"># there is a control structure around the sequence:</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">logical_form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;remove_condition&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">action_def</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">action_def</span><span class="p">)</span>
-                    <span class="n">action_def</span><span class="p">[</span><span class="s2">&quot;remove_condition&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">logical_form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;remove_condition&quot;</span><span class="p">)</span>
-                    <span class="p">)</span>
-                <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_handlers</span><span class="p">[</span><span class="n">action_type</span><span class="p">](</span><span class="n">agent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span> <span class="n">action_def</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-                    <span class="n">task</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">dialogue_data</span> <span class="o">=</span> <span class="n">r</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="c1"># FIXME don&#39;t use this branch, uniformize the signatures</span>
-                    <span class="n">task</span> <span class="o">=</span> <span class="kc">None</span>
-                    <span class="n">response</span><span class="p">,</span> <span class="n">dialogue_data</span> <span class="o">=</span> <span class="n">r</span>
-                <span class="k">if</span> <span class="n">task</span><span class="p">:</span>
-                    <span class="n">tasks_to_push</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
-            <span class="n">task_mem</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="n">tasks_to_push</span><span class="p">:</span>
-                <span class="n">T</span> <span class="o">=</span> <span class="n">maybe_task_list_to_control_block</span><span class="p">(</span><span class="n">tasks_to_push</span><span class="p">,</span> <span class="n">agent</span><span class="p">)</span>
-                <span class="c1">#                task_mem = TaskNode(self.memory, tasks_to_push[0].memid)</span>
-                <span class="n">task_mem</span> <span class="o">=</span> <span class="n">TaskNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">T</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">task_mem</span><span class="p">:</span>
+            <span class="n">C</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpret_event</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logical_form</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">C</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">chat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_most_recent_incoming_chat</span><span class="p">()</span>
                 <span class="n">TripleNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">subj</span><span class="o">=</span><span class="n">chat</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;chat_effect_&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="n">task_mem</span><span class="o">.</span><span class="n">memid</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">subj</span><span class="o">=</span><span class="n">chat</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;chat_effect_&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="n">C</span><span class="o">.</span><span class="n">memid</span>
                 <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">end_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+            <span class="c1"># FIXME (tasks to push)</span>
+            <span class="n">task_memid</span> <span class="o">=</span> <span class="s2">&quot;NULL&quot;</span>
+            <span class="k">if</span> <span class="n">C</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">task_memid</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">memid</span>
             <span class="n">hook_data</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;interpreter&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;start_time&quot;</span><span class="p">:</span> <span class="n">start_time</span><span class="p">,</span>
                 <span class="s2">&quot;end_time&quot;</span><span class="p">:</span> <span class="n">end_time</span><span class="p">,</span>
                 <span class="s2">&quot;elapsed_time&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">(),</span>
                 <span class="s2">&quot;agent_time&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_time</span><span class="p">(),</span>
-                <span class="s2">&quot;tasks_to_push&quot;</span><span class="p">:</span> <span class="n">tasks_to_push</span><span class="p">,</span>
-                <span class="s2">&quot;task_mem&quot;</span><span class="p">:</span> <span class="n">task_mem</span><span class="p">,</span>
+                <span class="s2">&quot;tasks_to_push&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s2">&quot;task_mem&quot;</span><span class="p">:</span> <span class="n">task_memid</span><span class="p">,</span>
             <span class="p">}</span>
             <span class="n">dispatch</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;interpreter&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">hook_data</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">NextDialogueStep</span><span class="p">:</span>
@@ -281,19 +251,65 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">return</span>
 
+    <span class="k">def</span> <span class="nf">interpret_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        recursively interpret an EVENT sub-lf</span>
+<span class="sd">        this returns new_tasks callable if it operates on a leaf</span>
+<span class="sd">        and a ControlBlock otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;action_type&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">action_type</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;action_type&quot;</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="s2">&quot;event_sequence&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">d</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_handlers</span><span class="p">[</span><span class="n">action_type</span><span class="p">](</span><span class="n">agent</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="s2">&quot;event_sequence&quot;</span> <span class="ow">in</span> <span class="n">d</span>
+            <span class="n">terminate_condition</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">init_condition</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="s2">&quot;terminate_condition&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                <span class="n">terminate_condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subinterpret</span><span class="p">[</span><span class="s2">&quot;condition&quot;</span><span class="p">](</span>
+                    <span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;terminate_condition&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;init_condition&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                <span class="n">init_condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subinterpret</span><span class="p">[</span><span class="s2">&quot;condition&quot;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;init_condition&quot;</span><span class="p">])</span>
+            <span class="n">task_gens</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">e_lf</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;event_sequence&quot;</span><span class="p">]:</span>
+                <span class="n">task_gen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpret_event</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">e_lf</span><span class="p">)</span>
+                <span class="c1"># FIXME: better handling of empty task_gens, e.g. from undo</span>
+                <span class="k">if</span> <span class="n">task_gen</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">task_gen</span><span class="p">):</span>
+                        <span class="c1"># this should be a ControlBlock...</span>
+                        <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">task_gen</span><span class="p">)</span> <span class="ow">is</span> <span class="n">ControlBlock</span>
+                        <span class="n">task_gen</span> <span class="o">=</span> <span class="n">task_to_generator</span><span class="p">(</span><span class="n">task_gen</span><span class="p">)</span>
+                    <span class="n">task_gens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task_gen</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">task_gens</span><span class="p">:</span>
+                <span class="n">loop_task_data</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;new_tasks&quot;</span><span class="p">:</span> <span class="n">task_gens</span><span class="p">,</span>
+                    <span class="s2">&quot;init_condition&quot;</span><span class="p">:</span> <span class="n">init_condition</span><span class="p">,</span>
+                    <span class="s2">&quot;terminate_condition&quot;</span><span class="p">:</span> <span class="n">terminate_condition</span><span class="p">,</span>
+                    <span class="s2">&quot;action_dict&quot;</span><span class="p">:</span> <span class="n">d</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="k">return</span> <span class="n">ControlBlock</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">loop_task_data</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># FIXME! undo is currently inaccurate due to ControlBlocks</span>
     <span class="k">def</span> <span class="nf">handle_undo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">Undo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_objects</span><span class="p">[</span><span class="s2">&quot;undo&quot;</span><span class="p">]</span>
         <span class="n">task_name</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;undo_action&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">task_name</span><span class="p">:</span>
             <span class="n">task_name</span> <span class="o">=</span> <span class="n">task_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="n">old_task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_last_finished_root_task</span><span class="p">(</span><span class="n">task_name</span><span class="p">)</span>
+        <span class="n">old_task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_last_finished_root_task</span><span class="p">(</span><span class="n">task_name</span><span class="p">,</span> <span class="n">ignore_control</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">old_task</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ErrorWithResponse</span><span class="p">(</span><span class="s2">&quot;Nothing to be undone ...&quot;</span><span class="p">)</span>
         <span class="n">undo_tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Undo</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;memid&quot;</span><span class="p">:</span> <span class="n">old_task</span><span class="o">.</span><span class="n">memid</span><span class="p">})]</span>
         <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">undo_tasks</span><span class="p">:</span>
             <span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_mem_by_id</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span><span class="o">.</span><span class="n">get_update_status</span><span class="p">({</span><span class="s2">&quot;paused&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
-        <span class="n">undo_command</span> <span class="o">=</span> <span class="n">old_task</span><span class="o">.</span><span class="n">get_chat</span><span class="p">()</span><span class="o">.</span><span class="n">chat_text</span>
-
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">undo_command</span> <span class="o">=</span> <span class="n">old_task</span><span class="o">.</span><span class="n">get_chat</span><span class="p">()</span><span class="o">.</span><span class="n">chat_text</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="c1"># if parent was a ControlBlock, need to get chat from that</span>
+            <span class="n">old_task_parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_last_finished_root_task</span><span class="p">(</span><span class="n">task_name</span><span class="p">)</span>
+            <span class="n">undo_command</span> <span class="o">=</span> <span class="n">old_task_parent</span><span class="o">.</span><span class="n">get_chat</span><span class="p">()</span><span class="o">.</span><span class="n">chat_text</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Pushing ConfirmTask tasks=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">undo_tasks</span><span class="p">))</span>
         <span class="n">confirm_data</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;task_memids&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">memid</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">undo_tasks</span><span class="p">],</span>
@@ -301,29 +317,18 @@
         <span class="p">}</span>
         <span class="n">ConfirmTask</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">confirm_data</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">handle_move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">Move</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_objects</span><span class="p">[</span><span class="s2">&quot;move&quot;</span><span class="p">]</span>
-        <span class="n">Control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_objects</span><span class="p">[</span><span class="s2">&quot;control&quot;</span><span class="p">]</span>
-
-        <span class="n">loop_mem</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="s2">&quot;remove_condition&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-            <span class="n">condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subinterpret</span><span class="p">[</span><span class="s2">&quot;condition&quot;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;remove_condition&quot;</span><span class="p">])</span>
-            <span class="n">location_d</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;location&quot;</span><span class="p">,</span> <span class="n">SPEAKERLOOK</span><span class="p">)</span>
-            <span class="n">mems</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subinterpret</span><span class="p">[</span><span class="s2">&quot;reference_locations&quot;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">location_d</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">mems</span><span class="p">:</span>
-                <span class="n">loop_mem</span> <span class="o">=</span> <span class="n">mems</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">def</span> <span class="nf">new_tasks</span><span class="p">():</span>
             <span class="c1"># TODO if we do this better will be able to handle &quot;stay between the x&quot;</span>
             <span class="n">default_loc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;default_loc&quot;</span><span class="p">,</span> <span class="n">SPEAKERLOOK</span><span class="p">)</span>
             <span class="n">location_d</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;location&quot;</span><span class="p">,</span> <span class="n">default_loc</span><span class="p">)</span>
             <span class="c1"># FIXME, this is hacky.  need more careful way of storing this in task</span>
-            <span class="k">if</span> <span class="n">loop_mem</span><span class="p">:</span>
-                <span class="n">mems</span> <span class="o">=</span> <span class="p">[</span><span class="n">loop_mem</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">mems</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subinterpret</span><span class="p">[</span><span class="s2">&quot;reference_locations&quot;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">location_d</span><span class="p">)</span>
+            <span class="c1"># and to pass to task generator</span>
+            <span class="n">mems</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subinterpret</span><span class="p">[</span><span class="s2">&quot;reference_locations&quot;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">location_d</span><span class="p">)</span>
             <span class="c1"># FIXME this should go in the ref_location subinterpret:</span>
             <span class="n">steps</span><span class="p">,</span> <span class="n">reldir</span> <span class="o">=</span> <span class="n">interpret_relative_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location_d</span><span class="p">)</span>
             <span class="n">pos</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subinterpret</span><span class="p">[</span><span class="s2">&quot;specify_locations&quot;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">mems</span><span class="p">,</span> <span class="n">steps</span><span class="p">,</span> <span class="n">reldir</span><span class="p">)</span>
@@ -335,37 +340,27 @@
             <span class="n">task</span> <span class="o">=</span> <span class="n">Move</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">task_data</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">task</span>
 
-        <span class="k">if</span> <span class="s2">&quot;remove_condition&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
-            <span class="c1"># FIXME grammar to handle &quot;remove&quot; vs &quot;stop&quot;</span>
-            <span class="n">loop_task_data</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;new_tasks&quot;</span><span class="p">:</span> <span class="n">new_tasks</span><span class="p">,</span>
-                <span class="s2">&quot;remove_condition&quot;</span><span class="p">:</span> <span class="n">condition</span><span class="p">,</span>  <span class="c1">#!!! semantic parser + GT need updating</span>
-                <span class="s2">&quot;action_dict&quot;</span><span class="p">:</span> <span class="n">d</span><span class="p">,</span>
-            <span class="p">}</span>
-            <span class="k">return</span> <span class="n">Control</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">loop_task_data</span><span class="p">),</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">new_tasks</span><span class="p">(),</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">new_tasks</span>
 
     <span class="c1"># TODO mark in memory it was stopped by command</span>
     <span class="k">def</span> <span class="nf">handle_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">task_stack_pause</span><span class="p">():</span>
-            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Stopping.  What should I do next?&quot;</span><span class="p">,</span> <span class="kc">None</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;I am not doing anything&quot;</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="n">Say</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">task_data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;response_options&quot;</span><span class="p">:</span> <span class="s2">&quot;Stopping.  What should I do next?&quot;</span><span class="p">})</span>
+        <span class="k">return</span> <span class="kc">None</span>
 
     <span class="c1"># FIXME this is needs updating...</span>
     <span class="c1"># TODO mark in memory it was resumed by command</span>
     <span class="k">def</span> <span class="nf">handle_resume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">task_stack_resume</span><span class="p">():</span>
-            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;resuming&quot;</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="n">Say</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">task_data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;response_options&quot;</span><span class="p">:</span> <span class="s2">&quot;Resuming&quot;</span><span class="p">})</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;nothing to resume&quot;</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="n">Say</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">task_data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;response_options&quot;</span><span class="p">:</span> <span class="s2">&quot;nothing to resume&quot;</span><span class="p">})</span>
 
     <span class="k">def</span> <span class="nf">handle_otheraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;I don&#39;t know how to do that yet&quot;</span><span class="p">,</span> <span class="kc">None</span></div>
+        <span class="n">Say</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">task_data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;response_options&quot;</span><span class="p">:</span> <span class="s2">&quot;I don&#39;t know how to do that yet&quot;</span><span class="p">})</span></div>
 </pre></div>
 
            </div>

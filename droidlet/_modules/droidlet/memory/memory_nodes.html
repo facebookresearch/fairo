@@ -960,38 +960,38 @@
         <span class="s2">&quot;pickled&quot;</span><span class="p">,</span>
         <span class="s2">&quot;prio&quot;</span><span class="p">,</span>
         <span class="s2">&quot;running&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;run_count&quot;</span><span class="p">,</span>
         <span class="s2">&quot;paused&quot;</span><span class="p">,</span>
         <span class="s2">&quot;created&quot;</span><span class="p">,</span>
         <span class="s2">&quot;finished&quot;</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="n">TABLE</span> <span class="o">=</span> <span class="s2">&quot;Tasks&quot;</span>
     <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;Task&quot;</span>
+    <span class="n">EGG_PRIO</span> <span class="o">=</span> <span class="o">-</span><span class="mi">3</span>
+    <span class="n">CHECK_PRIO</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">FINISHED_PRIO</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
-        <span class="p">(</span>
-            <span class="n">pickled</span><span class="p">,</span>
-            <span class="n">prio</span><span class="p">,</span>
-            <span class="n">running</span><span class="p">,</span>
-            <span class="n">run_count</span><span class="p">,</span>
-            <span class="n">created</span><span class="p">,</span>
-            <span class="n">finished</span><span class="p">,</span>
-            <span class="n">paused</span><span class="p">,</span>
-            <span class="n">action_name</span><span class="p">,</span>
-        <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
-            <span class="s2">&quot;SELECT pickled, prio, running, run_count, created, finished, paused, action_name FROM Tasks WHERE uuid=?&quot;</span><span class="p">,</span>
-            <span class="n">memid</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_node</span><span class="p">()</span>
+        <span class="n">pickled</span><span class="p">,</span> <span class="n">created</span><span class="p">,</span> <span class="n">action_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="s2">&quot;SELECT pickled, created, action_name FROM Tasks WHERE uuid=?&quot;</span><span class="p">,</span> <span class="n">memid</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">safe_unpickle</span><span class="p">(</span><span class="n">pickled</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">created</span> <span class="o">=</span> <span class="n">created</span>
+        <span class="c1"># TODO changeme to just &quot;name&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_name</span> <span class="o">=</span> <span class="n">action_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="n">agent_memory</span>
+
+    <span class="k">def</span> <span class="nf">update_node</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">prio</span><span class="p">,</span> <span class="n">running</span><span class="p">,</span> <span class="n">run_count</span><span class="p">,</span> <span class="n">finished</span><span class="p">,</span> <span class="n">paused</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="s2">&quot;SELECT prio, running, run_count, finished, paused FROM Tasks WHERE uuid=?&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prio</span> <span class="o">=</span> <span class="n">prio</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">paused</span> <span class="o">=</span> <span class="n">paused</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">run_count</span> <span class="o">=</span> <span class="n">run_count</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="n">running</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">safe_unpickle</span><span class="p">(</span><span class="n">pickled</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">created</span> <span class="o">=</span> <span class="n">created</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="n">finished</span>
-        <span class="c1"># TODO changeme to just &quot;name&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">action_name</span> <span class="o">=</span> <span class="n">action_name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="n">agent_memory</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1018,13 +1018,13 @@
             <span class="k">return</span> <span class="n">old_memid</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">task</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span><span class="p">:</span>
             <span class="c1"># this is an egg to be hatched by agent</span>
-            <span class="n">prio</span> <span class="o">=</span> <span class="n">task</span><span class="p">[</span><span class="s2">&quot;task_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task_node_data&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;prio&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">prio</span> <span class="o">=</span> <span class="n">task</span><span class="p">[</span><span class="s2">&quot;task_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task_node_data&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;prio&quot;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EGG_PRIO</span><span class="p">)</span>
             <span class="n">running</span> <span class="o">=</span> <span class="n">task</span><span class="p">[</span><span class="s2">&quot;task_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task_node_data&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;running&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
             <span class="n">run_count</span> <span class="o">=</span> <span class="n">task</span><span class="p">[</span><span class="s2">&quot;task_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task_node_data&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;run_count&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
             <span class="n">action_name</span> <span class="o">=</span> <span class="n">task</span><span class="p">[</span><span class="s2">&quot;class&quot;</span><span class="p">]</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">action_name</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-            <span class="n">prio</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">prio</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">CHECK_PRIO</span>
             <span class="n">running</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">run_count</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">run_count</span>
         <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
@@ -1057,7 +1057,7 @@
     <span class="k">def</span> <span class="nf">update_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conditions</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        conditions is a dict with keys in</span>
-<span class="sd">        &quot;init_condition&quot;, &quot;run_condition&quot;, &quot;stop_condition&quot;, &quot;remove_condition&quot;</span>
+<span class="sd">        &quot;init_condition&quot;, &quot;terminate_condition&quot;</span>
 <span class="sd">        and values being Condition objects</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">condition</span> <span class="ow">in</span> <span class="n">conditions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1070,11 +1070,10 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        status is a dict with possible keys &quot;prio&quot;, &quot;running&quot;, &quot;paused&quot;, &quot;finished&quot;.</span>
 
-<span class="sd">        prio &gt; 0  :  run me if possible, check my stop condition</span>
-<span class="sd">        prio = 0  :  check my run_condition, run if true</span>
-<span class="sd">        prio = -1 :  check my init_condition, set prio = 0 if True</span>
-<span class="sd">        prio &lt; -1 :  don&#39;t even check init_condition or run_condition, I&#39;m done or unhatched</span>
-<span class="sd">        prio = -3 :  I&#39;m unhatched</span>
+<span class="sd">        prio &gt; CHECK_PRIO  :  run me if possible, check my terminate condition</span>
+<span class="sd">        prio = CHECK_PRIO  :  check my init_condition, run if true</span>
+<span class="sd">        prio &lt; CHECK_PRIO :  don&#39;t even check init_condition, I&#39;m done or unhatched</span>
+<span class="sd">        prio = EGG_PRIO :  I&#39;m unhatched</span>
 
 <span class="sd">        running = 1 :  task should be stepped if possible and not explicitly paused</span>
 <span class="sd">        running = 0 :  task should not be stepped</span>
@@ -1103,7 +1102,7 @@
                     <span class="n">status_out</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">get_time</span><span class="p">()</span>
                     <span class="c1"># warning: using the order of the iterator!</span>
                     <span class="n">status</span><span class="p">[</span><span class="s2">&quot;running&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-                    <span class="n">status</span><span class="p">[</span><span class="s2">&quot;prio&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span>
+                    <span class="n">status</span><span class="p">[</span><span class="s2">&quot;prio&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">FINISHED_PRIO</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">status_out</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1121,7 +1120,7 @@
         <span class="c1"># if parent is currently paused and then unpaused, propagate to children</span>
         <span class="k">pass</span>
 
-    <span class="k">def</span> <span class="nf">add_child_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">prio</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">add_child_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">prio</span><span class="o">=</span><span class="n">CHECK_PRIO</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add (and by default activate) a child task, and pass along the id</span>
 <span class="sd">        of the parent task (current task).  A task can only have one direct</span>
 <span class="sd">        descendant any any given time.  To add a list of children use a ControlBlock</span>
@@ -1129,7 +1128,7 @@
 <span class="sd">        Args:</span>
 <span class="sd">            t: the task to be added.  a *Task* object, not a TaskNode</span>
 <span class="sd">               agent: the agent running this task</span>
-<span class="sd">            prio: default 1, set to 0 if you want the child task added but not activated,</span>
+<span class="sd">            prio: default 1 (CHECK_PRIO + 1), set to 0 (CHECK_PRIO) if you want the child task added but not activated,</span>
 <span class="sd">                  None if you want it added but its conditions left in charge</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">TaskMem</span> <span class="o">=</span> <span class="n">TaskNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span>

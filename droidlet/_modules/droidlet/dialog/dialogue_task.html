@@ -110,7 +110,7 @@
 
 <span class="kn">from</span> <span class="nn">.string_lists</span> <span class="kn">import</span> <span class="n">MAP_YES</span><span class="p">,</span> <span class="n">MAP_NO</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
-<span class="kn">from</span> <span class="nn">droidlet.task.task</span> <span class="kn">import</span> <span class="n">Task</span><span class="p">,</span> <span class="n">maybe_task_list_to_control_block</span>
+<span class="kn">from</span> <span class="nn">droidlet.task.task</span> <span class="kn">import</span> <span class="n">Task</span><span class="p">,</span> <span class="n">task_to_generator</span><span class="p">,</span> <span class="n">ControlBlock</span>
 <span class="kn">from</span> <span class="nn">droidlet.memory.memory_nodes</span> <span class="kn">import</span> <span class="n">TaskNode</span>
 
 
@@ -226,7 +226,8 @@
                 <span class="n">Say</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;response_options&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">}),</span>
                 <span class="n">AwaitResponse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;asker_memid&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">}),</span>
             <span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_child_task</span><span class="p">(</span><span class="n">maybe_task_list_to_control_block</span><span class="p">(</span><span class="n">task_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">))</span>
+            <span class="n">task_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;new_tasks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">task_to_generator</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">task_list</span><span class="p">]}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_child_task</span><span class="p">(</span><span class="n">ControlBlock</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="n">task_data</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">asked</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">return</span>
         <span class="c1"># Step 2: check the response and add the task if necessary</span>
@@ -285,7 +286,8 @@
                 <span class="n">Say</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;response_options&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">}),</span>
                 <span class="n">AwaitResponse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;asker_memid&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">}),</span>
             <span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_child_task</span><span class="p">(</span><span class="n">task_list</span><span class="p">)</span>
+            <span class="n">task_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;new_tasks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">task_to_generator</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">task_list</span><span class="p">]}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_child_task</span><span class="p">(</span><span class="n">ControlBlock</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="n">task_data</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">asked</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">return</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pointed</span><span class="p">:</span>
