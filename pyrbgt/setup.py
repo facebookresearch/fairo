@@ -35,13 +35,14 @@ ext_modules = [
             "rbgt_pybind/third_party",
             numpy.get_include(),
         ],
-        extra_compile_args=["-fopenmp"],
+        extra_compile_args=["-fopenmp", "-g"],
         extra_link_args=pkgconfig("--libs", "glew")
         + [
             "-fopenmp",
             "-lopencv_core",
             "-lopencv_highgui",
             "-lopencv_imgproc",
+            "-lopencv_imgcodecs",
             "-lglfw",
             "-lstdc++fs",
         ],

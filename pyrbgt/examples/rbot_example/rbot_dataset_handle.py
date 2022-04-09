@@ -14,12 +14,8 @@ class RBOTDatasetHandle(ImageHandle):
         self.max_load_index = 1000
 
         intrinsic_path = os.path.join(dataset_path, "camera_calibration.txt")
-        try:
-            f = open(intrinsic_path, "r")
-        except OSError:
-            print("Cannot Open File at {}!".format(intrinsic_path))
 
-        with f:
+        with open(intrinsic_path, "r") as f:
             intrinsic_lst = f.read().split("\n")[1].split("\t")
             self.intrinsics = Intrinsics()
             self.intrinsics.fu = float(intrinsic_lst[0])
@@ -28,7 +24,6 @@ class RBOTDatasetHandle(ImageHandle):
             self.intrinsics.ppv = float(intrinsic_lst[3])
             self.intrinsics.width = 640
             self.intrinsics.height = 512
-            f.close()
 
     def get_intrinsics(self):
         return self.intrinsics

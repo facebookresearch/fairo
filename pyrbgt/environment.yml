@@ -3,9 +3,11 @@ channels:
   - conda-forge
   - pytorch3d
   - plotly
+  - nvidia
+  - pytorch
   - defaults
 dependencies:
-  - cudatoolkit=11.1
+  - nvidia::cudatoolkit
   - eigen
   - glew
   - glfw
@@ -14,5 +16,5 @@ dependencies:
   - plotly
   - python=3.8
   - pytorch3d
-  - pytorch=1.9.0
+  - pytorch::pytorch
   - scipy

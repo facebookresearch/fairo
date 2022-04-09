@@ -18,7 +18,7 @@ RUN python3 -m pip install \
   -f https://download.pytorch.org/whl/torch_stable.html
 
 RUN python3 -m pip install \
-  pytorch3d==0.5.0 \
+  pytorch3d==0.3.0 \
   -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py38_cu111_pyt190/download.html
 
 COPY . /pyrbgt
