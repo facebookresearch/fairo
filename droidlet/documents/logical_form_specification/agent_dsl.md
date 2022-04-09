@@ -5,7 +5,7 @@
 <pre>
 { 
   "dialogue_type": "HUMAN_GIVE_COMMAND",
-  "event": <a href="#event">&ltEVENT&gt</a>
+  <a href="#event">&ltEVENT&gt</a>
 }
 </pre>
 
@@ -276,7 +276,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 
 #### DanceType ####
 <pre>
-<a id="dance_type"> : {
+<a id="dance_type"/> : { 
   "filters": <a href="#filters">&ltFILTERS&gt</a>,
   "point": <a href="#facing">&ltFACING&gt</a>,
   "look_turn": <a href="#facing">&ltFACING&gt</a>,
@@ -386,10 +386,10 @@ Comparator compares two values.
 <a id="comparator"> COMPARATOR =  </a>
 
 {
-  "input_left" : {<a href="#filters">FILTERS</a> / <a href="#attribute">Attribute</a> / {"fixed_value" : text} / span }
+  "input_left" : <a href="#filters">FILTERS</a> / <a href="#attribute">Attribute</a> / {"fixed_value" : text} / span 
   "comparison_type" : "GREATER_THAN" / "LESS_THAN" / "GREATER_THAN_EQUAL" / 
                       "LESS_THAN_EQUAL" / "NOT_EQUAL" / "EQUAL" / <CLOSE_TO> / <MOD_EQUAL> / <MOD_CLOSE>,
-  "input_right" : {<a href="#filters">FILTERS</a> / <a href="#attribute">Attribute</a> / {"fixed_value" : text} /span }
+  "input_right" : <a href="#filters">FILTERS</a> / <a href="#attribute">Attribute</a> / {"fixed_value" : text} /span 
   "comparison_measure" : {"fixed_value" : text} / span,
   "set_comparison": "ANY"/ "ALL"
 }

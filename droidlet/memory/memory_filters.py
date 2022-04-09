@@ -316,9 +316,9 @@ class MemorySearcher:
         find all records matching a single comparator
         """
         # TODO: if input_left or input_right are subqueries...
-        v = where_clause["input_left"]["value_extractor"]
+        v = where_clause["input_left"]
         input_left = v.get("attribute")
-        input_right = where_clause["input_right"]["value_extractor"]
+        input_right = where_clause["input_right"]
         if type(input_right) is dict:
             raise Exception(
                 "currently basic search assumes input_right is a fixed value (not FILTERS): {}".format(

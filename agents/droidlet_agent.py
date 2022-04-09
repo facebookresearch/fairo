@@ -14,8 +14,10 @@ from agents.scheduler import EmptyScheduler
 from droidlet.event import sio, dispatch
 from droidlet.interpreter import InterpreterBase
 from droidlet.memory.save_and_fetch_commands import *
+from droidlet.memory.memory_nodes import TaskNode
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.perception.semantic_parsing.semantic_parsing_util import postprocess_logical_form
+
 random.seed(0)
 
 DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
@@ -160,7 +162,10 @@ class DroidletAgent(BaseAgent):
                     logical_form = logical_form_mem.logical_form
                 if logical_form:
                     logical_form = postprocess_logical_form(
-                        self.memory, speaker="dashboard", chat=chat, logical_form=logical_form_mem.logical_form
+                        self.memory,
+                        speaker="dashboard",
+                        chat=chat,
+                        logical_form=logical_form_mem.logical_form,
                     )
                     where = "WHERE <<?, attended_while_interpreting, #{}>>".format(
                         logical_form_mem.memid
@@ -293,32 +298,30 @@ class DroidletAgent(BaseAgent):
         self.maybe_dump_memory_to_dashboard()
 
     def task_step(self, sleep_time=0.25):
-        query = "SELECT MEMORY FROM Task WHERE prio=-1"
+        query = "SELECT MEMORY FROM Task WHERE prio={}".format(TaskNode.CHECK_PRIO)
         _, task_mems = self.memory.basic_search(query)
         for mem in task_mems:
             if mem.task.init_condition.check():
-                mem.get_update_status({"prio": 0})
+                mem.get_update_status({"prio": TaskNode.CHECK_PRIO + 1})
 
-        # this is "select TaskNodes whose priority is >= 0 and are not paused"
-        query = "SELECT MEMORY FROM Task WHERE ((prio>=0) AND (paused <= 0))"
-        _, task_mems = self.memory.basic_search(query)
-        for mem in task_mems:
-            if mem.task.run_condition.check():
-                # eventually we need to use the multiplex filter to decide what runs
-                mem.get_update_status({"prio": 1, "running": 1})
-            if mem.task.stop_condition.check():
-                mem.get_update_status({"prio": 0, "running": 0})
-        # this is "select TaskNodes that are runnning (running >= 1) and are not paused"
-        query = "SELECT MEMORY FROM Task WHERE ((running>=1) AND (paused <= 0))"
+        query = "SELECT MEMORY FROM Task WHERE ((prio>{}) AND (paused <= 0))".format(
+            TaskNode.CHECK_PRIO
+        )
         _, task_mems = self.memory.basic_search(query)
         if not task_mems:
             time.sleep(sleep_time)
             return
         task_mems = self.scheduler.filter(task_mems)
+        task_mems.sort(reverse=True, key=lambda x: x.prio)
         for mem in task_mems:
-            mem.task.step()
-            if mem.task.finished:
-                mem.update_task()
+            # prio/finished could have been changed by another Task, e.g. a ControlBlock
+            mem.update_node()
+            if mem.prio > TaskNode.CHECK_PRIO:
+                # FIXME set the other ones to running=0.  doesn't matter rn bc scheduler is empty, everything runs
+                mem.get_update_status({"running": 1})
+                mem.task.step()
+                if mem.task.finished:
+                    mem.update_task()
 
     def get_time(self):
         # round to 100th of second, return as
@@ -398,7 +401,7 @@ class DroidletAgent(BaseAgent):
 
         # check to see if some Tasks were put in memory that need to be
         # hatched using agent object (self):
-        query = "SELECT MEMORY FROM Task WHERE prio==-3"
+        query = "SELECT MEMORY FROM Task WHERE prio={}".format(TaskNode.EGG_PRIO)
         _, task_mems = self.memory.basic_search(query)
         for task_mem in task_mems:
             task_mem.task["class"](

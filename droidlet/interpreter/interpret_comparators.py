@@ -20,22 +20,12 @@ def interpret_comparator(interpreter, speaker, d, is_condition=True):
     # TODO add some input checks
     value_extractors = {}
     for inp_pos in ["input_left", "input_right"]:
-        inp = d[inp_pos].get("value_extractor")
-        #####################################
-        # SOMEHACKS FOR DEMO!!! FIXME dec2021
-        # some combination of parser errors and weird data
-        if inp is None:
-            if d[inp_pos].get("filters"):
-                inp = d[inp_pos]
-            elif d[inp_pos].get("value"):
-                inp = d[inp_pos]["value"]
-        ####################################
-
+        inp = d[inp_pos]
         if type(inp) is str:
             if inp == "NULL":
                 value_extractors[inp_pos] = None
             else:
-                # this is a span
+                # this is a span or fixed value
                 cm = d.get("comparison_measure")
                 v = interpret_span_value(interpreter, speaker, inp, comparison_measure=cm)
                 value_extractors[inp_pos] = v
