@@ -35,7 +35,7 @@ from transformers.modeling_utils import (
     prune_linear_layer,
 )
 from transformers.utils import logging
-from transformers.configuration_bert import BertConfig
+from transformers import BertConfig
 from .modeling_outputs import (
     BaseModelOutputWithPastAndCrossAttentions,
     BaseModelOutputWithPoolingAndCrossAttentions,
