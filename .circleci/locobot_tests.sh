@@ -4,7 +4,7 @@ set -ex
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate droidlet
 
-pip install -r agents/locobot/requirements.txt
+pip3 install -r agents/locobot/requirements.txt
 python setup.py develop
 
 echo "Downloading datasets, models ..."

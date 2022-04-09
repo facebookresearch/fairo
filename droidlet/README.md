@@ -66,25 +66,26 @@ cd droidlet
     <tr valign="top">        
         <td> 3. Install dependencies
         <sub><pre lang="bash">
-conda create -n droidlet python=3.7 \
-   --file conda.txt --file agents/locobot/conda.txt -c pytorch -c aihabitat -c open3d-admin -c conda-forge
+conda create -n droidlet python=3.8
 conda activate droidlet
-pip install -r agents/locobot/requirements.txt
+conda install --file conda.txt agents/locobot/conda.txt -c pytorch
+pip3 install -r agents/locobot/requirements.txt
 python setup.py develop
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
-conda create -n droidlet python=3.7 \
-   --file conda.txt --file agents/craftassist/conda.txt -c pytorch -c aihabitat -c open3d-admin -c conda-forge
+conda create -n droidlet python=3.8
 conda activate droidlet
-pip install -r agents/craftassist/requirements.txt
+conda install --file conda.txt agents/craftassist/conda.txt -c pytorch
+pip3 install -r agents/craftassist/requirements.txt
+python setup.py develop
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
-conda create -n droidlet python=3.7 \
-   --file conda.txt -c pytorch -c aihabitat -c open3d-admin -c conda-forge
+conda create -n droidlet python=3.8
 conda activate droidlet
-pip install -r requirements.txt
+conda install --file conda.txt -c pytorch
+pip3 install -r requirements.txt
         </pre></sub></td>
     </tr>
     <tr valign="top">        

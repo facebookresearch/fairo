@@ -1,5 +1,5 @@
 python=3.8
+cudatoolkit=11.3
 pytorch
 torchvision
-cudatoolkit=11.3
 cmake
