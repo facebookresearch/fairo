@@ -336,6 +336,11 @@ class FakeMover:
         else:
             return self.current_action.step()
 
+    def is_busy(self):
+        if not self.current_action:
+            return False
+        return True
+
     def is_object_in_gripper(self):
         return self.gripper_state == "occupied"
 
@@ -454,6 +459,7 @@ class FakeAgent(DroidletAgent):
         self.logical_form = {"logical_form": lf, "chatstr": chatstr, "speaker": speaker}
 
     def step(self):
+        self.mover.bot_step()
         if hasattr(self.world, "step"):
             self.world.step()
         if hasattr(self, "recorder"):

@@ -169,12 +169,12 @@ class Move(BaseMovementTask):
             logging.info("calling move with : %r" % (self.target.tolist()))
             self.command_sent = True
             if self.is_relative:
-                self.agent.mover.move_relative([self.target.tolist()])
+                self.agent.mover.move_relative([self.target.tolist()], blocking=False)
             else:
-                self.agent.mover.move_absolute([self.target.tolist()])
+                self.agent.mover.move_absolute([self.target.tolist()], blocking=False)
 
         else:
-            self.finished = self.agent.mover.bot_step()
+            self.finished = not self.agent.mover.is_busy()
 
     def __repr__(self):
         return "<Move {}>".format(self.target)
@@ -193,9 +193,9 @@ class Turn(Task):
         self.finished = False
         if not self.command_sent:
             self.command_sent = True
-            self.agent.mover.turn(self.yaw)
+            self.agent.mover.turn(self.yaw, blocking=False)
         else:
-            self.finished = self.agent.mover.bot_step()
+            self.finished = not self.agent.mover.is_busy()
 
     def __repr__(self):
         return "<Turn {} degrees>".format(self.yaw)
