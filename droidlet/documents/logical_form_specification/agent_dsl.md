@@ -325,21 +325,23 @@ The values for these keys are a lit of dictionaries where each dictionary is eit
 
 ## ATTRIBUTE ##
 
-This defines attributes of the memory node that can be exposed as outputs and the representation is as follows:
+An ATTRIBUTE specifies a function that takes a memory node as input and outputs a value:
 
 <pre>
 {
 <a id="attribute"> "attribute" </a> : 'HEIGHT' / 'WIDTH' / 'X' / 'Y' / 'Z' / 'REF_TYPE' / 
                'HEAD_PITCH' / 'HEAD_YAW' / 'BODY_YAW'/ 'NAME' / 
-               'BORN_TIME' / 'MODIFY_TIME' / 'SPEAKER' / 'VISIT_TIME' /  
-               'FINISHED_TIME' / 'CHAT' / 'LOGICAL_FORM' /  'NAME' / 
-               'SIZE' / 'COLOUR' / 'LOCATION' /'TAG' / <a href="#num_blocks">&ltNUM_BLOCKS&gt</a> / <a href="#linear_extent">&ltLINEAR_EXTENT&gt</a> / {"task_info" : {"reference_object" : <a href="#attribute">&ltATTRIBUTE&gt</a> }}
+               'BORN_TIME' / 'MODIFY_TIME' / 'VISIT_TIME' / 'FINISHED_TIME' /
+               'SPEAKER' / 'CHAT' / 'LOGICAL_FORM' /  'NAME' / 
+               'SIZE' / 'COLOUR' / 'LOCATION' /'TAG' / <a href="#num_blocks">&ltNUM_BLOCKS&gt</a> /   
+	       <a href="#linear_extent">&ltLINEAR_EXTENT&gt</a> / {"task_info" : {"reference_object" : <a href="#attribute">&ltATTRIBUTE&gt</a> }},
+ "at_time": <a href="#time_condition">&ltTIME_CONDITION&gt</a>
 }
 </pre>
+The default of the "at_time" key (if it is ommitted) is the time when the query is issued.
 
 ### NUM BLOCKS ###
-This represents number of blocks and hence a filter over those. For example: "go to the house with most red blocks". 
-Representation:
+This represents number of blocks. For example: "go to the house with most red blocks":
 <pre>
 {<a id="num_blocks"> "num_blocks" </a> :  {
     "block_filters":  <a href="#filters">&ltFILTERS&gt</a>}
