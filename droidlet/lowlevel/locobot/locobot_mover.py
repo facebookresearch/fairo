@@ -281,13 +281,14 @@ class LoCoBotMover:
     def get_current_pcd(self, in_cam=False, in_global=False):
         """Gets the current point cloud"""
         return self.bot.get_current_pcd(in_cam=in_cam, in_global=in_global)
+
     def is_busy(self):
         return self.nav.is_busy().value and self.bot.is_busy().value
 
     def stop(self):
         """immediately stop the robot."""
         self.nav.stop()
-        return self.bot.stop()    
+        return self.bot.stop()
 
     def dance(self):
         self.bot.dance()
