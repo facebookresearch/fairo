@@ -78,10 +78,10 @@ class FakeMoverCommand:
                 {"name": self.NAME, "step_data": self.get_step_data()}
             )
 
-    def __call__(self, *args):
+    def __call__(self, *args, **kwargs):
         if hasattr(self.agent, "recorder"):
-            self.agent.recorder.record_action({"name": self.NAME, "args": list(args)})
-        return self.action(*args)
+            self.agent.recorder.record_action({"name": self.NAME, "args": list(args), "kwargs": list(kwargs)})
+        return self.action(*args, **kwargs)
 
 
 def abs_min(x, y):
@@ -94,7 +94,8 @@ def abs_min(x, y):
 class MoveAbsolute(FakeMoverCommand):
     NAME = "move_absolute"
 
-    def action(self, xyt_positions):
+    def action(self, xyt_positions, blocking=False):
+        # ignores the "blocking" keyword, sig just to match regular agent
         self.xyt_positions = xyt_positions
         self.position_index = 0
         self.agent.mover.current_action = self

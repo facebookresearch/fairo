@@ -193,7 +193,7 @@ class Turn(Task):
         self.finished = False
         if not self.command_sent:
             self.command_sent = True
-            self.agent.mover.turn(self.yaw, blocking=False)
+            self.agent.mover.turn(self.yaw)
         else:
             self.finished = not self.agent.mover.is_busy()
 
