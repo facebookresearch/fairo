@@ -290,6 +290,14 @@ class LoCoBotMover:
         self.nav.stop()
         return self.bot.stop()
 
+    def is_busy(self):
+        return self.nav.is_busy().value and self.bot.is_busy().value
+
+    def stop(self):
+        """immediately stop the robot."""
+        self.nav.stop()
+        return self.bot.stop()
+
     def dance(self):
         self.bot.dance()
 
