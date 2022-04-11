@@ -31,6 +31,10 @@ from droidlet.lowlevel.hello_robot.rotation import (
     rotation_matrix_y,
     rotation_matrix_z,
 )
+from droidlet.lowlevel.robot_coordinate_utils import (
+    xyz_pyrobot_to_canonical_coords,
+    base_canonical_coords_to_pyrobot_coords,
+)
 
 from tenacity import retry, stop_after_attempt, wait_fixed
 from droidlet.lowlevel.pyro_utils import safe_call
