@@ -194,8 +194,12 @@ class HelloRobotMover(MoverInterface):
         else:
             self.set_look(pan_rad, tilt_rad, turn_base=True, world=True)
 
+    def is_busy(self):
+        return self.nav.is_busy().value and self.bot.is_busy().value
+
     def stop(self):
         """immediately stop the robot."""
+        self.nav.stop()
         return self.bot.stop()
 
     def unstop(self):
@@ -223,7 +227,7 @@ class HelloRobotMover(MoverInterface):
         """
         if not isinstance(next(iter(xyt_positions)), Iterable):
             # single xyt position given
-            xzt_positions = [xzt_positions]
+            xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
             self.nav_result.wait()
             self.nav_result = safe_call(self.nav.go_to_relative, xyt)

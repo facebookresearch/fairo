@@ -57,6 +57,7 @@ class Navigation(object):
         self.robot = robot
         self.trackback = Trackback(planner)
         self._busy = False
+        self._stop = True
         self._done_exploring = False
 
     def go_to_relative(self, goal):
@@ -70,11 +71,12 @@ class Navigation(object):
 
     def go_to_absolute(self, goal, steps=100000000):
         self._busy = True
+        self._stop = False
         robot_loc = self.robot.get_base_state()
         initial_robot_loc = robot_loc
         goal_reached = False
         return_code = True
-        while (not goal_reached) and steps > 0:
+        while (not goal_reached) and steps > 0 and self._stop is False:
             stg = self.planner.get_short_term_goal(robot_loc, goal)
             if stg == False:
                 # no path to end-goal
@@ -140,6 +142,9 @@ class Navigation(object):
 
     def reset_explore(self):
         self._done_exploring = False
+
+    def stop(self):
+        self._stop = True
 
 
 robot_ip = os.getenv("LOCOBOT_IP")
