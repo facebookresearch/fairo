@@ -26,6 +26,20 @@ from droidlet.lowlevel.robot_mover_utils import (
     get_circular_path,
 )
 
+
+# TODO make this highest priority, hardstop, etc
+class Stop(Task):
+    def __init__(self, agent, task_data, featurizer=None):
+        super().__init__(agent)
+        TaskNode(self.agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        self.agent.mover.stop()
+        self.finished = True
+
+
+
 # FIXME store dances, etc.
 class Dance(Task):
     def __init__(self, agent, task_data, featurizer=None):
