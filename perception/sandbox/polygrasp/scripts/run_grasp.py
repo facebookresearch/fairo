@@ -12,6 +12,9 @@ import torch
 
 from realsense_wrapper import RealsenseAPI
 
+from polygrasp.pointcloud_rpc import PointCloudClient
+from polygrasp.grasp_rpc import GraspClient
+
 
 @hydra.main(config_path="../conf", config_name="run_grasp")
 def main(cfg):
@@ -21,12 +24,12 @@ def main(cfg):
     # Initialize cameras
     cameras = RealsenseAPI()
     camera_intrinsics = cameras.get_intrinsics()
-    import pdb; pdb.set_trace()
     camera_extrinsics = json.load(hydra.utils.to_absolute_path(cfg.camera_extrinsics_path))
 
     # Connect to grasp candidate selection and pointcloud processor
+    import pdb; pdb.set_trace()
     pcd_client = PointCloudClient(camera_intrinsics, camera_extrinsics)
-    grasp_suggester = GraspInterface()
+    grasp_suggester = GraspClient()
 
     num_iters = 1
     for i in range(num_iters):

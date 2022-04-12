@@ -8,10 +8,16 @@ service GraspServer {
 
 service PointCloudServer {
   rpc GetPointcloud(stream Image) returns (stream PointCloud) {}
+  rpc SegmentPointcloud(stream PointCloud) returns (stream ObjectMask) {}
 }
 
 message Image {
   bytes rgbd = 1;
+}
+
+message ObjectMask {
+  int64 id = 1;
+  bytes mask = 2;
 }
 
 message PointCloud {

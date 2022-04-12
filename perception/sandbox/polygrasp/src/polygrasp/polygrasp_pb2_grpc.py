@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from src.polygrasp import grasp_server_pb2 as src_dot_polygrasp_dot_grasp__server__pb2
+from polygrasp import polygrasp_pb2 as polygrasp_dot_polygrasp__pb2
 
 
 class GraspServerStub(object):
@@ -16,8 +16,8 @@ class GraspServerStub(object):
         """
         self.GetGrasps = channel.stream_stream(
                 '/polygrasp.GraspServer/GetGrasps',
-                request_serializer=src_dot_polygrasp_dot_grasp__server__pb2.PointCloud.SerializeToString,
-                response_deserializer=src_dot_polygrasp_dot_grasp__server__pb2.GraspGroup.FromString,
+                request_serializer=polygrasp_dot_polygrasp__pb2.PointCloud.SerializeToString,
+                response_deserializer=polygrasp_dot_polygrasp__pb2.GraspGroup.FromString,
                 )
 
 
@@ -35,8 +35,8 @@ def add_GraspServerServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GetGrasps': grpc.stream_stream_rpc_method_handler(
                     servicer.GetGrasps,
-                    request_deserializer=src_dot_polygrasp_dot_grasp__server__pb2.PointCloud.FromString,
-                    response_serializer=src_dot_polygrasp_dot_grasp__server__pb2.GraspGroup.SerializeToString,
+                    request_deserializer=polygrasp_dot_polygrasp__pb2.PointCloud.FromString,
+                    response_serializer=polygrasp_dot_polygrasp__pb2.GraspGroup.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -60,8 +60,8 @@ class GraspServer(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.stream_stream(request_iterator, target, '/polygrasp.GraspServer/GetGrasps',
-            src_dot_polygrasp_dot_grasp__server__pb2.PointCloud.SerializeToString,
-            src_dot_polygrasp_dot_grasp__server__pb2.GraspGroup.FromString,
+            polygrasp_dot_polygrasp__pb2.PointCloud.SerializeToString,
+            polygrasp_dot_polygrasp__pb2.GraspGroup.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -77,8 +77,13 @@ class PointCloudServerStub(object):
         """
         self.GetPointcloud = channel.stream_stream(
                 '/polygrasp.PointCloudServer/GetPointcloud',
-                request_serializer=src_dot_polygrasp_dot_grasp__server__pb2.Image.SerializeToString,
-                response_deserializer=src_dot_polygrasp_dot_grasp__server__pb2.PointCloud.FromString,
+                request_serializer=polygrasp_dot_polygrasp__pb2.Image.SerializeToString,
+                response_deserializer=polygrasp_dot_polygrasp__pb2.PointCloud.FromString,
+                )
+        self.SegmentPointcloud = channel.stream_stream(
+                '/polygrasp.PointCloudServer/SegmentPointcloud',
+                request_serializer=polygrasp_dot_polygrasp__pb2.PointCloud.SerializeToString,
+                response_deserializer=polygrasp_dot_polygrasp__pb2.ObjectMask.FromString,
                 )
 
 
@@ -91,13 +96,24 @@ class PointCloudServerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SegmentPointcloud(self, request_iterator, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_PointCloudServerServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GetPointcloud': grpc.stream_stream_rpc_method_handler(
                     servicer.GetPointcloud,
-                    request_deserializer=src_dot_polygrasp_dot_grasp__server__pb2.Image.FromString,
-                    response_serializer=src_dot_polygrasp_dot_grasp__server__pb2.PointCloud.SerializeToString,
+                    request_deserializer=polygrasp_dot_polygrasp__pb2.Image.FromString,
+                    response_serializer=polygrasp_dot_polygrasp__pb2.PointCloud.SerializeToString,
+            ),
+            'SegmentPointcloud': grpc.stream_stream_rpc_method_handler(
+                    servicer.SegmentPointcloud,
+                    request_deserializer=polygrasp_dot_polygrasp__pb2.PointCloud.FromString,
+                    response_serializer=polygrasp_dot_polygrasp__pb2.ObjectMask.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -121,7 +137,24 @@ class PointCloudServer(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.stream_stream(request_iterator, target, '/polygrasp.PointCloudServer/GetPointcloud',
-            src_dot_polygrasp_dot_grasp__server__pb2.Image.SerializeToString,
-            src_dot_polygrasp_dot_grasp__server__pb2.PointCloud.FromString,
+            polygrasp_dot_polygrasp__pb2.Image.SerializeToString,
+            polygrasp_dot_polygrasp__pb2.PointCloud.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SegmentPointcloud(request_iterator,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.stream_stream(request_iterator, target, '/polygrasp.PointCloudServer/SegmentPointcloud',
+            polygrasp_dot_polygrasp__pb2.PointCloud.SerializeToString,
+            polygrasp_dot_polygrasp__pb2.ObjectMask.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

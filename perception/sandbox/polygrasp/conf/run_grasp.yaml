@@ -1,0 +1,8 @@
+robot:
+  _target_: polygrasp.robot_interface.GraspingRobotInterface
+  ip_address: "100.67.224.116"
+  enforce_version: false
+  gripper:
+    _target_: polymetis.GripperInterface
+
+camera_extrinsics_path: ../eyehandcal/calibration.json
