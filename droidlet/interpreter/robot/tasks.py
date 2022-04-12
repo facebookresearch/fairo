@@ -39,7 +39,6 @@ class Stop(Task):
         self.finished = True
 
 
-
 # FIXME store dances, etc.
 class Dance(Task):
     def __init__(self, agent, task_data, featurizer=None):

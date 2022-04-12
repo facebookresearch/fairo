@@ -23,6 +23,7 @@ import droidlet.interpreter.robot.dance as dance
 import droidlet.interpreter.robot.tasks as tasks
 from droidlet.task.task import task_to_generator
 
+
 def post_process_loc(loc, interpreter):
     self_mem = interpreter.memory.get_mem_by_id(interpreter.memory.self_memid)
     yaw, _ = self_mem.get_yaw_pitch()
@@ -82,7 +83,6 @@ class LocoInterpreter(Interpreter):
         if self.memory.task_stack_pause():
             Say(agent, task_data={"response_options": "Stopping"})
         return task_to_generator(self.task_objects["stop"](agent, {}))
-
 
     def handle_get(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         default_ref_d = {"filters": {"location": AGENTPOS}}
