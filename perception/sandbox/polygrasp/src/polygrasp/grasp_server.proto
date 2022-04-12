@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package polygrasp;
+
+service GraspServer {
+  rpc GetGrasps(stream PointCloud) returns (stream GraspGroup) {}
+}
+
+service PointCloudServer {
+  rpc GetPointcloud(stream Image) returns (stream PointCloud) {}
+}
+
+message Image {
+  bytes rgbd = 1;
+}
+
+message PointCloud {
+  bytes pcd = 1;
+  bytes color = 2;
+}
+  
+message GraspGroup {
+  bytes grasp_group_array = 1;
+}
