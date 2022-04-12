@@ -118,6 +118,7 @@ if __name__ == '__main__':
     import argparse
     parser=argparse.ArgumentParser()
 
+    parser.add_argument('--seed', default=0, type=int, help="random seed for initializing solution")
     parser.add_argument('--ip', default='100.96.135.68', help="robot ip address")
     parser.add_argument('--datafile', default='caldata.pkl', help="file to either load or save camera data")
     parser.add_argument('--overwrite', default=False, action='store_true', help="overwrite existing datafile, if it exists")
@@ -130,6 +131,10 @@ if __name__ == '__main__':
 
     args=parser.parse_args()
     print(f"Config: {args}")
+
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
 
     if os.path.exists(args.datafile) and not args.overwrite:
         print(f"Warning: datafile {args.datafile} already exists. Loading data instead of collecting data...")
@@ -176,14 +181,18 @@ if __name__ == '__main__':
         print(f'Solve camera {i} pose')
         obs_data_std, K = extract_obs_data_std(corner_data, i)
         print('number of images with keypoint', len(obs_data_std))
-        param=torch.zeros(9, dtype=torch.float64, requires_grad=True)
-        L = lambda param: mean_loss(obs_data_std, param, K)
-        try:
-            param_star=find_parameter(param, obs_data_std, K)
-        except:
-            continue
+        loss = 9999
+        while loss > 1.0:
+            param=torch.randn(9, dtype=torch.float64, requires_grad=True)
+            L = lambda param: mean_loss(obs_data_std, param, K)
+            try:
+                param_star=find_parameter(param, obs_data_std, K)
+            except Exception as e:
+                print(e)
+                continue
 
-        print('found param loss (mean pixel err)', L(param_star).item())
+            loss = L(param_star).item()
+            print('found param loss (mean pixel err)', loss)
         params.append(param_star)
     
     with torch.no_grad():
