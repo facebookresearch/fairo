@@ -80,7 +80,9 @@ class FakeMoverCommand:
 
     def __call__(self, *args, **kwargs):
         if hasattr(self.agent, "recorder"):
-            self.agent.recorder.record_action({"name": self.NAME, "args": list(args), "kwargs": list(kwargs)})
+            self.agent.recorder.record_action(
+                {"name": self.NAME, "args": list(args), "kwargs": list(kwargs)}
+            )
         return self.action(*args, **kwargs)
 
 
