@@ -15,7 +15,7 @@ import cv2
 from droidlet.perception.robot.perception_util import get_color_tag
 
 # FIXME: do this through args, allow multiple verbosity levels
-VERBOSE = 1
+VERBOSE = 0
 
 
 class AbstractHandler:
