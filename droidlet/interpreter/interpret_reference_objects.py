@@ -224,7 +224,9 @@ def interpret_reference_object(
             raise NextDialogueStep()
         # clarification task finished.
 
-        query = "SELECT dialogue_clarification_output FROM Task WHERE uuid={}".format(task_mem.memid)
+        query = "SELECT dialogue_clarification_output FROM Task WHERE uuid={}".format(
+            task_mem.memid
+        )
         _, r = interpreter.memory.basic_search(query)
         if r:
             query = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(r[0])

@@ -360,12 +360,18 @@ class ClarifyCC1(Task):
                 else:
                     # Found it! Add the approriate tag to current candidate and mark it as the output
                     self.agent.memory.add_triple(
-                        subj=self.currect_candidate, pred_text="has_tag", obj_text=self.ref_obj_span
+                        subj=self.currect_candidate,
+                        pred_text="has_tag",
+                        obj_text=self.ref_obj_span,
                     )
                     self.agent.memory.add_triple(
-                        subj=self.memid, pred_text="dialogue_clarification_output", obj_text=self.currect_candidate
+                        subj=self.memid,
+                        pred_text="dialogue_clarification_output",
+                        obj_text=self.currect_candidate,
                     )
-                    self.add_child_task(Say(self.agent, {"response_options": "Thank you for clarifying!"}))
+                    self.add_child_task(
+                        Say(self.agent, {"response_options": "Thank you for clarifying!"})
+                    )
                     self.finished = True
                 return
 
