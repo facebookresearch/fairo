@@ -199,12 +199,8 @@ def interpret_reference_object(
 
         # Compare num matches to expected and clarify
         if (len(candidate_mems) != num_refs) and allow_clarification:
-            mems = clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
-            if len(mems > 0):
-                update_attended_and_link_lf(interpreter, mems)
-                return mems
-            else:
-                raise NextDialogueStep()
+            clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
+            raise NextDialogueStep()
 
         elif len(candidate_mems) > 0:
             mems = filter_by_sublocation(
@@ -228,15 +224,10 @@ def interpret_reference_object(
             raise NextDialogueStep()
         # clarification task finished.
 
-        # TODO Update everything below here
-
-        query = "SELECT dialogue_task_output FROM Task WHERE uuid={}".format(task_mem.memid)
+        query = "SELECT dialogue_clarification_output FROM Task WHERE uuid={}".format(task_mem.memid)
         _, r = interpreter.memory.basic_search(query)
-        if r and r[0] == "yes":
-            # TODO: learn from the tag!  put it in memory!
-            query = "SELECT MEMORY FROM ReferenceObject WHERE << {}, reference_object_confirmation, ?>>".format(
-                self.memid
-            )
+        if r:
+            query = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(r[0])
             _, ref_obj_mems = interpreter.memory.basic_search(query)
             update_attended_and_link_lf(interpreter, ref_obj_mems)
             return ref_obj_mems

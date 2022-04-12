@@ -38,7 +38,7 @@ def clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
             pred_text="dlf_clarification",
             obj=interpreter.memid,
         )
-        raise NextDialogueStep()
+        return
 
     elif num_refs > len(candidate_mems):
         clarification_class = "REF_TOO_FEW"

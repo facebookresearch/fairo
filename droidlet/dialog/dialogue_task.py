@@ -261,17 +261,12 @@ def check_parse(task):
     task.add_child_task(maybe_task_list_to_control_block(task_list, task.agent))
 
 
-def yes_no_dialogue_response(task):
-    # FIXME: change this to sqly when syntax for obj searches is settled:
-    import ipdb
-
-    ipdb.set_trace(context=7)
-    t = task.agent.memory.get_triples(subj=task.memid, pred_text="dialogue_task_response")
-    chat_mems = [task.agent.memory.get_mem_by_id(triples[2]) for triples in t]
+def map_yes_last_chat(task):
+    chat_mem = task.agent.memory.get_most_recent_incoming_chat(after=task.step_time + 1)
     response = "no"
-    if chat_mems:
+    if chat_mem:
         # FIXME...
-        if chat_mems[0].chat_text in MAP_YES:
+        if chat_mem.chat_text in MAP_YES:
             response = "yes"
     return response
 
@@ -290,13 +285,15 @@ def point_at(task, target):
         AwaitResponse(task.agent, {"asker_memid": task.memid}),
     ]
     task.add_child_task(maybe_task_list_to_control_block(task_list, task.agent))
+    task.asks += 1
+    task.step_time = task.agent.memory.get_time()
 
 
 def clarification_failed(task):
     question = "OK, I didn't understand you correctly.  Please mark this as an error."
     task.add_child_task(Say(task.agent, {"response_options": question}))
     task.asks = task.max_asks
-    task.finished = task
+    task.finished = True
 
 
 class ClarifyCC1(Task):
@@ -314,13 +311,13 @@ class ClarifyCC1(Task):
         super().__init__(agent, task_data=task_data)
         self.dlf = task_data.get("dlf")
         self.candidates = self.dlf["class"]["candidates"]
-        # self.candidates = [c for c in self.dlf["class"]["candidates"] if hasattr(c, "get_point_at_target")]
+        self.currect_candidate = None
         self.action = self.dlf["action"]["action_type"]
         self.ref_obj_span = self.dlf["action"]["reference_object"][
             "text_span"
         ]  # FIXME will this always be here?
         self.finished = False
-        self.pointed = False
+        self.step_time = self.agent.memory.get_time()
         self.max_asks = len(self.candidates) + 1  # verify action + ref_obj span, then candidates
         self.asks = 1
         clarify_dlf_task = TaskNode(agent.memory, self.memid)
@@ -332,9 +329,9 @@ class ClarifyCC1(Task):
         """Issue chats and wait for responses to clarify"""
 
         print("ClarifyCC1 stepped")
-        import ipdb
+        # import ipdb
 
-        ipdb.set_trace(context=7)
+        # ipdb.set_trace(context=7)
 
         if not self.finished and self.asks <= self.max_asks:
             if self.asks == 1:
@@ -344,11 +341,11 @@ class ClarifyCC1(Task):
                 return
 
             elif self.asks == 2:
-                response = yes_no_dialogue_response(self)
+                response = map_yes_last_chat(self)
                 if response == "yes":
                     # The parse was at least kind of right, start suggesting objects
-                    point_at(self, self.candidates.pop(0))
-                    self.asks += 1
+                    self.currect_candidate = self.candidates.pop(0)
+                    point_at(self, self.agent.memory.get_mem_by_id(self.currect_candidate))
                 else:
                     # Seemingly a bad parse, move on to error marking
                     clarification_failed(self)
@@ -356,17 +353,23 @@ class ClarifyCC1(Task):
 
             else:
                 # Check if the last obj was right, if not continue
-                response = yes_no_dialogue_response(self)
+                response = map_yes_last_chat(self)
                 if response == "no":
-                    point_at(self, self.candidates.pop(0))
-                    self.asks += 1
+                    self.currect_candidate = self.candidates.pop(0)
+                    point_at(self, self.agent.memory.get_mem_by_id(self.currect_candidate))
                 else:
-                    # TODO update memory and close out this task
-                    clarification_failed(self)
+                    # Found it! Add the approriate tag to current candidate and mark it as the output
+                    self.agent.memory.add_triple(
+                        subj=self.currect_candidate, pred_text="has_tag", obj_text=self.ref_obj_span
+                    )
+                    self.agent.memory.add_triple(
+                        subj=self.memid, pred_text="dialogue_clarification_output", obj_text=self.currect_candidate
+                    )
+                    self.add_child_task(Say(self.agent, {"response_options": "Thank you for clarifying!"}))
+                    self.finished = True
                 return
 
         else:
-            self.finished = True
+            # We ran out of candidates, move on to error marking
+            clarification_failed(self)
             return
-
-        return
