@@ -37,13 +37,12 @@ class AgentThinking extends Component {
   }
 
   sendTaskStackPoll() {
-    console.log("Sending task stack poll");
+    // console.log("Sending task stack poll");
     this.props.stateManager.socket.emit("taskStackPoll");
   }
 
   receiveTaskStackPoll(res) {
-    var response = JSON.stringify(res);
-    console.log("Received task stack poll response:" + response);
+    console.log("Received task stack poll response:" + JSON.stringify(res));
     // If we get a response of any kind, reset the timeout clock
     if (res) {
       this.setState({
@@ -58,6 +57,11 @@ class AgentThinking extends Component {
         } else {
           this.props.goToMessage();
         }
+      } else if (res.task && res.clarify) {
+        // Until Interact is just one component, if a clarification comes in
+        // we just go back to the chat window and skip error marking.
+        console.log("Agent asked for task clarification")
+        this.props.goToMessage();
       } else {
         // Otherwise send out a new task stack poll after a delay
         setTimeout(() => {

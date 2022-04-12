@@ -346,8 +346,6 @@ class CraftAssistAgent(DroidletAgent):
 
     def send_chat(self, chat: str):
         """Send chat from agent to player"""
-        import ipdb
-        ipdb.set_trace(context=7)
 
         chat_json = False
         try:

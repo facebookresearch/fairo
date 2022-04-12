@@ -400,14 +400,13 @@ class StateManager {
 
   showAssistantReply(res) {
     console.log(res);
+    let chat;
     try {
-      let res_json = JSON.parse(res);
-      let content = res_json.properties.content;
-      var chat = content.filter(entry => entry[0] == "text")[0];
+      let content = res.properties.content;
+      chat = content.filter(entry => entry[0] == "text")[0][1];
     } catch (e) {
-      var chat = res.agent_reply;
+      chat = res.agent_reply;
     }
-    console.log(chat);
     this.memory.agent_replies.push({
       msg: chat,
       timestamp: Date.now(),
