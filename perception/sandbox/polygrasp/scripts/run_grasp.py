@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Connects to robot, camera(s), gripper, and grasp server.
 Runs grasps generated from grasp server.
@@ -6,17 +7,22 @@ Runs grasps generated from grasp server.
 import random
 import json
 
+import hydra
+import torch
 
-if __name__ == "__main__":
+from realsense_wrapper import RealsenseAPI
+
+
+@hydra.main(config_path="../conf", config_name="run_grasp")
+def main(cfg):
     # Initialize robot & gripper
-    robot = RobotInterface()
-    gripper = GripperInterface()
-    robot.init_gripper(gripper)
+    robot = hydra.utils.instantiate(cfg.robot)
 
     # Initialize cameras
     cameras = RealsenseAPI()
     camera_intrinsics = cameras.get_intrinsics()
-    camera_extrinsics = json.load("/path/to/calibration.json")
+    import pdb; pdb.set_trace()
+    camera_extrinsics = json.load(hydra.utils.to_absolute_path(cfg.camera_extrinsics_path))
 
     # Connect to grasp candidate selection and pointcloud processor
     pcd_client = PointCloudClient(camera_intrinsics, camera_extrinsics)
@@ -49,3 +55,6 @@ if __name__ == "__main__":
             curr_pose, curr_ori = robot.get_ee_pose()
             robot.move_to_ee_pose(torch.Tensor([0, 0, 0.1]), delta=True)
             robot.move_to_ee_pose(torch.Tensor([0, 0, -0.1]), delta=True)
+
+if __name__ == "__main__":
+    main()

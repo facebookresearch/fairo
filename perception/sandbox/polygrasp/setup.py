@@ -8,6 +8,12 @@ __author__ = "Yixin Lin"
 __copyright__ = "2022, Meta"
 
 
+install_requires = [
+    "grpcio-tools",
+    "realsense_wrapper",
+]
+
+
 setup(
     name="polygrasp",
     author="Yixin Lin",
@@ -16,4 +22,5 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     scripts=["scripts/run_grasp.py"],
+    install_requires=install_requires,
 )

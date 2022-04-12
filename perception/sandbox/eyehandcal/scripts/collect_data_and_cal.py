@@ -37,12 +37,12 @@ def realsense_images(max_pixel_diff=200):
 
 
     for i in range(30*5):
-        rs.get_images()
+        rs.get_rgbd()
     count=0
     while True:
-        imgs0 = rs.get_images()
+        imgs0 = rs.get_rgbd()[:, :, :, :3]
         for i in range(30):
-            imgs1 = rs.get_images()
+            imgs1 = rs.get_rgbd()[:, :, :, :3]
         pixel_diff=[]
         for i in range(num_cameras):
             pixel_diff.append(np.abs(imgs0[i].astype(np.int32)-imgs1[i].astype(np.int32)).reshape(-1))

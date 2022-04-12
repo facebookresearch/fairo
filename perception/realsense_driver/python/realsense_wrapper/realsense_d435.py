@@ -61,7 +61,7 @@ class RealsenseAPI:
         framesets = self._get_frames()
         num_cams = self.get_num_cameras()
 
-        rgbd = np.zeros([num_cams, self.height, self.width, 4], dtype=np.uint16)
+        rgbd = np.empty([num_cams, self.height, self.width, 4], dtype=np.uint16)
 
         for i, frameset in enumerate(framesets):
             color_frame = frameset.get_color_frame()
