@@ -33,6 +33,7 @@ def test_mc_swarm():
         rc = subprocess.call([opts.verify_hash_script_path, "craftassist"])
 
     set_start_method("spawn", force=True)
+    opts.name = "master_bot"
     sa = CraftAssistAgent(opts) # master, show at default location. Base_agent = sa
     master = SwarmMasterWrapper(sa, [None] * num_workers, opts, get_default_config(sa))
     master.start()

@@ -89,6 +89,7 @@ class DialogueManager(object):
                 Example: ("player_1", "build a red cube")
 
         """
+
         start_time = datetime.datetime.now()
         # chat is a single line command
         chat_list = self.get_last_m_chats(m=1)
@@ -96,6 +97,7 @@ class DialogueManager(object):
 
         if chat_list:
             # TODO: remove this and have mapper take in full list
+            import ipdb;ipdb.set_trace()
             speaker, chatstr, logical_form, chat_status, chat_memid = chat_list[0]
             logging.debug("Dialogue stack pre-run_model: {}".format(self.dialogue_stack.stack))
 
@@ -107,14 +109,15 @@ class DialogueManager(object):
             obj = self.dialogue_object_mapper.get_dialogue_object(speaker, chatstr, logical_form, chat_status, chat_memid)
             if obj is not None:
                 self.dialogue_stack.append(obj)
-                end_time = datetime.datetime.now()
-                hook_data = {
-                    "name" : "dialogue",
-                    "start_time" : start_time,
-                    "end_time" : end_time,
-                    "elapsed_time" : (end_time - start_time).total_seconds(),
-                    "agent_time" : self.memory.get_time(),
-                    "object" : str(obj)
-                }
-                dispatch.send("dialogue", data=hook_data)
+                # TODO: uncomment when done testing
+                # end_time = datetime.datetime.now()
+                # hook_data = {
+                #     "name" : "dialogue",
+                #     "start_time" : start_time,
+                #     "end_time" : end_time,
+                #     "elapsed_time" : (end_time - start_time).total_seconds(),
+                #     "agent_time" : self.memory.get_time(),
+                #     "object" : str(obj)
+                # }
+                # dispatch.send("dialogue", data=hook_data)
                 return obj

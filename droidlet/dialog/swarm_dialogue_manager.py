@@ -16,6 +16,8 @@ class SwarmDialogueManager(DialogueManager):
         if "bot" in name:
             return True
 
+    # NOTE: the only difference here is ignoring the chats coming from a bot.
+    # For example: "bot_x joined the game"
     def get_last_m_chats(self, m=1):
         # fetch last m chats from memory
         all_chats = self.memory.get_recent_chats(n=m)

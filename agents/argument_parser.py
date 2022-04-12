@@ -80,10 +80,11 @@ class ArgumentParser:
             default=False,
             help="do not load from ground truth",
         )
+        # TODO: set to False when done testing
         nsp_parser.add_argument(
             "--dev",
             action="store_true",
-            default=False,
+            default=True,
             help="Run the agent without automatic model/dataset downloads. Useful for testing models locally.",
         )
 

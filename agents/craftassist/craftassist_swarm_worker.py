@@ -16,14 +16,16 @@ TASK_MAP =  {
         "move": tasks.Move,
         "build": tasks.Build,
         "destroy": tasks.Destroy,
-        "dig": tasks.Dig,       
+        "dig": tasks.Dig,  
+        "dance": tasks.Dance     
     }
 
 TASK_INFO = {
     "move": ["target"],
     "build": ["blocks_list"],
     "destroy": ["schematic"],
-    "dig": ["origin", "length", "width", "depth"]
+    "dig": ["origin", "length", "width", "depth"],
+    "dance": ["movement"]
 }
 
 class ForkedPdb(pdb.Pdb):

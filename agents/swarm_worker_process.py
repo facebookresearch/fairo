@@ -12,7 +12,6 @@ class ForkedPdb(pdb.Pdb):
     """A Pdb subclass that may be used
     from a forked multiprocessing child
     """
-
     def interaction(self, *args, **kwargs):
         _stdin = sys.stdin
         try:
@@ -240,6 +239,7 @@ class SwarmWorkerWrapper(Process):
     def run(self):
         # this is what happens when the process is started -> when
         # process.start() is called.
+        self.opts.name = "worker_bot_1"
         agent = CraftAssistAgent(self.opts)
         # init the worker and let master know of initialization and memid
         self.init_worker(agent)

@@ -77,7 +77,7 @@ class CraftAssistAgent(LocoMCAgent):
                                "block_property_data": craftassist_specs.get_block_property_data(),
                                "color_data": craftassist_specs.get_colour_data(),
                                }
-        super(CraftAssistAgent, self).__init__(opts)
+        super(CraftAssistAgent, self).__init__(opts, name=opts.name)
         self.no_default_behavior = opts.no_default_behavior
         self.point_targets = []
         self.last_chat_time = 0
@@ -86,7 +86,8 @@ class CraftAssistAgent(LocoMCAgent):
         self.areas_to_perceive = []
         self.add_self_memory_node()
         self.init_inventory()
-        self.init_event_handlers()
+        # TODO: uncomment the following when done testing
+        # self.init_event_handlers()
 
         shape_helper_dict = {
             "shape_names": shape_helpers.SHAPE_NAMES,

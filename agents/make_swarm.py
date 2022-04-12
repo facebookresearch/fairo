@@ -13,8 +13,8 @@ class SwarmMasterWrapper():
         self.opts = opts
         self.swarm_config = swarm_config
         self.num_workers = len(worker_agents) # can just pass in a number here?
-        self.init_workers(worker_agents, opts)
         self.init_master_controller()
+        self.init_workers(worker_agents, opts)
         self.init_memory_handlers_dict()
         
         base_agent.task_step_filters = ["swarm_worker_{}".format(i+1) for i in range(self.num_workers)]
@@ -22,7 +22,7 @@ class SwarmMasterWrapper():
 
     def init_workers(self, worker_agents, opts):
         task_map = self.base_agent.dialogue_manager.dialogue_object_mapper.dialogue_objects["interpreter"].task_objects
-        disable_perception_modules = self.swarm_config["disable_perception_modules"] # what is this ?
+        disable_perception_modules = self.swarm_config["disable_perception_modules"] # comes from config
         self.swarm_workers = [SwarmWorkerWrapper(opts, task_map=task_map, disable_perception_modules=disable_perception_modules, idx=i+1) for i in range(self.num_workers)]
         self.base_agent.swarm_workers_memid = [None for i in range(self.num_workers)]
         self.swarm_workers_memid = self.base_agent.swarm_workers_memid
@@ -30,6 +30,8 @@ class SwarmMasterWrapper():
     def init_master_controller(self):
         dialogue_object_classes = self.base_agent.dialogue_manager.dialogue_object_mapper.dialogue_objects
         dialogue_object_classes["interpreter"] = get_swarm_interpreter(self.base_agent)
+        # SwarmDialogueManager is same as DialogueManager, just overwrites the get_last_m_chats method
+        # to ignore any bot related messages 
         self.base_agent.dialogue_manager = SwarmDialogueManager(
                 memory=self.base_agent.memory,
                 dialogue_object_classes=dialogue_object_classes,
@@ -46,7 +48,7 @@ class SwarmMasterWrapper():
         :return:
         None
         """
-        # TODO: customized to different agent
+        # TODO: customize for different agents
         self.handle_query_dict = get_memory_handlers_dict(self.base_agent)
         
     def get_new_tasks(self, tag):
@@ -55,7 +57,7 @@ class SwarmMasterWrapper():
         :param tag:
         :return:
         """
-        query = "SELECT MEMORY FROM Task WHERE prio=-1"
+        query = "SELECT MEMORY FROM Task WHERE prio=-1" # all that are ready to be executed
         _, task_mems = self.base_agent.memory.basic_search(query)
         task_list = []
         for mem in task_mems:
@@ -78,6 +80,8 @@ class SwarmMasterWrapper():
         for i in range(self.num_workers):
             task_list = self.get_new_tasks(tag="swarm_worker_{}".format(i+1))
             for new_task in task_list:
+                # we found new tasks for this swarm worker, yay!!
+                import ipdb;ipdb.set_trace()
                 self.swarm_workers[i].input_tasks.put(new_task)
 
     def handle_worker_perception(self):
@@ -97,7 +101,7 @@ class SwarmMasterWrapper():
                 tmp_perceptions[i][name] = obj
                 worker_eids[i] = eid # what is eid ?
         
-        # resolve conflicts 
+        # resolve any conflicts 
         
                                  
         # write perception info back to memory
@@ -115,13 +119,13 @@ class SwarmMasterWrapper():
                                                 tmp_perceptions[i]["pos"].y, 
                                                 tmp_perceptions[i]["pos"].z, memid)
 
-    def update_tasks_with_worker_data(self):
+    def receive_worker_updates(self):
         """
         update task status with info sent from workers
         """
         for i in range(self.num_workers):
             # query_from_worker:
-            # worker send its general query to master in the
+            # worker sends its general query to master in the
             # queue. e.g. task updates sent to the master
             # query from worker -> task updates, init status, worker memid
             while not self.swarm_workers[i].query_from_worker.empty():
@@ -136,7 +140,7 @@ class SwarmMasterWrapper():
                             mem.task.finished = True
                 elif name == "initialization":
                     # signal indicating the worker initialization is finished
-                    # the main loop of the master agent starts after all workers initialization is done
+                    # FYI: the main loop of the master agent starts after all workers initialization is done
                     self.init_status[i] = True
                 elif name == "memid":
                     # the master receives each worker's memid and stores them
@@ -185,7 +189,7 @@ class SwarmMasterWrapper():
             swarm_worker.start() # this will set init status.
 
         self.init_status = [False] * (self.num_workers)
-        self.memids = [None] * (self.num_workers)
+        # self.memids = [None] * (self.num_workers)
         while not self.base_agent._shutdown:
             try:
                 # wait for all processes to get initialized first
@@ -194,7 +198,7 @@ class SwarmMasterWrapper():
                 # What's the point of the following if they haven't been inited ?
                 self.handle_worker_perception()
                 self.assign_new_tasks_to_workers()
-                self.update_tasks_with_worker_data() # updates init status.
+                self.receive_worker_updates() # updates init status.
                 self.handle_worker_memory_queries()
                                 
             except Exception as e:

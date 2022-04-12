@@ -29,9 +29,10 @@ MEMORY_DUMP_KEYFRAME_TIME = 0.5
 # this name is pathetic please help
 class LocoMCAgent(BaseAgent):
     def __init__(self, opts, name=None):
-        logging.info("Agent.__init__ started")
-        self.name = name or default_agent_name()
+        logging.info("Agent.__init__ started" )
+        self.name = name if name else default_agent_name()
         self.opts = opts
+        logging.info("Agent name: %r" % (self.name))
         self.init_physical_interfaces()
         super(LocoMCAgent, self).__init__(opts, name=self.name)
         self.uncaught_error_count = 0
@@ -352,11 +353,12 @@ class LocoMCAgent(BaseAgent):
         """Process incoming chats and modify task stack"""
 
         obj = self.dialogue_manager.step()
-        if not obj:
-            # Maybe add default task
-            if not self.no_default_behavior:
-                self.maybe_run_slow_defaults()
-            self.dialogue_manager.step()
+        # TODO: uncomment when done testing, no default behavior
+        # if not obj:
+        #     # Maybe add default task
+        #     if not self.no_default_behavior:
+        #         self.maybe_run_slow_defaults()
+        #     self.dialogue_manager.step()
 
         # Always call dialogue_stack.step(), even if chat is empty
         if len(self.memory.dialogue_stack) > 0:
