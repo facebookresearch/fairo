@@ -264,6 +264,7 @@ def check_parse(task):
 def yes_no_dialogue_response(task):
     # FIXME: change this to sqly when syntax for obj searches is settled:
     import ipdb
+
     ipdb.set_trace(context=7)
     t = task.agent.memory.get_triples(subj=task.memid, pred_text="dialogue_task_response")
     chat_mems = [task.agent.memory.get_mem_by_id(triples[2]) for triples in t]
@@ -332,6 +333,7 @@ class ClarifyCC1(Task):
 
         print("ClarifyCC1 stepped")
         import ipdb
+
         ipdb.set_trace(context=7)
 
         if not self.finished and self.asks <= self.max_asks:
