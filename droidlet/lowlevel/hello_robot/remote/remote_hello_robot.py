@@ -270,5 +270,5 @@ if __name__ == "__main__":
         with Pyro4.locateNS() as ns:
             ns.register("hello_robot", robot_uri)
 
-        print("Server is started...")
+        print("Hello Robot Server is started...")
         daemon.requestLoop()
