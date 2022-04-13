@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial.transform import Rotation
 import cv2
+from rich import print
 
 
 def transform_global_to_base(XYT, current_pose):
@@ -138,6 +139,19 @@ def goto(
             robot.base.rotate_by(rot)
             robot.push_command()
             time.sleep(0.05)
+            is_moving = True
+            while is_moving:
+                time.sleep(0.1)
+                robot.pull_status()
+                left_wheel_moving = (
+                    robot.base.left_wheel.status["is_moving_filtered"]
+                    or robot.base.left_wheel.status["is_moving"]
+                )
+                right_wheel_moving = (
+                    robot.base.right_wheel.status["is_moving_filtered"]
+                    or robot.base.right_wheel.status["is_moving"]
+                )
+                is_moving = left_wheel_moving or right_wheel_moving
         return status
 
     # robot is at (0, 0) because we're using base-frame

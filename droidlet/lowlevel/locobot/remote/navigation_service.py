@@ -6,6 +6,7 @@ import time
 import numpy as np
 import Pyro4
 from slam_pkg.utils import depth_util as du
+from rich import print
 
 random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
@@ -90,19 +91,10 @@ class Navigation(object):
             status = self.robot.go_to_absolute(stg)
             robot_loc = self.robot.get_base_state()
 
-            print(
-                "go_to_absolute",
-                " initial location: ",
-                initial_robot_loc,
-                " goal: ",
-                goal,
-                " short-term goal:",
-                stg,
-                " reached location: ",
-                robot_loc,
-                " robot status: ",
-                status,
-            )
+            print("[navigation] Finished a go_to_absolute")
+            print(" initial location: {} Final goal: {}".format(initial_robot_loc, goal))
+            print(" short-term goal: {}, Reached Location: {}".format(stg, robot_loc))
+            print(" Robot Status: {}".format(status))
             if status == "SUCCEEDED":
                 goal_reached = self.planner.goal_within_threshold(robot_loc, goal)
                 self.trackback.update(robot_loc)
