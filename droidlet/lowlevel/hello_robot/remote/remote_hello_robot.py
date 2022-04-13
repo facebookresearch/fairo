@@ -10,6 +10,8 @@ import time
 import copy
 from math import *
 
+from rich import print
+
 import Pyro4
 from stretch_body.robot import Robot
 from colorama import Fore, Back, Style
