@@ -87,8 +87,8 @@ class Navigation(object):
                 )
                 return_code = False
                 break
-            robot_loc = self.robot.get_base_state()
             status = self.robot.go_to_absolute(stg)
+            robot_loc = self.robot.get_base_state()
 
             print(
                 "go_to_absolute",
