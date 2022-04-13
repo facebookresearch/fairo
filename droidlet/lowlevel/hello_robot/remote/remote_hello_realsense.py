@@ -244,7 +244,7 @@ class RemoteHelloRealsense(object):
         return rgb, depth, base2cam_rot, base2cam_trans
 
     def calibrate_tilt(self):
-        self.bot.set_tilt(math.radians(-60) )
+        self.bot.set_tilt(math.radians(-60))
         time.sleep(2)
         pcd = self.get_open3d_pcd()
         plane, points = pcd.segment_plane(
@@ -255,7 +255,7 @@ class RemoteHelloRealsense(object):
         angle = math.atan(plane[0] / plane[2])
         self.bot.set_tilt_correction(angle)
 
-        self.bot.set_tilt(math.radians(0) )
+        self.bot.set_tilt(math.radians(0))
         time.sleep(2)
 
 

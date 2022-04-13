@@ -88,14 +88,27 @@ class LabelPropSaver:
     def ready(self):
         return True
 
-    def save(self, id_, name, timestamp, lidar, rgb, depth, pos, cam_pan, cam_tilt, cam_transform, pose_dict):
+    def save(
+        self,
+        id_,
+        name,
+        timestamp,
+        lidar,
+        rgb,
+        depth,
+        pos,
+        cam_pan,
+        cam_tilt,
+        cam_transform,
+        pose_dict,
+    ):
         img_folder, img_folder_dbg, depth_folder, lidar_folder, data_file = self.return_paths(id_)
 
         self.skip_frame_count += 1
         if self.skip_frame_count % self.save_frequency == 0:
             # store the lidar
             lidar_fname = lidar_folder + "/{}.pkl".format(name)
-            with open(lidar_fname, 'wb') as fp:
+            with open(lidar_fname, "wb") as fp:
                 pickle.dump(lidar, fp)
             # store the images and depth
             cv2.imwrite(

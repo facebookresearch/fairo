@@ -99,8 +99,9 @@ class RemoteHelloRobot(object):
         """
         angle in radians
         """
-        print("[hello-robot] Setting tilt correction "
-              "to angle: {} degrees".format(degrees(angle)))
+        print(
+            "[hello-robot] Setting tilt correction " "to angle: {} degrees".format(degrees(angle))
+        )
 
         self.tilt_correction = angle
 
