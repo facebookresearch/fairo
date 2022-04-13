@@ -138,7 +138,7 @@ def goto(
             robot.base.rotate_by(rot)
             robot.push_command()
             time.sleep(0.05)
-        return True
+        return status
 
     # robot is at (0, 0) because we're using base-frame
     # Now, calculate the angle between (x, y) and (0, 0)
