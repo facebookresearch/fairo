@@ -60,10 +60,16 @@ class Planner(object):
             # -- related to the SLAM service's 2D map resolution.
             # so, finally, issue a last call to go to the precise final location
             # and to also use the rotation from the final goal
-            print("Short-term goal {} is within threshold or target goal {}".format(stg_real, goal))
+            print(
+                "Short-term goal {} is within threshold or target goal {}".format(stg_real, goal)
+            )
             target_goal = goal
         else:
-            print("Short-term goal {} is not within threshold or target goal {}".format(stg_real, goal))
+            print(
+                "Short-term goal {} is not within threshold or target goal {}".format(
+                    stg_real, goal
+                )
+            )
             rotation_angle = np.arctan2(
                 stg_real[1] - robot_location[1], stg_real[0] - robot_location[0]
             )
