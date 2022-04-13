@@ -97,6 +97,14 @@ class RemoteHelloRealsense(object):
 
         align_to = rs.stream.color
         self.align = rs.align(align_to)
+
+        self.decimate = rs.decimation_filter(2.0)
+        self.threshold = rs.threshold_filter(0.1, 4.0)
+        self.depth2disparity = rs.disparity_transform()
+        self.spatial = rs.spatial_filter(0.5, 20.0, 2.0, 0.0)
+        self.temporal = rs.temporal_filter(0.0, 100.0, 3)
+        self.disparity2depth = rs.disparity_transform(False)
+
         print("connected to realsense")
 
     def get_intrinsics(self):
@@ -117,7 +125,16 @@ class RemoteHelloRealsense(object):
         frames = None
         while not frames:
             frames = self.realsense.wait_for_frames()
-            aligned_frames = self.align.process(frames)
+
+            # post-processing goes here
+            decimated = self.decimate.process(frames).as_frameset()
+            thresholded = self.threshold.process(decimated).as_frameset()
+            disparity = self.depth2disparity.process(thresholded).as_frameset()
+            spatial = self.spatial.process(disparity).as_frameset()
+            temporal = self.temporal.process(spatial).as_frameset()
+            postprocessed = self.disparity2depth.process(temporal).as_frameset()
+
+            aligned_frames = self.align.process(postprocessed)
 
             # Get aligned frames
             aligned_depth_frame = (
