@@ -362,7 +362,7 @@ class FakeMover:
 
     def get_pan(self):
         return self.agent.pan
-    
+
     def stop(self):
         pass
 
