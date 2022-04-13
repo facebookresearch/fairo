@@ -14,6 +14,8 @@ Note that chats sent from the user to the agent should always be in plaintext, a
     - Example: "Which of these is the 'blue sphere' you were referring to?" (pictures of blue spheres)
  - `chat_and_media_and_text_options`: Text and media to display in the chat window alond with a list of possible response options.
     - Example: "Is this funny?" <img src='https://external-preview.redd.it/hWh_8TpqrT6zAwpzHJ_m9Rx3iHjc_yI4zSI6aazMFTc.jpg?auto=webp&s=6d8006ac3edca5bad98dd7b5b9a4a8d5554eaff0' width="200"> ('yes', 'no')
+ - `point`: A special chat type indicating the coordinates to which the agent is pointing in 3D space.  `point`s are not displayed in the chat window.
+	- Example: "/point -4 62 8 -3 62 12"
 
 ### Schema ###
 
@@ -37,34 +39,40 @@ Note that chats sent from the user to the agent should always be in plaintext, a
 
 		"content_type": {
 			"description": "The type of content to be rendered to the user",
-			"type": "array",
-			"items": {
-				"enum": [
-					"chat_string",
-					"chat_and_media",
-					"chat_and_text_options",
-					"chat_and_media_options",
-					"chat_and_media_and_text_options"
-				]
-			},
-			"minItems": 1,
-			"maxItems": 1
+			"type": "string",
+			"enum": [
+				"chat_string",
+				"chat_and_media",
+				"chat_and_text_options",
+				"chat_and_media_options",
+				"chat_and_media_and_text_options",
+				"point"
+			]
 		},
 
 		"content": {
 			"description": "The chat content",
 			"type": "array",
 			"items": {
-				"type": "array",
-				"items": [
-					{ "enum": [ "text", "image_link", "response_option", "response_image_link" ] },
-					{ "type": "string" }
-				]
+				"type": "object",
+				"properties": {
+					"id": {
+						"enum": [
+							"text",
+							"image_link",
+							"response_option",
+							"response_image_link"
+						]
+					},
+					"content": {
+						"type": "string"
+					}
+				}
 			},
 			"minItems": 1
 		}
 	},
 
-	"required": ["speaker_id", "timestamp", "content_type", "content"]
+	"required": ["chat_memid", "timestamp", "content_type", "content"]
 }
 </pre>
