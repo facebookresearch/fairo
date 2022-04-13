@@ -47,21 +47,24 @@ class ForkedPdb(pdb.Pdb):
             sys.stdin = _stdin
 
 
-class SwarmWorkerMemory():
+class SwarmWorkerMemory:
     """Represents the memory for the agent in Minecraft"""
 
-    def __init__(self,
-                 memory_send_queue,
-                 memory_receive_queue,
-                 memory_tag,
-                 ):
+    def __init__(
+        self,
+        memory_send_queue,
+        memory_receive_queue,
+        memory_tag,
+    ):
         self.send_queue = memory_send_queue
         self.receive_queue = memory_receive_queue
         self.memory_tag = memory_tag
         self.receive_dict = {}
         self._safe_pickle_saved_attrs = {}
         mem_id_len = len(uuid.uuid4().hex)
-        self.self_memid = "0" * (mem_id_len // 2) + uuid.uuid4().hex[: mem_id_len - mem_id_len // 2]
+        self.self_memid = (
+            "0" * (mem_id_len // 2) + uuid.uuid4().hex[: mem_id_len - mem_id_len // 2]
+        )
 
         # FIXME: insert player for locobot?
         self.db_write(
@@ -129,15 +132,18 @@ class SwarmWorkerMemory():
     def basic_search(self, query):
         return self._db_command("basic_search", query)
 
-    def add_triple(self,
-                   subj: str = None,  # this is a memid if given
-                   obj: str = None,  # this is a memid if given
-                   subj_text: str = None,
-                   pred_text: str = "has_tag",
-                   obj_text: str = None,
-                   confidence: float = 1.0,
-                   ):
-        return self._db_command("add_triple", subj, obj, subj_text, pred_text, obj_text, confidence)
+    def add_triple(
+        self,
+        subj: str = None,  # this is a memid if given
+        obj: str = None,  # this is a memid if given
+        subj_text: str = None,
+        pred_text: str = "has_tag",
+        obj_text: str = None,
+        confidence: float = 1.0,
+    ):
+        return self._db_command(
+            "add_triple", subj, obj, subj_text, pred_text, obj_text, confidence
+        )
 
     def tag(self, subj_memid: str, tag_text: str):
         return self._db_command("tag", subj_memid, tag_text)
@@ -152,15 +158,17 @@ class SwarmWorkerMemory():
         return self._db_command("get_tags_by_memid", subj_memid, return_text)
 
     def get_triples(
-            self,
-            subj: str = None,
-            obj: str = None,
-            subj_text: str = None,
-            pred_text: str = None,
-            obj_text: str = None,
-            return_obj_text: str = "if_exists",
+        self,
+        subj: str = None,
+        obj: str = None,
+        subj_text: str = None,
+        pred_text: str = None,
+        obj_text: str = None,
+        return_obj_text: str = "if_exists",
     ) -> List[Tuple[str, str, str]]:
-        return self._db_command("get_triples", subj, obj, subj_text, pred_text, obj_text, return_obj_text)
+        return self._db_command(
+            "get_triples", subj, obj, subj_text, pred_text, obj_text, return_obj_text
+        )
 
     def add_chat(self, speaker_memid: str, chat: str) -> str:
         return self._db_command("add_chat", speaker_memid, chat)
@@ -208,7 +216,7 @@ class SwarmWorkerMemory():
         return self._db_command("get_time_by_id", memid)
 
     def task_stack_push(
-            self, task, parent_memid: str = None, chat_effect: bool = False
+        self, task, parent_memid: str = None, chat_effect: bool = False
     ) -> "TaskNode":
         return self._db_command("task_stack_push", task, parent_memid, chat_effect)
 
@@ -231,7 +239,7 @@ class SwarmWorkerMemory():
         return self._db_command("task_stack_resume")
 
     def task_stack_find_lowest_instance(
-            self, cls_names: Union[str, Sequence[str]]
+        self, cls_names: Union[str, Sequence[str]]
     ) -> Optional["TaskNode"]:
         return self._db_command("task_stack_find_lowest_instance", cls_names)
 
@@ -248,7 +256,10 @@ class SwarmWorkerMemory():
         return self._db_command("db_write", query, *args)
 
     def _db_write(self, query: str, *args) -> int:
-        if query == "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, run_count, created) VALUES (?,?,?,?,?,?,?)":
+        if (
+            query
+            == "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, run_count, created) VALUES (?,?,?,?,?,?,?)"
+        ):
             memid = args[0]
             self.tag(memid, self.memory_tag)
         to_return = self._db_command("_db_write", query, *args)
@@ -319,15 +330,18 @@ class SwarmWorkerMemory():
     def remove_voxel(self, x, y, z, ref_type):
         return self._db_command("remove_voxel", self, x, y, z, ref_type)
 
-    def upsert_block(self,
-                     block: Block,
-                     memid: str,
-                     ref_type: str,
-                     player_placed: bool = False,
-                     agent_placed: bool = False,
-                     update: bool = True,  # if update is set to False, forces a write
-                     ):
-        return self._db_command("upsert_block", block, memid, ref_type, player_placed, agent_placed, update)
+    def upsert_block(
+        self,
+        block: Block,
+        memid: str,
+        ref_type: str,
+        player_placed: bool = False,
+        agent_placed: bool = False,
+        update: bool = True,  # if update is set to False, forces a write
+    ):
+        return self._db_command(
+            "upsert_block", block, memid, ref_type, player_placed, agent_placed, update
+        )
 
     def get_object_by_id(self, memid: str, table="BlockObjects") -> "VoxelObjectNode":
         return self._db_command("get_object_by_id", memid, table)
@@ -345,7 +359,9 @@ class SwarmWorkerMemory():
         return self._db_command("get_block_object_by_id", memid)
 
     def tag_block_object_from_schematic(self, block_object_memid: str, schematic_memid: str):
-        return self._db_command("tag_block_object_from_schematic", block_object_memid, schematic_memid)
+        return self._db_command(
+            "tag_block_object_from_schematic", block_object_memid, schematic_memid
+        )
 
     def get_instseg_object_ids_by_xyz(self, xyz: XYZ) -> List[str]:
         return self._db_command("get_instseg_object_ids_by_xyz", xyz)

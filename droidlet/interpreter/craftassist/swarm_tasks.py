@@ -28,16 +28,17 @@ def get_worker_idx_from_memid(swarm_workers_memid, memid):
     if memid not in swarm_workers_memid:
         return 0
     else:
-        return (swarm_workers_memid.index(memid) + 1)
+        return swarm_workers_memid.index(memid) + 1
 
 
 class BaseSwarmTask(Task):
     """
     Base Task Class for the swarm
     """
+
     memory_tag = "swarm_worker_{}"
 
-    def __init__(self, agent, task_data={}, subcontrol='equal'):
+    def __init__(self, agent, task_data={}, subcontrol="equal"):
         super().__init__(agent, task_data)
         # movement should be a Movement object from dance.py
         self.all_swarm_workers_memid = agent.swarm_workers_memid
@@ -55,8 +56,7 @@ class BaseSwarmTask(Task):
         self.num_agents = len(self.task_agents_memid)
 
     def distribute(self, task_data):
-        """divide task to swarm workers
-        """
+        """divide task to swarm workers"""
         raise NotImplementedError
 
     def assign_to_worker(self, worker_memid, task_name, task_data):
@@ -66,7 +66,8 @@ class BaseSwarmTask(Task):
         else:
             tmp_task = TASK_MAP[task_name](self.agent, task_data)
             # tag task with swarm_worker_<worker_idx>
-            import ipdb;
+            import ipdb
+
             ipdb.set_trace()
             self.agent.memory.tag(tmp_task.memid, self.memory_tag.format(worker_idx))
 
@@ -111,13 +112,21 @@ class SwarmBuild(BaseSwarmTask):
         block_list = task_data["blocks_list"]
         block_list.sort(key=lambda x: x[0][0])
         self.num_blocks = len(block_list)
-        self.num_blocks_per_agent = np.array([self.num_blocks // self.num_agents] * self.num_agents)
-        self.num_blocks_per_agent[-1] += self.num_blocks - self.num_blocks // self.num_agents * self.num_agents
+        self.num_blocks_per_agent = np.array(
+            [self.num_blocks // self.num_agents] * self.num_agents
+        )
+        self.num_blocks_per_agent[-1] += (
+            self.num_blocks - self.num_blocks // self.num_agents * self.num_agents
+        )
         tmp_ind = 0
         for i in range(self.num_agents):
             tmp_task_data = deepcopy(task_data)
-            tmp_task_data["blocks_list"] = block_list[tmp_ind: tmp_ind + self.num_blocks_per_agent[i]]
-            tmp_blocks_array = np.array([(x, y, z, b, m) for ((x, y, z), (b, m)) in tmp_task_data["blocks_list"]])
+            tmp_task_data["blocks_list"] = block_list[
+                tmp_ind : tmp_ind + self.num_blocks_per_agent[i]
+            ]
+            tmp_blocks_array = np.array(
+                [(x, y, z, b, m) for ((x, y, z), (b, m)) in tmp_task_data["blocks_list"]]
+            )
             offset = np.min(tmp_blocks_array[:, :3], axis=0)
             # get offset to modify the origin
             tmp_task_data["origin"] += np.array(offset)
@@ -133,12 +142,18 @@ class SwarmDestroy(BaseSwarmTask):
         self.schematic = task_data["schematic"]
         self.schematic.sort(key=lambda x: x[0][0])
         self.num_blocks = len(self.schematic)
-        self.num_blocks_per_agent = np.array([self.num_blocks // self.num_agents] * self.num_agents)
-        self.num_blocks_per_agent[-1] += self.num_blocks - self.num_blocks // self.num_agents * self.num_agents
+        self.num_blocks_per_agent = np.array(
+            [self.num_blocks // self.num_agents] * self.num_agents
+        )
+        self.num_blocks_per_agent[-1] += (
+            self.num_blocks - self.num_blocks // self.num_agents * self.num_agents
+        )
         tmp_ind = 0
         for i in range(self.num_agents):
             tmp_task_data = deepcopy(task_data)
-            tmp_task_data["schematic"] = self.schematic[tmp_ind: tmp_ind + self.num_blocks_per_agent[i]]
+            tmp_task_data["schematic"] = self.schematic[
+                tmp_ind : tmp_ind + self.num_blocks_per_agent[i]
+            ]
             tmp_ind += self.num_blocks_per_agent[i]
             self.assign_to_worker(self.task_agents_memid[i], "destroy", tmp_task_data)
 
@@ -171,9 +186,9 @@ class SwarmDig(BaseSwarmTask):
         for i in range(self.num_agents):
             tmp_task_data = deepcopy(task_data)
             tmp_task_data["origin"] = np.array([tmp_m[0], tmp_m[1] + scheme[i, 1] - 1, tmp_m[2]])
-            tmp_task_data['width'] = scheme[i, 0]
-            tmp_task_data['depth'] = scheme[i, 1]
-            tmp_task_data['length'] = scheme[i, 2]
+            tmp_task_data["width"] = scheme[i, 0]
+            tmp_task_data["depth"] = scheme[i, 1]
+            tmp_task_data["length"] = scheme[i, 2]
             tmp_m[0] = tmp_m[0] + offset[i]
             if np.min(scheme[i]) <= 0:
                 continue

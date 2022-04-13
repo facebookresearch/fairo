@@ -24,9 +24,10 @@ class BaseSwarmTask(Task):
     """
     Base Task Class for the swarm
     """
+
     memory_tag = "swarm_worker_{}"
 
-    def __init__(self, agent, task_data={}, subcontrol='equal'):
+    def __init__(self, agent, task_data={}, subcontrol="equal"):
         super().__init__(agent, task_data)
         # movement should be a Movement object from dance.py
         # assert hasattr(self.agent, 'swarm_workers')
@@ -36,8 +37,7 @@ class BaseSwarmTask(Task):
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def distribute(self, task_data):
-        """divide task to swarm workers
-        """
+        """divide task to swarm workers"""
         raise NotImplementedError
 
     def assign_to_worker(self, worker_idx, task_name, task_data):
