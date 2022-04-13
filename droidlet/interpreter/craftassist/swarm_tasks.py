@@ -103,6 +103,9 @@ class SwarmBuild(BaseSwarmTask):
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
 
+    # do in step ...
+    # have I distri uted ? not: distribute, if yes, monitor the children.
+    # if all chilcdren are done, if so, I mark myself finished,
     def distribute(self, task_data):
         self.task_data = task_data
         block_list = task_data["blocks_list"]
