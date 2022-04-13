@@ -100,8 +100,7 @@ class RemoteHelloRobot(object):
         # Get Camera transform
         self.tm.set_joint("joint_head_pan", head_pan)
         self.tm.set_joint("joint_head_tilt", head_tilt)
-        camera_transform = self.tm.get_transform("camera_color_frame",
-                                                 "base_link")
+        camera_transform = self.tm.get_transform("camera_color_frame", "base_link")
 
         # correct for base_link's z offset from the ground
         # at 0, the correction is -0.091491526943
@@ -109,8 +108,8 @@ class RemoteHelloRobot(object):
         # linear interpolate the correction of 0.023775
         interp_correction = 0.11526719 * abs(head_tilt) / radians(90)
         # print('interp_correction', interp_correction)
-        
-        camera_transform[2, 3] += (-0.091491526943 + interp_correction)
+
+        camera_transform[2, 3] += -0.091491526943 + interp_correction
 
         return camera_transform
 
