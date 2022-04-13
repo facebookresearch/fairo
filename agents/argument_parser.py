@@ -24,9 +24,11 @@ class ArgumentParser:
             choices=["info", "debug", "warn", "error"],
             help="Logging tier to specify verbosity level, eg. DEBUG.",
         )
+        # remove when done testing. default = True
         self.parser.add_argument(
             "--no_default_behavior",
             action="store_true",
+            default=True,
             help="do not perform default behaviors when idle",
         )
         self.parser.add_argument(
@@ -83,10 +85,11 @@ class ArgumentParser:
             default=False,
             help="do not load from ground truth",
         )
+        # remove when done testing. default = False
         nsp_parser.add_argument(
             "--dev",
             action="store_true",
-            default=False,
+            default=True,
             help="Run the agent without automatic model/dataset downloads. Useful for testing models locally.",
         )
 

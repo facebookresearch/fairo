@@ -56,13 +56,15 @@ class NSPQuerier(object):
                 "other_error_description",
             ],
         )
-        try:
-            self.parsing_model = DroidletSemanticParsingModel(
-                opts.nsp_models_dir, opts.nsp_data_dir
-            )
-        except NotADirectoryError:
-            # No parsing model
-            self.parsing_model = None
+        # remove when done testing
+        self.parsing_model = None
+        # try:
+        #     self.parsing_model = DroidletSemanticParsingModel(
+        #         opts.nsp_models_dir, opts.nsp_data_dir
+        #     )
+        # except NotADirectoryError:
+        #     # No parsing model
+        #     self.parsing_model = None
         # Read the ground truth dataset file: ground_truth/datasets folder
         self.ground_truth_actions = get_ground_truth(
             self.opts.no_ground_truth, self.opts.ground_truth_data_dir
