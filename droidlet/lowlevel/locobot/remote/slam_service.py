@@ -34,7 +34,7 @@ class SLAM(object):
             resolution=resolution,
             agent_min_z=agent_min_z,
             agent_max_z=agent_max_z,
-            obs_thr=obstacle_threshold
+            obs_thr=obstacle_threshold,
         )
         self.map_size = map_size
         # if the map is a previous map loaded from disk, and
@@ -127,9 +127,9 @@ with Pyro4.Daemon(ip) as daemon:
     robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
 
     if robot_name == "hello_realsense":
-        robot_height=141 # cm
-        min_z = 20 # because of the huge spatial variance in realsense readings
-        max_z = robot_height + 5 # cm
+        robot_height = 141  # cm
+        min_z = 20  # because of the huge spatial variance in realsense readings
+        max_z = robot_height + 5  # cm
         obj = SLAM(
             robot,
             obstacle_threshold=10,
