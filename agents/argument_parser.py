@@ -80,7 +80,7 @@ class ArgumentParser:
         nsp_parser.add_argument(
             "--dev",
             action="store_true",
-            default=False,
+            default=True,
             help="Run the agent without automatic model/dataset downloads. Useful for testing models locally.",
         )
 

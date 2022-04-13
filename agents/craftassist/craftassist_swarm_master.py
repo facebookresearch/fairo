@@ -2,18 +2,20 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import os
+import logging
 import faulthandler
+from pickle import NONE
 import signal
 import random
 import sentry_sdk
 from multiprocessing import set_start_method
 from collections import namedtuple
+import subprocess
 
 from droidlet.perception.craftassist import heuristic_perception
 
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 import droidlet.dashboard as dashboard
-from droidlet.tools.artifact_scripts.try_download import try_download_artifacts
 
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
@@ -23,17 +25,19 @@ if __name__ == "__main__":
 
 from droidlet.dialog.swarm_dialogue_manager import SwarmDialogueManager
 from agents.argument_parser import ArgumentParser
-from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
-from droidlet.interpreter.craftassist import (
-    MCGetMemoryHandler,
-    PutMemoryHandler,
-    SwarmMCInterpreter,
+from droidlet.dialog.craftassist.dialogue_objects import MCBotCapabilities
+from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, SwarmMCInterpreter
+from droidlet.lowlevel.minecraft.mc_util import (
+    cluster_areas,
+    MCTime,
+    SPAWN_OBJECTS,
+    get_locs_from_entity,
+    fill_idmeta,
 )
-
 from droidlet.lowlevel.minecraft import craftassist_specs
 from agents.craftassist.craftassist_agent import CraftAssistAgent
-from agents.craftassist.craftassist_swarm_worker import CraftAssistSwarmWorker_Wrapper, TASK_MAP
-from droidlet.perception.craftassist.search import astar
+from agents.craftassist.craftassist_swarm_worker import CraftAssistSwarmWorker, CraftAssistSwarmWorker_Wrapper, ForkedPdb, TASK_MAP
+
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
@@ -49,10 +53,13 @@ from droidlet.memory.memory_nodes import (  # noqa
     AttentionNode,
     NODELIST,
 )
+from droidlet.task.task import *
 from droidlet.interpreter.craftassist.tasks import *
 
 import time
+import pdb
 import pickle
+from copy import deepcopy
 
 faulthandler.register(signal.SIGUSR1)
 
@@ -68,7 +75,6 @@ DEFAULT_FRAME = "SPEAKER"
 Player = namedtuple("Player", "entityId, name, pos, look, mainHand")
 Item = namedtuple("Item", "id, meta")
 
-
 def is_picklable(obj):
     try:
         pickle.dumps(obj)
@@ -76,14 +82,12 @@ def is_picklable(obj):
         return False
     return True
 
-
-class empty_object:
+class empty_object():
     def __init__(self) -> None:
         pass
 
-
 class CraftAssistSwarmMaster(CraftAssistAgent):
-    default_num_agents = 2
+    default_num_agents = 2 #
 
     def __init__(self, opts):
         try:
@@ -91,16 +95,14 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
         except:
             logging.info("Default swarm with {} agents.".format(self.default_num_agents))
             self.num_agents = self.default_num_agents
-        self.swarm_workers = [
-            CraftAssistSwarmWorker_Wrapper(opts, idx=i) for i in range(1, self.num_agents)
-        ]
+        self.swarm_workers = [CraftAssistSwarmWorker_Wrapper(opts, idx=i) for i in range(1, self.num_agents)]
 
         super(CraftAssistSwarmMaster, self).__init__(opts)
 
     def init_controller(self):
         """Initialize all controllers"""
         dialogue_object_classes = {}
-        dialogue_object_classes["bot_capabilities"] = {"task": MCBotCapabilities, "data": {}}
+        dialogue_object_classes["bot_capabilities"] = MCBotCapabilities
         dialogue_object_classes["interpreter"] = SwarmMCInterpreter
         dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
@@ -109,9 +111,9 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
         low_level_interpreter_data = {
             "block_data": craftassist_specs.get_block_data(),
             "special_shape_functions": SPECIAL_SHAPE_FNS,
-            "color_bid_map": COLOR_BID_MAP,
-            "astar_search": astar,
+            "color_bid_map": self.low_level_data["color_bid_map"],
             "get_all_holes_fn": heuristic_perception.get_all_nearby_holes,
+            "get_locs_from_entity": get_locs_from_entity,
         }
         self.dialogue_manager = SwarmDialogueManager(
             memory=self.memory,
@@ -145,7 +147,7 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
             "remove_voxel": self.memory.remove_voxel,
             "set_memory_updated_time": self.memory.set_memory_updated_time,
             "set_memory_attended_time": self.memory.set_memory_attended_time,
-            "add_chat": self.memory.add_chat,
+            "add_chat": self.memory.add_chat
         }
 
     def if_swarm_task(self, mem):
@@ -189,7 +191,7 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
         if i == 0:
             TASK_MAP[task_name](self, task_data)
         else:
-            self.swarm_workers[i - 1].input_tasks.put((task_name, task_data, None))
+            self.swarm_workers[i-1].input_tasks.put((task_name, task_data, None))
 
     def handle_memory_query(self, query):
         query_id = query[0]
@@ -250,14 +252,14 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
         return task_list
 
     def step_assign_new_tasks_to_workers(self):
-        for i in range(self.num_agents - 1):
-            task_list = self.get_new_tasks(tag="swarm_worker_{}".format(i + 1))
+        for i in range(self.num_agents-1):
+            task_list = self.get_new_tasks(tag="swarm_worker_{}".format(i+1))
             for new_task in task_list:
                 self.swarm_workers[i].input_tasks.put(new_task)
 
     def step_update_tasks_with_worker_data(self):
         # task updates xinfo from swarm worker process
-        for i in range(self.num_agents - 1):
+        for i in range(self.num_agents-1):
             flag = True
             while flag:
                 if self.swarm_workers[i].query_from_worker.empty():
@@ -267,16 +269,14 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
                     if name == "task_updates":
                         for (memid, cur_task_status) in obj:
                             mem = self.memory.get_mem_by_id(memid)
-                            mem.get_update_status(
-                                {"prio": cur_task_status[0], "running": cur_task_status[1]}
-                            )
+                            mem.get_update_status({"prio": cur_task_status[0], "running": cur_task_status[1]})
                             if cur_task_status[2]:
                                 mem.task.finished = True
                     elif name == "initialization":
                         self.init_status[i] = True
 
     def step_handle_worker_memory_queries(self):
-        for i in range(self.num_agents - 1):
+        for i in range(self.num_agents-1):
             flag = True
             while flag:
                 if self.swarm_workers[i].memory_send_queue.empty():
@@ -303,7 +303,6 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
             except Exception as e:
                 self.handle_exception(e)
 
-
 if __name__ == "__main__":
     base_path = os.path.dirname(__file__)
     parser = ArgumentParser("Minecraft", base_path)
@@ -321,7 +320,7 @@ if __name__ == "__main__":
     # Check that models and datasets are up to date and download latest resources.
     # Also fetches additional resources for internal users.
     if not opts.dev:
-        try_download_artifacts(agent="craftassist")
+        rc = subprocess.call([opts.verify_hash_script_path, "craftassist"])
 
     set_start_method("spawn", force=True)
 

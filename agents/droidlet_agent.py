@@ -32,7 +32,8 @@ MEMORY_DUMP_KEYFRAME_TIME = 0.5
 class DroidletAgent(BaseAgent):
     def __init__(self, opts, name=None):
         logging.info("Agent.__init__ started")
-        self.name = name or default_agent_name()
+        self.name = name if name else default_agent_name()
+        logging.info("Agent name: %r" % (self.name))
         self.opts = opts
         self.dialogue_manager = None
         self.init_physical_interfaces()
@@ -43,6 +44,7 @@ class DroidletAgent(BaseAgent):
         self.dashboard_chat = None
         self.areas_to_perceive = []
         self.perceive_on_chat = False
+        self.task_step_filters = None
         self.agent_type = None
         self.scheduler = EmptyScheduler()
 
@@ -297,16 +299,40 @@ class DroidletAgent(BaseAgent):
         super().step()
         self.maybe_dump_memory_to_dashboard()
 
+    def mem_filter(self, mem, filters=None):
+        if filters is None:
+            filters = self.task_step_filters
+        if filters is None:
+            return False
+
+        for filter in filters:
+            if filter in mem.get_tags():
+                return True
+        return False
+
     def task_step(self, sleep_time=0.25):
+        # NOTE: this used to be -1 before.
         query = "SELECT MEMORY FROM Task WHERE prio={}".format(TaskNode.CHECK_PRIO)
         _, task_mems = self.memory.basic_search(query)
         for mem in task_mems:
-            if mem.task.init_condition.check():
-                mem.get_update_status({"prio": TaskNode.CHECK_PRIO + 1})
+            if not self.mem_filter(mem):
+                if mem.task.init_condition.check():
+                    mem.get_update_status({"prio": TaskNode.CHECK_PRIO + 1})
 
+        # this is "select TaskNodes whose priority is > 0 and are not paused"
         query = "SELECT MEMORY FROM Task WHERE ((prio>{}) AND (paused <= 0))".format(
             TaskNode.CHECK_PRIO
         )
+        _, task_mems = self.memory.basic_search(query)
+        for mem in task_mems:
+            if not self.mem_filter(mem):
+                if mem.task.run_condition.check():
+                    # eventually we need to use the multiplex filter to decide what runs
+                    mem.get_update_status({"prio": 1, "running": 1})
+                if mem.task.stop_condition.check():
+                    mem.get_update_status({"prio": 0, "running": 0})
+        # this is "select TaskNodes that are runnning (running >= 1) and are not paused"
+        query = "SELECT MEMORY FROM Task WHERE ((running>=1) AND (paused <= 0))"
         _, task_mems = self.memory.basic_search(query)
         if not task_mems:
             time.sleep(sleep_time)
@@ -314,14 +340,15 @@ class DroidletAgent(BaseAgent):
         task_mems = self.scheduler.filter(task_mems)
         task_mems.sort(reverse=True, key=lambda x: x.prio)
         for mem in task_mems:
-            # prio/finished could have been changed by another Task, e.g. a ControlBlock
-            mem.update_node()
-            if mem.prio > TaskNode.CHECK_PRIO:
-                # FIXME set the other ones to running=0.  doesn't matter rn bc scheduler is empty, everything runs
-                mem.get_update_status({"running": 1})
-                mem.task.step()
-                if mem.task.finished:
-                    mem.update_task()
+            if not self.mem_filter(mem):
+                # prio/finished could have been changed by another Task, e.g. a ControlBlock
+                mem.update_node()
+                if mem.prio > TaskNode.CHECK_PRIO:
+                    # FIXME set the other ones to running=0.  doesn't matter rn bc scheduler is empty, everything runs
+                    mem.get_update_status({"running": 1})
+                    mem.task.step()
+                    if mem.task.finished:
+                        mem.update_task()
 
     def get_time(self):
         # round to 100th of second, return as
@@ -404,9 +431,10 @@ class DroidletAgent(BaseAgent):
         query = "SELECT MEMORY FROM Task WHERE prio={}".format(TaskNode.EGG_PRIO)
         _, task_mems = self.memory.basic_search(query)
         for task_mem in task_mems:
-            task_mem.task["class"](
-                self, task_data=task_mem.task["task_data"], memid=task_mem.memid
-            )
+            if not self.mem_filter(task_mem):
+                task_mem.task["class"](
+                    self, task_data=task_mem.task["task_data"], memid=task_mem.memid
+                )
 
     def maybe_run_slow_defaults(self):
         """Pick a default task task to run
