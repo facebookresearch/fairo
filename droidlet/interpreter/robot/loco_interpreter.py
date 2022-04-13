@@ -22,6 +22,7 @@ from .point_target import PointTargetInterpreter
 import droidlet.interpreter.robot.dance as dance
 import droidlet.interpreter.robot.tasks as tasks
 from droidlet.task.task import task_to_generator
+from droidlet.dialog.dialogue_task import Say
 
 
 def post_process_loc(loc, interpreter):
