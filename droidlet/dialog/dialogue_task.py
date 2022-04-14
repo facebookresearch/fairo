@@ -233,16 +233,16 @@ def build_question_json(
     else:
         chat_obj["content_type"] = "chat_string"
 
-    chat_obj["content"].append( {"id":"text", "content": f"{text}"} )
+    chat_obj["content"].append({"id": "text", "content": f"{text}"})
     if media:
         for m in media:
-            chat_obj["content"].append( {"id":"image_link", "content": f"{m}"} )
+            chat_obj["content"].append({"id": "image_link", "content": f"{m}"})
     if text_response_options:
         for tro in text_response_options:
-            chat_obj["content"].append( {"id":"response_option", "content": f"{tro}"} )
+            chat_obj["content"].append({"id": "response_option", "content": f"{tro}"})
     if media_response_options:
         for mro in media_response_options:
-            chat_obj["content"].append( {"id":"response_image_link", "content": f"{mro}"} )
+            chat_obj["content"].append({"id": "response_image_link", "content": f"{mro}"})
 
     return json.dumps(chat_obj)
 
