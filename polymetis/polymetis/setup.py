@@ -22,4 +22,5 @@ setup(
     package_dir={"": "python"},
     include_package_data=True,
     scripts=scripts,
+    install_requires=["alephzero"],
 )
