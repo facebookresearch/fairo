@@ -48,12 +48,12 @@ def convert_depth_to_pcd(depth, pose, uv_one_in_cam, rot, trans):
     return pts_in_world
 
 @njit
-def get_annot(height, width, pts_in_cur_img, src_label, valid_z):
+def get_annot(height, width, pts_in_cur_img, src_pts_in_cur_cam, cur_pts_in_cur_cam, src_label, valid_z):
     """
     This creates the new semantic labels of the projected points in the current image frame. Each new semantic label is the 
     semantic label corresponding to pts_in_cur_img in src_label. 
     """
-    annot_img = np.zeros((height, width))
+    annot_img = np.zeros((height, width)).astype(np.float32)
     for indx in range(len(pts_in_cur_img)):
         r = int(indx/width)
         c = int(indx - r*width)
@@ -61,10 +61,12 @@ def get_annot(height, width, pts_in_cur_img, src_label, valid_z):
         
         # We take ceil and floor combinations to fix quantization errors
         if floor(x) >= 0 and ceil(x) < height and floor(y) >=0 and ceil(y) < width and valid_z[indx]:
-            annot_img[ceil(y)][ceil(x)] = src_label[r][c]
-            annot_img[floor(y)][floor(x)] = src_label[r][c]
-            annot_img[ceil(y)][floor(x)] = src_label[r][c]
-            annot_img[floor(y)][ceil(x)] = src_label[r][c]
+            cur_indx = ceil(x) + ceil(y) * width
+            if src_pts_in_cur_cam[indx][2] - cur_pts_in_cur_cam[cur_indx][2] < 0.01:
+                annot_img[ceil(y)][ceil(x)] = src_label[r][c]
+                annot_img[floor(y)][floor(x)] = src_label[r][c]
+                annot_img[ceil(y)][floor(x)] = src_label[r][c]
+                annot_img[floor(y)][ceil(x)] = src_label[r][c]
     
     return annot_img
 
@@ -94,24 +96,29 @@ class LabelPropagate(AbstractHandler):
         height, width, _ = src_img.shape
         uv_one_in_cam, intrinsic_mat, rot, trans = compute_uvone(height, width)
         
-        pts_in_world = convert_depth_to_pcd(src_depth, src_pose, uv_one_in_cam, rot, trans)
+        src_pts_in_world = convert_depth_to_pcd(src_depth, src_pose, uv_one_in_cam, rot, trans)
         
-        # TODO: can use cur_pts_in_world for filtering. Not needed for baseline.
-        # cur_pts_in_world = convert_depth_to_pcd(cur_depth, cur_pose, uv_one_in_cam, rot, trans)
+        # visualize using o3d
+        # visualize_pcd(src_pts_in_world)
         
         # convert pts_in_world to current base
-        pts_in_cur_base = transform_pose(pts_in_world, (-cur_pose[0], -cur_pose[1], 0))
-        pts_in_cur_base = transform_pose(pts_in_cur_base, (0.0, 0.0, -cur_pose[2]))
-
-        # convert point from current base to current camera frame
-        pts_in_cur_cam = pts_in_cur_base - trans.reshape(-1)
-        pts_in_cur_cam = np.dot(pts_in_cur_cam, rot)
-
-        # keep positive z coordinates
-        valid_z = pts_in_cur_cam[:,2] > 0
-
-        # convert pts in current camera frame into 2D pix values
-        pts_in_cur_img = np.matmul(intrinsic_mat, pts_in_cur_cam.T).T
-        pts_in_cur_img /= pts_in_cur_img[:, 2].reshape([-1, 1])
+        src_pts_in_cur_base = transform_pose(src_pts_in_world, (-cur_pose[0], -cur_pose[1], 0))
+        src_pts_in_cur_base = transform_pose(src_pts_in_cur_base, (0.0, 0.0, -cur_pose[2]))
+            
+        # conver point from current base to current camera frame
+        src_pts_in_cur_cam = src_pts_in_cur_base - trans.reshape(-1)
+        src_pts_in_cur_cam = np.dot(src_pts_in_cur_cam, rot)
         
-        return get_annot(height, width, pts_in_cur_img, src_label, valid_z)
+        # Get Valid Z
+        valid_z = src_pts_in_cur_cam[:,2] > 0
+        
+        # Filter based on current depth.
+        cur_depth = (cur_depth.astype(np.float32) / 1000.0).reshape(-1)
+        cur_pts_in_cur_cam = np.multiply(uv_one_in_cam, cur_depth).T 
+        
+        # conver pts in current camera frame into 2D pix values
+        src_pts_in_cur_img = np.matmul(intrinsic_mat, src_pts_in_cur_cam.T).T        
+        src_pts_in_cur_img /= src_pts_in_cur_img[:, 2].reshape([-1, 1])
+        
+        return get_annot(height, width, src_pts_in_cur_img, src_pts_in_cur_cam, cur_pts_in_cur_cam, src_label, valid_z)
+
