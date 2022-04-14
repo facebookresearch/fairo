@@ -54,7 +54,9 @@ class LabelPropSaver:
 
         # save camera intrinsics
         cam_intrinsics = safe_call(self.cam.get_intrinsics)
-        cam_intrinsics_path = os.path.join(self.save_folder, str(self.save_id), 'cam_intrinsics.npz')
+        cam_intrinsics_path = os.path.join(
+            self.save_folder, str(self.save_id), "cam_intrinsics.npz"
+        )
         np.save(cam_intrinsics_path, cam_intrinsics)
 
         start_time = time.time()
