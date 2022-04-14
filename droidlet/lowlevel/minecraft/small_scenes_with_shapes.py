@@ -94,7 +94,7 @@ def parse_and_execute_mob_config(args):
 
 def bid(nowhite=True):
     if nowhite:
-        return (35, np.random.randint(2)+1)
+        return (35, np.random.randint(2) + 1)
     else:
         return (35, np.random.randint(2))
 
@@ -276,7 +276,7 @@ def build_shape_scene(args):
         opts["bid"] = bid()
         S = SHAPE_FNS[shape](**opts)
         m = np.round(np.mean([l for l, idm in S], axis=0)).astype("int32")
-        offsets = (0,0,0)
+        offsets = (0, 0, 0)
         inst_seg = []
         in_box = in_box_builder(0, 0, 0, args.SL, args.H, args.SL)
         record_shape(S, in_box, offsets, blocks, inst_seg, occupied_by_shapes)
@@ -300,7 +300,7 @@ def build_shape_scene(args):
         m = np.round(np.mean([l for l, idm in S], axis=0)).astype("int32")
         miny = min([l[1] for l, idm in S])
         maxy = max([l[1] for l, idm in S])
-        offsets = (0,0,0)
+        offsets = (0, 0, 0)
         inst_seg = []
         in_box = in_box_builder(mL, 0, mL, ML, args.GROUND_DEPTH, ML)
         record_shape(S, in_box, offsets, blocks, inst_seg, occupied_by_shapes)
@@ -340,7 +340,7 @@ def build_extra_simple_shape_scene(args):
         opts["bid"] = bid()
         S = SHAPE_FNS[shape](**opts)
         m = np.round(np.mean([l for l, idm in S], axis=0)).astype("int32")
-        offsets = (0,0,0)
+        offsets = (0, 0, 0)
         inst_seg = []
         in_box = in_box_builder(0, 0, 0, args.SL, args.H, args.SL)
         record_shape(S, in_box, offsets, blocks, inst_seg, occupied_by_shapes)
