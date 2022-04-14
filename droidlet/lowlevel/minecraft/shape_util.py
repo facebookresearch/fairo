@@ -6,7 +6,7 @@ import random
 import numpy as np
 from droidlet.lowlevel.minecraft import shapes
 
-FORCE_SMALL = 5  # for debug
+FORCE_SMALL = 2  # for debug
 
 # Map shape name to function in shapes.py
 SHAPE_FNS = {
@@ -88,24 +88,24 @@ def bernoulli(p=0.5):
     return np.random.rand() > p
 
 
-def slope(ranges=10):
+def slope(ranges=2):
     return np.random.randint(1, ranges)
 
 
-def sizes1(ranges=(1, 15)):
+def sizes1(ranges=(1, 3)):
     ranges = list(ranges)
     ranges[1] = min(ranges[1], FORCE_SMALL)
     return np.random.randint(ranges[0], ranges[1])
 
 
-def sizes2(ranges=(15, 15)):
+def sizes2(ranges=(2, 3)):
     ranges = list(ranges)
     for i in range(2):
         ranges[i] = min(ranges[i], FORCE_SMALL)
     return (np.random.randint(1, ranges[0]), np.random.randint(1, ranges[1]))
 
 
-def sizes3(ranges=(15, 15, 15)):
+def sizes3(ranges=(3, 3, 3)):
     ranges = list(ranges)
     for i in range(3):
         ranges[i] = min(ranges[i], FORCE_SMALL)
@@ -145,7 +145,7 @@ def options_disk():
 
 
 def options_cube():
-    return {"size": sizes1(ranges=(1, 8))}
+    return {"size": sizes1(ranges=(1, 2))}
 
 
 def options_hollow_cube():
@@ -153,7 +153,7 @@ def options_hollow_cube():
 
 
 def options_rectanguloid():
-    return {"size": sizes3(ranges=(8, 8, 8))}
+    return {"size": sizes3(ranges=(2, 2, 2))}
 
 
 def options_hollow_rectanguloid():
@@ -161,7 +161,7 @@ def options_hollow_rectanguloid():
 
 
 def options_sphere():
-    return {"radius": sizes1(ranges=(3, 5))}
+    return {"radius": sizes1(ranges=(1, 2))}
 
 
 def options_spherical_shell():
@@ -173,7 +173,7 @@ def options_square_pyramid():
 
 
 def options_tower():
-    return {"height": sizes1(ranges=(1, 20)), "base": sizes1(ranges=(-3, 4))}
+    return {"height": sizes1(ranges=(1, 2)), "base": sizes1(ranges=(1, 2))}
 
 
 def options_ellipsoid():
@@ -185,7 +185,7 @@ def options_dome():
 
 
 def options_arch():
-    return {"size": sizes1(), "distance": 2 * sizes1(ranges=(2, 5)) + 1}
+    return {"size": sizes1(), "distance": 2 * sizes1(ranges=(1, 2)) + 1}
 
 
 def options_hollow_triangle():
