@@ -18,7 +18,7 @@ function ctrl_c() {
   exit 130
 }
 
-$(which ping_server.py) &> ping_server.out &
+$(which ping_server.py) &> &
 ret=$?
 if [ $ret -ne 0 ]; then
   echo "Unable to start ping_server.py"
@@ -35,7 +35,7 @@ do
   while true
   do
     echo "Running $(which last_state_timestep.py)"
-    $(which last_state_timestep.py) &> ping_server.out
+    $(which last_state_timestep.py) &>
     ret=$?
     if [ $ret -ne 0 ]; then
         echo "=== Server died with exit code $ret! Restarting server... ==="
