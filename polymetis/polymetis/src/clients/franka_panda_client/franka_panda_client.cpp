@@ -389,6 +389,8 @@ void FrankaTorqueControlClient::computeSafetyReflex(
       safety_constraint_triggered = true;
 
       if (!active_constraints_map_[item_name_str]) {
+        active_constraints_map_[item_name_str] = true;
+
         spdlog::warn("Safety limits exceeded: "
                      "\n\ttype = \"{}\""
                      "\n\tdim = {}"
@@ -404,8 +406,6 @@ void FrankaTorqueControlClient::computeSafetyReflex(
         } else {
           spdlog::warn(error_str + "Ignoring issue during readonly mode.");
         }
-
-        active_constraints_map_[item_name_str] = true;
       }
     }
 
