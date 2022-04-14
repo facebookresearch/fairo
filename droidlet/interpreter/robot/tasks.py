@@ -92,11 +92,11 @@ class Look(Task):
                 status = self.agent.mover.look_at(self.task_data["target"])
             if self.task_data.get("pitch") or self.task_data.get("yaw"):
                 status = self.agent.mover.set_look(
-                    torad(self.task_data.get("yaw")), torad(self.task_data.get("pitch"))
+                    torad(-self.task_data.get("yaw")), torad(self.task_data.get("pitch"))
                 )
             if self.task_data.get("relative_pitch") or self.task_data.get("relative_yaw"):
                 status = self.agent.mover.relative_pan_tilt(
-                    torad(self.task_data.get("relative_yaw")),
+                    torad(-self.task_data.get("relative_yaw")),
                     torad(self.task_data.get("relative_pitch")),
                 )
             self.command_sent = True
@@ -148,7 +148,7 @@ class Point(Task):
         if self.steps[0] == "finished" and self.steps[1] == "not_started":
             base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
             yaw_rad, _ = get_camera_angles([base_pos[0], ARM_HEIGHT, base_pos[1]], pt)
-            self.add_child_task(Turn(self.agent, {"yaw": yaw_rad}))
+            self.add_child_task(Turn(self.agent, {"yaw": -yaw_rad}))
             self.steps[1] = "finished"
             return
 
@@ -197,6 +197,7 @@ class Turn(Task):
     def __init__(self, agent, task_data):
         super().__init__(agent)
         self.yaw = task_data.get("yaw") or task_data.get("relative_yaw")
+        self.yaw = -self.yaw
         self.command_sent = False
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
