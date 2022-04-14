@@ -399,11 +399,13 @@ class StateManager {
   }
 
   showAssistantReply(res) {
+    // TODO handle content types besides plain text
+    
     console.log(res);
     let chat;
     try {
-      let content = res.properties.content;
-      chat = content.filter(entry => entry[0] == "text")[0][1];
+      let content = res.content;
+      chat = content.filter(entry => entry["id"] == "text")[0]["content"];
     } catch (e) {
       chat = res.agent_reply;
     }

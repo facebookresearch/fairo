@@ -214,39 +214,35 @@ def build_question_json(
     text_response_options: list = None,
     media_response_options: list = None,
 ):
-    chat_obj = {  # based on the schema from droidlet/dialog/chat_schema.md
-        "title": "Droidlet agent initiated chat",
-        "description": "A single chat sent from a Droidlet agent to the user",
-        "version": 1,
-        "type": "object",
-        "properties": {
-            "chat_memid": "",
-            "timestamp": 0,
-            "content_type": "",
-            "content": [],
-        },
+    chat_obj = {  # based on the schema from droidlet/dialog/chat_schema.md{
+        "chat_memid": "",
+        "timestamp": 0,
+        "content_type": "",
+        "content": [],
     }
     if media_response_options:
-        chat_obj["properties"]["content_type"] = "chat_and_media_options"
+        chat_obj["content_type"] = "chat_and_media_options"
     elif media and text_response_options:
-        chat_obj["properties"]["content_type"] = "chat_and_media_and_text_options"
+        chat_obj["content_type"] = "chat_and_media_and_text_options"
     elif text_response_options:
-        chat_obj["properties"]["content_type"] = "chat_and_text_options"
+        chat_obj["content_type"] = "chat_and_text_options"
     elif media:
-        chat_obj["properties"]["content_type"] = "chat_and_media"
+        chat_obj["content_type"] = "chat_and_media"
+    elif len(text) > 6 and text[:6] == "/point":
+        chat_obj["content_type"] = "point"
     else:
-        chat_obj["properties"]["content_type"] = "chat_string"
+        chat_obj["content_type"] = "chat_string"
 
-    chat_obj["properties"]["content"].append(["text", f"{text}"])
+    chat_obj["content"].append( {"id":"text", "content": f"{text}"} )
     if media:
         for m in media:
-            chat_obj["properties"]["content"].append(["image_link", f"{m}"])
+            chat_obj["content"].append( {"id":"image_link", "content": f"{m}"} )
     if text_response_options:
         for tro in text_response_options:
-            chat_obj["properties"]["content"].append(["response_option", f"{tro}"])
+            chat_obj["content"].append( {"id":"response_option", "content": f"{tro}"} )
     if media_response_options:
         for mro in media_response_options:
-            chat_obj["properties"]["content"].append(["response_option", f"{mro}"])
+            chat_obj["content"].append( {"id":"response_image_link", "content": f"{mro}"} )
 
     return json.dumps(chat_obj)
 

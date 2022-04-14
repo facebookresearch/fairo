@@ -11,6 +11,7 @@ import time
 import json
 from multiprocessing import set_start_method
 from collections import namedtuple
+from datetime import datetime
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
@@ -27,6 +28,7 @@ if __name__ == "__main__":
     dashboard.start()
 
 from droidlet.dialog.dialogue_manager import DialogueManager
+from droidlet.dialog.dialogue_task import build_question_json
 from droidlet.base_util import Pos, Look, npy_to_blocks_list
 from agents.droidlet_agent import DroidletAgent
 from droidlet.memory.memory_nodes import PlayerNode
@@ -328,7 +330,8 @@ class CraftAssistAgent(DroidletAgent):
                     z1 <= z2.
         """
         assert len(target) == 6
-        self.send_chat("/point {} {} {} {} {} {}".format(*target))
+        point_json = build_question_json("/point {} {} {} {} {} {}".format(*target))
+        self.send_chat(point_json)
         self.point_targets.append((target, time.time()))
         # sleep before the bot can take any actions
         # otherwise there might be bugs since the object is flashing
@@ -350,7 +353,7 @@ class CraftAssistAgent(DroidletAgent):
         chat_json = False
         try:
             chat_json = json.loads(chat)
-            chat_text = [x for x in chat_json["properties"]["content"] if x[0] == "text"][0][1]
+            chat_text = [x for x in chat_json["content"] if x["id"] == "text"][0]["content"]
         except:
             chat_text = chat
 
@@ -358,9 +361,9 @@ class CraftAssistAgent(DroidletAgent):
         chat_memid = self.memory.add_chat(self.memory.self_memid, chat_text)
 
         if chat_json:
-            chat_json["properties"]["chat_memid"] = chat_memid
-            _, chat_times = self.memory.basic_search(f"SELECT time FROM Chat WHERE uuid={chat_memid}")
-            chat_json["properties"]["timestamp"] = chat_times[0]
+            chat_json["chat_memid"] = chat_memid
+            # _, chat_times = self.memory.basic_search(f"SELECT time FROM Chat WHERE uuid={chat_memid}")
+            chat_json["timestamp"] = round(datetime.timestamp(datetime.now())*1000)
             # Send the socket event to show this reply on dashboard
             sio.emit("showAssistantReply", chat_json)
         else:
