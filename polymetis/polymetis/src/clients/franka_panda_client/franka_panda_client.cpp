@@ -365,25 +365,37 @@ void FrankaTorqueControlClient::computeSafetyReflex(
    */
   double upper_violation, lower_violation;
   double lower_sign = 1.0;
+  bool safety_constraint_triggered = false;
 
+  std::string item_name_str(item_name);
   if (invert_lower) {
     lower_sign = -1.0;
   }
 
+  // Init constraint active map
+  if (active_constraints_map_.find(item_name_str) ==
+      active_constraints_map_.end()) {
+    active_constraints_map_.emplace(std::make_pair(item_name_str, false));
+  }
+
+  // Check limits & compute safety controller
   for (int i = 0; i < N; i++) {
     upper_violation = values[i] - upper_limit[i];
     lower_violation = lower_sign * lower_limit[i] - values[i];
 
-    // Check hard limits (use limits_exceeded_ to prevent flooding terminal)
+    // Check hard limits (use active_constraints_map_ to prevent flooding
+    // terminal)
     if (upper_violation > 0 || lower_violation > 0) {
-      if (!limits_exceeded_) {
+      safety_constraint_triggered = true;
+
+      if (!active_constraints_map_[item_name_str]) {
         spdlog::warn("Safety limits exceeded: "
                      "\n\ttype = \"{}\""
                      "\n\tdim = {}"
                      "\n\tlimits = {}, {}"
                      "\n\tvalue = {}",
-                     item_name, i, lower_sign * lower_limit[i], upper_limit[i],
-                     values[i]);
+                     item_name_str, i, lower_sign * lower_limit[i],
+                     upper_limit[i], values[i]);
 
         std::string error_str =
             "Safety limits exceeded in FrankaTorqueControlClient. ";
@@ -393,13 +405,7 @@ void FrankaTorqueControlClient::computeSafetyReflex(
           spdlog::warn(error_str + "Ignoring issue during readonly mode.");
         }
 
-        limits_exceeded_ = true;
-      }
-
-    } else {
-      if (limits_exceeded_) {
-        spdlog::info("Safety limits no longer violated.");
-        limits_exceeded_ = false;
+        active_constraints_map_[item_name_str] = true;
       }
     }
 
@@ -411,6 +417,12 @@ void FrankaTorqueControlClient::computeSafetyReflex(
         safety_torques[i] += k * (margin + lower_violation);
       }
     }
+  }
+
+  // Reset constraint active map
+  if (!safety_constraint_triggered && active_constraints_map_[item_name_str]) {
+    active_constraints_map_[item_name_str] = false;
+    spdlog::info("Safety limits no longer violated: \"{}\"", item_name_str);
   }
 }
 
