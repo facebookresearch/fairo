@@ -2,8 +2,8 @@
 
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
-#ifndef polymetis_SERVER_H
-#define polymetis_SERVER_H
+#ifndef polymetis_SERVER_OLD_H
+#define polymetis_SERVER_OLD_H
 
 #include "spdlog/spdlog.h"
 #include <chrono>

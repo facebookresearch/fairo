@@ -5,11 +5,72 @@
 
 #include "controller_manager.hpp"
 
-ControllerManager::ControllerManager(
-    int num_dofs, std::vector<char> &default_controller_buffer) {
-  num_dofs_ = num_dofs;
-  default_controller_ = std::make_shared<TorchScriptedController>(
-      default_controller_buffer.data(), default_controller_buffer.size());
+void ControllerManager::initRobotClient(const RobotClientMetadata *metadata,
+                                        std::string &error_msg) {
+  spdlog::info("==== Initializing new RobotClient... ====");
+
+  num_dofs_ = metadata->dof();
+
+  torch_robot_state_ =
+      std::unique_ptr<TorchRobotState>(new TorchRobotState(num_dofs_));
+
+  // Load default controller bytes into model buffer
+  std::vector<char> model_buffer;
+  std::string binary_blob = metadata->default_controller();
+  for (int i = 0; i < binary_blob.size(); i++) {
+    model_buffer.push_back(binary_blob[i]);
+  }
+
+  // Load default controller from model buffer
+  try {
+    robot_client_context_.default_controller =
+        new TorchScriptedController(model_buffer.data(), model_buffer.size());
+  } catch (const std::exception &e) {
+    error_msg = "Failed to load default controller: " + std::string(e.what());
+    spdlog::error(error_msg);
+    return;
+  }
+
+  // Set URDF file of new context
+  robot_client_context_.metadata = RobotClientMetadata(*metadata);
+
+  // Set last updated timestep of robot client context
+  robot_client_context_.last_update_ns = getNanoseconds();
+
+  resetControllerContext();
+
+  spdlog::info("Success.");
+}
+
+RobotClientMetadata
+ControllerManager::getRobotClientMetadata(RobotClientMetadata *metadata,
+                                          std::string &error_msg) {
+  if (!validRobotContext()) {
+    error_msg = "Robot context not valid when calling GetRobotClientMetadata!";
+  }
+  *metadata = robot_client_context_.metadata;
+}
+
+// Log querying methods
+
+RobotState *getStateByBufferIndex(int index) {
+  return robot_state_buffer_.get(i);
+}
+
+int ControllerManager::getStateBufferSize(void) {
+  return robot_state_buffer_.size()
+}
+
+void ControllerManager::getEpisodeInterval(LogInterval *interval) {
+  interval->set_start(-1);
+  interval->set_end(-1);
+
+  if (custom_controller_context_.status != UNINITIALIZED) {
+    interval->set_start(custom_controller_context_.episode_begin);
+    interval->set_end(custom_controller_context_.episode_end);
+  }
+
+  return Status::OK;
 }
 
 // Interface methods
@@ -29,7 +90,7 @@ void ControllerManager::controlUpdate(const RobotState *robot_state,
   torch_robot_state_->update_state(
       robot_state->timestamp().seconds(), robot_state->timestamp().nanos(),
       std::vector<float>(robot_state->joint_positions().begin(),
-                          robot_state->joint_positions().end()),
+                         robot_state->joint_positions().end()),
       std::vector<float>(robot_state->joint_velocities().begin(),
                          robot_state->joint_velocities().end()),
       std::vector<float>(robot_state->motor_torques_measured().begin(),
@@ -102,19 +163,19 @@ void ControllerManager::controlUpdate(const RobotState *robot_state,
   robot_client_context_.last_update_ns = getNanoseconds();
 }
 
-void ControllerManger::setController(std::string &error_msg) {
-  std::lock_guard<std::mutex> service_lock(service_mtx_);
-
+void ControllerManger::setController(std::vector<char> &model_buffer,
+                                     LogInterval *interval,
+                                     std::string &error_msg) {
   interval->set_start(-1);
   interval->set_end(-1);
 
   try {
     // Load new controller
     auto new_controller = std::make_shared<TorchScriptedController>(
-        controller_model_buffer_.data(), controller_model_buffer_.size());
+        model_buffer.data(), model_buffer.size());
 
     // Switch in new controller by updating controller context
-    controller_mtx_.lock();
+    custom_controller_context_.controller_mtx.lock();
 
     controller_status_ = UNINITIALIZED current_custom_controller_ =
         new_controller;
@@ -128,15 +189,22 @@ void ControllerManger::setController(std::string &error_msg) {
     spdlog::error(error_msg);
     return;
   }
+
+  // Respond with start index
+  while (custom_controller_context_.status == READY) {
+    usleep(SPIN_INTERVAL_USEC);
+  }
+  interval->set_start(custom_controller_context_.episode_begin);
 }
 
-void updateController(std::vector<char> &update_buffer,
+void updateController(std::vector<char> &update_buffer, LogInterval *interval,
                       std::string &error_msg) {
-  std::lock_guard<std::mutex> service_lock(service_mtx_);
+  interval->set_start(-1);
+  interval->set_end(-1);
 
   // Load param container
-  if (!current_custom_controller_->param_dict_load(
-          updates_model_buffer_.data(), updates_model_buffer_.size())) {
+  if (!current_custom_controller_->param_dict_load(update_buffer.data(),
+                                                   update_buffer.size())) {
     error_msg = "Failed to load new controller params.";
     spdlog::error(error_msg);
     return;
@@ -145,12 +213,13 @@ void updateController(std::vector<char> &update_buffer,
   // Update controller & set intervals
   if (controller_status_ == RUNNING) {
     try {
-      controller_mtx_.lock();
+      custom_controller_context_.controller_mtx.lock();
+      interval->set_start(robot_state_buffer_.size());
       current_custom_controller_->param_dict_update_module();
-      controller_mtx_.unlock();
+      custom_controller_context_.controller_mtx.unlock();
 
     } catch (const std::exception &e) {
-      controller_mtx_.unlock();
+      custom_controller_context_.controller_mtx.unlock();
 
       error_msg = "Failed to update controller: " + std::string(e.what());
       spdlog::error(error_msg);
@@ -165,11 +234,15 @@ void updateController(std::vector<char> &update_buffer,
   }
 }
 
-void ControllerManger::terminateController(std::string &error_msg) {
+void ControllerManger::terminateController(LogInterval *interval,
+                                           std::string &error_msg) {
+  interval->set_start(-1);
+  interval->set_end(-1);
+
   if (controller_status_ == RUNNING) {
-    controller_mtx_.lock();
+    custom_controller_context_.controller_mtx.lock();
     controller_status_ = TERMINATING;
-    controller_mtx_.unlock();
+    custom_controller_context_.controller_mtx.unlock();
 
     // Respond with start & end index
     while (controller_status_ == TERMINATING) {
@@ -183,4 +256,22 @@ void ControllerManger::terminateController(std::string &error_msg) {
     spdlog::warn(error_msg);
     return;
   }
+}
+
+// Helper methods
+
+void ControllerManager::resetControllerContext(void) {
+  custom_controller_context_.episode_begin = -1;
+  custom_controller_context_.episode_end = -1;
+  custom_controller_context_.timestep = 0;
+  custom_controller_context_.status = UNINITIALIZED;
+}
+
+bool ControllerManager::validRobotContext(void) {
+  if (robot_client_context_.last_update_ns == 0) {
+    return false;
+  }
+  long int time_since_last_update =
+      getNanoseconds() - robot_client_context_.last_update_ns;
+  return time_since_last_update < threshold_ns_;
 }
