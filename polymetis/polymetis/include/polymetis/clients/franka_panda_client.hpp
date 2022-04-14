@@ -61,7 +61,6 @@ private:
   std::array<double, NUM_DOFS> torque_applied_prev_;
 
   bool limits_exceeded_;
-  std::string error_str_;
 
   std::array<double, 3> cartesian_pos_ulimits_, cartesian_pos_llimits_;
   std::array<double, NUM_DOFS> joint_pos_ulimits_, joint_pos_llimits_,

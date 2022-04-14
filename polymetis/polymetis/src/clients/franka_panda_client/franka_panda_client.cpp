@@ -374,18 +374,33 @@ void FrankaTorqueControlClient::computeSafetyReflex(
     upper_violation = values[i] - upper_limit[i];
     lower_violation = lower_sign * lower_limit[i] - values[i];
 
-    // Check hard limits
+    // Check hard limits (use limits_exceeded_ to prevent flooding terminal)
     if (upper_violation > 0 || lower_violation > 0) {
-      spdlog::error("Safety limits exceeded: "
-                    "\n\ttype = \"{}\""
-                    "\n\tdim = {}"
-                    "\n\tlimits = {}, {}"
-                    "\n\tvalue = {}",
-                    item_name, i, lower_sign * lower_limit[i], upper_limit[i],
-                    values[i]);
-      throw std::runtime_error(
-          "Error: Safety limits exceeded in FrankaTorqueControlClient.\n");
-      break;
+      if (!limits_exceeded_) {
+        spdlog::warn("Safety limits exceeded: "
+                     "\n\ttype = \"{}\""
+                     "\n\tdim = {}"
+                     "\n\tlimits = {}, {}"
+                     "\n\tvalue = {}",
+                     item_name, i, lower_sign * lower_limit[i], upper_limit[i],
+                     values[i]);
+
+        std::string error_str =
+            "Safety limits exceeded in FrankaTorqueControlClient. ";
+        if (!readonly_mode_) {
+          throw std::runtime_error(error_str + "\n");
+        } else {
+          spdlog::warn(error_str + "Ignoring issue during readonly mode.");
+        }
+
+        limits_exceeded_ = true;
+      }
+
+    } else {
+      if (limits_exceeded_) {
+        spdlog::info("Safety limits no longer violated.");
+        limits_exceeded_ = false;
+      }
     }
 
     // Check soft limits & compute feedback forces (safety controller)
