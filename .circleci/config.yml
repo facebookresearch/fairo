@@ -359,6 +359,13 @@ jobs:
       - run:
           name: Run PyTest
           command: pytest -s -vvv ./mrp
+  fairomsg:
+    docker:
+      - image: cimg/python:3.8
+    steps:
+      - checkout
+      - run: pip install ./msg
+      - run: pip install pytest && pytest ./msg/tests
   update-docs:
     docker:
       - image: cimg/node:current
@@ -451,6 +458,7 @@ workflows:
       - formatting
       - mrp
       - fairotag
+      - fairomsg
       - eyehandcal
       - update-docs:
           requires:
