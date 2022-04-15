@@ -16,7 +16,6 @@ def main():
     # Show help even if there is no msetup.py.
     if not os.path.exists(msetup_path):
         mrp.main()
-        return
 
     # Run the entrypoint file.
     sys.path.append(os.path.dirname(msetup_path))
