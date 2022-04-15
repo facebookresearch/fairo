@@ -7,7 +7,6 @@ __copyright__ = "2022, Meta"
 
 install_requires = [
     "pycapnp",
-    "mrp",
 ]
 
 
