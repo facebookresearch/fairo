@@ -68,13 +68,17 @@ class MapBuilder(object):
     def add_obstacle(self, location):
         self.map[round(location[1]), round(location[0]), 1] = 1
 
-    def reset_map(self, map_size):
+    def reset_map(self, map_size, z_bins=None, obs_thr=None):
         """
         resets the map to unknown
         :param map_size: size of map in cm, assumes square map
         :type map_size: int
         """
         self.map_size_cm = map_size
+        if z_bins is not None:
+            self.z_bins = z_bins
+        if obs_thr is not None:
+            self.obs_threshold = obs_thr
 
         self.map = np.zeros(
             (
