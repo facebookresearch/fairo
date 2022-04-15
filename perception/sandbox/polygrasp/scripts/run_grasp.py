@@ -24,18 +24,20 @@ def main(cfg):
     # Initialize cameras
     cameras = RealsenseAPI()
     camera_intrinsics = cameras.get_intrinsics()
-    camera_extrinsics = json.load(hydra.utils.to_absolute_path(cfg.camera_extrinsics_path))
+    with open(hydra.utils.to_absolute_path(cfg.camera_extrinsics_path), "r") as f:
+        camera_extrinsics = json.load(f)
 
     # Connect to grasp candidate selection and pointcloud processor
-    import pdb; pdb.set_trace()
     pcd_client = PointCloudClient(camera_intrinsics, camera_extrinsics)
-    grasp_suggester = GraspClient()
+    # grasp_suggester = GraspClient()
 
     num_iters = 1
     for i in range(num_iters):
+        print(f"Grasp {i + 1} / num_iters")
         # Get RGBD & pointcloud
         rgbd = cameras.get_rgbd()
         scene_pcd = pcd_client.get_pcd(rgbd)
+        import pdb; pdb.set_trace()
 
         # Get grasps per object
         obj_to_pcd = pcd_client.segment_pcd(scene_pcd)
