@@ -71,14 +71,12 @@ def robot_poses(ip_address, pose_generator, time_to_go=3):
     # Get reference state
     robot.go_home()
     for i, (pos_sampled, ori_sampled) in enumerate(pose_generator):
-        while True:
             print( f"Moving to pose ({i}): pos={pos_sampled}, quat={ori_sampled.as_quat()}")
 
             state_log = robot.move_to_ee_pose(position=pos_sampled,orientation=ori_sampled.as_quat(),time_to_go = time_to_go)
             print(f"Length of state_log: {len(state_log)}")
             if len(state_log) != time_to_go * robot.hz:
-                print(f"State log incorrect length. Trying again...")
-            else:
+            print(f"warning: log incorrect length. {len(state_log)} != {time_to_go * robot.hz}")
                 while True:
                     pos0, quat0 = robot.get_ee_pose()
                     time.sleep(1)
@@ -90,7 +88,6 @@ def robot_poses(ip_address, pose_generator, time_to_go=3):
 
                 print(f"Current pose  pos={pos0}, quat={quat0}")
                 yield pos1, quat1
-                break
     robot.go_home()
 
 
