@@ -320,7 +320,6 @@ class CraftAssistAgent(DroidletAgent):
             safe_blocks = blocks
         return safe_blocks
 
-    ####!!!! FIXME orientation
     def point_at(self, target, sleep=None):
         """Bot pointing.
 
@@ -331,8 +330,14 @@ class CraftAssistAgent(DroidletAgent):
                     z1 <= z2.
         """
         assert len(target) == 6
-        self.send_chat("/point {} {} {} {} {} {}".format(*target))
         self.point_targets.append((target, time.time()))
+
+        # TODO: put this in mover
+        # flip x to move from droidlet coords to  cuberite coords
+        target = [-target[3], target[1], target[2], -target[0], target[4], target[5]]
+
+        self.send_chat("/point {} {} {} {} {} {}".format(*target))
+
         # sleep before the bot can take any actions
         # otherwise there might be bugs since the object is flashing
         # deal with this in the task...
