@@ -21,10 +21,10 @@ def number_from_span(span):
 def interpret_relative_yaw(d):
     """
     converts the lf format into {"relative_yaw": <degrees>},
-    where degrees is the amount the agent should turn from its current position. 
+    where degrees is the amount the agent should turn from its current position.
     a left turn, or counterclockwise viewed from above has a negative degree value
     a right turn, or clockwise viewed from above has a positive degree value
-    
+
     TODO specify this with a const to be imported
     """
     left = "left" in d["relative_yaw"] or "leave" in d["relative_yaw"]  # lemmatizer :)
