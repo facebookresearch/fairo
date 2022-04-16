@@ -4,12 +4,14 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from collections import namedtuple
 import numpy as np
 
-Player = namedtuple("Player", "entityId, name, pos, look, mainHand")
-Mob = namedtuple("Mob", "entityId, mobType, pos, look")
+Player = namedtuple(
+    "Player", "entityId, name, pos, look, mainHand, cagent_struct", defaults=(None,) * 6
+)
+Mob = namedtuple("Mob", "entityId, mobType, pos, look, cagent_struct", defaults=(None,) * 5)
 Pos = namedtuple("Pos", "x, y, z")
 Look = namedtuple("Look", "yaw, pitch")
 Item = namedtuple("Item", "id, meta")
-ItemStack = namedtuple("ItemStack", "item, pos")
+ItemStack = namedtuple("ItemStack", "item, pos, entityId")
 
 
 def flip_x(struct):
@@ -31,19 +33,24 @@ def maybe_flip_x_or_yaw(struct):
     elif getattr(struct, "yaw", None):
         return flip_yaw(struct)
     elif getattr(struct, "mobType", None):
-        return Mob(struct.entityId, struct.mobType, flip_x(struct.pos), flip_yaw(struct.Look))
+        # we keep the cagent structas an attribute in case we want to interface with cagent again
+        return Mob(
+            struct.entityId, struct.mobType, flip_x(struct.pos), flip_yaw(struct.look), struct
+        )
     elif getattr(struct, "mainHand", None):
+        # we keep the cagent structas an attribute in case we want to interface with cagent again
         return Player(
             struct.entityId,
             struct.name,
             flip_x(struct.pos),
-            flip_yaw(struct.Look),
+            flip_yaw(struct.look),
             struct.mainHand,
+            struct,
         )
     elif getattr(struct, "item", None):
-        return ItemStack(struct.item, flip_x(struct.pos))
+        return ItemStack(struct.item, flip_x(struct.pos), struct.entityId)
     else:
-        # maybe raise an error?
+        # maybe raise an error? or special case for None outputs?
         return struct
 
 
@@ -94,7 +101,6 @@ class CraftassistMover:
         self.turn_left = self.cagent.turn_left
         self.turn_right = self.cagent.turn_right
 
-        self.get_player_line_of_sight = struct_transform(self.cagent.get_player_line_of_sight)
         self.get_line_of_sight = struct_transform(self.cagent.get_line_of_sight)
         self.get_item_stacks = struct_transform(self.cagent.get_item_stacks)
         self.get_item_stack = struct_transform(self.cagent.get_item_stack)
@@ -102,6 +108,17 @@ class CraftassistMover:
         self.get_mobs = struct_transform(self.cagent.get_mobs)
         self.get_other_players = struct_transform(self.cagent.get_other_players)
         self.get_other_player_by_name = struct_transform(self.cagent.get_other_player_by_name)
+
+    @struct_transform
+    def get_player_line_of_sight(self, player_struct):
+        if hasattr(player_struct, "cagent_struct"):
+            # this is a little tricky: the player_struct in droidlet space has pos x-flipped
+            # and look yaw flipped.  we need the cagent's player struct to do the computation in
+            # cuberite.
+            return self.cagent.get_player_line_of_sight(player_struct.cagent_struct)
+        else:
+            # TODO expose cagent's player struct def and assert that data type is correct
+            return self.cagent.get_player_line_of_sight(player_struct)
 
     def dig(self, x, y, z):
         self.cagent.place_block(-x, y, z)
@@ -131,12 +148,13 @@ class CraftassistMover:
     def get_blocks(self, x, X, y, Y, z, Z):
         """
         returns an (X-x+1) x (Y-y+1) x (Z-z+1) x 2 numpy array B of the blocks
-        in the rectanguloid with bounded by the input coordinates. 
+        in the rectanguloid with bounded by the input coordinates (including endpoints). 
         Input coordinates are in droidlet coordinates; and the output array is
         in yzxb permutation, where B[0,0,0,:] corresponds to the id and meta of
         the block at x, y, z  
         """
-        B = self.cagent.get_blocks(-X + 1, -x, -Y + 1, -y, -Z + 1, -z)
+        # negate the x coordinate to shift to cuberite coords
+        B = self.cagent.get_blocks(-X, -x, y, Y, z, Z)
         return np.flip(B, 2)
 
     # reversed to match droidlet coords

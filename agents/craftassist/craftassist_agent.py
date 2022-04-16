@@ -146,7 +146,7 @@ class CraftAssistAgent(DroidletAgent):
     def get_all_player_line_of_sight(self, player_struct):
         """return a fixed value for "dashboard" player"""
         # FIXME, this is too dangerous.
-        if player.name == "dashboard":
+        if player_struct.name == "dashboard":
             return Pos(-1, 63, 14)
         return self.mover.get_player_line_of_sight(player_struct)
 
@@ -414,7 +414,7 @@ class CraftAssistAgent(DroidletAgent):
         self.update_agent_pos_dashboard()
 
     def step_neg_x(self):
-        self.mover.step_pos_x()
+        self.mover.step_neg_x()
         self.update_agent_pos_dashboard()
 
     def step_pos_y(self):
