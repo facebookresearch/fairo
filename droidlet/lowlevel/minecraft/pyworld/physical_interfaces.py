@@ -134,45 +134,6 @@ class StepForward(FakeCPPAction):
         self.agent.pos += (dx, 0, dz)
 
 
-class TurnAngle(FakeCPPAction):
-    NAME = "turn_angle"
-
-    def action(self, angle):
-        self.agent.world_interaction_occurred = True
-        if angle == 90:
-            self.agent.turn_left()
-        elif angle == -90:
-            self.agent.turn_right()
-        else:
-            raise ValueError("bad angle={}".format(angle))
-
-
-# FIXME!
-class TurnLeft(FakeCPPAction):
-    NAME = "turn_left"
-
-    def action(self):
-        self.agent.world_interaction_occurred = True
-        old_l = (self.agent._look_vec[0], self.agent._look_vec[1])
-        idx = self.agent.CCW_LOOK_VECS.index(old_l)
-        new_l = self.agent.CCW_LOOK_VECS[(idx + 1) % len(self.agent.CCW_LOOK_VECS)]
-        self.agent._look_vec[0] = new_l[0]
-        self.agent._look_vec[2] = new_l[2]
-
-
-# FIXME!
-class TurnRight(FakeCPPAction):
-    NAME = "turn_right"
-
-    def action(self):
-        self.agent.world_interaction_occurred = True
-        old_l = (self.agent._look_vec[0], self.agent._look_vec[1])
-        idx = self.agent.CCW_LOOK_VECS.index(old_l)
-        new_l = self.agent.CCW_LOOK_VECS[(idx - 1) % len(self.agent.CCW_LOOK_VECS)]
-        self.agent._look_vec[0] = new_l[0]
-        self.agent._look_vec[2] = new_l[2]
-
-
 class PlaceBlock(FakeCPPAction):
     NAME = "place_block"
 
@@ -222,9 +183,6 @@ def init_agent_interfaces(agent):
     agent.step_pos_y = StepPosY(agent)
     agent.step_neg_y = StepNegY(agent)
     agent.step_forward = StepForward(agent)
-    agent.turn_angle = TurnAngle(agent)
-    agent.turn_left = TurnLeft(agent)
-    agent.turn_right = TurnRight(agent)
     agent.set_look = SetLook(agent)
     agent.look_at = LookAt(agent)
     agent.place_block = PlaceBlock(agent)

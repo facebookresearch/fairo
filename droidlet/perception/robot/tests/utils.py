@@ -4,7 +4,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
+
+# from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.droidlet_agent import DroidletAgent
 from droidlet.perception.robot import Detection, Human, HumanKeypointsOrdering
 from droidlet.shared_data_structs import RGBDepth
@@ -23,7 +24,8 @@ class FakeAgent(DroidletAgent):
 
     def init_perception(self):
         self.perception_modules = {}
-        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
+        self.perception_modules["language_understanding"] = None
+        # self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
 
     def init_controller(self):
         dialogue_object_classes = {}

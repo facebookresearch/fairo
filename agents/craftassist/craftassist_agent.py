@@ -15,7 +15,9 @@ from collections import namedtuple
 # also used as a standalone script and invoked via `python craftassist_agent.py`
 from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
 from droidlet.memory.craftassist import mc_memory
-from droidlet.perception.craftassist import rotation
+from droidlet.shared_data_struct import rotation
+from droidlet.lowlevel.minecraft.craftassist_mover import CraftassistMover
+
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 import droidlet.dashboard as dashboard
 
@@ -126,9 +128,9 @@ class CraftAssistAgent(DroidletAgent):
         return updated_chats
 
     def get_all_players(self):
-        """This function is a wrapper around self.cagent.get_other_players and adds a new
+        """This function is a wrapper around self.mover.get_other_players and adds a new
         player called "dashboard" if it doesn't already exist."""
-        all_players = self.cagent.get_other_players()
+        all_players = self.mover.get_other_players()
         updated_players = all_players
         player_exists = False
         for player in all_players:
@@ -143,9 +145,10 @@ class CraftAssistAgent(DroidletAgent):
 
     def get_all_player_line_of_sight(self, player_struct):
         """return a fixed value for "dashboard" player"""
-        if isinstance(player_struct, Player):
+        # FIXME, this is too dangerous.
+        if player.name == "dashboard":
             return Pos(-1, 63, 14)
-        return self.cagent.get_player_line_of_sight(player_struct)
+        return self.mover.get_player_line_of_sight(player_struct)
 
     def init_event_handlers(self):
         """Handle the socket events"""
@@ -301,7 +304,7 @@ class CraftAssistAgent(DroidletAgent):
         Returns:
             List of changed blocks
         """
-        blocks = self.cagent.get_changed_blocks()
+        blocks = self.mover.get_changed_blocks()
         safe_blocks = []
         if len(self.point_targets) > 0:
             for point_target in self.point_targets:
@@ -317,6 +320,7 @@ class CraftAssistAgent(DroidletAgent):
             safe_blocks = blocks
         return safe_blocks
 
+    ####!!!! FIXME orientation
     def point_at(self, target, sleep=None):
         """Bot pointing.
 
@@ -334,6 +338,9 @@ class CraftAssistAgent(DroidletAgent):
         # deal with this in the task...
         if sleep:
             time.sleep(sleep)
+
+    ###FIXME!!
+    #    self.get_incoming_chats = self.get_chats
 
     def relative_head_pitch(self, angle):
         """Converts assistant's current pitch and yaw
@@ -403,31 +410,31 @@ class CraftAssistAgent(DroidletAgent):
         sio.emit("updateVoxelWorldState", payload)
 
     def step_pos_x(self):
-        self.cagent.step_pos_x()
+        self.mover.step_pos_x()
         self.update_agent_pos_dashboard()
 
     def step_neg_x(self):
-        self.cagent.step_neg_x()
+        self.mover.step_pos_x()
         self.update_agent_pos_dashboard()
 
     def step_pos_y(self):
-        self.cagent.step_pos_y()
+        self.mover.step_pos_y()
         self.update_agent_pos_dashboard()
 
     def step_neg_y(self):
-        self.cagent.step_neg_y()
+        self.mover.step_neg_y()
         self.update_agent_pos_dashboard()
 
     def step_pos_z(self):
-        self.cagent.step_pos_z()
+        self.mover.step_pos_z()
         self.update_agent_pos_dashboard()
 
     def step_neg_z(self):
-        self.cagent.step_neg_z()
+        self.mover.step_neg_z()
         self.update_agent_pos_dashboard()
 
     def step_forward(self):
-        self.cagent.step_forward()
+        self.mover.step_forward()
         self.update_agent_pos_dashboard()
 
     # TODO update client so we can just loop through these
@@ -441,50 +448,13 @@ class CraftAssistAgent(DroidletAgent):
         logging.info("Attempting to connect to port {}".format(self.opts.port))
         self.cagent = MCAgent("localhost", self.opts.port, self.name)
         logging.info("Logged in to server")
-        self.dig = self.cagent.dig
-        self.drop_item_stack_in_hand = self.cagent.drop_item_stack_in_hand
-        self.drop_item_in_hand = self.cagent.drop_item_in_hand
-        self.drop_inventory_item_stack = self.cagent.drop_inventory_item_stack
-        self.set_inventory_slot = self.cagent.set_inventory_slot
-        self.get_player_inventory = self.cagent.get_player_inventory
-        self.get_inventory_item_count = self.cagent.get_inventory_item_count
-        self.get_inventory_items_counts = self.cagent.get_inventory_items_counts
-        # defined above...
-        # self.send_chat = self.cagent.send_chat
-        self.set_held_item = self.cagent.set_held_item
-        self.step_pos_x = self.step_pos_x
-        self.step_neg_x = self.step_neg_x
-        self.step_pos_z = self.step_pos_z
-        self.step_neg_z = self.step_neg_z
-        self.step_pos_y = self.step_pos_y
-        self.step_neg_y = self.step_neg_y
-        self.step_forward = self.step_forward
-        self.look_at = self.cagent.look_at
-        self.set_look = self.cagent.set_look
-        self.turn_angle = self.cagent.turn_angle
-        self.turn_left = self.cagent.turn_left
-        self.turn_right = self.cagent.turn_right
-        self.place_block = self.cagent.place_block
-        self.use_entity = self.cagent.use_entity
-        self.use_item = self.cagent.use_item
-        self.use_item_on_block = self.cagent.use_item_on_block
-        self.is_item_stack_on_ground = self.cagent.is_item_stack_on_ground
-        self.craft = self.cagent.craft
-        self.get_blocks = self.cagent.get_blocks
-        self.get_local_blocks = self.cagent.get_local_blocks
+        self.mover = CraftassistMover(self.cagent)
+        for m in dir(self.mover):
+            if callable(getattr(self.mover, m)) and m[0] != "_" and getattr(self, m, None) is None:
+                setattr(self, m, getattr(self.mover, m))
         self.get_incoming_chats = self.get_chats
-        self.get_player = self.cagent.get_player
-        self.get_mobs = self.cagent.get_mobs
         self.get_other_players = self.get_all_players
-        self.get_other_player_by_name = self.cagent.get_other_player_by_name
-        self.get_vision = self.cagent.get_vision
-        self.get_line_of_sight = self.cagent.get_line_of_sight
         self.get_player_line_of_sight = self.get_all_player_line_of_sight
-        self.get_changed_blocks = self.cagent.get_changed_blocks
-        self.get_item_stacks = self.cagent.get_item_stacks
-        self.get_world_age = self.cagent.get_world_age
-        self.get_time_of_day = self.cagent.get_time_of_day
-        self.get_item_stack = self.cagent.get_item_stack
 
     def add_self_memory_node(self):
         """Adds agent node into its own memory"""
