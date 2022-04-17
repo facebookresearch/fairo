@@ -16,7 +16,10 @@ from collections import namedtuple
 from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
 from droidlet.memory.craftassist import mc_memory
 from droidlet.shared_data_struct import rotation
-from droidlet.lowlevel.minecraft.craftassist_mover import CraftassistMover
+from droidlet.lowlevel.minecraft.craftassist_mover import (
+    CraftassistMover,
+    from_minecraft_xyz_to_droidlet,
+)
 
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 import droidlet.dashboard as dashboard
@@ -210,6 +213,10 @@ class CraftAssistAgent(DroidletAgent):
         file_log_handler = logging.FileHandler("agent.{}.log".format(self.name))
         file_log_handler.setFormatter(log_formatter)
         logging.getLogger().addHandler(file_log_handler)
+
+        # add method to convert coordinates from cuberite to droidlet:
+        self.memory.to_droidlet_coords = from_minecraft_xyz_to_droidlet
+
         logging.info("Initialized agent memory")
 
     def init_perception(self):

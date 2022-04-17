@@ -1,7 +1,9 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+from typing import cast
 from collections import namedtuple
+from droidlet.base_util import XYZ
 import numpy as np
 
 Player = namedtuple(
@@ -235,17 +237,17 @@ class CraftassistMover:
 #
 
 
-def from_minecraft_xyz_to_droidlet(x, y, z):
-    return -x, y, z
+def from_minecraft_xyz_to_droidlet(xyz):
+    return cast(XYZ, (-xyz[0], xyz[1], xyz[2]))
 
 
-def from_droidlet_xyz_to_craftassist(x, y, z):
-    return -x, y, z
+def from_droidlet_xyz_to_minecraft(xyz):
+    return cast(XYZ, (-xyz[0], xyz[1], xyz[2]))
 
 
-def from_minecraft_py_to_droidlet(pitch, yaw):
-    return pitch, -yaw
+def from_minecraft_look_to_droidlet(look):
+    return Look(-look.yaw, look.pitch)
 
 
-def from_droidlet_py_to_craftassist(pitch, yaw):
-    return pitch, -yaw
+def from_droidlet_look_to_craftassist(look):
+    return Look(-look.yaw, look.pitch)
