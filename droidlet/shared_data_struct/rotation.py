@@ -94,12 +94,11 @@ def yaw_pitch(look_vec):
     yaw = np.arctan2(-xz_dir[0], xz_dir[1])
 
     # get the pitch value/tilt angle
-    pitch = np.arctan2(look_vec[1], np.sqrt(look_vec[0] ** 2 + look_vec[2] ** 2))
+    pitch = -np.arctan2(look_vec[1], np.sqrt(look_vec[0] ** 2 + look_vec[2] ** 2))
 
     yaw = yaw % (2 * np.pi)
     if yaw > np.pi:
         yaw = yaw - 2 * np.pi
-        return yaw, pitch
     return yaw, pitch
 
 

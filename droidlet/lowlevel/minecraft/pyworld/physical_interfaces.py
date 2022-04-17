@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from droidlet.perception.craftassist.rotation import look_vec
+from droidlet.shared_data_struct.rotation import look_vec
 from droidlet.shared_data_structs import TICKS_PER_SEC, Time
 
 HEAD_HEIGHT = 2
