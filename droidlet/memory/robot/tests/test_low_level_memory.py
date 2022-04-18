@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 from droidlet.memory.memory_nodes import PlayerNode, TripleNode
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
-from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
+from droidlet.memory.robot.loco_memory_nodes import DanceNode, DetectedObjectNode
 from droidlet.base_util import Pos, Look, Player
 
 
@@ -72,9 +72,13 @@ class BasicTest(unittest.TestCase):
         def return_num():
             return 10
 
-        self.memory.add_dance(
-            return_num, "generate_num_10_dance", ["generate_num_10", "dance_with_numbers"]
+        self.memory.nodes[DanceNode.NODE_TYPE].create(
+            self.memory,
+            return_num,
+            "generate_num_10_dance",
+            ["generate_num_10", "dance_with_numbers"]
         )
+
         assert (
             len(
                 self.memory.nodes[TripleNode.NODE_TYPE].get_triples(

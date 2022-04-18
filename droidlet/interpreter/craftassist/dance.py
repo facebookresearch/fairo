@@ -1,6 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+from droidlet.memory.craftassist.mc_memory_nodes import DanceNode
 import droidlet.shared_data_struct.craftassist_shared_utils
 
 """This file contain implementations of a collection of dances that the 
@@ -59,11 +60,8 @@ head_bob = [
 
 def add_default_dances(memory):
     """Add dances to agent's memory"""
-    memory.add_dance(generate_sequential_move_fn(jump), name="jump", tags=["jump"])
-    memory.add_dance(
-        generate_sequential_move_fn(konami_dance), name="konami dance", tags=["dance", "konami"]
-    )
-    memory.add_dance(
+    memory.nodes[DanceNode].create(memory, generate_sequential_move_fn(jump), name="jump", tags=["jump"])
+    memory.nodes[DanceNode.NODE_TYPE].create(memory,
         generate_sequential_move_fn(head_bob), name="head bob", tags=["dance", "head bob"]
     )
 

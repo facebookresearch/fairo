@@ -653,12 +653,3 @@ class MCAgentMemory(AgentMemory):
         """Get all nodes that are of type "item_stack" """
         r = self._db_read("SELECT uuid, eid FROM ReferenceObjects WHERE ref_type=?", "item_stack")
         return r
-
-    ###############
-    ###  Dances  ##
-    ###############
-
-    def add_dance(self, dance_fn, name=None, tags=[]):
-        """Add a dance movement to memory"""
-        # a dance is movement determined as a sequence of steps, rather than by its destination
-        return DanceNode.create(self, dance_fn, name=name, tags=tags)
