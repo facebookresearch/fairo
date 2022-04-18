@@ -3,6 +3,7 @@ import time
 import shutil
 import json
 import cv2
+import pickle
 import numpy as np
 import Pyro4
 from droidlet.lowlevel.pyro_utils import safe_call
@@ -30,14 +31,15 @@ class LabelPropSaver:
         img_folder = os.path.join(self.save_folder, id_, "rgb")
         img_folder_dbg = os.path.join(self.save_folder, id_, "rgb_dbg")
         depth_folder = os.path.join(self.save_folder, id_, "depth")
+        lidar_folder = os.path.join(self.save_folder, id_, "lidar")
         data_file = os.path.join(self.save_folder, id_, "data.json")
-        return img_folder, img_folder_dbg, depth_folder, data_file
+        return img_folder, img_folder_dbg, depth_folder, lidar_folder, data_file
 
     def create_dirs(self, id_):
 
-        img_folder, img_folder_dbg, depth_folder, data_file = self.return_paths(id_)
+        img_folder, img_folder_dbg, depth_folder, lidar_folder, data_file = self.return_paths(id_)
 
-        for x in [img_folder, img_folder_dbg, depth_folder]:
+        for x in [img_folder, img_folder_dbg, depth_folder, lidar_folder]:
             os.makedirs(x, exist_ok=True)
 
     def stop(self):
@@ -49,20 +51,32 @@ class LabelPropSaver:
         pose_dict = {}
         self.save_id += 1
         self.create_dirs(self.save_id)
+
+        # save camera intrinsics
+        cam_intrinsics = safe_call(self.cam.get_intrinsics)
+        cam_intrinsics_path = os.path.join(
+            self.save_folder, str(self.save_id), "cam_intrinsics.npz"
+        )
+        np.save(cam_intrinsics_path, cam_intrinsics)
+
         start_time = time.time()
         frame_count = 0
         end_time = seconds
         while time.time() - start_time <= seconds:
-            rgb, depth = safe_call(self.cam.get_rgb_depth)
+            lidar = safe_call(self.cam.get_lidar_scan)
+            rgb, depth = safe_call(self.cam.get_rgb_depth, rotate=False, compressed=True)
             base_pos = safe_call(self.bot.get_base_state)
             cam_pan = safe_call(self.bot.get_pan)
             cam_tilt = safe_call(self.bot.get_tilt)
             cam_transform = safe_call(self.bot.get_camera_transform)
+            timestamp = time.time()
 
             name = "{}".format(frame_count)
             self.save(
                 self.save_id,
                 name,
+                timestamp,
+                lidar,
                 rgb,
                 depth,
                 base_pos,
@@ -82,11 +96,28 @@ class LabelPropSaver:
     def ready(self):
         return True
 
-    def save(self, id_, name, rgb, depth, pos, cam_pan, cam_tilt, cam_transform, pose_dict):
-        img_folder, img_folder_dbg, depth_folder, data_file = self.return_paths(id_)
+    def save(
+        self,
+        id_,
+        name,
+        timestamp,
+        lidar,
+        rgb,
+        depth,
+        pos,
+        cam_pan,
+        cam_tilt,
+        cam_transform,
+        pose_dict,
+    ):
+        img_folder, img_folder_dbg, depth_folder, lidar_folder, data_file = self.return_paths(id_)
 
         self.skip_frame_count += 1
         if self.skip_frame_count % self.save_frequency == 0:
+            # store the lidar
+            lidar_fname = lidar_folder + "/{}.pkl".format(name)
+            with open(lidar_fname, "wb") as fp:
+                pickle.dump(lidar, fp)
             # store the images and depth
             cv2.imwrite(
                 img_folder + "/{}.jpg".format(name),
@@ -100,19 +131,12 @@ class LabelPropSaver:
                 rgb,
             )
 
-            # convert depth to milimetres
-            depth *= 1e3
-
-            # saturate maximum depth to 65,535mm or 65.53cm
-            max_depth = np.power(2, 16) - 1
-            depth[depth > max_depth] = max_depth
-
-            depth = depth.astype(np.uint16)
             np.save(depth_folder + "/{}.npy".format(name), depth)
 
             # store pos
             if pos is not None:
                 pose_dict[name] = {
+                    "timestamp": timestamp,
                     "base_xyt": pos,
                     "cam_pan_tilt": [cam_pan, cam_tilt],
                     "cam_transform": cam_transform.tolist(),

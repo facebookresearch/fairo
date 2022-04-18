@@ -243,6 +243,21 @@ class RemoteHelloRealsense(object):
         depth = blosc_encode(depth)
         return rgb, depth, base2cam_rot, base2cam_trans
 
+    def calibrate_tilt(self):
+        self.bot.set_tilt(math.radians(-60))
+        time.sleep(2)
+        pcd = self.get_open3d_pcd()
+        plane, points = pcd.segment_plane(
+            distance_threshold=0.03,
+            ransac_n=3,
+            num_iterations=1000,
+        )
+        angle = math.atan(plane[0] / plane[2])
+        self.bot.set_tilt_correction(angle)
+
+        self.bot.set_tilt(math.radians(0))
+        time.sleep(2)
+
 
 if __name__ == "__main__":
     import argparse
@@ -266,6 +281,7 @@ if __name__ == "__main__":
         with Pyro4.locateNS() as ns:
             ns.register("hello_realsense", robot_uri)
 
+        robot.calibrate_tilt()
         print("Server is started...")
         # try:
         #     while True:
