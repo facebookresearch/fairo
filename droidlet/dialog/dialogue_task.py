@@ -245,9 +245,9 @@ def point_at(task, target):
     question = f"Is this the {task.ref_obj_span}? (Look for the flashing object)"
     question_obj = build_question_json(question, text_response_options=["yes", "no"])
     task_list = [
-        Say(task.agent, {"response_options": question_obj} ),
+        Say(task.agent, {"response_options": question_obj}),
         # Point(task.agent, {"bounds": bounds, "sleep_time": 4.0} ),
-        AwaitResponse(task.agent, {"asker_memid": task.memid} ),
+        AwaitResponse(task.agent, {"asker_memid": task.memid}),
     ]
     task.add_child_task(maybe_task_list_to_control_block(task_list, task.agent))
     task.asks += 1
