@@ -20,24 +20,24 @@ def flip_x(struct):
     return Pos(-struct.x, struct.y, struct.z)
 
 
-def flip_yaw(struct):
-    return Look(-struct.yaw, struct.pitch)
+def flip_look(struct):
+    return Look(-struct.yaw, -struct.pitch)
 
-
-def maybe_flip_x_or_yaw(struct):
+%
+def maybe_flip_x_or_look(struct):
     """
     struct is either a Mob, a Player, a Pos, or a Look
     we make a copy with the x negated if the struct is or has a Pos
-    and with the yaw negated if the struct is or has a Look
+    and with the yaw and pitch negated if the struct is or has a Look
     """
     if getattr(struct, "x", None):
         return flip_x(struct)
     elif getattr(struct, "yaw", None):
-        return flip_yaw(struct)
+        return flip_look(struct)
     elif getattr(struct, "mobType", None):
         # we keep the cagent structas an attribute in case we want to interface with cagent again
         return Mob(
-            struct.entityId, struct.mobType, flip_x(struct.pos), flip_yaw(struct.look), struct
+            struct.entityId, struct.mobType, flip_x(struct.pos), flip_look(struct.look), struct
         )
     elif getattr(struct, "mainHand", None):
         # we keep the cagent structas an attribute in case we want to interface with cagent again
@@ -45,7 +45,7 @@ def maybe_flip_x_or_yaw(struct):
             struct.entityId,
             struct.name,
             flip_x(struct.pos),
-            flip_yaw(struct.look),
+            flip_look(struct.look),
             struct.mainHand,
             struct,
         )
@@ -64,9 +64,9 @@ def struct_transform(func):
     def g(*args, **kwargs):
         out = func(*args, **kwargs)
         if type(out) is list:
-            return [maybe_flip_x_or_yaw(o) for o in out]
+            return [maybe_flip_x_or_look(o) for o in out]
         else:
-            return maybe_flip_x_or_yaw(out)
+            return maybe_flip_x_or_look(out)
 
     return g
 
@@ -113,10 +113,11 @@ class CraftassistMover:
 
     @struct_transform
     def get_player_line_of_sight(self, player_struct):
+        # this is a little tricky: the player_struct in droidlet space has pos x-flipped
+        # and look yaw and pitch flipped.  we need the cagent's player struct to do the computation in
+        # cuberite.  If the player_struct is a python object from droidlet, we assume it has a
+        # cuberite cagent player struct as a member.        
         if hasattr(player_struct, "cagent_struct"):
-            # this is a little tricky: the player_struct in droidlet space has pos x-flipped
-            # and look yaw flipped.  we need the cagent's player struct to do the computation in
-            # cuberite.
             return self.cagent.get_player_line_of_sight(player_struct.cagent_struct)
         else:
             # TODO expose cagent's player struct def and assert that data type is correct
@@ -226,12 +227,12 @@ class CraftassistMover:
 #
 #             y+
 #             |
-#             |   -pitch
+#             |   +pitch
 #             |
 #    z-_______|________z+
 #             |
 #             |
-#             |   +pitch
+#             |   -pitch
 #             |
 #             y-
 #
