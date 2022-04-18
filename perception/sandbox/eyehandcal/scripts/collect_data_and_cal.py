@@ -71,23 +71,23 @@ def robot_poses(ip_address, pose_generator, time_to_go=3):
     # Get reference state
     robot.go_home()
     for i, (pos_sampled, ori_sampled) in enumerate(pose_generator):
-            print( f"Moving to pose ({i}): pos={pos_sampled}, quat={ori_sampled.as_quat()}")
+        print( f"Moving to pose ({i}): pos={pos_sampled}, quat={ori_sampled.as_quat()}")
 
-            state_log = robot.move_to_ee_pose(position=pos_sampled,orientation=ori_sampled.as_quat(),time_to_go = time_to_go)
-            print(f"Length of state_log: {len(state_log)}")
-            if len(state_log) != time_to_go * robot.hz:
+        state_log = robot.move_to_ee_pose(position=pos_sampled,orientation=ori_sampled.as_quat(),time_to_go = time_to_go)
+        print(f"Length of state_log: {len(state_log)}")
+        if len(state_log) != time_to_go * robot.hz:
             print(f"warning: log incorrect length. {len(state_log)} != {time_to_go * robot.hz}")
-                while True:
-                    pos0, quat0 = robot.get_ee_pose()
-                    time.sleep(1)
-                    pos1, quat1 = robot.get_ee_pose()
-                    diffpos = (pos0-pos1).norm()
-                    if diffpos < 0.01:
-                        break
-                    print(f'robot moving diffpos={diffpos}')
+        while True:
+            pos0, quat0 = robot.get_ee_pose()
+            time.sleep(1)
+            pos1, quat1 = robot.get_ee_pose()
+            diffpos = (pos0-pos1).norm()
+            if diffpos < 0.01:
+                break
+            print(f'robot moving diffpos={diffpos}')
 
-                print(f"Current pose  pos={pos0}, quat={quat0}")
-                yield pos1, quat1
+        print(f"Current pose  pos={pos0}, quat={quat0}")
+        yield pos1, quat1
     robot.go_home()
 
 
@@ -125,6 +125,7 @@ if __name__ == '__main__':
     parser.add_argument('--num-points', default=20, type=int, help="number of points to sample from convex hull")
     parser.add_argument('--time-to-go', default=3, type=float, help="time_to_go in seconds for each movement")
     parser.add_argument('--imagedir', default=None, help="folder to save debug images")
+    parser.add_argument('--pixel-tolerance', default=2.0, help="folder to save debug images")
 
     args=parser.parse_args()
     print(f"Config: {args}")
@@ -178,18 +179,40 @@ if __name__ == '__main__':
         print(f'Solve camera {i} pose')
         obs_data_std, K = extract_obs_data_std(corner_data, i)
         print('number of images with keypoint', len(obs_data_std))
-        loss = 9999
-        while loss > 1.0:
-            param=torch.randn(9, dtype=torch.float64, requires_grad=True)
+        if len(obs_data_std) < 3:
+            print('too few keypoint found for this camera')
+            params.append(None)
+            continue
+
+        pixel_error = float('inf')
+        while pixel_error > args.pixel_tolerance:
+            pixel_error = float('inf')
+            # #stage 1
+            max_orientation_range = 0.01
+            L = lambda param: mean_loss(obs_data_std, torch.cat([param, torch.zeros(3).detach()]), K)
+
+            while pixel_error > 100:
+                param_camera_pose_seed=torch.tensor(torch.randn(6) * max_orientation_range, dtype=torch.float64, requires_grad=True)
+                param_camera_pose_star=find_parameter(param_camera_pose_seed, L)
+                pixel_error = L(param_camera_pose_star).item()
+                print('stage 1 mean pixel error', pixel_error)
+
+            #stage 2
+            marker_max_displacement = 0.1 #meter
+            param=torch.tensor(torch.cat([param_camera_pose_star, torch.randn(3)*marker_max_displacement]).detach(), requires_grad=True)
             L = lambda param: mean_loss(obs_data_std, param, K)
             try:
-                param_star=find_parameter(param, obs_data_std, K)
+                param_star=find_parameter(param, L)
             except Exception as e:
                 print(e)
                 continue
 
-            loss = L(param_star).item()
-            print('found param loss (mean pixel err)', loss)
+            pixel_error = L(param_star).item()
+            print('stage 2 mean pixel error', pixel_error)
+            print(f"Try again because of poor solution {pixel_error} > {args.pixel_tolerance}")
+            
+
+        print(f"Good solution {pixel_error} <= {args.pixel_tolerance}")
         params.append(param_star)
     
     with torch.no_grad():
