@@ -23,7 +23,7 @@ def flip_x(struct):
 def flip_look(struct):
     return Look(-struct.yaw, -struct.pitch)
 
-%
+
 def maybe_flip_x_or_look(struct):
     """
     struct is either a Mob, a Player, a Pos, or a Look
@@ -116,7 +116,7 @@ class CraftassistMover:
         # this is a little tricky: the player_struct in droidlet space has pos x-flipped
         # and look yaw and pitch flipped.  we need the cagent's player struct to do the computation in
         # cuberite.  If the player_struct is a python object from droidlet, we assume it has a
-        # cuberite cagent player struct as a member.        
+        # cuberite cagent player struct as a member.
         if hasattr(player_struct, "cagent_struct"):
             return self.cagent.get_player_line_of_sight(player_struct.cagent_struct)
         else:
