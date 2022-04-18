@@ -97,9 +97,9 @@ class BasicTest(unittest.TestCase):
         schematic_memid = SchematicNode.create(
             self.memory, (((2, 0, 1), (1, 0)), ((2, 0, 2), (1, 0)), ((2, 0, 3), (2, 0)))
         )
-        # test get_schematic_by_id
+        # test getting schematic by ID
         assert (
-            self.memory.get_schematic_by_id(schematic_memid).blocks
+            self.memory.nodes[SchematicNode.NODE_TYPE](self.memory, schematic_memid).blocks
             == self.memory.get_mem_by_id(schematic_memid).blocks
         )
         # test get_schematic_by_name

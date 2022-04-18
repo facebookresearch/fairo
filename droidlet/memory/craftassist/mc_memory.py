@@ -490,10 +490,6 @@ class MCAgentMemory(AgentMemory):
     ###  Schematics  ###
     ####################
 
-    def get_schematic_by_id(self, memid: str) -> "SchematicNode":
-        """Get the Schematic type memory node using id"""
-        return SchematicNode(self, memid)
-
     def _get_schematic_by_property_name(self, name, table_name) -> Optional["SchematicNode"]:
         """Get the Schematic type memory node using name"""
         r = self._db_read(
@@ -521,7 +517,7 @@ class MCAgentMemory(AgentMemory):
             if schematics:
                 result.extend(schematics)
         if result:
-            return self.get_schematic_by_id(random.choice(result)[0])
+            return self.nodes[SchematicNode.NODE_TYPE](self, random.choice(result)[0])
         else:
             return None
 
@@ -535,7 +531,7 @@ class MCAgentMemory(AgentMemory):
             name,
         )
         if r:  # if multiple exist, then randomly select one
-            return self.get_schematic_by_id(random.choice(r)[0])
+            return self.nodes[SchematicNode.NODE_TYPE](self, random.choice(r)[0])
         # if no schematic with exact matched name exists, search for a schematic
         # with matched property name instead
         else:

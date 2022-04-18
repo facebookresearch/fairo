@@ -695,7 +695,7 @@ class SchematicNode(MemoryNode):
         )
         if r:
             # previously converted; return old schematic
-            return agent_memory.get_schematic_by_id(r[0])
+            return agent_memory.nodes[SchematicNode.NODE_TYPE](agent_memory, r[0])
 
         else:
             # get up to date BlockObject
@@ -711,7 +711,7 @@ class SchematicNode(MemoryNode):
                 agent_memory, subj=memid, pred_text="_source_block_object", obj=block_object.memid
             )
 
-            return agent_memory.get_schematic_by_id(memid)
+            return agent_memory.nodes[SchematicNode.NODE_TYPE](agent_memory, memid)
 
     @classmethod
     def _load_schematics(self, agent_memory, schematics, block_data, load_minecraft_specs=True):
