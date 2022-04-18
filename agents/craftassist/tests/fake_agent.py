@@ -314,7 +314,7 @@ class FakeAgent(DroidletAgent):
         boring_blocks = self.low_level_data["boring_blocks"]
         self.set_blocks(xyzbms, boring_blocks, origin)
         abs_xyz = tuple(np.array(xyzbms[0][0]) + origin)
-        memid = self.memory.get_block_object_ids_by_xyz(abs_xyz)[0]
+        memid = self.memory.get_object_info_by_xyz(abs_xyz, "BlockObjects")[0]
         for pred, obj in relations.items():
             self.memory.nodes["Triple"].create(self.memory, subj=memid, pred_text=pred, obj_text=obj)
             # sooooorrry  FIXME? when we handle triples better in interpreter_helper

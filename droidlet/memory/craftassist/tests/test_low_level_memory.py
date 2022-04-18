@@ -63,12 +63,12 @@ class BasicTest(unittest.TestCase):
         assert memnode[0].blocks == self.memory.get_mem_by_id(bo_memid).blocks
         # Test get_object_info_by_xyz byt cheking with BlockObject's mean xyz
         assert self.memory.get_object_info_by_xyz((1, 1, 1), "BlockObjects")[0] == bo_memid
-        # Test get_block_object_ids_by_xyz
+        # Test get_object_info_by_xyz specialized for "BlockObjects"
         assert (
-            self.memory.get_block_object_ids_by_xyz((1, 1, 1))[0]
+            self.memory.get_object_info_by_xyz((1, 1, 1), "BlockObjects")[0]
             == self.memory.get_object_info_by_xyz((1, 1, 1), "BlockObjects")[0]
         )
-        assert self.memory.get_block_object_ids_by_xyz((1, 1, 1))[0] == bo_memid
+        assert self.memory.get_object_info_by_xyz((1, 1, 1), "BlockObjects")[0] == bo_memid
         # Test get_block_object_by_xyz -> same BlockObjectNode object as what we created before
         assert (
             self.memory.get_block_object_by_xyz((1, 1, 1)).blocks

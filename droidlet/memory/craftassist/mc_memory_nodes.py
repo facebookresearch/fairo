@@ -259,7 +259,7 @@ class BlockObjectNode(VoxelObjectNode):
         """
         # check if block object already exists in memory
         for xyz, _ in blocks:
-            old_memids = memory.get_block_object_ids_by_xyz(xyz)
+            old_memids = memory.get_object_info_by_xyz(xyz, "BlockObjects")
             if old_memids:
                 return old_memids[0]
         memid = cls.new(memory)

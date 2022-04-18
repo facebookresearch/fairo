@@ -517,7 +517,7 @@ class Build(Task):
         xyz = block[0]
         # this should not be an empty list- it is assumed the block passed in was just placed
         try:
-            blockobj_memid = agent.memory.get_block_object_ids_by_xyz(xyz)[0]
+            blockobj_memid = agent.memory.get_object_info_by_xyz(xyz, "BlockObjects")[0]
             self.blockobj_memid = blockobj_memid
         except:
             logging.debug(

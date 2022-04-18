@@ -440,6 +440,8 @@ class MCAgentMemory(AgentMemory):
     ######################
 
     # and rename this
+    # FIXME can not be simply deleted and replaced with basic_search
+    # since block-objects are indexed by their avg-xyz not per-xyz
     def get_object_info_by_xyz(self, xyz: XYZ, ref_type: str, just_memid=True):
         """
         Returns:
@@ -457,15 +459,10 @@ class MCAgentMemory(AgentMemory):
 
     # WARNING: these do not search archived/snapshotted block objects
     # TODO replace all these all through the codebase with generic counterparts
-    def get_block_object_ids_by_xyz(self, xyz: XYZ) -> List[str]:
-        """Only get ids of memory node of type "BlockObjects" at (x, y, z)"""
-        # return self.basic_search("SELECT uuid FROM BlockObject WHERE x={0} AND y={1} AND z={2}".format(*xyz))
-        return self.get_object_info_by_xyz(xyz, "BlockObjects")
-
     def get_block_object_by_xyz(self, xyz: XYZ) -> Optional["VoxelObjectNode"]:
         """Get ids of memory node of type "BlockObjects" or "VoxelObjectNode"
         at (x, y, z)"""
-        memids = self.get_block_object_ids_by_xyz(xyz)
+        memids = self.get_object_info_by_xyz(xyz, "BlockObjects")
         if len(memids) == 0:
             return None
         return self.basic_search(
