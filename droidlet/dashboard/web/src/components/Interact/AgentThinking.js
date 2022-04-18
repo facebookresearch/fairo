@@ -53,7 +53,7 @@ class AgentThinking extends Component {
         // If there's no task, leave this pane
         // If it's a HIT go to error labeling, else back to Message
         if (this.props.isTurk) {
-          this.props.goToQuestion(this.props.chats.length - 1);
+          this.props.goToQuestion(this.props.commands.length - 1);
         } else {
           this.props.goToMessage();
         }

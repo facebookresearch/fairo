@@ -402,12 +402,20 @@ class StateManager {
     // TODO handle content types besides plain text
     
     console.log(res);
-    let chat;
+    let chat, response_options;
     try {
+      if (res.content_type == "point") { return }  // Let the minecraft client handle point
       let content = res.content;
       chat = content.filter(entry => entry["id"] == "text")[0]["content"];
+      if (res.content_type == "chat_and_text_options") {
+        response_options = content.filter(entry => entry["id"] == "response_option").map(x => x["content"]);
+        console.log("Response options: " + JSON.stringify(response_options)); 
+      } else {
+        response_options = [];
+      }
     } catch (e) {
       chat = res.agent_reply;
+      response_options = [];
     }
     this.memory.agent_replies.push({
       msg: chat,
@@ -418,14 +426,17 @@ class StateManager {
       if (ref instanceof InteractApp) {
         ref.setState({
           agent_replies: this.memory.agent_replies,
+          response_options: response_options,
         });
       }
       if (ref instanceof Message) {
         ref.setState({
           agent_replies: this.memory.agent_replies,
+          response_options: response_options,
         });
       }
     });
+    // }
   }
 
   sendCommandToTurkInfo(cmd) {

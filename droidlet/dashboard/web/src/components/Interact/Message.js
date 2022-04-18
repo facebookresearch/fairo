@@ -15,6 +15,7 @@ class Message extends Component {
       enableVoice: this.props.enableVoice,
       connected: false,
       agent_replies: this.props.agent_replies,
+      response_options: this.props.response_options,
     };
     this.state = this.initialState;
     this.elementRef = React.createRef();
@@ -77,7 +78,8 @@ class Message extends Component {
   handleSubmit() {
     //get the message
     var chatmsg = document.getElementById("msg").value;
-    if (chatmsg.replace(/\s/g, "") !== "") {
+    let chatClean = chatmsg.replace(/\s/g, "")
+    if (chatClean !== "") {
       //add to chat history box of parent
       this.props.setInteractState({ msg: chatmsg, timestamp: Date.now() });
       //log message to flask
@@ -100,6 +102,10 @@ class Message extends Component {
       //change to the AgentThinking view pane if it makes sense
       if (this.props.agentType === "craftassist") {
         this.props.goToAgentThinking();
+      }
+      if (!this.state.response_options.includes(chatClean)) {
+        // This is not a clarification response, so we should also log it to the command list
+        this.props.buildCommandList(chatmsg);
       }
     }
   }

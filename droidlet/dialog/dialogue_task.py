@@ -78,6 +78,33 @@ class Say(Task):
         self.agent.send_chat(random.choice(self.response_options))
 
 
+class Point(Task):
+    """This Task is a wrapper for the point_at function
+
+    Args:
+        bounds: list of x1 y1 z1 x2 y2 z2, where:
+            x1 <= x2,
+            y1 <= y2,
+            z1 <= z2.
+        sleep: float of seconds to sleep (to avoid running perceive while pointing)
+
+    """
+
+    def __init__(self, agent, task_data):
+        super().__init__(agent, task_data={})
+        self.bounds = task_data.get("bounds")
+        self.sleep_time = task_data.get("sleep_time")
+        if not self.bounds:
+            raise ValueError("Cannot init a Point with no target")
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        """Point at the target."""
+        self.finished = True
+        self.agent.point_at(target=self.bounds, sleep=self.sleep_time)
+
+
 class BotCapabilities(Say):
     """This class represents a sub-type of the Say Task to answer
     something about the current capabilities of the bot, to the user.
@@ -148,66 +175,6 @@ class ConfirmTask(Task):
         return
 
 
-class ConfirmReferenceObject(Task):
-    """This Task confirms if a reference object is correct.
-
-    if there is a response that maps to "yes"  it will place a triple
-    (subj=self.memid, pred_text="dialogue_task_output", obj_text="yes")
-    else (either no response, or maps no, or otherwise)
-    (subj=self.memid, pred_text="dialogue_task_output", obj_text="no")
-
-    Args:
-        bounds: general area of reference object to point at
-        pointed: flag determining whether the agent pointed at the area
-        asked: flag determining whether the confirmation was asked for
-
-    """
-
-    def __init__(self, agent, task_data={}):
-        task_data["blocking"] = True
-        super().__init__(agent, task_data=task_data)
-        r = task_data.get("reference_object")
-        if hasattr(r, "get_point_at_target"):
-            self.bounds = r.get_point_at_target()
-        else:
-            # this should be an error
-            self.bounds = tuple(np.min(r, axis=0)) + tuple(np.max(r, axis=0))
-        self.pointed = False
-        self.asked = False
-        TaskNode(agent.memory, self.memid).update_task(task=self)
-
-    @Task.step_wrapper
-    def step(self):
-        """Confirm the block object by pointing and wait for answer."""
-        if not self.asked:
-            task_list = [
-                Say(self.agent, {"response_options": self.question}),
-                AwaitResponse(self.agent, {"asker_memid": self.memid}),
-            ]
-            self.add_child_task(task_list)
-            self.asked = True
-            return
-        if not self.pointed:
-            # FIXME agent shouldn't just point, should make a task etc.
-            self.agent.point_at(self.bounds)
-            self.add_child_task(AwaitResponse(self.agent))
-            self.pointed = True
-            return
-        self.finished = True
-        # FIXME: change this to sqly when syntax for obj searches is settled:
-        t = self.agent.memory.get_triples(subj=self.memid, pred_text="dialogue_task_response")
-        chat_mems = [self.agent.memory.get_mem_by_id(triples[2]) for triples in t]
-        response = "no"
-        if chat_mems:
-            # FIXME...
-            if chat_mems[0].chat_text in MAP_YES:
-                response = "yes"
-        self.agent.memory.add_triple(
-            subj=self.memid, pred_text="dialogue_task_output", obj_text=response
-        )
-        return
-
-
 def build_question_json(
     text: str,
     media: list = None,
@@ -255,6 +222,7 @@ def check_parse(task):
         AwaitResponse(task.agent, {"asker_memid": task.memid}),
     ]
     task.add_child_task(maybe_task_list_to_control_block(task_list, task.agent))
+    task.asks += 1
 
 
 def map_yes_last_chat(task):
@@ -273,12 +241,13 @@ def point_at(task, target):
     else:
         # FIXME is there a more graceful way to handle this?
         return
-    # FIXME agent shouldn't just point, should make a task etc.
     task.agent.point_at(bounds)
     question = f"Is this the {task.ref_obj_span}? (Look for the flashing object)"
+    question_obj = build_question_json(question, text_response_options=["yes", "no"])
     task_list = [
-        Say(task.agent, {"response_options": question}),
-        AwaitResponse(task.agent, {"asker_memid": task.memid}),
+        Say(task.agent, {"response_options": question_obj} ),
+        # Point(task.agent, {"bounds": bounds, "sleep_time": 4.0} ),
+        AwaitResponse(task.agent, {"asker_memid": task.memid} ),
     ]
     task.add_child_task(maybe_task_list_to_control_block(task_list, task.agent))
     task.asks += 1
@@ -307,7 +276,7 @@ class ClarifyCC1(Task):
         super().__init__(agent, task_data=task_data)
         self.dlf = task_data.get("dlf")
         self.candidates = self.dlf["class"]["candidates"]
-        self.currect_candidate = None
+        self.current_candidate = None
         self.action = self.dlf["action"]["action_type"]
         self.ref_obj_span = self.dlf["action"]["reference_object"][
             "text_span"
@@ -333,15 +302,14 @@ class ClarifyCC1(Task):
             if self.asks == 1:
                 # ask whether the original parse is nominally right
                 check_parse(self)
-                self.asks += 1
                 return
 
             elif self.asks == 2:
                 response = map_yes_last_chat(self)
                 if response == "yes":
                     # The parse was at least kind of right, start suggesting objects
-                    self.currect_candidate = self.candidates.pop(0)
-                    point_at(self, self.agent.memory.get_mem_by_id(self.currect_candidate))
+                    self.current_candidate = self.candidates.pop(0)
+                    point_at(self, self.agent.memory.get_mem_by_id(self.current_candidate))
                 else:
                     # Seemingly a bad parse, move on to error marking
                     clarification_failed(self)
@@ -351,19 +319,19 @@ class ClarifyCC1(Task):
                 # Check if the last obj was right, if not continue
                 response = map_yes_last_chat(self)
                 if response == "no":
-                    self.currect_candidate = self.candidates.pop(0)
-                    point_at(self, self.agent.memory.get_mem_by_id(self.currect_candidate))
+                    self.current_candidate = self.candidates.pop(0)
+                    point_at(self, self.agent.memory.get_mem_by_id(self.current_candidate))
                 else:
                     # Found it! Add the approriate tag to current candidate and mark it as the output
                     self.agent.memory.add_triple(
-                        subj=self.currect_candidate,
+                        subj=self.current_candidate,
                         pred_text="has_tag",
                         obj_text=self.ref_obj_span,
                     )
                     self.agent.memory.add_triple(
                         subj=self.memid,
                         pred_text="dialogue_clarification_output",
-                        obj_text=self.currect_candidate,
+                        obj_text=self.current_candidate,
                     )
                     self.add_child_task(
                         Say(self.agent, {"response_options": "Thank you for clarifying!"})

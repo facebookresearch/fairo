@@ -17,10 +17,12 @@ class InteractApp extends Component {
       lastChatActionDict: "",
       status: "",
       chats: [{ msg: "", timestamp: Date.now() }],
+      commands: [""],
       failidx: -1,
       agent_replies: [{}],
       agentType: null,
       isTurk: false,
+      response_options: [],
     };
     this.state = this.initialState;
     this.goToQuestionWindow = this.goToQuestionWindow.bind(this);
@@ -32,6 +34,13 @@ class InteractApp extends Component {
     var new_chats = [...this.state.chats];
     new_chats.push(chat);
     this.setState({ chats: new_chats });
+  }
+
+  buildCommandList(cmd) {
+    // make a shallow copy of commands
+    var new_cmds = [...this.state.commands];
+    new_cmds.push(cmd);
+    this.setState({ commands: new_cmds });
   }
 
   componentDidMount() {
@@ -87,7 +96,7 @@ class InteractApp extends Component {
     // Send request to retrieve the logic form of last sent command
     this.props.stateManager.socket.emit(
       "getChatActionDict",
-      this.state.chats[idx]["msg"]
+      this.state.commands[idx]
     );
   }
 
@@ -124,9 +133,11 @@ class InteractApp extends Component {
               agentType={this.state.agentType}
               enableVoice={false}
               agent_replies={this.state.agent_replies}
+              response_options={this.state.response_options}
               goToQuestion={this.goToQuestion.bind(this)}
               goToAgentThinking={this.goToAgentThinking.bind(this)}
               setInteractState={this.setInteractState.bind(this)}
+              buildCommandList={this.buildCommandList.bind(this)}
             />
           ) : null}
           {this.state.currentView === 2 ? (
@@ -141,7 +152,7 @@ class InteractApp extends Component {
           {this.state.currentView === 3 ? (
             <AgentThinking
               stateManager={this.props.stateManager}
-              chats={this.state.chats}
+              commands={this.state.commands}
               isTurk={this.state.isTurk}
               goToMessage={this.goToMessage.bind(this)}
               goToQuestion={this.goToQuestion.bind(this)}
