@@ -459,6 +459,8 @@ class MCAgentMemory(AgentMemory):
 
     # WARNING: these do not search archived/snapshotted block objects
     # TODO replace all these all through the codebase with generic counterparts
+    # FIXME can not be simply replaced by basic_search, not sure how to use
+    # _db_read to access objects instead of uuid's
     def get_block_object_by_xyz(self, xyz: XYZ) -> Optional["VoxelObjectNode"]:
         """Get ids of memory node of type "BlockObjects" or "VoxelObjectNode"
         at (x, y, z)"""
@@ -473,6 +475,8 @@ class MCAgentMemory(AgentMemory):
     ### InstSegObject ###
     #####################
 
+    # TODO can not be directly replaced with basic-search, since it searches
+    # over ReferenceObjects which are indexed by avg-xyz not per-xyz
     def get_instseg_object_ids_by_xyz(self, xyz: XYZ) -> List[str]:
         """Get ids of memory nodes of ref_type: "inst_seg" using their
         location"""
