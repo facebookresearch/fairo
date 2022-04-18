@@ -209,7 +209,8 @@ if __name__ == '__main__':
 
             pixel_error = L(param_star).item()
             print('stage 2 mean pixel error', pixel_error)
-            print(f"Try again because of poor solution {pixel_error} > {args.pixel_tolerance}")
+            if pixel_error > args.pixel_tolerance:
+                print(f"Try again because of poor solution {pixel_error} > {args.pixel_tolerance}")
             
 
         print(f"Good solution {pixel_error} <= {args.pixel_tolerance}")
