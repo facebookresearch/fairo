@@ -52,10 +52,10 @@ head_bob = [
 
 
 def add_default_dances(memory):
-    memory.nodes[DanceNode.NODE_TYPE].create(
+    memory.nodes["Dance"].create(
         memory, generate_sequential_move_fn(konami_dance), name - "konami_dance", tags=["dance"]
     )
-    memory.nodes[DanceNode.NODE_TYPE].create(
+    memory.nodes["Dance"].create(
         memory, generate_sequential_move_fn(head_bob), name="head_bob", tags=["dance"]
     )
 
