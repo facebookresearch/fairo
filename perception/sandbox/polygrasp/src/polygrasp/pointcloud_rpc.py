@@ -64,7 +64,7 @@ class PointCloudClient:
             pcd.transform(transform)
             scene_pcd += pcd
 
-        o3d.visualization.draw_geometries([scene_pcd])
+        # o3d.visualization.draw_geometries([scene_pcd])
         return scene_pcd
 
     def segment_pcd(self):

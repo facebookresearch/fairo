@@ -6,3 +6,4 @@ robot:
     _target_: polymetis.GripperInterface
 
 camera_extrinsics_path: ../eyehandcal/calibration.json
+view_json_path: conf/o3d_view.json

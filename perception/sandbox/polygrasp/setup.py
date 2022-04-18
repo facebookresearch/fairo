@@ -10,7 +10,6 @@ __copyright__ = "2022, Meta"
 
 install_requires = [
     "grpcio-tools",
-    "realsense_wrapper",
     "mrp",
     "fairomsg",
 ]
