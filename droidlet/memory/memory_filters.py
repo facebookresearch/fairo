@@ -322,9 +322,9 @@ class MemorySearcher:
         find all records matching a single comparator
         """
         # TODO: if input_left or input_right are subqueries...
-        v = where_clause["input_left"]["value_extractor"]
+        v = where_clause["input_left"]
         input_left = v.get("attribute")
-        input_right = where_clause["input_right"]["value_extractor"]
+        input_right = where_clause["input_right"]
         if type(input_right) is dict:
             raise Exception(
                 "currently basic search assumes input_right is a fixed value (not FILTERS): {}".format(
@@ -451,7 +451,7 @@ class MemorySearcher:
         else:
             return memids
 
-    def handle_output(self, agent_memory, query, memids):
+    def handle_output(self, agent_memory, query, memids, get_all):
         output = query.get("output", "MEMORY")
         if output == "MEMORY":
             return [agent_memory.get_mem_by_id(m) for m in memids]
@@ -469,22 +469,31 @@ class MemorySearcher:
                 except:
                     raise Exception("malformed output clause: {}".format(query))
             values_dict = {m: [] for m in memids}
-            for aname in attribute_name_list:
-                if type(aname) is not str:
-                    raise Exception(
-                        "output attribute in basic search should be (list of) simple properties, instead got: {}".format(
-                            attribute_name_list
+            for m in memids:
+                attributes = []
+                for aname in attribute_name_list:
+                    if type(aname) is not str:
+                        raise Exception(
+                            "output attribute in basic search should be (list of) simple properties, instead got: {}".format(
+                                attribute_name_list
+                            )
                         )
-                    )
-                for m in memids:
-                    values_dict[m].append(get_property_value(agent_memory, m, aname))
-            if len(attribute_name_list) == 1:
-                for m in values_dict:
-                    values_dict[m] = values_dict[m][0]
+                    prop_vals = get_property_value(agent_memory, m, aname, get_all)
+                    if type(prop_vals) is list:
+                        for prop_val in prop_vals:
+                            attributes.append(prop_val)
+                    else:
+                        attributes.append(prop_vals)
+                if len(attribute_name_list) == 1:
+                    # attributes for this memid are single values
+                    values_dict[m] += attributes
+                else:
+                    # attributes for this memid are a list
+                    values_dict[m].append(attributes)
             # TODO switch everything to dicts
             return [values_dict[m] for m in memids]
 
-    def search(self, agent_memory, query=None, default_memtype="ReferenceObject"):
+    def search(self, agent_memory, query=None, default_memtype="ReferenceObject", get_all=False):
         # returns a list of memids and accompanying values
         # TODO values are MemoryNodes when query is SELECT MEMORIES
         query = query or self.query
@@ -509,7 +518,18 @@ class MemorySearcher:
             except:
                 pass
             # TODO/FIXME switch output format to dicts
-        return memids, self.handle_output(agent_memory, query, memids)
+
+        vals = self.handle_output(agent_memory, query, memids, get_all)
+        repeated_memids = []
+        flattened_vals = []
+        for idx, v in enumerate(vals):
+            if type(v) is list:
+                repeated_memids += [memids[idx]] * len(v)
+                flattened_vals += v
+            else:
+                repeated_memids.append(memids[idx])
+                flattened_vals.append(v)
+        return repeated_memids, flattened_vals
 
 
 # TODO subclass for filters that return at most one memory,value?

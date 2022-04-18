@@ -40,7 +40,7 @@ def process(
     env: dict = {},
 ) -> ProcDef:
     if name in defined_processes:
-        raise ValueError(f"mrp.process({name=}) defined multiple times.")
+        raise ValueError(f"mrp.process(name={name}) defined multiple times.")
 
     rule_file = os.path.abspath(inspect.stack()[1].filename)
     rule_dir = os.path.dirname(rule_file)
@@ -54,7 +54,7 @@ def process(
     for k, v in env.items():
         if [type(k), type(v)] != [str, str]:
             raise ValueError(
-                f"mrp process [{name}] invalid. env is not dict[str, str]"
+                f"mrp.process(name={name}) invalid. env is not dict[str, str]"
             )
 
     defined_processes[name] = ProcDef(

@@ -5,11 +5,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from typing import Tuple, Dict, Any, Optional
 
 from droidlet.memory.memory_nodes import PlayerNode
-from droidlet.task.task import ControlBlock, maybe_task_list_to_control_block
+from droidlet.task.task import ControlBlock, maybe_bundle_task_list
 from droidlet.interpreter import (
     AGENTPOS,
     ConditionInterpreter,
-    get_repeat_num,
     Interpreter,
     AttributeInterpreter,
     interpret_dance_filter,
@@ -22,6 +21,8 @@ from .point_target import PointTargetInterpreter
 
 import droidlet.interpreter.robot.dance as dance
 import droidlet.interpreter.robot.tasks as tasks
+from droidlet.task.task import task_to_generator
+from droidlet.dialog.dialogue_task import Say
 
 
 def post_process_loc(loc, interpreter):
@@ -58,6 +59,7 @@ class LocoInterpreter(Interpreter):
         self.subinterpret["dances_filters"] = interpret_dance_filter
         self.subinterpret["point_target"] = PointTargetInterpreter()
 
+        self.action_handlers["STOP"] = self.handle_stop
         self.action_handlers["DANCE"] = self.handle_dance
         self.action_handlers["GET"] = self.handle_get
         self.action_handlers["DROP"] = self.handle_drop
@@ -72,7 +74,16 @@ class LocoInterpreter(Interpreter):
             "control": ControlBlock,
             "get": tasks.Get,
             "drop": tasks.Drop,
+            "stop": tasks.Stop,
         }
+
+    # TODO mark in memory it was stopped by command
+    # TODO pathway for hardstop
+    def handle_stop(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
+        self.finished = True
+        if self.memory.task_stack_pause():
+            Say(agent, task_data={"response_options": "Stopping"})
+        return task_to_generator(self.task_objects["stop"](agent, {}))
 
     def handle_get(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         default_ref_d = {"filters": {"location": AGENTPOS}}
@@ -103,12 +114,10 @@ class LocoInterpreter(Interpreter):
             task_data = {"get_target": obj.memid, "give_target": receiver, "action_dict": d}
             tasks.append(self.task_objects["get"](agent, task_data))
         #        logging.info("Added {} Get tasks to stack".format(len(tasks)))
-        return maybe_task_list_to_control_block(tasks, agent), None, None
+        return maybe_bundle_task_list(agent, tasks)
 
     def handle_dance(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         def new_tasks():
-            repeat = get_repeat_num(d)
-            tasks_to_do = []
             # only go around the x has "around"; FIXME allow other kinds of dances
             location_d = d.get("location")
             if location_d is not None:
@@ -172,16 +181,11 @@ class LocoInterpreter(Interpreter):
                     raise ErrorWithResponse("I don't know how to do that movement yet.")
             return t
 
-        if "remove_condition" in d:
-            condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
-            task_data = {"new_tasks": new_tasks, "remove_condition": condition, "action_dict": d}
-            return self.task_objects["control"](agent, task_data), None, None
-        else:
-            return new_tasks(), None, None
+        return new_tasks
 
     def handle_drop(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         """
         Drops whatever object in hand
         """
 
-        return self.task_objects["drop"](agent, {"action_dict": d}), None, None
+        return maybe_bundle_task_list(agent, self.task_objects["drop"](agent, {"action_dict": d}))

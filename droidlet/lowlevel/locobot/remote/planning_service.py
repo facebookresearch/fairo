@@ -3,6 +3,7 @@ import math
 import numpy as np
 import Pyro4
 from slam_pkg.utils.fmm_planner import FMMPlanner
+from rich import print
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
@@ -59,8 +60,16 @@ class Planner(object):
             # -- related to the SLAM service's 2D map resolution.
             # so, finally, issue a last call to go to the precise final location
             # and to also use the rotation from the final goal
+            print(
+                "Short-term goal {} is within threshold or target goal {}".format(stg_real, goal)
+            )
             target_goal = goal
         else:
+            print(
+                "Short-term goal {} is not within threshold or target goal {}".format(
+                    stg_real, goal
+                )
+            )
             rotation_angle = np.arctan2(
                 stg_real[1] - robot_location[1], stg_real[0] - robot_location[0]
             )
@@ -76,29 +85,20 @@ class Planner(object):
         if len(robot_location) == 3 and len(goal) == 3:
             angle_threshold = 1  # in degrees
             angle = robot_location[2] - goal[2]
-            abs_angle = math.fabs(math.degrees(angle))
+            abs_angle = math.fabs(math.degrees(angle)) % 360
 
             within_threshold = distance < threshold and abs_angle < angle_threshold
-            print(
-                "goal_within_threshold: ",
-                within_threshold,
-                distance,
-                threshold,
-                abs_angle,
-                angle_threshold,
-                robot_location,
-                goal,
-            )
+            print("goal_within_threshold: ", within_threshold)
+            print("Distance: {} < {}".format(distance, threshold))
+            print("Angle: {} < {}".format(abs_angle, angle_threshold))
+            print("Robot Location: {}".format(robot_location))
+            print("Goal:           {}".format(goal))
         else:
             within_threshold = distance < threshold
-            print(
-                "goal_within_threshold: ",
-                within_threshold,
-                distance,
-                threshold,
-                robot_location,
-                goal,
-            )
+            print("goal_within_threshold: ", within_threshold)
+            print("Distance: {} < {}".format(distance, threshold))
+            print("Robot Location: {}".format(robot_location))
+            print("Goal:           {}".format(goal))
         return within_threshold
 
 

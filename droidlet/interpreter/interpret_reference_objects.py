@@ -202,6 +202,7 @@ def interpret_reference_object(
 
         elif allow_clarification:
             # no candidates found; ask Clarification
+            # FIXME!  this has rotted.  backoff the original filters
             confirm_candidates = apply_memory_filters(interpreter, speaker, filters_d)
             objects = object_looked_at(interpreter.memory, confirm_candidates, speaker=speaker)
             if len(objects) == 0:

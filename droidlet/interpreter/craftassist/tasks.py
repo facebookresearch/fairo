@@ -510,7 +510,6 @@ class Build(Task):
         else:
             # too far to place; move first
             task = Move(agent, {"target": target, "approx": self.PLACE_REACH})
-
             self.add_child_task(task)
 
     def add_tags(self, agent, block):

@@ -20,10 +20,10 @@ def detect_corners(data, target_idx=9):
     for i,d in enumerate(data):
         d['corners'] = []
         for j, img in enumerate(d['imgs']):
-            result=cv2.aruco.detectMarkers(img, dictionary=aruco_dict, parameters=aruco_param)
+            result=cv2.aruco.detectMarkers(img.astype(np.uint8), dictionary=aruco_dict, parameters=aruco_param)
             corners, idx, rej = result
             if idx is not None and target_idx in idx:
-                corner_i = idx.squeeze().tolist().index(target_idx)
+                corner_i = idx.squeeze(axis=1).tolist().index(target_idx)
                 target_corner=corners[corner_i][0,0,:].tolist()
                 d['corners'].append(target_corner)
             else:
@@ -146,3 +146,28 @@ def sim_data(n, K, noise_std=0):
             #     'marker_image', p_marker_image)
     
     return data, gt_param
+
+
+"""
+Taken from https://stackoverflow.com/a/59086818/9654319
+"""
+
+from numpy.linalg import det
+from scipy.stats import dirichlet
+from scipy.spatial import ConvexHull, Delaunay
+import numpy as np
+
+
+def dist_in_hull(points, n):
+    dims = points.shape[-1]
+    hull = points[ConvexHull(points).vertices]
+    deln = hull[Delaunay(hull).simplices]
+
+    vols = np.abs(det(deln[:, :dims, :] - deln[:, dims:, :])) / np.math.factorial(dims)    
+    sample = np.random.choice(len(vols), size = n, p = vols / vols.sum())
+
+    result = np.einsum('ijk, ij -> ik', deln[sample], dirichlet.rvs([1]*(dims + 1), size = n))
+
+    # lexsort sorts using last key as primary, then second-to-last, etc.
+    sorted_indices = np.lexsort([result[:, 2], result[:, 1], result[:, 0]])
+    return result[sorted_indices]

@@ -48,7 +48,10 @@ class Memory2D extends React.Component {
     }
   };
   convertGridCoordinate = (xy) => {
-    const { width, height, xmax, xmin, ymax, ymin } = this.state;
+    const { xmax, xmin, ymax, ymin } = this.state;
+    let { width, height } = this.state;
+    width = Math.min(width, height);
+    height = width;
     return [
       (xy[1] * (ymax - ymin)) / height + ymin,
       0,
@@ -56,7 +59,10 @@ class Memory2D extends React.Component {
     ];
   };
   convertCoordinate = (xyz) => {
-    const { width, height, xmax, xmin, ymax, ymin } = this.state;
+    const { xmax, xmin, ymax, ymin } = this.state;
+    let { width, height } = this.state;
+    width = Math.min(width, height);
+    height = width;
     let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
     let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
     y = height - y;
@@ -163,6 +169,8 @@ class Memory2D extends React.Component {
       drag_coordinates,
       stageScale,
     } = this.state;
+    width = Math.min(width, height);
+    height = width;
     let { objects } = memory;
     let { xmin, xmax, ymin, ymax } = this.state;
     let bot_x = bot_xyz[1];

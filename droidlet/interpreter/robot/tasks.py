@@ -26,6 +26,19 @@ from droidlet.lowlevel.robot_mover_utils import (
     get_circular_path,
 )
 
+
+# TODO make this highest priority, hardstop, etc
+class Stop(Task):
+    def __init__(self, agent, task_data, featurizer=None):
+        super().__init__(agent)
+        TaskNode(self.agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        self.agent.mover.stop()
+        self.finished = True
+
+
 # FIXME store dances, etc.
 class Dance(Task):
     def __init__(self, agent, task_data, featurizer=None):
@@ -169,12 +182,12 @@ class Move(BaseMovementTask):
             logging.info("calling move with : %r" % (self.target.tolist()))
             self.command_sent = True
             if self.is_relative:
-                self.agent.mover.move_relative([self.target.tolist()])
+                self.agent.mover.move_relative([self.target.tolist()], blocking=False)
             else:
-                self.agent.mover.move_absolute([self.target.tolist()])
+                self.agent.mover.move_absolute([self.target.tolist()], blocking=False)
 
         else:
-            self.finished = self.agent.mover.bot_step()
+            self.finished = not self.agent.mover.is_busy()
 
     def __repr__(self):
         return "<Move {}>".format(self.target)
@@ -195,7 +208,7 @@ class Turn(Task):
             self.command_sent = True
             self.agent.mover.turn(self.yaw)
         else:
-            self.finished = self.agent.mover.bot_step()
+            self.finished = not self.agent.mover.is_busy()
 
     def __repr__(self):
         return "<Turn {} degrees>".format(self.yaw)
