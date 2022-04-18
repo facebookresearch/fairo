@@ -20,11 +20,8 @@ class LoCoBotMover:
     def get_rgb_depth(self):
         print("getting rgb")
         rgb = self.bot.get_rgb()
-
         depth = self.bot.get_depth()
-
-        # pts = self.bot.dip_pix_to_3dpt()
-        return rgb, depth  # , pts
+        return rgb, depth
 
 
 if __name__ == "__main__":

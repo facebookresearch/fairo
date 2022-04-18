@@ -35,7 +35,7 @@ class Memory2D extends React.Component {
       stageX: 0,
       stageY: 0,
       memory2d_className: "memory2d",
-      drag_coordinates: [0,0],
+      drag_coordinates: [0, 0],
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -43,20 +43,26 @@ class Memory2D extends React.Component {
   }
   handleDrag = (className, drag_coordinates) => {
     this.setState({ memory2d_className: className });
-    if(drag_coordinates){
-      this.setState({drag_coordinates});
+    if (drag_coordinates) {
+      this.setState({ drag_coordinates });
     }
   };
-  convertGridCoordinate = (xy) =>{
-    const { width, height, xmax, xmin, ymax, ymin } = this.state;
-    return ([
-      ((xy[1] * (ymax - ymin)) / height) + ymin,
+  convertGridCoordinate = (xy) => {
+    const { xmax, xmin, ymax, ymin } = this.state;
+    let { width, height } = this.state;
+    width = Math.min(width, height);
+    height = width;
+    return [
+      (xy[1] * (ymax - ymin)) / height + ymin,
       0,
-      ((xy[0] * (xmax - xmin)) / width) + xmin
-    ])
-  }
+      (xy[0] * (xmax - xmin)) / width + xmin,
+    ];
+  };
   convertCoordinate = (xyz) => {
-    const { width, height, xmax, xmin, ymax, ymin } = this.state;
+    const { xmax, xmin, ymax, ymin } = this.state;
+    let { width, height } = this.state;
+    width = Math.min(width, height);
+    height = width;
     let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
     let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
     y = height - y;
@@ -81,7 +87,7 @@ class Memory2D extends React.Component {
     this.setState({
       drag_coordinates: [
         -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale,
-        -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale
+        -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
       ],
       stageScale: newScale,
       stageX:
@@ -153,7 +159,18 @@ class Memory2D extends React.Component {
 
   render() {
     if (!this.state.isLoaded) return <p>Loading</p>;
-    let { height, width, memory, bot_xyz, obstacle_map, tooltip, drag_coordinates, stageScale } = this.state;
+    let {
+      height,
+      width,
+      memory,
+      bot_xyz,
+      obstacle_map,
+      tooltip,
+      drag_coordinates,
+      stageScale,
+    } = this.state;
+    width = Math.min(width, height);
+    height = width;
     let { objects } = memory;
     let { xmin, xmax, ymin, ymax } = this.state;
     let bot_x = bot_xyz[1];
@@ -186,35 +203,36 @@ class Memory2D extends React.Component {
         );
       });
     }
+    if (objects !== undefined && objects.forEach !== undefined) {
+      objects.forEach((obj, key, map) => {
+        let color = colorScheme[Math.abs(hashCode(obj.label)) % 10];
+        let xyz = obj.xyz;
+        let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
+        let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
+        y = height - y;
+        renderedObjects.push(
+          <Circle
+            key={j++}
+            radius={3}
+            x={x}
+            y={y}
+            fill={color}
+            onMouseEnter={(e) => {
+              this.setState({
+                tooltip: JSON.stringify(obj, null, 4),
+              });
 
-    objects.forEach((obj, key, map) => {
-      let color = colorScheme[Math.abs(hashCode(obj.label)) % 10];
-      let xyz = obj.xyz;
-      let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
-      let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
-      y = height - y;
-      renderedObjects.push(
-        <Circle
-          key={j++}
-          radius={3}
-          x={x}
-          y={y}
-          fill={color}
-          onMouseEnter={(e) => {
-            this.setState({
-              tooltip: JSON.stringify(obj, null, 4),
-            });
-
-            e.currentTarget.setRadius(6);
-          }}
-          onMouseLeave={(e) => {
-            this.setState({ tooltip: null });
-            e.currentTarget.setRadius(3);
-          }}
-        />
-      );
-      // renderedObjects.push(<Text key={j++} text={obj.label} x={x} y={y} fill={color} fontSize={10} />);
-    });
+              e.currentTarget.setRadius(6);
+            }}
+            onMouseLeave={(e) => {
+              this.setState({ tooltip: null });
+              e.currentTarget.setRadius(3);
+            }}
+          />
+        );
+        // renderedObjects.push(<Text key={j++} text={obj.label} x={x} y={y} fill={color} fontSize={10} />);
+      });
+    }
 
     /* bot marker
       a circle to show position and
@@ -270,12 +288,12 @@ class Memory2D extends React.Component {
     let x = (coordinateRootPoint[0] - drag_coordinates[0]) / stageScale;
     let y = (coordinateRootPoint[1] - drag_coordinates[1]) / stageScale;
 
-    let rootPoint = this.convertGridCoordinate([x,y]);
+    let rootPoint = this.convertGridCoordinate([x, y]);
     let strokeWidth = 0.5 / stageScale;
 
     let axesZ = (
       <Line
-        key = "axesZ"
+        key="axesZ"
         points={[0, 0, width, 0]}
         x={x}
         y={y}
@@ -286,7 +304,7 @@ class Memory2D extends React.Component {
 
     let axesX = (
       <Line
-        key = "axesX"
+        key="axesX"
         points={[0, -height, 0, 0]}
         x={x}
         y={y}
@@ -301,18 +319,21 @@ class Memory2D extends React.Component {
     */
     let notches = [];
     let endPointXZ = [
-      (coordinateRootPoint[0] + width),
-      (coordinateRootPoint[1] - height) 
+      coordinateRootPoint[0] + width,
+      coordinateRootPoint[1] - height,
     ];
     let tmpPointX = coordinateRootPoint[0];
     let tmpPointY = coordinateRootPoint[1];
 
     while (tmpPointX < endPointXZ[0]) {
       tmpPointX += 30;
-      let coordinate = this.convertGridCoordinate([(tmpPointX - drag_coordinates[0]) / stageScale, 0]);
+      let coordinate = this.convertGridCoordinate([
+        (tmpPointX - drag_coordinates[0]) / stageScale,
+        0,
+      ]);
       notches.push(
         <Text
-          key = {"textCoordinateX-" + tmpPointX}
+          key={"textCoordinateX-" + tmpPointX}
           text={coordinate[2].toFixed(2)}
           fontSize={10 / stageScale}
           x={(tmpPointX - 10 - drag_coordinates[0]) / stageScale}
@@ -322,7 +343,7 @@ class Memory2D extends React.Component {
       );
       notches.push(
         <Line
-          key = {"coordinateX-" + tmpPointX}
+          key={"coordinateX-" + tmpPointX}
           points={[0, -3 / stageScale, 0, 3 / stageScale]}
           x={(tmpPointX - drag_coordinates[0]) / stageScale}
           y={y}
@@ -334,10 +355,13 @@ class Memory2D extends React.Component {
 
     while (tmpPointY > endPointXZ[1]) {
       tmpPointY = tmpPointY - 20;
-      let coordinate = this.convertGridCoordinate([0, (tmpPointY - drag_coordinates[1]) / stageScale]);
+      let coordinate = this.convertGridCoordinate([
+        0,
+        (tmpPointY - drag_coordinates[1]) / stageScale,
+      ]);
       notches.push(
         <Text
-          key = {"textCoordinateY-" + tmpPointY}
+          key={"textCoordinateY-" + tmpPointY}
           text={coordinate[0].toFixed(2)}
           fontSize={10 / stageScale}
           x={(coordinateRootPoint[0] - 35 - drag_coordinates[0]) / stageScale}
@@ -347,7 +371,7 @@ class Memory2D extends React.Component {
       );
       notches.push(
         <Line
-          key = {"coordinateY-" + tmpPointY}
+          key={"coordinateY-" + tmpPointY}
           points={[-3 / stageScale, 0, 3 / stageScale, 0]}
           x={x}
           y={(tmpPointY - drag_coordinates[1]) / stageScale}
@@ -359,11 +383,11 @@ class Memory2D extends React.Component {
 
     let rootTextCoordinate = [
       (coordinateRootPoint[0] - 25 - drag_coordinates[0]) / stageScale,
-      (coordinateRootPoint[1] + 10 - drag_coordinates[1]) / stageScale
+      (coordinateRootPoint[1] + 10 - drag_coordinates[1]) / stageScale,
     ];
     notches.push(
       <Text
-        key = "root-text"
+        key="root-text"
         fill="#AAAAAA"
         text={`${rootPoint[0].toFixed(2)}, ${rootPoint[2].toFixed(2)}`}
         fontSize={10 / stageScale}
@@ -373,22 +397,34 @@ class Memory2D extends React.Component {
     );
     notches.push(
       <Text
-        key = "x-text"
-        fill ="#AAAAAA"
-        text = 'x'
+        key="x-text"
+        fill="#AAAAAA"
+        text="x"
         fontSize={12 / stageScale}
-        x={(this.convertCoordinate([-9,0,-8.8])[0] - drag_coordinates[0]) / stageScale}
-        y={(this.convertCoordinate([-9,0,-8.8])[1] - drag_coordinates[1]) / stageScale}
+        x={
+          (this.convertCoordinate([-9, 0, -8.8])[0] - drag_coordinates[0]) /
+          stageScale
+        }
+        y={
+          (this.convertCoordinate([-9, 0, -8.8])[1] - drag_coordinates[1]) /
+          stageScale
+        }
       />
     );
     notches.push(
       <Text
-        key = "z-text"
-        fill ="#AAAAAA"
-        text = 'z'
+        key="z-text"
+        fill="#AAAAAA"
+        text="z"
         fontSize={12 / stageScale}
-        x={(this.convertCoordinate([9.1,0,9])[0] - drag_coordinates[0]) / stageScale}
-        y={(this.convertCoordinate([9.1,0,9])[1] - drag_coordinates[1]) / stageScale}
+        x={
+          (this.convertCoordinate([9.1, 0, 9])[0] - drag_coordinates[0]) /
+          stageScale
+        }
+        y={
+          (this.convertCoordinate([9.1, 0, 9])[1] - drag_coordinates[1]) /
+          stageScale
+        }
       />
     );
     coordinateAxesLayer.push(axesX, axesZ, notches);
@@ -405,8 +441,15 @@ class Memory2D extends React.Component {
           scaleY={this.state.stageScale}
           x={this.state.stageX}
           y={this.state.stageY}
-          onDragMove={e => this.handleDrag("memory2d dragging-memory2d", [e.target.attrs.x, e.target.attrs.y])}
-          onDragEnd={e => this.handleDrag("memory2d", [e.target.attrs.x, e.target.attrs.y])}
+          onDragMove={(e) =>
+            this.handleDrag("memory2d dragging-memory2d", [
+              e.target.attrs.x,
+              e.target.attrs.y,
+            ])
+          }
+          onDragEnd={(e) =>
+            this.handleDrag("memory2d", [e.target.attrs.x, e.target.attrs.y])
+          }
         >
           <Layer className="gridLayer">{gridLayer}</Layer>
           <Layer className="coordinateAxesLayer">{coordinateAxesLayer}</Layer>

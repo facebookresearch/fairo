@@ -7,14 +7,21 @@ import os
 import json
 import time
 import copy
+import math
 from math import *
 
 import pyrealsense2 as rs
 import Pyro4
 import numpy as np
 import cv2
+import open3d as o3d
 from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
+from droidlet.lowlevel.hello_robot.remote.lidar import Lidar
 from slam_pkg.utils import depth_util as du
+import obstacle_utils
+from obstacle_utils import is_obstacle
+from droidlet.dashboard.o3dviz import serialize as o3d_pickle
+from data_compression import *
 
 
 # Configure depth and color streams
@@ -30,11 +37,13 @@ Pyro4.config.ITER_STREAMING = True
 
 
 @Pyro4.expose
-class RemoteHelloRobot(object):
+class RemoteHelloRealsense(object):
     """Hello Robot interface"""
 
     def __init__(self, bot):
         self.bot = bot
+        self._lidar = Lidar()
+        self._lidar.start()
         self._done = True
         self._connect_to_realsense()
         # Slam stuff
@@ -52,6 +61,17 @@ class RemoteHelloRobot(object):
 
     def get_camera_transform(self):
         return self.bot.get_camera_transform()
+
+    def get_lidar_scan(self):
+        # returns tuple (timestamp, scan)
+        return self._lidar.get_latest_scan()
+
+    def is_lidar_obstacle(self):
+        lidar_scan = self._lidar.get_latest_scan()
+        if lidar_scan is None:
+            print("no scan")
+            return False
+        return obstacle_utils.is_lidar_obstacle(lidar_scan)
 
     def _connect_to_realsense(self):
         config = rs.config()
@@ -73,6 +93,8 @@ class RemoteHelloRobot(object):
         color_profile = rs.video_stream_profile(profile.get_stream(rs.stream.color))
         i = color_profile.get_intrinsics()
         self.intrinsic_mat = np.array([[i.fx, 0, i.ppx], [0, i.fy, i.ppy], [0, 0, 1]])
+        self.intrinsic_o3d = o3d.camera.PinholeCameraIntrinsic(CW, CH, i.fx, i.fy, i.ppx, i.ppy)
+
         align_to = rs.stream.color
         self.align = rs.align(align_to)
         print("connected to realsense")
@@ -90,7 +112,7 @@ class RemoteHelloRobot(object):
         print("Connected!!")  # should print on server terminal
         return "Connected!"  # should print on client terminal
 
-    def get_rgb_depth(self, rotate=True):
+    def get_rgb_depth(self, rotate=True, compressed=False):
         tm = time.time()
         frames = None
         while not frames:
@@ -107,8 +129,11 @@ class RemoteHelloRobot(object):
             if not aligned_depth_frame or not color_frame:
                 continue
 
-            depth_image = np.asanyarray(aligned_depth_frame.get_data()) / 1000  # convert to meters
+            depth_image = np.asanyarray(aligned_depth_frame.get_data())
             color_image = np.asanyarray(color_frame.get_data())
+
+            if not compressed:
+                depth_image = depth_image / 1000  # convert to meters
 
             # rotate
             if rotate:
@@ -117,18 +142,87 @@ class RemoteHelloRobot(object):
 
         return color_image, depth_image
 
+    def get_open3d_pcd(self, rgb_depth=None, cam_transform=None, base_state=None):
+        # get data
+        if rgb_depth is None:
+            rgb, depth = self.get_rgb_depth(rotate=False, compressed=False)
+        else:
+            rgb, depth = rgb_depth
+
+        if cam_transform is None:
+            cam_transform = self.get_camera_transform()
+        if base_state is None:
+            base_state = self.bot.get_base_state()
+        intrinsic = self.intrinsic_o3d
+
+        # convert to open3d RGBDImage
+        rgb_u8 = np.ascontiguousarray(rgb[:, :, [2, 1, 0]], dtype=np.uint8)
+        depth_f32 = np.ascontiguousarray(depth, dtype=np.float32) * 1000
+        orgb = o3d.geometry.Image(rgb_u8)
+        odepth = o3d.geometry.Image(depth_f32)
+        orgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(
+            orgb, odepth, depth_trunc=10.0, convert_rgb_to_intensity=False
+        )
+
+        # create transform matrix
+        roty90 = o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi / 2, 0])
+        rotxn90 = o3d.geometry.get_rotation_matrix_from_axis_angle([-math.pi / 2, 0, 0])
+        rotz = o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, base_state[2]])
+        rot_cam = cam_transform[:3, :3]
+        trans_cam = cam_transform[:3, 3]
+        final_rotation = rotz @ rot_cam @ rotxn90 @ roty90
+        final_translation = [
+            trans_cam[0] + base_state[0],
+            trans_cam[1] + base_state[1],
+            trans_cam[2] + 0,
+        ]
+        final_transform = cam_transform.copy()
+        final_transform[:3, :3] = final_rotation
+        final_transform[:3, 3] = final_translation
+        extrinsic = np.linalg.inv(final_transform)
+        # create point cloud
+
+        opcd = o3d.geometry.PointCloud.create_from_rgbd_image(orgbd, intrinsic, extrinsic)
+        return opcd
+
+    def get_current_pcd(self):
+        rgb, depth = self.get_rgb_depth(rotate=False, compressed=False)
+        opcd = self.get_open3d_pcd(rgb_depth=[rgb, depth])
+        pcd = np.asarray(opcd.points)
+        return pcd, rgb
+
+    def is_obstacle_in_front(self, return_viz=False):
+        base_state = self.bot.get_base_state()
+        lidar_scan = self.get_lidar_scan()
+        pcd = self.get_open3d_pcd()
+        ret = is_obstacle(
+            pcd, base_state, lidar_scan=lidar_scan, max_dist=0.5, return_viz=return_viz
+        )
+        if return_viz:
+            obstacle, cpcd, crop, bbox, rest = ret
+            # cpcd = o3d_pickle(cpcd)
+            crop = o3d_pickle(crop)
+            bbox = o3d_pickle(bbox)
+            rest = o3d_pickle(rest)
+            # return obstacle, cpcd, crop, bbox, rest
+            return obstacle, crop, bbox, rest
+        else:
+            obstacle = ret
+            return obstacle
+
     def get_pcd_data(self, rotate=True):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
-        rgb, depth = self.get_rgb_depth(rotate=rotate)
-        depth *= 1000  # convert to mm
-        # cap anything more than np.power(2,16)~ 65 meter
+        rgb, depth = self.get_rgb_depth(rotate=rotate, compressed=True)
+        # cap anything more than np.power(2,16)~ 64 meter
         depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
-        depth = depth.astype(np.uint16)
         T = self.get_camera_transform()
         rot = T[:3, :3]
         trans = T[:3, 3]
         base2cam_trans = np.array(trans).reshape(-1, 1)
         base2cam_rot = np.array(rot)
+
+        rgb = jpg_encode(rgb)
+        depth = blosc_encode(depth)
         return rgb, depth, base2cam_rot, base2cam_trans
 
 
@@ -149,7 +243,7 @@ if __name__ == "__main__":
 
     with Pyro4.Daemon(args.ip) as daemon:
         bot = Pyro4.Proxy("PYRONAME:hello_robot@" + args.ip)
-        robot = RemoteHelloRobot(bot)
+        robot = RemoteHelloRealsense(bot)
         robot_uri = daemon.register(robot)
         with Pyro4.locateNS() as ns:
             ns.register("hello_realsense", robot_uri)
