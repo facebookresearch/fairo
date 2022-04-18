@@ -60,9 +60,11 @@ head_bob = [
 
 def add_default_dances(memory):
     """Add dances to agent's memory"""
-    memory.nodes[DanceNode].create(memory, generate_sequential_move_fn(jump), name="jump", tags=["jump"])
-    memory.nodes[DanceNode.NODE_TYPE].create(memory,
-        generate_sequential_move_fn(head_bob), name="head bob", tags=["dance", "head bob"]
+    memory.nodes[DanceNode].create(
+        memory, generate_sequential_move_fn(jump), name="jump", tags=["jump"]
+    )
+    memory.nodes[DanceNode.NODE_TYPE].create(
+        memory, generate_sequential_move_fn(head_bob), name="head bob", tags=["dance", "head bob"]
     )
 
 

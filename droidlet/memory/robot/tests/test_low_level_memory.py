@@ -76,7 +76,7 @@ class BasicTest(unittest.TestCase):
             self.memory,
             return_num,
             "generate_num_10_dance",
-            ["generate_num_10", "dance_with_numbers"]
+            ["generate_num_10", "dance_with_numbers"],
         )
 
         assert (

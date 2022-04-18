@@ -152,7 +152,9 @@ class BasicTest(unittest.TestCase):
         def x():
             return 2
 
-        self.memory.nodes[DanceNode.NODE_TYPE].create(self.memory, x, "generate_num_dance", ["generate_2", "dance_with_numbers"])
+        self.memory.nodes[DanceNode.NODE_TYPE].create(
+            self.memory, x, "generate_num_dance", ["generate_2", "dance_with_numbers"]
+        )
         assert (
             len(
                 self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
