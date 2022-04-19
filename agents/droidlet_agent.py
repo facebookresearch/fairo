@@ -148,8 +148,8 @@ class DroidletAgent(BaseAgent):
         def get_chat_action_dict(sid, chat):
             logging.debug(f"Looking for action dict for command [{chat}] in memory")
             logical_form = None
-            import ipdb
-            ipdb.set_trace(context=7)
+            # import ipdb
+            # ipdb.set_trace(context=7)
             try:
                 chat_memids, _ = self.memory.basic_search(
                     f"SELECT MEMORY FROM Chat WHERE chat={chat}"
