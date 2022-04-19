@@ -5,6 +5,7 @@ import numpy as np
 from droidlet.perception.robot import Detection, Human, HumanKeypointsOrdering
 from droidlet.shared_data_structs import RGBDepth
 
+
 def get_fake_rgbd(rgb=None, h=480, w=640):
     rgb = np.float32(np.random.rand(h, w, 3) * 255) if rgb is None else rgb
     depth = np.random.randint(0, 2, (h, w))
