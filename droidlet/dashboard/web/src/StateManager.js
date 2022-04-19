@@ -340,8 +340,6 @@ class StateManager {
     }
     this.memory.chats = res.allChats;
 
-    console.log('StateManager setChatResponse');
-
     // Set the commandState to display 'received' for one poll cycle and then switch
     this.memory.commandState = "received";
     setTimeout(() => {
@@ -367,7 +365,6 @@ class StateManager {
   }
 
   setLastChatActionDict(res) {
-    console.log('StateManager setLastChatActionDict');
     this.memory.lastChatActionDict = res.action_dict;
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
@@ -404,7 +401,6 @@ class StateManager {
   showAssistantReply(res) {
     // TODO handle content types besides plain text
     
-    console.log(res);
     let chat, response_options;
     try {
       if (res.content_type == "point") { return }  // Let the minecraft client handle point
@@ -412,7 +408,6 @@ class StateManager {
       chat = content.filter(entry => entry["id"] == "text")[0]["content"];
       if (res.content_type == "chat_and_text_options") {
         response_options = content.filter(entry => entry["id"] == "response_option").map(x => x["content"]);
-        console.log("Response options: " + JSON.stringify(response_options)); 
       } else {
         response_options = [];
       }
@@ -462,7 +457,6 @@ class StateManager {
       this.memory.commandState = "done_thinking";
       this.refs.forEach((ref) => {
         if (ref instanceof InteractApp) {
-          console.log("Sending task stack poll from state manager");
           ref.sendTaskStackPoll(); // Do this once from here
         }
       });

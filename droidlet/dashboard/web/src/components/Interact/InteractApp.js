@@ -5,6 +5,7 @@ import "./InteractApp.css";
 const ANSWER_ACTION = "answerAction";
 const ANSWER_PARSING = "answerParsing";
 const ANSWER_VISION = "answerVision";
+const CLARIFICATION = "clarification";
 const PLEASE_RESUME = " You can type a new command now.";
 
 class InteractApp extends Component {
@@ -27,7 +28,6 @@ class InteractApp extends Component {
       disableStopButton: true,
       lastChatActionDict: "",
       chats: [{ msg: "", timestamp: Date.now() }],
-      commands: [""],
       response_options: [],
       agent_replies: [{}],
       agentType: null,
@@ -48,25 +48,10 @@ class InteractApp extends Component {
     this.bindKeyPress = this.handleKeyPress.bind(this);
     this.sendTaskStackPoll = this.sendTaskStackPoll.bind(this);
     this.issueStopCommand = this.issueStopCommand.bind(this);
-    this.answerActionYes = this.answerActionYes.bind(this);
-    this.answerActionNo = this.answerActionNo.bind(this);
+    this.answerAction = this.answerAction.bind(this);
     this.answerParsing = this.answerParsing.bind(this);
     this.answerVision = this.answerVision.bind(this);
     this.receiveTaskStackPoll = this.receiveTaskStackPoll.bind(this);
-
-    // this.handleAgentThinking = this.handleAgentThinking.bind(this);
-    // this.handleClearInterval = this.handleClearInterval.bind(this);
-    // this.askActionQuestion = this.askActionQuestion.bind(this);
-    // this.addNewAgentReplies = this.addNewAgentReplies.bind(this);
-    // this.evalCommandPerception = this.evalCommandPerception.bind(this);
-    // this.askVisionQuestion = this.askVisionQuestion.bind(this);
-    // this.renderOtherError = this.renderOtherError.bind(this);
-    // this.disableAnswer = this.disableAnswer.bind(this);
-    // this.renderVisionFail = this.renderVisionFail.bind(this);
-    // this.renderParsingFail = this.renderParsingFail.bind(this);
-    // this.saveFeedback = this.saveFeedback.bind(this);
-    // this.removeButtonsFromLastQuestion =
-    //   this.removeButtonsFromLastQuestion.bind(this);
   }
 
 
@@ -78,16 +63,15 @@ class InteractApp extends Component {
     //get the message
     var chatmsg = document.getElementById("msg").value;
     if (this.state.isSaveFeedback) {
+      this.saveFeedback(chatmsg);
       document.getElementById("msg").value = "";
       this.updateChat({ msg: chatmsg, timestamp: Date.now() });
-      console.log("InteractApp save feedback: " + chatmsg);
       this.addNewAgentReplies({
         msg: "Feedback has been saved!" + PLEASE_RESUME,
       });
       this.removeButtonsFromLastQuestion();
       this.setState({
         isSaveFeedback: false,
-        feedback: chatmsg,
       });
     } else {
       if (chatmsg.replace(/\s/g, "") !== "") {
@@ -136,8 +120,40 @@ class InteractApp extends Component {
     }
   }
 
+  answerRouting(index, questionType) {
+    switch(questionType) {
+      case ANSWER_ACTION:
+        this.answerAction(index);
+        break;
+      case ANSWER_PARSING:
+        this.answerParsing(index);
+        break;
+      case ANSWER_VISION:
+        this.answerVision(index);
+        break;
+      case CLARIFICATION:
+        this.answerClarification(index);
+        break;
+      default:
+        console.error("Answer Routing called with invalid question type!")
+    }
+  }
+
+  saveFeedback(event) {
+    var data = {
+      action_dict: this.state.action_dict,
+      parsing_error: this.state.parsing_error,
+      task_error: this.state.task_error,
+      feedback: this.state.feedback,
+    };
+    // Emit socket.io event to save data to error logs and Mephisto
+    this.props.stateManager.socket.emit("saveErrorDetailsToCSV", data);
+
+    //save feedback in state
+    this.setState({ feedback: event });
+  }
+
   componentDidMount() {
-    console.log("InteractApp componentDidMount");
     document.addEventListener("keypress", this.bindKeyPress);
     if (this.props.stateManager) {
       this.props.stateManager.connect(this);
@@ -167,7 +183,6 @@ class InteractApp extends Component {
   ************************************************************************************/
 
   addNewAgentReplies({ msg, isQuestion, questionType, disablePreviousAnswer }) {
-    console.log("InteractApp addNewAgentReplies " + msg);
     const { agent_replies } = this.state;
     let new_agent_replies = disablePreviousAnswer
       ? agent_replies.map((item) => ({ ...item, isQuestion: false }))
@@ -188,19 +203,18 @@ class InteractApp extends Component {
   }
 
   updateChat(chat) {
-    console.log("InteractApp updateChat: " + JSON.stringify(chat));
     // make a shallow copy of chats
     var new_chats = [...this.state.chats];
     new_chats.push(chat);
     this.setState({ chats: new_chats });
   }
 
-  buildCommandList(cmd) {
-    // make a shallow copy of commands
-    var new_cmds = [...this.state.commands];
-    new_cmds.push(cmd);
-    this.setState({ commands: new_cmds });
-  }
+  // buildCommandList(cmd) {
+  //   // make a shallow copy of commands
+  //   var new_cmds = [...this.state.commands];
+  //   new_cmds.push(cmd);
+  //   this.setState({ commands: new_cmds });
+  // }
 
   issueStopCommand() {
     console.log("Stop command issued");
@@ -232,14 +246,12 @@ class InteractApp extends Component {
     });
     // Zip it into one list, sort by timestamp, and send it off to be rendered
     let chat_history = chats.concat(replies);
-    // console.log("InteractApp renderChatHistory: " + JSON.stringify(chat_history));
     chat_history.sort(function (a, b) {
       if (a.isQuestion && !b.isQuestion) {
         return 1;
       } else if (!a.isQuestion && b.isQuestion) {
         return -1;
       } else if (!a.isQuestion && b.isQuestion) {
-        console.log("InteractApp renderChatHistory -- there are two questions");
       }
       return a.timestamp - b.timestamp;
     });
@@ -248,13 +260,13 @@ class InteractApp extends Component {
       React.cloneElement(
         <li className="message-item" key={chat.timestamp.toString()}>
           <div className={chat.sender}>{chat.msg}</div>
-          {chat.isQuestion && chat.questionType === ANSWER_ACTION && (
+          {chat.isQuestion && (
             <div className="answer-buttons">
               <Button
                 variant="contained"
                 color="primary"
                 className="yes-button"
-                onClick={() => this.answerActionYes()}
+                onClick={() => this.answerRouting(1, chat.questionType)}
               >
                 Yes
               </Button>
@@ -262,47 +274,7 @@ class InteractApp extends Component {
                 variant="contained"
                 color="primary"
                 className="no-button"
-                onClick={() => this.answerActionNo()}
-              >
-                No
-              </Button>
-            </div>
-          )}
-          {chat.isQuestion && chat.questionType === ANSWER_PARSING && (
-            <div className="answer-buttons">
-              <Button
-                variant="contained"
-                color="primary"
-                className="yes-button"
-                onClick={() => this.answerParsing(1)}
-              >
-                Yes
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                className="no-button"
-                onClick={() => this.answerParsing(2)}
-              >
-                No
-              </Button>
-            </div>
-          )}
-          {chat.isQuestion && chat.questionType === ANSWER_VISION && (
-            <div className="answer-buttons">
-              <Button
-                variant="contained"
-                color="primary"
-                className="yes-button"
-                onClick={() => this.answerVision(1)}
-              >
-                Yes
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                className="no-button"
-                onClick={() => this.answerVision(2)}
+                onClick={() => this.answerRouting(2, chat.questionType)}
               >
                 No
               </Button>
@@ -331,7 +303,6 @@ class InteractApp extends Component {
 
       if (this.props.stateManager) {
         commandState = this.props.stateManager.memory.commandState;
-        //console.log("Command State from agent thinking: " + commandState);
       }
 
       // Check that we're in an allowed state and haven't timed out
@@ -368,10 +339,6 @@ class InteractApp extends Component {
   componentDidUpdate(prevProps, prevState) {
     // Show command message like an agent reply
     if (this.state.commandState !== prevState.commandState) {
-      console.log(
-        "InteractApp componentDidUpdate command_state: " +
-          this.state.commandState
-      );
       let command_message = "";
       let disableInput = true;
       let disableStopButton = this.state.disableStopButton;
@@ -392,9 +359,6 @@ class InteractApp extends Component {
         disableStopButton = false;
       }
       if (command_message) {
-        console.log(
-          "InteractApp componentDidUpdate command_message: " + command_message
-        );
         const new_agent_replies = [
           ...this.state.agent_replies,
           { msg: command_message, timestamp: Date.now() },
@@ -411,20 +375,17 @@ class InteractApp extends Component {
   }
 
   sendTaskStackPoll() {
-    console.log("Sending task stack poll");
     this.props.stateManager.socket.emit("taskStackPoll");
   }
 
   receiveTaskStackPoll(res) {
     console.log("Received task stack poll response:" + JSON.stringify(res));
-    console.log(res);
     // If we get a response of any kind, reset the timeout clock
     if (res) {
       this.setState({
         now: Date.now(),
       });
       if (!res.task) {
-        console.log("no task on stack");
         // If there's no task, leave this state
         if (this.state.isTurk) {
           this.askActionQuestion(this.state.chats.length - 1);
@@ -460,7 +421,6 @@ class InteractApp extends Component {
 
   // Stop sending command
   handleClearInterval() {
-    console.log("InteractApp handleClearInterval");
     clearInterval(this.intervalId);
     if (this.props.stateManager) {
       this.props.stateManager.socket.off(
@@ -499,193 +459,193 @@ class InteractApp extends Component {
 
     // Send request to retrieve the logic form of last sent command
     console.log(this.state.chats);
-    console.log("Get chat action dict" + this.state.chats[idx].msg);
     this.props.stateManager.socket.emit(
       "getChatActionDict",
-      this.state.chats[idx].msg
+      this.state.chats[idx]["msg"]
     );
   }
 
-  answerActionYes() {
-    this.updateChat({ msg: "Yes", timestamp: Date.now() });
-    this.addNewAgentReplies({
-      msg: "Thanks!" + PLEASE_RESUME,
-      isQuestion: false,
-      disablePreviousAnswer: true,
-    });
-  }
-
-  answerActionNo() {
-    console.log("actionAnswerNo " + JSON.stringify(this.state.action_dict));
-    if (this.state.action_dict) {
-      this.updateChat({ msg: "No", timestamp: Date.now() });
-      if ("dialogue_type" in this.state.action_dict) {
-        var dialogue_type = this.state.action_dict.dialogue_type;
-        var question_word = "";
-        if (dialogue_type === "HUMAN_GIVE_COMMAND") {
-          // handle composite action
-
-          // get the action type
-          var action_dict = this.state.action_dict.action_sequence[0];
-          var action_type = action_dict.action_type.toLowerCase();
-          question_word = "to " + action_type + " ";
-          // action is build or dig
-          if (["build", "dig"].indexOf(action_type) >= 0) {
-            if ("schematic" in action_dict) {
-              if ("text_span" in action_dict.schematic) {
-                question_word =
-                  question_word + "'" + action_dict.schematic.text_span + "'";
-              }
-              // If we don't have a convenient text_span, find the words referenced by index
-              else if ("where_clause" in action_dict.schematic.filters) {
-                let qty = "";
-                if ("selector" in action_dict.schematic.filters) {
-                  qty = action_dict.schematic.filters.selector.ordinal;
-                }
-                let antecedent = [qty, "", "", "", ""]; // qty then size then colour then block type then name. Ignore everything else.
-                action_dict.schematic.filters.where_clause.AND.forEach(
-                  (clause) => {
-                    if (clause.pred_text === "has_size")
-                      antecedent[1] = clause.obj_text;
-                    else if (clause.pred_text === "has_colour")
-                      antecedent[2] = clause.obj_text;
-                    else if (clause.pred_text === "has_block_type")
-                      antecedent[3] = clause.obj_text;
-                    else if (clause.pred_text === "has_name")
-                      antecedent[4] = clause.obj_text;
-                  }
-                );
-                question_word =
-                  question_word +
-                  "'" +
-                  antecedent.join(" ").replace(/  +/g, " ").trim() +
-                  "'";
-              }
-            }
-            if ("location" in action_dict) {
-              if ("text_span" in action_dict.location) {
-                question_word =
-                  question_word +
-                  " at location '" +
-                  action_dict.location.text_span +
-                  "'";
-              } else {
-                question_word = question_word + " at this location "; // Not worth it to handle all of the potential references?
-              }
-            }
-            question_word = question_word + " ?";
-          } else if (
-            [
-              "destroy",
-              "fill",
-              "spawn",
-              "copy",
-              "get",
-              "scout",
-              "freebuild",
-            ].indexOf(action_type) >= 0
-          ) {
-            if ("reference_object" in action_dict) {
-              if ("text_span" in action_dict.reference_object) {
-                question_word =
-                  question_word +
-                  "'" +
-                  action_dict.reference_object.text_span +
-                  "'";
-              }
-              // If we don't have a convenient text_span, find the words referenced by index
-              else if ("where_clause" in action_dict.reference_object.filters) {
-                let qty = "";
-                if ("selector" in action_dict.reference_object.filters) {
-                  qty = action_dict.reference_object.filters.selector.ordinal;
-                }
-                let antecedent = [qty, "", "", "", ""]; // qty then size then colour then block type then name. Ignore everything else.
-                action_dict.reference_object.filters.where_clause.AND.forEach(
-                  (clause) => {
-                    if (clause.pred_text === "has_size")
-                      antecedent[1] = clause.obj_text;
-                    else if (clause.pred_text === "has_colour")
-                      antecedent[2] = clause.obj_text;
-                    else if (clause.pred_text === "has_block_type")
-                      antecedent[3] = clause.obj_text;
-                    else if (clause.pred_text === "has_name")
-                      antecedent[4] = clause.obj_text;
-                  }
-                );
-                question_word =
-                  question_word +
-                  "'" +
-                  antecedent.join(" ").replace(/  +/g, " ").trim() +
-                  "'";
-              }
-            }
-            if ("location" in action_dict) {
-              if ("text_span" in action_dict.location) {
-                question_word =
-                  question_word +
-                  " at location '" +
-                  action_dict.location.text_span +
-                  "'";
-              } else {
-                question_word = question_word + " at this location ";
-              }
-            }
-            question_word = question_word + " ?";
-          } else if (["move"].indexOf(action_type) >= 0) {
-            if ("location" in action_dict) {
-              if ("text_span" in action_dict.location) {
-                question_word =
-                  question_word +
-                  " to location '" +
-                  action_dict.location.text_span +
-                  "'";
-              } else {
-                question_word = question_word + " to here";
-              }
-            }
-            question_word = question_word + " ?";
-          } else if (["stop", "resume", "undo"].indexOf(action_type) >= 0) {
-            if ("target_action_type" in action_dict) {
-              question_word =
-                question_word +
-                " at location '" +
-                action_dict.target_action_type +
-                "'";
-            }
-            question_word = question_word + " ?";
-          } else if (["otheraction"].indexOf(action_type) >= 0) {
-            question_word =
-              "to perform an action not in assistant capabilities ?";
-          }
-        } else if (dialogue_type === "GET_MEMORY") {
-          // you asked the bot a question
-          question_word =
-            "to answer a question about something in the Minecraft world ?";
-        } else if (dialogue_type === "PUT_MEMORY") {
-          // you were trying to teach the bot something
-          question_word = "to remember or learn something you taught it ?";
-        } else if (dialogue_type === "NOOP") {
-          // no operation was requested.
-          question_word = "to just respond verbally with no action ?";
-        }
-      } else {
-        // NOTE: This should never happen ...
-        question_word = "to do nothing ?";
-      }
-      this.addNewAgentReplies({
-        msg: `Did you want the assistant ${question_word}`,
-        isQuestion: true,
-        questionType: ANSWER_PARSING,
-        disablePreviousAnswer: true,
-      });
-    } else {
-      // shouldn't happen
-      this.updateChat({ msg: "No", timestamp: Date.now() });
+  answerAction(index) {
+    if (index === 1) {
+      // Yes, so no error
+      this.updateChat({ msg: "Yes", timestamp: Date.now() });
       this.addNewAgentReplies({
         msg: "Thanks!" + PLEASE_RESUME,
         isQuestion: false,
         disablePreviousAnswer: true,
       });
+    } else if (index == 2) {
+      // No, there was an error of some kind
+      if (this.state.action_dict) {
+        this.updateChat({ msg: "No", timestamp: Date.now() });
+        if ("dialogue_type" in this.state.action_dict) {
+          var dialogue_type = this.state.action_dict.dialogue_type;
+          var question_word = "";
+          if (dialogue_type === "HUMAN_GIVE_COMMAND") {
+            // handle composite action
+  
+            // get the action type
+            var action_dict = this.state.action_dict.action_sequence[0];
+            var action_type = action_dict.action_type.toLowerCase();
+            question_word = "to " + action_type + " ";
+            // action is build or dig
+            if (["build", "dig"].indexOf(action_type) >= 0) {
+              if ("schematic" in action_dict) {
+                if ("text_span" in action_dict.schematic) {
+                  question_word =
+                    question_word + "'" + action_dict.schematic.text_span + "'";
+                }
+                // If we don't have a convenient text_span, find the words referenced by index
+                else if ("where_clause" in action_dict.schematic.filters) {
+                  let qty = "";
+                  if ("selector" in action_dict.schematic.filters) {
+                    qty = action_dict.schematic.filters.selector.ordinal;
+                  }
+                  let antecedent = [qty, "", "", "", ""]; // qty then size then colour then block type then name. Ignore everything else.
+                  action_dict.schematic.filters.where_clause.AND.forEach(
+                    (clause) => {
+                      if (clause.pred_text === "has_size")
+                        antecedent[1] = clause.obj_text;
+                      else if (clause.pred_text === "has_colour")
+                        antecedent[2] = clause.obj_text;
+                      else if (clause.pred_text === "has_block_type")
+                        antecedent[3] = clause.obj_text;
+                      else if (clause.pred_text === "has_name")
+                        antecedent[4] = clause.obj_text;
+                    }
+                  );
+                  question_word =
+                    question_word +
+                    "'" +
+                    antecedent.join(" ").replace(/  +/g, " ").trim() +
+                    "'";
+                }
+              }
+              if ("location" in action_dict) {
+                if ("text_span" in action_dict.location) {
+                  question_word =
+                    question_word +
+                    " at location '" +
+                    action_dict.location.text_span +
+                    "'";
+                } else {
+                  question_word = question_word + " at this location "; // Not worth it to handle all of the potential references?
+                }
+              }
+              question_word = question_word + " ?";
+            } else if (
+              [
+                "destroy",
+                "fill",
+                "spawn",
+                "copy",
+                "get",
+                "scout",
+                "freebuild",
+              ].indexOf(action_type) >= 0
+            ) {
+              if ("reference_object" in action_dict) {
+                if ("text_span" in action_dict.reference_object) {
+                  question_word =
+                    question_word +
+                    "'" +
+                    action_dict.reference_object.text_span +
+                    "'";
+                }
+                // If we don't have a convenient text_span, find the words referenced by index
+                else if ("where_clause" in action_dict.reference_object.filters) {
+                  let qty = "";
+                  if ("selector" in action_dict.reference_object.filters) {
+                    qty = action_dict.reference_object.filters.selector.ordinal;
+                  }
+                  let antecedent = [qty, "", "", "", ""]; // qty then size then colour then block type then name. Ignore everything else.
+                  action_dict.reference_object.filters.where_clause.AND.forEach(
+                    (clause) => {
+                      if (clause.pred_text === "has_size")
+                        antecedent[1] = clause.obj_text;
+                      else if (clause.pred_text === "has_colour")
+                        antecedent[2] = clause.obj_text;
+                      else if (clause.pred_text === "has_block_type")
+                        antecedent[3] = clause.obj_text;
+                      else if (clause.pred_text === "has_name")
+                        antecedent[4] = clause.obj_text;
+                    }
+                  );
+                  question_word =
+                    question_word +
+                    "'" +
+                    antecedent.join(" ").replace(/  +/g, " ").trim() +
+                    "'";
+                }
+              }
+              if ("location" in action_dict) {
+                if ("text_span" in action_dict.location) {
+                  question_word =
+                    question_word +
+                    " at location '" +
+                    action_dict.location.text_span +
+                    "'";
+                } else {
+                  question_word = question_word + " at this location ";
+                }
+              }
+              question_word = question_word + " ?";
+            } else if (["move"].indexOf(action_type) >= 0) {
+              if ("location" in action_dict) {
+                if ("text_span" in action_dict.location) {
+                  question_word =
+                    question_word +
+                    " to location '" +
+                    action_dict.location.text_span +
+                    "'";
+                } else {
+                  question_word = question_word + " to here";
+                }
+              }
+              question_word = question_word + " ?";
+            } else if (["stop", "resume", "undo"].indexOf(action_type) >= 0) {
+              if ("target_action_type" in action_dict) {
+                question_word =
+                  question_word +
+                  " at location '" +
+                  action_dict.target_action_type +
+                  "'";
+              }
+              question_word = question_word + " ?";
+            } else if (["otheraction"].indexOf(action_type) >= 0) {
+              question_word =
+                "to perform an action not in assistant capabilities ?";
+            }
+          } else if (dialogue_type === "GET_MEMORY") {
+            // you asked the bot a question
+            question_word =
+              "to answer a question about something in the Minecraft world ?";
+          } else if (dialogue_type === "PUT_MEMORY") {
+            // you were trying to teach the bot something
+            question_word = "to remember or learn something you taught it ?";
+          } else if (dialogue_type === "NOOP") {
+            // no operation was requested.
+            question_word = "to just respond verbally with no action ?";
+          }
+        } else {
+          // NOTE: This should never happen ...
+          question_word = "to do nothing ?";
+        }
+        this.addNewAgentReplies({
+          msg: `Did you want the assistant ${question_word}`,
+          isQuestion: true,
+          questionType: ANSWER_PARSING,
+          disablePreviousAnswer: true,
+        });
+      } else {
+        // shouldn't happen
+        this.updateChat({ msg: "No", timestamp: Date.now() });
+        this.addNewAgentReplies({
+          msg: "Thanks!" + PLEASE_RESUME,
+          isQuestion: false,
+          disablePreviousAnswer: true,
+        });
+      }
     }
   }
 
@@ -696,7 +656,6 @@ class InteractApp extends Component {
       // yes, so not a parsing error
       this.updateChat({ msg: "Yes", timestamp: Date.now() });
       this.evalCommandPerception();
-      // this.setState({ view: 3 });
       this.askVisionQuestion();
     } else if (index === 2) {
       // no, so parsing error
@@ -826,7 +785,6 @@ class InteractApp extends Component {
       return;
     }
     // Check for this reference object in memory
-    let user_message = null;
     // NOTE: this should come from the state setter sio event.
     this.state.memory_entries = null;
     if (this.state.memory_entries) {
@@ -884,13 +842,27 @@ class InteractApp extends Component {
   }
 
   removeButtonsFromLastQuestion() {
-    console.log(
-      "InteractApp removeButtonsFromLastQuestion " +
-        JSON.stringify(this.state.chats)
-    );
     var new_agent_replies = [...this.state.agent_replies];
     new_agent_replies.map((agent_reply) => (agent_reply.isQuestion = false));
     this.setState({ agent_replies: new_agent_replies });
+  }
+
+
+  /**********************************************************************************
+  ********************************** Clarification **********************************
+  **********************************************************************************/
+
+  answerClarification(index) {
+    //handles answer to clarification question
+    let chatmsg;
+    if (index === 1) {
+      chatmsg = "Yes";
+      
+    } else if (index === 2) {
+      chatmsg = "No";
+    }
+    this.updateChat({ msg: chatmsg, timestamp: Date.now() });
+    this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
   }
 
 
