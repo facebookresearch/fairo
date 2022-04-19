@@ -176,30 +176,27 @@ if __name__ == '__main__':
     num_of_camera=len(corner_data[0]['intrinsics'])
     params=[]
     for i in range(num_of_camera):
-        print(f'Solve camera {i} pose')
+        print(f'Solve camera {i}/{num_of_camera} pose')
         obs_data_std, K = extract_obs_data_std(corner_data, i)
         print('number of images with keypoint', len(obs_data_std))
         if len(obs_data_std) < 3:
-            print('too few keypoint found for this camera')
-            params.append(None)
+            print('too few keypoint found for this camera, skip this camera')
+            params.append(torch.zeros(9) * torch.nan)
             continue
 
-        pixel_error = float('inf')
+        # stage 1 - assuming marker is attach to EE origin, solve camera pose first
+        p3d = torch.stack([p[1] for p in obs_data_std]).detach().numpy()
+        p2d = torch.stack([p[0] for p in obs_data_std]).detach().numpy()
+        retval, rvec, tvec = cv2.solvePnP(p3d, p2d, K.numpy(), distCoeffs=None, flags=cv2.SOLVEPNP_SQPNP)
+        rvec_cam = torch.tensor(-rvec.reshape(-1))
+        tvec_cam = -rotmat(rvec_cam).matmul(torch.tensor(tvec.reshape(-1)))
+        pixel_error = mean_loss(obs_data_std, torch.cat([rvec_cam, tvec_cam, torch.zeros(3)]), K).item()
+        print('stage 1 mean pixel error', pixel_error)
+
+        # stage 2 - allow marker to move, joint optimize camera pose and marker
         while pixel_error > args.pixel_tolerance:
-            pixel_error = float('inf')
-            # #stage 1
-            max_orientation_range = 0.01
-            L = lambda param: mean_loss(obs_data_std, torch.cat([param, torch.zeros(3).detach()]), K)
-
-            while pixel_error > 100:
-                param_camera_pose_seed=torch.tensor(torch.randn(6) * max_orientation_range, dtype=torch.float64, requires_grad=True)
-                param_camera_pose_star=find_parameter(param_camera_pose_seed, L)
-                pixel_error = L(param_camera_pose_star).item()
-                print('stage 1 mean pixel error', pixel_error)
-
-            #stage 2
             marker_max_displacement = 0.1 #meter
-            param=torch.tensor(torch.cat([param_camera_pose_star, torch.randn(3)*marker_max_displacement]).detach(), requires_grad=True)
+            param=torch.tensor(torch.cat([rvec_cam, tvec_cam, torch.randn(3)*marker_max_displacement]).detach(), requires_grad=True)
             L = lambda param: mean_loss(obs_data_std, param, K)
             try:
                 param_star=find_parameter(param, L)
@@ -219,9 +216,11 @@ if __name__ == '__main__':
     with torch.no_grad():
         param_list = []
         for i, param in enumerate(params):
-            camera_base_ori = rotmat(param[:3])
+            camera_base_ori_rotvec = param[:3]
+            camera_base_ori = rotmat(camera_base_ori_rotvec)
             result = {
                 "camera_base_ori": camera_base_ori.cpu().numpy().tolist(),
+                "camera_base_ori_rotvec": camera_base_ori_rotvec.cpu().numpy().tolist(),
                 "camera_base_pos": param[3:6].cpu().numpy().tolist(),
                 "p_marker_ee": param[6:9].cpu().numpy().tolist(),
             }
@@ -230,4 +229,4 @@ if __name__ == '__main__':
         
         with open(args.calibration_file, 'w') as f:
             print(f"Saving calibrated parameters to {args.calibration_file}")
-            json.dump(param_list, f)
+            json.dump(param_list, f, indent=4)
