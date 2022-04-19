@@ -462,6 +462,7 @@ class StateManager {
       this.memory.commandState = "done_thinking";
       this.refs.forEach((ref) => {
         if (ref instanceof InteractApp) {
+          console.log("Sending task stack poll from state manager");
           ref.sendTaskStackPoll(); // Do this once from here
         }
       });
