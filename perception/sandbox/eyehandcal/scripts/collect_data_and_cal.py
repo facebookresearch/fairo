@@ -125,7 +125,7 @@ if __name__ == '__main__':
     parser.add_argument('--num-points', default=20, type=int, help="number of points to sample from convex hull")
     parser.add_argument('--time-to-go', default=3, type=float, help="time_to_go in seconds for each movement")
     parser.add_argument('--imagedir', default=None, help="folder to save debug images")
-    parser.add_argument('--pixel-tolerance', default=2.0, help="folder to save debug images")
+    parser.add_argument('--pixel-tolerance', default=2.0, help="mean pixel error tolerance (stage 2)")
 
     args=parser.parse_args()
     print(f"Config: {args}")
