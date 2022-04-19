@@ -37,7 +37,7 @@ class ForkedPdb(pdb.Pdb):
 
 
 class SwarmWorkerMemory:
-    """Represents the memory for the agent in Minecraft"""
+    """Represents the memory for the swarm in Minecraft"""
 
     def __init__(self, memory_send_queue, memory_receive_queue, memory_tag, agent_time=None):
         self.send_queue = memory_send_queue
