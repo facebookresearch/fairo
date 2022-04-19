@@ -521,22 +521,6 @@ class MCAgentMemory(AgentMemory):
         else:
             return None
 
-    def get_schematic_by_name(self, name: str) -> Optional["SchematicNode"]:
-        """Get the id of Schematic type memory node using name"""
-        r = self._db_read(
-            """
-                SELECT Schematics.uuid
-                FROM Schematics INNER JOIN Triples as T ON T.subj=Schematics.uuid
-                WHERE (T.pred_text="has_name" OR T.pred_text="has_tag") AND T.obj_text=?""",
-            name,
-        )
-        if r:  # if multiple exist, then randomly select one
-            return self.nodes[SchematicNode.NODE_TYPE](self, random.choice(r)[0])
-        # if no schematic with exact matched name exists, search for a schematic
-        # with matched property name instead
-        else:
-            return self._get_schematic_by_property_name(name, "BlockTypes")
-
     def _load_block_types(
         self,
         block_data,

@@ -102,12 +102,14 @@ class BasicTest(unittest.TestCase):
             self.memory.nodes[SchematicNode.NODE_TYPE](self.memory, schematic_memid).blocks
             == self.memory.get_mem_by_id(schematic_memid).blocks
         )
-        # test get_schematic_by_name
+        # test getting schematic by its name
         self.memory.nodes["Triple"].create(
             self.memory, subj=schematic_memid, pred_text="has_name", obj_text="house"
         )
+        _, schematic_node = self.memory.basic_search("SELECT MEMORY FROM Schematic WHERE has_name=house")
+        assert len(schematic_node) == 1
         assert (
-            self.memory.get_schematic_by_name("house").blocks
+            schematic_node[0].blocks
             == self.memory.get_mem_by_id(schematic_memid).blocks
         )
         bo1_memid = BlockObjectNode.create(self.memory, (((0, 0, 2), (1, 0)), ((0, 0, 3), (2, 0))))
