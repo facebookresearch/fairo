@@ -11,6 +11,10 @@ PolymetisControllerServerImpl::PolymetisControllerServerImpl() {
   updates_model_buffer_.reserve(MAX_MODEL_BYTES);
 }
 
+bool PolymetisControllerServerImpl::validRobotContext(void) {
+  return controller_manager_.validRobotContext();
+}
+
 Status PolymetisControllerServerImpl::GetRobotState(ServerContext *context,
                                                     const Empty *,
                                                     RobotState *robot_state) {

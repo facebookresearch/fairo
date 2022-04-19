@@ -21,7 +21,7 @@
 
 #include "polymetis.grpc.pb.h"
 
-#include "controller_manager.hpp"
+#include "polymetis/controller_manager.hpp"
 
 #define MAX_MODEL_BYTES 1048576  // 1 megabyte
 #define SPIN_INTERVAL_USEC 20000 // 0.02s (50hz)
@@ -45,6 +45,8 @@ public:
   TODO
   */
   explicit PolymetisControllerServerImpl();
+
+  bool validRobotContext(void);
 
   // Robot client methods
 

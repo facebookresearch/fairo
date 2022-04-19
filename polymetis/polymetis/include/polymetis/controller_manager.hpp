@@ -66,8 +66,8 @@ public:
   void initRobotClient(const RobotClientMetadata *robot_client_metadata,
                        std::string &error_msg);
 
-  RobotClientMetadata getRobotClientMetadata(RobotClientMetadata *metadata,
-                                             std::string &error_msg);
+  void getRobotClientMetadata(RobotClientMetadata *metadata,
+                              std::string &error_msg);
 
   // Log querying methods
 
@@ -91,7 +91,6 @@ public:
 
   void terminateController(LogInterval *interval, std::string &error_msg);
 
-private:
   // Helper methods
 
   void resetControllerContext(void);
