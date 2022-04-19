@@ -221,11 +221,11 @@ def interpret_named_schematic(
     _, schematic = interpreter.memory.basic_search(
         f"SELECT MEMORY FROM Schematic WHERE has_name={name}"
     )
-    if lenz(schematic)==0:
+    if len(schematic)==0:
         _, schematic = interpreter.memory.basic_search(
             f"SELECT MEMORY FROM Schematic WHERE has_name={stemmed_name}"
         )
-        if lenz(schematic)==0:
+        if len(schematic)==0:
             raise ErrorWithResponse("I don't know what you want me to build.")
     triples = [
         (p, v)
