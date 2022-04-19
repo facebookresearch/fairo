@@ -1,8 +1,6 @@
 import numpy as np
-from scipy.spatial.transform import Rotation as R
 import open3d as o3d
 import fairomsg
-import capnp
 
 import io
 import numpy as np
@@ -14,6 +12,7 @@ sensor_msgs = fairomsg.get_msgs("sensor_msgs")
 geometry_msgs = fairomsg.get_msgs("geometry_msgs")
 
 """Byte conversions"""
+
 
 def np_to_bytes(arr: np.ndarray):
     with io.BytesIO() as f:
@@ -44,29 +43,32 @@ def open3d_pcd_to_bytes(cloud: open3d.geometry.PointCloud):
 
 def bytes_to_open3d_pcd(arr_bytes: bytes):
     arr = bytes_to_np(arr_bytes)
-    result = open3d.geometry.PointCloud(
-        open3d.cuda.pybind.utility.Vector3dVector(arr[:, :3])
-    )
+    result = open3d.geometry.PointCloud(open3d.cuda.pybind.utility.Vector3dVector(arr[:, :3]))
     if arr.shape[1] == 6:
         result.colors = open3d.cuda.pybind.utility.Vector3dVector(arr[:, 3:])
 
     return result
 
+
 """Capnp conversions"""
+
 
 def pcd_to_capnp(pcd: o3d.geometry.PointCloud):
     result = sensor_msgs.PointCloud2()
     result.data = open3d_pcd_to_bytes(pcd)
     return result
 
+
 def capnp_to_pcd(blob):
     capnp_pcd = sensor_msgs.PointCloud2.from_bytes(blob)
     return bytes_to_open3d_pcd(capnp_pcd.data)
+
 
 def grasp_group_to_capnp(grasp_group: graspnetAPI.grasp.GraspGroup):
     capnp_gg = std_msgs.ByteMultiArray()
     capnp_gg.data = grasp_group_to_bytes(grasp_group)
     return capnp_gg
+
 
 def capnp_to_grasp_group(blob):
     capnp_gg = std_msgs.ByteMultiArray.from_bytes(blob)

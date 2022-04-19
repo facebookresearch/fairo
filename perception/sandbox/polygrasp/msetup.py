@@ -2,15 +2,23 @@ import mrp
 
 mrp.process(
     name="grasp_server",
-    runtime=mrp.Host(
-        run_command=["python", "src/polygrasp/grasp_rpc.py"],
+    runtime=mrp.Conda(
+        run_command=["python", "-m", "graspnet_baseline.mrp_wrapper"],
+        use_named_env="graspnet-baseline",
     ),
 )
 
 mrp.process(
-    name="pointcloud_server",
+    name="cam_pub",
     runtime=mrp.Host(
-        run_command=["python", "src/polygrasp/pointcloud_rpc.py"],
+        run_command=["python", "-m", "polygrasp.cam_pub_sub"],
+    ),
+)
+
+mrp.process(
+    name="gripper_server",
+    runtime=mrp.Host(
+        run_command=["launch_gripper.py", "gripper=robotiq_2f", "gripper.comport=/dev/ttyUSB1"],
     ),
 )
 

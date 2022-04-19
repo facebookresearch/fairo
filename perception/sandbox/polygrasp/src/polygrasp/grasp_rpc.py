@@ -111,7 +111,7 @@ class GraspClient:
             log.info("Plotting with matplotlib...")
             f, axarr = plt.subplots(1, n, figsize=(n * 4.5, 3))
             for i in range(n):
-                axarr[i].imshow(grasp_images[i], interpolation='nearest', aspect='auto')
+                axarr[i].imshow(grasp_images[i], interpolation="nearest", aspect="auto")
                 axarr[i].axis("off")
                 axarr[i].set_title(f"Grasp pose top {i + 1}/{n}")
             f.show()

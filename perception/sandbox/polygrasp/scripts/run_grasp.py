@@ -5,13 +5,8 @@ Runs grasps generated from grasp server.
 """
 
 import random
-import json
 
 import hydra
-import torch
-
-from realsense_wrapper import RealsenseAPI
-
 from polygrasp.pointcloud_rpc import PointCloudClient
 from polygrasp.grasp_rpc import GraspClient
 
@@ -21,13 +16,14 @@ def main(cfg):
     # Initialize robot & gripper
     robot = hydra.utils.instantiate(cfg.robot)
     robot.gripper_open()
-    robot.go_home()
+    # robot.go_home()
 
     # Initialize cameras
-    cameras = RealsenseAPI()
+    cfg.camera_sub.intrinsics_file = hydra.utils.to_absolute_path(cfg.camera_sub.intrinsics_file)
+    cfg.camera_sub.extrinsics_file = hydra.utils.to_absolute_path(cfg.camera_sub.extrinsics_file)
+    cameras = hydra.utils.instantiate(cfg.camera_sub)
     camera_intrinsics = cameras.get_intrinsics()
-    with open(hydra.utils.to_absolute_path(cfg.camera_extrinsics_path), "r") as f:
-        camera_extrinsics = json.load(f)
+    camera_extrinsics = cameras.get_extrinsics()
 
     # Connect to grasp candidate selection and pointcloud processor
     pcd_client = PointCloudClient(camera_intrinsics, camera_extrinsics)
@@ -43,7 +39,9 @@ def main(cfg):
         scene_pcd = pcd_client.get_pcd(rgbd)
         grasp_group = grasp_client.get_grasps(scene_pcd)
 
-        grasp_client.visualize_grasp(scene_pcd, grasp_group, render=False, save_view=False, plot=True)
+        grasp_client.visualize_grasp(
+            scene_pcd, grasp_group, render=False, save_view=False, plot=True
+        )
 
         # # Get grasps per object
         # obj_to_pcd = pcd_client.segment_pcd(scene_pcd)
@@ -59,14 +57,15 @@ def main(cfg):
         chosen_grasp = robot.select_grasp(curr_grasps, scene_pcd)
 
         # Execute grasp
-        traj, success = robot.grasp(chosen_grasp)
-        print(f"Grasp success: {success}")
+        # traj, success = robot.grasp(chosen_grasp)
+        # print(f"Grasp success: {success}")
 
         # if success:
         #     print(f"Moving end-effector up and down")
         #     curr_pose, curr_ori = robot.get_ee_pose()
         #     robot.move_to_ee_pose(torch.Tensor([0, 0, 0.1]), delta=True)
         #     robot.move_to_ee_pose(torch.Tensor([0, 0, -0.1]), delta=True)
+
 
 if __name__ == "__main__":
     main()

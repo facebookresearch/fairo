@@ -14,12 +14,8 @@ def compute_des_pose(best_grasp):
     grasp_point = best_grasp.translation
 
     grasp_approach_delta = best_grasp.rotation_matrix @ np.array([-0.3, 0.0, 0])
-    grasp_approach_delta_plus = best_grasp.rotation_matrix @ np.array(
-        [-0.3, 0.1, 0]
-    )
-    grasp_approach_delta_minus = best_grasp.rotation_matrix @ np.array(
-        [-0.3, -0.1, 0]
-    )
+    grasp_approach_delta_plus = best_grasp.rotation_matrix @ np.array([-0.3, 0.1, 0])
+    grasp_approach_delta_minus = best_grasp.rotation_matrix @ np.array([-0.3, -0.1, 0])
     bx = -grasp_approach_delta
     by = grasp_approach_delta_plus - grasp_approach_delta_minus
     bx = bx / np.linalg.norm(bx)
@@ -27,17 +23,15 @@ def compute_des_pose(best_grasp):
     bz = np.cross(bx, by)
     plane_rot = R.from_matrix(np.vstack([bx, by, bz]).T)
 
-    des_ori = (
-        plane_rot
-        * R.from_euler("x", 90, degrees=True)
-        * R.from_euler("y", 90, degrees=True)
-    )
+    des_ori = plane_rot * R.from_euler("x", 90, degrees=True) * R.from_euler("y", 90, degrees=True)
     des_ori_quat = des_ori.as_quat()
 
     return grasp_point, grasp_approach_delta, des_ori_quat
 
+
 def grasp_to_pose(grasp: graspnetAPI.Grasp):
     return grasp.translation, R.from_matrix(grasp.rotation_matrix).as_quat()
+
 
 class GraspingRobotInterface(polymetis.RobotInterface):
     def __init__(self, gripper: polymetis.GripperInterface, *args, **kwargs):
@@ -49,11 +43,13 @@ class GraspingRobotInterface(polymetis.RobotInterface):
 
     def gripper_close(self):
         self.gripper.goto(0, 1, 1)
-    
+
     def _move_until_success(self, position, orientation, time_to_go, max_attempts=5):
         states = []
         for _ in range(max_attempts):
-            states += self.move_to_ee_pose(position=position, orientation=orientation, time_to_go=time_to_go)
+            states += self.move_to_ee_pose(
+                position=position, orientation=orientation, time_to_go=time_to_go
+            )
             curr_ee_pos, curr_ee_ori = self.get_ee_pose()
 
             print(f"Dist to goal: {torch.linalg.norm(curr_ee_pos - position)}")
@@ -62,8 +58,9 @@ class GraspingRobotInterface(polymetis.RobotInterface):
                 break
         return states
 
-    
-    def select_grasp(self, grasps: graspnetAPI.GraspGroup, scene_pcd: o3d.geometry.PointCloud) -> graspnetAPI.Grasp:
+    def select_grasp(
+        self, grasps: graspnetAPI.GraspGroup, scene_pcd: o3d.geometry.PointCloud
+    ) -> graspnetAPI.Grasp:
         # TODO: do something smarter than this
         return grasps[int(input("Choose grasp index (1-indexed):")) - 1]
 
@@ -74,11 +71,17 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         offset = np.array([0.1, 0, 0.1])
 
         self.gripper_open()
-        states += self._move_until_success(position=torch.Tensor(grasp_point + grasp_approach_delta * 2.0 + offset), orientation=torch.Tensor(des_ori_quat), time_to_go=3)
+        states += self._move_until_success(
+            position=torch.Tensor(grasp_point + grasp_approach_delta * 2.0 + offset),
+            orientation=torch.Tensor(des_ori_quat),
+            time_to_go=3,
+        )
 
         grip_ee_pos = torch.Tensor(grasp_point + grasp_approach_delta * 0.8 + offset)
 
-        states += self._move_until_success(position=grip_ee_pos, orientation=torch.Tensor(des_ori_quat), time_to_go=3)
+        states += self._move_until_success(
+            position=grip_ee_pos, orientation=torch.Tensor(des_ori_quat), time_to_go=3
+        )
 
         self.gripper_close()
 
