@@ -20,6 +20,8 @@ from polygrasp.grasp_rpc import GraspClient
 def main(cfg):
     # Initialize robot & gripper
     robot = hydra.utils.instantiate(cfg.robot)
+    robot.gripper_open()
+    robot.go_home()
 
     # Initialize cameras
     cameras = RealsenseAPI()
@@ -34,11 +36,14 @@ def main(cfg):
     num_iters = 1
     for i in range(num_iters):
         print(f"Grasp {i + 1} / num_iters")
+
         # Get RGBD & pointcloud
         rgbd = cameras.get_rgbd()
+
         scene_pcd = pcd_client.get_pcd(rgbd)
         grasp_group = grasp_client.get_grasps(scene_pcd)
-        grasp_client.visualize_grasp(scene_pcd, grasp_group, plot=True)
+
+        grasp_client.visualize_grasp(scene_pcd, grasp_group, render=False, save_view=False, plot=True)
 
         # # Get grasps per object
         # obj_to_pcd = pcd_client.segment_pcd(scene_pcd)
@@ -48,13 +53,14 @@ def main(cfg):
         # curr_obj, curr_grasps = random.choice(list(obj_to_grasps.items()))
         # print(f"Picking object with ID {curr_obj}")
 
-        # # Choose a grasp for this object
-        # # TODO: scene-aware motion planning for grasps
-        # des_ee_pos, des_ee_ori = robot.select_grasp(curr_grasps, scene_pcd)
+        # Choose a grasp for this object
+        # TODO: scene-aware motion planning for grasps
+        curr_grasps = grasp_group
+        chosen_grasp = robot.select_grasp(curr_grasps, scene_pcd)
 
-        # # Execute grasp
-        # traj, success = robot.grasp(ee_pos=des_ee_pos, ee_ori=des_ee_ori)
-        # print(f"Grasp success: {success}")
+        # Execute grasp
+        traj, success = robot.grasp(chosen_grasp)
+        print(f"Grasp success: {success}")
 
         # if success:
         #     print(f"Moving end-effector up and down")

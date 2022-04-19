@@ -66,20 +66,10 @@ def capnp_to_pcd(blob):
 def grasp_group_to_capnp(grasp_group: graspnetAPI.grasp.GraspGroup):
     capnp_gg = std_msgs.ByteMultiArray()
     capnp_gg.data = grasp_group_to_bytes(grasp_group)
-    # capnp_gg = geometry_msgs.PoseArray()
-    # capnp_poses = capnp_gg.init("poses", len(grasp_group))
-    # for pose, grasp in zip(capnp_poses, grasp_group):
-    #     x, y, z = grasp.translation.tolist()
-    #     pose.position = geometry_msgs.Point(x=x, y=y, z=z)
-    #     x, y, z, w = R.from_matrix(grasp.rotation_matrix).as_quat().tolist()
-    #     pose.orientation = geometry_msgs.Quaternion(x=x, y=y, z=z, w=w)
     return capnp_gg
 
 def capnp_to_grasp_group(blob):
     capnp_gg = std_msgs.ByteMultiArray.from_bytes(blob)
 
-    # for pose in capnp_gg.poses:
-    #     xyz = pose.position
-    
     gg = bytes_to_grasp_group(capnp_gg.data)
     return gg

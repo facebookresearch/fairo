@@ -1,29 +1,17 @@
-from typing import Iterator, List
-import logging
-from concurrent import futures
-import functools
+from typing import List
 
 import numpy as np
 import open3d as o3d
 
-import grpc
-from polygrasp import polygrasp_pb2
-from polygrasp import polygrasp_pb2_grpc
 import pyrealsense2
 
 
-log = logging.getLogger(__name__)
-
-
-class PointCloudServer(polygrasp_pb2_grpc.PointCloudServer):
-    def GetPointcloud(self, request_iterator: Iterator[polygrasp_pb2.Image], context) -> Iterator[polygrasp_pb2.PointCloud]:
-        raise NotImplementedError
-    
-    def SegmentPointcloud(self, request_iterator: Iterator[polygrasp_pb2.PointCloud], context) -> Iterator[polygrasp_pb2.ObjectMask]:
-        raise NotImplementedError
-
 class PointCloudClient:
-    def __init__(self, camera_intrinsics: List[pyrealsense2.pyrealsense2.intrinsics], camera_extrinsics: np.ndarray):
+    def __init__(
+        self,
+        camera_intrinsics: List[pyrealsense2.pyrealsense2.intrinsics],
+        camera_extrinsics: np.ndarray,
+    ):
         assert len(camera_intrinsics) == len(camera_extrinsics)
         self.n_cams = len(camera_intrinsics)
 
@@ -49,7 +37,9 @@ class PointCloudClient:
 
     def get_pcd(self, rgbds: np.ndarray) -> o3d.geometry.PointCloud:
         scene_pcd = o3d.geometry.PointCloud()
-        for rgbd, intrinsic, transform in zip(rgbds, self.o3_intrinsics, self.extrinsic_transforms):
+        for rgbd, intrinsic, transform in zip(
+            rgbds, self.o3_intrinsics, self.extrinsic_transforms
+        ):
             # The specific casting here seems to be very important, even though
             # rgbd should already be in np.uint16 type...
             img = rgbd[:, :, :3].astype(np.uint8)
@@ -58,27 +48,17 @@ class PointCloudClient:
             o3d_img = o3d.cuda.pybind.geometry.Image(img)
             o3d_depth = o3d.cuda.pybind.geometry.Image(depth)
 
-            rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(o3d_img,o3d_depth,convert_rgb_to_intensity=False,)
+            rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(
+                o3d_img,
+                o3d_depth,
+                convert_rgb_to_intensity=False,
+            )
 
             pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image, intrinsic)
             pcd.transform(transform)
             scene_pcd += pcd
 
-        # o3d.visualization.draw_geometries([scene_pcd])
         return scene_pcd
 
     def segment_pcd(self):
         raise NotImplementedError
-
-def serve(port=50054, max_workers=10, *args, **kwargs):
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
-    polygrasp_pb2_grpc.add_PointCloudServerServicer_to_server(PointCloudServer(*args, **kwargs), server)
-    server.add_insecure_port(f"[::]:{port}")
-    log.info(f"=== Starting server... ===")
-    server.start()
-    log.info(f"=== Done. Server running at port {port}. ===")
-    server.wait_for_termination()
-
-
-if __name__ == "__main__":
-    serve()
