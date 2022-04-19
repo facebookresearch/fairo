@@ -30,7 +30,7 @@ def test_with_sim_data():
     param=torch.zeros(9, dtype=torch.float64, requires_grad=True)
     L = lambda param: mean_loss(obs_data_std, param, K)
     print('init param  loss', L(param).item())
-    param_star=find_parameter(param, obs_data_std, K)
+    param_star=find_parameter(param, L)
 
     assert L(param_star) < noise_sigma * 2
 
@@ -108,7 +108,7 @@ def params_from_data(data_with_corners):
         print('number of image with marker', len(obs_data_std))
         param=torch.zeros(9, dtype=torch.float64, requires_grad=True)
         L = lambda param: mean_loss(obs_data_std, param, K)
-        param_star=find_parameter(param, obs_data_std, K)
+        param_star=find_parameter(param, L)
         print('found param_star loss', L(param_star).item())
         params.append(param_star)
 

@@ -71,26 +71,23 @@ def robot_poses(ip_address, pose_generator, time_to_go=3):
     # Get reference state
     robot.go_home()
     for i, (pos_sampled, ori_sampled) in enumerate(pose_generator):
+        print( f"Moving to pose ({i}): pos={pos_sampled}, quat={ori_sampled.as_quat()}")
+
+        state_log = robot.move_to_ee_pose(position=pos_sampled,orientation=ori_sampled.as_quat(),time_to_go = time_to_go)
+        print(f"Length of state_log: {len(state_log)}")
+        if len(state_log) != time_to_go * robot.hz:
+            print(f"warning: log incorrect length. {len(state_log)} != {time_to_go * robot.hz}")
         while True:
-            print( f"Moving to pose ({i}): pos={pos_sampled}, quat={ori_sampled.as_quat()}")
-
-            state_log = robot.move_to_ee_pose(position=pos_sampled,orientation=ori_sampled.as_quat(),time_to_go = time_to_go)
-            print(f"Length of state_log: {len(state_log)}")
-            if len(state_log) != time_to_go * robot.hz:
-                print(f"State log incorrect length. Trying again...")
-            else:
-                while True:
-                    pos0, quat0 = robot.get_ee_pose()
-                    time.sleep(1)
-                    pos1, quat1 = robot.get_ee_pose()
-                    diffpos = (pos0-pos1).norm()
-                    if diffpos < 0.01:
-                        break
-                    print(f'robot moving diffpos={diffpos}')
-
-                print(f"Current pose  pos={pos0}, quat={quat0}")
-                yield pos1, quat1
+            pos0, quat0 = robot.get_ee_pose()
+            time.sleep(1)
+            pos1, quat1 = robot.get_ee_pose()
+            diffpos = (pos0-pos1).norm()
+            if diffpos < 0.01:
                 break
+            print(f'robot moving diffpos={diffpos}')
+
+        print(f"Current pose  pos={pos0}, quat={quat0}")
+        yield pos1, quat1
     robot.go_home()
 
 
@@ -128,6 +125,7 @@ if __name__ == '__main__':
     parser.add_argument('--num-points', default=20, type=int, help="number of points to sample from convex hull")
     parser.add_argument('--time-to-go', default=3, type=float, help="time_to_go in seconds for each movement")
     parser.add_argument('--imagedir', default=None, help="folder to save debug images")
+    parser.add_argument('--pixel-tolerance', default=2.0, help="mean pixel error tolerance (stage 2)")
 
     args=parser.parse_args()
     print(f"Config: {args}")
@@ -178,29 +176,51 @@ if __name__ == '__main__':
     num_of_camera=len(corner_data[0]['intrinsics'])
     params=[]
     for i in range(num_of_camera):
-        print(f'Solve camera {i} pose')
+        print(f'Solve camera {i}/{num_of_camera} pose')
         obs_data_std, K = extract_obs_data_std(corner_data, i)
         print('number of images with keypoint', len(obs_data_std))
-        loss = 9999
-        while loss > 1.0:
-            param=torch.randn(9, dtype=torch.float64, requires_grad=True)
+        if len(obs_data_std) < 3:
+            print('too few keypoint found for this camera, skip this camera')
+            params.append(torch.zeros(9) * torch.nan)
+            continue
+
+        # stage 1 - assuming marker is attach to EE origin, solve camera pose first
+        p3d = torch.stack([p[1] for p in obs_data_std]).detach().numpy()
+        p2d = torch.stack([p[0] for p in obs_data_std]).detach().numpy()
+        retval, rvec, tvec = cv2.solvePnP(p3d, p2d, K.numpy(), distCoeffs=None, flags=cv2.SOLVEPNP_SQPNP)
+        rvec_cam = torch.tensor(-rvec.reshape(-1))
+        tvec_cam = -rotmat(rvec_cam).matmul(torch.tensor(tvec.reshape(-1)))
+        pixel_error = mean_loss(obs_data_std, torch.cat([rvec_cam, tvec_cam, torch.zeros(3)]), K).item()
+        print('stage 1 mean pixel error', pixel_error)
+
+        # stage 2 - allow marker to move, joint optimize camera pose and marker
+        while pixel_error > args.pixel_tolerance:
+            marker_max_displacement = 0.1 #meter
+            param=torch.tensor(torch.cat([rvec_cam, tvec_cam, torch.randn(3)*marker_max_displacement]).detach(), requires_grad=True)
             L = lambda param: mean_loss(obs_data_std, param, K)
             try:
-                param_star=find_parameter(param, obs_data_std, K)
+                param_star=find_parameter(param, L)
             except Exception as e:
                 print(e)
                 continue
 
-            loss = L(param_star).item()
-            print('found param loss (mean pixel err)', loss)
+            pixel_error = L(param_star).item()
+            print('stage 2 mean pixel error', pixel_error)
+            if pixel_error > args.pixel_tolerance:
+                print(f"Try again because of poor solution {pixel_error} > {args.pixel_tolerance}")
+            
+
+        print(f"Good solution {pixel_error} <= {args.pixel_tolerance}")
         params.append(param_star)
     
     with torch.no_grad():
         param_list = []
         for i, param in enumerate(params):
-            camera_base_ori = rotmat(param[:3])
+            camera_base_ori_rotvec = param[:3]
+            camera_base_ori = rotmat(camera_base_ori_rotvec)
             result = {
                 "camera_base_ori": camera_base_ori.cpu().numpy().tolist(),
+                "camera_base_ori_rotvec": camera_base_ori_rotvec.cpu().numpy().tolist(),
                 "camera_base_pos": param[3:6].cpu().numpy().tolist(),
                 "p_marker_ee": param[6:9].cpu().numpy().tolist(),
             }
@@ -209,4 +229,4 @@ if __name__ == '__main__':
         
         with open(args.calibration_file, 'w') as f:
             print(f"Saving calibrated parameters to {args.calibration_file}")
-            json.dump(param_list, f)
+            json.dump(param_list, f, indent=4)
