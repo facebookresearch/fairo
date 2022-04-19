@@ -6,6 +6,8 @@ from collections import namedtuple
 from droidlet.base_util import XYZ
 import numpy as np
 
+# mainHand is the item in the player or agent's hand, that will be placed by a place block action
+# it is defined in lowlevel/minecraft/client/src/types.h as Item, and has fields id, meta
 Player = namedtuple(
     "Player", "entityId, name, pos, look, mainHand, cagent_struct", defaults=(None,) * 6
 )
@@ -35,12 +37,12 @@ def maybe_flip_x_or_look(struct):
     elif getattr(struct, "yaw", None):
         return flip_look(struct)
     elif getattr(struct, "mobType", None):
-        # we keep the cagent structas an attribute in case we want to interface with cagent again
+        # we keep the cagent struct as an attribute in case we want to interface with cagent again
         return Mob(
             struct.entityId, struct.mobType, flip_x(struct.pos), flip_look(struct.look), struct
         )
     elif getattr(struct, "mainHand", None):
-        # we keep the cagent structas an attribute in case we want to interface with cagent again
+        # we keep the cagent struct as an attribute in case we want to interface with cagent again
         return Player(
             struct.entityId,
             struct.name,

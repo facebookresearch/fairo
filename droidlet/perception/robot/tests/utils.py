@@ -2,37 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
-
-from droidlet.dialog.dialogue_manager import DialogueManager
-
-# from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
-from agents.droidlet_agent import DroidletAgent
 from droidlet.perception.robot import Detection, Human, HumanKeypointsOrdering
 from droidlet.shared_data_structs import RGBDepth
-
-
-class FakeAgent(DroidletAgent):
-    def __init__(self, opts):
-        super(FakeAgent, self).__init__(opts)
-        self.opts = opts
-
-    def init_memory(self):
-        self.memory = "memory"
-
-    def init_physical_interfaces(self):
-        pass
-
-    def init_perception(self):
-        self.perception_modules = {}
-        self.perception_modules["language_understanding"] = None
-        # self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
-
-    def init_controller(self):
-        dialogue_object_classes = {}
-        self.dialogue_manager = DialogueManager(
-            agent=self, dialogue_object_classes=dialogue_object_classes, opts=self.opts
-        )
-
 
 def get_fake_rgbd(rgb=None, h=480, w=640):
     rgb = np.float32(np.random.rand(h, w, 3) * 255) if rgb is None else rgb
