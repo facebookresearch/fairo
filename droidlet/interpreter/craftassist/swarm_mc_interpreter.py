@@ -1,11 +1,12 @@
 from droidlet.interpreter.craftassist import MCInterpreter
 from droidlet.interpreter.craftassist import swarm_tasks
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Any, Optional
 
 
 class SwarmMCInterpreter(MCInterpreter):
-    def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
-        super(SwarmMCInterpreter, self).__init__(speaker, action_dict, low_level_data, **kwargs)
+    # self, speaker, logical_form_memid, agent_memory, memid=None, low_level_data=None):
+    def __init__(self, speaker: str, logical_form_memid, agent_memory, memid=None, low_level_data=None):
+        super(SwarmMCInterpreter, self).__init__(speaker, logical_form_memid, agent_memory, memid, low_level_data)
         # self.task_objects = {
         #     "move": tasks.Move,
         #     "undo": tasks.Undo,
@@ -21,11 +22,17 @@ class SwarmMCInterpreter(MCInterpreter):
         #     "drop": tasks.Drop,
         #     "control": ControlBlock,
         # }
+        self.task_objects = super(SwarmMCInterpreter, self).task_objects
+        # only override certain tasks : Move, build, destroy, dance, dancemove and dig supported for swarms here
         self.task_objects["move"] = swarm_tasks.SwarmMove
         self.task_objects["build"] = swarm_tasks.SwarmBuild
         self.task_objects["destroy"] = swarm_tasks.SwarmDestroy
+        self.task_objects["dance"] = swarm_tasks.SwarmDance
+        self.task_objects["dancemove"] = swarm_tasks.SwarmDanceMove
         self.task_objects["dig"] = swarm_tasks.SwarmDig
 
+    ### Override the handle stop and handle resume ###
+    # TODO: need to test the following again in the new task format.!!!!
     def handle_stop(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
         if self.loop_data is not None:
@@ -33,7 +40,7 @@ class SwarmMCInterpreter(MCInterpreter):
             self.archived_loop_data = self.loop_data
             self.loop_data = None
         if hasattr(agent, "swarm_workers"):
-            for i in range(agent.num_agents - 1):
+            for i in range(agent.num_agents-1):
                 agent.swarm_workers[i].query_from_master.put(("stop", None))
         if self.memory.task_stack_pause():
             return None, "Stopping.  What should I do next?", None
@@ -45,7 +52,7 @@ class SwarmMCInterpreter(MCInterpreter):
     def handle_resume(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
         if hasattr(agent, "swarm_workers"):
-            for i in range(agent.num_agents - 1):
+            for i in range(agent.num_agents-1):
                 agent.swarm_workers[i].query_from_master.put(("resume", None))
         if self.memory.task_stack_resume():
             if self.archived_loop_data is not None:
