@@ -39,8 +39,10 @@ if __name__ == "__main__":
     def view_imgs():
         fig, axes = plt.subplots(num_cams, 2, squeeze=False)
         fig.suptitle(f"Camera images (press `q` to exit)")
-        imgs, depths = rs.get_images(depth=True)
-        for i, (fairotag_cam, img, depth, ax) in enumerate(zip(fairotag_cams, imgs, depths, axes)):
+        rgbds  = rs.get_rgbd()
+        for i, (fairotag_cam, rgbd, ax) in enumerate(zip(fairotag_cams, rgbds, axes)):
+            img = rgbd[:, :, :3].astype(np.uint8)
+            depth = rgbd[:, :, 3]
             markers = fairotag_cam.detect_markers(img)
             img_render = fairotag_cam.render_markers(img, markers=markers)
             ax[0].imshow(img_render)

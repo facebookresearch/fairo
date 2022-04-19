@@ -65,6 +65,7 @@ class RemoteHelloRobot(object):
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
         self._check_battery()
         self._load_urdf()
+        self.tilt_correction = 0.0
 
     def _check_battery(self):
         p = self._robot.pimu
@@ -94,10 +95,23 @@ class RemoteHelloRobot(object):
             urdf = f.read()
             self.tm.load_urdf(urdf)
 
+    def set_tilt_correction(self, angle):
+        """
+        angle in radians
+        """
+        print(
+            "[hello-robot] Setting tilt correction " "to angle: {} degrees".format(degrees(angle))
+        )
+
+        self.tilt_correction = angle
+
     def get_camera_transform(self):
         s = self._robot.get_status()
         head_pan = s["head"]["head_pan"]["pos"]
         head_tilt = s["head"]["head_tilt"]["pos"]
+
+        if self.tilt_correction != 0.0:
+            head_tilt += self.tilt_correction
 
         # Get Camera transform
         self.tm.set_joint("joint_head_pan", head_pan)
@@ -257,5 +271,5 @@ if __name__ == "__main__":
         with Pyro4.locateNS() as ns:
             ns.register("hello_robot", robot_uri)
 
-        print("Server is started...")
+        print("Hello Robot Server is started...")
         daemon.requestLoop()
