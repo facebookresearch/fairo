@@ -6,6 +6,7 @@ from mrp.util import NoEscape
 from importlib.machinery import SourceFileLoader
 import click
 import os
+import sys
 
 
 @click.group()
@@ -16,14 +17,10 @@ def cli():
 def main(*args):
     try:
         cli(*args)
-    except SystemExit as sys_exit:
-        if sys_exit.code == 0:
-            return
-        raise RuntimeError(
-            f"mrp.main failed with exit code {sys_exit.code}"
-        ) from sys_exit
     except Exception as ex:
         click.echo(ex, err=True)
+        sys.exit(1)
+    sys.exit(0)
 
 
 class cmd:

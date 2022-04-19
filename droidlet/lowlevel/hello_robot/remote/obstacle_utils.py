@@ -1,6 +1,7 @@
 import open3d as o3d
 import numpy as np
 import copy
+import time
 import warnings
 
 
@@ -57,6 +58,7 @@ def get_ground_plane(
 def is_obstacle(
     pcd,
     base_pos,
+    lidar_scan=None,
     pix_threshold=100,
     min_dist=0.3,
     max_dist=1.0,
@@ -66,6 +68,7 @@ def is_obstacle(
     return_viz=False,
 ):
     # print("num points", np.asarray(pcd.points).shape)
+    rest = None
     crop, bbox = get_points_in_front(pcd, base_pos, min_dist, max_dist, robot_width, height)
     # print("num cropped", np.asarray(crop.points).shape)
     num_cropped_points = np.asarray(crop.points).shape[0]
@@ -79,11 +82,45 @@ def is_obstacle(
         raise RuntimeError("Not Implemented")
     elif num_cropped_points >= pix_threshold:
         rest = get_ground_plane(crop, return_ground=False)
-        obstacle = np.asarray(rest.points).shape[0] > 100
+        if np.asarray(rest.points).shape[0] > 100:
+            obstacle = True
+
+    if lidar_scan is not None:
+        if is_lidar_obstacle(lidar_scan):
+            obstacle = True
+
     if return_viz:
         return obstacle, pcd, crop, bbox, rest
     else:
         return obstacle
+
+
+def is_lidar_obstacle(lidar_scan, bbox=(0.0, 0.5, -0.25, 0.25), min_quality=0):
+    # bbox specifies coordinates of rectangle (xmin, xmax, ymin, ymax) centered
+    # at lidar. Any points within this box are considered an obstacle.
+    # Note that positive x is the front of the robot.
+    timestamp, scan = lidar_scan
+
+    age = time.time() - timestamp  # in seconds
+    if age > 1.0:
+        warnings.warn(f"[is_lidar_obstacle] lidar scan is {age:.2f} seconds old")
+        return False
+
+    xmin, xmax, ymin, ymax = bbox
+    scan = np.asarray(scan)
+
+    # filter on quality (reflected laser strength, range 0-15).
+    scan = scan[scan[:, 0] >= min_quality]
+
+    # convert degrees to radians and mm to meters
+    rads = np.radians(scan[:, 1])
+    dist = scan[:, 2] / 1000.0
+
+    xs = np.cos(rads) * dist
+    ys = np.sin(rads) * dist
+
+    in_bounds = (xs >= xmin) & (xs <= xmax) & (ys >= ymin) & (ys <= ymax)
+    return in_bounds.any()
 
 
 def get_o3d_pointcloud(points, colors):

@@ -8,4 +8,4 @@ scikit-image
 -f https://download.pytorch.org/whl/cpu/torch_stable.html
 torch
 torchvision
-
+rich

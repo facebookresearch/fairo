@@ -16,7 +16,9 @@ import numpy as np
 import cv2
 import open3d as o3d
 from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
+from droidlet.lowlevel.hello_robot.remote.lidar import Lidar
 from slam_pkg.utils import depth_util as du
+import obstacle_utils
 from obstacle_utils import is_obstacle
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
 from data_compression import *
@@ -40,6 +42,8 @@ class RemoteHelloRealsense(object):
 
     def __init__(self, bot):
         self.bot = bot
+        self._lidar = Lidar()
+        self._lidar.start()
         self._done = True
         self._connect_to_realsense()
         # Slam stuff
@@ -57,6 +61,17 @@ class RemoteHelloRealsense(object):
 
     def get_camera_transform(self):
         return self.bot.get_camera_transform()
+
+    def get_lidar_scan(self):
+        # returns tuple (timestamp, scan)
+        return self._lidar.get_latest_scan()
+
+    def is_lidar_obstacle(self):
+        lidar_scan = self._lidar.get_latest_scan()
+        if lidar_scan is None:
+            print("no scan")
+            return False
+        return obstacle_utils.is_lidar_obstacle(lidar_scan)
 
     def _connect_to_realsense(self):
         config = rs.config()
@@ -82,6 +97,14 @@ class RemoteHelloRealsense(object):
 
         align_to = rs.stream.color
         self.align = rs.align(align_to)
+
+        self.decimate = rs.decimation_filter(2.0)
+        self.threshold = rs.threshold_filter(0.1, 4.0)
+        self.depth2disparity = rs.disparity_transform()
+        self.spatial = rs.spatial_filter(0.5, 20.0, 2.0, 0.0)
+        self.temporal = rs.temporal_filter(0.0, 100.0, 3)
+        self.disparity2depth = rs.disparity_transform(False)
+
         print("connected to realsense")
 
     def get_intrinsics(self):
@@ -102,7 +125,17 @@ class RemoteHelloRealsense(object):
         frames = None
         while not frames:
             frames = self.realsense.wait_for_frames()
-            aligned_frames = self.align.process(frames)
+
+            # post-processing goes here
+            decimated = self.decimate.process(frames).as_frameset()
+            thresholded = self.threshold.process(decimated).as_frameset()
+            disparity = self.depth2disparity.process(thresholded).as_frameset()
+            spatial = self.spatial.process(disparity).as_frameset()
+            # temporal = self.temporal.process(spatial).as_frameset() # TODO: re-enable
+            postprocessed = self.disparity2depth.process(spatial).as_frameset()
+
+            aligned_frames = self.align.process(postprocessed)
+            # aligned_frames = self.align.process(frames)
 
             # Get aligned frames
             aligned_depth_frame = (
@@ -178,8 +211,11 @@ class RemoteHelloRealsense(object):
 
     def is_obstacle_in_front(self, return_viz=False):
         base_state = self.bot.get_base_state()
+        lidar_scan = self.get_lidar_scan()
         pcd = self.get_open3d_pcd()
-        ret = is_obstacle(pcd, base_state, max_dist=0.5, return_viz=return_viz)
+        ret = is_obstacle(
+            pcd, base_state, lidar_scan=lidar_scan, max_dist=0.5, return_viz=return_viz
+        )
         if return_viz:
             obstacle, cpcd, crop, bbox, rest = ret
             # cpcd = o3d_pickle(cpcd)
@@ -207,6 +243,21 @@ class RemoteHelloRealsense(object):
         depth = blosc_encode(depth)
         return rgb, depth, base2cam_rot, base2cam_trans
 
+    def calibrate_tilt(self):
+        self.bot.set_tilt(math.radians(-60))
+        time.sleep(2)
+        pcd = self.get_open3d_pcd()
+        plane, points = pcd.segment_plane(
+            distance_threshold=0.03,
+            ransac_n=3,
+            num_iterations=1000,
+        )
+        angle = math.atan(plane[0] / plane[2])
+        self.bot.set_tilt_correction(angle)
+
+        self.bot.set_tilt(math.radians(0))
+        time.sleep(2)
+
 
 if __name__ == "__main__":
     import argparse
@@ -230,6 +281,7 @@ if __name__ == "__main__":
         with Pyro4.locateNS() as ns:
             ns.register("hello_realsense", robot_uri)
 
+        robot.calibrate_tilt()
         print("Server is started...")
         # try:
         #     while True:

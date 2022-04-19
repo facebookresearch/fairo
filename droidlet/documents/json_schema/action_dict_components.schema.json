@@ -14,25 +14,15 @@
           ]
         },
         "input_left": {
-          "$ref": "#/definitions/input_left"
+          "$ref": "filters.schema.json#/definitions/value_extractor"
         },
         "input_right": {
-          "type": "object",
-          "properties": {
-            "value": {
-              "$ref": "#/definitions/span"
-            }
-          }
+          "$ref": "filters.schema.json#/definitions/value_extractor"
         }
       }
     },
     "input_left": {
-      "type": "object",
-      "properties": {
-        "value_extractor": {
-          "$ref": "#/definitions/value_extractor"
-        }
-      }
+      "$ref": "filters.schema.json#/definitions/value_extractor"
     },
     "span": {
       "$ref": "span.schema.json#/definitions/span"
@@ -75,6 +65,12 @@
             },
             "steps": {
               "$ref": "#/definitions/span"
+            },
+            "location_type": {
+              "enum": [
+                "Other",
+                "SPEAKER_POS"
+              ]
             },
             "has_measure": {
               "$ref": "#/definitions/has_measure"
@@ -153,28 +149,9 @@
         }
       ]
     },
-    "remove_condition": {
+    "terminate_condition": {
       "type": "object",
       "description": "Condition for removing an event",
-      "properties": {
-        "condition_type": {
-          "enum": [
-            "ADJACENT_TO_BLOCK_TYPE",
-            "NEVER",
-            "COMPARATOR"
-          ]
-        },
-        "block_type": {
-          "$ref": "#/definitions/span"
-        },
-        "condition": {
-          "$ref": "#/definitions/condition"
-        }
-      }
-    },
-    "stop_condition": {
-      "type": "object",
-      "description": "Condition for stopping",
       "properties": {
         "condition_type": {
           "enum": [

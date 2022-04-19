@@ -50,15 +50,13 @@ The following table shows the frontend components, the socket events they emit/h
 | Component Name | Socket Event | Purpose | Socket event sent by |
 | ------------- | ------------- | ------------- | ------------- |
 | MainPane & InteractApp | updateAgentType | Show the correct panes based on agent type | backend |
-| InteractApp | setLastChatActionDict | Wait for the logical form of last chat and show the Question page | backend |
+| InteractApp | setLastChatActionDict | Display the logical form of last chat | backend |
 | InteractApp | getChatActionDict | Send request to retrieve the logic form of last sent command | frontend |
-| Question | saveErrorDetailsToCSV | To save the error to backend db | frontend |
-| Message & AgentThinking| sendCommandToAgent | send command from frontend to agent process | frontend |
-| AgentThinking | taskStackPoll | Poll task stack to see if complete | frontend |
-| AgentThinking | taskStackPollResponse | Response to task stack poll | backend |
+| InteractApp | saveErrorDetailsToCSV | To save the error to backend db | frontend |
+| InteractApp | taskStackPoll | Poll task stack to see if complete | frontend |
+| InteractApp | taskStackPollResponse | Response to task stack poll | backend |
 | InteractApp & Message | showAssistantreply | Get the agent's reply after processing the command, if any and render it.  | backend |
 | InteractApp | setChatResponse | Get parsing status, logical form for this chat from semantic parser, history of past 5 commands | backend |
-| AgentThinking & TimelineResults | newTimelineEvent | Agent task stack status update | backend |
 | VoxelWorld | getVoxelWorldInitialState | Get initial voxel world environment | frontend |
 | VoxelWorld | setVoxelWorldInitialState | Set initial voxel world environment | backend |
 | VoxelWorld | updateVoxelWorldState | Push updates to voxel world | backend |

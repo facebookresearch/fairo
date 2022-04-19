@@ -7,7 +7,7 @@ import select
 from slam_pkg.utils.map_builder import MapBuilder as mb
 from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
-
+from rich import print
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
@@ -24,6 +24,7 @@ class SLAM(object):
         robot_rad=30,
         agent_min_z=5,
         agent_max_z=70,
+        obstacle_threshold=1,
     ):
         self.robot = robot
         self.robot_rad = robot_rad
@@ -33,6 +34,7 @@ class SLAM(object):
             resolution=resolution,
             agent_min_z=agent_min_z,
             agent_max_z=agent_max_z,
+            obs_thr=obstacle_threshold,
         )
         self.map_size = map_size
         # if the map is a previous map loaded from disk, and
@@ -112,8 +114,8 @@ class SLAM(object):
         ]
         return real_world_locations
 
-    def reset_map(self):
-        self.map_builder.reset_map(self.map_size)
+    def reset_map(self, z_bins=None, obs_thr=None):
+        self.map_builder.reset_map(self.map_size, z_bins=z_bins, obs_thr=obs_thr)
 
 
 robot_ip = os.getenv("LOCOBOT_IP")
@@ -123,7 +125,19 @@ if len(sys.argv) > 1:
     robot_name = sys.argv[1]
 with Pyro4.Daemon(ip) as daemon:
     robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
-    obj = SLAM(robot)
+
+    if robot_name == "hello_realsense":
+        robot_height = 141  # cm
+        min_z = 20  # because of the huge spatial variance in realsense readings
+        max_z = robot_height + 5  # cm
+        obj = SLAM(
+            robot,
+            obstacle_threshold=10,
+            agent_min_z=min_z,
+            agent_max_z=max_z,
+        )
+    else:
+        obj = SLAM(robot)
     obj_uri = daemon.register(obj)
     with Pyro4.locateNS(robot_ip) as ns:
         ns.register("slam", obj_uri)

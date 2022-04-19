@@ -10,6 +10,8 @@ import time
 import copy
 from math import *
 
+from rich import print
+
 import Pyro4
 from stretch_body.robot import Robot
 from colorama import Fore, Back, Style
@@ -63,6 +65,7 @@ class RemoteHelloRobot(object):
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
         self._check_battery()
         self._load_urdf()
+        self.tilt_correction = 0.0
 
     def _check_battery(self):
         p = self._robot.pimu
@@ -92,15 +95,37 @@ class RemoteHelloRobot(object):
             urdf = f.read()
             self.tm.load_urdf(urdf)
 
+    def set_tilt_correction(self, angle):
+        """
+        angle in radians
+        """
+        print(
+            "[hello-robot] Setting tilt correction " "to angle: {} degrees".format(degrees(angle))
+        )
+
+        self.tilt_correction = angle
+
     def get_camera_transform(self):
         s = self._robot.get_status()
         head_pan = s["head"]["head_pan"]["pos"]
         head_tilt = s["head"]["head_tilt"]["pos"]
 
+        if self.tilt_correction != 0.0:
+            head_tilt += self.tilt_correction
+
         # Get Camera transform
         self.tm.set_joint("joint_head_pan", head_pan)
         self.tm.set_joint("joint_head_tilt", head_tilt)
-        camera_transform = self.tm.get_transform("camera_link", "base_link")
+        camera_transform = self.tm.get_transform("camera_color_frame", "base_link")
+
+        # correct for base_link's z offset from the ground
+        # at 0, the correction is -0.091491526943
+        # at 90, the correction is +0.11526719 + -0.091491526943
+        # linear interpolate the correction of 0.023775
+        interp_correction = 0.11526719 * abs(head_tilt) / radians(90)
+        # print('interp_correction', interp_correction)
+
+        camera_transform[2, 3] += -0.091491526943 + interp_correction
 
         return camera_transform
 
@@ -246,5 +271,5 @@ if __name__ == "__main__":
         with Pyro4.locateNS() as ns:
             ns.register("hello_robot", robot_uri)
 
-        print("Server is started...")
+        print("Hello Robot Server is started...")
         daemon.requestLoop()

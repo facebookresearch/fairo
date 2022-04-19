@@ -31,7 +31,7 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
             idx_rev_map[b] = (line_id, pre_id)
     idx_rev_map[-1] = idx_rev_map[-2]
     tree = [("<S>", -1, -1, -1, -1, -1)]
-    text_idx_ls = [dataset.tokenizer._convert_token_to_id(w) for w in text.split()]
+    text_idx_ls = dataset.tokenizer.convert_tokens_to_ids(text.split())
     tree_idx_ls = [
         [dataset.tree_idxs[w], bi, ei, text_span_bi, text_span_ei, fixed_val]
         for w, bi, ei, text_span_bi, text_span_ei, fixed_val in tree

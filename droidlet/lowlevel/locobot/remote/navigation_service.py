@@ -6,6 +6,7 @@ import time
 import numpy as np
 import Pyro4
 from slam_pkg.utils import depth_util as du
+from rich import print
 
 random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
@@ -57,6 +58,7 @@ class Navigation(object):
         self.robot = robot
         self.trackback = Trackback(planner)
         self._busy = False
+        self._stop = True
         self._done_exploring = False
 
     def go_to_relative(self, goal):
@@ -70,11 +72,12 @@ class Navigation(object):
 
     def go_to_absolute(self, goal, steps=100000000):
         self._busy = True
+        self._stop = False
         robot_loc = self.robot.get_base_state()
         initial_robot_loc = robot_loc
         goal_reached = False
         return_code = True
-        while (not goal_reached) and steps > 0:
+        while (not goal_reached) and steps > 0 and self._stop is False:
             stg = self.planner.get_short_term_goal(robot_loc, goal)
             if stg == False:
                 # no path to end-goal
@@ -85,22 +88,13 @@ class Navigation(object):
                 )
                 return_code = False
                 break
-            robot_loc = self.robot.get_base_state()
             status = self.robot.go_to_absolute(stg)
+            robot_loc = self.robot.get_base_state()
 
-            print(
-                "go_to_absolute",
-                " initial location: ",
-                initial_robot_loc,
-                " goal: ",
-                goal,
-                " short-term goal:",
-                stg,
-                " reached location: ",
-                robot_loc,
-                " robot status: ",
-                status,
-            )
+            print("[navigation] Finished a go_to_absolute")
+            print(" initial location: {} Final goal: {}".format(initial_robot_loc, goal))
+            print(" short-term goal: {}, Reached Location: {}".format(stg, robot_loc))
+            print(" Robot Status: {}".format(status))
             if status == "SUCCEEDED":
                 goal_reached = self.planner.goal_within_threshold(robot_loc, goal)
                 self.trackback.update(robot_loc)
@@ -140,6 +134,9 @@ class Navigation(object):
 
     def reset_explore(self):
         self._done_exploring = False
+
+    def stop(self):
+        self._stop = True
 
 
 robot_ip = os.getenv("LOCOBOT_IP")

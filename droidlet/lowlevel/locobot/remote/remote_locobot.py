@@ -375,6 +375,10 @@ class RemoteLocobot(object):
             self._robot.camera.set_tilt(tilt, wait=wait)
             self._done = True
 
+    def is_busy(self):
+        status = self._robot.base._as.get_state()
+        return status == LocalActionStatus.ACTIVE
+
     def get_base_status(self):
         status = self._robot.base._as.get_state()
         if status == LocalActionStatus.ACTIVE:

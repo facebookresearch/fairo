@@ -21,13 +21,13 @@ class RobotModelConfig:
     robot_description_path: str
     controlled_joints: List[float]
     num_dofs: int
-    ee_link_idx: int
-    ee_link_name: str
     rest_pose: List[float]
     joint_limits_low: List[float]
     joint_limits_high: List[float]
     joint_damping: List[float]
     torque_limits: List[float]
+    ee_link_idx: int = None
+    ee_link_name: str = None
 
 
 @dataclass

@@ -201,11 +201,12 @@ if __name__ == "__main__":
     counter = 0
     if backend == 'habitat':
         mover.bot.set_pan(0.0)
-        mover.bot.set_tilt(-1.5)
+        # mover.bot.set_tilt(-1.5)
     else: # hellorobot
         mover.bot.set_pan(0.0)
-        mover.bot.set_tilt(-1.05)
-    
+        # mover.bot.set_tilt(-1.05)
+
+    print(mover.cam.get_current_pcd()[0])
     while True:
         counter += 1
         iter_time = time.time_ns() - start_time
@@ -280,10 +281,10 @@ if __name__ == "__main__":
         if backend == 'habitat':
             mover.explore((19,19,0))
         
-            sio.emit(
-                "map",
-                {"x": x, "y": y, "yaw": yaw, "map": mover.get_obstacles_in_canonical_coords()},
-            )
+        sio.emit(
+            "map",
+            {"x": x, "y": y, "yaw": yaw, "map": mover.get_obstacles_in_canonical_coords()},
+        )
 
         # s = input('...')
         time.sleep(0.001)
