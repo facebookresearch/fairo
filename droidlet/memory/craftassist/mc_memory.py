@@ -490,37 +490,6 @@ class MCAgentMemory(AgentMemory):
     ###  Schematics  ###
     ####################
 
-    def _get_schematic_by_property_name(self, name, table_name) -> Optional["SchematicNode"]:
-        """Get the Schematic type memory node using name"""
-        r = self._db_read(
-            """
-                    SELECT {}.type_name
-                    FROM {} INNER JOIN Triples as T ON T.subj={}.uuid
-                    WHERE (T.pred_text="has_name" OR T.pred_text="has_tag") AND T.obj_text=?""".format(
-                table_name, table_name, table_name
-            ),
-            name,
-        )
-        if not r:
-            return None
-
-        result = []  # noqa
-        for e in r:
-            schematic_name = e[0]
-            schematics = self._db_read(
-                """
-                    SELECT Schematics.uuid
-                    FROM Schematics INNER JOIN Triples as T ON T.subj=Schematics.uuid
-                    WHERE (T.pred_text="has_name" OR T.pred_text="has_tag") AND T.obj_text=?""",
-                schematic_name,
-            )
-            if schematics:
-                result.extend(schematics)
-        if result:
-            return self.nodes[SchematicNode.NODE_TYPE](self, random.choice(result)[0])
-        else:
-            return None
-
     def _load_block_types(
         self,
         block_data,
