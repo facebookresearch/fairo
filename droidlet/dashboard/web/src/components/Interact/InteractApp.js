@@ -35,7 +35,7 @@ class InteractApp extends Component {
       isTurk: false,
       action_dict: {},
       parsing_error: false,
-      perception_error: false,
+      vision_error: false,
       task_error: false,
       feedback: "",
       isSaveFeedback: false,
@@ -66,13 +66,16 @@ class InteractApp extends Component {
     //clear the textbox
     document.getElementById("msg").value = "";
     if (this.state.isSaveFeedback) {
-      this.saveFeedback(chatmsg);
+      this.setState({
+        isSaveFeedback: false,
+        feedback: chatmsg,
+      });
+      this.saveFeedback();
       this.updateChat({ msg: chatmsg, timestamp: Date.now() });
       this.addNewAgentReplies({
         msg: "Feedback has been saved!" + PLEASE_RESUME,
       });
       this.removeButtonsFromLastQuestion();
-      this.setState({ isSaveFeedback: false });
     } else if (chatmsg.replace(/\s/g, "") !== "") {
       //add to chat history box of parent
       this.updateChat({ msg: chatmsg, timestamp: Date.now() });
@@ -132,18 +135,24 @@ class InteractApp extends Component {
     }
   }
 
-  saveFeedback(event) {
+  saveFeedback() {
     var data = {
+      msg: this.state.last_command,
       action_dict: this.state.action_dict,
       parsing_error: this.state.parsing_error,
       task_error: this.state.task_error,
+      vision_error: this.state.vision_error,
       feedback: this.state.feedback,
     };
     // Emit socket.io event to save data to error logs and Mephisto
     this.props.stateManager.socket.emit("saveErrorDetailsToCSV", data);
 
-    //save feedback in state
-    this.setState({ feedback: event });
+    this.setState({
+      parsing_error: false,
+      task_error: false,
+      vision_error: false,
+      feedback: "",
+    })
   }
 
   componentDidMount() {
@@ -461,6 +470,7 @@ class InteractApp extends Component {
         disablePreviousAnswer: true,
       });
     } else if (index === 2) {
+      this.setState({ task_error: true });
       // No, there was an error of some kind
       if (this.state.action_dict) {
         this.updateChat({ msg: "No", timestamp: Date.now() });
@@ -658,6 +668,7 @@ class InteractApp extends Component {
         PLEASE_RESUME,
       disablePreviousAnswer: true,
     });
+    this.saveFeedback();
   }
 
   check_reference_object_in_action_dict(action) {
@@ -816,6 +827,7 @@ class InteractApp extends Component {
         PLEASE_RESUME,
       disablePreviousAnswer: true,
     });
+    this.saveFeedback();
   }
 
   renderOtherError() {

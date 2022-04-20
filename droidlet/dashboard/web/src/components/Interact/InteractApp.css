@@ -85,6 +85,7 @@
     inset 0 -2rem 2rem -2rem rgba(0, 0, 0, 0.05);
 }
 .chat .messages .messsages-content {
+  position: relative;
   overflow-y: auto;
   height: 100%;
 }
@@ -106,7 +107,7 @@
 }
 
 .chat .messages .messagelist {
-  position: relative !important;
+  position: absolute !important;
   bottom: 0;
   width: 100%;
   list-style-type: none;
