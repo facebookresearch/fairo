@@ -132,8 +132,7 @@ class PlaceField:
         """
         # FIXME! do other h
         ijs = list(zip(*self.maps[0]["map"].nonzero()))
-        return [self.map2real(i, j, 0) for i, j in ijs]  
-    
+        return [self.map2real(i, j, 0) for i, j in ijs]
 
     def delete_loc_by_memid(self, memid, t, is_move=False):
         """
