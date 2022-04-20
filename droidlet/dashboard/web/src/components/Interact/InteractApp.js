@@ -207,13 +207,6 @@ class InteractApp extends Component {
     this.setState({ chats: new_chats });
   }
 
-  // buildCommandList(cmd) {
-  //   // make a shallow copy of commands
-  //   var new_cmds = [...this.state.commands];
-  //   new_cmds.push(cmd);
-  //   this.setState({ commands: new_cmds });
-  // }
-
   issueStopCommand() {
     console.log("Stop command issued");
     const chatmsg = "stop";

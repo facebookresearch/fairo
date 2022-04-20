@@ -8,14 +8,14 @@ from droidlet.memory.memory_nodes import (
     SelfNode,
     TaskNode,
 )
-from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode
+from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode, ItemStackNode
 from .interpret_location import interpret_relative_direction
 from .interpret_filters import interpret_selector
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 from droidlet.dialog.dialogue_task import ClarifyCC1
 
-DISALLOWED_REF_OBJS = (LocationNode, SelfNode, PlayerNode)
+DISALLOWED_REF_OBJS = (LocationNode, SelfNode, PlayerNode, ItemStackNode)
 CC1_SEARCH_RADIUS = 15
 
 

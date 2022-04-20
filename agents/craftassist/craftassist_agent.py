@@ -12,6 +12,7 @@ import json
 from multiprocessing import set_start_method
 from collections import namedtuple
 from datetime import datetime
+from copy import deepcopy
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
@@ -305,17 +306,17 @@ class CraftAssistAgent(DroidletAgent):
             List of changed blocks
         """
         blocks = self.cagent.get_changed_blocks()
-        safe_blocks = []
+        safe_blocks = deepcopy(blocks)
         if len(self.point_targets) > 0:
             for point_target in self.point_targets:
                 pt = point_target[0]
                 for b in blocks:
                     x, y, z = b[0]
-                    xok = x < pt[0] or x > pt[3]
-                    yok = y < pt[1] or y > pt[4]
-                    zok = z < pt[2] or z > pt[5]
-                    if xok and yok and zok:
-                        safe_blocks.append(b)
+                    xbad = x >= pt[0] and x <= pt[3]
+                    ybad = y >= pt[1] and y <= pt[4]
+                    zbad = z >= pt[2] and z <= pt[5]
+                    if xbad and ybad and zbad:
+                        if b in safe_blocks: safe_blocks.remove(b)
         else:
             safe_blocks = blocks
         return safe_blocks
