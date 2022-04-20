@@ -27,12 +27,12 @@ from numpy import sin, cos
 #
 #             y+
 #             |
-#             |   -pitch
+#             |   +pitch
 #             |
 #    z-_______|________z+
 #             |
 #             |
-#             |   +pitch
+#             |   -pitch
 #             |
 #             y-
 
@@ -63,7 +63,7 @@ def transform(direction, yaw, pitch, inverted=False, xz_only=False):
     increasing yaw moves *counterclockwise*.
 
     pitch is assumed to be in
-    the range [-pi/2, pi/2].  pi/2 is down, -pi/2 is up.
+    the range [-pi/2, pi/2].  pi/2 is up, -pi/2 is down.
     """
 
     # fmt: off
@@ -72,8 +72,8 @@ def transform(direction, yaw, pitch, inverted=False, xz_only=False):
                    [-sin(yaw),   0,    cos(yaw) ]])
 
     rpitch = np.array([[1,   0,             0          ],
-                       [0,   cos(pitch),   sin(pitch)],
-                       [0,   -sin(pitch),  cos(pitch)]])
+                       [0,   cos(pitch),   -sin(pitch)],
+                       [0,   sin(pitch),   cos(pitch)]])
     # fmt: on
 
     if not inverted:
@@ -99,7 +99,6 @@ def yaw_pitch(look_vec):
     yaw = yaw % (2 * np.pi)
     if yaw > np.pi:
         yaw = yaw - 2 * np.pi
-        return yaw, pitch
     return yaw, pitch
 
 
@@ -113,7 +112,7 @@ def look_vec(yaw, pitch):
     #    yaw = deg2rad(yaw)
     #    pitch = deg2rad(pitch)
     x = cos(pitch) * sin(-yaw)
-    y = -sin(pitch)
+    y = sin(pitch)
     z = cos(pitch) * cos(yaw)
     return np.array([x, y, z])
 
@@ -136,19 +135,14 @@ def rotation_matrix_z(a):
     ar = float(a) * math.pi / 180.0
     cos = math.cos
     sin = math.sin
-    return np.array(
-        [
-            [cos(ar), -sin(ar), 0],
-            [sin(ar), cos(ar), 0],
-            [0, 0, 1],
-        ]
-    )
+    return np.array([[cos(ar), -sin(ar), 0], [sin(ar), cos(ar), 0], [0, 0, 1]])
 
 
 if __name__ == "__main__":
-    A = (4, 0, 1)
-    B = (4, 4, 4)
+    print("direction RIGHT when placed at yaw=45")
     print(transform(DIRECTIONS["RIGHT"], 45, 0, inverted=True))
+    print("direction UP when placed at yaw=45")
+    print(transform(DIRECTIONS["UP"], 45, 0, inverted=True))
     print("yaw_pitch(look_vec(3.1, -1.0))")
     print(yaw_pitch(look_vec(3.1, -1.0)))
     print("look_vec(*yaw_pitch(np.array((-2,1,1))))")

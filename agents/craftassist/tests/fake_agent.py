@@ -31,7 +31,7 @@ from droidlet.interpreter.craftassist import (
 )
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
 from droidlet.perception.craftassist.heuristic_perception import PerceptionWrapper
-from droidlet.perception.craftassist.rotation import yaw_pitch
+from droidlet.shared_data_struct.rotation import yaw_pitch
 from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS, get_locs_from_entity, fill_idmeta
 from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
@@ -48,7 +48,6 @@ from droidlet.lowlevel.minecraft.pyworld.physical_interfaces import (
 
 
 class FakeAgent(DroidletAgent):
-    CCW_LOOK_VECS = [(1, 0), (0, 1), (-1, 0), (0, -1)]
     default_frame = CraftAssistAgent.default_frame
     coordinate_transforms = CraftAssistAgent.coordinate_transforms
 
