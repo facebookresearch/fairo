@@ -138,6 +138,7 @@
 }
 
 .chat .answer-buttons .no-button {
+  margin-right: 1rem;
   border: 1px solid #f55c47;
   color: #f55c47;
 }
@@ -146,10 +147,19 @@
   background-color: rgba(245, 57, 57, 0.1);
 }
 
+.chat .answer-buttons .back-button {
+  margin-right: 1rem;
+  border: 1px solid #cfd300;
+  color: #cfd300;
+}
+
+.chat .answer-buttons .back-button:hover {
+  background-color: rgba(251, 240, 37, 0.1);
+}
+
 .chat .messages .message {
   box-sizing: border-box;
   padding: 0.5rem 1rem;
-  /* margin: 1rem; */
   background: #fff;
   border-radius: 1.125rem 1.125rem 1.125rem 0;
   min-height: 2.25rem;

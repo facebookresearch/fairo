@@ -431,6 +431,7 @@ class StateManager {
           msg: chat, 
           isQuestion: isQuestion,
           questionType: questionType,
+          enableBack: false,
         });
       }
     });

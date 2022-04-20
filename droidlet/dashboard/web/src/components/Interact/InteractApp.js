@@ -63,8 +63,9 @@ class InteractApp extends Component {
   handleSubmit() {
     //get the message
     var chatmsg = document.getElementById("msg").value;
-    //clear the textbox
+    //clear the textbox and previous questions
     document.getElementById("msg").value = "";
+    this.removeButtonsFromLastQuestion();
     if (this.state.isSaveFeedback) {
       this.setState({
         isSaveFeedback: false,
@@ -152,6 +153,7 @@ class InteractApp extends Component {
       task_error: false,
       vision_error: false,
       feedback: "",
+      disableInput: false,
     })
   }
 
@@ -184,7 +186,7 @@ class InteractApp extends Component {
   *********************************** Messaging ***************************************
   ************************************************************************************/
 
-  addNewAgentReplies({ msg, isQuestion, questionType, disablePreviousAnswer }) {
+  addNewAgentReplies({ msg, isQuestion, questionType, disablePreviousAnswer, enableBack}) {
     // Clear any lingering status messages before saving
     this.setState({
       agent_replies: this.props.stateManager.memory.agent_replies,
@@ -192,7 +194,7 @@ class InteractApp extends Component {
 
     const { agent_replies } = this.state;
     let new_agent_replies = disablePreviousAnswer
-      ? agent_replies.map((item) => ({ ...item, isQuestion: false }))
+      ? agent_replies.map((item) => ({ ...item, isQuestion: false, enableBack: false }))
       : agent_replies;
     new_agent_replies = [
       ...new_agent_replies,
@@ -201,6 +203,7 @@ class InteractApp extends Component {
         timestamp: Date.now() + 1,
         questionType: questionType,
         isQuestion: isQuestion,
+        enableBack: enableBack,
       },
     ];
     this.setState({
@@ -251,8 +254,7 @@ class InteractApp extends Component {
         return 1;
       } else if (!a.isQuestion && b.isQuestion) {
         return -1;
-      } else if (!a.isQuestion && b.isQuestion) {
-      }
+      } 
       return a.timestamp - b.timestamp;
     });
 
@@ -260,26 +262,35 @@ class InteractApp extends Component {
       React.cloneElement(
         <li className="message-item" key={chat.timestamp.toString()}>
           <div className={chat.sender}>{chat.msg}</div>
-          {chat.isQuestion && (
-            <div className="answer-buttons">
-              <Button
-                variant="contained"
-                color="primary"
-                className="yes-button"
-                onClick={() => this.answerRouting(1, chat.questionType)}
-              >
-                Yes
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                className="no-button"
-                onClick={() => this.answerRouting(2, chat.questionType)}
-              >
-                No
-              </Button>
-            </div>
-          )}
+          <div className="answer-buttons">
+            <Button
+              variant="contained"
+              color="primary"
+              className="yes-button"
+              style={{display: chat.isQuestion ? ("inline flex") : ("none")}}
+              onClick={() => this.answerRouting(1, chat.questionType)}
+            >
+              Yes
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              className="no-button"
+              style={{display: chat.isQuestion ? ("inline flex") : ("none")}}
+              onClick={() => this.answerRouting(2, chat.questionType)}
+            >
+              No
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              className="back-button"
+              style={{display: chat.enableBack ? ("inline flex") : ("none")}}
+              onClick={() => this.answerRouting(3, chat.questionType)}
+            >
+              Go Back
+            </Button>
+          </div>
         </li>
       )
     );
@@ -441,6 +452,12 @@ class InteractApp extends Component {
   ***********************************************************************************/
 
   askActionQuestion() {
+    // Send request to retrieve the logic form of last sent command
+    this.props.stateManager.socket.emit(
+      "getChatActionDict",
+      this.state.last_command
+    );
+
     // Send a message to the parent iframe for analytics logging
     window.parent.postMessage(
       JSON.stringify({ msg: "askActionQuestion" }),
@@ -451,13 +468,8 @@ class InteractApp extends Component {
       msg: "Did I successfully do the task you asked me to complete?",
       isQuestion: true,
       questionType: ANSWER_ACTION,
+      enableBack: false,
     });
-
-    // Send request to retrieve the logic form of last sent command
-    this.props.stateManager.socket.emit(
-      "getChatActionDict",
-      this.state.last_command
-    );
   }
 
   answerAction(index) {
@@ -466,9 +478,12 @@ class InteractApp extends Component {
       this.updateChat({ msg: "Yes", timestamp: Date.now() });
       this.addNewAgentReplies({
         msg: "Thanks!" + PLEASE_RESUME,
+        questionType: ANSWER_PARSING,
         isQuestion: false,
         disablePreviousAnswer: true,
+        enableBack: true,
       });
+      this.setState({ disableInput: false })
     } else if (index === 2) {
       this.setState({ task_error: true });
       // No, there was an error of some kind
@@ -632,6 +647,7 @@ class InteractApp extends Component {
           isQuestion: true,
           questionType: ANSWER_PARSING,
           disablePreviousAnswer: true,
+          enableBack: true,
         });
       } else {
         // shouldn't happen
@@ -639,7 +655,9 @@ class InteractApp extends Component {
         this.addNewAgentReplies({
           msg: "Thanks!" + PLEASE_RESUME,
           isQuestion: false,
+          questionType: ANSWER_PARSING,
           disablePreviousAnswer: true,
+          enableBack: true,
         });
       }
     }
@@ -658,6 +676,17 @@ class InteractApp extends Component {
       this.updateChat({ msg: "No", timestamp: Date.now() });
       this.renderParsingFail();
       this.setState({ parsing_error: true });
+    } else if (index === 3) {
+      // go back to the beginning
+      this.updateChat({ msg: "Go Back", timestamp: Date.now() });
+      this.setState({
+        parsing_error: false,
+        vision_error: false,
+        task_error: false,
+        disableInput: true,
+        isSaveFeedback: false,
+      });
+      this.askActionQuestion();
     }
   }
 
@@ -666,7 +695,9 @@ class InteractApp extends Component {
       msg:
         "Thanks for letting me know that I didn't understand the command right." +
         PLEASE_RESUME,
+      questionType: ANSWER_PARSING,
       disablePreviousAnswer: true,
+      enableBack: false,
     });
     this.saveFeedback();
   }
@@ -795,6 +826,7 @@ class InteractApp extends Component {
           Does that object look right ?`,
         isQuestion: true,
         questionType: ANSWER_VISION,
+        enableBack: true,
       });
     } else {
       this.addNewAgentReplies({
@@ -802,6 +834,7 @@ class InteractApp extends Component {
           Does that seem right from your view of the world ?`,
         isQuestion: true,
         questionType: ANSWER_VISION,
+        enableBack: true,
       });
     }
   }
@@ -817,6 +850,16 @@ class InteractApp extends Component {
       this.updateChat({ msg: "No", timestamp: Date.now() });
       this.renderVisionFail();
       this.setState({ vision_error: true });
+    } else if (index === 3) {
+      // go back to parsing question
+      this.updateChat({ msg: "Go Back", timestamp: Date.now() });
+      this.setState({
+        disableInput: true,
+        isSaveFeedback: false,
+        parsing_error: false,
+        vision_error: false,
+      });
+      this.answerAction(2);
     }
   }
 
@@ -825,7 +868,9 @@ class InteractApp extends Component {
       msg:
         "Thanks for letting me know that I didn't detect the object right." +
         PLEASE_RESUME,
+        questionType: ANSWER_VISION,
       disablePreviousAnswer: true,
+      enableBack: false,
     });
     this.saveFeedback();
   }
@@ -833,7 +878,9 @@ class InteractApp extends Component {
   renderOtherError() {
     this.addNewAgentReplies({
       msg: "Okay, looks like I understood your command but didn't complete it. Please tell me more about what I did wrong?",
+      questionType: ANSWER_VISION,
       isQuestion: false,
+      enableBack: true,
     });
     this.setState({
       disableInput: false,
@@ -844,7 +891,10 @@ class InteractApp extends Component {
 
   removeButtonsFromLastQuestion() {
     var new_agent_replies = [...this.state.agent_replies];
-    new_agent_replies.map((agent_reply) => (agent_reply.isQuestion = false));
+    new_agent_replies.forEach((agent_reply) => (
+      agent_reply.isQuestion = false,
+      agent_reply.enableBack = false
+    ));
     this.setState({ agent_replies: new_agent_replies });
   }
 
