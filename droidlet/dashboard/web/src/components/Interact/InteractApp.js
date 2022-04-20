@@ -176,6 +176,11 @@ class InteractApp extends Component {
   ************************************************************************************/
 
   addNewAgentReplies({ msg, isQuestion, questionType, disablePreviousAnswer }) {
+    // Clear any lingering status messages before saving
+    this.setState({
+      agent_replies: this.props.stateManager.memory.agent_replies,
+    });
+
     const { agent_replies } = this.state;
     let new_agent_replies = disablePreviousAnswer
       ? agent_replies.map((item) => ({ ...item, isQuestion: false }))
@@ -440,11 +445,6 @@ class InteractApp extends Component {
       "*"
     );
 
-    this.setState({
-      agent_replies: this.props.stateManager.memory.agent_replies,
-      chats: this.state.chats,
-    });
-
     this.addNewAgentReplies({
       msg: "Did I successfully do the task you asked me to complete?",
       isQuestion: true,
@@ -459,9 +459,6 @@ class InteractApp extends Component {
   }
 
   answerAction(index) {
-    this.setState({
-      agent_replies: this.props.stateManager.memory.agent_replies,
-    });
     if (index === 1) {
       // Yes, so no error
       this.updateChat({ msg: "Yes", timestamp: Date.now() });
@@ -662,14 +659,11 @@ class InteractApp extends Component {
   }
 
   renderParsingFail() {
-    this.removeButtonsFromLastQuestion();
-    this.setState({
-      agent_replies: this.props.stateManager.memory.agent_replies,
-    });
     this.addNewAgentReplies({
       msg:
         "Thanks for letting me know that I didn't understand the command right." +
         PLEASE_RESUME,
+      disablePreviousAnswer: true,
     });
   }
 
@@ -823,28 +817,21 @@ class InteractApp extends Component {
   }
 
   renderVisionFail() {
-    this.removeButtonsFromLastQuestion();
-    this.setState({
-      agent_replies: this.props.stateManager.memory.agent_replies,
-    });
     this.addNewAgentReplies({
       msg:
         "Thanks for letting me know that I didn't detect the object right." +
         PLEASE_RESUME,
+      disablePreviousAnswer: true,
     });
   }
 
   renderOtherError() {
-    this.setState({
-      agent_replies: this.props.stateManager.memory.agent_replies,
-    });
     this.addNewAgentReplies({
       msg: "Okay, looks like I understood your command but didn't complete it. Please tell me more about what I did wrong?",
       isQuestion: false,
     });
     this.setState({
       disableInput: false,
-      agent_replies: this.props.stateManager.memory.agent_replies,
       disableStopButton: true,
       isSaveFeedback: true,
     });
