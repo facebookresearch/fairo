@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import numpy as np
 
-MAX_MAP_SIZE = 4097
+MAX_MAP_SIZE = 8193
 MAP_INIT_SIZE = 1025
 BIG_I = MAX_MAP_SIZE
 BIG_J = MAX_MAP_SIZE
@@ -118,6 +118,10 @@ class PlaceField:
         self.maps[h]["updated"][:] = self.get_time()
         for (x, z) in locs:
             i, j = self.real2map(x, z, h)
+            s = max(i - self.map_size + 1, j - self.map_size + 1, -i, -j)
+            if s > 0:
+                self.extend_map(h=h, extension=s)
+                i, j = self.real2map(x, z, h)
             self.maps[h]["map"][i, j] = 1
         # replace memids that are obstacles if they were clobbered from map
         for k, v in self.memid2locs.items():
@@ -200,7 +204,7 @@ class PlaceField:
                 i, j = self.real2map(x, z, h)
                 s = max(i - self.map_size + 1, j - self.map_size + 1, -i, -j)
                 if s > 0:
-                    self.extend_map(s)
+                    self.extend_map(extension=s)
                 i, j = self.real2map(x, z, h)
                 s = max(i - self.map_size + 1, j - self.map_size + 1, -i, -j)
                 if s > 0:
