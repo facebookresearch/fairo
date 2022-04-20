@@ -29,6 +29,7 @@ class InteractApp extends Component {
       lastChatActionDict: "",
       chats: [{ msg: "", timestamp: Date.now() }],
       response_options: [],
+      last_command: "",
       agent_replies: [{}],
       agentType: null,
       isTurk: false,
@@ -62,42 +63,34 @@ class InteractApp extends Component {
   handleSubmit() {
     //get the message
     var chatmsg = document.getElementById("msg").value;
+    //clear the textbox
+    document.getElementById("msg").value = "";
     if (this.state.isSaveFeedback) {
       this.saveFeedback(chatmsg);
-      document.getElementById("msg").value = "";
       this.updateChat({ msg: chatmsg, timestamp: Date.now() });
       this.addNewAgentReplies({
         msg: "Feedback has been saved!" + PLEASE_RESUME,
       });
       this.removeButtonsFromLastQuestion();
-      this.setState({
-        isSaveFeedback: false,
-      });
-    } else {
-      if (chatmsg.replace(/\s/g, "") !== "") {
-        //add to chat history box of parent
-        this.updateChat({ msg: chatmsg, timestamp: Date.now() });
-        //log message to flask
-        this.props.stateManager.logInteractiondata("text command", chatmsg);
-        //log message to Mephisto
-        window.parent.postMessage(
-          JSON.stringify({ msg: { command: chatmsg } }),
-          "*"
-        );
-        //send message to TurkInfo
-        this.props.stateManager.sendCommandToTurkInfo(chatmsg);
-        //socket connection
-        this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
-        //update StateManager command state
-        this.props.stateManager.memory.commandState = "sent";
-        //clear the textbox
-        document.getElementById("msg").value = "";
-        //clear the agent reply that will be shown in the question pane
-        this.props.stateManager.memory.last_reply = "";
-        //execute agent thinking function if it makes sense
-        if (this.state.agentType === "craftassist") {
-          this.handleAgentThinking();
-        }
+      this.setState({ isSaveFeedback: false });
+    } else if (chatmsg.replace(/\s/g, "") !== "") {
+      //add to chat history box of parent
+      this.updateChat({ msg: chatmsg, timestamp: Date.now() });
+      this.setState({ last_command: chatmsg });
+      //log message to flask
+      this.props.stateManager.logInteractiondata("text command", chatmsg);
+      //log message to Mephisto
+      window.parent.postMessage(
+        JSON.stringify({ msg: { command: chatmsg } }),
+        "*"
+      );
+      //send message
+      this.props.stateManager.sendCommandToTurkInfo(chatmsg);
+      this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
+      // status updates
+      this.props.stateManager.memory.commandState = "sent";
+      if (this.state.agentType === "craftassist") {
+        this.handleAgentThinking();
       }
     }
   }
@@ -388,13 +381,14 @@ class InteractApp extends Component {
       if (!res.task) {
         // If there's no task, leave this state
         if (this.state.isTurk) {
-          this.askActionQuestion(this.state.chats.length - 1);
+          this.askActionQuestion();
         }
         this.handleClearInterval();
       } else if (res.task && res.clarify) {
-        // If a clarification comes in go back to the chat window.
         console.log("Agent asked for task clarification")
-        this.handleClearInterval();
+        setTimeout(() => {
+          this.sendTaskStackPoll();
+        }, 1000);
       } else {
         // Otherwise send out a new task stack poll after a delay
         setTimeout(() => {
@@ -411,7 +405,7 @@ class InteractApp extends Component {
       Date.now() - this.state.now > 50000
     ) {
       console.log("Safety dance: " + this.state.commandState);
-      this.askActionQuestion(this.state.chats.length - 1);
+      this.askActionQuestion();
       this.handleClearInterval();
       return false;
     } else {
@@ -439,12 +433,17 @@ class InteractApp extends Component {
   ********************************* Error Marking ***********************************
   ***********************************************************************************/
 
-  askActionQuestion(idx) {
+  askActionQuestion() {
     // Send a message to the parent iframe for analytics logging
     window.parent.postMessage(
       JSON.stringify({ msg: "askActionQuestion" }),
       "*"
     );
+
+    this.setState({
+      agent_replies: this.props.stateManager.memory.agent_replies,
+      chats: this.state.chats,
+    });
 
     this.addNewAgentReplies({
       msg: "Did I successfully do the task you asked me to complete?",
@@ -452,20 +451,17 @@ class InteractApp extends Component {
       questionType: ANSWER_ACTION,
     });
 
-    this.setState({
-      agent_replies: this.props.stateManager.memory.agent_replies,
-      chats: this.state.chats,
-    });
-
     // Send request to retrieve the logic form of last sent command
-    console.log(this.state.chats);
     this.props.stateManager.socket.emit(
       "getChatActionDict",
-      this.state.chats[idx]["msg"]
+      this.state.last_command
     );
   }
 
   answerAction(index) {
+    this.setState({
+      agent_replies: this.props.stateManager.memory.agent_replies,
+    });
     if (index === 1) {
       // Yes, so no error
       this.updateChat({ msg: "Yes", timestamp: Date.now() });
@@ -474,7 +470,7 @@ class InteractApp extends Component {
         isQuestion: false,
         disablePreviousAnswer: true,
       });
-    } else if (index == 2) {
+    } else if (index === 2) {
       // No, there was an error of some kind
       if (this.state.action_dict) {
         this.updateChat({ msg: "No", timestamp: Date.now() });
@@ -667,6 +663,9 @@ class InteractApp extends Component {
 
   renderParsingFail() {
     this.removeButtonsFromLastQuestion();
+    this.setState({
+      agent_replies: this.props.stateManager.memory.agent_replies,
+    });
     this.addNewAgentReplies({
       msg:
         "Thanks for letting me know that I didn't understand the command right." +
@@ -677,10 +676,10 @@ class InteractApp extends Component {
   check_reference_object_in_action_dict(action) {
     var action_dict = action;
     for (var key in action_dict) {
-      if (key == "reference_object") {
+      if (key === "reference_object") {
         return true;
       } else {
-        if (action_dict[key].constructor == Object) {
+        if (action_dict[key].constructor === Object) {
           if (this.check_reference_object_in_action_dict(action_dict[key])) {
             return true;
           }
@@ -737,7 +736,7 @@ class InteractApp extends Component {
     let reference_object_description = null;
     // Check if reference object exists in the dictionary anywhere
     if (this.state.action_dict) {
-      if (this.state.action_dict["dialogue_type"] == "HUMAN_GIVE_COMMAND") {
+      if (this.state.action_dict["dialogue_type"] === "HUMAN_GIVE_COMMAND") {
         // also implement for get and put memory
         for (const action of this.state.action_dict.action_sequence) {
           ref_object = this.check_reference_object_in_action_dict(action);
@@ -745,7 +744,7 @@ class InteractApp extends Component {
       }
 
       // If yes, find reference object description.
-      if (ref_object == true) {
+      if (ref_object === true) {
         const action_dict = this.state.action_dict.action_sequence[0];
         // Check for location at top level and extract the reference text
         let considered_action_dict = null;
@@ -768,7 +767,6 @@ class InteractApp extends Component {
         "InteractApp evalCommandPerception: no action dictionary found"
       ); // Shouldn't happen....
     }
-    const self = this;
     this.setState({
       reference_object_description: reference_object_description,
     });
@@ -785,8 +783,13 @@ class InteractApp extends Component {
       return;
     }
     // Check for this reference object in memory
+    let user_message = null;
     // NOTE: this should come from the state setter sio event.
     this.state.memory_entries = null;
+
+    this.setState({
+      agent_replies: this.props.stateManager.memory.agent_replies,
+    });
     if (this.state.memory_entries) {
       this.addNewAgentReplies({
         msg: `Okay, I was looking for an object of interest called :
@@ -821,6 +824,9 @@ class InteractApp extends Component {
 
   renderVisionFail() {
     this.removeButtonsFromLastQuestion();
+    this.setState({
+      agent_replies: this.props.stateManager.memory.agent_replies,
+    });
     this.addNewAgentReplies({
       msg:
         "Thanks for letting me know that I didn't detect the object right." +
@@ -829,6 +835,9 @@ class InteractApp extends Component {
   }
 
   renderOtherError() {
+    this.setState({
+      agent_replies: this.props.stateManager.memory.agent_replies,
+    });
     this.addNewAgentReplies({
       msg: "Okay, looks like I understood your command but didn't complete it. Please tell me more about what I did wrong?",
       isQuestion: false,
@@ -856,13 +865,14 @@ class InteractApp extends Component {
     //handles answer to clarification question
     let chatmsg;
     if (index === 1) {
-      chatmsg = "Yes";
+      chatmsg = "yes";
       
     } else if (index === 2) {
-      chatmsg = "No";
+      chatmsg = "no";
     }
     this.updateChat({ msg: chatmsg, timestamp: Date.now() });
     this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
+    this.removeButtonsFromLastQuestion();
   }
 
 
