@@ -99,6 +99,7 @@ class DroidletAgent(BaseAgent):
 
         @sio.on("get_agent_type")
         def report_agent_type(sid):
+            logging.info("Reporting agent type")
             sio.emit("updateAgentType", {"agent_type": self.agent_type})
 
         @sio.on("saveErrorDetailsToDb")

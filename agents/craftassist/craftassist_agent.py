@@ -118,6 +118,10 @@ class CraftAssistAgent(DroidletAgent):
         ]
         self.perceive_on_chat = True
 
+        if opts.enable_timeline:
+            # FIXME Hack to avoid race condition on init
+            sio.emit("updateAgentType", {"agent_type": self.agent_type})
+
     def get_chats(self):
         """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
         chat self.dashboard_chat which is set by the dashboard."""

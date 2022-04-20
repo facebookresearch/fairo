@@ -403,8 +403,8 @@ class InteractApp extends Component {
       Date.now() - this.state.now > 50000
     ) {
       console.log("Safety dance: " + this.state.commandState);
-      this.askActionQuestion();
       this.handleClearInterval();
+      if (this.state.isTurk) { this.askActionQuestion() };
       return false;
     } else {
       return true;

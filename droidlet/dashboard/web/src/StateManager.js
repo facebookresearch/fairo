@@ -69,7 +69,7 @@ class StateManager {
     timelineDetails: [],
     timelineFilters: ["Perceive", "Dialogue", "Interpreter", "Memory"],
     timelineSearchPattern: "",
-    agentType: "locobot",
+    agentType: null,
     commandState: "idle",
     commandPollTime: 500,
     isTurk: false,
