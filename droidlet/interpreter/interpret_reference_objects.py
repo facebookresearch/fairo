@@ -40,6 +40,13 @@ def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent
         if len(loc) != 3:
             logging.error("Bad coordinates: {}".format(coord_span))
             raise ErrorWithResponse("I don't understand what location you're referring to")
+
+        # FIXME, this should be formalized
+        # special case to handle world coordinates that are different from
+        # droidlet coordinates; as the speaker might be only aware of world coordinates
+        if hasattr(agent_memory, "to_droidlet_coords"):
+            loc = agent_memory.to_droidlet_coords(loc)
+
         memid = agent_memory.add_location((int(loc[0]), int(loc[1]), int(loc[2])))
         mem = agent_memory.get_location_by_id(memid)
         q = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(memid)

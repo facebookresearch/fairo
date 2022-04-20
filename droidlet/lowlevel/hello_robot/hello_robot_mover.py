@@ -23,13 +23,9 @@ from droidlet.lowlevel.robot_coordinate_utils import (
 )
 
 from droidlet.lowlevel.robot_mover import MoverInterface
-from droidlet.lowlevel.robot_mover_utils import (
-    get_camera_angles,
-    angle_diff,
-    transform_pose,
-)
+from droidlet.lowlevel.robot_mover_utils import get_camera_angles, angle_diff, transform_pose
 
-from droidlet.lowlevel.hello_robot.rotation import (
+from droidlet.shared_data_struct.rotation import (
     rotation_matrix_x,
     rotation_matrix_y,
     rotation_matrix_z,

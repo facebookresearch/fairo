@@ -40,7 +40,7 @@ from droidlet.interpreter.robot import (
     LocoInterpreter,
 )
 from droidlet.dialog.robot import LocoBotCapabilities
-import droidlet.lowlevel.hello_robot.rotation as rotation
+from droidlet.shared_data_struct import rotation
 from droidlet.event import sio
 
 faulthandler.register(signal.SIGUSR1)
@@ -243,6 +243,7 @@ class LocobotAgent(DroidletAgent):
         self.perception_modules["self"].perceive(force=force)
         x, z, yaw = self.mover.get_base_pos_in_canonical_coords()
         rgb_depth = self.mover.get_rgb_depth()
+
         perception_output = self.perception_modules["vision"].perceive(
             rgb_depth, (x, z, yaw), previous_objects, force=force
         )
@@ -254,17 +255,22 @@ class LocobotAgent(DroidletAgent):
         # 4. self location
         if self.backend == "habitat":
             # "y" on map is "z" in droidlet coords
+        xyz = self.mover.get_base_pos_in_canonical_coords()
+        x, y, yaw = xyz
+        if self.backend == "habitat":
             sio.emit(
                 "map",
                 {
                     "x": x,
-                    "y": z,
+                    "y": y,
                     "yaw": yaw,
                     "map": self.mover.get_obstacles_in_canonical_coords(),
                 },
             )
         # FIXME better pose object
         perception_output = perception_output._replace(self_pose=(x, z, yaw))
+
+
 
         self.memory.update(perception_output)
 
