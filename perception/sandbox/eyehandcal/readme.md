@@ -1,8 +1,14 @@
 # Eye Hand Calibraton 
 A minimal version of eyehand calibration feature for a franka + realsense setup. With a marker attached to end effector of a robot, the tool controls the robot via polymetis and collect marker keypoint on multiple cameras simultaneously and finally outputs
 
+## Settings
+  ### world camera and hand marker  (default)
   * the camera poses in robot base frame
   * the marker position in robot end-effector frame
+
+  ### hand camera and world marker 
+  * the camera poses in robot end-effector frame
+  * the marker position in robot base frame
 
 ## Prerequisite
 * Using a realsense camera
@@ -77,7 +83,8 @@ Run `collect_data_and_cal.py` to run the calibration process by sampling from th
 
 ```bash
 $ collect_data_and_cal.py --help
-usage: collect_data_and_cal.py [-h] [--ip IP] [--datafile DATAFILE] [--overwrite] [--marker-id MARKER_ID] [--calibration-file CALIBRATION_FILE] [--points-file POINTS_FILE] [--num-points NUM_POINTS] [--time-to-go TIME_TO_GO] [--imagedir IMAGEDIR]
+usage: collect_data_and_cal.py [-h] [--seed SEED] [--ip IP] [--datafile DATAFILE] [--overwrite] [--marker-id MARKER_ID] [--calibration-file CALIBRATION_FILE] [--points-file POINTS_FILE] [--num-points NUM_POINTS]
+[--time-to-go TIME_TO_GO] [--imagedir IMAGEDIR] [--pixel-tolerance PIXEL_TOLERANCE] [--proj-func {hand_marker_proj_world_camera,world_marker_proj_hand_camera}]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -95,6 +102,9 @@ optional arguments:
   --time-to-go TIME_TO_GO
                         time_to_go in seconds for each movement
   --imagedir IMAGEDIR   folder to save debug images
+  --pixel-tolerance PIXEL_TOLERANCE
+                        folder to save debug images
+  --proj-func {hand_marker_proj_world_camera,world_marker_proj_hand_camera}
   ```
   
 Proper convergence should have very small loss (i.e., < 5).
@@ -108,7 +118,7 @@ A larger loss indicate
 * inaccurate robot forward kinematics
 * temporal misalignment between image and robot kinematics capture
 
-##  Sample Run
+##  Sample Run (world camera hand marker setting)
 ```
 $ collect_data_and_cal.py 
 Config: Namespace(calibration_file='calibration.pkl', datafile='caldata.pkl', imagedir=None, ip='100.96.135.68', overheadcam=False, overwrite=False, target_marker_id=9)
