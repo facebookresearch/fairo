@@ -126,6 +126,15 @@ class PlaceField:
                 if height == h and t > 0:
                     self.maps[h]["map"][i, j] = 1
 
+    def get_obstacle_list(self):
+        """
+        outputs a list of all impassable locations in agent coordinates.
+        """
+        # FIXME! do other h
+        ijs = list(zip(*self.maps[0]["map"].nonzero()))
+        return [self.map2real(i, j, 0) for i, j in ijs]  
+    
+
     def delete_loc_by_memid(self, memid, t, is_move=False):
         """
         remove all locs corresponding to a memid.

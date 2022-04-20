@@ -46,7 +46,7 @@ NONPICKLE_ATTRS = [
     "movement",
 ]
 
-DEFAULT_PIXELS_PER_UNIT = 10
+DEFAULT_PIXELS_PER_UNIT = 100
 SCHEMAS = [os.path.join(os.path.dirname(__file__), "base_memory_schema.sql")]
 
 # TODO when a memory is removed, its last state should be snapshotted to prevent tag weirdness
