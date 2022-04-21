@@ -129,7 +129,9 @@ if __name__ == '__main__':
     parser.add_argument('--imagedir', default=None, help="folder to save debug images")
     parser.add_argument('--pixel-tolerance', default=2.0, type=float, help="mean pixel error tolerance (stage 2)")
     proj_funcs = {'hand_marker_proj_world_camera' :hand_marker_proj_world_camera, 
-                  'world_marker_proj_hand_camera' :world_marker_proj_hand_camera}
+                  'world_marker_proj_hand_camera' :world_marker_proj_hand_camera,
+                  'wrist_camera': world_marker_proj_hand_camera,
+                  'world_camera': hand_marker_proj_world_camera}
     parser.add_argument('--proj-func', choices=list(proj_funcs.keys()), default = list(proj_funcs.keys())[0])
 
     args=parser.parse_args()
