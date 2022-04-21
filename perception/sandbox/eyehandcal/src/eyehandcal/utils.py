@@ -92,15 +92,15 @@ def mean_loss(data, param, K):
         losses.append(ploss)
     return torch.stack(losses).mean()
 
-def find_parameter(param, obs_data_std, K):
+def find_parameter(param, L):
     optimizer=torch.optim.LBFGS([param], max_iter=1000, lr=1, line_search_fn='strong_wolfe')
     def closure():
         optimizer.zero_grad()
-        loss=mean_loss(obs_data_std, param, K)
+        loss=L(param)
         loss.backward()
         return loss
     
-    L=optimizer.step(closure)
+    optimizer.step(closure)
     return param.detach()
 
 

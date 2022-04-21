@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 # FIXME! this should go in ReferenceLocationInterpreter
 from droidlet.interpreter.interpret_location import interpret_relative_direction
+from droidlet.interpreter.facing_utils import number_from_span, interpret_relative_yaw
 from droidlet.shared_data_structs import ErrorWithResponse
 from word2number.w2n import word_to_num
 
@@ -58,24 +59,7 @@ class FacingInterpreter:
             return {"yaw": current_pitch - w}
         elif d.get("relative_yaw"):
             # this is relative even w.r.t. agent body
-            if "left" in d["relative_yaw"] or "right" in d["relative_yaw"]:
-                left = "left" in d["relative_yaw"] or "leave" in d["relative_yaw"]  # lemmatizer :)
-                # don't allow negative values when a direction is specified, FIXME?
-                degrees = abs(number_from_span(d["relative_yaw"])) or 90
-                # FIXME, make a method in rotation.py?  action at a distance with left +  and right - here
-                # connects to rotation.py
-                if left:
-                    return {"relative_yaw": degrees}
-                else:
-                    return {"relative_yaw": -degrees}
-            else:
-                try:
-                    deg = int(d["relative_yaw"])
-                    # FIXME, make a method in rotation.py?  action at a distance with left +  and right - here
-                    # connects to rotation.py.  grammar does not actually specify whether + is right or left
-                    return {"relative_yaw": deg}
-                except:
-                    pass
+            return interpret_relative_yaw(d)
         elif d.get("relative_pitch"):
             if "down" in d["relative_pitch"] or "up" in d["relative_pitch"]:
                 down = "down" in d["relative_pitch"]

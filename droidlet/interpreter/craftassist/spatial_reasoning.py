@@ -5,7 +5,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 
 import droidlet.base_util
-from droidlet.perception.craftassist import rotation, heuristic_perception
+from droidlet.shared_data_struct import rotation
+from droidlet.perception.craftassist import heuristic_perception
 from droidlet.base_util import to_block_center, to_block_pos
 from droidlet.shared_data_struct.craftassist_shared_utils import arrange
 from droidlet.shared_data_structs import ErrorWithResponse

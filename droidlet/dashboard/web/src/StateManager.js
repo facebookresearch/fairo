@@ -19,8 +19,6 @@ import Retrainer from "./components/Retrainer";
 import Navigator from "./components/Navigator";
 import { isMobile } from "react-device-detect";
 import MainPane from "./MainPane";
-import AgentThinking from "./components/Interact/AgentThinking";
-import Message from "./components/Interact/Message";
 import TurkInfo from "./components/Turk/TurkInfo";
 
 /**
@@ -317,11 +315,6 @@ class StateManager {
           agent_replies: this.memory.agent_replies,
         });
       }
-      if (ref instanceof Message) {
-        ref.setState({
-          agent_replies: this.memory.agent_replies,
-        });
-      }
     });
   }
 
@@ -335,7 +328,7 @@ class StateManager {
       if (ref instanceof Settings) {
         ref.setState({ connected: status });
       }
-      if (ref instanceof Message) {
+      if (ref instanceof InteractApp) {
         ref.setState({ connected: status });
       }
     });
@@ -346,6 +339,8 @@ class StateManager {
       alert("Received text message: " + res.chat);
     }
     this.memory.chats = res.allChats;
+
+    console.log('StateManager setChatResponse');
 
     // Set the commandState to display 'received' for one poll cycle and then switch
     this.memory.commandState = "received";
@@ -372,7 +367,15 @@ class StateManager {
   }
 
   setLastChatActionDict(res) {
+    console.log('StateManager setLastChatActionDict');
     this.memory.lastChatActionDict = res.action_dict;
+    this.refs.forEach((ref) => {
+      if (ref instanceof InteractApp) {
+        ref.setState({
+          action_dict: res.action_dict,
+        });
+      }
+    });
   }
 
   updateVoxelWorld(res) {
@@ -389,7 +392,7 @@ class StateManager {
   setVoxelWorldInitialState(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof VoxelWorld) {
-        console.log("set Voxel World Initial state: " + res.world_state);
+        //console.log("set Voxel World Initial state: " + res.world_state);
         ref.setState({
           world_state: res.world_state,
           status: res.status,
@@ -399,6 +402,7 @@ class StateManager {
   }
 
   showAssistantReply(res) {
+    console.log("StateManager showAssistantReply " + JSON.stringify(res.agent_reply));
     this.memory.agent_replies.push({
       msg: res.agent_reply,
       timestamp: Date.now(),
@@ -406,11 +410,6 @@ class StateManager {
     this.memory.last_reply = res.agent_reply;
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
-        ref.setState({
-          agent_replies: this.memory.agent_replies,
-        });
-      }
-      if (ref instanceof Message) {
         ref.setState({
           agent_replies: this.memory.agent_replies,
         });
@@ -444,7 +443,7 @@ class StateManager {
     if (JSON.parse(res).name === "perceive") {
       this.memory.commandState = "done_thinking";
       this.refs.forEach((ref) => {
-        if (ref instanceof AgentThinking) {
+        if (ref instanceof InteractApp) {
           ref.sendTaskStackPoll(); // Do this once from here
         }
       });

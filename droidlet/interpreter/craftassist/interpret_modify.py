@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 
 import droidlet.base_util
-from droidlet.perception.craftassist import rotation
+from droidlet.shared_data_struct import rotation
 from droidlet.perception.craftassist.shape_transforms import (
     scale,
     thicker,

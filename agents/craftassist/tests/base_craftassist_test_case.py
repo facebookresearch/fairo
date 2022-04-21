@@ -8,7 +8,7 @@ from typing import List, Sequence, Dict
 
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from droidlet.lowlevel.minecraft.mc_util import XYZ, Block, IDM
-from droidlet.perception.craftassist.rotation import yaw_pitch
+from droidlet.shared_data_struct.rotation import yaw_pitch
 from droidlet.lowlevel.minecraft.pyworld.world import World, Opt, flat_ground_generator
 from droidlet.lowlevel.minecraft.pyworld.utils import (
     Player,

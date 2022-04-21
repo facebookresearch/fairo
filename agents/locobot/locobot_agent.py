@@ -40,7 +40,7 @@ from droidlet.interpreter.robot import (
     LocoInterpreter,
 )
 from droidlet.dialog.robot import LocoBotCapabilities
-import droidlet.lowlevel.hello_robot.rotation as rotation
+from droidlet.shared_data_struct import rotation
 from droidlet.event import sio
 
 faulthandler.register(signal.SIGUSR1)
@@ -267,9 +267,7 @@ class LocobotAgent(DroidletAgent):
         dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = DialogueManager(
-            memory=self.memory,
-            dialogue_object_classes=dialogue_object_classes,
-            opts=self.opts,
+            memory=self.memory, dialogue_object_classes=dialogue_object_classes, opts=self.opts
         )
 
     def init_physical_interfaces(self):
