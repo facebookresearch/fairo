@@ -350,32 +350,10 @@ class InteractApp extends Component {
   componentDidUpdate(prevProps, prevState) {
     // Show command message like an agent reply
     if (this.state.commandState !== prevState.commandState) {
-      let command_message = "";
-      let disableInput = true;
-      let disableStopButton = this.state.disableStopButton;
-      if (this.state.commandState === "sent") {
-        command_message = "Sending command...";
-        disableStopButton = true;
-      } else if (this.state.commandState === "received") {
-        command_message = "Command received";
-        disableStopButton = true;
-      } else if (this.state.commandState === "thinking") {
-        command_message = "Assistant is thinking...";
-        disableStopButton = true;
-      } else if (this.state.commandState === "done_thinking") {
-        command_message = "Assistant is done thinking";
-        disableStopButton = false;
-      } else if (this.state.commandState === "executing") {
-        command_message = "Assistant is doing the task";
-        disableStopButton = false;
-      }
-      if (command_message) {
-        const new_agent_replies = [
-          ...this.state.agent_replies,
-          { msg: command_message, timestamp: Date.now() },
-        ];
+      if (this.state.commandState !== "idle") {
+        let disableInput = true;
+        let disableStopButton = false;
         this.setState({
-          agent_replies: new_agent_replies,
           disableInput: disableInput,
           disableStopButton: disableStopButton,
         });
@@ -383,6 +361,29 @@ class InteractApp extends Component {
     }
     // Scroll messsage panel to bottom
     this.scrollToBottom();
+  }
+
+  renderStatusMessages() {
+    if (this.state.commandState === "idle") { return }
+
+    let status_message = "";
+    if (this.state.commandState === "sent") {
+      status_message = "Sending command...";
+    } else if (this.state.commandState === "received") {
+      status_message = "Command received";
+    } else if (this.state.commandState === "thinking") {
+      status_message = "Assistant is thinking...";
+    } else if (this.state.commandState === "done_thinking") {
+      status_message = "Assistant is done thinking";
+    } else if (this.state.commandState === "executing") {
+      status_message = "Assistant is doing the task...";
+    }
+
+    return (
+      <div className="status">
+        {status_message}
+      </div>
+    )
   }
 
   sendTaskStackPoll() {
@@ -442,6 +443,7 @@ class InteractApp extends Component {
       this.setState({
         disableInput: false,
         disableStopButton: true,
+        commandState: "idle",
       });
     }
   }
@@ -956,6 +958,7 @@ class InteractApp extends Component {
                     ></div>
                   </div>
                 </div>
+                {this.renderStatusMessages()}
                 <div className="input">
                   <input
                     id="msg"

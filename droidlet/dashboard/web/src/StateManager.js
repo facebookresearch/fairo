@@ -75,6 +75,7 @@ class StateManager {
     isTurk: false,
     agent_replies: [{}],
     last_reply: "",
+    worldInit: false,
   };
   session_id = null;
 
@@ -299,6 +300,10 @@ class StateManager {
         ref.setState({ agentType: this.memory.agentType });
       }
     });
+    // Hack, triggers VW render if dashboard launched before agent
+    if (this.memory.agentType === "craftassist" && !this.memory.worldInit) {
+      this.socket.emit("getVoxelWorldInitialState");
+    }
   }
 
   forceErrorLabeling(status) {
@@ -387,9 +392,9 @@ class StateManager {
   }
 
   setVoxelWorldInitialState(res) {
+    this.memory.worldInit = true;
     this.refs.forEach((ref) => {
       if (ref instanceof VoxelWorld) {
-        //console.log("set Voxel World Initial state: " + res.world_state);
         ref.setState({
           world_state: res.world_state,
           status: res.status,
