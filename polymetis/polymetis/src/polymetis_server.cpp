@@ -76,24 +76,19 @@ Status PolymetisControllerServerImpl::GetRobotStateLog(
   return Status::OK;
 }
 
-Status PolymetisControllerServerImpl::InitRobotClient(
-    ServerContext *context, const RobotClientMetadata *robot_client_metadata,
-    Empty *) {
+void PolymetisControllerServerImpl::initRobotClient(
+    const RobotClientMetadata *robot_client_metadata) {
   std::string error_msg;
   controller_manager_.initRobotClient(robot_client_metadata, error_msg);
 
   if (!error_msg.empty()) {
     spdlog::error(error_msg);
-    return Status(StatusCode::CANCELLED, error_msg);
+    return;
   }
-
-  return Status::OK;
 }
 
-Status
-PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
-                                             const RobotState *robot_state,
-                                             TorqueCommand *torque_command) {
+void PolymetisControllerServerImpl::controlUpdate(
+    const RobotState *robot_state, TorqueCommand *torque_command) {
   std::string error_msg;
   std::vector<float> desired_torque;
 
@@ -102,7 +97,7 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
 
   if (!error_msg.empty()) {
     spdlog::error(error_msg);
-    return Status(StatusCode::CANCELLED, error_msg);
+    return;
   }
 
   // Set output torque
@@ -110,8 +105,6 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     torque_command->add_joint_torques(desired_torque[i]);
   }
   setTimestampToNow(torque_command->mutable_timestamp());
-
-  return Status::OK;
 }
 
 Status PolymetisControllerServerImpl::SetController(

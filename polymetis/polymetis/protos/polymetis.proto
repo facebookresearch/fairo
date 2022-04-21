@@ -47,12 +47,6 @@ service PolymetisControllerServer {
   hardware or simulation.
   */
 
-  // Send relevant metadata to initialize RobotClient connection
-  rpc InitRobotClient(RobotClientMetadata) returns(Empty) {}
-
-  // Compute torque command in response to a robot state.
-  rpc ControlUpdate(RobotState) returns(TorqueCommand) {}
-
   rpc GetRobotClientMetadata(Empty) returns(RobotClientMetadata) {}
 }
 
