@@ -4,8 +4,8 @@ import time
 import numpy as np
 import Pyro4
 import select
-from slam_pkg.utils.map_builder import MapBuilder as mb
-from slam_pkg.utils import depth_util as du
+from droidlet.lowlevel.hello_robot.remote.slam_pkg.utils.map_builder import MapBuilder as mb
+from droidlet.lowlevel.hello_robot.remote.slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
 from rich import print
 
@@ -49,10 +49,11 @@ class SLAM(object):
         self.init_state = (0.0, 0.0, 0.0)
         self.prev_bot_state = (0.0, 0.0, 0.0)
 
-        self.update_map()
-        assert self.traversable is not None
+        self.traversable = None
 
     def get_traversable_map(self):
+        if self.traversable is None:
+            self.update_map()
         return self.traversable
 
     def real2map(self, real):
@@ -90,8 +91,9 @@ class SLAM(object):
             location = self.real2map(location)
         self.map_builder.add_obstacle(location)
 
-    def update_map(self):
-        pcd = self.robot.get_current_pcd()[0]
+    def update_map(self, pcd=None):
+        if pcd is None:
+            pcd = self.robot.get_current_pcd()[0]
         self.map_builder.update_map(pcd)
 
         # explore the map by robot shape
@@ -118,49 +120,50 @@ class SLAM(object):
         self.map_builder.reset_map(self.map_size, z_bins=z_bins, obs_thr=obs_thr)
 
 
-robot_ip = os.getenv("LOCOBOT_IP")
-ip = os.getenv("LOCAL_IP")
-robot_name = "remotelocobot"
-if len(sys.argv) > 1:
-    robot_name = sys.argv[1]
-with Pyro4.Daemon(ip) as daemon:
-    robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
+if __name__ == "__main__":
+    robot_ip = os.getenv("LOCOBOT_IP")
+    ip = os.getenv("LOCAL_IP")
+    robot_name = "remotelocobot"
+    if len(sys.argv) > 1:
+        robot_name = sys.argv[1]
+    with Pyro4.Daemon(ip) as daemon:
+        robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
 
-    if robot_name == "hello_realsense":
-        robot_height = 141  # cm
-        min_z = 20  # because of the huge spatial variance in realsense readings
-        max_z = robot_height + 5  # cm
-        obj = SLAM(
-            robot,
-            obstacle_threshold=10,
-            agent_min_z=min_z,
-            agent_max_z=max_z,
-        )
-    else:
-        obj = SLAM(robot)
-    obj_uri = daemon.register(obj)
-    with Pyro4.locateNS(robot_ip) as ns:
-        ns.register("slam", obj_uri)
+        if robot_name == "hello_realsense":
+            robot_height = 141  # cm
+            min_z = 20  # because of the huge spatial variance in realsense readings
+            max_z = robot_height + 5  # cm
+            obj = SLAM(
+                robot,
+                obstacle_threshold=10,
+                agent_min_z=min_z,
+                agent_max_z=max_z,
+            )
+        else:
+            obj = SLAM(robot)
+        obj_uri = daemon.register(obj)
+        with Pyro4.locateNS(robot_ip) as ns:
+            ns.register("slam", obj_uri)
 
-    print("SLAM Server is started...")
+        print("SLAM Server is started...")
 
-    def refresh():
-        obj.update_map()
-        # print("In refresh: ", time.asctime())
-        return True
+        def refresh():
+            obj.update_map()
+            # print("In refresh: ", time.asctime())
+            return True
 
-    daemon.requestLoop(refresh)
+        daemon.requestLoop(refresh)
 
-    # visit this later
-    # try:
-    #     while True:
-    #         print(time.asctime(), "Waiting for requests...")
+        # visit this later
+        # try:
+        #     while True:
+        #         print(time.asctime(), "Waiting for requests...")
 
-    #         sockets = daemon.sockets
-    #         ready_socks = select.select(sockets, [], [], 0)
-    #         events = []
-    #         for s in ready_socks:
-    #             events.append(s)
-    #         daemon.events(events)
-    # except KeyboardInterrupt:
-    #     pass
+        #         sockets = daemon.sockets
+        #         ready_socks = select.select(sockets, [], [], 0)
+        #         events = []
+        #         for s in ready_socks:
+        #             events.append(s)
+        #         daemon.events(events)
+        # except KeyboardInterrupt:
+        #     pass
