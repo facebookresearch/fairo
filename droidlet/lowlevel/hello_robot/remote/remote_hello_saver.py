@@ -14,28 +14,34 @@ Pyro4.config.PICKLE_PROTOCOL_VERSION = 2
 
 
 @Pyro4.expose
-class LabelPropSaver:
-    def __init__(self, root, bot, cam):
-        self.bot = bot
-        self.cam = cam
+class HelloLogger:
+    def __init__(self, root, bot=None, cam=None, replay=False):
+        self.replay = replay
+        if replay is False:
+            self.bot = bot
+            self.cam = cam
 
-        self.save_folder = root
-        self.save_frequency = 1  # save every 10 frames
+        self.root_folder = root
+        self.save_frequency = 1  # save every x frames
         self.skip_frame_count = 0  # internal counter
         self.dbg_str = "None"
-        self.save_id = 0
+        self.trajectory_id = 0
         self._stop = False
+        self.replay_frame_id = 0
 
-    def return_paths(self, id_):
+    def return_paths(self, id_ = None):
+        if id_ is None:
+            id_ = ""
         id_ = str(id_)
-        img_folder = os.path.join(self.save_folder, id_, "rgb")
-        img_folder_dbg = os.path.join(self.save_folder, id_, "rgb_dbg")
-        depth_folder = os.path.join(self.save_folder, id_, "depth")
-        lidar_folder = os.path.join(self.save_folder, id_, "lidar")
-        data_file = os.path.join(self.save_folder, id_, "data.json")
+        img_folder = os.path.join(self.root_folder, id_, "rgb")
+        img_folder_dbg = os.path.join(self.root_folder, id_, "rgb_dbg")
+        depth_folder = os.path.join(self.root_folder, id_, "depth")
+        lidar_folder = os.path.join(self.root_folder, id_, "lidar")
+        data_file = os.path.join(self.root_folder, id_, "data.json")
         return img_folder, img_folder_dbg, depth_folder, lidar_folder, data_file
 
     def create_dirs(self, id_):
+        assert self.replay is False
 
         img_folder, img_folder_dbg, depth_folder, lidar_folder, data_file = self.return_paths(id_)
 
@@ -45,17 +51,49 @@ class LabelPropSaver:
     def stop(self):
         self._stop = True
 
+    def load_cam_intrinsic(self):
+        cam_intrinsics_path = os.path.join(self.root_folder, 'cam_intrinsics.npz.npy')
+        cam_intrinsics = np.load(cam_intrinsics_path)
+        return cam_intrinsics
+
+
+    def load(self, frame_id=None):
+        if frame_id is None:
+            frame_id = self.replay_frame_id
+            self.replay_frame_id += 1
+        name = "{}".format(frame_id)
+            
+        img_folder, img_folder_dbg, depth_folder, lidar_folder, data_file = self.return_paths()
+        lidar_fname = lidar_folder + "/{}.pkl".format(name)
+        with open(lidar_fname, "rb") as fp:
+            lidar = pickle.load(fp)
+        rgb = cv2.imread(
+            img_folder + "/{}.jpg".format(name),
+        )
+        depth = np.load(depth_folder + "/{}.npy".format(name))
+        with open(data_file, "r") as fp:
+            pose_dict = json.load(fp)
+        pose = pose_dict[name]
+        timestamp = pose['timestamp']
+        pos = np.asarray(pose['base_xyt'])
+        cam_pan, cam_tilt = pose['cam_pan_tilt']
+        cam_transform = np.asarray(pose['cam_transform'])
+        
+        return frame_id, timestamp, lidar, rgb, depth, pos, cam_pan, cam_tilt, cam_transform, pose_dict
+
+
     def save_batch(self, seconds):
+        assert self.replay is False
         print("Logging data for {} seconds".format(seconds), end="", flush=True)
         self._stop = False
         pose_dict = {}
-        self.save_id += 1
-        self.create_dirs(self.save_id)
+        self.trajectory_id += 1
+        self.create_dirs(self.trajectory_id)
 
         # save camera intrinsics
         cam_intrinsics = safe_call(self.cam.get_intrinsics)
         cam_intrinsics_path = os.path.join(
-            self.save_folder, str(self.save_id), "cam_intrinsics.npz"
+            self.root_folder, str(self.trajectory_id), 'cam_intrinsics.npz'
         )
         np.save(cam_intrinsics_path, cam_intrinsics)
 
@@ -73,7 +111,7 @@ class LabelPropSaver:
 
             name = "{}".format(frame_count)
             self.save(
-                self.save_id,
+                self.trajectory_id,
                 name,
                 timestamp,
                 lidar,
@@ -110,6 +148,7 @@ class LabelPropSaver:
         cam_transform,
         pose_dict,
     ):
+        assert self.replay is False
         img_folder, img_folder_dbg, depth_folder, lidar_folder, data_file = self.return_paths(id_)
 
         self.skip_frame_count += 1
@@ -156,15 +195,27 @@ if __name__ == "__main__":
         type=str,
         default="0.0.0.0",
     )
+    parser.add_argument(
+        "--replay-dir",
+        help="Replay data, rather than saving",
+        type=str,
+        default="",
+    )
 
     args = parser.parse_args()
+    replay_mode = False
+    if args.replay_dir != "":
+        replay_mode = True
 
     np.random.seed(123)
 
     with Pyro4.Daemon(args.ip) as daemon:
-        bot = Pyro4.Proxy("PYRONAME:hello_robot@" + args.ip)
-        cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + args.ip)
-        data_logger = LabelPropSaver("hello_data_log_" + str(time.time()), bot, cam)
+        if not replay_mode:
+            bot = Pyro4.Proxy("PYRONAME:hello_robot@" + args.ip)
+            cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + args.ip)
+            data_logger = HelloLogger("hello_data_log_" + str(time.time()), bot, cam)
+        else:
+            data_logger = HelloLogger(args.replay_dir, replay=True)
         data_logger_uri = daemon.register(data_logger)
         with Pyro4.locateNS() as ns:
             ns.register("hello_data_logger", data_logger_uri)
