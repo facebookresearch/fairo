@@ -46,6 +46,7 @@ NONPICKLE_ATTRS = [
     "movement",
 ]
 
+DEFAULT_PIXELS_PER_UNIT = 100
 SCHEMAS = [os.path.join(os.path.dirname(__file__), "base_memory_schema.sql")]
 
 # TODO when a memory is removed, its last state should be snapshotted to prevent tag weirdness
@@ -85,6 +86,7 @@ class AgentMemory:
         nodelist=NODELIST,
         agent_time=None,
         on_delete_callback=None,
+        place_field_pixels_per_unit=DEFAULT_PIXELS_PER_UNIT,
     ):
         if db_log_path:
             self._db_log_file = gzip.open(db_log_path + ".gz", "w")
@@ -135,7 +137,7 @@ class AgentMemory:
         self.tag(self.self_memid, "SELF")
 
         self.searcher = MemorySearcher()
-        self.place_field = PlaceField(self)
+        self.place_field = PlaceField(self, pixels_per_unit=place_field_pixels_per_unit)
 
     def __del__(self):
         """Close the database file"""

@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import numpy as np
 
-MAX_MAP_SIZE = 4097
+MAX_MAP_SIZE = 8193
 MAP_INIT_SIZE = 1025
 BIG_I = MAX_MAP_SIZE
 BIG_J = MAX_MAP_SIZE
@@ -30,7 +30,8 @@ class PlaceField:
     the .place_fields attribute is a dict with keys corresponding to heights,
     and values {"map": 2d numpy array, "updated": 2d numpy array, "memids": 2d numpy array}
     place_fields[h]["map"] is an occupany map at the the height h (in agent coordinates)
-                           a location is 0 if there is nothing there or it is unseen, 1 if occupied
+                           a location is 0 if it is traversible or it is unseen, 1 if occupied
+                           by a non-traversible obstacle
     place_fields[h]["memids"] gives a memid index for the ReferenceObject at that location,
                               if there is a ReferenceObject linked to that spatial location.
                               the PlaceField keeps a mappping from the indices to memids in
@@ -40,6 +41,8 @@ class PlaceField:
 
     the .map2real method converts a location from a map to world coords
     the .real2map method converts a location from the world to the map coords
+
+    the traversibility map is not currently coupled to the occupancy map
 
     droidlet.interpreter.robot.tasks.CuriousExplore uses the can_examine method to decide
     which objects to explore next:
@@ -70,7 +73,7 @@ class PlaceField:
 
         # gives an index allowing quick lookup by memid
         # each entry is keyed by a memid and is a dict
-        # {str(h*BIG_I*BIG_J + i*BIG_J + j) : True}
+        # {str(h*BIG_I*BIG_J + i*BIG_J + j) : Traversible}
         # for each placed h, i ,j
         self.memid2locs = {}
 
@@ -106,6 +109,35 @@ class PlaceField:
                 if len(self.memid2locs[memid]) == 0:
                     self.memid2locs.pop(memid, None)
 
+    # this is pretty brutal, using rn on robot to sync with slam service.
+    # overrides slam service for "detections" with memids that have been labeled
+    # as obstacles (e.g. self_memid)
+    def sync_traversible(self, locs, h=0):
+        # overwrite traversibility map from slam service
+        self.maps[h]["map"][:] = 0
+        self.maps[h]["updated"][:] = self.get_time()
+        for (x, z) in locs:
+            i, j = self.real2map(x, z, h)
+            s = max(i - self.map_size + 1, j - self.map_size + 1, -i, -j)
+            if s > 0:
+                self.extend_map(h=h, extension=s)
+                i, j = self.real2map(x, z, h)
+            self.maps[h]["map"][i, j] = 1
+        # replace memids that are obstacles if they were clobbered from map
+        for k, v in self.memid2locs.items():
+            for idx, t in v.items():
+                i, j, height = self.idx2ijh(idx)
+                if height == h and t > 0:
+                    self.maps[h]["map"][i, j] = 1
+
+    def get_obstacle_list(self):
+        """
+        outputs a list of all impassable locations in agent coordinates.
+        """
+        # FIXME! do other h
+        ijs = list(zip(*self.maps[0]["map"].nonzero()))
+        return [self.map2real(i, j, 0) for i, j in ijs]
+
     def delete_loc_by_memid(self, memid, t, is_move=False):
         """
         remove all locs corresponding to a memid.
@@ -118,6 +150,7 @@ class PlaceField:
         for idx in self.memid2locs.get(memid, []):
             i, j, h = self.idx2ijh(idx)
             self.maps[h]["memids"][i, j] = 0
+            # FIXME: maybe this loc is still not traversible...
             self.maps[h]["map"][i, j] = 0
             self.maps[h]["updated"][i, j] = t
             count = count + 1
@@ -170,7 +203,7 @@ class PlaceField:
                 i, j = self.real2map(x, z, h)
                 s = max(i - self.map_size + 1, j - self.map_size + 1, -i, -j)
                 if s > 0:
-                    self.extend_map(s)
+                    self.extend_map(extension=s)
                 i, j = self.real2map(x, z, h)
                 s = max(i - self.map_size + 1, j - self.map_size + 1, -i, -j)
                 if s > 0:
@@ -190,7 +223,7 @@ class PlaceField:
                     self.maps[h]["updated"][i, j] = t
                     if not self.memid2locs.get(memid):
                         self.memid2locs[memid] = {}
-                    self.memid2locs[memid][self.ijh2idx(i, j, h)] = True
+                    self.memid2locs[memid][self.ijh2idx(i, j, h)] = c.get("is_obstacle", 1)
 
     # FIXME, want slices, esp for mc
     def y2slice(self, y):
