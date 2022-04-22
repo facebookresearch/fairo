@@ -47,10 +47,13 @@ def launch_reexplore(data_dir: str, job_dir: str, noise: bool, num_traj: int) ->
                             output, error = process.communicate()
                             logging.info(f'output {output} error {error}')
 
+                        # job_unit(path.parent, noise)
+
                         job = executor.submit(job_unit, path.parent, noise)
                         jobs.append(job)
 
-    print(f"Job Id {jobs[0].job_id.split('_')[0]}, num jobs {len(jobs)}")
+    if len(jobs) > 0:
+        print(f"Job Id {jobs[0].job_id.split('_')[0]}, num jobs {len(jobs)}")
 
 
 if __name__ == "__main__":
@@ -73,7 +76,7 @@ if __name__ == "__main__":
     # set timeout in min, and partition for running the job
     executor.update_parameters(
         slurm_partition="learnfair", #scavenge
-        timeout_min=15,
+        timeout_min=60,
         mem_gb=256,
         gpus_per_node=4,
         tasks_per_node=1, 

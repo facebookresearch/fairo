@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-instance_ids = [243,404,196,133,166,170,172]
+instance_ids = [404,243,133,166,172]
 class_labels = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
 
 def is_annot_validfn_inst(annot):

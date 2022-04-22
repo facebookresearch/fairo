@@ -3,13 +3,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 from .core import AbstractHandler
 import numpy as np
-import os
-import cv2
-import json
-import glob
 from droidlet.lowlevel.robot_mover_utils import transform_pose
 from numba import njit
-from math import ceil, floor
+from math import ceil, floor, isnan
+from collections import deque, defaultdict
 
 # Values for locobot in habitat. 
 # TODO: generalize this for all robots
@@ -47,7 +44,7 @@ def convert_depth_to_pcd(depth, pose, uv_one_in_cam, rot, trans):
     pts_in_world = transform_pose(pts_in_base, pose)
     return pts_in_world
 
-@njit
+# @njit
 def get_annot(height, width, pts_in_cur_img, src_pts_in_cur_cam, cur_pts_in_cur_cam, src_label, valid_z):
     """
     This creates the new semantic labels of the projected points in the current image frame. Each new semantic label is the 
@@ -58,9 +55,9 @@ def get_annot(height, width, pts_in_cur_img, src_pts_in_cur_cam, cur_pts_in_cur_
         r = int(indx/width)
         c = int(indx - r*width)
         x, y, _ = pts_in_cur_img[indx]
-        
+        # print(f'r c x y {r, c, x, y}')
         # We take ceil and floor combinations to fix quantization errors
-        if floor(x) >= 0 and ceil(x) < height and floor(y) >=0 and ceil(y) < width and valid_z[indx]:
+        if not isnan(x) and not isnan(y) and floor(x) >= 0 and ceil(x) < height and floor(y) >=0 and ceil(y) < width and valid_z[indx]:
             cur_indx = ceil(x) + ceil(y) * width
             if src_pts_in_cur_cam[indx][2] - cur_pts_in_cur_cam[cur_indx][2] < 0.01:
                 annot_img[ceil(y)][ceil(x)] = src_label[r][c]
@@ -68,7 +65,77 @@ def get_annot(height, width, pts_in_cur_img, src_pts_in_cur_cam, cur_pts_in_cur_
                 annot_img[ceil(y)][floor(x)] = src_label[r][c]
                 annot_img[floor(y)][ceil(x)] = src_label[r][c]
     
-    return annot_img
+    def closest_non_zero(a, x, y):
+        
+        def get_neighbors(a, curx, cury):
+            ns = []
+            if curx > 0:
+                ns.append((curx-1, cury)) # n
+            if cury > 0:
+                ns.append((curx, cury-1)) # w
+            if cury < 511:
+                ns.append((curx, cury+1)) # e 
+            if curx < 511:
+                ns.append((curx+1, cury)) # s
+            if curx > 0 and cury > 0:
+                ns.append((curx-1, cury-1)) #nw
+            if curx > 0 and cury < 511:
+                ns.append((curx-1, cury+1)) #ne
+            if curx < 511 and cury < 511:
+                ns.append((curx+1, cury+1)) #se
+            if curx < 511 and cury > 0:
+                ns.append((curx+1, cury-1)) #sw 
+            return ns
+
+        bfsq = deque([])
+        visited = np.zeros_like(a)
+        bfsq.append((x,y))
+        pop_count = 0
+        push_count = 1
+        while len(bfsq) > 0:
+            curx, cury = bfsq.popleft()
+            pop_count += 1
+            # if pop_count % 100 == 0:
+                # print(f'pop_count {pop_count}')
+            visited[curx][cury] = 1
+            if a[curx][cury] > 0:
+                return a[curx][cury]
+            if push_count < 10:
+                ns = get_neighbors(a, curx, cury)
+                for n in ns:
+                    if visited[n] == 0:
+                        push_count += 1
+                        bfsq.append(n)
+        # print(f'no nearest neighbor found after {pop_count} lookups! ...')
+        return 0
+
+    def max_vote(annot_img, x, y):
+        kernel_size = 5
+        votes = defaultdict(int)
+        for i in range(x-kernel_size, x+kernel_size):
+            for j in range(y-kernel_size, y+kernel_size):
+                if i >=0 and i < 512 and j > 0 and j < 512:
+                    v = annot_img[i][j]
+                    votes[v] += 1
+        return max(votes, key=votes.get)
+    
+    import random
+    import time
+    
+    def do_nn_fill(annot_img):
+        print(f'doing nn fill ...')
+        start = time.time()
+        print(f'zeros {np.sum(annot_img == 0)}')
+        for x in range(len(annot_img)):
+            for y in range(len(annot_img[0])):
+                if annot_img[x][y] == 0 and random.randint(1,5) == 1:
+                    annot_img[x][y] = closest_non_zero(annot_img, x, y)
+                    # annot_img[x][y] = max_vote(annot_img, x, y)
+        end = time.time()
+        print(f'took {end - start} seconds.')
+        return annot_img
+    
+    return do_nn_fill(annot_img)
 
 class LabelPropagate(AbstractHandler):
     def __call__(self,    

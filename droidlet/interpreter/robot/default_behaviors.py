@@ -124,6 +124,7 @@ def get_task_data(agent):
     task_data = {
         'spawn_pos': reex[reex_key]['spawn_pos'],
         'base_pos': reex[reex_key]['base_pos'],
+        'label': reex[reex_key]['label'],
         'target': {'xyz': reex[reex_key]['target'], 'label': 'object'},
         'data_path': f'{agent.opts.data_store_path}/{reexplore_id}',
         'vis_path': f'{agent.opts.data_store_path}/{reexplore_id}',
