@@ -237,6 +237,9 @@ class RemoteHelloRobot(object):
             self._done = True
         return status
 
+    def is_busy(self):
+        return not self.is_moving()
+
     def is_moving(self):
         return not self._done
 
