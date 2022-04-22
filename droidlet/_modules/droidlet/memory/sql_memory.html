@@ -148,6 +148,7 @@
     <span class="s2">&quot;movement&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
+<span class="n">DEFAULT_PIXELS_PER_UNIT</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="n">SCHEMAS</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;base_memory_schema.sql&quot;</span><span class="p">)]</span>
 
 <span class="c1"># TODO when a memory is removed, its last state should be snapshotted to prevent tag weirdness</span>
@@ -187,6 +188,7 @@
         <span class="n">nodelist</span><span class="o">=</span><span class="n">NODELIST</span><span class="p">,</span>
         <span class="n">agent_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">on_delete_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">place_field_pixels_per_unit</span><span class="o">=</span><span class="n">DEFAULT_PIXELS_PER_UNIT</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="k">if</span> <span class="n">db_log_path</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_db_log_file</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">db_log_path</span> <span class="o">+</span> <span class="s2">&quot;.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
@@ -237,7 +239,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">self_memid</span><span class="p">,</span> <span class="s2">&quot;SELF&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">searcher</span> <span class="o">=</span> <span class="n">MemorySearcher</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">place_field</span> <span class="o">=</span> <span class="n">PlaceField</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">place_field</span> <span class="o">=</span> <span class="n">PlaceField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pixels_per_unit</span><span class="o">=</span><span class="n">place_field_pixels_per_unit</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Close the database file&quot;&quot;&quot;</span>
