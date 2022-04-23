@@ -84,6 +84,7 @@ class MCAgentMemory(AgentMemory):
         self.perception_range = preception_range
         if copy_from_backup is not None:
             copy_from_backup.backup(self.db)
+            self.make_self_mem()
         else:
             self._load_schematics(
                 schematics=agent_low_level_data.get("schematics", {}),
