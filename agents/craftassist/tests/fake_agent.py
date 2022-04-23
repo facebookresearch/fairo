@@ -75,7 +75,9 @@ class FakeAgent(DroidletAgent):
         prebuilt_perception=None,
         low_level_data=None,
         use_place_field=True,
+        prebuilt_db=None,
     ):
+        self.prebuilt_db = prebuilt_db
         self.use_place_field = use_place_field
         self.mark_airtouching_blocks = do_heuristic_perception
         self.head_height = HEAD_HEIGHT
@@ -430,6 +432,7 @@ class FakePlayer(FakeAgent):
         active=True,
         low_level_data=None,
         use_place_field=False,
+        prebuilt_db=None,
     ):
         class NubWorld:
             def __init__(self):
@@ -441,6 +444,7 @@ class FakePlayer(FakeAgent):
             do_heuristic_perception=do_heuristic_perception,
             low_level_data=low_level_data,
             use_place_field=use_place_field,
+            prebuilt_db=prebuilt_db,
         )
         # if active is set to false, the fake player's step is passed.
         self.active = active
