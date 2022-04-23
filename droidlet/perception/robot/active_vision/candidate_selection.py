@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import json
+from collections import defaultdict
 
 def get_cache_key(data_dir, setting, img_id):
     return data_dir + '_' + setting + '_' + str(img_id)
@@ -28,14 +29,15 @@ def cached(file_name):
     return decorator
 
 class SampleGoodCandidates:
-    def __init__(self, data_dir, is_annot_validfn, setting):
+    def __init__(self, data_dir, is_annot_validfn, labels, setting):
         self.data_dir = data_dir
         self.img_dir = os.path.join(data_dir, 'rgb')
         self.seg_dir = os.path.join(data_dir, 'seg')
-        self.good_candidates = []
+        self.good_candidates = defaultdict(list)
         self.bad_candidates = []
         self.is_annot_validfn = is_annot_validfn
         self.setting = setting
+        self.labels = labels
         self.filter_candidates()
     
     def filter_candidates(self):
@@ -43,14 +45,15 @@ class SampleGoodCandidates:
             def get_id_from_filename(x):
                 return int(x.split('.')[0])
             img_id = get_id_from_filename(x)
-            if self.is_good_candidate(img_id):
-                self.good_candidates.append(img_id)
+            is_good, cat_id = self.is_good_candidate(img_id)
+            if is_good:
+                self.good_candidates[cat_id].append(img_id)
             else:
                 self.bad_candidates.append(img_id)
                 
         print(f'{len(self.good_candidates)} good candidates found!')
     
-    @cached('/checkpoint/apratik/candidates_cached_reexplore.json')
+    @cached('/checkpoint/apratik/candidates_cached_reexplore_n22.json')
     def is_good_candidate(self, x):
         """
         checks if an image is a good candidate by checking that the mask is within a certain distance from the 
@@ -64,26 +67,51 @@ class SampleGoodCandidates:
         # Load Annotations 
         annot = np.load(seg_path).astype(np.uint32)
         all_binary_mask = np.zeros_like(annot)
+        largest_mask_id, largest_mask_area = -1, 0
         
         for i in np.sort(np.unique(annot.reshape(-1), axis=0)):
             if self.is_annot_validfn(i):
                 binary_mask = (annot == i).astype(np.uint8)
-                # if binary_mask.sum() < 5000:
-                #     return False
+                cur_area = binary_mask.sum()
+                if cur_area > largest_mask_area:
+                    largest_mask_area = cur_area
+                    largest_mask_id = i
                 all_binary_mask = np.bitwise_or(binary_mask, all_binary_mask)
                 
         if not all_binary_mask.any():
-            return False
+            return False, None
         
         # Check that all masks are within a certain distance from the boundary
         # all pixels [:10,:], [:,:10], [-10:], [:-10] must be 0:
         if all_binary_mask[:10,:].any() or all_binary_mask[:,:10].any() or all_binary_mask[:,-10:].any() or all_binary_mask[-10:,:].any():
-            return False
+            return False, None
         
         if all_binary_mask.sum() < 5000:
-            return False
+            return False, None
         
-        return True
+        return True, int(largest_mask_id)
+    
+    def get_n_good_candidates_across_all_labels(self, n):
+        label_counts = defaultdict(int)
+        labels_found = list(self.good_candidates.keys())
+        ctr = 0
+        # choose n labels in a round robin manner so that all labels are uniformly chosen
+        for _ in range(n):
+            label_counts[labels_found[ctr]] += 1
+            ctr = (ctr + 1) % len(labels_found)
+
+        print(f'selecting candidates per label ... \n {label_counts} \n')
+        candidates = []
+        for label, count in label_counts.items():
+            # pick candidates_per_label for each label
+            candidates.append(
+                [
+                    (self.good_candidates[label][int(x)], label) 
+                    for x in np.linspace(0, len(self.good_candidates[label]), count, endpoint=False)
+                ]
+            )
+        candidates = [x for y in candidates for x in y]
+        return candidates
     
     def get_n_candidates(self, n, good, evenly_spaced=False):
         # go through the images and filter candidates

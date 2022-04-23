@@ -92,7 +92,6 @@ class LabelPropTest(unittest.TestCase):
         """
         Checks that each label prop call runs in < 0.1 seconds with > 90% accuracy
         """
-        lp = LabelPropagate()
         for x in os.listdir(data_dir):
             dd = os.path.join(data_dir, x)
             

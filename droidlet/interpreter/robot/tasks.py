@@ -7,11 +7,10 @@ import math
 import logging
 import numpy as np
 import os
-import math
+import json
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 from droidlet.task.task import Task, BaseMovementTask
 from droidlet.memory.memory_nodes import TaskNode
-from droidlet.lowlevel.robot_coordinate_utils import base_canonical_coords_to_pyrobot_coords
 from droidlet.interpreter.robot.default_behaviors import get_distant_goal
 from droidlet.interpreter.robot.objects import DanceMovement
 
@@ -653,7 +652,7 @@ class Reexplore(Task):
 
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
-        self.tasks = ["straight", "circle", "circle_big", "random1", "random2"]
+        self.tasks = ["straight", "circle", "circle_big", "random1", "random2", "save_task_data"]
         self.task_data = task_data
         self.target = task_data.get('target')
         self.spawn_pos = task_data.get('spawn_pos')
@@ -776,6 +775,11 @@ class Reexplore(Task):
                     }
                 )
             )
+            return
+        
+        if task_name == "save_task_data":
+            with open(os.path.join(self.task_data['data_path'], "task_data.json"), "w") as fp:
+                json.dump(self.task_data, fp) 
             return
         
         else:

@@ -25,6 +25,7 @@ from detectron2.data import build_detection_test_loader
 import detectron2.data.transforms as T
 from setuptools.namespaces import flatten
 from pycocotools.coco import COCO
+from shutil import rmtree
 
 import torch 
 import matplotlib.pyplot as plt
@@ -133,6 +134,7 @@ class LossEvalHook(HookBase):
             self.update_val_loss_window(l)
             if l < self.best_validation_loss:
                 self.best_validation_loss = l
+                self.val_loss_increasing = 0
             else:
                 self.val_loss_increasing += 1
             # write validation loss, AP
@@ -178,14 +180,14 @@ class MyTrainer(DefaultTrainer):
         return hooks
 
 class COCOTrain:
-    def __init__(self, lr, w, maxiters, seed, data):
+    def __init__(self, lr, w, maxiters, sample_num, data):
         self.cfg = get_cfg()
         self.cfg.merge_from_file(model_zoo.get_config_file(coco_yaml))
         add_custom_configs(self.cfg)
         self.cfg.SOLVER.BASE_LR = lr  # pick a good LR
         self.cfg.SOLVER.MAX_ITER = maxiters
         self.cfg.SOLVER.WARMUP_ITERS = w
-        self.seed = seed
+        self.sample_num = sample_num
         self.data = data
     
     def register_json(self, name, coco_json, img_dir):
@@ -207,7 +209,7 @@ class COCOTrain:
         self.test_data = None
         if 'test' in self.data.keys():
             self.test_data = self.data['dataset_name'] + "_test"
-            self.register_json(self.val_data, self.data['test']['json'], self.data['test']['img_dir'])
+            self.register_json(self.test_data, self.data['test']['json'], self.data['test']['img_dir'])
     
     def vis(self):
         dataset_dicts = DatasetCatalog.get(self.train_data)
@@ -225,19 +227,19 @@ class COCOTrain:
         print(cfg.SOLVER)
         print(f'SOLVER PARAMS {cfg.SOLVER.MAX_ITER, cfg.SOLVER.WARMUP_ITERS, cfg.SOLVER.BASE_LR}')
         cfg.DATASETS.TRAIN = (self.train_data,)
-        cfg.DATASETS.TEST = (self.val_data, self.train_data if not self.test_data else self.test_data)
+        cfg.DATASETS.TEST = (self.val_data, self.train_data)
         cfg.DATALOADER.NUM_WORKERS = 2
         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
         cfg.SOLVER.IMS_PER_BATCH = 16
         cfg.SOLVER.BEST_CHECKPOINTER.METRIC = 'validation_loss'
-        cfg.TEST.EVAL_PERIOD = 50
+        cfg.TEST.EVAL_PERIOD = 20
         cfg.SOLVER.GAMMA=0.75
         cfg.SOLVER.STEPS=tuple([100*(i+1) for i in range(100) if 100*(i+1) < cfg.SOLVER.MAX_ITER])
         
         cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128 
         print(f'classes {MetadataCatalog.get(self.train_data)}')
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(MetadataCatalog.get(self.train_data).get("thing_classes"))  
-        cfg.OUTPUT_DIR = os.path.join(self.data['out_dir'], 'training', str(self.seed), str(cfg.SOLVER.MAX_ITER), str(cfg.SOLVER.BASE_LR), str(cfg.SOLVER.WARMUP_ITERS))
+        cfg.OUTPUT_DIR = os.path.join(self.data['out_dir'], 'training', str(cfg.SOLVER.MAX_ITER), str(cfg.SOLVER.BASE_LR), str(cfg.SOLVER.WARMUP_ITERS), f'sample_{self.sample_num}')
         print(f"recreating {cfg.OUTPUT_DIR}")
         os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
         self.trainer = MyTrainer(cfg) #DefaultTrainer(cfg)  #Trainer(cfg)
@@ -251,8 +253,8 @@ class COCOTrain:
 
 
 maxiters = [1000]
-lrs = [0.001, 0.002, 0.004]
-warmups = [100]
+lrs = [0.002, 0.004]
+warmups = [200, 300]
 
 def write_summary_to_file(filename, results, header_str):
     if isinstance(results['bbox']['AP50'][0], list):
@@ -265,6 +267,11 @@ def write_summary_to_file(filename, results, header_str):
         f.write(f'\nall results {results}')
 
 def run_training(training_data, n=1):
+    train_dir = os.path.join(training_data['out_dir'], 'training')
+    if os.path.exists(train_dir):
+        print(f"no rmtree {train_dir}")
+        # rmtree(train_dir)
+
     for lr in lrs:
         for warmup in warmups:
             for maxiter in maxiters:

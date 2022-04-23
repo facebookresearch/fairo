@@ -35,10 +35,15 @@ class CocoCreator:
         self.rdd = root_data_dir
         self.sjr = semantic_json_root
         self.segm_dir = os.path.join(root_data_dir, 'seg')
+        self.visuals_dir = 'coco_visuals'
         self.is_valid_annot_fn = is_valid_annot_fn
+        self.setting = setting
         self.create_metadata = self.create_metadata_inst if setting == 'instance' else self.create_metadata_class
         
-    def create_coco(self, scene, coco_file_name, pct):
+    def create_coco(self, scene, coco_file_name, pct, use_gt):
+        if use_gt:
+            self.segm_dir = os.path.join(self.rdd, 'seg_gt')
+            self.visuals_dir = 'coco_visuals_gt'
         hsd = self.load_semantic_json(scene)
         self.create_metadata(hsd)
         self.create_annos(hsd, scene, pct)
@@ -53,11 +58,12 @@ class CocoCreator:
         MetadataCatalog.get('foobar')
         dataset_dicts = DatasetCatalog.get('foobar')
         
-        save_dir = os.path.join(self.rdd, 'coco_visuals')
+        save_dir = os.path.join(self.rdd, self.visuals_dir)
         print(f'save_dir {save_dir}, coco_file_name {coco_file_name}')
-        if os.path.exists(save_dir):
-            shutil.rmtree(save_dir)
-        os.makedirs(save_dir)
+        # if os.path.exists(save_dir):
+        #     shutil.rmtree(save_dir)
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
         
         for d in dataset_dicts:
             img = cv2.imread(d["file_name"])
@@ -67,9 +73,9 @@ class CocoCreator:
             vis = visualizer.draw_dataset_dict(d)
             img = vis.get_image()
             cv2.imwrite(os.path.join(save_dir, x), img[:,:,::-1])
-            plt.figure(figsize=(4, 4))
-            plt.imshow(img)
-            plt.show()
+            # plt.figure(figsize=(4, 4))
+            # plt.imshow(img)
+            # plt.show()
         
     def save_json(self, coco_file_name):
         coco_output = {
@@ -90,12 +96,11 @@ class CocoCreator:
         self.CATEGORIES = []
         self.IMAGES = []
         self.ANNOTATIONS = []
-        
         self.label_id_dict = {}
         self.new_old_id = {}
         idc = 1
         for obj_cls in hsd["classes"]:
-            if obj_cls["name"] in self.labels:
+            if obj_cls["name"] in class_labels:
                 self.CATEGORIES.append({"id": idc, "name": obj_cls["name"], "supercategory": "shape"})
                 self.label_id_dict[obj_cls["id"]] = obj_cls["name"]
                 self.new_old_id[obj_cls['id']] = idc
@@ -150,14 +155,18 @@ class CocoCreator:
             )
 
             self.IMAGES.append(image_info)
-            
             for i in np.sort(np.unique(annot.reshape(-1), axis=0)):
                 if self.is_valid_annot_fn(i):
                     try:
                         if hsd["id_to_label"][i] < 1:# or hsd["id_to_label"][i] not in self.label_id_dict:
                             continue
-                        category_info = {"id": self.new_old_id[i], "is_crowd": False}
-                    except:
+                        if self.setting == 'class':
+                            category_info = {"id": self.new_old_id[hsd["id_to_label"][i]], "is_crowd": False}
+                        elif self.setting == 'instance':
+                            category_info = {"id": self.new_old_id[i], "is_crowd": False}
+                        print(f'category_info {category_info}')
+                    except Exception as ex:
+                        print(f'exception {ex}')
                         continue
 
                     binary_mask = (annot == i).astype(np.uint32)
@@ -180,6 +189,7 @@ class CocoCreator:
         
     def get_segm_files(self, segm_dir, pct):
         cs = [os.path.basename(x) for x in glob.glob(os.path.join(segm_dir, '*.npy'))]
+        print(f'get_segm_files {segm_dir}, pct {pct}, total_files {len(cs)}')
         cs.sort()
         frq = 1/pct
         fs = []
@@ -200,4 +210,11 @@ def run_coco(root_data_dir):
         scene='apartment_0', 
         coco_file_name=os.path.join(root_data_dir, 'coco_train.json'),
         pct=1,
+        use_gt=False,
+    )
+    cbase.create_coco(
+        scene='apartment_0', 
+        coco_file_name=os.path.join(root_data_dir, 'coco_train_with_seg_gt.json'),
+        pct=1,
+        use_gt=True,
     )

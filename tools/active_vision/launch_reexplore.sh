@@ -3,8 +3,8 @@ set -ex
 # Launches re-exploraation from locations output by ./launch_candidate selection.
 # Usage
 # ./launch_reexplore <path that is output dir of ./launch_candidate_selection.sh> <setting for noise>
-# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/test1/baselinev3
-# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/respawnv3_noisy/baselinev3_noisy --noise
+# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/hail_mary/baselinev3
+# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/largerun_noisy/baselinev3_noisy --noise
 
 if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then
     echo "source activate not working, trying conda activate"

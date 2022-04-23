@@ -7,6 +7,7 @@ import json
 from shutil import copyfile, rmtree
 import numpy as np
 import cv2
+import time
 from droidlet.perception.robot import LabelPropagate
 from PIL import Image
 import matplotlib.pyplot as plt
@@ -20,6 +21,8 @@ set_keys = {
     'e1s1c1s': ['e1', 's1', 'c1s'],
     'e1s1c1l': ['e1', 's1', 'c1l'],
 }
+
+prop_lengths = range(0, 20, 2)
 
 d3_40_colors_rgb: np.ndarray = np.array(
     [
@@ -121,7 +124,8 @@ def propogate_label(
     propogation_step: int,
     base_pose_data: np.ndarray,
     out_dir: str,
-    frame_range_begin: int
+    frame_range_begin: int,
+    label_to_save: int,
 ):
     """Take the label for src_img_indx and propogate it to [src_img_indx - propogation_step, src_img_indx + propogation_step]
     Args:
@@ -165,7 +169,7 @@ def propogate_label(
         
         try:
             # get the robot pose value
-            base_pose = base_pose_data[str(img_indx)]
+            cur_pose = base_pose_data[str(img_indx)]
             # get the depth
             cur_depth = np.load(os.path.join(root_path, "depth/{:05d}.npy".format(img_indx)))
         except:
@@ -174,8 +178,11 @@ def propogate_label(
         
         lp = LabelPropagate()
 
-        annot_img = lp(src_img, src_depth, src_label, src_pose, base_pose, cur_depth)
+        annot_img = lp(src_img, src_depth, src_label, src_pose, cur_pose, cur_depth)
         
+        # filter label
+        annot_img[annot_img != label_to_save] = 0
+
         # store the annotation file
         np.save(os.path.join(out_dir, "{:05d}.npy".format(out_indx)), annot_img.astype(np.uint32))
         
@@ -197,58 +204,95 @@ def propogate_label(
         json.dump(acc_json, f)
 
 
-def propagate_dir(reex_dir):
+def propagate_dir(reex_dir, out_dir):
     print(f'propagate_dir {reex_dir}')
     # should have folders in [r1, r2, s1, c1s, c1l]
     for fold in ['r1', 'r2', 's1', 'c1s', 'c1l']:
         # prop lengths
         prop_f = os.path.join(reex_dir, fold)
-        print(f'creating {prop_f}')
+        out_f = os.path.join(out_dir, fold)
+
+        print(f'input {prop_f}, output {out_f}')
         src_img_indx = 0
         json_path = os.path.join(prop_f, 'data.json')
         assert os.path.isfile(json_path), f'{json_path} does not exist!'
         with open(json_path, "r") as f:
             base_pose_data = json.load(f)
 
-        for p in range(0, 10, 2):
-            out_dir = os.path.join(prop_f, f'pred_label_p{p}')
-            if os.path.isdir(out_dir):
-                rmtree(out_dir)
-            os.makedirs(out_dir)
+        task_json_path = os.path.join(reex_dir, 'task_data.json')
+        assert os.path.isfile(task_json_path), f'{task_json_path} does not exist!'
+        with open(task_json_path, "r") as f:
+            task_data = json.load(f)
+            print(f'loaded task data {task_data}')
+        
+        pred_dir = os.path.join(out_f, 'pred')
+        if os.path.isdir(pred_dir):
+            rmtree(pred_dir)
+        os.makedirs(pred_dir)
 
-            propogate_label(
-                prop_f, src_img_indx, 
-                p,
-                base_pose_data,
-                out_dir,
-                0
-            ) 
+        start = time.time()
+        propogate_label(
+            prop_f, src_img_indx, 
+            18,
+            base_pose_data,
+            pred_dir,
+            0,
+            int(task_data['label']),
+        )
+        end = time.time()
+        print(f'total one time propagation time {end - start}')
 
-def acopydir(src, dst, pred_f):
-    # print(f'acopydir {src} {dst} {pred_f}')
-    og_rgb = os.path.join(src, 'rgb')
-    og_rgb_dbg = os.path.join(src, 'rgb_dbg')
-    og_visuals = os.path.join(src, pred_f, 'lp_visuals')
+        for p in prop_lengths:
+            od = os.path.join(out_f, f'pred_label_p{p}')
+            if os.path.isdir(od):
+                rmtree(od)
+            os.makedirs(od)
+
+            def copyover(in_dir, out_dir, p):
+                for x in range(p+1):
+                    if os.path.isfile(os.path.join(in_dir, f'{x:05d}.npy')):
+                        copyfile(os.path.join(in_dir, f'{x:05d}.npy'), os.path.join(out_dir, f'{x:05d}.npy'))
+
+            copyover(in_dir=pred_dir, out_dir=od, p=p)
+        end2 = time.time()
+        print(f'total time to copyover {end2-end}')
+
+def acopydir(src, dst, og_data, pred_f):
+    print(f'acopydir {src} {dst} {pred_f}, og_data {og_data}')
+    og_rgb = os.path.join(og_data, 'rgb')
+    og_seg = os.path.join(og_data, 'seg')
+    og_rgb_dbg = os.path.join(og_data, 'rgb_dbg')
+    og_visuals = os.path.join(src, 'pred', 'lp_visuals')
     
     out_dir = os.path.join(dst, pred_f)
     rgb_dir = os.path.join(out_dir, 'rgb')
     rgb_dbg_dir = os.path.join(out_dir, 'rgb_dbg')
+    seg_gt_dir = os.path.join(out_dir, 'seg_gt')
     seg_dir = os.path.join(out_dir, 'seg')
     vis_dir = os.path.join(out_dir, 'lp_visuals')
 
     if not os.path.isdir(out_dir):
-        for x in [out_dir, rgb_dir, rgb_dbg_dir, seg_dir, vis_dir]:
+        for x in [out_dir, rgb_dir, rgb_dbg_dir, seg_dir, seg_gt_dir, vis_dir]:
             os.makedirs(x)
     
     # copy seg files and their corresponding rgb files, numbered appropriately
 
     fsa = list(glob.glob(os.path.join(seg_dir, '*.npy')))
     ctr = len(fsa)
+    print(f'initial counter value {ctr}')
     for x in glob.glob(os.path.join(src, pred_f, '*.npy')):
         og_indx = int(x.split('/')[-1].split('.')[0])
         # copy seg
         fname_seg = "{:05d}{}".format(ctr, '.npy')
         copyfile(x, os.path.join(seg_dir, fname_seg))
+
+        # copy seg_gt
+        fname_seg_gt = "{:05d}{}".format(ctr, '.npy')
+        copyfile(
+            os.path.join(og_seg, "{:05d}{}".format(og_indx, '.npy')),
+            os.path.join(seg_gt_dir, fname_seg_gt)
+        )
+
         # copy rgb
         fname_rgb = "{:05d}{}".format(ctr, '.jpg')
         copyfile(
@@ -269,7 +313,7 @@ def acopydir(src, dst, pred_f):
         )
         ctr += 1
 
-def combine(src, dst, input_folds):
+def combine(src, dst, og_data, input_folds):
     """
     \src (0)
         \input_folds (r1, s1 ..)
@@ -282,46 +326,63 @@ def combine(src, dst, input_folds):
             metrics.json
 
     """
-    print(f'src {src} dst {dst}, input_folds {input_folds}')
+    print(f'combine src {src} dst {dst}, input_folds {input_folds}')
     for x in input_folds:
-        # print(f'combining {os.path.join(src, x)} into {dst}')
+        print(f'combining {os.path.join(src, x)} into {dst}')
         for p in Path(os.path.join(src, x)).rglob('pred_label*'):
             pred_f = str(p).split('/')[-1]
             # want to put src/pred_label into dst/pred_label
-            acopydir(p.parent, dst, pred_f)
+            acopydir(p.parent, dst, os.path.join(og_data, x), pred_f)
 
-def run_label_prop(data_dir, job_dir):
+def run_label_prop(data_dir, job_dir, job_out_dir):
     print(f'data_dir {data_dir}')
     jobs = []
 
     with executor.batch():
         for path in Path(data_dir).rglob('reexplore_data.json'):
+            # if len(jobs) > 25:
+            #     break
             with open(os.path.join(path.parent, 'reexplore_data.json'), 'r') as f:
                 data = json.load(f)
                 if len(data.keys()) > 0:
-                    print(f'processing {path.parent}')
-                    for eid in os.listdir(path.parent):
-                        if eid.isdigit():
-                            print(f'eid {eid}, path.parent {path.parent}')
-                            
-                            @log_time(os.path.join(job_dir, 'job_log.txt'))
-                            def job_unit(path, eid, set_keys):
-                                # do label prop on each reexplore subtrajectory 
-                                propagate_dir(os.path.join(path.parent, eid))
+                    if any(p in str(path.parent) for p in ['/0/instance/', '/2/instance/', '/22/instance/5', '/25/instance/']): #
+                        print(f'processing {path.parent}')
+                        for out_name, input_folds in set_keys.items():
+                            print(f'extract outdir from path {path}')
+                            rel_path = '/'.join(str(path.parent).split('/')[-3:])
+                            out_dir = os.path.join(job_out_dir, rel_path, out_name)
+                            print(f'out_dir {out_dir}')
+
+                            if os.path.isdir(out_dir):
+                                rmtree(out_dir)
+                                print(f'rmtree {out_dir}')
+                        
+                        for eid in os.listdir(path.parent):
+                            if eid.isdigit():
+                                print(f'\neid {eid}, path.parent {path.parent}')
+                                rel_path = '/'.join(str(path.parent).split('/')[-3:])
+                                out_dir = os.path.join(job_out_dir, rel_path)
+                                print(f'out_dir {out_dir}, rel_path {rel_path}')
                                 
-                                # combine all propagated based on combinations
-                                for out_name, input_folds in set_keys.items():
-                                    out_dir = os.path.join(path.parent, out_name)
-                                    if os.path.isdir(out_dir):
-                                        print(f'rmtree {out_dir}')
-                                        rmtree(out_dir)
-                                    combine(
-                                        os.path.join(path.parent, eid), 
-                                        out_dir, 
-                                        input_folds
-                                    )
-                            job = executor.submit(job_unit, path, eid, set_keys)
-                            jobs.append(job)
+                                @log_time(os.path.join(job_dir, 'job_log.txt'))
+                                def job_unit(path, eid, set_keys, od, jod, rp):
+                                    print(f'eid {eid}, path {path}')
+                                    # do label prop on each reexplore subtrajectory 
+                                    propagate_dir(os.path.join(path.parent, eid), os.path.join(od, eid))
+                                    
+                                    # combine all propagated based on combinations
+                                    for out_name, input_folds in set_keys.items():
+                                        combine(
+                                            os.path.join(jod, rp, eid), 
+                                            os.path.join(od, out_name), 
+                                            os.path.join(data_dir, rp, eid),
+                                            input_folds
+                                        )
+
+                                # job_unit(path, eid, set_keys, out_dir, job_out_dir, rel_path)
+                                job = executor.submit(job_unit, path, eid, set_keys, out_dir, job_out_dir, rel_path)
+                                jobs.append(job)
+                                print(f"num jobs {len(jobs)}")
 
     if len(jobs) > 0:
         print(f"Job Id {jobs[0].job_id.split('_')[0]}, num jobs {len(jobs)}")
@@ -331,6 +392,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data_dir",
         help="path where scene data is being stored",
+        type=str,
+    )
+    parser.add_argument(
+        "--out_dir",
+        help="path where output scene data is being stored",
         type=str,
     )
     parser.add_argument("--job_dir", type=str, default="", help="")
@@ -345,7 +411,7 @@ if __name__ == "__main__":
     # set timeout in min, and partition for running the job
     executor.update_parameters(
         slurm_partition="learnfair", #"learnfair", #scavenge
-        timeout_min=30,
+        timeout_min=1000,
         mem_gb=256,
         gpus_per_node=4,
         tasks_per_node=1, 
@@ -357,4 +423,4 @@ if __name__ == "__main__":
         slurm_comment="Droidlet Active Vision Pipeline"
     )
 
-    run_label_prop(args.data_dir, args.job_dir)
+    run_label_prop(args.data_dir, args.job_dir, args.out_dir)
