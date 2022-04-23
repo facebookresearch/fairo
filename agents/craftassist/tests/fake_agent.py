@@ -47,11 +47,34 @@ from droidlet.lowlevel.minecraft.pyworld.physical_interfaces import (
 )
 
 
+def default_low_level_data():
+    low_level_data = {
+        "mobs": SPAWN_OBJECTS,
+        "mob_property_data": craftassist_specs.get_mob_property_data(),
+        "schematics": craftassist_specs.get_schematics(),
+        "block_data": craftassist_specs.get_block_data(),
+        "block_property_data": craftassist_specs.get_block_property_data(),
+        "color_data": craftassist_specs.get_colour_data(),
+        "boring_blocks": BORING_BLOCKS,
+        "passable_blocks": PASSABLE_BLOCKS,
+        "fill_idmeta": fill_idmeta,
+        "color_bid_map": COLOR_BID_MAP,
+    }
+    return low_level_data
+
+
 class FakeAgent(DroidletAgent):
     default_frame = CraftAssistAgent.default_frame
     coordinate_transforms = CraftAssistAgent.coordinate_transforms
 
-    def __init__(self, world, opts=None, do_heuristic_perception=False, prebuilt_perception=None):
+    def __init__(
+        self,
+        world,
+        opts=None,
+        do_heuristic_perception=False,
+        prebuilt_perception=None,
+        low_level_data=None,
+    ):
         self.mark_airtouching_blocks = do_heuristic_perception
         self.head_height = HEAD_HEIGHT
         self.world = world
@@ -61,18 +84,9 @@ class FakeAgent(DroidletAgent):
         if not opts:
             opts = MockOpt()
         self.e2e_mode = getattr(opts, "e2e_mode", False)
-        self.low_level_data = {
-            "mobs": SPAWN_OBJECTS,
-            "mob_property_data": craftassist_specs.get_mob_property_data(),
-            "schematics": craftassist_specs.get_schematics(),
-            "block_data": craftassist_specs.get_block_data(),
-            "block_property_data": craftassist_specs.get_block_property_data(),
-            "color_data": craftassist_specs.get_colour_data(),
-            "boring_blocks": BORING_BLOCKS,
-            "passable_blocks": PASSABLE_BLOCKS,
-            "fill_idmeta": fill_idmeta,
-            "color_bid_map": COLOR_BID_MAP,
-        }
+        if low_level_data is None:
+            low_level_data = default_low_level_data()
+        self.low_level_data = low_level_data
         super(FakeAgent, self).__init__(opts)
         self.do_heuristic_perception = do_heuristic_perception
         self.no_default_behavior = True
