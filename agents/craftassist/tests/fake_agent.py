@@ -145,6 +145,8 @@ class FakeAgent(DroidletAgent):
         }
         if not self.use_place_field:
             kwargs["place_field_pixels_per_unit"] = -1
+        if self.prebuilt_db is not None:
+            kwargs["copy_from_backup"] = self.prebuilt_db
         self.memory = MCAgentMemory(**kwargs)
         # Add dances to memory
         dance.add_default_dances(self.memory)
