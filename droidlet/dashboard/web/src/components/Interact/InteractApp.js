@@ -25,7 +25,6 @@ class InteractApp extends Component {
       commandState: "idle",
       now: null,
       disableInput: false,
-      disableStopButton: true,
       lastChatActionDict: "",
       chats: [{ msg: "", timestamp: Date.now() }],
       response_options: [],
@@ -39,6 +38,7 @@ class InteractApp extends Component {
       task_error: false,
       feedback: "",
       isSaveFeedback: false,
+      clarify: false,
     };
 
     this.state = this.initialState;
@@ -48,7 +48,7 @@ class InteractApp extends Component {
 
     this.bindKeyPress = this.handleKeyPress.bind(this);
     this.sendTaskStackPoll = this.sendTaskStackPoll.bind(this);
-    this.issueStopCommand = this.issueStopCommand.bind(this);
+    this.issueResetCommand = this.issueResetCommand.bind(this);
     this.answerAction = this.answerAction.bind(this);
     this.answerParsing = this.answerParsing.bind(this);
     this.answerVision = this.answerVision.bind(this);
@@ -219,16 +219,13 @@ class InteractApp extends Component {
     this.setState({ chats: new_chats });
   }
 
-  issueStopCommand() {
-    console.log("Stop command issued");
-    const chatmsg = "stop";
-    //add to chat history box of parent
-    this.updateChat({ msg: chatmsg, timestamp: Date.now() });
-    //log message to flask
-    this.props.stateManager.logInteractiondata("text command", chatmsg);
-    //socket connection
-    this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
-    //update StateManager command state
+  issueResetCommand() {
+    if (this.state.clarify) { this.removeButtonsFromLastQuestion() };
+    // update chat with "reset" instead of "stop" to avoid confusion
+    this.updateChat({ msg: "reset", timestamp: Date.now() });
+    // send message 
+    this.props.stateManager.logInteractiondata("text command", "stop");
+    this.props.stateManager.socket.emit("sendCommandToAgent", "stop");
     this.props.stateManager.memory.commandState = "sent";
   }
 
@@ -352,15 +349,31 @@ class InteractApp extends Component {
     if (this.state.commandState !== prevState.commandState) {
       if (this.state.commandState !== "idle") {
         let disableInput = true;
-        let disableStopButton = false;
         this.setState({
           disableInput: disableInput,
-          disableStopButton: disableStopButton,
         });
       }
     }
     // Scroll messsage panel to bottom
     this.scrollToBottom();
+  }
+
+  renderResetButton() {
+    // render during agent thinking and clarification
+    if (this.state.commandState === "idle" && !this.state.clarify) { return }
+
+    return (
+      <div className="reset">
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={this.issueResetCommand.bind(this)}
+          className="reset-button"
+        >
+          Reset
+        </Button>
+      </div>
+    )
   }
 
   renderStatusMessages() {
@@ -405,6 +418,7 @@ class InteractApp extends Component {
         this.handleClearInterval();
       } else if (res.task && res.clarify) {
         console.log("Agent asked for task clarification")
+        this.setState( {clarify: true });
         setTimeout(() => {
           this.sendTaskStackPoll();
         }, 1000);
@@ -442,8 +456,8 @@ class InteractApp extends Component {
       );
       this.setState({
         disableInput: false,
-        disableStopButton: true,
         commandState: "idle",
+        clarify: false,
       });
     }
   }
@@ -886,7 +900,6 @@ class InteractApp extends Component {
     });
     this.setState({
       disableInput: false,
-      disableStopButton: true,
       isSaveFeedback: true,
     });
   }
@@ -958,6 +971,7 @@ class InteractApp extends Component {
                     ></div>
                   </div>
                 </div>
+                {this.renderResetButton()}
                 {this.renderStatusMessages()}
                 <div className="input">
                   <input
@@ -970,15 +984,6 @@ class InteractApp extends Component {
                     type="text"
                     disabled={this.state.disableInput}
                   />
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={this.issueStopCommand.bind(this)}
-                    className="stop-button"
-                    disabled={this.state.disableStopButton}
-                  >
-                    Stop
-                  </Button>
                 </div>
               </div>
             </div>

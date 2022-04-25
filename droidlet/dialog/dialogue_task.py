@@ -232,6 +232,8 @@ def map_yes_last_chat(task):
         # FIXME...
         if chat_mem.chat_text in MAP_YES:
             response = "yes"
+        elif chat_mem.chat_text == "stop":
+            response = "stop"
     return response
 
 
@@ -262,12 +264,12 @@ def clarification_failed(task):
 
 
 class ClarifyCC1(Task):
-    """This Task is responsible
-    for Say and AwaitResponse tasks associated with clarifying which
-    among an expanded list of candidates is the appropriate ref_obj
+    """This Task is responsible for Say and AwaitResponse tasks
+    associated with clarifying which among an expanded list of candidates
+    is the appropriate ref_obj
 
     Args:
-
+        dlf: the Dialog Logical Form generated in referece_object_clarification
     """
 
     def __init__(self, agent, memid, task_data={}):
@@ -293,11 +295,6 @@ class ClarifyCC1(Task):
     def step(self):
         """Issue chats and wait for responses to clarify"""
 
-        print("ClarifyCC1 stepped")
-        # import ipdb
-
-        # ipdb.set_trace(context=7)
-
         if not self.finished and self.asks <= self.max_asks:
             if self.asks == 1:
                 # ask whether the original parse is nominally right
@@ -311,7 +308,7 @@ class ClarifyCC1(Task):
                     self.current_candidate = self.candidates.pop(0)
                     point_at(self, self.agent.memory.get_mem_by_id(self.current_candidate))
                 else:
-                    # Seemingly a bad parse, move on to error marking
+                    # Bad parse or reset by user, move on to error marking
                     clarification_failed(self)
                 return
 
@@ -321,6 +318,9 @@ class ClarifyCC1(Task):
                 if response == "no":
                     self.current_candidate = self.candidates.pop(0)
                     point_at(self, self.agent.memory.get_mem_by_id(self.current_candidate))
+                elif response == "stop":
+                    # Reset by user, exit
+                    clarification_failed(self)
                 else:
                     # Found it! Add the approriate tag to current candidate and mark it as the output
                     self.agent.memory.add_triple(

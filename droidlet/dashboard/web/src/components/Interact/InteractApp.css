@@ -91,6 +91,7 @@
 }
 
 #scrollbar::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
   border-top-right-radius: 1rem;
 }
@@ -102,6 +103,7 @@
 
 #scrollbar::-webkit-scrollbar-thumb {
   border-radius: 10px;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
   background-color: #d5d5d5;
 }
@@ -125,6 +127,7 @@
 
 .chat .answer-buttons button {
   box-shadow: none;
+  background-color: white;
 }
 
 .chat .answer-buttons .yes-button {
@@ -182,6 +185,28 @@
   text-align: right;
 }
 
+.chat .reset {
+  position: absolute !important;
+  pointer-events: none;
+  width: 100%;
+  overflow: auto;
+  bottom: 5.7rem;
+  z-index: 3;
+}
+
+.chat .reset-button {
+  box-shadow: 0 0 1rem rgb(0 0 0 / 10%), 0rem 1rem 1rem -1rem rgb(0 0 0 / 20%);
+  pointer-events: all;
+  color: red;
+  letter-spacing: 0.025em;
+  font-family: Red hat Display, sans-serif;
+  font-weight: 400;
+}
+
+.chat .reset-button:hover {
+  background-color: rgba(74, 169, 108, 0.1);
+}
+
 .chat .status {
   position: absolute !important;
   font-size: 1.0rem;
@@ -228,16 +253,6 @@
 }
 .chat .input input:placeholder {
   color: #999;
-}
-
-.chat .input .stop-button {
-  margin-left: 10px;
-  border-radius: 1.125rem;
-  box-shadow: 0 0 1rem rgb(0 0 0 / 10%), 0rem 1rem 1rem -1rem rgb(0 0 0 / 20%);
-  color: #999;
-  letter-spacing: 0.025em;
-  font-family: Red hat Display, sans-serif;
-  font-weight: 400;
 }
 
 @-webkit-keyframes typing {
