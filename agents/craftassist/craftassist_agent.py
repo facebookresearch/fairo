@@ -358,7 +358,7 @@ class CraftAssistAgent(DroidletAgent):
         chat_json = False
         try:
             chat_json = json.loads(chat)
-            chat_text = [x for x in chat_json["content"] if x["id"] == "text"][0]["content"]
+            chat_text = list(filter(lambda x: x["id"] == "text", chat_json["content"]))[0]["content"]
         except:
             chat_text = chat
 
