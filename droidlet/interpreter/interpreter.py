@@ -118,6 +118,7 @@ class Interpreter(InterpreterBase):
     def step(self, agent) -> Tuple[Optional[str], Any]:
         start_time = datetime.datetime.now()
         assert self.logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND"
+        self.finished = False
         try:
             C = self.interpret_event(agent, self.speaker, self.logical_form)
             if C is not None:
