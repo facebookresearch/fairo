@@ -1,18 +1,17 @@
 import logging
-from typing import cast, List, Tuple, Dict
+from typing import cast, List, Dict
 from .interpreter_utils import SPEAKERLOOK
 from droidlet.memory.memory_nodes import (
     LocationNode,
     PlayerNode,
-    ReferenceObjectNode,
     SelfNode,
     TaskNode,
 )
-from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode, ItemStackNode
+from droidlet.memory.craftassist.mc_memory_nodes import ItemStackNode
 from .interpret_location import interpret_relative_direction
 from .interpret_filters import interpret_selector
-from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
-from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
+from droidlet.base_util import euclid_dist, T
+from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.dialog.dialogue_task import ClarifyCC1
 
 DISALLOWED_REF_OBJS = (LocationNode, SelfNode, PlayerNode, ItemStackNode)
@@ -60,10 +59,11 @@ def cc1_to_dlf(interpreter, speaker, d, clarification_class):
         d,
         CC1_SEARCH_RADIUS,
     )
+    
     if len(mems) == 0:
         raise ErrorWithResponse("I don't know what you're referring to")
     else:
-        # Build the matchind dialog DLF
+        # Build the matching dialog DLF
         action = retrieve_action_dict(interpreter, d)
         if not action:
             logging.error(
@@ -96,13 +96,12 @@ def build_dlf(cc, candidates, action):
     return dlf
 
 
-def sort_by_closest(
-    interpreter, speaker, candidates: List[T], d: Dict, all_proximity=10, loose=False
-) -> List[T]:
+def sort_by_closest(interpreter, speaker, candidates: List[T], d: Dict, all_proximity=10) -> List[T]:
     """Sort a list of candidate reference_object mems by distance to ref_loc
     within all_proximity
     Returns a list of mems
     """
+
     filters_d = d.get("filters")
     assert filters_d is not None, "no filters: {}".format(d)
     default_loc = getattr(interpreter, "default_loc", SPEAKERLOOK)
@@ -123,7 +122,6 @@ def sort_by_closest(
     mems = location_filtered_candidates
     if location_filtered_candidates:  # could be [], if so will return []
         default_selector_d = {"return_quantity": "ALL"}
-        # default_selector_d = {"location": {"location_type": "SPEAKER_LOOK"}}
         selector_d = filters_d.get("selector", default_selector_d)
         S = interpret_selector(interpreter, speaker, selector_d)
         if S:

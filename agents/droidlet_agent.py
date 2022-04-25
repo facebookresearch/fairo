@@ -99,7 +99,6 @@ class DroidletAgent(BaseAgent):
 
         @sio.on("get_agent_type")
         def report_agent_type(sid):
-            logging.info("Reporting agent type")
             sio.emit("updateAgentType", {"agent_type": self.agent_type})
 
         @sio.on("saveErrorDetailsToDb")
@@ -149,8 +148,6 @@ class DroidletAgent(BaseAgent):
         def get_chat_action_dict(sid, chat):
             logging.debug(f"Looking for action dict for command [{chat}] in memory")
             logical_form = None
-            # import ipdb
-            # ipdb.set_trace(context=7)
             try:
                 chat_memids, _ = self.memory.basic_search(
                     f"SELECT MEMORY FROM Chat WHERE chat={chat}"
@@ -216,7 +213,6 @@ class DroidletAgent(BaseAgent):
             )
             clairfy = True if len(interpreter_mems) > 0 else False
             res = {"task": task, "clarify": clairfy}
-            logging.info(res)
             sio.emit("taskStackPollResponse", res)
 
     def init_physical_interfaces(self):
@@ -399,7 +395,9 @@ class DroidletAgent(BaseAgent):
                 self.memory.get_mem_by_id(obj.memid).finish()
         else:
             raise Exception(
-                "strange obj (not Interpreter) returned from dialogue manager {}".format(obj)
+                "strange obj (not Interpreter or DialogueTask) returned from dialogue manager {}".format(
+                    obj
+                )
             )
 
         # check to see if some Tasks were put in memory that need to be

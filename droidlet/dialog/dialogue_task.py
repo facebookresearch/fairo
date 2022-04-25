@@ -86,7 +86,7 @@ class Point(Task):
             x1 <= x2,
             y1 <= y2,
             z1 <= z2.
-        sleep: float of seconds to sleep (to avoid running perceive while pointing)
+        sleep: float of seconds to sleep the agent while pointing
 
     """
 
@@ -214,17 +214,6 @@ def build_question_json(
     return json.dumps(chat_obj)
 
 
-def check_parse(task):
-    question = f"I'm not sure about something. I think you wanted me to {task.action.lower()} a {task.ref_obj_span}, is that right?"
-    question_obj = build_question_json(question, text_response_options=["yes", "no"])
-    task_list = [
-        Say(task.agent, {"response_options": question_obj}),
-        AwaitResponse(task.agent, {"asker_memid": task.memid}),
-    ]
-    task.add_child_task(maybe_task_list_to_control_block(task_list, task.agent))
-    task.asks += 1
-
-
 def map_yes_last_chat(task):
     chat_mem = task.agent.memory.get_most_recent_incoming_chat(after=task.step_time + 1)
     response = "no"
@@ -235,32 +224,6 @@ def map_yes_last_chat(task):
         elif chat_mem.chat_text == "stop":
             response = "stop"
     return response
-
-
-def point_at(task, target):
-    if hasattr(target, "get_point_at_target"):
-        bounds = target.get_point_at_target()
-    else:
-        # FIXME is there a more graceful way to handle this?
-        return
-    task.agent.point_at(bounds)
-    question = f"Is this the {task.ref_obj_span}? (Look for the flashing object)"
-    question_obj = build_question_json(question, text_response_options=["yes", "no"])
-    task_list = [
-        Say(task.agent, {"response_options": question_obj}),
-        # Point(task.agent, {"bounds": bounds, "sleep_time": 4.0} ),
-        AwaitResponse(task.agent, {"asker_memid": task.memid}),
-    ]
-    task.add_child_task(maybe_task_list_to_control_block(task_list, task.agent))
-    task.asks += 1
-    task.step_time = task.agent.memory.get_time()
-
-
-def clarification_failed(task):
-    question = "OK, I didn't understand you correctly.  Please mark this as an error."
-    task.add_child_task(Say(task.agent, {"response_options": question}))
-    task.asks = task.max_asks
-    task.finished = True
 
 
 class ClarifyCC1(Task):
@@ -298,7 +261,7 @@ class ClarifyCC1(Task):
         if not self.finished and self.asks <= self.max_asks:
             if self.asks == 1:
                 # ask whether the original parse is nominally right
-                check_parse(self)
+                self.check_parse(self)
                 return
 
             elif self.asks == 2:
@@ -306,10 +269,10 @@ class ClarifyCC1(Task):
                 if response == "yes":
                     # The parse was at least kind of right, start suggesting objects
                     self.current_candidate = self.candidates.pop(0)
-                    point_at(self, self.agent.memory.get_mem_by_id(self.current_candidate))
+                    self.point_at(self, self.agent.memory.get_mem_by_id(self.current_candidate))
                 else:
                     # Bad parse or reset by user, move on to error marking
-                    clarification_failed(self)
+                    self.clarification_failed(self)
                 return
 
             else:
@@ -317,10 +280,10 @@ class ClarifyCC1(Task):
                 response = map_yes_last_chat(self)
                 if response == "no":
                     self.current_candidate = self.candidates.pop(0)
-                    point_at(self, self.agent.memory.get_mem_by_id(self.current_candidate))
+                    self.point_at(self, self.agent.memory.get_mem_by_id(self.current_candidate))
                 elif response == "stop":
                     # Reset by user, exit
-                    clarification_failed(self)
+                    self.clarification_failed(self)
                 else:
                     # Found it! Add the approriate tag to current candidate and mark it as the output
                     self.agent.memory.add_triple(
@@ -341,5 +304,39 @@ class ClarifyCC1(Task):
 
         else:
             # We ran out of candidates, move on to error marking
-            clarification_failed(self)
+            self.clarification_failed(self)
             return
+
+    def point_at(task, target):
+        if hasattr(target, "get_point_at_target"):
+            bounds = target.get_point_at_target()
+        else:
+            # FIXME is there a more graceful way to handle this?
+            return
+        task.agent.point_at(bounds)
+        question = f"Is this the {task.ref_obj_span}? (Look for the flashing object)"
+        question_obj = build_question_json(question, text_response_options=["yes", "no"])
+        task_list = [
+            Say(task.agent, {"response_options": question_obj}),
+            # Point(task.agent, {"bounds": bounds, "sleep_time": 4.0} ),
+            AwaitResponse(task.agent, {"asker_memid": task.memid}),
+        ]
+        task.add_child_task(maybe_task_list_to_control_block(task_list, task.agent))
+        task.asks += 1
+        task.step_time = task.agent.memory.get_time()
+
+    def clarification_failed(task):
+        question = "OK, I didn't understand you correctly.  Please mark this as an error."
+        task.add_child_task(Say(task.agent, {"response_options": question}))
+        task.asks = task.max_asks
+        task.finished = True
+
+    def check_parse(task):
+        question = f"I'm not sure about something. I think you wanted me to {task.action.lower()} a {task.ref_obj_span}, is that right?"
+        question_obj = build_question_json(question, text_response_options=["yes", "no"])
+        task_list = [
+            Say(task.agent, {"response_options": question_obj}),
+            AwaitResponse(task.agent, {"asker_memid": task.memid}),
+        ]
+        task.add_child_task(maybe_task_list_to_control_block(task_list, task.agent))
+        task.asks += 1

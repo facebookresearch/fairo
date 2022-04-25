@@ -367,7 +367,6 @@ class CraftAssistAgent(DroidletAgent):
 
         if chat_json:
             chat_json["chat_memid"] = chat_memid
-            # _, chat_times = self.memory.basic_search(f"SELECT time FROM Chat WHERE uuid={chat_memid}")
             chat_json["timestamp"] = round(datetime.timestamp(datetime.now())*1000)
             # Send the socket event to show this reply on dashboard
             sio.emit("showAssistantReply", chat_json)
