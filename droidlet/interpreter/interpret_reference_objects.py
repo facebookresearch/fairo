@@ -438,4 +438,3 @@ def capped_line_of_sight(memory, speaker=None, eid=None, cap=20):
     # default to cap blocks in front of entity
     vec = memory.coordinate_transforms.look_vec(speaker_mem.yaw, speaker_mem.pitch)
     return cap * np.array(vec) + np.array(pos)
-    
