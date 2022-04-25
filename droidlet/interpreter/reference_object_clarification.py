@@ -59,7 +59,7 @@ def cc1_to_dlf(interpreter, speaker, d, clarification_class):
         d,
         CC1_SEARCH_RADIUS,
     )
-    
+
     if len(mems) == 0:
         raise ErrorWithResponse("I don't know what you're referring to")
     else:
@@ -96,7 +96,9 @@ def build_dlf(cc, candidates, action):
     return dlf
 
 
-def sort_by_closest(interpreter, speaker, candidates: List[T], d: Dict, all_proximity=10) -> List[T]:
+def sort_by_closest(
+    interpreter, speaker, candidates: List[T], d: Dict, all_proximity=10
+) -> List[T]:
     """Sort a list of candidate reference_object mems by distance to ref_loc
     within all_proximity
     Returns a list of mems
