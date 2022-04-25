@@ -137,4 +137,3 @@ def sort_by_closest(
             # FIXME, warn/error here; mems is still the candidates
 
     return mems
-    
