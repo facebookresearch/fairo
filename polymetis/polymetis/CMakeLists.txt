@@ -128,18 +128,6 @@ target_link_libraries(polymetis_server
     controller_manager
 )
 
-add_executable(run_server "src/run_server.cpp")
-target_link_libraries(run_server polymetis_server)
-
-# Add test client
-add_executable(empty_statistics_client "src/clients/empty_statistics_client.cpp"
-)
-target_link_libraries(empty_statistics_client
-    generated_grpc_protos
-    yaml-cpp
-    spdlog::spdlog
-)
-
 if(BUILD_FRANKA)
   if(NOT DEFINED Franka_DIR)
     set(Franka_DIR "src/clients/franka_panda_client/third_party/libfranka/build")
@@ -152,10 +140,11 @@ if(BUILD_FRANKA)
   )
 
   # Add Franka clients
-  add_executable(franka_panda_client
+  add_library(franka_panda_client
       src/clients/franka_panda_client/franka_panda_client.cpp
   )
   target_link_libraries(franka_panda_client
+      polymetis_server
       generated_grpc_protos
       Franka::Franka
       yaml-cpp
@@ -172,20 +161,13 @@ if(BUILD_FRANKA)
   )
 endif()
 
-
-if(BUILD_TESTS)
-  include(FetchContent)
-  FetchContent_Declare(
-    googletest
-    # Specify the commit you depend on and update it regularly.
-    URL https://github.com/google/googletest/archive/23ef29555ef4789f555f1ba8c51b4c52975f0907.zip
-  )
-  FetchContent_MakeAvailable(googletest)
-
-  include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
-  add_executable(test_server ./tests/cpp/test_server.cpp)
-  target_link_libraries(test_server polymetis_server gtest)
-endif()
+# Add server executable
+add_executable(run_server "src/run_server.cpp")
+target_link_libraries(run_server 
+    polymetis_server
+    franka_panda_client
+    yaml-cpp
+)
 
 if(BUILD_DOCS)
   find_package(Doxygen)

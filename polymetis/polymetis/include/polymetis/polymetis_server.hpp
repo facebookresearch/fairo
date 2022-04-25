@@ -53,15 +53,13 @@ public:
   /**
   TODO
   */
-  Status InitRobotClient(ServerContext *context,
-                         const RobotClientMetadata *robot_client_metadata,
-                         Empty *) override;
+  void initRobotClient(const RobotClientMetadata *robot_client_metadata);
 
   /**
   TODO
   */
-  Status ControlUpdate(ServerContext *context, const RobotState *robot_state,
-                       TorqueCommand *torque_command) override;
+  void controlUpdate(const RobotState *robot_state,
+                     TorqueCommand *torque_command);
 
   // User client methods
 
