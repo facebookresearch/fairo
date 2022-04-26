@@ -8,8 +8,11 @@ import signal
 import random
 import sentry_sdk
 import time
+import json
 from multiprocessing import set_start_method
 from collections import namedtuple
+from datetime import datetime
+from copy import deepcopy
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
@@ -361,12 +364,28 @@ class CraftAssistAgent(DroidletAgent):
         new_pitch = self.get_player().look.pitch - angle
         self.set_look(self.get_player().look.yaw, new_pitch)
 
-    def send_chat(self, chat):
+    def send_chat(self, chat: str):
         """Send chat from agent to player"""
-        logging.info("Sending chat: {}".format(chat))
-        sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat)})
-        self.memory.add_chat(self.memory.self_memid, chat)
-        return self.cagent.send_chat(chat)
+
+        chat_json = False
+        try:
+            chat_json = json.loads(chat)
+            chat_text = list(filter(lambda x: x["id"] == "text", chat_json["content"]))[0]["content"]
+        except:
+            chat_text = chat
+
+        logging.info("Sending chat: {}".format(chat_text))
+        chat_memid = self.memory.add_chat(self.memory.self_memid, chat_text)
+
+        if chat_json:
+            chat_json["chat_memid"] = chat_memid
+            chat_json["timestamp"] = round(datetime.timestamp(datetime.now())*1000)
+            # Send the socket event to show this reply on dashboard
+            sio.emit("showAssistantReply", chat_json)
+        else:
+            sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
+
+        return self.cagent.send_chat(chat_text)
 
     def update_agent_pos_dashboard(self):
         agent_pos = self.get_player().pos
