@@ -6,6 +6,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+from argparse import ArgumentError
 from math import pi
 import time
 import os 
@@ -20,7 +21,8 @@ from torchcontrol.transform import Rotation as R
 from polymetis import RobotInterface
 from realsense_wrapper import RealsenseAPI
 
-from eyehandcal.utils import detect_corners, quat2rotvec, build_proj_matrix, mean_loss, find_parameter, rotmat, dist_in_hull
+from eyehandcal.utils import detect_corners, quat2rotvec, build_proj_matrix, mean_loss, find_parameter, rotmat, dist_in_hull, \
+    hand_marker_proj_world_camera, world_marker_proj_hand_camera
 
 
 def realsense_images(max_pixel_diff=200):
@@ -125,10 +127,17 @@ if __name__ == '__main__':
     parser.add_argument('--num-points', default=20, type=int, help="number of points to sample from convex hull")
     parser.add_argument('--time-to-go', default=3, type=float, help="time_to_go in seconds for each movement")
     parser.add_argument('--imagedir', default=None, help="folder to save debug images")
-    parser.add_argument('--pixel-tolerance', default=2.0, help="mean pixel error tolerance (stage 2)")
+    parser.add_argument('--pixel-tolerance', default=2.0, type=float, help="mean pixel error tolerance (stage 2)")
+    proj_funcs = {'hand_marker_proj_world_camera' :hand_marker_proj_world_camera, 
+                  'world_marker_proj_hand_camera' :world_marker_proj_hand_camera,
+                  'wrist_camera': world_marker_proj_hand_camera,
+                  'world_camera': hand_marker_proj_world_camera}
+    parser.add_argument('--proj-func', choices=list(proj_funcs.keys()), default = list(proj_funcs.keys())[0])
 
     args=parser.parse_args()
     print(f"Config: {args}")
+
+    proj_func = proj_funcs[args.proj_func]
 
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -185,19 +194,24 @@ if __name__ == '__main__':
             continue
 
         # stage 1 - assuming marker is attach to EE origin, solve camera pose first
-        p3d = torch.stack([p[1] for p in obs_data_std]).detach().numpy()
+        if args.proj_func == "hand_marker_proj_world_camera":
+            p3d = torch.stack([p[1] for p in obs_data_std]).detach().numpy()
+        elif args.proj_func == "world_marker_proj_hand_camera":
+            p3d = torch.stack([rotmat(-p[2]).matmul(-p[1]) for p in obs_data_std]).detach().numpy()
+
         p2d = torch.stack([p[0] for p in obs_data_std]).detach().numpy()
         retval, rvec, tvec = cv2.solvePnP(p3d, p2d, K.numpy(), distCoeffs=None, flags=cv2.SOLVEPNP_SQPNP)
         rvec_cam = torch.tensor(-rvec.reshape(-1))
         tvec_cam = -rotmat(rvec_cam).matmul(torch.tensor(tvec.reshape(-1)))
-        pixel_error = mean_loss(obs_data_std, torch.cat([rvec_cam, tvec_cam, torch.zeros(3)]), K).item()
+        pixel_error = mean_loss(obs_data_std, torch.cat([rvec_cam, tvec_cam, torch.zeros(3)]), K, proj_func).item()
         print('stage 1 mean pixel error', pixel_error)
 
         # stage 2 - allow marker to move, joint optimize camera pose and marker
-        while pixel_error > args.pixel_tolerance:
+        while True :
             marker_max_displacement = 0.1 #meter
-            param=torch.tensor(torch.cat([rvec_cam, tvec_cam, torch.randn(3)*marker_max_displacement]).detach(), requires_grad=True)
-            L = lambda param: mean_loss(obs_data_std, param, K)
+            param=torch.cat([rvec_cam, tvec_cam, torch.randn(3)*marker_max_displacement]).clone().detach()
+            param.requires_grad=True
+            L = lambda param: mean_loss(obs_data_std, param, K, proj_func)
             try:
                 param_star=find_parameter(param, L)
             except Exception as e:
@@ -208,6 +222,8 @@ if __name__ == '__main__':
             print('stage 2 mean pixel error', pixel_error)
             if pixel_error > args.pixel_tolerance:
                 print(f"Try again because of poor solution {pixel_error} > {args.pixel_tolerance}")
+            else:
+                break
             
 
         print(f"Good solution {pixel_error} <= {args.pixel_tolerance}")
@@ -216,14 +232,26 @@ if __name__ == '__main__':
     with torch.no_grad():
         param_list = []
         for i, param in enumerate(params):
-            camera_base_ori_rotvec = param[:3]
-            camera_base_ori = rotmat(camera_base_ori_rotvec)
-            result = {
-                "camera_base_ori": camera_base_ori.cpu().numpy().tolist(),
-                "camera_base_ori_rotvec": camera_base_ori_rotvec.cpu().numpy().tolist(),
-                "camera_base_pos": param[3:6].cpu().numpy().tolist(),
-                "p_marker_ee": param[6:9].cpu().numpy().tolist(),
-            }
+            if args.proj_func == "world_marker_proj_hand_camera":
+                result = {
+                    "proj_func": args.proj_func,
+                    "camera_ee_ori_rotvec": param[:3].numpy().tolist(),
+                    "camera_ee_pos" : param[3:6].numpy().tolist(),
+                    "marker_base_pos": param[6:9].numpy().tolist()
+                }
+            elif args.proj_func == "hand_marker_proj_world_camera":
+                camera_base_ori_rotvec = param[:3]
+                camera_base_ori = rotmat(camera_base_ori_rotvec)
+                result = {
+                    "proj_func": args.proj_func,
+                    "camera_base_ori": camera_base_ori.cpu().numpy().tolist(),
+                    "camera_base_ori_rotvec": camera_base_ori_rotvec.cpu().numpy().tolist(),
+                    "camera_base_pos": param[3:6].cpu().numpy().tolist(),
+                    "p_marker_ee": param[6:9].cpu().numpy().tolist(),
+                }
+            else:
+                raise ArgumentError("shouldn't reach here")
+
             param_list.append(result)
             print(f"Camera {i} calibration: {result}")
         

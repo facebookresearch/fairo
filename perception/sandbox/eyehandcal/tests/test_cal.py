@@ -10,7 +10,7 @@ import torch
 import pickle
 torch.set_printoptions(linewidth=160)
 from eyehandcal.utils import detect_corners, build_proj_matrix, sim_data, mean_loss, \
-    quat2rotvec, find_parameter, marker_proj, rotmat
+    quat2rotvec, find_parameter, rotmat, hand_marker_proj_world_camera
 
 import pytest
 import cv2
@@ -125,7 +125,7 @@ def test_plot_reproj_error(params_from_data, collected_data):
         err=[]
         for obs_marker, pos_ee_base, ori_ee_base in obs_data_std:
             with torch.no_grad():
-                proj_marker = marker_proj(params_from_data[camera_index], pos_ee_base, ori_ee_base, K)
+                proj_marker = hand_marker_proj_world_camera(params_from_data[camera_index], pos_ee_base, ori_ee_base, K)
             
             err.append((proj_marker-obs_marker).norm())
             plt.plot((obs_marker[0], proj_marker[0]),
