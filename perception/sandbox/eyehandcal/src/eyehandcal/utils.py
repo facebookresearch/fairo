@@ -65,7 +65,7 @@ def build_proj_matrix(fx, fy, ppx, ppy, coeff=None):
                                 [0., 0.,  1.]])
 
 
-def marker_proj(param, pos_ee_base, ori_ee_base, K):
+def hand_marker_proj_world_camera(param, pos_ee_base, ori_ee_base, K):
     camera_base_ori = param[:3]
     camera_base_pos = param[3:6]
     p_marker_ee = param[6:9]
@@ -74,33 +74,41 @@ def marker_proj(param, pos_ee_base, ori_ee_base, K):
     p_marker_image = K.matmul(p_marker_camera)
     return p_marker_image[:2]/p_marker_image[2]
 
+def world_marker_proj_hand_camera(param, pos_ee_base, ori_ee_base, K):
+    ori_camera_ee = param[:3]
+    pos_camera_ee = param[3:6]
+    pos_marker_base = param[6:9]
+    pos_marker_camera = rotmat(-ori_camera_ee).matmul(
+            (rotmat(-ori_ee_base).matmul(pos_marker_base - pos_ee_base)-pos_camera_ee))
+    pos_marker_image = K.matmul(pos_marker_camera)
+    return pos_marker_image[:2]/pos_marker_image[2]
 
 
-def pointloss(param, obs_marker_2d, pos_ee_base, ori_ee_base, K):
-    proj_marker_2d = marker_proj(param, pos_ee_base, ori_ee_base, K)
+def pointloss(param, obs_marker_2d, pos_ee_base, ori_ee_base, K, proj_func):
+    proj_marker_2d = proj_func(param, pos_ee_base, ori_ee_base, K)
     return (obs_marker_2d - proj_marker_2d).norm()
 
 
 
-def mean_loss(data, param, K):
+def mean_loss(data, param, K, proj_func=hand_marker_proj_world_camera):
     losses = []
     for d in data:
         corner = d[0]
         ee_base_pos = d[1]
         ee_base_ori = d[2]
-        ploss = pointloss(param, corner, ee_base_pos, ee_base_ori, K)
+        ploss = pointloss(param, corner, ee_base_pos, ee_base_ori, K, proj_func)
         losses.append(ploss)
     return torch.stack(losses).mean()
 
-def find_parameter(param, obs_data_std, K):
+def find_parameter(param, L):
     optimizer=torch.optim.LBFGS([param], max_iter=1000, lr=1, line_search_fn='strong_wolfe')
     def closure():
         optimizer.zero_grad()
-        loss=mean_loss(obs_data_std, param, K)
+        loss=L(param)
         loss.backward()
         return loss
     
-    L=optimizer.step(closure)
+    optimizer.step(closure)
     return param.detach()
 
 

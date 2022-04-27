@@ -134,6 +134,7 @@ class MCAgentMemory(AgentMemory):
                 map_changes.append(
                     {"pos": mp, "is_obstacle": False, "memid": mob_memid, "is_move": True}
                 )
+            # FIXME track these semi-automatically...
             self.place_field.update_map(map_changes)
         # 2. Handle all items that the agent can pick up in-game
         if perception_output.agent_pickable_items:

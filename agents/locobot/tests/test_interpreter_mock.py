@@ -6,9 +6,11 @@ import unittest
 import numpy as np
 
 from droidlet.interpreter.robot.tests.base_fakeagent_test_case import BaseFakeAgentTestCase
-import droidlet.lowlevel.rotation as rotation
+from droidlet.shared_data_struct import rotation
 from droidlet.interpreter.tests.all_test_commands import MOVE_COMMANDS
-from droidlet.perception.semantic_parsing.tests.test_y_print_parsing_report import GROUND_TRUTH_PARSES
+from droidlet.perception.semantic_parsing.tests.test_y_print_parsing_report import (
+    GROUND_TRUTH_PARSES,
+)
 from droidlet.lowlevel.locobot.tests.test_utils import assert_turn_degree
 
 CUBE1 = (9, 0, 4)
@@ -24,6 +26,8 @@ def add_two_cubes(test):
 
 def add_a_toy(test):
     test.agent.add_object(TOY, tags=["toy", "_physical_object"])
+
+
 #    test.set_looking_at(test.cube_right[0][0])
 
 
@@ -113,6 +117,7 @@ class MoveRefObjectsTest(BaseFakeAgentTestCase):
         print(self.agent.pos)
         assert self.agent.pos[1] > CUBE1[2] and self.agent.pos[1] < CUBE2[2]
 
+
 @unittest.skip("skipping until fake agent mover has caught up with hello mover")
 class GetBringTest(BaseFakeAgentTestCase):
     def setUp(self):
@@ -154,6 +159,7 @@ class TurnTest(BaseFakeAgentTestCase):
         old_yaw = changes[0]["agent"]["base_yaw"]
         new_yaw = changes[1]["agent"]["base_yaw"]
         assert_turn_degree(old_yaw, new_yaw, 90)
+
 
 @unittest.skip("skipping until fake agent mover has caught up with hello mover")
 class DanceTest(BaseFakeAgentTestCase):

@@ -18,8 +18,7 @@ from copy import deepcopy as copy
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-# FIXME!  do this better
-from .hello_robot.rotation import yaw_pitch
+from droidlet.shared_data_struct.rotation import yaw_pitch
 
 MAX_PAN_RAD = np.pi / 4
 CAMERA_HEIGHT = 0.6
