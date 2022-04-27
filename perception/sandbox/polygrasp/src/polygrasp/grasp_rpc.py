@@ -50,9 +50,9 @@ class GraspClient:
         i = 1
         while True:
             downsampled_pcd = pcd.uniform_down_sample(i)
-            bytes = serdes.pcd_to_capnp(downsampled_pcd).to_bytes()
+            bits = serdes.pcd_to_capnp(downsampled_pcd).to_bytes()
             if (
-                len(bytes) > 8 * 1024 * 1024
+                len(bits) > 8 * 1024 * 1024
             ):  # a0 default max msg size 16MB; make sure every msg < 1/2 of max
                 log.warning(f"Downsampling pointcloud...")
                 i += 1
@@ -60,26 +60,13 @@ class GraspClient:
                 break
         if i > 1:
             log.warning(f"Downsampled to every {i}th point.")
-        self.client.send(bytes, onreply)
+        self.client.send(bits, onreply)
 
         while not state:
             pass
         return serdes.capnp_to_grasp_group(state.pop())
-
-    def visualize_grasp(
-        self,
-        scene_pcd: o3d.geometry.PointCloud,
-        grasp_group: graspnetAPI.GraspGroup,
-        n=5,
-        plot=False,
-        render=False,
-        save_view=False,
-    ) -> None:
-        o3d_geometries = grasp_group.to_open3d_geometry_list()
-
-        n = min(n, len(o3d_geometries))
-        log.info(f"Visualizing top {n} grasps in Open3D...")
-
+    
+    def visualize(self, scene_pcd, plot=False, render=False, save_view=False):
         vis = o3d.visualization.Visualizer()
         vis.create_window()
         vis.add_geometry(scene_pcd, reset_bounding_box=True)
@@ -98,6 +85,31 @@ class GraspClient:
         param = o3d.io.read_pinhole_camera_parameters(self.view_json_path)
         vis.get_view_control().convert_from_pinhole_camera_parameters(param)
 
+        return vis
+    
+    def get_rgbd(self, vis):
+        rgb = np.array(vis.capture_screen_float_buffer(do_render=True))
+        d = np.array(vis.capture_depth_float_buffer(do_render=True))
+        intrinsics = vis.get_view_control().convert_to_pinhole_camera_parameters()
+
+        import pdb; pdb.set_trace()
+
+
+    def visualize_grasp(
+        self,
+        scene_pcd: o3d.geometry.PointCloud,
+        grasp_group: graspnetAPI.GraspGroup,
+        n=5,
+        plot=False,
+        render=False,
+        save_view=False,
+    ) -> None:
+        vis = self.visualize(scene_pcd=scene_pcd, plot=plot, render=render, save_view=save_view)
+
+        o3d_geometries = grasp_group.to_open3d_geometry_list()
+        n = min(n, len(o3d_geometries))
+        log.info(f"Visualizing top {n} grasps in Open3D...")
+
         grasp_images = []
         for i in range(n):
             scene_points = o3d_geometries[i].sample_points_uniformly(number_of_points=5000)
@@ -106,7 +118,6 @@ class GraspClient:
             grasp_images.append(grasp_image)
             vis.remove_geometry(scene_points, reset_bounding_box=False)
 
-        vis.destroy_window()
         if plot:
             log.info("Plotting with matplotlib...")
             f, axarr = plt.subplots(1, n, figsize=(n * 4.5, 3))
@@ -115,3 +126,5 @@ class GraspClient:
                 axarr[i].axis("off")
                 axarr[i].set_title(f"Grasp pose top {i + 1}/{n}")
             f.show()
+        
+        return vis

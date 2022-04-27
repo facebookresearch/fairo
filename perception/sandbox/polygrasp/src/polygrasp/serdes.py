@@ -75,3 +75,13 @@ def capnp_to_grasp_group(blob):
 
     gg = bytes_to_grasp_group(capnp_gg.data)
     return gg
+
+def rgbd_to_capnp(rgbd):
+    img = sensor_msgs.Image()
+    img.data = np_to_bytes(rgbd)
+
+    return img
+
+def capnp_to_rgbd(blob):
+    img = sensor_msgs.Image.from_bytes(blob)
+    return bytes_to_np(img.data)

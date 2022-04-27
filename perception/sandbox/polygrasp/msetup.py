@@ -1,6 +1,14 @@
 import mrp
 
 mrp.process(
+    name="pcd_server",
+    runtime=mrp.Conda(
+        run_command=["python", "-m", "utils.mrp_wrapper"],
+        use_named_env="unseen-object-clustering",
+    ),
+)
+
+mrp.process(
     name="grasp_server",
     runtime=mrp.Conda(
         run_command=["python", "-m", "graspnet_baseline.mrp_wrapper"],
