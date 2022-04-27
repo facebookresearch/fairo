@@ -228,7 +228,7 @@ class Interpreter(InterpreterBase):
             # FIXME, this is hacky.  need more careful way of storing this in task
             # and to pass to task generator
             try:
-                mems  = self.subinterpret["reference_locations"](self, speaker, location_d)
+                mems = self.subinterpret["reference_locations"](self, speaker, location_d)
             except NextDialogueStep:
                 # TODO allow for clarification
                 raise ErrorWithResponse("I don't understand where you want me to move.")

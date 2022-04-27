@@ -226,9 +226,6 @@ def map_yes_last_chat(task: Task):
     return response
 
 
-
-
-
 class ClarifyCC1(Task):
     """This Task is responsible for Say and AwaitResponse tasks
     associated with clarifying which among an expanded list of candidates
@@ -248,12 +245,11 @@ class ClarifyCC1(Task):
         self.action = self.dlf["action"]["action_type"]
         self.ref_obj = self.dlf["action"].get(
             "reference_object",
-            self.dlf["action"].get("location", {}).get("reference_object", {})  # TODO more robust?
+            self.dlf["action"]
+            .get("location", {})
+            .get("reference_object", {}),  # TODO more robust?
         )
-        self.ref_obj_span = self.ref_obj.get(
-            "text_span",
-            retrieve_ref_obj_span(self.ref_obj)
-        )
+        self.ref_obj_span = self.ref_obj.get("text_span", retrieve_ref_obj_span(self.ref_obj))
         self.relative_direction = self.dlf["action"].get("location", {}).get("relative_direction")
         self.finished = False
         self.step_time = self.agent.memory.get_time()
@@ -322,13 +318,15 @@ class ClarifyCC1(Task):
             bounds = target.get_point_at_target()
         else:
             # FIXME is there a more graceful way to handle this?
-            logging.error("Unable to retrieve bounds of target to point at, this should not happen.")
+            logging.error(
+                "Unable to retrieve bounds of target to point at, this should not happen."
+            )
             return
         question = f"Is this the {self.ref_obj_span}? (Look for the flashing object)"
         question_obj = build_question_json(question, text_response_options=["yes", "no"])
         task_list = [
             Say(self.agent, {"response_options": question_obj}),
-            Point(self.agent, {"bounds": bounds, "sleep_time": 0} ),
+            Point(self.agent, {"bounds": bounds, "sleep_time": 0}),
             AwaitResponse(self.agent, {"asker_memid": self.memid}),
         ]
         task_data = {"new_tasks": [task_to_generator(t) for t in task_list]}

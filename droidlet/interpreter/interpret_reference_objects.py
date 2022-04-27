@@ -231,7 +231,7 @@ def interpret_reference_object(
         task_mem = clarification_task_mems[0]  # FIXME, error if there are many?
         if task_mem.prio > TaskNode.FINISHED_PRIO:
             raise NextDialogueStep()
-        
+
         # clarification task finished.
         query = "SELECT dialogue_clarification_output FROM Task WHERE uuid={}".format(
             task_mem.memid

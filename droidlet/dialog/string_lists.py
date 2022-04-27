@@ -32,15 +32,15 @@ ACTION_ING_MAPPING = {
 }
 
 MAP_DIRECTION_SYNTAX = {
-    'LEFT': "left of",
-    'RIGHT': "right of",
-    'UP': "up to",
-    'DOWN': "down to",
-    'FRONT': "in front of",
-    'BACK': "in back of",
-    'AWAY': "away from",
-    'INSIDE': "inside of",
-    'NEAR': "near",
-    'OUTSIDE': "outside of",
-    'BETWEEN': "between"
+    "LEFT": "left of",
+    "RIGHT": "right of",
+    "UP": "up to",
+    "DOWN": "down to",
+    "FRONT": "in front of",
+    "BACK": "in back of",
+    "AWAY": "away from",
+    "INSIDE": "inside of",
+    "NEAR": "near",
+    "OUTSIDE": "outside of",
+    "BETWEEN": "between",
 }

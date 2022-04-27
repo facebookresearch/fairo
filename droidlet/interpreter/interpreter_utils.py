@@ -228,18 +228,20 @@ def coref_resolve(memory, d, chat):
 
 
 def retrieve_ref_obj_span(d: dict):
-    if d.get('pred_text') == 'has_name':
-        return d['obj_text']
-    
+    if d.get("pred_text") == "has_name":
+        return d["obj_text"]
+
     for k, v in d.items():
         if isinstance(v, dict):
             obj = retrieve_ref_obj_span(v)
-            if obj: return obj
+            if obj:
+                return obj
         elif isinstance(v, list):
             for item in v:
                 if isinstance(item, dict):
                     obj = retrieve_ref_obj_span(item)
-                    if obj: return obj
+                    if obj:
+                        return obj
 
     return None
 
