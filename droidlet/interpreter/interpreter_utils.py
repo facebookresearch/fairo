@@ -227,6 +227,23 @@ def coref_resolve(memory, d, chat):
             d[k] = v_copy
 
 
+def retrieve_ref_obj_span(d: dict):
+    if d.get('pred_text') == 'has_name':
+        return d['obj_text']
+    
+    for k, v in d.items():
+        if isinstance(v, dict):
+            obj = retrieve_ref_obj_span(v)
+            if obj: return obj
+        elif isinstance(v, list):
+            for item in v:
+                if isinstance(item, dict):
+                    obj = retrieve_ref_obj_span(item)
+                    if obj: return obj
+
+    return None
+
+
 if __name__ == "__main__":
     x = eval(
         "{'dialogue_type': 'PUT_MEMORY', 'filters': {'reference_object':{'contains_coreference': 'yes'}}, 'upsert': {'memory_data': {'memory_type': 'TRIPLE', 'has_tag': 'j'}}}"

@@ -150,6 +150,7 @@ class DroidletAgent(BaseAgent):
         def get_chat_action_dict(sid, chat):
             logging.debug(f"Looking for action dict for command [{chat}] in memory")
             logical_form = None
+            ref_obj_data = None
             try:
                 chat_memids, _ = self.memory.basic_search(
                     f"SELECT MEMORY FROM Chat WHERE chat={chat}"
@@ -211,14 +212,12 @@ class DroidletAgent(BaseAgent):
 
         @sio.on("taskStackPoll")
         def poll_task_stack(sid):
-            logging.info("Poll to see if task stack is empty and/or active interpreter")
             task = True if self.memory.task_stack_peek() else False
             _, interpreter_mems = self.memory.basic_search(
                 "SELECT MEMORY FROM Interpreter WHERE finished = 0"
             )
             clairfy = True if len(interpreter_mems) > 0 else False
             res = {"task": task, "clarify": clairfy}
-            logging.info(res)
             sio.emit("taskStackPollResponse", res)
 
     def init_physical_interfaces(self):

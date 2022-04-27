@@ -1,5 +1,5 @@
 import logging
-from typing import cast, List, Dict
+from typing import List, Dict
 from .interpreter_utils import SPEAKERLOOK
 from droidlet.memory.memory_nodes import (
     LocationNode,
@@ -77,9 +77,11 @@ def cc1_to_dlf(interpreter, speaker, d, clarification_class):
 
 def retrieve_action_dict(interpreter, d):
     action = False
-    potential_actions = interpreter.logical_form["action_sequence"]
+    potential_actions = interpreter.logical_form["event_sequence"]
     for pa in potential_actions:
-        if pa["reference_object"] == d:
+        if pa.get("reference_object") == d:
+            action = pa
+        elif pa.get("location", {}).get("reference_object") == d:
             action = pa
     return action
 

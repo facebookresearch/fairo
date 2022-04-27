@@ -227,7 +227,11 @@ class Interpreter(InterpreterBase):
             location_d = d.get("location", default_loc)
             # FIXME, this is hacky.  need more careful way of storing this in task
             # and to pass to task generator
-            mems = self.subinterpret["reference_locations"](self, speaker, location_d)
+            try:
+                mems  = self.subinterpret["reference_locations"](self, speaker, location_d)
+            except NextDialogueStep:
+                # TODO allow for clarification
+                raise ErrorWithResponse("I don't understand where you want me to move.")
             # FIXME this should go in the ref_location subinterpret:
             steps, reldir = interpret_relative_direction(self, location_d)
             pos, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)

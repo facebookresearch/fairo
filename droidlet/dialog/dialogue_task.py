@@ -4,10 +4,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import random
 import json
+import logging
 
-from droidlet.dialog.string_lists import MAP_YES
-from droidlet.task.task import Task, maybe_task_list_to_control_block
+from droidlet.dialog.string_lists import MAP_YES, MAP_DIRECTION_SYNTAX
+from droidlet.task.task import Task, task_to_generator, ControlBlock
 from droidlet.memory.memory_nodes import TaskNode
+from droidlet.interpreter.interpreter_utils import retrieve_ref_obj_span
 
 
 class AwaitResponse(Task):
@@ -149,7 +151,8 @@ class ConfirmTask(Task):
                 Say(self.agent, {"response_options": self.question}),
                 AwaitResponse(self.agent, {"asker_memid": self.memid}),
             ]
-            self.add_child_task(maybe_task_list_to_control_block(task_list, self.agent))
+            task_data = {"new_tasks": [task_to_generator(t) for t in task_list]}
+            self.add_child_task(ControlBlock(self.agent, task_data))
             self.asked = True
             return
         # Step 2: check the response and add the task if necessary
@@ -211,7 +214,7 @@ def build_question_json(
     return json.dumps(chat_obj)
 
 
-def map_yes_last_chat(task):
+def map_yes_last_chat(task: Task):
     chat_mem = task.agent.memory.get_most_recent_incoming_chat(after=task.step_time + 1)
     response = "no"
     if chat_mem:
@@ -221,6 +224,9 @@ def map_yes_last_chat(task):
         elif chat_mem.chat_text == "stop":
             response = "stop"
     return response
+
+
+
 
 
 class ClarifyCC1(Task):
@@ -240,9 +246,15 @@ class ClarifyCC1(Task):
         self.candidates = self.dlf["class"]["candidates"]
         self.current_candidate = None
         self.action = self.dlf["action"]["action_type"]
-        self.ref_obj_span = self.dlf["action"]["reference_object"][
-            "text_span"
-        ]  # FIXME will this always be here?
+        self.ref_obj = self.dlf["action"].get(
+            "reference_object",
+            self.dlf["action"].get("location", {}).get("reference_object", {})  # TODO more robust?
+        )
+        self.ref_obj_span = self.ref_obj.get(
+            "text_span",
+            retrieve_ref_obj_span(self.ref_obj)
+        )
+        self.relative_direction = self.dlf["action"].get("location", {}).get("relative_direction")
         self.finished = False
         self.step_time = self.agent.memory.get_time()
         self.max_asks = len(self.candidates) + 1  # verify action + ref_obj span, then candidates
@@ -258,7 +270,7 @@ class ClarifyCC1(Task):
         if not self.finished and self.asks <= self.max_asks:
             if self.asks == 1:
                 # ask whether the original parse is nominally right
-                self.check_parse(self)
+                self.check_parse()
                 return
 
             elif self.asks == 2:
@@ -266,10 +278,10 @@ class ClarifyCC1(Task):
                 if response == "yes":
                     # The parse was at least kind of right, start suggesting objects
                     self.current_candidate = self.candidates.pop(0)
-                    self.point_at(self, self.agent.memory.get_mem_by_id(self.current_candidate))
+                    self.point_at(self.agent.memory.get_mem_by_id(self.current_candidate))
                 else:
                     # Bad parse or reset by user, move on to error marking
-                    self.clarification_failed(self)
+                    self.clarification_failed()
                 return
 
             else:
@@ -277,10 +289,10 @@ class ClarifyCC1(Task):
                 response = map_yes_last_chat(self)
                 if response == "no":
                     self.current_candidate = self.candidates.pop(0)
-                    self.point_at(self, self.agent.memory.get_mem_by_id(self.current_candidate))
+                    self.point_at(self.agent.memory.get_mem_by_id(self.current_candidate))
                 elif response == "stop":
                     # Reset by user, exit
-                    self.clarification_failed(self)
+                    self.clarification_failed()
                 else:
                     # Found it! Add the approriate tag to current candidate and mark it as the output
                     self.agent.memory.add_triple(
@@ -297,43 +309,47 @@ class ClarifyCC1(Task):
                         Say(self.agent, {"response_options": "Thank you for clarifying!"})
                     )
                     self.finished = True
+                    return
                 return
 
         else:
             # We ran out of candidates, move on to error marking
-            self.clarification_failed(self)
+            self.clarification_failed()
             return
 
-    def point_at(task, target):
+    def point_at(self, target):
         if hasattr(target, "get_point_at_target"):
             bounds = target.get_point_at_target()
         else:
             # FIXME is there a more graceful way to handle this?
+            logging.error("Unable to retrieve bounds of target to point at, this should not happen.")
             return
-        task.agent.point_at(bounds)
-        question = f"Is this the {task.ref_obj_span}? (Look for the flashing object)"
+        question = f"Is this the {self.ref_obj_span}? (Look for the flashing object)"
         question_obj = build_question_json(question, text_response_options=["yes", "no"])
         task_list = [
-            Say(task.agent, {"response_options": question_obj}),
-            # Point(task.agent, {"bounds": bounds, "sleep_time": 4.0} ),
-            AwaitResponse(task.agent, {"asker_memid": task.memid}),
+            Say(self.agent, {"response_options": question_obj}),
+            Point(self.agent, {"bounds": bounds, "sleep_time": 0} ),
+            AwaitResponse(self.agent, {"asker_memid": self.memid}),
         ]
-        task.add_child_task(maybe_task_list_to_control_block(task_list, task.agent))
-        task.asks += 1
-        task.step_time = task.agent.memory.get_time()
+        task_data = {"new_tasks": [task_to_generator(t) for t in task_list]}
+        self.add_child_task(ControlBlock(self.agent, task_data))
+        self.asks += 1
+        self.step_time = self.agent.memory.get_time()
 
-    def clarification_failed(task):
+    def clarification_failed(self):
         question = "OK, I didn't understand you correctly.  Please mark this as an error."
-        task.add_child_task(Say(task.agent, {"response_options": question}))
-        task.asks = task.max_asks
-        task.finished = True
+        self.add_child_task(Say(self.agent, {"response_options": question}))
+        self.asks = self.max_asks
+        self.finished = True
 
-    def check_parse(task):
-        question = f"I'm not sure about something. I think you wanted me to {task.action.lower()} a {task.ref_obj_span}, is that right?"
+    def check_parse(self):
+        dir_lang = MAP_DIRECTION_SYNTAX.get(self.relative_direction, "")
+        question = f"I'm not sure about something. I think you wanted me to {self.action.lower()} {dir_lang} a {self.ref_obj_span}, is that right?"
         question_obj = build_question_json(question, text_response_options=["yes", "no"])
         task_list = [
-            Say(task.agent, {"response_options": question_obj}),
-            AwaitResponse(task.agent, {"asker_memid": task.memid}),
+            Say(self.agent, {"response_options": question_obj}),
+            AwaitResponse(self.agent, {"asker_memid": self.memid}),
         ]
-        task.add_child_task(maybe_task_list_to_control_block(task_list, task.agent))
-        task.asks += 1
+        task_data = {"new_tasks": [task_to_generator(t) for t in task_list]}
+        self.add_child_task(ControlBlock(self.agent, task_data))
+        self.asks += 1

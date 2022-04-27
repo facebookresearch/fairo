@@ -8,9 +8,8 @@ import numpy as np
 from copy import deepcopy
 from typing import cast, List, Tuple, Dict
 
-from .interpreter_utils import SPEAKERLOOK, update_attended_and_link_lf
+from .interpreter_utils import SPEAKERLOOK, update_attended_and_link_lf, retrieve_ref_obj_span
 
-# from droidlet.dialog.dialogue_task import ConfirmReferenceObject
 from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
@@ -101,8 +100,11 @@ def maybe_get_text_span_mems(interpreter, speaker, lf):
     get any memories that exactly match the text span of the reference object sought by the logical
     form lf
     """
+    text_span = lf.get("text_span", retrieve_ref_obj_span(lf))
+    if not text_span:
+        text_span = "NULL"
     query = "SELECT MEMORY FROM ReferenceObject WHERE "
-    query += "<< ?, has_description, {} >>".format(lf.get("text_span", "NULL"))
+    query += "<< ?, has_description, {} >>".format(text_span)
     _, mems = interpreter.memory.basic_search(query + " ORDER BY updated DESC")
     if len(mems) > 0:
         mems = [mems[0]]
@@ -227,10 +229,10 @@ def interpret_reference_object(
     else:
         # there is a clarification task.  is it active?
         task_mem = clarification_task_mems[0]  # FIXME, error if there are many?
-        if task_mem.prio > -2:
+        if task_mem.prio > TaskNode.FINISHED_PRIO:
             raise NextDialogueStep()
+        
         # clarification task finished.
-
         query = "SELECT dialogue_clarification_output FROM Task WHERE uuid={}".format(
             task_mem.memid
         )
