@@ -21,7 +21,7 @@ If the agent runs out of reference object candidates to point at, the clarificat
 <pre>
 {
     "dialogue_type": "PUT_MEMORY"
-    "filters": <FILTERS>,
+    "filters": &ltFILTERS&gt,
     "upsert" : {
         "memory_data": {
             "memory_type": "TRIPLE",
@@ -30,18 +30,18 @@ If the agent runs out of reference object candidates to point at, the clarificat
     }
 }
 
-<FILTERS>  = {
+&ltFILTERS&gt  = {
     "output" : "MEMORY",
     "contains_coreference": "yes",
     "memory_type": "TASKS" / "REFERENCE_OBJECT" / "CHAT" / "PROGRAM" / "ALL",
     "selector": {
-        "return_quantity": <ARGVAL> / span,
+        "return_quantity": &ltARGVAL&gt / span,
         "ordinal": {"fixed_value" : "FIRST"}, 
-        "location":  <LOCATION>,
+        "location":  &ltLOCATION&gt,
         "same":"REQUIRED"
     },
     "where_clause" : {
-        "AND": [<COMPARATOR> / <TRIPLE>], 
+        "AND": [&ltCOMPARATOR&gt / &ltTRIPLE&gt], 
     }
 }
 </pre>
