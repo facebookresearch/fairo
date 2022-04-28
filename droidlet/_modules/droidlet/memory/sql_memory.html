@@ -120,7 +120,7 @@
 <span class="kn">from</span> <span class="nn">droidlet.memory.memory_filters</span> <span class="kn">import</span> <span class="n">MemorySearcher</span>
 <span class="kn">from</span> <span class="nn">droidlet.event</span> <span class="kn">import</span> <span class="n">dispatch</span>
 <span class="kn">from</span> <span class="nn">droidlet.memory.memory_util</span> <span class="kn">import</span> <span class="n">parse_sql</span><span class="p">,</span> <span class="n">format_query</span>
-<span class="kn">from</span> <span class="nn">droidlet.memory.place_field</span> <span class="kn">import</span> <span class="n">PlaceField</span>
+<span class="kn">from</span> <span class="nn">droidlet.memory.place_field</span> <span class="kn">import</span> <span class="n">PlaceField</span><span class="p">,</span> <span class="n">EmptyPlaceField</span>
 
 <span class="kn">from</span> <span class="nn">droidlet.memory.memory_nodes</span> <span class="kn">import</span> <span class="p">(</span>  <span class="c1"># noqa</span>
     <span class="n">TaskNode</span><span class="p">,</span>
@@ -226,6 +226,20 @@
                 <span class="k">if</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">possible_child</span><span class="o">.</span><span class="vm">__mro__</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">node_children</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">possible_child</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">)</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">make_self_mem</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">searcher</span> <span class="o">=</span> <span class="n">MemorySearcher</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">place_field_pixels_per_unit</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">place_field</span> <span class="o">=</span> <span class="n">PlaceField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pixels_per_unit</span><span class="o">=</span><span class="n">place_field_pixels_per_unit</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">place_field</span> <span class="o">=</span> <span class="n">EmptyPlaceField</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close the database file&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_db_log_file&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_log_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">make_self_mem</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># create a &quot;self&quot; memory to reference in Triples</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">self_memid</span> <span class="o">=</span> <span class="s2">&quot;0&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
@@ -233,18 +247,9 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">self_memid</span><span class="p">,</span> <span class="s2">&quot;_physical_object&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">self_memid</span><span class="p">,</span> <span class="s2">&quot;_animate&quot;</span><span class="p">)</span>
-        <span class="c1"># this is a hack until memory_filters does &quot;not&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">self_memid</span><span class="p">,</span> <span class="s2">&quot;_not_location&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">self_memid</span><span class="p">,</span> <span class="s2">&quot;AGENT&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">self_memid</span><span class="p">,</span> <span class="s2">&quot;SELF&quot;</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">searcher</span> <span class="o">=</span> <span class="n">MemorySearcher</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">place_field</span> <span class="o">=</span> <span class="n">PlaceField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pixels_per_unit</span><span class="o">=</span><span class="n">place_field_pixels_per_unit</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Close the database file&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_db_log_file&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_db_log_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">init_time_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialiaze the current time in memory</span>
