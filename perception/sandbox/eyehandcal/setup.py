@@ -17,5 +17,5 @@ setup(
     version="0.1",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
-    scripts=["scripts/collect_data_and_cal.py", "scripts/record_calibration_points.py"],
+    scripts=["src/eyehandcal/scripts/collect_data_and_cal.py", "src/eyehandcal/scripts/record_calibration_points.py"],
 )
