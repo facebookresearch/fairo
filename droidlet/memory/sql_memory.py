@@ -18,7 +18,7 @@ from droidlet.shared_data_structs import Time
 from droidlet.memory.memory_filters import MemorySearcher
 from droidlet.event import dispatch
 from droidlet.memory.memory_util import parse_sql, format_query
-from droidlet.memory.place_field import PlaceField
+from droidlet.memory.place_field import PlaceField, EmptyPlaceField
 
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
@@ -124,6 +124,20 @@ class AgentMemory:
                 if node in possible_child.__mro__:
                     self.node_children[node.NODE_TYPE].append(possible_child.NODE_TYPE)
 
+        self.make_self_mem()
+
+        self.searcher = MemorySearcher()
+        if place_field_pixels_per_unit > 0:
+            self.place_field = PlaceField(self, pixels_per_unit=place_field_pixels_per_unit)
+        else:
+            self.place_field = EmptyPlaceField()
+
+    def __del__(self):
+        """Close the database file"""
+        if getattr(self, "_db_log_file", None):
+            self._db_log_file.close()
+
+    def make_self_mem(self):
         # create a "self" memory to reference in Triples
         self.self_memid = "0" * len(uuid.uuid4().hex)
         self.db_write(
@@ -131,18 +145,9 @@ class AgentMemory:
         )
         self.tag(self.self_memid, "_physical_object")
         self.tag(self.self_memid, "_animate")
-        # this is a hack until memory_filters does "not"
         self.tag(self.self_memid, "_not_location")
         self.tag(self.self_memid, "AGENT")
         self.tag(self.self_memid, "SELF")
-
-        self.searcher = MemorySearcher()
-        self.place_field = PlaceField(self, pixels_per_unit=place_field_pixels_per_unit)
-
-    def __del__(self):
-        """Close the database file"""
-        if getattr(self, "_db_log_file", None):
-            self._db_log_file.close()
 
     def init_time_interface(self, agent_time=None):
         """Initialiaze the current time in memory

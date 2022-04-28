@@ -74,7 +74,11 @@ class FakeAgent(DroidletAgent):
         do_heuristic_perception=False,
         prebuilt_perception=None,
         low_level_data=None,
+        use_place_field=True,
+        prebuilt_db=None,
     ):
+        self.prebuilt_db = prebuilt_db
+        self.use_place_field = use_place_field
         self.mark_airtouching_blocks = do_heuristic_perception
         self.head_height = HEAD_HEIGHT
         self.world = world
@@ -133,13 +137,17 @@ class FakeAgent(DroidletAgent):
         T = FakeMCTime(self.world)
         low_level_data = self.low_level_data.copy()
         low_level_data["check_inside"] = heuristic_perception.check_inside
-
-        self.memory = MCAgentMemory(
-            load_minecraft_specs=False,
-            coordinate_transforms=self.coordinate_transforms,
-            agent_time=T,
-            agent_low_level_data=low_level_data,
-        )
+        kwargs = {
+            "load_minecraft_specs": False,
+            "coordinate_transforms": self.coordinate_transforms,
+            "agent_time": T,
+            "agent_low_level_data": low_level_data,
+        }
+        if not self.use_place_field:
+            kwargs["place_field_pixels_per_unit"] = -1
+        if self.prebuilt_db is not None:
+            kwargs["copy_from_backup"] = self.prebuilt_db
+        self.memory = MCAgentMemory(**kwargs)
         # Add dances to memory
         dance.add_default_dances(self.memory)
 
@@ -424,12 +432,22 @@ class FakePlayer(FakeAgent):
         get_world_pos=False,
         name="",
         active=True,
+        low_level_data=None,
+        use_place_field=False,
+        prebuilt_db=None,
     ):
         class NubWorld:
             def __init__(self):
                 self.count = 0
 
-        super().__init__(NubWorld(), opts=opts, do_heuristic_perception=do_heuristic_perception)
+        super().__init__(
+            NubWorld(),
+            opts=opts,
+            do_heuristic_perception=do_heuristic_perception,
+            low_level_data=low_level_data,
+            use_place_field=use_place_field,
+            prebuilt_db=prebuilt_db,
+        )
         # if active is set to false, the fake player's step is passed.
         self.active = active
         self.get_world_pos = get_world_pos
