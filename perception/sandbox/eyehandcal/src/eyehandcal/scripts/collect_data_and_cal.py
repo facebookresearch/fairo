@@ -260,8 +260,11 @@ def main(argv):
             del result['param'] #pytorch vector
             if cal.param is not None:
                 if cal.proj_func == "world_marker_proj_hand_camera":
+                    camera_ee_ori_rotvec = cal.param[:3]
+                    camera_ee_ori = rotmat(camera_ee_ori_rotvec)
                     result.update({
-                        "camera_ee_ori_rotvec": cal.param[:3].numpy().tolist(),
+                        "camera_ee_ori": camera_ee_ori.numpy().tolist(),
+                        "camera_ee_ori_rotvec": camera_ee_ori_rotvec.numpy().tolist(),
                         "camera_ee_pos" : cal.param[3:6].numpy().tolist(),
                         "marker_base_pos": cal.param[6:9].numpy().tolist()
                     })
