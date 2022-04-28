@@ -3,7 +3,7 @@ At each step of the clarification process, the dashboard will pass the entire ch
 
  - User:    [`command`]        ->  HUMAN_GIVE_COMMAND (resulting in a reference object clarification task)
  - Agent:   [`check_parse`]
- - User:    [`yes/n`o]         -> NOOP (caught by AwaitResponse, continue/end clarification task)
+ - User:    [`yes/no`]         -> NOOP (caught by AwaitResponse, continue/end clarification task)
  - Agent:   [`point_at`]
  - User:    [`no`]             -> NOOP (caught by AwaitResponse, continue clarification task)
  - ...
@@ -27,7 +27,7 @@ If the agent runs out of reference object candidates to point at, the clarificat
         "output" : "MEMORY",
         "memory_type": "REFERENCE_OBJECT",
         "selector": {
-            "ordinal": 1, 
+            "return_quantity": "ALL", 
         },
         "where_clause" : {
             "AND": {
