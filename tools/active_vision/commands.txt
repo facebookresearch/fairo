@@ -1,0 +1,4 @@
+git checkout ap/reex_chkpt
+cd tools/active_vision
+chmod +x launch_reexplore.sh
+./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300/av300_simple
