@@ -4,6 +4,8 @@ set -ex
 # Usage
 # ./launch_label_prop.sh <path that is output dir of ./launch_candidate_selection.sh> <setting for noise>
 # ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/hail_mary2/baselinev3
+# ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/fifty_422/baselinev3
+# ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/collection2_preemp_test2/baseline collection2_preemp_test2
 # ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/respawnv1/baselinev3_noisy --noisy
 
 if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then
@@ -15,7 +17,7 @@ fi
 data_dir=$1
 # Base dir for all jobs
 base_dir=/checkpoint/${USER}/jobs/reexplore/labelprop
-out_dir=/checkpoint/${USER}/jobs/reexplore/labelprop/smoothed_infocus_test5
+out_dir=/checkpoint/${USER}/jobs/reexplore/labelprop/$2
 
 dt=$(date '+%d-%m-%Y/%H:%M:%S');
 job_dir=$base_dir/$dt

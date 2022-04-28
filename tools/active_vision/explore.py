@@ -8,25 +8,12 @@ import logging
 from typing import List
 from common_utils import log_time
 
-def get_valid_trajectories(data_dir: str) -> List[str]:
-    """
-    Valid trajectories have non-empty reexploration data
-    """
-    valid = set()
-    for path in Path(data_dir).rglob('reexplore_data.json'):
-        with open(os.path.join(path.parent, 'reexplore_data.json'), 'r') as f:
-            data = json.load(f)
-            if len(data.keys()) > 0:
-                valid.add(path.parent.parent.parent)
-    
-    return list(valid)
-
-class reexplore_job:
+class explore_job:
     def __init__(self):
         pass 
 
     def __call__(self, p, noise):
-        comm = f"./reexplore.sh {p} {p}/reexplore_data.json {noise}"
+        comm = f"./explore.sh {p} {noise}"
         print(f'command {comm}')
         process = subprocess.Popen(comm.split(), stdout=subprocess.PIPE, cwd='/private/home/apratik/fairo/tools/active_vision')
         output, error = process.communicate()
@@ -35,26 +22,20 @@ class reexplore_job:
     def checkpoint(self, p, noise) -> submitit.helpers.DelayedSubmission:
         return submitit.helpers.DelayedSubmission(self, p, noise)  # submits to requeuing
 
-def launch_reexplore(data_dir: str, job_dir: str, noise: bool, num_traj: int) -> None:
+def launch_explore(args) -> None:
     """
-    Launches reexplore for every reexplore_data.json 
-    (the json is output by the ./launch_candidate_selection.sh script)
+    Launches explore to collect num_traj trajectories
     """
     jobs = []
 
-    valid_trajs = get_valid_trajectories(data_dir)
-    print(f'{len(valid_trajs)} valid trajectories!')
-
     with executor.batch():
-        for traj_dir in valid_trajs:
-            for path in Path(traj_dir).rglob('reexplore_data.json'):
-                with open(os.path.join(path.parent, 'reexplore_data.json'), 'r') as f:
-                    data = json.load(f)
-                    if len(data.keys()) > 0 and 'instance/5' in str(path):
-                        print(f'processing {path.parent}')
-                        reexplore_callable = reexplore_job()
-                        job = executor.submit(reexplore_callable, path.parent, noise)
-                        jobs.append(job)
+        for traj_id in range(args.num_traj):
+            # data_store_path, noise
+            data_store_path = os.path.join(args.data_dir, str(traj_id))
+            print(f'data_store_path for traj {traj_id} = {data_store_path}')
+            explore_callable = explore_job()
+            job = executor.submit(explore_callable, data_store_path, args.noise)
+            jobs.append(job)
 
     if len(jobs) > 0:
         print(f"Job Id {jobs[0].job_id.split('_')[0]}, num jobs {len(jobs)}")
@@ -80,7 +61,7 @@ if __name__ == "__main__":
     # set timeout in min, and partition for running the job
     executor.update_parameters(
         slurm_partition="learnfair", #scavenge
-        timeout_min=40,
+        timeout_min=20,
         mem_gb=256,
         gpus_per_node=4,
         tasks_per_node=1, 
@@ -92,4 +73,4 @@ if __name__ == "__main__":
         slurm_comment="Droidlet Active Vision Pipeline"
     )
 
-    launch_reexplore(args.data_dir, args.job_dir, args.noise, args.num_traj)
+    launch_explore(args)

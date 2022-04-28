@@ -12,6 +12,7 @@ from droidlet.perception.robot import LabelPropagate
 from PIL import Image
 import matplotlib.pyplot as plt
 from common_utils import log_time
+from math import isnan
 
 set_keys = {
     'e1r1r2': ['e1', 'r1', 'r2'],
@@ -253,6 +254,22 @@ def propagate_dir(reex_dir, out_dir):
                     if os.path.isfile(os.path.join(in_dir, f'{x:05d}.npy')):
                         copyfile(os.path.join(in_dir, f'{x:05d}.npy'), os.path.join(out_dir, f'{x:05d}.npy'))
 
+                # calculate average accuracy
+                acc_file = os.path.join(in_dir, "lp_accuracy.json")
+                avg_acc, total = 0, 0
+                if os.path.isfile(acc_file):
+                    with open(acc_file, "r") as fp:
+                        accuracies = json.load(fp)
+                        print(f'accuracies {accuracies}')
+                        for x in range(p+1):
+                            if str(x) in accuracies and not isnan(accuracies[str(x)]):
+                                avg_acc += accuracies[str(x)]
+                                total += 1
+                avg_acc /= total
+                print(f'average accuracy {avg_acc}')
+                with open(os.path.join(out_dir, 'lp_accuracy.txt'), 'w') as f:
+                    f.write(str(avg_acc))
+
             copyover(in_dir=pred_dir, out_dir=od, p=p)
         end2 = time.time()
         print(f'total time to copyover {end2-end}')
@@ -331,12 +348,50 @@ def combine(src, dst, og_data, input_folds):
         print(f'combining {os.path.join(src, x)} into {dst}')
         for p in Path(os.path.join(src, x)).rglob('pred_label*'):
             pred_f = str(p).split('/')[-1]
+            # only copy if lp accuracy > 90
+            print(f'checking lp accuracy for {str(p)}')
+            with open(os.path.join(str(p), 'lp_accuracy.txt'), 'r') as f:
+                acc = f.readline()
+                print (f'average accuracy {acc}')
+                if float(acc)*100 < 90:
+                    print(f'InsufficientAccuracyError! could skip since average accuracy < 90 ..')
+                    # continue
+
             # want to put src/pred_label into dst/pred_label
             acopydir(p.parent, dst, os.path.join(og_data, x), pred_f)
+
+
+def sanity_check_traj(x):
+    print(f'traj {x}')
+    is_valid = True
+    tid = x.split('/')[-3]
+    gt = x.split('/')[-1]
+    reex_objects = [x for x in os.listdir(x) if x.isdigit()]  
+    # print(reex_objects)
+    valid_objects = 0
+    for obj in reex_objects:
+        valid = True
+        obj_path = os.path.join(x, obj)
+        children = os.listdir(obj_path)
+        for h in ['r1', 'r2', 's1', 'c1l', 'c1s']:
+            if h not in children:
+                print(f'{h} missing in {obj_path}')
+                valid = False
+        if valid:
+            valid_objects += 1
+
+    if int(gt) != len(reex_objects) or int(gt) != valid_objects:
+        print(f'traj {tid} expected objects {gt}, actual {len(reex_objects)}, valid_objects {valid_objects}')
+        is_valid = False
+    print(f'sanity check {is_valid} for {x}')
+    return is_valid
 
 def run_label_prop(data_dir, job_dir, job_out_dir):
     print(f'data_dir {data_dir}')
     jobs = []
+
+    def get_lookuplist(valid_trajs):
+        return [f'{x}/instance/5' for x in valid_trajs]
 
     with executor.batch():
         for path in Path(data_dir).rglob('reexplore_data.json'):
@@ -345,7 +400,7 @@ def run_label_prop(data_dir, job_dir, job_out_dir):
             with open(os.path.join(path.parent, 'reexplore_data.json'), 'r') as f:
                 data = json.load(f)
                 if len(data.keys()) > 0:
-                    if any(p in str(path.parent) for p in ['/0/instance/', '/2/instance/', '/22/instance/5', '/25/instance/']): #
+                    if sanity_check_traj(str(path.parent)):
                         print(f'processing {path.parent}')
                         for out_name, input_folds in set_keys.items():
                             print(f'extract outdir from path {path}')

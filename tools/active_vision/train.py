@@ -253,8 +253,8 @@ class COCOTrain:
 
 
 maxiters = [1000]
-lrs = [0.002, 0.004]
-warmups = [200, 300]
+lrs = [0.002] #, 0.004]
+warmups = [300] #[200, 300]
 
 def write_summary_to_file(filename, results, header_str):
     if isinstance(results['bbox']['AP50'][0], list):

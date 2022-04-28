@@ -4,7 +4,8 @@ set -ex
 # Usage
 # ./launch_training.sh <path that is output dir of ./launch_candidate_selection.sh> <setting for noise>
 # ./launch_training.sh /checkpoint/apratik/jobs/reexplore/largerun1/baselinev3
-# ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/smoothed_infocus_test5
+# ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/smoothed_infocus_test7
+# ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/collection2_426
 # ./launch_training.sh /checkpoint/apratik/jobs/reexplore/respawnv1/baselinev3_noisy --noisy
 
 if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then

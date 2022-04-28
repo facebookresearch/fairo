@@ -118,6 +118,7 @@ def get_valid_trajectories(baseline_root: str) -> List[str]:
         if traj_path.split('/')[-1].isdigit():
             if get_trajectory_size(traj_path) > 100:
                 valid_trajs.append(traj_path)
+    print(f'{len(valid_trajs)} valid trajectories!')
     return valid_trajs
 
 def find_spawn_loc(baseline_root: str, out_dir: str, num_traj: int, job_dir: str) -> None:
@@ -138,15 +139,15 @@ def find_spawn_loc(baseline_root: str, out_dir: str, num_traj: int, job_dir: str
                     @log_time(os.path.join(job_dir, 'job_log.txt'))
                     def job_unit(traj_path, out_dir, traj_id, annot_fn, labels, setting):
                         s = SampleGoodCandidates(traj_path, annot_fn, labels, setting)
-                        for gt in range(5,15,5):
+                        for gt in range(5,10,5):
                             outr = os.path.join(out_dir, traj_id, setting, str(gt))
                             os.makedirs(outr, exist_ok=True)
                             print(f'outr {outr}')
                             process(traj_path, outr, gt, s, annot_fn)
 
-                    job_unit(traj_path, out_dir, traj_id, annot_fn, labels, setting)
-                    # job = executor.submit(job_unit, traj_path, out_dir, traj_id, annot_fn, labels, setting)
-                    # jobs.append(job)
+                    # job_unit(traj_path, out_dir, traj_id, annot_fn, labels, setting)
+                    job = executor.submit(job_unit, traj_path, out_dir, traj_id, annot_fn, labels, setting)
+                    jobs.append(job)
 
     if len(jobs) > 0:
         print(f"Job Id {jobs[0].job_id.split('_')[0]}, num jobs {len(jobs)}")

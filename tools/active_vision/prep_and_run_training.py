@@ -99,34 +99,34 @@ def get_training_data(path, job_dir):
 def prep_and_run_training(data_dir: str, job_dir: str, num_train_samples: int) -> None:
     print(f'preparing and running training for {data_dir}')
     jobs = []
-    def get_paths(traj_ids, data_dir):
-        all_paths = [str(path) for path in Path(data_dir).rglob('pred_label*') if '/instance/5/' in str(path)]
-        paths = []
-        for x in traj_ids:
-            lookup = f'/{x}/instance/5/'
-            paths.append([path for path in all_paths if lookup in path])
-        return [x for y in paths for x in y]
+    # def get_paths(traj_ids, data_dir):
+    #     all_paths = [str(path) for path in Path(data_dir).rglob('pred_label*') if '/instance/5/' in str(path)]
+    #     paths = []
+    #     for x in traj_ids:
+    #         lookup = f'/{x}/instance/5/'
+    #         paths.append([path for path in all_paths if lookup in path])
+    #     return [x for y in paths for x in y]
 
-    test_paths = get_paths([0,2,6,8,10], data_dir)
+    # test_paths = get_paths([0,2,6,8,10], data_dir)
     # test_paths = [str(path) for path in Path(data_dir).rglob('pred_label*') if 'baselinev3/8/class/5' in str(path)]
-    print(f'{len(test_paths)} test paths in class')
+    # print(f'{len(test_paths)} test paths in class')
     with executor.batch():
         # for path in test_paths:
         for path in Path(data_dir).rglob('pred_label*'):
-            # if '/instance/5' in str(path.parent):
-            for k in combinations.keys():
-                if k in str(path):
-                    @log_time(os.path.join(job_dir, 'job_log.txt'))
-                    def job_unit(path, num_train_samples, job_dir):
-                        run_coco(path)
-                        training_data = get_training_data(path, job_dir)
-                        print(training_data, job_dir)
-                        for td in training_data:
-                            run_training(td, num_train_samples)
-                    print(f'launching training for {path}')
-                    # job_unit(str(path), num_train_samples, job_dir)
-                    job = executor.submit(job_unit, str(path), num_train_samples, job_dir)
-                    jobs.append(job)
+            if any(p in str(path.parent) for p in ['e1r1r2', 'e1s1r2', 'e1c1lr2', 'e1c1sr2']): #if '/instance/5' in str(path.parent):
+                for k in combinations.keys():
+                    if k in str(path):
+                        @log_time(os.path.join(job_dir, 'job_log.txt'))
+                        def job_unit(path, num_train_samples, job_dir):
+                            run_coco(path)
+                            training_data = get_training_data(path, job_dir)
+                            print(training_data, job_dir)
+                            for td in training_data:
+                                run_training(td, num_train_samples)
+                        print(f'launching training for {path}')
+                        # job_unit(str(path), num_train_samples, job_dir)
+                        job = executor.submit(job_unit, str(path), num_train_samples, job_dir)
+                        jobs.append(job)
 
     if len(jobs) > 0:
         print(f"Job Id {jobs[0].job_id.split('_')[0]}, num jobs {len(jobs)}")
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     parser.add_argument("--comment", type=str)
     parser.add_argument("--slurm", action="store_true", default=False, help="Run the pipeline on slurm, else locally")
     parser.add_argument("--noise", action="store_true", default=False, help="Spawn habitat with noise")
-    parser.add_argument("--num_train_samples", type=int, default=3, help="total number of times we want to train the same model")
+    parser.add_argument("--num_train_samples", type=int, default=4, help="total number of times we want to train the same model")
 
     args = parser.parse_args()
 

@@ -3,7 +3,9 @@
 # The locations are derived from frames selected by the candidate selection heuristic at droidlet/perception/robot/active_vision/candidate_selection.py
 # Usage
 # ./launch_candidate_selection.sh <path to explore trajectories> <out_dir name> <number of trajectories to run for>
-# ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/baselinev3 hail_mary2 10
+# ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/baselinev3 fifty_422 100
+# ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/collection2/baseline collection2_426 100
+# ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/collection2/baseline collection2_preemp_test 20
 
 set -ex
 
