@@ -47,4 +47,3 @@ If the agent runs out of reference object candidates to point at, the clarificat
 </pre>
 
 What is the role of filters in this case?  The interpreter already has access to the ref_obj memory.
-What is the token that should go in the obj_text field?
