@@ -37,6 +37,14 @@ def grasp_to_pose(grasp: graspnetAPI.Grasp):
 def compute_quat_dist(a, b):
     return torch.acos((2*(a * b).sum()**2 - 1).clip(-1, 1))
 
+def min_dist_grasp(default_ee_pose, grasps):
+    with torch.no_grad():
+        rots_as_quat = [torch.Tensor(R.from_matrix(grasp.rotation_matrix).as_quat()) for grasp in grasps]
+        dists = [compute_quat_dist(rot, default_ee_pose) for rot in rots_as_quat]
+        i = torch.argmin(torch.Tensor(dists)).item()
+    print(f"Grasp {i} has angle {dists[i]} from reference.")
+    return grasps[i], i
+
 class GraspingRobotInterface(polymetis.RobotInterface):
     def __init__(self, gripper: polymetis.GripperInterface, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -67,16 +75,11 @@ class GraspingRobotInterface(polymetis.RobotInterface):
     def select_grasp(
         self, grasps: graspnetAPI.GraspGroup, scene_pcd: o3d.geometry.PointCloud
     ) -> graspnetAPI.Grasp:
-        # TODO: do something smarter than this
-        grasps = grasps[:5]
         with torch.no_grad():
-            rots_as_quat = [torch.Tensor(R.from_matrix(grasp.rotation_matrix).as_quat()) for grasp in grasps]
-            dists = [compute_quat_dist(rot, self.default_ee_pose) for rot in rots_as_quat]
-            i = torch.argmin(torch.Tensor(dists)).item()
-            print(f"Grasp {i} has angle {dists[i]} from neutral")
-        return grasps[i]
+            grasp, i = min_dist_grasp(self.default_ee_pose, grasps[:5])
+            print(f"Closest grasp to ee ori, within top 5: {i + 1}")
+        return grasp
 
-        # print(f"Closest grasp to ee ori, within top 5: {i + 1}")
         # return grasps[int(input("Choose grasp index (1-indexed):")) - 1]
 
         # return grasps[0]
