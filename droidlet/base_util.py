@@ -77,10 +77,10 @@ def shasum_file(path):
     """Return shasum of the file at a given path"""
     sha = hashlib.sha1()
     with open(path, "rb") as f:
-        block = f.read(2**16)
+        block = f.read(2 ** 16)
         while len(block) != 0:
             sha.update(block)
-            block = f.read(2**16)
+            block = f.read(2 ** 16)
     return binascii.hexlify(sha.digest())
 
 
@@ -140,7 +140,7 @@ def prepend_a_an(name):
 
 def to_block_pos(array):
     """Convert array to block position"""
-    return np.floor(array).astype("int32")
+    return np.round(array).astype("int32")
 
 
 def to_block_center(array):
