@@ -13,8 +13,7 @@ import os
 import pickle
 import json
 import sys
-from collections import namedtuple
-from eyehandcal.utils import uncompress_image
+from eyehandcal.calibrator import solveEyeHandCalibration
 
 import numpy as np
 import torch
@@ -24,8 +23,7 @@ from torchcontrol.transform import Rotation as R
 from polymetis import RobotInterface
 from realsense_wrapper import RealsenseAPI
 
-from eyehandcal.utils import detect_corners, quat2rotvec, build_proj_matrix, mean_loss, find_parameter, rotmat, dist_in_hull, \
-    hand_marker_proj_world_camera, world_marker_proj_hand_camera
+from eyehandcal.utils import detect_corners, rotmat, dist_in_hull, uncompress_image, proj_funcs
 
 
 def realsense_images(max_pixel_diff=200):
@@ -96,25 +94,71 @@ def robot_poses(ip_address, pose_generator, time_to_go=3):
     robot.go_home()
 
 
-# helper function
-def extract_obs_data_std(data, camera_index):
-    obs_data_std = []
-    for d in data:
-        if d['corners'][camera_index] is not None:
-            obs_data_std.append((
-                torch.tensor(d['corners'][camera_index], dtype=torch.float64),
-                d['pos'].double(),
-                quat2rotvec(d['ori'].double())
-            ))
+def save_result(json_calibration_file, cal_results):
+    with torch.no_grad():
+        param_list = []
+        for i, cal in enumerate(cal_results):
+            result = cal._asdict().copy()
+            del result['param'] #pytorch vector
+            if cal.param is not None:
+                if cal.proj_func == "world_marker_proj_hand_camera":
+                    camera_ee_ori_rotvec = cal.param[:3]
+                    camera_ee_ori = rotmat(camera_ee_ori_rotvec)
+                    result.update({
+                        "camera_ee_ori": camera_ee_ori.numpy().tolist(),
+                        "camera_ee_ori_rotvec": camera_ee_ori_rotvec.numpy().tolist(),
+                        "camera_ee_pos" : cal.param[3:6].numpy().tolist(),
+                        "marker_base_pos": cal.param[6:9].numpy().tolist()
+                    })
+                elif cal.proj_func == "hand_marker_proj_world_camera":
+                    camera_base_ori_rotvec = cal.param[:3]
+                    camera_base_ori = rotmat(camera_base_ori_rotvec)
+                    result.update({
+                        "camera_base_ori": camera_base_ori.cpu().numpy().tolist(),
+                        "camera_base_ori_rotvec": camera_base_ori_rotvec.cpu().numpy().tolist(),
+                        "camera_base_pos": cal.param[3:6].cpu().numpy().tolist(),
+                        "p_marker_ee": cal.param[6:9].cpu().numpy().tolist(),
+                    })
+                else:
+                    raise ArgumentError("shouldn't reach here")
 
-    ic = data[0]['intrinsics'][camera_index]
-    K=build_proj_matrix(
-        fx=ic['fx'],
-        fy=ic['fy'],
-        ppx=ic['ppx'],
-        ppy=ic['ppy'])
-    return obs_data_std, K
+            param_list.append(result)
+            print(f"Camera {i} calibration: {result}")
+        
+        with open(json_calibration_file, 'w') as f:
+            print(f"Saving calibrated parameters to {json_calibration_file}")
+            json.dump(param_list, f, indent=4)
 
+
+def collect_data(polymetis_server_ip, polymetis_time_to_go, img_gen, pose_gen, debug_image_dir):
+    data = []
+    poses = robot_poses(polymetis_server_ip, pose_gen, polymetis_time_to_go)
+    for i, (pos,ori) in enumerate(poses):
+        imgs, intrinsics=next(img_gen)
+
+        if debug_image_dir is not None:
+            os.makedirs(debug_image_dir, exist_ok=True)
+            for j, img in enumerate(imgs):
+                img_path=f'{debug_image_dir}/capture_{i}_camera_{j}.jpg'
+                cv2.imwrite(img_path, img)
+                print(f'save debug images to {img_path}')
+
+        data.append({
+                'pos': pos,
+                'ori': ori,
+                'imgs': imgs,
+                'intrinsics': intrinsics
+            })
+        
+    return data
+
+
+def create_pose_generator(points_file, num_points):
+    points = json.load(open(points_file, 'r'))
+    xyz_points = np.array(points["xyz"])
+    orient_points = np.array(points["quat"])
+    pose_gen = sample_poses_from_data(xyz_points, orient_points, num_points=num_points)
+    return pose_gen
 
 
 def main(argv):
@@ -132,17 +176,12 @@ def main(argv):
     parser.add_argument('--time-to-go', default=3, type=float, help="time_to_go in seconds for each movement")
     parser.add_argument('--imagedir', default=None, help="folder to save debug images")
     parser.add_argument('--pixel-tolerance', default=2.0, type=float, help="mean pixel error tolerance (stage 2)")
-    proj_funcs = {'hand_marker_proj_world_camera' :hand_marker_proj_world_camera, 
-                  'world_marker_proj_hand_camera' :world_marker_proj_hand_camera,
-                  'wrist_camera': world_marker_proj_hand_camera,
-                  'world_camera': hand_marker_proj_world_camera}
     parser.add_argument('--proj-func', choices=list(proj_funcs.keys()), default = list(proj_funcs.keys())[0])
 
     args=parser.parse_args(argv)
     print(f"Config: {args}")
 
-    proj_func = proj_funcs[args.proj_func]
-
+ 
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
@@ -156,29 +195,9 @@ def main(argv):
             print(f"Warning: datafile {args.datafile} already exists. Overwriting...")
         print(f"Collecting data and saving to {args.datafile}...")
 
-        data = []
         img_gen=realsense_images()
-        points = json.load(open(args.points_file, 'r'))
-        xyz_points = np.array(points["xyz"])
-        orient_points = np.array(points["quat"])
-        pose_gen = sample_poses_from_data(xyz_points, orient_points, num_points=args.num_points)
-        poses = robot_poses(args.ip, pose_gen, args.time_to_go)
-        for i, (pos,ori) in enumerate(poses):
-            imgs, intrinsics=next(img_gen)
-
-            if args.imagedir is not None:
-                os.makedirs(args.imagedir, exist_ok=True)
-                for j, img in enumerate(imgs):
-                    img_path=f'{args.imagedir}/capture_{i}_camera_{j}.jpg'
-                    cv2.imwrite(img_path, img)
-                    print(f'save debug images to {img_path}')
-
-            data.append({
-                'pos': pos,
-                'ori': ori,
-                'imgs': imgs,
-                'intrinsics': intrinsics
-            })
+        pose_gen = create_pose_generator(args.points_file, args.num_points)
+        data = collect_data(args.ip, args.time_to_go, img_gen, pose_gen, args.imagedir)
 
         with open(args.datafile, 'wb') as f:
             pickle.dump(data, f)
@@ -186,106 +205,11 @@ def main(argv):
     print(f"Done. Data has {len(data)} poses.")
 
     corner_data = detect_corners(data, target_idx=args.marker_id)
+    cal_results = solveEyeHandCalibration(corner_data, args.proj_func, args.pixel_tolerance)
+    save_result(args.calibration_file, cal_results)
 
-    num_of_camera=len(corner_data[0]['intrinsics'])
-    CalibrationResult = namedtuple('CalibrationResult',
-                                    field_names=['num_marker_seen', 'stage2_retry', 'pixel_error', 'param', 'proj_func'],
-                                    defaults=[None]*5)
-    cal_results = []
-    for i in range(num_of_camera):
-        print(f'Solve camera {i}/{num_of_camera} pose')
-        obs_data_std, K = extract_obs_data_std(corner_data, i)
-        print('number of images with keypoint', len(obs_data_std))
-        if len(obs_data_std) < 3:
-            print('too few keypoint found for this camera, skip this camera')
-            cal_results.append(CalibrationResult(num_marker_seen=len(obs_data_std)))
-            continue
 
-        # stage 1 - assuming marker is attach to EE origin, solve camera pose first
-        if args.proj_func == "hand_marker_proj_world_camera":
-            p3d = torch.stack([p[1] for p in obs_data_std]).detach().numpy()
-        elif args.proj_func == "world_marker_proj_hand_camera":
-            p3d = torch.stack([rotmat(-p[2]).matmul(-p[1]) for p in obs_data_std]).detach().numpy()
 
-        p2d = torch.stack([p[0] for p in obs_data_std]).detach().numpy()
-        retval, rvec, tvec = cv2.solvePnP(p3d, p2d, K.numpy(), distCoeffs=None, flags=cv2.SOLVEPNP_SQPNP)
-        rvec_cam = torch.tensor(-rvec.reshape(-1))
-        tvec_cam = -rotmat(rvec_cam).matmul(torch.tensor(tvec.reshape(-1)))
-        pixel_error = mean_loss(obs_data_std, torch.cat([rvec_cam, tvec_cam, torch.zeros(3)]), K, proj_func).item()
-        print('stage 1 mean pixel error', pixel_error)
-
-        # stage 2 - allow marker to move, joint optimize camera pose and marker
-        max_stage2_retry = 10
-        stage2_retry_count = 0
-        
-        while True :
-
-            stage2_retry_count += 1
-            if stage2_retry_count > max_stage2_retry:
-                cal_results.append(CalibrationResult(num_marker_seen=len(obs_data_std),
-                                                     stage2_retry=stage2_retry_count,
-                                                     param=param_star,
-                                                     pixel_error=pixel_error,
-                                                     proj_func=args.proj_func))
-                print('Maximum stage2 retry execeeded, bailing out')
-                break
-
-            marker_max_displacement = 0.1 #meter
-            param=torch.cat([rvec_cam, tvec_cam, torch.randn(3)*marker_max_displacement]).clone().detach()
-            param.requires_grad=True
-            L = lambda param: mean_loss(obs_data_std, param, K, proj_func)
-            try:
-                param_star=find_parameter(param, L)
-            except Exception as e:
-                print(e)
-                continue
-
-            pixel_error = L(param_star).item()
-            print('stage 2 mean pixel error', pixel_error)
-            if pixel_error > args.pixel_tolerance:
-                print(f"Try again {stage2_retry_count}/{max_stage2_retry} because of poor solution {pixel_error} > {args.pixel_tolerance}")
-            else:
-                print(f"Good solution {pixel_error} <= {args.pixel_tolerance}")
-                cal_results.append(CalibrationResult(num_marker_seen=len(obs_data_std),
-                                                     stage2_retry=stage2_retry_count,
-                                                     param=param_star,
-                                                     pixel_error=pixel_error,
-                                                     proj_func=args.proj_func))
-                break
-
-    with torch.no_grad():
-        param_list = []
-        for i, cal in enumerate(cal_results):
-            result = cal._asdict().copy()
-            del result['param'] #pytorch vector
-            if cal.param is not None:
-                if cal.proj_func == "world_marker_proj_hand_camera":
-                    camera_ee_ori_rotvec = cal.param[:3]
-                    camera_ee_ori = rotmat(camera_ee_ori_rotvec)
-                    result.update({
-                        "camera_ee_ori": camera_ee_ori.numpy().tolist(),
-                        "camera_ee_ori_rotvec": camera_ee_ori_rotvec.numpy().tolist(),
-                        "camera_ee_pos" : cal.param[3:6].numpy().tolist(),
-                        "marker_base_pos": cal.param[6:9].numpy().tolist()
-                    })
-                elif args.proj_func == "hand_marker_proj_world_camera":
-                    camera_base_ori_rotvec = cal.param[:3]
-                    camera_base_ori = rotmat(camera_base_ori_rotvec)
-                    result.update({
-                        "camera_base_ori": camera_base_ori.cpu().numpy().tolist(),
-                        "camera_base_ori_rotvec": camera_base_ori_rotvec.cpu().numpy().tolist(),
-                        "camera_base_pos": cal.param[3:6].cpu().numpy().tolist(),
-                        "p_marker_ee": cal.param[6:9].cpu().numpy().tolist(),
-                    })
-                else:
-                    raise ArgumentError("shouldn't reach here")
-
-            param_list.append(result)
-            print(f"Camera {i} calibration: {result}")
-        
-        with open(args.calibration_file, 'w') as f:
-            print(f"Saving calibrated parameters to {args.calibration_file}")
-            json.dump(param_list, f, indent=4)
 
 if __name__ == '__main__':
     main(sys.argv[1:])

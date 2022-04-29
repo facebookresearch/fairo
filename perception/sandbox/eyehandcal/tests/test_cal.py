@@ -68,7 +68,7 @@ def test_plot_corners(data_with_corners):
                 corner_count += 1
 
     assert corner_count > 0       
-    plt.savefig('corner_detection.pdf')
+    plt.savefig('/tmp/corner_detection.pdf')
     
 
 
@@ -132,7 +132,7 @@ def test_plot_reproj_error(params_from_data, collected_data):
         ax.set_aspect('equal','box')
         errs = torch.stack(err)
         ax.set_title(f'cam{camera_index} reproj_err mean:{errs.mean():.2f} max:{errs.max():.2}]')
-    plt.savefig('reproj_err.pdf')
+    plt.savefig('/tmp/reproj_err.pdf')
     plt.close()
 
 
@@ -160,7 +160,7 @@ def test_plot_3d_marker(params_from_data, collected_data):
             sv.draw_marker(pose_marker_base, 0, 0.01, color=['r','g','b'][i])
             
     sv.show()
-    plt.savefig('camera_pose.pdf')
+    plt.savefig('/tmp/camera_pose.pdf')
 
 
 from eyehandcal.scripts import collect_data_and_cal
