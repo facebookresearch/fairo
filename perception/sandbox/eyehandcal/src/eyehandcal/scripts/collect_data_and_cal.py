@@ -13,7 +13,6 @@ import os
 import pickle
 import json
 import sys
-from eyehandcal.calibrator import solveEyeHandCalibration
 
 import numpy as np
 import torch
@@ -24,6 +23,7 @@ from polymetis import RobotInterface
 from realsense_wrapper import RealsenseAPI
 
 from eyehandcal.utils import detect_corners, rotmat, dist_in_hull, uncompress_image, proj_funcs
+from eyehandcal.calibrator import solveEyeHandCalibration
 
 
 def realsense_images(max_pixel_diff=200):
@@ -205,7 +205,8 @@ def main(argv):
     print(f"Done. Data has {len(data)} poses.")
 
     corner_data = detect_corners(data, target_idx=args.marker_id)
-    cal_results = solveEyeHandCalibration(corner_data, args.proj_func, args.pixel_tolerance)
+    proj_func = proj_funcs[args.proj_func]
+    cal_results = solveEyeHandCalibration(corner_data, proj_func, args.pixel_tolerance)
     save_result(args.calibration_file, cal_results)
 
 
