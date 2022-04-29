@@ -172,7 +172,7 @@ def main(argv):
     parser.add_argument('--marker-id', default=9, type=int, help="ID of the ARTag marker in the image")
     parser.add_argument('--calibration-file', default='calibration.json', help="file to save final calibration data")
     parser.add_argument('--points-file', default='calibration_points.json', help="file to load convex hull to sample points from")
-    parser.add_argument('--num-points', default=20, type=int, help="number of points to sample from convex hull")
+    parser.add_argument('--num-points', default=4, type=int, help="number of xyz points to sample from convex hull")
     parser.add_argument('--time-to-go', default=3, type=float, help="time_to_go in seconds for each movement")
     parser.add_argument('--imagedir', default=None, help="folder to save debug images")
     parser.add_argument('--pixel-tolerance', default=2.0, type=float, help="mean pixel error tolerance (stage 2)")
