@@ -134,7 +134,7 @@ class CraftassistMover:
             return self.cagent.get_player_line_of_sight(player_struct)
 
     def dig(self, x, y, z):
-        self.cagent.place_block(-x, y, z)
+        self.cagent.dig(-x, y, z)
 
     def place_block(self, x, y, z):
         self.cagent.place_block(-x, y, z)
