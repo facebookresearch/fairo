@@ -1,4 +1,4 @@
 git checkout ap/reex_chkpt
 cd tools/active_vision
-chmod +x launch_reexplore.sh
-./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300/av300_simple
+chmod +x launch_label_prop.sh
+./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/av300_noise/av300_noise_simple av300_noise
