@@ -39,6 +39,10 @@ class RealsenseAPI:
         for _ in range(warm_start):
             self._get_frames()
 
+
+    def get_device_serial_numbers(self):
+        return self.device_ls
+
     def _get_frames(self):
         framesets = [pipe.wait_for_frames() for pipe in self.pipes]
         return [self.align.process(frameset) for frameset in framesets]

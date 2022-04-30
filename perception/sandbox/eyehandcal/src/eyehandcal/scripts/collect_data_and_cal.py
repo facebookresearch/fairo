@@ -13,6 +13,7 @@ import os
 import pickle
 import json
 import sys
+from typing import List
 
 import numpy as np
 import torch
@@ -26,11 +27,8 @@ from eyehandcal.utils import detect_corners, rotmat, dist_in_hull, uncompress_im
 from eyehandcal.calibrator import solveEyeHandCalibration
 
 
-def realsense_images(max_pixel_diff=200):
-    rs = RealsenseAPI()
+def realsense_images(rs, max_pixel_diff=200):
     num_cameras = rs.get_num_cameras()
-    assert num_cameras > 0, "no camera found"
-
     raw_intrinsics = rs.get_intrinsics()
     intrinsics = []
     for intrinsics_param in raw_intrinsics:
@@ -94,11 +92,12 @@ def robot_poses(ip_address, pose_generator, time_to_go=3):
     robot.go_home()
 
 
-def save_result(json_calibration_file, cal_results):
+def save_result(json_calibration_file, cal_results, camera_sn: List[str]):
     with torch.no_grad():
         param_list = []
         for i, cal in enumerate(cal_results):
             result = cal._asdict().copy()
+            result['camera_sn'] = camera_sn[i]
             del result['param'] #pytorch vector
             if cal.param is not None:
                 if cal.proj_func == "world_marker_proj_hand_camera":
@@ -189,25 +188,33 @@ def main(argv):
     if os.path.exists(args.datafile) and not args.overwrite:
         print(f"Warning: datafile {args.datafile} already exists. Loading data instead of collecting data...")
         data = pickle.load(open(args.datafile, 'rb'))
-        uncompress_image(data)
+        uncompress_image(data['image_data'])
+        
     else:
         if os.path.exists(args.datafile):
             print(f"Warning: datafile {args.datafile} already exists. Overwriting...")
         print(f"Collecting data and saving to {args.datafile}...")
 
-        img_gen=realsense_images()
+        rs = RealsenseAPI()
+        img_gen=realsense_images(rs)
         pose_gen = create_pose_generator(args.points_file, args.num_points)
-        data = collect_data(args.ip, args.time_to_go, img_gen, pose_gen, args.imagedir)
+        imgdata = collect_data(args.ip, args.time_to_go, img_gen, pose_gen, args.imagedir)
+        data = {
+            'image_data' : imgdata,
+            'args': args,
+            'camera_sn': rs.get_device_serial_numbers()
+        }
 
         with open(args.datafile, 'wb') as f:
             pickle.dump(data, f)
 
-    print(f"Done. Data has {len(data)} poses.")
+    print(f"Done. Data has {len(data['image_data'])} poses.")
 
-    corner_data = detect_corners(data, target_idx=args.marker_id)
+    corner_data = detect_corners(data['image_data'], target_idx=args.marker_id)
     proj_func = proj_funcs[args.proj_func]
     cal_results = solveEyeHandCalibration(corner_data, proj_func, args.pixel_tolerance)
-    save_result(args.calibration_file, cal_results)
+    
+    save_result(args.calibration_file, cal_results, data['camera_sn'])
 
 
 
