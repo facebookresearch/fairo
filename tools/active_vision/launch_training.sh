@@ -27,7 +27,5 @@ echo Job Directory $job_dir
 mkdir -p $job_dir
 echo """"""""""""""""""""""""""""""
 
-cd /private/home/apratik/fairo/tools/active_vision
-
 chmod +x prep_and_run_training.py
 python prep_and_run_training.py --data_dir $data_dir --job_dir $job_dir

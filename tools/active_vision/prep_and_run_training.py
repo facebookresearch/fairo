@@ -172,7 +172,7 @@ if __name__ == "__main__":
     parser.add_argument("--comment", type=str)
     parser.add_argument("--slurm", action="store_true", default=False, help="Run the pipeline on slurm, else locally")
     parser.add_argument("--noise", action="store_true", default=False, help="Spawn habitat with noise")
-    parser.add_argument("--num_train_samples", type=int, default=4, help="total number of times we want to train the same model")
+    parser.add_argument("--num_train_samples", type=int, default=1, help="total number of times we want to train the same model")
 
     args = parser.parse_args()
 
