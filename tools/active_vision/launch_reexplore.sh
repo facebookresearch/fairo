@@ -8,6 +8,17 @@ set -ex
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/collection2_426/baseline
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/collection2_preemp_test/baseline
 
+# git checkout ap/reex_chkpt
+# cd tools/active_vision
+# chmod +x launch_reexplore.sh
+# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300/av300_simple
+# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300_noise/av300_noise_simple --noise
+
+
+# /checkpoint/apratik/jobs/reexplore/av300/av300_simple/1/instance/5/candidate_selection_visuals/00037.jpg
+
+# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300/av300_simple
+
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/largerun_noisy/baselinev3_noisy --noise
 
 if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then

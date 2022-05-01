@@ -395,8 +395,6 @@ def run_label_prop(data_dir, job_dir, job_out_dir):
 
     with executor.batch():
         for path in Path(data_dir).rglob('reexplore_data.json'):
-            # if len(jobs) > 25:
-            #     break
             with open(os.path.join(path.parent, 'reexplore_data.json'), 'r') as f:
                 data = json.load(f)
                 if len(data.keys()) > 0:

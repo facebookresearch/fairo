@@ -96,6 +96,35 @@ def get_training_data(path, job_dir):
 
     return None
 
+import functools
+
+@functools.lru_cache(None)
+def sanity_check_traj(x):
+    heuristics = set(['r1', 'r2', 's1', 'c1s', 'c1l'])
+    is_valid = True
+    tid = x.split('/')[-1]
+    x = os.path.join(x, 'instance')
+    for gt in os.listdir(x):
+        gt_path = os.path.join(x, gt)
+        reex_objects = [x for x in os.listdir(gt_path) if x.isdigit()]  
+        # print(reex_objects)
+        # print(f'traj {tid} texpected objects {gt}, actual {len(reex_objects)}')
+        if int(gt) != len(reex_objects):
+            print(f'only {len(reex_objects)} objects in {gt_path}')
+            is_valid = False
+            
+        # now check each subfolder
+        for sub in reex_objects:
+            # each should have all the heuristics 
+            sub_path = os.path.join(gt_path, sub)
+            hf = set(os.listdir(sub_path))
+            if hf != heuristics:
+                print(f'only {hf} heuristics found in {sub_path}!!')
+                is_valid = False
+            # else:
+                # print(f'all {hf} heuristics found in {sub_path}!!')
+    return is_valid
+
 def prep_and_run_training(data_dir: str, job_dir: str, num_train_samples: int) -> None:
     print(f'preparing and running training for {data_dir}')
     jobs = []
@@ -111,9 +140,10 @@ def prep_and_run_training(data_dir: str, job_dir: str, num_train_samples: int) -
     # test_paths = [str(path) for path in Path(data_dir).rglob('pred_label*') if 'baselinev3/8/class/5' in str(path)]
     # print(f'{len(test_paths)} test paths in class')
     with executor.batch():
-        # for path in test_paths:
         for path in Path(data_dir).rglob('pred_label*'):
-            if any(p in str(path.parent) for p in ['e1r1r2', 'e1s1r2', 'e1c1lr2', 'e1c1sr2']): #if '/instance/5' in str(path.parent):
+            x_s = str(path).split('/')
+            traj_dir = '/'.join(x_s[:x_s.index('instance')])
+            if sanity_check_traj(traj_dir): #any(p in str(path.parent) for p in ['e1r1r2', 'e1s1r2', 'e1c1lr2', 'e1c1sr2']): #if '/instance/5' in str(path.parent):
                 for k in combinations.keys():
                     if k in str(path):
                         @log_time(os.path.join(job_dir, 'job_log.txt'))
