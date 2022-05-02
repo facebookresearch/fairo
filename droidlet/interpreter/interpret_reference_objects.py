@@ -191,7 +191,7 @@ def interpret_reference_object(
         if filters_d.get("where_clause"):
             if filters_d["where_clause"].get("OR"):
                 num_refs = len(filters_d["where_clause"].get("OR"))
-        elif filters_d.get("selector", {}).get("ordinal"):
+        elif filters_d.get("selector", {}).get("ordinal", "").isdigit():
             num_refs = int(filters_d["selector"]["ordinal"])
 
         # Add any extra_tags to search
