@@ -59,7 +59,7 @@ def get_annot(height, width, pts_in_cur_img, src_pts_in_cur_cam, cur_pts_in_cur_
         # We take ceil and floor combinations to fix quantization errors
         if not isnan(x) and not isnan(y) and floor(x) >= 0 and ceil(x) < height and floor(y) >=0 and ceil(y) < width and valid_z[indx]:
             cur_indx = ceil(x) + ceil(y) * width
-            if src_pts_in_cur_cam[indx][2] - cur_pts_in_cur_cam[cur_indx][2] < 0.01:
+            if src_pts_in_cur_cam[indx][2] - cur_pts_in_cur_cam[cur_indx][2] < 0.1:
                 annot_img[ceil(y)][ceil(x)] = src_label[r][c]
                 annot_img[floor(y)][floor(x)] = src_label[r][c]
                 annot_img[ceil(y)][floor(x)] = src_label[r][c]
@@ -128,7 +128,7 @@ def get_annot(height, width, pts_in_cur_img, src_pts_in_cur_cam, cur_pts_in_cur_
         print(f'zeros {np.sum(annot_img == 0)}')
         for x in range(len(annot_img)):
             for y in range(len(annot_img[0])):
-                if annot_img[x][y] == 0 and random.randint(1,5) == 1:
+                if annot_img[x][y] == 0 and random.randint(1,2) == 1:
                     annot_img[x][y] = closest_non_zero(annot_img, x, y)
                     # annot_img[x][y] = max_vote(annot_img, x, y)
         end = time.time()

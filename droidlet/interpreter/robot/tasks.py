@@ -687,7 +687,8 @@ class Reexplore(Task):
         if task_name == "straight":
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
-            assert np.allclose(base_pos, self.base_pos) # checking that poses match
+            logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
+            # assert np.allclose(base_pos, self.base_pos), f'{base_pos, self.base_pos}' # checking that poses match
 
             self.add_child_task(ExamineDetectionStraightline(
                     self.agent, {
@@ -706,7 +707,8 @@ class Reexplore(Task):
         if task_name == "circle":
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
-            assert np.allclose(base_pos, self.base_pos)
+            logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
+            # assert np.allclose(base_pos, self.base_pos), f'{base_pos, self.base_pos}'
 
             self.add_child_task(ExamineDetectionCircle(
                     self.agent, {
@@ -726,7 +728,8 @@ class Reexplore(Task):
         if task_name == "circle_big":
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
-            assert np.allclose(base_pos, self.base_pos)
+            logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
+            # assert np.allclose(base_pos, self.base_pos), f'{base_pos, self.base_pos}'
 
             base_pos_can = self.agent.mover.get_base_pos_in_canonical_coords()
             dist = np.linalg.norm(base_pos_can[:2] - [self.target['xyz'][0], self.target['xyz'][2]])
@@ -748,7 +751,8 @@ class Reexplore(Task):
         if task_name == "random1":
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
-            assert np.allclose(base_pos, self.base_pos)
+            logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
+            # assert np.allclose(base_pos, self.base_pos), f'{base_pos, self.base_pos}'
             
             self.add_child_task(TimedExplore(
                     self.agent, { 
@@ -764,7 +768,8 @@ class Reexplore(Task):
         if task_name == "random2":
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
-            assert np.allclose(base_pos, self.base_pos)
+            logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
+            # assert np.allclose(base_pos, self.base_pos), f'{base_pos, self.base_pos}'
             
             self.add_child_task(TimedExplore(
                     self.agent, { 

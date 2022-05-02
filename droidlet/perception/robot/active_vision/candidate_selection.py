@@ -53,7 +53,7 @@ class SampleGoodCandidates:
                 
         print(f'{len(self.good_candidates)} good candidates found!')
     
-    @cached('/checkpoint/apratik/candidates_cached_reexplore_n22.json')
+    # @cached('/checkpoint/apratik/candidates_cached_reexplore_n22.json')
     def is_good_candidate(self, x):
         """
         checks if an image is a good candidate by checking that the mask is within a certain distance from the 

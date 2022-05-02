@@ -1,4 +1,5 @@
 git checkout ap/reex_chkpt
+git pull origin ap/reex_chkpt
 cd tools/active_vision
 chmod +x launch_training.sh
 ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/av300_noise
