@@ -8,8 +8,8 @@ import numpy as np
 from copy import deepcopy
 from typing import cast, List, Tuple, Dict
 
-from .interpreter_utils import SPEAKERLOOK, update_attended_and_link_lf, retrieve_ref_obj_span
-
+from .interpreter_utils import SPEAKERLOOK, update_attended_and_link_lf
+from droidlet.dialog.post_process_logical_form import retrieve_ref_obj_span
 from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
@@ -31,7 +31,9 @@ def get_eid_from_special(agent_memory, S="AGENT", speaker=None):
     if S == "SPEAKER_LOOK" or S == "SPEAKER":
         if not speaker:
             raise Exception("Asked for speakers memid but did not give speaker name")
-        eid = agent_memory.get_player_by_name(speaker).eid
+        player = agent_memory.get_player_by_name(speaker)
+        if player:
+            eid = player.eid
     # FIXME both of these seem to appear in lfs, probably just want one of them?
     elif S == "AGENT" or S == "SELF":
         eid = agent_memory.get_mem_by_id(agent_memory.self_memid).eid
@@ -193,6 +195,8 @@ def interpret_reference_object(
                 num_refs = len(filters_d["where_clause"].get("OR"))
         elif filters_d.get("selector", {}).get("ordinal", "").isdigit():
             num_refs = int(filters_d["selector"]["ordinal"])
+        elif filters_d.get("selector", {}).get("return_quantity", "") == "ALL":
+            allow_clarification = False
 
         # Add any extra_tags to search
         if any(extra_tags):

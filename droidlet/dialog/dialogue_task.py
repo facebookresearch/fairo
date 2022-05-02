@@ -9,7 +9,7 @@ import logging
 from droidlet.dialog.string_lists import MAP_YES, MAP_DIRECTION_SYNTAX
 from droidlet.task.task import Task, task_to_generator, ControlBlock
 from droidlet.memory.memory_nodes import TaskNode
-from droidlet.interpreter.interpreter_utils import retrieve_ref_obj_span
+from droidlet.dialog.post_process_logical_form import retrieve_ref_obj_span
 
 
 class AwaitResponse(Task):
