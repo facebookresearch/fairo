@@ -168,6 +168,10 @@ def interpret_reference_object(
         else:
             logging.error("bad coref_resolve -> {}".format(mem))
 
+    # If we're looking for a count, we want to return all of the candidates
+    if filters_d.get("output") == "COUNT":
+        allow_clarification = False
+
     clarification_query = "SELECT MEMORY FROM Task WHERE dlf_clarification=#={}".format(
         interpreter.memid
     )
@@ -187,6 +191,8 @@ def interpret_reference_object(
         if filters_d.get("where_clause"):
             if filters_d["where_clause"].get("OR"):
                 num_refs = len(filters_d["where_clause"].get("OR"))
+        elif filters_d.get("selector", {}).get("ordinal"):
+            num_refs = int(filters_d["selector"]["ordinal"])
 
         # Add any extra_tags to search
         if any(extra_tags):
@@ -200,11 +206,7 @@ def interpret_reference_object(
                 filters_d["where_clause"] = {"AND": [subclause]}
             filters_d["where_clause"]["AND"].extend(extra_clauses)
 
-        # FIXME! see above.  currently removing selector to get candidates, and filtering after
-        # instead of letting filter interpreters handle.
-        filters_no_select = deepcopy(filters_d)
-        filters_no_select.pop("selector", None)
-        candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
+        candidate_mems = apply_memory_filters(interpreter, speaker, filters_d)
 
         # Compare num matches to expected and clarify
         if (len(candidate_mems) != num_refs) and allow_clarification:
