@@ -1,5 +1,5 @@
 #!/bin/env bash
-set -ex
+# set -ex
 export NOISY_HABITAT=$2
 export ADD_HUMANS=False
 source activate /private/home/apratik/miniconda3/envs/droidlet

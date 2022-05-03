@@ -1,8 +1,10 @@
 #!/bin/env bash
 set -ex
 # Launches data collection on the agent, using random exploration 
-# ./launch_explore.sh /checkpoint/apratik/data_reexplore/test_slurm_collect 10
-# ./launch_explore.sh /checkpoint/apratik/data_reexplore/test_slurm_collect_noise 10 --noise
+# ./launch_explore.sh /checkpoint/apratik/data_reexplore/test_slurm_collect2 5
+# ./launch_explore.sh /checkpoint/apratik/data_reexplore/test_slurm_collect2_noise 5 --noise
+# ./launch_explore.sh /checkpoint/apratik/data_reexplore/av300_pt2 300
+# ./launch_explore.sh /checkpoint/apratik/data_reexplore/av300_noise_pt2 300 --noise
 
 
 if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then
