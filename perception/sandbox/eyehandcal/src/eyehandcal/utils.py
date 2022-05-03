@@ -92,8 +92,8 @@ def world_marker_proj_hand_camera(param, pos_ee_base, ori_ee_base, K):
     pos_marker_image = K.matmul(pos_marker_camera)
     return pos_marker_image[:2]/pos_marker_image[2]
 
-proj_funcs = {'hand_marker_proj_world_camera' :hand_marker_proj_world_camera, 
-                'world_marker_proj_hand_camera' :world_marker_proj_hand_camera,
+proj_funcs = {'hand_marker_proj_world_camera': hand_marker_proj_world_camera, 
+                'world_marker_proj_hand_camera': world_marker_proj_hand_camera,
                 'wrist_camera': world_marker_proj_hand_camera,
                 'world_camera': hand_marker_proj_world_camera}
 
