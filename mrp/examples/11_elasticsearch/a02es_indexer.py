@@ -36,7 +36,7 @@ class A02ES_Indexer:
                 "relpath": relpath,
                 "original_path": original_path,
                 "offset": tlk.frame().off,
-                "payload_size": len(fpkt.payload_view)
+                "payload_size": len(fpkt.payload_view),
             }
 
             # Add all headers.
