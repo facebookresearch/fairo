@@ -24,7 +24,5 @@ echo Job Directory $job_dir
 mkdir -p $job_dir
 echo """"""""""""""""""""""""""""""
 
-cd /private/home/apratik/fairo/tools/active_vision
-
 chmod +x explore.py
 python explore.py --data_dir $data_dir --job_dir $job_dir --num_traj $2 $3

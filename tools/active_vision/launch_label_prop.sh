@@ -28,7 +28,5 @@ echo Job Directory $job_dir
 mkdir -p $job_dir
 echo """"""""""""""""""""""""""""""
 
-cd /private/home/apratik/fairo/tools/active_vision
-
 chmod +x run_label_prop.py
 python run_label_prop.py --data_dir $data_dir --job_dir $job_dir --out_dir $out_dir
