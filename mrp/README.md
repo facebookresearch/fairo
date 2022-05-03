@@ -105,3 +105,16 @@ Other kwargs passed to Docker will be passed directly to the docker engine.
 Add the following snippet to your `~/.bashrc` to get tab completion:
 
 `eval "$(_MRP_COMPLETE=bash_source mrp)"`
+
+## Code Formatting
+We use [black](https://github.com/psf/black) to lint our code. The `formatting` test will not pass if your code does not conform.
+
+To make this easy for yourself, you can either
+- Add the formattings to your IDE
+- Install the git [pre-commit](https://pre-commit.com/) hooks by running
+    ```bash
+    pip install pre-commit
+    pre-commit install
+    ```
+
+To format manually, run: `black .`
