@@ -38,11 +38,13 @@ def test_logger(logger_type):
             cv.notify()
 
     listener = a0.LogListener(test_topic, listener_callback)
+
+    # Log stuff and wait for log to publish
     log = logger_type()
     log("test log msg")
-
-    # Test packet contents to ensure content-type is included
     with cv:
         cv.wait_for(lambda: buffer, timeout=1.0)
+
+    # Test packet contents to ensure content-type is included
     assert "content-type" in buffer
     assert buffer["content-type"] == "text/plain"
