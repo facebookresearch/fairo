@@ -107,7 +107,7 @@ Add the following snippet to your `~/.bashrc` to get tab completion:
 `eval "$(_MRP_COMPLETE=bash_source mrp)"`
 
 ## Code Formatting
-We use [black](https://github.com/psf/black) to lint our code. The `formatting` test will not pass if your code does not conform.
+We use [black](https://github.com/psf/black) and [flake8](https://flake8.pycqa.org/en/latest/) to lint our code. The `formatting` test will not pass if your code does not conform.
 
 To make this easy for yourself, you can either
 - Add the formattings to your IDE
