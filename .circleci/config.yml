@@ -341,7 +341,6 @@ jobs:
   mrp:
     docker:
       - image: python:3.8
-    resource_class: medium+
     steps:
       - checkout
       - run:
@@ -359,6 +358,20 @@ jobs:
       - run:
           name: Run PyTest
           command: pytest -s -vvv ./mrp
+  mrp-lint:
+    docker:
+      - image: python:3.8
+    steps:
+      - checkout
+      - run:
+          name: Install Deps
+          command: pip install -U black flake8
+      - run:
+          name: flake8
+          command: cd mrp ; flake8
+      - run:
+          name: black
+          command: black --check ./mrp
   fairomsg:
     docker:
       - image: cimg/python:3.8
@@ -457,6 +470,7 @@ workflows:
       - polymetis-conda-ubuntu-20
       - formatting
       - mrp
+      - mrp-lint
       - fairotag
       - fairomsg
       - eyehandcal
