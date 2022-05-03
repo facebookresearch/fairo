@@ -25,16 +25,16 @@ def test_noescape():
 
 class TestLogger:
     def _listener_callback(self, pkt):
-        self.buffer = {h[0]: h[1] for h in pkt.headers}
+        self.buffer = dict(pkt.headers)
 
     @pytest.mark.parametrize("logger_type", [util.stdout_logger, util.stderr_logger])
-    def test_logger(self, log_func):
+    def test_logger(self, logger_type):
         self.buffer = None
         test_topic = "TEST"
         os.environ["A0_TOPIC"] = test_topic
 
         # Set up listener
-        listener = a0.LogListener(a0.LogTopic(test_topic), self._listener_callback)
+        listener = a0.LogListener(test_topic, self._listener_callback)
 
         log = logger_type()
         log("test log msg")
