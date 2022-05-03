@@ -44,7 +44,7 @@ def get_proc_names(proc_names, include_deps):
     if unknown_proc_names:
         raise ValueError(f"Unknown proc_names: {', '.join(unknown_proc_names)}")
     if not proc_names:
-        raise ValueError(f"No proc_names found")
+        raise ValueError("No proc_names found")
     return proc_names
 
 
@@ -79,13 +79,13 @@ def down_existing(names: typing.List[str], force: bool):
                 ns.sat = True
                 ns.cv.notify()
 
-    watcher = life_cycle.system_state_watcher(callback)
+    life_cycle.system_state_watcher(callback)
 
     with ns.cv:
         success = ns.cv.wait_for(lambda: ns.sat, timeout=3.0)
 
     if not success:
-        raise RuntimeError(f"Existing processes did not down in a timely manner.")
+        raise RuntimeError("Existing processes did not down in a timely manner.")
 
 
 @click.command()
@@ -114,7 +114,7 @@ def cli(
     names = get_proc_names(procs, deps)
     names = [name for name in names if process_def.defined_processes[name].runtime]
     if not names:
-        raise ValueError(f"No processes found")
+        raise ValueError("No processes found")
 
     down_existing(names, force)
 

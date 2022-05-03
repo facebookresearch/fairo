@@ -29,7 +29,7 @@ def cli(*cmd_procs, procs=[], timeout=0):
             ns.sat = True
             ns.cv.notify()
 
-    watcher = life_cycle.system_state_watcher(callback)
+    life_cycle.system_state_watcher(callback)
 
     with ns.cv:
         ns.cv.wait_for(lambda: ns.sat, timeout=timeout or None)
