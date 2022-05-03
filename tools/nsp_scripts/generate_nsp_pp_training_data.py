@@ -13,15 +13,12 @@ NOOP = { 'dialogue_type': 'NOOP' }
 PUT_MEMORY = {
     "dialogue_type": "PUT_MEMORY",
     "filters": {
-        "output" : "MEMORY",
-        "memory_type": "REFERENCE_OBJECT",
-        "selector": {
-            "return_quantity": "ALL", 
-        },
         "where_clause" : {
             "AND": {
                 "pred_text": "has_tag", 
-                "obj_text": "active_clarification"
+                "obj_text": {
+                    "fixed_value": "active_clarification"
+                }
             }
         }
     },
@@ -62,6 +59,7 @@ def build_next_turn(ref_obj: str, prev_turn: str):
 
 def build_put_memory(ref_obj: str):
     lf = deepcopy(PUT_MEMORY)
+    # TODO Replace this with a search for the word index and format the SPAN appropriately
     lf["upsert"]["memory_data"]["triples"][0]["obj_text"] = ref_obj
 
     return lf
