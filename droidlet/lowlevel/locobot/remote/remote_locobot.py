@@ -45,7 +45,7 @@ class RemoteLocobot(object):
                 assets_path, "default.phys_scene_config.json"
             )
         backend_config["noisy"] = noisy
-        print("backend_config", backend_config)
+        logging.info("backend_config", backend_config)
         self.backend_config = backend_config
         # we do it this way to have the ability to restart from the client at arbitrary times
         self.restart_habitat()

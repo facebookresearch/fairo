@@ -10,17 +10,21 @@ import random
 import numpy as np
 import shutil
 import json
+import time 
 
-random.seed(2021) # fixing a random seed to fix default exploration goal
+seed = (os.getpid() * int(time.time())) % 123456789
+rng = random.Random(seed)
+logging.info(f'Seed chosen: {seed}')
 
 def get_distant_goal(x, y, t, l1_thresh=35):
     # Get a distant goal for the slam exploration
     # Pick a random quadrant, get 
     while True:
-        xt = random.randint(-19, 19)
-        yt = random.randint(-19, 19)
+        xt = rng.randint(-19, 19)
+        yt = rng.randint(-19, 19)
         d = np.linalg.norm(np.asarray([x,y]) - np.asarray([xt,yt]), ord=1)
         if d > l1_thresh:
+            logging.info(f'get_distant_goal {(xt, yt, 0)}')
             return (xt, yt, 0)
 
 def init_logger():
@@ -70,7 +74,8 @@ def start_explore(agent, goal):
         logger.info(
             f"Starting exploration {explore_count} \
             first_exploration_done {first_exploration_done} \
-            os.getenv('CONTINUOUS_EXPLORE') {os.getenv('CONTINUOUS_EXPLORE', 'False')}"
+            os.getenv('CONTINUOUS_EXPLORE') {os.getenv('CONTINUOUS_EXPLORE', 'False')} \
+            os.getenv('NOISY_HABITAT') {os.getenv('NOISY_HABITAT')} "
         )
 
         # Clear memory
@@ -103,9 +108,39 @@ def start_explore(agent, goal):
         add_or_replace(agent, 'first_exploration_done', 'True')
         add_or_replace(agent, 'explore_count', str(explore_count+1))
 
+def append(a, b):
+    k = len(a)
+    for _, v in b.items():
+        a[k] = v
+        k += 1
+    return a
+
+def get_random_spawn_loc_apt0():
+    # collect hab poses
+    og_data = '/checkpoint/apratik/data_reexplore/baselinev3/'
+    habitat_poses = {}
+
+    for x in os.listdir(og_data):
+        if x.isdigit():
+            hab_json = os.path.join(og_data, x, 'data_hab.json')
+            try:
+                with open(hab_json, 'r') as f:
+                    dat = json.load(f)
+                    habitat_poses = append(habitat_poses, dat)
+            except Exception as ex:
+                logging.info(f'caught {ex} for {hab_json}')
+    
+    return rng.choice(list(habitat_poses.values()))
+
+
 def explore(agent):
+    # get random spawn location 
+    spawn_loc = get_random_spawn_loc_apt0()
+    agent.mover.bot.respawn_agent(spawn_loc['position'], spawn_loc['rotation'])
+    # get random goal
     x,y,t = agent.mover.get_base_pos()
     goal = get_distant_goal(x,y,t)
+    logging.info(f'explore spawn {spawn_loc}, goal {goal}, base_pos {x,y,t}')
     start_explore(agent, goal)
 
 def get_task_data(agent):
@@ -126,9 +161,11 @@ def get_task_data(agent):
         'base_pos': reex[reex_key]['base_pos'],
         'label': reex[reex_key]['label'],
         'target': {'xyz': reex[reex_key]['target'], 'label': 'object'},
-        'data_path': f'{agent.opts.data_store_path}/{reexplore_id}',
-        'vis_path': f'{agent.opts.data_store_path}/{reexplore_id}',
+        'data_path': f'{agent.opts.data_store_path}',
+        'vis_path': f'{agent.opts.data_store_path}',
     }
+    logger = logging.getLogger('default_behavior')
+    logger.info(f'task_data {task_data}')
     add_or_replace(agent, 'reexplore_id', str(reexplore_id+1))
     return task_data
 

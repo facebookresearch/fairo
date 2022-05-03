@@ -365,7 +365,7 @@ class TrajectorySaverTask(Task):
         self.data_path = task_data.get('data_path', 'default')
         self.dbg_str = 'None'
         if self.save_data:
-            self.data_saver = TrajectoryDataSaver(os.path.join(agent.opts.data_store_path, self.data_path))
+            self.data_saver = TrajectoryDataSaver(os.path.join(agent.opts.data_store_path))#, self.data_path))
             self.data_savers = [self.data_saver]
             parent_data_saver = task_data.get('parent_data_saver', None)
             if parent_data_saver is not None:
