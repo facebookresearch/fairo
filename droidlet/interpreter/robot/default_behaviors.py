@@ -116,7 +116,7 @@ def explore(agent):
     x, y, t = agent.mover.get_base_pos_in_canonical_coords()
     goal = get_distant_goal(x, y, t)
     logging.info(f"os.getenv('SAVE_EXPLORATION') {os.getenv('SAVE_EXPLORATION')}")
-    logging.info(f'current pos canonical {x,y,t}, goal {goal}')
+    logging.info(f"current pos canonical {x,y,t}, goal {goal}")
     start_explore(agent, goal)
 
 

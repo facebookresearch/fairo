@@ -387,7 +387,7 @@ class TrajectorySaverTask(Task):
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def save_rgb_depth_seg(self):
-        if self.agent.backend == 'habitat':
+        if self.agent.backend == "habitat":
             rgb, depth, segm = self.agent.mover.get_rgb_depth_segm()
         else:
             rgbd = self.agent.mover.get_rgb_depth()
@@ -399,7 +399,7 @@ class TrajectorySaverTask(Task):
         depth = depth.astype(np.uint16)
 
         pos = self.agent.mover.get_base_pos()
-        habitat_pos, habitat_rot = None, None # self.agent.mover.bot.get_habitat_state()
+        habitat_pos, habitat_rot = None, None  # self.agent.mover.bot.get_habitat_state()
         for data_saver in self.data_savers:
             data_saver.set_dbg_str(self.dbg_str)
             data_saver.save(rgb, depth, segm, pos, habitat_pos, habitat_rot)
