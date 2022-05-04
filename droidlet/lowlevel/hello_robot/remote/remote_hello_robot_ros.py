@@ -9,18 +9,12 @@ import json
 import time
 import copy
 from math import *
-
 from rich import print
-
 import Pyro4
-from stretch_body.robot import Robot
-from colorama import Fore, Back, Style
-import stretch_body.hello_utils as hu
-
-hu.print_stretch_re_use()
 import numpy as np
-import cv2
 from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
+from stretch_ros_move_api import MoveNode as Robot
+from droidlet.lowlevel.pyro_utils import safe_call
 
 
 Pyro4.config.SERIALIZER = "pickle"
@@ -28,27 +22,7 @@ Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
 
 
-def val_in_range(val_name, val, vmin, vmax):
-    p = val <= vmax and val >= vmin
-    if p:
-        print(Fore.GREEN + "[Pass] " + val_name + " with " + str(val))
-    else:
-        print(
-            Fore.RED
-            + "[Fail] "
-            + val_name
-            + " with "
-            + str(val)
-            + " out of range "
-            + str(vmin)
-            + " to "
-            + str(vmax)
-        )
-
-
 # #####################################################
-
-
 @Pyro4.expose
 class RemoteHelloRobot(object):
     """Hello Robot interface"""
@@ -56,27 +30,12 @@ class RemoteHelloRobot(object):
     def __init__(self, ip):
         self._ip = ip
         self._robot = Robot()
-        self._robot.startup()
-        if not self._robot.is_calibrated():
-            self._robot.home()
-        self._robot.stow()
+        self._robot.start()
         self._done = True
         self.cam = None
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
-        self._check_battery()
         self._load_urdf()
         self.tilt_correction = 0.0
-
-    def _check_battery(self):
-        p = self._robot.pimu
-        p.pull_status()
-        val_in_range("Voltage", p.status["voltage"], vmin=p.config["low_voltage_alert"], vmax=14.0)
-        val_in_range("Current", p.status["current"], vmin=0.1, vmax=p.config["high_current_alert"])
-        val_in_range("CPU Temp", p.status["cpu_temp"], vmin=15, vmax=80)
-        print(Style.RESET_ALL)
-
-    def pull_status(self):
-        self._robot.pull_status()
 
     def _load_urdf(self):
         import os
@@ -109,9 +68,8 @@ class RemoteHelloRobot(object):
         self.tilt_correction = angle
 
     def get_camera_transform(self):
-        s = self._robot.get_status()
-        head_pan = s["head"]["head_pan"]["pos"]
-        head_tilt = s["head"]["head_tilt"]["pos"]
+        head_pan = self.get_pan()
+        head_tilt = self.get_tilt()
 
         if self.tilt_correction != 0.0:
             head_tilt += self.tilt_correction
@@ -132,26 +90,36 @@ class RemoteHelloRobot(object):
 
         return camera_transform
 
-    def get_status(self):
-        return self._robot.get_status()
-
     def get_base_state(self):
-        s = self._robot.get_status()
-        return (s["base"]["x"], s["base"]["y"], s["base"]["theta"])
+        # Best (from SLAM)
+        return self._robot.get_slam_pose()
+        # second Best (from lidar scanning)
+        # return self._robot.get_scan_matched_pose()
+        # Worst, from wheel encoder only
+        # return self._robot.get_odom()
+
+    def get_slam_pose(self):
+        return self._robot.get_slam_pose()
+
+    def pull_status(self):
+        pass
+
+    def is_base_moving(self):
+        moving = self._robot.is_moving()
+        print("is_moving", moving)
+        return moving
 
     def get_pan(self):
-        s = self._robot.get_status()
-        return s["head"]["head_pan"]["pos"]
+        return self._robot.get_joint_state("head_pan")
 
     def get_tilt(self):
-        s = self._robot.get_status()
-        return s["head"]["head_tilt"]["pos"]
+        return self._robot.get_joint_state("head_tilt")
 
     def set_pan(self, pan):
-        self._robot.head.move_to("head_pan", pan)
+        self._robot.send_command("joint_head_pan", pan)
 
     def set_tilt(self, tilt):
-        self._robot.head.move_to("head_tilt", tilt)
+        self._robot.send_command("joint_head_tilt", tilt)
 
     def reset_camera(self):
         self.set_pan(0)
@@ -168,29 +136,21 @@ class RemoteHelloRobot(object):
         :type tilt: float
         :type wait: bool
         """
-        self._robot.head.move_to("head_pan", pan)
-        self._robot.head.move_to("head_tilt", tilt)
+        self.set_pan(pan)
+        self.set_tilt(tilt)
 
     def test_connection(self):
         print("Connected!!")  # should print on server terminal
         return "Connected!"  # should print on client terminal
 
-    def home(self):
-        self._robot.home()
-
-    def stow(self):
-        self._robot.stow()
-
     def push_command(self):
-        self._robot.push_command()
+        pass
 
     def translate_by(self, x_m):
-        self._robot.base.translate_by(x_m)
-        self._robot.push_command()
+        self._robot.send_command("translate_mobile_base", x_m)
 
     def rotate_by(self, x_r):
-        self._robot.base.rotate_by(x_r)
-        self._robot.push_command()
+        self._robot.send_command("rotate_mobile_base", x_r)
 
     def initialize_cam(self):
         if self.cam is None:
@@ -207,6 +167,7 @@ class RemoteHelloRobot(object):
                              in the world (map) frame.
         """
         status = "SUCCEEDED"
+        print("entering done", self._done)
         if self._done:
             self.initialize_cam()
             self._done = False
@@ -234,40 +195,17 @@ class RemoteHelloRobot(object):
             self._done = False
 
             def obstacle_fn():
-                return self.cam.is_obstacle_in_front()
+                return safe_call(self.cam, is_obstacle_in_front)
 
             status = goto(self, list(xyt_position), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
         return status
 
-    def is_base_moving(self):
-        robot = self._robot
-        left_wheel_moving = (
-            robot.base.left_wheel.status["is_moving_filtered"]
-            or robot.base.left_wheel.status["is_moving"]
-        )
-        right_wheel_moving = (
-            robot.base.right_wheel.status["is_moving_filtered"]
-            or robot.base.right_wheel.status["is_moving"]
-        )
-        is_moving = left_wheel_moving or right_wheel_moving
-        return is_moving
-
-    def is_busy(self):
-        return not self.is_moving()
-
     def is_moving(self):
         return not self._done
 
     def stop(self):
-        robot.stop()
-        robot.push_command()
-
-    def remove_runstop(self):
-        if robot.pimu.status["runstop_event"]:
-            robot.pimu.runstop_event_reset()
-            robot.push_command()
-
+        self._robot.stop()
 
 if __name__ == "__main__":
     import argparse
