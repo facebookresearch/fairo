@@ -20,6 +20,29 @@ popd
 
 ## 3. Start the services
 
+### Without ROS (i.e. directly using base API)
+
 ```bash
+# export LOCOBOT_IP=[your network ip]
+# example when using tailscale:
+# export LOCOBOT_IP=$(tailscale ip --4)
+
 ./launch.sh
+```
+
+### With ROS (i.e. better odometry using hector_slam, etc.)
+
+```bash
+# in fresh terminal
+deactivate
+./launch_ros.sh
+
+# in another terminal
+. droidlet/bin/activate
+
+# export LOCOBOT_IP=[your network ip]
+# example when using tailscale:
+# export LOCOBOT_IP=$(tailscale ip --4)
+
+./launch.sh --ros
 ```
