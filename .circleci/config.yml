@@ -368,7 +368,7 @@ jobs:
           command: pip install -U black flake8
       - run:
           name: flake8
-          command: cd mrp/src ; flake8 --ignore=F841,W503
+          command: cd mrp/src ; flake8
       - run:
           name: black
           command: black --check ./mrp

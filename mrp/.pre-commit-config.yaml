@@ -10,5 +10,3 @@ repos:
     hooks:
       - id: flake8
         exclude: mrp/examples
-        args: 
-          - "--ignore=F841,W503"

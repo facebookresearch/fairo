@@ -79,7 +79,7 @@ def down_existing(names: typing.List[str], force: bool):
                 ns.sat = True
                 ns.cv.notify()
 
-    watcher = life_cycle.system_state_watcher(callback)
+    watcher = life_cycle.system_state_watcher(callback)  # noqa: F841
 
     with ns.cv:
         success = ns.cv.wait_for(lambda: ns.sat, timeout=3.0)
