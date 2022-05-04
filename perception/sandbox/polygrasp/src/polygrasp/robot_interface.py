@@ -10,6 +10,8 @@ import hydra
 import graspnetAPI
 import polymetis
 
+from polygrasp import collision_detector
+
 
 def compute_des_pose(best_grasp):
     grasp_point = best_grasp.translation
@@ -75,6 +77,15 @@ class GraspingRobotInterface(polymetis.RobotInterface):
     def select_grasp(
         self, grasps: graspnetAPI.GraspGroup, scene_pcd: o3d.geometry.PointCloud
     ) -> graspnetAPI.Grasp:
+        # TODO: filter out kinematically infeasible grasps
+
+        # TODO: filter out collisions
+        collision = collision_detector.ModelFreeCollisionDetector(np.asarray(scene_pcd.points))
+        collision_mask = collision.detect(grasps)
+        print(f"Number of colliding grasps: {collision_mask.sum()}/{len(collision_mask)}")
+        grasps = grasps[~collision_mask]
+
+        # Choose the grasp closest to the neutral position
         with torch.no_grad():
             grasp, i = min_dist_grasp(self.default_ee_pose, grasps[:5])
             print(f"Closest grasp to ee ori, within top 5: {i + 1}")
@@ -84,12 +95,9 @@ class GraspingRobotInterface(polymetis.RobotInterface):
 
         # return grasps[0]
 
-    def grasp(self, grasp: graspnetAPI.Grasp):
-        time_to_go = 2
+    def grasp(self, grasp: graspnetAPI.Grasp, time_to_go=3, offset=np.array([0.0, 0.0, 0.0])):
         states = []
         grasp_point, grasp_approach_delta, des_ori_quat = compute_des_pose(grasp)
-
-        offset = np.array([0.1, 0.0, 0.1])
 
         self.gripper_open()
         states += self._move_until_success(
@@ -98,7 +106,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             time_to_go=time_to_go,
         )
 
-        grip_ee_pos = torch.Tensor(grasp_point + grasp_approach_delta * 0.75 + offset)
+        grip_ee_pos = torch.Tensor(grasp_point + grasp_approach_delta * 0.72 + offset)
 
         states += self._move_until_success(
             position=grip_ee_pos, orientation=torch.Tensor(des_ori_quat), time_to_go=time_to_go
