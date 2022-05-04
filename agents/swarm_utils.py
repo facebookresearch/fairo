@@ -56,11 +56,12 @@ def get_default_task_info(task_object_mapping):
     """
     DEFAULT_TASK_INFO = {
         "move": ["target", "approx"],
-        "build": ["embed", "blocks_list", "origin", 
-                  "verbose", "relations", "default_behavior", 
-                  "force", "fill_message", "schematic_memid", 
-                  "schematic_tags", "PLACE_REACH", "is_destroy_schm", 
-                  "dig_message", "DIG_REACH"],
+        # "build": ["embed", "blocks_list", "origin", 
+        #           "verbose", "relations", "default_behavior", 
+        #           "force", "fill_message", "schematic_memid", 
+        #           "schematic_tags", "PLACE_REACH", "is_destroy_schm", 
+        #           "dig_message", "DIG_REACH"],
+        "spawn": ["object_idm", "pos", "PLACE_REACH"]
     }
 
     task_info = {}

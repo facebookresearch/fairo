@@ -98,9 +98,6 @@ class Task(object):
         # FIXME remove this entirely, always wrap toplevel Events in ControlBlock,
         #   only ControlBlocks need conditions
         self.init_condition = AlwaysCondition(None)
-        # self.terminate_condition = TaskRunCountCondition(
-        #     agent.memory, self.memid, N=1
-        # )
 
         # remember to get children of blocking tasks (and delete this comment)
         if task_data.get("blocking"):

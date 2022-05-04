@@ -1,6 +1,7 @@
 from copy import deepcopy
 import numpy as np
 import logging
+from droidlet.memory.swarm_worker_memory import ForkedPdb
 from droidlet.task.task import ControlBlock, Task
 from droidlet.memory.memory_nodes import TaskNode
 from droidlet.interpreter.craftassist import tasks
@@ -68,6 +69,7 @@ class BaseSwarmTask(Task):
         else:
             # tag children's tasks with them
             tmp_task = TASK_MAP[task_name](self.agent, task_data)
+            # add special triple here: "_task_owner" -> agent_name
             self.agent.memory.tag(tmp_task.memid, self.memory_tag.format(worker_idx))
 
 class SwarmMove(BaseSwarmTask):
@@ -76,9 +78,19 @@ class SwarmMove(BaseSwarmTask):
     
     def distribute(self, task_data):
         for i in range(self.num_agents):
+            # increment x axis by 1 for each worker.
+            task_data['target'][2] = task_data['target'][2] + i 
             logging.info("for agent: %r move task data is : %r" % (i, task_data))
             self.assign_to_worker(self.task_agents_memid[i], "move", task_data)
 
+class SwarmSpawn(BaseSwarmTask):
+    def __init__(self, agent, task_data):
+        super().__init__(agent, task_data)
+
+    def distribute(self, task_data):
+        for i in range(self.num_agents):
+            logging.info("for agent: %r spawn task data is : %r" % (i, task_data))
+            self.assign_to_worker(self.task_agents_memid[i], "spawn", task_data)
 
 class SwarmDance(BaseSwarmTask):
     def __init__(self, agent, task_data):

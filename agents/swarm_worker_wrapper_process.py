@@ -125,6 +125,8 @@ class SwarmWorkerProcessWrapper(Process):
         # Set the priority of tasks and send update to master
         task_updates = []
         finished_task_memids = []
+        # if len(agent.task_stack.keys()) > 1:
+        #     ForkedPdb().set_trace()
         for memid, task in agent.task_stack.items():
             pre_task_status = (agent.prio[memid], agent.running[memid], task.finished)
             if agent.prio[memid] == 0:  # new task
@@ -134,7 +136,8 @@ class SwarmWorkerProcessWrapper(Process):
             if cur_task_status != pre_task_status:
                 task_updates.append((memid, cur_task_status))
         # send task updates when there's a change in task status
-        self.send_task_updates(task_updates)
+        if task_updates:
+            self.send_task_updates(task_updates)
 
         # Set running status and priority if prio > -1 and not paused, send updated to master
         task_updates = []
@@ -146,8 +149,9 @@ class SwarmWorkerProcessWrapper(Process):
                 # agent.prio[memid] = 1
                 agent.running[memid] = 1
                 cur_task_status = (agent.prio[memid], agent.running[memid], task.finished)
+                if cur_task_status != pre_task_status:
+                    task_updates.append((memid, cur_task_status))
                 # ForkedPdb().set_trace()
-                logging.info("task for agent: %r finished: %r" % (task, task.finished))
                 task.step()
                 if task.finished:
                     finished_task_memids.append(memid)
@@ -159,7 +163,8 @@ class SwarmWorkerProcessWrapper(Process):
             if cur_task_status != pre_task_status:
                 task_updates.append((memid, cur_task_status))
         # send task updates once the task status is changed
-        self.send_task_updates(task_updates)
+        if task_updates:
+            self.send_task_updates(task_updates)
 
 
         # Invoke task.step() if running >=1 and not paused, send updates to master
@@ -223,7 +228,7 @@ class SwarmWorkerProcessWrapper(Process):
             elif task_memid in agent.duplicate_tasks:
                 # if it is a duplicate task, update master about task status so that it won't be
                 # sent to the worker again
-                self.send_task_updates([(task_memid, (0, 0, True))])
+                self.send_task_updates([(task_memid, (-2, 0, True))])
 
     # def handle_master_query(self, agent):
     #     # query_from_master, worker receives the query/commands from the master from the queue
@@ -256,6 +261,8 @@ class SwarmWorkerProcessWrapper(Process):
             self.perceive(agent)
             self.send_perception_updates(agent) #-- skip, send no updates back right now
             self.handle_input_task(agent)
+            
             self.task_step(agent)
+
             # self.handle_master_query(agent)
             agent.count += 1

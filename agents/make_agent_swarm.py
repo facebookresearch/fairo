@@ -1,8 +1,10 @@
 import logging
+import time
 
 from agents.swarm_utils import get_memory_handlers_dict, get_safe_single_object_attr_dict, get_swarm_interpreter, safe_object
 from agents.swarm_worker_wrapper_process import SwarmWorkerProcessWrapper
 from droidlet.dialog.swarm_dialogue_manager import SwarmDialogueManager
+from droidlet.memory.memory_nodes import TaskNode
 
 
 class SwarmMasterWrapper():
@@ -23,6 +25,7 @@ class SwarmMasterWrapper():
         self.agent.task_step_filters = ["worker_bot_{}".format(i+1) for i in range(self.num_workers)]
         self.agent.num_agents = self.num_workers + 1 # including main agent
 
+        
     def init_all_workers(self, worker_agents, opts):
         # get task object mappings for interpreter. 
         # TODO: set these here for Put and get memory eventually
@@ -100,6 +103,7 @@ class SwarmMasterWrapper():
         :return:
         """
         query = "SELECT MEMORY FROM Task WHERE prio=0"
+        # where prio = 0 and task_owner = tag_name
         _, task_mems = self.agent.memory.basic_search(query)
         task_list = []
         for mem in task_mems:

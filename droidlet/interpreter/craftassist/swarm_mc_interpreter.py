@@ -30,6 +30,7 @@ class SwarmMCInterpreter(MCInterpreter):
         self.task_objects["dance"] = swarm_tasks.SwarmDance
         self.task_objects["dancemove"] = swarm_tasks.SwarmDanceMove
         self.task_objects["dig"] = swarm_tasks.SwarmDig
+        self.task_objects["spawn"] = swarm_tasks.SwarmSpawn
 
     ### Override the handle stop and handle resume ###
     # TODO: need to test the following again in the new task format.!!!!
