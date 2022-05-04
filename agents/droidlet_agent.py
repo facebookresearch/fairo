@@ -331,9 +331,19 @@ class DroidletAgent(BaseAgent):
         self.maybe_dump_memory_to_dashboard()
 
     def task_step(self, sleep_time=0.25):
+        tasks_out = self.memory._db_read("SELECT uuid, action_name, prio, running, finished from Tasks")  
+        # logging.info(tasks_out)
+        # for t in tasks_out:
+        #     if t[4] > 1:
+        #         import ipdb;ipdb.set_trace()
+        #         logging.info(self.memory.get_mem_by_id(t[0]).get_tags())
+            # task_mem =           
+            
+
         query = "SELECT MEMORY FROM Task WHERE prio={}".format(TaskNode.CHECK_PRIO)
         _, task_mems = self.memory.basic_search(query)
         
+        # NOTE: master can set child's priority for all workers here.
         for mem in task_mems:
             if not self.filter_task(mem): 
                 if mem.task.init_condition.check():

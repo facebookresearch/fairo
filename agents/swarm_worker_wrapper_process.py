@@ -151,7 +151,7 @@ class SwarmWorkerProcessWrapper(Process):
                 task.step()
                 if task.finished:
                     finished_task_memids.append(memid)
-                    cur_task_status = (0, 0, task.finished)
+                    cur_task_status = (-2, 0, task.finished)
                 # if task.terminate_condition.check():  # does it need to be stoppped ?
                 #     agent.prio[memid] = -1
                 #     agent.running[memid] = 0
@@ -250,7 +250,6 @@ class SwarmWorkerProcessWrapper(Process):
         self.init_worker(agent)
         agent.task_filter = agent.name
         self.query_or_updates_from_worker.put(("initialization", True))
-        # TODO: look into why we need agent's memory ?
         self.query_or_updates_from_worker.put(("memid", agent.memory.self_memid))
 
         while True:

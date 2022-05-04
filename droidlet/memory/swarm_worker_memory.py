@@ -82,6 +82,7 @@ class SwarmWorkerMemory():
         return to_return
 
     def maybe_remove_inst_seg(self, xyz: XYZ):
+        # return default 
         return self._db_command("maybe_remove_inst_seg", xyz)
 
     def maybe_add_block_to_memory(self, interesting, player_placed, agent_placed, xyz, idm):
