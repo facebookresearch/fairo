@@ -254,6 +254,11 @@ class HelloRobotMover(MoverInterface):
             if blocking:
                 self.nav_result.wait()
         return "finished"
+    
+    def get_base_pos(self):
+        future = safe_call(self.bot.get_base_state)
+        return future.value
+
 
     def get_base_pos_in_canonical_coords(self):
         """get the current robot position in the canonical coordinate system
@@ -392,7 +397,7 @@ class HelloRobotMover(MoverInterface):
 
     def explore(self, goal):
         if self.nav_result.ready:
-            self.nav_result = safe_call(self.nav.explore, goal)
+            self.nav_result = safe_call(self.nav.explore, base_canonical_coords_to_pyrobot_coords(goal))
         else:
             print("navigator executing another call right now")
         return self.nav_result

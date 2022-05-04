@@ -88,7 +88,7 @@ class LocobotAgent(DroidletAgent):
         if self.backend == "habitat":
             self.visible_defaults = [(1.0, default_behaviors.explore)]
         elif self.backend == "hellorobot":
-            self.visible_defaults = []
+            self.visible_defaults = [(1.0, default_behaviors.explore)]
         else:
             raise RuntimeError("Unknown backend specified {}" % (self.backend,))
         self.interaction_logger = InteractionLogger()
