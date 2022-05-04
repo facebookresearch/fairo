@@ -4,16 +4,34 @@ Connects to robot, camera(s), gripper, and grasp server.
 Runs grasps generated from grasp server.
 """
 
-import random
-import torch
+import time
+import os
 
+import numpy as np
+import matplotlib.pyplot as plt
+
+import torch
 import hydra
+import omegaconf
+
 from polygrasp.pointcloud_rpc import PointCloudClient, RgbdFeaturesPointCloudClient
 from polygrasp.grasp_rpc import GraspClient
+
+def save_rgbd_masked(rgbd, rgbd_masked):
+    num_cams = rgbd.shape[0]
+    f, axarr = plt.subplots(2, num_cams)
+
+    for i in range(num_cams):
+        axarr[0, i].imshow(rgbd[i, :, :, :3].astype(np.uint8))
+        axarr[1, i].imshow(rgbd_masked[i, :, :, :3].astype(np.uint8))
+
+    f.savefig("rgbd_masked")
 
 
 @hydra.main(config_path="../conf", config_name="run_grasp")
 def main(cfg):
+    print(f"Config: {omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")
+    print(f"Current working directory: {os.getcwd()}")
     # Initialize robot & gripper
     robot = hydra.utils.instantiate(cfg.robot)
     robot.gripper_open()
@@ -26,122 +44,133 @@ def main(cfg):
     camera_intrinsics = cameras.get_intrinsics()
     camera_extrinsics = cameras.get_extrinsics()
 
-    import numpy as np
     # masks = np.ones([3, 480, 640])
 
     masks = np.zeros([3, 480, 640])
-    masks[0][70:320, 60:400] = 1
-    masks[1][100:350, 300:600] = 1
+    # masks[0][70:320, 60:400] = 1
     # masks[2][130:350, 240:480] = 1
+    masks[0][20:460, :440] = 1
+    masks[1][100:480, 180:600] = 1
 
     # Connect to grasp candidate selection and pointcloud processor
     pcd_client = RgbdFeaturesPointCloudClient(camera_intrinsics, camera_extrinsics, masks=masks)
     grasp_client = GraspClient(view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path))
 
-    num_iters = 10
-    for i in range(num_iters):
-        print(f"Grasp {i + 1} / num_iters")
+    root_dir = os.getcwd()
 
-        print("Getting rgbd and pcds..")
-        rgbd = cameras.get_rgbd()
-        rgbd_masked = rgbd * masks[:, :, :, None]
-        pcds = pcd_client.get_pcd(rgbd)
+    for outer_i in range(0, 10):
+        cam_i = outer_i % 2
+        print(f"=== Starting outer loop with cam {cam_i} ===")
 
-        # import matplotlib.pyplot as plt
-        # f, axarr = plt.subplots(2, 3)
-        # for i in range(3):
-        #     axarr[0, i].imshow(rgbd[i, :, :, :3].astype(np.uint8))
-        #     axarr[1, i].imshow(rgbd_masked[i, :, :, :3].astype(np.uint8))
-        # f.show()
-        # import pdb; pdb.set_trace()
+        if cam_i == 0:
+            hori_offset = torch.Tensor([0, 0.4, 0])
+            grasp_offset = np.array([0.1, 0.0, 0.05])
+            time_to_go = 2
+        else:
+            hori_offset = torch.Tensor([0, -0.4, 0])
+            grasp_offset = np.array([0.1, 0.1, 0.1])
+            time_to_go = 3
 
-        scene_pcd = pcds[0]
-        for pcd in pcds[1:]:
-            scene_pcd += pcd
+        num_iters = 10
+        for i in range(num_iters):
+            os.chdir(root_dir)
+            timestamp = int(time.time())
+            os.makedirs(f"{timestamp}")
+            os.chdir(f"{timestamp}")
 
-        # import pdb; pdb.set_trace()
-        # Get RGBD & pointcloud
-        print("Segmenting image...")
-        labels = pcd_client.segment_img(rgbd_masked[0])
-        from matplotlib import pyplot as plt
-        obj_to_pcd = {}
-        obj_to_grasps = {}
-        num_objs = int(labels.max())
-        print(f"Number of objs: {num_objs}")
-        # for i in range(1, int(num_objs + 1)):
-        # if num_objs > 0:
-        #     i = 1
-        min_mask_size = 2000
-        for i in range(1, num_objs + 1):
-            obj_mask = labels == i
-            obj_mask_size = obj_mask.sum()
-            if obj_mask_size < min_mask_size:
-                continue
+            print(f"Grasp {i + 1} / num_iters, in {os.getcwd()}")
 
-            obj_masked_rgbd = rgbd[0] * obj_mask[:, :, None]
+            print("Getting rgbd and pcds..")
+            rgbd = cameras.get_rgbd()
+            rgbd_masked = rgbd * masks[:, :, :, None]
+            pcds = pcd_client.get_pcd(rgbd)
 
-            # plt.imshow(obj_masked_rgbd[:, :, :3])
-            # plt.title(f"Object {i}, mask size {obj_mask_size}")
-            # plt.show()
+            save_rgbd_masked(rgbd, rgbd_masked)
 
-            print(f"Getting obj {i} pcd...")
-            pcd = pcd_client.get_pcd_i(obj_masked_rgbd, 0)
-            print(f"Getting obj {i} grasp...")
-            grasp_group = grasp_client.get_grasps(pcd)
+            scene_pcd = pcds[0]
+            for pcd in pcds[1:]:
+                scene_pcd += pcd
 
-            obj_to_pcd[i] = pcd
-            obj_to_grasps[i] = grasp_group
-            break
+            # Get RGBD & pointcloud
+            print("Segmenting image...")
+            labels = pcd_client.segment_img(rgbd_masked[cam_i])
 
-            # grasp_client.visualize_grasp(scene_pcd, grasp_group, plot=True)
-        if len(obj_to_pcd) == 0:
-            print(f"Failed to find any objects with mask size > {min_mask_size}!")
-            continue
+            obj_to_grasps = {}
+            num_objs = int(labels.max())
+            print(f"Number of objs: {num_objs}")
+            # for i in range(1, int(num_objs + 1)):
+            # if num_objs > 0:
+            #     i = 1
+            min_mask_size = 2500
+            for obj_i in range(1, num_objs + 1):
+                obj_mask = labels == obj_i
+                obj_mask_size = obj_mask.sum()
 
-        # import pdb; pdb.set_trace()
+                if obj_mask_size < min_mask_size:
+                    continue
 
-        # vis = grasp_client.visualize(scene_pcd, render=True)
-        # import pdb; pdb.set_trace()
-        # rgb, d, intrinsics = grasp_client.get_rgbd(vis)
+                obj_masked_rgbd = rgbd_masked[cam_i] * obj_mask[:, :, None]
+
+                plt.imshow(obj_masked_rgbd[:, :, :3])
+                plt.title(f"Object {obj_i}, mask size {obj_mask_size}")
+                plt.savefig(f"object_{obj_i}_masked")
+                plt.close()
+                # plt.show()
+
+                print(f"Getting obj {obj_i} pcd...")
+                pcd = pcd_client.get_pcd_i(obj_masked_rgbd, cam_i)
+                print(f"Getting obj {obj_i} grasp...")
+                grasp_group = grasp_client.get_grasps(pcd)
+                obj_to_grasps[obj_i] = grasp_group
+
+                break
+
+            if len(obj_to_grasps) == 0:
+                print(f"Failed to find any objects with mask size > {min_mask_size}!")
+                break
+
+            # import pdb; pdb.set_trace()
+
+            # vis = grasp_client.visualize(scene_pcd, render=True)
+            # import pdb; pdb.set_trace()
+            # rgb, d, intrinsics = grasp_client.get_rgbd(vis)
 
 
-        # grasp_group = grasp_client.get_grasps(pcd)
-        # grasp_client.visualize_grasp(
-        #     scene_pcd, grasp_group, render=True, save_view=False, plot=True
-        # )
+            # grasp_group = grasp_client.get_grasps(pcd)
+            # grasp_client.visualize_grasp(
+            #     scene_pcd, grasp_group, render=True, save_view=False, plot=True
+            # )
 
-        # Get grasps per object
-        # obj_to_pcd = pcd_client.segment_pcd(scene_pcd)
-        # obj_to_grasps = {obj: grasp_client.get_grasps(pcd) for obj, pcd in obj_to_pcd.items()}
+            # Get grasps per object
+            # obj_to_pcd = pcd_client.segment_pcd(scene_pcd)
+            # obj_to_grasps = {obj: grasp_client.get_grasps(pcd) for obj, pcd in obj_to_pcd.items()}
 
-        # Pick a random object to grasp
-        # curr_obj, curr_grasps = random.choice(list(obj_to_grasps.items()))
-        # curr_obj, curr_grasps = 1, obj_to_grasps[1]
-        # print(f"Picking object with ID {curr_obj}")
-        curr_grasps = grasp_group
+            # Pick a random object to grasp
+            # curr_obj, curr_grasps = random.choice(list(obj_to_grasps.items()))
+            # curr_obj, curr_grasps = 1, obj_to_grasps[1]
+            # print(f"Picking object with ID {curr_obj}")
+            curr_grasps = grasp_group
 
-        # Choose a grasp for this object
-        # TODO: scene-aware motion planning for grasps
-        grasp_client.visualize_grasp(scene_pcd, curr_grasps, plot=True)
-        chosen_grasp = robot.select_grasp(curr_grasps, scene_pcd)
+            # Choose a grasp for this object
+            # TODO: scene-aware motion planning for grasps
+            grasp_client.visualize_grasp(pcds[cam_i], curr_grasps)
+            chosen_grasp = robot.select_grasp(curr_grasps, scene_pcd)
 
-        # Execute grasp
-        traj, success = robot.grasp(chosen_grasp)
-        print(f"Grasp success: {success}")
+            # Execute grasp
+            traj, success = robot.grasp(chosen_grasp, offset=grasp_offset, time_to_go=time_to_go)
+            print(f"Grasp success: {success}")
 
-        if success:
-            print(f"Moving end-effector up")
+            if success:
+                print(f"Moving end-effector up")
+                curr_pose, curr_ori = robot.get_ee_pose()
+                states = robot._move_until_success(position=curr_pose + torch.Tensor([0, 0, 0.2]), orientation=curr_ori, time_to_go=time_to_go)
+                states = robot._move_until_success(position=curr_pose + torch.Tensor([0, 0.0, 0.2]) + hori_offset, orientation=curr_ori, time_to_go=time_to_go)
+                states = robot._move_until_success(position=curr_pose + torch.Tensor([0, 0.0, 0.05]) + hori_offset, orientation=curr_ori, time_to_go=time_to_go)
+
+            robot.gripper_open()
             curr_pose, curr_ori = robot.get_ee_pose()
-            states = robot._move_until_success(position=curr_pose + torch.Tensor([0, 0, 0.2]), orientation=curr_ori, time_to_go=3)
-            states = robot._move_until_success(position=curr_pose + torch.Tensor([0, 0.4, 0.2]), orientation=curr_ori, time_to_go=3)
-            states = robot._move_until_success(position=curr_pose + torch.Tensor([0, 0.4, 0.05]), orientation=curr_ori, time_to_go=3)
-
-        robot.gripper_open()
-        curr_pose, curr_ori = robot.get_ee_pose()
-        states = robot._move_until_success(position=curr_pose + torch.Tensor([0, 0.0, 0.2]), orientation=curr_ori, time_to_go=3)
-        robot.go_home()
-            # robot.move_to_ee_pose(torch.Tensor([0, 0, 0.1]), delta=True)
-            # robot.move_to_ee_pose(torch.Tensor([0, 0, -0.1]), delta=True)
+            states = robot._move_until_success(position=curr_pose + torch.Tensor([0, 0.0, 0.2]), orientation=curr_ori, time_to_go=time_to_go)
+            robot.go_home()
 
 
 if __name__ == "__main__":

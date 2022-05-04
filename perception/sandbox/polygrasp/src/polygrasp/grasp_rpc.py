@@ -1,3 +1,4 @@
+import time
 import logging
 import numpy as np
 import open3d as o3d
@@ -104,9 +105,29 @@ class GraspClient:
         render=False,
         save_view=False,
     ) -> None:
+        timestamp = int(time.time())
+        o3d_geometries = grasp_group.to_open3d_geometry_list()
+
+        # k = 5
+        # total_pts = scene_pcd
+        # pts = [x.sample_points_uniformly(number_of_points=5000) for x in o3d_geometries[:k]]
+        # for pt in pts:
+        #     total_pts += pt
+        # vis = self.visualize(scene_pcd=total_pts, plot=plot, render=render, save_view=save_view)
+        # grasp_image = np.array(vis.capture_screen_float_buffer(do_render=True))
+        # f = plt.figure()
+        # plt.imshow(grasp_image)
+        # f.savefig(f"{timestamp}_grasp_top_{k}.png")
+        # plt.close(f)
+        # vis.close()
+
         vis = self.visualize(scene_pcd=scene_pcd, plot=plot, render=render, save_view=save_view)
 
-        o3d_geometries = grasp_group.to_open3d_geometry_list()
+        grasp_image = np.array(vis.capture_screen_float_buffer(do_render=True))
+        f = plt.figure()
+        plt.imshow(grasp_image)
+        f.savefig(f"scene.png")
+
         n = min(n, len(o3d_geometries))
         log.info(f"Visualizing top {n} grasps in Open3D...")
 
@@ -116,15 +137,24 @@ class GraspClient:
             vis.add_geometry(scene_points, reset_bounding_box=False)
             grasp_image = np.array(vis.capture_screen_float_buffer(do_render=True))
             grasp_images.append(grasp_image)
+            f = plt.figure()
+            plt.imshow(grasp_image)
+            f.savefig(f"grasp_{i + 1}.png")
+            plt.close(f)
             vis.remove_geometry(scene_points, reset_bounding_box=False)
 
         if plot:
             log.info("Plotting with matplotlib...")
-            f, axarr = plt.subplots(1, n, figsize=(n * 4.5, 3))
+            w, h = n // 5, 5
+            if n % 5 != 0:
+                w += 1
+
+            f, axarr = plt.subplots(w, h, figsize=(w * 5, h * 3))
             for i in range(n):
-                axarr[i].imshow(grasp_images[i], interpolation="nearest", aspect="auto")
-                axarr[i].axis("off")
-                axarr[i].set_title(f"Grasp pose top {i + 1}/{n}")
+                a, b = i // 5, i % 5
+                axarr[a, b].imshow(grasp_images[i])
+                axarr[a, b].axis("off")
+                axarr[a, b].set_title(f"Grasp pose top {i + 1}/{n}")
             f.show()
-        
+
         return vis
