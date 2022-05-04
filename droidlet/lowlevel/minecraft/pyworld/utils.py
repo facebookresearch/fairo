@@ -7,11 +7,7 @@ from unittest.mock import Mock
 
 import numpy as np
 
-Player = namedtuple("Player", "entityId, name, pos, look, mainHand")
-Mob = namedtuple("Mob", "entityId, mobType, pos, look")
-Pos = namedtuple("Pos", "x, y, z")
-Look = namedtuple("Look", "yaw, pitch")
-Item = namedtuple("Item", "id, meta")
+FLAT_GROUND_DEPTH = 8
 
 
 class PickleMock(Mock):
@@ -48,3 +44,59 @@ def to_relative_pos(block_list):
     if type(block_list) is frozenset:
         S = frozenset(S)
     return S, origin
+
+
+def flat_ground_generator_with_grass(world):
+    flat_ground_generator(world, grass=True)
+
+
+def flat_ground_generator(world, grass=False, ground_depth=FLAT_GROUND_DEPTH):
+    r = world.to_world_coords((0, 62, 0))[1]
+    # r = world.sl // 2
+    world.blocks[:] = 0
+    world.blocks[:, 0:r, :, 0] = 7
+    world.blocks[:, r - ground_depth : r, :, 0] = 3
+    if grass:
+        world.blocks[:, r, :, 0] = 2
+    else:
+        world.blocks[:, r, :, 0] = 3
+
+
+def build_ground(world):
+    if hasattr(world.opts, "avg_ground_height"):
+        avg_ground_height = world.opts.avg_ground_height
+    else:
+        avg_ground_height = 6.0
+    if hasattr(world.opts, "hill_scale"):
+        hill_scale = world.opts.hill_scale
+    else:
+        hill_scale = 5.0
+    p = hill_scale * np.random.randn(6)
+    g = np.mgrid[0 : world.sl, 0 : world.sl].astype("float32") / world.sl
+    ground_height = (
+        p[0] * np.sin(g[0])
+        + p[1] * np.cos(g[0])
+        + p[2] * np.cos(g[0]) * np.sin(g[0])
+        + p[3] * np.sin(g[1])
+        + p[4] * np.cos(g[1])
+        + p[5] * np.cos(g[1]) * np.sin(g[1])
+    )
+    ground_height = ground_height - ground_height.mean() + avg_ground_height
+    for i in range(world.sl):
+        for j in range(world.sl):
+            height = min(31, max(0, int(ground_height[i, j])))
+            for k in range(int(height)):
+                world.blocks[i, k, j] = (3, 0)
+
+    # FIXME this is broken
+    if hasattr(world.opts, "ground_block_probs"):
+        ground_blocks = np.transpose(np.nonzero(world.blocks[:, :, :, 0] == 3))
+        num_ground_blocks = len(ground_blocks)
+        for idm, val in world.opts.ground_block_probs:
+            if idm != (3, 0):
+                num = np.random.rand() * val * 2 * num_ground_blocks
+                for i in range(num):
+                    j = np.random.randint(num_ground_blocks)
+                    world.blocks[
+                        ground_blocks[j][0], ground_blocks[j][1], ground_blocks[j][2], :
+                    ] = idm

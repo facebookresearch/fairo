@@ -1,21 +1,10 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from typing import cast
-from collections import namedtuple
-from droidlet.base_util import XYZ
 import numpy as np
-
-# mainHand is the item in the player or agent's hand, that will be placed by a place block action
-# it is defined in lowlevel/minecraft/client/src/types.h as Item, and has fields id, meta
-Player = namedtuple(
-    "Player", "entityId, name, pos, look, mainHand, cagent_struct", defaults=(None,) * 6
-)
-Mob = namedtuple("Mob", "entityId, mobType, pos, look, cagent_struct", defaults=(None,) * 5)
-Pos = namedtuple("Pos", "x, y, z")
-Look = namedtuple("Look", "yaw, pitch")
-Item = namedtuple("Item", "id, meta")
-ItemStack = namedtuple("ItemStack", "item, pos, entityId")
+from typing import cast
+from droidlet.base_util import XYZ, Pos, Look
+from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item, ItemStack, Mob
 
 
 def flip_x(struct, floor=False):

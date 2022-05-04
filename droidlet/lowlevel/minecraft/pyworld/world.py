@@ -3,40 +3,16 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
 from typing import Sequence, Dict
+from droidlet.base_util import Pos
 from droidlet.lowlevel.minecraft.mc_util import Block, XYZ, IDM
 from droidlet.shared_data_struct.rotation import look_vec
 from .fake_mobs import make_mob_opts, MOB_META, SimpleMob
-
-FLAT_GROUND_DEPTH = 8
-
-
-class Opt:
-    pass
-
-
-def flat_ground_generator_with_grass(world):
-    flat_ground_generator(world, grass=True)
-
-
-def flat_ground_generator(world, grass=False, ground_depth=FLAT_GROUND_DEPTH):
-    r = world.to_world_coords((0, 62, 0))[1]
-    # r = world.sl // 2
-    world.blocks[:] = 0
-    world.blocks[:, 0:r, :, 0] = 7
-    world.blocks[:, r - ground_depth : r, :, 0] = 3
-    if grass:
-        world.blocks[:, r, :, 0] = 2
-    else:
-        world.blocks[:, r, :, 0] = 3
+from .utils import build_ground
 
 
 def shift_coords(p, shift):
     if hasattr(p, "x"):
-        q = Opt()
-        q.x = p.x + shift[0]
-        q.y = p.y + shift[1]
-        q.z = p.z + shift[2]
-        return q
+        return Pos(p.x + shift[0], p.y + shift[1], p.z + shift[2])
     q = np.add(p, shift)
     if type(p) is tuple:
         q = tuple(q)
@@ -78,7 +54,7 @@ class World:
             else:
                 spec["ground_generator"](self, **ground_args)
         else:
-            self.build_ground()
+            build_ground(self)
         self.mobs = []
         for m in spec["mobs"]:
             m.add_to_world(self)
@@ -110,45 +86,6 @@ class World:
             if hasattr(p, "step"):
                 p.step()
         self.count += 1
-
-    def build_ground(self):
-        if hasattr(self.opts, "avg_ground_height"):
-            avg_ground_height = self.opts.avg_ground_height
-        else:
-            avg_ground_height = 6.0
-        if hasattr(self.opts, "hill_scale"):
-            hill_scale = self.opts.hill_scale
-        else:
-            hill_scale = 5.0
-        p = hill_scale * np.random.randn(6)
-        g = np.mgrid[0 : self.sl, 0 : self.sl].astype("float32") / self.sl
-        ground_height = (
-            p[0] * np.sin(g[0])
-            + p[1] * np.cos(g[0])
-            + p[2] * np.cos(g[0]) * np.sin(g[0])
-            + p[3] * np.sin(g[1])
-            + p[4] * np.cos(g[1])
-            + p[5] * np.cos(g[1]) * np.sin(g[1])
-        )
-        ground_height = ground_height - ground_height.mean() + avg_ground_height
-        for i in range(self.sl):
-            for j in range(self.sl):
-                height = min(31, max(0, int(ground_height[i, j])))
-                for k in range(int(height)):
-                    self.blocks[i, k, j] = (3, 0)
-
-        # FIXME this is broken
-        if hasattr(self.opts, "ground_block_probs"):
-            ground_blocks = np.transpose(np.nonzero(self.blocks[:, :, :, 0] == 3))
-            num_ground_blocks = len(ground_blocks)
-            for idm, val in self.opts.ground_block_probs:
-                if idm != (3, 0):
-                    num = np.random.rand() * val * 2 * num_ground_blocks
-                    for i in range(num):
-                        j = np.random.randint(num_ground_blocks)
-                        self.blocks[
-                            ground_blocks[j][0], ground_blocks[j][1], ground_blocks[j][2], :
-                        ] = idm
 
     def place_block(self, block: Block, force=False):
         loc, idm = block

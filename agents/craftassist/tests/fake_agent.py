@@ -9,7 +9,8 @@ from typing import List, Tuple
 
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, Block
 from droidlet.memory.memory_nodes import ChatNode
-from droidlet.lowlevel.minecraft.pyworld.utils import Look, Pos, Item, Player
+from droidlet.base_util import Look, Pos
+from droidlet.shared_data_struct.craftassist_shared_utils import Item, Player
 from agents.droidlet_agent import DroidletAgent
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
