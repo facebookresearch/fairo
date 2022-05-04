@@ -1,4 +1,4 @@
-var skin = require('minecraft-skin');  // Can change this to be an import
+var skin = require('minecraft-skin');
 
 
 class VoxelPlayer {
@@ -10,14 +10,14 @@ class VoxelPlayer {
         this.player = this.playerSkin.mesh;  // Returns player object
         
         this.player.position.set(0, 562, -20);  // Check starting position assumptions
-        world.scene.add(player);
+        world.scene.add(this.player);
         
-        world.control(player);  // To think about more
+        world.control(this.player);  // To think about more
         
         this.pov = 1;   
     }
 
-    move(x, y, z) {  // Still need this fx?
+    move(x, y, z) {
         var xyz = parseXYZ(x, y, z);
         this.player.position.x += xyz.x;
         this.player.position.y += xyz.y;
