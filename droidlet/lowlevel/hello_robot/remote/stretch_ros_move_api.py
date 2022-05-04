@@ -64,6 +64,13 @@ class MoveNode(hm.HelloNode):
         rospy.loginfo('joint_name = {0}, trajectory_goal = {1}'.format(joint_name, trajectory_goal))
         rospy.loginfo('Done sending pose.')
 
+    def stop(self):
+        rospy.wait_for_service('stop_the_robot')
+        s = rospy.ServiceProxy('stop_the_robot', Trigger)
+        s_request = TriggerRequest()
+        result = s(s_request)
+        return result
+
     def background_loop(self):
         
         rospy.Subscriber('/stretch/joint_states', JointState, self._joint_states_callback)

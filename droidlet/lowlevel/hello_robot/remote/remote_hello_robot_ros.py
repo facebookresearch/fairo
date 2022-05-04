@@ -96,6 +96,12 @@ class RemoteHelloRobot(object):
         theta = slam_pose.pose.orientation.z
         return (x, y, theta)
 
+    def pull_status(self):
+        pass
+
+    def is_moving(self):
+        return False
+
     def get_pan(self):
         return self._robot.get_joint_state("head_pan")
 
@@ -133,7 +139,7 @@ class RemoteHelloRobot(object):
     def push_command(self):
         pass
 
-    def translate_by(self, x_m):
+    def translate_by(self, x_m, v_m=None):
         self._robot.send_command("translate_mobile_base", x_m)
 
     def rotate_by(self, x_r):
