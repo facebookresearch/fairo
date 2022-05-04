@@ -1,0 +1,6 @@
+camera_sub:
+  _target_: polygrasp.cam_pub_sub.CameraSubscriber
+  extrinsics_file: "/home/yixinlin/Downloads/calibration.json"
+  intrinsics_file: "/home/yixinlin/dev/farsighted-mpc/third_party/fairo/perception/sandbox/polygrasp/scripts/demo_intrinsics.json"
+
+view_json_path: conf/o3d_view.json
