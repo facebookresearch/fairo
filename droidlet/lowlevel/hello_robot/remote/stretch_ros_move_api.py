@@ -91,11 +91,11 @@ class MoveNode(hm.HelloNode):
         hm.HelloNode.main(self, 'fairo_hello_proxy', 'fairo_hello_proxy', wait_for_first_pointcloud=False)
         self._thread = threading.Thread(target=self.background_loop, daemon=True)
         self._thread.start()
-        while not rospy.is_shutdown():
+        # while not rospy.is_shutdown():
             # print(self.get_joint_state('head_pan'))
-            joint_state = self.get_joint_state()
-            if joint_state is not None:
-                print(joint_state)
+            # joint_state = self.get_joint_state()
+            # if joint_state is not None:
+            #     print(joint_state)
             # slam_pose = self.get_slam_pose()
             # if slam_pose is not None:
             #     # print(slam_pose)
