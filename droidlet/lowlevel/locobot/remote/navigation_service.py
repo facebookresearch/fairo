@@ -7,6 +7,8 @@ import numpy as np
 import Pyro4
 from slam_pkg.utils import depth_util as du
 from rich import print
+from droidlet.lowlevel.pyro_utils import safe_call
+
 
 random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
@@ -88,7 +90,7 @@ class Navigation(object):
                 )
                 return_code = False
                 break
-            status = self.robot.go_to_absolute(stg)
+            status = safe_call(self.robot.go_to_absolute, stg)
             robot_loc = self.robot.get_base_state()
 
             print("[navigation] Finished a go_to_absolute")
