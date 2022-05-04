@@ -143,7 +143,7 @@ def goto(
             while is_moving:
                 time.sleep(0.1)
                 robot.pull_status()
-                is_moving = robot.is_moving()
+                is_moving = robot.is_base_moving()
         return status
 
     # robot is at (0, 0) because we're using base-frame
@@ -201,7 +201,7 @@ def goto(
         while is_moving:
             time.sleep(0.1)
             robot.pull_status()
-            is_moving = robot.is_moving()
+            is_moving = robot.is_base_moving()
 
     # move the distance
     print("translate by ", dist)
@@ -226,7 +226,7 @@ def goto(
                 return "FAILED"
             time.sleep(0.1)
             robot.pull_status()
-            is_moving = robot.is_moving()
+            is_moving = robot.is_base_moving()
 
     # second rotate by theta2
     theta_2 = np.sign(theta_2) * (abs(theta_2) % radians(360))
@@ -244,5 +244,5 @@ def goto(
         while is_moving:
             time.sleep(0.1)
             robot.pull_status()
-            is_moving = robot.is_moving()
+            is_moving = robot.is_base_moving()
     return status

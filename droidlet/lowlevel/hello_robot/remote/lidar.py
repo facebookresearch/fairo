@@ -1,3 +1,4 @@
+import math
 import sys
 import threading
 import time
@@ -27,10 +28,21 @@ class Lidar:
     def _scan_callback(self, scan):
         with self._lock:
             in_mm = [s * 1000 for s in scan.ranges]
-            self.latest_scan = ([], in_mm, scan.intensities)
+            angle_min = scan.angle_min
+            angle_max = scan.angle_max
+            angle_inc = scan.angle_increment
+            angles = []
+            for i in range(len(in_mm)):
+                radians = angle_min + angle_inc * i
+                angles.append(math.degrees(radians) + 180)
+            quality = scan.intensities
+            lscan = []
+            for i in range(len(in_mm)):
+                lscan.append((quality[i], angles[i], in_mm[i]))
+            self.latest_scan = (scan.header.stamp.secs, lscan)
 
     def lidar_loop(self):
-        rospy.Subscriber("scan", LaserScan, self._scan_callback)
+        rospy.Subscriber("scan", LaserScan, self._scan_callback, queue_size=1)
         rate = rospy.Rate(20)
         while not rospy.is_shutdown():
             rate.sleep()

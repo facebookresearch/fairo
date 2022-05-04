@@ -24,7 +24,7 @@ export CAMERA_NAME="hello_realsense"
 
 echo $ip
 python3 ./remote_hello_robot_ros.py --ip $ip &
-timeout 20s bash -c "until python check_connected.py hello_robot $ip; do sleep 0.5; done;" || true
+timeout 50s bash -c "until python check_connected.py hello_robot $ip; do sleep 0.5; done;" || true
 
 python3 ./remote_hello_realsense.py --ip $ip &
 timeout 20s bash -c "until python check_connected.py hello_realsense $ip; do sleep 0.5; done;" || true

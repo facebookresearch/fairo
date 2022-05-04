@@ -1,3 +1,4 @@
+import time
 import math
 import threading
 import rospy
@@ -74,8 +75,8 @@ class MoveNode(hm.HelloNode):
 
     def background_loop(self):
 
-        rospy.Subscriber("/stretch/joint_states", JointState, self._joint_states_callback)
-        rospy.Subscriber("/slam_out_pose", PoseStamped, self._slam_pose_callback)
+        rospy.Subscriber("/stretch/joint_states", JointState, self._joint_states_callback, queue_size=1)
+        rospy.Subscriber("/slam_out_pose", PoseStamped, self._slam_pose_callback, queue_size=1)
 
         rate = rospy.Rate(self.rate)
 
@@ -94,25 +95,28 @@ class MoveNode(hm.HelloNode):
         )
         self._thread = threading.Thread(target=self.background_loop, daemon=True)
         self._thread.start()
-        # while not rospy.is_shutdown():
-        # print(self.get_joint_state('head_pan'))
-        # joint_state = self.get_joint_state()
-        # if joint_state is not None:
-        #     print(joint_state)
-        # slam_pose = self.get_slam_pose()
-        # if slam_pose is not None:
-        #     # print(slam_pose)
-        #     x = slam_pose.pose.position.x
-        #     y = slam_pose.pose.position.y
-        #     theta = slam_pose.pose.orientation.z
-        #     print(x, y, theta)
-
-        # FORWARD/BACKWARD in metres
-        # self.send_command('translate_mobile_base', 0.05)
-        # ROTATE LEFT +ve / RIGHT -ve in radians
         # self.send_command('rotate_mobile_base', math.radians(6))
+        # while not rospy.is_shutdown():
+        #     time.sleep(1)
+        #     # print(self.get_joint_state('head_pan'))
+        #     # joint_state = self.get_joint_state()
+        #     # if joint_state is not None:
+        #     #     print(joint_state)
+        #     # slam_pose = self.get_slam_pose()
+        #     # if slam_pose is not None:
+        #     #     # print(slam_pose)
+        #     #     x = slam_pose.pose.position.x
+        #     #     y = slam_pose.pose.position.y
+        #     #     theta = slam_pose.pose.orientation.z
+        #     #     print(x, y, theta)
+            
+        #     # FORWARD/BACKWARD in metres
+        #     # self.send_command('translate_mobile_base', 0.05)
+        #     # ROTATE LEFT +ve / RIGHT -ve in radians
+        #     # self.send_command('rotate_mobile_base', math.radians(6))
 
 
 if __name__ == "__main__":
     node = MoveNode()
     node.start()
+    # node.send_command('rotate_mobile_base', math.radians(6))

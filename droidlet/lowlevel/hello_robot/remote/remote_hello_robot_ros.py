@@ -14,6 +14,7 @@ import Pyro4
 import numpy as np
 from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
 from stretch_ros_move_api import MoveNode as Robot
+from droidlet.lowlevel.pyro_utils import safe_call
 
 
 Pyro4.config.SERIALIZER = "pickle"
@@ -99,7 +100,8 @@ class RemoteHelloRobot(object):
     def pull_status(self):
         pass
 
-    def is_moving(self):
+    def is_base_moving(self):
+        time.sleep(10)
         return False
 
     def get_pan(self):
@@ -170,7 +172,7 @@ class RemoteHelloRobot(object):
             def obstacle_fn():
                 return self.cam.is_obstacle_in_front()
 
-            status = goto(self._robot, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
+            status = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
         return status
 
@@ -187,9 +189,9 @@ class RemoteHelloRobot(object):
             self._done = False
 
             def obstacle_fn():
-                return self.cam.is_obstacle_in_front()
+                return safe_call(self.cam, is_obstacle_in_front)
 
-            status = goto(self._robot, list(xyt_position), dryrun=False, obstacle_fn=obstacle_fn)
+            status = goto(self, list(xyt_position), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
         return status
 
