@@ -15,7 +15,7 @@ class explore_job:
     def __call__(self, p, noise):
         comm = f"./explore.sh {p} {noise}"
         print(f'command {comm}')
-        process = subprocess.Popen(comm.split(), stdout=subprocess.PIPE, cwd='/private/home/apratik/fairo/tools/active_vision')
+        process = subprocess.Popen(comm.split(), stdout=subprocess.PIPE, cwd='.')
         output, error = process.communicate()
         logging.info(f'output {output} error {error}')
 

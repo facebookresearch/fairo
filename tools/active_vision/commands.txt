@@ -1,5 +1,5 @@
 git checkout ap/reex_chkpt
 git pull origin ap/reex_chkpt
 cd tools/active_vision
-chmod +x launch_explore.sh
-./launch_explore.sh /checkpoint/apratik/data_reexplore/av300_noise_pt2 300 --noise
+chmod +x launch_reexplore.sh
+./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300_noise_pt2/av300_noise_pt2

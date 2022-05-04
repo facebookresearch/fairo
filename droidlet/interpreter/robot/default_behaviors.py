@@ -143,7 +143,7 @@ def explore(agent):
     logging.info(f'explore spawn {spawn_loc}, goal {goal}, base_pos {x,y,t}')
     start_explore(agent, goal)
 
-def get_task_data(agent):
+def get_task_data_for_reexplore(agent):
     try:
         with open(agent.opts.reexplore_json, 'r') as f:
             reex = json.load(f)
@@ -161,8 +161,8 @@ def get_task_data(agent):
         'base_pos': reex[reex_key]['base_pos'],
         'label': reex[reex_key]['label'],
         'target': {'xyz': reex[reex_key]['target'], 'label': 'object'},
-        'data_path': f'{agent.opts.data_store_path}',
-        'vis_path': f'{agent.opts.data_store_path}',
+        'data_path': f'{agent.opts.data_store_path}/{reexplore_id}',
+        'vis_path': f'{agent.opts.data_store_path}/{reexplore_id}',
     }
     logger = logging.getLogger('default_behavior')
     logger.info(f'task_data {task_data}')
@@ -170,7 +170,7 @@ def get_task_data(agent):
     return task_data
 
 def reexplore(agent):
-    task_data = get_task_data(agent)
+    task_data = get_task_data_for_reexplore(agent)
     logging.info(f'task_data {task_data}')
     if task_data is not None:
         agent.memory.task_stack_push(tasks.Reexplore(agent, task_data))

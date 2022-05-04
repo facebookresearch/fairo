@@ -8,7 +8,6 @@ source activate /private/home/apratik/miniconda3/envs/droidlet
 export LOCOBOT_IP=127.0.0.1
 export SAVE_EXPLORATION=True
 export HEURISTIC=baseline
-export VISUALIZE_EXAMINE=True
 export CONTINUOUS_EXPLORE=False
 export VISUALIZE_EXAMINE=True
 source activate /private/home/apratik/miniconda3/envs/droidlet

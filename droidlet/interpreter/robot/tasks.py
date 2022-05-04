@@ -362,10 +362,10 @@ class TrajectorySaverTask(Task):
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
         self.save_data = task_data.get('save_data', False)
-        self.data_path = task_data.get('data_path', 'default')
+        self.data_path = task_data.get('data_path')
         self.dbg_str = 'None'
         if self.save_data:
-            self.data_saver = TrajectoryDataSaver(os.path.join(agent.opts.data_store_path))#, self.data_path))
+            self.data_saver = TrajectoryDataSaver(self.data_path)
             self.data_savers = [self.data_saver]
             parent_data_saver = task_data.get('parent_data_saver', None)
             if parent_data_saver is not None:
@@ -525,6 +525,7 @@ class ExamineDetectionStraightline(TrajectorySaverTask):
             self.add_child_task(Move(self.agent, {"target": tloc}))
 
             # visualize tloc, frontier_center, obstacle_map  
+            logging.info(f"os.getenv('VISUALIZE_EXAMINE') {os.getenv('VISUALIZE_EXAMINE')}")
             if os.getenv('VISUALIZE_EXAMINE', 'False') == 'True':
                 visualize_examine(
                     self.agent, 
@@ -694,7 +695,7 @@ class Reexplore(Task):
                     self.agent, {
                         "target": self.target, 
                         "save_data": True,
-                        "vis_path": f"{self.task_data['data_path']}/s1",
+                        "vis_path": f"{self.task_data['vis_path']}/s1",
                         "data_path": f"{self.task_data['data_path']}/s1",
                         "dbg_str": f'Straightline examine {self.target}',
                         'logger': logger
@@ -714,7 +715,7 @@ class Reexplore(Task):
                     self.agent, {
                         "target": self.target, 
                         "save_data": True,
-                        "vis_path": f"{self.task_data['data_path']}/c1s",
+                        "vis_path": f"{self.task_data['vis_path']}/c1s",
                         "data_path": f"{self.task_data['data_path']}/c1s",
                         "dbg_str": f'Circle examine {self.target}',
                         'logger': logger
@@ -738,7 +739,7 @@ class Reexplore(Task):
                     self.agent, {
                         "target": self.target, 
                         "save_data": True,
-                        "vis_path": f"{self.task_data['data_path']}/c1l",
+                        "vis_path": f"{self.task_data['vis_path']}/c1l",
                         "data_path": f"{self.task_data['data_path']}/c1l",
                         "dbg_str": f'Circle examine {self.target}',
                         'logger': logger,
