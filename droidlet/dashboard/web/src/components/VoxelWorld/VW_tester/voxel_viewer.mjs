@@ -7,6 +7,7 @@ import { OrbitControls } from './OrbitControls.mjs';
 import { GLTFLoader } from './GLTFLoader.mjs';
 
 import { ChickenMob } from './VoxelMob.mjs';
+import { VoxelItem, AppleItem } from './VoxelItem.mjs';
 
 let camera, scene, renderer, controls;
 let plane;
@@ -29,8 +30,7 @@ Array.from(canvii).forEach((canv) => {
 });
 
 
-async function addTestContent() {
-    console.log("starting test content")
+function addTestContent() {
     // hard code test here to run in init
     let world = {
         THREE: THREE,
@@ -39,10 +39,14 @@ async function addTestContent() {
     let opts = {
         GLTFLoader: GLTFLoader,
     };
-    ChickenMob.build(world, opts).then(
+    ChickenMob.build(world, {GLTFLoader: GLTFLoader}).then(
         function (chicken) {
-            console.log(chicken);
             window.setInterval(moveObj, 1000, chicken, 50);
+        }
+    );
+    AppleItem.build(world, {GLTFLoader: GLTFLoader}).then(
+        function (apple) {
+            window.setInterval(moveObj, 1000, apple, 50);
         }
     );
 }
@@ -53,13 +57,19 @@ function moveObj(obj, dist) {
     let move = choices[Math.floor(choices.length * Math.random())] * dist;
     switch (dir) {
         case 0:
-            obj.mob.position.x += move;
+            obj.move(move, 0, 0);
+            if (obj instanceof(VoxelItem)) {
+                obj.pick();
+            }
             break;
         case 1:
-            // obj.mob.position.y += move;
+            // obj.move(0, move, 0);
             break;
         case 2:
-            obj.mob.position.z += move;
+            obj.move(0, 0, move);
+            if (obj instanceof(VoxelItem)) {
+                obj.drop();
+            }
             break;
     }
     render();

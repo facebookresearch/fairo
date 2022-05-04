@@ -1,8 +1,9 @@
 
-class VoxelMob {
+class VoxelItem {
     constructor (world, opts) {
         this.world = world;
         this.opts = opts;
+        this.location = "world";
         }
 
     move(x, y, z) {
@@ -18,22 +19,41 @@ class VoxelMob {
         this.mob.position.y = xyz.y;
         this.mob.position.z = xyz.z;
     }
+
+    drop() {
+        if (this.location === "inventory") {
+            this.world.scene.add(this.mob);
+            this.location = "world";
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    pick() {
+        if (this.location === "world") {
+            this.world.scene.remove(this.mob);
+            // Add to inventory?
+            this.location = "inventory";
+        }
+        //else?
+    }
 };
 
-class ChickenMob extends VoxelMob {
+class AppleItem extends VoxelItem {
     constructor (model, world, opts) {
         super(world, opts);
         this.mob = model;
     }
 
     static build (world, opts) {
-        opts.scale = opts.scale || 90.0;  // adjusted to be ~1 voxel in size
+        opts.scale = opts.scale || 0.15;  // adjusted to be ~1 voxel in size
         opts.rotation = opts.rotation || [0, 0, 0];  // model rotation OK
         opts.position = opts.position || [0, 0, 0];
-        opts.position = positionOffset(opts.position, [11, 0, 23])  // Move to middle of voxel
+        opts.position = positionOffset(opts.position, [30, 0, 20]);  // Move to middle of voxel
 
-        const path = "./chicken_model/";
-        const modelFile = "chicken.gltf";
+        const path = "./apple_model/";
+        const modelFile = "scene.gltf";
         const loader = new opts.GLTFLoader();
         loader.setPath(path);
         return loader.loadAsync( modelFile ).then(
@@ -49,7 +69,7 @@ class ChickenMob extends VoxelMob {
             }
         ).then(
             function (model) {
-               return new ChickenMob(model, world, opts);
+               return new AppleItem(model, world, opts);
            }
         );
     }
@@ -71,4 +91,4 @@ function positionOffset (pos, offset) {
 }
 
 
-export {ChickenMob};
+export {VoxelItem, AppleItem};
