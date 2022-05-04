@@ -5,7 +5,8 @@
 import * as THREE from './three.module.mjs';
 import { OrbitControls } from './OrbitControls.mjs';
 import { GLTFLoader } from './GLTFLoader.mjs';
-import { BLOCK_MAP } from './blockMap.mjs';
+
+import { ChickenMob } from './VoxelMob.mjs';
 
 let camera, scene, renderer, controls;
 let plane;
@@ -18,13 +19,51 @@ const geo = new THREE.BoxGeometry( 50, 50, 50 );
 
 init();
 addEventListeners();
+addTestContent();
 render();
+
 var canvii = document.getElementsByTagName("canvas");
 Array.from(canvii).forEach((canv) => {
     canv.style.display = "inline";
     canv.style.margin = "auto";
 });
 
+
+async function addTestContent() {
+    console.log("starting test content")
+    // hard code test here to run in init
+    let world = {
+        THREE: THREE,
+        scene: scene,
+    };
+    let opts = {
+        GLTFLoader: GLTFLoader,
+    };
+    ChickenMob.build(world, opts).then(
+        function (chicken) {
+            console.log(chicken);
+            window.setInterval(moveObj, 1000, chicken, 50);
+        }
+    );
+}
+
+function moveObj(obj, dist) {
+    let dir = Math.floor(3 * Math.random());
+    let choices = [-1, 1];
+    let move = choices[Math.floor(choices.length * Math.random())] * dist;
+    switch (dir) {
+        case 0:
+            obj.mob.position.x += move;
+            break;
+        case 1:
+            // obj.mob.position.y += move;
+            break;
+        case 2:
+            obj.mob.position.z += move;
+            break;
+    }
+    render();
+}
 
 function init() {
 
@@ -70,39 +109,6 @@ function init() {
 
 }
 
-function lookRadsToVec(raw_vals) {
-    // Look direction comes in as [yaw, pitch] floats
-    // referenced s.t. pos pitch is down, 0 yaw = pos-z, and pos yaw is CCW
-    // Three.js has pos pitch up, 0 yaw = pos-x, and pos yaw is CW
-    const look_angles = [(-1)*raw_vals[0], ((-1)*raw_vals[1]) + Math.PI/2]
-    // Convert pitch and yaw radian values to a Vector3 look direction
-    let look_dir = new THREE.Vector3( 
-        Math.cos(look_angles[0]) * Math.cos(look_angles[1]),
-        Math.sin(look_angles[1]),
-        Math.sin(look_angles[0]) * Math.cos(look_angles[1])
-        );
-    look_dir.normalize();
-
-    return look_dir;
-}
-
-// Add user or agent avatars to the scene
-function addAvatar(scene, position, material, look_dir) {
-    const loader = new GLTFLoader();
-    loader.load( './robot.glb', function ( gltf ) {
-        let model = gltf.scene;
-        model.scale.multiplyScalar(25.0);
-        model.position.set((position[0]*50)+25, (position[1]*50), (position[2]*50)+25)
-        model.rotation.y += look_dir[0]; //yaw, referenced a la the raw vals for some reason
-        scene.add( model );
-        model.traverse( function ( object ) {
-            if ( object.isMesh ) {
-                object.castShadow = false;
-                object.material = material;
-            }
-        } );
-    } );
-}
 
 function addEventListeners() {
     window.addEventListener( 'resize', onWindowResize );
