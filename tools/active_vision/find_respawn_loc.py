@@ -15,7 +15,7 @@ import argparse
 import submitit
 import shutil
 
-def visualize_instances(traj_path, out_dir, candidates, is_annot_validfn):
+def visualize_instances(traj_path, out_dir, candidates):
     vis_path = os.path.join(out_dir, 'candidate_selection_visuals')
     os.makedirs(vis_path, exist_ok=True)
     for img_indx, label in candidates:
@@ -121,33 +121,74 @@ def get_valid_trajectories(baseline_root: str) -> List[str]:
     print(f'{len(valid_trajs)} valid trajectories!')
     return valid_trajs
 
-def find_spawn_loc(baseline_root: str, out_dir: str, num_traj: int, job_dir: str) -> None:
+def process_robot(root_dir, out_dir):
+    seg_dir = os.path.join(root_dir, 'seg')
+    #FIXME: Read actual labels
+    candidates = [(int(x.split('.')[0]), 1) for x in os.listdir(seg_dir)]
+
+    print(f'candidates {candidates}')
+    reexplore_task_data = {}
+    base_poses = []
+
+    if os.path.isfile(os.path.join(root_dir, 'data.json')):
+        with open(os.path.join(root_dir, 'data.json'), 'r') as f:
+            data = json.load(f)
+            for x, _ in candidates:
+                base_poses.append(data[str(x)])
+    
+    target_xyz = []
+    for i in range(len(candidates)):
+        target_xyz.append(get_target(root_dir, candidates[i][0], candidates[i][1], base_poses[i]))
+        visualize_instances(root_dir, out_dir, candidates)
+        reexplore_task_data[i] = {
+            'src_img_id': int(candidates[i][0]),
+            'spawn_pos': base_poses[i],
+            'base_pos': base_poses[i],
+            'target': target_xyz[i],
+            'label': int(candidates[i][1]),
+        }
+    
+    with open(os.path.join(out_dir, 'reexplore_data.json'), 'w') as f:
+        json.dump(reexplore_task_data, f)
+
+
+def find_spawn_loc(
+        baseline_root: str, 
+        out_dir: str, 
+        num_traj: int, 
+        job_dir: str,
+        mode: str,
+    ) -> None:
     """
     Main fn to find the spawn locations for reexplore for all trajectories in baseline_root
     """
     jobs = []
     print(f"baseline_root {baseline_root}")
-    with executor.batch():
-        for traj_path in get_valid_trajectories(baseline_root)[:num_traj]:
-            if traj_path.split('/')[-1].isdigit():
-                print(f'processing {traj_path}')
-                traj_id = '/'.join(traj_path.split('/')[-2:])
-                for setting in ['instance']:
-                    annot_fn = is_annot_validfn_class if setting == 'class' else is_annot_validfn_inst
-                    labels = class_labels if setting == 'class' else instance_ids
+    if mode == 'robot':
+        process_robot(baseline_root, out_dir)
 
-                    @log_time(os.path.join(job_dir, 'job_log.txt'))
-                    def job_unit(traj_path, out_dir, traj_id, annot_fn, labels, setting):
-                        s = SampleGoodCandidates(traj_path, annot_fn, labels, setting)
-                        for gt in range(5,10,5):
-                            outr = os.path.join(out_dir, traj_id, setting, str(gt))
-                            os.makedirs(outr, exist_ok=True)
-                            print(f'outr {outr}')
-                            process(traj_path, outr, gt, s, annot_fn)
+    elif mode == 'sim':
+        with executor.batch():
+            for traj_path in get_valid_trajectories(baseline_root)[:num_traj]:
+                if traj_path.split('/')[-1].isdigit():
+                    print(f'processing {traj_path}')
+                    traj_id = '/'.join(traj_path.split('/')[-2:])
+                    for setting in ['instance']:
+                        annot_fn = is_annot_validfn_class if setting == 'class' else is_annot_validfn_inst
+                        labels = class_labels if setting == 'class' else instance_ids
 
-                    # job_unit(traj_path, out_dir, traj_id, annot_fn, labels, setting)
-                    job = executor.submit(job_unit, traj_path, out_dir, traj_id, annot_fn, labels, setting)
-                    jobs.append(job)
+                        @log_time(os.path.join(job_dir, 'job_log.txt'))
+                        def job_unit(traj_path, out_dir, traj_id, annot_fn, labels, setting):
+                            s = SampleGoodCandidates(traj_path, annot_fn, labels, setting)
+                            for gt in range(5,10,5):
+                                outr = os.path.join(out_dir, traj_id, setting, str(gt))
+                                os.makedirs(outr, exist_ok=True)
+                                print(f'outr {outr}')
+                                process(traj_path, outr, gt, s, annot_fn)
+
+                        # job_unit(traj_path, out_dir, traj_id, annot_fn, labels, setting)
+                        job = executor.submit(job_unit, traj_path, out_dir, traj_id, annot_fn, labels, setting)
+                        jobs.append(job)
 
     if len(jobs) > 0:
         print(f"Job Id {jobs[0].job_id.split('_')[0]}, num jobs {len(jobs)}")
@@ -163,7 +204,11 @@ if __name__ == "__main__":
     parser.add_argument("--job_dir", type=str, default="", help="")
     parser.add_argument("--comment", type=str)
     parser.add_argument("--num_traj", type=int, default=-1)
-    parser.add_argument("--slurm", action="store_true", default=False, help="Run the pipeline on slurm, else locally")
+    parser.add_argument("--mode", 
+        type=str, 
+        default="sim", 
+        help="two modes: sim (runs on slurm) or robot (runs locally)"
+    )
 
     args = parser.parse_args()
 
@@ -188,4 +233,4 @@ if __name__ == "__main__":
     if os.path.isdir(args.out_dir):
         shutil.rmtree(args.out_dir)
 
-    find_spawn_loc(args.data_dir, args.out_dir, args.num_traj, args.job_dir)
+    find_spawn_loc(args.data_dir, args.out_dir, args.num_traj, args.job_dir, args.mode)
