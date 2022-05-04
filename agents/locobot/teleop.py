@@ -201,7 +201,7 @@ if __name__ == "__main__":
     counter = 0
     if backend == 'habitat':
         mover.bot.set_pan(0.0)
-        mover.bot.set_tilt(-1.5)
+        # mover.bot.set_tilt(-1.5)
     else: # hellorobot
         mover.bot.set_pan(0.0)
         mover.bot.set_tilt(-1.05)
