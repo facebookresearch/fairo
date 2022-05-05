@@ -42,7 +42,7 @@ class Lidar:
             self.latest_scan = (scan.header.stamp.secs, lscan)
 
     def lidar_loop(self):
-        rospy.Subscriber("scan", LaserScan, self._scan_callback, queue_size=1)
+        rospy.Subscriber("scan_filtered", LaserScan, self._scan_callback, queue_size=1)
         rate = rospy.Rate(20)
         while not rospy.is_shutdown():
             rate.sleep()
