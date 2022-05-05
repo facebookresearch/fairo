@@ -26,4 +26,5 @@ def cli(*cmd_procs, all=False, procs=[]):
             down_procs = down_procs & set(procs)
 
     for proc in down_procs:
+        click.echo(f"stopping {proc}...")
         life_cycle.set_ask(proc, life_cycle.Ask.DOWN)
