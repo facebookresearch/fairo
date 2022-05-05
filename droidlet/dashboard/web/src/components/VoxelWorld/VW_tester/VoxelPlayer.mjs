@@ -1,18 +1,21 @@
-var skin = require('minecraft-skin');
+import {Skin} from './minecraft-skin.mjs'
 
 
 class VoxelPlayer {
     constructor (world, img, skinOpts) {
         this.possessed;
-    
+        if (!skinOpts) {
+            skinOpts = {};
+        }
         skinOpts.scale = skinOpts.scale || new world.THREE.Vector3(0.04, 0.04, 0.04);  // Check scale assumptions
-        this.playerSkin = new skin(world.THREE, img, skinOpts);
+        this.playerSkin = new Skin(world.THREE, img, skinOpts);
         this.player = this.playerSkin.mesh;  // Returns player object
+        console.log(this.player);
         
-        this.player.position.set(0, 562, -20);  // Check starting position assumptions
+        this.player.position.set(0, 0, 0);  // Check starting position assumptions
         world.scene.add(this.player);
         
-        world.control(this.player);  // To think about more
+        // world.control(this.player);  // To think about more
         
         this.pov = 1;   
     }
@@ -64,4 +67,4 @@ function parseXYZ (x, y, z) {
     return { x: Number(x), y: Number(y), z: Number(z) };
 }
 
-export default VoxelPlayer;
+export {VoxelPlayer};

@@ -16,18 +16,14 @@ class VoxelItem {
     }
 
     move(x, y, z) {
-        var xyz = parseXYZ(x, y, z);
-        this.mesh.position.x += xyz.x;
-        this.mesh.position.y += xyz.y;
-        this.mesh.position.z += xyz.z;
+        this.mesh.position.x += x;
+        this.mesh.position.y += y;
+        this.mesh.position.z += z;
     };
 
     moveTo(x, y, z) {
-        var xyz = parseXYZ(x, y, z);
-        xyz = applyOffset(xyz, [25,25,25]);
-        this.mesh.position.x = xyz.x;
-        this.mesh.position.y = xyz.y;
-        this.mesh.position.z = xyz.z;
+        let xyz = applyOffset([x,y,z], [25,25,25]);
+        this.mesh.position.set(xyz[0], xyz[1], xyz[2]);
     };
 
     drop() {
@@ -58,10 +54,10 @@ class VoxelItem {
         // 1) mirror the syntax of VoxelMob and 2) allow for easy extension to load models
 
         let item_data = VW_ITEM_MAP[opts.name];
-        let itemMaterial;
-        if (typeof(item_data) === "number") {
-            itemMaterial = new world.THREE.MeshBasicMaterial( { color: item_data, opacity: 1.0 } );
-        }
+        let itemMaterial = new world.THREE.MeshLambertMaterial( { 
+            color: item_data[0], 
+            map: new world.THREE.TextureLoader().load( './block_textures/'+item_data[1] ) 
+        });
         const geo = new world.THREE.BoxGeometry( 20, 20, 20 );
         let itemMesh = new world.THREE.Mesh( geo, itemMaterial );
         opts.position = opts.position || [0, 0, 0];
@@ -98,17 +94,6 @@ function hover(obj) {
 
     obj.world.render();
 };
-
-
-function parseXYZ (x, y, z) {
-    if (typeof x === 'object' && Array.isArray(x)) {
-        return { x: x[0], y: x[1], z: x[2] };
-    }
-    else if (typeof x === 'object') {
-        return { x: x.x || 0, y: x.y || 0, z: x.z || 0 };
-    }
-    return { x: Number(x), y: Number(y), z: Number(z) };
-}
 
 function applyOffset (pos, offset) {
     // adjusts the passed in position/rotation to center the model in a voxel upright

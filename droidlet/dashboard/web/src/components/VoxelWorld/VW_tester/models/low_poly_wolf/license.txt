@@ -1,0 +1,11 @@
+Model Information:
+* title:	Low Poly Wolf
+* source:	https://sketchfab.com/3d-models/low-poly-wolf-b756483d57ca4b1ab0c3eb84ead1e075
+* author:	packer (https://sketchfab.com/packer)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Low Poly Wolf" (https://sketchfab.com/3d-models/low-poly-wolf-b756483d57ca4b1ab0c3eb84ead1e075) by packer (https://sketchfab.com/packer) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

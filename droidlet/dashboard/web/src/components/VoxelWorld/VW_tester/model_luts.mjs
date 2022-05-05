@@ -100,22 +100,25 @@ const VW_ITEM_MAP = {
 
     // 66: null, // Yellow Glass
 
-    "white wool": 0xffffff, // White Wool
-    "orange wool": 0xffa500, // Orange Wool
-    "magenta wool": 0xff00ff, // Magenta Wool
-    "light blue wool": 0x75bdff, // Light Blue Wool
-    "yellow wool": 0xffff00, // Yellow Wool
-    "lime wool": 0x00ff00, // Lime Wool
-    "pink wool": 0xffc0cb, // Pink Wool
-    "gray wool": 0x5b5b5b, // Gray Wool
-    "light gray wool": 0xbcbcbc, // Light Gray Wool
-    "cyan wool": 0x00ffff, // Cyan Wool
-    "pruple wool": 0x800080, // Purple Wool
-    "blue wool": 0x2986cc, // Blue Wool
-    "brown wool": 0xdd992c, // Brown Wool
-    "green wool": 0x8fce00, // Green Wool
-    "red wool": 0xff0000, // Red Wool
-    "black wool": 0x1a1a1a, // Black Wool
+    "stone": [0xffffff, 'stone.png'],
+    "grass": [0xffffff, 'grass.png'],
+
+    "white wool": [0xffffff, 'wool.png'], 
+    "orange wool": [0xffa500, 'wool.png'], 
+    "magenta wool": [0xff00ff, 'wool.png'], 
+    "light blue wool": [0x75bdff, 'wool.png'], 
+    "yellow wool": [0xffff00, 'wool.png'], 
+    "lime wool": [0x00ff00, 'wool.png'], 
+    "pink wool": [0xffc0cb, 'wool.png'], 
+    "gray wool": [0x5b5b5b, 'wool.png'], 
+    "light gray wool": [0xbcbcbc, 'wool.png'],
+    "cyan wool": [0x00ffff, 'wool.png'], 
+    "pruple wool": [0x800080, 'wool.png'], 
+    "blue wool": [0x2986cc, 'wool.png'], 
+    "brown wool": [0xdd992c, 'wool.png'], 
+    "green wool": [0x8fce00, 'wool.png'], 
+    "red wool": [0xff0000, 'wool.png'], 
+    "black wool": [0x1a1a1a, 'wool.png'], 
 };
 
 const VW_MOB_MAP = {
@@ -151,24 +154,76 @@ const VW_MOB_MAP = {
     // 101: "rabbit",
     // 120: "villager",
 
-    "bat": null,
-    "cat": null,
-    "chicken": {
-        "model_folder": "chicken_model/",
-        "model_file": "chicken.gltf",
-        "default_scale": 90.0,
-        "rotation_offset": [0, 0, 0],
-        "position_offset": [11, 0, 23] 
+    "bat": {
+        "model_folder": "low_poly_bat/",
+        "model_file": "scene.gltf",
+        "default_scale": 60,
+        "rotation_offset": [0, -Math.PI/2, 0],
+        "position_offset": [22, 0, 23] 
     },
-    "cow": null,
-    "donkey": null,
-    "fox": null,
-    "horse": null,
-    "parrot": null,
-    "pig": null,
-    "rabbit": null,
-    "sheep": null,
-    "wolf": null,
+    "cat": {
+        "model_folder": "low_poly_cat/",
+        "model_file": "scene.gltf",
+        "default_scale": 0.15,
+        "rotation_offset": [0, 0, 0],
+        "position_offset": [25, 0, 25] 
+    },
+    "chicken": {
+        "model_folder": "low_poly_chicken/",
+        "model_file": "chicken.gltf",
+        "default_scale": 70.0,
+        "rotation_offset": [0, 0, 0],
+        "position_offset": [17, 0, 23] 
+    },
+    "cow": {
+        "model_folder": "low_poly_cow/",
+        "model_file": "scene.gltf",
+        "default_scale": 0.075,
+        "rotation_offset": [0, -Math.PI/2, 0],
+        "position_offset": [22, 20, 23] 
+    },
+    "horse": {
+        "model_folder": "low_poly_horse/",
+        "model_file": "scene.gltf",
+        "default_scale": 25.0,
+        "rotation_offset": [0, Math.PI-0.3, 0],
+        "position_offset": [30, 35, 25] 
+    },
+    "parrot": {
+        "model_folder": "low_poly_parrot/",
+        "model_file": "scene.gltf",
+        "default_scale": 8.0,
+        "rotation_offset": [0, 0, 0],
+        "position_offset": [30, 35, 25] 
+    },
+    "pig": {
+        "model_folder": "low_poly_pig/",
+        "model_file": "scene.gltf",
+        "default_scale": 5.0,
+        "rotation_offset": [0, Math.PI, 0],
+        "position_offset": [20, 5, 25] 
+    },
+    "rabbit": {
+        "model_folder": "low_poly_rabbit/",
+        "model_file": "scene.gltf",
+        "default_scale": 15.0,
+        "rotation_offset": [0, -Math.PI/2, 0],
+        "position_offset": [28, 0, 25] 
+    },
+    "sheep": {
+        "model_folder": "low_poly_sheep/",
+        "model_file": "scene.gltf",
+        "default_scale": 40.0,
+        "rotation_offset": [0, 0, 0],
+        "position_offset": [28, -18, 70] 
+    },
+    "wolf": {
+        "model_folder": "low_poly_wolf/",
+        "model_file": "scene.gltf",
+        "default_scale": 0.08,
+        "rotation_offset": [0, Math.PI/2, 0],
+        "position_offset": [5, 28, 25] 
+    },
 };
 
 export { MINECRAFT_BLOCK_MAP, VW_ITEM_MAP, VW_MOB_MAP };

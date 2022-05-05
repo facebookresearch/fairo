@@ -14,18 +14,14 @@ class VoxelMob {
     }
 
     move(x, y, z) {
-        var xyz = parseXYZ(x, y, z);
-        this.mesh.position.x += xyz.x;
-        this.mesh.position.y += xyz.y;
-        this.mesh.position.z += xyz.z;
+        this.mesh.position.x += x;
+        this.mesh.position.y += y;
+        this.mesh.position.z += z;
     }
 
     moveTo(x, y, z) {
-        var xyz = parseXYZ(x, y, z);
-        xyz = applyOffset(xyz, this.position_offset);
-        this.mesh.position.x = xyz.x;
-        this.mesh.position.y = xyz.y;
-        this.mesh.position.z = xyz.z;
+        let xyz = applyOffset([x,y,z], this.position_offset);
+        this.mesh.position.set(xyz[0], xyz[1], xyz[2]);
     }
 
     static build (world, opts) {
@@ -59,16 +55,6 @@ class VoxelMob {
         );
     }
 };
-
-function parseXYZ (x, y, z) {
-    if (typeof x === 'object' && Array.isArray(x)) {
-        return { x: x[0], y: x[1], z: x[2] };
-    }
-    else if (typeof x === 'object') {
-        return { x: x.x || 0, y: x.y || 0, z: x.z || 0 };
-    }
-    return { x: Number(x), y: Number(y), z: Number(z) };
-}
 
 function applyOffset (pos, offset) {
     // adjusts the passed in position/rotation to center the model in a voxel upright

@@ -3,86 +3,86 @@
     {
       "bufferView": 2,
       "componentType": 5126,
-      "count": 112,
+      "count": 649,
       "max": [
-        2.2514946460723877,
-        2.6834850311279297,
-        1.9184627532958984
+        1.340000033378601,
+        3.8523759841918945,
+        0.9847199320793152
       ],
       "min": [
-        -2.3019416332244873,
-        -0.8727015256881714,
-        -0.5215224027633667
+        -1.340000033378601,
+        -3.8039286136627197,
+        -3.5749688148498535
       ],
       "type": "VEC3"
     },
     {
       "bufferView": 2,
-      "byteOffset": 1344,
+      "byteOffset": 7788,
       "componentType": 5126,
-      "count": 112,
+      "count": 649,
       "max": [
-        0.9870975613594055,
-        0.9991856217384338,
-        0.9991581439971924
+        0.9998255968093872,
+        0.9998881816864014,
+        1.0
       ],
       "min": [
-        -0.9868202805519104,
-        -0.9995532035827637,
-        -0.9991581439971924
+        -0.9997503757476807,
+        -0.9998570680618286,
+        -0.999947190284729
       ],
       "type": "VEC3"
     },
     {
       "bufferView": 1,
       "componentType": 5126,
-      "count": 112,
+      "count": 649,
       "max": [
-        0.9788176417350769,
-        0.9818694591522217
+        0.995477557182312,
+        0.9708831906318665
       ],
       "min": [
-        0.018403586000204086,
-        0.019684497267007828
+        0.0003168862604070455,
+        0.0003168862604070455
       ],
       "type": "VEC2"
     },
     {
       "bufferView": 0,
       "componentType": 5125,
-      "count": 402,
+      "count": 2508,
       "type": "SCALAR"
     }
   ],
   "asset": {
     "extras": {
-      "author": "elements (https://sketchfab.com/elements.resources)",
+      "author": "C.anton (https://sketchfab.com/C.anton)",
       "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
-      "source": "https://sketchfab.com/3d-models/apple-36c5a7d36196442fb03e61d218a4a08e",
-      "title": "Apple"
+      "source": "https://sketchfab.com/3d-models/cow-2eac97eb3c6c4675bf9ecc8436f11892",
+      "title": "Cow"
     },
-    "generator": "Sketchfab-12.68.0",
+    "generator": "Sketchfab-12.67.0",
     "version": "2.0"
   },
   "bufferViews": [
     {
       "buffer": 0,
-      "byteLength": 1608,
+      "byteLength": 10032,
       "name": "floatBufferViews",
       "target": 34963
     },
     {
       "buffer": 0,
-      "byteLength": 896,
-      "byteOffset": 1608,
+      "byteLength": 5192,
+      "byteOffset": 10032,
       "byteStride": 8,
       "name": "floatBufferViews",
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 2688,
-      "byteOffset": 2504,
+      "byteLength": 15576,
+      "byteOffset": 15224,
       "byteStride": 12,
       "name": "floatBufferViews",
       "target": 34962
@@ -90,31 +90,49 @@
   ],
   "buffers": [
     {
-      "byteLength": 5192,
+      "byteLength": 30800,
       "uri": "scene.bin"
     }
   ],
+  "extensionsRequired": [
+    "KHR_materials_pbrSpecularGlossiness"
+  ],
+  "extensionsUsed": [
+    "KHR_materials_pbrSpecularGlossiness"
+  ],
   "images": [
     {
-      "uri": "textures/apple_baseColor.png"
+      "uri": "textures/01_-_Default_diffuse.jpeg"
     }
   ],
   "materials": [
     {
       "doubleSided": true,
-      "name": "apple",
-      "pbrMetallicRoughness": {
-        "baseColorTexture": {
-          "index": 0
-        },
-        "metallicFactor": 0.0,
-        "roughnessFactor": 0.8211145618000169
-      }
+      "extensions": {
+        "KHR_materials_pbrSpecularGlossiness": {
+          "diffuseFactor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "diffuseTexture": {
+            "index": 0
+          },
+          "glossinessFactor": 0.0,
+          "specularFactor": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "name": "01_-_Default"
     }
   ],
   "meshes": [
     {
-      "name": "Plane.001_apple_0",
+      "name": "Cilindro_01 - Default_0",
       "primitives": [
         {
           "attributes": {
@@ -135,21 +153,21 @@
         1
       ],
       "matrix": [
-        0.9999858140945435,
-        -0.005324019584804773,
-        -1.1821698253211051e-18,
+        1.0,
+        0.0,
+        0.0,
         0.0,
         0.0,
         2.220446049250313e-16,
         -1.0,
         0.0,
-        0.005324019584804773,
-        0.9999858140945435,
-        2.220414550212587e-16,
         0.0,
-        -38.09653854370117,
-        4.0550384521484295,
-        36.59345245361328,
+        1.0,
+        2.220446049250313e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
         1.0
       ],
       "name": "Sketchfab_model"
@@ -176,7 +194,7 @@
         0.0,
         1.0
       ],
-      "name": "apple.fbx"
+      "name": "vaca.FBX"
     },
     {
       "children": [
@@ -189,28 +207,28 @@
         4
       ],
       "matrix": [
-        36.71288619133465,
-        -0.8360776502421857,
-        37.11701521577306,
-        0.0,
-        47.79295827036521,
-        46.448916112234215,
-        -46.226306913778465,
-        0.0,
-        -33.82738177143911,
-        69.66667654737064,
-        35.028343760817165,
+        100.0,
         0.0,
         0.0,
-        14.993947982788086,
         0.0,
+        0.0,
+        2.220446049250313e-14,
+        -100.0,
+        0.0,
+        0.0,
+        100.0,
+        2.220446049250313e-14,
+        0.0,
+        12.6553955078125,
+        162.0126953125,
+        -3.6980133056640625,
         1.0
       ],
-      "name": "Plane.001"
+      "name": "Cilindro"
     },
     {
       "mesh": 0,
-      "name": "Plane.001_apple_0"
+      "name": "Cilindro_01 - Default_0"
     }
   ],
   "samplers": [

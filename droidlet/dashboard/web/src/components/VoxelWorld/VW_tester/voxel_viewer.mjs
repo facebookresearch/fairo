@@ -8,6 +8,7 @@ import { GLTFLoader } from './GLTFLoader.mjs';
 
 import { VoxelMob } from './VoxelMob.mjs';
 import { VoxelItem } from './VoxelItem.mjs';
+import { VoxelPlayer} from './VoxelPlayer.mjs'
 import { VW_ITEM_MAP, VW_MOB_MAP } from './model_luts.mjs'
 
 let camera, scene, renderer, controls;
@@ -38,6 +39,8 @@ function addTestContent() {
         scene: scene,
         render: render,
     };
+
+    // const player = new VoxelPlayer(world, './player.png');
 
     for (const key in VW_MOB_MAP) {
         if (typeof(key) === "string" && VW_MOB_MAP[key] !== null) {
