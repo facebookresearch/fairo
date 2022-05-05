@@ -80,7 +80,9 @@ class Navigation(object):
         goal_reached = False
         return_code = True
         while (not goal_reached) and steps > 0 and self._stop is False:
-            stg = self.planner.get_short_term_goal(robot_loc, goal, distance_threshold, angle_threshold)
+            stg = self.planner.get_short_term_goal(robot_loc, goal,
+                                                   distance_threshold=distance_threshold,
+                                                   angle_threshold=angle_threshold)
             if stg == False:
                 # no path to end-goal
                 print(
