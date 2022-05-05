@@ -63,16 +63,16 @@ class Navigation(object):
         self._stop = True
         self._done_exploring = False
 
-    def go_to_relative(self, goal):
+    def go_to_relative(self, goal, distance_threshold=None, angle_threshold=None):
         robot_loc = self.robot.get_base_state()
         abs_goal = du.get_relative_state(goal, (0.0, 0.0, -robot_loc[2]))
         abs_goal = list(abs_goal)
         abs_goal[0] += robot_loc[0]
         abs_goal[1] += robot_loc[1]
         abs_goal[2] = goal[2] + robot_loc[2]
-        return self.go_to_absolute(abs_goal)
+        return self.go_to_absolute(abs_goal, distance_threshold=distance_threshold, angle_threshold=angle_threshold)
 
-    def go_to_absolute(self, goal, steps=100000000):
+    def go_to_absolute(self, goal, steps=100000000, distance_threshold=None, angle_threshold=None):
         self._busy = True
         self._stop = False
         robot_loc = self.robot.get_base_state()
@@ -80,7 +80,13 @@ class Navigation(object):
         goal_reached = False
         return_code = True
         while (not goal_reached) and steps > 0 and self._stop is False:
-            stg = self.planner.get_short_term_goal(robot_loc, goal)
+            stg = self.planner.get_short_term_goal(
+                robot_loc,
+                goal,
+                distance_threshold=distance_threshold,
+                angle_threshold=angle_threshold,
+            )
+            print(f"[nav] got short-term goal from planner: {stg}")
             if stg == False:
                 # no path to end-goal
                 print(
@@ -90,6 +96,8 @@ class Navigation(object):
                 )
                 return_code = False
                 break
+            robot_loc = self.robot.get_base_state()
+            print(f"[navigation] starting at point {robot_loc} and going to point {stg}")
             status = safe_call(self.robot.go_to_absolute, stg)
             robot_loc = self.robot.get_base_state()
 
@@ -98,7 +106,9 @@ class Navigation(object):
             print(" short-term goal: {}, Reached Location: {}".format(stg, robot_loc))
             print(" Robot Status: {}".format(status))
             if status == "SUCCEEDED":
-                goal_reached = self.planner.goal_within_threshold(robot_loc, goal)
+                goal_reached = self.planner.goal_within_threshold(robot_loc, goal,
+                                                                  distance_threshold,
+                                                                  angle_threshold)
                 self.trackback.update(robot_loc)
             else:
                 # collided with something unexpected.
@@ -108,7 +118,7 @@ class Navigation(object):
                 trackback_loc = self.trackback.get_loc(robot_loc)
 
                 print(f"Collided at {robot_loc}." f"Tracking back to {trackback_loc}")
-                self.robot.go_to_absolute(trackback_loc)
+                safe_call(self.robot.go_to_absolute, trackback_loc)
                 # TODO: if the trackback fails, we're screwed. Handle this robustly.
             steps = steps - 1
 

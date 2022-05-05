@@ -61,6 +61,8 @@ trap 'echo "Killing $BGPID"; kill $BGPID2; exit' INT
 timeout 20s bash -c "until python check_connected.py hello_realsense $ip; do sleep 0.5; done;" || true
 
 python3 ./remote_hello_saver.py --ip $ip &
+BGPID3=$!
+trap 'echo "Killing $BGPID"; kill $BGPID3; exit' INT
 timeout 10s bash -c "until python check_connected.py hello_data_logger $ip; do sleep 0.5; done;" || true
 
 ./launch_navigation.sh
