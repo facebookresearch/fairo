@@ -110,7 +110,7 @@ def is_obstacle_ahead(dist, depth_fn):
 def goto(
     robot,
     xyt_position=None,
-    translation_threshold=0.1,
+    translation_threshold=0.05,
     dryrun=False,
     depth_fn=None,
     optimize_distance=False,

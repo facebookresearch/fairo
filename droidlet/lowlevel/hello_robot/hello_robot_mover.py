@@ -217,7 +217,7 @@ class HelloRobotMover(MoverInterface):
         """reset the camera to 0 pan and tilt."""
         return self.bot.reset()
 
-    def move_relative(self, xyt_positions, blocking=True):
+    def move_relative(self, xyt_positions, blocking=True, distance_threshold=None, angle_threshold=None):
         """Command to execute a relative move.
 
         Args:
@@ -229,11 +229,11 @@ class HelloRobotMover(MoverInterface):
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
             self.nav_result.wait()
-            self.nav_result = safe_call(self.nav.go_to_relative, xyt)
+            self.nav_result = safe_call(self.nav.go_to_relative, xyt, 10000000000, distance_threshold, angle_threshold)
             if blocking:
                 self.nav_result.wait()
 
-    def move_absolute(self, xzt_positions, blocking=True):
+    def move_absolute(self, xzt_positions, blocking=True, distance_threshold=None, angle_threshold=None):
         """Command to execute a move to an absolute position.
 
         It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
@@ -250,7 +250,7 @@ class HelloRobotMover(MoverInterface):
             logging.info("Move absolute in canonical coordinates {}".format(xzt))
             self.nav_result.wait()
             robot_coords = base_canonical_coords_to_pyrobot_coords(xzt)
-            self.nav_result = self.nav.go_to_absolute(robot_coords)
+            self.nav_result = self.nav.go_to_absolute(robot_coords, 10000000000, distance_threshold, angle_threshold)
             if blocking:
                 self.nav_result.wait()
         return "finished"
