@@ -24,12 +24,18 @@ export CAMERA_NAME="hello_realsense"
 
 echo $ip
 python3 ./remote_hello_robot_ros.py --ip $ip &
+BGPID=$!
+trap 'echo "Killing $BGPID"; kill $BGPID; exit' INT
 timeout 50s bash -c "until python check_connected.py hello_robot $ip; do sleep 0.5; done;" || true
 
 python3 ./remote_hello_realsense.py --ip $ip &
+BGPID2=$!
+trap 'echo "Killing $BGPID"; kill $BGPID2; exit' INT
 timeout 20s bash -c "until python check_connected.py hello_realsense $ip; do sleep 0.5; done;" || true
 
 python3 ./remote_hello_saver.py --ip $ip &
+BGPID3=$!
+trap 'echo "Killing $BGPID"; kill $BGPID3; exit' INT
 timeout 10s bash -c "until python check_connected.py hello_data_logger $ip; do sleep 0.5; done;" || true
 
 ./launch_navigation.sh
