@@ -211,6 +211,7 @@ def goto(
         if obstacle_fn is not None:
             is_obstacle = obstacle_fn()
         if is_obstacle:
+            print("Found obstacle before translating. Aborting")
             return "FAILED"
         robot.translate_by(dist, v_m=0.1)
         robot.push_command()
@@ -222,6 +223,7 @@ def goto(
                 is_obstacle = obstacle_fn()
             if is_obstacle:
                 # stop motion
+                print("Found obstacle while translating. Aborting")
                 robot.stop()
                 return "FAILED"
             time.sleep(0.1)

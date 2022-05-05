@@ -91,18 +91,19 @@ class RemoteHelloRobot(object):
         return camera_transform
 
     def get_base_state(self):
-        slam_pose = self._robot.get_slam_pose()
-        x = slam_pose.pose.position.x
-        y = slam_pose.pose.position.y
-        theta = slam_pose.pose.orientation.z
-        return (x, y, theta)
+        return self._robot.get_pose2d()
+        # return self._robot.get_odom()
+
+    def get_slam_pose(self):
+        return self._robot.get_slam_pose()
 
     def pull_status(self):
         pass
 
     def is_base_moving(self):
-        time.sleep(10)
-        return False
+        moving = self._robot.is_moving()
+        print("is_moving", moving)
+        return moving
 
     def get_pan(self):
         return self._robot.get_joint_state("head_pan")
@@ -162,6 +163,7 @@ class RemoteHelloRobot(object):
                              in the world (map) frame.
         """
         status = "SUCCEEDED"
+        print("entering done", self._done)
         if self._done:
             self.initialize_cam()
             self._done = False
@@ -199,8 +201,7 @@ class RemoteHelloRobot(object):
         return not self._done
 
     def stop(self):
-        robot.stop()
-        robot.push_command()
+        self._robot.stop()
 
     def remove_runstop(self):
         if robot.pimu.status["runstop_event"]:
