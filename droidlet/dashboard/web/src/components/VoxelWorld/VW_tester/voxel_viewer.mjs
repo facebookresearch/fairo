@@ -36,6 +36,7 @@ function addTestContent() {
     let world = {
         THREE: THREE,
         scene: scene,
+        render: render,
     };
 
     for (const key in VW_MOB_MAP) {
@@ -46,7 +47,7 @@ function addTestContent() {
             };
             VoxelMob.build(world, opts).then(
                 function (mob) {
-                    window.setInterval(moveObj, 1000, mob, 50);
+                    window.setInterval(walkabout, 1000, mob, 50);
                 }
             );
         }
@@ -60,7 +61,7 @@ function addTestContent() {
             };
             VoxelItem.build(world, opts).then(
                 function (item) {
-                    window.setInterval(moveObj, 1000, item, 50);
+                    window.setInterval(walkabout, 1000, item, 50);
                 }
             );
         }
@@ -68,28 +69,32 @@ function addTestContent() {
 
 }
 
-function moveObj(obj, dist) {
+function walkabout(obj, dist) {
     let dir = Math.floor(3 * Math.random());
     let choices = [-1, 1];
     let move = choices[Math.floor(choices.length * Math.random())] * dist;
     switch (dir) {
         case 0:
-            if (obj.mob.position.x < 500 && obj.mob.position.x > -500){
+            if (obj.mesh.position.x < 500 && obj.mesh.position.x > -500){
                 obj.move(move, 0, 0);
                 if (obj instanceof(VoxelItem)) {
                     obj.pick();
                 }
+            } else {
+                obj.moveTo(0,0,0);
             }
             break;
         case 1:
             // obj.move(0, move, 0);
             break;
         case 2:
-            if (obj.mob.position.z < 500 && obj.mob.position.z > -500){
+            if (obj.mesh.position.z < 500 && obj.mesh.position.z > -500){
                 obj.move(0, 0, move);
                 if (obj instanceof(VoxelItem)) {
                     obj.drop();
                 }
+            } else {
+                obj.moveTo(0,0,0);
             }
             break;
     }

@@ -9,21 +9,23 @@ class VoxelMob {
         this.world = world;
         this.opts = opts;
         this.mobType = opts.name;
-        this.mob = model;
+        this.mesh = model;
+        this.position_offset = opts.position_offset;
     }
 
     move(x, y, z) {
         var xyz = parseXYZ(x, y, z);
-        this.mob.position.x += xyz.x;
-        this.mob.position.y += xyz.y;
-        this.mob.position.z += xyz.z;
+        this.mesh.position.x += xyz.x;
+        this.mesh.position.y += xyz.y;
+        this.mesh.position.z += xyz.z;
     }
 
     moveTo(x, y, z) {
         var xyz = parseXYZ(x, y, z);
-        this.mob.position.x = xyz.x;
-        this.mob.position.y = xyz.y;
-        this.mob.position.z = xyz.z;
+        xyz = applyOffset(xyz, this.position_offset);
+        this.mesh.position.x = xyz.x;
+        this.mesh.position.y = xyz.y;
+        this.mesh.position.z = xyz.z;
     }
 
     static build (world, opts) {
@@ -34,6 +36,7 @@ class VoxelMob {
         opts.rotation = applyOffset(opts.rotation, mob_data.rotation_offset)
         opts.position = opts.position || [0, 0, 0];
         opts.position = applyOffset(opts.position, mob_data.position_offset)
+        opts.position_offset = mob_data.position_offset;
 
         const path = "./models/" + mob_data.model_folder;
         const loader = new opts.GLTFLoader();
