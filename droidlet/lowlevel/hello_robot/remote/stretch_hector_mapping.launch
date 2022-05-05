@@ -51,7 +51,7 @@
     <param name="tf_map_scanmatch_transform_frame_name" value="$(arg tf_map_scanmatch_transform_frame_name)" />
   </node>
   
-  <node pkg="tf" type="static_transform_publisher" name="map_base_link" args="0 0 0 0 0 0 map base_link 100"/>
+  <!-- <node pkg="tf" type="static_transform_publisher" name="map_base_link" args="0 0 0 0 0 0 map base_link 100"/> -->
 </launch>
   
   

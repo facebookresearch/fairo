@@ -6,7 +6,7 @@ from std_srvs.srv import Trigger, TriggerRequest
 from sensor_msgs.msg import JointState
 from control_msgs.msg import FollowJointTrajectoryGoal
 from trajectory_msgs.msg import JointTrajectoryPoint
-from geometry_msgs.msg import PoseStamped, Pose2D
+from geometry_msgs.msg import PoseStamped, Pose2D, PoseWithCovarianceStamped
 from nav_msgs.msg import Odometry
 import hello_helpers.hello_misc as hm
 import tf
@@ -50,14 +50,17 @@ class MoveNode(hm.HelloNode):
             lm, am = self._linear_movement, self._angular_movement
             max_linear = max(lm)
             max_angular = max(am)
-        return max_linear >= 0.075 or max_angular >= 0.1
+        return max_linear >= 0.05 or max_angular >= 0.05
 
     def get_slam_pose(self):
         with self._lock:
-            pose = self._slam_pose            
-        return (pose.pose.position.x,
-                pose.pose.position.y,
-                pose.pose.orientation.z)
+            pose = self._slam_pose
+        if pose is not None:
+            return (pose.pose.pose.position.x,
+                    pose.pose.pose.position.y,
+                    pose.pose.pose.orientation.z)
+        else:
+            return (0.0, 0.0, 0.0)
     def get_pose2d(self):
         with self._lock:
             _pose = self._pose2d
@@ -65,7 +68,11 @@ class MoveNode(hm.HelloNode):
 
     def get_map_to_odom(self):
         with self._lock:
-            _pose = self._map_to_odom
+            pose = self._map_to_odom
+        if pose is not None:
+            return pose
+        else:
+            return (0.0, 0.0, 0.0)
         return _pose
 
     def get_odom(self):
@@ -120,12 +127,12 @@ class MoveNode(hm.HelloNode):
     def background_loop(self):
 
         rospy.Subscriber("/stretch/joint_states", JointState, self._joint_states_callback, queue_size=1)
-        rospy.Subscriber("/slam_out_pose", PoseStamped, self._slam_pose_callback, queue_size=1)
+        rospy.Subscriber("/poseupdate", PoseWithCovarianceStamped, self._slam_pose_callback, queue_size=1)
         rospy.Subscriber("/pose2D", Pose2D, self._pose2d_callback, queue_size=1)
         rospy.Subscriber("/odom", Odometry, self._odom_callback, queue_size=1)
         tf_listener = tf.TransformListener()
-        target_frame = 'base_link'
         src_frame = 'map'
+        target_frame = 'base_link'
 
         rate = rospy.Rate(self.rate)
 
@@ -138,13 +145,14 @@ class MoveNode(hm.HelloNode):
                 self._send_command(joint_name, increment)
             try:
                 tf_listener.waitForTransform(
-                    target_frame, src_frame, rospy.Time.now(), rospy.Duration(3)
+                    target_frame, src_frame, rospy.Time(0), rospy.Duration(3)
                 )
                 (trans, quat) = tf_listener.lookupTransform(
-                    target_frame, src_frame, rospy.Time.now()
+                    target_frame, src_frame, rospy.Time(0)
                 )
                 with self._lock:
                     self._map_to_odom = (trans[0], trans[1], quat[2])
+                # print("HERE", (trans[0], trans[1], quat[2]))
             except:
                 pass
             rate.sleep()
@@ -155,9 +163,9 @@ class MoveNode(hm.HelloNode):
         )
         self._thread = threading.Thread(target=self.background_loop, daemon=True)
         self._thread.start()
-        # self.send_command('rotate_mobile_base', math.radians(6))
         # while not rospy.is_shutdown():            
         #     time.sleep(1)
+        #     self.send_command('rotate_mobile_base', math.radians(6))
         #     print('slam_pose', self.get_slam_pose())
         #     print('odom', self.get_odom())
         #     print('pose2d', self.get_pose2d())
