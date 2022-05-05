@@ -308,6 +308,8 @@ class LocobotAgent(DroidletAgent):
             from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
 
             self.mover = HelloRobotMover(ip=self.opts.ip)
+            import math
+            self.mover.bot.set_tilt(math.radians(-30))
 
     def get_player_struct_by_name(self, speaker_name):
         p = self.memory.get_player_by_name(speaker_name)
