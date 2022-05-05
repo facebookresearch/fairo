@@ -5,7 +5,7 @@ import click
 
 
 @click.command()
-@click.option("--all")
+@click.option("--all", is_flag=True)
 @click.argument("procs", nargs=-1, shell_complete=_autocomplete.defined_processes)
 def cli(*cmd_procs, all=False, procs=[]):
     # Get all MRP procs running in the system
@@ -15,7 +15,7 @@ def cli(*cmd_procs, all=False, procs=[]):
     if all:  # system-wide down
         assert not procs, "Specifying processes is not supported with the flag '--all'."
         assert not cmd_procs, "Specifying processes is not supported when all=True."
-    
+
     else:  #  local down (only processes defined within the current msetup.py)
         defined_procs = process_def.defined_processes.keys()
         down_procs = down_procs & set(defined_procs)
