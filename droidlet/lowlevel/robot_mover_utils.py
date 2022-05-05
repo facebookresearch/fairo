@@ -103,7 +103,7 @@ def get_move_target_for_point(base_pos, target, eps=0.5):
     return [targetx, targetz, yaw]
 
 
-def get_step_target_for_straightline_move(base_pos, target, step_size=0.1):
+def get_step_target_for_straightline_move(base_pos, target, step_size=0.4):
     """
     Heuristic to get step target of step_size for going to from base_pos to target
     in a straight line.

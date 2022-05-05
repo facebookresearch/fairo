@@ -126,6 +126,11 @@ class ArgumentParser:
             "--data_store_path", default="", help="path for storing data collected by the robot"
         )
         loco_parser.add_argument("--reexplore_json", default="", help="json for reexplore task")
+        loco_parser.add_argument(
+            "--default_behavior",
+            default='explore',
+            help="specifiy the default behavior",
+        )
 
     def fix_path(self, opts):
         if opts.model_base_path == "#relative":

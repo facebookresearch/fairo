@@ -548,8 +548,8 @@ class ExamineDetectionStraightline(TrajectorySaverTask):
         d = 1
         if self.last_base_pos is not None:
             d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
-            # logger.info(f"Distance moved {d}")
-        if (base_pos != self.last_base_pos).any() and dist > 0.2 and d > 0:
+            logger.info(f"Distance moved {d}")
+        if (base_pos != self.last_base_pos).any() and dist > 1.2 and d > 0:
             tloc = get_step_target_for_straightline_move(base_pos, self.frontier_center)
             logger.debug(
                 f"get_step_target_for_straight_move \
@@ -590,7 +590,7 @@ class ExamineDetectionCircle(TrajectorySaverTask):
         super().__init__(agent, task_data)
         self.task_data = task_data
         self.target = task_data["target"]
-        self.radius = task_data.get("radius", 0.7)
+        self.radius = task_data.get("radius", 1)
         self.frontier_center = np.asarray(self.target["xyz"])
         self.agent = agent
         self.steps = 0
@@ -600,7 +600,7 @@ class ExamineDetectionCircle(TrajectorySaverTask):
         self.logger = task_data.get("logger")
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         self.pts = get_circular_path(
-            self.frontier_center, base_pos, radius=self.radius, num_points=40
+            self.frontier_center, base_pos, radius=self.radius, num_points=20
         )
         self.logger.info(f"{len(self.pts)} pts on cicle {self.pts}")
         TaskNode(agent.memory, self.memid).update_task(task=self)
@@ -693,7 +693,7 @@ class Reexplore(Task):
 
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
-        self.tasks = ["straight", "circle", "circle_big", "random1", "random2"]
+        self.tasks = ["circle", "straight", "random1", "random2"]
         self.task_data = task_data
         self.target = task_data.get("target")
         self.spawn_pos = task_data.get("spawn_pos")
@@ -726,11 +726,13 @@ class Reexplore(Task):
 
         # execute a straigtline examine
         if task_name == "straight":
-            self.agent.mover.bot.respawn_agent(
-                self.spawn_pos["position"], self.spawn_pos["rotation"]
-            )
+            # self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
+            self.agent.mover.slam.reset_map()
+            self.agent.mover.nav.reset_explore()
+            self.agent.mover.move_absolute(self.spawn_pos, blocking=True)
             base_pos = self.agent.mover.get_base_pos()
-            assert np.allclose(base_pos, self.base_pos)  # checking that poses match
+            logging.info(f'at spawn loc ..')
+            # assert np.allclose(base_pos, self.base_pos)  # checking that poses match
 
             self.add_child_task(
                 ExamineDetectionStraightline(
@@ -749,11 +751,13 @@ class Reexplore(Task):
 
         # execute a circle examine
         if task_name == "circle":
-            self.agent.mover.bot.respawn_agent(
-                self.spawn_pos["position"], self.spawn_pos["rotation"]
-            )
+            # self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
+            self.agent.mover.slam.reset_map()
+            self.agent.mover.nav.reset_explore()
+            self.agent.mover.move_absolute(self.spawn_pos, blocking=True)
             base_pos = self.agent.mover.get_base_pos()
-            assert np.allclose(base_pos, self.base_pos)
+            logging.info(f'at spawn loc ..')
+            # assert np.allclose(base_pos, self.base_pos)
 
             self.add_child_task(
                 ExamineDetectionCircle(
@@ -773,11 +777,12 @@ class Reexplore(Task):
 
         # execute a circle examine with radius as distance from spawn loc
         if task_name == "circle_big":
-            self.agent.mover.bot.respawn_agent(
-                self.spawn_pos["position"], self.spawn_pos["rotation"]
-            )
+            # self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
+            self.agent.mover.slam.reset_map()
+            self.agent.mover.nav.reset_explore()
+            self.agent.mover.move_absolute(self.spawn_pos, blocking=True)
             base_pos = self.agent.mover.get_base_pos()
-            assert np.allclose(base_pos, self.base_pos)
+            # assert np.allclose(base_pos, self.base_pos)
 
             base_pos_can = self.agent.mover.get_base_pos_in_canonical_coords()
             dist = np.linalg.norm(
@@ -801,11 +806,12 @@ class Reexplore(Task):
             return
 
         if task_name == "random1":
-            self.agent.mover.bot.respawn_agent(
-                self.spawn_pos["position"], self.spawn_pos["rotation"]
-            )
+            # self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
+            self.agent.mover.slam.reset_map()
+            self.agent.mover.nav.reset_explore()
+            self.agent.mover.move_absolute(self.spawn_pos)
             base_pos = self.agent.mover.get_base_pos()
-            assert np.allclose(base_pos, self.base_pos)
+            # assert np.allclose(base_pos, self.base_pos)
 
             self.add_child_task(
                 TimedExplore(
@@ -821,11 +827,12 @@ class Reexplore(Task):
             return
 
         if task_name == "random2":
-            self.agent.mover.bot.respawn_agent(
-                self.spawn_pos["position"], self.spawn_pos["rotation"]
-            )
+            # self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
+            self.agent.mover.slam.reset_map()
+            self.agent.mover.nav.reset_explore()
+            self.agent.mover.move_absolute(self.spawn_pos)
             base_pos = self.agent.mover.get_base_pos()
-            assert np.allclose(base_pos, self.base_pos)
+            # assert np.allclose(base_pos, self.base_pos)
 
             self.add_child_task(
                 TimedExplore(

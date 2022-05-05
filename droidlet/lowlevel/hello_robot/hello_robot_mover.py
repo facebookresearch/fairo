@@ -250,7 +250,7 @@ class HelloRobotMover(MoverInterface):
             logging.info("Move absolute in canonical coordinates {}".format(xzt))
             self.nav_result.wait()
             robot_coords = base_canonical_coords_to_pyrobot_coords(xzt)
-            self.nav_result = self.nav.go_to_absolute(robot_coords)
+            self.nav_result = safe_call(self.nav.go_to_absolute, robot_coords)
             if blocking:
                 self.nav_result.wait()
         return "finished"
