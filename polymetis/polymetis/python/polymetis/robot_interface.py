@@ -33,6 +33,9 @@ POLLING_RATE = 50
 # Grpc empty object
 EMPTY = Empty()
 
+# Controller update freq
+UPDATE_HZ = 60
+
 
 # Dict container as a nn.module to enable use of jit.save & jit.load
 class ParamDictContainer(torch.nn.Module):
@@ -406,20 +409,23 @@ class RobotInterface(BaseRobotInterface):
             start=joint_pos_current,
             goal=joint_pos_desired,
             time_to_go=time_to_go,
-            hz=self.hz,
+            hz=UPDATE_HZ,
         )
 
         # Create & execute policy
-        torch_policy = toco.policies.JointTrajectoryExecutor(
-            joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
-            joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
-            Kp=Kq or self.Kq_default,
-            Kd=Kqd or self.Kqd_default,
-            robot_model=self.robot_model,
-            ignore_gravity=self.use_grav_comp,
-        )
+        t0 = time.time()
+        self.start_joint_impedance(Kq, Kqd)
 
-        return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
+        dt = 1.0 / UPDATE_HZ
+        for waypoint in waypoints:
+            t_target = t0 + waypoint["time_from_start"]
+            time.sleep(max(0, t_target - time.time()))
+
+            self.update_desired_joint_positions(waypoint["position"])
+
+        time.sleep(max(0, t0 + time_to_go - time.time()))
+
+        return self.terminate_current_policy()
 
     def go_home(self, *args, **kwargs) -> List[RobotState]:
         """Calls move_to_joint_positions to the current home positions."""
@@ -501,20 +507,25 @@ class RobotInterface(BaseRobotInterface):
             start=ee_pose_current,
             goal=ee_pose_desired,
             time_to_go=time_to_go,
-            hz=self.hz,
+            hz=UPDATE_HZ,
         )
 
         # Create & execute policy
-        torch_policy = toco.policies.EndEffectorTrajectoryExecutor(
-            ee_pose_trajectory=[waypoint["pose"] for waypoint in waypoints],
-            ee_twist_trajectory=[waypoint["twist"] for waypoint in waypoints],
-            Kp=Kx or self.Kx_default,
-            Kd=Kxd or self.Kxd_default,
-            robot_model=self.robot_model,
-            ignore_gravity=self.use_grav_comp,
-        )
+        t0 = time.time()
+        self.start_cartesian_impedance(Kx, Kxd)
 
-        return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
+        dt = 1.0 / UPDATE_HZ
+        for waypoint in waypoints:
+            t_target = t0 + waypoint["time_from_start"]
+            position = waypoint["pose"].translation()
+            orientation = waypoint["pose"].rotation().as_quat()
+            time.sleep(max(0, t_target - time.time()))
+
+            self.update_desired_ee_pose(position, orientation)
+
+        time.sleep(max(0, t0 + time_to_go - time.time()))
+
+        return self.terminate_current_policy()
 
     """
     Continuous control methods
