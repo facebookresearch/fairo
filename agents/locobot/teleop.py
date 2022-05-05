@@ -154,6 +154,7 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
 def test_command_web(sid, commands, data, value=None):
     test_command(sid, commands, data=data, value=value)
 
+
 if __name__ == "__main__":
     import argparse
 
@@ -206,7 +207,7 @@ if __name__ == "__main__":
         mover.bot.set_pan(0.0)
         # mover.bot.set_tilt(-1.05)
 
-    print(mover.cam.get_current_pcd()[0])
+    # print(mover.cam.get_current_pcd()[0])
     while True:
         counter += 1
         iter_time = time.time_ns() - start_time
@@ -272,14 +273,14 @@ if __name__ == "__main__":
         x, y, yaw = base_state.tolist()
 
         if backend == 'locobot':
-            height=0.63
+            height = 0.63
         else: # hello-robot
-            height=1.41
+            height = 1.41
         o3dviz.add_robot(base_state, height)
 
         # start the SLAM
         if backend == 'habitat':
-            mover.explore((19,19,0))
+            mover.explore((19, 19, 0))
         
         sio.emit(
             "map",

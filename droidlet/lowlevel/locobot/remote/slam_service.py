@@ -4,10 +4,13 @@ import time
 import numpy as np
 import Pyro4
 import select
+import cv2
+from PIL import Image
 from slam_pkg.utils.map_builder import MapBuilder as mb
 from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
 from rich import print
+from constants import coco_categories, color_palette
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
@@ -35,6 +38,7 @@ class SLAM(object):
             agent_min_z=agent_min_z,
             agent_max_z=agent_max_z,
             obs_thr=obstacle_threshold,
+            num_semantic_categories=len(coco_categories),
         )
         self.map_size = map_size
         # if the map is a previous map loaded from disk, and
@@ -91,14 +95,57 @@ class SLAM(object):
         self.map_builder.add_obstacle(location)
 
     def update_map(self):
-        pcd = self.robot.get_current_pcd()[0]
+        pcd, _, valid = self.robot.get_current_pcd()
+        semantics = self.robot.get_rgb_depth_segm()[2]
+        semantic_channels = self.preprocess_habitat_semantics(semantics, valid)
         self.map_builder.update_map(pcd)
+        self.map_builder.update_semantic_map(pcd, semantic_channels)
+        self.visualize_sem_map()
 
         # explore the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
         self.traversable = traversable
+
+    def preprocess_habitat_semantics(self, gt_semantics, valid):
+        num_semantic_cats = len(coco_categories)
+        category_instance_lists = self.robot.get_category_instance_lists()
+        semantic = gt_semantics.astype(np.float32)
+        semantic_channels = np.zeros((semantic.shape[0], semantic.shape[1], num_semantic_cats + 1))
+
+        def add_cat_channel(cat_id):
+            mask = np.zeros((semantic.shape), dtype=bool)
+            if cat_id in category_instance_lists:
+                instance_list = category_instance_lists[cat_id]
+                for inst_id in instance_list:
+                    mask = np.logical_or(mask, semantic == inst_id)
+                semantic[mask] = -(cat_id + 1)
+            return mask * 1
+
+        for i in range(num_semantic_cats):
+            semantic_channels[:, :, i + 1] = add_cat_channel(i)
+
+        semantic_channels = semantic_channels.reshape(-1, semantic_channels.shape[2])
+        semantic_channels = semantic_channels[valid.flatten()]
+
+        return semantic_channels
+
+    def visualize_sem_map(self):
+        sem_map = self.map_builder.semantic_map
+        sem_map[-1, :, :] = 1e-5
+        sem_map = sem_map.argmax(0)
+        sem_map_vis = Image.new("P", (sem_map.shape[1], sem_map.shape[0]))
+        color_pal = [int(x * 255.0) for x in color_palette]
+        sem_map_vis.putpalette(color_pal)
+        sem_map_vis.putdata(sem_map.flatten().astype(np.uint8))
+        sem_map_vis = sem_map_vis.convert("RGB")
+        sem_map_vis = np.flipud(sem_map_vis)
+
+        sem_map_vis = sem_map_vis[:, :, [2, 1, 0]]
+        cv2.imshow("sem_map", sem_map_vis)
+        cv2.waitKey(1)
+        # cv2.imwrite("sem_map.png", sem_map_vis)
 
     def get_map_resolution(self):
         return self.map_resolution
