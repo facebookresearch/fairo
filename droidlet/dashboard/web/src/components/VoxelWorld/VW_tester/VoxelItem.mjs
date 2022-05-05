@@ -1,24 +1,31 @@
+// Copyright (c) Facebook, Inc. and its affiliates.
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
+import {VW_ITEM_MAP} from "./model_luts.mjs"
 
 class VoxelItem {
-    constructor (world, opts) {
+    constructor (model, world, opts) {
         this.world = world;
         this.opts = opts;
         this.location = "world";
-        }
+        this.itemType = opts.name;
+        this.mob = model;
+    }
 
     move(x, y, z) {
         var xyz = parseXYZ(x, y, z);
         this.mob.position.x += xyz.x;
         this.mob.position.y += xyz.y;
         this.mob.position.z += xyz.z;
-    }
+    };
 
     moveTo(x, y, z) {
         var xyz = parseXYZ(x, y, z);
         this.mob.position.x = xyz.x;
         this.mob.position.y = xyz.y;
         this.mob.position.z = xyz.z;
-    }
+    };
 
     drop() {
         if (this.location === "inventory") {
@@ -27,53 +34,42 @@ class VoxelItem {
             return 1
         } else {
             return 0
-        }
-    }
+        };
+    };
 
     pick() {
         if (this.location === "world") {
             this.world.scene.remove(this.mob);
-            // Add to inventory?
             this.location = "inventory";
-        }
-        //else?
-    }
-};
-
-class AppleItem extends VoxelItem {
-    constructor (model, world, opts) {
-        super(world, opts);
-        this.mob = model;
-    }
+            return 1
+        } else {
+            return 0
+        };
+    };
 
     static build (world, opts) {
-        opts.scale = opts.scale || 0.15;  // adjusted to be ~1 voxel in size
-        opts.rotation = opts.rotation || [0, 0, 0];  // model rotation OK
-        opts.position = opts.position || [0, 0, 0];
-        opts.position = positionOffset(opts.position, [30, 0, 20]);  // Move to middle of voxel
+        // This could all live in the constructor, but leaving it this way for now to
+        // 1) mirror the syntax of VoxelMob and 2) allow for easy extension to load models
 
-        const path = "./apple_model/";
-        const modelFile = "scene.gltf";
-        const loader = new opts.GLTFLoader();
-        loader.setPath(path);
-        return loader.loadAsync( modelFile ).then(
-            function (gltf) {
-                let model = gltf.scene;
-                model.scale.multiplyScalar(opts.scale);
-                model.position.set(opts.position[0], opts.position[1], opts.position[2]);
-                model.rotation.x += opts.rotation[0];
-                model.rotation.y += opts.rotation[1];
-                model.rotation.z += opts.rotation[2];
-                world.scene.add( model );
-                return model;
-            }
-        ).then(
-            function (model) {
-               return new AppleItem(model, world, opts);
-           }
-        );
-    }
-}
+        let item_data = VW_ITEM_MAP[opts.name];
+        let itemMaterial;
+        if (typeof(item_data) === "number") {
+            itemMaterial = new world.THREE.MeshBasicMaterial( { color: item_data, opacity: 1.0 } );
+        }
+        const geo = new world.THREE.BoxGeometry( 20, 20, 20 );
+        let itemMesh = new world.THREE.Mesh( geo, itemMaterial );
+        opts.position = opts.position || [0, 0, 0];
+        opts.position = opts.position.map(x => x+25); // move to the center of the voxel
+        itemMesh.position.set(opts.position[0], opts.position[1], opts.position[2]);
+        itemMesh.rotation.set(0, Math.PI/4, Math.PI/4);
+        world.scene.add(itemMesh);
+
+        return new Promise(resolve => {
+              resolve(new VoxelItem(itemMesh, world, opts));
+        });
+    };
+};
+
 
 function parseXYZ (x, y, z) {
     if (typeof x === 'object' && Array.isArray(x)) {
@@ -85,10 +81,5 @@ function parseXYZ (x, y, z) {
     return { x: Number(x), y: Number(y), z: Number(z) };
 }
 
-function positionOffset (pos, offset) {
-    // adjusts the passed in position to center the model in a voxel
-    return [(pos[0] + offset[0]), (pos[1] + offset[1]), (pos[2] + offset[2])]
-}
 
-
-export {VoxelItem, AppleItem};
+export {VoxelItem};

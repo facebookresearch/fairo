@@ -1,9 +1,16 @@
+// Copyright (c) Facebook, Inc. and its affiliates.
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
+import {VW_MOB_MAP} from "./model_luts.mjs"
 
 class VoxelMob {
-    constructor (world, opts) {
+    constructor (model, world, opts) {
         this.world = world;
         this.opts = opts;
-        }
+        this.mobType = opts.name;
+        this.mob = model;
+    }
 
     move(x, y, z) {
         var xyz = parseXYZ(x, y, z);
@@ -18,25 +25,20 @@ class VoxelMob {
         this.mob.position.y = xyz.y;
         this.mob.position.z = xyz.z;
     }
-};
-
-class ChickenMob extends VoxelMob {
-    constructor (model, world, opts) {
-        super(world, opts);
-        this.mob = model;
-    }
 
     static build (world, opts) {
-        opts.scale = opts.scale || 90.0;  // adjusted to be ~1 voxel in size
-        opts.rotation = opts.rotation || [0, 0, 0];  // model rotation OK
+        let mob_data = VW_MOB_MAP[opts.name];
+        opts.scale = opts.scale || 1.0;
+        opts.scale *= mob_data.default_scale;
+        opts.rotation = opts.rotation || [0, 0, 0];
+        opts.rotation = applyOffset(opts.rotation, mob_data.rotation_offset)
         opts.position = opts.position || [0, 0, 0];
-        opts.position = positionOffset(opts.position, [11, 0, 23])  // Move to middle of voxel
+        opts.position = applyOffset(opts.position, mob_data.position_offset)
 
-        const path = "./chicken_model/";
-        const modelFile = "chicken.gltf";
+        const path = "./models/" + mob_data.model_folder;
         const loader = new opts.GLTFLoader();
         loader.setPath(path);
-        return loader.loadAsync( modelFile ).then(
+        return loader.loadAsync( mob_data.model_file ).then(
             function (gltf) {
                 let model = gltf.scene;
                 model.scale.multiplyScalar(opts.scale);
@@ -49,11 +51,11 @@ class ChickenMob extends VoxelMob {
             }
         ).then(
             function (model) {
-               return new ChickenMob(model, world, opts);
+               return new VoxelMob(model, world, opts);
            }
         );
     }
-}
+};
 
 function parseXYZ (x, y, z) {
     if (typeof x === 'object' && Array.isArray(x)) {
@@ -65,10 +67,10 @@ function parseXYZ (x, y, z) {
     return { x: Number(x), y: Number(y), z: Number(z) };
 }
 
-function positionOffset (pos, offset) {
-    // adjusts the passed in position to center the model in a voxel
+function applyOffset (pos, offset) {
+    // adjusts the passed in position/rotation to center the model in a voxel upright
     return [(pos[0] + offset[0]), (pos[1] + offset[1]), (pos[2] + offset[2])]
 }
 
 
-export {ChickenMob};
+export {VoxelMob};

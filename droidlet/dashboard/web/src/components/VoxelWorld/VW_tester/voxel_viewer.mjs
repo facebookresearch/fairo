@@ -6,8 +6,9 @@ import * as THREE from './three.module.mjs';
 import { OrbitControls } from './OrbitControls.mjs';
 import { GLTFLoader } from './GLTFLoader.mjs';
 
-import { ChickenMob } from './VoxelMob.mjs';
-import { VoxelItem, AppleItem } from './VoxelItem.mjs';
+import { VoxelMob } from './VoxelMob.mjs';
+import { VoxelItem } from './VoxelItem.mjs';
+import { VW_ITEM_MAP, VW_MOB_MAP } from './model_luts.mjs'
 
 let camera, scene, renderer, controls;
 let plane;
@@ -36,19 +37,35 @@ function addTestContent() {
         THREE: THREE,
         scene: scene,
     };
-    let opts = {
-        GLTFLoader: GLTFLoader,
-    };
-    ChickenMob.build(world, {GLTFLoader: GLTFLoader}).then(
-        function (chicken) {
-            window.setInterval(moveObj, 1000, chicken, 50);
+
+    for (const key in VW_MOB_MAP) {
+        if (typeof(key) === "string" && VW_MOB_MAP[key] !== null) {
+            const opts = {
+                GLTFLoader: GLTFLoader,
+                name: key,
+            };
+            VoxelMob.build(world, opts).then(
+                function (mob) {
+                    window.setInterval(moveObj, 1000, mob, 50);
+                }
+            );
         }
-    );
-    AppleItem.build(world, {GLTFLoader: GLTFLoader}).then(
-        function (apple) {
-            window.setInterval(moveObj, 1000, apple, 50);
+    }
+
+    for (const key in VW_ITEM_MAP) {
+        if (typeof(key) === "string" && VW_ITEM_MAP[key] !== null) {
+            const opts = {
+                GLTFLoader: GLTFLoader,
+                name: key,
+            };
+            VoxelItem.build(world, opts).then(
+                function (item) {
+                    window.setInterval(moveObj, 1000, item, 50);
+                }
+            );
         }
-    );
+    }
+
 }
 
 function moveObj(obj, dist) {
@@ -57,18 +74,22 @@ function moveObj(obj, dist) {
     let move = choices[Math.floor(choices.length * Math.random())] * dist;
     switch (dir) {
         case 0:
-            obj.move(move, 0, 0);
-            if (obj instanceof(VoxelItem)) {
-                obj.pick();
+            if (obj.mob.position.x < 500 && obj.mob.position.x > -500){
+                obj.move(move, 0, 0);
+                if (obj instanceof(VoxelItem)) {
+                    obj.pick();
+                }
             }
             break;
         case 1:
             // obj.move(0, move, 0);
             break;
         case 2:
-            obj.move(0, 0, move);
-            if (obj instanceof(VoxelItem)) {
-                obj.drop();
+            if (obj.mob.position.z < 500 && obj.mob.position.z > -500){
+                obj.move(0, 0, move);
+                if (obj instanceof(VoxelItem)) {
+                    obj.drop();
+                }
             }
             break;
     }
@@ -96,11 +117,11 @@ function init() {
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
     scene.add( ambientLight );
-
     const directionalLight = new THREE.DirectionalLight( 0xffffff );
     directionalLight.position.set( 1, 0.75, 0.5 ).normalize();
     scene.add( directionalLight );
 
+    // renderer
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
