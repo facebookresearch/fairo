@@ -50,9 +50,8 @@ class MoveDirectionUntilTest(BaseCraftassistTestCase):
         self.assertLessEqual(((5 - cow.pos[0]) ** 2 + (5 - cow.pos[2]) ** 2) ** 0.5, 2)
 
         # check agent went left:
-        player_left = rotation.transform(
-            rotation.DIRECTIONS["LEFT"], *self.agent.world.players[0].look, inverted=True
-        )
+        player_look = list(self.agent.world.players.values())[0].look
+        player_left = rotation.transform(rotation.DIRECTIONS["LEFT"], *player_look, inverted=True)
         agent_mv = self.agent.pos - np.array((0, 63, 0))
         agent_mv_n = agent_mv / np.linalg.norm(agent_mv)
         self.assertGreaterEqual(agent_mv_n @ player_left, 0.8)
