@@ -9,9 +9,9 @@ from trajectory_msgs.msg import JointTrajectoryPoint
 from geometry_msgs.msg import PoseStamped, Pose2D, PoseWithCovarianceStamped
 from nav_msgs.msg import Odometry
 import hello_helpers.hello_misc as hm
-import tf
-import tf.transformations
+from tf.transformations import euler_from_quaternion
 import collections
+import numpy as np
 
 class MoveNode(hm.HelloNode):
     def __init__(self):
@@ -23,7 +23,6 @@ class MoveNode(hm.HelloNode):
         self._odom = None
         self._linear_movement = collections.deque(maxlen=10)
         self._angular_movement = collections.deque(maxlen=10)
-        self._map_to_odom = None
         self._pose2d = None
         self._lock = threading.Lock()
 
@@ -56,9 +55,18 @@ class MoveNode(hm.HelloNode):
         with self._lock:
             pose = self._slam_pose
         if pose is not None:
+            quat = np.array(
+                [
+                    pose.pose.pose.orientation.x,
+                    pose.pose.pose.orientation.y,
+                    pose.pose.pose.orientation.z,
+                    pose.pose.pose.orientation.w,
+                ]
+            )
+            euler = euler_from_quaternion(quat)
             return (pose.pose.pose.position.x,
                     pose.pose.pose.position.y,
-                    pose.pose.pose.orientation.z)
+                    euler[2])
         else:
             return (0.0, 0.0, 0.0)
     def get_pose2d(self):
@@ -66,22 +74,22 @@ class MoveNode(hm.HelloNode):
             _pose = self._pose2d
         return _pose
 
-    def get_map_to_odom(self):
-        with self._lock:
-            pose = self._map_to_odom
-        if pose is not None:
-            return pose
-        else:
-            return (0.0, 0.0, 0.0)
-        return _pose
-
     def get_odom(self):
         with self._lock:
             odom = self._odom
         pose = odom.pose
+        quat = np.array(
+            [
+                pose.pose.orientation.x,
+                pose.pose.orientation.y,
+                pose.pose.orientation.z,
+                pose.pose.orientation.w,
+            ]
+        )
+        euler = euler_from_quaternion(quat)
         return (pose.pose.position.x,
                 pose.pose.position.y,
-                pose.pose.orientation.z)
+                euler[2])
 
     def get_joint_state(self, name=None):
         with self._lock:
@@ -127,12 +135,12 @@ class MoveNode(hm.HelloNode):
     def background_loop(self):
 
         rospy.Subscriber("/stretch/joint_states", JointState, self._joint_states_callback, queue_size=1)
+        # This comes from hector_slam. It's a transform from src_frame = 'base_link', target_frame = 'map'
         rospy.Subscriber("/poseupdate", PoseWithCovarianceStamped, self._slam_pose_callback, queue_size=1)
+        # this comes from lidar matching, i.e. no slam/global-optimization
         rospy.Subscriber("/pose2D", Pose2D, self._pose2d_callback, queue_size=1)
+        # This comes from wheel odometry.
         rospy.Subscriber("/odom", Odometry, self._odom_callback, queue_size=1)
-        tf_listener = tf.TransformListener()
-        src_frame = 'map'
-        target_frame = 'base_link'
 
         rate = rospy.Rate(self.rate)
 
@@ -143,18 +151,6 @@ class MoveNode(hm.HelloNode):
             if command is not None:
                 joint_name, increment = command
                 self._send_command(joint_name, increment)
-            try:
-                tf_listener.waitForTransform(
-                    target_frame, src_frame, rospy.Time(0), rospy.Duration(3)
-                )
-                (trans, quat) = tf_listener.lookupTransform(
-                    target_frame, src_frame, rospy.Time(0)
-                )
-                with self._lock:
-                    self._map_to_odom = (trans[0], trans[1], quat[2])
-                # print("HERE", (trans[0], trans[1], quat[2]))
-            except:
-                pass
             rate.sleep()
 
     def start(self):
@@ -163,13 +159,16 @@ class MoveNode(hm.HelloNode):
         )
         self._thread = threading.Thread(target=self.background_loop, daemon=True)
         self._thread.start()
-        # while not rospy.is_shutdown():            
+        # self.send_command('translate_mobile_base', 0.1)
+        # self.send_command('rotate_mobile_base', math.radians(90))
+        # while not rospy.is_shutdown():
         #     time.sleep(1)
-        #     self.send_command('rotate_mobile_base', math.radians(6))
+        #     # self.send_command('rotate_mobile_base', math.radians(90))
+        #     #     self.send_command('rotate_mobile_base', math.radians(6))
+        #     print("")
         #     print('slam_pose', self.get_slam_pose())
         #     print('odom', self.get_odom())
         #     print('pose2d', self.get_pose2d())
-        #     print('map_to_odom', self.get_map_to_odom())
         #     print("")
         #     # ROTATE LEFT +ve / RIGHT -ve in radians
         #     self.send_command('rotate_mobile_base', math.radians(6))
@@ -186,7 +185,7 @@ class MoveNode(hm.HelloNode):
         #     #     print(x, y, theta)
             
         #     # FORWARD/BACKWARD in metres
-        #     # self.send_command('translate_mobile_base', 0.05)
+        # self.send_command('translate_mobile_base', 0.05)
 
 
 if __name__ == "__main__":

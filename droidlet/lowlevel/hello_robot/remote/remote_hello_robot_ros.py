@@ -91,13 +91,12 @@ class RemoteHelloRobot(object):
         return camera_transform
 
     def get_base_state(self):
-        # pose2d is returned from laser scanner, and is pretty good
-        # it is better than default wheel encoder odom
-        return self._robot.get_pose2d()
-        
+        # Best (from SLAM)
+        return self._robot.get_slam_pose()
+        # second Best (from lidar scanning)
+        # return self._robot.get_pose2d()
+        # Worst, from wheel encoder only
         # return self._robot.get_odom()
-        # return self._robot.get_slam_pose()
-        # return self._robot.get_map_to_odom()
 
     def get_slam_pose(self):
         return self._robot.get_slam_pose()
