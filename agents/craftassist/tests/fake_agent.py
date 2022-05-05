@@ -516,4 +516,4 @@ class FakePlayer(FakeAgent):
             self.pos = np.array(
                 (float(xz[0]) + off[0], float(h + 1) + off[1], float(xz[1]) + off[2]), dtype="int"
             )
-        self.world.players.append(self)
+        self.world.players[self.entityId] = self

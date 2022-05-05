@@ -3,11 +3,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
 from typing import Sequence, Dict
-from droidlet.base_util import Pos
+from droidlet.base_util import Pos, Look
 from droidlet.lowlevel.minecraft.mc_util import Block, XYZ, IDM
+from droidlet.shared_data_struct.craftassist_shared_utils import Player
 from droidlet.shared_data_struct.rotation import look_vec
-from .fake_mobs import make_mob_opts, MOB_META, SimpleMob
-from .utils import build_ground
+from droidlet.lowlevel.minecraft.pyworld.fake_mobs import make_mob_opts, MOB_META, SimpleMob
+from droidlet.lowlevel.minecraft.pyworld.utils import build_ground, make_pose
 
 
 def shift_coords(p, shift):
@@ -61,12 +62,12 @@ class World:
         self.item_stacks = []
         for i in spec["item_stacks"]:
             i.add_to_world(self)
-        self.players = []
+        self.players = {}
         for p in spec["players"]:
             if hasattr(p, "add_to_world"):
                 p.add_to_world(self)
             else:
-                self.players.append(p)
+                self.players[p.entityId] = p
         self.agent_data = spec["agent"]
         self.chat_log = []
 
@@ -76,13 +77,18 @@ class World:
 
         # TODO: Add item stack maker?
 
+        if hasattr(opts, "world_server") and opts.world_server:
+            port = getattr(opts, "port", 25565)
+            self.setup_server(port=port)
+            
+
     def set_count(self, count):
         self.count = count
 
     def step(self):
         for m in self.mobs:
             m.step()
-        for p in self.players:
+        for eid, p in self.players.items():
             if hasattr(p, "step"):
                 p.step()
         self.count += 1
@@ -142,8 +148,23 @@ class World:
     def get_mobs(self):
         return [m.get_info() for m in self.mobs]
 
+    def get_player_info(self, eid):
+        """
+        returns a Player struct
+        or None if eid is not a player
+        it is assumed that if p implements its own get_info() method, that
+        returns a Player struct
+        """
+        p = self.players.get(eid)
+        if not p:
+            return
+        if hasattr(p, "get_info"):
+            return p.get_info()
+        else:            
+            return p
+        
     def get_players(self):
-        return [p.get_info() if hasattr(p, "get_info") else p for p in self.players]
+        return [self.get_player_info(eid) for eid in self.players]
 
     def get_item_stacks(self):
         return [i.get_info() for i in self.item_stacks]
@@ -209,3 +230,69 @@ class World:
     def add_incoming_chat(self, chat: str, speaker_name: str):
         """Add a chat to memory as if it was just spoken by SPEAKER"""
         self.chat_log.append("<" + speaker_name + ">" + " " + chat)
+
+    def connect_player(self, sid, data):
+        # FIXME, this probably won't actually work
+        if self.connected_sids.get(sid) is not None:
+            print("reconnecting eid {} (sid {})".format(self.connected_sids["sid"], sid))
+            return
+        #FIXME add height map
+        x, y, z, pitch, yaw = make_pose(self.sl, self.sl, loc=data.get("loc"), pitchyaw=data.get("pitchyaw"))
+        entityId = data.get("entityId") or int(np.random.randint(0, 100000000))
+        # FIXME
+        name = data.get("name", "anonymous")
+        p = Player(entityId, name, Pos(x,y,z), Look(yaw, pitch))
+        self.players[entityId] = p
+        self.connected_sids[sid] = entityId
+        
+
+    def setup_server(self, port=25565):
+        import socketio
+        import eventlet
+        server = socketio.Server(async_mode='eventlet')
+        self.connected_sids = {}
+        
+        @server.event
+        def connect(sid, environ):
+            print('connect ', sid)
+
+        @server.event
+        def disconnect(sid):
+            print('disconnect ', sid)
+
+        # the player init is separate bc connect special format, FIXME?
+        @server.on('init_player')
+        def init_player_event(sid, data):
+            self.connect_player(sid, data)
+            
+        @server.on('line_of_sight')
+        def los_event(sid, data):
+            if data.get("pos"):
+                pos = self.get_line_of_sight(data["pos"], data["yaw"], data["pitch"])
+            else:
+                eid = data["eid"]
+                player_struct = self.get_player_info(eid)
+                pos = self.get_line_of_sight(player_struct.pos, *player_struct.look)
+            pos = pos or ""
+            server.emit('los_return', data=pos, to=sid)
+    
+        app = socketio.WSGIApp(server)
+        eventlet.wsgi.server(eventlet.listen(('', port)), app)
+
+
+
+if __name__ == "__main__":
+    class Opt:
+        pass
+    spec = {
+        "players": [],
+        "mobs": [],
+        "item_stacks": [],
+        "coord_shift": (0, 0, 0),
+        "agent": {}
+    }
+    world_opts = Opt()
+    world_opts.sl = 32
+    world_opts.world_server = True
+    world_opts.port = 6000
+    world = World(world_opts, spec)

@@ -121,7 +121,7 @@ class BaseCraftassistTestCase(unittest.TestCase):
         if something is in between the player and the target xyz;
         and uses the agent's world's get_line_of_sight
         """
-        player = player or self.agent.world.players[0]
+        player = player or list(self.agent.world.players.values())[0]
         player.look_at(*xyz)
 
     def set_blocks(self, xyzbms: List[Block], origin: XYZ = (0, 0, 0)):

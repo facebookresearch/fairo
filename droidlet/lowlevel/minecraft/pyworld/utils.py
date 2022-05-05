@@ -100,3 +100,39 @@ def build_ground(world):
                     world.blocks[
                         ground_blocks[j][0], ground_blocks[j][1], ground_blocks[j][2], :
                     ] = idm
+
+
+# THIS IS A DUPLICATE of the method in small_scenes_with_shapes.  dedup!
+def make_pose(SL, H, loc=None, pitchyaw=None, height_map=None):
+    """
+    make a random pose for player or mob.
+    if loc or pitchyaw is specified, use those
+    if height_map is specified, finds a point close to the loc
+        1 block higher than the height_map, but less than ENTITY_HEIGHT from
+        H
+    TODO option to input object locations and pick pitchyaw to look at one
+    """
+    ENTITY_HEIGHT = 2
+    if loc is None:
+        x, y, z = np.random.randint((SL, H, SL))
+    else:
+        x, y, z = loc
+    if pitchyaw is None:
+        pitch = np.random.uniform(-90, 90)
+        yaw = np.random.uniform(-180, 180)
+    else:
+        pitch, yaw = pitchyaw
+    # put the entity above the current height map.  this will break if
+    # there is a big flat slab covering the entire space high, FIXME
+    if height_map is not None:
+        okh = np.array(np.nonzero(height_map < H - ENTITY_HEIGHT))
+        if okh.shape[1] == 0:
+            raise Exception(
+                "no space for entities, height map goes up to H-ENTITY_HEIGHT everywhere"
+            )
+        d = np.linalg.norm((okh - np.array((x, z)).reshape(2, 1)), 2, 0)
+        minidx = np.argmin(d)
+        x = int(okh[0, minidx])
+        z = int(okh[1, minidx])
+        y = int(height_map[x, z] + 1)
+    return x, y, z, pitch, yaw
