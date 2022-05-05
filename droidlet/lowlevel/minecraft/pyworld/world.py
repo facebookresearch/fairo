@@ -80,7 +80,6 @@ class World:
         if hasattr(opts, "world_server") and opts.world_server:
             port = getattr(opts, "port", 25565)
             self.setup_server(port=port)
-            
 
     def set_count(self, count):
         self.count = count
@@ -160,9 +159,9 @@ class World:
             return
         if hasattr(p, "get_info"):
             return p.get_info()
-        else:            
+        else:
             return p
-        
+
     def get_players(self):
         return [self.get_player_info(eid) for eid in self.players]
 
@@ -236,36 +235,38 @@ class World:
         if self.connected_sids.get(sid) is not None:
             print("reconnecting eid {} (sid {})".format(self.connected_sids["sid"], sid))
             return
-        #FIXME add height map
-        x, y, z, pitch, yaw = make_pose(self.sl, self.sl, loc=data.get("loc"), pitchyaw=data.get("pitchyaw"))
+        # FIXME add height map
+        x, y, z, pitch, yaw = make_pose(
+            self.sl, self.sl, loc=data.get("loc"), pitchyaw=data.get("pitchyaw")
+        )
         entityId = data.get("entityId") or int(np.random.randint(0, 100000000))
         # FIXME
         name = data.get("name", "anonymous")
-        p = Player(entityId, name, Pos(x,y,z), Look(yaw, pitch))
+        p = Player(entityId, name, Pos(x, y, z), Look(yaw, pitch))
         self.players[entityId] = p
         self.connected_sids[sid] = entityId
-        
 
     def setup_server(self, port=25565):
         import socketio
         import eventlet
-        server = socketio.Server(async_mode='eventlet')
+
+        server = socketio.Server(async_mode="eventlet")
         self.connected_sids = {}
-        
+
         @server.event
         def connect(sid, environ):
-            print('connect ', sid)
+            print("connect ", sid)
 
         @server.event
         def disconnect(sid):
-            print('disconnect ', sid)
+            print("disconnect ", sid)
 
         # the player init is separate bc connect special format, FIXME?
-        @server.on('init_player')
+        @server.on("init_player")
         def init_player_event(sid, data):
             self.connect_player(sid, data)
-            
-        @server.on('line_of_sight')
+
+        @server.on("line_of_sight")
         def los_event(sid, data):
             if data.get("pos"):
                 pos = self.get_line_of_sight(data["pos"], data["yaw"], data["pitch"])
@@ -274,23 +275,18 @@ class World:
                 player_struct = self.get_player_info(eid)
                 pos = self.get_line_of_sight(player_struct.pos, *player_struct.look)
             pos = pos or ""
-            server.emit('los_return', data=pos, to=sid)
-    
-        app = socketio.WSGIApp(server)
-        eventlet.wsgi.server(eventlet.listen(('', port)), app)
+            server.emit("los_return", data=pos, to=sid)
 
+        app = socketio.WSGIApp(server)
+        eventlet.wsgi.server(eventlet.listen(("", port)), app)
 
 
 if __name__ == "__main__":
+
     class Opt:
         pass
-    spec = {
-        "players": [],
-        "mobs": [],
-        "item_stacks": [],
-        "coord_shift": (0, 0, 0),
-        "agent": {}
-    }
+
+    spec = {"players": [], "mobs": [], "item_stacks": [], "coord_shift": (0, 0, 0), "agent": {}}
     world_opts = Opt()
     world_opts.sl = 32
     world_opts.world_server = True
