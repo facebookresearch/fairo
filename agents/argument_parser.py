@@ -32,6 +32,12 @@ class ArgumentParser:
             help="do not perform default behaviors when idle",
         )
         self.parser.add_argument(
+            "--num_workers",
+            default=1,
+            type=int,
+            help="Number of additional workers for the swarm",
+        )
+        self.parser.add_argument(
             "--agent_debug_mode",
             action="store_true",
             default=False,
