@@ -22,6 +22,7 @@ import obstacle_utils
 from obstacle_utils import is_obstacle
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
 from data_compression import *
+from droidlet.perception.robot.segmentation.semantic_prediction import SemanticPredMaskRCNN
 
 
 # Configure depth and color streams
@@ -58,6 +59,8 @@ class RemoteHelloRealsense(object):
         img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
+        self.segmentation_model = SemanticPredMaskRCNN(
+            sem_pred_prob_thr=0.1, sem_gpu_id=-1, visualize=True)
 
     def get_camera_transform(self):
         return self.bot.get_camera_transform()
@@ -161,8 +164,7 @@ class RemoteHelloRealsense(object):
         return color_image, depth_image
     
     def get_semantics(self, rgb, depth):
-        # TODO Implement semantic segmentation for Hello Robot
-        raise NotImplementedError
+        return self.segmentation_model.get_prediction(rgb)[0]
 
     def get_open3d_pcd(self, rgb_depth=None, cam_transform=None, base_state=None):
         # get data
