@@ -223,7 +223,8 @@ class World:
                             if tuple(self.blocks[sp]) != (0, 0):
                                 # TODO: deal with close blocks artifacts,
                                 # etc
-                                return tuple(self.from_world_coords(sp))
+                                pos = self.from_world_coords(sp)
+                                return tuple(int(l) for l in pos)
         return
 
     def add_incoming_chat(self, chat: str, speaker_name: str):
@@ -242,7 +243,7 @@ class World:
         entityId = data.get("entityId") or int(np.random.randint(0, 100000000))
         # FIXME
         name = data.get("name", "anonymous")
-        p = Player(entityId, name, Pos(x, y, z), Look(yaw, pitch))
+        p = Player(entityId, name, Pos(int(x), int(y), int(z)), Look(float(yaw), float(pitch)))
         self.players[entityId] = p
         self.connected_sids[sid] = entityId
 
@@ -271,11 +272,30 @@ class World:
             if data.get("pos"):
                 pos = self.get_line_of_sight(data["pos"], data["yaw"], data["pitch"])
             else:
-                eid = data["eid"]
+                if data.get("entityId"):
+                    eid = data["entityId"]
+                else:
+                    eid = self.connected_sids.get(sid)
+                if not eid:
+                    raise Exception("player connected, asking for line of sight, but sid does not match any entityId")                    
                 player_struct = self.get_player_info(eid)
                 pos = self.get_line_of_sight(player_struct.pos, *player_struct.look)
             pos = pos or ""
-            server.emit("los_return", data=pos, to=sid)
+            return {"pos": pos}
+
+        @server.on("set_look")
+        def set_agent_look(sid, data):
+            eid = self.connected_sids.get(sid)
+            player_struct = self.get_player_info(eid)
+            # warning: it is assumed that if a player is using the sio event to set look,
+            # the only thing stored here is a Player struct, not some more complicated object
+            new_look = Look(data["yaw"], data["pitch"])
+            self.players[entityId] = self.players[entityId]._replace(look=new_look)
+
+        @server.on("get_player")
+        def get_player_by_sid(sid):
+            eid = self.connected_sids.get(sid)
+            return self.get_player_info(eid)
 
         app = socketio.WSGIApp(server)
         eventlet.wsgi.server(eventlet.listen(("", port)), app)
