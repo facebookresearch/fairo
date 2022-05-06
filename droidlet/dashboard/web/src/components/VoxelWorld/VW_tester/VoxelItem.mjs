@@ -31,7 +31,7 @@ class VoxelItem {
             this.world.scene.add(this.mesh);
             this.location = "world";
             this.hoverID = window.setInterval(hover, 100, this);
-            // FIXME need to update position to be near the avatar doing the dropping
+            // FIXME need to moveTo voxel in front of avatar
             return 1
         } else {
             return 0
@@ -53,13 +53,20 @@ class VoxelItem {
         // This could all live in the constructor, but leaving it this way for now to
         // 1) mirror the syntax of VoxelMob and 2) allow for easy extension to load models
 
+        // Load texture images and apply to geometry
         let item_data = VW_ITEM_MAP[opts.name];
-        let itemMaterial = new world.THREE.MeshLambertMaterial( { 
-            color: item_data[0], 
-            map: new world.THREE.TextureLoader().load( './block_textures/'+item_data[1] ) 
-        });
+        const loader = new world.THREE.TextureLoader();
+        const itemMaterials = [
+            new world.THREE.MeshBasicMaterial({ map: loader.load('./block_textures/'+item_data["sides"]), color: item_data["color"], opacity: item_data["opacity"], transparent: true, side: world.THREE.DoubleSide }), //right side
+            new world.THREE.MeshBasicMaterial({ map: loader.load('./block_textures/'+item_data["sides"]), color: item_data["color"], opacity: item_data["opacity"], transparent: true, side: world.THREE.DoubleSide }), //left side
+            new world.THREE.MeshBasicMaterial({ map: loader.load('./block_textures/'+item_data["top"]), color: item_data["color"], opacity: item_data["opacity"], transparent: true, side: world.THREE.DoubleSide }), //top side
+            new world.THREE.MeshBasicMaterial({ map: loader.load('./block_textures/'+item_data["bottom"]), color: item_data["color"], opacity: item_data["opacity"], transparent: true, side: world.THREE.DoubleSide }), //bottom side
+            new world.THREE.MeshBasicMaterial({ map: loader.load('./block_textures/'+item_data["sides"]), color: item_data["color"], opacity: item_data["opacity"], transparent: true, side: world.THREE.DoubleSide }), //front side
+            new world.THREE.MeshBasicMaterial({ map: loader.load('./block_textures/'+item_data["sides"]), color: item_data["color"], opacity: item_data["opacity"], transparent: true, side: world.THREE.DoubleSide }), //back side
+        ];
         const geo = new world.THREE.BoxGeometry( 20, 20, 20 );
-        let itemMesh = new world.THREE.Mesh( geo, itemMaterial );
+        let itemMesh = new world.THREE.Mesh( geo, itemMaterials );
+
         opts.position = opts.position || [0, 0, 0];
         opts.position = applyOffset(opts.position, [25,25,25]);  // move to the center of the voxel
         itemMesh.position.set(opts.position[0], opts.position[1], opts.position[2]);
@@ -68,8 +75,7 @@ class VoxelItem {
 
         return new Promise(resolve => {
             const item = new VoxelItem(itemMesh, world, opts);
-            opts.hoverID = window.setInterval(hover, 100, item);
-            item.hoverID = opts.hoverID;
+            item.hoverID = window.setInterval(hover, 100, item);
             resolve(item);
         });
     };
