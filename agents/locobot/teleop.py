@@ -207,10 +207,6 @@ if __name__ == "__main__":
         mover.bot.set_pan(0.0)
         # mover.bot.set_tilt(-1.05)
 
-<<<<<<< HEAD
-    # print(mover.cam.get_current_pcd()[0])
-=======
->>>>>>> main
     while True:
         counter += 1
         iter_time = time.time_ns() - start_time
