@@ -11,7 +11,7 @@ combinations = {
     'e1s1r2': ['e1', 's1', 'r2'],
     'e1c1sr2': ['e1', 'c1s', 'r2'],
     'e1c1lr2': ['e1', 'c1l', 'r2'],
-    # 'e1s1c1s': ['e1', 's1', 'c1s'],
+    'e1s1c1s': ['e1', 's1', 'c1s'],
     # 'e1s1c1l': ['e1', 's1', 'c1l'],
 }
 
@@ -180,7 +180,7 @@ if __name__ == "__main__":
     # set timeout in min, and partition for running the job
     executor.update_parameters(
         slurm_partition="learnfair", #"learnfair", #scavenge
-        timeout_min=1000,
+        timeout_min=100,
         mem_gb=256,
         gpus_per_node=4,
         tasks_per_node=1, 
@@ -189,7 +189,7 @@ if __name__ == "__main__":
             "mail-user": f"{os.environ['USER']}@fb.com",
             "mail-type": "all",
         },
-        slurm_comment="Droidlet Active Vision Pipeline"
+        slurm_comment="NeurIPS deadline 5/19 Droidlet Active Vision"
     )
 
     prep_and_run_training(args.data_dir, args.job_dir, args.num_train_samples)
