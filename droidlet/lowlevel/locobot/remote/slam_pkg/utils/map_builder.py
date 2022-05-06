@@ -116,6 +116,7 @@ class MapBuilder(object):
         )
         geometric_pc_t = geometric_pc_t.transpose(0, 1).unsqueeze(0).float()
 
+        # TODO Fix out of memory error on the robot
         init_grid = torch.zeros(
             1,
             semantic_channels.shape[1],

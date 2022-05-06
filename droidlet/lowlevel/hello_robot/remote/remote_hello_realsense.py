@@ -23,7 +23,7 @@ import obstacle_utils
 from obstacle_utils import is_obstacle
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
 from data_compression import *
-from droidlet.perception.robot.segmentation.semantic_prediction import SemanticPredMaskRCNN
+from segmentation.semantic_prediction import SemanticPredMaskRCNN
 
 
 # Configure depth and color streams
