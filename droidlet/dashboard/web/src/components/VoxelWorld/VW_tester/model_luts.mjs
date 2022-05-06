@@ -114,6 +114,13 @@ const VW_ITEM_MAP = {
         "bottom": 'dirt.png',
         "top": 'grass_top.png',
     },
+    "dirt": {
+        "color": 0xffffff,
+        "opacity": 1.0,
+        "sides": 'dirt.png',
+        "bottom": 'dirt.png',
+        "top": 'dirt.png',
+    },
 
     "white wool": {
         "color": 0xffffff,
@@ -335,4 +342,21 @@ const VW_MOB_MAP = {
     },
 };
 
-export { MINECRAFT_BLOCK_MAP, VW_ITEM_MAP, VW_MOB_MAP };
+const VW_AVATAR_MAP = {
+    "player": {
+        "model_folder": "player/",
+        "model_file": "scene.gltf",
+        "default_scale": 50,
+        "rotation_offset": [0, 0, 0],
+        "position_offset": [25, 40, 25] 
+    },
+    "agent": {
+        "model_folder": "robot/",
+        "model_file": "scene.gltf",
+        "default_scale": 1.7,
+        "rotation_offset": [0, Math.PI/2, 0],
+        "position_offset": [25, 0, 25] 
+    },
+}
+
+export { MINECRAFT_BLOCK_MAP, VW_ITEM_MAP, VW_MOB_MAP, VW_AVATAR_MAP };

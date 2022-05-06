@@ -9,7 +9,7 @@ import { GLTFLoader } from './GLTFLoader.mjs';
 import { VoxelMob } from './VoxelMob.mjs';
 import { VoxelItem } from './VoxelItem.mjs';
 import { VoxelPlayer} from './VoxelPlayer.mjs'
-import { VW_ITEM_MAP, VW_MOB_MAP } from './model_luts.mjs'
+import { VW_ITEM_MAP, VW_MOB_MAP, VW_AVATAR_MAP } from './model_luts.mjs'
 
 let camera, scene, renderer, controls;
 let plane;
@@ -38,9 +38,13 @@ function addTestContent() {
         THREE: THREE,
         scene: scene,
         render: render,
+        camera: camera,
     };
 
-    // const player = new VoxelPlayer(world, './player.png');
+    // console.log(camera.position);
+    // window.setInterval(function () {
+    //     console.log(camera.position);
+    // }, 1000);
 
     for (const key in VW_MOB_MAP) {
         if (typeof(key) === "string" && VW_MOB_MAP[key] !== null) {
@@ -54,7 +58,7 @@ function addTestContent() {
                 }
             );
         }
-    }
+    };
 
     for (const key in VW_ITEM_MAP) {
         if (typeof(key) === "string" && VW_ITEM_MAP[key] !== null) {
@@ -68,8 +72,52 @@ function addTestContent() {
                 }
             );
         }
-    }
+    };
 
+    for (const key in VW_AVATAR_MAP) {
+        if (typeof(key) === "string" && VW_AVATAR_MAP[key] !== null) {
+            const opts = {
+                GLTFLoader: GLTFLoader,
+                name: key,
+            };
+            VoxelPlayer.build(world, opts).then(
+                function (player) {
+                    window.setInterval(walkabout, 1000, player, 50);
+                    if (player.avatarType === "player") {
+                        cameraTest(player);
+                    }
+                }
+            );
+        }
+    };
+
+}
+
+function cameraTest(player) {
+    controls.enabled = false;
+    window.addEventListener("keydown", function (e) {
+        handleKeypress(e, player);
+    });
+    player.possess();
+};
+
+function handleKeypress(e, player) {
+    switch (e.key) {
+        case "ArrowLeft":
+            player.rotate(0.1, 0);
+            break;
+        case "ArrowRight":
+            player.rotate(-0.1, 0);
+            break;
+        case "ArrowUp":
+            player.rotate(0, 0.1);
+            break;
+        case "ArrowDown":
+            player.rotate(0, -0.1);
+            break;
+        case "t":
+            player.toggle();
+    }
 }
 
 function walkabout(obj, dist) {
@@ -121,6 +169,9 @@ function init() {
     geometry.rotateX( - Math.PI / 2 );
     plane = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false } ) );
     scene.add( plane );
+
+    //Axis helper - The positive X axis is red, Y is green, Z  is blue.
+    scene.add( new THREE.AxesHelper( 10000 ) );
 
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );

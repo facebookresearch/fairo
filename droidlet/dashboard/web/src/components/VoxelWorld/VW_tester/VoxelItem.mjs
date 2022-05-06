@@ -12,7 +12,7 @@ class VoxelItem {
         this.itemType = opts.name;
         this.mesh = model;
         this.hoverDirection = 1;
-        this.hoverID = null;
+        this.hoverID;
     }
 
     move(x, y, z) {
@@ -31,7 +31,7 @@ class VoxelItem {
             this.world.scene.add(this.mesh);
             this.location = "world";
             this.hoverID = window.setInterval(hover, 100, this);
-            // FIXME need to moveTo voxel in front of avatar
+            // FIXME item moveTo voxel in front of avatar
             return 1
         } else {
             return 0
@@ -57,14 +57,45 @@ class VoxelItem {
         let item_data = VW_ITEM_MAP[opts.name];
         const loader = new world.THREE.TextureLoader();
         const itemMaterials = [
-            new world.THREE.MeshBasicMaterial({ map: loader.load('./block_textures/'+item_data["sides"]), color: item_data["color"], opacity: item_data["opacity"], transparent: true, side: world.THREE.DoubleSide }), //right side
-            new world.THREE.MeshBasicMaterial({ map: loader.load('./block_textures/'+item_data["sides"]), color: item_data["color"], opacity: item_data["opacity"], transparent: true, side: world.THREE.DoubleSide }), //left side
-            new world.THREE.MeshBasicMaterial({ map: loader.load('./block_textures/'+item_data["top"]), color: item_data["color"], opacity: item_data["opacity"], transparent: true, side: world.THREE.DoubleSide }), //top side
-            new world.THREE.MeshBasicMaterial({ map: loader.load('./block_textures/'+item_data["bottom"]), color: item_data["color"], opacity: item_data["opacity"], transparent: true, side: world.THREE.DoubleSide }), //bottom side
-            new world.THREE.MeshBasicMaterial({ map: loader.load('./block_textures/'+item_data["sides"]), color: item_data["color"], opacity: item_data["opacity"], transparent: true, side: world.THREE.DoubleSide }), //front side
-            new world.THREE.MeshBasicMaterial({ map: loader.load('./block_textures/'+item_data["sides"]), color: item_data["color"], opacity: item_data["opacity"], transparent: true, side: world.THREE.DoubleSide }), //back side
+            new world.THREE.MeshBasicMaterial({ 
+                map: loader.load('./block_textures/'+item_data["sides"]), 
+                color: item_data["color"],
+                opacity: item_data["opacity"],
+                transparent: true,
+                side: world.THREE.DoubleSide }), //right side
+            new world.THREE.MeshBasicMaterial({ 
+                map: loader.load('./block_textures/'+item_data["sides"]), 
+                color: item_data["color"], 
+                opacity: item_data["opacity"], 
+                transparent: true, 
+                side: world.THREE.DoubleSide }), //left side
+            new world.THREE.MeshBasicMaterial({ 
+                map: loader.load('./block_textures/'+item_data["top"]), 
+                color: item_data["color"], 
+                opacity: item_data["opacity"], 
+                transparent: true, 
+                side: world.THREE.DoubleSide }), //top side
+            new world.THREE.MeshBasicMaterial({ 
+                map: loader.load('./block_textures/'+item_data["bottom"]), 
+                color: item_data["color"], 
+                opacity: item_data["opacity"], 
+                transparent: true, 
+                side: world.THREE.DoubleSide }), //bottom side
+            new world.THREE.MeshBasicMaterial({ 
+                map: loader.load('./block_textures/'+item_data["sides"]), 
+                color: item_data["color"], 
+                opacity: item_data["opacity"], 
+                transparent: true, 
+                side: world.THREE.DoubleSide }), //front side
+            new world.THREE.MeshBasicMaterial({ 
+                map: loader.load('./block_textures/'+item_data["sides"]), 
+                color: item_data["color"], 
+                opacity: item_data["opacity"], 
+                transparent: true, 
+                side: world.THREE.DoubleSide }), //back side
         ];
-        const geo = new world.THREE.BoxGeometry( 20, 20, 20 );
+        opts.scale = opts.scale || 1.0;
+        const geo = new world.THREE.BoxGeometry( (20*opts.scale), (20*opts.scale), (20*opts.scale) );
         let itemMesh = new world.THREE.Mesh( geo, itemMaterials );
 
         opts.position = opts.position || [0, 0, 0];
@@ -86,7 +117,7 @@ function hover(obj) {
     let vel;
     let rel_pos = obj.mesh.position.y % 50;
     if (rel_pos <= 30) {
-        vel = (rel_pos - 14) / 2;
+        vel = Math.abs(rel_pos - 14) / 2;
     } else {
         vel = Math.abs(rel_pos - 46) / 2;
     }
@@ -94,8 +125,10 @@ function hover(obj) {
     obj.mesh.rotation.y += 0.05;
 
     rel_pos += (vel * obj.hoverDirection);
-    if (rel_pos < 15 || rel_pos > 45) {
-        obj.hoverDirection *= -1;
+    if (rel_pos < 15) {
+        obj.hoverDirection = 1;
+    } else if (rel_pos > 45) {
+        obj.hoverDirection = -1;
     }
 
     obj.world.render();
