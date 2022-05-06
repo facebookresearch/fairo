@@ -277,7 +277,9 @@ class World:
                 else:
                     eid = self.connected_sids.get(sid)
                 if not eid:
-                    raise Exception("player connected, asking for line of sight, but sid does not match any entityId")                    
+                    raise Exception(
+                        "player connected, asking for line of sight, but sid does not match any entityId"
+                    )
                 player_struct = self.get_player_info(eid)
                 pos = self.get_line_of_sight(player_struct.pos, *player_struct.look)
             pos = pos or ""
