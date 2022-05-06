@@ -7,11 +7,13 @@
 set -x -e
 
 # Default values
-if [ -z "$CFG" ]; then CFG="Debug"; fi
+if [ -z "$CFG" ]; then CFG="Release"; fi
+if [ -z "$DEV_PYTHON" ]; then DEV_PYTHON=ON; fi
 if [ -z "$PREFIX" ]; then PREFIX=$CONDA_PREFIX; fi
 if [ -z "$PYTHON" ]; then PYTHON=python; fi
 if [ -z "$BUILD_TESTS" ]; then BUILD_TESTS=ON; fi
 if [ -z "$BUILD_DOCS" ]; then BUILD_DOCS=OFF; fi
+if [ -z "$BUILD_ALLEGRO" ]; then BUILD_ALLEGRO=ON; fi
 
 # Build libfranka
 # (Note: Build if libfranka is not built locally or if forced by setting BUILD_FRANKA)
@@ -40,7 +42,8 @@ fi
 # Build c++ 
 mkdir -p build
 cd build
-cmake -DBUILD_FRANKA=$BUILD_FRANKA -DBUILD_TESTS=$BUILD_TESTS -DBUILD_DOCS=$BUILD_DOCS \
+cmake -DCMAKE_BUILD_TYPE=$CFG -DBUILD_FRANKA=$BUILD_FRANKA -DBUILD_TESTS=$BUILD_TESTS -DBUILD_DOCS=$BUILD_DOCS \
+    -DBUILD_ALLEGRO=$BUILD_ALLEGRO \
     -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=$PREFIX/lib \
     -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=$PREFIX/lib \
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PREFIX/bin ..
@@ -49,8 +52,8 @@ cmake --build .
 cd ..
 
 # Install python package
-if [ "$CFG" == "Release" ]; then
-    $PYTHON -m pip install -vvv .
-else
+if [ "$DEV_PYTHON" == "ON" ]; then
     $PYTHON -m pip install -vvv -e .
+else
+    $PYTHON -m pip install -vvv .
 fi

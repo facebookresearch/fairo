@@ -27,11 +27,12 @@ def reconfigure_scene(env, scene_path, add_humans):
     # keep the initial rotation consistent across runs
     old_agent_state = agent.get_state()
     new_agent_state = habitat_sim.AgentState()
-    new_agent_state.position = old_agent_state.position
+
+    # apartment_0 default position on linux
+    new_agent_state.position = np.asarray([0.18430093, -1.3747652, 5.265953])
     new_agent_state.rotation = np.quaternion(1.0, 0.0, 0.0, 0.0)
-    agent.set_state(new_agent_state)
+    agent.set_state(new_agent_state, reset_sensors=True, infer_sensor_states=True, is_initial=True)
     env._robot.base.init_state = agent.get_state()
-    env.initial_rotation = new_agent_state.rotation
 
     ###########################
     # scene-specific additions
@@ -79,7 +80,7 @@ def reconfigure_scene(env, scene_path, add_humans):
         # make the objects STATIC so that collisions work
         for obj in [id_male, id_female]:
             sim.set_object_motion_type(habitat_sim.physics.MotionType.STATIC, obj)
-    
+
     navmesh_settings = habitat_sim.NavMeshSettings()
     navmesh_settings.set_defaults()
     sim.recompute_navmesh(sim.pathfinder, navmesh_settings, include_static_objects=True)

@@ -27,6 +27,7 @@ class Perception:
 
     def __init__(self, model_data_dir, default_keypoints_path=False):
         self.model_data_dir = model_data_dir
+
         def slow_perceive_init(weights_dir):
             return AttributeDict(
                 {
@@ -34,7 +35,8 @@ class Perception:
                     "human_pose": HumanPose(weights_dir, default_keypoints_path),
                     "face_recognizer": FaceRecognition(),
                     "tracker": ObjectTracking(),
-                })
+                }
+            )
 
         def slow_perceive_run(models, rgb_depth, xyz):
             detections = models.detector(rgb_depth)
@@ -44,9 +46,9 @@ class Perception:
                 detections += face_detections
             return rgb_depth, detections, humans, xyz
 
-        self.vprocess = BackgroundTask(init_fn=slow_perceive_init,
-                                   init_args=(model_data_dir,),
-                                    process_fn=slow_perceive_run)
+        self.vprocess = BackgroundTask(
+            init_fn=slow_perceive_init, init_args=(model_data_dir,), process_fn=slow_perceive_run
+        )
         self.vprocess.start()
         self.slow_vision_ready = True
 
@@ -76,13 +78,18 @@ class Perception:
 
     def perceive(self, rgb_depth, xyz, previous_objects, force=False):
         """Called by the core event loop for the agent to run all perceptual
+
         models and get the state. It fetches the results of
         SlowPerception if they are ready.
+
         Args:
+
             force (boolean): set to True to force waiting on the SlowPerception models to finish, and execute
                 all perceptual models to execute sequentially (doing that is a good debugging tool)
                 (default: False)
+
         """
+
         if self.slow_vision_ready:
             self.vprocess.put(rgb_depth, xyz)
             self.slow_vision_ready = False
@@ -130,7 +137,6 @@ class Perception:
         resolution = self.log_settings["image_resolution"]
         quality = self.log_settings["image_quality"]
 
-
         serialized_image = rgb_depth.to_struct(resolution, quality)
 
         if old_rgb_depth is not None:
@@ -146,24 +152,32 @@ class Perception:
         serialized_humans = [x.to_struct() for x in humans] if humans is not None else []
 
         sio.emit("rgb", serialized_image["rgb"])
-        sio.emit("depth", {
-            "depthImg": serialized_image["depth_img"],
-            "depthMax": serialized_image["depth_max"],
-            "depthMin": serialized_image["depth_min"],
-        })
+        sio.emit(
+            "depth",
+            {
+                "depthImg": serialized_image["depth_img"],
+                "depthMax": serialized_image["depth_max"],
+                "depthMin": serialized_image["depth_min"],
+            },
+        )
 
-
-        sio.emit("objects", {
-            "image": serialized_object_image,
-            "objects": serialized_objects,
-            "height": new_height,
-            "width": new_width,
-            "scale": scale,
-            })
-        sio.emit("humans", {
-            "image": serialized_object_image,
-            "humans": serialized_humans,
-            "height": new_height,
-            "width": new_width,
-            "scale": scale,
-            })
+        sio.emit(
+            "objects",
+            {
+                "image": serialized_object_image,
+                "objects": serialized_objects,
+                "height": new_height,
+                "width": new_width,
+                "scale": scale,
+            },
+        )
+        sio.emit(
+            "humans",
+            {
+                "image": serialized_object_image,
+                "humans": serialized_humans,
+                "height": new_height,
+                "width": new_width,
+                "scale": scale,
+            },
+        )

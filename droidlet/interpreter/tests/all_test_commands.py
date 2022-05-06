@@ -7,9 +7,9 @@ from copy import deepcopy
 
 def command(d):
     if type(d) is list:
-        return {"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": d}
+        return {"dialogue_type": "HUMAN_GIVE_COMMAND", "event_sequence": d}
     else:
-        return {"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": [d]}
+        return {"dialogue_type": "HUMAN_GIVE_COMMAND", "event_sequence": [d]}
 
 
 LINEAR_EXTENTS = {
@@ -141,14 +141,14 @@ FILTERS["the first thing that was built"] = {
         "ordinal": "FIRST",
         "return_quantity": {"argval": {"polarity": "MIN", "quantity": ATTRIBUTES["create time"]}},
     },
-    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
+    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "_VOXEL_OBJECT"}]},
 }
 FILTERS["the last thing that was built"] = {
     "selector": {
         "ordinal": "FIRST",
         "return_quantity": {"argval": {"polarity": "MAX", "quantity": ATTRIBUTES["create time"]}},
     },
-    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
+    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "_VOXEL_OBJECT"}]},
 }
 FILTERS["number of blocks in the first thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
@@ -156,7 +156,7 @@ FILTERS["number of blocks in the first thing built"] = {
         "ordinal": "FIRST",
         "return_quantity": {"argval": {"polarity": "MIN", "quantity": ATTRIBUTES["create time"]}},
     },
-    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
+    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "_VOXEL_OBJECT"}]},
 }
 FILTERS["number of blocks in the second thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
@@ -164,7 +164,7 @@ FILTERS["number of blocks in the second thing built"] = {
         "ordinal": "SECOND",
         "return_quantity": {"argval": {"polarity": "MIN", "quantity": ATTRIBUTES["create time"]}},
     },
-    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
+    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "_VOXEL_OBJECT"}]},
 }
 FILTERS["number of blocks in the last thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
@@ -172,7 +172,7 @@ FILTERS["number of blocks in the last thing built"] = {
         "ordinal": "FIRST",
         "return_quantity": {"argval": {"polarity": "MAX", "quantity": ATTRIBUTES["create time"]}},
     },
-    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
+    "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "_VOXEL_OBJECT"}]},
 }
 
 
@@ -346,7 +346,7 @@ INTERPRETER_POSSIBLE_ACTIONS = {
 BUILD_COMMANDS = {
     "build a gold cube at 0 66 0": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "BUILD",
                 "schematic": {
@@ -367,7 +367,7 @@ BUILD_COMMANDS = {
     },
     "build a small cube": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "BUILD",
                 "schematic": {
@@ -385,7 +385,7 @@ BUILD_COMMANDS = {
     },
     "build a circle to the left of the circle": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "BUILD",
                 "location": {
@@ -410,27 +410,27 @@ BUILD_COMMANDS = {
     },
     "copy where I am looking to here": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["copy_speaker_look_to_agent_pos"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["copy_speaker_look_to_agent_pos"]],
     },
     "build a small sphere": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["build_small_sphere"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["build_small_sphere"]],
     },
     "build a 1x1x1 cube": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["build_1x1x1_cube"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["build_1x1x1_cube"]],
     },
     "build a diamond": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["build_diamond"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["build_diamond"]],
     },
     "build a gold cube": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["build_gold_cube"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["build_gold_cube"]],
     },
     "build a 9 x 9 stone rectangle": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "BUILD",
                 "schematic": {
@@ -451,15 +451,15 @@ BUILD_COMMANDS = {
     },
     "build a square with height 1": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["build_square_height_1"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["build_square_height_1"]],
     },
     "build a red cube": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["build_red_cube"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["build_red_cube"]],
     },
     "build a fluffy here": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "BUILD",
                 "schematic": {
@@ -476,14 +476,14 @@ BUILD_COMMANDS = {
 SPAWN_COMMANDS = {
     "spawn 5 sheep": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["spawn_5_sheep"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["spawn_5_sheep"]],
     }
 }
 
 DESTROY_COMMANDS = {
     "destroy it": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "DESTROY",
                 "reference_object": {"filters": {"contains_coreference": "yes"}},
@@ -492,15 +492,15 @@ DESTROY_COMMANDS = {
     },
     "destroy where I am looking": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["destroy_speaker_look"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["destroy_speaker_look"]],
     },
     "destroy the red cube": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["destroy_red_cube"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["destroy_red_cube"]],
     },
     "destroy everything": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "reference_object": {
                     "filters": {"selector": {"return_quantity": "ALL"}},
@@ -512,7 +512,7 @@ DESTROY_COMMANDS = {
     },
     "destroy the fluff thing": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "DESTROY",
                 "reference_object": {
@@ -525,7 +525,7 @@ DESTROY_COMMANDS = {
     },
     "destroy the fluffy object": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "DESTROY",
                 "reference_object": {
@@ -541,7 +541,7 @@ DESTROY_COMMANDS = {
 MOVE_COMMANDS = {
     "move to 42 65 0": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -552,7 +552,7 @@ MOVE_COMMANDS = {
     },
     "move to 0 63 0": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -563,7 +563,7 @@ MOVE_COMMANDS = {
     },
     "move to -7 63 -8": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -575,7 +575,7 @@ MOVE_COMMANDS = {
     },
     "go between the cubes": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -594,15 +594,15 @@ MOVE_COMMANDS = {
     },
     "move here": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["move_speaker_pos"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["move_speaker_pos"]],
     },
     "go to the tree": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["go_to_tree"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["go_to_tree"]],
     },
     "move to 20 63 20": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -711,22 +711,22 @@ MOVE_COMMANDS = {
 FILL_COMMANDS = {
     "fill where I am looking": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["fill_speaker_look"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["fill_speaker_look"]],
     },
     "fill where I am looking with gold": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["fill_speaker_look_gold"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["fill_speaker_look_gold"]],
     },
     "fill all holes where I am looking": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["fill_all_holes_speaker_look"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["fill_all_holes_speaker_look"]],
     },
 }
 
 DIG_COMMANDS = {
     "dig a hole": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "schematic": {
                     "filters": {
@@ -739,7 +739,7 @@ DIG_COMMANDS = {
     },
     "dig a 3 x 3 hole": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "schematic": {
                     "filters": {
@@ -762,7 +762,7 @@ DIG_COMMANDS = {
 DANCE_COMMANDS = {
     "dance": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "DANCE",
                 "dance_type": {
@@ -778,21 +778,21 @@ DANCE_COMMANDS = {
 COMBINED_COMMANDS = {
     "build a small sphere then move here": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             INTERPRETER_POSSIBLE_ACTIONS["build_small_sphere"],
             INTERPRETER_POSSIBLE_ACTIONS["move_speaker_pos"],
         ],
     },
     "copy where I am looking to here then build a 1x1x1 cube": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             INTERPRETER_POSSIBLE_ACTIONS["copy_speaker_look_to_agent_pos"],
             INTERPRETER_POSSIBLE_ACTIONS["build_1x1x1_cube"],
         ],
     },
     "move to 3 63 2 then 7 63 7": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -1034,56 +1034,45 @@ def append_output(filt, output):
 
 CONDITIONS = {
     "a cow has x greater than 5": {
-        "condition_type": "COMPARATOR",
         "condition": {
-            "input_left": {
-                "value_extractor": {"filters": append_output(FILTERS["a cow"], ATTRIBUTES["x"])}
-            },
+            "input_left": {"filters": append_output(FILTERS["a cow"], ATTRIBUTES["x"])},
             "comparison_type": "GREATER_THAN",
-            "input_right": {"value_extractor": "5"},
+            "input_right": "5",
         },
     },
     "that cow has x greater than 5": {
-        "condition_type": "COMPARATOR",
         "condition": {
-            "input_left": {
-                "value_extractor": {"filters": append_output(FILTERS["that cow"], ATTRIBUTES["x"])}
-            },
+            "input_left": {"filters": append_output(FILTERS["that cow"], ATTRIBUTES["x"])},
             "comparison_type": "GREATER_THAN",
-            "input_right": {"value_extractor": "5"},
+            "input_right": "5",
         },
     },
     "that cow is closer than 2 steps to me": {
-        "condition_type": "COMPARATOR",
         "condition": {
             "input_left": {
-                "value_extractor": {
-                    "filters": append_output(FILTERS["that cow"], ATTRIBUTES["distance from me"])
-                }
+                "filters": append_output(FILTERS["that cow"], ATTRIBUTES["distance from me"])
             },
             "comparison_type": "LESS_THAN",
-            "input_right": {"value_extractor": "2"},
+            "input_right": "2",
         },
     },
     "2 minutes": {
-        "condition_type": "TIME",
         "condition": {
             "comparator": {
-                "comparison_measure": "minutes",
-                "input_left": {"value_extractor": "NULL"},
+                "comparison_measure": {"fixed_value": "minutes"},
+                "input_left": {"fixed_value": "CURRENT_TIME"},
                 "comparison_type": "GREATER_THAN",
-                "input_right": {"value_extractor": "2"},
+                "input_right": "2",
             }
         },
     },
     "18 seconds": {
-        "condition_type": "TIME",
         "condition": {
             "comparator": {
-                "comparison_measure": "seconds",
-                "input_left": {"value_extractor": "NULL"},
+                "comparison_measure": {"fixed_value": "seconds"},
+                "input_left": {"fixed_value": "CURRENT_TIME"},
                 "comparison_type": "GREATER_THAN",
-                "input_right": {"value_extractor": "18"},
+                "input_right": "18",
             }
         },
     },
@@ -1091,14 +1080,13 @@ CONDITIONS = {
 
 
 CONDITIONS["18 seconds after that cow has x greater than 5"] = {
-    "condition_type": "TIME",
     "event": CONDITIONS["that cow has x greater than 5"],
     "condition": {
         "comparator": {
-            "comparison_measure": "seconds",
-            "input_left": {"value_extractor": "NULL"},
+            "comparison_measure": {"fixed_value": "seconds"},
+            "input_left": {"fixed_value": "CURRENT_TIME"},
             "comparison_type": "GREATER_THAN",
-            "input_right": {"value_extractor": "18"},
+            "input_right": "18",
         }
     },
 }
@@ -1106,43 +1094,40 @@ CONDITIONS["18 seconds after that cow has x greater than 5"] = {
 
 STOP_CONDITION_COMMANDS = {
     "go left until that cow is closer than 2 steps to me": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
                     "reference_object": {"special_reference": "AGENT"},
                     "relative_direction": "LEFT",
                 },
-                "remove_condition": CONDITIONS["that cow is closer than 2 steps to me"],
             }
         ],
+        "terminate_condition": CONDITIONS["that cow is closer than 2 steps to me"],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "dig a hole 2 times": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "DIG",
-                "remove_condition": {
-                    "condition_type": "COMPARATOR",
-                    "condition": {
-                        "comparison_type": "EQUAL",
-                        "input_left": {
-                            "value_extractor": {
-                                "filters": {
-                                    "output": {"attribute": "RUN_COUNT"},
-                                    "special": {"fixed_value": "THIS"},
-                                }
-                            }
-                        },
-                        "input_right": {"value_extractor": "2"},
-                    },
-                },
             }
         ],
+        "terminate_condition": {
+            "condition": {
+                "comparison_type": "EQUAL",
+                "input_left": {
+                    "filters": {
+                        "output": {"attribute": "RUN_COUNT"},
+                        "special": {"fixed_value": "THIS"},
+                    }
+                },
+                "input_right": "2",
+            },
+        },
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "follow the cow for 2 minutes": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -1152,13 +1137,13 @@ STOP_CONDITION_COMMANDS = {
                         }
                     }
                 },
-                "remove_condition": CONDITIONS["2 minutes"],
             }
         ],
+        "terminate_condition": CONDITIONS["2 minutes"],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "follow the cow for 18 seconds": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -1168,13 +1153,13 @@ STOP_CONDITION_COMMANDS = {
                         }
                     }
                 },
-                "remove_condition": CONDITIONS["18 seconds"],
             }
         ],
+        "terminate_condition": CONDITIONS["18 seconds"],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "follow the cow for 18 seconds after it has x greater than 5": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -1184,13 +1169,13 @@ STOP_CONDITION_COMMANDS = {
                         }
                     }
                 },
-                "remove_condition": CONDITIONS["18 seconds after that cow has x greater than 5"],
             }
         ],
+        "terminate_condition": CONDITIONS["18 seconds after that cow has x greater than 5"],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "follow the cow until it has x greater than 5": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -1200,9 +1185,9 @@ STOP_CONDITION_COMMANDS = {
                         }
                     }
                 },
-                "remove_condition": CONDITIONS["that cow has x greater than 5"],
             }
         ],
+        "terminate_condition": CONDITIONS["that cow has x greater than 5"],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
 }
@@ -1212,7 +1197,7 @@ OTHER_COMMANDS = {
     "the weather is good": {"dialogue_type": "NOOP"},
     "stop": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [INTERPRETER_POSSIBLE_ACTIONS["stop"]],
+        "event_sequence": [INTERPRETER_POSSIBLE_ACTIONS["stop"]],
     },
-    "undo": {"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": [{"action_type": "UNDO"}]},
+    "undo": {"dialogue_type": "HUMAN_GIVE_COMMAND", "event_sequence": [{"action_type": "UNDO"}]},
 }

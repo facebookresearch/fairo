@@ -19,7 +19,10 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils import (
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.wait_for_cuberite import (
     wait_for_cuberite,
 )
-from droidlet.lowlevel.minecraft.small_scenes_with_shapes import build_shape_scene
+from droidlet.lowlevel.minecraft.small_scenes_with_shapes import (
+    build_shape_scene,
+    build_extra_simple_shape_scene,
+)
 
 logging.basicConfig(format="%(asctime)s [%(levelname)s]: %(message)s")
 logging.getLogger().setLevel(logging.DEBUG)
@@ -145,11 +148,16 @@ if __name__ == "__main__":
     # in a "schematic_for_cuberite" field
     parser.add_argument("--schematic", default="")
     # args for random shape generation, if used:
+    parser.add_argument(
+        "--mob_config", type=str, default=""
+    )  # this doesn't work in cuberite yet!, FIXME
     parser.add_argument("--random_shapes", action="store_true")
     parser.add_argument("--fence", action="store_true", default=False)
     parser.add_argument("--MAX_NUM_SHAPES", type=int, default=3)
     parser.add_argument("--GROUND_DEPTH", type=int, default=5)
     parser.add_argument("--MAX_NUM_GROUND_HOLES", type=int, default=0)
+    parser.add_argument("--extra_simple", action="store_true", default=False)
+    parser.add_argument("--iglu_scenes", default="")
     parser.add_argument("--SL", type=int, default=17)
     parser.add_argument("--H", type=int, default=13)
     args = parser.parse_args()
@@ -179,7 +187,10 @@ if __name__ == "__main__":
         args.cuberite_y_offset = 63 - args.GROUND_DEPTH
         args.cuberite_x_offset = -args.SL // 2
         args.cuberite_z_offset = -args.SL // 2
-        schematic = build_shape_scene(args)["schematic_for_cuberite"]
+        if args.extra_simple:
+            schematic = build_extra_simple_shape_scene(args)["schematic_for_cuberite"]
+        else:
+            schematic = build_shape_scene(args)["schematic_for_cuberite"]
 
     p = CuberiteProcess(
         args.config,

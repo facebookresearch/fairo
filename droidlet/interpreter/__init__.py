@@ -24,7 +24,7 @@ from .interpreter import InterpreterBase, Interpreter
 
 from .get_memory_handler import GetMemoryHandler
 
-from .interpret_conditions import ConditionInterpreter, get_repeat_num
+from .interpret_conditions import ConditionInterpreter
 from .interpret_filters import (
     FilterInterpreter,
     interpret_dance_filter,
@@ -52,7 +52,6 @@ __all__ = [
     ReferenceLocationInterpreter,
     interpret_relative_direction,
     ConditionInterpreter,
-    get_repeat_num,
     interpret_where_backoff,
     maybe_apply_selector,
     FilterInterpreter,

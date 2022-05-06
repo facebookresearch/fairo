@@ -46,7 +46,7 @@ from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.memory.craftassist.mc_memory_nodes import MobNode, ItemStackNode
 from droidlet.interpreter.craftassist import tasks, dance
-from droidlet.task.task import ControlBlock, maybe_task_list_to_control_block
+from droidlet.task.task import ControlBlock, maybe_bundle_task_list
 
 
 class MCInterpreter(Interpreter):
@@ -98,7 +98,6 @@ class MCInterpreter(Interpreter):
             "dancemove": tasks.DanceMove,
             "get": tasks.Get,
             "drop": tasks.Drop,
-            "control": ControlBlock,
         }
 
     def handle_modify(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
@@ -114,7 +113,7 @@ class MCInterpreter(Interpreter):
         ref_d = d.get("reference_object", default_ref_d)
         # only modify blockobjects...
         objs = self.subinterpret["reference_objects"](
-            self, speaker, ref_d, extra_tags=["_physical_object", "VOXEL_OBJECT"]
+            self, speaker, ref_d, extra_tags=["_physical_object", "_VOXEL_OBJECT"]
         )
         if len(objs) == 0:
             raise ErrorWithResponse("I don't understand what you want me to modify.")
@@ -161,7 +160,7 @@ class MCInterpreter(Interpreter):
             if destroy_task_data:
                 tasks.append(self.task_objects["build"](agent, destroy_task_data))
 
-        return maybe_task_list_to_control_block(tasks, agent), None, None
+            return maybe_bundle_task_list(agent, tasks)
 
     def handle_spawn(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
@@ -184,14 +183,14 @@ class MCInterpreter(Interpreter):
         for i in range(len(object_idms)):
             task_data = {"object_idm": object_idms[i], "pos": pos, "action_dict": d}
             tasks.append(self.task_objects["spawn"](agent, task_data))
-        return maybe_task_list_to_control_block(tasks, agent), None, None
+        return maybe_bundle_task_list(agent, tasks)
 
     def get_block_task_data(self, speaker, schematic_info, d):
-        """ 
+        """
         takes schematic_info returned e.g. from interpret_schematic
         and the location logical form
         and returns task data for a list of build or dig tasks
-        
+
         """
         # Get the locations to build
         location_d = d.get("location", SPEAKERLOOK)
@@ -242,7 +241,7 @@ class MCInterpreter(Interpreter):
                 self,
                 speaker,
                 md["reference_object"],
-                extra_tags=["VOXEL_OBJECT"],
+                extra_tags=["_VOXEL_OBJECT"],
                 loose_speakerlook=True,
             )
             if len(objs) == 0:
@@ -269,7 +268,7 @@ class MCInterpreter(Interpreter):
             t = self.task_objects["build"](agent, td)
             tasks.append(t)
         logging.info("Adding {} Build tasks to stack".format(len(tasks)))
-        return maybe_task_list_to_control_block(tasks, agent), None, None
+        return maybe_bundle_task_list(agent, tasks)
 
     def handle_fill(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
@@ -348,7 +347,7 @@ class MCInterpreter(Interpreter):
         else:
             Say(agent, task_data={"response_options": "Ok. I'll fill that hole up."})
 
-        return maybe_task_list_to_control_block(tasks, agent), None, None
+        return maybe_bundle_task_list(agent, tasks)
 
     def handle_destroy(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
@@ -380,7 +379,7 @@ class MCInterpreter(Interpreter):
                 task_data = {"schematic": schematic, "action_dict": d}
                 tasks.append(self.task_objects["destroy"](agent, task_data))
         logging.info("Added {} Destroy tasks to stack".format(len(tasks)))
-        return maybe_task_list_to_control_block(tasks, agent), None, None
+        return maybe_bundle_task_list(agent, tasks)
 
     def handle_dig(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
@@ -411,19 +410,12 @@ class MCInterpreter(Interpreter):
 
         tasks_data = self.get_block_task_data(speaker, interprets, d)
 
-        def new_tasks():
-            tasks = []
-            for td in tasks_data:
-                t = self.task_objects["dig"](agent, td)
-                tasks.append(t)
-            return maybe_task_list_to_control_block(tasks, agent)
+        tasks = []
+        for td in tasks_data:
+            t = self.task_objects["dig"](agent, td)
+            tasks.append(t)
 
-        if "remove_condition" in d:
-            condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
-            task_data = {"new_tasks": new_tasks, "remove_condition": condition, "action_dict": d}
-            return self.task_objects["control"](agent, task_data), None, None
-        else:
-            return new_tasks(), None, None
+        return maybe_bundle_task_list(agent, tasks)
 
     def handle_dance(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
@@ -495,12 +487,7 @@ class MCInterpreter(Interpreter):
                     raise ErrorWithResponse("I don't know how to do that movement yet.")
             return t
 
-        if "remove_condition" in d:
-            condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
-            task_data = {"new_tasks": new_tasks, "remove_condition": condition, "action_dict": d}
-            return self.task_objects["control"](agent, task_data), None, None
-        else:
-            return new_tasks(), None, None
+        return new_tasks
 
     # FIXME this is not compositional/does not handle loops ("get all the x")
     def handle_get(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
@@ -525,7 +512,7 @@ class MCInterpreter(Interpreter):
         item_stack = agent.get_item_stack(obj.eid)
         idm = (item_stack.item.id, item_stack.item.meta)
         task_data = {"idm": idm, "pos": obj.pos, "eid": obj.eid, "obj_memid": obj.memid}
-        return self.task_objects["get"](agent, task_data), None, None
+        return task_to_generator(self.task_objects["get"](agent, task_data))
 
     # FIXME this is not compositional/does not handle loops ("get all the x")
     def handle_drop(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
@@ -551,4 +538,4 @@ class MCInterpreter(Interpreter):
         item_stack = agent.get_item_stack(obj.eid)
         idm = (item_stack.item.id, item_stack.item.meta)
         task_data = {"eid": obj.eid, "idm": idm, "obj_memid": obj.memid}
-        return self.task_objects["drop"](agent, task_data), None, None
+        return task_to_generator(self.task_objects["drop"](agent, task_data))

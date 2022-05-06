@@ -10,12 +10,19 @@ class VoxelWorld extends React.Component {
     this.state = {
       status: "",
       world_state: {},
+      flash_bbox: null,
     };
     this.worldContainerRef = React.createRef();
   }
 
   getVoxelWorldInitialState() {
     this.props.stateManager.socket.emit("getVoxelWorldInitialState");
+  }
+
+  flashVoxelWorldBlocks(bbox) {
+    this.state.flash_bbox = bbox;
+    this.worldContainerRef.current.contentWindow.postMessage(this.state, "*");
+    this.state.flash_bbox = null;
   }
 
   componentDidUpdate() {

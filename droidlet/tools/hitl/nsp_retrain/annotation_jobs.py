@@ -62,9 +62,7 @@ class AnnotationJob(DataGenerator):
             with open(f"{HITL_TMP_DIR}/{self._batch_id}/{self._cmd_id}/input.txt", "w+") as f:
                 f.write(self._command)
 
-            annotation_process_timeout = (
-                ANNOTATION_PROCESS_TIMEOUT_DEFAULT
-            )  # if self.get_remaining_time() < 0 else self.get_remaining_time() + 1
+            annotation_process_timeout = ANNOTATION_PROCESS_TIMEOUT_DEFAULT  # if self.get_remaining_time() < 0 else self.get_remaining_time() + 1
             p = subprocess.Popen(
                 [
                     f"AWS_ACCESS_KEY_ID='{MTURK_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MTURK_AWS_SECRET_ACCESS_KEY}' cd ../../../../tools/annotation_tools/turk_with_s3 && python run_all_tasks.py --default_write_dir={HITL_TMP_DIR}/{self._batch_id}/{self._cmd_id} --timeout {annotation_process_timeout}"

@@ -40,6 +40,13 @@ def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent
         if len(loc) != 3:
             logging.error("Bad coordinates: {}".format(coord_span))
             raise ErrorWithResponse("I don't understand what location you're referring to")
+
+        # FIXME, this should be formalized
+        # special case to handle world coordinates that are different from
+        # droidlet coordinates; as the speaker might be only aware of world coordinates
+        if hasattr(agent_memory, "to_droidlet_coords"):
+            loc = agent_memory.to_droidlet_coords(loc)
+
         memid = agent_memory.add_location((int(loc[0]), int(loc[1]), int(loc[2])))
         mem = agent_memory.get_location_by_id(memid)
         q = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(memid)
@@ -149,8 +156,10 @@ def interpret_reference_object(
         else:
             logging.error("bad coref_resolve -> {}".format(mem))
 
-    clarification_query = "SELECT MEMORY FROM Task WHERE reference_object_confirmation=#={}".format(
-        interpreter.memid
+    clarification_query = (
+        "SELECT MEMORY FROM Task WHERE reference_object_confirmation=#={}".format(
+            interpreter.memid
+        )
     )
     _, clarification_task_mems = interpreter.memory.basic_search(clarification_query)
     # does a clarification task referencing this interpreter exist?
@@ -195,6 +204,7 @@ def interpret_reference_object(
 
         elif allow_clarification:
             # no candidates found; ask Clarification
+            # FIXME!  this has rotted.  backoff the original filters
             confirm_candidates = apply_memory_filters(interpreter, speaker, filters_d)
             objects = object_looked_at(interpreter.memory, confirm_candidates, speaker=speaker)
             if len(objects) == 0:

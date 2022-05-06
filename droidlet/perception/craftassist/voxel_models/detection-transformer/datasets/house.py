@@ -163,247 +163,17 @@ def organize_classes(classes, min_occurence):
     return new_classes, class_map
 
 
-def create_shape_dataset():
-    pass
-
-
-class SemSegData(tds.Dataset):
-    def __init__(
-        self,
-        shape_data_path=None,
-        house_data_path=None,
-        nexamples=0,
-        shape_pct=0.5,
-        sidelength=32,
-        min_size=10,
-        max_size=30,
-        classes=None,
-        augment={},
-        house_min_class_occurence=250,
-        shape_min_class_occurence=1,
-        useid=True,
-        shape_save_path=None,
-    ):
-        self.sidelength = sidelength
-        self.useid = useid
-        self.examples = []
-        self.nexamples = nexamples
-        self.augment = augment
-        print("create semsegdata")
-        # create combined dataset of shapes and houses
-        shape_nexamples = int(nexamples * shape_pct)
-        shape_dataset = SemSegShapeData(
-            data_path=shape_data_path,
-            nexamples=shape_nexamples,
-            sidelength=sidelength,
-            min_size=min_size,
-            max_size=max_size,
-            classes=classes,
-            augment=augment,
-            min_class_occurence=shape_min_class_occurence,
-            useid=useid,
-            save_path=shape_save_path,
-        )
-
-        house_nexamples = nexamples - shape_nexamples
-        house_dataset = SemSegHouseData(
-            data_path=house_data_path,
-            nexamples=house_nexamples,
-            sidelength=sidelength,
-            classes=classes,
-            augment=augment,
-            min_class_occurence=house_min_class_occurence,
-            useid=useid,
-        )
-
-        self.classes = {"name2idx": {}, "idx2name": [], "name2count": {}}
-        house_classes = house_dataset.get_classes()
-        shape_classes = shape_dataset.get_classes()
-        self.classes = deepcopy(house_classes)
-        print(self.classes)
-        print(shape_classes)
-        for cname in shape_classes["name2idx"]:
-            if cname not in self.classes["name2idx"]:
-                new_idx = len(self.classes["name2idx"])
-                self.classes["name2idx"][cname] = new_idx
-                self.classes["idx2name"].append(cname)
-                self.classes["name2count"][cname] = shape_classes["name2count"].get(cname, 0)
-            else:
-                if cname in self.classes["name2count"]:
-                    self.classes["name2count"][cname] += shape_classes["name2count"].get(cname, 0)
-                else:
-                    self.classes["name2count"][cname] = shape_classes["name2count"].get(cname, 0)
-
-        self.inst_data = shape_dataset.inst_data + house_dataset.inst_data
-
-        if classes is None:
-            class_map = {}
-            for cname in self.classes["name2idx"]:
-                class_map[cname] = cname
-            for data in self.inst_data:
-                for cname in data[2]:
-                    if cname not in class_map:
-                        class_map[cname] = "none"
-
-        else:
-            new_classes = deepcopy(classes)
-            new_classes["name2count"] = {}
-            new_classes["name2count"]["none"] = 0
-            class_map = {}
-            for cname in new_classes["name2idx"]:
-                class_map[cname] = cname
-            for data in self.inst_data:
-                for cname in data[2]:
-                    mapped_name = "none"
-                    if cname in class_map:
-                        mapped_name = class_map[cname]
-                    if mapped_name not in new_classes["name2count"]:
-                        new_classes["name2count"][mapped_name] = 0
-                    new_classes["name2count"][mapped_name] += 1
-                    class_map[cname] = mapped_name
-            self.classes = new_classes
-
-        # this should be 0...
-        self.nothing_id = self.classes["name2idx"]["none"]
-
-        c = self.classes["name2idx"]
-
-        for i in range(len(shape_dataset.inst_data)):
-            shape_dataset.inst_data[i] = list(shape_dataset.inst_data[i])
-            x = shape_dataset.inst_data[i]
-            x[1].apply_(lambda z: c[shape_classes["idx2name"][z]] if z > 0 else self.nothing_id)
-
-        for i in range(len(house_dataset.inst_data)):
-            house_dataset.inst_data[i] = list(house_dataset.inst_data[i])
-            x = house_dataset.inst_data[i]
-            x[1].apply_(lambda z: c[house_classes["idx2name"][z]] if z > 0 else self.nothing_id)
-        self.inst_data = shape_dataset.inst_data + house_dataset.inst_data
-        self.nexamples = len(self.inst_data)
-        print(
-            "Generated {} examples consisting of {} shapes and {} houses.".format(
-                len(self.inst_data), len(shape_dataset.inst_data), len(house_dataset.inst_data)
-            )
-        )
-
-    #
-    def get_classes(self):
-        return self.classes
-
-    def set_classes(self, classes):
-        self.classes = classes
-
-    def __getitem__(self, index):
-        x = self.inst_data[index]
-        s, l, _ = make_example_from_raw(
-            x[0], labels=x[1], nothing_id=self.nothing_id, sl=self.sidelength, augment=self.augment
-        )
-        return s, l
-
-    def __len__(self):
-        return self.nexamples
-
-
-class SemSegShapeData(tds.Dataset):
-    def __init__(
-        self,
-        data_path=None,
-        nexamples=-1,
-        sidelength=32,
-        min_size=10,
-        max_size=30,
-        classes=None,
-        augment={},
-        min_class_occurence=1,
-        useid=True,
-        save_path=None,
-    ):
-        self.sidelength = sidelength
-        self.useid = useid
-        self.examples = []
-        self.nexamples = nexamples
-        self.augment = augment
-        if data_path is not None:
-            self.inst_data = pickle.load(open(data_path, "rb"))
-        else:
-            self.inst_data = create_shape_dataset(min=min_size, max=max_size, nexamples=nexamples)
-        if save_path is not None:
-            with open(save_path, "wb") as f:
-                pickle.dump(self.inst_data, f)
-            print("Save generated shape data to {}".format(save_path))
-
-        if self.nexamples < 0:
-            self.nexamples = len(self.inst_data)
-        else:
-            self.nexamples = min(len(self.inst_data), self.nexamples)
-        self.inst_data = self.inst_data[: self.nexamples]
-
-        # TODO separate training and validation data
-        if classes is None:
-            classes = {"name2idx": {}, "idx2name": [], "name2count": {}}
-            for i in range(len(self.inst_data)):
-                for cname in self.inst_data[i][2]:
-                    if classes["name2count"].get(cname) is None:
-                        classes["name2count"][cname] = 1
-                    else:
-                        classes["name2count"][cname] += 1
-
-            if classes["name2count"].get("none") is None:
-                classes["name2count"]["none"] = 1
-
-            merged_classes, class_map = organize_classes(classes, min_class_occurence)
-            for cname in merged_classes["name2idx"]:
-                class_map[cname] = cname
-
-            self.classes = merged_classes
-
-        else:
-            new_classes = deepcopy(classes)
-            new_classes["name2count"] = {}
-            new_classes["name2count"]["none"] = 0
-            class_map = {}
-            for cname in new_classes["name2idx"]:
-                class_map[cname] = cname
-            for data in self.inst_data:
-                for cname in data[2]:
-                    mapped_name = "none"
-                    if cname in class_map:
-                        mapped_name = class_map[cname]
-                    if mapped_name not in new_classes["name2count"]:
-                        new_classes["name2count"][mapped_name] = 0
-                    new_classes["name2count"][mapped_name] += 1
-                    class_map[cname] = mapped_name
-            self.classes = new_classes
-
-        # this should be 0...
-        self.nothing_id = self.classes["name2idx"]["none"]
-
-        c = self.classes["name2idx"]
-        for i in range(len(self.inst_data)):
-            self.inst_data[i] = list(self.inst_data[i])
-            x = self.inst_data[i]
-            x[0] = torch.from_numpy(x[0]).long()
-            x[1] = torch.from_numpy(x[1]).long()
-            x[1].apply_(lambda z: c[class_map[x[2][z]]] if z > 0 else self.nothing_id)
-
-    #
-    def get_classes(self):
-        return self.classes
-
-    def set_classes(self, classes):
-        self.classes = classes
-
-    def __getitem__(self, index):
-        x = self.inst_data[index]
-        s, l, _ = make_example_from_raw(
-            x[0], labels=x[1], nothing_id=self.nothing_id, sl=self.sidelength, augment=self.augment
-        )
-        return s, l
-
-    def __len__(self):
-        return self.nexamples
-
-
 class SemSegHouseData(tds.Dataset):
+    """
+    input data is a list of data points, for each data point x:
+
+    x[0]: ndarray of size (X, Y, Z)
+    x[1]: ndarray of size (X, Y, Z) masks?
+    x[2]: list of labels, e.g. ['nothing', 'window', 'none', ....]
+    x[3]: string, contain meta data -- directory info
+
+    """
+
     def __init__(
         self,
         data_path,
@@ -428,8 +198,6 @@ class SemSegHouseData(tds.Dataset):
         else:
             self.nexamples = min(len(self.inst_data), self.nexamples)
         self.inst_data = self.inst_data[: self.nexamples]
-        # print("------- inst data -------")
-        # print(self.inst_data)
 
         # TODO separate training and validation data
         if classes is None:
@@ -471,6 +239,7 @@ class SemSegHouseData(tds.Dataset):
         # this should be 0...
         self.nothing_id = self.classes["name2idx"]["none"]
         print("class No.: {}".format(len(self.classes["name2idx"])))
+        print(f"class details: {self.classes}")
 
         # c = self.classes["name2idx"]
         for i in range(len(self.inst_data)):
@@ -480,6 +249,51 @@ class SemSegHouseData(tds.Dataset):
             x[1] = torch.from_numpy(x[1]).long()
             # x[1].apply_(lambda z: c[class_map[x[2][z]]] if z > 0 else self.nothing_id)
         self.class_map = class_map
+
+        ############################
+        # Use _get_item_ code to filter out data that will cause error
+        # can delete the whole block without any side effects
+        # for index in range(len(self.inst_data)):
+        #     if index >= len(self.inst_data):
+        #         break
+        #     x = self.inst_data[index]
+        #     # print(x)
+        #     s, l, _ = make_example_from_raw(
+        #         x[0], labels=x[1], nothing_id=self.nothing_id, sl=self.sidelength, augment=self.augment
+        #     )
+        #     w, h, d = x[1].shape
+        #     inst_len = len(x[2]) - 1  # ignore nothing
+        #     masks = torch.zeros((inst_len, w, h, d), dtype=torch.uint8)
+        #     boxes = []
+        #     labels = []
+        #     for i, inst_name in enumerate(x[2][1:]):
+        #         cls_id = self.classes["name2idx"][self.class_map[inst_name]]
+        #         torch.set_printoptions(linewidth=20000)
+        #         idx = x[1] == cls_id
+        #         masks[i][idx] = 1
+        #         print(f"clsid: {cls_id}, inner id: {i + 1}, inst name: {inst_name}\nidx: {idx}")
+        #         # try catch here because some class may not exist in data point
+        #         # do min/max will cause error on empty tensors
+        #         try:
+        #             idx = idx.nonzero()
+        #             # print(f"non zero idx: {idx}")
+        #             values, indices = idx.min(dim=0)
+        #             x_min, y_min, z_min = values
+        #             values, indices = idx.max(dim=0)
+        #             x_max, y_max, z_max = values
+        #             box = (x_min / 17, y_min / 13, z_min / 17, x_max / 17, y_max / 13, z_max / 17)
+        #             boxes.append(box)
+        #             labels.append(cls_id)
+        #         except:
+        #             pass
+        #     if len(boxes) == 0:
+        #         print(f"Data point {index} doesn't have any box, discard it")
+        #         del self.inst_data[index]
+        # if self.nexamples < 0:
+        #     self.nexamples = len(self.inst_data)
+        # else:
+        #     self.nexamples = min(len(self.inst_data), self.nexamples)
+        ############################
 
     #
     def get_classes(self):
@@ -500,16 +314,22 @@ class SemSegHouseData(tds.Dataset):
         labels = []
         for i, inst_name in enumerate(x[2][1:]):
             cls_id = self.classes["name2idx"][self.class_map[inst_name]]
+            x[1][x[1] == (i + 1)] = cls_id  # replace local class id with global id
             idx = x[1] == cls_id
             masks[i][idx] = 1
-            idx = idx.nonzero()
-            values, indices = idx.min(dim=0)
-            x_min, y_min, z_min = values
-            values, indices = idx.max(dim=0)
-            x_max, y_max, z_max = values
-            box = (x_min, y_min, z_min, x_max, y_max, z_max)
-            boxes.append(box)
-            labels.append(cls_id)
+            # try catch here because some class may not exist in data point
+            # do min/max will cause error on empty tensors
+            try:
+                idx = idx.nonzero()
+                values, indices = idx.min(dim=0)
+                x_min, y_min, z_min = values
+                values, indices = idx.max(dim=0)
+                x_max, y_max, z_max = values
+                box = (x_min / 17, y_min / 13, z_min / 17, x_max / 17, y_max / 13, z_max / 17)
+                boxes.append(box)
+                labels.append(cls_id)
+            except:
+                pass
         boxes = torch.tensor(boxes, dtype=torch.float32)
         labels = torch.tensor(labels)
         size = torch.tensor((d, h, w))
@@ -529,7 +349,18 @@ class SemSegHouseData(tds.Dataset):
 
 
 def build(image_set, args):
-    data_path = "" # Path to data
-    nexamples = 100
-    house_dataset = SemSegHouseData(data_path=data_path, nexamples=nexamples)
+    # data_path = "/checkpoint/aszlam/minecraft/segmentation_data/training_data.pkl" # Path to data
+    data_path = "/checkpoint/yuxuans/datasets/inst_seg/shapes_5000.pkl"
+    nexamples = -1
+    min_class_occurence = 1
+
+    house_dataset = SemSegHouseData(
+        data_path=data_path, nexamples=nexamples, min_class_occurence=min_class_occurence
+    )
     return house_dataset
+
+
+if __name__ == "__main__":
+    nexamples = 100
+    shape_dataset = SemSegShapeData(nexamples=nexamples)
+    print(shape_dataset)

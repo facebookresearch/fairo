@@ -29,6 +29,14 @@ launch_robot.py robot_client=franka_hardware
 ```
 
 For hardware, `use_real_time` acquires the necessary `sudo` rights for real-time optimizations (see [here](https://github.com/facebookresearch/fairo/blob/main/polymetis/polymetis/include/real_time.hpp) for the specific optimizations.)
+
+
+For debugging and calibration purposes, we provide a read-only mode for the robot client, where no torques will be applied to the robot but robot states are still recorded normally. To launch the robot client in read-only mode:
+```bash
+# On the NUC
+launch_robot.py robot_client=franka_hardware robot_client.executable_cfg.readonly=true
+```
+
 ### Running user-code controllers **on your machine**:
 
 Once you start an instance of `launch_robot.py`, you can send commands by utilizing the example user code, found in [scripts](https://github.com/facebookresearch/fairo/tree/main/polymetis/examples).
@@ -54,3 +62,27 @@ You can modify the configuration on the command line through Hydra. For example,
 ```bash
 launch_gripper.py gripper=robotiq_2f gripper.comport=/dev/ttyUSB1
 ```
+
+## Using the Allegro Hand Client
+
+The Allegro Hand client communicates using the SocketCAN interface which is included with modern Linux kernels.
+Before starting the Allegro Hand client you must configure your CAN netdev interface and specify the CAN bus network interface name in the `allegro_hardware.yaml` configuration file.
+
+One way to configure the CAN netdev interface is:
+```bash
+sudo ip link set can0 type can bitrate 1000000
+sudo ip link set can0 up
+```
+
+you can use the command:
+```bash
+ip link ls 
+```
+to check the names of the available CAN interfaces in your system.
+
+To launch the Allegro Hand client run the command:
+```bash
+launch_robot.py robot_client=allegro_hardware robot_model=allegro_hand
+```
+
+*Note:* if you previously installed the PEAK pcan kernel modules for libpcanbasic, the SocketCAN drivers have likely been blocklisted.  On Ubuntu systems you can undo this by commenting out all lines in the file `/etc/modprobe.d/blacklist-peak.conf `

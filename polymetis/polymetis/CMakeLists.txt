@@ -5,7 +5,8 @@
 cmake_minimum_required(VERSION 3.14)
 project(polymetis)
 
-SET(CMAKE_CXX_FLAGS "-std=c++14 -O3")
+set(CMAKE_CXX_FLAGS "-std=c++14")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 add_library(protobuf::libprotobuf UNKNOWN IMPORTED)
 set_target_properties(protobuf::libprotobuf PROPERTIES
@@ -86,7 +87,7 @@ add_custom_command(
 )
 
 add_library(
-    generated_grpc_protos 
+    generated_grpc_protos
       ${loader_proto_srcs}
       ${loader_proto_hdrs}
       ${loader_grpc_srcs}
@@ -103,7 +104,7 @@ include_directories(
     "${CMAKE_CURRENT_BINARY_DIR}"
     "$ENV{CONDA_PREFIX}/include/"
     ${EIGEN3_INCLUDE_DIR}
-    ${pinocchio_INCLUDE_DIRS} 
+    ${pinocchio_INCLUDE_DIRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/pinocchio_isolation/include"
 )
@@ -131,6 +132,51 @@ target_link_libraries(empty_statistics_client
     yaml-cpp
     spdlog::spdlog
 )
+
+if(BUILD_ALLEGRO)
+  add_library(allegro_hand
+    src/clients/allegro_hand_client/allegro_hand.cpp
+    src/clients/allegro_hand_client/event_watcher.cpp
+    src/clients/allegro_hand_client/pcan_netdev_interface.cpp)
+
+  target_link_libraries(allegro_hand
+    yaml-cpp
+    spdlog::spdlog
+    )
+
+  add_executable(allegro_hand_client
+    src/clients/allegro_hand_client/allegro_hand_client.cpp
+    )
+
+  target_link_libraries(allegro_hand_client
+    allegro_hand
+    generated_grpc_protos
+    )
+
+  if(BUILD_TESTS)
+    find_package(Git REQUIRED QUIET)
+    execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive -- tests/cpp/fake_clock
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      COMMAND_ERROR_IS_FATAL ANY)
+
+    add_library(fake_clock tests/cpp/fake_clock/fake_clock.cc)
+    add_executable(test_allegro_hand_client
+      tests/cpp/test_allegro_hand_client.cpp
+      )
+
+    target_include_directories(test_allegro_hand_client PRIVATE
+      src/clients/allegro_hand_client
+      ${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR}
+      )
+
+    target_link_libraries(test_allegro_hand_client
+      allegro_hand
+      fake_clock
+      gtest
+      gtest_main
+      )
+  endif()
+endif()
 
 if(BUILD_FRANKA)
   if(NOT DEFINED Franka_DIR)

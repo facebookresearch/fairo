@@ -43,9 +43,6 @@ def format_for_printing_data(data):
         f"Duration: {int(duration)}\nStatus: {data['status']}\n"
     )
 
-    inputs = contents["inputs"]
-    inputs_string = f"Domain: {inputs['subdomain']}\n"
-
     outputs = contents["outputs"]
     output_string = ""
     try:
@@ -65,6 +62,14 @@ def format_for_printing_data(data):
     except:
         pass
     try:
+        output_string += f"Labeling task object: {outputs['object']}\n"
+    except:
+        pass
+    try:
+        output_string += f"Labeling task location: {outputs['location']}\n"
+    except:
+        pass
+    try:
         output_string += f"OS & Browser Info: {outputs['userAgent']}\n"
     except:
         pass
@@ -72,8 +77,8 @@ def format_for_printing_data(data):
         output_string += f"User Feeback: {outputs['feedback']}\n"
     except:
         pass
-    
-    return f"-------------------\n{metadata_string}{inputs_string}{output_string}"
+
+    return f"-------------------\n{metadata_string}{output_string}"
 
 
 disqualification_name = None

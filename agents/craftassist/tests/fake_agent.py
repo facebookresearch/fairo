@@ -16,7 +16,6 @@ from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from agents.craftassist.craftassist_agent import CraftAssistAgent
 from droidlet.shared_data_structs import MockOpt
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
     BORING_BLOCKS,
@@ -32,7 +31,7 @@ from droidlet.interpreter.craftassist import (
 )
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
 from droidlet.perception.craftassist.heuristic_perception import PerceptionWrapper
-from droidlet.perception.craftassist.rotation import yaw_pitch
+from droidlet.shared_data_struct.rotation import yaw_pitch
 from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS, get_locs_from_entity, fill_idmeta
 from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
@@ -48,12 +47,39 @@ from droidlet.lowlevel.minecraft.pyworld.physical_interfaces import (
 )
 
 
+def default_low_level_data():
+    low_level_data = {
+        "mobs": SPAWN_OBJECTS,
+        "mob_property_data": craftassist_specs.get_mob_property_data(),
+        "schematics": craftassist_specs.get_schematics(),
+        "block_data": craftassist_specs.get_block_data(),
+        "block_property_data": craftassist_specs.get_block_property_data(),
+        "color_data": craftassist_specs.get_colour_data(),
+        "boring_blocks": BORING_BLOCKS,
+        "passable_blocks": PASSABLE_BLOCKS,
+        "fill_idmeta": fill_idmeta,
+        "color_bid_map": COLOR_BID_MAP,
+    }
+    return low_level_data
+
+
 class FakeAgent(DroidletAgent):
-    CCW_LOOK_VECS = [(1, 0), (0, 1), (-1, 0), (0, -1)]
     default_frame = CraftAssistAgent.default_frame
     coordinate_transforms = CraftAssistAgent.coordinate_transforms
 
-    def __init__(self, world, opts=None, do_heuristic_perception=False, prebuilt_perception=None):
+    def __init__(
+        self,
+        world,
+        opts=None,
+        do_heuristic_perception=False,
+        prebuilt_perception=None,
+        low_level_data=None,
+        use_place_field=True,
+        prebuilt_db=None,
+    ):
+        self.prebuilt_db = prebuilt_db
+        self.use_place_field = use_place_field
+        self.mark_airtouching_blocks = do_heuristic_perception
         self.head_height = HEAD_HEIGHT
         self.world = world
         self.chat_count = 0
@@ -62,18 +88,9 @@ class FakeAgent(DroidletAgent):
         if not opts:
             opts = MockOpt()
         self.e2e_mode = getattr(opts, "e2e_mode", False)
-        self.low_level_data = {
-            "mobs": SPAWN_OBJECTS,
-            "mob_property_data": craftassist_specs.get_mob_property_data(),
-            "schematics": craftassist_specs.get_schematics(),
-            "block_data": craftassist_specs.get_block_data(),
-            "block_property_data": craftassist_specs.get_block_property_data(),
-            "color_data": craftassist_specs.get_colour_data(),
-            "boring_blocks": BORING_BLOCKS,
-            "passable_blocks": PASSABLE_BLOCKS,
-            "fill_idmeta": fill_idmeta,
-            "color_bid_map": COLOR_BID_MAP,
-        }
+        if low_level_data is None:
+            low_level_data = default_low_level_data()
+        self.low_level_data = low_level_data
         super(FakeAgent, self).__init__(opts)
         self.do_heuristic_perception = do_heuristic_perception
         self.no_default_behavior = True
@@ -108,7 +125,9 @@ class FakeAgent(DroidletAgent):
             self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         self.perception_modules["low_level"] = LowLevelMCPerception(self, perceive_freq=1)
         self.perception_modules["heuristic"] = PerceptionWrapper(
-            self, low_level_data=self.low_level_data
+            self,
+            low_level_data=self.low_level_data,
+            mark_airtouching_blocks=self.mark_airtouching_blocks,
         )
 
     def init_physical_interfaces(self):
@@ -118,13 +137,17 @@ class FakeAgent(DroidletAgent):
         T = FakeMCTime(self.world)
         low_level_data = self.low_level_data.copy()
         low_level_data["check_inside"] = heuristic_perception.check_inside
-
-        self.memory = MCAgentMemory(
-            load_minecraft_specs=False,
-            coordinate_transforms=self.coordinate_transforms,
-            agent_time=T,
-            agent_low_level_data=low_level_data,
-        )
+        kwargs = {
+            "load_minecraft_specs": False,
+            "coordinate_transforms": self.coordinate_transforms,
+            "agent_time": T,
+            "agent_low_level_data": low_level_data,
+        }
+        if not self.use_place_field:
+            kwargs["place_field_pixels_per_unit"] = -1
+        if self.prebuilt_db is not None:
+            kwargs["copy_from_backup"] = self.prebuilt_db
+        self.memory = MCAgentMemory(**kwargs)
         # Add dances to memory
         dance.add_default_dances(self.memory)
 
@@ -144,7 +167,6 @@ class FakeAgent(DroidletAgent):
         self.dialogue_manager = DialogueManager(
             self.memory,
             dialogue_object_classes,
-            DialogueObjectMapper,
             self.opts,
             low_level_interpreter_data=low_level_interpreter_data,
         )
@@ -410,12 +432,22 @@ class FakePlayer(FakeAgent):
         get_world_pos=False,
         name="",
         active=True,
+        low_level_data=None,
+        use_place_field=False,
+        prebuilt_db=None,
     ):
         class NubWorld:
             def __init__(self):
                 self.count = 0
 
-        super().__init__(NubWorld(), opts=opts, do_heuristic_perception=do_heuristic_perception)
+        super().__init__(
+            NubWorld(),
+            opts=opts,
+            do_heuristic_perception=do_heuristic_perception,
+            low_level_data=low_level_data,
+            use_place_field=use_place_field,
+            prebuilt_db=prebuilt_db,
+        )
         # if active is set to false, the fake player's step is passed.
         self.active = active
         self.get_world_pos = get_world_pos

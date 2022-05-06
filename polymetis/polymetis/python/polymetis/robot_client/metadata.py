@@ -21,13 +21,13 @@ class RobotModelConfig:
     robot_description_path: str
     controlled_joints: List[float]
     num_dofs: int
-    ee_link_idx: int
-    ee_link_name: str
     rest_pose: List[float]
     joint_limits_low: List[float]
     joint_limits_high: List[float]
     joint_damping: List[float]
     torque_limits: List[float]
+    ee_link_idx: int = None
+    ee_link_name: str = None
 
 
 @dataclass
@@ -87,8 +87,10 @@ class RobotClientMetadata:
         robot_client_metadata = polymetis_pb2.RobotClientMetadata()
         robot_client_metadata.hz = hz
         robot_client_metadata.dof = robot_model_cfg.num_dofs
-        robot_client_metadata.ee_link_name = robot_model_cfg.ee_link_name
-        robot_client_metadata.ee_link_idx = robot_model_cfg.ee_link_idx
+        if "ee_link_name" in robot_model_cfg:
+            robot_client_metadata.ee_link_name = robot_model_cfg.ee_link_name
+        if "ee_link_idx" in robot_model_cfg:
+            robot_client_metadata.ee_link_idx = robot_model_cfg.ee_link_idx
 
         # Set gains as shared metadata
         robot_client_metadata.default_Kq[:] = default_Kq

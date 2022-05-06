@@ -18,8 +18,7 @@ from copy import deepcopy as copy
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-# FIXME!  do this better
-from .hello_robot.rotation import yaw_pitch
+from droidlet.shared_data_struct.rotation import yaw_pitch
 
 MAX_PAN_RAD = np.pi / 4
 CAMERA_HEIGHT = 0.6
@@ -107,13 +106,13 @@ def get_move_target_for_point(base_pos, target, eps=0.5):
 def get_step_target_for_straightline_move(base_pos, target, step_size=0.1):
     """
     Heuristic to get step target of step_size for going to from base_pos to target
-    in a straight line. 
+    in a straight line.
     Args:
         base_pos ([x,z,yaw]): robot base in canonical coords
         target ([x,y,z]): point target in canonical coords
-    
+
     Returns:
-        move_target ([x,z,yaw]): robot base move target in canonical coords 
+        move_target ([x,z,yaw]): robot base move target in canonical coords
     """
 
     dx = target[0] - base_pos[0]
@@ -155,7 +154,7 @@ def get_circle(r, n=10):
 def get_circular_path(target, robot_pos, radius, num_points):
     """
     get a circular path with num_points of radius from x
-    xyz 
+    xyz
     """
     pts = get_circle(radius, num_points)  # these are the x,z
 
@@ -242,9 +241,9 @@ class TrajectoryDataSaver:
         return self.img_count
 
     def save(self, rgb, depth, seg, pos, habitat_pos, habitat_rot):
-        self.img_count = len(glob.glob(self.img_folder + '/*.jpg'))
-        self.logger.info(f'Saving to {self.save_folder}, {self.img_count}, {self.dbg_str}')
-        print(f'saving {rgb.shape, depth.shape, seg.shape}')
+        self.img_count = len(glob.glob(self.img_folder + "/*.jpg"))
+        self.logger.info(f"Saving to {self.save_folder}, {self.img_count}, {self.dbg_str}")
+        print(f"saving {rgb.shape, depth.shape, seg.shape}")
         # store the images and depth
         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
         cv2.imwrite(self.img_folder + "/{:05d}.jpg".format(self.img_count), rgb)
@@ -285,9 +284,9 @@ class TrajectoryDataSaver:
                 self.pose_dict_hab = json.load(fp)
 
         self.pose_dict_hab[self.img_count] = {
-                "position": copy(habitat_pos),
-                "rotation": copy(habitat_rot),
-            }
+            "position": copy(habitat_pos),
+            "rotation": copy(habitat_rot),
+        }
 
         with open(os.path.join(self.save_folder, "data_hab.json"), "w") as fp:
             json.dump(self.pose_dict_hab, fp)

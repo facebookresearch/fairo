@@ -98,10 +98,10 @@ def link_archive_to_mem(agent_memory, memid, archive_memid):
 
 
 def dehydrate(lf):
-    """ 
+    """
     replace any MemoryNode m in a logical form with {"dehydrated_mem": m.memid}
     This is used to store a logical form in the db; as logical forms may contain
-    MemoryNodes as values, this makes it easier to serialize (text instead of python object).  
+    MemoryNodes as values, this makes it easier to serialize (text instead of python object).
     """
     for k, v in lf.items():
         if isinstance(v, MemoryNode):
@@ -178,7 +178,7 @@ class ProgramNode(MemoryNode):
         return memid
 
     def rehydrate(self, lf):
-        """ 
+        """
         replace any {"dehydrated_mem": m.memid} with the associated MemoryNode
         This is used when retrieving a logical form in the db; as logical forms may contain
         MemoryNodes as values, this makes it easier to serialize (text instead of python object).
@@ -858,44 +858,44 @@ class TaskNode(MemoryNode):
         "pickled",
         "prio",
         "running",
+        "run_count",
         "paused",
         "created",
         "finished",
     ]
     TABLE = "Tasks"
     NODE_TYPE = "Task"
+    EGG_PRIO = -3
+    CHECK_PRIO = 0
+    FINISHED_PRIO = -1
 
     def __init__(self, agent_memory, memid: str):
         super().__init__(agent_memory, memid)
-        (
-            pickled,
-            prio,
-            running,
-            run_count,
-            created,
-            finished,
-            paused,
-            action_name,
-        ) = self.agent_memory._db_read_one(
-            "SELECT pickled, prio, running, run_count, created, finished, paused, action_name FROM Tasks WHERE uuid=?",
-            memid,
+        self.update_node()
+        pickled, created, action_name = self.agent_memory._db_read_one(
+            "SELECT pickled, created, action_name FROM Tasks WHERE uuid=?", memid
+        )
+        self.task = self.agent_memory.safe_unpickle(pickled)
+        self.created = created
+        # TODO changeme to just "name"
+        self.action_name = action_name
+        self.memory = agent_memory
+
+    def update_node(self):
+        prio, running, run_count, finished, paused = self.agent_memory._db_read_one(
+            "SELECT prio, running, run_count, finished, paused FROM Tasks WHERE uuid=?", self.memid
         )
         self.prio = prio
         self.paused = paused
         self.run_count = run_count
         self.running = running
-        self.task = self.agent_memory.safe_unpickle(pickled)
-        self.created = created
         self.finished = finished
-        # TODO changeme to just "name"
-        self.action_name = action_name
-        self.memory = agent_memory
 
     @classmethod
     def create(cls, memory, task) -> str:
         """Creates a new entry into the Tasks table
 
-        the input task can be an instantiated Task 
+        the input task can be an instantiated Task
             or a dict with followng structure:
             {"class": TaskClass,
              "task_data": {...}}
@@ -916,13 +916,13 @@ class TaskNode(MemoryNode):
             return old_memid
         if type(task) is dict:
             # this is an egg to be hatched by agent
-            prio = task["task_data"].get("task_node_data", {}).get("prio", -3)
+            prio = task["task_data"].get("task_node_data", {}).get("prio", cls.EGG_PRIO)
             running = task["task_data"].get("task_node_data", {}).get("running", 0)
             run_count = task["task_data"].get("task_node_data", {}).get("run_count", 0)
             action_name = task["class"].__name__.lower()
         else:
             action_name = task.__class__.__name__.lower()
-            prio = -1
+            prio = cls.CHECK_PRIO
             running = 0
             run_count = task.run_count
         memid = cls.new(memory)
@@ -955,7 +955,7 @@ class TaskNode(MemoryNode):
     def update_condition(self, conditions):
         """
         conditions is a dict with keys in
-        "init_condition", "run_condition", "stop_condition", "remove_condition"
+        "init_condition", "terminate_condition"
         and values being Condition objects
         """
         for k, condition in conditions.items():
@@ -968,11 +968,10 @@ class TaskNode(MemoryNode):
         """
         status is a dict with possible keys "prio", "running", "paused", "finished".
 
-        prio > 0  :  run me if possible, check my stop condition
-        prio = 0  :  check my run_condition, run if true
-        prio = -1 :  check my init_condition, set prio = 0 if True
-        prio < -1 :  don't even check init_condition or run_condition, I'm done or unhatched
-        prio = -3 :  I'm unhatched
+        prio > CHECK_PRIO  :  run me if possible, check my terminate condition
+        prio = CHECK_PRIO  :  check my init_condition, run if true
+        prio < CHECK_PRIO :  don't even check init_condition, I'm done or unhatched
+        prio = EGG_PRIO :  I'm unhatched
 
         running = 1 :  task should be stepped if possible and not explicitly paused
         running = 0 :  task should not be stepped
@@ -1001,7 +1000,7 @@ class TaskNode(MemoryNode):
                     status_out[k] = self.agent_memory.get_time()
                     # warning: using the order of the iterator!
                     status["running"] = 0
-                    status["prio"] = -2
+                    status["prio"] = self.FINISHED_PRIO
                 else:
                     status_out[k] = -1
             else:
@@ -1019,7 +1018,7 @@ class TaskNode(MemoryNode):
         # if parent is currently paused and then unpaused, propagate to children
         pass
 
-    def add_child_task(self, t, prio=1):
+    def add_child_task(self, t, prio=CHECK_PRIO + 1):
         """Add (and by default activate) a child task, and pass along the id
         of the parent task (current task).  A task can only have one direct
         descendant any any given time.  To add a list of children use a ControlBlock
@@ -1027,7 +1026,7 @@ class TaskNode(MemoryNode):
         Args:
             t: the task to be added.  a *Task* object, not a TaskNode
                agent: the agent running this task
-            prio: default 1, set to 0 if you want the child task added but not activated,
+            prio: default 1 (CHECK_PRIO + 1), set to 0 (CHECK_PRIO) if you want the child task added but not activated,
                   None if you want it added but its conditions left in charge
         """
         TaskMem = TaskNode(self.memory, t.memid)

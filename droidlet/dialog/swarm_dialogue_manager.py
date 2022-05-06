@@ -3,14 +3,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 from droidlet.dialog.dialogue_manager import DialogueManager
 
+
 class SwarmDialogueManager(DialogueManager):
-    def __init__(self, 
-                 memory, 
-                 dialogue_object_classes, 
-                 dialogue_object_mapper, 
-                 opts,
-                 low_level_interpreter_data={}):
-        super(SwarmDialogueManager, self).__init__(memory, dialogue_object_classes, dialogue_object_mapper, opts, low_level_interpreter_data)
+    def __init__(self, memory, dialogue_object_classes, opts, low_level_interpreter_data={}):
+        super(SwarmDialogueManager, self).__init__(
+            memory, dialogue_object_classes, opts, low_level_interpreter_data
+        )
 
     def neglect(self, name):
         if "bot" in name:
@@ -28,10 +26,16 @@ class SwarmDialogueManager(DialogueManager):
             chat_memid = chat.memid
             # get logical form if any else None
             logical_form, chat_status = None, ""
-            logical_form_triples = self.memory.get_triples(subj=chat_memid, pred_text="has_logical_form")
-            processed_status = self.memory.get_triples(subj=chat_memid, pred_text="has_tag", obj_text="unprocessed")
+            logical_form_triples = self.memory.get_triples(
+                subj=chat_memid, pred_text="has_logical_form"
+            )
+            processed_status = self.memory.get_triples(
+                subj=chat_memid, pred_text="has_tag", obj_text="unprocessed"
+            )
             if logical_form_triples:
-                logical_form = self.memory.get_logical_form_by_id(logical_form_triples[0][2]).logical_form
+                logical_form = self.memory.get_logical_form_by_id(
+                    logical_form_triples[0][2]
+                ).logical_form
 
             if processed_status:
                 chat_status = processed_status[0][2]

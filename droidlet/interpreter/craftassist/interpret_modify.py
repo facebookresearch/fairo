@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 
 import droidlet.base_util
-from droidlet.perception.craftassist import rotation
+from droidlet.shared_data_struct import rotation
 from droidlet.perception.craftassist.shape_transforms import (
     scale,
     thicker,
@@ -146,9 +146,9 @@ def handle_fill(interpreter, speaker, modify_dict, obj, block_data, color_bid_ma
     if modify_dict.get("modify_type") == "FILL":
         if modify_dict.get("new_block"):
             # TODO FILTERS, also in build
-            block_type = get_block_type(modify_dict["new_block"],
-                                        block_data_info=block_data,
-                                        color_bid_map=color_bid_map)
+            block_type = get_block_type(
+                modify_dict["new_block"], block_data_info=block_data, color_bid_map=color_bid_map
+            )
             new_blocks = fill_flat(old_blocks, fill_material=block_type)
         else:
             new_blocks = fill_flat(old_blocks)
@@ -171,12 +171,16 @@ def handle_replace(interpreter, speaker, modify_dict, obj, block_data, color_bid
     bounds = droidlet.base_util.get_bounds()
     mx, my, mz = (bounds[0], bounds[2], bounds[4])
     origin = (mx, my, mz)
-    new_block_type = get_block_type(modify_dict["new_block"], block_data_info=block_data, color_bid_map=color_bid_map)
+    new_block_type = get_block_type(
+        modify_dict["new_block"], block_data_info=block_data, color_bid_map=color_bid_map
+    )
     destroy_task_data = None
     if modify_dict.get("old_block"):
         # TODO FILTERS, also in build
         # TODO "make the red blocks green" etc- currently get_block type does not return a list of possibilities
-        old_block_type = get_block_type(modify_dict["old_block"], block_data_info=block_data, color_bid_map=color_bid_map)
+        old_block_type = get_block_type(
+            modify_dict["old_block"], block_data_info=block_data, color_bid_map=color_bid_map
+        )
         new_blocks = replace_by_blocktype(
             old_blocks, new_idm=new_block_type, current_idm=old_block_type
         )

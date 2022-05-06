@@ -1,15 +1,18 @@
 import os
+import sys
 import random
 import math
 import time
 import numpy as np
 import Pyro4
 from slam_pkg.utils import depth_util as du
+from rich import print
 
 random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
+
 
 class Trackback(object):
     def __init__(self, planner):
@@ -55,6 +58,7 @@ class Navigation(object):
         self.robot = robot
         self.trackback = Trackback(planner)
         self._busy = False
+        self._stop = True
         self._done_exploring = False
 
     def go_to_relative(self, goal):
@@ -65,49 +69,44 @@ class Navigation(object):
         abs_goal[1] += robot_loc[1]
         abs_goal[2] = goal[2] + robot_loc[2]
         return self.go_to_absolute(abs_goal)
-    
+
     def go_to_absolute(self, goal, steps=100000000):
         self._busy = True
+        self._stop = False
         robot_loc = self.robot.get_base_state()
         initial_robot_loc = robot_loc
         goal_reached = False
         return_code = True
-        while (not goal_reached) and steps > 0:
+        while (not goal_reached) and steps > 0 and self._stop is False:
             stg = self.planner.get_short_term_goal(robot_loc, goal)
             if stg == False:
                 # no path to end-goal
+                print(
+                    "Could not find a path to the end goal {} from current robot location {}, aborting move".format(
+                        goal, robot_loc
+                    )
+                )
                 return_code = False
                 break
-            self.robot.go_to_absolute(stg, wait=False)
-            while self.robot.get_base_status() == "ACTIVE":
-                time.sleep(0.01)
+            status = self.robot.go_to_absolute(stg)
             robot_loc = self.robot.get_base_state()
-            status = self.robot.get_base_status()
-            print('go_to_absolute',
-                  ' initial location: ', initial_robot_loc,
-                  ' goal: ', goal,
-                  ' short-term goal:', stg,
-                  ' reached location: ', robot_loc,
-                  ' robot status: ', status)
+
+            print("[navigation] Finished a go_to_absolute")
+            print(" initial location: {} Final goal: {}".format(initial_robot_loc, goal))
+            print(" short-term goal: {}, Reached Location: {}".format(stg, robot_loc))
+            print(" Robot Status: {}".format(status))
             if status == "SUCCEEDED":
                 goal_reached = self.planner.goal_within_threshold(robot_loc, goal)
                 self.trackback.update(robot_loc)
             else:
                 # collided with something unexpected.
                 robot_loc = self.robot.get_base_state()
-                # Update SLAM map with an obstacle where collission occured
-                # mark a point 5cm in front of the robot as obstacle
-                collision_x = robot_loc[0] + 0.05 * np.cos(robot_loc[2])
-                collision_y = robot_loc[1] + 0.05 * np.sin(robot_loc[2])
-                collision_loc = (collision_x, collision_y, 0.)
-                self.slam.add_obstacle(collision_loc)
 
                 # trackback to a known good location
                 trackback_loc = self.trackback.get_loc(robot_loc)
 
-                print(f"Collided at {robot_loc}. Marking point {collision_loc} as obstacle."
-                      f"Tracking back to {trackback_loc}")
-                self.robot.go_to_absolute(trackback_loc, wait=True)
+                print(f"Collided at {robot_loc}." f"Tracking back to {trackback_loc}")
+                self.robot.go_to_absolute(trackback_loc)
                 # TODO: if the trackback fails, we're screwed. Handle this robustly.
             steps = steps - 1
 
@@ -115,11 +114,11 @@ class Navigation(object):
         return return_code
 
     def explore(self, far_away_goal):
-        if not hasattr(self, '_done_exploring'):
+        if not hasattr(self, "_done_exploring"):
             self._done_exploring = False
         if not self._done_exploring:
             print("exploring 1 step")
-            success = self.go_to_absolute(far_away_goal, steps=1)       
+            success = self.go_to_absolute(far_away_goal, steps=1)
             if success == False:
                 # couldn't reach far_away_goal
                 # and don't seem to have any unexplored
@@ -136,11 +135,19 @@ class Navigation(object):
     def reset_explore(self):
         self._done_exploring = False
 
-robot_ip = os.getenv('LOCOBOT_IP')
-ip = os.getenv('LOCAL_IP')
+    def stop(self):
+        self._stop = True
+
+
+robot_ip = os.getenv("LOCOBOT_IP")
+ip = os.getenv("LOCAL_IP")
+
+robot_name = "remotelocobot"
+if len(sys.argv) > 1:
+    robot_name = sys.argv[1]
 
 with Pyro4.Daemon(ip) as daemon:
-    robot = Pyro4.Proxy("PYRONAME:remotelocobot@" + robot_ip)
+    robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
     planner = Pyro4.Proxy("PYRONAME:planner@" + robot_ip)
     slam = Pyro4.Proxy("PYRONAME:slam@" + robot_ip)
 
@@ -151,6 +158,3 @@ with Pyro4.Daemon(ip) as daemon:
 
     print("Navigation Server is started...")
     daemon.requestLoop()
-
-
-

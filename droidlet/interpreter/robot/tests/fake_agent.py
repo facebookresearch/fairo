@@ -13,7 +13,6 @@ from droidlet.memory.memory_nodes import PlayerNode
 from agents.droidlet_agent import DroidletAgent
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 from droidlet.lowlevel.robot_mover_utils import (
@@ -25,7 +24,7 @@ from droidlet.lowlevel.robot_mover_utils import (
 
 # FXIME!!! everything here should be essentially self-contained
 from agents.locobot.self_perception import SelfPerception
-import droidlet.lowlevel.rotation as rotation
+import droidlet.shared_data_struct.rotation as rotation
 from droidlet.perception.robot.tests.utils import get_fake_detection
 from droidlet.shared_data_struct.robot_shared_utils import Pos, RobotPerceptionData
 
@@ -79,10 +78,12 @@ class FakeMoverCommand:
                 {"name": self.NAME, "step_data": self.get_step_data()}
             )
 
-    def __call__(self, *args):
+    def __call__(self, *args, **kwargs):
         if hasattr(self.agent, "recorder"):
-            self.agent.recorder.record_action({"name": self.NAME, "args": list(args)})
-        return self.action(*args)
+            self.agent.recorder.record_action(
+                {"name": self.NAME, "args": list(args), "kwargs": list(kwargs)}
+            )
+        return self.action(*args, **kwargs)
 
 
 def abs_min(x, y):
@@ -95,7 +96,8 @@ def abs_min(x, y):
 class MoveAbsolute(FakeMoverCommand):
     NAME = "move_absolute"
 
-    def action(self, xyt_positions):
+    def action(self, xyt_positions, blocking=False):
+        # ignores the "blocking" keyword, sig just to match regular agent
         self.xyt_positions = xyt_positions
         self.position_index = 0
         self.agent.mover.current_action = self
@@ -337,6 +339,11 @@ class FakeMover:
         else:
             return self.current_action.step()
 
+    def is_busy(self):
+        if not self.current_action:
+            return False
+        return True
+
     def is_object_in_gripper(self):
         return self.gripper_state == "occupied"
 
@@ -355,6 +362,9 @@ class FakeMover:
 
     def get_pan(self):
         return self.agent.pan
+
+    def stop(self):
+        pass
 
     def reset(self):
         pass
@@ -433,9 +443,7 @@ class FakeAgent(DroidletAgent):
         dialogue_object_classes["interpreter"] = LocoInterpreter
         dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
-        self.dialogue_manager = DialogueManager(
-            self.memory, dialogue_object_classes, DialogueObjectMapper, self.opts
-        )
+        self.dialogue_manager = DialogueManager(self.memory, dialogue_object_classes, self.opts)
 
     def perceive(self, force=False):
         # clear the chat buffer
@@ -457,6 +465,7 @@ class FakeAgent(DroidletAgent):
         self.logical_form = {"logical_form": lf, "chatstr": chatstr, "speaker": speaker}
 
     def step(self):
+        self.mover.bot_step()
         if hasattr(self.world, "step"):
             self.world.step()
         if hasattr(self, "recorder"):

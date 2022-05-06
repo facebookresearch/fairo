@@ -74,8 +74,8 @@ def maybe_handle_specific_mem(interpreter, speaker, filters_d, val_map):
 def interpret_where_clause(
     interpreter, speaker, where_d, memory_type="ReferenceObject", ignore_self=False
 ):
-    """ 
-    where_d is a sentence (nested dict/list) of the recursive form 
+    """
+    where_d is a sentence (nested dict/list) of the recursive form
     COMPARATOR, TRIPLE, or {CONJUNCTION, [where_clauses]}
     where each CONJUCTION is either "AND", "OR", or "NOT"
     """
@@ -262,20 +262,20 @@ def convert_task_where(where_clause):
             o = where_clause.get("obj_text").lower()
             if o == "currently_running":
                 new_where_clause = {
-                    "input_left": {"value_extractor": {"attribute": "running"}},
-                    "input_right": {"value_extractor": "1"},
+                    "input_left": {"attribute": "running"},
+                    "input_right": "1",
                     "comparison_type": "EQUAL",
                 }
             elif o == "paused":
                 new_where_clause = {
-                    "input_left": {"value_extractor": {"attribute": "paused"}},
-                    "input_right": {"value_extractor": "1"},
+                    "input_left": {"attribute": "paused"},
+                    "input_right": "1",
                     "comparison_type": "EQUAL",
                 }
             elif o == "finished":
                 new_where_clause = {
-                    "input_left": {"value_extractor": {"attribute": "finished"}},
-                    "input_right": {"value_extractor": "0"},
+                    "input_left": {"attribute": "finished"},
+                    "input_right": "0",
                     "comparison_type": "GREATER_THAN",
                 }
             else:

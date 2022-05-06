@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 import json
-from ..nsp_querier import NSPQuerier
+from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from droidlet.shared_data_structs import MockOpt
 from prettytable import PrettyTable
 
@@ -32,7 +32,7 @@ class fontcolors:
 common_functional_commands = {
     "turn right": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "dance_type": {"body_turn": {"relative_yaw": {"fixed_value": "-90"}}},
                 "action_type": "DANCE",
@@ -43,14 +43,12 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]},
         },
     },
     "point at the table": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "dance_type": {
                     "point": {
@@ -71,7 +69,7 @@ common_functional_commands = {
     },
     "dig two tiny holes there": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "location": {"contains_coreference": "yes"},
                 "action_type": "DIG",
@@ -95,11 +93,11 @@ common_functional_commands = {
     },
     "go there": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [{"location": {"contains_coreference": "yes"}, "action_type": "MOVE"}],
+        "event_sequence": [{"location": {"contains_coreference": "yes"}, "action_type": "MOVE"}],
     },
     "can you climb on top of the cube": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "location": {
                     "relative_direction": "UP",
@@ -117,7 +115,7 @@ common_functional_commands = {
     },
     "go to the circle": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "location": {
                     "reference_object": {
@@ -136,9 +134,7 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "NAME"},
-            "where_clause": {
-                "AND": [{"pred_text": "has_colour", "obj_text": [0, [6, 6]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_colour", "obj_text": [0, [6, 6]]}]},
         },
     },
     "what can you do": {"dialogue_type": "GET_CAPABILITIES", "action_type": "ANY"},
@@ -146,22 +142,20 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "NAME"},
-            "where_clause": {
-                "AND": [{"pred_text": "has_colour", "obj_text": [0, [3, 3]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_colour", "obj_text": [0, [3, 3]]}]},
             "contains_coreference": "yes",
         },
     },
     "make two red cubes there": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "schematic": {
                     "filters": {
                         "where_clause": {
                             "AND": [
-                            {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
-                            {"pred_text": "has_colour", "obj_text": [0, [2, 2]]},
+                                {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
+                                {"pred_text": "has_colour", "obj_text": [0, [2, 2]]},
                             ]
                         },
                         "selector": {
@@ -178,7 +172,7 @@ common_functional_commands = {
     },
     "go to the window": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "location": {
                     "reference_object": {
@@ -195,7 +189,7 @@ common_functional_commands = {
     },
     "point to the table": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "dance_type": {
                     "point": {
@@ -216,7 +210,7 @@ common_functional_commands = {
     },
     "look at the table": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "dance_type": {
                     "look_turn": {
@@ -237,7 +231,7 @@ common_functional_commands = {
     },
     "go left": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "location": {
                     "relative_direction": "LEFT",
@@ -249,7 +243,7 @@ common_functional_commands = {
     },
     "fill that hole up with sand": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "schematic": {
                     "filters": {
@@ -274,9 +268,7 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "SIZE"},
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
         },
     },
     "what is outside the window": {
@@ -301,19 +293,19 @@ common_functional_commands = {
     },
     "follow me": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
-                "remove_condition": {"condition_type": "NEVER"},
                 "location": {
                     "reference_object": {"special_reference": {"fixed_value": "SPEAKER"}}
                 },
                 "action_type": "MOVE",
             }
         ],
+        "terminate_condition": {"fixed_value": "NEVER"},
     },
     "make a yellow circle to the left of the square": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "schematic": {
                     "filters": {
@@ -343,15 +335,13 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "COUNT",
-            "where_clause": {
-                "AND": [{"pred_text": "has_colour", "obj_text": [0, [2, 2]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_colour", "obj_text": [0, [2, 2]]}]},
         },
     },
     "can you topple the circle": {"dialogue_type": "GET_CAPABILITIES", "action_type": "UNKNOWN"},
     "spawn two pigs": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "SPAWN",
                 "reference_object": {
@@ -403,7 +393,7 @@ common_functional_commands = {
     },
     "go to the table": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "location": {
                     "reference_object": {
@@ -422,23 +412,19 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
         },
     },
     "what size is the square": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "SIZE"},
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
         },
     },
     "destroy that": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "DESTROY",
                 "reference_object": {"filters": {"contains_coreference": "yes"}},
@@ -447,7 +433,7 @@ common_functional_commands = {
     },
     "go forward": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "location": {
                     "relative_direction": "FRONT",
@@ -459,7 +445,7 @@ common_functional_commands = {
     },
     "look at the circle": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "dance_type": {
                     "look_turn": {
@@ -480,15 +466,15 @@ common_functional_commands = {
     },
     "make a big green square behind me": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "schematic": {
                     "filters": {
                         "where_clause": {
                             "AND": [
-                            {"pred_text": "has_name", "obj_text": [0, [4, 4]]},
-                            {"pred_text": "has_colour", "obj_text": [0, [3, 3]]},
-                            {"pred_text": "has_size", "obj_text": [0, [2, 2]]},
+                                {"pred_text": "has_name", "obj_text": [0, [4, 4]]},
+                                {"pred_text": "has_colour", "obj_text": [0, [3, 3]]},
+                                {"pred_text": "has_size", "obj_text": [0, [2, 2]]},
                             ]
                         }
                     }
@@ -503,9 +489,8 @@ common_functional_commands = {
     },
     "follow the sheep": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
-                "remove_condition": {"condition_type": "NEVER"},
                 "location": {
                     "reference_object": {
                         "filters": {
@@ -518,19 +503,18 @@ common_functional_commands = {
                 "action_type": "MOVE",
             }
         ],
+        "terminate_condition": {"fixed_value": "NEVER"},
     },
     "find the pig": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]},
         },
     },
     "can you climb on top of the couch": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "location": {
                     "relative_direction": "UP",
@@ -560,36 +544,30 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "COUNT",
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]},
         },
     },
     "what color is the chair": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
             "output": {"attribute": "COLOUR"},
         },
     },
     "come here": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [{"location": {"contains_coreference": "yes"}, "action_type": "MOVE"}],
+        "event_sequence": [{"location": {"contains_coreference": "yes"}, "action_type": "MOVE"}],
     },
     "where is the picture": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]},
         },
     },
     "make two circles there": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "location": {"contains_coreference": "yes"},
                 "action_type": "BUILD",
@@ -612,14 +590,12 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
         },
     },
     "point to the jacket": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "dance_type": {
                     "point": {
@@ -640,7 +616,7 @@ common_functional_commands = {
     },
     "point at the cube": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "dance_type": {
                     "point": {
@@ -662,7 +638,7 @@ common_functional_commands = {
     "hi": {"dialogue_type": "NOOP"},
     "go back": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "location": {
                     "relative_direction": "BACK",
@@ -676,51 +652,41 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "COUNT",
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]},
         },
     },
     "is there anything big": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "MEMORY",
-            "where_clause": {
-                "AND": [{"pred_text": "has_size", "obj_text": [0, [3, 3]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_size", "obj_text": [0, [3, 3]]}]},
         },
     },
     "what color is the square": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "COLOUR"},
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
         },
     },
     "show me to the square": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
         },
     },
     "have you seen the pig": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]},
         },
     },
     "can you topple the chair": {"dialogue_type": "GET_CAPABILITIES", "action_type": "UNKNOWN"},
     "point at the square": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "dance_type": {
                     "point": {
@@ -760,7 +726,7 @@ common_functional_commands = {
                             }
                         },
                     }
-                }
+                },
             },
         },
     },
@@ -768,14 +734,12 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "MEMORY",
-            "where_clause": {
-                "AND": [{"pred_text": "has_size", "obj_text": [0, [3, 3]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_size", "obj_text": [0, [3, 3]]}]},
         },
     },
     "look at the hole": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "dance_type": {
                     "look_turn": {
@@ -798,32 +762,26 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "COUNT",
-            "where_clause": {
-                "AND": [{"pred_text": "has_colour", "obj_text": [0, [2, 2]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_colour", "obj_text": [0, [2, 2]]}]},
         },
     },
     "is there anything red": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "MEMORY",
-            "where_clause": {
-                "AND": [{"pred_text": "has_colour", "obj_text": [0, [3, 3]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_colour", "obj_text": [0, [3, 3]]}]},
         },
     },
     "where is the circle": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]},
         },
     },
     "turn left": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "dance_type": {"body_turn": {"relative_yaw": {"fixed_value": "90"}}},
                 "action_type": "DANCE",
@@ -873,13 +831,13 @@ common_functional_commands = {
                             }
                         },
                     }
-                }
+                },
             },
         },
     },
     "go right": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "location": {
                     "relative_direction": "RIGHT",
@@ -893,16 +851,14 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "where_clause": {
-                "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
-            },
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]},
         },
     },
 }
 
 GROUND_TRUTH_PARSES = {
     "go to the gray chair": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -922,7 +878,7 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "go to the chair": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -939,7 +895,7 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "go forward 0.2 meters": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -953,7 +909,7 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "go forward one meter": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -967,7 +923,7 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "go left 3 feet": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -981,7 +937,7 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "go right 3 feet": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -995,7 +951,7 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "go left 3 meters": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -1009,7 +965,7 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "go forward 1 feet": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -1023,7 +979,7 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "go back 1 feet": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -1037,31 +993,31 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "turn right 90 degrees": {
-        "action_sequence": [
+        "event_sequence": [
             {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-90"}}}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "turn left 90 degrees": {
-        "action_sequence": [
+        "event_sequence": [
             {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "90"}}}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "turn right 180 degrees": {
-        "action_sequence": [
+        "event_sequence": [
             {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-180"}}}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "turn right": {
-        "action_sequence": [
+        "event_sequence": [
             {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-90"}}}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "look at where I am pointing": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "DANCE",
                 "dance_type": {
@@ -1074,14 +1030,12 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "wave": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "DANCE",
                 "dance_type": {
                     "filters": {
-                        "where_clause": {
-                            "AND" : [{"pred_text": "has_name", "obj_text": "wave"}]
-                        }
+                        "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "wave"}]}
                     }
                 },
             }
@@ -1089,7 +1043,7 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "follow the chair": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
@@ -1101,20 +1055,18 @@ GROUND_TRUTH_PARSES = {
                         }
                     }
                 },
-                "remove_condition": {"condition_type": "NEVER"},
             }
         ],
+        "terminate_condition": {"fixed_value": "NEVER"},
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "find Laurens": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "SCOUT",
                 "reference_object": {
                     "filters": {
-                        "where_clause": {
-                            "AND": [{"pred_text": "has_name", "obj_text": "Laurens"}]
-                        }
+                        "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "Laurens"}]}
                     }
                 },
             }
@@ -1122,7 +1074,7 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "bring the cup to Mary": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "GET",
                 "receiver": {
@@ -1136,9 +1088,7 @@ GROUND_TRUTH_PARSES = {
                 },
                 "reference_object": {
                     "filters": {
-                        "where_clause": {
-                            "AND": [{"pred_text": "has_name", "obj_text": "cup"}]
-                        }
+                        "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "cup"}]}
                     }
                 },
             }
@@ -1146,15 +1096,13 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "go get me lunch": {
-        "action_sequence": [
+        "event_sequence": [
             {
                 "action_type": "GET",
                 "receiver": {"reference_object": {"special_reference": "SPEAKER"}},
                 "reference_object": {
                     "filters": {
-                        "where_clause": {
-                            "AND": [{"pred_text": "has_name", "obj_text": "lunch"}]
-                        }
+                        "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "lunch"}]}
                     }
                 },
             }
@@ -1191,10 +1139,10 @@ def remove_key_text_span(dictionary):
 def remove_text_span(dictionary):
     updated_d = {}
     if dictionary["dialogue_type"] == "HUMAN_GIVE_COMMAND":
-        updated_d["action_sequence"] = []
-        for action_dict in dictionary["action_sequence"]:
+        updated_d["event_sequence"] = []
+        for action_dict in dictionary["event_sequence"]:
             updated_action_dict = remove_key_text_span(action_dict)
-            updated_d["action_sequence"].append(updated_action_dict)
+            updated_d["event_sequence"].append(updated_action_dict)
             updated_d["dialogue_type"] = "HUMAN_GIVE_COMMAND"
     else:
         updated_d = remove_key_text_span(dictionary)
@@ -1226,11 +1174,11 @@ def compare_full_dictionaries(d1, d2):
     if d1["dialogue_type"] == "HUMAN_GIVE_COMMAND":
         if d2["dialogue_type"] != d1["dialogue_type"]:
             return False
-        actions = d1["action_sequence"]
-        if len(actions) != len(d2["action_sequence"]):
+        actions = d1["event_sequence"]
+        if len(actions) != len(d2.get("event_sequence", {})):
             return False
         for i, action_dict in enumerate(actions):
-            if not compare_dicts(action_dict, d2["action_sequence"][i]):
+            if not compare_dicts(action_dict, d2["event_sequence"][i]):
                 return False
         return True
     else:
@@ -1238,7 +1186,7 @@ def compare_full_dictionaries(d1, d2):
 
 
 class TestDialogueManager(unittest.TestCase):
-    def setUp(self) :
+    def setUp(self):
         opts = MockOpt()
         opts.nsp_data_dir = TTAD_BERT_DATA_DIR
         opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR
@@ -1262,18 +1210,22 @@ class TestDialogueManager(unittest.TestCase):
         records = []
         parsing_model_status = False
         pass_cnt, fail_cnt, model_pass_cnt, model_fail_cnt = 0, 0, 0, 0
+        status = True
         for command in common_functional_commands.keys():
             ground_truth_parse = common_functional_commands[command]
             if command in self.ground_truth_actions:
                 model_prediction = self.ground_truth_actions[command]
             else:
-                # else query the model and remove the value for key "text_span"
-                model_prediction = remove_text_span(
-                    self.chat_parser.parsing_model.query_for_logical_form(chat=command)
-                )
-
+                print(command)
+                try:
+                    # else query the model and remove the value for key "text_span"
+                    model_prediction = remove_text_span(
+                        self.chat_parser.parsing_model.query_for_logical_form(chat=command)
+                    )
+                except:
+                    status = False
             # compute parsing pipeline accuracy
-            status = compare_full_dictionaries(ground_truth_parse, model_prediction)
+            status = status and compare_full_dictionaries(ground_truth_parse, model_prediction)
             if status:
                 pass_cnt += 1
                 record = [
@@ -1287,10 +1239,13 @@ class TestDialogueManager(unittest.TestCase):
                     fontcolors.FAIL + "FAIL" + fontcolors.ENDC,
                 ]
             # compute model correctness status
-            model_output = remove_text_span(
-                self.chat_parser.parsing_model.query_for_logical_form(chat=command)
-            )
-            parsing_model_status = compare_full_dictionaries(ground_truth_parse, model_output)
+            try:
+                model_output = remove_text_span(
+                    self.chat_parser.parsing_model.query_for_logical_form(chat=command)
+                )
+                parsing_model_status = compare_full_dictionaries(ground_truth_parse, model_output)
+            except:
+                parsing_model_status = False
             if parsing_model_status:
                 model_pass_cnt += 1
                 record += [fontcolors.OKGREEN + "PASS" + fontcolors.ENDC]

@@ -1,14 +1,18 @@
 import os
+import math
 import numpy as np
 import Pyro4
 from slam_pkg.utils.fmm_planner import FMMPlanner
+from rich import print
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
 
+
 def is_traversable(location, traversable):
     return traversable[round(location[1]), round(location[0])]
+
 
 @Pyro4.expose
 class Planner(object):
@@ -36,10 +40,7 @@ class Planner(object):
             return False
 
         # construct a planner
-        self.planner = FMMPlanner(
-            traversable_map,
-            step_size=int(step_size / self.map_resolution)
-        )
+        self.planner = FMMPlanner(traversable_map, step_size=int(step_size / self.map_resolution))
 
         # set the goal and location in planner, get short-term-goal
         self.planner.set_goal(goal_map_location)
@@ -59,11 +60,18 @@ class Planner(object):
             # -- related to the SLAM service's 2D map resolution.
             # so, finally, issue a last call to go to the precise final location
             # and to also use the rotation from the final goal
+            print(
+                "Short-term goal {} is within threshold or target goal {}".format(stg_real, goal)
+            )
             target_goal = goal
         else:
+            print(
+                "Short-term goal {} is not within threshold or target goal {}".format(
+                    stg_real, goal
+                )
+            )
             rotation_angle = np.arctan2(
-                stg_real[1] - robot_location[1],
-                stg_real[0] - robot_location[0]
+                stg_real[1] - robot_location[1], stg_real[0] - robot_location[0]
             )
             target_goal = (stg_real[0], stg_real[1], rotation_angle)
         return target_goal
@@ -72,15 +80,31 @@ class Planner(object):
         distance = np.linalg.norm(np.array(robot_location[:2]) - np.array(goal[:2]))
         # in metres. map_resolution is the resolution of the SLAM's 2D map, so the planner can't
         # plan anything lower than this
-        threshold = (float(self.map_resolution) - 1e-10) / 100.
-        within_threshold = distance < threshold
-        print("goal_within_threshold: ", within_threshold, distance, threshold, robot_location, goal)
+        threshold = (float(self.map_resolution) - 1e-10) / 100.0
+
+        if len(robot_location) == 3 and len(goal) == 3:
+            angle_threshold = 1  # in degrees
+            angle = robot_location[2] - goal[2]
+            abs_angle = math.fabs(math.degrees(angle)) % 360
+
+            within_threshold = distance < threshold and abs_angle < angle_threshold
+            print("goal_within_threshold: ", within_threshold)
+            print("Distance: {} < {}".format(distance, threshold))
+            print("Angle: {} < {}".format(abs_angle, angle_threshold))
+            print("Robot Location: {}".format(robot_location))
+            print("Goal:           {}".format(goal))
+        else:
+            within_threshold = distance < threshold
+            print("goal_within_threshold: ", within_threshold)
+            print("Distance: {} < {}".format(distance, threshold))
+            print("Robot Location: {}".format(robot_location))
+            print("Goal:           {}".format(goal))
         return within_threshold
 
 
-robot_ip = os.getenv('LOCOBOT_IP')
-ip = os.getenv('LOCAL_IP')
-    
+robot_ip = os.getenv("LOCOBOT_IP")
+ip = os.getenv("LOCAL_IP")
+
 with Pyro4.Daemon(ip) as daemon:
     slam = Pyro4.Proxy("PYRONAME:slam@" + robot_ip)
     obj = Planner(slam)
@@ -90,4 +114,3 @@ with Pyro4.Daemon(ip) as daemon:
 
     print("Planner Server is started...")
     daemon.requestLoop()
-

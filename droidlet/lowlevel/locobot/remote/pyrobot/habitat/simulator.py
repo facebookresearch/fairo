@@ -12,12 +12,12 @@ class HabitatSim(object):
     """Class that interfaces with Habitat sim"""
 
     def __init__(
-            self, 
-            configs, 
-            scene_path=None, 
-            physics_config=None, 
-            seed=0,
-            noisy = False,
+        self,
+        configs,
+        scene_path=None,
+        physics_config=None,
+        seed=0,
+        noisy=False,
     ):  # TODO: extend the arguments of constructor
         self.sim_config = copy.deepcopy(configs.COMMON.SIMULATOR)
         self.sim_config.defrost()
@@ -32,7 +32,7 @@ class HabitatSim(object):
         print(self.sim_config)
 
     def get_agents():
-        """ Return a list of agent objects"""
+        """Return a list of agent objects"""
         return self.sim.agents
 
     def get_sensors():

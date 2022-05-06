@@ -18,7 +18,7 @@ from droidlet.shared_data_structs import Time
 from droidlet.memory.memory_filters import MemorySearcher
 from droidlet.event import dispatch
 from droidlet.memory.memory_util import parse_sql, format_query
-from droidlet.memory.place_field import PlaceField
+from droidlet.memory.place_field import PlaceField, EmptyPlaceField
 
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
@@ -40,14 +40,13 @@ NONPICKLE_ATTRS = [
     "agent",
     "memory",
     "agent_memory",
-    "tasks_fn",
-    "run_condition",
+    "task_fns",
     "init_condition",
-    "remove_condition",
-    "stop_condition",
+    "terminate_condition",
     "movement",
 ]
 
+DEFAULT_PIXELS_PER_UNIT = 100
 SCHEMAS = [os.path.join(os.path.dirname(__file__), "base_memory_schema.sql")]
 
 # TODO when a memory is removed, its last state should be snapshotted to prevent tag weirdness
@@ -87,6 +86,7 @@ class AgentMemory:
         nodelist=NODELIST,
         agent_time=None,
         on_delete_callback=None,
+        place_field_pixels_per_unit=DEFAULT_PIXELS_PER_UNIT,
     ):
         if db_log_path:
             self._db_log_file = gzip.open(db_log_path + ".gz", "w")
@@ -124,6 +124,20 @@ class AgentMemory:
                 if node in possible_child.__mro__:
                     self.node_children[node.NODE_TYPE].append(possible_child.NODE_TYPE)
 
+        self.make_self_mem()
+
+        self.searcher = MemorySearcher()
+        if place_field_pixels_per_unit > 0:
+            self.place_field = PlaceField(self, pixels_per_unit=place_field_pixels_per_unit)
+        else:
+            self.place_field = EmptyPlaceField()
+
+    def __del__(self):
+        """Close the database file"""
+        if getattr(self, "_db_log_file", None):
+            self._db_log_file.close()
+
+    def make_self_mem(self):
         # create a "self" memory to reference in Triples
         self.self_memid = "0" * len(uuid.uuid4().hex)
         self.db_write(
@@ -131,18 +145,9 @@ class AgentMemory:
         )
         self.tag(self.self_memid, "_physical_object")
         self.tag(self.self_memid, "_animate")
-        # this is a hack until memory_filters does "not"
         self.tag(self.self_memid, "_not_location")
         self.tag(self.self_memid, "AGENT")
         self.tag(self.self_memid, "SELF")
-
-        self.searcher = MemorySearcher()
-        self.place_field = PlaceField(self)
-
-    def __del__(self):
-        """Close the database file"""
-        if getattr(self, "_db_log_file", None):
-            self._db_log_file.close()
 
     def init_time_interface(self, agent_time=None):
         """Initialiaze the current time in memory
@@ -303,18 +308,18 @@ class AgentMemory:
     def check_memid_exists(self, memid: str, table: str) -> bool:
         """Given the table and memid, check if an entry exists
 
-        Args:
-            memid (string): Memory id
-            table (string): Name of table
+                Args:
+                    memid (string): Memory id
+                    table (string): Name of table
 
-        Returns:
-            bool: whther an object with the memory id exists
+                Returns:
+                    bool: whther an object with the memory id exists
 
-        Examples::
-            >>> memid = '10517cc584844659907ccfa6161e9d32'
-            >>> table = 'ReferenceObjects'
-            >>> check_memid_exists(memid, table)
-et        """
+                Examples::
+                    >>> memid = '10517cc584844659907ccfa6161e9d32'
+                    >>> table = 'ReferenceObjects'
+                    >>> check_memid_exists(memid, table)
+        et"""
         return bool(self._db_read_one("SELECT * FROM {} WHERE uuid=?".format(table), memid))
 
     # TODO forget should be a method of the memory object
@@ -351,7 +356,7 @@ et        """
         for u in uuids:
             self.forget(u[0])
 
-    def basic_search(self, query):
+    def basic_search(self, query, get_all=False):
         """Perform a basic search using the query
 
         Args:
@@ -361,7 +366,7 @@ et        """
             list[memid], list[value]: the memids and respective values from the search
 
         """
-        return self.searcher.search(self, query=query)
+        return self.searcher.search(self, query=query, get_all=get_all)
 
     #################
     ###  Triples  ###
@@ -901,7 +906,9 @@ et        """
         else:
             return None
 
-    def get_last_finished_root_task(self, action_name: str = None, recency: int = None):
+    def get_last_finished_root_task(
+        self, action_name: str = None, recency: int = None, ignore_control: bool = False
+    ):
         """Get last task that was marked as finished
 
         Args:
@@ -928,15 +935,24 @@ et        """
         args: List = [max(self.get_time() - recency, 0)]
         if action_name:
             args.append(action_name)
-        memids = [r[0] for r in self._db_read(q, *args)]
-        for memid in memids:
-            if self._db_read_one(
-                "SELECT uuid FROM Triples WHERE pred_text='_has_parent_task' AND subj=?", memid
-            ):
-                # not a root task
-                continue
-
-            return TaskNode(self, memid)
+        task_memids_ok = {r[0]: False for r in self._db_read(q, *args)}
+        for memid in task_memids_ok:
+            tmems = self._db_read_one(
+                "SELECT obj FROM Triples WHERE pred_text='_has_parent_task' AND subj=?", memid
+            )
+            if tmems:  # not a root task
+                if ignore_control:
+                    is_parent_control = self.get_mem_by_id(tmems[0]).action_name == "controlblock"
+                    is_self_control = self.get_mem_by_id(memid).action_name == "controlblock"
+                    if is_parent_control and not is_self_control:
+                        task_memids_ok[memid] = True
+            else:  # no parent, this is a root task
+                task_memids_ok[memid] = True
+        ok_memids = [m for m, b in task_memids_ok.items() if b]
+        if ok_memids:
+            return TaskNode(self, ok_memids[0])
+        else:
+            return None
 
     #########################
     ###  Database Access  ###

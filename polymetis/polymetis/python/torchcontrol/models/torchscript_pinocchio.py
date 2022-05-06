@@ -32,13 +32,47 @@ class RobotModelPinocchio(torch.nn.Module):
     Implemented as a ``torch.nn.Module`` wrapped around a C++ custom class that leverages
     `Pinocchio <https://github.com/stack-of-tasks/pinocchio>`_ -
     a C++ rigid body dynamics library.
+
+    Args:
+        urdf_filename (str): path to the urdf file.
+        ee_link_name (str, optional): name of the end-effector link. Defaults to None,
+                                      which would require you to specify link_name
+                                      when using methods which require a link frame;
+                                      otherwise, the end-effector link will be used
+                                      by default.
     """
 
-    def __init__(self, urdf_filename: str, ee_link_name: str):
+    def __init__(self, urdf_filename: str, ee_link_name: str = None):
         super().__init__()
         self.model = torch.classes.torchscript_pinocchio.RobotModelPinocchio(
-            urdf_filename, ee_link_name
+            urdf_filename, False
         )
+        self.ee_link_name = None
+        self.ee_link_idx = None
+        self.set_ee_link(ee_link_name)
+
+    def set_ee_link(self, ee_link_name):
+        """Sets the `ee_link_name`, `ee_link_idx` using pinocchio::ModelTpl::getBodyId."""
+        self.ee_link_name = ee_link_name
+        if self.ee_link_name is not None:
+            self.ee_link_idx = self.model.get_link_idx_from_name(self.ee_link_name)
+        else:
+            self.ee_link_idx = None
+
+    def _get_link_idx_or_use_ee(self, link_name: str) -> int:
+        """
+        Get the link index from the link name, or use the end-effector link index
+        if link_name is None.
+        """
+        if not link_name:
+            frame_idx = self.ee_link_idx
+            assert frame_idx, (
+                "No end-effector link set during initialization, so link_name must "
+                + "be either input as parameter or set as default using `set_ee_link`."
+            )
+        else:
+            frame_idx = self.model.get_link_idx_from_name(link_name)
+        return frame_idx
 
     def get_joint_angle_limits(self) -> torch.Tensor:
         return self.model.get_joint_angle_limits()
@@ -47,21 +81,41 @@ class RobotModelPinocchio(torch.nn.Module):
         return self.model.get_joint_velocity_limits()
 
     def forward_kinematics(
-        self, joint_positions: torch.Tensor
+        self,
+        joint_positions: torch.Tensor,
+        link_name: str = "",
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Computes end-effector position and orientation from a given joint position.
+        """Computes link position and orientation from a given joint position.
 
         Args:
             joint_positions: A given set of joint angles.
+            link_name (str, optional): name of the link desired. Defaults to the
+                                       end-effector link, if it was set during initialization.
 
         Returns:
-            Tuple[torch.Tensor, torch.Tensor]: End-effector position, end-effector orientation as quaternion
+            Tuple[torch.Tensor, torch.Tensor]: Link position, link orientation as quaternion
         """
-        pos, quat = self.model.forward_kinematics(joint_positions)
+        frame_idx = self._get_link_idx_or_use_ee(link_name)
+        pos, quat = self.model.forward_kinematics(joint_positions, frame_idx)
         return pos.to(joint_positions), quat.to(joint_positions)
 
-    def compute_jacobian(self, joint_positions: torch.Tensor) -> torch.Tensor:
-        return self.model.compute_jacobian(joint_positions).to(joint_positions)
+    def compute_jacobian(
+        self, joint_positions: torch.Tensor, link_name: str = ""
+    ) -> torch.Tensor:
+        """Computes the Jacobian relative to the link frame.
+
+        Args:
+            joint_positions: A given set of joint angles.
+            link_name (str, optional): name of the link desired. Defaults to the
+                                       end-effector link, if it was set during initialization.
+
+        Returns:
+            torch.Tensor, torch.Tensor: The Jacobian relative to the link frame.
+        """
+        frame_idx = self._get_link_idx_or_use_ee(link_name)
+        return self.model.compute_jacobian(joint_positions, frame_idx).to(
+            joint_positions
+        )
 
     def inverse_dynamics(
         self,
@@ -81,8 +135,9 @@ class RobotModelPinocchio(torch.nn.Module):
 
     def inverse_kinematics(
         self,
-        ee_pos: torch.Tensor,
-        ee_quat: torch.Tensor,
+        link_pos: torch.Tensor,
+        link_quat: torch.Tensor,
+        link_name: str = "",
         rest_pose: torch.Tensor = None,
         eps: float = 1e-4,
         max_iters: int = 1000,
@@ -94,8 +149,10 @@ class RobotModelPinocchio(torch.nn.Module):
         https://gepettoweb.laas.fr/doc/stack-of-tasks/pinocchio/master/doxygen-html/md_doc_b-examples_i-inverse-kinematics.html
 
         Args:
-            ee_pos (torch.Tensor): desired end-effector position
-            ee_quat (torch.Tensor): desired end-effector orientation
+            link_pos (torch.Tensor): desired link position
+            link_quat (torch.Tensor): desired link orientation
+            link_name (str, optional): name of the link desired. Defaults to the
+                                       end-effector link, if it was set during initialization.
             rest_pose (torch.Tensor): (optional) initial solution for IK
             eps (float): (optional) maximum allowed error
             max_iters (int): (optional) maximum number of iterations
@@ -105,14 +162,16 @@ class RobotModelPinocchio(torch.nn.Module):
         Returns:
             torch.Tensor: joint positions
         """
+        frame_idx = self._get_link_idx_or_use_ee(link_name)
         if rest_pose is None:
             rest_pose = torch.zeros(self.model.get_joint_angle_limits()[0].numel())
         return self.model.inverse_kinematics(
-            ee_pos.squeeze(),
-            ee_quat.squeeze(),
+            link_pos.squeeze(),
+            link_quat.squeeze(),
+            frame_idx,
             rest_pose.squeeze(),
             eps,
             max_iters,
             dt,
             damping,
-        ).to(ee_pos)
+        ).to(link_pos)

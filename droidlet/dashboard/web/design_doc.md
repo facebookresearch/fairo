@@ -13,25 +13,29 @@ In the diagram above:
 
 ## Snapshot 
 Here's a snapshot of how the current dashboard looks like :
-![dashboard screenshot](https://craftassist.s3-us-west-2.amazonaws.com/pubr/dashboard_screenshot.png)
+![dashboard screenshot](https://craftassist.s3-us-west-2.amazonaws.com/pubr/dashboard_screenshot-2022.png)
 
 On a high level, following is the layout in the source code :
 - `Index.js` is the main React component that hosts other React Components in the following layout :
   - Left:
     - `MainPane.js`:
       - Top:
-        - `InteractApp`: Lets you send a command to the assistant using voice or text. The commands once sent, are clickable to annotate if there was a language understanding error. This component also shows the status of the command execution by displaying agent reply or agent error messages.
-      - Bottom:
-        - `LiveImage` - Shows the rgb image stream
-        - `LiveImage` - Shows the depth map
-        - `LiveObjects` - Shows detector output
-        - `LiveHumans` - Shows human pose estimation
+        - `InteractApp`: Lets you send a command to the assistant using text, and shows replies from the agent.  After each command, status messages will show the state of command processing.  After each command the user must label whether it was understood and carried out successfully before issuing the next command.
+      - Bottom (depends on what agent back end is running):
+        - If agent_type is craftassist:
+          - `VoxelWorld` - Shows a randering of the environment
+        - If agent_type is locobot:
+          - `LiveImage` - Shows the rgb image stream
+          - `LiveImage` - Shows the depth map
+          - `LiveObjects` - Shows detector output
+          - `LiveHumans` - Shows human pose estimation
   - Right:
     - Top right:
       - `Memory2D`: Visualizes the memory map on a 2D grid.
-      - `History`: Shows the past 5 chat interactions through the dashboard.
+      - `MemoryList`: View the state of agent memory as a list
       - Query the Semantic Parser (`QuerySemanticParser`): Lets you query the semantic parser with some text.
       - Program The Assistant (`TeachApp`): Lets you do construct new programs for the assistant by assembling together blockly like blocks.
+      - `Timeline`: A timeline of agent command task events
     - Bottom right:
       - `Settings`: Shows current settings, connection status, image quality, resolution etc
       - `Navigator`: Lets you navigate the assistant through keypress (up, down, left, right)
@@ -45,10 +49,18 @@ The following table shows the frontend components, the socket events they emit/h
 
 | Component Name | Socket Event | Purpose | Socket event sent by |
 | ------------- | ------------- | ------------- | ------------- |
-| InteractApp | saveErrorDetailsToDb | To save the error category to backend db | frontend |
-| InteractApp  | sendCommandToAgent  | send command from frontend to agent process | frontend |
+| MainPane & InteractApp | updateAgentType | Show the correct panes based on agent type | backend |
+| InteractApp | setLastChatActionDict | Display the logical form of last chat | backend |
+| InteractApp | getChatActionDict | Send request to retrieve the logic form of last sent command | frontend |
+| InteractApp | saveErrorDetailsToCSV | To save the error to backend db | frontend |
+| InteractApp | taskStackPoll | Poll task stack to see if complete | frontend |
+| InteractApp | taskStackPollResponse | Response to task stack poll | backend |
+| InteractApp & Message | showAssistantreply | Get the agent's reply after processing the command, if any and render it.  | backend |
 | InteractApp | setChatResponse | Get parsing status, logical form for this chat from semantic parser, history of past 5 commands | backend |
-| InteractApp | showAssistantreply | Get the agent's reply after processing the command, if any and render it.  | backend |
+| VoxelWorld | getVoxelWorldInitialState | Get initial voxel world environment | frontend |
+| VoxelWorld | setVoxelWorldInitialState | Set initial voxel world environment | backend |
+| VoxelWorld | updateVoxelWorldState | Push updates to voxel world | backend |
+| Settings & Message | connect | Display backend connection status | backend |
 | LiveImage | sensor_payload | Get rgb image stream and depth information from backend | backend |
 | LiveObjects | senor_payload | Get objects and their rgb information from detector on backend | backend |
 | LiveHumans | sensor_payload | Get human pose estimation from backend | backend |

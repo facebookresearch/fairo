@@ -1,0 +1,28 @@
+* {
+    /* font-family: 'sans-serif'; */
+    font-family: "Open Sans", Arial, sans-serif;
+    font-weight: lighter;
+}
+h1 {
+    text-align: center;
+    font-size: 42pt;
+}
+.center {
+    margin: 0;
+    position: absolute;
+    left: 50%;
+    -ms-transform: translateX(-50%);
+    transform: translateX(-50%);
+}
+  
+.img-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 300;
+}
+
+footer {
+    position:fixed;
+    bottom:0;
+}

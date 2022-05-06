@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Optional, Tuple
 
 import torch
@@ -43,7 +43,9 @@ class ModelOutput(OrderedDict):
         ), f"{self.__class__.__name__} should not have more than one required field."
 
         first_field = getattr(self, class_fields[0].name)
-        other_fields_are_none = all(getattr(self, field.name) is None for field in class_fields[1:])
+        other_fields_are_none = all(
+            getattr(self, field.name) is None for field in class_fields[1:]
+        )
 
         if other_fields_are_none and not is_tensor(first_field):
             try:

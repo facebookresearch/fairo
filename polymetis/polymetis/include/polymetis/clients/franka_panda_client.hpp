@@ -20,6 +20,7 @@
 
 #define NUM_DOFS 7
 #define FRANKA_HZ 1000.0
+#define M_PI 3.14159265358979323846
 #define RECOVERY_WAIT_SECS 1
 #define RECOVERY_MAX_TRIES 3
 
@@ -29,7 +30,7 @@ private:
                            std::array<double, NUM_DOFS> &torque_out);
   void checkStateLimits(const franka::RobotState &libfranka_robot_state,
                         std::array<double, NUM_DOFS> &torque_out);
-  void checkTorqueLimits(std::array<double, NUM_DOFS> &torque_applied);
+  void postprocessTorques(std::array<double, NUM_DOFS> &torque_applied);
 
   template <std::size_t N>
   void computeSafetyReflex(std::array<double, N> values,
@@ -47,14 +48,17 @@ private:
 
   // libfranka
   bool mock_franka_;
+  bool readonly_mode_;
+
   std::unique_ptr<franka::Robot> robot_ptr_;
+  std::unique_ptr<franka::Model> model_ptr_;
   std::array<double, NUM_DOFS> torque_commanded_, torque_safety_,
       torque_applied_;
-  std::unique_ptr<franka::Model> model_ptr_;
 
-  // limits
-  bool limits_exceeded_;
-  std::string error_str_;
+  // Torque processing
+  bool limit_rate_;
+  double lpf_cutoff_freq_;
+  std::array<double, NUM_DOFS> torque_applied_prev_;
 
   std::array<double, 3> cartesian_pos_ulimits_, cartesian_pos_llimits_;
   std::array<double, NUM_DOFS> joint_pos_ulimits_, joint_pos_llimits_,
@@ -62,6 +66,7 @@ private:
   double elbow_vel_limit_;
 
   // safety controller
+  std::unordered_map<std::string, bool> active_constraints_map_;
   bool is_safety_controller_active_;
   double margin_cartesian_pos_, margin_joint_pos_, margin_joint_vel_;
   double k_cartesian_pos_, k_joint_pos_, k_joint_vel_;

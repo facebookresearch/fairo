@@ -11,15 +11,8 @@ from pyrobot.cfg.config import get_cfg_defaults
 
 _C = get_cfg_defaults()
 
-# whether the robot has an arm or not
-_C.HAS_ARM = False
-# whether the robot has a mobile base or not
 _C.HAS_BASE = True
-# whether the robot has a camera or not
 _C.HAS_CAMERA = True
-# whether the robot has a gripper or not
-_C.HAS_GRIPPER = False
-# whether the robot has a common shared class among all components
 _C.HAS_COMMON = True
 
 
@@ -85,10 +78,10 @@ _SIMULATORC.AGENT.SENSORS.TYPES = ["COLOR", "DEPTH", "SEMANTIC"]
 _SIMULATORC.AGENT.SENSORS.POSES = [
     [0.0, 0.6, 0.0, 0.0, 0.0, 0.0],
     [0.0, 0.6, 0.0, 0.0, 0.0, 0.0],
-    [0.0, 0.6, 0.0, 0.0, 0.0, 0.0]
+    [0.0, 0.6, 0.0, 0.0, 0.0, 0.0],
 ]
 # Height and Widhth in Pixels
-_SIMULATORC.AGENT.SENSORS.RESOLUTIONS = [[512, 512], [512, 512], [512,512]]
+_SIMULATORC.AGENT.SENSORS.RESOLUTIONS = [[512, 512], [512, 512], [512, 512]]
 
 
 def get_cfg():

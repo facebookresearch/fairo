@@ -14,6 +14,7 @@ Get started
    prereq
    installation
    usage
+   troubleshooting
 
 Overview
 --------

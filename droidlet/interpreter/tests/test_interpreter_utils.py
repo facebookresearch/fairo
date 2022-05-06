@@ -21,7 +21,7 @@ logical_form_before_processing = {
 logical_form_post_processing = {
     "turn right": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {"dance_type": {"body_turn": {"relative_yaw": "-90"}}, "action_type": "DANCE"}
         ],
     },
@@ -34,7 +34,7 @@ logical_form_post_processing = {
     },
     "go forward": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [
+        "event_sequence": [
             {
                 "location": {
                     "relative_direction": "FRONT",
@@ -72,7 +72,6 @@ class TestInterpreterUtils(unittest.TestCase):
         all_dicts.update(REFERENCE_OBJECTS)
         for key, action_dict in all_dicts.items():
             self.assertTrue(check_location_in_filters(action_dict))
-
 
 
 if __name__ == "__main__":

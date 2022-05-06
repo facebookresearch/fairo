@@ -15,6 +15,7 @@ class SemSegNet(nn.Module):
         super(SemSegNet, self).__init__()
         if opts.load:
             if opts.load_model != "":
+                print(f"Loading pretrained semseg model...")
                 self.load(opts.load_model)
             else:
                 raise ("loading from file specified but no load_filepath specified")

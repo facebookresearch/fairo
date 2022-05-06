@@ -10,21 +10,22 @@ from abc import abstractmethod
 import numpy as np
 from PIL import Image
 
-if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
-    sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
 import cv2
 
 from droidlet.perception.robot.perception_util import get_color_tag
 
-#FIXME: do this through args, allow multiple verbosity levels
-VERBOSE = 1
+# FIXME: do this through args, allow multiple verbosity levels
+VERBOSE = 0
+
 
 class AbstractHandler:
     """Interface for implementing perception handlers.
 
     Each handler must implement the handle and an optional _debug_draw method.
     """
-    verbose = VERBOSE   
+
+    verbose = VERBOSE
+
     @abstractmethod
     def __call__(self, *input):
         """Implement this method to hold the core execution logic."""
@@ -45,21 +46,25 @@ class WorldObject:
         self.xyz = xyz if xyz else rgb_depth.get_coords_for_point(self.center)
         self.eid = None
         self.feature_repr = None
-        self.bounds = rgb_depth.get_bounds_for_mask(self.mask) 
+        self.bounds = rgb_depth.get_bounds_for_mask(self.mask)
 
     def get_xyz(self):
         """returns xyz in canonical world coordinates."""
         return {"x": self.xyz[0], "y": self.xyz[1], "z": self.xyz[2]}
-    
+
     def get_bounds(self):
         """returns bounding box as dict."""
-        return (self.bounds[0], self.bounds[1], self.bounds[2],
-            self.bounds[3], self.bounds[4], self.bounds[5])
+        return (
+            self.bounds[0],
+            self.bounds[1],
+            self.bounds[2],
+            self.bounds[3],
+            self.bounds[4],
+            self.bounds[5],
+        )
 
     def get_masked_img(self):
         raise NotImplementedError
 
     def to_struct(self):
         raise NotImplementedError
-
-
