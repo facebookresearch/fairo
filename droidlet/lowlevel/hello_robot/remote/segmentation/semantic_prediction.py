@@ -55,7 +55,7 @@ def compress_sem_map(sem_map):
 class ImageSegmentation():
     def __init__(self, sem_pred_prob_thr, sem_gpu_id):
         string_args = f"""
-            --config-file mask_rcnn_R_50_FPN_3x.yaml
+            --config-file segmentation/mask_rcnn_R_50_FPN_3x.yaml
             --input input1.jpeg
             --confidence-threshold {sem_pred_prob_thr}
             --opts MODEL.WEIGHTS
