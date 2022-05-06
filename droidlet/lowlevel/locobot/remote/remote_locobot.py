@@ -125,13 +125,12 @@ class RemoteLocobot(object):
         depth = depth.astype(np.float32)
 
         valid = depth > 0
-        depth = depth[valid]
-        rgb = rgb[valid]
+        depth_valid = depth[valid]
         uv_one_in_cam = self.uv_one_in_cam[:, valid.reshape(-1)]
 
-        depth = depth.reshape(-1)
+        depth_valid = depth_valid.reshape(-1)
 
-        pts_in_cam = np.multiply(uv_one_in_cam, depth)
+        pts_in_cam = np.multiply(uv_one_in_cam, depth_valid)
         pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
         pts = pts_in_cam[:3, :].T
         pts = np.dot(pts, rot.T)
@@ -141,7 +140,7 @@ class RemoteLocobot(object):
         pts = pts.T
         pts = transform_pose(pts, base_state)
 
-        return pts, rgb, valid
+        return pts, rgb, depth
 
     def get_open3d_pcd(self):
         pts, rgb = self.get_current_pcd()
@@ -423,6 +422,40 @@ class RemoteLocobot(object):
 
     def get_category_instance_lists(self):
         return self._category_instance_lists
+
+    def get_semantics(self, rgb, depth):
+        """Get semantic segmentation."""
+        instance_segmentation = self.get_rgb_depth_segm()[2]
+        semantic_segmentation = self.preprocess_habitat_semantics(instance_segmentation)
+        valid = (depth > 0).flatten()
+        semantic_segmentation = semantic_segmentation[valid]
+        return semantic_segmentation
+
+    def preprocess_habitat_semantics(self, instance_segmentation):
+        """Convert Habitat instance segmentation to semantic segmentation."""
+        num_semantic_cats = len(coco_categories)
+        category_instance_lists = self.get_category_instance_lists()
+        instance_segmentation = instance_segmentation.astype(np.float32)
+        semantic_segmentation = np.zeros((
+            instance_segmentation.shape[0], 
+            instance_segmentation.shape[1], 
+            num_semantic_cats + 1
+        ))
+
+        def add_cat_channel(cat_id):
+            mask = np.zeros((instance_segmentation.shape), dtype=bool)
+            if cat_id in category_instance_lists:
+                instance_list = category_instance_lists[cat_id]
+                for inst_id in instance_list:
+                    mask = np.logical_or(mask, instance_segmentation == inst_id)
+                instance_segmentation[mask] = -(cat_id + 1)
+            return mask * 1
+
+        for i in range(num_semantic_cats):
+            semantic_segmentation[:, :, i + 1] = add_cat_channel(i)
+
+        semantic_segmentation = semantic_segmentation.reshape(-1, semantic_segmentation.shape[2])
+        return semantic_segmentation
 
 
 if __name__ == "__main__":

@@ -159,6 +159,10 @@ class RemoteHelloRealsense(object):
                 color_image = np.rot90(color_image, k=1, axes=(1, 0))
 
         return color_image, depth_image
+    
+    def get_semantics(self, rgb, depth):
+        # TODO Implement semantic segmentation for Hello Robot
+        raise NotImplementedError
 
     def get_open3d_pcd(self, rgb_depth=None, cam_transform=None, base_state=None):
         # get data
@@ -207,7 +211,7 @@ class RemoteHelloRealsense(object):
         rgb, depth = self.get_rgb_depth(rotate=False, compressed=False)
         opcd = self.get_open3d_pcd(rgb_depth=[rgb, depth])
         pcd = np.asarray(opcd.points)
-        return pcd, rgb
+        return pcd, rgb, depth
 
     def is_obstacle_in_front(self, return_viz=False):
         base_state = self.bot.get_base_state()

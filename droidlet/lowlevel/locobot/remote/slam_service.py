@@ -95,11 +95,10 @@ class SLAM(object):
         self.map_builder.add_obstacle(location)
 
     def update_map(self):
-        pcd, _, valid = self.robot.get_current_pcd()
-        semantics = self.robot.get_rgb_depth_segm()[2]
-        semantic_channels = self.preprocess_habitat_semantics(semantics, valid)
+        pcd, rgb, depth = self.robot.get_current_pcd()
+        semantics = self.robot.get_semantics(rgb, depth)
         self.map_builder.update_map(pcd)
-        self.map_builder.update_semantic_map(pcd, semantic_channels)
+        self.map_builder.update_semantic_map(pcd, semantics)
         self.visualize_sem_map()
 
         # explore the map by robot shape
@@ -107,29 +106,6 @@ class SLAM(object):
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
         self.traversable = traversable
-
-    def preprocess_habitat_semantics(self, gt_semantics, valid):
-        num_semantic_cats = len(coco_categories)
-        category_instance_lists = self.robot.get_category_instance_lists()
-        semantic = gt_semantics.astype(np.float32)
-        semantic_channels = np.zeros((semantic.shape[0], semantic.shape[1], num_semantic_cats + 1))
-
-        def add_cat_channel(cat_id):
-            mask = np.zeros((semantic.shape), dtype=bool)
-            if cat_id in category_instance_lists:
-                instance_list = category_instance_lists[cat_id]
-                for inst_id in instance_list:
-                    mask = np.logical_or(mask, semantic == inst_id)
-                semantic[mask] = -(cat_id + 1)
-            return mask * 1
-
-        for i in range(num_semantic_cats):
-            semantic_channels[:, :, i + 1] = add_cat_channel(i)
-
-        semantic_channels = semantic_channels.reshape(-1, semantic_channels.shape[2])
-        semantic_channels = semantic_channels[valid.flatten()]
-
-        return semantic_channels
 
     def visualize_sem_map(self):
         sem_map = self.map_builder.semantic_map
