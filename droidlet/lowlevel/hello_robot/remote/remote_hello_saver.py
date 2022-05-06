@@ -29,7 +29,7 @@ class HelloLogger:
         self._stop = False
         self.replay_frame_id = 0
 
-    def return_paths(self, id_ = None):
+    def return_paths(self, id_=None):
         if id_ is None:
             id_ = ""
         id_ = str(id_)
@@ -52,17 +52,16 @@ class HelloLogger:
         self._stop = True
 
     def load_cam_intrinsic(self):
-        cam_intrinsics_path = os.path.join(self.root_folder, 'cam_intrinsics.npz.npy')
+        cam_intrinsics_path = os.path.join(self.root_folder, "cam_intrinsics.npz.npy")
         cam_intrinsics = np.load(cam_intrinsics_path)
         return cam_intrinsics
-
 
     def load(self, frame_id=None):
         if frame_id is None:
             frame_id = self.replay_frame_id
             self.replay_frame_id += 1
         name = "{}".format(frame_id)
-            
+
         img_folder, img_folder_dbg, depth_folder, lidar_folder, data_file = self.return_paths()
         lidar_fname = lidar_folder + "/{}.pkl".format(name)
         with open(lidar_fname, "rb") as fp:
@@ -74,13 +73,23 @@ class HelloLogger:
         with open(data_file, "r") as fp:
             pose_dict = json.load(fp)
         pose = pose_dict[name]
-        timestamp = pose['timestamp']
-        pos = np.asarray(pose['base_xyt'])
-        cam_pan, cam_tilt = pose['cam_pan_tilt']
-        cam_transform = np.asarray(pose['cam_transform'])
-        
-        return frame_id, timestamp, lidar, rgb, depth, pos, cam_pan, cam_tilt, cam_transform, pose_dict
+        timestamp = pose["timestamp"]
+        pos = np.asarray(pose["base_xyt"])
+        cam_pan, cam_tilt = pose["cam_pan_tilt"]
+        cam_transform = np.asarray(pose["cam_transform"])
 
+        return (
+            frame_id,
+            timestamp,
+            lidar,
+            rgb,
+            depth,
+            pos,
+            cam_pan,
+            cam_tilt,
+            cam_transform,
+            pose_dict,
+        )
 
     def save_batch(self, seconds):
         assert self.replay is False
@@ -93,7 +102,7 @@ class HelloLogger:
         # save camera intrinsics
         cam_intrinsics = safe_call(self.cam.get_intrinsics)
         cam_intrinsics_path = os.path.join(
-            self.root_folder, str(self.trajectory_id), 'cam_intrinsics.npz'
+            self.root_folder, str(self.trajectory_id), "cam_intrinsics.npz"
         )
         np.save(cam_intrinsics_path, cam_intrinsics)
 

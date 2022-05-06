@@ -17,10 +17,9 @@ def to_o3d_rgbd(rgb, depth, compressed=False):
     )
     return orgbd
 
+
 def compute_base_extrinsic(base_xyt):
-    rotation = o3d.geometry.get_rotation_matrix_from_axis_angle(
-        [0, 0, base_xyt[2]]
-    )
+    rotation = o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, base_xyt[2]])
     translation = [
         base_xyt[0],
         base_xyt[1],
@@ -31,7 +30,8 @@ def compute_base_extrinsic(base_xyt):
     transform[:3, 3] = translation
     extrinsic = np.linalg.inv(transform)
     return extrinsic
-    
+
+
 def compute_extrinsic(base_xyt, cam_to_base_transform):
     # create transform matrix
     roty90 = o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi / 2, 0])
@@ -51,16 +51,15 @@ def compute_extrinsic(base_xyt, cam_to_base_transform):
     extrinsic = np.linalg.inv(final_transform)
     return extrinsic
 
-def compute_pcd(rgb, depth, cam_transform, base_state,
-                intrinsic, compressed=False, in_base_frame=False):
+
+def compute_pcd(
+    rgb, depth, cam_transform, base_state, intrinsic, compressed=False, in_base_frame=False
+):
 
     orgbd = to_o3d_rgbd(rgb, depth, compressed=compressed)
     if in_base_frame:
         extrinsic = compute_extrinsic(np.asarray([0.0, 0.0, 0.0]), cam_transform)
     else:
         extrinsic = compute_extrinsic(base_state, cam_transform)
-    opcd = o3d.geometry.PointCloud.create_from_rgbd_image(orgbd,
-                                                          intrinsic,
-                                                          extrinsic)
+    opcd = o3d.geometry.PointCloud.create_from_rgbd_image(orgbd, intrinsic, extrinsic)
     return opcd
-

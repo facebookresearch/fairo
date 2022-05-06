@@ -175,9 +175,7 @@ class RemoteHelloRealsense(object):
         if intrinsic is None:
             intrinsic = self.intrinsic_o3d
 
-        opcd = o3d_utils.compute_pcd(rgb, depth,
-                                     cam_transform,
-                                     base_state, intrinsic)
+        opcd = o3d_utils.compute_pcd(rgb, depth, cam_transform, base_state, intrinsic)
         return opcd
 
     def get_current_pcd(self):
