@@ -436,11 +436,9 @@ class RemoteLocobot(object):
         num_semantic_cats = len(coco_categories)
         category_instance_lists = self.get_category_instance_lists()
         instance_segmentation = instance_segmentation.astype(np.float32)
-        semantic_segmentation = np.zeros((
-            instance_segmentation.shape[0], 
-            instance_segmentation.shape[1], 
-            num_semantic_cats + 1
-        ))
+        semantic_segmentation = np.zeros(
+            (instance_segmentation.shape[0], instance_segmentation.shape[1], num_semantic_cats + 1)
+        )
 
         def add_cat_channel(cat_id):
             mask = np.zeros((instance_segmentation.shape), dtype=bool)

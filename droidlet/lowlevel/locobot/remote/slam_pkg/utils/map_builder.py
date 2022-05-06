@@ -11,14 +11,14 @@ from slam_pkg.utils import depth_util as du
 
 class MapBuilder(object):
     def __init__(
-            self,
-            map_size_cm=4000,
-            resolution=5,
-            obs_thr=1,
-            cat_thr=5,
-            agent_min_z=5,
-            agent_max_z=70,
-            num_semantic_categories=15,
+        self,
+        map_size_cm=4000,
+        resolution=5,
+        obs_thr=1,
+        cat_thr=5,
+        agent_min_z=5,
+        agent_max_z=70,
+        num_semantic_categories=15,
     ):
         """
         :param map_size_cm: size of map in cm, assumes square map
@@ -106,13 +106,13 @@ class MapBuilder(object):
 
         geometric_pc_t[..., :2] = geometric_pc_t[..., :2] / self.resolution
         geometric_pc_t[..., :2] = (
-                (geometric_pc_t[..., :2] - self.map_size // 2.0) / self.map_size * 2.0
+            (geometric_pc_t[..., :2] - self.map_size // 2.0) / self.map_size * 2.0
         )
         max_h = self.max_height
         min_h = self.min_height
         geometric_pc_t[..., 2] = geometric_pc_t[..., 2] / self.resolution
         geometric_pc_t[..., 2] = (
-                (geometric_pc_t[..., 2] - (max_h + min_h) // 2.0) / (max_h - min_h) * 2.0
+            (geometric_pc_t[..., 2] - (max_h + min_h) // 2.0) / (max_h - min_h) * 2.0
         )
         geometric_pc_t = geometric_pc_t.transpose(0, 1).unsqueeze(0).float()
 
