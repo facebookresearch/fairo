@@ -70,7 +70,9 @@ class Navigation(object):
         abs_goal[0] += robot_loc[0]
         abs_goal[1] += robot_loc[1]
         abs_goal[2] = goal[2] + robot_loc[2]
-        return self.go_to_absolute(abs_goal, distance_threshold=distance_threshold, angle_threshold=angle_threshold)
+        return self.go_to_absolute(
+            abs_goal, distance_threshold=distance_threshold, angle_threshold=angle_threshold
+        )
 
     def go_to_absolute(self, goal, steps=100000000, distance_threshold=None, angle_threshold=None):
         self._busy = True
@@ -80,9 +82,12 @@ class Navigation(object):
         goal_reached = False
         return_code = True
         while (not goal_reached) and steps > 0 and self._stop is False:
-            stg = self.planner.get_short_term_goal(robot_loc, goal,
-                                                   distance_threshold=distance_threshold,
-                                                   angle_threshold=angle_threshold)
+            stg = self.planner.get_short_term_goal(
+                robot_loc,
+                goal,
+                distance_threshold=distance_threshold,
+                angle_threshold=angle_threshold,
+            )
             if stg == False:
                 # no path to end-goal
                 print(
@@ -100,9 +105,9 @@ class Navigation(object):
             print(" short-term goal: {}, Reached Location: {}".format(stg, robot_loc))
             print(" Robot Status: {}".format(status))
             if status == "SUCCEEDED":
-                goal_reached = self.planner.goal_within_threshold(robot_loc, goal,
-                                                                  distance_threshold,
-                                                                  angle_threshold)
+                goal_reached = self.planner.goal_within_threshold(
+                    robot_loc, goal, distance_threshold, angle_threshold
+                )
                 self.trackback.update(robot_loc)
             else:
                 # collided with something unexpected.

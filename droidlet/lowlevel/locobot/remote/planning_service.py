@@ -20,8 +20,9 @@ class Planner(object):
         self.slam = slam
         self.map_resolution = self.slam.get_map_resolution()
 
-    def get_short_term_goal(self, robot_location, goal, step_size=25,
-                            distance_threshold=None, angle_threshold=None):
+    def get_short_term_goal(
+        self, robot_location, goal, step_size=25, distance_threshold=None, angle_threshold=None
+    ):
         """
         robot_location is simply get_base_state
         """

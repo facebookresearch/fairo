@@ -13,6 +13,7 @@ from tf.transformations import euler_from_quaternion
 import collections
 import numpy as np
 
+
 class MoveNode(hm.HelloNode):
     def __init__(self):
         hm.HelloNode.__init__(self)
@@ -41,7 +42,9 @@ class MoveNode(hm.HelloNode):
     def _odom_callback(self, pose):
         with self._lock:
             self._odom = pose
-            self._linear_movement.append(max(abs(pose.twist.twist.linear.x), abs(pose.twist.twist.linear.y)))
+            self._linear_movement.append(
+                max(abs(pose.twist.twist.linear.x), abs(pose.twist.twist.linear.y))
+            )
             self._angular_movement.append(abs(pose.twist.twist.angular.z))
 
     def is_moving(self):
@@ -64,11 +67,10 @@ class MoveNode(hm.HelloNode):
                 ]
             )
             euler = euler_from_quaternion(quat)
-            return (pose.pose.pose.position.x,
-                    pose.pose.pose.position.y,
-                    euler[2])
+            return (pose.pose.pose.position.x, pose.pose.pose.position.y, euler[2])
         else:
             return (0.0, 0.0, 0.0)
+
     def get_pose2d(self):
         with self._lock:
             _pose = self._pose2d
@@ -87,9 +89,7 @@ class MoveNode(hm.HelloNode):
             ]
         )
         euler = euler_from_quaternion(quat)
-        return (pose.pose.position.x,
-                pose.pose.position.y,
-                euler[2])
+        return (pose.pose.position.x, pose.pose.position.y, euler[2])
 
     def get_joint_state(self, name=None):
         with self._lock:
@@ -134,9 +134,13 @@ class MoveNode(hm.HelloNode):
 
     def background_loop(self):
 
-        rospy.Subscriber("/stretch/joint_states", JointState, self._joint_states_callback, queue_size=1)
+        rospy.Subscriber(
+            "/stretch/joint_states", JointState, self._joint_states_callback, queue_size=1
+        )
         # This comes from hector_slam. It's a transform from src_frame = 'base_link', target_frame = 'map'
-        rospy.Subscriber("/poseupdate", PoseWithCovarianceStamped, self._slam_pose_callback, queue_size=1)
+        rospy.Subscriber(
+            "/poseupdate", PoseWithCovarianceStamped, self._slam_pose_callback, queue_size=1
+        )
         # this comes from lidar matching, i.e. no slam/global-optimization
         rospy.Subscriber("/pose2D", Pose2D, self._pose2d_callback, queue_size=1)
         # This comes from wheel odometry.
@@ -183,7 +187,7 @@ class MoveNode(hm.HelloNode):
         #     #     y = slam_pose.pose.position.y
         #     #     theta = slam_pose.pose.orientation.z
         #     #     print(x, y, theta)
-            
+
         #     # FORWARD/BACKWARD in metres
         # self.send_command('translate_mobile_base', 0.05)
 
