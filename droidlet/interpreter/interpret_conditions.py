@@ -24,6 +24,9 @@ class ConditionInterpreter:
         d: logical form from semantic parser
         """
         error_msg = "I thought there was a condition but I don't understand it:"
+        if d.get("condition_type") is not None:
+            if d["condition_type"] == "ALWAYS" or d["condition_type"] == "NEVER":
+                d = {"condition": d["condition_type"]}
         if d.get("condition") is None:
             raise ErrorWithResponse(error_msg + " {}".format(d))
         d = d["condition"]
