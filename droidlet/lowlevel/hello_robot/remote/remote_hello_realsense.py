@@ -9,6 +9,7 @@ import time
 import copy
 import math
 from math import *
+from PIL import Image
 
 import pyrealsense2 as rs
 import Pyro4
@@ -164,7 +165,9 @@ class RemoteHelloRealsense(object):
         return color_image, depth_image
     
     def get_semantics(self, rgb, depth):
-        return self.segmentation_model.get_prediction(rgb)[0]
+        semantic_pred, img_vis = self.segmentation_model.get_prediction(rgb)
+        Image.fromarray(img_vis).save("semantic_pred.png")
+        return semantic_pred
 
     def get_open3d_pcd(self, rgb_depth=None, cam_transform=None, base_state=None):
         # get data

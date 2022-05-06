@@ -11,7 +11,7 @@ from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
 from rich import print
 
-from droidlet.perception.robot.segmentation.constants import coco_categories, color_palette
+from segmentation.constants import coco_categories, color_palette
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")

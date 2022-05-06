@@ -18,7 +18,7 @@ from droidlet.lowlevel.robot_mover_utils import (
     transform_pose,
 )
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
-from droidlet.perception.segmentation.constants import coco_categories
+from segmentation.constants import coco_categories
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
