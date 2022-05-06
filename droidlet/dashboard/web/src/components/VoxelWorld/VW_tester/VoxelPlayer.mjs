@@ -9,6 +9,7 @@ class VoxelPlayer {
         this.world = world;
         this.opts = opts;
         this.avatarType = opts.name;
+        this.scale = opts.scale;
         this.mesh = model;
         this.position_offset = opts.position_offset;
         this.possessed = false;
@@ -63,12 +64,12 @@ class VoxelPlayer {
         matrix.extractRotation( this.mesh.matrix );
 
         if (this.pov === 1) {
-            cam_vector = new this.world.THREE.Vector3( 50, 75, 0 );
+            cam_vector = new this.world.THREE.Vector3( (50*this.scale), (75*this.scale), 0 );
             final_cam_vector = cam_vector.applyMatrix4( matrix );
             this.world.camera.position.copy( this.mesh.position ).add( final_cam_vector );
             this.world.camera.setRotationFromQuaternion(this.mesh.quaternion);
         } else {
-            cam_vector = new this.world.THREE.Vector3( 0, 800, -800 );
+            cam_vector = new this.world.THREE.Vector3( 0, (800*this.scale), (-800*this.scale) );
             final_cam_vector = cam_vector.applyMatrix4( matrix );
             this.world.camera.position.copy( this.mesh.position ).add( final_cam_vector );
             this.world.camera.lookAt(this.mesh.position);
@@ -99,7 +100,7 @@ class VoxelPlayer {
     static build (world, opts) {
         let avatar_data = VW_AVATAR_MAP[opts.name];
         opts.scale = opts.scale || 1.0;
-        opts.scale *= avatar_data.default_scale;
+        avatar_data.default_scale *= opts.scale;
         opts.rotation = opts.rotation || [0, 0, 0];
         opts.rotation = applyOffset(opts.rotation, avatar_data.rotation_offset)
         opts.rotation_offset = avatar_data.rotation_offset;
@@ -113,7 +114,7 @@ class VoxelPlayer {
         return loader.loadAsync( avatar_data.model_file ).then(
             function (gltf) {
                 let model = gltf.scene;
-                model.scale.multiplyScalar(opts.scale);
+                model.scale.multiplyScalar(avatar_data.default_scale);
                 model.position.set(opts.position[0], opts.position[1], opts.position[2]);
                 model.rotation.x += opts.rotation[0];
                 model.rotation.y += opts.rotation[1];

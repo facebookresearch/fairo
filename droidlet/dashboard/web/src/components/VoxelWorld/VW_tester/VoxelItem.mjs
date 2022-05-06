@@ -8,6 +8,7 @@ class VoxelItem {
     constructor (model, world, opts) {
         this.world = world;
         this.opts = opts;
+        this.scale = opts.scale;
         this.location = "world";
         this.itemType = opts.name;
         this.mesh = model;
@@ -22,7 +23,7 @@ class VoxelItem {
     };
 
     moveTo(x, y, z) {
-        let xyz = applyOffset([x,y,z], [25,25,25]);
+        let xyz = applyOffset([x,y,z], [(25*this.scale),(25*this.scale),(25*this.scale)]);
         this.mesh.position.set(xyz[0], xyz[1], xyz[2]);
     };
 
@@ -99,7 +100,7 @@ class VoxelItem {
         let itemMesh = new world.THREE.Mesh( geo, itemMaterials );
 
         opts.position = opts.position || [0, 0, 0];
-        opts.position = applyOffset(opts.position, [25,25,25]);  // move to the center of the voxel
+        opts.position = applyOffset(opts.position, [(25*opts.scale),(25*opts.scale),(25*opts.scale)]);  // move to the center of the voxel
         itemMesh.position.set(opts.position[0], opts.position[1], opts.position[2]);
         itemMesh.rotation.set(0, Math.PI/4, Math.PI/4);
         world.scene.add(itemMesh);
@@ -115,19 +116,19 @@ class VoxelItem {
 function hover(obj) {
     // This can't possibly be the right way to do this...
     let vel;
-    let rel_pos = obj.mesh.position.y % 50;
-    if (rel_pos <= 30) {
-        vel = Math.abs(rel_pos - 14) / 2;
+    let rel_pos = obj.mesh.position.y % (50*obj.scale);
+    if (rel_pos <= (30 * obj.scale)) {
+        vel = Math.abs(rel_pos - (14*obj.scale)) / 2;
     } else {
-        vel = Math.abs(rel_pos - 46) / 2;
+        vel = Math.abs(rel_pos - (46*obj.scale)) / 2;
     }
-    obj.mesh.position.y += (vel * obj.hoverDirection);
+    obj.mesh.position.y += (vel * obj.hoverDirection * obj.scale);
     obj.mesh.rotation.y += 0.05;
 
-    rel_pos += (vel * obj.hoverDirection);
-    if (rel_pos < 15) {
+    rel_pos += (vel * obj.hoverDirection * obj.scale);
+    if (rel_pos < (15*obj.scale)) {
         obj.hoverDirection = 1;
-    } else if (rel_pos > 45) {
+    } else if (rel_pos > (45*obj.scale)) {
         obj.hoverDirection = -1;
     }
 
