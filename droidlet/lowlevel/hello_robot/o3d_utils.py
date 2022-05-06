@@ -52,10 +52,13 @@ def compute_extrinsic(base_xyt, cam_to_base_transform):
     return extrinsic
 
 def compute_pcd(rgb, depth, cam_transform, base_state,
-                intrinsic, compressed=False):
+                intrinsic, compressed=False, in_base_frame=False):
 
     orgbd = to_o3d_rgbd(rgb, depth, compressed=compressed)
-    extrinsic = compute_extrinsic(base_state, cam_transform)
+    if in_base_frame:
+        extrinsic = compute_extrinsic(np.asarray([0.0, 0.0, 0.0]), cam_transform)
+    else:
+        extrinsic = compute_extrinsic(base_state, cam_transform)
     opcd = o3d.geometry.PointCloud.create_from_rgbd_image(orgbd,
                                                           intrinsic,
                                                           extrinsic)

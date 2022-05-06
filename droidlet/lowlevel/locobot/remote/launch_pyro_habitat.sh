@@ -7,6 +7,12 @@ export PYRO_SERIALIZER='pickle'
 export PYRO_SERIALIZERS_ACCEPTED='pickle'
 export PYRO_SOCK_REUSE=True
 
+if [ "$(uname)" == "Darwin" ]; then
+    timeout=gtimeout
+else
+    timeout=timeout
+fi
+
 echo "Kill matching processes..."
 ./kill_pyro_habitat.sh
 
@@ -31,7 +37,7 @@ echo $ip
 
 python remote_locobot.py --ip $ip $@ &
 # blocking wait for server to start
-timeout 1m bash -c "until python check_connected.py remotelocobot $ip; do sleep 1; done;" || true
+$timeout 1m bash -c "until python check_connected.py remotelocobot $ip; do sleep 1; done;" || true
 ./launch_navigation.sh
 
 popd

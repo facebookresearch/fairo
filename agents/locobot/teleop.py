@@ -15,6 +15,7 @@ import numpy as np
 from scipy.spatial import distance
 import open3d as o3d
 from droidlet.lowlevel.hello_robot.remote.obstacle_utils import get_points_in_front, is_obstacle, get_o3d_pointcloud, get_ground_plane
+from droidlet.lowlevel.pyro_utils import safe_call
 
 import time
 import math
@@ -204,9 +205,9 @@ if __name__ == "__main__":
         # mover.bot.set_tilt(-1.5)
     else: # hellorobot
         mover.bot.set_pan(0.0)
-        # mover.bot.set_tilt(-1.05)
+        #        mover.bot.set_tilt(-1.05)
+        mover.bot.set_tilt(math.radians(-30))
 
-    print(mover.cam.get_current_pcd()[0])
     while True:
         counter += 1
         iter_time = time.time_ns() - start_time
@@ -278,8 +279,9 @@ if __name__ == "__main__":
         o3dviz.add_robot(base_state, height)
 
         # start the SLAM
-        if backend == 'habitat':
-            mover.explore((19,19,0))
+        mover.explore((19,19,0))
+        # safe_call(mover.bot.go_to_relative, [1.0, 0.0, 0.0])
+        # if backend == 'habitat':
         
         sio.emit(
             "map",
