@@ -4,12 +4,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 from typing import Sequence, Dict
 from droidlet.base_util import Pos, Look
-from droidlet.lowlevel.minecraft.mc_util import Block, XYZ, IDM
-from droidlet.shared_data_struct.craftassist_shared_utils import Player
+from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM
+from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item
 from droidlet.shared_data_struct.rotation import look_vec
 from droidlet.lowlevel.minecraft.pyworld.fake_mobs import make_mob_opts, MOB_META, SimpleMob
 from droidlet.lowlevel.minecraft.pyworld.utils import build_ground, make_pose
-
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import PASSABLE_BLOCKS
 
 def shift_coords(p, shift):
     if hasattr(p, "x"):
@@ -37,6 +37,8 @@ def build_coord_shifts(coord_shift):
 
 class World:
     def __init__(self, opts, spec):
+        # DIG REACH
+        # PLACE BLOCK REACH
         self.opts = opts
         self.count = 0
         self.sl = opts.sl
@@ -71,6 +73,15 @@ class World:
         self.agent_data = spec["agent"]
         self.chat_log = []
 
+        # keep a list of blocks changed since the last call of
+        # get_changed_blocks of each agent
+        # TODO more efficient?
+        self.changed_blocks_store = {}
+
+        # keep a list of chats since the last call of
+        # get_incoming_chats of each agent
+        self.incoming_chats_store = {}
+
         # FIXME
         self.mob_opt_maker = make_mob_opts
         self.mob_maker = SimpleMob
@@ -92,7 +103,7 @@ class World:
                 p.step()
         self.count += 1
 
-    def place_block(self, block: Block, force=False):
+    def place_block(self, block, force=False):
         loc, idm = block
         if idm[0] == 383:
             # its a mob...
@@ -106,24 +117,18 @@ class World:
                 return False
         # mobs keep loc in real coords, block objects we convert to the numpy index
         loc = tuple(self.to_world_coords(loc))
-        if idm[0] == 0:
-            try:
-                if tuple(self.blocks[loc]) != (7, 0) or force:
-                    self.blocks[loc] = (0, 0)
-                    return True
-                else:
-                    return False
-            except:
+        idm = tuple(int(s) for s in idm)
+        try: # FIXME only allow placing non-air blocks in air locations?
+            if tuple(self.blocks[loc]) != (7, 0) or force:
+                self.blocks[loc] = idm
+                for sid, store in self.changed_blocks_store.items():
+                    store[tuple(loc)] = idm
+                return True
+            else:
                 return False
-        else:
-            try:
-                if tuple(self.blocks[loc]) != (7, 0) or force:
-                    self.blocks[loc] = idm
-                    return True
-                else:
-                    return False
-            except:
-                return False
+        except:
+            # FIXME this will return False if the block was placed but not stored in the changed blocks store
+            return False
 
     def dig(self, loc: XYZ):
         return self.place_block((loc, (0, 0)))
@@ -247,6 +252,10 @@ class World:
         self.players[entityId] = p
         self.connected_sids[sid] = entityId
 
+        if data.get("player_type") == "agent":
+            self.changed_blocks_store[sid] = {}
+            self.incoming_chats_store[sid] = []
+
     def setup_server(self, port=25565):
         import socketio
         import eventlet
@@ -282,20 +291,71 @@ class World:
                 pos = self.get_line_of_sight(player_struct.pos, *player_struct.look)
             pos = pos or ""
             return {"pos": pos}
+        
+        # warning: it is assumed that if a player is using the sio event to set look,
+        # the only thing stored here is a Player struct, not some more complicated object
 
         @server.on("set_look")
         def set_agent_look(sid, data):
             eid = self.connected_sids.get(sid)
             player_struct = self.get_player_info(eid)
-            # warning: it is assumed that if a player is using the sio event to set look,
-            # the only thing stored here is a Player struct, not some more complicated object
             new_look = Look(data["yaw"], data["pitch"])
-            self.players[entityId] = self.players[entityId]._replace(look=new_look)
+            self.players[eid] = self.players[eid]._replace(look=new_look)
 
+        @server.on("rel_move")
+        def move_agent_rel(sid, data):
+            eid = self.connected_sids.get(sid)
+            player_struct = self.get_player_info(eid)
+            x, y, z = player_struct.pos
+            if data.get("forward"):
+                pass #FIXME!!!!
+            else:
+                x += data.get("x", 0)
+                y += data.get("y", 0)
+                z += data.get("z", 0)
+            nx, ny, nz = self.from_world_coords((x,y,z))
+            # agent is 2 blocks high
+            if nx >= 0 and ny >= 0 and nz >= 0 and nx < self.sl and ny < self.sl-1 and nz < self.sl:                
+                if self.blocks[nx, ny, nz, 0] in PASSABLE_BLOCKS and self.blocks[nx, ny+1, nz, 0] in PASSABLE_BLOCKS:
+                    new_pos = Pos(x, y, z)
+                    self.players[eid] = self.players[eid]._replace(pos=new_pos)
+
+        @server.on("set_held_item")
+        def set_agent_mainhand(sid, data):
+            if data.get("idm") is not None:
+                eid = self.connected_sids.get(sid)
+                player_struct = self.get_player_info(eid)
+                new_item = Item(*data["idm"])
+                self.players[eid] = self.players[eid]._replace(mainHand=new_item)
+
+        @server.on("place_block")
+        def place_mainhand(sid, data):
+            eid = self.connected_sids.get(sid)
+            player_struct = self.get_player_info(eid)
+            idm = player_struct.mainHand
+            if data.get("loc"):
+                placed = self.place_block((data["loc"], idm))
+                return placed
+
+        @server.on("dig")
+        def agent_dig(sid, data):
+            if data.get("loc"):
+                placed = self.dig(data["loc"])
+                return placed
+            
         @server.on("get_player")
         def get_player_by_sid(sid):
             eid = self.connected_sids.get(sid)
-            return self.get_player_info(eid)
+            return {"player": self.get_player_info(eid)}
+        
+        @server.on("get_changed_blocks")
+        def changed_blocks(sid):
+            eid = self.connected_sids.get(sid)
+            blocks = self.changed_blocks_store[sid]
+            # can't send dicts with tuples for keys :(
+            blocks = {str(k): v for k, v in blocks.items()}
+            self.changed_blocks_store[sid] = {}
+            return blocks
 
         app = socketio.WSGIApp(server)
         eventlet.wsgi.server(eventlet.listen(("", port)), app)
