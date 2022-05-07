@@ -88,7 +88,6 @@ class CraftassistMover:
             "craft",
             "get_world_age",
             "get_time_of_day",
-            "send_chat",
             "get_vision",
             "disconnect",
         ]
@@ -149,7 +148,7 @@ class CraftassistMover:
 
     def get_blocks(self, x, X, y, Y, z, Z):
         """
-        returns an (Y-y+1) x (X-x+1) x (Z-z+1) x 2 numpy array B of the blocks
+        returns an (Y-y+1) x (Z-z+1) x (X-x+1) x 2 numpy array B of the blocks
         in the rectanguloid with bounded by the input coordinates (including endpoints).
         Input coordinates are in droidlet coordinates; and the output array is
         in yzxb permutation, where B[0,0,0,:] corresponds to the id and meta of

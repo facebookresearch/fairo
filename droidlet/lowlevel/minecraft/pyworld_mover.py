@@ -156,6 +156,38 @@ class PyWorldMover:
             npy_blocks[b[1], b[2], b[0]] = [b[3], b[4]]
         return npy_blocks
 
+    def send_chat(self, chat_text):
+        self.sio.emit("send_chat", chat_text)
+
+    def get_incoming_chats(self):
+        D = DataCallback()
+        self.sio.emit("get_incoming_chats", callback=D)
+        chats = wait_for_data(D)
+        if chats is not None:
+            chats = chats["chats"]
+        else:
+            chats = []
+        return chats
+
+
+### NOT DONE:
+#    "drop_item_stack_in_hand",
+#    "drop_item_in_hand",
+#    "drop_inventory_item_stack",
+#    "set_inventory_slot",
+#    "get_player_inventory",
+#    "get_inventory_item_count",
+#    "get_inventory_items_counts",
+#    "step_forward",
+#    "use_entity",
+#    "use_item",
+#    "use_item_on_block",
+#    "craft",
+#    "get_world_age",
+#    "get_time_of_day",
+#    "get_vision",
+#    "disconnect",
+
 
 if __name__ == "__main__":
     m = PyWorldMover(port=6000)

@@ -239,9 +239,13 @@ class World:
     def setup_server(self, port=25565):
         import socketio
         import eventlet
+        import time
 
         server = socketio.Server(async_mode="eventlet")
         self.connected_sids = {}
+
+        self.start_time = time.time()
+        self.get_time = lambda: time.time() - self.start_time
 
         @server.event
         def connect(sid, environ):
@@ -259,6 +263,20 @@ class World:
         @server.on("get_world_info")
         def get_world_info(sid):
             return {"sl": self.sl, "coord_shift": self.coord_shift}
+
+        @server.on("send_chat")
+        def broadcast_chat(sid, chat_text):
+            eid = self.connected_sids.get(sid)
+            player_struct = self.get_player_info(eid)
+            chat_with_name = "<{}> {}".format(player_struct.name, chat_text)
+            for sid, store in self.incoming_chats_store.items():
+                store.append(chat_with_name)
+
+        @server.on("get_incoming_chats")
+        def get_chats(sid):
+            chats = {"chats": self.incoming_chats_store[sid]}
+            self.incoming_chats_store[sid] = []
+            return chats
 
         @server.on("line_of_sight")
         def los_event(sid, data):
