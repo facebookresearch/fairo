@@ -100,7 +100,7 @@ class SLAM(object):
     def update_map(self):
         pcd, rgb, depth = self.robot.get_current_pcd()
 
-        semantics = self.robot.get_semantics(rgb, depth)    
+        semantics = self.robot.get_semantics(rgb, depth)
         self.visualize_semantic_frame(semantics)
         semantics = semantics.reshape(-1, self.num_sem_categories)
         valid = (depth > 0).flatten()
