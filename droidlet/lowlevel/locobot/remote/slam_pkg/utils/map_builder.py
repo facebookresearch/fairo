@@ -136,7 +136,7 @@ class MapBuilder(object):
 
         voxels_t = splat_feat_nd(init_grid, feat, geometric_pc_t).transpose(2, 3)
 
-        # TODO Distinguish agent height projection (for obstacles) from all height 
+        # TODO Distinguish agent height projection (for obstacles) from all height
         # projection (for explored area)?
 
         top_down_map_t = voxels_t.sum(4)

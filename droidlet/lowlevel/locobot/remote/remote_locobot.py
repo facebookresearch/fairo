@@ -36,9 +36,9 @@ class RemoteLocobot(object):
     """
 
     def __init__(
-        self, 
-        scene_path, 
-        noisy=False, 
+        self,
+        scene_path,
+        noisy=False,
         add_humans=True,
     ):
         backend_config = {
@@ -405,12 +405,14 @@ class RemoteLocobot(object):
 
     def set_instance_id_to_category_id(self):
         semantic_annotations = self._robot.base.sim.semantic_scene
-        max_obj_id = max([int(obj.id.split("_")[-1])
-                          for obj in semantic_annotations.objects if obj is not None])
+        max_obj_id = max(
+            [int(obj.id.split("_")[-1]) for obj in semantic_annotations.objects if obj is not None]
+        )
 
         # default to no category
         self.instance_id_to_category_id = (
-            np.ones(max_obj_id + 1) * (self.num_sem_categories - 1)).astype(np.int32)
+            np.ones(max_obj_id + 1) * (self.num_sem_categories - 1)
+        ).astype(np.int32)
 
         for obj in semantic_annotations.objects:
             if obj is None or obj.category is None:
@@ -436,7 +438,7 @@ class RemoteLocobot(object):
         semantic_segmentation = self.instance_id_to_category_id[instance_segmentation]
         semantic_segmentation = self.one_hot_encoding[semantic_segmentation]
         return semantic_segmentation
-    
+
 
 if __name__ == "__main__":
     import argparse
