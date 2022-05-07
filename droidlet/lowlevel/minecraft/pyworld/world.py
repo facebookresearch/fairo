@@ -316,7 +316,7 @@ class World:
                 x += data.get("x", 0)
                 y += data.get("y", 0)
                 z += data.get("z", 0)
-            nx, ny, nz = self.to_npy_coords((x,y,z))
+            nx, ny, nz = self.to_npy_coords((x, y, z))
             # agent is 2 blocks high
             if (
                 nx >= 0
