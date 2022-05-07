@@ -11,7 +11,7 @@ from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
 from rich import print
 
-from segmentation.constants import coco_categories, map_color_palette
+from segmentation.constants import coco_categories, map_color_palette, frame_color_palette
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
@@ -99,7 +99,13 @@ class SLAM(object):
 
     def update_map(self):
         pcd, rgb, depth = self.robot.get_current_pcd()
+
         semantics = self.robot.get_semantics(rgb, depth)    
+        self.visualize_semantic_frame(semantics)
+        semantics = semantics.reshape(-1, self.num_sem_categories)
+        valid = (depth > 0).flatten()
+        semantics = semantics[valid]
+
         self.map_builder.update_map(pcd)
         self.map_builder.update_semantic_map(pcd, semantics)
         self.visualize_semantic_map()
@@ -109,6 +115,19 @@ class SLAM(object):
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
         self.traversable = traversable
+
+    def visualize_semantic_frame(self, semantics):
+        """Visualize first-person semantic segmentation frame."""
+        width, height = semantics.shape[:2]
+        vis_content = semantics
+        vis_content[:, :, -1] = 1e-5
+        vis_content = vis_content.argmax(-1)
+        vis = Image.new("P", (height, width))
+        vis.putpalette([int(x * 255.0) for x in frame_color_palette])
+        vis.putdata(vis_content.flatten().astype(np.uint8))
+        vis = vis.convert("RGB")
+        vis = np.array(vis)[:, :, [2, 1, 0]]
+        cv2.imwrite("semantic_frame.png", vis)
 
     def visualize_semantic_map(self):
         """Visualize top-down semantic map."""

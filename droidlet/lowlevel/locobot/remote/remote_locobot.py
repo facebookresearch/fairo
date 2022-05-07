@@ -20,7 +20,7 @@ from droidlet.lowlevel.robot_mover_utils import (
     transform_pose,
 )
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
-from segmentation.constants import coco_categories, frame_color_palette
+from segmentation.constants import coco_categories
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
@@ -435,25 +435,8 @@ class RemoteLocobot(object):
         instance_segmentation = self.get_rgb_depth_segm()[2]
         semantic_segmentation = self.instance_id_to_category_id[instance_segmentation]
         semantic_segmentation = self.one_hot_encoding[semantic_segmentation]
-        self.visualize_semantic_frame(semantic_segmentation)
-        semantic_segmentation = semantic_segmentation.reshape(-1, self.num_sem_categories)
-        valid = (depth > 0).flatten()
-        semantic_segmentation = semantic_segmentation[valid]
         return semantic_segmentation
     
-    def visualize_semantic_frame(self, semantics):
-        """Visualize first-person semantic segmentation frame."""
-        width, height = semantics.shape[:2]
-        vis_content = semantics
-        vis_content[:, :, -1] = 1e-5
-        vis_content = vis_content.argmax(-1)
-        vis = Image.new("P", (height, width))
-        vis.putpalette([int(x * 255.0) for x in frame_color_palette])
-        vis.putdata(vis_content.flatten().astype(np.uint8))
-        vis = vis.convert("RGB")
-        vis = np.array(vis)[:, :, [2, 1, 0]]
-        cv2.imwrite("semantic_frame.png", vis)
-
 
 if __name__ == "__main__":
     import argparse
