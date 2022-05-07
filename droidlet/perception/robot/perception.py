@@ -39,7 +39,7 @@ class Perception:
         def slow_perceive_run(models, rgb_depth, xyz):
             detections = models.detector(rgb_depth)
             humans = models.human_pose(rgb_depth)
-            face_detections = None #models.face_recognizer(rgb_depth)
+            face_detections = models.face_recognizer(rgb_depth)
             if face_detections:
                 detections += face_detections
             return rgb_depth, detections, humans, xyz

@@ -557,6 +557,7 @@ class ExamineDetectionStraightlinepp(TrajectorySaverTask):
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         self.path = get_straightline_path_to(self.frontier_center, base_pos)
         self.steps = 0
+        self.stuck_len = 0
         self.agent = agent
         self.last_base_pos = None
         self.robot_poses = []
@@ -577,9 +578,13 @@ class ExamineDetectionStraightlinepp(TrajectorySaverTask):
         if self.last_base_pos is not None:
             d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
             # logger.info(f"Distance moved {d}")
-        if self.steps < min(20, len(self.path)):
-            tloc = self.path[self.steps]
+        
+        if d < 0.01:
+            self.stuck_time += 1
+
+        if self.steps < min(20, len(self.path)) and self.stuck_time < 3:
             self.steps += 1
+            tloc = self.path[self.steps]
             logger.debug(f"get_step_target_for_straight_move \
                 \nx, z, yaw = {base_pos},\
                 \nxf, zf = {self.frontier_center[0], self.frontier_center[2]} \
@@ -813,6 +818,7 @@ class Reexplore(Task):
 
         # execute a straigtline examine
         if task_name == "straight":
+            logging.info(f"starting Examination straight")
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
             logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
@@ -832,6 +838,7 @@ class Reexplore(Task):
             return
 
         if task_name == "straightpp":
+            logging.info(f"starting Examination straightpp")
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
             logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
@@ -852,6 +859,7 @@ class Reexplore(Task):
         
         # execute a circle examine
         if task_name == "circle":
+            logging.info(f"starting Examination circle")
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
             logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
@@ -872,6 +880,7 @@ class Reexplore(Task):
             return
 
         if task_name == "circlepp":
+            logging.info(f"starting Examination circlepp")
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
             logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
@@ -893,6 +902,7 @@ class Reexplore(Task):
 
         # execute a circle examine with radius as distance from spawn loc
         if task_name == "circle_big":
+            logging.info(f"starting Examination circle_big")
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
             logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
@@ -916,6 +926,7 @@ class Reexplore(Task):
             return
 
         if task_name == "random1":
+            logging.info(f"starting Examination random1")
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
             logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
@@ -933,6 +944,7 @@ class Reexplore(Task):
             return
 
         if task_name == "random2":
+            logging.info(f"starting Examination random2")
             self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             base_pos = self.agent.mover.get_base_pos()
             logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')

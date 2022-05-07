@@ -156,6 +156,7 @@ class CircleGuide:
     def get_next(self, stuck=False):
         val = None
         if self.steps >= self.timeout or self.steps >= len(self.path):
+            logging.info(f'CircleGuide.get_next({stuck}, {self.steps}) = Timing out!')
             return None
         if stuck:
             if self.steps > self.circle_begin_idx and not self.reverse:

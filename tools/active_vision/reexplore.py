@@ -27,7 +27,7 @@ class reexplore_job:
 
     def __call__(self, p, noise):
         comm = f"./reexplore.sh {p} {p}/reexplore_data.json {noise}"
-        print(f'command {comm}')
+        logging.info(f'command {comm}')
         process = subprocess.Popen(comm.split(), stdout=subprocess.PIPE, cwd='.')
         output, error = process.communicate()
         logging.info(f'output {output} error {error}')
@@ -53,8 +53,9 @@ def launch_reexplore(data_dir: str, job_dir: str, noise: bool, num_traj: int) ->
                     if len(data.keys()) > 0 and 'instance/5' in str(path):
                         print(f'processing {path.parent}')
                         reexplore_callable = reexplore_job()
-                        job = executor.submit(reexplore_callable, path.parent, noise)
-                        jobs.append(job)
+                        reexplore_callable(path.parent, noise)
+                        # job = executor.submit(reexplore_callable, path.parent, noise)
+                        # jobs.append(job)
 
     if len(jobs) > 0:
         print(f"Job Id {jobs[0].job_id.split('_')[0]}, num jobs {len(jobs)}")
@@ -80,7 +81,7 @@ if __name__ == "__main__":
     # set timeout in min, and partition for running the job
     executor.update_parameters(
         slurm_partition="learnfair", #scavenge
-        timeout_min=40,
+        timeout_min=120,
         mem_gb=256,
         gpus_per_node=4,
         tasks_per_node=1, 
