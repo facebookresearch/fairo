@@ -6,6 +6,9 @@ import time
 import socketio
 from droidlet.base_util import XYZ, Pos, Look
 from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item, ItemStack, Mob
+from droidlet.lowlevel.minecraft.pyworld.utils import build_coord_shifts
+
+BEDROCK = (7, 0)
 
 
 class DataCallback:
@@ -35,7 +38,16 @@ class PyWorldMover:
             raise Exception("unable to connect to server on port {} at ip {}".format(port, ip))
 
         print("connected to server on port {} at ip {}".format(port, ip))
+
         self.sio = sio
+        D = DataCallback()
+        self.sio.emit("get_world_info", callback=D)
+        info = wait_for_data(D)
+        self.sl = info["sl"]
+        self.world_coord_shift = info["coord_shift"]
+        to_npy_coords, from_npy_coords = build_coord_shifts(self.world_coord_shift)
+        self.to_npy_coords = to_npy_coords
+        self.from_npy_coords = from_npy_coords
 
     def get_line_of_sight(self):
         D = DataCallback()
@@ -125,6 +137,24 @@ class PyWorldMover:
             # can't send dicts with tuples for keys :(
             blocks = {decode_str_loc(loc): idm for loc, idm in blocks.items()}
         return blocks
+
+    def get_blocks(self, x, X, y, Y, z, Z):
+        """
+        returns an (Y-y+1) x (Z-z+1) x (X-x+1) x 2 numpy array B of the blocks
+        in the rectanguloid with bounded by the input coordinates (including endpoints).
+        Input coordinates are in droidlet coordinates; and the output array is
+        in yzxb permutation, where B[0,0,0,:] corresponds to the id and meta of
+        the block at x, y, z
+
+        TODO we don't need yzx orientation anymore...
+        """
+        D = DataCallback()
+        self.sio.emit("get_blocks", {"bounds": (x, X, y, Y, z, Z)}, callback=D)
+        flattened_blocks = wait_for_data(D)
+        npy_blocks = np.zeros((Y - y + 1, Z - z + 1, X - x + 1, 2), dtype="int32")
+        for b in flattened_blocks:
+            npy_blocks[b[1], b[2], b[0]] = [b[3], b[4]]
+        return npy_blocks
 
 
 if __name__ == "__main__":

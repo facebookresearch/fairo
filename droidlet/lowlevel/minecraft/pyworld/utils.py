@@ -46,6 +46,30 @@ def to_relative_pos(block_list):
     return S, origin
 
 
+def shift_coords(p, shift):
+    if hasattr(p, "x"):
+        return Pos(p.x + shift[0], p.y + shift[1], p.z + shift[2])
+    q = np.add(p, shift)
+    if type(p) is tuple:
+        q = tuple(q)
+    if type(p) is list:
+        q = list(q)
+    return q
+
+
+def build_coord_shifts(coord_shift):
+    def to_npy_coords(p):
+        dx = -coord_shift[0]
+        dy = -coord_shift[1]
+        dz = -coord_shift[2]
+        return shift_coords(p, (dx, dy, dz))
+
+    def from_npy_coords(p):
+        return shift_coords(p, coord_shift)
+
+    return to_npy_coords, from_npy_coords
+
+
 def flat_ground_generator_with_grass(world):
     flat_ground_generator(world, grass=True)
 

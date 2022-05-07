@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
 import pickle
-from droidlet.lowlevel.minecraft.pyworld.world import build_coord_shifts
+from droidlet.lowlevel.minecraft.pyworld.utils import build_coord_shifts
 
 # TODO replay instantiates world, replays in world
 class Recorder:

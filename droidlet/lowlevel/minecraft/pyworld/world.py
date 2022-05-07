@@ -8,38 +8,17 @@ from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM
 from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item
 from droidlet.shared_data_struct.rotation import look_vec
 from droidlet.lowlevel.minecraft.pyworld.fake_mobs import make_mob_opts, MOB_META, SimpleMob
-from droidlet.lowlevel.minecraft.pyworld.utils import build_ground, make_pose
+from droidlet.lowlevel.minecraft.pyworld.utils import (
+    build_ground,
+    make_pose,
+    build_coord_shifts,
+    shift_coords,
+)
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import PASSABLE_BLOCKS
-
-
-def shift_coords(p, shift):
-    if hasattr(p, "x"):
-        return Pos(p.x + shift[0], p.y + shift[1], p.z + shift[2])
-    q = np.add(p, shift)
-    if type(p) is tuple:
-        q = tuple(q)
-    if type(p) is list:
-        q = list(q)
-    return q
-
-
-def build_coord_shifts(coord_shift):
-    def to_npy_coords(p):
-        dx = -coord_shift[0]
-        dy = -coord_shift[1]
-        dz = -coord_shift[2]
-        return shift_coords(p, (dx, dy, dz))
-
-    def from_npy_coords(p):
-        return shift_coords(p, coord_shift)
-
-    return to_npy_coords, from_npy_coords
 
 
 class World:
     def __init__(self, opts, spec):
-        # DIG REACH
-        # PLACE BLOCK REACH
         self.opts = opts
         self.count = 0
         self.sl = opts.sl
@@ -277,6 +256,10 @@ class World:
         def init_player_event(sid, data):
             self.connect_player(sid, data)
 
+        @server.on("get_world_info")
+        def get_world_info(sid):
+            return {"sl": self.sl, "coord_shift": self.coord_shift}
+
         @server.on("line_of_sight")
         def los_event(sid, data):
             if data.get("pos"):
@@ -316,7 +299,7 @@ class World:
                 x += data.get("x", 0)
                 y += data.get("y", 0)
                 z += data.get("z", 0)
-            nx, ny, nz = self.to_npy_coords((x,y,z))
+            nx, ny, nz = self.to_npy_coords((x, y, z))
             # agent is 2 blocks high
             if (
                 nx >= 0
@@ -369,6 +352,16 @@ class World:
             blocks = {str(k): v for k, v in blocks.items()}
             self.changed_blocks_store[sid] = {}
             return blocks
+
+        @server.on("get_blocks")
+        def get_blocks_dict(sid, data):
+            x, X, y, Y, z, Z = data["bounds"]
+            npy = self.get_blocks(x, X, y, Y, z, Z, transpose=False)
+            nz_locs = list(zip(*np.nonzero(npy[:, :, :, 0])))
+            nz_idms = [tuple(self.blocks[l].tolist()) for l in nz_locs]
+            nz_locs = [(int(x), int(y), int(z)) for x, y, z in nz_locs]
+            flattened_blocks = [nz_locs[i] + nz_idms[i] for i in range(len(nz_locs))]
+            return flattened_blocks
 
         app = socketio.WSGIApp(server)
         eventlet.wsgi.server(eventlet.listen(("", port)), app)
