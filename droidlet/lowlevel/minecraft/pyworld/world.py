@@ -23,16 +23,16 @@ def shift_coords(p, shift):
 
 
 def build_coord_shifts(coord_shift):
-    def to_world_coords(p):
+    def to_npy_coords(p):
         dx = -coord_shift[0]
         dy = -coord_shift[1]
         dz = -coord_shift[2]
         return shift_coords(p, (dx, dy, dz))
 
-    def from_world_coords(p):
+    def from_npy_coords(p):
         return shift_coords(p, coord_shift)
 
-    return to_world_coords, from_world_coords
+    return to_npy_coords, from_npy_coords
 
 
 class World:
@@ -45,9 +45,9 @@ class World:
 
         # to be subtracted from incoming coordinates and added to outgoing
         self.coord_shift = spec.get("coord_shift", (0, 0, 0))
-        to_world_coords, from_world_coords = build_coord_shifts(self.coord_shift)
-        self.to_world_coords = to_world_coords
-        self.from_world_coords = from_world_coords
+        to_npy_coords, from_npy_coords = build_coord_shifts(self.coord_shift)
+        self.to_npy_coords = to_npy_coords
+        self.from_npy_coords = from_npy_coords
 
         self.blocks = np.zeros((opts.sl, opts.sl, opts.sl, 2), dtype="int32")
         if spec.get("ground_generator"):
@@ -116,7 +116,7 @@ class World:
             except:
                 return False
         # mobs keep loc in real coords, block objects we convert to the numpy index
-        loc = tuple(self.to_world_coords(loc))
+        loc = tuple(self.to_npy_coords(loc))
         idm = tuple(int(s) for s in idm)
         try: # FIXME only allow placing non-air blocks in air locations?
             if tuple(self.blocks[loc]) != (7, 0) or force:
@@ -138,7 +138,7 @@ class World:
         nz = np.transpose(self.blocks[:, :, :, 0].nonzero())
         for loc in nz:
             l = tuple(loc.tolist())
-            d[self.from_world_coords(l)] = tuple(self.blocks[l[0], l[1], l[2], :])
+            d[self.from_npy_coords(l)] = tuple(self.blocks[l[0], l[1], l[2], :])
         return d
 
     def get_idm_at_locs(self, xyzs: Sequence[XYZ]) -> Dict[XYZ, IDM]:
@@ -174,8 +174,8 @@ class World:
         return [i.get_info() for i in self.item_stacks]
 
     def get_blocks(self, xa, xb, ya, yb, za, zb, transpose=True):
-        xa, ya, za = self.to_world_coords((xa, ya, za))
-        xb, yb, zb = self.to_world_coords((xb, yb, zb))
+        xa, ya, za = self.to_npy_coords((xa, ya, za))
+        xb, yb, zb = self.to_npy_coords((xb, yb, zb))
         M = np.array((xb, yb, zb))
         m = np.array((xa, ya, za))
         szs = M - m + 1
@@ -215,7 +215,7 @@ class World:
 
     def get_line_of_sight(self, pos, yaw, pitch):
         # it is assumed lv is unit normalized
-        pos = tuple(self.to_world_coords(pos))
+        pos = tuple(self.to_npy_coords(pos))
         lv = look_vec(yaw, pitch)
         dt = 1.0
         for n in range(2 * self.sl):
@@ -228,7 +228,7 @@ class World:
                             if tuple(self.blocks[sp]) != (0, 0):
                                 # TODO: deal with close blocks artifacts,
                                 # etc
-                                pos = self.from_world_coords(sp)
+                                pos = self.from_npy_coords(sp)
                                 return tuple(int(l) for l in pos)
         return
 
@@ -315,7 +315,7 @@ class World:
                 x += data.get("x", 0)
                 y += data.get("y", 0)
                 z += data.get("z", 0)
-            nx, ny, nz = self.from_world_coords((x,y,z))
+            nx, ny, nz = self.to_npy_coords((x,y,z))
             # agent is 2 blocks high
             if nx >= 0 and ny >= 0 and nz >= 0 and nx < self.sl and ny < self.sl-1 and nz < self.sl:                
                 if self.blocks[nx, ny, nz, 0] in PASSABLE_BLOCKS and self.blocks[nx, ny+1, nz, 0] in PASSABLE_BLOCKS:

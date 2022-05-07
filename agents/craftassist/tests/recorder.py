@@ -21,8 +21,8 @@ class Recorder:
         self.current_blocks = self.initial_blocks.copy()
         self.replay_step = 0
 
-        _, from_world_coords = build_coord_shifts(self.coord_shift)
-        self.from_world_coords = from_world_coords
+        _, from_npy_coords = build_coord_shifts(self.coord_shift)
+        self.from_npy_coords = from_npy_coords
 
     def load_from_file(self, filepath):
         with open(filepath, "rb") as f:

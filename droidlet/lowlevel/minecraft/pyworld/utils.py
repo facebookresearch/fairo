@@ -51,7 +51,7 @@ def flat_ground_generator_with_grass(world):
 
 
 def flat_ground_generator(world, grass=False, ground_depth=FLAT_GROUND_DEPTH):
-    r = world.to_world_coords((0, 62, 0))[1]
+    r = world.to_npy_coords((0, 62, 0))[1]
     # r = world.sl // 2
     world.blocks[:] = 0
     world.blocks[:, 0:r, :, 0] = 7

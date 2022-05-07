@@ -100,7 +100,7 @@ class SimpleMob:
 
     def step(self):
         # check if falling:
-        x, y, z = self.world.to_world_coords(self.pos)
+        x, y, z = self.world.to_npy_coords(self.pos)
         fy = min(max(int(np.floor(y)), 0), self.world.blocks.shape[1])
         rx = min(max(int(np.round(x)), 0), self.world.blocks.shape[0] - 1)
         rz = min(max(int(np.round(z)), 0), self.world.blocks.shape[2] - 1)
@@ -134,7 +134,7 @@ class SimpleMob:
                 self.new_direction()
                 return
             if self.world.blocks[int(np.round(new_x)), fy + i, int(np.round(new_z)), 0] == 0:
-                self.pos = self.world.from_world_coords((new_x, y + i, new_z))
+                self.pos = self.world.from_npy_coords((new_x, y + i, new_z))
                 return
         # couldn't get past a wall of blocks, try a different dir
         self.new_direction()

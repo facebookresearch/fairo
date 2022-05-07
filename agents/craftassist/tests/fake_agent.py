@@ -364,8 +364,8 @@ class FakeAgent(DroidletAgent):
             c = [c[0], h, c[1]]
         else:
             c = [self.pos[0], h, self.pos[2]]
-        C = self.world.to_world_coords(c)
-        A = self.world.to_world_coords(self.pos)
+        C = self.world.to_npy_coords(c)
+        A = self.world.to_npy_coords(self.pos)
         shifted_agent_pos = [A[0] - C[0] + r, A[2] - C[2] + r]
         npy = self.world.get_blocks(
             c[0] - r, c[0] + r, c[1], c[1], c[2] - r, c[2] + r, transpose=False
@@ -379,7 +379,7 @@ class FakeAgent(DroidletAgent):
         nummobs = {-1: "rabbit", -2: "cow", -3: "pig", -4: "chicken", -5: "sheep"}
         for mob in self.world.mobs:
             # todo only in the plane?
-            p = np.round(np.array(self.world.to_world_coords(mob.pos)))
+            p = np.round(np.array(self.world.to_npy_coords(mob.pos)))
             p = p - C
             try:
                 npy[p[0] + r, p[1] + r] = mobnums[mob.mobname]
