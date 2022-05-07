@@ -11,7 +11,7 @@ from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
 from rich import print
 
-from segmentation.constants import coco_categories, color_palette
+from segmentation.constants import coco_categories, map_color_palette
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
@@ -23,8 +23,8 @@ class SLAM(object):
     def __init__(
         self,
         robot,
-        map_size=4000,
-        resolution=5,
+        map_size_cm=4000,
+        resolution=10,
         robot_rad=30,
         agent_min_z=5,
         agent_max_z=70,
@@ -33,15 +33,17 @@ class SLAM(object):
         self.robot = robot
         self.robot_rad = robot_rad
         self.map_resolution = resolution
+        self.num_sem_categories = len(coco_categories)
+        self.obs_threshold = obstacle_threshold
         self.map_builder = mb(
-            map_size_cm=map_size,
+            map_size_cm=map_size_cm,
             resolution=resolution,
             agent_min_z=agent_min_z,
             agent_max_z=agent_max_z,
             obs_thr=obstacle_threshold,
-            num_semantic_categories=len(coco_categories),
+            num_sem_categories=self.num_sem_categories,
         )
-        self.map_size = map_size
+        self.map_size_cm = map_size_cm
         # if the map is a previous map loaded from disk, and
         # if the robot looks around and registers itself at a
         # non-origin location in the map just as it is coming up,
@@ -110,12 +112,21 @@ class SLAM(object):
 
     def visualize_semantic_map(self):
         """Visualize top-down semantic map."""
-        sem_map_content = self.map_builder.semantic_map
-        sem_map_content[-1, :, :] = 1e-5
-        sem_map_content = sem_map_content.argmax(0)
-        sem_map_vis = Image.new("P", (sem_map_content.shape[1], sem_map_content.shape[0]))
-        sem_map_vis.putpalette([int(x * 255.0) for x in color_palette])
-        sem_map_vis.putdata(sem_map_content.flatten().astype(np.uint8))
+        sem_map = self.map_builder.semantic_map
+
+        sem_channels = sem_map[1:]
+        sem_channels[-1] = 1e-5
+        explored_mask = (sem_map[0] / self.obs_threshold) >= 0.5
+        sem_map = sem_channels.argmax(0)
+        no_category_mask = sem_map == self.num_sem_categories - 1
+
+        sem_map += 2
+        sem_map[no_category_mask] = 0
+        sem_map[np.logical_and(no_category_mask, explored_mask)] = 1
+
+        sem_map_vis = Image.new("P", (sem_map.shape[1], sem_map.shape[0]))
+        sem_map_vis.putpalette([int(x * 255.0) for x in map_color_palette])
+        sem_map_vis.putdata(sem_map.flatten().astype(np.uint8))
         sem_map_vis = sem_map_vis.convert("RGB")
         sem_map_vis = np.flipud(sem_map_vis)
         sem_map_vis = sem_map_vis[:, :, [2, 1, 0]]
@@ -136,7 +147,7 @@ class SLAM(object):
         return real_world_locations
 
     def reset_map(self, z_bins=None, obs_thr=None):
-        self.map_builder.reset_map(self.map_size, z_bins=z_bins, obs_thr=obs_thr)
+        self.map_builder.reset_map(self.map_size_cm, z_bins=z_bins, obs_thr=obs_thr)
 
 
 robot_ip = os.getenv("LOCOBOT_IP")

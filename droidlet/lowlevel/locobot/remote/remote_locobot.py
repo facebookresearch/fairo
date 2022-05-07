@@ -20,7 +20,7 @@ from droidlet.lowlevel.robot_mover_utils import (
     transform_pose,
 )
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
-from segmentation.constants import coco_categories, color_palette
+from segmentation.constants import coco_categories, frame_color_palette
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
@@ -40,7 +40,6 @@ class RemoteLocobot(object):
         scene_path, 
         noisy=False, 
         add_humans=True,
-        num_semantic_categories=len(coco_categories),
     ):
         backend_config = {
             "scene_path": scene_path,
@@ -72,8 +71,8 @@ class RemoteLocobot(object):
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
 
         # TODO Check if semantic annotations exist for the scene
-        self.num_sem_categories = num_semantic_categories
-        self.one_hot_encoding = np.eye(self.num_sem_categories + 1)
+        self.num_sem_categories = len(coco_categories)
+        self.one_hot_encoding = np.eye(self.num_sem_categories)
         self.set_instance_id_to_category_id()
 
     def restart_habitat(self):
@@ -411,7 +410,7 @@ class RemoteLocobot(object):
 
         # default to no category
         self.instance_id_to_category_id = (
-            np.ones(max_obj_id + 1) * self.num_sem_categories).astype(np.int32)
+            np.ones(max_obj_id + 1) * (self.num_sem_categories - 1)).astype(np.int32)
 
         for obj in semantic_annotations.objects:
             if obj is None or obj.category is None:
@@ -437,7 +436,7 @@ class RemoteLocobot(object):
         semantic_segmentation = self.instance_id_to_category_id[instance_segmentation]
         semantic_segmentation = self.one_hot_encoding[semantic_segmentation]
         self.visualize_semantic_frame(semantic_segmentation)
-        semantic_segmentation = semantic_segmentation.reshape(-1, self.num_sem_categories + 1)
+        semantic_segmentation = semantic_segmentation.reshape(-1, self.num_sem_categories)
         valid = (depth > 0).flatten()
         semantic_segmentation = semantic_segmentation[valid]
         return semantic_segmentation
@@ -449,7 +448,7 @@ class RemoteLocobot(object):
         vis_content[:, :, -1] = 1e-5
         vis_content = vis_content.argmax(-1)
         vis = Image.new("P", (height, width))
-        vis.putpalette([int(x * 255.0) for x in color_palette])
+        vis.putpalette([int(x * 255.0) for x in frame_color_palette])
         vis.putdata(vis_content.flatten().astype(np.uint8))
         vis = vis.convert("RGB")
         vis = np.array(vis)[:, :, [2, 1, 0]]

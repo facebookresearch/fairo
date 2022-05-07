@@ -14,13 +14,14 @@ from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.utils.visualizer import ColorMode, Visualizer
 import detectron2.data.transforms as T
 
-from .constants import coco_categories_mapping
+from .constants import coco_categories_mapping, coco_categories
 
 
 class SemanticPredMaskRCNN:
     def __init__(self, sem_pred_prob_thr: float, sem_gpu_id: int, visualize: bool):
         self.segmentation_model = ImageSegmentation(sem_pred_prob_thr, sem_gpu_id)
         self.visualize = visualize
+        self.num_sem_categories = len(coco_categories)
 
     def get_prediction(self, img):
         image_list = []
@@ -30,7 +31,7 @@ class SemanticPredMaskRCNN:
             image_list, visualize=self.visualize
         )
 
-        semantic_pred = np.zeros((img.shape[0], img.shape[1], 15 + 1))
+        semantic_pred = np.zeros((img.shape[0], img.shape[1], self.num_sem_categories))
 
         for j, class_idx in enumerate(seg_predictions[0]["instances"].pred_classes.cpu().numpy()):
             if class_idx in list(coco_categories_mapping.keys()):

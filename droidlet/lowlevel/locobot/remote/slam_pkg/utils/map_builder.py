@@ -13,12 +13,12 @@ class MapBuilder(object):
     def __init__(
         self,
         map_size_cm=4000,
-        resolution=5,
+        resolution=10,
         obs_thr=1,
         cat_thr=5,
         agent_min_z=5,
         agent_max_z=70,
-        num_semantic_categories=15,
+        num_sem_categories=16,
     ):
         """
         :param map_size_cm: size of map in cm, assumes square map
@@ -41,7 +41,7 @@ class MapBuilder(object):
         self.max_height = int(360 / self.resolution)
         self.min_height = int(-40 / self.resolution)
         self.map_size = int(self.map_size_cm // self.resolution)
-        self.num_semantic_categories = num_semantic_categories
+        self.num_sem_categories = num_sem_categories
 
         self.map = np.zeros(
             (
@@ -52,9 +52,13 @@ class MapBuilder(object):
             dtype=np.float32,
         )
 
+        # Map consists of multiple channels containing the following:
+        # 0: Explored Area
+        # 1, 2, ..., num_sem_categories: Semantic Categories
+        self.sem_map_channels = num_sem_categories + 1
         self.semantic_map = np.zeros(
             (
-                self.num_semantic_categories + 1,
+                self.sem_map_channels,
                 self.map_size,
                 self.map_size,
             ),
@@ -116,24 +120,31 @@ class MapBuilder(object):
         )
         geometric_pc_t = geometric_pc_t.transpose(0, 1).unsqueeze(0).float()
 
-        # TODO Fix out of memory error on the robot
         init_grid = torch.zeros(
             1,
-            semantic_channels.shape[1],
+            self.sem_map_channels,
             self.map_size,
             self.map_size,
             self.max_height - self.min_height,
-        ).float()
-
-        feat = torch.from_numpy(semantic_channels.T).unsqueeze(0).float()
-        feat[:, 0, :] = 1
+        )
+        feat = torch.ones(
+            1,
+            self.sem_map_channels,
+            semantic_channels.shape[0],
+        )
+        feat[:, 1:, :] = torch.from_numpy(semantic_channels.T).unsqueeze(0)
 
         voxels_t = splat_feat_nd(init_grid, feat, geometric_pc_t).transpose(2, 3)
+
+        # TODO Distinguish agent height projection (for obstacles) from all height 
+        # projection (for explored area)?
 
         top_down_map_t = voxels_t.sum(4)
         top_down_map = top_down_map_t.squeeze(0).numpy()
 
-        self.semantic_map = self.semantic_map + top_down_map
+        maps = np.concatenate((top_down_map[:, np.newaxis], self.semantic_map[:, np.newaxis]), 1)
+        self.semantic_map = np.max(maps, 1)
+        # self.semantic_map = self.semantic_map + top_down_map
 
         map_gt = np.copy(self.semantic_map)
         map_gt[0, :, :] = map_gt[0, :, :] / self.obs_threshold
@@ -143,13 +154,13 @@ class MapBuilder(object):
 
         return map_gt
 
-    def reset_map(self, map_size, z_bins=None, obs_thr=None):
+    def reset_map(self, map_size_cm, z_bins=None, obs_thr=None):
         """
         resets the map to unknown
         :param map_size: size of map in cm, assumes square map
         :type map_size: int
         """
-        self.map_size_cm = map_size
+        self.map_size_cm = map_size_cm
         self.map_size = int(self.map_size_cm // self.resolution)
         if z_bins is not None:
             self.z_bins = z_bins
@@ -167,7 +178,7 @@ class MapBuilder(object):
 
         self.semantic_map = np.zeros(
             (
-                self.num_semantic_categories + 1,
+                self.sem_map_channels,
                 self.map_size,
                 self.map_size,
             ),

@@ -14,6 +14,7 @@ coco_categories = {
     "vase": 12,
     "cup": 13,
     "bottle": 14,
+    "no-category": 15
 }
 
 coco_categories_mapping = {
@@ -34,7 +35,7 @@ coco_categories_mapping = {
     39: 14, # bottle
 }
 
-color_palette = [
+coco_categories_color_palette = [
     0.9400000000000001, 0.7818, 0.66,             # chair
     0.9400000000000001, 0.8868, 0.66,             # couch
     0.8882000000000001, 0.9400000000000001, 0.66, # potted plant
@@ -50,5 +51,15 @@ color_palette = [
     0.9218, 0.66, 0.9400000000000001,             # vase
     0.9400000000000001, 0.66, 0.8531999999999998, # cup
     0.9400000000000001, 0.66, 0.748199999999999,  # bottle 
+]
+
+map_color_palette = [
+    1.0, 1.0, 1.0,                                # empty space
+    0.95, 0.95, 0.95,                             # explored area
+    *coco_categories_color_palette
+]
+
+frame_color_palette = [
+    *coco_categories_color_palette,
     1.0, 1.0, 1.0,                                # no category
 ]
