@@ -11,6 +11,8 @@ import logging
 import quaternion
 import os
 import open3d as o3d
+import cv2
+from PIL import Image
 from pyrobot.habitat.base_control_utils import LocalActionStatus
 from slam_pkg.utils import depth_util as du
 from obstacle_utils import is_obstacle
@@ -18,7 +20,7 @@ from droidlet.lowlevel.robot_mover_utils import (
     transform_pose,
 )
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
-from segmentation.constants import coco_categories
+from segmentation.constants import coco_categories, color_palette
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
@@ -33,7 +35,13 @@ class RemoteLocobot(object):
         scene_path (str): the path to the scene file to load in habitat
     """
 
-    def __init__(self, scene_path, noisy=False, add_humans=True):
+    def __init__(
+        self, 
+        scene_path, 
+        noisy=False, 
+        add_humans=True,
+        num_semantic_categories=len(coco_categories),
+    ):
         backend_config = {
             "scene_path": scene_path,
             "physics_config": "DEFAULT",
@@ -64,7 +72,9 @@ class RemoteLocobot(object):
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
 
         # TODO Check if semantic annotations exist for the scene
-        self.preprocess_semantic_annotations()
+        self.num_sem_categories = num_semantic_categories
+        self.one_hot_encoding = np.eye(self.num_sem_categories + 1)
+        self.set_instance_id_to_category_id()
 
     def restart_habitat(self):
         if hasattr(self, "_robot"):
@@ -143,7 +153,7 @@ class RemoteLocobot(object):
         return pts, rgb, depth
 
     def get_open3d_pcd(self):
-        pts, rgb = self.get_current_pcd()
+        pts, rgb, depth = self.get_current_pcd()
         points, colors = pts.reshape(-1, 3), rgb.reshape(-1, 3)
         colors = colors / 255.0
 
@@ -394,9 +404,15 @@ class RemoteLocobot(object):
         else:
             return "UNKNOWN"
 
-    def preprocess_semantic_annotations(self):
+    def set_instance_id_to_category_id(self):
         semantic_annotations = self._robot.base.sim.semantic_scene
-        self._category_instance_lists = {}
+        max_obj_id = max([int(obj.id.split("_")[-1])
+                          for obj in semantic_annotations.objects if obj is not None])
+
+        # default to no category
+        self.instance_id_to_category_id = (
+            np.ones(max_obj_id + 1) * self.num_sem_categories).astype(np.int32)
+
         for obj in semantic_annotations.objects:
             if obj is None or obj.category is None:
                 continue
@@ -412,48 +428,32 @@ class RemoteLocobot(object):
 
             if category in coco_categories.keys():
                 cat_id = coco_categories[category]
-
                 obj_id = int(obj.id.split("_")[-1])
-
-                if cat_id not in self._category_instance_lists:
-                    self._category_instance_lists[cat_id] = [obj_id]
-                else:
-                    self._category_instance_lists[cat_id].append(obj_id)
-
-    def get_category_instance_lists(self):
-        return self._category_instance_lists
+                self.instance_id_to_category_id[obj_id] = cat_id
 
     def get_semantics(self, rgb, depth):
         """Get semantic segmentation."""
         instance_segmentation = self.get_rgb_depth_segm()[2]
-        semantic_segmentation = self.preprocess_habitat_semantics(instance_segmentation)
+        semantic_segmentation = self.instance_id_to_category_id[instance_segmentation]
+        semantic_segmentation = self.one_hot_encoding[semantic_segmentation]
+        self.visualize_semantic_frame(semantic_segmentation)
+        semantic_segmentation = semantic_segmentation.reshape(-1, self.num_sem_categories + 1)
         valid = (depth > 0).flatten()
         semantic_segmentation = semantic_segmentation[valid]
         return semantic_segmentation
-
-    def preprocess_habitat_semantics(self, instance_segmentation):
-        """Convert Habitat instance segmentation to semantic segmentation."""
-        num_semantic_cats = len(coco_categories)
-        category_instance_lists = self.get_category_instance_lists()
-        instance_segmentation = instance_segmentation.astype(np.float32)
-        semantic_segmentation = np.zeros(
-            (instance_segmentation.shape[0], instance_segmentation.shape[1], num_semantic_cats + 1)
-        )
-
-        def add_cat_channel(cat_id):
-            mask = np.zeros((instance_segmentation.shape), dtype=bool)
-            if cat_id in category_instance_lists:
-                instance_list = category_instance_lists[cat_id]
-                for inst_id in instance_list:
-                    mask = np.logical_or(mask, instance_segmentation == inst_id)
-                instance_segmentation[mask] = -(cat_id + 1)
-            return mask * 1
-
-        for i in range(num_semantic_cats):
-            semantic_segmentation[:, :, i + 1] = add_cat_channel(i)
-
-        semantic_segmentation = semantic_segmentation.reshape(-1, semantic_segmentation.shape[2])
-        return semantic_segmentation
+    
+    def visualize_semantic_frame(self, semantics):
+        """Visualize first-person semantic segmentation frame."""
+        width, height = semantics.shape[:2]
+        vis_content = semantics
+        vis_content[:, :, -1] = 1e-5
+        vis_content = vis_content.argmax(-1)
+        vis = Image.new("P", (height, width))
+        vis.putpalette([int(x * 255.0) for x in color_palette])
+        vis.putdata(vis_content.flatten().astype(np.uint8))
+        vis = vis.convert("RGB")
+        vis = np.array(vis)[:, :, [2, 1, 0]]
+        cv2.imwrite("semantic_frame.png", vis)
 
 
 if __name__ == "__main__":

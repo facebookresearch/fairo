@@ -97,10 +97,10 @@ class SLAM(object):
 
     def update_map(self):
         pcd, rgb, depth = self.robot.get_current_pcd()
-        semantics = self.robot.get_semantics(rgb, depth)
+        semantics = self.robot.get_semantics(rgb, depth)    
         self.map_builder.update_map(pcd)
         self.map_builder.update_semantic_map(pcd, semantics)
-        self.visualize_sem_map()
+        self.visualize_semantic_map()
 
         # explore the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
@@ -108,21 +108,18 @@ class SLAM(object):
         traversable = binary_dilation(obstacle, selem) != True
         self.traversable = traversable
 
-    def visualize_sem_map(self):
-        sem_map = self.map_builder.semantic_map
-        sem_map[-1, :, :] = 1e-5
-        sem_map = sem_map.argmax(0)
-        sem_map_vis = Image.new("P", (sem_map.shape[1], sem_map.shape[0]))
-        color_pal = [int(x * 255.0) for x in color_palette]
-        sem_map_vis.putpalette(color_pal)
-        sem_map_vis.putdata(sem_map.flatten().astype(np.uint8))
+    def visualize_semantic_map(self):
+        """Visualize top-down semantic map."""
+        sem_map_content = self.map_builder.semantic_map
+        sem_map_content[-1, :, :] = 1e-5
+        sem_map_content = sem_map_content.argmax(0)
+        sem_map_vis = Image.new("P", (sem_map_content.shape[1], sem_map_content.shape[0]))
+        sem_map_vis.putpalette([int(x * 255.0) for x in color_palette])
+        sem_map_vis.putdata(sem_map_content.flatten().astype(np.uint8))
         sem_map_vis = sem_map_vis.convert("RGB")
         sem_map_vis = np.flipud(sem_map_vis)
-
         sem_map_vis = sem_map_vis[:, :, [2, 1, 0]]
-        cv2.imshow("sem_map", sem_map_vis)
-        cv2.waitKey(1)
-        # cv2.imwrite("sem_map.png", sem_map_vis)
+        cv2.imwrite("semantic_map.png", sem_map_vis)
 
     def get_map_resolution(self):
         return self.map_resolution
