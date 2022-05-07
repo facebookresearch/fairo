@@ -9,7 +9,7 @@ set -ex
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/collection2_preemp_test/baseline
 
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300/av300_simple
-# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300_pt2/av300_pt2
+# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300_sanity30/av300_pt2
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300_noise_pt2/av300_noise_pt2
 
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/largerun_noisy/baselinev3_noisy --noise

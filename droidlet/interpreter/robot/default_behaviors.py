@@ -171,6 +171,11 @@ def get_task_data_for_reexplore(agent):
 
 def reexplore(agent):
     task_data = get_task_data_for_reexplore(agent)
+    
+    if os.path.isdir(task_data['data_path']):
+        logging.info(f"rmtree {task_data['data_path']} ...")
+        shutil.rmtree(task_data['data_path'])
+
     logging.info(f'task_data {task_data}')
     if task_data is not None:
         agent.memory.task_stack_push(tasks.Reexplore(agent, task_data))

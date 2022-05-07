@@ -87,7 +87,7 @@ def process(traj_path, out_dir, gt, s, is_annot_validfn):
     target_xyz = []
     for i in range(len(candidates)):
         target_xyz.append(get_target(traj_path, candidates[i][0], candidates[i][1], base_poses[i]))
-        visualize_instances(traj_path, out_dir, candidates, is_annot_validfn)
+        visualize_instances(traj_path, out_dir, candidates)
         reexplore_task_data[i] = {
             'src_img_id': int(candidates[i][0]),
             'spawn_pos': base_poses_hab[i],
@@ -180,7 +180,7 @@ def find_spawn_loc(
                         @log_time(os.path.join(job_dir, 'job_log.txt'))
                         def job_unit(traj_path, out_dir, traj_id, annot_fn, labels, setting):
                             s = SampleGoodCandidates(traj_path, annot_fn, labels, setting)
-                            for gt in range(5,10,5):
+                            for gt in range(5,15,4):
                                 outr = os.path.join(out_dir, traj_id, setting, str(gt))
                                 os.makedirs(outr, exist_ok=True)
                                 print(f'outr {outr}')
@@ -216,7 +216,7 @@ if __name__ == "__main__":
     executor = submitit.AutoExecutor(folder=os.path.join(args.job_dir, 'slurm_logs/%j'))
     # set timeout in min, and partition for running the job
     executor.update_parameters(
-        slurm_partition="learnfair", #"learnfair", #scavenge
+        slurm_partition="devlab", #"learnfair", #scavenge
         timeout_min=20,
         mem_gb=256,
         gpus_per_node=4,

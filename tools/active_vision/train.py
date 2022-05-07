@@ -120,9 +120,11 @@ class LossEvalHook(HookBase):
         """
         Keeps the last 5 val losses
         """
+        print(f'val loss history {self.val_loss_window}')
         if len(self.val_loss_window) >= 5:
             self.val_loss_window.pop(0)
         self.val_loss_window.append(loss) 
+        comm.synchronize()
 
     def after_step(self):
         # print(f'self._period {self._period} next_iter {self.trainer.iter}....')
@@ -143,8 +145,9 @@ class LossEvalHook(HookBase):
                 f.write(f'lr {self.cfg.SOLVER.BASE_LR} warmup {self.cfg.SOLVER.WARMUP_ITERS} iter {self.trainer.iter} validation loss {l}\n')
 
         self.trainer.storage.put_scalars(timetest=12)
-        if self.val_loss_increasing >= 3:
-            raise EarlyStoppingException(f'Val loss increasing! Last 5 losses {self.val_loss_window}')
+        comm.synchronize()
+        # if self.val_loss_increasing >= 3:
+        #     raise EarlyStoppingException(f'Val loss increasing! Last 5 losses {self.val_loss_window}')
         
 
 class MyTrainer(DefaultTrainer):
@@ -252,7 +255,7 @@ class COCOTrain:
         self.train()
 
 
-maxiters = [1000]
+maxiters = [600]
 lrs = [0.002] #, 0.004]
 warmups = [300] #[200, 300]
 

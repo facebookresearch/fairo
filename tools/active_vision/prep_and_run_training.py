@@ -9,9 +9,9 @@ from common_utils import log_time
 combinations = {
     'e1r1r2': ['e1', 'r1', 'r2'],
     'e1s1r2': ['e1', 's1', 'r2'],
-    'e1c1sr2': ['e1', 'c1s', 'r2'],
-    'e1c1lr2': ['e1', 'c1l', 'r2'],
-    'e1s1c1s': ['e1', 's1', 'c1s'],
+    # 'e1c1sr2': ['e1', 'c1s', 'r2'],
+    # 'e1c1lr2': ['e1', 'c1l', 'r2'],
+    # 'e1s1c1s': ['e1', 's1', 'c1s'],
     # 'e1s1c1l': ['e1', 's1', 'c1l'],
 }
 
@@ -139,24 +139,37 @@ def prep_and_run_training(data_dir: str, job_dir: str, num_train_samples: int) -
     # test_paths = get_paths([0,2,6,8,10], data_dir)
     # test_paths = [str(path) for path in Path(data_dir).rglob('pred_label*') if 'baselinev3/8/class/5' in str(path)]
     # print(f'{len(test_paths)} test paths in class')
+    trajs = set()
     with executor.batch():
-        for path in Path(data_dir).rglob('pred_label*'):
-            x_s = str(path).split('/')
-            traj_dir = '/'.join(x_s[:x_s.index('instance')])
-            if sanity_check_traj(traj_dir): #any(p in str(path.parent) for p in ['e1r1r2', 'e1s1r2', 'e1c1lr2', 'e1c1sr2']): #if '/instance/5' in str(path.parent):
-                for k in combinations.keys():
-                    if k in str(path):
-                        @log_time(os.path.join(job_dir, 'job_log.txt'))
-                        def job_unit(path, num_train_samples, job_dir):
-                            run_coco(path)
-                            training_data = get_training_data(path, job_dir)
-                            print(training_data, job_dir)
-                            for td in training_data:
-                                run_training(td, num_train_samples)
-                        print(f'launching training for {path}')
-                        # job_unit(str(path), num_train_samples, job_dir)
-                        job = executor.submit(job_unit, str(path), num_train_samples, job_dir)
-                        jobs.append(job)
+        for traj_id in os.listdir(data_dir):
+            if len(trajs) > 40:
+                break
+            traj_dir = os.path.join(data_dir, traj_id)
+            if traj_id == '82' and sanity_check_traj(traj_dir):
+                trajs.add(traj_id)
+                print(f'traj_id {traj_id}, traj_dir {traj_dir}')
+                for path in Path(traj_dir).rglob('pred_label*'):
+                    for k in combinations.keys():
+                        if k in str(path):
+                            print(f'launching training for {str(path)} ...')
+                            @log_time(os.path.join(job_dir, 'job_log.txt'))
+                            def job_unit(path, num_train_samples, job_dir):
+                                run_coco(path)
+                                training_data = get_training_data(path, job_dir)
+                                print(training_data, job_dir)
+                                for td in training_data[:1]:
+                                    run_training(td, num_train_samples)
+                            print(f'launching training for {path}')
+                            # job_unit(str(path), num_train_samples, job_dir)
+                            job = executor.submit(job_unit, str(path), num_train_samples, job_dir)
+                            jobs.append(job)
+
+        # for path in Path(data_dir).rglob('pred_label*'):
+            # x_s = str(path).split('/')
+            # traj_dir = '/'.join(x_s[:x_s.index('instance')])
+            # #if ['/82/instance/5/e1s1r2/pred_label_p4' in str(path)]: # 
+            # if sanity_check_traj(traj_dir): #any(p in str(path.parent) for p in ['e1r1r2', 'e1s1r2', 'e1c1lr2', 'e1c1sr2']): #if '/instance/5' in str(path.parent):
+                
 
     if len(jobs) > 0:
         print(f"Job Id {jobs[0].job_id.split('_')[0]}, num jobs {len(jobs)}")
@@ -179,7 +192,7 @@ if __name__ == "__main__":
     executor = submitit.AutoExecutor(folder=os.path.join(args.job_dir, 'slurm_logs/%j'))
     # set timeout in min, and partition for running the job
     executor.update_parameters(
-        slurm_partition="learnfair", #"learnfair", #scavenge
+        slurm_partition="devlab", #"learnfair", #scavenge
         timeout_min=100,
         mem_gb=256,
         gpus_per_node=4,

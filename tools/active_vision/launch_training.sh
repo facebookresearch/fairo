@@ -7,7 +7,7 @@ set -ex
 # ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/smoothed_infocus_test7
 # ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/collection2_426
 # ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/av300
-# ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/av300_pt2
+# ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/av300_pt2/  
 # ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/av300_noise
 # ./launch_training.sh /checkpoint/apratik/jobs/reexplore/respawnv1/baselinev3_noisy --noisy
 
@@ -29,4 +29,4 @@ mkdir -p $job_dir
 echo """"""""""""""""""""""""""""""
 
 chmod +x prep_and_run_training.py
-python prep_and_run_training.py --data_dir $data_dir --job_dir $job_dir
+python prep_and_run_training.py --data_dir $data_dir --job_dir $job_dir --num_train_samples 3
