@@ -79,9 +79,9 @@ class PyWorldMover:
         if placed is None:
             placed = False
         return placed
-        
+
     def place_block(self, x, y, z):
-        """ place the block in mainhand.  does nothing if mainhand empty"""
+        """place the block in mainhand.  does nothing if mainhand empty"""
         D = DataCallback()
         self.sio.emit("place_block", {"loc": [x, y, z]}, callback=D)
         # return True if the world says the block was placed, False otherwise
@@ -104,7 +104,7 @@ class PyWorldMover:
                 return Player(eid, name, Pos(*pos), Look(*look))
         except:
             return None
-        
+
     def get_line_of_sight(self):
         D = DataCallback()
         self.sio.emit("line_of_sight", {}, callback=D)
@@ -117,20 +117,22 @@ class PyWorldMover:
         D = DataCallback()
         self.sio.emit("get_changed_blocks", callback=D)
         blocks = wait_for_data(D)
+
         def decode_str_loc(x):
             return tuple(int(z) for z in x.strip("(").strip(")").split(","))
+
         if blocks:
             # can't send dicts with tuples for keys :(
             blocks = {decode_str_loc(loc): idm for loc, idm in blocks.items()}
         return blocks
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     m = PyWorldMover(port=6000)
-    m.set_held_item((1,0))
-    r = m.place_block(10,10, 10)
+    m.set_held_item((1, 0))
+    r = m.place_block(10, 10, 10)
     print(r)
     print(m.get_changed_blocks())
-    r = m.dig(10,10, 10)
+    r = m.dig(10, 10, 10)
     print(r)
     print(m.get_changed_blocks())

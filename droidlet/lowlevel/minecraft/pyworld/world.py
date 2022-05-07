@@ -11,6 +11,7 @@ from droidlet.lowlevel.minecraft.pyworld.fake_mobs import make_mob_opts, MOB_MET
 from droidlet.lowlevel.minecraft.pyworld.utils import build_ground, make_pose
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import PASSABLE_BLOCKS
 
+
 def shift_coords(p, shift):
     if hasattr(p, "x"):
         return Pos(p.x + shift[0], p.y + shift[1], p.z + shift[2])
@@ -118,7 +119,7 @@ class World:
         # mobs keep loc in real coords, block objects we convert to the numpy index
         loc = tuple(self.to_world_coords(loc))
         idm = tuple(int(s) for s in idm)
-        try: # FIXME only allow placing non-air blocks in air locations?
+        try:  # FIXME only allow placing non-air blocks in air locations?
             if tuple(self.blocks[loc]) != (7, 0) or force:
                 self.blocks[loc] = idm
                 for sid, store in self.changed_blocks_store.items():
@@ -293,7 +294,7 @@ class World:
                 pos = self.get_line_of_sight(player_struct.pos, *player_struct.look)
             pos = pos or ""
             return {"pos": pos}
-        
+
         # warning: it is assumed that if a player is using the sio event to set look,
         # the only thing stored here is a Player struct, not some more complicated object
 
@@ -310,15 +311,25 @@ class World:
             player_struct = self.get_player_info(eid)
             x, y, z = player_struct.pos
             if data.get("forward"):
-                pass #FIXME!!!!
+                pass  # FIXME!!!!
             else:
                 x += data.get("x", 0)
                 y += data.get("y", 0)
                 z += data.get("z", 0)
-            nx, ny, nz = self.from_world_coords((x,y,z))
+            nx, ny, nz = self.from_world_coords((x, y, z))
             # agent is 2 blocks high
-            if nx >= 0 and ny >= 0 and nz >= 0 and nx < self.sl and ny < self.sl-1 and nz < self.sl:                
-                if self.blocks[nx, ny, nz, 0] in PASSABLE_BLOCKS and self.blocks[nx, ny+1, nz, 0] in PASSABLE_BLOCKS:
+            if (
+                nx >= 0
+                and ny >= 0
+                and nz >= 0
+                and nx < self.sl
+                and ny < self.sl - 1
+                and nz < self.sl
+            ):
+                if (
+                    self.blocks[nx, ny, nz, 0] in PASSABLE_BLOCKS
+                    and self.blocks[nx, ny + 1, nz, 0] in PASSABLE_BLOCKS
+                ):
                     new_pos = Pos(x, y, z)
                     self.players[eid] = self.players[eid]._replace(pos=new_pos)
 
@@ -344,12 +355,12 @@ class World:
             if data.get("loc"):
                 placed = self.dig(data["loc"])
                 return placed
-            
+
         @server.on("get_player")
         def get_player_by_sid(sid):
             eid = self.connected_sids.get(sid)
             return {"player": self.get_player_info(eid)}
-        
+
         @server.on("get_changed_blocks")
         def changed_blocks(sid):
             eid = self.connected_sids.get(sid)
