@@ -379,12 +379,12 @@ def sanity_check_traj(x):
     print(f'sanity check {is_valid} for {x}')
     return is_valid
 
-def run_label_prop(data_dir, job_dir, job_out_dir):
+def run_label_prop(data_dir, job_dir, job_out_dir, setting):
     print(f'data_dir {data_dir}')
     jobs = []
 
     def get_lookuplist(valid_trajs):
-        return [f'{x}/instance/5' for x in valid_trajs]
+        return [f'{x}/{setting}/5' for x in valid_trajs]
 
     with executor.batch():
         for path in Path(data_dir).rglob('reexplore_data.json'):
@@ -446,7 +446,7 @@ if __name__ == "__main__":
         type=str,
     )
     parser.add_argument("--job_dir", type=str, default="", help="")
-    parser.add_argument("--comment", type=str)
+    parser.add_argument("--setting", type=str)
     parser.add_argument("--slurm", action="store_true", default=False, help="Run the pipeline on slurm, else locally")
     parser.add_argument("--noise", action="store_true", default=False, help="Spawn habitat with noise")
 
@@ -469,4 +469,4 @@ if __name__ == "__main__":
         slurm_comment="Droidlet Active Vision Pipeline"
     )
 
-    run_label_prop(args.data_dir, args.job_dir, args.out_dir)
+    run_label_prop(args.data_dir, args.job_dir, args.out_dir, args.setting)

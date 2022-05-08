@@ -36,4 +36,4 @@ mkdir -p $job_dir
 echo """"""""""""""""""""""""""""""
 
 chmod +x find_respawn_loc.py
-python3.7 find_respawn_loc.py --data_dir $data_dir --out_dir $out_dir --num_traj $num_traj --job_dir $job_dir
+python3.7 find_respawn_loc.py --data_dir $data_dir --out_dir $out_dir --num_traj $num_traj --job_dir $job_dir --setting $4

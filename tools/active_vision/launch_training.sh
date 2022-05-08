@@ -29,4 +29,4 @@ mkdir -p $job_dir
 echo """"""""""""""""""""""""""""""
 
 chmod +x prep_and_run_training.py
-python prep_and_run_training.py --data_dir $data_dir --job_dir $job_dir --num_train_samples 1
+python prep_and_run_training.py --data_dir $data_dir --job_dir $job_dir --num_train_samples 1 --setting $2

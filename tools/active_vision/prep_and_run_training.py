@@ -99,11 +99,11 @@ def get_training_data(path, job_dir):
 import functools
 
 @functools.lru_cache(None)
-def sanity_check_traj(x):
+def sanity_check_traj(x, setting):
     heuristics = set(heus)
     is_valid = True
     tid = x.split('/')[-1]
-    x = os.path.join(x, 'instance')
+    x = os.path.join(x, setting)
     for gt in os.listdir(x):
         gt_path = os.path.join(x, gt)
         reex_objects = [x for x in os.listdir(gt_path) if x.isdigit()]  
@@ -125,7 +125,7 @@ def sanity_check_traj(x):
                 # print(f'all {hf} heuristics found in {sub_path}!!')
     return is_valid
 
-def prep_and_run_training(data_dir: str, job_dir: str, num_train_samples: int) -> None:
+def prep_and_run_training(data_dir: str, job_dir: str, num_train_samples: int, setting: str) -> None:
     print(f'preparing and running training for {data_dir}')
     jobs = []
     # def get_paths(traj_ids, data_dir):
@@ -143,7 +143,7 @@ def prep_and_run_training(data_dir: str, job_dir: str, num_train_samples: int) -
     with executor.batch():
         for traj_id in os.listdir(data_dir):
             traj_dir = os.path.join(data_dir, traj_id)
-            if traj_id.isdigit() and sanity_check_traj(traj_dir):
+            if traj_id.isdigit() and sanity_check_traj(traj_dir, setting):
                 trajs.add(traj_id)
                 print(f'traj_id {traj_id}, traj_dir {traj_dir}')
                 for path in Path(traj_dir).rglob('pred_label*'):
@@ -180,7 +180,7 @@ if __name__ == "__main__":
         type=str,
     )
     parser.add_argument("--job_dir", type=str, default="", help="")
-    parser.add_argument("--comment", type=str)
+    parser.add_argument("--setting", type=str)
     parser.add_argument("--slurm", action="store_true", default=False, help="Run the pipeline on slurm, else locally")
     parser.add_argument("--noise", action="store_true", default=False, help="Spawn habitat with noise")
     parser.add_argument("--num_train_samples", type=int, default=1, help="total number of times we want to train the same model")
@@ -203,4 +203,4 @@ if __name__ == "__main__":
         slurm_comment="NeurIPS deadline 5/19 Droidlet Active Vision"
     )
 
-    prep_and_run_training(args.data_dir, args.job_dir, args.num_train_samples)
+    prep_and_run_training(args.data_dir, args.job_dir, args.num_train_samples, args.setting)

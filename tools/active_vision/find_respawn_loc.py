@@ -158,6 +158,7 @@ def find_spawn_loc(
         num_traj: int, 
         job_dir: str,
         mode: str,
+        setting: str,
     ) -> None:
     """
     Main fn to find the spawn locations for reexplore for all trajectories in baseline_root
@@ -173,7 +174,7 @@ def find_spawn_loc(
                 if traj_path.split('/')[-1].isdigit():
                     print(f'processing {traj_path}')
                     traj_id = '/'.join(traj_path.split('/')[-2:])
-                    for setting in ['instance']:
+                    for setting in [setting]:
                         annot_fn = is_annot_validfn_class if setting == 'class' else is_annot_validfn_inst
                         labels = class_labels if setting == 'class' else instance_ids
 
@@ -202,7 +203,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--out_dir", type=str, default="", help="")
     parser.add_argument("--job_dir", type=str, default="", help="")
-    parser.add_argument("--comment", type=str)
+    parser.add_argument("--setting", type=str)
     parser.add_argument("--num_traj", type=int, default=-1)
     parser.add_argument("--mode", 
         type=str, 
@@ -233,4 +234,6 @@ if __name__ == "__main__":
     if os.path.isdir(args.out_dir):
         shutil.rmtree(args.out_dir)
 
-    find_spawn_loc(args.data_dir, args.out_dir, args.num_traj, args.job_dir, args.mode)
+    find_spawn_loc(
+        args.data_dir, args.out_dir, args.num_traj, args.job_dir, args.mode, args.setting
+    )

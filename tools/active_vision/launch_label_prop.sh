@@ -29,4 +29,4 @@ mkdir -p $job_dir
 echo """"""""""""""""""""""""""""""
 
 chmod +x run_label_prop.py
-python run_label_prop.py --data_dir $data_dir --job_dir $job_dir --out_dir $out_dir
+python run_label_prop.py --data_dir $data_dir --job_dir $job_dir --out_dir $out_dir --setting $3

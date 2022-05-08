@@ -33,4 +33,4 @@ mkdir -p $job_dir
 echo """"""""""""""""""""""""""""""
 
 chmod +x reexplore.py
-python reexplore.py --data_dir $data_dir --job_dir $job_dir $2
+python reexplore.py --data_dir $data_dir --job_dir $job_dir --setting $2 $3 

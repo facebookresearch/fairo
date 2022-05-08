@@ -25,4 +25,4 @@ mkdir -p $job_dir
 echo """"""""""""""""""""""""""""""
 
 chmod +x explore.py
-python explore.py --data_dir $data_dir --job_dir $job_dir --num_traj $2 $3
+python explore.py --data_dir $data_dir --job_dir $job_dir --setting class --num_traj $2 $3

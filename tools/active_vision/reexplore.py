@@ -40,14 +40,14 @@ class reexplore_job:
     def checkpoint(self, p, noise) -> submitit.helpers.DelayedSubmission:
         return submitit.helpers.DelayedSubmission(self, p, noise)  # submits to requeuing
 
-def launch_reexplore(data_dir: str, job_dir: str, noise: bool, num_traj: int) -> None:
+def launch_reexplore(data_dir: str, job_dir: str, noise: bool, num_traj: int, setting: str) -> None:
     """
     Launches reexplore for every reexplore_data.json 
     (the json is output by the ./launch_candidate_selection.sh script)
     """
     jobs = []
 
-    valid_trajs = get_valid_trajectories(data_dir, None)#[33, 89, 1, 4, 35])
+    valid_trajs = get_valid_trajectories(data_dir, None)
     print(f'{len(valid_trajs)} valid trajectories!')
 
     with executor.batch():
@@ -55,7 +55,7 @@ def launch_reexplore(data_dir: str, job_dir: str, noise: bool, num_traj: int) ->
             for path in Path(traj_dir).rglob('reexplore_data.json'):
                 with open(os.path.join(path.parent, 'reexplore_data.json'), 'r') as f:
                     data = json.load(f)
-                    if len(data.keys()) > 0 and 'instance/5' in str(path):
+                    if len(data.keys()) > 0 and f'{setting}/5' in str(path):
                         print(f'processing {path.parent}')
                         reexplore_callable = reexplore_job()
                         # reexplore_callable(path.parent, noise)
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--job_dir", type=str, default="", help="")
     parser.add_argument("--num_traj", type=int, default=2, help="number of trajectories to run reexploration for")
-    parser.add_argument("--comment", type=str)
+    parser.add_argument("--setting", type=str)
     parser.add_argument("--slurm", action="store_true", default=False, help="Run the pipeline on slurm, else locally")
     parser.add_argument("--noise", action="store_true", default=False, help="Spawn habitat with noise")
 
@@ -98,4 +98,4 @@ if __name__ == "__main__":
         slurm_comment="Droidlet Active Vision Pipeline"
     )
 
-    launch_reexplore(args.data_dir, args.job_dir, args.noise, args.num_traj)
+    launch_reexplore(args.data_dir, args.job_dir, args.noise, args.num_traj, args.setting)
