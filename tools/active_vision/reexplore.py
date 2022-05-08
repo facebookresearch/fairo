@@ -8,7 +8,7 @@ import logging
 from typing import List
 from common_utils import log_time
 
-def get_valid_trajectories(data_dir: str) -> List[str]:
+def get_valid_trajectories(data_dir: str, trajs: list) -> List[str]:
     """
     Valid trajectories have non-empty reexploration data
     """
@@ -19,7 +19,12 @@ def get_valid_trajectories(data_dir: str) -> List[str]:
             if len(data.keys()) > 0:
                 valid.add(path.parent.parent.parent)
     
-    return list(valid)
+    valid = list(valid)
+    print(f'valid {valid[:4]}')
+    if trajs is not None:
+        valid = [x for x in valid if int(str(x).split('/')[-1]) in trajs]
+        print(f'filtered valid {valid}')
+    return valid
 
 class reexplore_job:
     def __init__(self):
@@ -42,7 +47,7 @@ def launch_reexplore(data_dir: str, job_dir: str, noise: bool, num_traj: int) ->
     """
     jobs = []
 
-    valid_trajs = get_valid_trajectories(data_dir)
+    valid_trajs = get_valid_trajectories(data_dir, None)#[33, 89, 1, 4, 35])
     print(f'{len(valid_trajs)} valid trajectories!')
 
     with executor.batch():
@@ -53,9 +58,9 @@ def launch_reexplore(data_dir: str, job_dir: str, noise: bool, num_traj: int) ->
                     if len(data.keys()) > 0 and 'instance/5' in str(path):
                         print(f'processing {path.parent}')
                         reexplore_callable = reexplore_job()
-                        reexplore_callable(path.parent, noise)
-                        # job = executor.submit(reexplore_callable, path.parent, noise)
-                        # jobs.append(job)
+                        # reexplore_callable(path.parent, noise)
+                        job = executor.submit(reexplore_callable, path.parent, noise)
+                        jobs.append(job)
 
     if len(jobs) > 0:
         print(f"Job Id {jobs[0].job_id.split('_')[0]}, num jobs {len(jobs)}")
@@ -81,7 +86,7 @@ if __name__ == "__main__":
     # set timeout in min, and partition for running the job
     executor.update_parameters(
         slurm_partition="learnfair", #scavenge
-        timeout_min=120,
+        timeout_min=60,
         mem_gb=256,
         gpus_per_node=4,
         tasks_per_node=1, 

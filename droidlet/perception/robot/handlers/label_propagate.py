@@ -100,7 +100,7 @@ def get_annot(height, width, pts_in_cur_img, src_pts_in_cur_cam, cur_pts_in_cur_
             visited[curx][cury] = 1
             if a[curx][cury] > 0:
                 return a[curx][cury]
-            if push_count < 10:
+            if push_count < 8:
                 ns = get_neighbors(a, curx, cury)
                 for n in ns:
                     if visited[n] == 0:
@@ -128,7 +128,7 @@ def get_annot(height, width, pts_in_cur_img, src_pts_in_cur_cam, cur_pts_in_cur_
         print(f'zeros {np.sum(annot_img == 0)}')
         for x in range(len(annot_img)):
             for y in range(len(annot_img[0])):
-                if annot_img[x][y] == 0 and random.randint(1,2) == 1:
+                if annot_img[x][y] == 0:# and random.randint(1,2) == 1:
                     annot_img[x][y] = closest_non_zero(annot_img, x, y)
                     # annot_img[x][y] = max_vote(annot_img, x, y)
         end = time.time()

@@ -3,6 +3,19 @@ from datetime import datetime
 
 instance_ids = [404,243,133,166,172]
 class_labels = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
+heuristics = ['r1', 'r2', 's1', 'c1s', 's1pp', 'c1pp']
+combinations = {
+    'e1r1r2': ['e1', 'r1', 'r2'],
+    'e1s1r2': ['e1', 's1', 'r2'],
+    'e1c1sr2': ['e1', 'c1s', 'r2'],
+    # 'e1c1lr2': ['e1', 'c1l', 'r2'],
+    # 'e1s1c1s': ['e1', 's1', 'c1s'],
+    # 'e1s1c1l': ['e1', 's1', 'c1l'],
+    'e1s1ppr2': ['e1', 's1pp', 'r2'],
+    'e1c1ppr2': ['e1', 'c1pp', 'r2'],
+}
+prop_lengths = range(0, 20, 4)
+
 
 def is_annot_validfn_inst(annot):
     if annot not in instance_ids:

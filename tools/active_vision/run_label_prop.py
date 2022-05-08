@@ -13,17 +13,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from common_utils import log_time
 from math import isnan
-
-set_keys = {
-    'e1r1r2': ['e1', 'r1', 'r2'],
-    'e1s1r2': ['e1', 's1', 'r2'],
-    'e1c1sr2': ['e1', 'c1s', 'r2'],
-    'e1c1lr2': ['e1', 'c1l', 'r2'],
-    'e1s1c1s': ['e1', 's1', 'c1s'],
-    'e1s1c1l': ['e1', 's1', 'c1l'],
-}
-
-prop_lengths = range(0, 20, 2)
+from common_utils import heuristics as heus, combinations as set_keys, prop_lengths
 
 d3_40_colors_rgb: np.ndarray = np.array(
     [
@@ -208,7 +198,7 @@ def propogate_label(
 def propagate_dir(reex_dir, out_dir):
     print(f'propagate_dir {reex_dir}')
     # should have folders in [r1, r2, s1, c1s, c1l]
-    for fold in ['r1', 'r2', 's1', 'c1s', 'c1l']:
+    for fold in heus:
         # prop lengths
         prop_f = os.path.join(reex_dir, fold)
         out_f = os.path.join(out_dir, fold)
@@ -362,9 +352,11 @@ def combine(src, dst, og_data, input_folds):
 
 
 def sanity_check_traj(x):
-    print(f'traj {x}')
     is_valid = True
     tid = x.split('/')[-3]
+    if int(tid) not in [33, 89, 1, 4, 35]:
+        return False
+    print(f'traj {x}')
     gt = x.split('/')[-1]
     reex_objects = [x for x in os.listdir(x) if x.isdigit()]  
     # print(reex_objects)
@@ -373,7 +365,8 @@ def sanity_check_traj(x):
         valid = True
         obj_path = os.path.join(x, obj)
         children = os.listdir(obj_path)
-        for h in ['r1', 'r2', 's1', 'c1l', 'c1s']:
+        print(f'children {children}')
+        for h in heus: #['r1', 'r2', 's1', 'c1l', 'c1s']:
             if h not in children:
                 print(f'{h} missing in {obj_path}')
                 valid = False
@@ -463,7 +456,7 @@ if __name__ == "__main__":
     executor = submitit.AutoExecutor(folder=os.path.join(args.job_dir, 'slurm_logs/%j'))
     # set timeout in min, and partition for running the job
     executor.update_parameters(
-        slurm_partition="learnfair", #"learnfair", #scavenge
+        slurm_partition="devlab", #"learnfair", #scavenge
         timeout_min=1000,
         mem_gb=256,
         gpus_per_node=4,

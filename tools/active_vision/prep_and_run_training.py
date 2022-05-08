@@ -4,16 +4,7 @@ from pathlib import Path
 import os
 from coco import run_coco
 from train import run_training
-from common_utils import log_time
-
-combinations = {
-    'e1r1r2': ['e1', 'r1', 'r2'],
-    'e1s1r2': ['e1', 's1', 'r2'],
-    # 'e1c1sr2': ['e1', 'c1s', 'r2'],
-    # 'e1c1lr2': ['e1', 'c1l', 'r2'],
-    # 'e1s1c1s': ['e1', 's1', 'c1s'],
-    # 'e1s1c1l': ['e1', 's1', 'c1l'],
-}
+from common_utils import log_time, heuristics as heus, combinations
 
 def get_training_data(path, job_dir):
     """
@@ -35,9 +26,13 @@ def get_training_data(path, job_dir):
                 'img_dir': os.path.join(path, 'rgb')
             },
             'val': {
-                'json': '/checkpoint/apratik/jobs/reexplore/instance_val_set/coco_val_all.json',
-                'img_dir': '/checkpoint/apratik/jobs/reexplore/instance_val_set/rgb'
+                'json': '/checkpoint/apratik/jobs/reexplore/instance_val_set_8/coco_val_all.json',
+                'img_dir': '/checkpoint/apratik/jobs/reexplore/instance_val_set_8/rgb'
             }
+            # 'val': {
+            #     'json': '/checkpoint/apratik/jobs/reexplore/instance_val_set/coco_val_all.json',
+            #     'img_dir': '/checkpoint/apratik/jobs/reexplore/instance_val_set/rgb'
+            # }
             # 'val': {
             #     'json': '/checkpoint/apratik/jobs/reexplore/instance_val_set_60/coco_val_all.json',
             #     'img_dir': '/checkpoint/apratik/jobs/reexplore/instance_val_set_60/rgb'
@@ -59,9 +54,14 @@ def get_training_data(path, job_dir):
                 'img_dir': os.path.join(path, 'rgb')
             },
             'val': {
-                'json': '/checkpoint/apratik/jobs/reexplore/instance_val_set/coco_val_all.json',
-                'img_dir': '/checkpoint/apratik/jobs/reexplore/instance_val_set/rgb'
+                'json': '/checkpoint/apratik/jobs/reexplore/instance_val_set_8/coco_val_all.json',
+                'img_dir': '/checkpoint/apratik/jobs/reexplore/instance_val_set_8/rgb'
             }
+            # doesn't have 166, 172
+            #'val': {
+            #     'json': '/checkpoint/apratik/jobs/reexplore/instance_val_set/coco_val_all.json',
+            #     'img_dir': '/checkpoint/apratik/jobs/reexplore/instance_val_set/rgb'
+            # }
             # 'val': {
             #     'json': '/checkpoint/apratik/jobs/reexplore/instance_val_set_60/coco_val_all.json',
             #     'img_dir': '/checkpoint/apratik/jobs/reexplore/instance_val_set_60/rgb'
@@ -100,7 +100,7 @@ import functools
 
 @functools.lru_cache(None)
 def sanity_check_traj(x):
-    heuristics = set(['r1', 'r2', 's1', 'c1s', 'c1l'])
+    heuristics = set(heus)
     is_valid = True
     tid = x.split('/')[-1]
     x = os.path.join(x, 'instance')
@@ -142,10 +142,8 @@ def prep_and_run_training(data_dir: str, job_dir: str, num_train_samples: int) -
     trajs = set()
     with executor.batch():
         for traj_id in os.listdir(data_dir):
-            if len(trajs) > 40:
-                break
             traj_dir = os.path.join(data_dir, traj_id)
-            if traj_id == '82' and sanity_check_traj(traj_dir):
+            if traj_id.isdigit() and sanity_check_traj(traj_dir):
                 trajs.add(traj_id)
                 print(f'traj_id {traj_id}, traj_dir {traj_dir}')
                 for path in Path(traj_dir).rglob('pred_label*'):
@@ -157,7 +155,7 @@ def prep_and_run_training(data_dir: str, job_dir: str, num_train_samples: int) -
                                 run_coco(path)
                                 training_data = get_training_data(path, job_dir)
                                 print(training_data, job_dir)
-                                for td in training_data[:1]:
+                                for td in training_data:
                                     run_training(td, num_train_samples)
                             print(f'launching training for {path}')
                             # job_unit(str(path), num_train_samples, job_dir)
@@ -192,7 +190,7 @@ if __name__ == "__main__":
     executor = submitit.AutoExecutor(folder=os.path.join(args.job_dir, 'slurm_logs/%j'))
     # set timeout in min, and partition for running the job
     executor.update_parameters(
-        slurm_partition="devlab", #"learnfair", #scavenge
+        slurm_partition="learnfair", #"learnfair", #scavenge
         timeout_min=100,
         mem_gb=256,
         gpus_per_node=4,
