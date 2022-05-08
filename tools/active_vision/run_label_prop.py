@@ -233,7 +233,7 @@ def propagate_dir(reex_dir, out_dir):
         end = time.time()
         print(f'total one time propagation time {end - start}')
 
-        for p in prop_lengths:
+        for p in [18]:
             od = os.path.join(out_f, f'pred_label_p{p}')
             if os.path.isdir(od):
                 rmtree(od)
@@ -384,7 +384,7 @@ def run_label_prop(data_dir, job_dir, job_out_dir, setting):
     jobs = []
 
     def get_lookuplist(valid_trajs):
-        return [f'{x}/{setting}/5' for x in valid_trajs]
+        return [f'{x}/{setting}/' for x in valid_trajs]
 
     with executor.batch():
         for path in Path(data_dir).rglob('reexplore_data.json'):
