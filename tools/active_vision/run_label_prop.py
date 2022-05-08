@@ -354,8 +354,8 @@ def combine(src, dst, og_data, input_folds):
 def sanity_check_traj(x):
     is_valid = True
     tid = x.split('/')[-3]
-    if int(tid) not in [33, 89, 1, 4, 35]:
-        return False
+    # if int(tid) not in [33, 89, 1, 4, 35]:
+    #     return False
     print(f'traj {x}')
     gt = x.split('/')[-1]
     reex_objects = [x for x in os.listdir(x) if x.isdigit()]  
@@ -456,7 +456,7 @@ if __name__ == "__main__":
     executor = submitit.AutoExecutor(folder=os.path.join(args.job_dir, 'slurm_logs/%j'))
     # set timeout in min, and partition for running the job
     executor.update_parameters(
-        slurm_partition="devlab", #"learnfair", #scavenge
+        slurm_partition="learnfair", #"learnfair", #scavenge
         timeout_min=1000,
         mem_gb=256,
         gpus_per_node=4,

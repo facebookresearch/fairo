@@ -8,7 +8,7 @@ set -ex
 # ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/collection2_426
 # ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/av300
 # ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/av300_pt2/  
-# ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/av_sanity30_4
+# ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/av_sanity50
 # ./launch_training.sh /checkpoint/apratik/jobs/reexplore/respawnv1/baselinev3_noisy --noisy
 
 if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then
