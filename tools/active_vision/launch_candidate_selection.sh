@@ -35,6 +35,5 @@ echo Job Directory $job_dir
 mkdir -p $job_dir
 echo """"""""""""""""""""""""""""""
 
-cd /private/home/apratik/fairo/tools/active_vision
 chmod +x find_respawn_loc.py
 python3.7 find_respawn_loc.py --data_dir $data_dir --out_dir $out_dir --num_traj $num_traj --job_dir $job_dir
