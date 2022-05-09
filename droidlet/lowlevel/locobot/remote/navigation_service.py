@@ -64,12 +64,12 @@ class Navigation(object):
 
         num_sem_categories = len(coco_categories)
         self.goal_policy = GoalPolicy(
-            obs_shape=(num_sem_categories + 8, 240, 240),
+            map_features_shape=(num_sem_categories + 8, 240, 240),
             num_outputs=2,
             hidden_size=256,
             num_sem_categories=num_sem_categories,
         )
-        state_dict = torch.load("policy/pretrained_models/sem_exp.pth", map_location="cpu")
+        state_dict = torch.load("policy/goal_policy.pth", map_location="cpu")
         self.goal_policy.load_state_dict(state_dict, strict=False)
 
         self._busy = False
@@ -129,6 +129,7 @@ class Navigation(object):
         return return_code
 
     def go_to_object(self, object_goal: str, steps=100000000):
+        print("go_to_object() start")
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
