@@ -4,3 +4,4 @@ defaults:
 use_gripper: false
 nuc_ip: localhost
 update_hz: 60
+sensitivity: 0.8

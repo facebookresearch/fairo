@@ -144,6 +144,7 @@ def main(cfg):
 
                 # Determine pose
                 vr_pose_diff = pose_elementwise_diff(vr_pose_ref, vr_pose_curr)
+                vr_pose_diff = sp.SE3.exp(cfg.sensitivity * vr_pose_diff.log())
                 arm_pose_desired = pose_elementwise_apply(vr_pose_diff, arm_pose_ref)
 
                 # Update
