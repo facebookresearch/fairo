@@ -731,7 +731,7 @@ class Reexplore(Task):
             self.agent.mover.nav.reset_explore()
             self.agent.mover.move_absolute(self.spawn_pos, blocking=True)
             base_pos = self.agent.mover.get_base_pos()
-            logging.info(f'at spawn loc ..')
+            logging.info(f"at spawn loc ..")
             # assert np.allclose(base_pos, self.base_pos)  # checking that poses match
 
             self.add_child_task(
@@ -756,7 +756,7 @@ class Reexplore(Task):
             self.agent.mover.nav.reset_explore()
             self.agent.mover.move_absolute(self.spawn_pos, blocking=True)
             base_pos = self.agent.mover.get_base_pos()
-            logging.info(f'at spawn loc ..')
+            logging.info(f"at spawn loc ..")
             # assert np.allclose(base_pos, self.base_pos)
 
             self.add_child_task(
