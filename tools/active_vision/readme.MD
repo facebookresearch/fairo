@@ -13,7 +13,7 @@ cd tools/active_vision
 
 Time estimate - ~10-15 minutes. This just finds respawn location and runs on devlab.
 
-- Job DIR: `/checkpoint/soumith/jobs/reexplore/candidates/09-05-2022/07:25:08`
+- Job DIR: `/checkpoint/soumith/jobs/reexplore/candidates/09-05-2022/07:53:51`
 
 2. Launch Reexplore
 
