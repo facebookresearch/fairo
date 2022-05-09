@@ -15,10 +15,10 @@ set -ex
 
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/largerun_noisy/baselinev3_noisy --noise
 
-if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then
+if ! source activate /private/home/${USER}/miniconda3/envs/droidlet; then
     echo "source activate not working, trying conda activate"
     source $(dirname $(dirname $(which conda)))/etc/profile.d/conda.sh || true
-    conda activate /private/home/apratik/miniconda3/envs/droidlet
+    conda activate /private/home/${USER}/miniconda3/envs/droidlet
 fi
 
 data_dir=$1
