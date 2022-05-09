@@ -19,7 +19,7 @@ class MapBuilder(object):
         agent_min_z=5,
         agent_max_z=70,
         num_sem_categories=16,
-        pose_init=(0., 0., 0.),
+        pose_init=(0.0, 0.0, 0.0),
     ):
         """
         :param map_size_cm: size of map in cm, assumes square map
@@ -45,9 +45,9 @@ class MapBuilder(object):
         self.map_size = int(self.map_size_cm // self.resolution)
         self.num_sem_categories = num_sem_categories
 
-        self.reset_map(self.map_size_cm, z_bins=self.z_bins, 
-                       obs_thr=self.obs_threshold, pose_init=pose_init)
-        
+        self.reset_map(
+            self.map_size_cm, z_bins=self.z_bins, obs_thr=self.obs_threshold, pose_init=pose_init
+        )
 
     def update_map(self, pcd, pose=None):
         """
@@ -120,7 +120,7 @@ class MapBuilder(object):
 
         voxels_t = splat_feat_nd(init_grid, feat, geometric_pc_t).transpose(2, 3)
 
-        agent_height_proj = voxels_t[..., self.z_bins[0]:self.z_bins[1]].sum(4)
+        agent_height_proj = voxels_t[..., self.z_bins[0] : self.z_bins[1]].sum(4)
         all_height_proj = voxels_t.sum(4)
 
         # Map channels reminder:
@@ -129,31 +129,44 @@ class MapBuilder(object):
         # 2: Current Agent Location
         # 3: Past Agent Locations
         # 4, 5, 6, .., num_sem_categories + 3: Semantic Categories
-        current_map = torch.cat([
-            # TODO Why does the agent height projection include all the explored area?
-            torch.clamp(agent_height_proj[:, 0:1, :, :] / self.obs_threshold, min=0., max=1.),
-            torch.clamp(all_height_proj[:, 0:1, :, :] / self.obs_threshold, min=0., max=1.),
-            torch.zeros(1, 2, self.map_size, self.map_size),
-            torch.clamp(agent_height_proj[:, 1:] / self.cat_pred_threshold, min=0., max=1)
-        ], dim=1).squeeze(0).numpy()
+        current_map = (
+            torch.cat(
+                [
+                    # TODO Why does the agent height projection include all the explored area?
+                    torch.clamp(
+                        agent_height_proj[:, 0:1, :, :] / self.obs_threshold, min=0.0, max=1.0
+                    ),
+                    torch.clamp(
+                        all_height_proj[:, 0:1, :, :] / self.obs_threshold, min=0.0, max=1.0
+                    ),
+                    torch.zeros(1, 2, self.map_size, self.map_size),
+                    torch.clamp(
+                        agent_height_proj[:, 1:] / self.cat_pred_threshold, min=0.0, max=1
+                    ),
+                ],
+                dim=1,
+            )
+            .squeeze(0)
+            .numpy()
+        )
 
         maps = np.concatenate((current_map[:, np.newaxis], self.semantic_map[:, np.newaxis]), 1)
         self.semantic_map = np.max(maps, 1)
 
         # Reset current location
-        self.semantic_map[2, :, :].fill(0.)
+        self.semantic_map[2, :, :].fill(0.0)
         curr_x, curr_y, _ = pose
         curr_x, curr_y = self.real2map((curr_x, curr_y))
         steps = 10
         for i in range(steps):
             x = int(np.rint(self.last_x + (curr_x - self.last_x) * i / steps))
             y = int(np.rint(self.last_y + (curr_y - self.last_y) * i / steps))
-            self.semantic_map[2:4, y - 2:y + 3, x - 2:x + 3].fill(1.)
+            self.semantic_map[2:4, y - 2 : y + 3, x - 2 : x + 3].fill(1.0)
         self.last_x, self.last_y = curr_x, curr_y
 
         return np.copy(self.semantic_map)
 
-    def reset_map(self, map_size_cm, z_bins=None, obs_thr=None, pose_init=(0., 0., 0.)):
+    def reset_map(self, map_size_cm, z_bins=None, obs_thr=None, pose_init=(0.0, 0.0, 0.0)):
         """
         resets the map to unknown
         :param map_size: size of map in cm, assumes square map

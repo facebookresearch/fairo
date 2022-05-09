@@ -61,13 +61,13 @@ class Navigation(object):
         self.slam = slam
         self.robot = robot
         self.trackback = Trackback(planner)
-        
+
         num_sem_categories = len(coco_categories)
         self.goal_policy = GoalPolicy(
-            obs_shape=(num_sem_categories + 8, 240, 240), 
+            obs_shape=(num_sem_categories + 8, 240, 240),
             num_outputs=2,
             hidden_size=256,
-            num_sem_categories=num_sem_categories
+            num_sem_categories=num_sem_categories,
         )
         state_dict = torch.load("policy/pretrained_models/sem_exp.pth", map_location="cpu")
         self.goal_policy.load_state_dict(state_dict, strict=False)
@@ -129,7 +129,9 @@ class Navigation(object):
         return return_code
 
     def go_to_object(self, object_goal: str, steps=100000000):
-        assert object_goal in coco_categories, f"Object goal must be in {list(coco_categories.keys())}"
+        assert (
+            object_goal in coco_categories
+        ), f"Object goal must be in {list(coco_categories.keys())}"
         object_goal = torch.tensor([[coco_categories[object_goal]]])
         map_features, orientation = self.slam.get_semantic_map_features()
         far_away_goal = self.goal_policy(map_features, orientation, object_goal)

@@ -173,7 +173,7 @@ class SLAM(object):
             for indice in zip(indices[0], indices[1])
         ]
         return real_world_locations
-    
+
     def get_semantic_map_features(self):
         """
         Returns:
@@ -190,13 +190,13 @@ class SLAM(object):
         map_features = torch.zeros(self.num_sem_categories + 8, 240, 240)
         # Local obstacles, explored area, and current and past position
         map_features[0:4, :, :] = local_map[0:4, :, :]
-        # TODO Put global obstacles, explored area, and current and past position instead 
+        # TODO Put global obstacles, explored area, and current and past position instead
         #  of repeating local - this requires (map_size % 240 == 0)
         map_features[4:8, :, :] = map_features[0:4, :, :]
         # Local semantic categories
         map_features[8:, :, :] = local_map[4:, :, :]
 
-        orientation = torch.tensor([[int((yaw * 180. / np.pi + 180.) / 5.)]])
+        orientation = torch.tensor([[int((yaw * 180.0 / np.pi + 180.0) / 5.0)]])
 
         return map_features.unsqueeze(0), orientation
 
