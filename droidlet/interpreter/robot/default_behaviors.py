@@ -145,6 +145,7 @@ def get_task_data(agent):
 
 
 def reexplore(agent):
+    # agent.mover.slam.reset_map()
     task_data = get_task_data(agent)
     logging.info(f"task_data {task_data}")
     if task_data is not None:

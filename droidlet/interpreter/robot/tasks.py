@@ -24,6 +24,8 @@ from droidlet.lowlevel.robot_mover_utils import (
     get_step_target_for_straightline_move,
     CAMERA_HEIGHT,
     get_circular_path,
+    get_straightline_path_to,
+    CircleGuide,
 )
 
 
@@ -387,7 +389,7 @@ class TrajectorySaverTask(Task):
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def save_rgb_depth_seg(self):
-        if self.agent.backend == "habitat":
+        if self.agent.backend == 'habitat':
             rgb, depth, segm = self.agent.mover.get_rgb_depth_segm()
         else:
             rgbd = self.agent.mover.get_rgb_depth()
@@ -399,7 +401,7 @@ class TrajectorySaverTask(Task):
         depth = depth.astype(np.uint16)
 
         pos = self.agent.mover.get_base_pos()
-        habitat_pos, habitat_rot = None, None  # self.agent.mover.bot.get_habitat_state()
+        habitat_pos, habitat_rot = None, None # self.agent.mover.bot.get_habitat_state()
         for data_saver in self.data_savers:
             data_saver.set_dbg_str(self.dbg_str)
             data_saver.save(rgb, depth, segm, pos, habitat_pos, habitat_rot)
@@ -549,7 +551,7 @@ class ExamineDetectionStraightline(TrajectorySaverTask):
         if self.last_base_pos is not None:
             d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
             logger.info(f"Distance moved {d}")
-        if (base_pos != self.last_base_pos).any() and dist > 1.2 and d > 0:
+        if (base_pos != self.last_base_pos).any() and dist > 0.4 and d > 0:
             tloc = get_step_target_for_straightline_move(base_pos, self.frontier_center)
             logger.debug(
                 f"get_step_target_for_straight_move \
@@ -581,6 +583,75 @@ class ExamineDetectionStraightline(TrajectorySaverTask):
 
     def __repr__(self):
         return "<ExamineDetectionStraightline {}>".format(self.target["label"])
+
+class ExamineDetectionStraightlinepp(TrajectorySaverTask):
+    """Examine a detection"""
+    def __init__(self, agent, task_data):
+        super().__init__(agent, task_data)
+        self.task_data = task_data
+        self.target = task_data['target']
+        self.frontier_center = np.asarray(self.target['xyz'])
+        base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        self.path = get_straightline_path_to(self.frontier_center, base_pos)
+        self.steps = 0
+        self.stuck = 0
+        self.agent = agent
+        self.last_base_pos = None
+        self.robot_poses = []
+        self.dbg_str = task_data.get('dbg_str')
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        super().step()
+        self.interrupted = False
+        self.finished = False
+        logger = logging.getLogger('curious')
+        base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        self.robot_poses.append(base_pos)
+        dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
+        logger.info(f"Deciding examination, dist = {dist}")
+        d = 1
+        if self.last_base_pos is not None:
+            d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
+            # logger.info(f"Distance moved {d}")
+        
+        if d < 0.01:
+            self.stuck += 1
+        
+        if self.steps < min(20, len(self.path)):
+            tloc = self.path[self.steps]
+            self.steps += 1
+            logger.debug(f"get_step_target_for_straight_move \
+                \nx, z, yaw = {base_pos},\
+                \nxf, zf = {self.frontier_center[0], self.frontier_center[2]} \
+                \nx_move, z_move, yaw_move = {tloc}")
+            logging.info(f"Current Pos {base_pos}")
+            logging.info(f"Move Target for Examining {tloc}")
+            logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-tloc[:2])}")
+            self.add_child_task(Move(self.agent, {"target": tloc}))
+
+            # visualize tloc, frontier_center, obstacle_map  
+            logging.info(f"os.getenv('VISUALIZE_EXAMINE') {os.getenv('VISUALIZE_EXAMINE')}")
+            if os.getenv('VISUALIZE_EXAMINE', 'False') == 'True':
+                visualize_examine(
+                    self.agent, 
+                    self.robot_poses, 
+                    self.frontier_center, 
+                    self.target['label'],
+                    self.agent.mover.get_obstacles_in_canonical_coords(),
+                    self.task_data['vis_path'],
+                    self.path
+                )   
+
+            self.last_base_pos = base_pos
+            return
+        else:
+            logger.info(f"Finished Examination")
+            self.finished = self.agent.mover.bot_step()
+        
+    def __repr__(self):
+        return "<ExamineDetectionStraightline++ {}>".format(self.target['label'])
 
 
 class ExamineDetectionCircle(TrajectorySaverTask):
@@ -644,6 +715,70 @@ class ExamineDetectionCircle(TrajectorySaverTask):
         return "<ExamineDetectionCircle {}>".format(self.target["label"])
 
 
+class ExamineDetectionCirclepp(TrajectorySaverTask):
+    """Examine a detection"""
+    def __init__(self, agent, task_data):
+        super().__init__(agent, task_data)
+        self.task_data = task_data
+        self.target = task_data['target']
+        self.radius = task_data.get('radius', 1)
+        self.frontier_center = np.asarray(self.target['xyz'])
+        self.agent = agent
+        self.steps = 0
+        self.stuck = 0
+        self.robot_poses = []
+        self.last_base_pos = None
+        self.dbg_str = task_data.get('dbg_str')
+        self.logger = task_data.get('logger') 
+        base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        self.guide = CircleGuide(
+            self.frontier_center, base_pos, radius=self.radius, include_approach=True, timeout=20
+        )
+        self.logger.info(f'{len(self.guide.path)} pts on cicle')
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        super().step()
+        self.interrupted = False
+        self.finished = False
+        base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        self.robot_poses.append(base_pos)
+        d = 1
+        if self.last_base_pos is not None:
+            d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
+            self.logger.info(f"Distance moved {d}")
+        
+        is_stuck = d < 0.01
+        tloc = self.guide.get_next(is_stuck)
+        if is_stuck:
+            self.stuck += 1
+        
+        if tloc is not None:
+            self.steps += 1
+            self.logger.info(f'step {self.steps} moving to {tloc} Current Pos {base_pos}')
+            self.add_child_task(Move(self.agent, {"target": tloc}))
+            self.last_base_pos = base_pos
+            # visualize tloc, frontier_center, obstacle_map  
+            if os.getenv('VISUALIZE_EXAMINE', 'False') == 'True':
+                visualize_examine(
+                    self.agent, 
+                    self.robot_poses, 
+                    self.frontier_center, 
+                    self.target['label'],
+                    self.agent.mover.get_obstacles_in_canonical_coords(),
+                    self.task_data['vis_path'],
+                    self.guide.path,
+                )   
+
+            return
+        else:
+            self.logger.info(f"Finished Examination")
+            self.finished = self.agent.mover.bot_step()
+        
+    def __repr__(self):
+        return "<ExamineDetectionCircle++ {}>".format(self.target['label'])
+
 class Explore(TrajectorySaverTask):
     """use slam to explore environemt"""
 
@@ -693,7 +828,7 @@ class Reexplore(Task):
 
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
-        self.tasks = ["circle", "straight", "random1", "random2"]
+        self.tasks = ["straight", "circlepp"] #, "random1", "random2"]
         self.task_data = task_data
         self.target = task_data.get("target")
         self.spawn_pos = task_data.get("spawn_pos")
@@ -722,56 +857,78 @@ class Reexplore(Task):
         self.interrupted = False
         self.finished = False
         logger = logging.getLogger("reexplore")
-        task_name = self.tasks.pop(0)
+        task_name = self.tasks.pop(0) if len(self.tasks) > 0 else None
 
-        # execute a straigtline examine
         if task_name == "straight":
             # self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             self.agent.mover.slam.reset_map()
-            self.agent.mover.nav.reset_explore()
+            # self.agent.mover.nav.reset_explore()
+            logging.info(f'Going to spawn loc .. {self.spawn_pos}')
             self.agent.mover.move_absolute(self.spawn_pos, blocking=True)
             base_pos = self.agent.mover.get_base_pos()
-            logging.info(f"at spawn loc ..")
+            logging.info(f'at spawn loc {self.spawn_pos}, base_pos {base_pos}')
             # assert np.allclose(base_pos, self.base_pos)  # checking that poses match
 
-            self.add_child_task(
-                ExamineDetectionStraightline(
-                    self.agent,
-                    {
-                        "target": self.target,
+            self.add_child_task(ExamineDetectionStraightline(
+                    self.agent, {
+                        "target": self.target, 
                         "save_data": True,
-                        "vis_path": f"{self.task_data['data_path']}/s1",
+                        "vis_path": f"{self.task_data['vis_path']}/s1",
                         "data_path": f"{self.task_data['data_path']}/s1",
-                        "dbg_str": f"Straightline examine {self.target}",
-                        "logger": logger,
-                    },
+                        "dbg_str": f'Straightline examine {self.target}',
+                        'logger': logger
+                        }
+                    )
                 )
-            )
+            return
+
+        # execute a straigtline examine
+        if task_name == "straightpp":
+            # self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
+            self.agent.mover.slam.reset_map()
+            # self.agent.mover.nav.reset_explore()
+            logging.info(f'Going to spawn loc .. {self.spawn_pos}')
+            self.agent.mover.move_absolute(self.spawn_pos, blocking=True)
+            base_pos = self.agent.mover.get_base_pos()
+            logging.info(f'at spawn loc {self.spawn_pos}, base_pos {base_pos}')
+            # assert np.allclose(base_pos, self.base_pos)  # checking that poses match
+
+            self.add_child_task(ExamineDetectionStraightlinepp(
+                    self.agent, {
+                        "target": self.target, 
+                        "save_data": True,
+                        "vis_path": f"{self.task_data['vis_path']}/s1pp",
+                        "data_path": f"{self.task_data['data_path']}/s1pp",
+                        "dbg_str": f'Straightline examine {self.target}',
+                        'logger': logger
+                        }
+                    )
+                )
             return
 
         # execute a circle examine
-        if task_name == "circle":
+        if task_name == "circlepp":
             # self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
             self.agent.mover.slam.reset_map()
-            self.agent.mover.nav.reset_explore()
+            # self.agent.mover.nav.reset_explore()
+            logging.info(f'Going to spawn loc .. {self.spawn_pos}')
             self.agent.mover.move_absolute(self.spawn_pos, blocking=True)
             base_pos = self.agent.mover.get_base_pos()
-            logging.info(f"at spawn loc ..")
+            logging.info(f'at spawn loc {self.spawn_pos}, base_pos {base_pos}')
             # assert np.allclose(base_pos, self.base_pos)
 
-            self.add_child_task(
-                ExamineDetectionCircle(
-                    self.agent,
-                    {
-                        "target": self.target,
+            self.add_child_task(ExamineDetectionCirclepp(
+                    self.agent, {
+                        "target": self.target, 
                         "save_data": True,
-                        "vis_path": f"{self.task_data['data_path']}/c1s",
-                        "data_path": f"{self.task_data['data_path']}/c1s",
-                        "dbg_str": f"Circle examine {self.target}",
-                        "logger": logger,
-                    },
+                        "vis_path": f"{self.task_data['vis_path']}/c1pp",
+                        "data_path": f"{self.task_data['data_path']}/c1pp",
+                        "dbg_str": f'Circle examine {self.target}',
+                        "radius": 1.4,
+                        'logger': logger
+                        }
+                    )
                 )
-            )
 
             return
 
