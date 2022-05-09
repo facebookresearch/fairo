@@ -18,7 +18,7 @@ from torchcontrol.transform import Transformation as T
 from polymetis import RobotInterface, GripperInterface
 
 # controller gains (modified from libfranka example)
-KP = torch.Tensor([300.0, 300.0, 300.0, 30.0, 30.0, 30.0])
+KP = torch.Tensor([400.0, 400.0, 400.0, 30.0, 30.0, 30.0])
 KD = 2 * torch.sqrt(KP)
 
 
