@@ -1,0 +1,2 @@
+device:
+  _target_: control_device.keyboard.KeyboardReader

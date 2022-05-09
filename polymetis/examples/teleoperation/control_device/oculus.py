@@ -3,6 +3,7 @@ import sophus as sp
 import torch
 
 from oculus_reader import OculusReader
+from torchcontrol.transform import Rotation as R
 
 from .base import TeleopDeviceReader
 
@@ -12,13 +13,13 @@ class OculusQuestReader(TeleopDeviceReader):
     Using the right controller, fully press the grip button (middle finger) to engage teleoperation. Hold B to perform grasp.
     """
 
-    def __init__(self, ip_address=None, mode: TeleopMode = TeleopMode.KEYBOARD):
-        self.reader = OculusReader(ip_address=ip_address)
+    def __init__(self, lpf_cutoff_hz, control_hz):
+        self.reader = OculusReader()
         self.reader.run()
 
         # LPF filter
         self.vr_pose_filtered = None
-        tmp = 2 * np.pi * LPF_CUTOFF_HZ / UPDATE_HZ
+        tmp = 2 * np.pi * lpf_cutoff_hz / control_hz
         self.lpf_alpha = tmp / (tmp + 1)
 
         print("Oculus Quest teleop reader instantiated.")

@@ -1,0 +1,4 @@
+device:
+    _target_: control_device.oculus.OculusQuestReader
+    lpf_cutoff_hz: 15
+    control_hz: ${update_hz}

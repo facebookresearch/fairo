@@ -16,11 +16,6 @@ from torchcontrol.transform import Rotation as R
 from torchcontrol.transform import Transformation as T
 from polymetis import RobotInterface, GripperInterface
 
-# teleop control frequency
-UPDATE_HZ = 60
-# low pass filter cutoff frequency
-LPF_CUTOFF_HZ = 15
-
 # controller gains (modified from libfranka example)
 KP_DEFAULT = torch.Tensor([300.0, 300.0, 300.0, 30.0, 30.0, 30.0])
 KD_DEFAULT = 2 * torch.sqrt(KP_DEFAULT)
@@ -48,7 +43,7 @@ class Robot:
 
     def reset(self):
         # Send PD controller
-        joint_pos_current = self.arm.get_joint_angles()
+        joint_pos_current = self.arm.get_joint_positions()
         """
         policy = toco.policies.JointImpedanceControl(
             joint_pos_current=joint_pos_current,
@@ -70,7 +65,7 @@ class Robot:
         self._open_gripper()
 
     def get_ee_pose(self):
-        pos_curr, quat_curr = self.arm.pose_ee()
+        pos_curr, quat_curr = self.arm.get_ee_pose()
         rotvec = R.from_quat(quat_curr).as_rotvec()
         return sp.SE3(sp.SO3.exp(rotvec).matrix(), pos_curr)
 
@@ -151,7 +146,7 @@ def main(cfg):
     print("Connecting to devices...")
     robot = Robot(ip_address=cfg.nuc_ip, use_gripper=cfg.use_gripper)
     print("Connected to robot.")
-    teleop = hydra.utils.instantiate(cfg.control_device)
+    teleop = hydra.utils.instantiate(cfg.device)
     print("Connected to teleop device.")
 
     # Initialize variables
@@ -161,7 +156,7 @@ def main(cfg):
 
     t0 = time.time()
     t_target = t0
-    t_delta = 1.0 / UPDATE_HZ
+    t_delta = 1.0 / cfg.update_hz
 
     # Start teleop loop
     print("======================== TELEOP START =========================")
