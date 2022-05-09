@@ -52,7 +52,7 @@ if __name__ == "__main__":
         for x in intrinsics
     ]
     with open(args.intrinsics, "w") as f:
-        json.dump(intrinsics_py, f)
+        json.dump(intrinsics_py, f, indent=4)
 
     rgbd_pub = a0.Publisher(topic)
 
