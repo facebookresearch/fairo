@@ -21,6 +21,8 @@ Time estimate - ~10-15 minutes. This just finds respawn location and runs on dev
 
 Time estimate - ~a few hours, you can run this overnight. It goes and reexplores each object for all the trajectories. Runs on learnfair
 
+- Job DIR: `/checkpoint/soumith/jobs/reexplore/recollect/09-05-2022/09:41:31`
+
 3. Launch Label Prop
 
 `./launch_label_prop.sh /checkpoint/soumith/jobs/reexplore/av_sm/av300_pt2 av_sm class`
