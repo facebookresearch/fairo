@@ -87,9 +87,15 @@ map_color_palette = [
     1.0,
     1.0,
     1.0,  # empty space
+    0.6, 
+    0.6, 
+    0.6,  # obstacles
     0.95,
     0.95,
     0.95,  # explored area
+    0.96, 
+    0.36, 
+    0.26,  # visited
     *coco_categories_color_palette,
 ]
 

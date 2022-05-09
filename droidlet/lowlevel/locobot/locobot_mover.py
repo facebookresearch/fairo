@@ -158,6 +158,9 @@ class LoCoBotMover:
             )
         return "finished"
 
+    def move_to_object(self, object_goal: str):
+        return self.nav.go_to_object(object_goal)
+
     def look_at(self, obj_pos, yaw_deg, pitch_deg):
         """
         Executes "look at" by setting the pan, tilt of the camera or turning the base if required.

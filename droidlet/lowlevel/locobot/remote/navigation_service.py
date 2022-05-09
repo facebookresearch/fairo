@@ -3,10 +3,14 @@ import sys
 import random
 import math
 import time
+import torch
 import numpy as np
 import Pyro4
-from slam_pkg.utils import depth_util as du
 from rich import print
+
+from slam_pkg.utils import depth_util as du
+from policy.goal_policy import GoalPolicy
+from segmentation.constants import coco_categories
 
 random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
@@ -57,6 +61,17 @@ class Navigation(object):
         self.slam = slam
         self.robot = robot
         self.trackback = Trackback(planner)
+        
+        num_sem_categories = len(coco_categories)
+        self.goal_policy = GoalPolicy(
+            obs_shape=(num_sem_categories + 8, 240, 240), 
+            num_outputs=2,
+            hidden_size=256,
+            num_sem_categories=num_sem_categories
+        )
+        state_dict = torch.load("policy/pretrained_models/sem_exp.pth", map_location="cpu")
+        self.goal_policy.load_state_dict(state_dict, strict=False)
+
         self._busy = False
         self._stop = True
         self._done_exploring = False
@@ -112,6 +127,14 @@ class Navigation(object):
 
         self._busy = False
         return return_code
+
+    def go_to_object(self, object_goal: str, steps=100000000):
+        assert object_goal in coco_categories, f"Object goal must be in {list(coco_categories.keys())}"
+        object_goal = torch.tensor([[coco_categories[object_goal]]])
+        map_features, orientation = self.slam.get_semantic_map_features()
+        far_away_goal = self.goal_policy(map_features, orientation, object_goal)
+        print("far_away_goal", far_away_goal)
+        return self.go_to_absolute(far_away_goal, steps=steps)
 
     def explore(self, far_away_goal):
         if not hasattr(self, "_done_exploring"):

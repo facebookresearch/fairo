@@ -279,7 +279,8 @@ if __name__ == "__main__":
 
         # start the SLAM
         if backend == 'habitat':
-            mover.explore((19, 19, 0))
+            # mover.explore((19, 19, 0))
+            mover.move_to_object("chair")
         
         sio.emit(
             "map",

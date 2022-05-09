@@ -1,6 +1,8 @@
 import os
 import sys
 import time
+import torch
+import torch.nn as nn
 import numpy as np
 import Pyro4
 import select
@@ -24,7 +26,7 @@ class SLAM(object):
         self,
         robot,
         map_size_cm=4000,
-        resolution=10,
+        resolution=5,
         robot_rad=30,
         agent_min_z=5,
         agent_max_z=70,
@@ -36,6 +38,7 @@ class SLAM(object):
         self.num_sem_categories = len(coco_categories)
         self.obs_threshold = obstacle_threshold
         self.map_builder = mb(
+            pose_init=self.robot.get_base_state(),
             map_size_cm=map_size_cm,
             resolution=resolution,
             agent_min_z=agent_min_z,
@@ -107,7 +110,8 @@ class SLAM(object):
         semantics = semantics[valid]
 
         self.map_builder.update_map(pcd)
-        self.map_builder.update_semantic_map(pcd, semantics)
+        pose = self.robot.get_base_state()
+        self.map_builder.update_semantic_map(pcd, semantics, pose)
         self.visualize_semantic_map()
 
         # explore the map by robot shape
@@ -133,15 +137,20 @@ class SLAM(object):
         """Visualize top-down semantic map."""
         sem_map = self.map_builder.semantic_map
 
-        sem_channels = sem_map[1:]
+        sem_channels = sem_map[4:]
         sem_channels[-1] = 1e-5
-        explored_mask = (sem_map[0] / self.obs_threshold) >= 0.5
+        obstacle_mask = np.rint(sem_map[0]) == 1
+        explored_mask = np.rint(sem_map[1]) == 1
+        visited_mask = sem_map[3] == 1
         sem_map = sem_channels.argmax(0)
         no_category_mask = sem_map == self.num_sem_categories - 1
 
-        sem_map += 2
+        sem_map += 4
         sem_map[no_category_mask] = 0
-        sem_map[np.logical_and(no_category_mask, explored_mask)] = 1
+        sem_map[np.logical_and(no_category_mask, explored_mask)] = 2
+        # TODO Why does the agent height projection include all the explored area?
+        # sem_map[np.logical_and(no_category_mask, obstacle_mask)] = 1
+        sem_map[visited_mask] = 3
 
         sem_map_vis = Image.new("P", (sem_map.shape[1], sem_map.shape[0]))
         sem_map_vis.putpalette([int(x * 255.0) for x in map_color_palette])
@@ -164,6 +173,32 @@ class SLAM(object):
             for indice in zip(indices[0], indices[1])
         ]
         return real_world_locations
+    
+    def get_semantic_map_features(self):
+        """
+        Returns:
+            map_features: semantic map features of shape (num_sem_categories + 8, 240, 240)
+            orientation: discretized yaw in {0, ..., 72}
+        """
+        x, y, yaw = self.robot.get_base_state()
+        x, y = self.map_builder.real2map((x, y))
+        x1, y1 = max(int(x - 120), 0), max(int(y - 120), 0)
+        x2, y2 = x1 + 240, y1 + 240
+        global_map = torch.from_numpy(self.map_builder.semantic_map)
+        local_map = global_map[:, y1:y2, x1:x2]
+
+        map_features = torch.zeros(self.num_sem_categories + 8, 240, 240)
+        # Local obstacles, explored area, and current and past position
+        map_features[0:4, :, :] = local_map[0:4, :, :]
+        # TODO Put global obstacles, explored area, and current and past position instead 
+        #  of repeating local - this requires (map_size % 240 == 0)
+        map_features[4:8, :, :] = map_features[0:4, :, :]
+        # Local semantic categories
+        map_features[8:, :, :] = local_map[4:, :, :]
+
+        orientation = torch.tensor([[int((yaw * 180. / np.pi + 180.) / 5.)]])
+
+        return map_features.unsqueeze(0), orientation
 
     def reset_map(self, z_bins=None, obs_thr=None):
         self.map_builder.reset_map(self.map_size_cm, z_bins=z_bins, obs_thr=obs_thr)
