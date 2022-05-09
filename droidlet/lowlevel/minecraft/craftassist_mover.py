@@ -28,7 +28,9 @@ def flip_x(struct, floor=False):
 
 
 def flip_look(struct):
-    return Look(-struct.yaw, -struct.pitch)
+    yaw = -np.deg2rad(struct.yaw)
+    pitch = -np.deg2rad(struct.pitch)
+    return Look(yaw, pitch)
 
 
 def maybe_flip_x_or_look(struct, floor=False):
@@ -148,12 +150,11 @@ class CraftassistMover:
 
     # FIXME!! turn_angle is broken in the cagent; should be swapping here,
     # but cagent actually has it backwards
-    # turn_angle isn't being used in other parts of agent.
     def turn_angle(self, yaw):
         self.cagent.turn_angle(yaw)
 
     def set_look(self, yaw, pitch):
-        self.cagent.set_look(-yaw, pitch)
+        self.cagent.set_look(-yaw, -pitch)
 
     def look_at(self, x, y, z):
         self.cagent.look_at(-x, y, z)
@@ -257,8 +258,8 @@ def from_droidlet_xyz_to_minecraft(xyz):
 
 
 def from_minecraft_look_to_droidlet(look):
-    return Look(-look.yaw, look.pitch)
+    return Look(-look.yaw, -look.pitch)
 
 
 def from_droidlet_look_to_craftassist(look):
-    return Look(-look.yaw, look.pitch)
+    return Look(-look.yaw, -look.pitch)

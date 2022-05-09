@@ -357,11 +357,12 @@ class CraftAssistAgent(DroidletAgent):
     ###FIXME!!
     #    self.get_incoming_chats = self.get_chats
 
+    # WARNING!! this is in degrees.  agent's memory stores looks in radians.
+    # FIXME: normalize, switch in DSL to radians.
     def relative_head_pitch(self, angle):
         """Converts assistant's current pitch and yaw
         into a pitch and yaw relative to the angle."""
-        # warning: pitch is flipped!
-        new_pitch = self.get_player().look.pitch - angle
+        new_pitch = np.rad2deg(self.get_player().look.pitch) - angle
         self.set_look(self.get_player().look.yaw, new_pitch)
 
     def send_chat(self, chat: str):
@@ -370,7 +371,9 @@ class CraftAssistAgent(DroidletAgent):
         chat_json = False
         try:
             chat_json = json.loads(chat)
-            chat_text = list(filter(lambda x: x["id"] == "text", chat_json["content"]))[0]["content"]
+            chat_text = list(filter(lambda x: x["id"] == "text", chat_json["content"]))[0][
+                "content"
+            ]
         except:
             chat_text = chat
 
@@ -379,7 +382,7 @@ class CraftAssistAgent(DroidletAgent):
 
         if chat_json:
             chat_json["chat_memid"] = chat_memid
-            chat_json["timestamp"] = round(datetime.timestamp(datetime.now())*1000)
+            chat_json["timestamp"] = round(datetime.timestamp(datetime.now()) * 1000)
             # Send the socket event to show this reply on dashboard
             sio.emit("showAssistantReply", chat_json)
         else:
