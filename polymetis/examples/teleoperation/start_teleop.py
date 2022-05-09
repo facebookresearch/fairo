@@ -2,23 +2,19 @@
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-import argparse
 import time
 import sys
 import threading
-from enum import Enum
 
 import numpy as np
 import sophus as sp
 import torch
-import getch
+import hydra
 
 import torchcontrol as toco
 from torchcontrol.transform import Rotation as R
 from torchcontrol.transform import Transformation as T
 from polymetis import RobotInterface, GripperInterface
-
-from oculus_reader import OculusReader
 
 # teleop control frequency
 UPDATE_HZ = 60
@@ -28,114 +24,6 @@ LPF_CUTOFF_HZ = 15
 # controller gains (modified from libfranka example)
 KP_DEFAULT = torch.Tensor([300.0, 300.0, 300.0, 30.0, 30.0, 30.0])
 KD_DEFAULT = 2 * torch.sqrt(KP_DEFAULT)
-
-
-class TeleopMode(Enum):
-    KEYBOARD = 1
-    OCULUS = 2
-
-
-class TeleopDevice:
-    """Allows for teleoperation using either the keyboard or an Oculus controller
-
-    Keyboard: Control end-effector position with WASD and RF, toggle gripper state with space
-    Oculus: Using the right controller, fully press the grip button (middle finger) to engage teleoperation. Hold B to perform grasp.
-    """
-
-    def __init__(self, ip_address=None, mode: TeleopMode = TeleopMode.OCULUS):
-        self.mode = mode
-
-        if self.mode == TeleopMode.OCULUS:
-            self.reader = OculusReader(ip_address=ip_address)
-            self.reader.run()
-
-        elif self.mode == TeleopMode.KEYBOARD:
-            self.steps = 0
-            self.delta_pos = np.zeros(3)
-            self.delta_rot = np.zeros(3)
-            self.grasp_state = 0
-
-        # LPF filter
-        self.vr_pose_filtered = None
-        tmp = 2 * np.pi * LPF_CUTOFF_HZ / UPDATE_HZ
-        self.lpf_alpha = tmp / (tmp + 1)
-
-    def get_state(self):
-        if self.mode == TeleopMode.OCULUS:
-            # Get data from oculus reader
-            transforms, buttons = self.reader.get_transformations_and_buttons()
-
-            # Generate output
-            if transforms:
-                is_active = buttons["rightGrip"][0] > 0.9
-                grasp_state = buttons["B"]
-                pose_matrix = np.linalg.pinv(transforms["l"]) @ transforms["r"]
-            else:
-                is_active = False
-                grasp_state = 0
-                pose_matrix = np.eye(4)
-                self.vr_pose_filtered = None
-
-            # Create transform (hack to prevent unorthodox matrices)
-            r = R.from_matrix(torch.Tensor(pose_matrix[:3, :3]))
-            vr_pose_curr = sp.SE3(
-                sp.SO3.exp(r.as_rotvec()).matrix(), pose_matrix[:3, -1]
-            )
-
-            # Filter transform
-            if self.vr_pose_filtered is None:
-                self.vr_pose_filtered = vr_pose_curr
-            else:
-                self.vr_pose_filtered = interpolate_pose(
-                    self.vr_pose_filtered, vr_pose_curr, self.lpf_alpha
-                )
-            pose = self.vr_pose_filtered
-
-        elif self.mode == TeleopMode.KEYBOARD:
-            # Get data from keyboard
-            key = getch.getch()
-            if key == "w":  # Translation
-                self.delta_pos[0] += 0.01
-            elif key == "s":
-                self.delta_pos[0] -= 0.01
-            elif key == "a":
-                self.delta_pos[1] += 0.01
-            elif key == "d":
-                self.delta_pos[1] -= 0.01
-            elif key == "r":
-                self.delta_pos[2] += 0.01
-            elif key == "f":
-                self.delta_pos[2] -= 0.01
-            elif key == "z":  # Rotation
-                self.delta_rot[0] += 0.05
-            elif key == "Z":
-                self.delta_rot[0] -= 0.05
-            elif key == "x":
-                self.delta_rot[1] += 0.05
-            elif key == "X":
-                self.delta_rot[1] -= 0.05
-            elif key == "c":
-                self.delta_rot[2] += 0.05
-            elif key == "C":
-                self.delta_rot[2] -= 0.05
-            elif key == " ":  # Gripper toggle
-                self.grasp_state = 1 - self.grasp_state
-
-            self.steps += 1
-
-            # Generate output
-            is_active = True
-
-            pose_matrix = np.eye(4)
-            pose_matrix[:3, :3] = (
-                sp.SO3.exp(self.delta_rot).matrix() @ pose_matrix[:3, :3]
-            )
-            pose_matrix[:3, -1] = self.delta_pos
-            pose = sp.SE3(pose_matrix)
-
-            grasp_state = self.grasp_state
-
-        return is_active, pose, grasp_state
 
 
 class Robot:
@@ -243,11 +131,6 @@ class Robot:
             self.grasp_state = 0
 
 
-def interpolate_pose(pose1, pose2, pct):
-    pose_diff = pose1.inverse() * pose2
-    return pose1 * sp.SE3.exp(pct * pose_diff.log())
-
-
 def pose_elementwise_diff(pose1, pose2):
     return sp.SE3(
         (pose2.so3() * pose1.so3().inverse()).matrix().T,
@@ -262,19 +145,13 @@ def pose_elementwise_apply(delta_pose, pose):
     )
 
 
-def main(args):
-    if args.keyboard:
-        print("Running in keyboard mode.")
-        mode = TeleopMode.KEYBOARD
-    else:
-        print("Running in Oculus mode.")
-        mode = TeleopMode.OCULUS
-
+@hydra.main(config_path="conf", config_name="teleop_config")
+def main(cfg):
     # Initialize interfaces
     print("Connecting to devices...")
-    robot = Robot(ip_address=args.ip, use_gripper=args.use_gripper)
+    robot = Robot(ip_address=cfg.nuc_ip, use_gripper=cfg.use_gripper)
     print("Connected to robot.")
-    teleop = TeleopDevice(mode=mode)
+    teleop = hydra.utils.instantiate(cfg.control_device)
     print("Connected to teleop device.")
 
     # Initialize variables
@@ -323,16 +200,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(allow_abbrev=False)
-    parser.add_argument(
-        "--ip", type=str, default="localhost", help="IP address of NUC."
-    )
-    parser.add_argument(
-        "-k", "--keyboard", action="store_true", help="Teleop with keyboard mode."
-    )
-    parser.add_argument(
-        "-g", "--use_gripper", action="store_true", help="Run with gripper enabled."
-    )
-    args = parser.parse_args()
-
-    main(args)
+    main()

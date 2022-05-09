@@ -1,0 +1,5 @@
+defaults:
+  - control_device: keyboard
+
+use_gripper: false
+nuc_ip: localhost
