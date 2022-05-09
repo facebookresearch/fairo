@@ -25,8 +25,8 @@ def number_from_span(span):
     return degrees
 
 
-# WARNING: everything here is in degrees. In the Task they will be switched to
-# radians.  TODO: change fixed values in DSL to be radians
+# WARNING: everything here is in degrees.
+# TODO: change fixed values in DSL to be radians
 class FacingInterpreter:
     def __call__(self, interpreter, speaker, d):
         self_mem = interpreter.memory.get_mem_by_id(interpreter.memory.self_memid)
