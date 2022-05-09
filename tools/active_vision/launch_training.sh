@@ -9,7 +9,8 @@ set -ex
 # ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/av300
 # ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/av300_pt2/  
 # ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/av_sanity50
-# ./launch_training.sh /checkpoint/apratik/jobs/reexplore/respawnv1/baselinev3_noisy --noisy
+# ./launch_training.sh /checkpoint/apratik/jobs/reexplore/respawnv1/baselinev3_noisy 
+# ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/av_sm_noise_50 instance
 
 if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then
     echo "source activate not working, trying conda activate"

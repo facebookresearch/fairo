@@ -13,7 +13,7 @@ set -ex
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300_sanity50/av300_pt2
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300_noise_pt2/av300_noise_pt2
 
-# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/largerun_noisy/baselinev3_noisy --noise
+# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av_sm_noise_50/av300_noise_pt2 instance --noise
 
 if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then
     echo "source activate not working, trying conda activate"

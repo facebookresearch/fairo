@@ -2,7 +2,7 @@
 from droidlet.perception.robot.active_vision.candidate_selection import SampleGoodCandidates
 from droidlet.lowlevel.robot_coordinate_utils import xyz_pyrobot_to_canonical_coords
 from droidlet.perception.robot.handlers import convert_depth_to_pcd, compute_uvone
-from common_utils import is_annot_validfn_class, is_annot_validfn_inst, log_time, class_labels, instance_ids
+from common_utils import is_annot_validfn_class, is_annot_validfn_inst, log_time, class_labels, instance_ids, small_gt_range
 from typing import List
 
 import os 
@@ -181,7 +181,7 @@ def find_spawn_loc(
                         @log_time(os.path.join(job_dir, 'job_log.txt'))
                         def job_unit(traj_path, out_dir, traj_id, annot_fn, labels, setting):
                             s = SampleGoodCandidates(traj_path, annot_fn, labels, setting)
-                            for gt in range(5,15,4):
+                            for gt in small_gt_range:
                                 outr = os.path.join(out_dir, traj_id, setting, str(gt))
                                 os.makedirs(outr, exist_ok=True)
                                 print(f'outr {outr}')

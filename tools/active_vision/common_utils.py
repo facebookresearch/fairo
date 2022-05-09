@@ -15,7 +15,7 @@ combinations = {
     'e1c1ppr2': ['e1', 'c1pp', 'r2'],
 }
 prop_lengths = range(0, 20, 4)
-
+small_gt_range = range(5,10,5)
 
 def is_annot_validfn_inst(annot):
     if annot not in instance_ids:
