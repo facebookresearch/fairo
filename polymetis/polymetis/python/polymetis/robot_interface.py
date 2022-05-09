@@ -542,8 +542,8 @@ class RobotInterface(BaseRobotInterface):
         """
         torch_policy = toco.policies.CartesianImpedanceControl(
             joint_pos_current=self.get_joint_positions(),
-            Kp=Kx or self.Kx_default,
-            Kd=Kxd or self.Kxd_default,
+            Kp=self.Kx_default if Kx is None else Kx,
+            Kd=self.Kxd_default if Kxd is None else Kxd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )

@@ -18,8 +18,8 @@ from torchcontrol.transform import Transformation as T
 from polymetis import RobotInterface, GripperInterface
 
 # controller gains (modified from libfranka example)
-KP_DEFAULT = torch.Tensor([300.0, 300.0, 300.0, 30.0, 30.0, 30.0])
-KD_DEFAULT = 2 * torch.sqrt(KP_DEFAULT)
+KP = torch.Tensor([300.0, 300.0, 300.0, 30.0, 30.0, 30.0])
+KD = 2 * torch.sqrt(KP)
 
 
 class Robot:
@@ -44,15 +44,7 @@ class Robot:
 
     def reset(self):
         # Send PD controller
-        joint_pos_current = self.arm.get_joint_positions()
-        policy = toco.policies.CartesianImpedanceControl(
-            joint_pos_current=joint_pos_current,
-            Kp=KP_DEFAULT,
-            Kd=KD_DEFAULT,
-            robot_model=self.arm.robot_model,
-        )
-
-        self.arm.send_torch_policy(policy, blocking=False)
+        self.arm.start_cartesian_impedance(KP, KD)
 
         # Reset gripper
         self._open_gripper()
@@ -71,9 +63,7 @@ class Robot:
 
         # Update policy
         try:
-            self.arm.update_current_policy(
-                {"ee_pos_desired": ee_pos_desired, "ee_quat_desired": ee_quat_desired}
-            )
+            self.arm.update_desired_ee_pose(ee_pos_desired, ee_quat_desired)
         except grpc.RpcError:
             print("Interrupt detected. Reinstantiating control policy...")
             time.sleep(1)
