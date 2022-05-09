@@ -11,7 +11,7 @@ set -ex
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300/av300_simple
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300_sanity30/av300_pt2
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300_sanity50/av300_pt2
-# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300_noise_pt2/av300_noise_pt2
+# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av_sm_class_50/av300_pt2 class
 
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av_sm_noise_50/av300_noise_pt2 instance --noise
 

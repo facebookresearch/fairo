@@ -7,6 +7,7 @@
 # ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_pt2/ av300_pt2 300
 # ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_pt2/ av300_sanity50 50
 # ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_noise_pt2 av_sm_noise_50 50 instance
+# ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_pt2 av_sm_class_50 50 class gtfix
 # ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_noise_pt2/ av300_noise_pt2 300
 
 set -ex
@@ -37,4 +38,4 @@ mkdir -p $job_dir
 echo """"""""""""""""""""""""""""""
 
 chmod +x find_respawn_loc.py
-python3.7 find_respawn_loc.py --data_dir $data_dir --out_dir $out_dir --num_traj $num_traj --job_dir $job_dir --setting $4
+python3.7 find_respawn_loc.py --data_dir $data_dir --out_dir $out_dir --num_traj $num_traj --job_dir $job_dir --setting $4 --gt_or_p_fix $5

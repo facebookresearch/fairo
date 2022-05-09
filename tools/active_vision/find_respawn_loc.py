@@ -2,7 +2,7 @@
 from droidlet.perception.robot.active_vision.candidate_selection import SampleGoodCandidates
 from droidlet.lowlevel.robot_coordinate_utils import xyz_pyrobot_to_canonical_coords
 from droidlet.perception.robot.handlers import convert_depth_to_pcd, compute_uvone
-from common_utils import is_annot_validfn_class, is_annot_validfn_inst, log_time, class_labels, instance_ids, small_gt_range
+from common_utils import is_annot_validfn_class, is_annot_validfn_inst, log_time, class_labels, instance_ids, small_gt_range, big_gt_range
 from typing import List
 
 import os 
@@ -159,6 +159,7 @@ def find_spawn_loc(
         job_dir: str,
         mode: str,
         setting: str,
+        gt_or_p_fix: str,
     ) -> None:
     """
     Main fn to find the spawn locations for reexplore for all trajectories in baseline_root
@@ -181,7 +182,8 @@ def find_spawn_loc(
                         @log_time(os.path.join(job_dir, 'job_log.txt'))
                         def job_unit(traj_path, out_dir, traj_id, annot_fn, labels, setting):
                             s = SampleGoodCandidates(traj_path, annot_fn, labels, setting)
-                            for gt in small_gt_range:
+                            gt_range = small_gt_range if gt_or_p_fix == 'pfix' else big_gt_range
+                            for gt in gt_range:
                                 outr = os.path.join(out_dir, traj_id, setting, str(gt))
                                 os.makedirs(outr, exist_ok=True)
                                 print(f'outr {outr}')
@@ -210,6 +212,7 @@ if __name__ == "__main__":
         default="sim", 
         help="two modes: sim (runs on slurm) or robot (runs locally)"
     )
+    parser.add_argument("--gt_or_p_fix", type=str, default="pfix")
 
     args = parser.parse_args()
 
@@ -235,5 +238,5 @@ if __name__ == "__main__":
         shutil.rmtree(args.out_dir)
 
     find_spawn_loc(
-        args.data_dir, args.out_dir, args.num_traj, args.job_dir, args.mode, args.setting
+        args.data_dir, args.out_dir, args.num_traj, args.job_dir, args.mode, args.setting, args.gt_or_p_fix
     )

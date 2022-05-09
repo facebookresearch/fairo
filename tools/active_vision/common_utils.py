@@ -16,6 +16,7 @@ combinations = {
 }
 prop_lengths = range(0, 20, 4)
 small_gt_range = range(5,10,5)
+big_gt_range = range(5,15,3)
 
 def is_annot_validfn_inst(annot):
     if annot not in instance_ids:

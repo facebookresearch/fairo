@@ -55,7 +55,7 @@ def launch_reexplore(data_dir: str, job_dir: str, noise: bool, num_traj: int, se
             for path in Path(traj_dir).rglob('reexplore_data.json'):
                 with open(os.path.join(path.parent, 'reexplore_data.json'), 'r') as f:
                     data = json.load(f)
-                    if len(data.keys()) > 0 and f'{setting}/5' in str(path):
+                    if len(data.keys()) > 0 and f'{setting}' in str(path):
                         print(f'processing {path.parent}')
                         reexplore_callable = reexplore_job()
                         # reexplore_callable(path.parent, noise)
