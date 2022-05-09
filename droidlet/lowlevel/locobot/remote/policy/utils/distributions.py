@@ -12,8 +12,7 @@ Modify standard PyTorch distributions so they are compatible with this code.
 
 FixedNormal = torch.distributions.Normal
 log_prob_normal = FixedNormal.log_prob
-FixedNormal.log_probs = lambda self, actions: \
-    log_prob_normal(self, actions).sum(-1, keepdim=False)
+FixedNormal.log_probs = lambda self, actions: log_prob_normal(self, actions).sum(-1, keepdim=False)
 
 entropy = FixedNormal.entropy
 FixedNormal.entropy = lambda self: entropy(self).sum(-1)
@@ -22,7 +21,6 @@ FixedNormal.mode = lambda self: self.mean
 
 
 class DiagGaussian(nn.Module):
-
     def __init__(self, num_inputs, num_outputs):
         super(DiagGaussian, self).__init__()
 
@@ -38,4 +36,3 @@ class DiagGaussian(nn.Module):
 
         action_logstd = self.logstd(zeros)
         return FixedNormal(action_mean, action_logstd.exp())
-  
