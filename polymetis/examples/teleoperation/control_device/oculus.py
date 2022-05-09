@@ -41,7 +41,8 @@ class OculusQuestReader(TeleopDeviceReader):
 
         # Create transform (hack to prevent unorthodox matrices)
         r = R.from_matrix(torch.Tensor(pose_matrix[:3, :3]))
-        vr_pose_curr = sp.SE3(sp.SO3.exp(r.as_rotvec()).matrix(), pose_matrix[:3, -1])
+        pose_matrix[:3, :3] = sp.SO3.exp(r.as_rotvec()).matrix()
+        vr_pose_curr = sp.SE3(pose_matrix)
 
         # Filter transform
         if self.vr_pose_filtered is None:

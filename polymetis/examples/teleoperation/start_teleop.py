@@ -10,6 +10,7 @@ import numpy as np
 import sophus as sp
 import torch
 import hydra
+import grpc
 
 import torchcontrol as toco
 from torchcontrol.transform import Rotation as R
@@ -44,14 +45,6 @@ class Robot:
     def reset(self):
         # Send PD controller
         joint_pos_current = self.arm.get_joint_positions()
-        """
-        policy = toco.policies.JointImpedanceControl(
-            joint_pos_current=joint_pos_current,
-            Kp=self.arm.metadata.default_Kq,
-            Kd=self.arm.metadata.default_Kqd,
-            robot_model=self.arm.robot_model,
-        )
-        """
         policy = toco.policies.CartesianImpedanceControl(
             joint_pos_current=joint_pos_current,
             Kp=KP_DEFAULT,
@@ -70,19 +63,6 @@ class Robot:
         return sp.SE3(sp.SO3.exp(rotvec).matrix(), pos_curr)
 
     def update_ee_pose(self, pose_des):
-        """
-        # Compute desired joint pose
-        q_curr = self.arm.get_joint_angles()
-        pose_curr = self.get_ee_pose()
-
-        J = self.arm.robot_model.compute_jacobian(q_curr)
-        J_pinv = torch.pinverse(J)
-
-        q_des = q_curr + J_pinv @ torch.Tensor((pose_des * pose_curr.inverse()).log())
-
-        # Update policy
-        self.arm.update_current_policy({"joint_pos_desired": q_des})
-        """
         # Compute desired pos & quat
         ee_pos_desired = torch.Tensor(pose_des.translation())
         ee_quat_desired = R.from_matrix(
@@ -90,12 +70,11 @@ class Robot:
         ).as_quat()
 
         # Update policy
-        self.arm.update_current_policy(
-            {"ee_pos_desired": ee_pos_desired, "ee_quat_desired": ee_quat_desired}
-        )
-
-        # Check if policy terminated due to issues and restart
-        if self.arm.get_previous_interval().end != -1:
+        try:
+            self.arm.update_current_policy(
+                {"ee_pos_desired": ee_pos_desired, "ee_quat_desired": ee_quat_desired}
+            )
+        except grpc.RpcError:
             print("Interrupt detected. Reinstantiating control policy...")
             time.sleep(1)
             self.reset()
