@@ -9,4 +9,4 @@ export SAVE_EXPLORATION=True
 export DATA_PATH=test
 export VISUALIZE_EXAMINE=True
 source activate /private/home/apratik/miniconda3/envs/droidlet
-python ../../agents/locobot/locobot_agent.py --data_store_path $1 --default_behavior reexplore --reexplore_json $2
+python /private/home/aszlam/fairinternal/fairo/agents/locobot/locobot_agent.py --data_store_path $1 --default_behavior reexplore --reexplore_json $2

@@ -6,6 +6,7 @@ assets (specified in `tool/artifact_scripts/tracked_checksums`) if they are stal
 import os
 import glob
 import subprocess
+import logging
 from droidlet.tools.artifact_scripts.fetch_internal_resources import fetch_safety_words_file
 from droidlet.tools.artifact_scripts.fetch_artifacts_from_aws import fetch_models_from_aws, \
     fetch_datasets_from_aws, fetch_test_assets_from_aws
@@ -18,6 +19,7 @@ def try_download_artifacts(agent=None, test_mode=False):
     """
     Tries to download artifacts if they are out of date.
     """
+    logging.info(f'try_download_artifacts rootdir {ROOTDIR}')
     # Optionally fetch secure resources for internal users and prod systems
     safety_file_path = os.path.join(ROOTDIR, 'droidlet/documents/internal/safety.txt')
     fetch_safety_words_file(safety_file_path)
