@@ -1,4 +1,4 @@
-HEADER = ["subdomain","batch","list_id","command_list","answer_list"]
+HEADER = ["subdomain", "batch", "list_id", "command_list", "answer_list"]
 
 NUM_LISTS = 6
 
@@ -17,5 +17,5 @@ ANSWER_LISTS = [
     "agent should say a greeting|agent should make a square|agent should make a yellow circle|agent should answer circle|agent should answer with circle location|agent answer should make sense|agent should say they don't know how to do that",
     "agent should answer with their location|agent should say a capability|agent should answer with your location|agent should spawn two pigs|agent should answer with location of a pig|agent should go to one of the pigs|agent should follow the sheep if and only if there are any",
     "agent should dig two holes|agent should fill one hole|agent should make two circles|agent should face the circle|agent should say there is no object marked as favorite|agent should go to the circle|agent should follow you",
-    "agent should move to you|agent should move to where you are looking|agent should turn left|agent should turn right|agent should move forward one step|agent should walk backward|agent should move to your left|agent should move to your right"
+    "agent should move to you|agent should move to where you are looking|agent should turn left|agent should turn right|agent should move forward one step|agent should walk backward|agent should move to your left|agent should move to your right",
 ]

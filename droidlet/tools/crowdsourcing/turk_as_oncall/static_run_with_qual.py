@@ -33,8 +33,12 @@ defaults = [
 
 from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
 
-from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import PILOT_ALLOWLIST_QUAL_NAME as ALLOWLIST_QUALIFICATION
-from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import SOFTBLOCK_QUAL_NAME as SOFTBLOCK_QUALIFICATION
+from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import (
+    PILOT_ALLOWLIST_QUAL_NAME as ALLOWLIST_QUALIFICATION,
+)
+from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import (
+    SOFTBLOCK_QUAL_NAME as SOFTBLOCK_QUALIFICATION,
+)
 
 
 @dataclass

@@ -274,7 +274,9 @@ def allocate_instances(
                 command_list = COMMAND_LISTS[i % NUM_LISTS]
                 answer_list = ANSWER_LISTS[i % NUM_LISTS]
                 # Write record to Mephisto task input CSV
-                csv_writer.writerow([subdomain, batch_id, (i % NUM_LISTS, command_list, answer_list)])
+                csv_writer.writerow(
+                    [subdomain, batch_id, (i % NUM_LISTS, command_list, answer_list)]
+                )
     return instance_ips, instance_ids
 
 

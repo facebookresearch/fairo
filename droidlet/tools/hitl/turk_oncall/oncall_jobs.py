@@ -89,7 +89,9 @@ class OnCallJob(DataGenerator):
         batch_id = self._batch_id
 
         # allocate AWS ECS instances and register DNS records
-        logging.info(f"Allocate AWS ECS instances, populate oncall data csv, and register DNS records...")
+        logging.info(
+            f"Allocate AWS ECS instances, populate oncall data csv, and register DNS records..."
+        )
         _, instance_ids = allocate_instances(
             self._instance_num, batch_id, self._image_tag, self._task_name, ECS_INSTANCE_TIMEOUT
         )
