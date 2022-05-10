@@ -64,6 +64,9 @@ class RemoteHelloRealsense(object):
             sem_pred_prob_thr=0.1, sem_gpu_id=-1, visualize=True
         )
 
+    def get_base_state(self):
+        return self.bot.get_base_state()
+
     def get_camera_transform(self):
         return self.bot.get_camera_transform()
 
