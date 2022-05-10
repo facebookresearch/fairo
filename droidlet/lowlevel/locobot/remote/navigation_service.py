@@ -88,6 +88,7 @@ class Navigation(object):
                 distance_threshold=distance_threshold,
                 angle_threshold=angle_threshold,
             )
+            print(f"[nav] got short-term goal from planner: {stg}")
             if stg == False:
                 # no path to end-goal
                 print(
@@ -97,6 +98,8 @@ class Navigation(object):
                 )
                 return_code = False
                 break
+            robot_loc = self.robot.get_base_state()
+            print(f"[navigation] starting at point {robot_loc} and going to point {stg}")
             status = safe_call(self.robot.go_to_absolute, stg)
             robot_loc = self.robot.get_base_state()
 

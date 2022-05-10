@@ -175,6 +175,7 @@ class RemoteHelloRobot(object):
             global_xyt = xyt_position
             base_state = self.get_base_state()
             base_xyt = transform_global_to_base(global_xyt, base_state)
+            print(f"go_to_absolute {global_xyt} {base_state} {base_xyt}")
 
             def obstacle_fn():
                 return self.cam.is_obstacle_in_front()
