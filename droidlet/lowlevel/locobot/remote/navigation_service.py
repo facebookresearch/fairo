@@ -63,8 +63,13 @@ class Navigation(object):
         self.trackback = Trackback(planner)
 
         num_sem_categories = len(coco_categories)
+        self.local_map_size = 240  # TODO Make this configurable
         self.goal_policy = GoalPolicy(
-            map_features_shape=(num_sem_categories + 8, 240, 240),
+            map_features_shape=(
+                num_sem_categories + 8, 
+                self.local_map_size, 
+                self.local_map_size
+            ),
             num_outputs=2,
             hidden_size=256,
             num_sem_categories=num_sem_categories,
@@ -134,10 +139,11 @@ class Navigation(object):
         ), f"Object goal must be in {list(coco_categories.keys())}"
         object_goal = torch.tensor([coco_categories[object_goal]])
         map_features, orientation = self.slam.get_semantic_map_features()
-        far_away_goal = self.goal_policy(map_features, orientation, object_goal)
-        far_away_goal = tuple(far_away_goal.numpy()[0])
-        print("far_away_goal", far_away_goal)
-        return self.go_to_absolute(far_away_goal, steps=steps)
+        goal_action = self.goal_policy(map_features, orientation, object_goal)
+        goal_in_map = torch.sigmoid(goal_action).numpy()[0] * self.local_map_size
+        goal_in_world = self.slam.map2real(goal_in_map)
+        print("goal", (*goal_in_world, 0))
+        return self.go_to_absolute((*goal_in_world, 0), steps=steps)
 
     def explore(self, far_away_goal):
         if not hasattr(self, "_done_exploring"):
