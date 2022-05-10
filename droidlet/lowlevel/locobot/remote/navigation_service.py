@@ -129,18 +129,13 @@ class Navigation(object):
         return return_code
 
     def go_to_object(self, object_goal: str, steps=100000000):
-        print("go_to_object() 0")
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
-        print("go_to_object() 1")
         object_goal = torch.tensor([coco_categories[object_goal]])
-        print("go_to_object() 2")
         map_features, orientation = self.slam.get_semantic_map_features()
-        print("go_to_object() 3")
-        # TODO Print within goal policy forward
         far_away_goal = self.goal_policy(map_features, orientation, object_goal)
-        print("go_to_object() 4")
+        far_away_goal = tuple(far_away_goal.numpy()[0])
         print("far_away_goal", far_away_goal)
         return self.go_to_absolute(far_away_goal, steps=steps)
 
