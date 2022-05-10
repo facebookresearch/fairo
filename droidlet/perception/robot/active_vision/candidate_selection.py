@@ -34,6 +34,7 @@ class SampleGoodCandidates:
         self.img_dir = os.path.join(data_dir, 'rgb')
         self.seg_dir = os.path.join(data_dir, 'seg')
         self.good_candidates = defaultdict(list)
+        self.eligible_candidates = defaultdict(list)
         self.bad_candidates = []
         self.is_annot_validfn = is_annot_validfn
         self.setting = setting
@@ -45,7 +46,9 @@ class SampleGoodCandidates:
             def get_id_from_filename(x):
                 return int(x.split('.')[0])
             img_id = get_id_from_filename(x)
-            is_good, cat_id = self.is_good_candidate(img_id)
+            is_good, is_eligible, cat_id = self.is_good_candidate(img_id)
+            if is_eligible:
+                self.eligible_candidates[cat_id].append(img_id)
             if is_good:
                 self.good_candidates[cat_id].append(img_id)
             else:
@@ -68,6 +71,7 @@ class SampleGoodCandidates:
         annot = np.load(seg_path).astype(np.uint32)
         all_binary_mask = np.zeros_like(annot)
         largest_mask_id, largest_mask_area = -1, 0
+        is_eligible = False
         
         for i in np.sort(np.unique(annot.reshape(-1), axis=0)):
             if self.is_annot_validfn(i):
@@ -81,6 +85,8 @@ class SampleGoodCandidates:
         if not all_binary_mask.any():
             return False, None
         
+        is_eligible = True
+
         # Check that all masks are within a certain distance from the boundary
         # all pixels [:10,:], [:,:10], [-10:], [:-10] must be 0:
         if all_binary_mask[:10,:].any() or all_binary_mask[:,:10].any() or all_binary_mask[:,-10:].any() or all_binary_mask[-10:,:].any():
@@ -89,11 +95,18 @@ class SampleGoodCandidates:
         if all_binary_mask.sum() < 5000:
             return False, None
         
-        return True, int(largest_mask_id)
+        return True, is_eligible, int(largest_mask_id)
     
-    def get_n_good_candidates_across_all_labels(self, n):
+    def get_n_candidates_across_all_labels(self, n, good=True, eligible=True):
+        if not good and eligible:
+            cand = self.eligible_candidates
+        elif good:
+            cand = self.good_candidates
+        else:
+            raise Exception(f'Niether good or eligible candidates asked for!!')
+
         label_counts = defaultdict(int)
-        labels_found = list(self.good_candidates.keys())
+        labels_found = list(cand.keys())
         ctr = 0
         # choose n labels in a round robin manner so that all labels are uniformly chosen
         for _ in range(n):
@@ -107,7 +120,7 @@ class SampleGoodCandidates:
             candidates.append(
                 [
                     (self.good_candidates[label][int(x)], label) 
-                    for x in np.linspace(0, len(self.good_candidates[label]), count, endpoint=False)
+                    for x in np.linspace(0, len(cand[label]), count, endpoint=False)
                 ]
             )
         candidates = [x for y in candidates for x in y]

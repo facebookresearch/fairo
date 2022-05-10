@@ -62,9 +62,8 @@ def get_target(traj_path, img_indx, target_label, base_pos):
     return xyz_pyrobot_to_canonical_coords(xyz_pyrobot).tolist()
 
     
-def process(traj_path, out_dir, gt, s, is_annot_validfn):
-    # src_img_ids = s.get_n_candidates(gt, good=True, evenly_spaced=True)
-    candidates = s.get_n_good_candidates_across_all_labels(gt)
+def process(traj_path, out_dir, gt, s, is_annot_validfn, eligible_only):
+    candidates = s.get_n_candidates_across_all_labels(gt, good=not eligible_only, eligible=eligible_only)
     print(f'candidates {candidates}')
     
     reexplore_task_data = {}
@@ -160,6 +159,7 @@ def find_spawn_loc(
         mode: str,
         setting: str,
         gt_or_p_fix: str,
+        eligible_only: bool
     ) -> None:
     """
     Main fn to find the spawn locations for reexplore for all trajectories in baseline_root
@@ -180,17 +180,17 @@ def find_spawn_loc(
                         labels = class_labels if setting == 'class' else instance_ids
 
                         @log_time(os.path.join(job_dir, 'job_log.txt'))
-                        def job_unit(traj_path, out_dir, traj_id, annot_fn, labels, setting):
+                        def job_unit(traj_path, out_dir, traj_id, annot_fn, labels, setting, eligible_only):
                             s = SampleGoodCandidates(traj_path, annot_fn, labels, setting)
-                            gt_range = small_gt_range if gt_or_p_fix == 'pfix' else big_gt_range
+                            gt_range = small_gt_range if gt_or_p_fix == 'gtfix' else big_gt_range
                             for gt in gt_range:
                                 outr = os.path.join(out_dir, traj_id, setting, str(gt))
                                 os.makedirs(outr, exist_ok=True)
                                 print(f'outr {outr}')
-                                process(traj_path, outr, gt, s, annot_fn)
+                                process(traj_path, outr, gt, s, annot_fn, eligible_only)
 
                         # job_unit(traj_path, out_dir, traj_id, annot_fn, labels, setting)
-                        job = executor.submit(job_unit, traj_path, out_dir, traj_id, annot_fn, labels, setting)
+                        job = executor.submit(job_unit, traj_path, out_dir, traj_id, annot_fn, labels, setting, eligible_only)
                         jobs.append(job)
 
     if len(jobs) > 0:
@@ -207,12 +207,13 @@ if __name__ == "__main__":
     parser.add_argument("--job_dir", type=str, default="", help="")
     parser.add_argument("--setting", type=str)
     parser.add_argument("--num_traj", type=int, default=-1)
+    parser.add_argument("--eligible_only", action="store_true", default=False)
     parser.add_argument("--mode", 
         type=str, 
         default="sim", 
         help="two modes: sim (runs on slurm) or robot (runs locally)"
     )
-    parser.add_argument("--gt_or_p_fix", type=str, default="pfix")
+    parser.add_argument("--gt_or_p_fix", type=str, default="gtfix")
 
     args = parser.parse_args()
 
@@ -238,5 +239,5 @@ if __name__ == "__main__":
         shutil.rmtree(args.out_dir)
 
     find_spawn_loc(
-        args.data_dir, args.out_dir, args.num_traj, args.job_dir, args.mode, args.setting, args.gt_or_p_fix
+        args.data_dir, args.out_dir, args.num_traj, args.job_dir, args.mode, args.setting, args.gt_or_p_fix, args.eligible_only
     )

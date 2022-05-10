@@ -3,12 +3,20 @@
 # The locations are derived from frames selected by the candidate selection heuristic at droidlet/perception/robot/active_vision/candidate_selection.py
 # Usage
 # ./launch_candidate_selection.sh <path to explore trajectories> <out_dir name> <number of trajectories to run for>
+
+# No noise experiments
 # ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/baselinev3 fifty_422 100
 # ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_pt2/ av300_pt2 300
 # ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_pt2/ av300_sanity50 50
-# ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_noise_pt2 av_sm_noise_50 50 instance
-# ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_pt2 av_sm_class_50 50 class gtfix
+# ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_pt2 av_sm_class_50 50 class pfix
+
+# Noisy Experiments
 # ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_noise_pt2/ av300_noise_pt2 300
+# ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_noise_pt2 av_sm_noise_50 50 instance
+
+# Ablations
+# ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_pt2 av_ablation_instance_50 50 instance gtfix
+
 
 set -ex
 
