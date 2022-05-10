@@ -18,10 +18,12 @@ class PointCloudClient:
         self,
         camera_intrinsics: List[SimpleNamespace],
         camera_extrinsics: np.ndarray,
-        masks: np.ndarray = None,
     ):
         assert len(camera_intrinsics) == len(camera_extrinsics)
         self.n_cams = len(camera_intrinsics)
+
+        self.width = camera_intrinsics[0].width
+        self.height = camera_intrinsics[0].height
 
         # Convert to open3d intrinsics
         self.o3_intrinsics = [
@@ -43,42 +45,15 @@ class PointCloudClient:
             self.extrinsic_transforms[i, :3, :3] = calibration["camera_base_ori"]
             self.extrinsic_transforms[i, :3, 3] = calibration["camera_base_pos"]
 
-        if masks is None:
-            intrinsic = camera_intrinsics[0]
-            self.masks = np.ones([self.n_cams, intrinsic.width, intrinsic.height])
-        else:
-            self.masks = masks
+    def get_pcd_i(self, rgbd: np.ndarray, cam_i: int, mask: np.ndarray = None):
+        if mask is None:
+            mask = np.ones([self.height, self.width])
 
-    def get_pcd(self, rgbds: np.ndarray) -> o3d.geometry.PointCloud:
-        pcds = []
-        for rgbd, intrinsic, transform, mask in zip(
-            rgbds, self.o3_intrinsics, self.extrinsic_transforms, self.masks
-        ):
-            # The specific casting here seems to be very important, even though
-            # rgbd should already be in np.uint16 type...
-            img = (rgbd[:, :, :3] * mask[:, :, None]).astype(np.uint8)
-            depth = (rgbd[:, :, 3] * mask).astype(np.uint16)
+        intrinsic = self.o3_intrinsics[cam_i]
+        transform = self.extrinsic_transforms[cam_i]
 
-            o3d_img = o3d.cuda.pybind.geometry.Image(img)
-            o3d_depth = o3d.cuda.pybind.geometry.Image(depth)
-
-            rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(
-                o3d_img,
-                o3d_depth,
-                convert_rgb_to_intensity=False,
-            )
-
-            pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image, intrinsic)
-            pcd.transform(transform)
-            pcds.append(pcd)
-
-        return pcds
-
-    def get_pcd_i(self, rgbd, i):
-        intrinsic = self.o3_intrinsics[i]
-        transform = self.extrinsic_transforms[i]
-        mask = self.masks[i]
-
+        # The specific casting here seems to be very important, even though
+        # rgbd should already be in np.uint16 type...
         img = (rgbd[:, :, :3] * mask[:, :, None]).astype(np.uint8)
         depth = (rgbd[:, :, 3] * mask).astype(np.uint16)
 
@@ -95,6 +70,50 @@ class PointCloudClient:
         pcd.transform(transform)
 
         return pcd
+
+    def get_pcd(self, rgbds: np.ndarray, masks: np.ndarray = None) -> o3d.geometry.PointCloud:
+        if masks is None:
+            masks = np.ones([self.n_cams, self.height, self.width])
+        pcds = [self.get_pcd_i(rgbds[i], i, masks[i]) for i in range(len(rgbds))]
+        result = pcds[0]
+        for pcd in pcds[1:]:
+            result += pcd
+        return result
+
+
+class SegmentationPointCloudClient(PointCloudClient):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.client = a0.RpcClient(topic_key)
+
+    def segment_img(self, rgbd, min_mask_size=2500):
+        state = []
+
+        def onreply(pkt):
+            state.append(pkt.payload)
+
+        bits = serdes.rgbd_to_capnp(rgbd).to_bytes()
+        self.client.send(bits, onreply)
+
+        while not state:
+            pass
+
+        obj_masked_rgbds = []
+        obj_masks = []
+
+        labels = serdes.capnp_to_rgbd(state.pop())
+        num_objs = int(labels.max())
+        for obj_i in range(1, num_objs + 1):
+            obj_mask = labels == obj_i
+
+            obj_mask_size = obj_mask.sum()
+            if obj_mask_size < min_mask_size:
+                continue
+            obj_masked_rgbd = rgbd * obj_mask[:, :, None]
+            obj_masked_rgbds.append(obj_masked_rgbd)
+            obj_masks.append(obj_mask)
+
+        return obj_masked_rgbds, obj_masks
 
 
 class PointCloudServer:
@@ -116,23 +135,3 @@ class PointCloudServer:
         log.info("Starting server...")
         while True:
             pass
-
-
-class SegmentationPointCloudClient(PointCloudClient):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.client = a0.RpcClient(topic_key)
-
-    def segment_img(self, rgbd):
-        state = []
-
-        def onreply(pkt):
-            state.append(pkt.payload)
-
-        bits = serdes.rgbd_to_capnp(rgbd).to_bytes()
-        self.client.send(bits, onreply)
-
-        while not state:
-            pass
-
-        return serdes.capnp_to_rgbd(state.pop())

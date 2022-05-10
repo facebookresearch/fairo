@@ -9,7 +9,6 @@ __copyright__ = "2022, Meta"
 
 
 install_requires = [
-    "grpcio-tools",
     "mrp",
     "fairomsg",
 ]

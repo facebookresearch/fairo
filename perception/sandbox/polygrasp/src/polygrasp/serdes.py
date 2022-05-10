@@ -11,13 +11,17 @@ import graspnetAPI
 import capnp
 import polygrasp
 
+import cv2
+
 std_msgs = fairomsg.get_msgs("std_msgs")
 sensor_msgs = fairomsg.get_msgs("sensor_msgs")
 geometry_msgs = fairomsg.get_msgs("geometry_msgs")
 
 print("capnp loading polygrasp")
 _schema_parser = capnp.SchemaParser()
-polygrasp_msgs = _schema_parser.load(os.path.join(polygrasp.__path__[0], "polygrasp.capnp"), imports=site.getsitepackages())
+polygrasp_msgs = _schema_parser.load(
+    os.path.join(polygrasp.__path__[0], "polygrasp.capnp"), imports=site.getsitepackages()
+)
 
 """Byte conversions"""
 
@@ -84,12 +88,24 @@ def capnp_to_grasp_group(blob):
     gg = bytes_to_grasp_group(capnp_gg.data)
     return gg
 
+
 def rgbd_to_capnp(rgbd):
     img = sensor_msgs.Image()
     img.data = np_to_bytes(rgbd)
 
     return img
 
+
 def capnp_to_rgbd(blob):
     img = sensor_msgs.Image.from_bytes(blob)
     return bytes_to_np(img.data)
+
+
+def load_bw_img(path):
+    grayscale_img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+    thresh, bw_img = cv2.threshold(grayscale_img, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    return bw_img.astype(bool)
+
+
+def save_bw_img(img, name):
+    cv2.imwrite(f"{name}.png", img * 255)

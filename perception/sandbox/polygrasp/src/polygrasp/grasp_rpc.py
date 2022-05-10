@@ -26,8 +26,10 @@ def save_img(img, name):
 class GraspServer:
     def _get_grasps(self, pcd: o3d.geometry.PointCloud) -> np.ndarray:
         raise NotImplementedError
-    
-    def _get_collisions(self, grasps: graspnetAPI.GraspGroup, scene_pcd: o3d.geometry.PointCloud):
+
+    def _get_collisions(
+        self, grasps: graspnetAPI.GraspGroup, scene_pcd: o3d.geometry.PointCloud
+    ) -> graspnetAPI.GraspGroup:
         raise NotImplementedError
 
     def start(self):
@@ -42,6 +44,7 @@ class GraspServer:
 
             log.info(f"Done. Replying with serialized grasp group...")
             req.reply(serdes.grasp_group_to_capnp(grasp_group).to_bytes())
+
         grasp_server = a0.RpcServer(grasp_topic_key, grasp_onrequest, None)
 
         def collision_onrequest(req):
@@ -55,6 +58,7 @@ class GraspServer:
             filtered_grasp_group = self._get_collisions(grasp_group, scene_pcd)
             log.info(f"Done. Replying with serialized filtered grasps...")
             req.reply(serdes.grasp_group_to_bytes(filtered_grasp_group))
+
         collision_server = a0.RpcServer(collision_topic_key, collision_onrequest, None)
 
         while True:
@@ -96,7 +100,7 @@ class GraspClient:
             pass
 
         return serdes.capnp_to_grasp_group(state.pop())
-    
+
     def get_collision(self, grasps: graspnetAPI.GraspGroup, scene_pcd: o3d.geometry.PointCloud):
         state = []
 
