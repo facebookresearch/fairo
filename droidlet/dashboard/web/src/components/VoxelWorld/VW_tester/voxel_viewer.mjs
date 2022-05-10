@@ -11,7 +11,7 @@ import { VoxelItem } from './VoxelItem.mjs';
 import { VoxelPlayer} from './VoxelPlayer.mjs'
 import { VW_ITEM_MAP, VW_MOB_MAP, VW_AVATAR_MAP } from './model_luts.mjs'
 
-let camera, scene, renderer, controls, plane, cursorX;
+let camera, scene, renderer, controls, plane, cursorX, cursorY;
 let players = [];
 
 const minCameraPitch = (0.5 * Math.PI) / 4;
@@ -205,14 +205,17 @@ function onWindowResize() {
 }
 
 function onPointerMove( event ) {
-    let diff = ( cursorX - event.clientX ) / 250;
+    let Xdiff = ( cursorX - event.clientX ) / 150;
+    let Ydiff = ( cursorY - event.clientY ) / 150;
     
     players.forEach(player => {
         if (player.possessed) {
-            player.rotate(diff);
+            player.cameraPitch(Ydiff);
+            player.rotate(Xdiff);
         }
     });
     cursorX = event.clientX;
+    cursorY = event.clientY;
 }
 
 function render() {

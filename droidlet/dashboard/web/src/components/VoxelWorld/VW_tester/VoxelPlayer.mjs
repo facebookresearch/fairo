@@ -16,6 +16,7 @@ class VoxelPlayer {
         this.pov = 3;
         this.matrix = new world.THREE.Matrix4();
         this.cam_vector = new world.THREE.Vector3();
+        this.cam_pitch = 0;
     };
 
     move(x, y, z) {
@@ -37,7 +38,10 @@ class VoxelPlayer {
     };
 
     updatePov(type) {
-        if (type === 'first' || type === 1) this.pov = 1;
+        if (type === 'first' || type === 1) {
+            this.pov = 1;
+            this.cam_pitch = 0;
+        }
         else if (type === 'third' || type === 3) this.pov = 3;
         this.possess();
     };
@@ -46,6 +50,10 @@ class VoxelPlayer {
         this.updatePov(this.pov === 1 ? 3 : 1);
         if (this.possessed) this.updateCamera();
     };
+
+    cameraPitch(d_pitch) {
+        this.cam_pitch += d_pitch;
+    }
 
     updateCamera() {
         let final_cam_vector;
@@ -57,8 +65,9 @@ class VoxelPlayer {
             final_cam_vector = this.cam_vector.applyMatrix4( this.matrix );
             this.world.camera.position.copy( this.mesh.position ).add( final_cam_vector );
             this.world.camera.setRotationFromQuaternion( this.mesh.quaternion );
+            this.world.camera.rotateX(this.cam_pitch);
         } else {
-            this.cam_vector.set( 0, (800*this.scale), (-800*this.scale) );
+            this.cam_vector.set( 0, (700*this.scale), (-900*this.scale) );
             final_cam_vector = this.cam_vector.applyMatrix4( this.matrix );
             this.world.camera.position.copy( this.mesh.position ).add( final_cam_vector );
             this.world.camera.lookAt( this.mesh.position );
