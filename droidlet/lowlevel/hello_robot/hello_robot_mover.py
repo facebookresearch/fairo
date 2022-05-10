@@ -257,7 +257,7 @@ class HelloRobotMover(MoverInterface):
 
     def move_to_object(self, object_goal: str, blocking=True):
         """Command to execute a move to an object category.
-        
+
         Args:
             object_goal: supported COCO object category
         """
