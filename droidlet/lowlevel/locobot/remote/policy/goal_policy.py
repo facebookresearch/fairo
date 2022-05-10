@@ -6,15 +6,13 @@ from .utils.model import Flatten, NNBase
 
 
 class Goal_Oriented_Semantic_Policy(NNBase):
-
     def __init__(self, map_features_shape, hidden_size, num_sem_categories):
-        super(Goal_Oriented_Semantic_Policy, self).__init__(
-            False, hidden_size, hidden_size)
+        super(Goal_Oriented_Semantic_Policy, self).__init__(False, hidden_size, hidden_size)
 
         self.orientation_emb = nn.Embedding(72, 8)
         self.goal_emb = nn.Embedding(num_sem_categories, 8)
 
-        out_size = int(map_features_shape[1] / 16.) * int(map_features_shape[2] / 16.)
+        out_size = int(map_features_shape[1] / 16.0) * int(map_features_shape[2] / 16.0)
 
         self.main = nn.Sequential(
             nn.MaxPool2d(2),
@@ -31,7 +29,7 @@ class Goal_Oriented_Semantic_Policy(NNBase):
             nn.ReLU(),
             nn.Conv2d(64, 32, 3, stride=1, padding=1),
             nn.ReLU(),
-            Flatten() 
+            Flatten(),
         )
 
         self.linear1 = nn.Linear(out_size * 32 + 8 * 2, hidden_size)
@@ -48,12 +46,12 @@ class Goal_Oriented_Semantic_Policy(NNBase):
 
 
 class GoalPolicy(nn.Module):
-
     def __init__(self, map_features_shape, num_outputs, hidden_size, num_sem_categories):
         super(GoalPolicy, self).__init__()
 
         self.network = Goal_Oriented_Semantic_Policy(
-            map_features_shape, hidden_size, num_sem_categories)
+            map_features_shape, hidden_size, num_sem_categories
+        )
         self.dist = DiagGaussian(self.network.output_size, num_outputs)
 
     def forward(self, map_features, orientation, object_goal, deterministic=False):
@@ -63,5 +61,5 @@ class GoalPolicy(nn.Module):
             action = dist.mode()
         else:
             action = dist.sample()
-        
+
         return action
