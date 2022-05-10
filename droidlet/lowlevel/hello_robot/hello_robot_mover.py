@@ -255,8 +255,12 @@ class HelloRobotMover(MoverInterface):
                 self.nav_result.wait()
         return "finished"
 
-    def move_to_object(self, object_goal: str):
-        return self.nav.go_to_object(object_goal)
+    def move_to_object(self, object_goal: str, blocking=True):
+        self.nav_result.wait()
+        self.nav_result = self.nav.go_to_object(object_goal)
+        if blocking:
+            self.nav_result.wait()
+        return "finished"
 
     def get_base_pos_in_canonical_coords(self):
         """get the current robot position in the canonical coordinate system
