@@ -11,8 +11,8 @@ import { VoxelItem } from './VoxelItem.mjs';
 import { VoxelPlayer} from './VoxelPlayer.mjs'
 import { VW_ITEM_MAP, VW_MOB_MAP, VW_AVATAR_MAP } from './model_luts.mjs'
 
-let camera, scene, renderer, controls;
-let plane;
+let camera, scene, renderer, controls, plane, cursorX;
+let players = [];
 
 const minCameraPitch = (0.5 * Math.PI) / 4;
 const maxCameraPitch = (2.0 * Math.PI) / 4;
@@ -24,6 +24,7 @@ init();
 addEventListeners();
 addTestContent();
 render();
+console.log(scene);
 
 var canvii = document.getElementsByTagName("canvas");
 Array.from(canvii).forEach((canv) => {
@@ -40,11 +41,6 @@ function addTestContent() {
         render: render,
         camera: camera,
     };
-
-    // console.log(camera.position);
-    // window.setInterval(function () {
-    //     console.log(camera.position);
-    // }, 1000);
 
     for (const key in VW_MOB_MAP) {
         if (typeof(key) === "string" && VW_MOB_MAP[key] !== null) {
@@ -83,6 +79,7 @@ function addTestContent() {
             VoxelPlayer.build(world, opts).then(
                 function (player) {
                     window.setInterval(walkabout, 1000, player, 50);
+                    players.push(player);
                     if (player.avatarType === "player") {
                         cameraTest(player);
                     }
@@ -104,16 +101,10 @@ function cameraTest(player) {
 function handleKeypress(e, player) {
     switch (e.key) {
         case "ArrowLeft":
-            player.rotate(0.1, 0);
+            player.rotate(0.1);
             break;
         case "ArrowRight":
-            player.rotate(-0.1, 0);
-            break;
-        case "ArrowUp":
-            player.rotate(0, 0.1);
-            break;
-        case "ArrowDown":
-            player.rotate(0, -0.1);
+            player.rotate(-0.1);
             break;
         case "t":
             player.toggle();
@@ -154,11 +145,12 @@ function walkabout(obj, dist) {
 
 function init() {
 
-    //camera
+    // camera
     camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
     camera.position.set( 500, 800, 1300 );
     camera.lookAt( 0, 0, 0 );
 
+    // scene
     scene = new THREE.Scene();
     scene.background = new THREE.Color( 0xf0f0f0 );
 
@@ -202,6 +194,7 @@ function init() {
 
 function addEventListeners() {
     window.addEventListener( 'resize', onWindowResize );
+    document.addEventListener( 'pointermove', onPointerMove );
 }
 
 function onWindowResize() {
@@ -209,6 +202,17 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
     renderer.setSize( window.innerWidth, window.innerHeight );
     render();
+}
+
+function onPointerMove( event ) {
+    let diff = ( cursorX - event.clientX ) / 250;
+    
+    players.forEach(player => {
+        if (player.possessed) {
+            player.rotate(diff);
+        }
+    });
+    cursorX = event.clientX;
 }
 
 function render() {

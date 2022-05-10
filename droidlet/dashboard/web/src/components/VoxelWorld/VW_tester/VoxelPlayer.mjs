@@ -14,8 +14,8 @@ class VoxelPlayer {
         this.position_offset = opts.position_offset;
         this.possessed = false;
         this.pov = 3;
-        this.yaw = opts.rotation_offset[1];
-        this.pitch = 0;  // skipping for now, hopefully won't need an offset
+        this.matrix = new world.THREE.Matrix4();
+        this.cam_vector = new world.THREE.Vector3();
     };
 
     move(x, y, z) {
@@ -25,18 +25,8 @@ class VoxelPlayer {
         if (this.possessed) this.updateCamera();
     };
 
-    rotate(d_yaw, d_pitch) {
-        // units of delta radians
-        this.yaw += d_yaw;
-        this.pitch += d_pitch;
-
-        const euler = new this.world.THREE.Euler(
-            Math.abs(Math.cos(this.yaw)) * this.pitch,
-            this.yaw,
-            Math.cos(Math.PI/2 + this.yaw) * this.pitch,
-            'ZYX'
-        );
-        this.mesh.setRotationFromEuler(euler);
+    rotate(d_yaw) {
+        this.mesh.rotateY(d_yaw);
         if (this.possessed) this.updateCamera();
     };
 
@@ -58,21 +48,20 @@ class VoxelPlayer {
     };
 
     updateCamera() {
-        let cam_vector, final_cam_vector;
-
-        let matrix = new this.world.THREE.Matrix4();
-        matrix.extractRotation( this.mesh.matrix );
+        let final_cam_vector;
+        
+        this.matrix.extractRotation( this.mesh.matrix );
 
         if (this.pov === 1) {
-            cam_vector = new this.world.THREE.Vector3( (50*this.scale), (75*this.scale), 0 );
-            final_cam_vector = cam_vector.applyMatrix4( matrix );
+            this.cam_vector.set((50*this.scale), (75*this.scale), 0);
+            final_cam_vector = this.cam_vector.applyMatrix4( this.matrix );
             this.world.camera.position.copy( this.mesh.position ).add( final_cam_vector );
-            this.world.camera.setRotationFromQuaternion(this.mesh.quaternion);
+            this.world.camera.setRotationFromQuaternion( this.mesh.quaternion );
         } else {
-            cam_vector = new this.world.THREE.Vector3( 0, (800*this.scale), (-800*this.scale) );
-            final_cam_vector = cam_vector.applyMatrix4( matrix );
+            this.cam_vector.set( 0, (800*this.scale), (-800*this.scale) );
+            final_cam_vector = this.cam_vector.applyMatrix4( this.matrix );
             this.world.camera.position.copy( this.mesh.position ).add( final_cam_vector );
-            this.world.camera.lookAt(this.mesh.position);
+            this.world.camera.lookAt( this.mesh.position );
         }
 
         this.world.render();
