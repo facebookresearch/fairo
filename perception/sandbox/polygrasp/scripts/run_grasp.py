@@ -14,7 +14,7 @@ import torch
 import hydra
 import omegaconf
 
-from polygrasp.pointcloud_rpc import PointCloudClient, RgbdFeaturesPointCloudClient
+from polygrasp.pointcloud_rpc import SegmentationPointCloudClient
 from polygrasp.grasp_rpc import GraspClient
 
 def save_rgbd_masked(rgbd, rgbd_masked):
@@ -53,7 +53,7 @@ def main(cfg):
     masks[1][100:480, 180:600] = 1
 
     # Connect to grasp candidate selection and pointcloud processor
-    pcd_client = RgbdFeaturesPointCloudClient(camera_intrinsics, camera_extrinsics, masks=masks)
+    pcd_client = SegmentationPointCloudClient(camera_intrinsics, camera_extrinsics, masks=masks)
     grasp_client = GraspClient(view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path))
 
     root_dir = os.getcwd()
@@ -98,9 +98,6 @@ def main(cfg):
             obj_to_grasps = {}
             num_objs = int(labels.max())
             print(f"Number of objs: {num_objs}")
-            # for i in range(1, int(num_objs + 1)):
-            # if num_objs > 0:
-            #     i = 1
             min_mask_size = 2500
             for obj_i in range(1, num_objs + 1):
                 obj_mask = labels == obj_i
@@ -121,38 +118,18 @@ def main(cfg):
                 pcd = pcd_client.get_pcd_i(obj_masked_rgbd, cam_i)
                 print(f"Getting obj {obj_i} grasp...")
                 grasp_group = grasp_client.get_grasps(pcd)
-                obj_to_grasps[obj_i] = grasp_group
-
-                break
+                filtered_grasp_group = grasp_client.get_collision(grasp_group, scene_pcd)
+                if len(filtered_grasp_group) > 0:
+                    obj_to_grasps[obj_i] = filtered_grasp_group
+                    break
 
             if len(obj_to_grasps) == 0:
                 print(f"Failed to find any objects with mask size > {min_mask_size}!")
                 break
 
-            # import pdb; pdb.set_trace()
-
-            # vis = grasp_client.visualize(scene_pcd, render=True)
-            # import pdb; pdb.set_trace()
-            # rgb, d, intrinsics = grasp_client.get_rgbd(vis)
-
-
-            # grasp_group = grasp_client.get_grasps(pcd)
-            # grasp_client.visualize_grasp(
-            #     scene_pcd, grasp_group, render=True, save_view=False, plot=True
-            # )
-
-            # Get grasps per object
-            # obj_to_pcd = pcd_client.segment_pcd(scene_pcd)
-            # obj_to_grasps = {obj: grasp_client.get_grasps(pcd) for obj, pcd in obj_to_pcd.items()}
-
-            # Pick a random object to grasp
-            # curr_obj, curr_grasps = random.choice(list(obj_to_grasps.items()))
-            # curr_obj, curr_grasps = 1, obj_to_grasps[1]
-            # print(f"Picking object with ID {curr_obj}")
             curr_grasps = grasp_group
 
             # Choose a grasp for this object
-            # TODO: scene-aware motion planning for grasps
             grasp_client.visualize_grasp(pcds[cam_i], curr_grasps)
             chosen_grasp = robot.select_grasp(curr_grasps, scene_pcd)
 
@@ -163,13 +140,13 @@ def main(cfg):
             if success:
                 print(f"Moving end-effector up")
                 curr_pose, curr_ori = robot.get_ee_pose()
-                states = robot._move_until_success(position=curr_pose + torch.Tensor([0, 0, 0.2]), orientation=curr_ori, time_to_go=time_to_go)
-                states = robot._move_until_success(position=curr_pose + torch.Tensor([0, 0.0, 0.2]) + hori_offset, orientation=curr_ori, time_to_go=time_to_go)
-                states = robot._move_until_success(position=curr_pose + torch.Tensor([0, 0.0, 0.05]) + hori_offset, orientation=curr_ori, time_to_go=time_to_go)
+                states = robot.move_until_success(position=curr_pose + torch.Tensor([0, 0, 0.2]), orientation=curr_ori, time_to_go=time_to_go)
+                states = robot.move_until_success(position=curr_pose + torch.Tensor([0, 0.0, 0.2]) + hori_offset, orientation=curr_ori, time_to_go=time_to_go)
+                states = robot.move_until_success(position=curr_pose + torch.Tensor([0, 0.0, 0.05]) + hori_offset, orientation=curr_ori, time_to_go=time_to_go)
 
             robot.gripper_open()
             curr_pose, curr_ori = robot.get_ee_pose()
-            states = robot._move_until_success(position=curr_pose + torch.Tensor([0, 0.0, 0.2]), orientation=curr_ori, time_to_go=time_to_go)
+            states = robot.move_until_success(position=curr_pose + torch.Tensor([0, 0.0, 0.2]), orientation=curr_ori, time_to_go=time_to_go)
             robot.go_home()
 
 

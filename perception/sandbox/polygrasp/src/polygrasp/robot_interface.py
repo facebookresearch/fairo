@@ -60,7 +60,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
     def gripper_close(self):
         self.gripper.goto(0, 1, 1)
 
-    def _move_until_success(self, position, orientation, time_to_go, max_attempts=5):
+    def move_until_success(self, position, orientation, time_to_go, max_attempts=5):
         states = []
         for _ in range(max_attempts):
             states += self.move_to_ee_pose(
@@ -77,30 +77,35 @@ class GraspingRobotInterface(polymetis.RobotInterface):
     def select_grasp(
         self, grasps: graspnetAPI.GraspGroup, scene_pcd: o3d.geometry.PointCloud
     ) -> graspnetAPI.Grasp:
-        # TODO: filter out kinematically infeasible grasps
-
-        # TODO: filter out collisions
-        collision = collision_detector.ModelFreeCollisionDetector(np.asarray(scene_pcd.points))
-        collision_mask = collision.detect(grasps)
-        print(f"Number of colliding grasps: {collision_mask.sum()}/{len(collision_mask)}")
-        grasps = grasps[~collision_mask]
-
-        # Choose the grasp closest to the neutral position
         with torch.no_grad():
-            grasp, i = min_dist_grasp(self.default_ee_pose, grasps[:5])
+            feasible_i = []
+            for i, grasp in enumerate(grasps):
+                grasp_point, grasp_approach_delta, des_ori_quat = compute_des_pose(grasp)
+                point_a = grasp_point + 1.5 * grasp_approach_delta
+                point_b = grasp_point + 0.72 * grasp_approach_delta
+
+                def check_feasibility(point):
+                    ik_sol = self.robot_model.inverse_kinematics(torch.Tensor(point), torch.Tensor(des_ori_quat))
+                    ee_pos, ee_quat = self.robot_model.forward_kinematics(ik_sol)
+                    return torch.linalg.norm(ee_pos - point) < 0.001
+
+                if check_feasibility(point_a) and check_feasibility(point_b):
+                    feasible_i.append(i)
+            
+            if len(feasible_i) < len(grasps):
+                print(f"Filtered out {len(grasps) - len(feasible_i)}/{len(grasps)} grasps due to kinematic infeasibility.")
+
+            # Choose the grasp closest to the neutral position
+            grasp, i = min_dist_grasp(self.default_ee_pose, grasps[feasible_i][:5])
             print(f"Closest grasp to ee ori, within top 5: {i + 1}")
-        return grasp
-
-        # return grasps[int(input("Choose grasp index (1-indexed):")) - 1]
-
-        # return grasps[0]
+            return grasp
 
     def grasp(self, grasp: graspnetAPI.Grasp, time_to_go=3, offset=np.array([0.0, 0.0, 0.0])):
         states = []
         grasp_point, grasp_approach_delta, des_ori_quat = compute_des_pose(grasp)
 
         self.gripper_open()
-        states += self._move_until_success(
+        states += self.move_until_success(
             position=torch.Tensor(grasp_point + grasp_approach_delta * 1.5 + offset),
             orientation=torch.Tensor(des_ori_quat),
             time_to_go=time_to_go,
@@ -108,7 +113,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
 
         grip_ee_pos = torch.Tensor(grasp_point + grasp_approach_delta * 0.72 + offset)
 
-        states += self._move_until_success(
+        states += self.move_until_success(
             position=grip_ee_pos, orientation=torch.Tensor(des_ori_quat), time_to_go=time_to_go
         )
         self.gripper_close()

@@ -1,12 +1,12 @@
 import logging
 from typing import List
+from types import SimpleNamespace
 
 import numpy as np
 import open3d as o3d
 import a0
 from polygrasp import serdes
 
-import pyrealsense2
 log = logging.getLogger(__name__)
 
 
@@ -16,7 +16,7 @@ topic_key = "pcd_server"
 class PointCloudClient:
     def __init__(
         self,
-        camera_intrinsics: List[pyrealsense2.pyrealsense2.intrinsics],
+        camera_intrinsics: List[SimpleNamespace],
         camera_extrinsics: np.ndarray,
         masks: np.ndarray = None,
     ):
@@ -42,8 +42,6 @@ class PointCloudClient:
             self.extrinsic_transforms[i] = np.eye(4)
             self.extrinsic_transforms[i, :3, :3] = calibration["camera_base_ori"]
             self.extrinsic_transforms[i, :3, 3] = calibration["camera_base_pos"]
-        
-        self.client = a0.RpcClient(topic_key)
 
         if masks is None:
             intrinsic = camera_intrinsics[0]
@@ -75,7 +73,7 @@ class PointCloudClient:
             pcds.append(pcd)
 
         return pcds
-    
+
     def get_pcd_i(self, rgbd, i):
         intrinsic = self.o3_intrinsics[i]
         transform = self.extrinsic_transforms[i]
@@ -98,9 +96,6 @@ class PointCloudClient:
 
         return pcd
 
-    def segment_pcd(self, rgbd, intrinsics):
-        raise NotImplementedError
-
 
 class PointCloudServer:
     def _get_segmentations(self, rgbd):
@@ -114,7 +109,7 @@ class PointCloudServer:
             rgbd = serdes.capnp_to_rgbd(payload)
             result = self._get_segmentations(rgbd)
 
-            log.info("Done.Replying with serialized segmentations...")
+            log.info("Done. Replying with serialized segmentations...")
             req.reply(serdes.rgbd_to_capnp(result).to_bytes())
 
         server = a0.RpcServer(topic_key, onrequest, None)
@@ -122,17 +117,22 @@ class PointCloudServer:
         while True:
             pass
 
-class RgbdFeaturesPointCloudClient(PointCloudClient):
+
+class SegmentationPointCloudClient(PointCloudClient):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.client = a0.RpcClient(topic_key)
+
     def segment_img(self, rgbd):
         state = []
 
         def onreply(pkt):
             state.append(pkt.payload)
-        
+
         bits = serdes.rgbd_to_capnp(rgbd).to_bytes()
         self.client.send(bits, onreply)
 
         while not state:
             pass
-        
+
         return serdes.capnp_to_rgbd(state.pop())

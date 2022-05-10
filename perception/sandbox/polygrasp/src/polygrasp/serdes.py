@@ -2,14 +2,22 @@ import numpy as np
 import open3d as o3d
 import fairomsg
 
+import site
+import os
 import io
 import numpy as np
 import open3d
 import graspnetAPI
+import capnp
+import polygrasp
 
 std_msgs = fairomsg.get_msgs("std_msgs")
 sensor_msgs = fairomsg.get_msgs("sensor_msgs")
 geometry_msgs = fairomsg.get_msgs("geometry_msgs")
+
+print("capnp loading polygrasp")
+_schema_parser = capnp.SchemaParser()
+polygrasp_msgs = _schema_parser.load(os.path.join(polygrasp.__path__[0], "polygrasp.capnp"), imports=site.getsitepackages())
 
 """Byte conversions"""
 

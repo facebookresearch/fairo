@@ -1,28 +1,39 @@
-import time
 import logging
 import numpy as np
 import open3d as o3d
-
 from matplotlib import pyplot as plt
 
 import a0
 
 import graspnetAPI
 from polygrasp import serdes
+from polygrasp.serdes import polygrasp_msgs
 
 
 log = logging.getLogger(__name__)
 topic_key = "grasp_server"
+grasp_topic_key = f"{topic_key}/grasp"
+collision_topic_key = f"{topic_key}/collision"
+
+
+def save_img(img, name):
+    f = plt.figure()
+    plt.imshow(img)
+    f.savefig(f"{name}.png")
+    plt.close(f)
 
 
 class GraspServer:
     def _get_grasps(self, pcd: o3d.geometry.PointCloud) -> np.ndarray:
         raise NotImplementedError
+    
+    def _get_collisions(self, grasps: graspnetAPI.GraspGroup, scene_pcd: o3d.geometry.PointCloud):
+        raise NotImplementedError
 
     def start(self):
         log.info(f"Starting grasp server...")
 
-        def onrequest(req):
+        def grasp_onrequest(req):
             log.info(f"Got request; computing grasp group...")
 
             payload = req.pkt.payload
@@ -31,16 +42,46 @@ class GraspServer:
 
             log.info(f"Done. Replying with serialized grasp group...")
             req.reply(serdes.grasp_group_to_capnp(grasp_group).to_bytes())
+        grasp_server = a0.RpcServer(grasp_topic_key, grasp_onrequest, None)
 
-        server = a0.RpcServer(topic_key, onrequest, None)
+        def collision_onrequest(req):
+            log.info(f"Got request; computing collisions...")
+
+            payload = req.pkt.payload
+            msg = polygrasp_msgs.CollisionRequest.from_bytes(payload)
+            grasp_group = serdes.bytes_to_grasp_group(msg.grasps)
+            scene_pcd = serdes.capnp_to_pcd(msg.pcd)
+
+            filtered_grasp_group = self._get_collisions(grasp_group, scene_pcd)
+            log.info(f"Done. Replying with serialized filtered grasps...")
+            req.reply(serdes.grasp_group_to_bytes(filtered_grasp_group))
+        collision_server = a0.RpcServer(collision_topic_key, collision_onrequest, None)
+
         while True:
             pass
 
 
 class GraspClient:
     def __init__(self, view_json_path):
-        self.client = a0.RpcClient(topic_key)
+        self.grasp_client = a0.RpcClient(grasp_topic_key)
+        self.collision_client = a0.RpcClient(collision_topic_key)
         self.view_json_path = view_json_path
+
+    def downsample_pcd(self, pcd: o3d.geometry.PointCloud, max_num_bits=8 * 1024 * 1024):
+        # a0 default max msg size 16MB; make sure every msg < 1/2 of max
+        i = 1
+        while True:
+            downsampled_pcd = pcd.uniform_down_sample(i)
+            bits = serdes.pcd_to_capnp(downsampled_pcd).to_bytes()
+            if len(bits) > max_num_bits:
+                log.warning(f"Downsampling pointcloud...")
+                i += 1
+            else:
+                break
+        if i > 1:
+            log.warning(f"Downsampled to every {i}th point.")
+
+        return bits
 
     def get_grasps(self, pcd: o3d.geometry.PointCloud) -> graspnetAPI.GraspGroup:
         state = []
@@ -48,25 +89,31 @@ class GraspClient:
         def onreply(pkt):
             state.append(pkt.payload)
 
-        i = 1
-        while True:
-            downsampled_pcd = pcd.uniform_down_sample(i)
-            bits = serdes.pcd_to_capnp(downsampled_pcd).to_bytes()
-            if (
-                len(bits) > 8 * 1024 * 1024
-            ):  # a0 default max msg size 16MB; make sure every msg < 1/2 of max
-                log.warning(f"Downsampling pointcloud...")
-                i += 1
-            else:
-                break
-        if i > 1:
-            log.warning(f"Downsampled to every {i}th point.")
-        self.client.send(bits, onreply)
+        bits = self.downsample_pcd(pcd)
+        self.grasp_client.send(bits, onreply)
 
         while not state:
             pass
+
         return serdes.capnp_to_grasp_group(state.pop())
     
+    def get_collision(self, grasps: graspnetAPI.GraspGroup, scene_pcd: o3d.geometry.PointCloud):
+        state = []
+
+        def onreply(pkt):
+            state.append(pkt.payload)
+
+        request = polygrasp_msgs.CollisionRequest()
+        request.pcd = self.downsample_pcd(scene_pcd)
+        request.grasps = serdes.grasp_group_to_bytes(grasps)
+        bits = request.to_bytes()
+        self.collision_client.send(bits, onreply)
+
+        while not state:
+            pass
+
+        return serdes.bytes_to_grasp_group(state.pop())
+
     def visualize(self, scene_pcd, plot=False, render=False, save_view=False):
         vis = o3d.visualization.Visualizer()
         vis.create_window()
@@ -87,14 +134,6 @@ class GraspClient:
         vis.get_view_control().convert_from_pinhole_camera_parameters(param)
 
         return vis
-    
-    def get_rgbd(self, vis):
-        rgb = np.array(vis.capture_screen_float_buffer(do_render=True))
-        d = np.array(vis.capture_depth_float_buffer(do_render=True))
-        intrinsics = vis.get_view_control().convert_to_pinhole_camera_parameters()
-
-        import pdb; pdb.set_trace()
-
 
     def visualize_grasp(
         self,
@@ -105,56 +144,31 @@ class GraspClient:
         render=False,
         save_view=False,
     ) -> None:
-        timestamp = int(time.time())
-        o3d_geometries = grasp_group.to_open3d_geometry_list()
-
-        # k = 5
-        # total_pts = scene_pcd
-        # pts = [x.sample_points_uniformly(number_of_points=5000) for x in o3d_geometries[:k]]
-        # for pt in pts:
-        #     total_pts += pt
-        # vis = self.visualize(scene_pcd=total_pts, plot=plot, render=render, save_view=save_view)
-        # grasp_image = np.array(vis.capture_screen_float_buffer(do_render=True))
-        # f = plt.figure()
-        # plt.imshow(grasp_image)
-        # f.savefig(f"{timestamp}_grasp_top_{k}.png")
-        # plt.close(f)
-        # vis.close()
-
+        grasp_o3d_geometries = grasp_group.to_open3d_geometry_list()
+        grasp_pointclouds = [
+            grasp_o3d_geometry.sample_points_uniformly(number_of_points=5000)
+            for grasp_o3d_geometry in grasp_o3d_geometries
+        ]
         vis = self.visualize(scene_pcd=scene_pcd, plot=plot, render=render, save_view=save_view)
 
+        # Save scene
         grasp_image = np.array(vis.capture_screen_float_buffer(do_render=True))
-        f = plt.figure()
-        plt.imshow(grasp_image)
-        f.savefig(f"scene.png")
+        save_img(grasp_image, "scene")
 
-        n = min(n, len(o3d_geometries))
+        n = min(n, len(grasp_o3d_geometries))
         log.info(f"Visualizing top {n} grasps in Open3D...")
 
-        grasp_images = []
-        for i in range(n):
-            scene_points = o3d_geometries[i].sample_points_uniformly(number_of_points=5000)
-            vis.add_geometry(scene_points, reset_bounding_box=False)
+        # Save scene with each top grasp individually
+        for i, grasp_pointcloud in enumerate(grasp_pointclouds[:n]):
+            vis.add_geometry(grasp_pointcloud, reset_bounding_box=False)
             grasp_image = np.array(vis.capture_screen_float_buffer(do_render=True))
-            grasp_images.append(grasp_image)
-            f = plt.figure()
-            plt.imshow(grasp_image)
-            f.savefig(f"grasp_{i + 1}.png")
-            plt.close(f)
-            vis.remove_geometry(scene_points, reset_bounding_box=False)
+            save_img(grasp_image, f"scene_with_grasp_{i + 1}")
+            vis.remove_geometry(grasp_pointcloud, reset_bounding_box=False)
 
-        if plot:
-            log.info("Plotting with matplotlib...")
-            w, h = n // 5, 5
-            if n % 5 != 0:
-                w += 1
-
-            f, axarr = plt.subplots(w, h, figsize=(w * 5, h * 3))
-            for i in range(n):
-                a, b = i // 5, i % 5
-                axarr[a, b].imshow(grasp_images[i])
-                axarr[a, b].axis("off")
-                axarr[a, b].set_title(f"Grasp pose top {i + 1}/{n}")
-            f.show()
+        # Save scene with all grasps
+        for grasp_pointcloud in grasp_pointclouds[:n]:
+            vis.add_geometry(grasp_pointcloud, reset_bounding_box=False)
+        grasp_image = np.array(vis.capture_screen_float_buffer(do_render=True))
+        save_img(grasp_image, "scene_with_grasps")
 
         return vis

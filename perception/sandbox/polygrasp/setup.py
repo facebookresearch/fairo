@@ -14,7 +14,6 @@ install_requires = [
     "fairomsg",
 ]
 
-
 setup(
     name="polygrasp",
     author="Yixin Lin",
@@ -22,6 +21,7 @@ setup(
     version="0.1",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
+    include_package_data=True,
     scripts=["scripts/run_grasp.py"],
     install_requires=install_requires,
 )
