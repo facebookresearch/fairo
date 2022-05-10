@@ -8,6 +8,9 @@
 # ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_pt2/ av300_sanity50 50
 # ./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_noise_pt2/ av300_noise_pt2 300
 
+# Robot experiments
+# ./launch_candidate_selection.sh /home/locobotm/baseline_explore2/default/0 robo_ex/explore2 1 robot
+
 set -ex
 
 if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then
