@@ -196,7 +196,7 @@ class SLAM(object):
         # Local semantic categories
         map_features[8:, :, :] = local_map[4:, :, :]
 
-        orientation = torch.tensor([[int((yaw * 180.0 / np.pi + 180.0) / 5.0)]])
+        orientation = torch.tensor([int((yaw * 180.0 / np.pi + 180.0) / 5.0)])
 
         return map_features.unsqueeze(0), orientation
 
