@@ -14,7 +14,7 @@ def transform_global_to_base(XYT, current_pose):
     Output:
         XYZ : ...x3
     """
-    XYT = np.asarray(XYT)
+    XYT = np.asarray(XYT, dtype=np.float32)
     new_T = XYT[2] - current_pose[2]
     R = Rotation.from_euler("Z", current_pose[2]).as_matrix()
     XYT[0] = XYT[0] - current_pose[0]
@@ -130,7 +130,7 @@ def goto(
     y = xyt_position[1]  # in meters
     rot = xyt_position[2]  # in radians
 
-    print("goto: ", xyt_position)
+    print("goto: ", xyt_position, " from: ", xyt_position)
 
     if sqrt(x * x + y * y) < translation_threshold:
         print("translation distance too little," " rotating and exiting", sqrt(x * x + y * y))
@@ -138,7 +138,7 @@ def goto(
         if not dryrun:
             robot.rotate_by(rot)
             robot.push_command()
-            time.sleep(0.05)
+            time.sleep(1)
             is_moving = True
             while is_moving:
                 time.sleep(0.1)
@@ -196,7 +196,7 @@ def goto(
         robot.rotate_by(theta_1)
         robot.push_command()
         robot.pull_status()
-        time.sleep(0.1)
+        time.sleep(1)
         is_moving = True
         while is_moving:
             time.sleep(0.1)
@@ -240,7 +240,7 @@ def goto(
     if not dryrun:
         robot.rotate_by(theta_2)
         robot.push_command()
-        time.sleep(0.1)
+        time.sleep(1)
         robot.pull_status()
         is_moving = True
         while is_moving:
