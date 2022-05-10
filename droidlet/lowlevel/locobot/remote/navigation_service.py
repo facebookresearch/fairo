@@ -142,7 +142,6 @@ class Navigation(object):
         goal_action = self.goal_policy(map_features, orientation, object_goal)
         goal_in_map = torch.sigmoid(goal_action).numpy()[0] * self.local_map_size
         goal_in_world = self.slam.map2real(goal_in_map)
-        print("goal", (*goal_in_world, 0))
         return self.go_to_absolute((*goal_in_world, 0), steps=steps)
 
     def explore(self, far_away_goal):
