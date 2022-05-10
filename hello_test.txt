@@ -1,0 +1,15 @@
+"--dev",
+"--ip", "100.72.46.5",
+"--backend", "hellorobot",
+"--data_store_path", "/home/hello/reexplore_bin2",
+"--default_behavior", "reexplore",
+"--reexplore_json", "/home/hello/repos/fairo/tools/active_vision/robot_experiments/1/reexplore_data.json"
+
+
+SAVE_EXPLORATION=True
+VISUALIZE_EXAMINE=True
+LOCOBOT_IP=100.72.46.5
+
+python agents/locobot/locobot_agent.py --default_behavior reexplore \ 
+--reexplore_json tools/active_vision/robot_experiments/1/reexplore_data.json --backend hellorobot \
+--ip 100.72.46.5 --data_store_path reexplore_data 
