@@ -146,7 +146,8 @@ class LocobotAgent(DroidletAgent):
             objects = DetectedObjectNode.get_all(self.memory)
             for o in objects:
                 del o["feature_repr"]  # pickling optimization
-            self.dashboard_memory["objects"] = objects
+            #FIXME None is a temporary hack to get around "Object of type Boxes is not JSON serializable"
+            self.dashboard_memory["objects"] = None #objects 
             sio.emit("updateState", {"memory": self.dashboard_memory})
 
         @sio.on("interaction data")

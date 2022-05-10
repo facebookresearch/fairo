@@ -169,6 +169,7 @@ class Move(BaseMovementTask):
         super().__init__(agent, task_data)
         self.target = np.array(task_data["target"])
         self.is_relative = task_data.get("is_relative", 0)
+        self.is_blocking = task_data.get("is_blocking", False)
         self.path = None
         self.command_sent = False
         TaskNode(agent.memory, self.memid).update_task(task=self)
@@ -184,9 +185,9 @@ class Move(BaseMovementTask):
             logging.info("calling move with : %r" % (self.target.tolist()))
             self.command_sent = True
             if self.is_relative:
-                self.agent.mover.move_relative([self.target.tolist()], blocking=False)
+                self.agent.mover.move_relative([self.target.tolist()], blocking=self.is_blocking)
             else:
-                self.agent.mover.move_absolute([self.target.tolist()], blocking=False)
+                self.agent.mover.move_absolute([self.target.tolist()], blocking=self.is_blocking)
 
         else:
             self.finished = not self.agent.mover.is_busy()
@@ -562,7 +563,7 @@ class ExamineDetectionStraightline(TrajectorySaverTask):
             logging.info(f"Current Pos {base_pos}")
             logging.info(f"Move Target for Examining {tloc}")
             logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-tloc[:2])}")
-            self.add_child_task(Move(self.agent, {"target": tloc}))
+            self.add_child_task(Move(self.agent, {"target": tloc, "is_blocking": True}))
 
             # visualize tloc, frontier_center, obstacle_map
             if os.getenv("VISUALIZE_EXAMINE", "False") == "True":
@@ -635,7 +636,7 @@ class ExamineDetectionStraightlinepp(TrajectorySaverTask):
             logging.info(f"Current Pos {base_pos}")
             logging.info(f"Move Target for Examining {tloc}")
             logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-tloc[:2])}")
-            self.add_child_task(Move(self.agent, {"target": tloc}))
+            self.add_child_task(Move(self.agent, {"target": tloc, "is_blocking": True}))
 
             # visualize tloc, frontier_center, obstacle_map
             logging.info(f"os.getenv('VISUALIZE_EXAMINE') {os.getenv('VISUALIZE_EXAMINE')}")
@@ -698,7 +699,7 @@ class ExamineDetectionCircle(TrajectorySaverTask):
             tloc = self.pts[self.steps]
             self.steps += 1
             self.logger.info(f"step {self.steps} moving to {tloc} Current Pos {base_pos}")
-            self.add_child_task(Move(self.agent, {"target": tloc}))
+            self.add_child_task(Move(self.agent, {"target": tloc, "is_blocking": True}))
             self.last_base_pos = base_pos
             # visualize tloc, frontier_center, obstacle_map
             if os.getenv("VISUALIZE_EXAMINE", "False") == "True":
@@ -764,7 +765,7 @@ class ExamineDetectionCirclepp(TrajectorySaverTask):
         if tloc is not None:
             self.steps += 1
             self.logger.info(f"step {self.steps} moving to {tloc} Current Pos {base_pos}")
-            self.add_child_task(Move(self.agent, {"target": tloc}))
+            self.add_child_task(Move(self.agent, {"target": tloc, "is_blocking": True}))
             self.last_base_pos = base_pos
             # visualize tloc, frontier_center, obstacle_map
             if os.getenv("VISUALIZE_EXAMINE", "False") == "True":
@@ -938,7 +939,7 @@ class Reexplore(Task):
                         "vis_path": f"{self.task_data['vis_path']}/c1pp",
                         "data_path": f"{self.task_data['data_path']}/c1pp",
                         "dbg_str": f"Circle examine {self.target}",
-                        "radius": 1.4,
+                        "radius": 0.7,
                         "logger": logger,
                     },
                 )

@@ -5,8 +5,8 @@ krovetz
 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
 detectron2
 face_recognition
-https://github.com/waspinator/pycococreator/archive/refs/tags/0.2.0.zip
-pycocotools
+# https://github.com/waspinator/pycococreator/archive/refs/tags/0.2.0.zip
+# pycocotools
 yacs
 open3d
 blosc
