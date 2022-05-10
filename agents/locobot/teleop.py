@@ -139,6 +139,11 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             print("action: MOVE_ABSOLUTE", xyyaw_f)
             mover.move_absolute(xyyaw_f, blocking=False)
             sync()
+        elif command == "MOVE_TO_OBJECT":
+            object_goal = value.strip()
+            print("action: MOVE_TO_OBJECT", object_goal)
+            mover.move_to_object(object_goal)
+            sync()
         elif command == "LOOK_AT":
             xyz = value.split(',')
             xyz = [float(p) for p in xyz]

@@ -256,6 +256,11 @@ class HelloRobotMover(MoverInterface):
         return "finished"
 
     def move_to_object(self, object_goal: str, blocking=True):
+        """Command to execute a move to an object category.
+        
+        Args:
+            object_goal: supported COCO object category
+        """
         self.nav_result.wait()
         self.nav_result = self.nav.go_to_object(object_goal)
         if blocking:
