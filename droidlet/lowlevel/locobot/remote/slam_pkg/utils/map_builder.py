@@ -159,10 +159,10 @@ class MapBuilder(object):
         curr_x, curr_y = self.real2map((curr_x, curr_y))
         steps = 10
         for i in range(steps):
-            x = int(np.rint(self.last_x + (curr_x - self.last_x) * i / steps))
-            y = int(np.rint(self.last_y + (curr_y - self.last_y) * i / steps))
+            x = int(np.rint(self.prev_x + (curr_x - self.prev_x) * i / steps))
+            y = int(np.rint(self.prev_y + (curr_y - self.prev_y) * i / steps))
             self.semantic_map[2:4, y - 2 : y + 3, x - 2 : x + 3].fill(1.0)
-        self.last_x, self.last_y = curr_x, curr_y
+        self.prev_x, self.prev_y = curr_x, curr_y
 
         return np.copy(self.semantic_map)
 
@@ -178,7 +178,7 @@ class MapBuilder(object):
             self.z_bins = z_bins
         if obs_thr is not None:
             self.obs_threshold = obs_thr
-        self.last_x, self.last_y = self.real2map(pose_init[:2])
+        self.prev_x, self.prev_y = self.real2map(pose_init[:2])
 
         self.map = np.zeros(
             (

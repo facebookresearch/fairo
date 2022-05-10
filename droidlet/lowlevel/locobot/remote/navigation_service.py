@@ -133,11 +133,13 @@ class Navigation(object):
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
-        object_goal = torch.tensor([coco_categories[object_goal]])
+        object_goal_cat = torch.tensor([coco_categories[object_goal]])
         map_features, orientation = self.slam.get_semantic_map_features()
-        goal_action = self.goal_policy(map_features, orientation, object_goal)
+        goal_action = self.goal_policy(map_features, orientation, object_goal_cat)
         goal_in_map = torch.sigmoid(goal_action).numpy()[0] * self.local_map_size
         goal_in_world = self.slam.map2real(goal_in_map)
+        print(f"[navigation] Executing a go_to_object {object_goal} "
+              f"with a go_to_absolute {(*goal_in_world, 0)}")
         return self.go_to_absolute((*goal_in_world, 0), steps=steps)
 
     def explore(self, far_away_goal):

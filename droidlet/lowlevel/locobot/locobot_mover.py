@@ -164,11 +164,14 @@ class LoCoBotMover:
         Args:
             object_goal: supported COCO object category
         """
-        self.nav_result.wait()
-        self.nav_result = self.nav.go_to_object(object_goal)
-        if blocking:
+        if self.nav_result.ready:
             self.nav_result.wait()
-        return "finished"
+            self.nav_result = safe_call(self.nav.go_to_object, object_goal)
+            if blocking:
+                self.nav_result.wait()
+        else:
+            print("navigator executing another call right now")
+        return self.nav_result
 
     def look_at(self, obj_pos, yaw_deg, pitch_deg):
         """

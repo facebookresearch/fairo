@@ -142,7 +142,7 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
         elif command == "MOVE_TO_OBJECT":
             object_goal = value.strip()
             print("action: MOVE_TO_OBJECT", object_goal)
-            mover.move_to_object(object_goal)
+            mover.move_to_object(object_goal, blocking=False)
             sync()
         elif command == "LOOK_AT":
             xyz = value.split(',')
@@ -239,7 +239,6 @@ if __name__ == "__main__":
             "depthMin": serialized_image["depth_min"],
         })
 
-
         points, colors = rgb_depth.ptcloud.reshape(-1, 3), rgb_depth.rgb.reshape(-1, 3)
         colors = colors / 255.
 
@@ -285,7 +284,7 @@ if __name__ == "__main__":
         # start the SLAM
         if backend == 'habitat':
             # mover.explore((19, 19, 0))
-            mover.move_to_object("chair")
+            mover.move_to_object("chair", blocking=False)
         
         sio.emit(
             "map",

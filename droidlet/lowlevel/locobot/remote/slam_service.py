@@ -131,7 +131,9 @@ class SLAM(object):
         vis.putdata(vis_content.flatten().astype(np.uint8))
         vis = vis.convert("RGB")
         vis = np.array(vis)[:, :, [2, 1, 0]]
-        cv2.imwrite("semantic_frame.png", vis)
+        # cv2.imwrite("semantic_frame.png", vis)
+        cv2.imshow("semantic frame", vis)
+        cv2.waitKey(1)
 
     def visualize_semantic_map(self):
         """Visualize top-down semantic map."""
@@ -158,7 +160,9 @@ class SLAM(object):
         sem_map_vis = sem_map_vis.convert("RGB")
         sem_map_vis = np.flipud(sem_map_vis)
         sem_map_vis = sem_map_vis[:, :, [2, 1, 0]]
-        cv2.imwrite("semantic_map.png", sem_map_vis)
+        # cv2.imwrite("semantic_map.png", sem_map_vis)
+        cv2.imshow("semantic map", sem_map_vis)
+        cv2.waitKey(1)
 
     def get_map_resolution(self):
         return self.map_resolution
