@@ -65,11 +65,7 @@ class Navigation(object):
         num_sem_categories = len(coco_categories)
         self.local_map_size = 240  # TODO Make this configurable
         self.goal_policy = GoalPolicy(
-            map_features_shape=(
-                num_sem_categories + 8, 
-                self.local_map_size, 
-                self.local_map_size
-            ),
+            map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
             num_outputs=2,
             hidden_size=256,
             num_sem_categories=num_sem_categories,
