@@ -198,23 +198,23 @@ class SLAM(object):
             orientation: discretized yaw in {0, ..., 72}
         """
         x, y, yaw = self.robot.get_base_state()
-        x, y = self.map_builder.real2map((x, y))
+        c, r = self.map_builder.real2map((x, y))
 
-        x1 = max(int(x - self.local_map_size // 2), 0)
-        y1 = max(int(y - self.local_map_size // 2), 0)
-        if x1 + self.local_map_size > self.map_size:
-            x2 = self.map_size
-            x1 = x2 - self.local_map_size
+        c1 = max(int(c - self.local_map_size // 2), 0)
+        r1 = max(int(r - self.local_map_size // 2), 0)
+        if c1 + self.local_map_size > self.map_size:
+            c2 = self.map_size
+            c1 = c2 - self.local_map_size
         else:
-            x2 = x1 + self.local_map_size
-        if y1 + self.local_map_size > self.map_size:
-            y2 = self.map_size
-            y1 = y2 - self.local_map_size
+            c2 = c1 + self.local_map_size
+        if r1 + self.local_map_size > self.map_size:
+            r2 = self.map_size
+            r1 = r2 - self.local_map_size
         else:
-            y2 = y1 + self.local_map_size
+            r2 = r1 + self.local_map_size
 
         global_map = torch.from_numpy(self.map_builder.semantic_map)
-        local_map = global_map[:, y1:y2, x1:x2]
+        local_map = global_map[:, r1:r2, c1:c2]
 
         map_features = torch.zeros(
             self.num_sem_categories + 8, self.local_map_size, self.local_map_size

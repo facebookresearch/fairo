@@ -158,13 +158,13 @@ class MapBuilder(object):
         # Reset current location
         self.semantic_map[2, :, :].fill(0.0)
         curr_x, curr_y, _ = pose
-        curr_x, curr_y = self.real2map((curr_x, curr_y))
+        curr_c, curr_r = self.real2map((curr_x, curr_y))
         steps = 10
         for i in range(steps):
-            x = int(np.rint(self.prev_x + (curr_x - self.prev_x) * i / steps))
-            y = int(np.rint(self.prev_y + (curr_y - self.prev_y) * i / steps))
-            self.semantic_map[2:4, y - 2 : y + 3, x - 2 : x + 3].fill(1.0)
-        self.prev_x, self.prev_y = curr_x, curr_y
+            c = int(np.rint(self.prev_c + (curr_c - self.prev_c) * i / steps))
+            r = int(np.rint(self.prev_r + (curr_r - self.prev_r) * i / steps))
+            self.semantic_map[2:4, r - 2 : r + 3, c - 2 : c + 3].fill(1.0)
+        self.prev_c, self.prev_r = curr_c, curr_r
 
         return np.copy(self.semantic_map)
 
@@ -180,7 +180,7 @@ class MapBuilder(object):
             self.z_bins = z_bins
         if obs_thr is not None:
             self.obs_threshold = obs_thr
-        self.prev_x, self.prev_y = self.real2map(pose_init[:2])
+        self.prev_c, self.prev_r = self.real2map(pose_init[:2])
 
         self.map = np.zeros(
             (
