@@ -94,7 +94,7 @@ def get_training_data(path, job_dir):
             },
         },
         {
-            'out_dir': get_path(path, job_dir),
+            'out_dir': get_path(path, job_dir, 'with_gt'),
             'dataset_name': path.split('/')[-1],
             'train': {
                 'json': os.path.join(path, 'coco_train_with_seg_gt.json'),

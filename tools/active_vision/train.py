@@ -230,7 +230,7 @@ class COCOTrain:
         print(cfg.SOLVER)
         print(f'SOLVER PARAMS {cfg.SOLVER.MAX_ITER, cfg.SOLVER.WARMUP_ITERS, cfg.SOLVER.BASE_LR}')
         cfg.DATASETS.TRAIN = (self.train_data,)
-        cfg.DATASETS.TEST = (self.val_data, self.train_data)
+        cfg.DATASETS.TEST = (self.val_data, self.train_data, self.test_data)
         cfg.DATALOADER.NUM_WORKERS = 2
         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
         cfg.SOLVER.IMS_PER_BATCH = 16
