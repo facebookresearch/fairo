@@ -5,7 +5,7 @@ import mrp
 
 
 @pytest.fixture
-def reset(autouse=True):
+def reset():
     # Reset defined processes.
     mrp.process_def.defined_processes.clear()
 
@@ -30,11 +30,13 @@ def hanging_proc_external():
         name="proc_ext",
         runtime=mrp.Host(run_command=["sleep", "999"]),
         env={"foo": "bar"},
-        root="/",
     )
 
     # Run proc
     mrp.cmd.up(procs=["proc_ext"], reset_logs=True)
+
+    # HACK Remove from defined processes
+    mrp.process_def.defined_processes.pop("proc_ext")
 
 
 def test_down(reset, hanging_proc):
@@ -51,7 +53,7 @@ def test_down_all(reset, hanging_proc, hanging_proc_external):
 
     # proc should be told to go down, but not proc_ext
     assert mrp.life_cycle.system_state().procs["proc"].ask == mrp.life_cycle.Ask.DOWN
-    # assert mrp.life_cycle.system_state().procs["proc_ext"].ask == mrp.life_cycle.Ask.UP
+    assert mrp.life_cycle.system_state().procs["proc_ext"].ask == mrp.life_cycle.Ask.UP
 
     mrp.cmd.down(all=True)
 
