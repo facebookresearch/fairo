@@ -37,4 +37,4 @@ Time estimate - ~1-2 hours.
 
 Time estimate - ~7-8 hours.
 
-- Job DIR: `/checkpoint/soumith/jobs/reexplore/training/10-05-2022/20:30:33`
+- Job DIR: `/checkpoint/soumith/jobs/reexplore/training/11-05-2022/09:51:35`
