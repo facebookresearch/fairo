@@ -13,7 +13,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from common_utils import log_time
 from math import isnan
-from common_utils import heuristics as heus, combinations as set_keys, prop_lengths
+from common_utils import heuristics as heus, combinations as set_keys, sm_prop_lengths, all_prop_lengths
 
 d3_40_colors_rgb: np.ndarray = np.array(
     [
@@ -195,7 +195,7 @@ def propogate_label(
         json.dump(acc_json, f)
 
 
-def propagate_dir(reex_dir, out_dir):
+def propagate_dir(reex_dir, out_dir, gt_or_p_fix):
     print(f'propagate_dir {reex_dir}')
     # should have folders in [r1, r2, s1, c1s, c1l]
     for fold in heus:
@@ -233,6 +233,7 @@ def propagate_dir(reex_dir, out_dir):
         end = time.time()
         print(f'total one time propagation time {end - start}')
 
+        prop_lengths = sm_prop_lengths if gt_or_p_fix == 'pfix' else all_prop_lengths
         for p in prop_lengths:
             od = os.path.join(out_f, f'pred_label_p{p}')
             if os.path.isdir(od):
@@ -379,7 +380,7 @@ def sanity_check_traj(x):
     print(f'sanity check {is_valid} for {x}')
     return is_valid
 
-def run_label_prop(data_dir, job_dir, job_out_dir, setting):
+def run_label_prop(data_dir, job_dir, job_out_dir, setting, gt_or_p_fix):
     print(f'data_dir {data_dir}')
     jobs = []
 
@@ -411,10 +412,10 @@ def run_label_prop(data_dir, job_dir, job_out_dir, setting):
                                 print(f'out_dir {out_dir}, rel_path {rel_path}')
                                 
                                 @log_time(os.path.join(job_dir, 'job_log.txt'))
-                                def job_unit(path, eid, set_keys, od, jod, rp):
+                                def job_unit(path, eid, set_keys, od, jod, rp, gt_or_p_fix):
                                     print(f'eid {eid}, path {path}')
                                     # do label prop on each reexplore subtrajectory 
-                                    propagate_dir(os.path.join(path.parent, eid), os.path.join(od, eid))
+                                    propagate_dir(os.path.join(path.parent, eid), os.path.join(od, eid), gt_or_p_fix)
                                     
                                     # combine all propagated based on combinations
                                     for out_name, input_folds in set_keys.items():
@@ -426,7 +427,7 @@ def run_label_prop(data_dir, job_dir, job_out_dir, setting):
                                         )
 
                                 # job_unit(path, eid, set_keys, out_dir, job_out_dir, rel_path)
-                                job = executor.submit(job_unit, path, eid, set_keys, out_dir, job_out_dir, rel_path)
+                                job = executor.submit(job_unit, path, eid, set_keys, out_dir, job_out_dir, rel_path, gt_or_p_fix)
                                 jobs.append(job)
                                 print(f"num jobs {len(jobs)}")
 
@@ -449,6 +450,7 @@ if __name__ == "__main__":
     parser.add_argument("--setting", type=str)
     parser.add_argument("--slurm", action="store_true", default=False, help="Run the pipeline on slurm, else locally")
     parser.add_argument("--noise", action="store_true", default=False, help="Spawn habitat with noise")
+    parser.add_argument("--gt_or_p_fix", type=str, default="gtfix")
 
     args = parser.parse_args()
 
@@ -469,4 +471,4 @@ if __name__ == "__main__":
         slurm_comment="Droidlet Active Vision Pipeline"
     )
 
-    run_label_prop(args.data_dir, args.job_dir, args.out_dir, args.setting)
+    run_label_prop(args.data_dir, args.job_dir, args.out_dir, args.setting, args.gt_or_p_fix)

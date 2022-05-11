@@ -14,7 +14,9 @@ combinations = {
     'e1s1ppr2': ['e1', 's1pp', 'r2'],
     'e1c1ppr2': ['e1', 'c1pp', 'r2'],
 }
-prop_lengths = range(0, 20, 4)
+sm_prop_lengths = range(8, 20, 4)
+all_prop_lengths = range(0, 20, 4)
+
 small_gt_range = range(5,10,5)
 big_gt_range = range(5,15,3)
 

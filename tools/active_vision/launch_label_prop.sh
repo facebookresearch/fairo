@@ -10,6 +10,7 @@ set -ex
 # ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/av300_noise/av300_noise_simple av300_noise
 # ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/av300_sanity50/av300_pt2 av_sanity50
 # ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/av_sm_noise_50/av300_noise_pt2 av_sm_noise_50 instance 
+# ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/av_sm_class2_50/av300_pt2 av_sm_class2_50 class pfix
 
 # soumith's
 # ./launch_label_prop.sh /checkpoint/soumith/jobs/reexplore/av_sm/av300_pt2 av_sm_noise_50 instance 
@@ -33,4 +34,4 @@ mkdir -p $job_dir
 echo """"""""""""""""""""""""""""""
 
 chmod +x run_label_prop.py
-python run_label_prop.py --data_dir $data_dir --job_dir $job_dir --out_dir $out_dir --setting $3
+python run_label_prop.py --data_dir $data_dir --job_dir $job_dir --out_dir $out_dir --setting $3 --gt_or_p_fix $4
