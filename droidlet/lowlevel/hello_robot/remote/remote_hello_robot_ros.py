@@ -224,6 +224,7 @@ class RemoteHelloRobot(object):
     def stop(self):
         self._robot.stop()
 
+
 if __name__ == "__main__":
     import argparse
 
