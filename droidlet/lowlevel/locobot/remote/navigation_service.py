@@ -158,8 +158,10 @@ class Navigation(object):
                 print("goal_in_global_map", goal_in_global_map)
                 print("goal_in_world", goal_in_world)
 
-            print(f"[navigation] Starting a go_to_absolute {(*goal_in_world, 0)} "
-                  f"to reach a {object_goal}")
+            print(
+                f"[navigation] Starting a go_to_absolute {(*goal_in_world, 0)} "
+                f"to reach a {object_goal}"
+            )
             _, goal_reached = self.go_to_absolute((*goal_in_world, 0), steps=25)
 
         print(f"[navigation] Finished a go_to_object {object_goal}")
