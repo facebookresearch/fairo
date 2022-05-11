@@ -26,7 +26,7 @@ TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 defaults = [
     "_self_",
     {"mephisto/blueprint": BLUEPRINT_TYPE},
-    {"mephisto/architect": "ec2"},
+    {"mephisto/architect": "heroku"},
     {"mephisto/provider": "mock"},
     {"conf": "run_with_qual"},
 ]

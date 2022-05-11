@@ -250,7 +250,7 @@ def register_dashboard_subdomain(cf, zone_id, ip, subdomain):
         raise e
 
 
-def allocate_instances(
+def allocate_oncall_instances(
     instance_num, batch_id, image_tag, task_name, timeout=-1, cf_email="rebeccaqian@fb.com"
 ):
     instance_ips, instance_ids = request_instance(
@@ -264,6 +264,7 @@ def allocate_instances(
         dns_records = cf.zones.dns_records.get(zone_id)
 
         # Write the subdomains and batch IDs to input CSV for Mephisto
+        logging.info("Writing job data to /turk_as_oncall/data.csv")
         with open("../../crowdsourcing/turk_as_oncall/data.csv", "w") as fd:
             csv_writer = csv.writer(fd, delimiter=",")
             csv_writer.writerow(HEADER)
@@ -275,7 +276,7 @@ def allocate_instances(
                 answer_list = ANSWER_LISTS[i % NUM_LISTS]
                 # Write record to Mephisto task input CSV
                 csv_writer.writerow(
-                    [subdomain, batch_id, (i % NUM_LISTS, command_list, answer_list)]
+                    [subdomain, batch_id, (i % NUM_LISTS), command_list, answer_list]
                 )
     return instance_ips, instance_ids
 

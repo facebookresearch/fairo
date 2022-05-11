@@ -16,7 +16,7 @@ from typing import List
 import boto3
 import botocore
 
-from droidlet.tools.hitl.utils.allocate_instances import allocate_instances, free_ecs_instances
+from droidlet.tools.hitl.turk_oncall.allocate_oncall_instances import allocate_oncall_instances, free_ecs_instances
 from droidlet.tools.hitl.utils.hitl_utils import (
     generate_batch_id,
     deregister_dashboard_subdomain,
@@ -28,7 +28,6 @@ from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.job_listener import JobListener
 from droidlet.tools.hitl.task_runner import TaskRunner
 
-from droidlet.tools.crowdsourcing.droidlet_static_html_task.issue_bonus import issue_bonuses
 
 ECS_INSTANCE_TIMEOUT = 45
 INTERACTION_JOB_POLL_TIME = 30
@@ -92,7 +91,7 @@ class OnCallJob(DataGenerator):
         logging.info(
             f"Allocate AWS ECS instances, populate oncall data csv, and register DNS records..."
         )
-        _, instance_ids = allocate_instances(
+        _, instance_ids = allocate_oncall_instances(
             self._instance_num, batch_id, self._image_tag, self._task_name, ECS_INSTANCE_TIMEOUT
         )
         self.instance_ids = instance_ids
@@ -108,8 +107,8 @@ class OnCallJob(DataGenerator):
                     AWS_ACCESS_KEY_ID='{MEPHISTO_AWS_ACCESS_KEY_ID}' \
                     AWS_SECRET_ACCESS_KEY='{MEPHISTO_AWS_SECRET_ACCESS_KEY}' \
                     python ../../crowdsourcing/turk_as_oncall/static_run_with_qual.py \
-                    mephisto.provider.requester_name={MEPHISTO_REQUESTER} \
-                    mephisto.architect.profile_name=mephisto-router-iam"
+                    mephisto.provider.requester_name={MEPHISTO_REQUESTER}"
+                    # mephisto.architect.profile_name=mephisto-router-iam"
             ],
             shell=True,
             preexec_fn=os.setsid,
@@ -176,7 +175,7 @@ class OnCallJob(DataGenerator):
 
 if __name__ == "__main__":
     runner = TaskRunner()
-    ocj = OnCallJob(instance_num=1, image_tag="exp4_v4", task_name="oncall_t1", timeout=10)
+    ocj = OnCallJob(instance_num=2, image_tag="exp4_v4", task_name="oncall_t1", timeout=30)
     batch_id = ocj.get_batch_id()
     runner.register_data_generators([ocj])
     runner.run()
