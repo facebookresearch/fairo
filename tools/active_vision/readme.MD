@@ -36,3 +36,5 @@ Time estimate - ~1-2 hours.
 `./launch_training.sh /checkpoint/soumith/jobs/reexplore/labelprop/av_sm class`
 
 Time estimate - ~7-8 hours.
+
+- Job DIR: `/checkpoint/soumith/jobs/reexplore/training/10-05-2022/19:07:27`
