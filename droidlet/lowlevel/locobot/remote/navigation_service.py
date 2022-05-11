@@ -63,7 +63,7 @@ class Navigation(object):
         self.trackback = Trackback(planner)
 
         num_sem_categories = len(coco_categories)
-        self.local_map_size = 240  # TODO Make this configurable
+        self.local_map_size = self.slam.get_local_map_size()
         self.goal_policy = GoalPolicy(
             map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
             num_outputs=2,
@@ -92,7 +92,7 @@ class Navigation(object):
         robot_loc = self.robot.get_base_state()
         initial_robot_loc = robot_loc
         goal_reached = False
-        return_code = True
+        path_found = True
         while (not goal_reached) and steps > 0 and self._stop is False:
             stg = self.planner.get_short_term_goal(robot_loc, goal)
             if stg == False:
@@ -102,7 +102,7 @@ class Navigation(object):
                         goal, robot_loc
                     )
                 )
-                return_code = False
+                path_found = False
                 break
             status = self.robot.go_to_absolute(stg)
             robot_loc = self.robot.get_base_state()
@@ -127,28 +127,39 @@ class Navigation(object):
             steps = steps - 1
 
         self._busy = False
-        return return_code
+        return path_found, goal_reached
 
-    def go_to_object(self, object_goal: str, steps=100000000):
+    def go_to_object(self, object_goal: str):
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
+        print(f"[navigation] Starting a go_to_object {object_goal}")
         object_goal_cat = torch.tensor([coco_categories[object_goal]])
-        map_features, orientation = self.slam.get_semantic_map_features()
-        goal_action = self.goal_policy(map_features, orientation, object_goal_cat)
-        goal_in_map = torch.sigmoid(goal_action).numpy()[0] * self.local_map_size
-        goal_in_world = self.slam.map2real(goal_in_map)
-        print(f"[navigation] Executing a go_to_object {object_goal} "
-              f"with a go_to_absolute {(*goal_in_world, 0)}")
-        return self.go_to_absolute((*goal_in_world, 0), steps=steps)
+
+        goal_reached = False
+        while not goal_reached:
+            map_features, orientation = self.slam.get_semantic_map_features()
+
+            goal_action = self.goal_policy(
+                map_features, orientation, object_goal_cat, deterministic=False)[0]
+            goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
+            global_loc = np.array(self.slam.real2map(self.robot.get_base_state()[:2]))
+            goal_in_global_map = global_loc + goal_in_local_map
+            goal_in_world = self.slam.map2real(goal_in_global_map)
+
+            print(f"[navigation] Starting a go_to_absolute {(*goal_in_world, 0)} "
+                  f"to reach a {object_goal}")
+            _, goal_reached = self.go_to_absolute((*goal_in_world, 0), steps=25)
+
+        print(f"[navigation] Finished a go_to_object {object_goal_cat}")
 
     def explore(self, far_away_goal):
         if not hasattr(self, "_done_exploring"):
             self._done_exploring = False
         if not self._done_exploring:
             print("exploring 1 step")
-            success = self.go_to_absolute(far_away_goal, steps=1)
-            if success == False:
+            path_found, _ = self.go_to_absolute(far_away_goal, steps=1)
+            if path_found == False:
                 # couldn't reach far_away_goal
                 # and don't seem to have any unexplored
                 # paths to attempt to get there

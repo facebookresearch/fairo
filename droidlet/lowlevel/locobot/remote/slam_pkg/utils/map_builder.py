@@ -12,7 +12,7 @@ from slam_pkg.utils import depth_util as du
 class MapBuilder(object):
     def __init__(
         self,
-        map_size_cm=4000,
+        map_size_cm=2400,
         resolution=5,
         obs_thr=1,
         cat_thr=5,
@@ -24,7 +24,8 @@ class MapBuilder(object):
         """
         :param map_size_cm: size of map in cm, assumes square map
         :param resolution: resolution of map, 1 pix = resolution distance(in cm) in real world
-        :param obs_thr: number of depth points to be in bin to considered it as obstacle
+        :param obs_thr: number of depth points to be in bin to consider it as obstacle
+        :param cat_thr: number of depth points to be in bin to classify it as a certain semantic category
         :param agent_min_z: robot min z (in cm), depth points below this will be considered as free space
         :param agent_max_z: robot max z (in cm), depth points above this will be considered as free space
         :param pose_init: initial (x, y, yaw) necessary to update semantic map
@@ -43,6 +44,7 @@ class MapBuilder(object):
         self.max_height = int(360 / self.resolution)
         self.min_height = int(-40 / self.resolution)
         self.map_size = int(self.map_size_cm // self.resolution)
+
         self.num_sem_categories = num_sem_categories
 
         self.reset_map(

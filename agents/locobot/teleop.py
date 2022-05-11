@@ -282,9 +282,9 @@ if __name__ == "__main__":
         o3dviz.add_robot(base_state, height)
 
         # start the SLAM
-        if backend == 'habitat':
-            # mover.explore((19, 19, 0))
-            mover.move_to_object("chair", blocking=False)
+        # if backend == 'habitat':
+        #     mover.explore((19, 19, 0))
+        #     mover.move_to_object("chair", blocking=False)
         
         sio.emit(
             "map",

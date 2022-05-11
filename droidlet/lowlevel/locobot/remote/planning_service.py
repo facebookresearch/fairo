@@ -61,12 +61,12 @@ class Planner(object):
             # so, finally, issue a last call to go to the precise final location
             # and to also use the rotation from the final goal
             print(
-                "Short-term goal {} is within threshold or target goal {}".format(stg_real, goal)
+                "Short-term goal {} is within threshold of target goal {}".format(stg_real, goal)
             )
             target_goal = goal
         else:
             print(
-                "Short-term goal {} is not within threshold or target goal {}".format(
+                "Short-term goal {} is not within threshold of target goal {}".format(
                     stg_real, goal
                 )
             )

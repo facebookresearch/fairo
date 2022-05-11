@@ -25,12 +25,14 @@ class SLAM(object):
     def __init__(
         self,
         robot,
-        map_size_cm=4000,
+        map_size_cm=2400,
         resolution=5,
         robot_rad=30,
         agent_min_z=5,
         agent_max_z=70,
         obstacle_threshold=1,
+        category_threshold=5,
+        global_downscaling=2,
     ):
         self.robot = robot
         self.robot_rad = robot_rad
@@ -44,9 +46,13 @@ class SLAM(object):
             agent_min_z=agent_min_z,
             agent_max_z=agent_max_z,
             obs_thr=obstacle_threshold,
+            cat_thr=category_threshold,
             num_sem_categories=self.num_sem_categories,
         )
         self.map_size_cm = map_size_cm
+        self.map_size = int(self.map_size_cm // self.map_resolution)
+        self.global_downscaling = global_downscaling
+        self.local_map_size = self.map_size // global_downscaling
         # if the map is a previous map loaded from disk, and
         # if the robot looks around and registers itself at a
         # non-origin location in the map just as it is coming up,
@@ -61,6 +67,9 @@ class SLAM(object):
 
         self.update_map()
         assert self.traversable is not None
+
+    def get_local_map_size(self):
+        return self.local_map_size
 
     def get_traversable_map(self):
         return self.traversable
@@ -158,7 +167,7 @@ class SLAM(object):
         sem_map_vis.putpalette([int(x * 255.0) for x in map_color_palette])
         sem_map_vis.putdata(sem_map.flatten().astype(np.uint8))
         sem_map_vis = sem_map_vis.convert("RGB")
-        sem_map_vis = np.flipud(sem_map_vis)
+        sem_map_vis = np.transpose(sem_map_vis, (1, 0, 2))
         sem_map_vis = sem_map_vis[:, :, [2, 1, 0]]
         # cv2.imwrite("semantic_map.png", sem_map_vis)
         cv2.imshow("semantic map", sem_map_vis)
@@ -181,22 +190,26 @@ class SLAM(object):
     def get_semantic_map_features(self):
         """
         Returns:
-            map_features: semantic map features of shape (num_sem_categories + 8, 240, 240)
+            map_features: semantic map features
             orientation: discretized yaw in {0, ..., 72}
         """
         x, y, yaw = self.robot.get_base_state()
         x, y = self.map_builder.real2map((x, y))
-        x1, y1 = max(int(x - 120), 0), max(int(y - 120), 0)
-        x2, y2 = x1 + 240, y1 + 240
+        x1 = max(int(x - self.local_map_size // 2), 0)
+        y1 = max(int(y - self.local_map_size // 2), 0)
+        x2, y2 = x1 + self.local_map_size, y1 + self.local_map_size
         global_map = torch.from_numpy(self.map_builder.semantic_map)
         local_map = global_map[:, y1:y2, x1:x2]
 
-        map_features = torch.zeros(self.num_sem_categories + 8, 240, 240)
+        map_features = torch.zeros(
+            self.num_sem_categories + 8, 
+            self.local_map_size, 
+            self.local_map_size
+        )
         # Local obstacles, explored area, and current and past position
-        map_features[0:4, :, :] = local_map[0:4, :, :]
-        # TODO Put global obstacles, explored area, and current and past position instead
-        #  of repeating local - this requires (map_size % 240 == 0)
-        map_features[4:8, :, :] = map_features[0:4, :, :]
+        map_features[:4, :, :] = local_map[:4, :, :]
+        # Global obstacles, explored area, and current and past position
+        map_features[4:8, :, :] = nn.MaxPool2d(self.global_downscaling)(global_map[:4, :, :])
         # Local semantic categories
         map_features[8:, :, :] = local_map[4:, :, :]
 
