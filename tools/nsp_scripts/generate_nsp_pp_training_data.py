@@ -7,7 +7,7 @@ OBJ_ACTIONS = ["build", "destroy", "copy"]
 OBJECTS = ["cube", "sphere", "house", "wall", "pyramid"]
 RESPONSES = ["yes", "no"]
 
-SAVE_PATH = f"/checkpoint/ethancarlson/nsp_pp/{round(datetime.timestamp(datetime.utcnow()))}.txt"
+SAVE_PATH = f"/checkpoint/ethancarlson/nsp_pp/{datetime.now().strftime('%Y%m%d%H%M%S')}.txt"
 
 NOOP = { 'dialogue_type': 'NOOP' }
 PUT_MEMORY = {
@@ -27,7 +27,7 @@ PUT_MEMORY = {
             "memory_type": "TRIPLE",
             "triples": [{
                 "pred_text": "has_tag",
-                "obj_text": ""
+                "obj_text": []
             }]
         } 
     }
@@ -57,10 +57,14 @@ def build_next_turn(ref_obj: str, prev_turn: str):
 
     return response, next_turn
 
-def build_put_memory(ref_obj: str):
+def build_put_memory(ref_obj: str, turn: str):
     lf = deepcopy(PUT_MEMORY)
-    # TODO Replace this with a search for the word index and format the SPAN appropriately
-    lf["upsert"]["memory_data"]["triples"][0]["obj_text"] = ref_obj
+
+    char_idx = turn.find(ref_obj)
+    start_idx = len(turn[:char_idx].strip().split(" "))
+    end_idx = start_idx + len(ref_obj.split(" ")) - 1
+
+    lf["upsert"]["memory_data"]["triples"][0]["obj_text"] = [0, [start_idx, end_idx]]
 
     return lf
 
@@ -72,7 +76,7 @@ def next_turn_wrapper(file, ref_obj: str, turn: str, turn_num: int):
                 file.write(f"{next_turn}|{NOOP}\n")
                 next_turn_wrapper(file, ref_obj, next_turn, turn_num+1)
             else:
-                file.write(f"{next_turn}|{build_put_memory(ref_obj)}\n")
+                file.write(f"{next_turn}|{build_put_memory(ref_obj, turn)}\n")
                 return
 
 def main(num_cmds):
