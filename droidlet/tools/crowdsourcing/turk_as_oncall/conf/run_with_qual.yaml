@@ -12,7 +12,6 @@ mephisto:
     task_title: "Find bugs in our virtual assistant"
     task_description: "Send commands to our virtual assistant and report any bugs that result."
     task_reward: 3.5
-    allowed_concurrent: 1
     task_tags: "assistant, game, interact"
     task_name: "droidlet-oncall"
   architect:

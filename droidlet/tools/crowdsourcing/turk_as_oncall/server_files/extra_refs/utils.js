@@ -27,7 +27,7 @@ function recordClick(ele) {
   else { clickedElements.push({id: ele, timestamp: Date.now()}); }
 
   document.getElementById("clickedElements").value = JSON.stringify(clickedElements);
-  //console.log("Clicked elements array: " + JSON.stringify(clickedElements));
+  // console.log("Clicked elements array: " + JSON.stringify(clickedElements));
 }
 recordClick("start");
 
@@ -35,7 +35,7 @@ document.getElementsByClassName("btn-default")[0].classList.add("hidden");  // H
 function checkSubmitDisplay() {
   // Let them submit if they sent at least one command
   clickedElements.forEach(function(click){
-    if (click.id === "goToAgentThinking") {commandIssued = true}
+    if (click.id === "askActionQuestion") {commandIssued = true}
   })
 
   //Only display the submit button if the worker has interacted with the dashboard and completed the survey

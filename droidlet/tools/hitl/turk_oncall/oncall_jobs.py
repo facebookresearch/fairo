@@ -178,7 +178,7 @@ class OnCallJob(DataGenerator):
 
 if __name__ == "__main__":
     runner = TaskRunner()
-    ocj = OnCallJob(instance_num=2, image_tag="exp4_v4", task_name="oncall_t1", timeout=30)
+    ocj = OnCallJob(instance_num=2, image_tag="oncall_v1", task_name="oncall_t1", timeout=30)
     batch_id = ocj.get_batch_id()
     runner.register_data_generators([ocj])
     runner.run()
