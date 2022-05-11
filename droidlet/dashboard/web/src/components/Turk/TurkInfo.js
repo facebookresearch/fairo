@@ -10,7 +10,6 @@ import minimumEditDistance from "minimum-edit-distance";
 import { removeStopwords } from "stopword";
 import "status-indicator/styles.css";
 import "./TurkInfo.css";
-import { red } from "@material-ui/core/colors";
 
 class TurkInfo extends Component {
   constructor(props) {
@@ -216,7 +215,7 @@ class TurkInfo extends Component {
   }
 
   renderStoplight(){
-    if (this.isOncall) return
+    if (this.state.isOncall) return
     else {
       return (
         <div className="stoplight">
@@ -244,7 +243,10 @@ class TurkInfo extends Component {
   }
 
   renderTimer(){
-    if (this.isOncall) {
+    const { timeElapsed } = this.state;
+    let seconds = ("0" + (Math.floor(timeElapsed / 1000) % 60)).slice(-2);
+    let minutes = ("0" + (Math.floor(timeElapsed / 60000) % 60)).slice(-2);
+    if (this.state.isOncall) {
       return (
         <div>
           <div style={{ fontSize: 40 }}>
@@ -328,9 +330,6 @@ class TurkInfo extends Component {
   }
 
   render() {
-    const { timeElapsed } = this.state;
-    let seconds = ("0" + (Math.floor(timeElapsed / 1000) % 60)).slice(-2);
-    let minutes = ("0" + (Math.floor(timeElapsed / 60000) % 60)).slice(-2);
     return (
       <ThemeProvider theme={muiTheme}>
         <div className="App">
@@ -342,7 +341,7 @@ class TurkInfo extends Component {
                 Thanks for interacting with the bot. You may leave the page now.
               </p>
             ) : (
-              <div>
+              <div className="timer">
                 {this.renderTimer()}
               </div>
             )}
