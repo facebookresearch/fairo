@@ -6,6 +6,7 @@ import sys
 import math
 import copy
 import time
+import random
 import logging
 from collections.abc import Iterable
 from prettytable import PrettyTable
@@ -33,6 +34,8 @@ from droidlet.lowlevel.robot_coordinate_utils import (
     base_canonical_coords_to_pyrobot_coords,
 )
 
+random.seed(0)
+np.random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
@@ -166,7 +169,8 @@ class LoCoBotMover:
         """
         if self.nav_result.ready:
             self.nav_result.wait()
-            self.nav_result = safe_call(self.nav.go_to_object, object_goal)
+            # self.nav_result = safe_call(self.nav.go_to_object, object_goal)
+            self.nav_result = self.nav.go_to_object(object_goal)
             if blocking:
                 self.nav_result.wait()
         else:

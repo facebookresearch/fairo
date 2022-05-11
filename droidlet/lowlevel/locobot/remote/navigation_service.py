@@ -13,6 +13,8 @@ from policy.goal_policy import GoalPolicy
 from segmentation.constants import coco_categories
 
 random.seed(0)
+torch.manual_seed(0)
+np.random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
@@ -63,7 +65,7 @@ class Navigation(object):
         self.trackback = Trackback(planner)
 
         num_sem_categories = len(coco_categories)
-        self.local_map_size = self.slam.get_local_map_size()
+        self.map_size, self.local_map_size = self.slam.get_map_sizes()
         self.goal_policy = GoalPolicy(
             map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
             num_outputs=2,
@@ -129,7 +131,7 @@ class Navigation(object):
         self._busy = False
         return path_found, goal_reached
 
-    def go_to_object(self, object_goal: str):
+    def go_to_object(self, object_goal: str, debug=True):
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
@@ -144,14 +146,22 @@ class Navigation(object):
                 map_features, orientation, object_goal_cat, deterministic=False)[0]
             goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
             global_loc = np.array(self.slam.real2map(self.robot.get_base_state()[:2]))
-            goal_in_global_map = global_loc + goal_in_local_map
+            goal_in_global_map = global_loc + (goal_in_local_map - self.local_map_size // 2)
+            goal_in_global_map = np.clip(goal_in_global_map, 0, self.map_size - 1)
             goal_in_world = self.slam.map2real(goal_in_global_map)
+
+            if debug:
+                print("goal_action", goal_action)
+                print("goal_in_local_map", goal_in_local_map)
+                print("global_loc", global_loc)
+                print("goal_in_global_map", goal_in_global_map)
+                print("goal_in_world", goal_in_world)
 
             print(f"[navigation] Starting a go_to_absolute {(*goal_in_world, 0)} "
                   f"to reach a {object_goal}")
             _, goal_reached = self.go_to_absolute((*goal_in_world, 0), steps=25)
 
-        print(f"[navigation] Finished a go_to_object {object_goal_cat}")
+        print(f"[navigation] Finished a go_to_object {object_goal}")
 
     def explore(self, far_away_goal):
         if not hasattr(self, "_done_exploring"):

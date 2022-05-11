@@ -7,6 +7,7 @@ import math
 import copy
 import time
 import logging
+import random
 from collections.abc import Iterable
 from prettytable import PrettyTable
 import Pyro4
@@ -39,6 +40,8 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 from droidlet.lowlevel.pyro_utils import safe_call
 from .data_compression import *
 
+random.seed(0)
+np.random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 2

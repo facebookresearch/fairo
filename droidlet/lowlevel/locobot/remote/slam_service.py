@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import random
 import torch
 import torch.nn as nn
 import numpy as np
@@ -15,6 +16,9 @@ from rich import print
 
 from segmentation.constants import coco_categories, map_color_palette, frame_color_palette
 
+random.seed(0)
+torch.manual_seed(0)
+np.random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
@@ -68,8 +72,8 @@ class SLAM(object):
         self.update_map()
         assert self.traversable is not None
 
-    def get_local_map_size(self):
-        return self.local_map_size
+    def get_map_sizes(self):
+        return self.map_size, self.local_map_size
 
     def get_traversable_map(self):
         return self.traversable
@@ -195,9 +199,20 @@ class SLAM(object):
         """
         x, y, yaw = self.robot.get_base_state()
         x, y = self.map_builder.real2map((x, y))
+
         x1 = max(int(x - self.local_map_size // 2), 0)
         y1 = max(int(y - self.local_map_size // 2), 0)
-        x2, y2 = x1 + self.local_map_size, y1 + self.local_map_size
+        if x1 + self.local_map_size > self.map_size:
+            x2 = self.map_size
+            x1 = x2 - self.local_map_size
+        else:
+            x2 = x1 + self.local_map_size
+        if y1 + self.local_map_size > self.map_size:
+            y2 = self.map_size
+            y1 = y2 - self.local_map_size
+        else:
+            y2 = y1 + self.local_map_size
+
         global_map = torch.from_numpy(self.map_builder.semantic_map)
         local_map = global_map[:, y1:y2, x1:x2]
 

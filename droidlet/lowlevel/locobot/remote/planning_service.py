@@ -1,10 +1,13 @@
 import os
 import math
 import numpy as np
+import random
 import Pyro4
 from slam_pkg.utils.fmm_planner import FMMPlanner
 from rich import print
 
+random.seed(0)
+np.random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
@@ -24,7 +27,6 @@ class Planner(object):
         """
         robot_location is simply get_base_state
         """
-
         # convert real co-ordinates to map co-ordinates
         goal_map_location = self.slam.real2map(goal[:2])
 
@@ -41,11 +43,9 @@ class Planner(object):
 
         # construct a planner
         self.planner = FMMPlanner(traversable_map, step_size=int(step_size / self.map_resolution))
-
         # set the goal and location in planner, get short-term-goal
         self.planner.set_goal(goal_map_location)
         stg = self.planner.get_short_term_goal(robot_map_location)
-
         # if the goal is an obstacle, you can't go there. Return
         if not is_traversable(stg, traversable_map):
             return False
@@ -53,7 +53,6 @@ class Planner(object):
         # convert short-term-goal to real co-ordinates, and normalize
         # against robot initial state (if it wasn't zeros)
         stg_real = self.slam.map2robot(stg)
-
         if self.goal_within_threshold(stg_real, goal):
             # is it the final goal? if so,
             # the stg goes to within a 5cm resolution
