@@ -250,7 +250,9 @@ class RemoteHelloRealsense(object):
 
     def calibrate_tilt(self):
         if self.use_ros is True:
-            print("NOT CALIBRATING CAMERA because we are using ROS driver which already calibrates")
+            print(
+                "NOT CALIBRATING CAMERA because we are using ROS driver which already calibrates"
+            )
             return
         self.bot.set_tilt(math.radians(-60))
         time.sleep(2)
@@ -277,8 +279,8 @@ if __name__ == "__main__":
         type=str,
         default="0.0.0.0",
     )
-    parser.add_argument('--ros', action='store_true')
-    parser.add_argument('--no-ros', dest='ros', action='store_false')
+    parser.add_argument("--ros", action="store_true")
+    parser.add_argument("--no-ros", dest="ros", action="store_false")
     parser.set_defaults(ros=False)
 
     args = parser.parse_args()

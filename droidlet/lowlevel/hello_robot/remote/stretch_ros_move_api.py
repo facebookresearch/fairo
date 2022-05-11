@@ -13,8 +13,8 @@ from tf.transformations import euler_from_quaternion
 import collections
 import numpy as np
 
-class MoveNode(hm.HelloNode):
 
+class MoveNode(hm.HelloNode):
     def __init__(self):
         hm.HelloNode.__init__(self)
         self.rate = 10.0
@@ -42,7 +42,9 @@ class MoveNode(hm.HelloNode):
     def _odom_callback(self, pose):
         with self._lock:
             self._odom = pose
-            self._linear_movement.append(max(abs(pose.twist.twist.linear.x), abs(pose.twist.twist.linear.y)))
+            self._linear_movement.append(
+                max(abs(pose.twist.twist.linear.x), abs(pose.twist.twist.linear.y))
+            )
             self._angular_movement.append(abs(pose.twist.twist.angular.z))
 
     def is_moving(self):
@@ -65,9 +67,7 @@ class MoveNode(hm.HelloNode):
                 ]
             )
             euler = euler_from_quaternion(quat)
-            return (pose.pose.pose.position.x,
-                    pose.pose.pose.position.y,
-                    euler[2])
+            return (pose.pose.pose.position.x, pose.pose.pose.position.y, euler[2])
         else:
             return (0.0, 0.0, 0.0)
 
@@ -89,9 +89,7 @@ class MoveNode(hm.HelloNode):
             ]
         )
         euler = euler_from_quaternion(quat)
-        return (pose.pose.position.x,
-                pose.pose.position.y,
-                euler[2])
+        return (pose.pose.position.x, pose.pose.position.y, euler[2])
 
     def get_joint_state(self, name=None):
         with self._lock:
@@ -99,10 +97,10 @@ class MoveNode(hm.HelloNode):
         if joint_state is None:
             return joint_state
         if name is not None:
-            joint_index = joint_state.name.index('joint_' + name)
+            joint_index = joint_state.name.index("joint_" + name)
             joint_value = joint_state.position[joint_index]
             return joint_value
-        else:            
+        else:
             return joint_state
 
     def send_command(self, joint_name, increment):
@@ -113,30 +111,36 @@ class MoveNode(hm.HelloNode):
         point = JointTrajectoryPoint()
         point.time_from_start = rospy.Duration(0.0)
         point.positions = [increment]
-            
+
         trajectory_goal = FollowJointTrajectoryGoal()
-        trajectory_goal.goal_time_tolerance = rospy.Time(1.0)            
+        trajectory_goal.goal_time_tolerance = rospy.Time(1.0)
         trajectory_goal.trajectory.joint_names = [joint_name]
         trajectory_goal.trajectory.points = [point]
         trajectory_goal.trajectory.header.stamp = rospy.Time.now()
-            
+
         self.trajectory_client.send_goal(trajectory_goal)
 
-        rospy.loginfo('joint_name = {0}, trajectory_goal = {1}'.format(joint_name, trajectory_goal))
-        rospy.loginfo('Done sending pose.')
+        rospy.loginfo(
+            "joint_name = {0}, trajectory_goal = {1}".format(joint_name, trajectory_goal)
+        )
+        rospy.loginfo("Done sending pose.")
 
     def stop(self):
-        rospy.wait_for_service('stop_the_robot')
-        s = rospy.ServiceProxy('stop_the_robot', Trigger)
+        rospy.wait_for_service("stop_the_robot")
+        s = rospy.ServiceProxy("stop_the_robot", Trigger)
         s_request = TriggerRequest()
         result = s(s_request)
         return result
 
     def background_loop(self):
 
-        rospy.Subscriber("/stretch/joint_states", JointState, self._joint_states_callback, queue_size=1)
+        rospy.Subscriber(
+            "/stretch/joint_states", JointState, self._joint_states_callback, queue_size=1
+        )
         # This comes from hector_slam. It's a transform from src_frame = 'base_link', target_frame = 'map'
-        rospy.Subscriber("/poseupdate", PoseWithCovarianceStamped, self._slam_pose_callback, queue_size=1)
+        rospy.Subscriber(
+            "/poseupdate", PoseWithCovarianceStamped, self._slam_pose_callback, queue_size=1
+        )
         # this comes from lidar matching, i.e. no slam/global-optimization
         rospy.Subscriber("/pose2D", Pose2D, self._scan_matched_pose_callback, queue_size=1)
         # This comes from wheel odometry.
@@ -147,14 +151,16 @@ class MoveNode(hm.HelloNode):
         while not rospy.is_shutdown():
             with self._lock:
                 command = self._command
-                self._command = None                
+                self._command = None
             if command is not None:
                 joint_name, increment = command
                 self._send_command(joint_name, increment)
             rate.sleep()
 
     def start(self):
-        hm.HelloNode.main(self, 'fairo_hello_proxy', 'fairo_hello_proxy', wait_for_first_pointcloud=False)
+        hm.HelloNode.main(
+            self, "fairo_hello_proxy", "fairo_hello_proxy", wait_for_first_pointcloud=False
+        )
         self._thread = threading.Thread(target=self.background_loop, daemon=True)
         self._thread.start()
         # self.send_command('translate_mobile_base', 0.1)
@@ -181,7 +187,7 @@ class MoveNode(hm.HelloNode):
         #     #     y = slam_pose.pose.position.y
         #     #     theta = slam_pose.pose.orientation.z
         #     #     print(x, y, theta)
-            
+
         #     # FORWARD/BACKWARD in metres
         # self.send_command('translate_mobile_base', 0.05)
 
