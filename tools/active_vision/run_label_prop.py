@@ -245,20 +245,24 @@ def propagate_dir(reex_dir, out_dir):
                         copyfile(os.path.join(in_dir, f'{x:05d}.npy'), os.path.join(out_dir, f'{x:05d}.npy'))
 
                 # calculate average accuracy
-                acc_file = os.path.join(in_dir, "lp_accuracy.json")
-                avg_acc, total = 0, 0
-                if os.path.isfile(acc_file):
-                    with open(acc_file, "r") as fp:
-                        accuracies = json.load(fp)
-                        print(f'accuracies {accuracies}')
-                        for x in range(p+1):
-                            if str(x) in accuracies and not isnan(accuracies[str(x)]):
-                                avg_acc += accuracies[str(x)]
-                                total += 1
-                avg_acc /= total
-                print(f'average accuracy {avg_acc}')
-                with open(os.path.join(out_dir, 'lp_accuracy.txt'), 'w') as f:
-                    f.write(str(avg_acc))
+                try:
+                    acc_file = os.path.join(in_dir, "lp_accuracy.json")
+                    avg_acc, total = 0, 0
+                    if os.path.isfile(acc_file):
+                        with open(acc_file, "r") as fp:
+                            accuracies = json.load(fp)
+                            print(f'accuracies {accuracies}')
+                            for x in range(p+1):
+                                if str(x) in accuracies and not isnan(accuracies[str(x)]):
+                                    avg_acc += accuracies[str(x)]
+                                    total += 1
+                    if total > 0:
+                        avg_acc /= total
+                        print(f'average accuracy {avg_acc}')
+                        with open(os.path.join(out_dir, 'lp_accuracy.txt'), 'w') as f:
+                            f.write(str(avg_acc))
+                except Exception as ex:
+                    print(f'caught exception {ex}')
 
             copyover(in_dir=pred_dir, out_dir=od, p=p)
         end2 = time.time()
