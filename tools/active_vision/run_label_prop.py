@@ -233,7 +233,7 @@ def propagate_dir(reex_dir, out_dir):
         end = time.time()
         print(f'total one time propagation time {end - start}')
 
-        for p in [18]:
+        for p in [8,12,16]:
             od = os.path.join(out_f, f'pred_label_p{p}')
             if os.path.isdir(od):
                 rmtree(od)
