@@ -394,7 +394,7 @@ class TrajectorySaverTask(Task):
             rgb, depth, segm = self.agent.mover.get_rgb_depth_segm()
         else:
             rgbd = self.agent.mover.get_rgb_depth()
-            rgb, depth = rgbd.rgb, rgbd.depth
+            rgb, depth, pts = rgbd.rgb, rgbd.depth, rgbd.pts
             segm = None
         # store depth in mm
         depth *= 1e3
@@ -405,7 +405,7 @@ class TrajectorySaverTask(Task):
         habitat_pos, habitat_rot = None, None  # self.agent.mover.bot.get_habitat_state()
         for data_saver in self.data_savers:
             data_saver.set_dbg_str(self.dbg_str)
-            data_saver.save(rgb, depth, segm, pos, habitat_pos, habitat_rot)
+            data_saver.save(rgb, depth, segm, pos, habitat_pos, habitat_rot, pts)
 
     @Task.step_wrapper
     def step(self):

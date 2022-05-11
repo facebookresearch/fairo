@@ -235,6 +235,7 @@ class TrajectoryDataSaver:
         self.img_folder_dbg = os.path.join(self.save_folder, "rgb_dbg")
         self.depth_folder = os.path.join(self.save_folder, "depth")
         self.seg_folder = os.path.join(self.save_folder, "seg")
+        self.pcd_folder = os.path.join(self.save_folder, "pcd")
         self.trav_folder = os.path.join(self.save_folder, "trav")
 
         if os.path.exists(self.save_folder):
@@ -250,6 +251,7 @@ class TrajectoryDataSaver:
             self.depth_folder,
             self.seg_folder,
             self.trav_folder,
+            self.pcd_folder,
         ]:
             self.create(x)
 
@@ -282,7 +284,7 @@ class TrajectoryDataSaver:
     def get_total_frames(self):
         return self.img_count
 
-    def save(self, rgb, depth, seg, pos, habitat_pos, habitat_rot):
+    def save(self, rgb, depth, seg, pos, habitat_pos, habitat_rot, pts):
         self.img_count = len(glob.glob(self.img_folder + "/*.jpg"))
         self.logger.info(f"Saving to {self.save_folder}, {self.img_count}, {self.dbg_str}")
         # print(f"saving {rgb.shape, depth.shape, seg.shape}")
@@ -310,6 +312,9 @@ class TrajectoryDataSaver:
         # store seg
         if seg is not None:
             np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
+        
+        if pts is not None:
+            np.save(self.pcd_folder + "/{:05d}.npy".format(self.img_count), pts)
 
         # store pos
         if os.path.isfile(os.path.join(self.save_folder, "data.json")):
