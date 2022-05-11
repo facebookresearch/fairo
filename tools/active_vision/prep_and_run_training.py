@@ -77,7 +77,7 @@ def get_training_data(path, job_dir):
         }]
 
     elif 'class' in path:
-        return {
+        return [{
             'out_dir': get_path(path, job_dir),
             'dataset_name': path.split('/')[-1],
             'train': {
@@ -92,7 +92,23 @@ def get_training_data(path, job_dir):
                 'json': '/checkpoint/apratik/finals/jsons/active_vision/frlapt1_20n0.json',
                 'img_dir': '/checkpoint/apratik/ActiveVision/active_vision/replica_random_exploration_data/frl_apartment_1/rgb',
             },
-        }
+        },
+        {
+            'out_dir': get_path(path, job_dir),
+            'dataset_name': path.split('/')[-1],
+            'train': {
+                'json': os.path.join(path, 'coco_train_with_seg_gt.json'),
+                'img_dir': os.path.join(path, 'rgb'),
+            },
+            'val': {
+                'json': '/checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200/83/seg/coco_train.json',
+                'img_dir': '/checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200/83/rgb',
+            },
+            'test':{
+                'json': '/checkpoint/apratik/finals/jsons/active_vision/frlapt1_20n0.json',
+                'img_dir': '/checkpoint/apratik/ActiveVision/active_vision/replica_random_exploration_data/frl_apartment_1/rgb',
+            },
+        }]
 
     return None
 

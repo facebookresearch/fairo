@@ -11,14 +11,14 @@ set -ex
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300/av300_simple
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300_sanity30/av300_pt2
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av300_sanity50/av300_pt2
-# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av_sm_class_50/av300_pt2 class
+# ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av_sm_class2_50/av300_pt2 class
 
 # ./launch_reexplore.sh /checkpoint/apratik/jobs/reexplore/av_sm_noise_50/av300_noise_pt2 instance --noise
 
-if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then
+if ! source activate /private/home/apratik/miniconda3/envs/droidlet_ap; then
     echo "source activate not working, trying conda activate"
     source $(dirname $(dirname $(which conda)))/etc/profile.d/conda.sh || true
-    conda activate /private/home/apratik/miniconda3/envs/droidlet
+    conda activate /private/home/apratik/miniconda3/envs/droidlet_ap
 fi
 
 data_dir=$1

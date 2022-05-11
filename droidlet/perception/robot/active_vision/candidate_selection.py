@@ -83,17 +83,17 @@ class SampleGoodCandidates:
                 all_binary_mask = np.bitwise_or(binary_mask, all_binary_mask)
                 
         if not all_binary_mask.any():
-            return False, None
+            return False, False, None
         
         is_eligible = True
 
         # Check that all masks are within a certain distance from the boundary
         # all pixels [:10,:], [:,:10], [-10:], [:-10] must be 0:
         if all_binary_mask[:10,:].any() or all_binary_mask[:,:10].any() or all_binary_mask[:,-10:].any() or all_binary_mask[-10:,:].any():
-            return False, None
+            return False, is_eligible, None
         
         if all_binary_mask.sum() < 5000:
-            return False, None
+            return False, is_eligible, None
         
         return True, is_eligible, int(largest_mask_id)
     

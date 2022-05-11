@@ -11,6 +11,9 @@ set -ex
 # ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/av300_sanity50/av300_pt2 av_sanity50
 # ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/av_sm_noise_50/av300_noise_pt2 av_sm_noise_50 instance 
 
+# soumith's
+# ./launch_label_prop.sh /checkpoint/soumith/jobs/reexplore/av_sm/av300_pt2 av_sm_noise_50 instance 
+
 if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then
     echo "source activate not working, trying conda activate"
     source $(dirname $(dirname $(which conda)))/etc/profile.d/conda.sh || true
