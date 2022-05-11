@@ -26,7 +26,9 @@ import sys
     ),
 )
 @click.option("-o", "--old", is_flag=True, default=False)
-def cli(*cmd_procs, procs=[], old=False):
+def cli(*cmd_procs, procs=None, old=False):
+    procs = procs or []
+
     # Support procs as *args when using cmd syntax.
     procs += cmd_procs
 

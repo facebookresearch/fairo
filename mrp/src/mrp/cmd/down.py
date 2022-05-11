@@ -5,7 +5,9 @@ import click
 
 @click.command()
 @click.argument("procs", nargs=-1, shell_complete=_autocomplete.running_processes)
-def cli(*cmd_procs, procs=[]):
+def cli(*cmd_procs, procs=None):
+    procs = procs or []
+
     # Support procs as *args when using cmd syntax.
     procs += cmd_procs
 
