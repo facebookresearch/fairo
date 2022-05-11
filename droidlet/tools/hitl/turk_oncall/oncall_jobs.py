@@ -16,7 +16,10 @@ from typing import List
 import boto3
 import botocore
 
-from droidlet.tools.hitl.turk_oncall.allocate_oncall_instances import allocate_oncall_instances, free_ecs_instances
+from droidlet.tools.hitl.turk_oncall.allocate_oncall_instances import (
+    allocate_oncall_instances,
+    free_ecs_instances,
+)
 from droidlet.tools.hitl.utils.hitl_utils import (
     generate_batch_id,
     deregister_dashboard_subdomain,
@@ -108,7 +111,7 @@ class OnCallJob(DataGenerator):
                     AWS_SECRET_ACCESS_KEY='{MEPHISTO_AWS_SECRET_ACCESS_KEY}' \
                     python ../../crowdsourcing/turk_as_oncall/static_run_with_qual.py \
                     mephisto.provider.requester_name={MEPHISTO_REQUESTER}"
-                    # mephisto.architect.profile_name=mephisto-router-iam"
+                # mephisto.architect.profile_name=mephisto-router-iam"
             ],
             shell=True,
             preexec_fn=os.setsid,
