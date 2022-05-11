@@ -29,6 +29,8 @@ Time estimate - ~a few hours, you can run this overnight. It goes and reexplores
 
 Time estimate - ~1-2 hours.
 
+- Job DIR: `/checkpoint/soumith/jobs/reexplore/labelprop/10-05-2022/17:34:34`
+
 4. Launch Training
 
 `./launch_training.sh /checkpoint/soumith/jobs/reexplore/labelprop/av_sm class`
