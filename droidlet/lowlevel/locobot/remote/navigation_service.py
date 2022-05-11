@@ -141,14 +141,17 @@ class Navigation(object):
             map_features, orientation = self.slam.get_semantic_map_features()
 
             goal_action = self.goal_policy(
-                map_features, orientation, object_goal_cat, deterministic=False)[0]
+                map_features, orientation, object_goal_cat, deterministic=False
+            )[0]
             goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
             global_loc = np.array(self.slam.real2map(self.robot.get_base_state()[:2]))
             goal_in_global_map = global_loc + goal_in_local_map
             goal_in_world = self.slam.map2real(goal_in_global_map)
 
-            print(f"[navigation] Starting a go_to_absolute {(*goal_in_world, 0)} "
-                  f"to reach a {object_goal}")
+            print(
+                f"[navigation] Starting a go_to_absolute {(*goal_in_world, 0)} "
+                f"to reach a {object_goal}"
+            )
             _, goal_reached = self.go_to_absolute((*goal_in_world, 0), steps=25)
 
         print(f"[navigation] Finished a go_to_object {object_goal_cat}")

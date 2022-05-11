@@ -202,9 +202,7 @@ class SLAM(object):
         local_map = global_map[:, y1:y2, x1:x2]
 
         map_features = torch.zeros(
-            self.num_sem_categories + 8, 
-            self.local_map_size, 
-            self.local_map_size
+            self.num_sem_categories + 8, self.local_map_size, self.local_map_size
         )
         # Local obstacles, explored area, and current and past position
         map_features[:4, :, :] = local_map[:4, :, :]
