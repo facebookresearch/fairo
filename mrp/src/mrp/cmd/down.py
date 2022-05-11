@@ -7,7 +7,9 @@ import click
 @click.command()
 @click.option("--all", is_flag=True)
 @click.argument("procs", nargs=-1, shell_complete=_autocomplete.defined_processes)
-def cli(*cmd_procs, all=False, procs=[]):
+def cli(*cmd_procs, all=False, procs=None):
+    procs = procs or []
+
     # Get all MRP procs running in the system
     running_procs = life_cycle.system_state().procs.keys()
     down_procs = set(running_procs)
