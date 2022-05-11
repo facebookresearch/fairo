@@ -8,7 +8,6 @@ import click
 import contextlib
 import json
 import os
-import sys
 import threading
 import traceback
 import types
