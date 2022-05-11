@@ -394,7 +394,7 @@ class TrajectorySaverTask(Task):
             rgb, depth, segm = self.agent.mover.get_rgb_depth_segm()
         else:
             rgbd = self.agent.mover.get_rgb_depth()
-            rgb, depth, pts = rgbd.rgb, rgbd.depth, rgbd.pts
+            rgb, depth, pts = rgbd.rgb, rgbd.depth, rgbd.ptcloud
             segm = None
         # store depth in mm
         depth *= 1e3
@@ -740,7 +740,7 @@ class ExamineDetectionCirclepp(TrajectorySaverTask):
         self.logger = task_data.get("logger")
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         self.guide = CircleGuide(
-            self.frontier_center, base_pos, radius=self.radius, include_approach=True, timeout=20
+            self.frontier_center, base_pos, radius=self.radius, include_approach=False, timeout=20
         )
         self.logger.info(f"{len(self.guide.path)} pts on cicle")
         TaskNode(agent.memory, self.memid).update_task(task=self)
@@ -837,7 +837,7 @@ class Reexplore(Task):
 
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
-        self.tasks = ["straight", "circlepp"]  # , "random1", "random2"]
+        self.tasks = ["circlepp", "straightpp"]  # , "random1", "random2"]
         self.task_data = task_data
         self.target = task_data.get("target")
         self.spawn_pos = task_data.get("spawn_pos")
@@ -939,7 +939,7 @@ class Reexplore(Task):
                         "vis_path": f"{self.task_data['vis_path']}/c1pp",
                         "data_path": f"{self.task_data['data_path']}/c1pp",
                         "dbg_str": f"Circle examine {self.target}",
-                        "radius": 0.7,
+                        "radius": 0.5,
                         "logger": logger,
                     },
                 )

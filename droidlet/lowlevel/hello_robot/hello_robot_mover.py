@@ -253,7 +253,8 @@ class HelloRobotMover(MoverInterface):
             self.nav_result = safe_call(self.nav.go_to_absolute, robot_coords)
             if blocking:
                 logging.info("Waiting for blocking move to finish ...")
-                self.nav_result.wait()
+                return_code = self.nav_result.wait()
+                logging.info(f"navigation service returned code {return_code}")
         return "finished"
 
     def get_base_pos(self):
