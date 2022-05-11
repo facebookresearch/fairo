@@ -143,7 +143,8 @@ class Navigation(object):
             map_features, orientation = self.slam.get_semantic_map_features()
 
             goal_action = self.goal_policy(
-                map_features, orientation, object_goal_cat, deterministic=False)[0]
+                map_features, orientation, object_goal_cat, deterministic=False
+            )[0]
             goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
             global_loc = np.array(self.slam.real2map(self.robot.get_base_state()[:2]))
             goal_in_global_map = global_loc + (goal_in_local_map - self.local_map_size // 2)
