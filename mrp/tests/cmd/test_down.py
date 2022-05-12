@@ -39,40 +39,34 @@ def hanging_proc_external():
 
 
 def test_down(reset, hanging_proc):
-    mrp.cmd.down(wait=False)
+    mrp.cmd.down()
 
     # proc should be told to go down
     assert mrp.life_cycle.system_state().procs["proc"].ask == mrp.life_cycle.Ask.DOWN
 
-    mrp.cmd.wait()
-
 
 def test_down_all(reset, hanging_proc, hanging_proc_external):
-    mrp.cmd.down(wait=False)
+    mrp.cmd.down()
 
     # proc should be told to go down, but not proc_ext
     assert mrp.life_cycle.system_state().procs["proc"].ask == mrp.life_cycle.Ask.DOWN
     assert mrp.life_cycle.system_state().procs["proc_ext"].ask == mrp.life_cycle.Ask.UP
 
-    mrp.cmd.down(all=True, wait=False)
+    mrp.cmd.down(all=True)
 
     # proc should be told to go down
     assert (
         mrp.life_cycle.system_state().procs["proc_ext"].ask == mrp.life_cycle.Ask.DOWN
     )
 
-    mrp.cmd.wait()
-
 
 def test_down_proc(reset, hanging_proc):
-    mrp.cmd.down("not_proc", wait=False)
+    mrp.cmd.down("not_proc")
 
     # proc should still be alive
     assert mrp.life_cycle.system_state().procs["proc"].ask == mrp.life_cycle.Ask.UP
 
-    mrp.cmd.down(procs=["proc"], wait=False)
+    mrp.cmd.down(procs=["proc"])
 
     # proc should be told to go down
     assert mrp.life_cycle.system_state().procs["proc"].ask == mrp.life_cycle.Ask.DOWN
-
-    mrp.cmd.wait()

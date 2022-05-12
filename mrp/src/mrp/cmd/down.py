@@ -33,5 +33,5 @@ def cli(*cmd_procs, procs=None, all=False, wait=True):
         click.echo(f"stopping {proc}...")
         life_cycle.set_ask(proc, life_cycle.Ask.DOWN)
 
-    if wait:
+    if wait and down_procs:
         wait_cmd(procs=list(down_procs))
