@@ -15,6 +15,10 @@ def base_canonical_coords_to_pyrobot_coords(xyt):
     """converts from canonical coords from to pyrobot coords."""
     return [xyt[1], -xyt[0], xyt[2]]
 
+def base_pyrobot_coords_to_canonical_coords(xyt):
+    """converts from canonical coords from to pyrobot coords."""
+    return [-xyt[1], xyt[0], xyt[2]]
+
 
 def xyz_pyrobot_to_canonical_coords(xyz):
     """converts 3D coords from pyrobot to canonical coords."""

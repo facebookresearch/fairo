@@ -1,6 +1,6 @@
 # get candidate image_ids, spawn location, target xyz
 from droidlet.perception.robot.active_vision.candidate_selection import SampleGoodCandidates
-from droidlet.lowlevel.robot_coordinate_utils import xyz_pyrobot_to_canonical_coords
+from droidlet.lowlevel.robot_coordinate_utils import xyz_pyrobot_to_canonical_coords, base_canonical_coords_to_pyrobot_coords
 from droidlet.perception.robot.handlers import convert_depth_to_pcd, compute_uvone
 from common_utils import is_annot_validfn_class, is_annot_validfn_inst, log_time, class_labels, instance_ids
 from typing import List
@@ -43,6 +43,7 @@ def save_mask_pcd(pts, mask):
 
 def get_target(traj_path, img_indx, target_label, base_pos):
     src_depth = np.load(os.path.join(traj_path, "depth/{:05d}.npy".format(img_indx)))
+    src_pcd = np.load(os.path.join(traj_path, "pcd/{:05d}.npy".format(img_indx)))
     src_label = np.load(os.path.join(traj_path, "seg/{:05d}.npy".format(img_indx)))
     
     # pick the larger mask, get centroid for that 
@@ -51,9 +52,9 @@ def get_target(traj_path, img_indx, target_label, base_pos):
         return None
         
     height, width = src_depth.shape
-    uv_one_in_cam, intrinsic_mat, rot, trans = compute_uvone(height, width)
-    pts = convert_depth_to_pcd(src_depth, base_pos, uv_one_in_cam, rot, trans)
-    pts = pts.reshape((height, width, 3))
+    # uv_one_in_cam, intrinsic_mat, rot, trans = compute_uvone(height, width)
+    # pts = convert_depth_to_pcd(src_depth, base_pos, uv_one_in_cam, rot, trans)
+    pts = src_pcd.reshape((height, width, 3))
     
     # TODO: visualize pts corresponding to mask 
     # save_mask_pcd(pts, mask)
@@ -90,8 +91,8 @@ def process(traj_path, out_dir, gt, s, is_annot_validfn):
         visualize_instances(traj_path, out_dir, candidates)
         reexplore_task_data[i] = {
             'src_img_id': int(candidates[i][0]),
-            'spawn_pos': base_poses_hab[i],
-            'base_pos': base_poses[i],
+            'spawn_pos': base_canonical_coords_to_pyrobot_coords(base_poses[i]),
+            'base_pos': base_canonical_coords_to_pyrobot_coords(base_poses[i]),
             'target': target_xyz[i],
             'label': int(candidates[i][1]),
         }
@@ -232,6 +233,7 @@ if __name__ == "__main__":
 
     # Ensure clean out_dir
     if os.path.isdir(args.out_dir):
+        print(f'rmtree {args.out_dir}')
         shutil.rmtree(args.out_dir)
 
     find_spawn_loc(
