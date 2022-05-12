@@ -2,6 +2,9 @@ import logging
 import json
 from types import SimpleNamespace
 
+import numpy as np
+import open3d as o3d
+
 import a0
 import realsense_wrapper
 from polygrasp import serdes
@@ -21,14 +24,75 @@ class CameraSubscriber:
 
         self.sub = a0.SubscriberSync(a0.PubSubTopic(topic), a0.INIT_MOST_RECENT)
 
-    def get_intrinsics(self):
-        return self.intrinsics
-
-    def get_extrinsics(self):
-        return self.extrinsics
-
     def get_rgbd(self):
         return serdes.bytes_to_np(self.sub.read().payload)
+
+
+class PointCloudSubscriber(CameraSubscriber):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        assert len(self.intrinsics) == len(self.extrinsics)
+        self.n_cams = len(self.intrinsics)
+
+        self.width = self.intrinsics[0].width
+        self.height = self.intrinsics[0].height
+
+        # Convert to open3d intrinsics
+        self.o3_intrinsics = [
+            o3d.camera.PinholeCameraIntrinsic(
+                width=intrinsic.width,
+                height=intrinsic.height,
+                fx=intrinsic.fx,
+                fy=intrinsic.fy,
+                cx=intrinsic.ppx,
+                cy=intrinsic.ppy,
+            )
+            for intrinsic in self.intrinsics
+        ]
+
+        # Convert to numpy homogeneous transforms
+        self.extrinsic_transforms = np.empty([self.n_cams, 4, 4])
+        for i, calibration in enumerate(self.extrinsics):
+            self.extrinsic_transforms[i] = np.eye(4)
+            self.extrinsic_transforms[i, :3, :3] = calibration["camera_base_ori"]
+            self.extrinsic_transforms[i, :3, 3] = calibration["camera_base_pos"]
+
+    def get_pcd_i(self, rgbd: np.ndarray, cam_i: int, mask: np.ndarray = None):
+        if mask is None:
+            mask = np.ones([self.height, self.width])
+
+        intrinsic = self.o3_intrinsics[cam_i]
+        transform = self.extrinsic_transforms[cam_i]
+
+        # The specific casting here seems to be very important, even though
+        # rgbd should already be in np.uint16 type...
+        img = (rgbd[:, :, :3] * mask[:, :, None]).astype(np.uint8)
+        depth = (rgbd[:, :, 3] * mask).astype(np.uint16)
+
+        o3d_img = o3d.cuda.pybind.geometry.Image(img)
+        o3d_depth = o3d.cuda.pybind.geometry.Image(depth)
+
+        rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(
+            o3d_img,
+            o3d_depth,
+            convert_rgb_to_intensity=False,
+        )
+
+        pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd_image, intrinsic)
+        pcd.transform(transform)
+
+        return pcd
+
+    def get_pcd(self, rgbds: np.ndarray, masks: np.ndarray = None) -> o3d.geometry.PointCloud:
+        if masks is None:
+            masks = np.ones([self.n_cams, self.height, self.width])
+        pcds = [self.get_pcd_i(rgbds[i], i, masks[i]) for i in range(len(rgbds))]
+        result = pcds[0]
+        for pcd in pcds[1:]:
+            result += pcd
+        return result
+
 
 
 if __name__ == "__main__":

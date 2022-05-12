@@ -1,7 +1,7 @@
 import mrp
 
 mrp.process(
-    name="pcd_server",
+    name="segmentation_server",
     runtime=mrp.Conda(
         run_command=["python", "-m", "utils.mrp_wrapper"],
         use_named_env="unseen-object-clustering",

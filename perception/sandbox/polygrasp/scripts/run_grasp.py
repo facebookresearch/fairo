@@ -14,7 +14,7 @@ import torch
 import hydra
 import omegaconf
 
-from polygrasp.pointcloud_rpc import SegmentationPointCloudClient
+from polygrasp.segmentation_rpc import SegmentationClient
 from polygrasp.grasp_rpc import GraspClient
 from polygrasp.serdes import load_bw_img
 
@@ -53,10 +53,6 @@ def main(cfg):
     cfg.camera_sub.extrinsics_file = hydra.utils.to_absolute_path(cfg.camera_sub.extrinsics_file)
     cameras = hydra.utils.instantiate(cfg.camera_sub)
 
-    print("Loading camera intrinsics & extrinsics")
-    camera_intrinsics = cameras.get_intrinsics()
-    camera_extrinsics = cameras.get_extrinsics()
-
     print("Loading camera workspace masks")
     masks_1 = np.array(
         [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_1], dtype=np.float64
@@ -66,7 +62,7 @@ def main(cfg):
     )
 
     print("Connect to grasp candidate selection and pointcloud processor")
-    pcd_client = SegmentationPointCloudClient(camera_intrinsics, camera_extrinsics)
+    segmentation_client = SegmentationClient()
     grasp_client = GraspClient(view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path))
 
     root_working_dir = os.getcwd()
@@ -97,13 +93,13 @@ def main(cfg):
             print("Getting rgbd and pcds..")
             rgbd = cameras.get_rgbd()
             rgbd_masked = rgbd * masks[:, :, :, None]
-            scene_pcd = pcd_client.get_pcd(rgbd)
-            cam_pcd = pcd_client.get_pcd_i(rgbd[cam_i], cam_i)
+            scene_pcd = cameras.get_pcd(rgbd)
+            cam_pcd = cameras.get_pcd_i(rgbd[cam_i], cam_i)
             save_rgbd_masked(rgbd, rgbd_masked)
 
             # Get RGBD & pointcloud
             print("Segmenting image...")
-            obj_masked_rgbds, obj_masks = pcd_client.segment_img(
+            obj_masked_rgbds, obj_masks = segmentation_client.segment_img(
                 rgbd_masked[cam_i], min_mask_size=cfg.min_mask_size
             )
             if len(obj_masked_rgbds) == 0:
@@ -115,7 +111,7 @@ def main(cfg):
                 save_obj_masked(obj_masked_rgbd, obj_i, obj_mask_size)
 
                 print(f"Getting obj {obj_i} pcd...")
-                pcd = pcd_client.get_pcd_i(obj_masked_rgbd, cam_i)
+                pcd = cameras.get_pcd_i(obj_masked_rgbd, cam_i)
                 print(f"Getting obj {obj_i} grasp...")
                 grasp_group = grasp_client.get_grasps(pcd)
                 filtered_grasp_group = grasp_client.get_collision(grasp_group, cam_pcd)
