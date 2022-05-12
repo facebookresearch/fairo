@@ -226,10 +226,10 @@ def map_yes_last_chat(task: Task):
     return response
 
 
-class ClarifyCC1(Task):
+class ClarifyNoMatch(Task):
     """This Task is responsible for Say and AwaitResponse tasks
     associated with clarifying which among an expanded list of candidates
-    is the appropriate ref_obj
+    is the appropriate ref_obj, when no exact match was found.
 
     Args:
         dlf: the Dialog Logical Form generated in referece_object_clarification

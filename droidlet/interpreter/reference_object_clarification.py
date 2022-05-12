@@ -12,7 +12,7 @@ from .interpret_location import interpret_relative_direction
 from .interpret_filters import interpret_selector
 from droidlet.base_util import euclid_dist, T
 from droidlet.shared_data_structs import ErrorWithResponse
-from droidlet.dialog.dialogue_task import ClarifyCC1
+from droidlet.dialog.dialogue_task import ClarifyNoMatch
 
 DISALLOWED_REF_OBJS = (LocationNode, SelfNode, PlayerNode, ItemStackNode)
 CC1_SEARCH_RADIUS = 15
@@ -27,7 +27,7 @@ def clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
     elif len(candidate_mems) == 0:
         clarification_class = "REF_NO_MATCH"
         dlf = cc1_to_dlf(interpreter, speaker, d, clarification_class)
-        task_egg = {"class": ClarifyCC1, "task_data": {"dlf": dlf}}
+        task_egg = {"class": ClarifyNoMatch, "task_data": {"dlf": dlf}}
         print(task_egg)
         cmemid = TaskNode.create(interpreter.memory, task_egg)
         interpreter.memory.add_triple(
