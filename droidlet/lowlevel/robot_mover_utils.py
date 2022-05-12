@@ -137,10 +137,13 @@ def get_step_target_for_straightline_move(base_pos, target, step_size=0.4):
 def get_straightline_path_to(target, robot_pos, num_points=20, pct=0.5):
     pts = []
     cur_pos = robot_pos
-    while np.linalg.norm(target[:2] - cur_pos[:2]) > 0.2 and len(pts) < num_points:
-        t = get_step_target_for_straightline_move(cur_pos, target, step_size=0.5)
-        pts.append(t)
-        cur_pos = t
+    while len(pts) < num_points:
+        if np.linalg.norm(target[:2] - cur_pos[:2]) > 0.2:
+            t = get_step_target_for_straightline_move(cur_pos, target, step_size=0.5)
+            pts.append(t)
+            cur_pos = t
+        else: 
+            break
     num_pts = len(pts)
     logging.info(f"get_straightline_path_to returning {int(num_pts * pct)} of {len(pts)} pts")
     # only return 70% of the points
@@ -209,14 +212,14 @@ def get_circular_path(target, robot_pos, radius, include_approach=False):
 
     idx = find_nearest_indx(pts, robot_pos)
     # rotate the pts to begin at idx
-    pts = np.concatenate((pts[idx : idx + 5, :], pts[idx - 5 : idx, :]), axis=0)
+    pts = np.concatenate((pts[idx : idx + 10, :], pts[idx - 10 : idx, :]), axis=0)
 
     circle_begin_idx = 0
     # TODO: get step-wise move targets to nearest point? or capture move data?
     if include_approach:
         tg = pts[0]
         spath = get_straightline_path_to(
-            np.asarray(tg), robot_pos, pct=1
+            np.asarray([tg[0], CAMERA_HEIGHT, tg[1]]), robot_pos, pct=1
         )
         # prune all points that are closer than radius
         if spath.size > 0:

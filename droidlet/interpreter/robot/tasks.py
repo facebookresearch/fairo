@@ -837,7 +837,7 @@ class Reexplore(Task):
 
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
-        self.tasks = ["circlepp", "straightpp"]  # , "random1", "random2"]
+        self.tasks = ["circlepp", "straightpp"] #, "random1", "random2"]  # , "random1", "random2"]
         self.task_data = task_data
         self.target = task_data.get("target")
         self.spawn_pos = task_data.get("spawn_pos")
@@ -874,6 +874,7 @@ class Reexplore(Task):
             # self.agent.mover.nav.reset_explore()
             logging.info(f"Going to spawn loc .. {self.spawn_pos}")
             self.agent.mover.move_absolute(self.spawn_pos, blocking=True)
+            self.agent.mover.slam.reset_map()
             base_pos = self.agent.mover.get_base_pos()
             logging.info(f"at spawn loc {self.spawn_pos}, base_pos {base_pos}")
             # assert np.allclose(base_pos, self.base_pos)  # checking that poses match
@@ -900,6 +901,7 @@ class Reexplore(Task):
             # self.agent.mover.nav.reset_explore()
             logging.info(f"Going to spawn loc .. {self.spawn_pos}")
             self.agent.mover.move_absolute(self.spawn_pos, blocking=True)
+            self.agent.mover.slam.reset_map()
             base_pos = self.agent.mover.get_base_pos()
             logging.info(f"at spawn loc {self.spawn_pos}, base_pos {base_pos}")
             # assert np.allclose(base_pos, self.base_pos)  # checking that poses match
@@ -926,6 +928,7 @@ class Reexplore(Task):
             # self.agent.mover.nav.reset_explore()
             logging.info(f"Going to spawn loc .. {self.spawn_pos}")
             self.agent.mover.move_absolute(self.spawn_pos, blocking=True)
+            self.agent.mover.slam.reset_map()
             base_pos = self.agent.mover.get_base_pos()
             logging.info(f"at spawn loc {self.spawn_pos}, base_pos {base_pos}")
             # assert np.allclose(base_pos, self.base_pos)
@@ -939,7 +942,7 @@ class Reexplore(Task):
                         "vis_path": f"{self.task_data['vis_path']}/c1pp",
                         "data_path": f"{self.task_data['data_path']}/c1pp",
                         "dbg_str": f"Circle examine {self.target}",
-                        "radius": 0.5,
+                        "radius": 1,
                         "logger": logger,
                     },
                 )
