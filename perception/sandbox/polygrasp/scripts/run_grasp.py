@@ -40,7 +40,7 @@ def save_obj_masked(obj_masked_rgbd, obj_i, obj_mask_size):
 
 @hydra.main(config_path="../conf", config_name="run_grasp")
 def main(cfg):
-    print(f"Config: {omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")
+    print(f"Config:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")
     print(f"Current working directory: {os.getcwd()}")
 
     print("Initialize robot & gripper")
@@ -49,9 +49,9 @@ def main(cfg):
     robot.go_home()
 
     print("Initializing cameras")
-    cfg.camera_sub.intrinsics_file = hydra.utils.to_absolute_path(cfg.camera_sub.intrinsics_file)
-    cfg.camera_sub.extrinsics_file = hydra.utils.to_absolute_path(cfg.camera_sub.extrinsics_file)
-    cameras = hydra.utils.instantiate(cfg.camera_sub)
+    cfg.cam.intrinsics_file = hydra.utils.to_absolute_path(cfg.cam.intrinsics_file)
+    cfg.cam.extrinsics_file = hydra.utils.to_absolute_path(cfg.cam.extrinsics_file)
+    cameras = hydra.utils.instantiate(cfg.cam)
 
     print("Loading camera workspace masks")
     masks_1 = np.array(

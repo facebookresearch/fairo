@@ -1,14 +1,6 @@
-robot:
-  _target_: polygrasp.robot_interface.GraspingRobotInterface
-  ip_address: "100.67.224.116"
-  enforce_version: false
-  gripper:
-    _target_: polymetis.GripperInterface
-
-camera_sub:
-  _target_: polygrasp.cam_pub_sub.PointCloudSubscriber
-  intrinsics_file: conf/intrinsics.json
-  extrinsics_file: ../eyehandcal/calibration.json
+defaults:
+  - robot: robot_hw
+  - cam: cam_realsense
 
 masks_1:
   - conf/masks/bin1/1.png

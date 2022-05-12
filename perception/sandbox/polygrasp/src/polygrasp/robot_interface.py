@@ -4,7 +4,6 @@ import time
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 import torch
-import open3d as o3d
 
 import hydra
 import graspnetAPI
@@ -47,6 +46,7 @@ def min_dist_grasp(default_ee_pose, grasps):
         i = torch.argmin(torch.Tensor(dists)).item()
     print(f"Grasp {i} has angle {dists[i]} from reference.")
     return grasps[i], i
+
 
 
 class GraspingRobotInterface(polymetis.RobotInterface):

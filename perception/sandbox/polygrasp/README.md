@@ -36,3 +36,13 @@ python scripts/run_grasp.py  # Connect to robot, gripper, servers; run grasp
 ```
 
 This continuously grasps from bin 1 to bin 2 until there are no more objects detected in the bin 1 workspace; then it moves the objects back from bin 2 to bin 1, and repeats.
+
+### Mocked data
+
+To test without a robot or cameras, run
+
+```bash
+python scripts/run_grasp.py robot=robot_mock cam=cam_mock
+```
+
+which runs the loop without connecting to a real robot and loading the RGBD images from [data/rgbd.npy](data/rgbd.npy).
