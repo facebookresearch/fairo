@@ -506,7 +506,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--optimizer", default="adam", type=str, help="Optimizer in [adam|adagrad]"
     )
-    parser.add_argument("--batch_size", default=56, type=int, help="Batch size")
+    parser.add_argument("--batch_size", default=32, type=int, help="Batch size")
     parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
     parser.add_argument("--num_epochs", default=10, type=int, help="Number of training epochs")
     parser.add_argument(
@@ -615,7 +615,7 @@ if __name__ == "__main__":
     l_handler.setFormatter(l_format)
     l_root = logging.getLogger()
     l_root.setLevel(os.environ.get("LOGLEVEL", "INFO"))
-    l_root.addHandler(l_handler)
+    # l_root.addHandler(l_handler)
     logging.info("****** Args ******")
     logging.info(vars(args))
     logging.info("model identifier: {}".format(model_identifier))
@@ -641,6 +641,7 @@ if __name__ == "__main__":
     )
 
     logging.info("====== Training Model ======")
+    torch.cuda.set_device(1)
     encoder_decoder = encoder_decoder.cuda()
     encoder_decoder.train()
     full_tree_voc = (full_tree, tree_i2w)

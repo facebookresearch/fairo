@@ -2,23 +2,26 @@ import argparse
 from random import choice
 from datetime import datetime
 from copy import deepcopy
+import os
+import random
+import json
+
+SEED = 123
 
 OBJ_ACTIONS = ["build", "destroy", "copy"]
 OBJECTS = ["cube", "sphere", "house", "wall", "pyramid"]
 RESPONSES = ["yes", "no"]
 
-SAVE_PATH = f"/checkpoint/ethancarlson/nsp_pp/{datetime.now().strftime('%Y%m%d%H%M%S')}.txt"
+SAVE_DIR = f"/checkpoint/ethancarlson/nsp_pp/{datetime.now().strftime('%Y-%m-%d-%H%M%S')}"
 
-NOOP = { 'dialogue_type': 'NOOP' }
+NOOP = { "dialogue_type": "NOOP" }
 PUT_MEMORY = {
     "dialogue_type": "PUT_MEMORY",
     "filters": {
         "where_clause" : {
             "AND": {
                 "pred_text": "has_tag", 
-                "obj_text": {
-                    "fixed_value": "active_clarification"
-                }
+                "obj_text": "active_clarification"
             }
         }
     },
@@ -66,28 +69,58 @@ def build_put_memory(ref_obj: str, turn: str):
 
     lf["upsert"]["memory_data"]["triples"][0]["obj_text"] = [0, [start_idx, end_idx]]
 
-    return lf
+    return json.dumps(lf)
 
 def next_turn_wrapper(file, ref_obj: str, turn: str, turn_num: int):
             if turn_num > 5:
                 return
             response, next_turn = build_next_turn(ref_obj, turn)
             if response == "no":
-                file.write(f"{next_turn}|{NOOP}\n")
+                file.write(f'{next_turn}|{json.dumps(NOOP)}\n')
                 next_turn_wrapper(file, ref_obj, next_turn, turn_num+1)
             else:
-                file.write(f"{next_turn}|{build_put_memory(ref_obj, turn)}\n")
+                file.write(f'{next_turn}|{build_put_memory(ref_obj, turn)}\n')
                 return
 
 def main(num_cmds):
-    with open(SAVE_PATH, "w") as file:
+
+    random.seed(SEED)
+
+    os.makedirs(SAVE_DIR, exist_ok=True)
+    path = os.path.join(SAVE_DIR, "templated.txt")
+    with open(path, "w") as file:
         for i in range(num_cmds):
             ref_obj, first_turn = build_first_turn()
             initial_response, second_turn = build_second_turn(first_turn)
-            file.write(f"{second_turn}|{NOOP}\n")
+            file.write(f"{second_turn}|{json.dumps(NOOP)}\n")
 
             if initial_response == "yes":
                 next_turn_wrapper(file, ref_obj, second_turn, 1)
+
+    os.makedirs(os.path.join(SAVE_DIR, "train"), exist_ok=True)
+    os.makedirs(os.path.join(SAVE_DIR, "valid"), exist_ok=True)
+    os.makedirs(os.path.join(SAVE_DIR, "test"), exist_ok=True)
+    
+    with open(path, "r") as f1:
+        all_data = f1.readlines()
+        random.shuffle(all_data)
+    
+    line = 0
+    path = os.path.join(SAVE_DIR, "train/templated.txt")
+    with open(path, "w") as f2:
+        while line < (0.8 * len(all_data)):
+            f2.write(all_data[line])
+            line += 1
+    path = os.path.join(SAVE_DIR, "valid/templated.txt")
+    with open(path, "w") as f3:
+        while line < (0.9 * len(all_data)):
+            f3.write(all_data[line])
+            line += 1
+    path = os.path.join(SAVE_DIR, "test/templated.txt")
+    with open(path, "w") as f4:
+        while line < len(all_data):
+            f4.write(all_data[line])
+            line += 1
 
     return
 
@@ -97,8 +130,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_cmds",
         type=int,
-        default=100,
+        default=500,
         help="The number of commands to generate (about 1/3 the number of training data points)"
+    )
+    parser.add_argument(
+        "--combine",
+        action="store_true",
+        help="Combine new templated data with the existing data set"
     )
     opts = parser.parse_args()
     
