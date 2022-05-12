@@ -8,7 +8,6 @@ import click
 import contextlib
 import json
 import os
-import sys
 import threading
 import traceback
 import types
@@ -143,7 +142,7 @@ def cli(
             os.umask(0)
 
             if os.fork() != 0:
-                sys.exit(0)
+                os._exit(0)  # use this instead of sys.exit in child process
 
             proc_def = process_def.defined_processes[name]
 
@@ -165,4 +164,4 @@ def cli(
                             click.echo(f"FATAL: {e}")
                             traceback.print_exc()
                         life_cycle.set_launcher_running(name, False)
-                        sys.exit(0)
+                        os._exit(0)  # use this instead of sys.exit in child process
