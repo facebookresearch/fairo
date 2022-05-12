@@ -23,16 +23,16 @@ Make necessary configuration modifications. For example:
 - We expect calibrated camera parameters out of [eyehandcal](../eyehandcal).
 
 
-Start the necessary pointcloud/grasping/gripper servers:
+Ensure Polymetis is running on the machine connected to the robot. Then, start the necessary pointcloud/grasping/gripper servers:
 
 ```bash
 mrp up
 ```
 
-The script to bring everything together and execute the grasps:
+The example script to bring everything together and execute the grasps:
 
 ```bash
 python scripts/run_grasp.py  # Connect to robot, gripper, servers; run grasp
 ```
 
-This continuously grasps from one bin to the other until there are no more objects detected in the workspace; then it moves the objects the other direction.
+This continuously grasps from bin 1 to bin 2 until there are no more objects detected in the bin 1 workspace; then it moves the objects back from bin 2 to bin 1, and repeats.
