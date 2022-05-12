@@ -282,25 +282,6 @@ something about the current capabilities of the bot, to the user.</p>
 </dl>
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="droidlet.dialog.dialogue_task.ConfirmReferenceObject">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.dialog.dialogue_task.</span></span><span class="sig-name descname"><span class="pre">ConfirmReferenceObject</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">task_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/dialog/dialogue_task.html#ConfirmReferenceObject"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.dialog.dialogue_task.ConfirmReferenceObject" title="Permalink to this definition"></a></dt>
-<dd><p>This Task confirms if a reference object is correct.</p>
-<p>if there is a response that maps to “yes”  it will place a triple
-(subj=self.memid, pred_text=”dialogue_task_output”, obj_text=”yes”)
-else (either no response, or maps no, or otherwise)
-(subj=self.memid, pred_text=”dialogue_task_output”, obj_text=”no”)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>bounds</strong> – general area of reference object to point at</p></li>
-<li><p><strong>pointed</strong> – flag determining whether the agent pointed at the area</p></li>
-<li><p><strong>asked</strong> – flag determining whether the confirmation was asked for</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </div></blockquote>
 <div class="section" id="interpreter">
 <h3>Interpreter<a class="headerlink" href="#interpreter" title="Permalink to this headline"></a></h3>
