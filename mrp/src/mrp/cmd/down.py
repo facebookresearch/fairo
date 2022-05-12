@@ -1,6 +1,6 @@
+import mrp
 from mrp import life_cycle
 from mrp import process_def
-from mrp import cmd
 from mrp.cmd import _autocomplete
 import click
 
@@ -34,4 +34,4 @@ def cli(*cmd_procs, procs=None, all=False, wait=True):
         life_cycle.set_ask(proc, life_cycle.Ask.DOWN)
 
     if wait and down_procs:
-        cmd.wait(procs=list(down_procs))
+        mrp.cmd.wait(procs=list(down_procs))
