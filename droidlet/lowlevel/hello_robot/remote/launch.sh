@@ -49,7 +49,7 @@ else
 fi
 BGPID=$!
 trap 'echo "Killing $BGPID"; kill $BGPID; exit' INT
-timeout 50s bash -c "until python check_connected.py hello_robot $ip; do sleep 0.5; done;" || true
+timeout --foreground 50s bash -c "until python check_connected.py hello_robot $ip; do sleep 0.5; done;" || true
 
 if [[ $USE_ROS -eq 1 ]]; then
     python3 ./remote_hello_realsense.py --ip $ip --ros &
@@ -58,11 +58,11 @@ else
 fi
 BGPID2=$!
 trap 'echo "Killing $BGPID"; kill $BGPID2; exit' INT
-timeout 20s bash -c "until python check_connected.py hello_realsense $ip; do sleep 0.5; done;" || true
+timeout --foreground 20s bash -c "until python check_connected.py hello_realsense $ip; do sleep 0.5; done;" || true
 
 python3 ./remote_hello_saver.py --ip $ip &
 BGPID3=$!
 trap 'echo "Killing $BGPID"; kill $BGPID3; exit' INT
-timeout 10s bash -c "until python check_connected.py hello_data_logger $ip; do sleep 0.5; done;" || true
+timeout --foreground 10s bash -c "until python check_connected.py hello_data_logger $ip; do sleep 0.5; done;" || true
 
 ./launch_navigation.sh
