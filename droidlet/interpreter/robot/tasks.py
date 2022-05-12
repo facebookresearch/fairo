@@ -837,7 +837,10 @@ class Reexplore(Task):
 
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
-        self.tasks = ["circlepp", "straightpp"] #, "random1", "random2"]  # , "random1", "random2"]
+        self.tasks = [
+            "circlepp",
+            "straightpp",
+        ]  # , "random1", "random2"]  # , "random1", "random2"]
         self.task_data = task_data
         self.target = task_data.get("target")
         self.spawn_pos = task_data.get("spawn_pos")

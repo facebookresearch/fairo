@@ -142,7 +142,7 @@ def get_straightline_path_to(target, robot_pos, num_points=20, pct=0.5):
             t = get_step_target_for_straightline_move(cur_pos, target, step_size=0.5)
             pts.append(t)
             cur_pos = t
-        else: 
+        else:
             break
     num_pts = len(pts)
     logging.info(f"get_straightline_path_to returning {int(num_pts * pct)} of {len(pts)} pts")
@@ -223,7 +223,11 @@ def get_circular_path(target, robot_pos, radius, include_approach=False):
         )
         # prune all points that are closer than radius
         if spath.size > 0:
-            spath = [s for s in spath if np.linalg.norm(np.asarray(s[:2]) - np.asarray(target[:2])) > radius]
+            spath = [
+                s
+                for s in spath
+                if np.linalg.norm(np.asarray(s[:2]) - np.asarray(target[:2])) > radius
+            ]
             pts = np.concatenate((spath, pts), axis=0)
             circle_begin_idx = len(spath)
 
@@ -315,7 +319,7 @@ class TrajectoryDataSaver:
         # store seg
         if seg is not None:
             np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
-        
+
         if pts is not None:
             np.save(self.pcd_folder + "/{:05d}.npy".format(self.img_count), pts)
 
