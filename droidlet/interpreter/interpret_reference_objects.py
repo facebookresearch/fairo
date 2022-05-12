@@ -1,6 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+
 import logging
 import re
 import numpy as np
@@ -8,12 +9,19 @@ from copy import deepcopy
 from typing import cast, List, Tuple, Dict
 
 from .interpreter_utils import SPEAKERLOOK, update_attended_and_link_lf
-from droidlet.dialog.dialogue_task import ConfirmReferenceObject
+from droidlet.dialog.post_process_logical_form import retrieve_ref_obj_span
 from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
-from droidlet.memory.memory_nodes import ReferenceObjectNode
+from droidlet.memory.memory_nodes import (
+    LocationNode,
+    PlayerNode,
+    ReferenceObjectNode,
+    SelfNode,
+    TaskNode,
+)
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
+from droidlet.interpreter.reference_object_clarification import clarify_reference_objects
 from .interpret_filters import interpret_selector
 
 
@@ -23,7 +31,9 @@ def get_eid_from_special(agent_memory, S="AGENT", speaker=None):
     if S == "SPEAKER_LOOK" or S == "SPEAKER":
         if not speaker:
             raise Exception("Asked for speakers memid but did not give speaker name")
-        eid = agent_memory.get_player_by_name(speaker).eid
+        player = agent_memory.get_player_by_name(speaker)
+        if player:
+            eid = player.eid
     # FIXME both of these seem to appear in lfs, probably just want one of them?
     elif S == "AGENT" or S == "SELF":
         eid = agent_memory.get_mem_by_id(agent_memory.self_memid).eid
@@ -92,8 +102,11 @@ def maybe_get_text_span_mems(interpreter, speaker, lf):
     get any memories that exactly match the text span of the reference object sought by the logical
     form lf
     """
+    text_span = lf.get("text_span", retrieve_ref_obj_span(lf))
+    if not text_span:
+        text_span = "NULL"
     query = "SELECT MEMORY FROM ReferenceObject WHERE "
-    query += "<< ?, has_description, {} >>".format(lf.get("text_span", "NULL"))
+    query += "<< ?, has_description, {} >>".format(text_span)
     _, mems = interpreter.memory.basic_search(query + " ORDER BY updated DESC")
     if len(mems) > 0:
         mems = [mems[0]]
@@ -136,6 +149,7 @@ def interpret_reference_object(
     extra_tags (list of strings): tags added by parent to narrow the search
     allow_clarification (bool): should a Clarification object be put on the DialogueStack
     """
+
     filters_d = d.get("filters")
     special = d.get("special_reference")
     # filters_d can be empty...
@@ -156,10 +170,12 @@ def interpret_reference_object(
         else:
             logging.error("bad coref_resolve -> {}".format(mem))
 
-    clarification_query = (
-        "SELECT MEMORY FROM Task WHERE reference_object_confirmation=#={}".format(
-            interpreter.memid
-        )
+    # If we're looking for a count, we want to return all of the candidates
+    if filters_d.get("output") == "COUNT":
+        allow_clarification = False
+
+    clarification_query = "SELECT MEMORY FROM Task WHERE dlf_clarification=#={}".format(
+        interpreter.memid
     )
     _, clarification_task_mems = interpreter.memory.basic_search(clarification_query)
     # does a clarification task referencing this interpreter exist?
@@ -171,6 +187,18 @@ def interpret_reference_object(
             # No filter by sublocation etc if a mem matches the text_span exactly...
             return mems
 
+        # How many reference objects are we looking for?
+        # TODO This needs a lot of work to handle plurals, NOT, etc.
+        num_refs = 1  # default
+        if filters_d.get("where_clause"):
+            if filters_d["where_clause"].get("OR"):
+                num_refs = len(filters_d["where_clause"].get("OR"))
+        elif filters_d.get("selector", {}).get("ordinal", "").isdigit():
+            num_refs = int(filters_d["selector"]["ordinal"])
+        elif filters_d.get("selector", {}).get("return_quantity", "") == "ALL":
+            allow_clarification = False
+
+        # Add any extra_tags to search
         if any(extra_tags):
             extra_clauses = []
             for tag in extra_tags:
@@ -182,15 +210,14 @@ def interpret_reference_object(
                 filters_d["where_clause"] = {"AND": [subclause]}
             filters_d["where_clause"]["AND"].extend(extra_clauses)
 
-        # TODO Add ignore_player maybe?
+        candidate_mems = apply_memory_filters(interpreter, speaker, filters_d)
 
-        # FIXME! see above.  currently removing selector to get candidates, and filtering after
-        # instead of letting filter interpreters handle.
-        filters_no_select = deepcopy(filters_d)
-        filters_no_select.pop("selector", None)
-        #        filters_no_select.pop("location", None)
-        candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
-        if len(candidate_mems) > 0:
+        # Compare num matches to expected and clarify
+        if (len(candidate_mems) != num_refs) and allow_clarification:
+            clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
+            raise NextDialogueStep()
+
+        elif len(candidate_mems) > 0:
             mems = filter_by_sublocation(
                 interpreter,
                 speaker,
@@ -202,39 +229,22 @@ def interpret_reference_object(
             update_attended_and_link_lf(interpreter, mems)
             return mems
 
-        elif allow_clarification:
-            # no candidates found; ask Clarification
-            # FIXME!  this has rotted.  backoff the original filters
-            confirm_candidates = apply_memory_filters(interpreter, speaker, filters_d)
-            objects = object_looked_at(interpreter.memory, confirm_candidates, speaker=speaker)
-            if len(objects) == 0:
-                raise ErrorWithResponse("I don't know what you're referring to")
-            _, mem = objects[0]
-            interpreter.memory.add_triple(
-                subj=interpreter.memid, pred_text="provisional_refobj_memid", obj=mem.memid
-            )
-            task_egg = {"class": ConfirmReferenceObject, "task_data": {"reference_object": mem}}
-            cmemid = TaskNode.create(interpreter.memory, task_egg)
-            interpreter.memory.add_triple(
-                subj=cmemid, pred_text="reference_object_confirmation", obj=self.memid
-            )
-            raise NextDialogueStep()
         else:
             raise ErrorWithResponse("I don't know what you're referring to")
 
     else:
         # there is a clarification task.  is it active?
         task_mem = clarification_task_mems[0]  # FIXME, error if there are many?
-        if task_mem.prio > -2:
+        if task_mem.prio > TaskNode.FINISHED_PRIO:
             raise NextDialogueStep()
+
         # clarification task finished.
-        query = "SELECT dialogue_task_output FROM Task WHERE uuid={}".format(task_mem.memid)
+        query = "SELECT dialogue_clarification_output FROM Task WHERE uuid={}".format(
+            task_mem.memid
+        )
         _, r = interpreter.memory.basic_search(query)
-        if r and r[0] == "yes":
-            # TODO: learn from the tag!  put it in memory!
-            query = "SELECT MEMORY FROM ReferenceObject WHERE << {}, reference_object_confirmation, ?>>".format(
-                self.memid
-            )
+        if r:
+            query = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(r[0])
             _, ref_obj_mems = interpreter.memory.basic_search(query)
             update_attended_and_link_lf(interpreter, ref_obj_mems)
             return ref_obj_mems

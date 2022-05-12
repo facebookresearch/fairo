@@ -101,9 +101,9 @@ class SimpleMob:
     def step(self):
         # check if falling:
         x, y, z = self.world.to_world_coords(self.pos)
-        fy = int(np.floor(y))
-        rx = int(np.round(x))
-        rz = int(np.round(z))
+        fy = min(max(int(np.floor(y)), 0), self.world.blocks.shape[1])
+        rx = min(max(int(np.round(x)), 0), self.world.blocks.shape[0] - 1)
+        rz = min(max(int(np.round(z)), 0), self.world.blocks.shape[2] - 1)
         if y > 0:
             if self.world.blocks[rx, fy - 1, rz, 0] == 0:
                 self.pos = (self.pos[0], self.pos[1] - FALL_SPEED, self.pos[2])

@@ -223,7 +223,7 @@ class Conda(BaseRuntime):
         ):
             if use_named_env and any([copy_named_env, yaml, channels, dependencies]):
                 raise ValueError(
-                    f"'use_named_env' cannot be mixed with other Conda environment commands."
+                    "'use_named_env' cannot be mixed with other Conda environment commands."
                 )
 
             self.name = name
@@ -428,7 +428,7 @@ class Conda(BaseRuntime):
             [use_named_env, copy_named_env, yaml, channels, dependencies]
         ):
             raise ValueError(
-                f"'shared_env' cannot be mixed with other Conda environment commands."
+                "'shared_env' cannot be mixed with other Conda environment commands."
             )
 
         self._env = shared_env

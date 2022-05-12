@@ -402,6 +402,9 @@ class StateManager {
   }
 
   showAssistantReply(res) {
+    if (!res.agent_reply) {
+      res.agent_reply = res.content.filter(entry => entry["id"] === "text")[0]["content"];
+    }
     console.log("StateManager showAssistantReply " + JSON.stringify(res.agent_reply));
     this.memory.agent_replies.push({
       msg: res.agent_reply,

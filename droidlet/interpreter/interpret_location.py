@@ -31,6 +31,7 @@ class ReferenceLocationInterpreter:
         d: logical form from semantic parser
         """
         loose_speakerlook = False
+        allow_clarification = True
         expected_num = 1
         # FIXME! merge/generalize this, code in spatial_reasoning, and filter_by_sublocation
         if d.get("relative_direction") == "BETWEEN":
@@ -59,10 +60,17 @@ class ReferenceLocationInterpreter:
                 update_attended_and_link_lf(interpreter, mems)
                 return mems
 
+            else:
+                allow_clarification = False
+
         default_loc = getattr(interpreter, "default_loc", SPEAKERLOOK)
         ref_obj = d.get("reference_object", default_loc["reference_object"])
         mems = interpreter.subinterpret["reference_objects"](
-            interpreter, speaker, ref_obj, loose_speakerlook=loose_speakerlook
+            interpreter,
+            speaker,
+            ref_obj,
+            loose_speakerlook=loose_speakerlook,
+            allow_clarification=allow_clarification,
         )
 
         # FIXME use FILTERS here!!

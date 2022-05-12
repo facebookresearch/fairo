@@ -320,6 +320,24 @@ class PlaceField:
         return val
 
 
+class EmptyPlaceField:
+    """
+    this will be used as a dummy instead of regular PlaceField
+    """
+
+    def sync_traversible(self, locs, h=0):
+        pass
+
+    def update_map(self, changes):
+        pass
+
+    def get_closest(self):
+        return None
+
+    def get_obstacle_list(self):
+        return []
+
+
 if __name__ == "__main__":
     W = {0: {0: {0: True}, 1: {2: {3: True}}}, 1: {5: True}}
     idxs = [0, 1, 2, 3]
