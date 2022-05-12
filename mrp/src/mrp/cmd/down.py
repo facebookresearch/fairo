@@ -34,4 +34,4 @@ def cli(*cmd_procs, procs=None, all=False, wait=True):
         life_cycle.set_ask(proc, life_cycle.Ask.DOWN)
 
     if wait and down_procs:
-        mrp.cmd.wait(procs=list(down_procs))
+        mrp.cmd.wait(*down_procs)
