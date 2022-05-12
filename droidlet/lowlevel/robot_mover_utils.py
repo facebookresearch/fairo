@@ -223,11 +223,7 @@ def get_circular_path(target, robot_pos, radius, include_approach=False):
         )
         # prune all points that are closer than radius
         if spath.size > 0:
-            spath = [
-                s
-                for s in spath
-                if np.linalg.norm(np.asarray(s[:2]) - np.asarray(target[:2])) > radius
-            ]
+            logging.info(f'spath {spath}, shape {spath.shape}')
             pts = np.concatenate((spath, pts), axis=0)
             circle_begin_idx = len(spath)
 

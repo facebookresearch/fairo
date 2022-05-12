@@ -740,7 +740,7 @@ class ExamineDetectionCirclepp(TrajectorySaverTask):
         self.logger = task_data.get("logger")
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         self.guide = CircleGuide(
-            self.frontier_center, base_pos, radius=self.radius, include_approach=False, timeout=20
+            self.frontier_center, base_pos, radius=self.radius, include_approach=True, timeout=20
         )
         self.logger.info(f"{len(self.guide.path)} pts on cicle")
         TaskNode(agent.memory, self.memid).update_task(task=self)
