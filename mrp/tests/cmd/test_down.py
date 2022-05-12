@@ -14,7 +14,7 @@ def hanging_proc():
     # Define process to hang.
     mrp.process(
         name="proc",
-        runtime=mrp.Host(run_command=["sleep", "999"]),
+        runtime=mrp.Host(run_command=["read"]),
         env={"foo": "bar"},
     )
 
@@ -27,7 +27,7 @@ def hanging_proc_external():
     # Define process to hang.
     mrp.process(
         name="proc_ext",
-        runtime=mrp.Host(run_command=["sleep", "999"]),
+        runtime=mrp.Host(run_command=["read"]),
         env={"foo": "bar"},
     )
 
