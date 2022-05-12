@@ -595,7 +595,9 @@ class ExamineDetectionStraightlinepp(TrajectorySaverTask):
         self.target = task_data["target"]
         self.frontier_center = np.asarray(self.target["xyz"])
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
-        self.path = get_straightline_path_to(self.frontier_center, base_pos, num_points=30, pct=0.8)
+        self.path = get_straightline_path_to(
+            self.frontier_center, base_pos, num_points=30, pct=0.8
+        )
         self.steps = 0
         self.stuck = 0
         self.agent = agent

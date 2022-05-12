@@ -139,7 +139,7 @@ def get_straightline_path_to(target, robot_pos, num_points=20, pct=0.5):
     cur_pos = robot_pos
     while len(pts) < num_points:
         d = np.linalg.norm(target[:2] - cur_pos[:2])
-        logging.info(f'distance to target {d}')
+        logging.info(f"distance to target {d}")
         if np.linalg.norm(target[:2] - cur_pos[:2]) > 0.4:
             t = get_step_target_for_straightline_move(cur_pos, target, step_size=0.1)
             pts.append(t)
