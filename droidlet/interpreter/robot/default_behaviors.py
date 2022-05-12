@@ -128,7 +128,12 @@ def get_task_data(agent):
         logging.info(f"Exception while loading {agent.opts.reexplore_json}: {ex}")
         reex = None
 
-    reexplore_id = get_unique_val_from_memory(agent, "reexplore_id", int)
+    # FIXME: temporary hack to do one object at time on hello robot
+    reexplore_id = int(list(reex.keys())[0]) # 
+    if reexplore_id == get_unique_val_from_memory(agent, "reexplore_id", int)-1:
+        logging.info(f'No new reexplore data ...')
+        return None
+        
     reex_key = str(reexplore_id)
     if reex_key not in reex.keys():
         return None

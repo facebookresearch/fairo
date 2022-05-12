@@ -842,6 +842,8 @@ class Reexplore(Task):
         self.tasks = [
             "circlepp",
             "straightpp",
+            "random1",
+            "random2",
         ]  # , "random1", "random2"]  # , "random1", "random2"]
         self.task_data = task_data
         self.target = task_data.get("target")
