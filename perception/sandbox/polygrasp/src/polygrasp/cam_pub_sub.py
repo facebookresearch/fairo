@@ -22,10 +22,13 @@ class CameraSubscriber:
         with open(extrinsics_file, "r") as f:
             self.extrinsics = json.load(f)
 
-        self.sub = a0.SubscriberSync(a0.PubSubTopic(topic), a0.INIT_MOST_RECENT)
+        self.sub = a0.SubscriberSync(topic, a0.INIT_MOST_RECENT, a0.ITER_NEWEST)
+        self.recent_rgbd = None
 
     def get_rgbd(self):
-        return serdes.bytes_to_np(self.sub.read().payload)
+        if self.sub.can_read():
+            self.recent_rgbd = serdes.bytes_to_np(self.sub.read().payload)
+        return self.recent_rgbd
 
 
 class PointCloudSubscriber(CameraSubscriber):
@@ -94,7 +97,6 @@ class PointCloudSubscriber(CameraSubscriber):
         return result
 
 
-
 if __name__ == "__main__":
     import argparse
 
@@ -123,4 +125,4 @@ if __name__ == "__main__":
     log.info(f"Starting camera logger with {cameras.get_num_cameras()} cameras...")
     while True:
         img_bytes = serdes.np_to_bytes(cameras.get_rgbd())
-        rgbd_pub.pub(a0.Packet(img_bytes))
+        rgbd_pub.pub(img_bytes)

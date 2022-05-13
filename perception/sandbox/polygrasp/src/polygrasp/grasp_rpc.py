@@ -9,6 +9,8 @@ import graspnetAPI
 from polygrasp import serdes
 from polygrasp.serdes import polygrasp_msgs
 
+import signal
+
 
 log = logging.getLogger(__name__)
 topic_key = "grasp_server"
@@ -45,8 +47,6 @@ class GraspServer:
             log.info(f"Done. Replying with serialized grasp group...")
             req.reply(serdes.grasp_group_to_capnp(grasp_group).to_bytes())
 
-        grasp_server = a0.RpcServer(grasp_topic_key, grasp_onrequest, None)
-
         def collision_onrequest(req):
             log.info(f"Got request; computing collisions...")
 
@@ -59,10 +59,10 @@ class GraspServer:
             log.info(f"Done. Replying with serialized filtered grasps...")
             req.reply(serdes.grasp_group_to_bytes(filtered_grasp_group))
 
-        collision_server = a0.RpcServer(collision_topic_key, collision_onrequest, None)
+        self.grasp_server = a0.RpcServer(grasp_topic_key, grasp_onrequest, None)
+        self.collision_server = a0.RpcServer(collision_topic_key, collision_onrequest, None)
 
-        while True:
-            pass
+        signal.pause()
 
 
 class GraspClient:
@@ -88,35 +88,19 @@ class GraspClient:
         return bits
 
     def get_grasps(self, pcd: o3d.geometry.PointCloud) -> graspnetAPI.GraspGroup:
-        state = []
-
-        def onreply(pkt):
-            state.append(pkt.payload)
-
         bits = self.downsample_pcd(pcd)
-        self.grasp_client.send(bits, onreply)
-
-        while not state:
-            pass
-
-        return serdes.capnp_to_grasp_group(state.pop())
+        result_bits = self.grasp_client.send_blocking(bits).payload
+        return serdes.capnp_to_grasp_group(result_bits)
 
     def get_collision(self, grasps: graspnetAPI.GraspGroup, scene_pcd: o3d.geometry.PointCloud):
-        state = []
-
-        def onreply(pkt):
-            state.append(pkt.payload)
-
         request = polygrasp_msgs.CollisionRequest()
         request.pcd = self.downsample_pcd(scene_pcd)
         request.grasps = serdes.grasp_group_to_bytes(grasps)
+
         bits = request.to_bytes()
-        self.collision_client.send(bits, onreply)
+        result_bits = self.collision_client.send_blocking(bits).payload
 
-        while not state:
-            pass
-
-        return serdes.bytes_to_grasp_group(state.pop())
+        return serdes.bytes_to_grasp_group(result_bits)
 
     def visualize(self, scene_pcd, plot=False, render=False, save_view=False):
         vis = o3d.visualization.Visualizer()

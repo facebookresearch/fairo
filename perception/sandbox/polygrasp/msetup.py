@@ -1,5 +1,8 @@
 import mrp
 
+# For the Conda environments, see README for installation instructions.
+# TODO: automatic creation of these Conda environments.
+
 mrp.process(
     name="segmentation_server",
     runtime=mrp.Conda(

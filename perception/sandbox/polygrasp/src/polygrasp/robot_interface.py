@@ -2,12 +2,15 @@
 
 import time
 import numpy as np
+import logging
 from scipy.spatial.transform import Rotation as R
 import torch
 
 import hydra
 import graspnetAPI
 import polymetis
+
+log = logging.getLogger(__name__)
 
 
 def compute_des_pose(best_grasp):
@@ -44,9 +47,8 @@ def min_dist_grasp(default_ee_pose, grasps):
         ]
         dists = [compute_quat_dist(rot, default_ee_pose) for rot in rots_as_quat]
         i = torch.argmin(torch.Tensor(dists)).item()
-    print(f"Grasp {i} has angle {dists[i]} from reference.")
+    log.info(f"Grasp {i} has angle {dists[i]} from reference.")
     return grasps[i], i
-
 
 
 class GraspingRobotInterface(polymetis.RobotInterface):
@@ -76,7 +78,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             )
             curr_ee_pos, curr_ee_ori = self.get_ee_pose()
 
-            print(f"Dist to goal: {torch.linalg.norm(curr_ee_pos - position)}")
+            log.info(f"Dist to goal: {torch.linalg.norm(curr_ee_pos - position)}")
 
             if (
                 states[-1].prev_command_successful
@@ -104,13 +106,13 @@ class GraspingRobotInterface(polymetis.RobotInterface):
                     feasible_i.append(i)
 
             if len(feasible_i) < len(grasps):
-                print(
+                log.warning(
                     f"Filtered out {len(grasps) - len(feasible_i)}/{len(grasps)} grasps due to kinematic infeasibility."
                 )
 
             # Choose the grasp closest to the neutral position
             grasp, i = min_dist_grasp(self.default_ee_pose, grasps[feasible_i][:5])
-            print(f"Closest grasp to ee ori, within top 5: {i + 1}")
+            log.info(f"Closest grasp to ee ori, within top 5: {i + 1}")
             return grasp
 
     def grasp(
@@ -137,12 +139,12 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         )
         self.gripper_close()
 
-        print(f"Waiting for gripper to close...")
+        log.info(f"Waiting for gripper to close...")
         time.sleep(1.5)
 
         gripper_state = self.gripper.get_state()
         width = gripper_state.width
-        print(f"Gripper width: {width}")
+        log.info(f"Gripper width: {width}")
 
         success = width > gripper_width_success_threshold
 

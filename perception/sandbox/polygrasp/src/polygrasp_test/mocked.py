@@ -22,7 +22,7 @@ class MockedGraspingRobotInterface:
         pass
 
     def grasp(self, *args, **kwargs):
-        return None, True
+        return [], True
 
     def get_ee_pose(self):
         return torch.zeros(3), None
