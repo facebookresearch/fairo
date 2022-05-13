@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
 
@@ -9,9 +10,14 @@ from eyehandcal.utils import detect_corners
 import os
 import cv2
 import random
+import argparse
 
-localpath=os.path.abspath(os.path.dirname(__file__))
-with open('caldata.pkl', 'rb') as f:
+parser = argparse.ArgumentParser()
+parser.add_argument('caldata')
+parser.add_argument('outdata')
+args = parser.parse_args()
+
+with open(args.caldata, 'rb') as f:
     data = pickle.load(f)
 
 random.shuffle(data)
@@ -29,5 +35,5 @@ for i, d in enumerate(data):
     d['imgs_jpeg_encoded'] = compressed_imgs
     del d['imgs']
 
-with open(os.path.join(localpath,'caldata_jpeg.pkl'), 'wb') as f:
+with open(args.outdata, 'wb') as f:
     pickle.dump(data, f)

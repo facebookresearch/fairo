@@ -18,7 +18,7 @@ from droidlet.shared_data_structs import Time
 from droidlet.memory.memory_filters import MemorySearcher
 from droidlet.event import dispatch
 from droidlet.memory.memory_util import parse_sql, format_query
-from droidlet.memory.place_field import PlaceField
+from droidlet.memory.place_field import PlaceField, EmptyPlaceField
 
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
@@ -46,6 +46,7 @@ NONPICKLE_ATTRS = [
     "movement",
 ]
 
+DEFAULT_PIXELS_PER_UNIT = 100
 SCHEMAS = [os.path.join(os.path.dirname(__file__), "base_memory_schema.sql")]
 
 # TODO when a memory is removed, its last state should be snapshotted to prevent tag weirdness
@@ -85,6 +86,7 @@ class AgentMemory:
         nodelist=NODELIST,
         agent_time=None,
         on_delete_callback=None,
+        place_field_pixels_per_unit=DEFAULT_PIXELS_PER_UNIT,
     ):
         if db_log_path:
             self._db_log_file = gzip.open(db_log_path + ".gz", "w")
@@ -122,25 +124,32 @@ class AgentMemory:
                 if node in possible_child.__mro__:
                     self.node_children[node.NODE_TYPE].append(possible_child.NODE_TYPE)
 
-        # create a "self" memory to reference in Triples
-        self.self_memid = "0" * len(uuid.uuid4().hex)
-        self.db_write(
-            "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, "Self", 0, 0, -1, False
-        )
-        self.nodes["Triple"].tag(self, self.self_memid, "_physical_object")
-        self.nodes["Triple"].tag(self, self.self_memid, "_animate")
-        # this is a hack until memory_filters does "not"
-        self.nodes["Triple"].tag(self, self.self_memid, "_not_location")
-        self.nodes["Triple"].tag(self, self.self_memid, "AGENT")
-        self.nodes["Triple"].tag(self, self.self_memid, "SELF")
+        self.make_self_mem()
 
         self.searcher = MemorySearcher()
-        self.place_field = PlaceField(self)
+        if place_field_pixels_per_unit > 0:
+            self.place_field = PlaceField(self, pixels_per_unit=place_field_pixels_per_unit)
+        else:
+            self.place_field = EmptyPlaceField()
 
     def __del__(self):
         """Close the database file"""
         if getattr(self, "_db_log_file", None):
             self._db_log_file.close()
+
+    def make_self_mem(self):
+        # create a "self" memory to reference in Triples
+        self.self_memid = "0" * len(uuid.uuid4().hex)
+        self.db_write(
+            "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, "Self", 0, 0, -1, False
+        )
+
+        self.nodes["Triple"].tag(self, self.self_memid, "_physical_object")
+        self.nodes["Triple"].tag(self, self.self_memid, "_animate")
+        self.nodes["Triple"].tag(self, self.self_memid, "_not_location")
+        self.nodes["Triple"].tag(self, self.self_memid, "AGENT")
+        self.nodes["Triple"].tag(self, self.self_memid, "SELF")
+
 
     def init_time_interface(self, agent_time=None):
         """Initialiaze the current time in memory

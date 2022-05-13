@@ -54,6 +54,21 @@ class LocoAgentMemory(AgentMemory):
         """
         if not perception_output:
             return
+
+        # TODO there should be some sort of warning/error if self_pose is not updated
+        if perception_output.self_pose is not None:
+            x, z, yaw = perception_output.self_pose
+            self.place_field.update_map(
+                [
+                    {
+                        "pos": (x, 0, z),
+                        "is_obstacle": True,
+                        "memid": self.self_memid,
+                        "is_move": True,
+                    }
+                ]
+            )
+
         if perception_output.new_objects:
             for detection in perception_output.new_objects:
                 memid = DetectedObjectNode.create(self, detection)
@@ -78,6 +93,8 @@ class LocoAgentMemory(AgentMemory):
             for human in perception_output.humans:
                 HumanPoseNode.create(self, human)
                 # FIXME, not putting in map, need to dedup?
+        # FIXME make a proper diff.  what to do about discrepancies with objects?
+        self.place_field.sync_traversible(perception_output.obstacle_map, h=0)
 
     #################
     ###  Players  ###

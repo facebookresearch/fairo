@@ -29,22 +29,22 @@ def common_env_context(proc_def):
         os.environ.update(old_environ)
 
 
-def stdout_logger():
+def _make_plaintext_logger(logger_callback):
     logger = a0.Logger(a0.env.topic())
 
     def write(msg):
-        logger.info(msg)
+        pkt = a0.Packet([("content-type", "text/plain")], msg)
+        logger_callback(logger, pkt)
 
     return write
+
+
+def stdout_logger():
+    return _make_plaintext_logger(lambda logger, pkt: logger.info(pkt))
 
 
 def stderr_logger():
-    logger = a0.Logger(a0.env.topic())
-
-    def write(msg):
-        logger.err(msg)
-
-    return write
+    return _make_plaintext_logger(lambda logger, pkt: logger.err(pkt))
 
 
 def pid_children(pid):

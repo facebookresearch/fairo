@@ -6,7 +6,7 @@ import os
 import random
 from collections import namedtuple
 from typing import Optional, List
-from droidlet.memory.sql_memory import AgentMemory
+from droidlet.memory.sql_memory import AgentMemory, DEFAULT_PIXELS_PER_UNIT
 from droidlet.base_util import diag_adjacent, IDM, XYZ, Block, npy_to_blocks_list
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
@@ -63,6 +63,8 @@ class MCAgentMemory(AgentMemory):
         agent_time=None,
         coordinate_transforms=None,
         agent_low_level_data={},
+        place_field_pixels_per_unit=DEFAULT_PIXELS_PER_UNIT,
+        copy_from_backup=None,
     ):
         super(MCAgentMemory, self).__init__(
             db_file=db_file,
@@ -71,6 +73,7 @@ class MCAgentMemory(AgentMemory):
             nodelist=NODELIST,
             agent_time=agent_time,
             coordinate_transforms=coordinate_transforms,
+            place_field_pixels_per_unit=place_field_pixels_per_unit,
         )
         self.low_level_block_data = agent_low_level_data.get("block_data", {})
         self.banned_default_behaviors = []  # FIXME: move into triple store?
@@ -78,24 +81,30 @@ class MCAgentMemory(AgentMemory):
         self.schematics = {}
         self.check_inside_perception = agent_low_level_data.get("check_inside", None)
 
-        self.nodes["Schematic"]._load_schematics(
-            self,
-            schematics=agent_low_level_data.get("schematics", {}),
-            block_data=agent_low_level_data.get("block_data", {}),
-            load_minecraft_specs=load_minecraft_specs,
-        )
-        self._load_block_types(
-            block_data=agent_low_level_data.get("block_data", {}),
-            color_data=agent_low_level_data.get("color_data", {}),
-            block_property_data=agent_low_level_data.get("block_property_data", {}),
-            load_block_types=load_block_types,
-        )
-        self._load_mob_types(
-            mobs=agent_low_level_data.get("mobs", {}),
-            mob_property_data=agent_low_level_data.get("mob_property_data", {}),
-        )
         self.dances = {}
         self.perception_range = preception_range
+
+        if copy_from_backup is not None:
+            copy_from_backup.backup(self.db)
+            self.make_self_mem()
+        else:
+            self.nodes["Schematic"]._load_schematics(
+                self,
+                schematics=agent_low_level_data.get("schematics", {}),
+                block_data=agent_low_level_data.get("block_data", {}),
+                load_minecraft_specs=load_minecraft_specs,
+            )
+            self._load_block_types(
+                block_data=agent_low_level_data.get("block_data", {}),
+                color_data=agent_low_level_data.get("color_data", {}),
+                block_property_data=agent_low_level_data.get("block_property_data", {}),
+                load_block_types=load_block_types,
+            )
+            self._load_mob_types(
+                mobs=agent_low_level_data.get("mobs", {}),
+                mob_property_data=agent_low_level_data.get("mob_property_data", {}),
+            )
+        
 
     ############################################
     ### Update world with perception updates ###
@@ -135,6 +144,7 @@ class MCAgentMemory(AgentMemory):
                 map_changes.append(
                     {"pos": mp, "is_obstacle": False, "memid": mob_memid, "is_move": True}
                 )
+            # FIXME track these semi-automatically...
             self.place_field.update_map(map_changes)
         # 2. Handle all items that the agent can pick up in-game
         if perception_output.agent_pickable_items:

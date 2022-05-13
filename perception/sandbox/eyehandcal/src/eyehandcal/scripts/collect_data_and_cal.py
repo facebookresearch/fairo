@@ -6,11 +6,15 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+from argparse import ArgumentError
 from math import pi
 import time
 import os 
 import pickle
 import json
+import sys
+from collections import namedtuple
+from eyehandcal.utils import uncompress_image
 
 import numpy as np
 import torch
@@ -20,7 +24,8 @@ from torchcontrol.transform import Rotation as R
 from polymetis import RobotInterface
 from realsense_wrapper import RealsenseAPI
 
-from eyehandcal.utils import detect_corners, quat2rotvec, build_proj_matrix, mean_loss, find_parameter, rotmat, dist_in_hull
+from eyehandcal.utils import detect_corners, quat2rotvec, build_proj_matrix, mean_loss, find_parameter, rotmat, dist_in_hull, \
+    hand_marker_proj_world_camera, world_marker_proj_hand_camera
 
 
 def realsense_images(max_pixel_diff=200):
@@ -111,7 +116,8 @@ def extract_obs_data_std(data, camera_index):
     return obs_data_std, K
 
 
-if __name__ == '__main__':
+
+def main(argv):
     import argparse
     parser=argparse.ArgumentParser()
 
@@ -125,10 +131,17 @@ if __name__ == '__main__':
     parser.add_argument('--num-points', default=20, type=int, help="number of points to sample from convex hull")
     parser.add_argument('--time-to-go', default=3, type=float, help="time_to_go in seconds for each movement")
     parser.add_argument('--imagedir', default=None, help="folder to save debug images")
-    parser.add_argument('--pixel-tolerance', default=2.0, help="mean pixel error tolerance (stage 2)")
+    parser.add_argument('--pixel-tolerance', default=2.0, type=float, help="mean pixel error tolerance (stage 2)")
+    proj_funcs = {'hand_marker_proj_world_camera' :hand_marker_proj_world_camera, 
+                  'world_marker_proj_hand_camera' :world_marker_proj_hand_camera,
+                  'wrist_camera': world_marker_proj_hand_camera,
+                  'world_camera': hand_marker_proj_world_camera}
+    parser.add_argument('--proj-func', choices=list(proj_funcs.keys()), default = list(proj_funcs.keys())[0])
 
-    args=parser.parse_args()
+    args=parser.parse_args(argv)
     print(f"Config: {args}")
+
+    proj_func = proj_funcs[args.proj_func]
 
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -137,6 +150,7 @@ if __name__ == '__main__':
     if os.path.exists(args.datafile) and not args.overwrite:
         print(f"Warning: datafile {args.datafile} already exists. Loading data instead of collecting data...")
         data = pickle.load(open(args.datafile, 'rb'))
+        uncompress_image(data)
     else:
         if os.path.exists(args.datafile):
             print(f"Warning: datafile {args.datafile} already exists. Overwriting...")
@@ -174,30 +188,52 @@ if __name__ == '__main__':
     corner_data = detect_corners(data, target_idx=args.marker_id)
 
     num_of_camera=len(corner_data[0]['intrinsics'])
-    params=[]
+    CalibrationResult = namedtuple('CalibrationResult',
+                                    field_names=['num_marker_seen', 'stage2_retry', 'pixel_error', 'param', 'proj_func'],
+                                    defaults=[None]*5)
+    cal_results = []
     for i in range(num_of_camera):
         print(f'Solve camera {i}/{num_of_camera} pose')
         obs_data_std, K = extract_obs_data_std(corner_data, i)
         print('number of images with keypoint', len(obs_data_std))
         if len(obs_data_std) < 3:
             print('too few keypoint found for this camera, skip this camera')
-            params.append(torch.zeros(9) * torch.nan)
+            cal_results.append(CalibrationResult(num_marker_seen=len(obs_data_std)))
             continue
 
         # stage 1 - assuming marker is attach to EE origin, solve camera pose first
-        p3d = torch.stack([p[1] for p in obs_data_std]).detach().numpy()
+        if args.proj_func == "hand_marker_proj_world_camera":
+            p3d = torch.stack([p[1] for p in obs_data_std]).detach().numpy()
+        elif args.proj_func == "world_marker_proj_hand_camera":
+            p3d = torch.stack([rotmat(-p[2]).matmul(-p[1]) for p in obs_data_std]).detach().numpy()
+
         p2d = torch.stack([p[0] for p in obs_data_std]).detach().numpy()
         retval, rvec, tvec = cv2.solvePnP(p3d, p2d, K.numpy(), distCoeffs=None, flags=cv2.SOLVEPNP_SQPNP)
         rvec_cam = torch.tensor(-rvec.reshape(-1))
         tvec_cam = -rotmat(rvec_cam).matmul(torch.tensor(tvec.reshape(-1)))
-        pixel_error = mean_loss(obs_data_std, torch.cat([rvec_cam, tvec_cam, torch.zeros(3)]), K).item()
+        pixel_error = mean_loss(obs_data_std, torch.cat([rvec_cam, tvec_cam, torch.zeros(3)]), K, proj_func).item()
         print('stage 1 mean pixel error', pixel_error)
 
         # stage 2 - allow marker to move, joint optimize camera pose and marker
-        while pixel_error > args.pixel_tolerance:
+        max_stage2_retry = 10
+        stage2_retry_count = 0
+        
+        while True :
+
+            stage2_retry_count += 1
+            if stage2_retry_count > max_stage2_retry:
+                cal_results.append(CalibrationResult(num_marker_seen=len(obs_data_std),
+                                                     stage2_retry=stage2_retry_count,
+                                                     param=param_star,
+                                                     pixel_error=pixel_error,
+                                                     proj_func=args.proj_func))
+                print('Maximum stage2 retry execeeded, bailing out')
+                break
+
             marker_max_displacement = 0.1 #meter
-            param=torch.tensor(torch.cat([rvec_cam, tvec_cam, torch.randn(3)*marker_max_displacement]).detach(), requires_grad=True)
-            L = lambda param: mean_loss(obs_data_std, param, K)
+            param=torch.cat([rvec_cam, tvec_cam, torch.randn(3)*marker_max_displacement]).clone().detach()
+            param.requires_grad=True
+            L = lambda param: mean_loss(obs_data_std, param, K, proj_func)
             try:
                 param_star=find_parameter(param, L)
             except Exception as e:
@@ -207,26 +243,49 @@ if __name__ == '__main__':
             pixel_error = L(param_star).item()
             print('stage 2 mean pixel error', pixel_error)
             if pixel_error > args.pixel_tolerance:
-                print(f"Try again because of poor solution {pixel_error} > {args.pixel_tolerance}")
-            
+                print(f"Try again {stage2_retry_count}/{max_stage2_retry} because of poor solution {pixel_error} > {args.pixel_tolerance}")
+            else:
+                print(f"Good solution {pixel_error} <= {args.pixel_tolerance}")
+                cal_results.append(CalibrationResult(num_marker_seen=len(obs_data_std),
+                                                     stage2_retry=stage2_retry_count,
+                                                     param=param_star,
+                                                     pixel_error=pixel_error,
+                                                     proj_func=args.proj_func))
+                break
 
-        print(f"Good solution {pixel_error} <= {args.pixel_tolerance}")
-        params.append(param_star)
-    
     with torch.no_grad():
         param_list = []
-        for i, param in enumerate(params):
-            camera_base_ori_rotvec = param[:3]
-            camera_base_ori = rotmat(camera_base_ori_rotvec)
-            result = {
-                "camera_base_ori": camera_base_ori.cpu().numpy().tolist(),
-                "camera_base_ori_rotvec": camera_base_ori_rotvec.cpu().numpy().tolist(),
-                "camera_base_pos": param[3:6].cpu().numpy().tolist(),
-                "p_marker_ee": param[6:9].cpu().numpy().tolist(),
-            }
+        for i, cal in enumerate(cal_results):
+            result = cal._asdict().copy()
+            del result['param'] #pytorch vector
+            if cal.param is not None:
+                if cal.proj_func == "world_marker_proj_hand_camera":
+                    camera_ee_ori_rotvec = cal.param[:3]
+                    camera_ee_ori = rotmat(camera_ee_ori_rotvec)
+                    result.update({
+                        "camera_ee_ori": camera_ee_ori.numpy().tolist(),
+                        "camera_ee_ori_rotvec": camera_ee_ori_rotvec.numpy().tolist(),
+                        "camera_ee_pos" : cal.param[3:6].numpy().tolist(),
+                        "marker_base_pos": cal.param[6:9].numpy().tolist()
+                    })
+                elif args.proj_func == "hand_marker_proj_world_camera":
+                    camera_base_ori_rotvec = cal.param[:3]
+                    camera_base_ori = rotmat(camera_base_ori_rotvec)
+                    result.update({
+                        "camera_base_ori": camera_base_ori.cpu().numpy().tolist(),
+                        "camera_base_ori_rotvec": camera_base_ori_rotvec.cpu().numpy().tolist(),
+                        "camera_base_pos": cal.param[3:6].cpu().numpy().tolist(),
+                        "p_marker_ee": cal.param[6:9].cpu().numpy().tolist(),
+                    })
+                else:
+                    raise ArgumentError("shouldn't reach here")
+
             param_list.append(result)
             print(f"Camera {i} calibration: {result}")
         
         with open(args.calibration_file, 'w') as f:
             print(f"Saving calibrated parameters to {args.calibration_file}")
             json.dump(param_list, f, indent=4)
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

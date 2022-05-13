@@ -45,7 +45,7 @@ def cli(*cmd_procs, procs=[], old=False):
 
     # Fail if no processes are left.
     if not display_procs:
-        raise ValueError(f"No processes found to log")
+        raise ValueError("No processes found to log")
 
     # Give each process a random color.
     colors = [

@@ -1,20 +1,22 @@
+#!/usr/bin/env python
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
 
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-#!/usr/bin/env python
-import matplotlib.pyplot as plt
-import torch
-import pickle
-torch.set_printoptions(linewidth=160)
-from eyehandcal.utils import detect_corners, build_proj_matrix, sim_data, mean_loss, \
-    quat2rotvec, find_parameter, marker_proj, rotmat
-
-import pytest
-import cv2
 import os
+import pickle
+import json
+
+import torch
+torch.set_printoptions(linewidth=160)
+import matplotlib.pyplot as plt
+import pytest
+
+from eyehandcal.utils import detect_corners, build_proj_matrix, sim_data, mean_loss, \
+    quat2rotvec, find_parameter, rotmat, hand_marker_proj_world_camera, uncompress_image
+
 localpath=os.path.abspath(os.path.dirname(__file__))
 
 
@@ -43,13 +45,7 @@ def collected_data():
     # please download from https://drive.google.com/file/d/1w-2jA6jEMqmhrGqt33ClKc_jGCUuyZnL/view?usp=sharing
     with open(os.path.join(localpath,'caldata_jpeg.pkl'), 'rb') as f:
         data=pickle.load(f)
-    for d in data:
-        # decode imgs_jpeg_encoded -> imgs
-        if 'imgs_jpeg_encoded' in d:
-            assert 'imgs' not in d
-            d['imgs'] = []
-            for img_jpeg_encoded in d['imgs_jpeg_encoded']:
-                d['imgs'].append(cv2.imdecode(img_jpeg_encoded, cv2.IMREAD_COLOR))
+    uncompress_image(data)
     return data
 
 
@@ -125,7 +121,7 @@ def test_plot_reproj_error(params_from_data, collected_data):
         err=[]
         for obs_marker, pos_ee_base, ori_ee_base in obs_data_std:
             with torch.no_grad():
-                proj_marker = marker_proj(params_from_data[camera_index], pos_ee_base, ori_ee_base, K)
+                proj_marker = hand_marker_proj_world_camera(params_from_data[camera_index], pos_ee_base, ori_ee_base, K)
             
             err.append((proj_marker-obs_marker).norm())
             plt.plot((obs_marker[0], proj_marker[0]),
@@ -167,3 +163,23 @@ def test_plot_3d_marker(params_from_data, collected_data):
     plt.savefig('camera_pose.pdf')
 
 
+from eyehandcal.scripts import collect_data_and_cal
+testcases = [
+    [f'--datafile={os.path.join(localpath,"caldata_world_cam.pkl")}', '--marker-id=0'],
+    [f'--datafile={os.path.join(localpath,"caldata_wrist_cam.pkl")}', '--marker-id=1', '--proj-func=world_marker_proj_hand_camera'],
+]
+@pytest.mark.parametrize("argv", testcases, ids = [x[0] for x in testcases])
+def test_collect_data_and_cal(argv):
+    collect_data_and_cal.main(argv)
+    with open('calibration.json', 'rb') as f:
+        results = json.load(f)
+        for result in results:
+            assert result['pixel_error'] < 2.0
+
+non_converging_testcases = [
+    [f'--datafile={os.path.join(localpath,"caldata_world_cam.pkl")}', '--marker-id=99'],
+    [f'--datafile={os.path.join(localpath,"caldata_world_cam.pkl")}', '--marker-id=0', '--pixel-tolerance=1.0'],
+]
+@pytest.mark.parametrize("argv", non_converging_testcases, ids = [x[0] for x in non_converging_testcases])
+def test_collect_data_and_cal_just_run_for_coverage(argv):
+    collect_data_and_cal.main(argv)

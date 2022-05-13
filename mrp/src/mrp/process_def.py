@@ -1,9 +1,11 @@
-from mrp import util
 import dataclasses
 import inspect
 import os
 import pathlib
 import typing
+
+if typing.TYPE_CHECKING:
+    from mrp.runtime.base import BaseRuntime
 
 
 @dataclasses.dataclass
