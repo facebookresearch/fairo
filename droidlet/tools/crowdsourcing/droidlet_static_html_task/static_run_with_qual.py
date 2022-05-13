@@ -6,15 +6,13 @@
 
 import os
 from mephisto.operations.operator import Operator
-from mephisto.operations.utils import get_root_dir
 from mephisto.tools.scripts import load_db_and_process_config
-from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
-    BLUEPRINT_TYPE,
-)
+from mephisto.tools.scripts import task_script
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
     SharedStaticTaskState,
 )
-from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST, make_qualification_dict
+from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST
+from mephisto.utils.qualifications import make_qualification_dict
 
 import hydra
 from omegaconf import DictConfig
@@ -23,31 +21,17 @@ from typing import List, Any
 
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
-defaults = [
-    "_self_",
-    {"mephisto/blueprint": BLUEPRINT_TYPE},
-    {"mephisto/architect": "heroku"},
-    {"mephisto/provider": "mock"},
-    {"conf": "run_with_qual"},
-]
-
 from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
 
 from pilot_config import PILOT_ALLOWLIST_QUAL_NAME as ALLOWLIST_QUALIFICATION
 from pilot_config import SOFTBLOCK_QUAL_NAME as SOFTBLOCK_QUALIFICATION
 
 
-@dataclass
-class TestScriptConfig(RunScriptConfig):
-    defaults: List[Any] = field(default_factory=lambda: defaults)
-    task_dir: str = TASK_DIRECTORY
 
 
-register_script_config(name="scriptconfig", module=TestScriptConfig)
+@task_script(default_config_file="run_with_qual")
+def main(operator:Operator, cfg:DictConfig) -> None:
 
-
-@hydra.main(config_name="scriptconfig")
-def main(cfg: DictConfig) -> None:
     def onboarding_is_valid(onboarding_data):
         outputs = onboarding_data["outputs"]
         answer_str = outputs["answer"]
@@ -72,17 +56,26 @@ def main(cfg: DictConfig) -> None:
         return True
 
     shared_state = SharedStaticTaskState(
-        qualifications=[
-            make_qualification_dict(ALLOWLIST_QUALIFICATION, QUAL_EXISTS, None),
-            make_qualification_dict(SOFTBLOCK_QUALIFICATION, QUAL_NOT_EXIST, None),
+        qualifications = [
+            make_qualification_dict(
+                ALLOWLIST_QUALIFICATION,
+                QUAL_EXISTS,
+                None
+            ),
+            make_qualification_dict(
+                SOFTBLOCK_QUALIFICATION,
+                QUAL_NOT_EXIST,
+                None
+            ),
         ],
+        
     )
 
     db, cfg = load_db_and_process_config(cfg)
     operator = Operator(db)
 
-    operator.validate_and_run_config(cfg.mephisto, shared_state)
-    # operator.validate_and_run_config(cfg.mephisto)
+    operator.launch_task_run(cfg.mephisto, shared_state)
+    #operator.validate_and_run_config(cfg.mephisto)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 

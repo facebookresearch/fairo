@@ -1,5 +1,11 @@
 #@package _global_
+defaults:
+  - /mephisto/blueprint: static_task
+  - /mephisto/architect: heroku
+  - /mephisto/provider: mturk
 mephisto:
+  provider:
+    requester_name: yuxuans
   blueprint:
     data_csv: ${task_dir}/data.csv
     task_source: ${task_dir}/server_files/craftassist_task.html
@@ -7,17 +13,11 @@ mephisto:
     extra_source_dir: ${task_dir}/server_files/extra_refs
     units_per_assignment: 1
   task:
-    task_title: "Interact with our fun virtual assistant"
+    task_title: "Interact with our fun virtual assistant (~7 minutes)"
     task_description: "Interact with an assistant in a 3-D world creative game."
-    task_reward: 1.5
+    task_reward: 3.0
     allowed_concurrent: 1
-    maximum_units_per_worker: 5
+    maximum_units_per_worker: 20
     task_tags: "assistant, game, interact"
-    task_name: "droidlet-dashbaord"
-  architect:
-    heroku_config_args:
-      AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
-      AWS_DEFAULT_REGION: "us-west-1"
-    heroku_app_name: droidlet-dashbaord
-  
+    task_name: "baseline-13-03-02-1000"
+
