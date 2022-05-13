@@ -91,10 +91,7 @@ class Navigation(object):
 
     def go_to_absolute(self, goal=None, goal_map=None, steps=100000000):
         # specify exactly one of goal or goal_map
-        assert (
-            (goal is not None and goal_map is None) or 
-            (goal is None and goal_map is not None)
-        )
+        assert (goal is not None and goal_map is None) or (goal is None and goal_map is not None)
 
         self._busy = True
         self._stop = False
@@ -118,14 +115,17 @@ class Navigation(object):
             robot_loc = self.robot.get_base_state()
 
             print("[navigation] Finished a go_to_absolute")
-            print(" initial location: {} Final goal: {}".format(
-                initial_robot_loc, 
-                goal if goal is not None else "goal map"
-            ))
+            print(
+                " initial location: {} Final goal: {}".format(
+                    initial_robot_loc, goal if goal is not None else "goal map"
+                )
+            )
             print(" short-term goal: {}, Reached Location: {}".format(stg, robot_loc))
             print(" Robot Status: {}".format(status))
             if status == "SUCCEEDED":
-                goal_reached = self.planner.goal_within_threshold(robot_loc, goal=goal, goal_map=goal_map)
+                goal_reached = self.planner.goal_within_threshold(
+                    robot_loc, goal=goal, goal_map=goal_map
+                )
                 self.trackback.update(robot_loc)
             else:
                 # collided with something unexpected.
@@ -158,22 +158,21 @@ class Navigation(object):
 
             if (cat_sem_map == 1).sum() > 0:
                 # If the object goal category is present in the local map, go to it
-                print(f"[navigation] Found a {object_goal} in the local map, starting "
-                       "go_to_absolute to reach it")
+                print(
+                    f"[navigation] Found a {object_goal} in the local map, starting "
+                    "go_to_absolute to reach it"
+                )
                 goal_map = cat_sem_map == 1
                 _, goal_reached = self.go_to_absolute(goal_map=goal_map, steps=25)
 
             else:
-                # Else if the object goal category is not present in the local map, 
+                # Else if the object goal category is not present in the local map,
                 # predict where to explore next
                 map_features = self.slam.get_semantic_map_features()
                 orientation_tensor = self.slam.get_orientation()
 
                 goal_action = self.goal_policy(
-                    map_features, 
-                    orientation_tensor, 
-                    object_goal_cat_tensor, 
-                    deterministic=False
+                    map_features, orientation_tensor, object_goal_cat_tensor, deterministic=False
                 )[0]
 
                 # These lines
