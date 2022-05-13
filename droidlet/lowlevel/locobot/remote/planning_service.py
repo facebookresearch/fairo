@@ -51,8 +51,8 @@ class Planner(object):
             self.planner.set_multi_goal(goal_map)
 
         else:
-            # convert real co-ordinates to map co-ordinates
-            goal_map_location = self.slam.real2map(goal[:2])
+            # convert robot co-ordinates to map co-ordinates
+            goal_map_location = self.slam.robot2map(goal[:2])
 
             # if the goal is an obstacle, you can't go there; return
             if not is_traversable(goal_map_location, traversable_map):

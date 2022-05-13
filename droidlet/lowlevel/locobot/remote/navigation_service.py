@@ -175,19 +175,21 @@ class Navigation(object):
                     object_goal_cat_tensor, 
                     deterministic=False
                 )[0]
+
                 # These lines
                 # https://github.com/devendrachaplot/Object-Goal-Navigation/blob/master/main.py#L315
                 # https://github.com/devendrachaplot/Object-Goal-Navigation/blob/master/envs/utils/fmm_planner.py#L71
-                # indicate that the goal action in the pre-trained model is (row, column) - i.e., we index map[goal[0], goal[1]]
+                # seem to indicate that the goal action in the pre-trained model is (row, column) - i.e., we index map[goal[0], goal[1]]
                 # while in this repo, this line
                 # https://github.com/facebookresearch/fairo/blob/main/droidlet/lowlevel/locobot/remote/slam_pkg/utils/fmm_planner.py#L29
                 # indicates that the goal action is (column, row) - i.e., we index map[goal[1], goal[0]]
-                # goal_action = goal_action.flip(0)
+                goal_action = goal_action.flip(0)
+
                 goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
-                global_loc = np.array(self.slam.real2map(self.robot.get_base_state()[:2]))
+                global_loc = np.array(self.slam.robot2map(self.robot.get_base_state()[:2]))
                 goal_in_global_map = global_loc + (goal_in_local_map - self.local_map_size // 2)
                 goal_in_global_map = np.clip(goal_in_global_map, 0, self.map_size - 1)
-                goal_in_world = self.slam.map2real(goal_in_global_map)
+                goal_in_world = self.slam.map2robot(goal_in_global_map)
 
                 if debug:
                     print("goal_action:       ", goal_action)
@@ -198,9 +200,9 @@ class Navigation(object):
 
                 print(
                     f"[navigation] No {object_goal} in the semantic map, starting a "
-                    f"go_to_absolute goal={(*goal_in_world, 0)} to find one"
+                    f"go_to_absolute {(*goal_in_world, 0)} to find one"
                 )
-                _, goal_reached = self.go_to_absolute(goal=(*goal_in_world, 0), steps=25)
+                self.go_to_absolute(goal=(*goal_in_world, 0), steps=25)
 
         print(f"[navigation] Finished a go_to_object {object_goal}")
 
