@@ -21,6 +21,7 @@ from droidlet.lowlevel.robot_mover_utils import (
 )
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
 from segmentation.constants import coco_categories
+from segmentation.semantic_prediction import SemanticPredMaskRCNN
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
@@ -70,10 +71,16 @@ class RemoteLocobot(object):
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
 
-        # TODO Check if semantic annotations exist for the scene
         self.num_sem_categories = len(coco_categories)
         self.one_hot_encoding = np.eye(self.num_sem_categories)
-        self.set_instance_id_to_category_id()
+
+        self.scene_contains_semantic_annotations = self.scene_contains_semantic_annotations()
+        if self.scene_contains_semantic_annotations:
+            self.instance_id_to_category_id = self.get_instance_id_to_category_id()
+        else:
+            self.segmentation_model = SemanticPredMaskRCNN(
+                sem_pred_prob_thr=0.1, sem_gpu_id=-1, visualize=True
+            )
 
     def restart_habitat(self):
         if hasattr(self, "_robot"):
@@ -98,7 +105,7 @@ class RemoteLocobot(object):
         """Respawns the agent at the position and rotation specified"""
         sim = self._robot.base.sim
         agent = sim.get_agent(0)
-        new_agent_state = habitat_sim.AgentState()
+        new_agent_state = sim.AgentState()
         new_agent_state.position = position
         new_agent_state.rotation = quaternion.from_float_array(rotation)
         agent.set_state(new_agent_state)
@@ -403,16 +410,22 @@ class RemoteLocobot(object):
         else:
             return "UNKNOWN"
 
-    def set_instance_id_to_category_id(self):
+    def scene_contains_semantic_annotations(self):
         semantic_annotations = self._robot.base.sim.semantic_scene
+        return len(semantic_annotations.objects) > 0
+
+    def get_instance_id_to_category_id(self, debug=True):
+        semantic_annotations = self._robot.base.sim.semantic_scene
+
         max_obj_id = max(
             [int(obj.id.split("_")[-1]) for obj in semantic_annotations.objects if obj is not None]
         )
 
         # default to no category
-        self.instance_id_to_category_id = (
+        instance_id_to_category_id = (
             np.ones(max_obj_id + 1) * (self.num_sem_categories - 1)
         ).astype(np.int32)
+        categories_present = set()
 
         for obj in semantic_annotations.objects:
             if obj is None or obj.category is None:
@@ -430,14 +443,25 @@ class RemoteLocobot(object):
             if category in coco_categories.keys():
                 cat_id = coco_categories[category]
                 obj_id = int(obj.id.split("_")[-1])
-                self.instance_id_to_category_id[obj_id] = cat_id
+                instance_id_to_category_id[obj_id] = cat_id
+                categories_present.add(category)
+        
+        if debug:
+            print(f"Semantic categories present in the scene: {categories_present}")
+        
+        return instance_id_to_category_id
 
     def get_semantics(self, rgb, depth):
         """Get semantic segmentation."""
-        instance_segmentation = self.get_rgb_depth_segm()[2]
-        semantic_segmentation = self.instance_id_to_category_id[instance_segmentation]
-        semantic_segmentation = self.one_hot_encoding[semantic_segmentation]
-        return semantic_segmentation
+        if self.scene_contains_semantic_annotations:
+            instance_segmentation = self.get_rgb_depth_segm()[2]
+            semantic_segmentation = self.instance_id_to_category_id[instance_segmentation]
+            semantic_segmentation = self.one_hot_encoding[semantic_segmentation]
+            return semantic_segmentation
+        else:
+            semantic_pred, img_vis = self.segmentation_model.get_prediction(rgb)
+            # Image.fromarray(img_vis).save("rgb_and_semantic_frame.png")
+            return semantic_pred
 
 
 if __name__ == "__main__":
