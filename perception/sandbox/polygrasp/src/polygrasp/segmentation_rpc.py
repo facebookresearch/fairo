@@ -1,6 +1,7 @@
 import logging
 import a0
 import numpy as np
+import signal
 
 from polygrasp import serdes
 
@@ -14,22 +15,14 @@ class SegmentationClient:
         self.client = a0.RpcClient(topic_key)
 
     def segment_img(self, rgbd, min_mask_size=2500):
-        state = []
-
-        def onreply(pkt):
-            state.append(pkt.payload)
-
         bits = serdes.rgbd_to_capnp(rgbd).to_bytes()
-        self.client.send(bits, onreply)
+        result_bits = self.client.send_blocking(bits).payload
+        labels = serdes.capnp_to_rgbd(result_bits)
 
-        while not state:
-            pass
-
+        num_objs = int(labels.max())
         obj_masked_rgbds = []
         obj_masks = []
 
-        labels = serdes.capnp_to_rgbd(state.pop())
-        num_objs = int(labels.max())
         for obj_i in range(1, num_objs + 1):
             obj_mask = labels == obj_i
 
@@ -60,5 +53,4 @@ class SegmentationServer:
 
         server = a0.RpcServer(topic_key, onrequest, None)
         log.info("Starting server...")
-        while True:
-            pass
+        signal.pause()

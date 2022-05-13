@@ -19,7 +19,7 @@ class MockedGraspingRobotInterface:
         pass
 
     def move_until_success(self, *args, **kwargs):
-        pass
+        return []
 
     def grasp(self, *args, **kwargs):
         return [], True
