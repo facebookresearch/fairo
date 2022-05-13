@@ -102,14 +102,7 @@ class InteractApp extends Component {
   // Scroll to bottom when submit new message
   scrollToBottom = () => {
     if (this.messagesEnd) {
-      if (window.parent !== window.top) {
-        // We don't want to scroll the outer window, if we're in an iframe
-        let savTop = window.parent.document.documentElement.scrollTop;
-        this.messagesEnd.scrollIntoView({ behavior: "smooth" });
-        window.parent.document.documentElement.scrollTop = savTop;
-      } else {
-        this.messagesEnd.scrollIntoView({ behavior: "smooth" });  
-      }
+      this.messagesEnd.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   };
 
