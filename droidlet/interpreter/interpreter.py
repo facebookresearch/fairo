@@ -121,6 +121,7 @@ class Interpreter(InterpreterBase):
     def step(self, agent) -> Tuple[Optional[str], Any]:
         start_time = datetime.datetime.now()
         assert self.logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND"
+        self.finished = False
         try:
             C = self.interpret_event(agent, self.speaker, self.logical_form)
             if C is not None:
@@ -229,7 +230,11 @@ class Interpreter(InterpreterBase):
             location_d = d.get("location", default_loc)
             # FIXME, this is hacky.  need more careful way of storing this in task
             # and to pass to task generator
-            mems = self.subinterpret["reference_locations"](self, speaker, location_d)
+            try:
+                mems = self.subinterpret["reference_locations"](self, speaker, location_d)
+            except NextDialogueStep:
+                # TODO allow for clarification
+                raise ErrorWithResponse("I don't understand where you want me to move.")
             # FIXME this should go in the ref_location subinterpret:
             steps, reldir = interpret_relative_direction(self, location_d)
             pos, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)

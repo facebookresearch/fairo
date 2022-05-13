@@ -120,6 +120,7 @@ class GetMemoryCountAndSizeTest(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
         red_cube_triples = {"has_name": "cube", "has_shape": "cube", "has_colour": "red"}
+        yellow_cube_triples = {"has_name": "cube", "has_shape": "cube", "has_colour": "yellow"}
         blue_cube_triples = {"has_name": "cube", "has_shape": "cube", "has_colour": "blue"}
         red_sphere_triples = {"has_name": "sphere", "has_shape": "sphere", "has_colour": "red"}
         blue_sphere_triples = {"has_name": "sphere", "has_shape": "sphere", "has_colour": "blue"}
@@ -131,7 +132,7 @@ class GetMemoryCountAndSizeTest(BaseCraftassistTestCase):
         self.cube2 = self.add_object(
             droidlet.lowlevel.minecraft.shapes.cube(size=2, bid=(35, 14)),
             (15, 63, 15),
-            relations=red_cube_triples,
+            relations=yellow_cube_triples,
         )
         self.cube3 = self.add_object(
             droidlet.lowlevel.minecraft.shapes.cube(size=3, bid=(35, 11)),

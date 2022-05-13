@@ -8,7 +8,9 @@ import types
 @click.command()
 @click.argument("procs", nargs=-1, shell_complete=_autocomplete.running_processes)
 @click.option("-t", "--timeout", type=float, default=0)
-def cli(*cmd_procs, procs=[], timeout=0):
+def cli(*cmd_procs, procs=None, timeout=0):
+    procs = procs or []
+
     # Support procs as *args when using cmd syntax.
     procs += cmd_procs
 

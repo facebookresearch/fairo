@@ -97,7 +97,9 @@ class Launcher(BaseLauncher):
 
 
 class Host(BaseRuntime):
-    def __init__(self, run_command, build_commands=[]):
+    def __init__(self, run_command, build_commands=None):
+        build_commands = build_commands or []
+
         self.run_command = run_command
         self.build_commands = build_commands
 
