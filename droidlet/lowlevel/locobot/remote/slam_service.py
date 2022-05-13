@@ -195,7 +195,7 @@ class SLAM(object):
 
     def get_global_semantic_map(self):
         return self.map_builder.semantic_map
-    
+
     def get_local_semantic_map(self):
         global_map = self.get_global_semantic_map()
         x, y, _ = self.robot.get_base_state()
@@ -222,7 +222,7 @@ class SLAM(object):
         Returns:
             map_features: semantic map features
             orientation: discretized yaw in {0, ..., 72}
-        """        
+        """
         global_map = torch.from_numpy(self.get_global_semantic_map())
         local_map = torch.from_numpy(self.get_local_semantic_map())
 
@@ -237,7 +237,7 @@ class SLAM(object):
         map_features[8:, :, :] = local_map[4:, :, :]
 
         return map_features.unsqueeze(0)
-    
+
     def get_orientation(self):
         _, _, yaw = self.robot.get_base_state()
         orientation = torch.tensor([int((yaw * 180.0 / np.pi + 180.0) / 5.0)])

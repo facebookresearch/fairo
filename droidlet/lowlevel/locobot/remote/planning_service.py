@@ -31,10 +31,7 @@ class Planner(object):
             goal_map: binary map that contains multiple goals (encoded as 1)
         """
         # specify exactly one of goal or goal_map
-        assert (
-            (goal is not None and goal_map is None) or 
-            (goal is None and goal_map is not None)
-        )
+        assert (goal is not None and goal_map is None) or (goal is None and goal_map is not None)
 
         # normalizes against initial robot state
         # if initial state wasn't (0,0,0)
@@ -60,14 +57,14 @@ class Planner(object):
 
             # set the goal location in planner
             self.planner.set_goal(goal_map_location)
-        
+
         # get short term goal
         stg = self.planner.get_short_term_goal(robot_map_location)
 
         # convert short-term-goal to real co-ordinates, and normalize
         # against robot initial state (if it wasn't zeros)
         stg_real = self.slam.map2robot(stg)
-        
+
         if goal is not None and self.goal_within_threshold(stg_real, goal=goal):
             # is it the final goal? if so,
             # the stg goes to within a 5cm resolution
@@ -78,9 +75,13 @@ class Planner(object):
             target_goal = goal
         else:
             if goal_map is not None and self.goal_within_threshold(stg_real, goal_map=goal_map):
-                print(f"Short-term goal {stg_real} is within threshold of closest goal in goal map")
+                print(
+                    f"Short-term goal {stg_real} is within threshold of closest goal in goal map"
+                )
             elif goal_map is not None:
-                print(f"Short-term goal {stg_real} is not within threshold of closest goal in goal map")
+                print(
+                    f"Short-term goal {stg_real} is not within threshold of closest goal in goal map"
+                )
             elif goal is not None:
                 print(f"Short-term goal {stg_real} is not within threshold of target goal {goal}")
 
@@ -93,18 +94,15 @@ class Planner(object):
 
     def goal_within_threshold(self, robot_location, goal=None, goal_map=None):
         # specify exactly one of goal or goal_map
-        assert (
-            (goal is not None and goal_map is None) or 
-            (goal is None and goal_map is not None)
-        )
+        assert (goal is not None and goal_map is None) or (goal is None and goal_map is not None)
 
         if goal is not None:
             # in metres. map_resolution is the resolution of the SLAM's 2D map, so the planner can't
             # plan anything lower than this
             threshold = (float(self.map_resolution) - 1e-10) / 100.0
-            
+
         elif goal_map is not None:
-            # when the goal is specified as a goal map, the threshold can be higher - goal maps are 
+            # when the goal is specified as a goal map, the threshold can be higher - goal maps are
             # used for object goal navigation and the object goal category is often within a larger
             # obstacle (e.g., a tv or vase on a table) so we can't approach it too closely
             threshold = 1.5
@@ -112,10 +110,7 @@ class Planner(object):
             # check whether the robot is within threshold of the closest goal in the goal map
             robot_map_location = self.slam.robot2map(robot_location)
             goal_locations = np.transpose(np.nonzero((goal_map.T == 1)))
-            distances = np.linalg.norm(
-                goal_locations - robot_map_location, 
-                axis=1
-            )
+            distances = np.linalg.norm(goal_locations - robot_map_location, axis=1)
             goal_in_map = goal_locations[distances.argmin()]
             goal = self.slam.map2robot(goal_in_map)
 

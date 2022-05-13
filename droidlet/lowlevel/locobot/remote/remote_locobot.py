@@ -445,10 +445,10 @@ class RemoteLocobot(object):
                 obj_id = int(obj.id.split("_")[-1])
                 instance_id_to_category_id[obj_id] = cat_id
                 categories_present.add(category)
-        
+
         if debug:
             print(f"Semantic categories present in the scene: {categories_present}")
-        
+
         return instance_id_to_category_id
 
     def get_semantics(self, rgb, depth):
