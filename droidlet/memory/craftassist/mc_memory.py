@@ -104,7 +104,6 @@ class MCAgentMemory(AgentMemory):
                 mobs=agent_low_level_data.get("mobs", {}),
                 mob_property_data=agent_low_level_data.get("mob_property_data", {}),
             )
-        
 
     ############################################
     ### Update world with perception updates ###

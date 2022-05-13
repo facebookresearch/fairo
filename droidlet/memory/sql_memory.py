@@ -150,7 +150,6 @@ class AgentMemory:
         self.nodes["Triple"].tag(self, self.self_memid, "AGENT")
         self.nodes["Triple"].tag(self, self.self_memid, "SELF")
 
-
     def init_time_interface(self, agent_time=None):
         """Initialiaze the current time in memory
 
