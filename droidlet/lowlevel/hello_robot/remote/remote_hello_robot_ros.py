@@ -198,7 +198,7 @@ class RemoteHelloRobot(object):
                         break
                     except:
                         print("obstacle exception")
-                
+
                 return result
 
             try:
