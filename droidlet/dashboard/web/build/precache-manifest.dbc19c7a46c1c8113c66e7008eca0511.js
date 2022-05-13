@@ -1,10 +1,10 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "5bfab6bee6948116c88a50ef54e4269c",
+    "revision": "1b274b430011464fc94bd7c7196c87a7",
     "url": "/index.html"
   },
   {
-    "revision": "8e1fde25b81f4e512857df3e89d8f6d3",
+    "revision": "cc23f107f656631969e294caa10c0e43",
     "url": "/mobile.html"
   },
   {
@@ -20,15 +20,15 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/static/css/160.911d0749.chunk.css"
   },
   {
-    "revision": "25b13762c366067a8d1a",
+    "revision": "6205002c924d0cb71a0d",
     "url": "/static/css/index.61a8f805.chunk.css"
   },
   {
-    "revision": "e0299e52a012641d19bf",
+    "revision": "feca1f12fe49968cc594",
     "url": "/static/css/mobile.d98ef9ea.chunk.css"
   },
   {
-    "revision": "22503b2ab7ab4804f958",
+    "revision": "1c998cc3be80b45f81ee",
     "url": "/static/css/turk.44941932.chunk.css"
   },
   {
@@ -56,16 +56,16 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/static/js/160.f53bbd7f.chunk.js"
   },
   {
-    "revision": "25b13762c366067a8d1a",
-    "url": "/static/js/index.1934bac6.chunk.js"
+    "revision": "6205002c924d0cb71a0d",
+    "url": "/static/js/index.df1a4e56.chunk.js"
   },
   {
     "revision": "626b668a57d37350a73e9fd2d907b35a",
-    "url": "/static/js/index.1934bac6.chunk.js.LICENSE.txt"
+    "url": "/static/js/index.df1a4e56.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "e0299e52a012641d19bf",
-    "url": "/static/js/mobile.8707ce87.chunk.js"
+    "revision": "feca1f12fe49968cc594",
+    "url": "/static/js/mobile.3bd56ab0.chunk.js"
   },
   {
     "revision": "ac21bd4d033b85bc6c7a",
@@ -684,11 +684,11 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/static/js/runtime-turk.759dbdcd.js"
   },
   {
-    "revision": "22503b2ab7ab4804f958",
-    "url": "/static/js/turk.29dc953c.chunk.js"
+    "revision": "1c998cc3be80b45f81ee",
+    "url": "/static/js/turk.0cedfd51.chunk.js"
   },
   {
-    "revision": "d771f851b90517040c155d1bcab976d0",
+    "revision": "011d0643619a3c1224b4dc2a63806eab",
     "url": "/turk.html"
   }
 ]);
