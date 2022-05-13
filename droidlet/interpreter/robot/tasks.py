@@ -626,7 +626,7 @@ class ExamineDetectionStraightlinepp(TrajectorySaverTask):
         if d < 0.01:
             self.stuck += 1
 
-        if self.steps < min(20, len(self.path)):
+        if self.steps < min(40, len(self.path)):
             tloc = self.path[self.steps]
             self.steps += 1
             logger.debug(
@@ -742,7 +742,7 @@ class ExamineDetectionCirclepp(TrajectorySaverTask):
         self.logger = task_data.get("logger")
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         self.guide = CircleGuide(
-            self.frontier_center, base_pos, radius=self.radius, include_approach=True, timeout=20
+            self.frontier_center, base_pos, radius=self.radius, include_approach=True, timeout=40
         )
         self.logger.info(f"{len(self.guide.path)} pts on cicle")
         TaskNode(agent.memory, self.memid).update_task(task=self)
@@ -1002,7 +1002,7 @@ class Reexplore(Task):
                         "goal": get_distant_goal(base_pos[0], base_pos[1], base_pos[2]),
                         "save_data": os.getenv("SAVE_EXPLORATION", "False") == "True",
                         "data_path": f"{self.task_data['data_path']}/r1",
-                        "timeout": 20,
+                        "timeout": 40,
                     },
                 )
             )
@@ -1023,7 +1023,7 @@ class Reexplore(Task):
                         "goal": get_distant_goal(base_pos[0], base_pos[1], base_pos[2]),
                         "save_data": os.getenv("SAVE_EXPLORATION", "False") == "True",
                         "data_path": f"{self.task_data['data_path']}/r2",
-                        "timeout": 20,
+                        "timeout": 40,
                     },
                 )
             )
