@@ -9,6 +9,7 @@ import json
 import time
 import copy
 from math import *
+import math
 from rich import print
 import Pyro4
 import numpy as np
@@ -151,7 +152,19 @@ class RemoteHelloRobot(object):
         self._robot.send_command("translate_mobile_base", x_m)
 
     def rotate_by(self, x_r):
-        self._robot.send_command("rotate_mobile_base", x_r)
+        sign = math.copysign(1.0, x_r)
+        remaining = math.fabs(x_r)
+        step = math.radians(20)
+        while remaining > 0:
+            if remaining < step:
+                step = remaining
+            self._robot.send_command("rotate_mobile_base", sign * step)
+            time.sleep(1)
+            is_moving = True
+            while is_moving:
+                time.sleep(0.1)
+                is_moving = self.is_base_moving()
+            remaining = remaining - step
 
     def initialize_cam(self):
         if self.cam is None:
@@ -178,7 +191,15 @@ class RemoteHelloRobot(object):
             print(f"go_to_absolute {global_xyt} {base_state} {base_xyt}")
 
             def obstacle_fn():
-                return self.cam.is_obstacle_in_front()
+                result = False
+                while True:
+                    try:
+                        result = self.cam.is_obstacle_in_front()
+                        break
+                    except:
+                        print("obstacle exception")
+                
+                return result
 
             try:
                 status = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
