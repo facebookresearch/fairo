@@ -2,12 +2,14 @@
 
 On the Hello Robot Stretch, run the following from the directory where the readme exists
 
-## 1. Install venv and requirements
+## 1. Install venv and requirements and hector slam
 
 ```bash
 python3 -m venv droidlet
 . droidlet/bin/activate
 pip install -r requirements.txt
+
+sudo apt install ros-noetic-hector-slam -y
 ```
 
 ## 2. Install droidlet in develop mode
