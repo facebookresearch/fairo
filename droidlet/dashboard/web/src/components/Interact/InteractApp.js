@@ -102,7 +102,7 @@ class InteractApp extends Component {
   // Scroll to bottom when submit new message
   scrollToBottom = () => {
     if (this.messagesEnd) {
-      if (window.parent != window.top) {
+      if (window.parent !== window.top) {
         // We don't want to scroll the outer window, if we're in an iframe
         let savTop = window.parent.document.documentElement.scrollTop;
         this.messagesEnd.scrollIntoView({ behavior: "smooth" });
@@ -520,7 +520,7 @@ class InteractApp extends Component {
             // handle composite action
   
             // get the action type
-            var action_dict = this.state.action_dict.action_sequence[0];
+            var action_dict = this.state.action_dict.event_sequence[0];
             var action_type = action_dict.action_type.toLowerCase();
             question_word = "to " + action_type + " ";
             // action is build or dig
@@ -791,14 +791,14 @@ class InteractApp extends Component {
     if (this.state.action_dict) {
       if (this.state.action_dict["dialogue_type"] === "HUMAN_GIVE_COMMAND") {
         // also implement for get and put memory
-        for (const action of this.state.action_dict.action_sequence) {
+        for (const action of this.state.action_dict.event_sequence) {
           ref_object = this.check_reference_object_in_action_dict(action);
         }
       }
 
       // If yes, find reference object description.
       if (ref_object === true) {
-        const action_dict = this.state.action_dict.action_sequence[0];
+        const action_dict = this.state.action_dict.event_sequence[0];
         // Check for location at top level and extract the reference text
         let considered_action_dict = null;
         if ("location" in action_dict) {
@@ -987,7 +987,7 @@ class InteractApp extends Component {
                     placeholder={
                       this.state.disableInput
                         ? `Waiting for Assistant${this.state.ellipsis}`
-                        : "Type your command here"
+                        : "Type your command or response here"
                     }
                     type="text"
                     disabled={this.state.disableInput}
