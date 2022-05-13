@@ -27,11 +27,8 @@ from pilot_config import PILOT_ALLOWLIST_QUAL_NAME as ALLOWLIST_QUALIFICATION
 from pilot_config import SOFTBLOCK_QUAL_NAME as SOFTBLOCK_QUALIFICATION
 
 
-
-
 @task_script(default_config_file="run_with_qual")
-def main(operator:Operator, cfg:DictConfig) -> None:
-
+def main(operator: Operator, cfg: DictConfig) -> None:
     def onboarding_is_valid(onboarding_data):
         outputs = onboarding_data["outputs"]
         answer_str = outputs["answer"]
@@ -56,26 +53,17 @@ def main(operator:Operator, cfg:DictConfig) -> None:
         return True
 
     shared_state = SharedStaticTaskState(
-        qualifications = [
-            make_qualification_dict(
-                ALLOWLIST_QUALIFICATION,
-                QUAL_EXISTS,
-                None
-            ),
-            make_qualification_dict(
-                SOFTBLOCK_QUALIFICATION,
-                QUAL_NOT_EXIST,
-                None
-            ),
+        qualifications=[
+            make_qualification_dict(ALLOWLIST_QUALIFICATION, QUAL_EXISTS, None),
+            make_qualification_dict(SOFTBLOCK_QUALIFICATION, QUAL_NOT_EXIST, None),
         ],
-        
     )
 
     db, cfg = load_db_and_process_config(cfg)
     operator = Operator(db)
 
     operator.launch_task_run(cfg.mephisto, shared_state)
-    #operator.validate_and_run_config(cfg.mephisto)
+    # operator.validate_and_run_config(cfg.mephisto)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 
