@@ -2,6 +2,7 @@ import os
 import sys
 import random
 import math
+from threading import local
 import time
 import torch
 import numpy as np
@@ -88,15 +89,22 @@ class Navigation(object):
         abs_goal[2] = goal[2] + robot_loc[2]
         return self.go_to_absolute(abs_goal)
 
-    def go_to_absolute(self, goal, steps=100000000):
+    def go_to_absolute(self, goal=None, goal_map=None, steps=100000000):
+        # specify exactly one of goal or goal_map
+        assert (
+            (goal is not None and goal_map is None) or 
+            (goal is None and goal_map is not None)
+        )
+
         self._busy = True
         self._stop = False
         robot_loc = self.robot.get_base_state()
         initial_robot_loc = robot_loc
         goal_reached = False
         path_found = True
+
         while (not goal_reached) and steps > 0 and self._stop is False:
-            stg = self.planner.get_short_term_goal(robot_loc, goal)
+            stg = self.planner.get_short_term_goal(robot_loc, goal=goal, goal_map=goal_map)
             if stg == False:
                 # no path to end-goal
                 print(
@@ -110,11 +118,14 @@ class Navigation(object):
             robot_loc = self.robot.get_base_state()
 
             print("[navigation] Finished a go_to_absolute")
-            print(" initial location: {} Final goal: {}".format(initial_robot_loc, goal))
+            print(" initial location: {} Final goal: {}".format(
+                initial_robot_loc, 
+                goal if goal is not None else "goal map"
+            ))
             print(" short-term goal: {}, Reached Location: {}".format(stg, robot_loc))
             print(" Robot Status: {}".format(status))
             if status == "SUCCEEDED":
-                goal_reached = self.planner.goal_within_threshold(robot_loc, goal)
+                goal_reached = self.planner.goal_within_threshold(robot_loc, goal=goal, goal_map=goal_map)
                 self.trackback.update(robot_loc)
             else:
                 # collided with something unexpected.
@@ -131,46 +142,65 @@ class Navigation(object):
         self._busy = False
         return path_found, goal_reached
 
-    def go_to_object(self, object_goal: str, debug=False):
+    def go_to_object(self, object_goal: str, debug=True):
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
         print(f"[navigation] Starting a go_to_object {object_goal}")
-        object_goal_cat = torch.tensor([coco_categories[object_goal]])
+        object_goal_cat = coco_categories[object_goal]
+        object_goal_cat_tensor = torch.tensor([object_goal_cat])
 
         goal_reached = False
+
         while not goal_reached:
-            map_features, orientation = self.slam.get_semantic_map_features()
+            sem_map = self.slam.get_global_semantic_map()
+            cat_sem_map = sem_map[object_goal_cat + 4, :, :]
 
-            goal_action = self.goal_policy(
-                map_features, orientation, object_goal_cat, deterministic=False
-            )[0]
-            # These lines
-            # https://github.com/devendrachaplot/Object-Goal-Navigation/blob/master/main.py#L315
-            # https://github.com/devendrachaplot/Object-Goal-Navigation/blob/master/envs/utils/fmm_planner.py#L71
-            # indicate that the goal action in the pre-trained model is (row, column) - i.e., we index map[goal[0], goal[1]]
-            # while in this repo, this line
-            # https://github.com/facebookresearch/fairo/blob/main/droidlet/lowlevel/locobot/remote/slam_pkg/utils/fmm_planner.py#L29
-            # indicates that the goal action is (column, row) - i.e., we index map[goal[1], goal[0]]
-            goal_action = goal_action.flip(0)
-            goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
-            global_loc = np.array(self.slam.real2map(self.robot.get_base_state()[:2]))
-            goal_in_global_map = global_loc + (goal_in_local_map - self.local_map_size // 2)
-            goal_in_global_map = np.clip(goal_in_global_map, 0, self.map_size - 1)
-            goal_in_world = self.slam.map2real(goal_in_global_map)
+            if (cat_sem_map == 1).sum() > 0:
+                # If the object goal category is present in the local map, go to it
+                print(f"[navigation] Found a {object_goal} in the local map, starting "
+                       "go_to_absolute to reach it")
+                goal_map = cat_sem_map == 1
+                _, goal_reached = self.go_to_absolute(goal_map=goal_map, steps=25)
 
-            if debug:
-                print("goal_action", goal_action)
-                print("goal_in_local_map", goal_in_local_map)
-                print("global_loc", global_loc)
-                print("goal_in_global_map", goal_in_global_map)
-                print("goal_in_world", goal_in_world)
+            else:
+                # Else if the object goal category is not present in the local map, 
+                # predict where to explore next
+                map_features = self.slam.get_semantic_map_features()
+                orientation_tensor = self.slam.get_orientation()
 
-            print(
-                f"[navigation] Starting a go_to_absolute {(*goal_in_world, 0)} "
-                f"to reach a {object_goal}"
-            )
-            _, goal_reached = self.go_to_absolute((*goal_in_world, 0), steps=25)
+                goal_action = self.goal_policy(
+                    map_features, 
+                    orientation_tensor, 
+                    object_goal_cat_tensor, 
+                    deterministic=False
+                )[0]
+                # These lines
+                # https://github.com/devendrachaplot/Object-Goal-Navigation/blob/master/main.py#L315
+                # https://github.com/devendrachaplot/Object-Goal-Navigation/blob/master/envs/utils/fmm_planner.py#L71
+                # indicate that the goal action in the pre-trained model is (row, column) - i.e., we index map[goal[0], goal[1]]
+                # while in this repo, this line
+                # https://github.com/facebookresearch/fairo/blob/main/droidlet/lowlevel/locobot/remote/slam_pkg/utils/fmm_planner.py#L29
+                # indicates that the goal action is (column, row) - i.e., we index map[goal[1], goal[0]]
+                # goal_action = goal_action.flip(0)
+                goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
+                global_loc = np.array(self.slam.real2map(self.robot.get_base_state()[:2]))
+                goal_in_global_map = global_loc + (goal_in_local_map - self.local_map_size // 2)
+                goal_in_global_map = np.clip(goal_in_global_map, 0, self.map_size - 1)
+                goal_in_world = self.slam.map2real(goal_in_global_map)
+
+                if debug:
+                    print("goal_action:       ", goal_action)
+                    print("goal_in_local_map: ", goal_in_local_map)
+                    print("global_loc:        ", global_loc)
+                    print("goal_in_global_map:", goal_in_global_map)
+                    print("goal_in_world:     ", goal_in_world)
+
+                print(
+                    f"[navigation] No {object_goal} in the semantic map, starting a "
+                    f"go_to_absolute goal={(*goal_in_world, 0)} to find one"
+                )
+                _, goal_reached = self.go_to_absolute(goal=(*goal_in_world, 0), steps=25)
 
         print(f"[navigation] Finished a go_to_object {object_goal}")
 

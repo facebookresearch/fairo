@@ -113,11 +113,12 @@ class SLAM(object):
             location = self.real2map(location)
         self.map_builder.add_obstacle(location)
 
-    def update_map(self):
+    def update_map(self, visualize=True):
         pcd, rgb, depth = self.robot.get_current_pcd()
 
         semantics = self.robot.get_semantics(rgb, depth)
-        self.visualize_semantic_frame(semantics)
+        if visualize:
+            self.visualize_semantic_frame(semantics)
         semantics = semantics.reshape(-1, self.num_sem_categories)
         valid = (depth > 0).flatten()
         semantics = semantics[valid]
@@ -125,7 +126,8 @@ class SLAM(object):
         self.map_builder.update_map(pcd)
         pose = self.robot.get_base_state()
         self.map_builder.update_semantic_map(pcd, semantics, pose)
-        self.visualize_semantic_map()
+        if visualize:
+            self.visualize_semantic_map()
 
         # explore the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
@@ -191,13 +193,12 @@ class SLAM(object):
         ]
         return real_world_locations
 
-    def get_semantic_map_features(self):
-        """
-        Returns:
-            map_features: semantic map features
-            orientation: discretized yaw in {0, ..., 72}
-        """
-        x, y, yaw = self.robot.get_base_state()
+    def get_global_semantic_map(self):
+        return self.map_builder.semantic_map
+    
+    def get_local_semantic_map(self):
+        global_map = self.get_global_semantic_map()
+        x, y, _ = self.robot.get_base_state()
         c, r = self.map_builder.real2map((x, y))
 
         c1 = max(int(c - self.local_map_size // 2), 0)
@@ -213,8 +214,17 @@ class SLAM(object):
         else:
             r2 = r1 + self.local_map_size
 
-        global_map = torch.from_numpy(self.map_builder.semantic_map)
         local_map = global_map[:, r1:r2, c1:c2]
+        return local_map
+
+    def get_semantic_map_features(self):
+        """
+        Returns:
+            map_features: semantic map features
+            orientation: discretized yaw in {0, ..., 72}
+        """        
+        global_map = torch.from_numpy(self.get_global_semantic_map())
+        local_map = torch.from_numpy(self.get_local_semantic_map())
 
         map_features = torch.zeros(
             self.num_sem_categories + 8, self.local_map_size, self.local_map_size
@@ -226,9 +236,12 @@ class SLAM(object):
         # Local semantic categories
         map_features[8:, :, :] = local_map[4:, :, :]
 
+        return map_features.unsqueeze(0)
+    
+    def get_orientation(self):
+        _, _, yaw = self.robot.get_base_state()
         orientation = torch.tensor([int((yaw * 180.0 / np.pi + 180.0) / 5.0)])
-
-        return map_features.unsqueeze(0), orientation
+        return orientation
 
     def reset_map(self, z_bins=None, obs_thr=None):
         self.map_builder.reset_map(self.map_size_cm, z_bins=z_bins, obs_thr=obs_thr)

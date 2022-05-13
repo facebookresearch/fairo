@@ -170,7 +170,7 @@ class RemoteHelloRealsense(object):
 
     def get_semantics(self, rgb, depth):
         semantic_pred, img_vis = self.segmentation_model.get_prediction(rgb)
-        Image.fromarray(img_vis).save("rgb_and_semantic_frame.png")
+        # Image.fromarray(img_vis).save("rgb_and_semantic_frame.png")
         return semantic_pred
 
     def get_open3d_pcd(self, rgb_depth=None, cam_transform=None, base_state=None):
