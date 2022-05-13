@@ -1,6 +1,6 @@
 # get candidate image_ids, spawn location, target xyz
 from droidlet.perception.robot.active_vision.candidate_selection import SampleGoodCandidates
-from droidlet.lowlevel.robot_coordinate_utils import xyz_pyrobot_to_canonical_coords, base_canonical_coords_to_pyrobot_coords
+from droidlet.lowlevel.robot_coordinate_utils import xyz_pyrobot_to_canonical_coords, base_pyrobot_coords_to_canonical_coords
 from droidlet.perception.robot.handlers import convert_depth_to_pcd, compute_uvone
 from common_utils import is_annot_validfn_class, is_annot_validfn_inst, log_time, class_labels, instance_ids
 from typing import List
@@ -91,8 +91,8 @@ def process(traj_path, out_dir, gt, s, is_annot_validfn):
         visualize_instances(traj_path, out_dir, candidates)
         reexplore_task_data[i] = {
             'src_img_id': int(candidates[i][0]),
-            'spawn_pos': base_canonical_coords_to_pyrobot_coords(base_poses[i]),
-            'base_pos': base_canonical_coords_to_pyrobot_coords(base_poses[i]),
+            'spawn_pos': base_pyrobot_coords_to_canonical_coords(base_poses[i]),
+            'base_pos': base_pyrobot_coords_to_canonical_coords(base_poses[i]),
             'target': target_xyz[i],
             'label': int(candidates[i][1]),
         }
@@ -143,8 +143,8 @@ def process_robot(root_dir, out_dir):
         visualize_instances(root_dir, out_dir, candidates)
         reexplore_task_data[i] = {
             'src_img_id': int(candidates[i][0]),
-            'spawn_pos': base_poses[i],
-            'base_pos': base_poses[i],
+            'spawn_pos': base_pyrobot_coords_to_canonical_coords(base_poses[i]),
+            'base_pos': base_pyrobot_coords_to_canonical_coords(base_poses[i]),
             'target': target_xyz[i],
             'label': int(candidates[i][1]),
         }

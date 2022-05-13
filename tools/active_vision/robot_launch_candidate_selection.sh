@@ -3,7 +3,7 @@
 # The locations are derived from frames selected by the candidate selection heuristic at droidlet/perception/robot/active_vision/candidate_selection.py
 # Usage
 
-# ./robot_launch_candidate_selection.sh  ${HOME}/explore_data/default/0 ${HOME}/explore_data/default/0/reexplore
+# ./robot_launch_candidate_selection.sh  /home/locobotm/home2_data/0 /home/locobotm/home2_data/0/reexplore
 
 set -ex
 
