@@ -1,8 +1,11 @@
 import os
+import glob
 import numpy as np
 import cv2
 from PIL import Image
 import skimage.morphology
+from natsort import natsorted
+
 
 from segmentation.constants import map_color_palette, frame_color_palette
 
@@ -63,6 +66,19 @@ class ObjectGoalNavigationVisualization:
         cv2.imwrite(f"{self.path}/snapshot_{self.snapshot_idx}.png", self.vis_image)
         self.snapshot_idx += 1
 
+    def record_video(self):
+        img_array = []
+        for filename in natsorted(glob.glob(f"{self.path}/*.png")):
+            height, width, _ = img.shape
+            size = (width, height)
+            img = cv2.imread(filename)
+            img_array.append(img)
+        
+        out = cv2.VideoWriter(f'{self.path}/video.avi', cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+        for i in range(len(img_array)):
+            out.write(img_array[i])
+        out.release()
+
     def add_location_goal(self, goal_map):
         self.goal_map = np.stack((self.goal_map, goal_map), 0).max(0)
 
@@ -83,8 +99,6 @@ class ObjectGoalNavigationVisualization:
 
     def update_semantic_map(self, sem_map):
         """Visualize top-down semantic map."""
-        print(type(sem_map))
-        print(sem_map.shape)
         sem_channels = sem_map[4:]
         sem_channels[-1] = 1e-5
         obstacle_mask = np.rint(sem_map[0]) == 1

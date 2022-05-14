@@ -144,13 +144,14 @@ class Navigation(object):
         self._busy = False
         return path_found, goal_reached
 
-    def go_to_object(self, object_goal: str, debug=True):
+    def go_to_object(self, object_goal: str, debug=False, visualize=True):
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
         print(f"[navigation] Starting a go_to_object {object_goal}")
 
-        vis = ObjectGoalNavigationVisualization(object_goal)
+        if visualize:
+            vis = ObjectGoalNavigationVisualization(object_goal)
 
         object_goal_cat = coco_categories[object_goal]
         object_goal_cat_tensor = torch.tensor([object_goal_cat])
@@ -168,7 +169,8 @@ class Navigation(object):
                     "go_to_absolute to reach it"
                 )
                 goal_map = cat_sem_map == 1
-                vis.add_location_goal(goal_map)
+                if visualize:
+                    vis.add_location_goal(goal_map)
                 _, goal_reached = self.go_to_absolute(goal_map=goal_map, steps=25)
 
             else:
@@ -207,14 +209,16 @@ class Navigation(object):
                     f"[navigation] No {object_goal} in the semantic map, starting a "
                     f"go_to_absolute {(*goal_in_world, 0)} to find one"
                 )
-                goal_map = np.zeros((self.map_size, self.map_size))
-                goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
-                vis.add_location_goal(goal_map)
+                if visualize:
+                    goal_map = np.zeros((self.map_size, self.map_size))
+                    goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
+                    vis.add_location_goal(goal_map)
                 self.go_to_absolute(goal=(*goal_in_world, 0), steps=5)
 
-            vis.update_semantic_frame(self.slam.get_last_semantic_frame())
-            vis.update_semantic_map(sem_map)
-            vis.snapshot()
+            if visualize:
+                vis.update_semantic_frame(self.slam.get_last_semantic_frame())
+                vis.update_semantic_map(sem_map)
+                vis.snapshot()
 
         print(f"[navigation] Finished a go_to_object {object_goal}")
 
