@@ -116,6 +116,15 @@ def compute_uvone(height, width):
     uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
     return uv_one_in_cam, intrinsic_mat, rot, trans
 
+# def compute_uvone(intrinsic_mat, height, width):
+#     intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
+#     img_pixs = np.mgrid[0:height:1, 0:width:1]
+#     img_pixs = img_pixs.reshape(2, -1)
+#     img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
+#     uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
+#     uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
+#     return uv_one_in_cam
+
 def uncompute_pcd(rgbd, rot_cam, trans_cam, base_state, uv_one_in_cam):
         # rgb = np.asarray(rgb).astype(np.uint8)
         # rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
@@ -379,12 +388,12 @@ class LabelPropagate(AbstractHandler):
 
         height, width, _ = src_img.shape
         print(f'height {height} width {width}')
-        uv_one_in_cam, intrinsic_mat, rot, trans = compute_uvone(640, 480)
+        uv_one_in_cam, intrinsic_mat, rot, trans = compute_uvone(height, width) #640, 480)
         print(f'uv_one_in_cam.shape {uv_one_in_cam.shape}')
 
-        rgbd = compute_pcd(src_img, src_depth, rot, trans, src_pose, uv_one_in_cam)
-        src_pts_in_world = rgbd.ptcloud
-        # src_pts_in_world = convert_depth_to_pcd(src_depth, src_pose, uv_one_in_cam, rot, trans)
+        # rgbd = compute_pcd(src_img, src_depth, rot, trans, src_pose, uv_one_in_cam)
+        # src_pts_in_world = rgbd.ptcloud
+        src_pts_in_world = convert_depth_to_pcd(src_depth, src_pose, uv_one_in_cam, rot, trans)
         
         # visualize using o3d
         # visualize_pcd(src_pts_in_world)
@@ -405,23 +414,11 @@ class LabelPropagate(AbstractHandler):
         # cur_pts_in_cur_cam = np.multiply(uv_one_in_cam, cur_depth).T 
         
         # conver pts in current camera frame into 2D pix values
-        # src_pts_in_cur_img = np.matmul(intrinsic_mat, src_pts_in_cur_cam.T).T        
-        # src_pts_in_cur_img /= src_pts_in_cur_img[:, 2].reshape([-1, 1])
+        src_pts_in_cur_img = np.matmul(intrinsic_mat, src_pts_in_cur_cam.T).T        
+        src_pts_in_cur_img /= src_pts_in_cur_img[:, 2].reshape([-1, 1])
 
-        rgbd = RGBDepth(src_img, cur_depth, src_pts_in_cur_cam)
-
-        uncompute_img = uncompute_pcd(rgbd, rot, trans, cur_pose, uv_one_in_cam)
-
-        # from PIL import Image
-        # import matplotlib.pyplot as plt 
-
-        # arr = [cur_img]
-        # semantic_img = Image.new("P", (semantic_obs.shape[1], semantic_obs.shape[0]))
-        # semantic_img.putpalette(d3_40_colors_rgb.flatten())
-        # semantic_img.putdata((semantic_obs.flatten() % 40).astype(np.uint8))
-        # semantic_img = semantic_img.convert("RGBA")
-        # arr.append(semantic_img)
-
+        # rgbd = RGBDepth(src_img, cur_depth, src_pts_in_cur_cam)
+        # uncompute_img = uncompute_pcd(rgbd, rot, trans, cur_pose, uv_one_in_cam)
         
-        return get_annot(height, width, uncompute_img, src_pts_in_cur_cam, None, src_label, valid_z), uncompute_img
+        return get_annot(height, width, src_pts_in_cur_img, src_pts_in_cur_cam, None, src_label, valid_z)
 
