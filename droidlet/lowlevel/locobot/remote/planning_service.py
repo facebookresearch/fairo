@@ -105,7 +105,7 @@ class Planner(object):
             # when the goal is specified as a goal map, the threshold can be higher - goal maps are
             # used for object goal navigation and the object goal category is often within a larger
             # obstacle (e.g., a tv or vase on a table) so we can't approach it too closely
-            threshold = 1.
+            threshold = 1.0
 
             # check whether the robot is within threshold of the closest goal in the goal map
             robot_map_location = self.slam.robot2map(robot_location)

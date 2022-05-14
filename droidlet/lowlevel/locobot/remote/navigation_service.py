@@ -149,9 +149,9 @@ class Navigation(object):
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
         print(f"[navigation] Starting a go_to_object {object_goal}")
-        
+
         vis = ObjectGoalNavigationVisualization(object_goal)
-        
+
         object_goal_cat = coco_categories[object_goal]
         object_goal_cat_tensor = torch.tensor([object_goal_cat])
 

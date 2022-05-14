@@ -37,7 +37,7 @@ def reconfigure_scene(env, scene_path, add_humans):
     # start position
     ###########################
 
-    if scene_name == "apartment_0":  
+    if scene_name == "apartment_0":
         # first scene in Replica Dataset
         start_position = np.asarray([0.18430093, -1.3747652, 5.265953])
 
@@ -45,7 +45,7 @@ def reconfigure_scene(env, scene_path, add_humans):
         # default to random navigable point
         start_position = sim.pathfinder.get_random_navigable_point()
         attempt = 1
-        while sim.pathfinder.distance_to_closest_obstacle(start_position) < 1. and attempt < 50:
+        while sim.pathfinder.distance_to_closest_obstacle(start_position) < 1.0 and attempt < 50:
             start_position = sim.pathfinder.get_random_navigable_point()
             attempt += 1
 
