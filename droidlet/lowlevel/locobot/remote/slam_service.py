@@ -8,13 +8,12 @@ import numpy as np
 import Pyro4
 import select
 import cv2
-from PIL import Image
+from rich import print
+
 from slam_pkg.utils.map_builder import MapBuilder as mb
 from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
-from rich import print
-
-from segmentation.constants import coco_categories, map_color_palette, frame_color_palette
+from segmentation.constants import coco_categories
 
 random.seed(0)
 torch.manual_seed(0)
@@ -113,12 +112,11 @@ class SLAM(object):
             location = self.real2map(location)
         self.map_builder.add_obstacle(location)
 
-    def update_map(self, visualize=True):
+    def update_map(self):
         pcd, rgb, depth = self.robot.get_current_pcd()
 
         semantics = self.robot.get_semantics(rgb, depth)
-        if visualize:
-            self.visualize_semantic_frame(semantics)
+        self.last_semantic_frame = semantics
         semantics = semantics.reshape(-1, self.num_sem_categories)
         valid = (depth > 0).flatten()
         semantics = semantics[valid]
@@ -126,58 +124,12 @@ class SLAM(object):
         self.map_builder.update_map(pcd)
         pose = self.robot.get_base_state()
         self.map_builder.update_semantic_map(pcd, semantics, pose)
-        if visualize:
-            self.visualize_semantic_map()
 
         # explore the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
         self.traversable = traversable
-
-    def visualize_semantic_frame(self, semantics):
-        """Visualize first-person semantic segmentation frame."""
-        width, height = semantics.shape[:2]
-        vis_content = semantics
-        vis_content[:, :, -1] = 1e-5
-        vis_content = vis_content.argmax(-1)
-        vis = Image.new("P", (height, width))
-        vis.putpalette([int(x * 255.0) for x in frame_color_palette])
-        vis.putdata(vis_content.flatten().astype(np.uint8))
-        vis = vis.convert("RGB")
-        vis = np.array(vis)[:, :, [2, 1, 0]]
-        cv2.imwrite("semantic_frame.png", vis)
-        # cv2.imshow("semantic frame", vis)
-        # cv2.waitKey(1)
-
-    def visualize_semantic_map(self):
-        """Visualize top-down semantic map."""
-        sem_map = self.map_builder.semantic_map
-
-        sem_channels = sem_map[4:]
-        sem_channels[-1] = 1e-5
-        obstacle_mask = np.rint(sem_map[0]) == 1
-        explored_mask = np.rint(sem_map[1]) == 1
-        visited_mask = sem_map[3] == 1
-        sem_map = sem_channels.argmax(0)
-        no_category_mask = sem_map == self.num_sem_categories - 1
-
-        sem_map += 4
-        sem_map[no_category_mask] = 0
-        sem_map[np.logical_and(no_category_mask, explored_mask)] = 2
-        # TODO Why does the agent height projection include all the explored area?
-        # sem_map[np.logical_and(no_category_mask, obstacle_mask)] = 1
-        sem_map[visited_mask] = 3
-
-        sem_map_vis = Image.new("P", (sem_map.shape[1], sem_map.shape[0]))
-        sem_map_vis.putpalette([int(x * 255.0) for x in map_color_palette])
-        sem_map_vis.putdata(sem_map.flatten().astype(np.uint8))
-        sem_map_vis = sem_map_vis.convert("RGB")
-        sem_map_vis = np.transpose(sem_map_vis, (1, 0, 2))
-        sem_map_vis = sem_map_vis[:, :, [2, 1, 0]]
-        cv2.imwrite("semantic_map.png", sem_map_vis)
-        # cv2.imshow("semantic map", sem_map_vis)
-        # cv2.waitKey(1)
 
     def get_map_resolution(self):
         return self.map_resolution
@@ -192,6 +144,9 @@ class SLAM(object):
             for indice in zip(indices[0], indices[1])
         ]
         return real_world_locations
+
+    def get_last_semantic_frame(self):
+        return self.last_semantic_frame
 
     def get_global_semantic_map(self):
         return self.map_builder.semantic_map

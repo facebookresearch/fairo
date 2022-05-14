@@ -55,9 +55,12 @@ class FMMPlanner(object):
             dist_vis[:, :c] = self.traversable
             dist_vis[:, c : 2 * c] = goal_map
             dist_vis[:, 2 * c :] = self.fmm_dist / self.fmm_dist.max()
-            cv2.imwrite("planner_distance.png", (dist_vis * 255.0).astype(np.uint8))
-            # cv2.imshow("planner distance", dist_vis)
-            # cv2.waitKey(1)
+
+            try:
+                cv2.imshow("planner distance", dist_vis)
+                cv2.waitKey(1)
+            except:
+                cv2.imwrite("planner_distance.png", (dist_vis * 255.0).astype(np.uint8))
 
     def get_short_term_goal(self, state):
         """

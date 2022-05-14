@@ -28,8 +28,28 @@ def reconfigure_scene(env, scene_path, add_humans):
     old_agent_state = agent.get_state()
     new_agent_state = habitat_sim.AgentState()
 
-    # apartment_0 default position on linux
-    new_agent_state.position = np.asarray([0.18430093, -1.3747652, 5.265953])
+    scene_name = os.path.basename(scene_path).split(".")[0]
+    if scene_name == "mesh_semantic":
+        # this must be Replica Dataset
+        scene_name = os.path.basename(os.path.dirname(os.path.dirname(scene_path)))
+
+    ###########################
+    # start position
+    ###########################
+
+    if scene_name == "apartment_0":  
+        # first scene in Replica Dataset
+        start_position = np.asarray([0.18430093, -1.3747652, 5.265953])
+
+    else:
+        # default to random navigable point
+        start_position = sim.pathfinder.get_random_navigable_point()
+        attempt = 1
+        while sim.pathfinder.distance_to_closest_obstacle(start_position) < 1. and attempt < 50:
+            start_position = sim.pathfinder.get_random_navigable_point()
+            attempt += 1
+
+    new_agent_state.position = start_position
     new_agent_state.rotation = np.quaternion(1.0, 0.0, 0.0, 0.0)
     agent.set_state(new_agent_state, reset_sensors=True, infer_sensor_states=True, is_initial=True)
     env._robot.base.init_state = agent.get_state()
@@ -37,10 +57,6 @@ def reconfigure_scene(env, scene_path, add_humans):
     ###########################
     # scene-specific additions
     ###########################
-    scene_name = os.path.basename(scene_path).split(".")[0]
-    if scene_name == "mesh_semantic":
-        # this must be Replica Dataset
-        scene_name = os.path.basename(os.path.dirname(os.path.dirname(scene_path)))
 
     supported_scenes = ["skokloster-castle", "van-gogh-room", "apartment_0"]
     if scene_name not in supported_scenes:
