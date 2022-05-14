@@ -408,13 +408,16 @@ class RobotInterface(BaseRobotInterface):
             time_to_go=time_to_go,
             hz=self.hz,
         )
-
+        if Kq is None:
+            Kq = self.Kq_default
+        if Kqd is None:
+            Kqd = self.Kqd_default
         # Create & execute policy
         torch_policy = toco.policies.JointTrajectoryExecutor(
             joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
             joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
-            Kp=Kq or self.Kq_default,
-            Kd=Kqd or self.Kqd_default,
+            Kp=Kq,
+            Kd=Kqd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
