@@ -73,8 +73,8 @@ class ObjectGoalNavigationVisualization:
             size = (width, height)
             img = cv2.imread(filename)
             img_array.append(img)
-        
-        out = cv2.VideoWriter(f'{self.path}/video.avi', cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+
+        out = cv2.VideoWriter(f"{self.path}/video.avi", cv2.VideoWriter_fourcc(*"DIVX"), 15, size)
         for i in range(len(img_array)):
             out.write(img_array[i])
         out.release()
