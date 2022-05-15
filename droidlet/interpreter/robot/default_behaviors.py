@@ -144,6 +144,7 @@ def explore(agent):
     start_explore(agent, goal)
 
 def get_task_data_for_reexplore(agent):
+    logging.info(f'reexplore_json {agent.opts.reexplore_json}')
     try:
         with open(agent.opts.reexplore_json, 'r') as f:
             reex = json.load(f)

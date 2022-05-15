@@ -31,11 +31,16 @@ class reexplore_job:
         pass 
 
     def __call__(self, p, noise):
-        comm = f"./reexplore.sh {p} {p}/reexplore_data.json {noise}"
-        logging.info(f'command {comm}')
-        process = subprocess.Popen(comm.split(), stdout=subprocess.PIPE, cwd='.')
-        output, error = process.communicate()
-        logging.info(f'output {output} error {error}')
+        while True:
+            try:
+                comm = f"./reexplore.sh {p} {p}/reexplore_data.json {noise}"
+                logging.info(f'command {comm}')
+                process = subprocess.Popen(comm.split(), stdout=subprocess.PIPE, cwd='.')
+                output, error = process.communicate()
+                logging.info(f'reexplore_job_output {output} reexplore_job_error {error}')
+                break
+            except Exception as ex:
+                logging.info(f'caught {ex} while launching reexplore_job. caught ...')
 
     def checkpoint(self, p, noise) -> submitit.helpers.DelayedSubmission:
         return submitit.helpers.DelayedSubmission(self, p, noise)  # submits to requeuing

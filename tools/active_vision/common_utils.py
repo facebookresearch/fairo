@@ -15,7 +15,7 @@ combinations = {
     'e1c1ppr2': ['e1', 'c1pp', 'r2'],
 }
 prop_lengths = range(0, 20, 4)
-gt_lengths = range(5,15,3)
+gt_lengths = range(2,15,3)
 
 
 def is_annot_validfn_inst(annot):

@@ -9,13 +9,13 @@ cd tools/active_vision
 
 1. Find candidates
 
-`./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_pt2/ av_sm_pfix 50 instance`
+`./launch_candidate_selection.sh /checkpoint/apratik/data_reexplore/av300_pt2/ av_sm_instance_pfix 50 instance`
 
 Time estimate - ~10-15 minutes. This just finds respawn location and runs on devlab. 
 
 2. Launch Reexplore
 
-`./launch_reexplore.sh /checkpoint/aszlam/jobs/reexplore/av_sm_pfix/av300_pt2 instance`
+`./launch_reexplore.sh /checkpoint/${USER}/jobs/reexplore/av_sm_instance_pfix/av300_pt2 instance`
 
 Time estimate - ~a few hours, you can run this overnight. It goes and reexplores each object for all the trajectories. Run on `learnfair`
 
