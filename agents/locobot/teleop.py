@@ -282,9 +282,17 @@ if __name__ == "__main__":
         o3dviz.add_robot(base_state, height)
 
         # start the SLAM
-        # if backend == 'habitat':
-        #     mover.explore((19, 19, 0))
-        #     mover.move_to_object("chair", blocking=False)
+        if backend == 'habitat':
+            # mover.explore((19, 19, 0))
+
+            possible_object_goals = mover.bot.get_semantic_categories_in_scene()
+            if len(possible_object_goals) > 0:
+                object_goal = random.choice(tuple(possible_object_goals))
+                vis_path = f"images/{mover.bot.get_scene_name()}/{object_goal}"
+                mover.move_to_object(object_goal, blocking=True, vis_path=vis_path)
+
+            import sys
+            sys.exit()
         
         sio.emit(
             "map",

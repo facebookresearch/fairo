@@ -22,6 +22,7 @@ from droidlet.lowlevel.robot_mover_utils import (
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
 from segmentation.constants import coco_categories
 from segmentation.semantic_prediction import SemanticPredMaskRCNN
+from habitat_utils import reconfigure_scene
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
@@ -58,6 +59,10 @@ class RemoteLocobot(object):
         backend_config["noisy"] = noisy
         print("backend_config", backend_config)
         self.backend_config = backend_config
+
+        self.num_sem_categories = len(coco_categories)
+        self.one_hot_encoding = np.eye(self.num_sem_categories)
+
         # we do it this way to have the ability to restart from the client at arbitrary times
         self.restart_habitat()
 
@@ -71,29 +76,28 @@ class RemoteLocobot(object):
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
 
-        self.num_sem_categories = len(coco_categories)
-        self.one_hot_encoding = np.eye(self.num_sem_categories)
-
-        self.scene_contains_semantic_annotations = self.scene_contains_semantic_annotations()
-        if self.scene_contains_semantic_annotations:
-            print("Scene contains semantic annotations")
-            self.instance_id_to_category_id = self.get_instance_id_to_category_id()
-        else:
-            print("Scene does not contain semantic annotations")
-            self.segmentation_model = SemanticPredMaskRCNN(
-                sem_pred_prob_thr=0.1, sem_gpu_id=-1, visualize=True
-            )
-
     def restart_habitat(self):
         if hasattr(self, "_robot"):
             del self._robot
         backend_config = self.backend_config
 
         self._robot = Robot("habitat", common_config=backend_config, parent=self)
-        from habitat_utils import reconfigure_scene
 
         # adds objects to the scene, doing scene-specific configurations
         reconfigure_scene(self, backend_config["scene_path"], self.add_humans)
+
+        self.scene_contains_semantic_annotations = self.scene_contains_semantic_annotations()
+        if self.scene_contains_semantic_annotations:
+            print("Scene contains semantic annotations")
+            (
+                self.instance_id_to_category_id, 
+                self.categories_present
+             ) = self.get_instance_id_to_category_id()
+        else:
+            print("Scene does not contain semantic annotations")
+            self.segmentation_model = SemanticPredMaskRCNN(
+                sem_pred_prob_thr=0.1, sem_gpu_id=-1, visualize=True
+            )
 
     def get_habitat_state(self):
         """Returns the habitat position and rotation of the agent as lists"""
@@ -451,7 +455,7 @@ class RemoteLocobot(object):
         if debug:
             print(f"Semantic categories present in the scene: {categories_present}")
 
-        return instance_id_to_category_id
+        return instance_id_to_category_id, categories_present
 
     def get_semantics(self, rgb, depth):
         """Get semantic segmentation."""
@@ -464,6 +468,19 @@ class RemoteLocobot(object):
             semantic_pred, img_vis = self.segmentation_model.get_prediction(rgb)
             # Image.fromarray(img_vis).save("rgb_and_semantic_frame.png")
             return semantic_pred
+
+    def get_semantic_categories_in_scene(self):
+        if self.scene_contains_semantic_annotations:
+            return self.categories_present
+        else:
+            return set()
+
+    def get_scene_name(self):
+        scene_path = self.backend_config["scene_path"]
+        scene_name = os.path.basename(scene_path).split(".")[0]
+        if scene_name == "mesh_semantic":  # for Replica Dataset
+            scene_name = os.path.basename(os.path.dirname(os.path.dirname(scene_path)))
+        return scene_name
 
 
 if __name__ == "__main__":
