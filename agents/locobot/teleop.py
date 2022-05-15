@@ -291,8 +291,10 @@ if __name__ == "__main__":
                 vis_path = f"images/{mover.bot.get_scene_name()}/{object_goal}"
                 mover.move_to_object(object_goal, blocking=True, vis_path=vis_path)
 
-            import sys
-            sys.exit()
+            # import sys
+            # sys.exit()
+            import os
+            os._exit(0)
         
         sio.emit(
             "map",
