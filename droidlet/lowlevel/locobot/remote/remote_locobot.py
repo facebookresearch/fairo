@@ -90,9 +90,9 @@ class RemoteLocobot(object):
         if self.scene_contains_semantic_annotations:
             print("Scene contains semantic annotations")
             (
-                self.instance_id_to_category_id, 
-                self.categories_present
-             ) = self.get_instance_id_to_category_id()
+                self.instance_id_to_category_id,
+                self.categories_present,
+            ) = self.get_instance_id_to_category_id()
         else:
             print("Scene does not contain semantic annotations")
             self.segmentation_model = SemanticPredMaskRCNN(
