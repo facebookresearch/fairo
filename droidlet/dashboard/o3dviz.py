@@ -93,7 +93,7 @@ class O3dViz:
         self.y_axis = y_axis
         self.reset_camera = True
 
-    def add_robot(self, base_state, base=True, canonical=True, height=1.41):
+    def add_robot(self, base_state, base=True, canonical=True, height=1.41, name="robot", color=[1.0, 1.0, 0.1]):
         x, y, yaw = base_state.tolist()
         if canonical:
             x_old, y_old = x, y
@@ -118,7 +118,7 @@ class O3dViz:
         if yaw != 0:
             robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, yaw]))
 
-        self.put("bot_orientation", robot_orientation)
+        self.put(name + "_bot_orientation", robot_orientation)
 
         if base:
             height = height  # hello-robot stretch is 141 cms high
@@ -129,8 +129,8 @@ class O3dViz:
             )
             robot_base.translate([x, y, height / 2.0], relative=False)
             robot_base.compute_vertex_normals()
-            robot_base.paint_uniform_color([1.0, 1.0, 0.1])
-            self.put("bot_base", robot_base)
+            robot_base.paint_uniform_color(color)
+            self.put(name + "_bot_base", robot_base)
 
     def init(self):
         if self._init:
@@ -245,8 +245,8 @@ class O3DVizProcess(BackgroundTask):
     def remove(self, name):
         super().put(["remove", name])
 
-    def add_robot(self, base_state, base=True, canonical=True, height=1.41):
-        super().put(["add_robot", [base_state, base, canonical, height]])
+    def add_robot(self, base_state, base=True, canonical=True, height=1.41, name="robot", color=[1.0, 1.0, 0.1]):
+        super().put(["add_robot", [base_state, base, canonical, height, name, color]])
 
     def start(self):
         super().start(exec_empty=True)
