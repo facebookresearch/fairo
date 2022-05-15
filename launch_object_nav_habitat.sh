@@ -17,9 +17,9 @@ popd
 
 for scene in $SCENES
 do
-    echo "Starting object nav task in scene $scene"
     pushd droidlet/lowlevel/locobot/remote
-    LOCOBOT_IP=0.0.0.0 ./launch_pyro_habitat.sh --scene_path scene
+    echo "Starting object nav task in scene $scene"
+    LOCOBOT_IP=0.0.0.0 ./launch_pyro_habitat.sh --scene_path $scene
     popd
 
     pushd agents/locobot
