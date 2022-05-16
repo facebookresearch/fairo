@@ -36,7 +36,7 @@ class A02ES_Indexer:
                 "relpath": relpath,
                 "original_path": original_path,
                 "offset": tlk.frame().off,
-                "payload_size": len(fpkt.payload_view)
+                "payload_size": len(fpkt.payload_view),
             }
 
             # Add all headers.
@@ -63,7 +63,8 @@ class A02ES_Indexer:
 
 
 def main():
-    indexer = A02ES_Indexer()
+    indexer = A02ES_Indexer()  # noqa: F841
+    # Note: assigment is required to manage lifetime of indexer
     signal.pause()
 
 

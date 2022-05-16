@@ -29,7 +29,7 @@ requirements:
     - spdlog
     - urdfdom=2.3.3=hc9558a2_0
     - urdfdom_headers=1.0.5=hc9558a2_2
-    - yaml-cpp
+    - yaml-cpp ==0.6.3
 
   run:
     - asv

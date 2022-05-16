@@ -298,20 +298,20 @@ class InteractApp extends Component {
   }
 
   sendTaskStackPoll() {
-    //console.log("Sending task stack poll");
+    // console.log("Sending task stack poll");
     this.props.stateManager.socket.emit("taskStackPoll");
   }
 
   receiveTaskStackPoll(res) {
     var response = JSON.stringify(res);
-    // console.log("Received task stack poll response:" + response);
+    console.log("Received task stack poll response:" + response);
     // If we get a response of any kind, reset the timeout clock
     // console.log(res);
     if (res) {
       this.setState({
         now: Date.now(),
       });
-      if (!res.task) {
+      if (!res.task || res.clarify) {
         console.log("InteractApp: no task on stack");
         // If there's no task, leave this pane
         // If it's a HIT go to error labeling, else back to Message
