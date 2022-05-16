@@ -258,15 +258,14 @@ class HelloRobotMover(MoverInterface):
                 self.nav_result.wait()
         return "finished"
 
-    def move_to_object(self, object_goal: str, vis_path="ogn_vis", blocking=True):
+    def move_to_object(self, object_goal: str, blocking=True):
         """Command to execute a move to an object category.
 
         Args:
             object_goal: supported COCO object category
-            vis_path: path where to store image visualizations
         """
         self.nav_result.wait()
-        self.nav_result = self.nav.go_to_object(object_goal, vis_path=vis_path)
+        self.nav_result = self.nav.go_to_object(object_goal)
         if blocking:
             self.nav_result.wait()
         return "finished"

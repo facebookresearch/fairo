@@ -143,15 +143,14 @@ class Navigation(object):
         self._busy = False
         return path_found, goal_reached
 
-    def go_to_object(
-        self, object_goal: str, debug=False, visualize=True, vis_path="ogn_vis", max_steps=20
-    ):
+    def go_to_object(self, object_goal: str, debug=False, visualize=True, max_steps=20):
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
         print(f"[navigation] Starting a go_to_object {object_goal}")
 
         if visualize:
+            vis_path = f"images/{self.robot.get_scene_name()}/{object_goal}"
             vis = ObjectGoalNavigationVisualization(object_goal, path=vis_path)
 
         object_goal_cat = coco_categories[object_goal]
@@ -221,7 +220,7 @@ class Navigation(object):
             if visualize:
                 rgb, _, semantics = self.slam.get_last_frame()
                 vis.update_semantic_frame(rgb, semantics)
-                vis.update_semantic_map(sem_map)
+                vis.update_semantic_map(self.slam.get_global_semantic_map())
                 vis.snapshot()
 
         print(f"[navigation] Finished a go_to_object {object_goal}")

@@ -15,7 +15,7 @@ class ObjectGoalNavigationVisualization:
     This class is intended to visualize a single object goal navigation task.
     """
 
-    def __init__(self, goal_name, path="ogn_vis"):
+    def __init__(self, goal_name, path):
         self.path = path
         os.makedirs(self.path, exist_ok=True)
 
@@ -93,8 +93,9 @@ class ObjectGoalNavigationVisualization:
         vis.putpalette([int(x * 255.0) for x in frame_color_palette])
         vis.putdata(vis_content.flatten().astype(np.uint8))
         vis = vis.convert("RGB")
-        vis = np.array(vis)[:, :, [2, 1, 0]]
+        vis = np.array(vis)
         vis = np.where(vis != 255, vis, rgb)
+        vis = vis[:, :, [2, 1, 0]]
         vis = cv2.resize(vis, (640, 480), interpolation=cv2.INTER_NEAREST)
         self.vis_image[50:530, 15:655] = vis
 
