@@ -429,7 +429,7 @@ def generate_model_name(args, optional_identifier=""):
         "train_encoder": "tr",
         "fixed_value_weight": "fv",
     }
-    dsets = {"templated": "t", "templated_filters": "tf", "annotated": "a"}
+    dsets = {"templated": "t", "templated_clarification": "tc", "templated_filters": "tf", "annotated": "a"}
     for k, v in vars(args).items():
         if k in args_keys:
             if k == "dtype_samples":
@@ -553,7 +553,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--dtype_samples",
-        default="templated:.55;templated_filters:.05;annotated:.4",
+        default="templated:.45;templated_clarification:.1;templated_filters:.05;annotated:.4",
         type=str,
         help="Sampling probabilities for handling different data types",
     )

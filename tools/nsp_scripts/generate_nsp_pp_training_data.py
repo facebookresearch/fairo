@@ -12,8 +12,6 @@ OBJ_ACTIONS = ["build", "destroy", "copy"]
 OBJECTS = ["cube", "sphere", "house", "wall", "pyramid"]
 RESPONSES = ["yes", "no"]
 
-SAVE_DIR = f"/checkpoint/ethancarlson/nsp_pp/{datetime.now().strftime('%Y-%m-%d-%H%M%S')}"
-
 NOOP = { "dialogue_type": "NOOP" }
 PUT_MEMORY = {
     "dialogue_type": "PUT_MEMORY",
@@ -86,8 +84,8 @@ def main(num_cmds):
 
     random.seed(SEED)
 
-    os.makedirs(SAVE_DIR, exist_ok=True)
-    path = os.path.join(SAVE_DIR, "templated.txt")
+    os.makedirs(save_dir, exist_ok=True)
+    path = os.path.join(save_dir, "clarification.txt")
     with open(path, "w") as file:
         for i in range(num_cmds):
             ref_obj, first_turn = build_first_turn()
@@ -97,26 +95,26 @@ def main(num_cmds):
             if initial_response == "yes":
                 next_turn_wrapper(file, ref_obj, second_turn, 1)
 
-    os.makedirs(os.path.join(SAVE_DIR, "train"), exist_ok=True)
-    os.makedirs(os.path.join(SAVE_DIR, "valid"), exist_ok=True)
-    os.makedirs(os.path.join(SAVE_DIR, "test"), exist_ok=True)
+    os.makedirs(os.path.join(save_dir, "train"), exist_ok=True)
+    os.makedirs(os.path.join(save_dir, "valid"), exist_ok=True)
+    os.makedirs(os.path.join(save_dir, "test"), exist_ok=True)
     
     with open(path, "r") as f1:
         all_data = f1.readlines()
         random.shuffle(all_data)
     
     line = 0
-    path = os.path.join(SAVE_DIR, "train/templated.txt")
+    path = os.path.join(save_dir, f"train/{filename}")
     with open(path, "w") as f2:
         while line < (0.8 * len(all_data)):
             f2.write(all_data[line])
             line += 1
-    path = os.path.join(SAVE_DIR, "valid/templated.txt")
+    path = os.path.join(save_dir, f"valid/{filename}")
     with open(path, "w") as f3:
         while line < (0.9 * len(all_data)):
             f3.write(all_data[line])
             line += 1
-    path = os.path.join(SAVE_DIR, "test/templated.txt")
+    path = os.path.join(save_dir, f"test/{filename}")
     with open(path, "w") as f4:
         while line < len(all_data):
             f4.write(all_data[line])
@@ -130,7 +128,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_cmds",
         type=int,
-        default=500,
+        default=300,
         help="The number of commands to generate (about 1/3 the number of training data points)"
     )
     parser.add_argument(
@@ -139,5 +137,12 @@ if __name__ == "__main__":
         help="Combine new templated data with the existing data set"
     )
     opts = parser.parse_args()
+
+    if opts.combine:
+        save_dir = "/private/home/ethancarlson/fairo/droidlet/artifacts/datasets/annotated_data"
+        filename = "templated_clarification.txt"
+    else:
+        save_dir = f"/checkpoint/ethancarlson/nsp_pp/{datetime.now().strftime('%Y-%m-%d-%H%M%S')}"
+        filename = "templated.txt"
     
     main(opts.num_cmds)
