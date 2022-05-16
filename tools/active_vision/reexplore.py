@@ -87,11 +87,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # executor is the submission interface (logs are dumped in the folder)
-    executor = submitit.AutoExecutor(folder=os.path.join(args.job_dir, 'slurm_logs/%j'))
+    executor = submitit.AutoExecutor(folder=os.path.join(args.job_dir, 'slurm_logs/%j'),  slurm_max_num_timeout=1)
     # set timeout in min, and partition for running the job
     executor.update_parameters(
         slurm_partition="learnfair", #scavenge
-        timeout_min=60,
+        timeout_min=40,
         mem_gb=256,
         gpus_per_node=4,
         tasks_per_node=1, 
