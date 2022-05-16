@@ -49,7 +49,7 @@ if __name__ == "__main__":
     opts = parser.parse_args()
 
     instance_num = opts.oncall_job_num * NUM_LISTS
-    ocj = OnCallJob(1, opts.image_tag, opts.task_name, timeout=opts.timeout)
+    ocj = OnCallJob(instance_num, opts.image_tag, opts.task_name, timeout=opts.timeout)
 
     runner = TaskRunner()
     runner.register_data_generators([ocj])
