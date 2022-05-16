@@ -150,7 +150,11 @@ class Navigation(object):
         print(f"[navigation] Starting a go_to_object {object_goal}")
 
         if visualize:
-            vis_path = f"images/{self.robot.get_scene_name()}/{object_goal}"
+            try:
+                # if in Habitat scene
+                vis_path = f"images/{self.robot.get_scene_name()}/{object_goal}"
+            except:
+                vis_path = f"images/real_world/{object_goal}"
             vis = ObjectGoalNavigationVisualization(object_goal, path=vis_path)
 
         object_goal_cat = coco_categories[object_goal]
