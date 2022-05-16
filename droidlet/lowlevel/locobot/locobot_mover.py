@@ -169,8 +169,7 @@ class LoCoBotMover:
         """
         if self.nav_result.ready:
             self.nav_result.wait()
-            # self.nav_result = safe_call(self.nav.go_to_object, object_goal)
-            self.nav_result = self.nav.go_to_object(object_goal)
+            self.nav_result = safe_call(self.nav.go_to_object, object_goal)
             if blocking:
                 self.nav_result.wait()
         else:
@@ -290,6 +289,7 @@ class LoCoBotMover:
             pts = ros_to_habitat_frame.T @ pts.T
             pts = pts.T
         pts = transform_pose(pts, base_state)
+
         return RGBDepth(rgb, d, pts)
 
     def get_rgb_depth_segm(self):
