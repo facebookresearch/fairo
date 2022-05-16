@@ -92,7 +92,7 @@ def format_for_printing_data(data):
         output_string += f"Command #4 Feedback: {outputs['command_4_feedback']}\n"
     except:
         pass
-    
+
     return f"-------------------\n{metadata_string}{inputs_string}{output_string}"
 
 
