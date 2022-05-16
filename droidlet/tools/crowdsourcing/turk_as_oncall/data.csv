@@ -1,0 +1,3 @@
+subdomain,batch,list_id,command_list,answer_list
+dashboard-20220516114812-0,20220516114812,0,make two red cubes there|is there anything red|how many cubes are there,assistant should make two red cubes|assistant should answer yes|assistant should answer two
+dashboard-20220516114812-1,20220516114812,1,make two red cubes|what is to the left of that (point at one of the cubes)|can you climb on top of the cube,assistant should make two red cubes|assistant answer should make sense|assistant should move to top of cube

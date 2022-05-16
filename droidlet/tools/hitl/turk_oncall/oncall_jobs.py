@@ -110,8 +110,8 @@ class OnCallJob(DataGenerator):
                     AWS_ACCESS_KEY_ID='{MEPHISTO_AWS_ACCESS_KEY_ID}' \
                     AWS_SECRET_ACCESS_KEY='{MEPHISTO_AWS_SECRET_ACCESS_KEY}' \
                     python ../../crowdsourcing/turk_as_oncall/static_run_with_qual.py \
-                    mephisto.provider.requester_name={MEPHISTO_REQUESTER}"
-                # mephisto.architect.profile_name=mephisto-router-iam"
+                    mephisto.provider.requester_name={MEPHISTO_REQUESTER} \
+                    mephisto.architect.profile_name=mephisto-router-iam"
             ],
             shell=True,
             preexec_fn=os.setsid,
@@ -178,7 +178,7 @@ class OnCallJob(DataGenerator):
 
 if __name__ == "__main__":
     runner = TaskRunner()
-    ocj = OnCallJob(instance_num=2, image_tag="oncall_v1", task_name="oncall_t1", timeout=30)
+    ocj = OnCallJob(instance_num=2, image_tag="oncall_v1", task_name="oncall_t2", timeout=30)
     batch_id = ocj.get_batch_id()
     runner.register_data_generators([ocj])
     runner.run()

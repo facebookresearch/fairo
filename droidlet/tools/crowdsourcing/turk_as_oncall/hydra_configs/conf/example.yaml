@@ -1,4 +1,8 @@
 #@package _global_
+defaults:
+  - /mephisto/blueprint: static_task
+  - /mephisto/architect: local
+  - /mephisto/provider: mock
 mephisto:
   blueprint:
     data_csv: ${task_dir}/data.csv
@@ -6,17 +10,10 @@ mephisto:
     preview_source: ${task_dir}/server_files/oncall_task.html
     extra_source_dir: ${task_dir}/server_files/extra_refs
     units_per_assignment: 1
-  database:
-    _database_type: singleton
   task:
     task_title: "Find bugs in our virtual assistant"
     task_description: "Send commands to our virtual assistant and report any bugs that result."
     task_reward: 3.5
+    allowed_concurrent: 1
     task_tags: "assistant, game, interact"
     task_name: "droidlet-oncall"
-  architect:
-    heroku_config_args:
-      AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
-      AWS_DEFAULT_REGION: "us-west-1"
-    heroku_app_name: droidlet-oncall

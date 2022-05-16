@@ -3,4 +3,3 @@ droidlet_static_html_task/*.csv
 vision_annotation_task/outputs/
 vision_annotation_task/*.csv
 turk_as_oncall/outputs/
-turk_as_oncall/*.csv
