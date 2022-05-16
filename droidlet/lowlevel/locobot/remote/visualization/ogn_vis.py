@@ -82,7 +82,7 @@ class ObjectGoalNavigationVisualization:
     def add_location_goal(self, goal_map):
         self.goal_map = np.stack((self.goal_map, goal_map), 0).max(0)
 
-    def update_semantic_frame(self, semantics):
+    def update_semantic_frame(self, rgb, semantics):
         """Visualize first-person semantic segmentation frame."""
         width, height = semantics.shape[:2]
         vis_content = semantics
@@ -94,6 +94,7 @@ class ObjectGoalNavigationVisualization:
         vis.putdata(vis_content.flatten().astype(np.uint8))
         vis = vis.convert("RGB")
         vis = np.array(vis)[:, :, [2, 1, 0]]
+        vis = np.where(vis != 255, vis, rgb)
         vis = cv2.resize(vis, (640, 480), interpolation=cv2.INTER_NEAREST)
         self.vis_image[50:530, 15:655] = vis
 

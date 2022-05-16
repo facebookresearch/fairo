@@ -116,7 +116,7 @@ class SLAM(object):
         pcd, rgb, depth = self.robot.get_current_pcd()
 
         semantics = self.robot.get_semantics(rgb, depth)
-        self.last_semantic_frame = semantics
+        self.last_frame = (rgb, depth, semantics)
         semantics = semantics.reshape(-1, self.num_sem_categories)
         valid = (depth > 0).flatten()
         semantics = semantics[valid]
@@ -145,8 +145,8 @@ class SLAM(object):
         ]
         return real_world_locations
 
-    def get_last_semantic_frame(self):
-        return self.last_semantic_frame
+    def get_last_frame(self):
+        return self.last_frame
 
     def get_global_semantic_map(self):
         return self.map_builder.semantic_map

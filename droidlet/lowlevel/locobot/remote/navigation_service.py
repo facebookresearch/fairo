@@ -219,7 +219,8 @@ class Navigation(object):
                 self.go_to_absolute(goal=(*goal_in_world, 0), steps=10)
 
             if visualize:
-                vis.update_semantic_frame(self.slam.get_last_semantic_frame())
+                rgb, _, semantics = self.slam.get_last_frame()
+                vis.update_semantic_frame(rgb, semantics)
                 vis.update_semantic_map(sem_map)
                 vis.snapshot()
 
