@@ -16,7 +16,7 @@ def preprocess_point_cloud(pcd, voxel_size):
     return (pcd_down, pcd_fpfh)
 
 
-def pointcloud_registration_global(src_pcd, dst_pcd, voxel_size = 0.05):
+def pointcloud_registration_global(src_pcd, dst_pcd, voxel_size=0.05):
     distance_threshold = voxel_size * 0.9
     src_down, src_fpfh = preprocess_point_cloud(src_pcd, voxel_size)
     dst_down, dst_fpfh = preprocess_point_cloud(dst_pcd, voxel_size)
@@ -35,7 +35,7 @@ def pointcloud_registration_global(src_pcd, dst_pcd, voxel_size = 0.05):
     return src_pcd
 
 
-def pointcloud_registration_local(src_pcd, dst_pcd, initial_transform=None, voxel_size = 0.05):
+def pointcloud_registration_local(src_pcd, dst_pcd, initial_transform=None, voxel_size=0.05):
     if initial_transform is None:
         initial_transform = np.identity(4)
     if voxel_size is not None:
@@ -51,10 +51,13 @@ def pointcloud_registration_local(src_pcd, dst_pcd, initial_transform=None, voxe
     dst_down.estimate_normals(
         o3d.geometry.KDTreeSearchParamHybrid(radius=voxel_size * 2.0, max_nn=30)
     )
-    
-    result = o3d.pipelines.registration.registration_colored_icp(src_down, dst_down, distance_threshold)
+
+    result = o3d.pipelines.registration.registration_colored_icp(
+        src_down, dst_down, distance_threshold
+    )
     src_pcd.transform(result.transformation)
     return src_pcd
+
 
 def rgbd_registration_global(src_rgbd, dst_rgbd, initial_transform):
     pass

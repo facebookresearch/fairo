@@ -93,7 +93,15 @@ class O3dViz:
         self.y_axis = y_axis
         self.reset_camera = True
 
-    def add_robot(self, base_state, base=True, canonical=True, height=1.41, name="robot", color=[1.0, 1.0, 0.1]):
+    def add_robot(
+        self,
+        base_state,
+        base=True,
+        canonical=True,
+        height=1.41,
+        name="robot",
+        color=[1.0, 1.0, 0.1],
+    ):
         x, y, yaw = base_state.tolist()
         if canonical:
             x_old, y_old = x, y
@@ -245,7 +253,15 @@ class O3DVizProcess(BackgroundTask):
     def remove(self, name):
         super().put(["remove", name])
 
-    def add_robot(self, base_state, base=True, canonical=True, height=1.41, name="robot", color=[1.0, 1.0, 0.1]):
+    def add_robot(
+        self,
+        base_state,
+        base=True,
+        canonical=True,
+        height=1.41,
+        name="robot",
+        color=[1.0, 1.0, 0.1],
+    ):
         super().put(["add_robot", [base_state, base, canonical, height, name, color]])
 
     def start(self):

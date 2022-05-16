@@ -35,7 +35,7 @@ try:
     from droidlet.perception.robot.perception import Perception
 
     __all__ += [
-            Perception,
+        Perception,
         Detection,
         WorldObject,
         Human,
@@ -47,9 +47,9 @@ try:
         LabelPropagate,
     ]
 except ModuleNotFoundError:
-    if sys.platform == 'darwin':
-        warnings.warn("Could not import some perception modules, likely because on OSX there's no GPU. Skipping imports")
+    if sys.platform == "darwin":
+        warnings.warn(
+            "Could not import some perception modules, likely because on OSX there's no GPU. Skipping imports"
+        )
     else:
         raise
-    
-
