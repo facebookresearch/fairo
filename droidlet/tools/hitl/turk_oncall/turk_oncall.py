@@ -26,7 +26,7 @@ if __name__ == "__main__":
         "--oncall_job_num",
         type=int,
         default=1,
-        help="number of oncall jobs to run (this number times the number of test command lists (6) is the number of HITs)",
+        help="number of oncall jobs to run (this number times the number of test command lists (17) is the number of HITs)",
     )
     parser.add_argument(
         "--image_tag",
