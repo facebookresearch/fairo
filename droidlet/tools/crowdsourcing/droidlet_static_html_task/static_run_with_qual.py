@@ -14,14 +14,9 @@ from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint impo
 from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST
 from mephisto.utils.qualifications import make_qualification_dict
 
-import hydra
 from omegaconf import DictConfig
-from dataclasses import dataclass, field
-from typing import List, Any
 
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-
-from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
 
 from pilot_config import PILOT_ALLOWLIST_QUAL_NAME as ALLOWLIST_QUALIFICATION
 from pilot_config import SOFTBLOCK_QUAL_NAME as SOFTBLOCK_QUALIFICATION
@@ -62,8 +57,8 @@ def main(operator: Operator, cfg: DictConfig) -> None:
     db, cfg = load_db_and_process_config(cfg)
     operator = Operator(db)
 
-    operator.launch_task_run(cfg.mephisto, shared_state)
-    # operator.validate_and_run_config(cfg.mephisto)
+    # operator.launch_task_run(cfg.mephisto, shared_state)
+    operator.launch_task_run(cfg.mephisto)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 

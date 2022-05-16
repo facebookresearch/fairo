@@ -1,11 +1,11 @@
 #@package _global_
 defaults:
   - /mephisto/blueprint: static_task
-  - /mephisto/architect: heroku
-  - /mephisto/provider: mturk
+  - /mephisto/architect: ec2
+  - /mephisto/provider: mturk_sandbox
 mephisto:
   provider:
-    requester_name: yuxuans
+    requester_name: ethancarlson_sandbox
   blueprint:
     data_csv: ${task_dir}/data.csv
     task_source: ${task_dir}/server_files/craftassist_task.html
@@ -19,5 +19,5 @@ mephisto:
     allowed_concurrent: 1
     maximum_units_per_worker: 20
     task_tags: "assistant, game, interact"
-    task_name: "baseline-13-03-02-1000"
+    task_name: "meph-upgrade-t1"
 
