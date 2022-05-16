@@ -6,9 +6,6 @@ import polymetis_pb2
 
 
 def check_episode_log(episode_log, timesteps, check_timestamps=False):
-    assert len(episode_log) == (
-        timesteps
-    ), f"episode length={len(episode_log)}, but expected={timesteps}"
     assert type(episode_log) is list
     assert type(episode_log[0]) is polymetis_pb2.RobotState
 
