@@ -9,12 +9,10 @@ import time
 import copy
 import math
 from math import *
-from PIL import Image
 
 import pyrealsense2 as rs
 import Pyro4
 import numpy as np
-import cv2
 import open3d as o3d
 from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
 from droidlet.lowlevel.hello_robot.remote.lidar import Lidar
@@ -169,9 +167,8 @@ class RemoteHelloRealsense(object):
         return color_image, depth_image
 
     def get_semantics(self, rgb, depth):
-        semantic_pred, img_vis = self.segmentation_model.get_prediction(rgb)
-        # Image.fromarray(img_vis).save("rgb_and_semantic_frame.png")
-        return semantic_pred
+        semantic_pred, vis = self.segmentation_model.get_prediction(rgb)
+        return semantic_pred, vis
 
     def get_open3d_pcd(self, rgb_depth=None, cam_transform=None, base_state=None):
         # get data

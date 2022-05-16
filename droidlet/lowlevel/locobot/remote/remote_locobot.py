@@ -11,8 +11,6 @@ import logging
 import quaternion
 import os
 import open3d as o3d
-import cv2
-from PIL import Image
 from pyrobot.habitat.base_control_utils import LocalActionStatus
 from slam_pkg.utils import depth_util as du
 from obstacle_utils import is_obstacle
@@ -463,11 +461,10 @@ class RemoteLocobot(object):
             instance_segmentation = self.get_rgb_depth_segm()[2]
             semantic_segmentation = self.instance_id_to_category_id[instance_segmentation]
             semantic_segmentation = self.one_hot_encoding[semantic_segmentation]
-            return semantic_segmentation
+            return semantic_segmentation, None
         else:
-            semantic_pred, img_vis = self.segmentation_model.get_prediction(rgb)
-            # Image.fromarray(img_vis).save("rgb_and_semantic_frame.png")
-            return semantic_pred
+            semantic_pred, vis = self.segmentation_model.get_prediction(rgb)
+            return semantic_pred, vis
 
     def get_semantic_categories_in_scene(self):
         if self.scene_contains_semantic_annotations:
