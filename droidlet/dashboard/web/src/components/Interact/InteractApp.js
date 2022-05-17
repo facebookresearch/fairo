@@ -60,81 +60,9 @@ class InteractApp extends Component {
   ********************************** Component Utils ********************************
   **********************************************************************************/
 
-  handleSubmit() {
-    //get the message
-    var chatmsg = document.getElementById("msg").value;
-    //clear the textbox and previous questions
-    document.getElementById("msg").value = "";
-    this.removeButtonsFromLastQuestion();
-    if (this.state.isSaveFeedback) {
-      this.setState({
-        isSaveFeedback: false,
-        feedback: chatmsg,
-      });
-      this.saveFeedback();
-      this.updateChat({ msg: chatmsg, timestamp: Date.now() });
-      this.addNewAgentReplies({
-        msg: "Feedback has been saved!" + PLEASE_RESUME,
-      });
-      this.removeButtonsFromLastQuestion();
-    } else if (chatmsg.replace(/\s/g, "") !== "") {
-      //add to chat history box of parent
-      this.updateChat({ msg: chatmsg, timestamp: Date.now() });
-      this.setState({ last_command: chatmsg });
-      //log message to flask
-      this.props.stateManager.logInteractiondata("text command", chatmsg);
-      //log message to Mephisto
-      window.parent.postMessage(
-        JSON.stringify({ msg: { command: chatmsg } }),
-        "*"
-      );
-      //send message
-      this.props.stateManager.sendCommandToTurkInfo(chatmsg);
-      this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
-      // status updates
-      this.props.stateManager.memory.commandState = "sent";
-      if (this.state.agentType === "craftassist") {
-        this.handleAgentThinking();
-      }
-    }
-  }
-
-  // Scroll to bottom when submit new message
-  scrollToBottom = () => {
-    if (this.messagesEnd) {
-      this.messagesEnd.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-  };
-
   isMounted() {
     //check if this element is being displayed on the screen
     return this.elementRef.current != null;
-  }
-
-  handleKeyPress(event) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      this.handleSubmit();
-    }
-  }
-
-  answerRouting(index, questionType) {
-    switch(questionType) {
-      case ANSWER_ACTION:
-        this.answerAction(index);
-        break;
-      case ANSWER_PARSING:
-        this.answerParsing(index);
-        break;
-      case ANSWER_VISION:
-        this.answerVision(index);
-        break;
-      case CLARIFICATION:
-        this.answerClarification(index);
-        break;
-      default:
-        console.error("Answer Routing called with invalid question type!")
-    }
   }
 
   saveFeedback() {
@@ -156,6 +84,15 @@ class InteractApp extends Component {
       feedback: "",
       disableInput: false,
     })
+  }
+
+  removeButtonsFromLastQuestion() {
+    var new_agent_replies = [...this.state.agent_replies];
+    new_agent_replies.forEach((agent_reply) => (
+      agent_reply.isQuestion = false,
+      agent_reply.enableBack = false
+    ));
+    this.setState({ agent_replies: new_agent_replies });
   }
 
   componentDidMount() {
@@ -218,16 +155,6 @@ class InteractApp extends Component {
     var new_chats = [...this.state.chats];
     new_chats.push(chat);
     this.setState({ chats: new_chats });
-  }
-
-  issueResetCommand() {
-    if (this.state.clarify) { this.removeButtonsFromLastQuestion() };
-    // update chat with "reset" instead of "stop" to avoid confusion
-    this.updateChat({ msg: "reset", timestamp: Date.now() });
-    // send message 
-    this.props.stateManager.logInteractiondata("text command", "stop");
-    this.props.stateManager.socket.emit("sendCommandToAgent", "stop");
-    this.props.stateManager.memory.commandState = "sent";
   }
 
   renderChatHistory() {
@@ -294,6 +221,69 @@ class InteractApp extends Component {
     );
   }
 
+  handleKeyPress(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      this.handleSubmit();
+    }
+  }
+
+  handleSubmit() {
+    //get the message
+    var chatmsg = document.getElementById("msg").value;
+    //clear the textbox and previous questions
+    document.getElementById("msg").value = "";
+    this.removeButtonsFromLastQuestion();
+    if (this.state.isSaveFeedback) {
+      this.setState({
+        isSaveFeedback: false,
+        feedback: chatmsg,
+      });
+      this.saveFeedback();
+      this.updateChat({ msg: chatmsg, timestamp: Date.now() });
+      this.addNewAgentReplies({
+        msg: "Feedback has been saved!" + PLEASE_RESUME,
+      });
+      this.removeButtonsFromLastQuestion();
+    } else if (chatmsg.replace(/\s/g, "") !== "") {
+      //add to chat history box of parent
+      this.updateChat({ msg: chatmsg, timestamp: Date.now() });
+      this.setState({ last_command: chatmsg });
+      //log message to flask
+      this.props.stateManager.logInteractiondata("text command", chatmsg);
+      //log message to Mephisto
+      window.parent.postMessage(
+        JSON.stringify({ msg: { command: chatmsg } }),
+        "*"
+      );
+      //send message
+      this.props.stateManager.sendCommandToTurkInfo(chatmsg);
+      this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
+      // status updates
+      this.props.stateManager.memory.commandState = "sent";
+      if (this.state.agentType === "craftassist") {
+        this.handleAgentThinking();
+      }
+    }
+  }
+
+  // Scroll to bottom when submit new message
+  scrollToBottom = () => {
+    if (this.messagesEnd) {
+      this.messagesEnd.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  };
+
+  issueResetCommand() {
+    if (this.state.clarify) { this.removeButtonsFromLastQuestion() };
+    // update chat with "reset" instead of "stop" to avoid confusion
+    this.updateChat({ msg: "reset", timestamp: Date.now() });
+    // send message 
+    this.props.stateManager.logInteractiondata("text command", "stop");
+    this.props.stateManager.socket.emit("sendCommandToAgent", "stop");
+    this.props.stateManager.memory.commandState = "sent";
+  }
+
 
   /**********************************************************************************
   ******************************* Agent Status Updates ******************************
@@ -346,7 +336,6 @@ class InteractApp extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    // Show command message like an agent reply
     if (this.state.commandState !== prevState.commandState) {
       if (this.state.commandState !== "idle") {
         let disableInput = true;
@@ -355,8 +344,6 @@ class InteractApp extends Component {
         });
       }
     }
-    // Scroll messsage panel to bottom
-    this.scrollToBottom();
   }
 
   renderResetButton() {
@@ -467,6 +454,25 @@ class InteractApp extends Component {
   /**********************************************************************************
   ********************************* Error Marking ***********************************
   ***********************************************************************************/
+
+  answerRouting(index, questionType) {
+    switch(questionType) {
+      case ANSWER_ACTION:
+        this.answerAction(index);
+        break;
+      case ANSWER_PARSING:
+        this.answerParsing(index);
+        break;
+      case ANSWER_VISION:
+        this.answerVision(index);
+        break;
+      case CLARIFICATION:
+        this.answerClarification(index);
+        break;
+      default:
+        console.error("Answer Routing called with invalid question type!")
+    }
+  }
 
   askActionQuestion() {
     // Send request to retrieve the logic form of last sent command
@@ -903,15 +909,6 @@ class InteractApp extends Component {
       disableInput: false,
       isSaveFeedback: true,
     });
-  }
-
-  removeButtonsFromLastQuestion() {
-    var new_agent_replies = [...this.state.agent_replies];
-    new_agent_replies.forEach((agent_reply) => (
-      agent_reply.isQuestion = false,
-      agent_reply.enableBack = false
-    ));
-    this.setState({ agent_replies: new_agent_replies });
   }
 
 
