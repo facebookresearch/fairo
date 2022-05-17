@@ -133,7 +133,6 @@ class OnCallJob(DataGenerator):
 
         self.set_finished()
 
-
     def get_batch_id(self):
         return self._batch_id
 
