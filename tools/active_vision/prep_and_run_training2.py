@@ -37,11 +37,11 @@ def get_training_data(path, job_dir):
             'json': os.path.join(path, 'coco_train.json'), 
             'img_dir': os.path.join(path, 'rgb')
         },
-        'val': {
+        'test': {
             'json': '/checkpoint/apratik/jobs/reexplore/train_data_solo3/train_data_solo2/val_set/coco.json',
             'img_dir': '/checkpoint/apratik/jobs/reexplore/train_data_solo3/train_data_solo2/val_set/rgb'
         },
-        'test': {
+        'val': {
             'json': '/checkpoint/apratik/jobs/reexplore/train_data_solo3/train_data_solo2/test_set/coco.json',
             'img_dir': '/checkpoint/apratik/jobs/reexplore/train_data_solo3/train_data_solo2/test_set/rgb'
         }
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     executor = submitit.AutoExecutor(folder=os.path.join(args.job_dir, 'slurm_logs/%j'))
     # set timeout in min, and partition for running the job
     executor.update_parameters(
-        slurm_partition="devlab", #"learnfair", #scavenge
+        slurm_partition="learnfair", #"learnfair", #scavenge
         timeout_min=100,
         mem_gb=256,
         gpus_per_node=4,
