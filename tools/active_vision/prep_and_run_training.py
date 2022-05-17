@@ -143,10 +143,10 @@ def prep_and_run_training(data_dir: str, job_dir: str, num_train_samples: int, s
     with executor.batch():
         for traj_id in os.listdir(data_dir):
             traj_dir = os.path.join(data_dir, traj_id)
-            if traj_id.isdigit() and sanity_check_traj(traj_dir, setting):
+            if traj_id.isdigit(): # and sanity_check_traj(traj_dir, setting):
                 trajs.add(traj_id)
                 print(f'traj_id {traj_id}, traj_dir {traj_dir}')
-                for path in Path(traj_dir).rglob('pred_label*'):
+                for path in Path(traj_dir).rglob('pred_label_p8'):
                     for k in combinations.keys():
                         if k in str(path):
                             print(f'launching training for {str(path)} ...')
