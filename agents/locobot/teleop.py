@@ -244,25 +244,25 @@ if __name__ == "__main__":
             "depthMin": serialized_image["depth_min"],
         })
 
-        points, colors = rgb_depth.ptcloud.reshape(-1, 3), rgb_depth.rgb.reshape(-1, 3)
-        colors = colors / 255.
+        # points, colors = rgb_depth.ptcloud.reshape(-1, 3), rgb_depth.rgb.reshape(-1, 3)
+        # colors = colors / 255.
 
-        if all_points is None:
-            all_points = points
-            all_colors = colors
-        else:
-            all_points = np.concatenate((all_points, points), axis=0)
-            all_colors = np.concatenate((all_colors, colors), axis=0)
+        # if all_points is None:
+        #     all_points = points
+        #     all_colors = colors
+        # else:
+        #     all_points = np.concatenate((all_points, points), axis=0)
+        #     all_colors = np.concatenate((all_colors, colors), axis=0)
 
-        opcd = o3d.geometry.PointCloud()
-        opcd.points = o3d.utility.Vector3dVector(all_points)
-        opcd.colors = o3d.utility.Vector3dVector(all_colors)
-        opcd = opcd.voxel_down_sample(0.03)
+        # opcd = o3d.geometry.PointCloud()
+        # opcd.points = o3d.utility.Vector3dVector(all_points)
+        # opcd.colors = o3d.utility.Vector3dVector(all_colors)
+        # opcd = opcd.voxel_down_sample(0.03)
 
-        all_points = np.asarray(opcd.points)
-        all_colors = np.asarray(opcd.colors)
+        # all_points = np.asarray(opcd.points)
+        # all_colors = np.asarray(opcd.colors)
         
-        o3dviz.put('pointcloud', opcd)
+        # o3dviz.put('pointcloud', opcd)
         # obstacle, cpcd, crop, bbox, rest = mover.is_obstacle_in_front(return_viz=True)
         # if obstacle:
         #     crop.paint_uniform_color([0.0, 1.0, 1.0])
@@ -280,11 +280,11 @@ if __name__ == "__main__":
         # Plot the robot
         x, y, yaw = base_state.tolist()
 
-        if backend == 'locobot':
-            height = 0.63
-        else: # hello-robot
-            height = 1.41
-        o3dviz.add_robot(base_state, height)
+        # if backend == 'locobot':
+        #     height = 0.63
+        # else: # hello-robot
+        #     height = 1.41
+        # o3dviz.add_robot(base_state, height)
 
         # start the SLAM
         # if backend == 'habitat':
