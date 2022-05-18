@@ -9,6 +9,7 @@ import torch
 import hydra
 import graspnetAPI
 import polymetis
+import ikpy.chain
 
 log = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ def compute_des_pose(best_grasp):
     bz = np.cross(bx, by)
     plane_rot = R.from_matrix(np.vstack([bx, by, bz]).T)
 
-    des_ori = plane_rot * R.from_euler("x", 90, degrees=True) * R.from_euler("y", 90, degrees=True)
+    des_ori = plane_rot * R.from_euler("x", 30, degrees=True) * R.from_euler("y", 90, degrees=True)
     des_ori_quat = des_ori.as_quat()
 
     return grasp_point, grasp_approach_delta, des_ori_quat
@@ -62,6 +63,25 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         self.k_approach = k_approach
         self.k_grasp = k_grasp
 
+        self.robot_model_ikpy = ikpy.chain.Chain.from_urdf_file("/home/yixinlin/dev/fairo/polymetis/polymetis/data/franka_panda/panda_arm.urdf", base_elements=["panda_link0"])
+        soft_limits = [(-2.8, 2.8), (-1.66, 1.66), (-2.8, 2.8), (-2.97, -0.17), (-2.8, 2.8), (0.08, 3.65), (-2.8, 2.8)]
+        for i in range(len(soft_limits)):
+            self.robot_model_ikpy.links[i + 1].bounds = soft_limits[i]
+    
+    def ik(self, position,  orientation=None):
+        curr_joint_pos = [0] + self.get_joint_positions().numpy().tolist() + [0]
+        des_homog_transform = np.eye(4)
+        if orientation is not None:
+            des_homog_transform[:3, :3] = R.from_quat(orientation).as_matrix()
+        des_homog_transform[:3, 3] = position
+        try:
+            joint_pos_ikpy = self.robot_model_ikpy.inverse_kinematics_frame(target=des_homog_transform, orientation_mode="all", no_position=False, initial_position=curr_joint_pos)
+            return joint_pos_ikpy[1:-1]
+        except ValueError as e:
+            print(f"Can't find IK solution! {e}")
+            return None
+
+
     def gripper_open(self):
         self.gripper.goto(1, 1, 1)
 
@@ -69,20 +89,25 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         self.gripper.goto(0, 1, 1)
 
     def move_until_success(
-        self, position, orientation, time_to_go, max_attempts=5, success_dist=0.2
+        self, position, orientation, time_to_go, max_attempts=5, success_dist=0.05
     ):
         states = []
         for _ in range(max_attempts):
-            states += self.move_to_ee_pose(
-                position=position, orientation=orientation, time_to_go=time_to_go
-            )
+            # joint_pos = self.robot_model.inverse_kinematics(position, orientation, rest_pose=self.get_joint_positions())
+            joint_pos = self.ik(position, orientation)
+
+            states += self.move_to_joint_positions(joint_pos, time_to_go=time_to_go)
+            # states += self.move_to_ee_pose(position=position, orientation=orientation, time_to_go=time_to_go)
             curr_ee_pos, curr_ee_ori = self.get_ee_pose()
 
-            log.info(f"Dist to goal: {torch.linalg.norm(curr_ee_pos - position)}")
+            xyz_diff = torch.linalg.norm(curr_ee_pos - position)
+            ori_diff = (R.from_quat(curr_ee_ori).inv() * R.from_quat(orientation)).magnitude()
+            log.info(f"Dist to goal: xyz diff {xyz_diff}, ori diff {ori_diff}")
 
             if (
                 states[-1].prev_command_successful
-                and torch.linalg.norm(curr_ee_pos - position) < success_dist
+                and xyz_diff < success_dist
+                and ori_diff < 0.2
             ):  # TODO: orientation diff
                 break
         return states
@@ -91,24 +116,34 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         with torch.no_grad():
             feasible_i = []
             for i, grasp in enumerate(grasps):
+                print(f"checking feasibility {i}/{len(grasps)}")
                 grasp_point, grasp_approach_delta, des_ori_quat = compute_des_pose(grasp)
                 point_a = grasp_point + self.k_approach * grasp_approach_delta
                 point_b = grasp_point + self.k_grasp * grasp_approach_delta
 
                 def check_feasibility(point):
-                    ik_sol = self.robot_model.inverse_kinematics(
-                        torch.Tensor(point), torch.Tensor(des_ori_quat)
-                    )
-                    ee_pos, ee_quat = self.robot_model.forward_kinematics(ik_sol)
-                    return torch.linalg.norm(ee_pos - point) < 0.001
+                    return self.ik(point) is not None
+                    # ik_sol = self.robot_model.inverse_kinematics(
+                    #     torch.Tensor(point), torch.Tensor(des_ori_quat)
+                    # )
+                    # ee_pos, ee_quat = self.robot_model.forward_kinematics(ik_sol)
+                    # xyz_diff = torch.linalg.norm(ee_pos - point)
+                    # ori_diff = (R.from_quat(ee_quat).inv() * R.from_quat(des_ori_quat)).magnitude()
+                    # # log.info(f"xyz diff {xyz_diff}, ori diff {ori_diff}")
+                    # return xyz_diff < 0.001 and ori_diff < 0.001
 
                 if check_feasibility(point_a) and check_feasibility(point_b):
                     feasible_i.append(i)
+                
+                if len(feasible_i) == 5:
+                    if i >= 5:
+                        print(f"Kinematically filtered {i + 1 - 5} grasps to get 5 feasible positions")
+                    break
 
-            if len(feasible_i) < len(grasps):
-                log.warning(
-                    f"Filtered out {len(grasps) - len(feasible_i)}/{len(grasps)} grasps due to kinematic infeasibility."
-                )
+            # if len(feasible_i) < len(grasps):
+            #     log.warning(
+            #         f"Filtered out {len(grasps) - len(feasible_i)}/{len(grasps)} grasps due to kinematic infeasibility."
+            #     )
 
             # Choose the grasp closest to the neutral position
             grasp, i = min_dist_grasp(self.default_ee_pose, grasps[feasible_i][:5])

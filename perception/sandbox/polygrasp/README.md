@@ -7,6 +7,7 @@ In a new conda environment, [install Polymetis](https://facebookresearch.github.
 Install the package itself:
 
 ```bash
+pip install -e ../../../msg ../../realsense_driver/
 pip install -e .
 ```
 

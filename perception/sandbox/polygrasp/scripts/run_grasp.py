@@ -24,8 +24,12 @@ def save_rgbd_masked(rgbd, rgbd_masked):
     f, axarr = plt.subplots(2, num_cams)
 
     for i in range(num_cams):
-        axarr[0, i].imshow(rgbd[i, :, :, :3].astype(np.uint8))
-        axarr[1, i].imshow(rgbd_masked[i, :, :, :3].astype(np.uint8))
+        if num_cams > 1:
+            ax1, ax2 = axarr[0, i], axarr[1, i]
+        else:
+            ax1, ax2 = axarr
+        ax1.imshow(rgbd[i, :, :, :3].astype(np.uint8))
+        ax2.imshow(rgbd_masked[i, :, :, :3].astype(np.uint8))
 
     f.savefig("rgbd_masked.png")
     plt.close(f)
@@ -61,7 +65,7 @@ def get_obj_grasps(cameras, cam_i, rgbd, grasp_client, obj_masked_rgbds, obj_mas
 
 
 def execute_grasp(robot, chosen_grasp, grasp_offset, hori_offset, time_to_go):
-    traj, success = robot.grasp(chosen_grasp, offset=grasp_offset, time_to_go=time_to_go)
+    traj, success = robot.grasp(chosen_grasp, offset=grasp_offset, time_to_go=time_to_go, gripper_width_success_threshold=0.001)
     print(f"Grasp success: {success}")
 
     if success:
@@ -125,17 +129,18 @@ def main(cfg):
     root_working_dir = os.getcwd()
     for outer_i in range(cfg.num_bin_shifts):
         cam_i = outer_i % 2
+        # cam_i = 0
         print(f"=== Starting bin shift with cam {cam_i} ===")
 
         if cam_i == 0:
             masks = masks_1
-            hori_offset = torch.Tensor([0, 0.4, 0])
-            grasp_offset = np.array([0.1, 0.0, 0.05])
-            time_to_go = 2
+            hori_offset = torch.Tensor([0, -0.4, 0])
+            grasp_offset = np.array([0.0, 0.0, 0.00])
+            time_to_go = 3
         else:
             masks = masks_2
-            hori_offset = torch.Tensor([0, -0.4, 0])
-            grasp_offset = np.array([0.1, 0.1, 0.1])
+            hori_offset = torch.Tensor([0, 0.4, 0])
+            grasp_offset = np.array([0.0, 0.0, 0.0])
             time_to_go = 3
 
         for i in range(cfg.num_grasps_per_bin_shift):
@@ -168,8 +173,9 @@ def main(cfg):
                 cameras, cam_i, rgbd, grasp_client, obj_masked_rgbds, obj_masks
             )
 
+            cam_pcd = cameras.get_pcd_i(rgbd[cam_i], cam_i)
             print("Choosing a grasp for the object")
-            grasp_client.visualize_grasp(scene_pcd, filtered_grasp_group)
+            grasp_client.visualize_grasp(cam_pcd, filtered_grasp_group)
             chosen_grasp = robot.select_grasp(filtered_grasp_group)
 
             print("Executing grasp")
