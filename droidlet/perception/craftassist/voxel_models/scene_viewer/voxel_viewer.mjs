@@ -223,7 +223,7 @@ function loadScene(json) {
                 player.rotate(-json.avatarInfo.look[1] + Math.PI/2);  // FIXME pitch and yaw flipped from where they should be
                 // add look direction
                 const player_head = new THREE.Vector3(player.mesh.position.x, player.mesh.position.y + 30, player.mesh.position.z);
-                scene.add( new THREE.ArrowHelper( user_look, player_head, 125, 0xff0000, 40, 20 ) );
+                scene.add( new THREE.ArrowHelper( user_look, player_head, 80, 0xff0000, 30, 15 ) );
             }
         );
         opts = {
@@ -235,8 +235,8 @@ function loadScene(json) {
             function (agent) {
                 agent.rotate(-json.agentInfo.look[1]+ Math.PI/2);  // FIXME pitch and yaw flipped from where they should be
                 // add look direction
-                const agent_head = new THREE.Vector3(agent.mesh.position.x, agent.mesh.position.y + 65, agent.mesh.position.z);
-                scene.add( new THREE.ArrowHelper( agent_look, agent_head, 125, 0x0000ff, 40, 20 ) );
+                const agent_head = new THREE.Vector3(agent.mesh.position.x, agent.mesh.position.y + 70, agent.mesh.position.z);
+                scene.add( new THREE.ArrowHelper( agent_look, agent_head, 80, 0x0000ff, 30, 15 ) );
             }
         );
     }
@@ -310,6 +310,9 @@ function look_vec(yaw, pitch) {
 
 function addEventListeners() {
     window.addEventListener( 'resize', onWindowResize );
+    window.addEventListener( 'pointerdown', onPointerDown );
+    window.addEventListener( 'pointerup', onPointerUp );
+    window.addEventListener( 'pointermove', onPointerMove );
 }
 
 function onWindowResize() {
@@ -317,6 +320,21 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
     renderer.setSize( window.innerWidth, (window.innerHeight - 100) );
     render();
+}
+
+let pointerDown = false;
+function onPointerDown() {
+    pointerDown = true;
+}
+
+function onPointerUp() {
+    pointerDown = false;
+}
+
+function onPointerMove() {
+    if (pointerDown) {
+        document.getElementById("cameraInput").value = Math.floor(camera.position.x) + "," + Math.floor(camera.position.y) + "," + Math.floor(camera.position.z);
+    }
 }
 
 function render() {
