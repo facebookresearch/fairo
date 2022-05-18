@@ -1,17 +1,28 @@
 """Demo AlephZero logs -> ElasticSearch."""
 
 import a0
-import elasticsearch
+# import elasticsearch
+import opensearchpy
 import json
 import signal
 
 
+
 class A02ES_Indexer:
     def __init__(self):
-        # Connect to the local elasticsearch engine.
-        self._es = elasticsearch.Elasticsearch(
-            "http://localhost:9200", request_timeout=10
+        self._db = opensearchpy.OpenSearch(
+            hosts=[{
+                "host": "localhost",
+                "port": 9200,
+            }],
+            request_timeout=10,
+            use_ssl = False,
+            verify_certs = False,
         )
+        # # Connect to the local elasticsearch engine.
+        # self._es = elasticsearch.Elasticsearch(
+        #     "http://localhost:9200", request_timeout=10
+        # )
         # Connect to the alephzero logger.
         self._a0 = a0.Subscriber("log/announce", self.on_log_announce)
 
@@ -43,11 +54,13 @@ class A02ES_Indexer:
             # TODO(lshamis): Add directive headers like "_index.payload".
             for k, v in fpkt.headers:
                 data.setdefault(k, []).append(v)
+            print(f"w/ headers: {data}")
 
             try:
                 # Index the data into ES.
                 # TODO(lshamis): Can we batch the operation across multiple packets?
-                self._es.index(index="myindex", document=data)
+                # self._db.index(index="myindex", document=data)
+                self._db.index(index="myindex", body=data)
             except Exception as err:
                 # TODO(lshamis): Maybe retry.
                 print(f"skipping pkt: {err}")
