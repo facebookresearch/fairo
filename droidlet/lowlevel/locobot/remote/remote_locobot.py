@@ -94,7 +94,7 @@ class RemoteLocobot(object):
         else:
             print("Scene does not contain semantic annotations")
             self.segmentation_model = SemanticPredMaskRCNN(
-                sem_pred_prob_thr=0.1, sem_gpu_id=-1, visualize=True
+                sem_pred_prob_thr=0.5, sem_gpu_id=-1, visualize=True
             )
 
     def get_habitat_state(self):

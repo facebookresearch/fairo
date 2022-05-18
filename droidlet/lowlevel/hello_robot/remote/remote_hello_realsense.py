@@ -59,7 +59,7 @@ class RemoteHelloRealsense(object):
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
         self.segmentation_model = SemanticPredMaskRCNN(
-            sem_pred_prob_thr=0.1, sem_gpu_id=-1, visualize=True
+            sem_pred_prob_thr=0.5, sem_gpu_id=-1, visualize=True
         )
 
     def get_base_state(self):
