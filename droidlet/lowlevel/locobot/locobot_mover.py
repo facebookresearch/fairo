@@ -142,9 +142,8 @@ class LoCoBotMover:
         for xyt in xyt_positions:
             logging.info("Move absolute in canonical coordinates {}".format(xyt))
             self.nav_result.wait()  # wait for the previous navigation command to finish
-            self.nav_result = self.nav.go_to_absolute(
-                base_canonical_coords_to_pyrobot_coords(xyt),
-            )
+            robot_coords = base_canonical_coords_to_pyrobot_coords(xyt)
+            self.nav_result = safe_call(self.nav.go_to_absolute, robot_coords)
             if blocking:
                 self.nav_result.wait()
             start_base_state = self.get_base_pos_in_canonical_coords()
