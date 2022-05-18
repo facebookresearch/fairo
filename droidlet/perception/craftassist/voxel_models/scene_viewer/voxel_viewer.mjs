@@ -57,7 +57,8 @@ let grassMaterial = [
 ];
 
 // Pull scene paths from input
-let gtScenePath = sessionStorage.getItem('gtScene');
+// let gtScenePath = sessionStorage.getItem('gtScene');
+let gtScenePath = "scene.json";
 let sceneIdx = 0;
 let gtscene;
 fetch(gtScenePath)  // Load the first file and save json data to object
@@ -126,7 +127,7 @@ function loadScene(json) {
     scene.add( plane );
 
     //Axis helper - The positive X axis is red, Y is green, Z  is blue.
-    scene.add( new THREE.AxesHelper( 10000 ) );
+    // scene.add( new THREE.AxesHelper( 10000 ) );
 
     // find origin offset so that scene is centerd on 0,0
     let Xs = blocks.map(function(x) { return x[0]; });
