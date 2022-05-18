@@ -257,7 +257,7 @@ class HelloRobotMover(MoverInterface):
             if blocking:
                 self.nav_result.wait()
         return "finished"
-    
+
     def move_to_object(self, object_goal: str, blocking=True):
         """Command to execute a move to an object category.
 
