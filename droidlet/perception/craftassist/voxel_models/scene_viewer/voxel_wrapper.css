@@ -24,6 +24,15 @@ canvas {
     text-align: center;
 }
 
+#cameraPos {
+    margin-top: 10px;
+    text-align: center;
+}
+
+#cameraInput {
+    width: 300px;
+}
+
 #voxel_painter {
     text-align: center;
 }

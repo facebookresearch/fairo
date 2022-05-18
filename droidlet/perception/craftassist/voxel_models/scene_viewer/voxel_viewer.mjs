@@ -86,7 +86,17 @@ fetch(gtScenePath)  // Load the first file and save json data to object
         sceneIdx < (sceneLimit - 1) ? sceneIdx++ : sceneIdx = 0;
         refreshCanvii();
     });
+    document.getElementById("updateCamera").addEventListener("click", function() {
+        updateCamera();
+    });
 })
+
+function updateCamera() {
+    let coords = document.getElementById('cameraInput').value.split(',');
+    camera.position.set( coords[0], coords[1], coords[2] );
+    camera.lookAt( 0, 0, 0 );
+    render();
+}
 
 function refreshCanvii() {
     var canvii = document.getElementsByTagName("canvas");
@@ -113,7 +123,7 @@ function loadScene(json) {
     }
     else {blocks = json.blocks}
     
-    camera = new THREE.PerspectiveCamera( 45, window.innerWidth / (window.innerHeight - 50), 1, 10000 );
+    camera = new THREE.PerspectiveCamera( 45, window.innerWidth / (window.innerHeight - 100), 1, 10000 );
     camera.position.set( 400, 640, 1040 );
     camera.lookAt( 0, 0, 0 );
 
@@ -256,7 +266,7 @@ function loadScene(json) {
 
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.setPixelRatio( window.devicePixelRatio );
-    renderer.setSize( window.innerWidth, (window.innerHeight - 50) );
+    renderer.setSize( window.innerWidth, (window.innerHeight - 100) );
     let cont = document.getElementById("voxel_viewer");
     cont.appendChild( renderer.domElement );
 
@@ -303,9 +313,9 @@ function addEventListeners() {
 }
 
 function onWindowResize() {
-    camera.aspect = window.innerWidth / (window.innerHeight - 50);
+    camera.aspect = window.innerWidth / (window.innerHeight - 100);
     camera.updateProjectionMatrix();
-    renderer.setSize( window.innerWidth, (window.innerHeight - 50) );
+    renderer.setSize( window.innerWidth, (window.innerHeight - 100) );
     render();
 }
 
