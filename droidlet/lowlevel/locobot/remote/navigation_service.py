@@ -91,6 +91,8 @@ class Navigation(object):
         return self.go_to_absolute(abs_goal)
 
     def go_to_absolute(self, goal=None, goal_map=None, steps=100000000):
+        print(f"[navigation] Starting a go_to_absolute {goal if goal is not None else 'goal_map'}")
+
         # specify exactly one of goal or goal_map
         assert (goal is not None and goal_map is None) or (goal is None and goal_map is not None)
 
