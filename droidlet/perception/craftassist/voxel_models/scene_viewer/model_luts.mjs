@@ -347,7 +347,7 @@ const VW_AVATAR_MAP = {
         "model_folder": "player/",
         "model_file": "scene.gltf",
         "default_scale": 50,
-        "rotation_offset": [0, 0, 0],
+        "rotation_offset": [0, -Math.PI/2, 0],
         "position_offset": [25, 40, 25] 
     },
     "agent": {

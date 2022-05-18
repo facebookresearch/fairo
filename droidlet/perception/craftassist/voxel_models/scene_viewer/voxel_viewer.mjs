@@ -11,7 +11,6 @@ import { VoxelPlayer} from './VoxelPlayer.mjs';
 import { VW_ITEM_MAP } from './model_luts.mjs';
 
 let camera, scene, renderer, controls, plane;
-let objects = [];
 
 let origin_offset, y_offset;  // Scene needs to be recentered on 0,0
 
@@ -59,14 +58,15 @@ let grassMaterial = [
 
 // Pull scene paths from input
 let gtScenePath = sessionStorage.getItem('gtScene');
-
+let sceneIdx = 0;
+let gtscene;
 fetch(gtScenePath)  // Load the first file and save json data to object
 .then(response => {
     return response.json();
 })
 .then(json => {
-    let gtscene = json[0];
-    loadScene(gtscene);
+    gtscene = json;
+    loadScene(gtscene[sceneIdx]);
     render();
     addEventListeners();
     var canvii = document.getElementsByTagName("canvas");
@@ -74,8 +74,34 @@ fetch(gtScenePath)  // Load the first file and save json data to object
         canv.style.display = "inline";
         canv.style.margin = "auto";
     });
+    return gtscene.length;
+})
+.then(sceneLimit => {
+    document.getElementById("prevScene").addEventListener("click", function() {
+        sceneIdx > 0 ? sceneIdx-- : sceneIdx = sceneLimit - 1;
+        refreshCanvii();
+    });
+    document.getElementById("nextScene").addEventListener("click", function() {
+        sceneIdx < (sceneLimit - 1) ? sceneIdx++ : sceneIdx = 0;
+        refreshCanvii();
+    });
 })
 
+function refreshCanvii() {
+    var canvii = document.getElementsByTagName("canvas");
+    Array.from(canvii).forEach((canv) => {
+        canv.parentNode.removeChild(canv);
+    });
+
+    loadScene(gtscene[sceneIdx]);
+    render();
+
+    canvii = document.getElementsByTagName("canvas");
+    Array.from(canvii).forEach((canv) => {
+        canv.style.display = "inline";
+        canv.style.margin = "auto";
+    });
+}
 
 function loadScene(json) {
 
@@ -86,7 +112,7 @@ function loadScene(json) {
     }
     else {blocks = json.blocks}
     
-    camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+    camera = new THREE.PerspectiveCamera( 45, window.innerWidth / (window.innerHeight - 50), 1, 10000 );
     camera.position.set( 400, 640, 1040 );
     camera.lookAt( 0, 0, 0 );
 
@@ -98,7 +124,9 @@ function loadScene(json) {
     geometry.rotateX( - Math.PI / 2 );
     plane = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false } ) );
     scene.add( plane );
-    objects.push( plane );
+
+    //Axis helper - The positive X axis is red, Y is green, Z  is blue.
+    scene.add( new THREE.AxesHelper( 10000 ) );
 
     // find origin offset so that scene is centerd on 0,0
     let Xs = blocks.map(function(x) { return x[0]; });
@@ -154,7 +182,6 @@ function loadScene(json) {
         const voxel = new THREE.Mesh( geo, cubeMaterial );
         voxel.position.set(((blocks[i][0] - origin_offset)*50)+25, ((blocks[i][1] - y_offset)*50)+25, ((blocks[i][2] - origin_offset)*50)+25);
         scene.add( voxel );
-        objects.push( voxel );
     }
 
     let world = {
@@ -169,28 +196,38 @@ function loadScene(json) {
     if (json.avatarInfo && json.agentInfo) {
         let user_pos = json.avatarInfo.pos;
         let agent_pos = json.agentInfo.pos;
-        let user_look = lookRadsToVec(json.avatarInfo.look);
-        
+        // let user_look = lookRadsToVec([json.avatarInfo.look[1], json.avatarInfo.look[0]]);  // FIXME pitch and yaw flipped from where they should be
+        // let agent_look = lookRadsToVec([json.agentInfo.look[1], json.agentInfo.look[0]]);  // FIXME pitch and yaw flipped from where they should be
+        let user_look = look_vec(-json.avatarInfo.look[1] + Math.PI/2, json.avatarInfo.look[0]);
+        let agent_look = look_vec(-json.agentInfo.look[1] + Math.PI/2, json.agentInfo.look[0]);
+
         // add user and agent avatars
         opts = {
             GLTFLoader: GLTFLoader,
             name: "player",
-            position: [((user_pos[0]- origin_offset)*50)+25, ((user_pos[1] - y_offset)*50), ((user_pos[2]- origin_offset)*50)+25],
+            position: [((user_pos[0]- origin_offset)*50), ((user_pos[1] - y_offset)*50), ((user_pos[2]- origin_offset)*50)],
         };
         VoxelPlayer.build(world, opts).then(
             function (player) {
-                player.rotate(json.avatarInfo.look[0]);
+                player.rotate(-json.avatarInfo.look[1] + Math.PI/2);  // FIXME pitch and yaw flipped from where they should be
                 // add look direction
-                const head_position = new THREE.Vector3(player.mesh.position.x, player.mesh.position.y + 50, player.mesh.position.z);
-                scene.add( new THREE.ArrowHelper( user_look, head_position, 150, 0xff0000, 40, 20 ) );
+                const player_head = new THREE.Vector3(player.mesh.position.x, player.mesh.position.y + 30, player.mesh.position.z);
+                scene.add( new THREE.ArrowHelper( user_look, player_head, 125, 0xff0000, 40, 20 ) );
             }
         );
         opts = {
             GLTFLoader: GLTFLoader,
             name: "agent",
-            position: [((agent_pos[0]- origin_offset)*50)+25, ((agent_pos[1] - y_offset)*50), ((agent_pos[2]- origin_offset)*50)+25],
+            position: [((agent_pos[0]- origin_offset)*50), ((agent_pos[1] - y_offset)*50), ((agent_pos[2]- origin_offset)*50)],
         };
-        VoxelPlayer.build(world, opts);
+        VoxelPlayer.build(world, opts).then(
+            function (agent) {
+                agent.rotate(-json.agentInfo.look[1]+ Math.PI/2);  // FIXME pitch and yaw flipped from where they should be
+                // add look direction
+                const agent_head = new THREE.Vector3(agent.mesh.position.x, agent.mesh.position.y + 65, agent.mesh.position.z);
+                scene.add( new THREE.ArrowHelper( agent_look, agent_head, 125, 0x0000ff, 40, 20 ) );
+            }
+        );
     }
 
     // Load mobs
@@ -199,9 +236,13 @@ function loadScene(json) {
             opts = {
                 GLTFLoader: GLTFLoader,
                 name: mob.mobtype,
-                position: [((mob.pose[0] - origin_offset)*50)+25, ((mob.pose[1] - y_offset)*50), ((mob.pose[2]- origin_offset)*50)+25],
+                position: [((mob.pose[0] - origin_offset)*50), ((mob.pose[1] - y_offset)*50), ((mob.pose[2]- origin_offset)*50)],
             };
-            VoxelMob.build(world, opts);
+            VoxelMob.build(world, opts).then(
+                function (m) {
+                    m.mesh.rotateY(-mob.pose[4]+ Math.PI/2);
+                }
+            );
         });
     }
     
@@ -214,7 +255,7 @@ function loadScene(json) {
 
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.setPixelRatio( window.devicePixelRatio );
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setSize( window.innerWidth, (window.innerHeight - 50) );
     let cont = document.getElementById("voxel_viewer");
     cont.appendChild( renderer.domElement );
 
@@ -245,14 +286,25 @@ function lookRadsToVec(raw_vals) {
     return look_dir;
 }
 
+function look_vec(yaw, pitch) {
+    // This is meant to be a copy of the function of the same name in rotation.py
+    let x = Math.cos(pitch) * Math.sin(-yaw + Math.PI);
+    let y = Math.sin(pitch);
+    let z = Math.cos(pitch) * Math.cos(yaw + Math.PI);
+    let look_dir = new THREE.Vector3(z, y, x);
+    look_dir.normalize();
+    
+    return look_dir
+}
+
 function addEventListeners() {
     window.addEventListener( 'resize', onWindowResize );
 }
 
 function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = window.innerWidth / (window.innerHeight - 50);
     camera.updateProjectionMatrix();
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setSize( window.innerWidth, (window.innerHeight - 50) );
     render();
 }
 
