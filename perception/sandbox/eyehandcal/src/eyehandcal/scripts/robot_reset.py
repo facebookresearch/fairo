@@ -6,7 +6,7 @@ from polymetis import RobotInterface, GripperInterface
 import time
 import torch
 
-robot = RobotInterface(ip_address = "172.16.0.1")
+robot = RobotInterface(ip_address = "172.16.0.1", enforce_version=False)
 gripper = GripperInterface(ip_address = "172.16.0.1")
 
 timeRobot = 5
