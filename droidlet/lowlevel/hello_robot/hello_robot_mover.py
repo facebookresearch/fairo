@@ -257,18 +257,21 @@ class HelloRobotMover(MoverInterface):
             if blocking:
                 self.nav_result.wait()
         return "finished"
-
+    
     def move_to_object(self, object_goal: str, blocking=True):
         """Command to execute a move to an object category.
 
         Args:
             object_goal: supported COCO object category
         """
-        self.nav_result.wait()
-        self.nav_result = self.nav.go_to_object(object_goal)
-        if blocking:
+        if self.nav_result.ready:
             self.nav_result.wait()
-        return "finished"
+            self.nav_result = safe_call(self.nav.go_to_object, object_goal)
+            if blocking:
+                self.nav_result.wait()
+        else:
+            print("navigator executing another call right now")
+        return self.nav_result
 
     def get_base_pos_in_canonical_coords(self):
         """get the current robot position in the canonical coordinate system
