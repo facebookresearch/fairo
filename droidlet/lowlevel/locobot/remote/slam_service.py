@@ -244,7 +244,7 @@ with Pyro4.Daemon(ip) as daemon:
     else:
         obj = SLAM(robot)
     obj_uri = daemon.register(obj)
-    with Pyro4.locateNS(robot_ip) as ns:
+    with Pyro4.locateNS(host=robot_ip) as ns:
         ns.register("slam", obj_uri)
 
     print("SLAM Server is started...")

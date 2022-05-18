@@ -288,7 +288,7 @@ if __name__ == "__main__":
         bot = Pyro4.Proxy("PYRONAME:hello_robot@" + args.ip)
         robot = RemoteHelloRealsense(bot)
         robot_uri = daemon.register(robot)
-        with Pyro4.locateNS() as ns:
+        with Pyro4.locateNS(host=args.ip) as ns:
             ns.register("hello_realsense", robot_uri)
 
         robot.calibrate_tilt()

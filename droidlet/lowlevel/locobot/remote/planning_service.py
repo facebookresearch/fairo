@@ -143,7 +143,7 @@ with Pyro4.Daemon(ip) as daemon:
     slam = Pyro4.Proxy("PYRONAME:slam@" + robot_ip)
     obj = Planner(slam)
     obj_uri = daemon.register(obj)
-    with Pyro4.locateNS() as ns:
+    with Pyro4.locateNS(host=robot_ip) as ns:
         ns.register("planner", obj_uri)
 
     print("Planner Server is started...")
