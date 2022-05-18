@@ -27,8 +27,8 @@ if __name__ == "__main__":
         webrtc_streaming=False
     else:
         webrtc_streaming=True
-    o3dviz = O3DViz(webrtc_streaming)
-    o3dviz.start()
+    # o3dviz = O3DViz(webrtc_streaming)
+    # o3dviz.start()
 
 from droidlet.interpreter.robot import (
     dance, 
@@ -232,7 +232,7 @@ if __name__ == "__main__":
         # TODO Temporary hack to get semantic frame in dashboard
         semantic_frame = mover.slam.get_last_semantic_frame()
         if semantic_frame is not None:
-            rgb_depth.rgb = semantic_frame
+            rgb_depth.rgb = np.transpose(semantic_frame, (1, 0, 2))
 
         # this takes about 1.5 to 2 fps
         serialized_image = rgb_depth.to_struct(resolution, quality)
