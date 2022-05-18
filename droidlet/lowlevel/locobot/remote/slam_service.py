@@ -123,7 +123,6 @@ class SLAM(object):
             self.last_semantic_frame = semantics_vis
         else:
             self.last_semantic_frame = self.get_semantic_frame_vis(rgb, semantics)
-        # self.last_semantic_frame = self.get_semantic_frame_vis(rgb, semantics)
         semantics = semantics.reshape(-1, self.num_sem_categories)
         valid = (depth > 0).flatten()
         semantics = semantics[valid]
