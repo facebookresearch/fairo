@@ -22,6 +22,7 @@ def create_data_split(data_path, filename, output_path, split_ratios):
 
     """
     annotated_data = open(data_path + filename).readlines()
+    annotated_data = ["|".join(l.split('|')[1:]) if len(l.split('|')) > 2 else l for l in annotated_data]
     shuffle(annotated_data)
     start_idx = 0
     for split_name, ratio in split_ratios:
@@ -53,7 +54,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--filename", type=str, default="annotated.txt")
     parser.add_argument(
-        "--split_ratio", type=str, default="0.7:0.2:0.1", help="train:valid:test split of dataset"
+        "--split_ratio", type=str, default="0.8:0.1:0.1", help="train:valid:test split of dataset"
     )
     args = parser.parse_args()
 

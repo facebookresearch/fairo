@@ -506,7 +506,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--optimizer", default="adam", type=str, help="Optimizer in [adam|adagrad]"
     )
-    parser.add_argument("--batch_size", default=32, type=int, help="Batch size")
+    parser.add_argument("--batch_size", default=16, type=int, help="Batch size")
     parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
     parser.add_argument("--num_epochs", default=10, type=int, help="Number of training epochs")
     parser.add_argument(
@@ -553,7 +553,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--dtype_samples",
-        default="templated:.45;templated_clarification:.1;templated_filters:.05;annotated:.4",
+        default="templated_clarification:.1;annotated:.9",
         type=str,
         help="Sampling probabilities for handling different data types",
     )
