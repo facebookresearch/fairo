@@ -142,8 +142,17 @@ class Launcher(BaseLauncher):
 
 class Docker(BaseRuntime):
     def __init__(
-        self, image=None, dockerfile=None, mount=[], build_kwargs={}, run_kwargs={}
+        self,
+        image=None,
+        dockerfile=None,
+        mount=None,
+        build_kwargs=None,
+        run_kwargs=None,
     ):
+        mount = mount or []
+        build_kwargs = build_kwargs or {}
+        run_kwargs = run_kwargs or {}
+
         if bool(image) == bool(dockerfile):
             raise ValueError(
                 "Docker process must define exactly one of image or dockerfile"

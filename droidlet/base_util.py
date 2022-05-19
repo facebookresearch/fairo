@@ -140,7 +140,7 @@ def prepend_a_an(name):
 
 def to_block_pos(array):
     """Convert array to block position"""
-    return np.floor(array).astype("int32")
+    return np.round(array).astype("int32")
 
 
 def to_block_center(array):

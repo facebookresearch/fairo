@@ -15,6 +15,7 @@ from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint impo
 )
 from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST, make_qualification_dict
 from pilot_config import PILOT_ALLOWLIST_QUAL_NAME as ALLOWLIST_QUALIFICATION
+from pilot_config import SOFTBLOCK_QUAL_NAME as SOFTBLOCK_QUALIFICATION
 
 import hydra
 from omegaconf import DictConfig
@@ -49,6 +50,7 @@ def main(cfg: DictConfig) -> None:
     shared_state = SharedStaticTaskState(
         qualifications=[
             make_qualification_dict(ALLOWLIST_QUALIFICATION, QUAL_EXISTS, None),
+            make_qualification_dict(SOFTBLOCK_QUALIFICATION, QUAL_NOT_EXIST, None),
         ],
     )
 

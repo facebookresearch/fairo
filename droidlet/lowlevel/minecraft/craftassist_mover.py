@@ -18,19 +18,25 @@ Item = namedtuple("Item", "id, meta")
 ItemStack = namedtuple("ItemStack", "item, pos, entityId")
 
 
-def flip_x(struct):
-    return Pos(-struct.x, struct.y, struct.z)
+def flip_x(struct, floor=False):
+    x, y, z = struct.x, struct.y, struct.z
+    if floor:
+        x = float(np.floor(x))
+        y = float(np.floor(y))
+        z = float(np.floor(z))
+    return Pos(-x, y, z)
 
 
 def flip_look(struct):
     return Look(-struct.yaw, -struct.pitch)
 
 
-def maybe_flip_x_or_look(struct):
+def maybe_flip_x_or_look(struct, floor=False):
     """
     struct is either a Mob, a Player, a Pos, or a Look
     we make a copy with the x negated if the struct is or has a Pos
     and with the yaw and pitch negated if the struct is or has a Look
+    if floor=True, will also floor pos in cagent world.
     """
     if getattr(struct, "x", None):
         return flip_x(struct)
@@ -46,7 +52,7 @@ def maybe_flip_x_or_look(struct):
         return Player(
             struct.entityId,
             struct.name,
-            flip_x(struct.pos),
+            flip_x(struct.pos, floor=floor),
             flip_look(struct.look),
             struct.mainHand,
             struct,
@@ -108,10 +114,12 @@ class CraftassistMover:
         self.get_line_of_sight = struct_transform(self.cagent.get_line_of_sight)
         self.get_item_stacks = struct_transform(self.cagent.get_item_stacks)
         self.get_item_stack = struct_transform(self.cagent.get_item_stack)
-        self.get_player = struct_transform(self.cagent.get_player)
         self.get_mobs = struct_transform(self.cagent.get_mobs)
         self.get_other_players = struct_transform(self.cagent.get_other_players)
         self.get_other_player_by_name = struct_transform(self.cagent.get_other_player_by_name)
+
+    def get_player(self):
+        return maybe_flip_x_or_look(self.cagent.get_player(), floor=True)
 
     @struct_transform
     def get_player_line_of_sight(self, player_struct):
@@ -126,10 +134,10 @@ class CraftassistMover:
             return self.cagent.get_player_line_of_sight(player_struct)
 
     def dig(self, x, y, z):
-        self.cagent.place_block(-x, y, z)
+        return self.cagent.dig(-x, y, z)
 
     def place_block(self, x, y, z):
-        self.cagent.place_block(-x, y, z)
+        return self.cagent.place_block(-x, y, z)
 
     def get_changed_blocks(self):
         blocks = self.cagent.get_changed_blocks()

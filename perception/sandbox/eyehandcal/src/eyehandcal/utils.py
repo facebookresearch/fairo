@@ -8,6 +8,15 @@ import torch
 import cv2
 import math
 
+def uncompress_image(data):
+    for d in data:
+        # decode imgs_jpeg_encoded -> imgs
+        if 'imgs_jpeg_encoded' in d:
+            assert 'imgs' not in d
+            d['imgs'] = []
+            for img_jpeg_encoded in d['imgs_jpeg_encoded']:
+                d['imgs'].append(cv2.imdecode(img_jpeg_encoded, cv2.IMREAD_COLOR))
+
 
 def detect_corners(data, target_idx=9):
     """
