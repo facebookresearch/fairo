@@ -128,7 +128,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_cmds",
         type=int,
-        default=300,
+        default=600,
         help="The number of commands to generate (about 1/3 the number of training data points)"
     )
     parser.add_argument(
