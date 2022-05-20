@@ -344,6 +344,7 @@ class InteractApp extends Component {
         });
       }
     }
+    this.scrollToBottom();
   }
 
   renderResetButton() {

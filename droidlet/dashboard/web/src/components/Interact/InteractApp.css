@@ -160,8 +160,8 @@
 
 .chat .answer-buttons .back-button {
   margin-right: 1rem;
-  border: 1px solid #cfd300;
-  color: #cfd300;
+  border: 1px solid #e67e00;
+  color: #e67e00;
 }
 
 .chat .answer-buttons .back-button:hover {
@@ -209,6 +209,7 @@
   letter-spacing: 0.025em;
   font-family: Red hat Display, sans-serif;
   font-weight: 400;
+  background-color: darkgrey;
 }
 
 .chat .reset-button:hover {
