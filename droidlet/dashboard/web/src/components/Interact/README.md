@@ -1,3 +1,30 @@
+## Chat Architecture Flowchart ##
+
+`handleSubmit`                            User sends a new chat (command status: 'sent')
+                                                      |
+`setChatReponse`(in `StateManager`)      Agent receives the chat (command status: 'received' -> 'thinking' (500ms later))
+                                                      |
+`returnTimelineEvent`(in `StateManager`)  Agent parses the chat (command status: 'done_thinking')
+                      ______________________/_________|_____   \
+                      |                    /          |     |   \ 
+`handleAgentThinking` | Clarification needed          |      \--Task added to stack (command status: 'executing')
+                      |           |           Uncaught failure           |       \
+`answerClarification` |     Verify parse              |                  |      "Stop" command issued  `issueResetCommand`
+                      |          y|     \n_____       |            Task Complete          |
+`answerClarification` |   Clarify ref objs     \      |       __________/      __________/
+                      |_y/              \n____  \     |      /   _____________/
+                                              \  \    |     /   /
+                                              Error Marking Flow  (if Turk, otherwise end)
+                                                      |
+`askActionQuestion`                     Did the agent execute correctly?
+                                      n/                               \y
+`answerAction`               Is the parse correct?             (finished - no error)
+`answerParsing`            n/                     \y
+                (finished - nlu error)   Was there a vision error?   `askVisionQuestion`
+`answerVision`                         n/                         \y
+                            (finished - other error)     (finished - vision error)
+
+
 ## InteractApp Overview ##
 
 `InteractApp.js` holds the chat interface for the dashboard, which includes sending and displaying chats to and from the agent, displaying the agent status updates while commands are being processed, providing a stop/reset button at the relevant moments, and displaying response buttons when limited response options are specified (eg. during error marking or clarification).  As there is a substantial amount of code in this component, below are descriptions of the purpose of each section.  In general, functions appear in the order in which they are called, though this is a rough guide at best.
