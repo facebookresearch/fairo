@@ -17,4 +17,4 @@ mephisto:
     task_description: "Send commands to our virtual assistant and report any bugs that result."
     task_reward: 3.5
     task_tags: "assistant, game, interact"
-    task_name: "droidlet-oncall"
+    task_name: "droidlet-oncall-202205191949"
