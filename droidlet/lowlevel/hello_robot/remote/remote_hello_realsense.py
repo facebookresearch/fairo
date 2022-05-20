@@ -13,6 +13,7 @@ from math import *
 import pyrealsense2 as rs
 import Pyro4
 import numpy as np
+import torch
 import open3d as o3d
 from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
 from droidlet.lowlevel.hello_robot.remote.lidar import Lidar
@@ -169,6 +170,17 @@ class RemoteHelloRealsense(object):
     def get_semantics(self, rgb, depth):
         semantic_pred, vis = self.segmentation_model.get_prediction(rgb)
         return semantic_pred, vis
+
+    def get_orientation(self):
+        """Get discretized robot orientation."""
+        # yaw is in radians in [0, 6.28]
+        _, _, yaw_in_radians = self.robot.get_base_state()
+
+        # convert it to degrees in [0, 360]
+        yaw_in_degrees = int(yaw_in_radians * 180.0 / np.pi)
+    
+        orientation = torch.tensor([yaw_in_degrees // 5])
+        return orientation
 
     def get_open3d_pcd(self, rgb_depth=None, cam_transform=None, base_state=None):
         # get data

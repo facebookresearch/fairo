@@ -200,9 +200,8 @@ class SLAM(object):
         return map_features.unsqueeze(0)
 
     def get_orientation(self):
-        _, _, yaw = self.robot.get_base_state()
-        orientation = torch.tensor([int((yaw * 180.0 / np.pi + 180.0) / 5.0)])
-        return orientation
+        """Get discretized robot orientation."""
+        return self.robot.get_orientation()
 
     def get_semantic_frame_vis(self, rgb, semantics):
         """Visualize first-person semantic segmentation frame."""

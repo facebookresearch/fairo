@@ -6,6 +6,7 @@ import copy
 import Pyro4
 from pyrobot import Robot
 import numpy as np
+import torch
 from scipy.spatial.transform import Rotation
 import logging
 import quaternion
@@ -465,6 +466,17 @@ class RemoteLocobot(object):
         else:
             semantic_pred, vis = self.segmentation_model.get_prediction(rgb)
             return semantic_pred, vis
+
+    def get_orientation(self):
+        """Get discretized robot orientation."""
+        # yaw is in radians in [-3.14, 3.14] in Habitat
+        _, _, yaw_in_radians = self.robot.get_base_state()
+
+        # convert it to degrees in [0, 360]
+        yaw_in_degrees = int(yaw_in_radians * 180.0 / np.pi + 180.0)
+    
+        orientation = torch.tensor([yaw_in_degrees // 5])
+        return orientation
 
     def get_semantic_categories_in_scene(self):
         if self.scene_contains_semantic_annotations:
