@@ -474,7 +474,7 @@ class RemoteLocobot(object):
 
         # convert it to degrees in [0, 360]
         yaw_in_degrees = int(yaw_in_radians * 180.0 / np.pi + 180.0)
-    
+
         orientation = torch.tensor([yaw_in_degrees // 5])
         return orientation
 
