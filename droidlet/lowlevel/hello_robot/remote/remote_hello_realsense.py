@@ -59,7 +59,7 @@ class RemoteHelloRealsense(object):
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
         self.segmentation_model = SemanticPredMaskRCNN(
-            sem_pred_prob_thr=0.5, sem_gpu_id=-1, visualize=True
+            sem_pred_prob_thr=0.8, sem_gpu_id=-1, visualize=True
         )
 
     def get_base_state(self):
@@ -217,6 +217,8 @@ class RemoteHelloRealsense(object):
         rgb, depth = self.get_rgb_depth(rotate=False, compressed=False)
         opcd = self.get_open3d_pcd(rgb_depth=[rgb, depth])
         pcd = np.asarray(opcd.points)
+        rgb = np.rot90(rgb, k=1, axes=(1, 0))
+        depth = np.rot90(depth, k=1, axes=(1, 0))
         return pcd, rgb, depth
 
     def is_obstacle_in_front(self, return_viz=False):

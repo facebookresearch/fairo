@@ -233,7 +233,6 @@ if __name__ == "__main__":
         semantic_frame = mover.slam.get_last_semantic_frame()
         if semantic_frame is not None:
             rgb_depth.rgb = semantic_frame
-            # rgb_depth.rgb = np.transpose(semantic_frame, (1, 0, 2))
 
         # this takes about 1.5 to 2 fps
         serialized_image = rgb_depth.to_struct(resolution, quality)
