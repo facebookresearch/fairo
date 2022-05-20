@@ -1,5 +1,5 @@
 # This file is temporary to test different segmentation models
-  
+
 import cv2
 import glob
 
