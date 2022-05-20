@@ -1,5 +1,5 @@
 ## Chat Architecture Flowchart ##
-
+<pre>
 `handleSubmit`                            User sends a new chat (command status: 'sent')
                                                       |
 `setChatReponse`(in `StateManager`)      Agent receives the chat (command status: 'received' -> 'thinking' (500ms later))
@@ -23,7 +23,7 @@
                 (finished - nlu error)   Was there a vision error?   `askVisionQuestion`
 `answerVision`                         n/                         \y
                             (finished - other error)     (finished - vision error)
-
+</pre>
 
 ## InteractApp Overview ##
 
