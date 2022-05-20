@@ -7,14 +7,12 @@ import torch.nn as nn
 import numpy as np
 import Pyro4
 import select
-import cv2
 from rich import print
-from PIL import Image
 
 from slam_pkg.utils.map_builder import MapBuilder as mb
 from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
-from segmentation.constants import coco_categories, frame_color_palette
+from segmentation.constants import coco_categories
 
 random.seed(0)
 torch.manual_seed(0)
@@ -117,18 +115,10 @@ class SLAM(object):
 
     def update_map(self):
         pcd, rgb, depth = self.robot.get_current_pcd()
-
-        semantics, semantics_vis = self.robot.get_semantics(rgb, depth)
-        if semantics_vis is not None:
-            self.last_semantic_frame = semantics_vis
-        else:
-            self.last_semantic_frame = self.get_semantic_frame_vis(rgb, semantics)
-        semantics = semantics.reshape(-1, self.num_sem_categories)
-        valid = (depth > 0).flatten()
-        semantics = semantics[valid]
+        semantics, self.last_semantic_frame = self.robot.get_semantics(rgb, depth)
+        pose = self.robot.get_base_state()
 
         self.map_builder.update_map(pcd)
-        pose = self.robot.get_base_state()
         self.map_builder.update_semantic_map(pcd, semantics, pose)
 
         # explore the map by robot shape
@@ -202,21 +192,6 @@ class SLAM(object):
     def get_orientation(self):
         """Get discretized robot orientation."""
         return self.robot.get_orientation()
-
-    def get_semantic_frame_vis(self, rgb, semantics):
-        """Visualize first-person semantic segmentation frame."""
-        width, height = semantics.shape[:2]
-        vis_content = semantics
-        vis_content[:, :, -1] = 1e-5
-        vis_content = vis_content.argmax(-1)
-
-        vis = Image.new("P", (height, width))
-        vis.putpalette([int(x * 255.0) for x in frame_color_palette])
-        vis.putdata(vis_content.flatten().astype(np.uint8))
-        vis = vis.convert("RGB")
-        vis = np.array(vis)
-        vis = np.where(vis != 255, vis, rgb)
-        return vis
 
     def reset_map(self, z_bins=None, obs_thr=None):
         self.map_builder.reset_map(self.map_size_cm, z_bins=z_bins, obs_thr=obs_thr)

@@ -9,6 +9,7 @@ import numpy as np
 import torch
 from scipy.spatial.transform import Rotation
 import logging
+from PIL import Image
 import quaternion
 import os
 import open3d as o3d
@@ -19,7 +20,7 @@ from droidlet.lowlevel.robot_mover_utils import (
     transform_pose,
 )
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
-from segmentation.constants import coco_categories
+from segmentation.constants import coco_categories, frame_color_palette
 from segmentation.semantic_prediction import SemanticPredMaskRCNN
 from habitat_utils import reconfigure_scene
 
@@ -461,11 +462,31 @@ class RemoteLocobot(object):
         if self.scene_contains_semantic_annotations:
             instance_segmentation = self.get_rgb_depth_segm()[2]
             semantic_segmentation = self.instance_id_to_category_id[instance_segmentation]
-            semantic_segmentation = self.one_hot_encoding[semantic_segmentation]
-            return semantic_segmentation, None
+            semantics = self.one_hot_encoding[semantic_segmentation]
+            semantics_vis = self.get_semantic_frame_vis(rgb, semantics)
         else:
-            semantic_pred, vis = self.segmentation_model.get_prediction(rgb)
-            return semantic_pred, vis
+            semantics, semantics_vis = self.segmentation_model.get_prediction(rgb)
+
+        # apply the same depth filter to semantics as we applied to the point cloud
+        semantics = semantics.reshape(-1, self.num_sem_categories)
+        valid = (depth > 0).flatten()
+        semantics = semantics[valid]
+
+        return semantics, semantics_vis
+
+    def get_semantic_frame_vis(self, rgb, semantics):
+        """Visualize first-person semantic segmentation frame."""
+        width, height = semantics.shape[:2]
+        vis_content = semantics
+        vis_content[:, :, -1] = 1e-5
+        vis_content = vis_content.argmax(-1)
+        vis = Image.new("P", (height, width))
+        vis.putpalette([int(x * 255.0) for x in frame_color_palette])
+        vis.putdata(vis_content.flatten().astype(np.uint8))
+        vis = vis.convert("RGB")
+        vis = np.array(vis)
+        vis = np.where(vis != 255, vis, rgb)
+        return vis
 
     def get_orientation(self):
         """Get discretized robot orientation."""

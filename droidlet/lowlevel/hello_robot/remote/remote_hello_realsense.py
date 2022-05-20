@@ -168,8 +168,20 @@ class RemoteHelloRealsense(object):
         return color_image, depth_image
 
     def get_semantics(self, rgb, depth):
-        semantic_pred, vis = self.segmentation_model.get_prediction(rgb)
-        return semantic_pred, vis
+        """Get semantic segmentation."""
+        semantics, semantics_vis = self.segmentation_model.get_prediction(rgb)
+
+        # given RGB and depth are rotated after the point cloud creation, 
+        # we rotate them back here to align to the point cloud
+        depth = np.rot90(depth, k=1, axes=(0, 1))
+        semantics = np.rot90(semantics, k=1, axes=(0, 1))
+
+        # apply the same depth filter to semantics as we applied to the point cloud
+        semantics = semantics.reshape(-1, self.num_sem_categories)
+        valid = (depth > 0).flatten()
+        semantics = semantics[valid]
+
+        return semantics, semantics_vis
 
     def get_orientation(self):
         """Get discretized robot orientation."""
@@ -227,8 +239,11 @@ class RemoteHelloRealsense(object):
         rgb, depth = self.get_rgb_depth(rotate=False, compressed=False)
         opcd = self.get_open3d_pcd(rgb_depth=[rgb, depth])
         pcd = np.asarray(opcd.points)
+
+        # RGB and depth are rotated after the point cloud creation
         rgb = np.rot90(rgb, k=1, axes=(1, 0))
         depth = np.rot90(depth, k=1, axes=(1, 0))
+
         return pcd, rgb, depth
 
     def is_obstacle_in_front(self, return_viz=False):
