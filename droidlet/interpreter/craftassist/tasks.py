@@ -395,7 +395,7 @@ class Build(Task):
             self.remove_blocks(xyzs, agent)
             return
         # for a build task with destroy schematic,
-        # it is done when all different blocks are removed.  
+        # it is done when all different blocks are removed.
         elif self.is_destroy_schm:
             self.finish(agent)
             return
@@ -444,9 +444,7 @@ class Build(Task):
     def perceive_removed_blocks(self, target, agent):
         agent.memory.maybe_remove_inst_seg(target)
         if self.is_destroy_schm:
-            agent.memory.maybe_remove_block_from_memory(
-                target, (0, 0), agent.areas_to_perceive
-            )
+            agent.memory.maybe_remove_block_from_memory(target, (0, 0), agent.areas_to_perceive)
         else:
             interesting, player_placed, agent_placed = agent.perception_modules[
                 "low_level"
@@ -503,7 +501,6 @@ class Build(Task):
             )
             self.giving_up_message_sent = True
 
-        
     # FIXME, this should go in agent...
     # is being done here just so its easy to know agent placed block
     def perceive_placed_block(self, target, idm, agent):
@@ -520,7 +517,6 @@ class Build(Task):
         )
         changed_blocks = agent.get_changed_blocks()
         self.add_tags(agent, (target, tuple(idm)))
-
 
     def add_tags(self, agent, block):
         # xyz, _ = npy_to_blocks_list(self.schematic, self.origin)[0]
