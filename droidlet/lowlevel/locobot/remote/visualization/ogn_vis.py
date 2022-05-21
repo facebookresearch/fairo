@@ -100,8 +100,7 @@ class ObjectGoalNavigationVisualization:
         sem_map += 4
         sem_map[no_category_mask] = 0
         sem_map[np.logical_and(no_category_mask, explored_mask)] = 2
-        # TODO Why does the agent height projection include all the explored area?
-        # sem_map[np.logical_and(no_category_mask, obstacle_mask)] = 1
+        sem_map[np.logical_and(no_category_mask, obstacle_mask)] = 1
         sem_map[visited_mask] = 3
 
         selem = skimage.morphology.disk(6)

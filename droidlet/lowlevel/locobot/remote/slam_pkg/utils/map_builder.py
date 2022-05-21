@@ -122,7 +122,7 @@ class MapBuilder(object):
 
         voxels_t = splat_feat_nd(init_grid, feat, geometric_pc_t).transpose(2, 3)
 
-        agent_height_proj = voxels_t[..., self.z_bins[0] : self.z_bins[1]].sum(4)
+        # agent_height_proj = voxels_t[..., self.z_bins[0] : self.z_bins[1]].sum(4)
         all_height_proj = voxels_t.sum(4)
 
         # Map channels reminder:
@@ -134,16 +134,16 @@ class MapBuilder(object):
         current_map = (
             torch.cat(
                 [
-                    # TODO Why does the agent height projection include all the explored area?
                     torch.clamp(
-                        agent_height_proj[:, 0:1, :, :] / self.obs_threshold, min=0.0, max=1.0
+                        torch.from_numpy(self.map[:, :, 1]).unsqueeze(0).unsqueeze(0) / self.obs_threshold, 
+                        min=0.0, max=1.0
                     ),
                     torch.clamp(
                         all_height_proj[:, 0:1, :, :] / self.obs_threshold, min=0.0, max=1.0
                     ),
                     torch.zeros(1, 2, self.map_size, self.map_size),
                     torch.clamp(
-                        agent_height_proj[:, 1:] / self.cat_pred_threshold, min=0.0, max=1
+                        all_height_proj[:, 1:] / self.cat_pred_threshold, min=0.0, max=1.0
                     ),
                 ],
                 dim=1,
