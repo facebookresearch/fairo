@@ -135,8 +135,10 @@ class MapBuilder(object):
             torch.cat(
                 [
                     torch.clamp(
-                        torch.from_numpy(self.map[:, :, 1]).unsqueeze(0).unsqueeze(0) / self.obs_threshold, 
-                        min=0.0, max=1.0
+                        torch.from_numpy(self.map[:, :, 1]).unsqueeze(0).unsqueeze(0)
+                        / self.obs_threshold,
+                        min=0.0,
+                        max=1.0,
                     ),
                     torch.clamp(
                         all_height_proj[:, 0:1, :, :] / self.obs_threshold, min=0.0, max=1.0
