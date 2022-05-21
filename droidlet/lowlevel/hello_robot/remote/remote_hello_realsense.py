@@ -22,6 +22,7 @@ import obstacle_utils
 from obstacle_utils import is_obstacle
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
 from data_compression import *
+from segmentation.constants import coco_categories
 from segmentation.semantic_prediction import SemanticPredMaskRCNN
 
 
@@ -59,6 +60,7 @@ class RemoteHelloRealsense(object):
         img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
+        self.num_sem_categories = len(coco_categories)
         self.segmentation_model = SemanticPredMaskRCNN(
             sem_pred_prob_thr=0.8, sem_gpu_id=-1, visualize=True
         )

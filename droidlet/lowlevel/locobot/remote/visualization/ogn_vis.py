@@ -6,7 +6,7 @@ from PIL import Image
 import skimage.morphology
 from natsort import natsorted
 
-from segmentation.constants import map_color_palette, frame_color_palette
+from segmentation.constants import map_color_palette
 
 
 class ObjectGoalNavigationVisualization:
@@ -68,9 +68,9 @@ class ObjectGoalNavigationVisualization:
     def record_video(self):
         img_array = []
         for filename in natsorted(glob.glob(f"{self.path}/*.png")):
+            img = cv2.imread(filename)
             height, width, _ = img.shape
             size = (width, height)
-            img = cv2.imread(filename)
             img_array.append(img)
 
         out = cv2.VideoWriter(f"{self.path}/video.avi", cv2.VideoWriter_fourcc(*"DIVX"), 15, size)
