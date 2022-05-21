@@ -27,7 +27,7 @@ def compute_des_pose(best_grasp):
     bz = np.cross(bx, by)
     plane_rot = R.from_matrix(np.vstack([bx, by, bz]).T)
 
-    des_ori = plane_rot * R.from_euler("x", 30, degrees=True) * R.from_euler("y", 90, degrees=True)
+    des_ori = plane_rot * R.from_euler("y", 90, degrees=True)
     des_ori_quat = des_ori.as_quat()
 
     return grasp_point, grasp_approach_delta, des_ori_quat
@@ -51,6 +51,16 @@ def min_dist_grasp(default_ee_pose, grasps):
     log.info(f"Grasp {i} has angle {dists[i]} from reference.")
     return grasps[i], i
 
+def min_dist_grasp_norot(default_ee_pose, grasps):
+    with torch.no_grad():
+        rots_as_R = [R.from_quat(compute_des_pose(grasp)[2]) for grasp in grasps]
+        default_r = R.from_quat(default_ee_pose)
+        dists = [np.linalg.norm((rot.inv() * default_r).as_rotvec()[:2]) for rot in rots_as_R]
+        # dists = [abs(default_euler[0] - rot[0]) + abs(default_ee_pose[2] - rot[2]) for rot in rots_as_rotvec]
+        i = torch.argmin(torch.Tensor(dists)).item()
+    log.info(f"Grasp {i} has angle {dists[i]} from reference.")
+    return grasps[i], i
+
 
 class GraspingRobotInterface(polymetis.RobotInterface):
     def __init__(
@@ -59,12 +69,13 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         super().__init__(*args, **kwargs)
         self.gripper = hydra.utils.instantiate(gripper)
 
-        self.default_ee_pose = torch.Tensor([0.9418, 0.3289, -0.0368, -0.0592])
+        # self.default_ee_pose = torch.Tensor([0.9418, 0.3289, -0.0368, -0.0592])
+        self.default_ee_pose = torch.Tensor([1, 0, 0, 0])
         self.k_approach = k_approach
         self.k_grasp = k_grasp
 
         self.robot_model_ikpy = ikpy.chain.Chain.from_urdf_file("/home/yixinlin/dev/fairo/polymetis/polymetis/data/franka_panda/panda_arm.urdf", base_elements=["panda_link0"])
-        soft_limits = [(-2.8, 2.8), (-1.66, 1.66), (-2.8, 2.8), (-2.97, -0.17), (-2.8, 2.8), (0.08, 3.65), (-2.8, 2.8)]
+        soft_limits = [(-2.70, 2.70), (-1.56, 1.56), (-2.7, 2.7), (-2.87, -0.07), (-2.7, 2.7), (-0.02, 3.55), (-2.7, 2.7)]
         for i in range(len(soft_limits)):
             self.robot_model_ikpy.links[i + 1].bounds = soft_limits[i]
     
@@ -95,8 +106,8 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         for _ in range(max_attempts):
             # joint_pos = self.robot_model.inverse_kinematics(position, orientation, rest_pose=self.get_joint_positions())
             joint_pos = self.ik(position, orientation)
-
             states += self.move_to_joint_positions(joint_pos, time_to_go=time_to_go)
+
             # states += self.move_to_ee_pose(position=position, orientation=orientation, time_to_go=time_to_go)
             curr_ee_pos, curr_ee_ori = self.get_ee_pose()
 
@@ -105,7 +116,8 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             log.info(f"Dist to goal: xyz diff {xyz_diff}, ori diff {ori_diff}")
 
             if (
-                states[-1].prev_command_successful
+                states
+                and states[-1].prev_command_successful
                 and xyz_diff < success_dist
                 and ori_diff < 0.2
             ):  # TODO: orientation diff
@@ -117,6 +129,10 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             feasible_i = []
             for i, grasp in enumerate(grasps):
                 print(f"checking feasibility {i}/{len(grasps)}")
+
+                if grasp.width > .085:
+                    continue
+
                 grasp_point, grasp_approach_delta, des_ori_quat = compute_des_pose(grasp)
                 point_a = grasp_point + self.k_approach * grasp_approach_delta
                 point_b = grasp_point + self.k_grasp * grasp_approach_delta
@@ -146,9 +162,10 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             #     )
 
             # Choose the grasp closest to the neutral position
-            grasp, i = min_dist_grasp(self.default_ee_pose, grasps[feasible_i][:5])
+            filtered_grasps = grasps[feasible_i]
+            grasp, i = min_dist_grasp_norot(self.default_ee_pose, filtered_grasps)
             log.info(f"Closest grasp to ee ori, within top 5: {i + 1}")
-            return grasp
+            return grasp, filtered_grasps
 
     def grasp(
         self,
@@ -159,6 +176,11 @@ class GraspingRobotInterface(polymetis.RobotInterface):
     ):
         states = []
         grasp_point, grasp_approach_delta, des_ori_quat = compute_des_pose(grasp)
+
+        # des_ori = R.from_quat(des_ori_quat).as_rotvec()
+        # des_ori[:2] = [3.1415, 0]
+        # des_ori_quat = R.from_rotvec(des_ori).as_quat()
+        # import pdb; pdb.set_trace()
 
         self.gripper_open()
         states += self.move_until_success(

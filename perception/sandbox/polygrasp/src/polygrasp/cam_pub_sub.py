@@ -108,7 +108,7 @@ if __name__ == "__main__":
         help="JSON file to overwrite with current intrinsics.",
     )
     args = parser.parse_args()
-    cameras = realsense_wrapper.RealsenseAPI()
+    cameras = realsense_wrapper.RealsenseAPI(width=848, height=480)
 
     intrinsics = cameras.get_intrinsics()
     intrinsics_py = [

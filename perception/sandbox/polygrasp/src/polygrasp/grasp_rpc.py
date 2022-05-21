@@ -131,17 +131,21 @@ class GraspClient:
         plot=False,
         render=False,
         save_view=False,
+        name="scene",
     ) -> None:
         grasp_o3d_geometries = grasp_group.to_open3d_geometry_list()
         grasp_pointclouds = [
             grasp_o3d_geometry.sample_points_uniformly(number_of_points=5000)
             for grasp_o3d_geometry in grasp_o3d_geometries
         ]
+        # scene = scene_pcd
+        # for pcd in grasp_pointclouds[:10]:
+        #     scene += pcd
         vis = self.visualize(scene_pcd=scene_pcd, plot=plot, render=render, save_view=save_view)
 
         # Save scene
         grasp_image = np.array(vis.capture_screen_float_buffer(do_render=True))
-        save_img(grasp_image, "scene")
+        save_img(grasp_image, name)
 
         n = min(n, len(grasp_o3d_geometries))
         log.info(f"Visualizing top {n} grasps in Open3D...")
@@ -150,13 +154,13 @@ class GraspClient:
         for i, grasp_pointcloud in enumerate(grasp_pointclouds[:n]):
             vis.add_geometry(grasp_pointcloud, reset_bounding_box=False)
             grasp_image = np.array(vis.capture_screen_float_buffer(do_render=True))
-            save_img(grasp_image, f"scene_with_grasp_{i + 1}")
+            save_img(grasp_image, f"{name}_with_grasp_{i + 1}")
             vis.remove_geometry(grasp_pointcloud, reset_bounding_box=False)
 
         # Save scene with all grasps
         for grasp_pointcloud in grasp_pointclouds[:n]:
             vis.add_geometry(grasp_pointcloud, reset_bounding_box=False)
         grasp_image = np.array(vis.capture_screen_float_buffer(do_render=True))
-        save_img(grasp_image, "scene_with_grasps")
+        save_img(grasp_image, f"{name}_with_grasps")
 
         return vis

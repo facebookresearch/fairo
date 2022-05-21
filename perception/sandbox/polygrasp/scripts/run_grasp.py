@@ -4,6 +4,8 @@ Connects to robot, camera(s), gripper, and grasp server.
 Runs grasps generated from grasp server.
 """
 
+from scipy.spatial.transform import Rotation as R
+
 import time
 import os
 
@@ -14,6 +16,7 @@ import torch
 import hydra
 import omegaconf
 
+from polygrasp.robot_interface import compute_des_pose
 from polygrasp.segmentation_rpc import SegmentationClient
 from polygrasp.grasp_rpc import GraspClient
 from polygrasp.serdes import load_bw_img
@@ -42,23 +45,21 @@ def save_obj_masked(obj_masked_rgbd, obj_i, obj_mask_size):
     plt.close()
 
 
-def get_obj_grasps(cameras, cam_i, rgbd, grasp_client, obj_masked_rgbds, obj_masks):
-    cam_pcd = cameras.get_pcd_i(rgbd[cam_i], cam_i)
-    for obj_i, (obj_masked_rgbd, obj_mask) in enumerate(zip(obj_masked_rgbds, obj_masks)):
-        obj_mask_size = obj_mask.sum()
-        save_obj_masked(obj_masked_rgbd, obj_i, obj_mask_size)
-
-        print(f"Getting obj {obj_i} pcd...")
-        pcd = cameras.get_pcd_i(obj_masked_rgbd, cam_i)
+def get_obj_grasps(grasp_client, obj_masked_rgbds, obj_pcds, scene_pcd):
+    for obj_i, obj_pcd in enumerate(obj_pcds):
+        # obj_mask_size = obj_mask.sum()
+        # save_obj_masked(obj_masked_rgbd, obj_i, obj_mask_size)
+        # print(f"Getting obj {obj_i} pcd...")
+        # pcd = cameras.get_pcd_i(obj_masked_rgbd, cam_i)
         print(f"Getting obj {obj_i} grasp...")
-        grasp_group = grasp_client.get_grasps(pcd)
-        filtered_grasp_group = grasp_client.get_collision(grasp_group, cam_pcd)
+        grasp_group = grasp_client.get_grasps(obj_pcd)
+        filtered_grasp_group = grasp_client.get_collision(grasp_group, scene_pcd)
         if len(filtered_grasp_group) < len(grasp_group):
             print(
                 f"Filtered {len(grasp_group) - len(filtered_grasp_group)}/{len(grasp_group)} grasps due to collision."
             )
         if len(filtered_grasp_group) > 0:
-            return filtered_grasp_group
+            return obj_i, filtered_grasp_group
     raise Exception(
         f"Unable to find any grasps after filtering, for any of the {len(obj_masked_rgbds)} objects"
     )
@@ -69,6 +70,7 @@ def execute_grasp(robot, chosen_grasp, grasp_offset, hori_offset, time_to_go):
     print(f"Grasp success: {success}")
 
     if success:
+        import pdb; pdb.set_trace()
         print("Placing object in hand")
         curr_pose, curr_ori = robot.get_ee_pose()
         traj += robot.move_until_success(
@@ -129,20 +131,21 @@ def main(cfg):
     root_working_dir = os.getcwd()
     for outer_i in range(cfg.num_bin_shifts):
         cam_i = outer_i % 2
-        # cam_i = 0
+        # cam_i = 1
         print(f"=== Starting bin shift with cam {cam_i} ===")
 
         if cam_i == 0:
             masks = masks_1
-            hori_offset = torch.Tensor([0, -0.4, 0])
+            # hori_offset = torch.Tensor([0, -0.4, 0])
             grasp_offset = np.array([0.0, 0.0, 0.00])
             time_to_go = 3
         else:
             masks = masks_2
-            hori_offset = torch.Tensor([0, 0.4, 0])
+            # hori_offset = torch.Tensor([0, 0.4, 0])
             grasp_offset = np.array([0.0, 0.0, 0.0])
             time_to_go = 3
-
+        hori_offset = torch.Tensor([0, 0.0, 0])
+        
         for i in range(cfg.num_grasps_per_bin_shift):
             # Create directory for current grasp iteration
             os.chdir(root_working_dir)
@@ -156,29 +159,61 @@ def main(cfg):
 
             print("Getting rgbd and pcds..")
             rgbd = cameras.get_rgbd()
+
             rgbd_masked = rgbd * masks[:, :, :, None]
             scene_pcd = cameras.get_pcd(rgbd)
             save_rgbd_masked(rgbd, rgbd_masked)
 
             print("Segmenting image...")
-            obj_masked_rgbds, obj_masks = segmentation_client.segment_img(
-                rgbd_masked[cam_i], min_mask_size=cfg.min_mask_size
-            )
+            obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd_masked[cam_i], min_mask_size=cfg.min_mask_size)
+            obj_masked_pcds = [cameras.get_pcd_i(obj_masked_rgbd, cam_i) for obj_masked_rgbd in obj_masked_rgbds]
+            obj_pcd_centers = [pcd.get_center() for pcd in obj_masked_pcds]
             if len(obj_masked_rgbds) == 0:
                 print(f"Failed to find any objects with mask size > {cfg.min_mask_size}!")
                 break
 
+            cam_i_other = 1 - cam_i
+            obj_masked_rgbds_2, obj_masks_2 = segmentation_client.segment_img(rgbd_masked[cam_i_other], min_mask_size=cfg.min_mask_size)
+            obj_masked_pcds_2 = [cameras.get_pcd_i(obj_masked_rgbd, cam_i_other) for obj_masked_rgbd in obj_masked_rgbds_2]
+            obj_pcd_centers_2 = [pcd.get_center() for pcd in obj_masked_pcds_2]
+
+            obj_pcds = []
+            for i, center_1 in enumerate(obj_pcd_centers):
+                dists = [np.linalg.norm(center_1[:2] - center_2[:2]) for center_2 in obj_pcd_centers_2]
+                print(f"Dists for obj {i}: {dists}")
+                if len(dists) == 0:
+                    obj_pcds.append(obj_masked_pcds[i])
+                else:
+                    j = np.argmin(dists)
+                    dist = dists[j]
+                    if dist < 0.1:
+                        obj_pcds.append(obj_masked_pcds[i] + obj_masked_pcds_2[j])
+                    else:
+                        obj_pcds.append(obj_masked_pcds[i])
+
             print("Getting grasps per object...")
-            filtered_grasp_group = get_obj_grasps(
-                cameras, cam_i, rgbd, grasp_client, obj_masked_rgbds, obj_masks
+            obj_i, filtered_grasp_group = get_obj_grasps(
+                # cameras, cam_i, rgbd, grasp_client, obj_masked_rgbds, obj_masks
+                grasp_client, obj_masked_rgbds, obj_pcds, scene_pcd
             )
 
-            cam_pcd = cameras.get_pcd_i(rgbd[cam_i], cam_i)
+            # cam_pcd = cameras.get_pcd_i(rgbd[cam_i], cam_i)
             print("Choosing a grasp for the object")
-            grasp_client.visualize_grasp(cam_pcd, filtered_grasp_group)
-            chosen_grasp = robot.select_grasp(filtered_grasp_group)
+            chosen_grasp, final_filtered_grasps = robot.select_grasp(filtered_grasp_group)
+            grasp_client.visualize_grasp(scene_pcd, final_filtered_grasps)
+            grasp_client.visualize_grasp(obj_pcds[obj_i], final_filtered_grasps, name="obj")
+            # for g in final_filtered_grasps:
+            #     print("Executing grasp")
+            #     traj, success = robot.grasp(g, offset=grasp_offset, time_to_go=time_to_go, gripper_width_success_threshold=0.001)
+            #     if success:
+            #         break
+            # for grasp in final_filtered_grasps:
+            #     curr_ee_pos = robot.get_ee_pose()[0]
+            #     des_ee_ori = torch.Tensor(compute_des_pose(grasp)[2])
+            #     joint_pos = robot.ik(curr_ee_pos, des_ee_ori)
+            #     import ipdb; ipdb.set_trace()
+            #     robot.move_to_joint_positions(joint_pos)
 
-            print("Executing grasp")
             traj = execute_grasp(robot, chosen_grasp, grasp_offset, hori_offset, time_to_go)
 
             print("Going home")
