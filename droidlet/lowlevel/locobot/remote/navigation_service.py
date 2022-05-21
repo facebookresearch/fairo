@@ -191,15 +191,6 @@ class Navigation(object):
                     map_features, orientation_tensor, object_goal_cat_tensor, deterministic=False
                 )[0]
 
-                # These lines
-                # https://github.com/devendrachaplot/Object-Goal-Navigation/blob/master/main.py#L315
-                # https://github.com/devendrachaplot/Object-Goal-Navigation/blob/master/envs/utils/fmm_planner.py#L71
-                # seem to indicate that the goal action in the pre-trained model is (row, column) - i.e., we index map[goal[0], goal[1]]
-                # while in this repo, this line
-                # https://github.com/facebookresearch/fairo/blob/main/droidlet/lowlevel/locobot/remote/slam_pkg/utils/fmm_planner.py#L29
-                # indicates that the goal action is (column, row) - i.e., we index map[goal[1], goal[0]]
-                goal_action = goal_action.flip(0)
-
                 goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
                 global_loc = np.array(self.slam.robot2map(self.robot.get_base_state()[:2]))
                 goal_in_global_map = global_loc + (goal_in_local_map - self.local_map_size // 2)
