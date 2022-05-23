@@ -47,7 +47,9 @@ class MemoryNode:
         self.memid = memid
 
     def get_tags(self) -> List[str]:
-        return self.agent_memory.nodes[TripleNode.NODE_TYPE].get_tags_by_memid(self.agent_memory, self.memid)
+        return self.agent_memory.nodes[TripleNode.NODE_TYPE].get_tags_by_memid(
+            self.agent_memory, self.memid
+        )
 
     def get_properties(self) -> Dict[str, str]:
         blacklist = self.PROPERTIES_BLACKLIST + self._more_properties_blacklist()

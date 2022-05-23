@@ -528,7 +528,9 @@ class MCAgentMemory(AgentMemory):
             if b >= 256:
                 continue
             memid = BlockTypeNode.create(self, type_name, (b, m))
-            self.nodes[TripleNode.NODE_TYPE].create(self, subj=memid, pred_text="has_name", obj_text=type_name)
+            self.nodes[TripleNode.NODE_TYPE].create(
+                self, subj=memid, pred_text="has_name", obj_text=type_name
+            )
             if "block" in type_name:
                 self.nodes[TripleNode.NODE_TYPE].create(
                     self,
@@ -562,7 +564,9 @@ class MCAgentMemory(AgentMemory):
 
             # load single mob as schematics
             memid = SchematicNode.create(self, [((0, 0, 0), (383, m))])
-            self.nodes[TripleNode.NODE_TYPE].create(self, subj=memid, pred_text="has_name", obj_text=type_name)
+            self.nodes[TripleNode.NODE_TYPE].create(
+                self, subj=memid, pred_text="has_name", obj_text=type_name
+            )
             self.nodes[TripleNode.NODE_TYPE].tag(self, memid, "_spawn")
             self.nodes[TripleNode.NODE_TYPE].tag(self, memid, name)
             if "block" in name:
@@ -570,7 +574,9 @@ class MCAgentMemory(AgentMemory):
 
             # then load properties
             memid = MobTypeNode.create(self, type_name, (383, m))
-            self.nodes[TripleNode.NODE_TYPE].create(self, subj=memid, pred_text="has_name", obj_text=type_name)
+            self.nodes[TripleNode.NODE_TYPE].create(
+                self, subj=memid, pred_text="has_name", obj_text=type_name
+            )
             if mob_name_to_properties.get(type_name) is not None:
                 for prop in mob_name_to_properties[type_name]:
                     self.nodes[TripleNode.NODE_TYPE].tag(self, memid, prop)

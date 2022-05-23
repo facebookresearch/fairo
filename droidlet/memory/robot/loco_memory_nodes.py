@@ -286,7 +286,9 @@ class DanceNode(MemoryNode):
         # TODO put in db via pickle like tasks?
         memory.dances[memid] = dance_fn
         if name is not None:
-            memory.nodes[TripleNode.NODE_TYPE].create(memory, subj=memid, pred_text="has_name", obj_text=name)
+            memory.nodes[TripleNode.NODE_TYPE].create(
+                memory, subj=memid, pred_text="has_name", obj_text=name
+            )
         if len(tags) > 0:
             for tag in tags:
                 memory.nodes[TripleNode.NODE_TYPE].create(

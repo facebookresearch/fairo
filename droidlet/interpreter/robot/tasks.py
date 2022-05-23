@@ -375,7 +375,9 @@ class Drop(Task):
                     for mmid in agent.memory.nodes[TripleNode.NODE_TYPE].get_memids_by_tag(
                         agent.memory, "_in_inventory"
                     ):
-                        agent.memory.nodes[TripleNode.NODE_TYPE].untag(agent.memory, mmid, "_in_inventory")
+                        agent.memory.nodes[TripleNode.NODE_TYPE].untag(
+                            agent.memory, mmid, "_in_inventory"
+                        )
 
 
 class TrajectorySaverTask(Task):
