@@ -298,12 +298,14 @@ class ClarifyNoMatch(Task):
                     self.clarification_failed()
                 else:
                     # Found it! Add the approriate tag to current candidate and mark it as the output
-                    self.agent.memory.add_triple(
+                    self.agent.memory.nodes["Triple"].create(
+                        self.memory,
                         subj=self.current_candidate,
                         pred_text="has_tag",
                         obj_text=self.ref_obj_span,
                     )
-                    self.agent.memory.add_triple(
+                    self.agent.memory.nodes["Triple"].create(
+                        self.memory,
                         subj=self.memid,
                         pred_text="dialogue_clarification_output",
                         obj_text=self.current_candidate,
