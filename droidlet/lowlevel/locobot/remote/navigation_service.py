@@ -145,7 +145,7 @@ class Navigation(object):
         self._busy = False
         return path_found, goal_reached
 
-    def go_to_object(self, object_goal: str, debug=False, visualize=True, max_steps=20):
+    def go_to_object(self, object_goal: str, debug=False, visualize=True, max_steps=25):
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
