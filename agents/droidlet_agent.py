@@ -14,7 +14,12 @@ from agents.scheduler import EmptyScheduler
 from droidlet.event import sio, dispatch
 from droidlet.interpreter import InterpreterBase
 from droidlet.memory.save_and_fetch_commands import *
-from droidlet.memory.memory_nodes import TaskNode
+from droidlet.memory.memory_nodes import (
+    TaskNode,
+    TripleNode,
+    ChatNode,
+    ProgramNode
+)
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.perception.semantic_parsing.semantic_parsing_util import postprocess_logical_form
 
@@ -155,7 +160,7 @@ class DroidletAgent(BaseAgent):
                 chat_memids, _ = self.memory.basic_search(
                     f"SELECT MEMORY FROM Chat WHERE chat={chat}"
                 )
-                logical_form_triples = self.memory.nodes["Triple"].get_triples(
+                logical_form_triples = self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
                     self.memory, subj=chat_memids[0], pred_text="has_logical_form"
                 )
                 if logical_form_triples:
@@ -337,18 +342,18 @@ class DroidletAgent(BaseAgent):
 
         # add postprocessed chat here
         memid, _ = self.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}')
-        chat_memid = self.memory.nodes["Chat"].create(
+        chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
             self.memory, memid[0], preprocessed_chat
         )
         post_processed_parse = postprocess_logical_form(
             self.memory, speaker=speaker, chat=chat, logical_form=chat_parse
         )
-        logical_form_memid = self.memory.nodes["Program"].create(self.memory, post_processed_parse)
-        self.memory.nodes["Triple"].create(
+        logical_form_memid = self.memory.nodes[ProgramNode.NODE_TYPE].create(self.memory, post_processed_parse)
+        self.memory.nodes[TripleNode.NODE_TYPE].create(
             self.memory, subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
         )
         # New chat, mark as uninterpreted.
-        self.memory.nodes["Triple"].tag(
+        self.memory.nodes[TripleNode.NODE_TYPE].tag(
             self.memory, subj_memid=chat_memid, tag_text="uninterpreted"
         )
         return logical_form_memid, chat_memid

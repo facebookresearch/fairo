@@ -2,6 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
+
+from droidlet.memory.memory_nodes import TripleNode
 from .memory_filters import get_property_value, Attribute
 
 
@@ -57,14 +59,14 @@ class TripleWalk(Attribute):
                 n = None
                 if mem is not None:
                     if p[1] == "subj_variable":
-                        n = self.memory.nodes["Triple"].get_triples(
+                        n = self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
                             self.memory, pred_text=p[0], obj=mem.memid
                         )
                         if len(n) > 0:
                             # TODO don't just pick the first?
                             next_step.append(self.memory.get_mem_by_id(n[0][0]))
                     else:
-                        n = self.memory.nodes["Triple"].get_triples(
+                        n = self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
                             self.memory, pred_text=p[0], subj=mem.memid, return_obj_text="never"
                         )
                         if len(n) > 0:

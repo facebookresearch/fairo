@@ -16,7 +16,7 @@ from .interpret_location import ReferenceLocationInterpreter, interpret_relative
 from .interpret_filters import FilterInterpreter
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 from droidlet.task.task import task_to_generator, ControlBlock
-from droidlet.memory.memory_nodes import TripleNode, TaskNode, InterpreterNode
+from droidlet.memory.memory_nodes import ChatNode, TripleNode, InterpreterNode
 from droidlet.dialog.dialogue_task import ConfirmTask, Say
 
 
@@ -31,7 +31,7 @@ class InterpreterBase:
             if (
                 logical_form_memid != "NULL"
             ):  # if it were "NULL", this is a dummy interpreter of some sort...
-                self.memory.nodes["Triple"].create(
+                self.memory.nodes[TripleNode.NODE_TYPE].create(
                     self.memory,
                     subj=self.memid,
                     pred_text="logical_form_memid",
@@ -125,7 +125,7 @@ class Interpreter(InterpreterBase):
         try:
             C = self.interpret_event(agent, self.speaker, self.logical_form)
             if C is not None:
-                chat = self.memory.nodes["Chat"].get_most_recent_incoming_chat(self.memory)
+                chat = self.memory.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(self.memory)
                 TripleNode.create(
                     self.memory, subj=chat.memid, pred_text="chat_effect_", obj=C.memid
                 )

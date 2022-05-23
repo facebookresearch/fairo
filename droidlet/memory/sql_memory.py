@@ -144,11 +144,11 @@ class AgentMemory:
             "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, "Self", 0, 0, -1, False
         )
 
-        self.nodes["Triple"].tag(self, self.self_memid, "_physical_object")
-        self.nodes["Triple"].tag(self, self.self_memid, "_animate")
-        self.nodes["Triple"].tag(self, self.self_memid, "_not_location")
-        self.nodes["Triple"].tag(self, self.self_memid, "AGENT")
-        self.nodes["Triple"].tag(self, self.self_memid, "SELF")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_physical_object")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_animate")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_not_location")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "AGENT")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "SELF")
 
     def init_time_interface(self, agent_time=None):
         """Initialiaze the current time in memory
@@ -410,13 +410,13 @@ class AgentMemory:
 
         # Relations
         if parent_memid:
-            self.nodes["Triple"].create(
+            self.nodes[TripleNode.NODE_TYPE].create(
                 self, subj=memid, pred_text="_has_parent_task", obj=parent_memid
             )
         if chat_effect:
             chat = self.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(self)
             assert chat is not None, "chat_effect=True with no incoming chats"
-            self.nodes["Triple"].create(self, subj=chat.memid, pred_text="chat_effect_", obj=memid)
+            self.nodes[TripleNode.NODE_TYPE].create(self, subj=chat.memid, pred_text="chat_effect_", obj=memid)
 
         # Return newly created object
         return TaskNode(self, memid)

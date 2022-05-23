@@ -8,7 +8,7 @@ import logging
 
 from droidlet.dialog.string_lists import MAP_YES, MAP_DIRECTION_SYNTAX
 from droidlet.task.task import Task, task_to_generator, ControlBlock
-from droidlet.memory.memory_nodes import TaskNode
+from droidlet.memory.memory_nodes import ChatNode, TaskNode, TripleNode
 from droidlet.dialog.post_process_logical_form import retrieve_ref_obj_span
 
 
@@ -35,13 +35,13 @@ class AwaitResponse(Task):
     def step(self):
         """Wait for wait_time for an answer. Mark finished when a chat comes in."""
         # FIXME: don't need a memory method for this, use query
-        chatmem = self.agent.memory.nodes["Chat"].get_most_recent_incoming_chat(
+        chatmem = self.agent.memory.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(
             self.agent.memory, after=self.init_time + 1
         )
         if chatmem is not None:
             self.finished = True
             if self.asker_memid:
-                self.agent.memory.nodes["Triple"].create(
+                self.agent.memory.nodes[TripleNode.NODE_TYPE].create(
                     self.agent.memory,
                     subj=self.asker_memid,
                     pred_text="dialogue_task_response",
@@ -165,7 +165,7 @@ class ConfirmTask(Task):
         # FIXME: change this to sqly when syntax for obj searches is settled:
         # search for a response to the confirmation question, which will be a triple
         # (self.memid, "dialogue_task_reponse", chat_memid)
-        t = self.agent.memory.nodes["Triple"].get_triples(
+        t = self.agent.memory.nodes[TripleNode.NODE_TYPE].get_triples(
             self.agent.memory, subj=self.memid, pred_text="dialogue_task_response"
         )
         if not t:
@@ -298,13 +298,13 @@ class ClarifyNoMatch(Task):
                     self.clarification_failed()
                 else:
                     # Found it! Add the approriate tag to current candidate and mark it as the output
-                    self.agent.memory.nodes["Triple"].create(
+                    self.agent.memory.nodes[TripleNode.NODE_TYPE].create(
                         self.memory,
                         subj=self.current_candidate,
                         pred_text="has_tag",
                         obj_text=self.ref_obj_span,
                     )
-                    self.agent.memory.nodes["Triple"].create(
+                    self.agent.memory.nodes[TripleNode.NODE_TYPE].create(
                         self.memory,
                         subj=self.memid,
                         pred_text="dialogue_clarification_output",

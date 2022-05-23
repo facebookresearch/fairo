@@ -13,7 +13,7 @@ from droidlet.interpreter.craftassist import dance
 from droidlet.interpreter.tests.all_test_commands import *
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.lowlevel.minecraft.pyworld.utils import Mob, Pos, Look
-from droidlet.memory.craftassist.mc_memory_nodes import MobNode
+from droidlet.memory.craftassist.mc_memory_nodes import TripleNode, MobNode
 
 
 class ObjectsTest(BaseCraftassistTestCase):
@@ -25,8 +25,8 @@ class ObjectsTest(BaseCraftassistTestCase):
         self.obj_b = self.add_object([((0, 0, z), (41, 0)) for z in [-4, -5]])
 
         # give them unique tags
-        self.agent.memory.nodes["Triple"].tag(self.agent.memory, self.obj_a.memid, "tag_A")
-        self.agent.memory.nodes["Triple"].tag(self.agent.memory, self.obj_b.memid, "tag_B")
+        self.agent.memory.nodes[TripleNode.NODE_TYPE].tag(self.agent.memory, self.obj_a.memid, "tag_A")
+        self.agent.memory.nodes[TripleNode.NODE_TYPE].tag(self.agent.memory, self.obj_b.memid, "tag_B")
 
     def test_merge_tags(self):
         obj = self.add_object([((0, 0, -3), (41, 0))])

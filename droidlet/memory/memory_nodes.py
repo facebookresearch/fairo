@@ -47,7 +47,7 @@ class MemoryNode:
         self.memid = memid
 
     def get_tags(self) -> List[str]:
-        return self.agent_memory.nodes["Triple"].get_tags_by_memid(self.agent_memory, self.memid)
+        return self.agent_memory.nodes[TripleNode.NODE_TYPE].get_tags_by_memid(self.agent_memory, self.memid)
 
     def get_properties(self) -> Dict[str, str]:
         blacklist = self.PROPERTIES_BLACKLIST + self._more_properties_blacklist()
@@ -93,10 +93,10 @@ class MemoryNode:
 
 
 def link_archive_to_mem(agent_memory, memid, archive_memid):
-    agent_memory.nodes["Triple"].create(
+    agent_memory.nodes[TripleNode.NODE_TYPE].create(
         agent_memory, subj=archive_memid, pred_text="_archive_of", obj=memid
     )
-    agent_memory.nodes["Triple"].create(
+    agent_memory.nodes[TripleNode.NODE_TYPE].create(
         agent_memory, subj=memid, pred_text="_has_archive", obj=archive_memid
     )
 
@@ -444,7 +444,7 @@ class TripleNode(MemoryNode):
             >>> tag_text = "shiny"
             >>> tag(agent_memory, subj_memid, tag_text)
         """
-        return agent_memory.nodes["Triple"].create(
+        return agent_memory.nodes[TripleNode.NODE_TYPE].create(
             agent_memory, subj=subj_memid, pred_text="has_tag", obj_text=tag_text
         )
 
@@ -696,14 +696,14 @@ class PlayerNode(ReferenceObjectNode):
             player_struct.look.yaw,
             "player",
         )
-        memory.nodes["Triple"].tag(memory, memid, "_player")
-        memory.nodes["Triple"].tag(memory, memid, "_physical_object")
-        memory.nodes["Triple"].tag(memory, memid, "_animate")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_player")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_physical_object")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_animate")
         # this is a hack until memory_filters does "not"
-        memory.nodes["Triple"].tag(memory, memid, "_not_location")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_not_location")
 
         if player_struct.name is not None:
-            memory.nodes["Triple"].create(
+            memory.nodes[TripleNode.NODE_TYPE].create(
                 memory, subj=memid, pred_text="has_name", obj_text=player_struct.name
             )
         return memid

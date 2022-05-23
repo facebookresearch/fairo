@@ -5,6 +5,8 @@ import unittest
 from unittest.mock import Mock
 import copy
 
+from droidlet.memory.memory_nodes import ChatNode
+
 from .fake_agent import FakeAgent
 from .world import World, Opt, SimpleHuman, make_human_opts
 
@@ -104,7 +106,7 @@ class BaseFakeAgentTestCase(unittest.TestCase):
                 f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player and name={speaker_name}"
             )
             # FIXME throw error or add as a new speaker if the speaker is not found
-            self.agent.memory.nodes["Chat"].create(self.agent.memory, memid[0], chat)
+            self.agent.memory.nodes[ChatNode.NODE_TYPE].create(self.agent.memory, memid[0], chat)
 
     def last_outgoing_chat(self) -> str:
         return self.agent.get_last_outgoing_chat()

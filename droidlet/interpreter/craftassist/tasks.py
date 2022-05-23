@@ -315,7 +315,7 @@ class Build(Task):
             if mem and all(xyz in xyzs for xyz in mem.blocks.keys()):
                 for pred in ["has_tag", "has_name", "has_colour"]:
                     self.destroyed_block_object_triples.extend(
-                        agent.memory.nodes["Triple"].get_triples(
+                        agent.memory.nodes[TripleNode.NODE_TYPE].get_triples(
                             agent.memory, subj=mem.memid, pred_text=pred
                         )
                     )
@@ -538,15 +538,15 @@ class Build(Task):
                 TripleNode.create(agent.memory, subj=blockobj_memid, pred_text=pred, obj_text=obj)
                 # sooooorrry  FIXME? when we handle triples better
                 if "has_" in pred:
-                    agent.memory.nodes["Triple"].tag(agent.memory, self.blockobj_memid, obj)
+                    agent.memory.nodes[TripleNode.NODE_TYPE].tag(agent.memory, self.blockobj_memid, obj)
 
-        agent.memory.nodes["Triple"].tag(agent.memory, blockobj_memid, "_in_progress")
+        agent.memory.nodes[TripleNode.NODE_TYPE].tag(agent.memory, blockobj_memid, "_in_progress")
         if self.dig_message:
-            agent.memory.nodes["Triple"].tag(agent.memory, blockobj_memid, "hole")
+            agent.memory.nodes[TripleNode.NODE_TYPE].tag(agent.memory, blockobj_memid, "hole")
 
     def finish(self, agent):
         if self.blockobj_memid is not None:
-            agent.memory.nodes["Triple"].untag(agent.memory, self.blockobj_memid, "_in_progress")
+            agent.memory.nodes[TripleNode.NODE_TYPE].untag(agent.memory, self.blockobj_memid, "_in_progress")
         if self.verbose:
             if self.is_destroy_schm:
                 agent.send_chat("I finished destroying this")
@@ -866,17 +866,17 @@ class Spawn(Task):
                 mobmem = agent.memory.get_mem_by_id(memid)
                 agent.memory.update_recent_entities(mems=[mobmem])
                 if self.memid is not None:
-                    agent.memory.nodes["Triple"].create(
+                    agent.memory.nodes[TripleNode.NODE_TYPE].create(
                         agent.memory, subj=self.memid, pred_text="task_effect_", obj=mobmem.memid
                     )
                     # the chat_effect_ triple was already made when the task is added if there was a chat...
                     # but it points to the task memory.  link the chat to the mob memory:
-                    chat_mem_triples = agent.memory.nodes["Triple"].get_triples(
+                    chat_mem_triples = agent.memory.nodes[TripleNode.NODE_TYPE].get_triples(
                         agent.memory, subj=None, pred_text="chat_effect_", obj=self.memid
                     )
                     if len(chat_mem_triples) > 0:
                         chat_memid = chat_mem_triples[0][0]
-                        agent.memory.nodes["Triple"].create(
+                        agent.memory.nodes[TripleNode.NODE_TYPE].create(
                             agent.memory,
                             subj=chat_memid,
                             pred_text="chat_effect_",
@@ -972,7 +972,7 @@ class Get(Task):
         if delta > 0:
             agent.inventory.add_item_stack(self.idm, (self.obj_memid, delta))
             agent.send_chat("Got Item!")
-            agent.memory.nodes["Triple"].tag(agent.memory, self.obj_memid, "_in_inventory")
+            agent.memory.nodes[TripleNode.NODE_TYPE].tag(agent.memory, self.obj_memid, "_in_inventory")
             self.finished = True
             return
 
@@ -1048,7 +1048,7 @@ class Drop(Task):
         if dropped_item_stack:
             agent.memory.update_item_stack_eid(self.obj_memid, dropped_item_stack.entityId)
             agent.memory.set_item_stack_position(dropped_item_stack)
-            agent.memory.nodes["Triple"].tag(agent.memory, self.obj_memid, "_on_ground")
+            agent.memory.nodes[TripleNode.NODE_TYPE].tag(agent.memory, self.obj_memid, "_on_ground")
 
         x, y, z = agent.get_player().pos
         target = (x, y + 2, z)

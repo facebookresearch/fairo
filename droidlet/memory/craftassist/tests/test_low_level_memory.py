@@ -103,7 +103,7 @@ class BasicTest(unittest.TestCase):
             == self.memory.get_mem_by_id(schematic_memid).blocks
         )
         # test getting schematic by its name
-        self.memory.nodes["Triple"].create(
+        self.memory.nodes[TripleNode.NODE_TYPE].create(
             self.memory, subj=schematic_memid, pred_text="has_name", obj_text="house"
         )
         _, schematic_node = self.memory.basic_search(
@@ -114,7 +114,7 @@ class BasicTest(unittest.TestCase):
         bo1_memid = BlockObjectNode.create(self.memory, (((0, 0, 2), (1, 0)), ((0, 0, 3), (2, 0))))
         # Test convert_block_object_to_schematic
         assert (
-            self.memory.nodes["Schematic"]
+            self.memory.nodes[SchematicNode.NODE_TYPE]
             .convert_block_object_to_schematic(self.memory, bo1_memid)
             .NODE_TYPE
             == "Schematic"

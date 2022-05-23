@@ -10,6 +10,7 @@ from typing import cast, List, Sequence, Dict
 from droidlet.base_util import XYZ, POINT_AT_TARGET, IDM, Block, Look, npy_to_blocks_list
 from droidlet.shared_data_struct.craftassist_shared_utils import MOBS_BY_ID
 from droidlet.memory.memory_nodes import (
+    TripleNode,
     link_archive_to_mem,
     ReferenceObjectNode,
     MemoryNode,
@@ -269,12 +270,12 @@ class BlockObjectNode(VoxelObjectNode):
         memory.db_write(cmd, memid, 0, 0, 0, "BlockObjects", 0)
         for block in blocks:
             VoxelObjectNode.upsert_block(memory, block, memid, "BlockObjects")
-        memory.nodes["Triple"].tag(memory, memid, "_block_object")
-        memory.nodes["Triple"].tag(memory, memid, "_VOXEL_OBJECT")
-        memory.nodes["Triple"].tag(memory, memid, "_physical_object")
-        memory.nodes["Triple"].tag(memory, memid, "_destructible")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_block_object")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_VOXEL_OBJECT")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_physical_object")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_destructible")
         # this is a hack until memory_filters does "not"
-        memory.nodes["Triple"].tag(memory, memid, "_not_location")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_not_location")
         logging.debug(
             "Added block object {} with {} blocks, {}".format(
                 memid, len(blocks), Counter([idm for _, idm in blocks])
@@ -356,17 +357,17 @@ class InstSegNode(VoxelObjectNode):
         for loc in locs:
             cmd = "INSERT INTO VoxelObjects (uuid, x, y, z, ref_type) VALUES ( ?, ?, ?, ?, ?)"
             memory.db_write(cmd, memid, loc[0], loc[1], loc[2], "inst_seg")
-        memory.nodes["Triple"].tag(memory, memid, "VOXEL_OBJECT")
-        memory.nodes["Triple"].tag(memory, memid, "_inst_seg")
-        memory.nodes["Triple"].tag(memory, memid, "_destructible")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_VOXEL_OBJECT")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_inst_seg")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_destructible")
         # this is a hack until memory_filters does "not"
-        memory.nodes["Triple"].tag(memory, memid, "_not_location")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_not_location")
         for tag in tags:
             if type(tag) is str:
-                memory.nodes["Triple"].tag(memory, memid, tag)
+                memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, tag)
             elif type(tag) is dict:
                 for k, v in tag.items():
-                    memory.nodes["Triple"].create(memory, subj=memid, pred_text=k, obj_text=v)
+                    memory.nodes[TripleNode.NODE_TYPE].create(memory, subj=memid, pred_text=k, obj_text=v)
         return memid
 
     def __init__(self, memory, memid: str):
@@ -374,7 +375,7 @@ class InstSegNode(VoxelObjectNode):
         r = memory._db_read("SELECT x, y, z FROM VoxelObjects WHERE uuid=?", self.memid)
         self.locs = r
         self.blocks = {l: (0, 0) for l in self.locs}
-        tags = memory.nodes["Triple"].get_triples(memory, subj=self.memid, pred_text="has_tag")
+        tags = memory.nodes[TripleNode.NODE_TYPE].get_triples(memory, subj=self.memid, pred_text="has_tag")
         self.tags = []  # noqa: T484
         for tag in tags:
             if tag[2][0] != "_":
@@ -466,13 +467,13 @@ class MobNode(ReferenceObjectNode):
             agent_placed,
             memory.get_time(),
         )
-        memory.nodes["Triple"].tag(memory, memid, "mob")
-        memory.nodes["Triple"].tag(memory, memid, "_physical_object")
-        memory.nodes["Triple"].tag(memory, memid, "_animate")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "mob")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_physical_object")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_animate")
         # this is a hack until memory_filters does "not"
-        memory.nodes["Triple"].tag(memory, memid, "_not_location")
-        memory.nodes["Triple"].tag(memory, memid, mobtype)
-        memory.nodes["Triple"].create(memory, subj=memid, pred_text="has_name", obj_text=mobtype)
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_not_location")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, mobtype)
+        memory.nodes[TripleNode.NODE_TYPE].create(memory, subj=memid, pred_text="has_name", obj_text=mobtype)
         return memid
 
     def get_pos(self) -> XYZ:
@@ -589,12 +590,12 @@ class ItemStackNode(ReferenceObjectNode):
             "item_stack",
             memory.get_time(),
         )
-        memory.nodes["Triple"].tag(memory, memid, type_name)
-        memory.nodes["Triple"].tag(memory, memid, "_item_stack")
-        memory.nodes["Triple"].tag(memory, memid, "_on_ground")
-        memory.nodes["Triple"].tag(memory, memid, "_physical_object")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, type_name)
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_item_stack")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_on_ground")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_physical_object")
         # this is a hack until memory_filters does "not"
-        memory.nodes["Triple"].tag(memory, memid, "_not_location")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_not_location")
         return memid
 
     def get_pos(self) -> XYZ:
@@ -707,7 +708,7 @@ class SchematicNode(MemoryNode):
             memid = SchematicNode.create(agent_memory, list(block_object.blocks.items()))
 
             # add triple linking the object to the schematic
-            agent_memory.nodes["Triple"].create(
+            agent_memory.nodes[TripleNode.NODE_TYPE].create(
                 agent_memory, subj=memid, pred_text="_source_block_object", obj=block_object.memid
             )
 
@@ -726,15 +727,15 @@ class SchematicNode(MemoryNode):
 
                 if premem.get("name"):
                     for n in premem["name"]:
-                        agent_memory.nodes["Triple"].create(
+                        agent_memory.nodes[TripleNode.NODE_TYPE].create(
                             agent_memory, subj=memid, pred_text="has_name", obj_text=n
                         )
-                        agent_memory.nodes["Triple"].create(
+                        agent_memory.nodes[TripleNode.NODE_TYPE].create(
                             agent_memory, subj=memid, pred_text="has_tag", obj_text=n
                         )
                 if premem.get("tags"):
                     for t in premem["tags"]:
-                        agent_memory.nodes["Triple"].create(
+                        agent_memory.nodes[TripleNode.NODE_TYPE].create(
                             agent_memory, subj=memid, pred_text="has_tag", obj_text=t
                         )
 
@@ -744,18 +745,18 @@ class SchematicNode(MemoryNode):
             if d >= 256:
                 continue
             memid = SchematicNode.create(agent_memory, [((0, 0, 0), (d, m))])
-            agent_memory.nodes["Triple"].create(
+            agent_memory.nodes[TripleNode.NODE_TYPE].create(
                 agent_memory, subj=memid, pred_text="has_name", obj_text=name
             )
             if "block" in name:
-                agent_memory.nodes["Triple"].create(
+                agent_memory.nodes[TripleNode.NODE_TYPE].create(
                     agent_memory,
                     subj=memid,
                     pred_text="has_name",
                     obj_text=name.strip("block").strip(),
                 )
             # tag single blocks with 'block'
-            agent_memory.nodes["Triple"].create(
+            agent_memory.nodes[TripleNode.NODE_TYPE].create(
                 agent_memory, subj=memid, pred_text="has_name", obj_text="block"
             )
 
@@ -941,10 +942,10 @@ class DanceNode(MemoryNode):
         # TODO put in db via pickle like tasks?
         memory.dances[memid] = dance_fn
         if name is not None:
-            memory.nodes["Triple"].create(memory, subj=memid, pred_text="has_name", obj_text=name)
+            memory.nodes[TripleNode.NODE_TYPE].create(memory, subj=memid, pred_text="has_name", obj_text=name)
         if len(tags) > 0:
             for tag in tags:
-                memory.nodes["Triple"].create(
+                memory.nodes[TripleNode.NODE_TYPE].create(
                     memory, subj=memid, pred_text="has_tag", obj_text=tag
                 )
         return memid

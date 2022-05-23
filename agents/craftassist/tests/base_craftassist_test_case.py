@@ -6,6 +6,7 @@ from unittest.mock import Mock
 import numpy as np
 from typing import List, Sequence, Dict
 
+from droidlet.memory.memory_nodes import ChatNode
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from droidlet.lowlevel.minecraft.mc_util import XYZ, Block, IDM
 from droidlet.shared_data_struct.rotation import yaw_pitch
@@ -139,7 +140,7 @@ class BaseCraftassistTestCase(unittest.TestCase):
         self.world.chat_log.append("<" + speaker_name + ">" + " " + chat)
         if add_to_memory:
             memid, _ = self.agent.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={self.speaker}')
-            self.agent.memory.nodes["Chat"].create(
+            self.agent.memory.nodes[ChatNode.NODE_TYPE].create(
                 self.agent.memory, memid[0], chat
             )
 

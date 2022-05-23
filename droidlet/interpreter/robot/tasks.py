@@ -10,7 +10,7 @@ import os
 import math
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 from droidlet.task.task import Task, BaseMovementTask
-from droidlet.memory.memory_nodes import TaskNode
+from droidlet.memory.memory_nodes import TaskNode, TripleNode
 from droidlet.lowlevel.robot_coordinate_utils import base_canonical_coords_to_pyrobot_coords
 from droidlet.interpreter.robot.default_behaviors import get_distant_goal
 from droidlet.interpreter.robot.objects import DanceMovement
@@ -273,7 +273,7 @@ class Get(Task):
         if self.steps[0] == "not_started":
             # check if already holding target object for pure give, when object is grasped
             # its added to memory with tag "_in_inventory"
-            if self.get_target in agent.memory.nodes["Triple"].get_memids_by_tag(
+            if self.get_target in agent.memory.nodes[TripleNode.NODE_TYPE].get_memids_by_tag(
                 agent.memory, "_in_inventory"
             ):
                 self.steps[0] = "finished"
@@ -340,7 +340,7 @@ class AutoGrasp(Task):
             # TODO tag this in the grip task, not here
             if self.finished:
                 if self.agent.mover.is_object_in_gripper():
-                    self.agent.memory.nodes["Triple"].tag(
+                    self.agent.memory.nodes[TripleNode.NODE_TYPE].tag(
                         self.agent.memory, self.target, "_in_inventory"
                     )
 
@@ -367,15 +367,15 @@ class Drop(Task):
         else:
             self.finished = agent.mover.bot_step() and not agent.mover.is_object_in_gripper()
             if self.finished:
-                agent.memory.nodes["Triple"].untag(
+                agent.memory.nodes[TripleNode.NODE_TYPE].untag(
                     agent.memory, self.object_to_drop, "_in_inventory"
                 )
                 if self.object_to_drop is None:
                     # assumed there is only one object with tag "_in_inventory"
-                    for mmid in agent.memory.nodes["Triple"].get_memids_by_tag(
+                    for mmid in agent.memory.nodes[TripleNode.NODE_TYPE].get_memids_by_tag(
                         agent.memory, "_in_inventory"
                     ):
-                        agent.memory.nodes["Triple"].untag(agent.memory, mmid, "_in_inventory")
+                        agent.memory.nodes[TripleNode.NODE_TYPE].untag(agent.memory, mmid, "_in_inventory")
 
 
 class TrajectorySaverTask(Task):
@@ -516,7 +516,7 @@ class CuriousExplore(TrajectorySaverTask):
             if not self.finished:
                 self.steps = ["not_started"] * 2
             else:
-                self.logger.info(f"Exploration finished!")
+                self.logger.info("Exploration finished!")
 
     def __repr__(self):
         return "<CuriousExplore>"
@@ -579,7 +579,7 @@ class ExamineDetectionStraightline(TrajectorySaverTask):
             self.last_base_pos = base_pos
             return
         else:
-            logger.info(f"Finished Examination")
+            logger.info("Finished Examination")
             self.finished = self.agent.mover.bot_step()
 
     def __repr__(self):
@@ -640,7 +640,7 @@ class ExamineDetectionCircle(TrajectorySaverTask):
 
             return
         else:
-            self.logger.info(f"Finished Examination")
+            self.logger.info("Finished Examination")
             self.finished = self.agent.mover.bot_step()
 
     def __repr__(self):
@@ -709,7 +709,7 @@ class Reexplore(Task):
     def init_logger(self):
         logger = logging.getLogger("reexplore")
         logger.setLevel(logging.INFO)
-        fh = logging.FileHandler(f"reexplore.log", "w")
+        fh = logging.FileHandler("reexplore.log", "w")
         fh.setLevel(logging.INFO)
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)

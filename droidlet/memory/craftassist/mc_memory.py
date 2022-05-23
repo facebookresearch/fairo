@@ -18,6 +18,7 @@ from droidlet.memory.memory_nodes import (  # noqa
     SetNode,
     ReferenceObjectNode,
     AttentionNode,
+    TripleNode,
 )
 from .mc_memory_nodes import (  # noqa
     DanceNode,
@@ -88,7 +89,7 @@ class MCAgentMemory(AgentMemory):
             copy_from_backup.backup(self.db)
             self.make_self_mem()
         else:
-            self.nodes["Schematic"]._load_schematics(
+            self.nodes[SchematicNode.NODE_TYPE]._load_schematics(
                 self,
                 schematics=agent_low_level_data.get("schematics", {}),
                 block_data=agent_low_level_data.get("block_data", {}),
@@ -138,7 +139,7 @@ class MCAgentMemory(AgentMemory):
         if perception_output.mobs:
             map_changes = []
             for mob in perception_output.mobs:
-                mob_memid = self.nodes["Mob"].set_mob_position(self, mob)
+                mob_memid = self.nodes[MobNode.NODE_TYPE].set_mob_position(self, mob)
                 mp = (mob.pos.x, mob.pos.y, mob.pos.z)
                 map_changes.append(
                     {"pos": mp, "is_obstacle": False, "memid": mob_memid, "is_move": True}
@@ -164,9 +165,9 @@ class MCAgentMemory(AgentMemory):
                         eid = old_item_stack[1]
                         # NIT3: return untag set and tag set
                         if eid not in perception_output.agent_pickable_items["all_items"]:
-                            self.nodes["Triple"].untag(self, memid, "_on_ground")
+                            self.nodes[TripleNode.NODE_TYPE].untag(self, memid, "_on_ground")
                         else:
-                            self.nodes["Triple"].tag(self, memid, "_on_ground")
+                            self.nodes[TripleNode.NODE_TYPE].tag(self, memid, "_on_ground")
 
         # 3. Update agent's current position and attributes in memory
         if perception_output.agent_attributes:
@@ -267,7 +268,7 @@ class MCAgentMemory(AgentMemory):
                     block_object, color_tags = block_object_attr
                     memid = BlockObjectNode.create(self, block_object)
                     for color_tag in list(set(color_tags)):
-                        self.nodes["Triple"].create(
+                        self.nodes[TripleNode.NODE_TYPE].create(
                             self, subj=memid, pred_text="has_colour", obj_text=color_tag
                         )
             # 1.2 Update all holes with their block type in memory
@@ -285,7 +286,7 @@ class MCAgentMemory(AgentMemory):
                     block_object, color_tags = block_object_attr
                     memid = BlockObjectNode.create(self, block_object)
                     for color_tag in list(set(color_tags)):
-                        self.nodes["Triple"].create(
+                        self.nodes[TripleNode.NODE_TYPE].create(
                             self, subj=memid, pred_text="has_colour", obj_text=color_tag
                         )
             # 2.2 Update all holes with their block type in memory
@@ -374,7 +375,7 @@ class MCAgentMemory(AgentMemory):
                 query = "SELECT MEMORY FROM BlockType WHERE has_name={}".format(fill_block_name)
                 _, fill_block_mems = self.basic_search(query)
                 fill_block_memid = fill_block_mems[0].memid
-                self.nodes["Triple"].create(
+                self.nodes[TripleNode.NODE_TYPE].create(
                     self, subj=memid, pred_text="has_fill_type", obj=fill_block_memid
                 )
             hole_memories.append(self.get_mem_by_id(memid))
@@ -527,9 +528,9 @@ class MCAgentMemory(AgentMemory):
             if b >= 256:
                 continue
             memid = BlockTypeNode.create(self, type_name, (b, m))
-            self.nodes["Triple"].create(self, subj=memid, pred_text="has_name", obj_text=type_name)
+            self.nodes[TripleNode.NODE_TYPE].create(self, subj=memid, pred_text="has_name", obj_text=type_name)
             if "block" in type_name:
-                self.nodes["Triple"].create(
+                self.nodes[TripleNode.NODE_TYPE].create(
                     self,
                     subj=memid,
                     pred_text="has_name",
@@ -539,14 +540,14 @@ class MCAgentMemory(AgentMemory):
             if load_color:
                 if name_to_colors.get(type_name) is not None:
                     for color in name_to_colors[type_name]:
-                        self.nodes["Triple"].create(
+                        self.nodes[TripleNode.NODE_TYPE].create(
                             self, subj=memid, pred_text="has_colour", obj_text=color
                         )
 
             if load_block_property:
                 if block_name_to_properties.get(type_name) is not None:
                     for property in block_name_to_properties[type_name]:
-                        self.nodes["Triple"].create(
+                        self.nodes[TripleNode.NODE_TYPE].create(
                             self, subj_text=memid, pred_text="has_name", obj_text=property
                         )
 
@@ -561,18 +562,18 @@ class MCAgentMemory(AgentMemory):
 
             # load single mob as schematics
             memid = SchematicNode.create(self, [((0, 0, 0), (383, m))])
-            self.nodes["Triple"].create(self, subj=memid, pred_text="has_name", obj_text=type_name)
-            self.nodes["Triple"].tag(self, memid, "_spawn")
-            self.nodes["Triple"].tag(self, memid, name)
+            self.nodes[TripleNode.NODE_TYPE].create(self, subj=memid, pred_text="has_name", obj_text=type_name)
+            self.nodes[TripleNode.NODE_TYPE].tag(self, memid, "_spawn")
+            self.nodes[TripleNode.NODE_TYPE].tag(self, memid, name)
             if "block" in name:
-                self.nodes["Triple"].tag(self, memid, name.strip("block").strip())
+                self.nodes[TripleNode.NODE_TYPE].tag(self, memid, name.strip("block").strip())
 
             # then load properties
             memid = MobTypeNode.create(self, type_name, (383, m))
-            self.nodes["Triple"].create(self, subj=memid, pred_text="has_name", obj_text=type_name)
+            self.nodes[TripleNode.NODE_TYPE].create(self, subj=memid, pred_text="has_name", obj_text=type_name)
             if mob_name_to_properties.get(type_name) is not None:
                 for prop in mob_name_to_properties[type_name]:
-                    self.nodes["Triple"].tag(self, memid, prop)
+                    self.nodes[TripleNode.NODE_TYPE].tag(self, memid, prop)
 
     ####################
     ###  ItemStacks  ###

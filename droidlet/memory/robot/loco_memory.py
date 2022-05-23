@@ -6,7 +6,7 @@ import os
 import logging
 from typing import List
 from collections import namedtuple
-from droidlet.memory.memory_nodes import PlayerNode
+from droidlet.memory.memory_nodes import PlayerNode, TripleNode
 from droidlet.memory.sql_memory import AgentMemory
 from droidlet.memory.robot.loco_memory_nodes import *
 
@@ -116,7 +116,7 @@ class LocoAgentMemory(AgentMemory):
 
     def get_detected_objects_tagged(self, *tags) -> List["DetectedObjectNode"]:
         memids = set.intersection(
-            *[set(self.nodes["Triple"].get_memids_by_tag(self, t)) for t in tags]
+            *[set(self.nodes[TripleNode.NODE_TYPE].get_memids_by_tag(self, t)) for t in tags]
         )
         logging.info("get_detected_objects_tagged {}, tags {}".format(memids, tags))
         return memids

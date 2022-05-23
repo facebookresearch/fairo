@@ -7,6 +7,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import time
 import math
 
+from droidlet.memory.robot.loco_memory_nodes import DanceNode
+
+
 from .tasks import Move, Dance
 
 konami_dance = [
@@ -52,10 +55,10 @@ head_bob = [
 
 
 def add_default_dances(memory):
-    memory.nodes["Dance"].create(
+    memory.nodes[DanceNode.NODE_TYPE].create(
         memory, generate_sequential_move_fn(konami_dance), name="konami_dance", tags=["dance"]
     )
-    memory.nodes["Dance"].create(
+    memory.nodes[DanceNode.NODE_TYPE].create(
         memory, generate_sequential_move_fn(head_bob), name="head_bob", tags=["dance"]
     )
 

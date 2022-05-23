@@ -11,6 +11,7 @@ from typing import List, Tuple, Union, Optional
 # TODO with subinterpret
 from droidlet.memory.craftassist.mc_memory_nodes import SchematicNode
 from droidlet.interpreter.craftassist import size_words
+from droidlet.memory.memory_nodes import TripleNode
 from .block_handler import get_block_type
 from droidlet.base_util import number_from_span, Block
 from droidlet.shared_data_structs import ErrorWithResponse
@@ -231,7 +232,7 @@ def interpret_named_schematic(
     schematic = random.choice(schematic)
     triples = [
         (p, v)
-        for (_, p, v) in interpreter.memory.nodes["Triple"].get_triples(
+        for (_, p, v) in interpreter.memory.nodes[TripleNode.NODE_TYPE].get_triples(
             interpreter.memory, subj=schematic.memid
         )
     ]

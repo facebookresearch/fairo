@@ -58,10 +58,10 @@ def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent
         if hasattr(agent_memory, "to_droidlet_coords"):
             loc = agent_memory.to_droidlet_coords(loc)
 
-        memid = agent_memory.nodes["Location"].create(
+        memid = agent_memory.nodes[LocationNode.NODE_TYPE].create(
             agent_memory, (int(loc[0]), int(loc[1]), int(loc[2]))
         )
-        mem = agent_memory.nodes["Location"](agent_memory, memid)
+        mem = agent_memory.nodes[LocationNode.NODE_TYPE](agent_memory, memid)
 
         q = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(memid)
     else:

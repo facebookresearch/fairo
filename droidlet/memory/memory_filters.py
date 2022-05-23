@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from typing import List
 import torch
 from droidlet.memory.filters_conversions import get_inequality_symbol, sqly_to_new_filters
+from droidlet.memory.memory_nodes import TripleNode
 
 ####################################################################################
 ### This file is split between the basic memory searcher, and memory filters objects
@@ -108,7 +109,7 @@ def get_property_value(agent_memory, mem, prop, get_all=False):
         r = agent_memory._db_read(cmd, mem.memid)
         return r[0][0]
     # is it a triple?
-    triples = agent_memory.nodes["Triple"].get_triples(
+    triples = agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
         agent_memory, subj=mem.memid, pred_text=prop, return_obj_text="always"
     )
     if len(triples) > 0:
@@ -179,11 +180,11 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
     if comparison_symbol != "=" and comparison_symbol != "=#=":
         raise Exception("Triple values need to have '=' or '=#=' as comparison symbol for now")
     if comparison_symbol == "=":
-        triples = agent_memory.nodes["Triple"].get_triples(
+        triples = agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
             agent_memory, pred_text=prop, obj_text=value[0]
         )
     else:
-        triples = agent_memory.nodes["Triple"].get_triples(
+        triples = agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
             agent_memory, pred_text=prop, obj=value[0]
         )
     if len(triples) > 0:
@@ -370,7 +371,7 @@ class MemorySearcher:
                 except:
                     raise Exception("error in subquery {}".format(where_clause))
 
-        triples = agent_memory.nodes["Triple"].get_triples(agent_memory, **where_clause)
+        triples = agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(agent_memory, **where_clause)
         if where_clause.get("subj"):
             memids = [t[2] for t in triples]
         else:

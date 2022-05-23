@@ -15,8 +15,8 @@ from droidlet.interpreter import (
     InterpreterBase,
 )
 from .spatial_reasoning import ComputeLocations
-from droidlet.memory.memory_nodes import TaskNode, SetNode, InterpreterNode
-from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode, RewardNode
+from droidlet.memory.memory_nodes import TaskNode, SetNode, InterpreterNode, TripleNode
+from droidlet.memory.craftassist.mc_memory_nodes import SchematicNode, VoxelObjectNode, RewardNode
 from droidlet.interpreter.craftassist.tasks import Point
 from droidlet.shared_data_structs import ErrorWithResponse
 
@@ -113,14 +113,14 @@ class PutMemoryHandler(InterpreterBase):
         mem = r[0]
 
         name = "it"
-        triples = self.memory.nodes["Triple"].get_triples(
+        triples = self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
             self.memory, subj=mem.memid, pred_text="has_tag"
         )
         if len(triples) > 0:
             name = triples[0][2].strip("_")
 
         schematic_memid = (
-            self.memory.nodes["Schematic"]
+            self.memory.nodes[SchematicNode.NODE_TYPE]
             .convert_block_object_to_schematic(self.memory, mem.memid)
             .memid
             if isinstance(mem, VoxelObjectNode) and len(mem.blocks) > 0
@@ -130,11 +130,11 @@ class PutMemoryHandler(InterpreterBase):
         for t in self.logical_form["upsert"]["memory_data"].get("triples", []):
             if t.get("pred_text") and t.get("obj_text"):
                 logging.debug("Tagging {} {} {}".format(mem.memid, t["pred_text"], t["obj_text"]))
-                self.memory.nodes["Triple"].create(
+                self.memory.nodes[TripleNode.NODE_TYPE].create(
                     self.memory, subj=mem.memid, pred_text=t["pred_text"], obj_text=t["obj_text"]
                 )
                 if schematic_memid:
-                    self.memory.nodes["Triple"].create(
+                    self.memory.nodes[TripleNode.NODE_TYPE].create(
                         self.memory,
                         subj=schematic_memid,
                         pred_text=t["pred_text"],
@@ -174,7 +174,7 @@ class PutMemoryHandler(InterpreterBase):
             if not set_memids:
                 # make a new set, and name it
                 set_memid = SetNode.create(self.memory)
-                self.memory.nodes["Triple"].create(
+                self.memory.nodes[TripleNode.NODE_TYPE].create(
                     self.memory, subj=set_memid, pred_text="has_name", obj_text=name
                 )
             else:
@@ -184,11 +184,11 @@ class PutMemoryHandler(InterpreterBase):
             # an anonymous set, assuming its new, and defined to hold the triple(s)
             set_memid = SetNode.create(self.memory)
             for t in triples_d:
-                self.memory.nodes["Triple"].create(
+                self.memory.nodes[TripleNode.NODE_TYPE].create(
                     self.memory, subj=set_memid, pred_text=t["pred_text"], obj_text=t["obj_text"]
                 )
         for r in ref_objs:
-            self.memory.nodes["Triple"].create(
+            self.memory.nodes[TripleNode.NODE_TYPE].create(
                 self.memory, subj=r.memid, pred_text="member_of", obj=set_memid
             )
 

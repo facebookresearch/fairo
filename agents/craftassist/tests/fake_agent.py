@@ -12,7 +12,7 @@ from droidlet.memory.memory_nodes import ChatNode
 from droidlet.lowlevel.minecraft.pyworld.utils import Look, Pos, Item, Player
 from agents.droidlet_agent import DroidletAgent
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
-from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
+from droidlet.memory.craftassist.mc_memory_nodes import TripleNode, VoxelObjectNode
 from agents.craftassist.craftassist_agent import CraftAssistAgent
 from droidlet.shared_data_structs import MockOpt
 from droidlet.dialog.dialogue_manager import DialogueManager
@@ -337,11 +337,11 @@ class FakeAgent(DroidletAgent):
         abs_xyz = tuple(np.array(xyzbms[0][0]) + origin)
         memid = self.memory.get_object_info_by_xyz(abs_xyz, "BlockObjects")[0]
         for pred, obj in relations.items():
-            self.memory.nodes["Triple"].create(self.memory, subj=memid, pred_text=pred, obj_text=obj)
+            self.memory.nodes[TripleNode.NODE_TYPE].create(self.memory, subj=memid, pred_text=pred, obj_text=obj)
             # sooooorrry  FIXME? when we handle triples better in interpreter_helper
             if "has_" in pred:
-                self.memory.nodes["Triple"].tag(self.memory, memid, obj)
-        return self.memory.basic_search(f"SELECT MEMORY FROM ReferenceObject WHERE uuid={memid}")[1][0]
+                self.memory.nodes[TripleNode.NODE_TYPE].tag(self.memory, memid, obj)
+        return self.memory.get_mem_by_id(memid, VoxelObjectNode.NODE_TYPE)
 
     # WARNING!! this does not step the world, but directly fast-forwards
     # to count.  Use only in world setup, once world is running!

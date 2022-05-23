@@ -18,6 +18,7 @@ from copy import deepcopy
 # also used as a standalone script and invoked via `python craftassist_agent.py`
 from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
 from droidlet.memory.craftassist import mc_memory
+from droidlet.memory.memory_nodes import ChatNode
 from droidlet.shared_data_struct import rotation
 from droidlet.lowlevel.minecraft.craftassist_mover import (
     CraftassistMover,
@@ -376,7 +377,7 @@ class CraftAssistAgent(DroidletAgent):
             chat_text = chat
 
         logging.info("Sending chat: {}".format(chat_text))
-        self.memory.nodes["Chat"].create(self.memory, self.memory.self_memid, chat_text)
+        self.memory.nodes[ChatNode.NODE_TYPE].create(self.memory, self.memory.self_memid, chat_text)
 
         if chat_json:
             chat_json["chat_memid"] = chat_memid
