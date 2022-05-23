@@ -10,6 +10,7 @@ import os
 import pickle
 import math
 from time import time
+import csv
 
 from os.path import isfile
 from os.path import join as pjoin
@@ -245,15 +246,15 @@ class ModelTrainer:
                     if tb:
                         tb.add_scalar("accuracy", loc_full_acc / loc_steps, global_step=tot_steps)
                         tb.add_scalar("loss", loc_loss / loc_steps, global_step=tot_steps)
-                    print(
-                        "{:2d} - {:5d} \t L: {:.3f} A: {:.3f} \t {:.2f}".format(
-                            e,
-                            step,
-                            loc_loss / loc_steps,
-                            loc_full_acc / loc_steps,
-                            time() - st_time,
-                        )
-                    )
+                    # print(
+                    #     "{:2d} - {:5d} \t L: {:.3f} A: {:.3f} \t {:.2f}".format(
+                    #         e,
+                    #         step,
+                    #         loc_loss / loc_steps,
+                    #         loc_full_acc / loc_steps,
+                    #         time() - st_time,
+                    #     )
+                    # )
                     logging.info(
                         "{:2d} - {:5d} \t L: {:.3f} A: {:.3f} \t {:.2f}".format(
                             e,
@@ -287,6 +288,33 @@ class ModelTrainer:
                     text_span_accuracy = 0.0
                     text_span_loc_loss = 0.0
             save_model(model, model_identifier, dataset, self.args, full_tree_voc, e)
+
+            # Save model weights
+            # print("Epoch #" + str(e) + " weights:")
+            with open("weights.csv", "a") as f:
+                csv_writer = csv.writer(f, delimiter=",")
+                row = []
+                for m in model.modules():
+                    if hasattr(m, 'weight'):
+                        try:
+                            row.append(torch.norm(m.weight).item())
+                        except:
+                            pass
+                csv_writer.writerow(row)
+
+            # print("Epoch #" + str(e) + " gradients:")
+            with open("gradients.csv", "a") as f:
+                csv_writer = csv.writer(f, delimiter=",")
+                row = []
+                for m in model.modules():
+                    if hasattr(m, 'weight'):
+                        try:
+                            row.append(torch.norm(m.weight.grad).item())
+                        except:
+                            pass
+                csv_writer.writerow(row)
+                    
+
             # Evaluating model
             model.eval()
             logging.info("evaluating model")
