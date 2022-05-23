@@ -270,7 +270,7 @@ class BlockObjectNode(VoxelObjectNode):
         for block in blocks:
             VoxelObjectNode.upsert_block(memory, block, memid, "BlockObjects")
         memory.nodes["Triple"].tag(memory, memid, "_block_object")
-        memory.nodes["Triple"].tag(memory, memid, "VOXEL_OBJECT")
+        memory.nodes["Triple"].tag(memory, memid, "_VOXEL_OBJECT")
         memory.nodes["Triple"].tag(memory, memid, "_physical_object")
         memory.nodes["Triple"].tag(memory, memid, "_destructible")
         # this is a hack until memory_filters does "not"
