@@ -219,18 +219,20 @@ def interpret_named_schematic(
         return shape_blocks, None, tags
 
     _, schematic = interpreter.memory.basic_search(
-        f"SELECT MEMORY FROM Schematic WHERE has_name={name}"
+        f"SELECT MEMORY FROM Schematic WHERE (has_name={name} OR has_tag={name})"
     )
-    if len(schematic) == 0:
+    if not schematic:
         _, schematic = interpreter.memory.basic_search(
-            f"SELECT MEMORY FROM Schematic WHERE has_name={stemmed_name}"
+            f"SELECT MEMORY FROM Schematic WHERE (has_name={stemmed_name} or has_tag={stemmed_name})"
         )
-        if len(schematic) == 0:
+        if not schematic:
             raise ErrorWithResponse("I don't know what you want me to build.")
+    # if there are multiple automatically select one
+    schematic = random.choice(schematic)
     triples = [
         (p, v)
         for (_, p, v) in interpreter.memory.nodes["Triple"].get_triples(
-            interpreter.memory, subj=schematic[0].memid
+            interpreter.memory, subj=schematic.memid
         )
     ]
     blocks = schematic.blocks
