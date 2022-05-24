@@ -416,7 +416,9 @@ class AgentMemory:
         if chat_effect:
             chat = self.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(self)
             assert chat is not None, "chat_effect=True with no incoming chats"
-            self.nodes[TripleNode.NODE_TYPE].create(self, subj=chat.memid, pred_text="chat_effect_", obj=memid)
+            self.nodes[TripleNode.NODE_TYPE].create(
+                self, subj=chat.memid, pred_text="chat_effect_", obj=memid
+            )
 
         # Return newly created object
         return TaskNode(self, memid)

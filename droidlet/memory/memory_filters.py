@@ -371,7 +371,9 @@ class MemorySearcher:
                 except:
                     raise Exception("error in subquery {}".format(where_clause))
 
-        triples = agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(agent_memory, **where_clause)
+        triples = agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            agent_memory, **where_clause
+        )
         if where_clause.get("subj"):
             memids = [t[2] for t in triples]
         else:

@@ -125,7 +125,9 @@ class Interpreter(InterpreterBase):
         try:
             C = self.interpret_event(agent, self.speaker, self.logical_form)
             if C is not None:
-                chat = self.memory.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(self.memory)
+                chat = self.memory.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(
+                    self.memory
+                )
                 TripleNode.create(
                     self.memory, subj=chat.memid, pred_text="chat_effect_", obj=C.memid
                 )

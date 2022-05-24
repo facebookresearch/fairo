@@ -130,7 +130,9 @@ class BasicTest(unittest.TestCase):
         sheep_memid = NamedAbstractionNode.create(self.memory, "sheep")
         loc_memid = LocationNode.create(self.memory, (1, 2, 3))
 
-        self.memory.nodes[TripleNode.NODE_TYPE].tag(self.memory, subj_memid=sheep_memid, tag_text="furry")
+        self.memory.nodes[TripleNode.NODE_TYPE].tag(
+            self.memory, subj_memid=sheep_memid, tag_text="furry"
+        )
         self.memory.nodes[TripleNode.NODE_TYPE].create(
             self.memory, subj=sheep_memid, pred_text="has_home_location", obj=loc_memid
         )
@@ -157,7 +159,9 @@ class BasicTest(unittest.TestCase):
             self.memory, Player(10, "rachel", Pos(1, 0, 1), Look(0, 0))
         )
 
-        self.memory.nodes[TripleNode.NODE_TYPE].tag(self.memory, subj_memid=player_memid, tag_text="girl")
+        self.memory.nodes[TripleNode.NODE_TYPE].tag(
+            self.memory, subj_memid=player_memid, tag_text="girl"
+        )
         self.memory.nodes[TripleNode.NODE_TYPE].tag(
             self.memory, subj_memid=player_memid, tag_text="plays_football"
         )
@@ -187,7 +191,9 @@ class BasicTest(unittest.TestCase):
             self.memory, Player(10, "rache", Pos(1, 0, 1), Look(0, 0))
         )
 
-        self.memory.nodes[TripleNode.NODE_TYPE].tag(self.memory, subj_memid=player_memid, tag_text="girl")
+        self.memory.nodes[TripleNode.NODE_TYPE].tag(
+            self.memory, subj_memid=player_memid, tag_text="girl"
+        )
         self.memory.nodes[TripleNode.NODE_TYPE].tag(
             self.memory, subj_memid=player_memid, tag_text="plays_football"
         )
@@ -230,7 +236,9 @@ class BasicTest(unittest.TestCase):
             self.memory, Player(10, "rachel", Pos(1, 0, 1), Look(0, 0))
         )
 
-        self.memory.nodes[TripleNode.NODE_TYPE].tag(self.memory, subj_memid=rachel_memid, tag_text="girl")
+        self.memory.nodes[TripleNode.NODE_TYPE].tag(
+            self.memory, subj_memid=rachel_memid, tag_text="girl"
+        )
         self.memory.nodes[TripleNode.NODE_TYPE].tag(
             self.memory, subj_memid=rachel_memid, tag_text="plays_football"
         )
@@ -239,14 +247,18 @@ class BasicTest(unittest.TestCase):
             self.memory, Player(11, "robert", Pos(4, 0, 5), Look(0, 0))
         )
 
-        self.memory.nodes[TripleNode.NODE_TYPE].tag(self.memory, subj_memid=robert_memid, tag_text="boy")
+        self.memory.nodes[TripleNode.NODE_TYPE].tag(
+            self.memory, subj_memid=robert_memid, tag_text="boy"
+        )
         self.memory.nodes[TripleNode.NODE_TYPE].tag(
             self.memory, subj_memid=robert_memid, tag_text="plays_football"
         )
 
         sam_memid = PlayerNode.create(self.memory, Player(12, "sam", Pos(-2, 0, 5), Look(0, 0)))
 
-        self.memory.nodes[TripleNode.NODE_TYPE].tag(self.memory, subj_memid=sam_memid, tag_text="girl")
+        self.memory.nodes[TripleNode.NODE_TYPE].tag(
+            self.memory, subj_memid=sam_memid, tag_text="girl"
+        )
         self.memory.nodes[TripleNode.NODE_TYPE].tag(
             self.memory, subj_memid=sam_memid, tag_text="plays_volleyball"
         )
@@ -349,7 +361,9 @@ class BasicTest(unittest.TestCase):
             self.memory, subj_memid=joe_memid, tag_text="basketball_player"
         )
         ann_memid = PlayerNode.create(self.memory, Player(20, "ann", Pos(1, 0, 4), Look(0, 0)))
-        self.memory.nodes[TripleNode.NODE_TYPE].tag(self.memory, subj_memid=ann_memid, tag_text="swimmer")
+        self.memory.nodes[TripleNode.NODE_TYPE].tag(
+            self.memory, subj_memid=ann_memid, tag_text="swimmer"
+        )
 
         # Test get_player_by_eid
         assert (

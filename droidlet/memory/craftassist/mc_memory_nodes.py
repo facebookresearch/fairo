@@ -367,7 +367,9 @@ class InstSegNode(VoxelObjectNode):
                 memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, tag)
             elif type(tag) is dict:
                 for k, v in tag.items():
-                    memory.nodes[TripleNode.NODE_TYPE].create(memory, subj=memid, pred_text=k, obj_text=v)
+                    memory.nodes[TripleNode.NODE_TYPE].create(
+                        memory, subj=memid, pred_text=k, obj_text=v
+                    )
         return memid
 
     def __init__(self, memory, memid: str):
@@ -375,7 +377,9 @@ class InstSegNode(VoxelObjectNode):
         r = memory._db_read("SELECT x, y, z FROM VoxelObjects WHERE uuid=?", self.memid)
         self.locs = r
         self.blocks = {l: (0, 0) for l in self.locs}
-        tags = memory.nodes[TripleNode.NODE_TYPE].get_triples(memory, subj=self.memid, pred_text="has_tag")
+        tags = memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            memory, subj=self.memid, pred_text="has_tag"
+        )
         self.tags = []  # noqa: T484
         for tag in tags:
             if tag[2][0] != "_":
@@ -473,7 +477,9 @@ class MobNode(ReferenceObjectNode):
         # this is a hack until memory_filters does "not"
         memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_not_location")
         memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, mobtype)
-        memory.nodes[TripleNode.NODE_TYPE].create(memory, subj=memid, pred_text="has_name", obj_text=mobtype)
+        memory.nodes[TripleNode.NODE_TYPE].create(
+            memory, subj=memid, pred_text="has_name", obj_text=mobtype
+        )
         return memid
 
     def get_pos(self) -> XYZ:
@@ -942,7 +948,9 @@ class DanceNode(MemoryNode):
         # TODO put in db via pickle like tasks?
         memory.dances[memid] = dance_fn
         if name is not None:
-            memory.nodes[TripleNode.NODE_TYPE].create(memory, subj=memid, pred_text="has_name", obj_text=name)
+            memory.nodes[TripleNode.NODE_TYPE].create(
+                memory, subj=memid, pred_text="has_name", obj_text=name
+            )
         if len(tags) > 0:
             for tag in tags:
                 memory.nodes[TripleNode.NODE_TYPE].create(
