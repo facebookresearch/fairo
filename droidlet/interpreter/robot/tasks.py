@@ -519,15 +519,16 @@ class CuriousExplore(TrajectorySaverTask):
 
 class ExamineDetectionStraightline(TrajectorySaverTask):
     """Examine a detection"""
+
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
         self.task_data = task_data
-        self.target = task_data['target']
-        self.frontier_center = np.asarray(self.target['xyz'])
+        self.target = task_data["target"]
+        self.frontier_center = np.asarray(self.target["xyz"])
         self.agent = agent
         self.last_base_pos = None
         self.robot_poses = []
-        self.dbg_str = task_data.get('dbg_str')
+        self.dbg_str = task_data.get("dbg_str")
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
@@ -535,10 +536,12 @@ class ExamineDetectionStraightline(TrajectorySaverTask):
         super().step()
         self.interrupted = False
         self.finished = False
-        logger = logging.getLogger('curious')
+        logger = logging.getLogger("curious")
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         self.robot_poses.append(base_pos)
-        dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
+        dist = np.linalg.norm(
+            base_pos[:2] - np.asarray([self.frontier_center[0], self.frontier_center[2]])
+        )
         logger.info(f"Deciding examination, dist = {dist}")
         d = 1
         if self.last_base_pos is not None:
@@ -546,44 +549,48 @@ class ExamineDetectionStraightline(TrajectorySaverTask):
             # logger.info(f"Distance moved {d}")
         if (base_pos != self.last_base_pos).any() and dist > 0.2 and d > 0:
             tloc = get_step_target_for_straightline_move(base_pos, self.frontier_center)
-            logger.debug(f"get_step_target_for_straight_move \
+            logger.debug(
+                f"get_step_target_for_straight_move \
                 \nx, z, yaw = {base_pos},\
                 \nxf, zf = {self.frontier_center[0], self.frontier_center[2]} \
-                \nx_move, z_move, yaw_move = {tloc}")
+                \nx_move, z_move, yaw_move = {tloc}"
+            )
             logging.info(f"Current Pos {base_pos}")
             logging.info(f"Move Target for Examining {tloc}")
             logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-tloc[:2])}")
             self.add_child_task(Move(self.agent, {"target": tloc}))
 
-            # visualize tloc, frontier_center, obstacle_map  
+            # visualize tloc, frontier_center, obstacle_map
             logging.info(f"os.getenv('VISUALIZE_EXAMINE') {os.getenv('VISUALIZE_EXAMINE')}")
-            if os.getenv('VISUALIZE_EXAMINE', 'False') == 'True':
+            if os.getenv("VISUALIZE_EXAMINE", "False") == "True":
                 visualize_examine(
-                    self.agent, 
-                    self.robot_poses, 
-                    self.frontier_center, 
-                    self.target['label'],
+                    self.agent,
+                    self.robot_poses,
+                    self.frontier_center,
+                    self.target["label"],
                     self.agent.mover.get_obstacles_in_canonical_coords(),
-                    self.task_data['vis_path'],
-                )   
+                    self.task_data["vis_path"],
+                )
 
             self.last_base_pos = base_pos
             return
         else:
             logger.info(f"Finished Examination")
             self.finished = self.agent.mover.bot_step()
-        
+
     def __repr__(self):
-        return "<ExamineDetectionStraightline {}>".format(self.target['label'])
+        return "<ExamineDetectionStraightline {}>".format(self.target["label"])
+
 
 # plot the path
 class ExamineDetectionStraightlinepp(TrajectorySaverTask):
     """Examine a detection"""
+
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
         self.task_data = task_data
-        self.target = task_data['target']
-        self.frontier_center = np.asarray(self.target['xyz'])
+        self.target = task_data["target"]
+        self.frontier_center = np.asarray(self.target["xyz"])
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         self.path = get_straightline_path_to(self.frontier_center, base_pos)
         self.steps = 0
@@ -591,7 +598,7 @@ class ExamineDetectionStraightlinepp(TrajectorySaverTask):
         self.agent = agent
         self.last_base_pos = None
         self.robot_poses = []
-        self.dbg_str = task_data.get('dbg_str')
+        self.dbg_str = task_data.get("dbg_str")
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
@@ -599,70 +606,76 @@ class ExamineDetectionStraightlinepp(TrajectorySaverTask):
         super().step()
         self.interrupted = False
         self.finished = False
-        logger = logging.getLogger('curious')
+        logger = logging.getLogger("curious")
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         self.robot_poses.append(base_pos)
-        dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
+        dist = np.linalg.norm(
+            base_pos[:2] - np.asarray([self.frontier_center[0], self.frontier_center[2]])
+        )
         logger.info(f"Deciding examination, dist = {dist}")
         d = 1
         if self.last_base_pos is not None:
             d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
             # logger.info(f"Distance moved {d}")
-        
+
         if d < 0.01:
             self.stuck += 1
-        
+
         if self.steps < min(20, len(self.path)):
             tloc = self.path[self.steps]
             self.steps += 1
-            logger.debug(f"get_step_target_for_straight_move \
+            logger.debug(
+                f"get_step_target_for_straight_move \
                 \nx, z, yaw = {base_pos},\
                 \nxf, zf = {self.frontier_center[0], self.frontier_center[2]} \
-                \nx_move, z_move, yaw_move = {tloc}")
+                \nx_move, z_move, yaw_move = {tloc}"
+            )
             logging.info(f"Current Pos {base_pos}")
             logging.info(f"Move Target for Examining {tloc}")
             logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-tloc[:2])}")
             self.add_child_task(Move(self.agent, {"target": tloc}))
 
-            # visualize tloc, frontier_center, obstacle_map  
+            # visualize tloc, frontier_center, obstacle_map
             logging.info(f"os.getenv('VISUALIZE_EXAMINE') {os.getenv('VISUALIZE_EXAMINE')}")
-            if os.getenv('VISUALIZE_EXAMINE', 'False') == 'True':
+            if os.getenv("VISUALIZE_EXAMINE", "False") == "True":
                 visualize_examine(
-                    self.agent, 
-                    self.robot_poses, 
-                    self.frontier_center, 
-                    self.target['label'],
+                    self.agent,
+                    self.robot_poses,
+                    self.frontier_center,
+                    self.target["label"],
                     self.agent.mover.get_obstacles_in_canonical_coords(),
-                    self.task_data['vis_path'],
-                    self.path
-                )   
+                    self.task_data["vis_path"],
+                    self.path,
+                )
 
             self.last_base_pos = base_pos
             return
         else:
             logger.info(f"Finished Examination")
             self.finished = self.agent.mover.bot_step()
-        
+
     def __repr__(self):
-        return "<ExamineDetectionStraightline++ {}>".format(self.target['label'])
+        return "<ExamineDetectionStraightline++ {}>".format(self.target["label"])
+
 
 class ExamineDetectionCircle(TrajectorySaverTask):
     """Examine a detection"""
+
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
         self.task_data = task_data
-        self.target = task_data['target']
-        self.radius = task_data.get('radius', 0.7)
-        self.frontier_center = np.asarray(self.target['xyz'])
+        self.target = task_data["target"]
+        self.radius = task_data.get("radius", 0.7)
+        self.frontier_center = np.asarray(self.target["xyz"])
         self.agent = agent
         self.steps = 0
         self.robot_poses = []
         self.last_base_pos = None
-        self.dbg_str = task_data.get('dbg_str')
-        self.logger = task_data.get('logger') 
+        self.dbg_str = task_data.get("dbg_str")
+        self.logger = task_data.get("logger")
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         self.pts, _ = get_circular_path(self.frontier_center, base_pos, radius=self.radius)
-        self.logger.info(f'{len(self.pts)} pts on cicle {self.pts}')
+        self.logger.info(f"{len(self.pts)} pts on cicle {self.pts}")
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
@@ -671,7 +684,7 @@ class ExamineDetectionCircle(TrajectorySaverTask):
         self.interrupted = False
         self.finished = False
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
-        if self.steps > 0: # without any steps, the robot isn't on the circle of inspection
+        if self.steps > 0:  # without any steps, the robot isn't on the circle of inspection
             self.robot_poses.append(base_pos)
         d = 1
         if self.last_base_pos is not None:
@@ -680,49 +693,51 @@ class ExamineDetectionCircle(TrajectorySaverTask):
         if (base_pos != self.last_base_pos).any() and self.steps < len(self.pts):
             tloc = self.pts[self.steps]
             self.steps += 1
-            self.logger.info(f'step {self.steps} moving to {tloc} Current Pos {base_pos}')
+            self.logger.info(f"step {self.steps} moving to {tloc} Current Pos {base_pos}")
             self.add_child_task(Move(self.agent, {"target": tloc}))
             self.last_base_pos = base_pos
-            # visualize tloc, frontier_center, obstacle_map  
-            if os.getenv('VISUALIZE_EXAMINE', 'False') == 'True':
+            # visualize tloc, frontier_center, obstacle_map
+            if os.getenv("VISUALIZE_EXAMINE", "False") == "True":
                 visualize_examine(
-                    self.agent, 
-                    self.robot_poses, 
-                    self.frontier_center, 
-                    self.target['label'],
+                    self.agent,
+                    self.robot_poses,
+                    self.frontier_center,
+                    self.target["label"],
                     self.agent.mover.get_obstacles_in_canonical_coords(),
-                    self.task_data['vis_path'],
+                    self.task_data["vis_path"],
                     self.pts,
-                )   
+                )
 
             return
         else:
             self.logger.info(f"Finished Examination")
             self.finished = self.agent.mover.bot_step()
-        
+
     def __repr__(self):
-        return "<ExamineDetectionCircle {}>".format(self.target['label'])
+        return "<ExamineDetectionCircle {}>".format(self.target["label"])
+
 
 class ExamineDetectionCirclepp(TrajectorySaverTask):
     """Examine a detection"""
+
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
         self.task_data = task_data
-        self.target = task_data['target']
-        self.radius = task_data.get('radius', 1)
-        self.frontier_center = np.asarray(self.target['xyz'])
+        self.target = task_data["target"]
+        self.radius = task_data.get("radius", 1)
+        self.frontier_center = np.asarray(self.target["xyz"])
         self.agent = agent
         self.steps = 0
         self.stuck = 0
         self.robot_poses = []
         self.last_base_pos = None
-        self.dbg_str = task_data.get('dbg_str')
-        self.logger = task_data.get('logger') 
+        self.dbg_str = task_data.get("dbg_str")
+        self.logger = task_data.get("logger")
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         self.guide = CircleGuide(
             self.frontier_center, base_pos, radius=self.radius, include_approach=True, timeout=20
         )
-        self.logger.info(f'{len(self.guide.path)} pts on cicle')
+        self.logger.info(f"{len(self.guide.path)} pts on cicle")
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
@@ -736,36 +751,37 @@ class ExamineDetectionCirclepp(TrajectorySaverTask):
         if self.last_base_pos is not None:
             d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
             self.logger.info(f"Distance moved {d}")
-        
+
         is_stuck = d < 0.01
         tloc = self.guide.get_next(is_stuck)
         if is_stuck:
             self.stuck += 1
-        
+
         if tloc is not None:
             self.steps += 1
-            self.logger.info(f'step {self.steps} moving to {tloc} Current Pos {base_pos}')
+            self.logger.info(f"step {self.steps} moving to {tloc} Current Pos {base_pos}")
             self.add_child_task(Move(self.agent, {"target": tloc}))
             self.last_base_pos = base_pos
-            # visualize tloc, frontier_center, obstacle_map  
-            if os.getenv('VISUALIZE_EXAMINE', 'False') == 'True':
+            # visualize tloc, frontier_center, obstacle_map
+            if os.getenv("VISUALIZE_EXAMINE", "False") == "True":
                 visualize_examine(
-                    self.agent, 
-                    self.robot_poses, 
-                    self.frontier_center, 
-                    self.target['label'],
+                    self.agent,
+                    self.robot_poses,
+                    self.frontier_center,
+                    self.target["label"],
                     self.agent.mover.get_obstacles_in_canonical_coords(),
-                    self.task_data['vis_path'],
+                    self.task_data["vis_path"],
                     self.guide.path,
-                )   
+                )
 
             return
         else:
             self.logger.info(f"Finished Examination")
             self.finished = self.agent.mover.bot_step()
-        
+
     def __repr__(self):
-        return "<ExamineDetectionCircle {}>".format(self.target['label'])
+        return "<ExamineDetectionCircle {}>".format(self.target["label"])
+
 
 class Explore(TrajectorySaverTask):
     """use slam to explore environemt"""
@@ -810,195 +826,248 @@ class TimedExplore(TrajectorySaverTask):
         else:
             self.finished = True
 
+
 class Reexplore(Task):
     """use slam to explore environemt, but also examine detections"""
 
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
-        self.tasks = ["straight", "circle", "random1", "random2", "save_task_data", "circlepp", "straightpp"]
+        self.tasks = [
+            "straight",
+            "circle",
+            "random1",
+            "random2",
+            "save_task_data",
+            "circlepp",
+            "straightpp",
+        ]
         self.task_data = task_data
-        self.target = task_data.get('target')
-        self.spawn_pos = task_data.get('spawn_pos')
-        self.base_pos = task_data.get('base_pos')
+        self.target = task_data.get("target")
+        self.spawn_pos = task_data.get("spawn_pos")
+        self.base_pos = task_data.get("base_pos")
         self.init_logger()
         self.agent = agent
-        print(f'Reexplore task_data {task_data}')
+        print(f"Reexplore task_data {task_data}")
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def init_logger(self):
-        logger = logging.getLogger('reexplore')
+        logger = logging.getLogger("reexplore")
         logger.setLevel(logging.INFO)
-        fh = logging.FileHandler(f"reexplore.log", 'w')
+        fh = logging.FileHandler(f"reexplore.log", "w")
         fh.setLevel(logging.INFO)
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(filename)s:%(lineno)s - %(funcName)s(): %(message)s')
+        formatter = logging.Formatter("%(filename)s:%(lineno)s - %(funcName)s(): %(message)s")
         fh.setFormatter(formatter)
         logger.addHandler(fh)
         logger.addHandler(ch)
-        logger.info(f'Reexplore task_data {self.task_data}')
+        logger.info(f"Reexplore task_data {self.task_data}")
 
     @Task.step_wrapper
     def step(self):
         super().step()
         self.interrupted = False
         self.finished = False
-        logger = logging.getLogger('reexplore')
+        logger = logging.getLogger("reexplore")
         task_name = self.tasks.pop(0) if len(self.tasks) > 0 else None
 
         # execute a straigtline examine
         if task_name == "straight":
             logging.info(f"starting Examination straight")
-            self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
+            self.agent.mover.bot.respawn_agent(
+                self.spawn_pos["position"], self.spawn_pos["rotation"]
+            )
             base_pos = self.agent.mover.get_base_pos()
-            logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
+            logging.info(
+                f"asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}"
+            )
             # assert np.allclose(base_pos, self.base_pos), f'{base_pos, self.base_pos}' # checking that poses match
 
-            self.add_child_task(ExamineDetectionStraightline(
-                    self.agent, {
-                        "target": self.target, 
+            self.add_child_task(
+                ExamineDetectionStraightline(
+                    self.agent,
+                    {
+                        "target": self.target,
                         "save_data": True,
                         "vis_path": f"{self.task_data['vis_path']}/s1",
                         "data_path": f"{self.task_data['data_path']}/s1",
-                        "dbg_str": f'Straightline examine {self.target}',
-                        'logger': logger
-                        }
-                    )
+                        "dbg_str": f"Straightline examine {self.target}",
+                        "logger": logger,
+                    },
                 )
+            )
             return
 
         if task_name == "straightpp":
             logging.info(f"starting Examination straightpp")
-            self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
+            self.agent.mover.bot.respawn_agent(
+                self.spawn_pos["position"], self.spawn_pos["rotation"]
+            )
             base_pos = self.agent.mover.get_base_pos()
-            logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
+            logging.info(
+                f"asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}"
+            )
             # assert np.allclose(base_pos, self.base_pos), f'{base_pos, self.base_pos}' # checking that poses match
 
-            self.add_child_task(ExamineDetectionStraightlinepp(
-                    self.agent, {
-                        "target": self.target, 
+            self.add_child_task(
+                ExamineDetectionStraightlinepp(
+                    self.agent,
+                    {
+                        "target": self.target,
                         "save_data": True,
                         "vis_path": f"{self.task_data['vis_path']}/s1pp",
                         "data_path": f"{self.task_data['data_path']}/s1pp",
-                        "dbg_str": f'Straightline examine {self.target}',
-                        'logger': logger
-                        }
-                    )
+                        "dbg_str": f"Straightline examine {self.target}",
+                        "logger": logger,
+                    },
                 )
+            )
             return
-        
+
         # execute a circle examine
         if task_name == "circle":
             logging.info(f"starting Examination circle")
-            self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
+            self.agent.mover.bot.respawn_agent(
+                self.spawn_pos["position"], self.spawn_pos["rotation"]
+            )
             base_pos = self.agent.mover.get_base_pos()
-            logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
+            logging.info(
+                f"asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}"
+            )
             # assert np.allclose(base_pos, self.base_pos), f'{base_pos, self.base_pos}'
 
-            self.add_child_task(ExamineDetectionCircle(
-                    self.agent, {
-                        "target": self.target, 
+            self.add_child_task(
+                ExamineDetectionCircle(
+                    self.agent,
+                    {
+                        "target": self.target,
                         "save_data": True,
                         "vis_path": f"{self.task_data['vis_path']}/c1s",
                         "data_path": f"{self.task_data['data_path']}/c1s",
-                        "dbg_str": f'Circle examine {self.target}',
-                        'logger': logger
-                        }
-                    )
+                        "dbg_str": f"Circle examine {self.target}",
+                        "logger": logger,
+                    },
                 )
+            )
 
             return
 
         if task_name == "circlepp":
             logging.info(f"starting Examination circlepp")
-            self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
+            self.agent.mover.bot.respawn_agent(
+                self.spawn_pos["position"], self.spawn_pos["rotation"]
+            )
             base_pos = self.agent.mover.get_base_pos()
-            logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
+            logging.info(
+                f"asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}"
+            )
             # assert np.allclose(base_pos, self.base_pos), f'{base_pos, self.base_pos}'
 
-            self.add_child_task(ExamineDetectionCirclepp(
-                    self.agent, {
-                        "target": self.target, 
+            self.add_child_task(
+                ExamineDetectionCirclepp(
+                    self.agent,
+                    {
+                        "target": self.target,
                         "save_data": True,
                         "vis_path": f"{self.task_data['vis_path']}/c1pp",
                         "data_path": f"{self.task_data['data_path']}/c1pp",
-                        "dbg_str": f'Circle examine {self.target}',
+                        "dbg_str": f"Circle examine {self.target}",
                         "radius": 1.4,
-                        'logger': logger
-                        }
-                    )
+                        "logger": logger,
+                    },
                 )
+            )
 
             return
 
         # execute a circle examine with radius as distance from spawn loc
         if task_name == "circle_big":
             logging.info(f"starting Examination circle_big")
-            self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
+            self.agent.mover.bot.respawn_agent(
+                self.spawn_pos["position"], self.spawn_pos["rotation"]
+            )
             base_pos = self.agent.mover.get_base_pos()
-            logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
+            logging.info(
+                f"asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}"
+            )
             # assert np.allclose(base_pos, self.base_pos), f'{base_pos, self.base_pos}'
 
             base_pos_can = self.agent.mover.get_base_pos_in_canonical_coords()
-            dist = np.linalg.norm(base_pos_can[:2] - [self.target['xyz'][0], self.target['xyz'][2]])
+            dist = np.linalg.norm(
+                base_pos_can[:2] - [self.target["xyz"][0], self.target["xyz"][2]]
+            )
 
-            self.add_child_task(ExamineDetectionCircle(
-                    self.agent, {
-                        "target": self.target, 
+            self.add_child_task(
+                ExamineDetectionCircle(
+                    self.agent,
+                    {
+                        "target": self.target,
                         "save_data": True,
                         "vis_path": f"{self.task_data['vis_path']}/c1l",
                         "data_path": f"{self.task_data['data_path']}/c1l",
-                        "dbg_str": f'Circle examine {self.target}',
-                        'logger': logger,
-                        'radius': dist
-                        }
-                    )
+                        "dbg_str": f"Circle examine {self.target}",
+                        "logger": logger,
+                        "radius": dist,
+                    },
                 )
+            )
             return
 
         if task_name == "random1":
             logging.info(f"starting Examination random1")
-            self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
+            self.agent.mover.bot.respawn_agent(
+                self.spawn_pos["position"], self.spawn_pos["rotation"]
+            )
             base_pos = self.agent.mover.get_base_pos()
-            logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
+            logging.info(
+                f"asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}"
+            )
             # assert np.allclose(base_pos, self.base_pos), f'{base_pos, self.base_pos}'
-            
-            self.add_child_task(TimedExplore(
-                    self.agent, { 
-                        "goal": get_distant_goal(base_pos[0], base_pos[1], base_pos[2]), 
-                        "save_data": os.getenv('SAVE_EXPLORATION', 'False') == 'True',
+
+            self.add_child_task(
+                TimedExplore(
+                    self.agent,
+                    {
+                        "goal": get_distant_goal(base_pos[0], base_pos[1], base_pos[2]),
+                        "save_data": os.getenv("SAVE_EXPLORATION", "False") == "True",
                         "data_path": f"{self.task_data['data_path']}/r1",
                         "timeout": 20,
-                    }
+                    },
                 )
             )
             return
 
         if task_name == "random2":
             logging.info(f"starting Examination random2")
-            self.agent.mover.bot.respawn_agent(self.spawn_pos['position'], self.spawn_pos['rotation'])
+            self.agent.mover.bot.respawn_agent(
+                self.spawn_pos["position"], self.spawn_pos["rotation"]
+            )
             base_pos = self.agent.mover.get_base_pos()
-            logging.info(f'asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}')
+            logging.info(
+                f"asserting base poses {base_pos, self.base_pos, np.allclose(base_pos, self.base_pos)}"
+            )
             # assert np.allclose(base_pos, self.base_pos), f'{base_pos, self.base_pos}'
-            
-            self.add_child_task(TimedExplore(
-                    self.agent, { 
-                        "goal": get_distant_goal(base_pos[0], base_pos[1], base_pos[2]), 
-                        "save_data": os.getenv('SAVE_EXPLORATION', 'False') == 'True',
+
+            self.add_child_task(
+                TimedExplore(
+                    self.agent,
+                    {
+                        "goal": get_distant_goal(base_pos[0], base_pos[1], base_pos[2]),
+                        "save_data": os.getenv("SAVE_EXPLORATION", "False") == "True",
                         "data_path": f"{self.task_data['data_path']}/r2",
                         "timeout": 20,
-                    }
+                    },
                 )
             )
             return
-        
+
         if task_name == "save_task_data":
-            with open(os.path.join(self.task_data['data_path'], "task_data.json"), "w") as fp:
-                json.dump(self.task_data, fp) 
+            with open(os.path.join(self.task_data["data_path"], "task_data.json"), "w") as fp:
+                json.dump(self.task_data, fp)
             return
-        
+
         else:
             self.finished = True
-    
+
     def __repr__(self):
         return "<ReExplore>"
