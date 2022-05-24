@@ -117,11 +117,23 @@ class SLAM(object):
 
     def update_map(self):
         pcd, rgb, depth = self.robot.get_current_pcd()
-        semantics, self.last_semantic_frame = self.robot.get_semantics(rgb, depth)
         pose = self.robot.get_base_state()
 
+        # Time:
+        # ~3.5sec on Mac
+        t0 = time.time()
+        semantics, self.last_semantic_frame = self.robot.get_semantics(rgb, depth)
+        t1 = time.time()
+        print("get_semantics()", t1 - t0)
+
         self.map_builder.update_map(pcd)
+
+         # Time:
+        # ~3.5sec on Mac with 480 x 480 map
+        t0 = time.time()
         self.map_builder.update_semantic_map(pcd, semantics, pose)
+        t1 = time.time()
+        print("update_semantic_map()", t1 - t0)
 
         # explore the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
