@@ -91,9 +91,7 @@ class Navigation(object):
         abs_goal[1] += robot_loc[1]
         abs_goal[2] = goal[2] + robot_loc[2]
         return self.go_to_absolute(
-            goal=abs_goal, 
-            distance_threshold=distance_threshold, 
-            angle_threshold=angle_threshold
+            goal=abs_goal, distance_threshold=distance_threshold, angle_threshold=angle_threshold
         )
 
     def go_to_absolute(
