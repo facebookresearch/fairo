@@ -341,7 +341,7 @@ class FakeAgent(DroidletAgent):
             # sooooorrry  FIXME? when we handle triples better in interpreter_helper
             if "has_" in pred:
                 self.memory.nodes[TripleNode.NODE_TYPE].tag(self.memory, memid, obj)
-        return self.memory.get_mem_by_id(memid, VoxelObjectNode.NODE_TYPE)
+        return self.memory.get_mem_by_id(memid)
 
     # WARNING!! this does not step the world, but directly fast-forwards
     # to count.  Use only in world setup, once world is running!
