@@ -76,7 +76,7 @@ class Planner(object):
         goal_within_threshold = self.goal_within_threshold(
             stg_real,
             goal=goal,
-            distance_threshold=distance_threshold,
+            threshold=distance_threshold,
             angle_threshold=angle_threshold,
         )
         if goal is not None and goal_within_threshold:
