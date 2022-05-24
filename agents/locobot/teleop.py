@@ -27,8 +27,8 @@ if __name__ == "__main__":
         webrtc_streaming=False
     else:
         webrtc_streaming=True
-    o3dviz = O3DViz(webrtc_streaming)
-    o3dviz.start()
+    # o3dviz = O3DViz(webrtc_streaming)
+    # o3dviz.start()
 
 from droidlet.interpreter.robot import (
     dance, 
@@ -139,6 +139,11 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             print("action: MOVE_ABSOLUTE", xyyaw_f)
             mover.move_absolute(xyyaw_f, blocking=False)
             sync()
+        elif command == "MOVE_TO_OBJECT":
+            object_goal = value.strip()
+            print("action: MOVE_TO_OBJECT", object_goal)
+            mover.move_to_object(object_goal, blocking=False)
+            sync()
         elif command == "LOOK_AT":
             xyz = value.split(',')
             xyz = [float(p) for p in xyz]
@@ -153,6 +158,7 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
 @sio.on("movement command")
 def test_command_web(sid, commands, data, value=None):
     test_command(sid, commands, data=data, value=value)
+
 
 if __name__ == "__main__":
     import argparse
@@ -223,6 +229,11 @@ if __name__ == "__main__":
         # this goes from 21ms to 120ms
         rgb_depth = mover.get_rgb_depth()
 
+        # TODO Temporary hack to get semantic frame in dashboard
+        semantic_frame = mover.slam.get_last_semantic_frame()
+        if semantic_frame is not None:
+            rgb_depth.rgb = semantic_frame
+
         # this takes about 1.5 to 2 fps
         serialized_image = rgb_depth.to_struct(resolution, quality)
 
@@ -233,26 +244,25 @@ if __name__ == "__main__":
             "depthMin": serialized_image["depth_min"],
         })
 
+        # points, colors = rgb_depth.ptcloud.reshape(-1, 3), rgb_depth.rgb.reshape(-1, 3)
+        # colors = colors / 255.
 
-        points, colors = rgb_depth.ptcloud.reshape(-1, 3), rgb_depth.rgb.reshape(-1, 3)
-        colors = colors / 255.
+        # if all_points is None:
+        #     all_points = points
+        #     all_colors = colors
+        # else:
+        #     all_points = np.concatenate((all_points, points), axis=0)
+        #     all_colors = np.concatenate((all_colors, colors), axis=0)
 
-        if all_points is None:
-            all_points = points
-            all_colors = colors
-        else:
-            all_points = np.concatenate((all_points, points), axis=0)
-            all_colors = np.concatenate((all_colors, colors), axis=0)
+        # opcd = o3d.geometry.PointCloud()
+        # opcd.points = o3d.utility.Vector3dVector(all_points)
+        # opcd.colors = o3d.utility.Vector3dVector(all_colors)
+        # opcd = opcd.voxel_down_sample(0.03)
 
-        opcd = o3d.geometry.PointCloud()
-        opcd.points = o3d.utility.Vector3dVector(all_points)
-        opcd.colors = o3d.utility.Vector3dVector(all_colors)
-        opcd = opcd.voxel_down_sample(0.03)
-
-        all_points = np.asarray(opcd.points)
-        all_colors = np.asarray(opcd.colors)
+        # all_points = np.asarray(opcd.points)
+        # all_colors = np.asarray(opcd.colors)
         
-        o3dviz.put('pointcloud', opcd)
+        # o3dviz.put('pointcloud', opcd)
         # obstacle, cpcd, crop, bbox, rest = mover.is_obstacle_in_front(return_viz=True)
         # if obstacle:
         #     crop.paint_uniform_color([0.0, 1.0, 1.0])
@@ -270,15 +280,25 @@ if __name__ == "__main__":
         # Plot the robot
         x, y, yaw = base_state.tolist()
 
-        if backend == 'locobot':
-            height=0.63
-        else: # hello-robot
-            height=1.41
-        o3dviz.add_robot(base_state, height)
+        # if backend == 'locobot':
+        #     height = 0.63
+        # else: # hello-robot
+        #     height = 1.41
+        # o3dviz.add_robot(base_state, height)
 
         # start the SLAM
-        if backend == 'habitat':
-            mover.explore((19,19,0))
+        # if backend == 'habitat':
+        #     # mover.explore((19, 19, 0))
+
+        #     possible_object_goals = mover.bot.get_semantic_categories_in_scene()
+        #     if len(possible_object_goals) > 0:
+        #         object_goal = random.choice(tuple(possible_object_goals))
+        #         mover.move_to_object(object_goal, blocking=True)
+
+        #     # import sys
+        #     # sys.exit()
+        #     import os
+        #     os._exit(0)
         
         sio.emit(
             "map",

@@ -13,7 +13,7 @@ from math import *
 import pyrealsense2 as rs
 import Pyro4
 import numpy as np
-import cv2
+import torch
 import open3d as o3d
 from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
 from droidlet.lowlevel.hello_robot.remote.lidar import Lidar
@@ -22,6 +22,8 @@ import obstacle_utils
 from obstacle_utils import is_obstacle
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
 from data_compression import *
+from segmentation.constants import coco_categories
+from segmentation.semantic_prediction import SemanticPredMaskRCNN
 
 
 # Configure depth and color streams
@@ -58,6 +60,13 @@ class RemoteHelloRealsense(object):
         img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
+        self.num_sem_categories = len(coco_categories)
+        self.segmentation_model = SemanticPredMaskRCNN(
+            sem_pred_prob_thr=0.8, sem_gpu_id=-1, visualize=True
+        )
+
+    def get_base_state(self):
+        return self.bot.get_base_state()
 
     def get_camera_transform(self):
         return self.bot.get_camera_transform()
@@ -160,6 +169,31 @@ class RemoteHelloRealsense(object):
 
         return color_image, depth_image
 
+    def get_semantics(self, rgb, depth):
+        """Get semantic segmentation."""
+        semantics, semantics_vis = self.segmentation_model.get_prediction(rgb)
+
+        # given RGB and depth are rotated after the point cloud creation,
+        # we rotate them back here to align to the point cloud
+        depth = np.rot90(depth, k=1, axes=(0, 1))
+        semantics = np.rot90(semantics, k=1, axes=(0, 1))
+
+        # apply the same depth filter to semantics as we applied to the point cloud
+        semantics = semantics.reshape(-1, self.num_sem_categories)
+        valid = (depth > 0).flatten()
+        semantics = semantics[valid]
+
+        return semantics, semantics_vis
+
+    def get_orientation(self):
+        """Get discretized robot orientation."""
+        # yaw is in radians in [0, 6.28]
+        _, _, yaw_in_radians = self.get_base_state()
+        # convert it to degrees in [0, 360]
+        yaw_in_degrees = int(yaw_in_radians * 180.0 / np.pi)
+        orientation = torch.tensor([yaw_in_degrees // 5])
+        return orientation
+
     def get_open3d_pcd(self, rgb_depth=None, cam_transform=None, base_state=None):
         # get data
         if rgb_depth is None:
@@ -207,7 +241,12 @@ class RemoteHelloRealsense(object):
         rgb, depth = self.get_rgb_depth(rotate=False, compressed=False)
         opcd = self.get_open3d_pcd(rgb_depth=[rgb, depth])
         pcd = np.asarray(opcd.points)
-        return pcd, rgb
+
+        # RGB and depth are rotated after the point cloud creation
+        rgb = np.rot90(rgb, k=1, axes=(1, 0))
+        depth = np.rot90(depth, k=1, axes=(1, 0))
+
+        return pcd, rgb, depth
 
     def is_obstacle_in_front(self, return_viz=False):
         base_state = self.bot.get_base_state()
@@ -278,7 +317,7 @@ if __name__ == "__main__":
         bot = Pyro4.Proxy("PYRONAME:hello_robot@" + args.ip)
         robot = RemoteHelloRealsense(bot)
         robot_uri = daemon.register(robot)
-        with Pyro4.locateNS() as ns:
+        with Pyro4.locateNS(host=args.ip) as ns:
             ns.register("hello_realsense", robot_uri)
 
         robot.calibrate_tilt()
