@@ -13,6 +13,8 @@ from slam_pkg.utils.map_builder import MapBuilder as mb
 from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
 from segmentation.constants import coco_categories
+from rich import print
+from droidlet.lowlevel.pyro_utils import safe_call
 
 random.seed(0)
 torch.manual_seed(0)
