@@ -2,13 +2,8 @@
 set -ex
 # Runs label prop on the reexploration data.
 # Usage
-# ./launch_label_prop.sh <path that is output dir of ./launch_candidate_selection.sh> <setting for noise>
-# ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/hail_mary2/baselinev3
-# ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/fifty_422/baselinev3
-# ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/collection2_preemp_test2/baseline collection2_preemp_test2
-# ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/respawnv1/baselinev3_noisy --noisy
-# ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/av300_noise/av300_noise_simple av300_noise
-# ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/av300_sanity50/av300_pt2 av_sanity50
+# ./launch_label_prop.sh <path that is output dir of ./launch_candidate_selection.sh> <name of out_dir> <setting: instance or class>
+# ./launch_label_prop.sh /checkpoint/apratik/jobs/reexplore/test_pr2/test_pr2 test_pr2 instance
 
 if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then
     echo "source activate not working, trying conda activate"
