@@ -102,7 +102,6 @@ def splat_feat_nd(init_grid, feat, coords):
     n_dims = len(grid_dims)
 
     grid_flat = init_grid.view(B, F, -1)
-
     for d in range(n_dims):
         pos = coords[:, [d], :] * grid_dims[d] / 2 + grid_dims[d] / 2
         pos_d = []
@@ -125,16 +124,16 @@ def splat_feat_nd(init_grid, feat, coords):
         wts_dim.append(wts_d)
 
     l_ix = [[0, 1] for d in range(n_dims)]
-
     for ix_d in itertools.product(*l_ix):
         wts = torch.ones_like(wts_dim[0][0])
         index = torch.zeros_like(wts_dim[0][0])
+
         for d in range(n_dims):
             index = index * grid_dims[d] + pos_dim[d][ix_d[d]]
             wts = wts * wts_dim[d][ix_d[d]]
 
         index = index.long()
         grid_flat.scatter_add_(2, index.expand(-1, F, -1), feat * wts)
-        grid_flat = torch.round(grid_flat)
 
+    grid_flat = torch.round(grid_flat)
     return grid_flat.view(init_grid.shape)

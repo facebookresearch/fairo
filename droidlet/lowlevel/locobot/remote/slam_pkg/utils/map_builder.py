@@ -83,9 +83,12 @@ class MapBuilder(object):
     def add_obstacle(self, location):
         self.map[round(location[1]), round(location[0]), 1] = 1
 
-    def update_semantic_map(self, pcd, semantic_channels, pose):
+    def update_semantic_map(self, pcd, semantic_channels, pose, scale=2):
         # convert point from m to cm
         pcd = pcd * 100
+
+        pcd = pcd[::scale]
+        semantic_channels = semantic_channels[::scale]
 
         # for mapping we want global center to be at origin
         geocentric_pc_for_map = transform_pose(
@@ -119,7 +122,6 @@ class MapBuilder(object):
             semantic_channels.shape[0],
         )
         feat[:, 1:, :] = torch.from_numpy(semantic_channels.T).unsqueeze(0)
-
         voxels_t = splat_feat_nd(init_grid, feat, geometric_pc_t).transpose(2, 3)
 
         # agent_height_proj = voxels_t[..., self.z_bins[0] : self.z_bins[1]].sum(4)
