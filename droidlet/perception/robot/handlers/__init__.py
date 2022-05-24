@@ -22,5 +22,5 @@ __all__ = [
     WorldObject,
     LabelPropagate,
     convert_depth_to_pcd,
-    compute_uvone
+    compute_uvone,
 ]
