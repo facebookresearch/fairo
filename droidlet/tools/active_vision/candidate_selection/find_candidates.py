@@ -3,10 +3,7 @@ from droidlet.perception.robot.active_vision.candidate_selection import SampleGo
 from droidlet.lowlevel.robot_coordinate_utils import xyz_pyrobot_to_canonical_coords
 from droidlet.perception.robot.handlers import convert_depth_to_pcd, compute_uvone
 
-# hack for importing from common_utils
-import sys 
-sys.path.append('..')
-from common_utils import is_annot_validfn_class, is_annot_validfn_inst, log_time, class_labels, instance_ids
+from droidlet.tools.active_vision.common_utils import is_annot_validfn_class, is_annot_validfn_inst, log_time, class_labels, instance_ids
 from typing import List
 
 import os 
