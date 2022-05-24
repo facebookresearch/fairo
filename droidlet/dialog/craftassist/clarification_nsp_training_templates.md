@@ -1,6 +1,6 @@
 # Clarification Templates #
 
-The following are templated interactions meant to show how the NSP should respond in different clarification cases
+The following are templated interactions meant to show how the NSP should respond in different clarification cases.  These templates are used to generate tempalted training data.
 
 ## Basic Clarification ##
 
@@ -45,7 +45,7 @@ If the agent runs out of reference object candidates to point at, the clarificat
             "memory_type": "TRIPLE",
             "triples": [{
                 "pred_text": "has_tag",
-                "obj_text": [ref_obj text span]
+                "obj_text": ref_obj span
             }]
         }
     }
@@ -81,7 +81,7 @@ The user is given the opportunity to interrupt the clarification process with a 
                     }]
                 }
             },
-            'text_span': 'cube'
+            'text_span': [0,[2,2]]
         }
     }]
 }
@@ -119,7 +119,7 @@ The user is given the opportunity to interrupt the clarification process with a 
                     }
                 }
             },
-            'text_span': 'cube next to the hole' (**What should happen here?**)
+            'text_span': [0,[24,28]] (**What should happen here?**)
         }
     }]
 }
@@ -148,7 +148,7 @@ The user is given the opportunity to interrupt the clarification process with a 
                     ]
                 }
             },
-            'text_span': 'blue cube' (**What should happen here?**)
+            'text_span': [0,[27,28]]
         }
     }]
 }
