@@ -10,17 +10,16 @@ from droidlet.memory.memory_nodes import ChatNode
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from droidlet.lowlevel.minecraft.mc_util import XYZ, Block, IDM
 from droidlet.shared_data_struct.rotation import yaw_pitch
-from droidlet.lowlevel.minecraft.pyworld.world import World, Opt, flat_ground_generator
-from droidlet.lowlevel.minecraft.pyworld.utils import (
-    Player,
-    Pos,
-    Look,
-    Item,
-    Look,
-    to_relative_pos,
-)
+from droidlet.lowlevel.minecraft.pyworld.world import World
+from droidlet.base_util import Look, Pos
+from droidlet.shared_data_struct.craftassist_shared_utils import Item, Player
+from droidlet.lowlevel.minecraft.pyworld.utils import to_relative_pos, flat_ground_generator
 
 from .fake_agent import FakeAgent, FakePlayer
+
+
+class Opt:
+    pass
 
 
 class BaseCraftassistTestCase(unittest.TestCase):
@@ -123,7 +122,7 @@ class BaseCraftassistTestCase(unittest.TestCase):
         if something is in between the player and the target xyz;
         and uses the agent's world's get_line_of_sight
         """
-        player = player or self.agent.world.players[0]
+        player = player or list(self.agent.world.players.values())[0]
         player.look_at(*xyz)
 
     def set_blocks(self, xyzbms: List[Block], origin: XYZ = (0, 0, 0)):
