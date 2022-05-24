@@ -6,25 +6,25 @@ from coco import run_coco
 from train import run_training
 from common_utils import log_time, heuristics as heus
 
-# combinations = {
-#     'r1r2': ['r1', 'r2'],
-#     's1ppr2': ['s1pp', 'r2'],
-#     'c1ppr2': ['c1pp', 'r2'],
-#     'c1pps1pp': ['c1pp', 's1pp'],
-# }
-
 combinations = {
-    'r1': ['r1'],
-    's1pp': ['s1pp'],
-    'c1pp': ['c1pp'],
+    'r1r2': ['r1', 'r2'],
+    's1ppr2': ['s1pp', 'r2'],
+    'c1ppr2': ['c1pp', 'r2'],
+    'c1pps1pp': ['c1pp', 's1pp'],
 }
+
+# combinations = {
+#     'r1': ['r1'],
+#     's1pp': ['s1pp'],
+#     'c1pp': ['c1pp'],
+# }
 
 def get_training_data(path, job_dir):
     """
     Returns a struct for train, val, test data and associated directories
     """
     def get_path(path, job_dir, with_gt = ''):
-        suffix = '/'.join(path.split('/')[-5:])
+        suffix = '/'.join(path.split('/')[-6:])
         job_path = os.path.join(job_dir, suffix+'_'+with_gt)
         print(f'job_path {job_path}')
         return job_path
@@ -38,12 +38,12 @@ def get_training_data(path, job_dir):
             'img_dir': os.path.join(path, 'rgb')
         },
         'val': {
-            'json': '/checkpoint/apratik/jobs/reexplore/train_data_solo3/train_data_solo2/val_set/coco.json',
-            'img_dir': '/checkpoint/apratik/jobs/reexplore/train_data_solo3/train_data_solo2/val_set/rgb'
+            'json': '/checkpoint/apratik/jobs/reexplore/train_data_1805/train_data_1805/val_set/coco_train.json',
+            'img_dir': '/checkpoint/apratik/jobs/reexplore/train_data_1805/train_data_1805/val_set/rgb'
         },
         'test': {
-            'json': '/checkpoint/apratik/jobs/reexplore/train_data_solo3/train_data_solo2/test_set/coco.json',
-            'img_dir': '/checkpoint/apratik/jobs/reexplore/train_data_solo3/train_data_solo2/test_set/rgb'
+            'json': '/checkpoint/apratik/jobs/reexplore/train_data_1805/train_data_1805/test_set/coco_train.json',
+            'img_dir': '/checkpoint/apratik/jobs/reexplore/train_data_1805/train_data_1805/test_set/rgb'
         }
         # 'val': {
         #     'json': '/checkpoint/apratik/jobs/reexplore/train_data_solo2/val_set/coco_val.json',
@@ -66,6 +66,8 @@ def prep_and_run_training(data_dir: str, job_dir: str, num_train_samples: int, s
                     print(f'launching training for {str(path)} ...')
                     @log_time(os.path.join(job_dir, 'job_log.txt'))
                     def job_unit(path, num_train_samples, job_dir):
+                        print(f'run_coco on {path}')
+                        run_coco(str(path))
                         training_data = get_training_data(path, job_dir)
                         print(training_data, job_dir)
                         run_training(training_data, num_train_samples)
@@ -94,8 +96,8 @@ if __name__ == "__main__":
     executor = submitit.AutoExecutor(folder=os.path.join(args.job_dir, 'slurm_logs/%j'))
     # set timeout in min, and partition for running the job
     executor.update_parameters(
-        slurm_partition="devlab", #"learnfair", #scavenge
-        timeout_min=100,
+        slurm_partition="learnfair", #"learnfair", #scavenge
+        timeout_min=1000,
         mem_gb=256,
         gpus_per_node=4,
         tasks_per_node=1, 

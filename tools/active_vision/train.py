@@ -233,6 +233,7 @@ class COCOTrain:
         cfg.DATASETS.TEST = (self.val_data, self.test_data, self.train_data)
         cfg.DATALOADER.NUM_WORKERS = 2
         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
+        cfg.MODEL.BACKBONE.FREEZE_AT = 5
         cfg.SOLVER.IMS_PER_BATCH = 16
         cfg.SOLVER.BEST_CHECKPOINTER.METRIC = 'validation_loss'
         cfg.TEST.EVAL_PERIOD = 20
@@ -244,6 +245,7 @@ class COCOTrain:
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(MetadataCatalog.get(self.train_data).get("thing_classes"))  
         cfg.OUTPUT_DIR = os.path.join(self.data['out_dir'], 'training', str(cfg.SOLVER.MAX_ITER), str(cfg.SOLVER.BASE_LR), str(cfg.SOLVER.WARMUP_ITERS), f'sample_{self.sample_num}')
         print(f"recreating {cfg.OUTPUT_DIR}")
+        print(f'cfg {cfg}')
         os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
         self.trainer = MyTrainer(cfg) #DefaultTrainer(cfg)  #Trainer(cfg)
         self.trainer.resume_or_load(resume=False)

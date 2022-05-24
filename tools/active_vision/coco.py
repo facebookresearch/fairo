@@ -1,8 +1,5 @@
 import numpy as np
 import sys
-if '/opt/ros/kinetic/lib/python2.7/dist-packages' in sys.path:
-    sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
-
 import cv2
 import random
 import os
@@ -17,36 +14,25 @@ from IPython.core.display import display, HTML
 import os
 import shutil
 import glob 
+from pathlib import Path
 from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.data.datasets import register_coco_instances
 from detectron2.utils.visualizer import Visualizer, ColorMode
-from common_utils import (
-    is_annot_validfn_class, 
-    is_annot_validfn_inst,
-    instance_ids,
-    class_labels,
-)
 
-semantic_json_root = '/checkpoint/apratik/ActiveVision/active_vision/info_semantic'
 
 class CocoCreator:
     # Assumes root_data_dir has both te GT and propagated segmentation labels
-    def __init__(self, root_data_dir, semantic_json_root, is_valid_annot_fn, setting):
+    def __init__(self, root_data_dir):
         self.rdd = root_data_dir
-        self.sjr = semantic_json_root
         self.segm_dir = os.path.join(root_data_dir, 'seg')
         self.visuals_dir = 'coco_visuals'
-        self.is_valid_annot_fn = is_valid_annot_fn
-        self.setting = setting
-        self.create_metadata = self.create_metadata_inst if setting == 'instance' else self.create_metadata_class
         
     def create_coco(self, scene, coco_file_name, pct, use_gt):
         if use_gt:
             self.segm_dir = os.path.join(self.rdd, 'seg_gt')
             self.visuals_dir = 'coco_visuals_gt'
-        hsd = self.load_semantic_json(scene)
-        self.create_metadata(hsd)
-        self.create_annos(hsd, scene, pct)
+        self.create_metadata()
+        self.create_annos(scene, pct)
         self.save_json(coco_file_name)
         self.save_visual_dataset(coco_file_name, scene)
     
@@ -68,7 +54,7 @@ class CocoCreator:
         for d in dataset_dicts:
             img = cv2.imread(d["file_name"])
             x = d['file_name'].split('/')[-1]
-            print(f"filename {d['file_name'], x}, visual_file {os.path.join(save_dir, x)}")
+            # print(f"filename {d['file_name'], x}, visual_file {os.path.join(save_dir, x)}")
             visualizer = Visualizer(img[:,:,::-1], metadata=MetadataCatalog.get('foobar'), scale=0.5)
             vis = visualizer.draw_dataset_dict(d)
             img = vis.get_image()
@@ -90,43 +76,22 @@ class CocoCreator:
         with open(coco_file_name, "w") as output_json:
             json.dump(coco_output, output_json)
         
-    def create_metadata_class(self, hsd):
+    def create_metadata(self):
         self.INFO = {}
         self.LICENSES = [{}]
         self.CATEGORIES = []
         self.IMAGES = []
         self.ANNOTATIONS = []
-        self.label_id_dict = {}
-        self.new_old_id = {}
+        self.label_to_id = {}
         idc = 1
-        for obj_cls in hsd["classes"]:
-            if obj_cls["name"] in class_labels:
-                self.CATEGORIES.append({"id": idc, "name": obj_cls["name"], "supercategory": "shape"})
-                self.label_id_dict[obj_cls["id"]] = obj_cls["name"]
-                self.new_old_id[obj_cls['id']] = idc
-                idc += 1
-
-    def create_metadata_inst(self, hsd):
-        self.INFO = {}
-        self.LICENSES = [{}]
-        self.CATEGORIES = []
-        self.IMAGES = []
-        self.ANNOTATIONS = []
-        self.class_id_label = {}
-        for x in hsd['classes']:
-            self.class_id_label[x['id']] = x['name']
-        self.label_id_dict = {}
-        self.new_old_id = {}
-        idc = 1
-        for i in instance_ids:
-            instance_label = str(i) + '_' + self.class_id_label[hsd['id_to_label'][i]]
+        for i, label in id_to_label.items():
+            instance_label = str(i) + '_' + label
             print(f'instance_label {instance_label}')
             self.CATEGORIES.append({"id": idc, "name": instance_label, "supercategory": "shape"})
-            self.label_id_dict[i] = instance_label # name the classes as instance_id + class 
-            self.new_old_id[i] = idc
+            self.label_to_id[i] = idc
             idc += 1
     
-    def create_annos(self, hsd, scene, pct):
+    def create_annos(self, scene, pct):
         coco_img_id = -1
         count = 0
         segm_dir = self.segm_dir
@@ -156,15 +121,10 @@ class CocoCreator:
 
             self.IMAGES.append(image_info)
             for i in np.sort(np.unique(annot.reshape(-1), axis=0)):
-                if self.is_valid_annot_fn(i):
+                if i in id_to_label:
                     try:
-                        if hsd["id_to_label"][i] < 1:# or hsd["id_to_label"][i] not in self.label_id_dict:
-                            continue
-                        if self.setting == 'class':
-                            category_info = {"id": self.new_old_id[hsd["id_to_label"][i]], "is_crowd": False}
-                        elif self.setting == 'instance':
-                            category_info = {"id": self.new_old_id[i], "is_crowd": False}
-                        print(f'category_info {category_info}')
+                        category_info = {"id": self.label_to_id[i], "is_crowd": False}
+                        # print(f'category_info {category_info}')
                     except Exception as ex:
                         print(f'exception {ex}')
                         continue
@@ -178,15 +138,6 @@ class CocoCreator:
                         self.ANNOTATIONS.append(annotation_info)
                         count += 1
         
-    def load_semantic_json(self, scene):
-        replica_root = '/datasets01/replica/061819/18_scenes'
-        habitat_semantic_json = os.path.join(replica_root, scene, 'habitat', 'info_semantic.json')
-        with open(habitat_semantic_json, "r") as f:
-            hsd = json.load(f)
-        if hsd is None:
-            print("Semantic json not found!")
-        return hsd
-        
     def get_segm_files(self, segm_dir, pct):
         cs = [os.path.basename(x) for x in glob.glob(os.path.join(segm_dir, '*.npy'))]
         print(f'get_segm_files {segm_dir}, pct {pct}, total_files {len(cs)}')
@@ -197,24 +148,20 @@ class CocoCreator:
             fs.append(cs[x])
         return fs 
 
-def get_valid_annot_fn(root_data_dir):
-    if 'instance' in root_data_dir:
-        return is_annot_validfn_inst, 'instance'
-    if 'class' in root_data_dir:
-        return is_annot_validfn_class, 'class'
+id_to_label = {
+    87: 'plant',
+#     97: 'jacket',
+    103: 'hamper',
+    # 106: 'sidetable',
+    140: 'armchair',
+}
 
 def run_coco(root_data_dir):
-    valid_annot_fn, setting = get_valid_annot_fn(root_data_dir)
-    cbase = CocoCreator(root_data_dir, semantic_json_root, valid_annot_fn, setting)
+    cbase = CocoCreator(root_data_dir)
     cbase.create_coco(
-        scene='apartment_0', 
+        scene='soumith_apt', 
         coco_file_name=os.path.join(root_data_dir, 'coco_train.json'),
         pct=1,
         use_gt=False,
     )
-    cbase.create_coco(
-        scene='apartment_0', 
-        coco_file_name=os.path.join(root_data_dir, 'coco_train_with_seg_gt.json'),
-        pct=1,
-        use_gt=True,
-    )
+    
