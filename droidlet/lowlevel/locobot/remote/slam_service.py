@@ -128,7 +128,7 @@ class SLAM(object):
 
         self.map_builder.update_map(pcd)
 
-         # Time:
+        # Time:
         # ~3.5sec on Mac with 480 x 480 map
         t0 = time.time()
         self.map_builder.update_semantic_map(pcd, semantics, pose)
