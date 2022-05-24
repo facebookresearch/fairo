@@ -21,6 +21,7 @@ class World:
     def __init__(self, opts, spec):
         self.opts = opts
         self.count = 0
+        # sidelength of the cubical npy array defining the extent of the world
         self.sl = opts.sl
 
         # to be subtracted from incoming coordinates and added to outgoing

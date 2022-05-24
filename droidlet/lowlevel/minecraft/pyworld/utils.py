@@ -9,6 +9,10 @@ import numpy as np
 
 FLAT_GROUND_DEPTH = 8
 
+BEDROCK = (7, 0)
+DIRT = (3, 0)
+GRASS = (2, 0)
+
 
 class PickleMock(Mock):
     """Mocks cannot be pickled. This Mock class can."""
@@ -77,13 +81,16 @@ def flat_ground_generator_with_grass(world):
 def flat_ground_generator(world, grass=False, ground_depth=FLAT_GROUND_DEPTH):
     r = world.to_npy_coords((0, 62, 0))[1]
     # r = world.sl // 2
+    # fill world with air:
     world.blocks[:] = 0
-    world.blocks[:, 0:r, :, 0] = 7
-    world.blocks[:, r - ground_depth : r, :, 0] = 3
+    # fill everything below r with bedrock
+    world.blocks[:, 0:r, :, 0] = BEDROCK[0]
+    # dirt
+    world.blocks[:, r - ground_depth : r, :, 0] = DIRT[0]
     if grass:
-        world.blocks[:, r, :, 0] = 2
+        world.blocks[:, r, :, 0] = GRASS[0]
     else:
-        world.blocks[:, r, :, 0] = 3
+        world.blocks[:, r, :, 0] = DIRT[0]
 
 
 def build_ground(world):
@@ -110,14 +117,14 @@ def build_ground(world):
         for j in range(world.sl):
             height = min(31, max(0, int(ground_height[i, j])))
             for k in range(int(height)):
-                world.blocks[i, k, j] = (3, 0)
+                world.blocks[i, k, j] = DIRT
 
     # FIXME this is broken
     if hasattr(world.opts, "ground_block_probs"):
         ground_blocks = np.transpose(np.nonzero(world.blocks[:, :, :, 0] == 3))
         num_ground_blocks = len(ground_blocks)
         for idm, val in world.opts.ground_block_probs:
-            if idm != (3, 0):
+            if idm != DIRT:
                 num = np.random.rand() * val * 2 * num_ground_blocks
                 for i in range(num):
                     j = np.random.randint(num_ground_blocks)
