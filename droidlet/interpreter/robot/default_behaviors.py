@@ -9,18 +9,23 @@ import random
 import numpy as np
 import shutil
 import json
+import time 
 
-random.seed(2021)  # fixing a random seed to fix default exploration goal
-
+# Fixing a random seed for slurm. Slurm jobs otherwise inherit the same seed for all jobs
+# resulting in the same end goal being explored
+seed = (os.getpid() * int(time.time())) % 123456789
+rng = random.Random(seed)
+logging.info(f'Seed chosen: {seed}')
 
 def get_distant_goal(x, y, t, l1_thresh=35):
     # Get a distant goal for the slam exploration
     # Pick a random quadrant, get
     while True:
-        xt = random.randint(-19, 19)
-        yt = random.randint(-19, 19)
+        xt = rng.randint(-19, 19)
+        yt = rng.randint(-19, 19)
         d = np.linalg.norm(np.asarray([x, y]) - np.asarray([xt, yt]), ord=1)
         if d > l1_thresh:
+            logging.info(f'get_distant_goal {(xt, yt, 0)}')
             return (xt, yt, 0)
 
 
@@ -77,7 +82,8 @@ def start_explore(agent, goal):
         logger.info(
             f"Starting exploration {explore_count} \
             first_exploration_done {first_exploration_done} \
-            os.getenv('CONTINUOUS_EXPLORE') {os.getenv('CONTINUOUS_EXPLORE', 'False')}"
+            os.getenv('CONTINUOUS_EXPLORE') {os.getenv('CONTINUOUS_EXPLORE', 'False')} \
+            os.getenv('NOISY_HABITAT') {os.getenv('NOISY_HABITAT')}"
         )
 
         # FIXME, don't clear the memory, place_field, etc.  explore more reasonably
