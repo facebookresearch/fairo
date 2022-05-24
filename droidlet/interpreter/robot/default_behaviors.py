@@ -9,13 +9,14 @@ import random
 import numpy as np
 import shutil
 import json
-import time 
+import time
 
 # Fixing a random seed for slurm. Slurm jobs otherwise inherit the same seed for all jobs
 # resulting in the same end goal being explored
 seed = (os.getpid() * int(time.time())) % 123456789
 rng = random.Random(seed)
-logging.info(f'Seed chosen: {seed}')
+logging.info(f"Seed chosen: {seed}")
+
 
 def get_distant_goal(x, y, t, l1_thresh=35):
     # Get a distant goal for the slam exploration
@@ -25,7 +26,7 @@ def get_distant_goal(x, y, t, l1_thresh=35):
         yt = rng.randint(-19, 19)
         d = np.linalg.norm(np.asarray([x, y]) - np.asarray([xt, yt]), ord=1)
         if d > l1_thresh:
-            logging.info(f'get_distant_goal {(xt, yt, 0)}')
+            logging.info(f"get_distant_goal {(xt, yt, 0)}")
             return (xt, yt, 0)
 
 
@@ -97,7 +98,11 @@ def start_explore(agent, goal):
         objects = DetectedObjectNode.get_all(agent.memory)
         logger.info(f"{len(objects)} memids in memory")
 
-        data_path = os.path.join(f"{agent.opts.data_store_path}", str(explore_count)) if os.getenv('CONTINUOUS_EXPLORE').lower() == 'true' else agent.opts.data_store_path
+        data_path = (
+            os.path.join(f"{agent.opts.data_store_path}", str(explore_count))
+            if os.getenv("CONTINUOUS_EXPLORE").lower() == "true"
+            else agent.opts.data_store_path
+        )
 
         task_data = {
             "goal": goal,
