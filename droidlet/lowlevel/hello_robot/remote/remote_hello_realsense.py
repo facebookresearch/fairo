@@ -192,10 +192,12 @@ class RemoteHelloRealsense(object):
 
     def get_orientation(self):
         """Get discretized robot orientation."""
-        # yaw is in radians in [0, 6.28]
+        # TODO yaw is in radians in [-3.14, 3.14] when using Hector SLAM
+        # and in [0, 6.28] when not using Hector SLAM => make it consistent
         _, _, yaw_in_radians = self.get_base_state()
         # convert it to degrees in [0, 360]
-        yaw_in_degrees = int(yaw_in_radians * 180.0 / np.pi)
+        # yaw_in_degrees = int(yaw_in_radians * 180.0 / np.pi)
+        yaw_in_degrees = int(yaw_in_radians * 180.0 / np.pi + 180.0)
         orientation = torch.tensor([yaw_in_degrees // 5])
         return orientation
 
