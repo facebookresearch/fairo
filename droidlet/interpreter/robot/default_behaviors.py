@@ -91,10 +91,12 @@ def start_explore(agent, goal):
         objects = DetectedObjectNode.get_all(agent.memory)
         logger.info(f"{len(objects)} memids in memory")
 
+        data_path = os.path.join(f"{agent.opts.data_store_path}", str(explore_count)) if os.getenv('CONTINUOUS_EXPLORE').lower() == 'true' else agent.opts.data_store_path
+
         task_data = {
             "goal": goal,
             "save_data": os.getenv("SAVE_EXPLORATION", "False") == "True",
-            "data_path": os.path.join(f"{os.getenv('HEURISTIC', 'default')}", str(explore_count)),
+            "data_path": data_path,
         }
         logger.info(f"task_data {task_data}")
 
