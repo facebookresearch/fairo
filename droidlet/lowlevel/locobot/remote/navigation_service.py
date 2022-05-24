@@ -95,12 +95,12 @@ class Navigation(object):
         )
 
     def go_to_absolute(
-        self, 
-        goal=None, 
-        goal_map=None, 
-        distance_threshold=None, 
-        angle_threshold=None, 
-        steps=100000000
+        self,
+        goal=None,
+        goal_map=None,
+        distance_threshold=None,
+        angle_threshold=None,
+        steps=100000000,
     ):
         print(f"[navigation] Starting a go_to_absolute {goal if goal is not None else 'goal_map'}")
 
@@ -117,7 +117,7 @@ class Navigation(object):
         while (not goal_reached) and steps > 0 and self._stop is False:
             stg = self.planner.get_short_term_goal(
                 robot_loc,
-                goal=goal, 
+                goal=goal,
                 goal_map=goal_map,
                 distance_threshold=distance_threshold,
                 angle_threshold=angle_threshold,
@@ -147,11 +147,11 @@ class Navigation(object):
             print(" Robot Status: {}".format(status))
             if status == "SUCCEEDED":
                 goal_reached = self.planner.goal_within_threshold(
-                    robot_loc, 
-                    goal=goal, 
+                    robot_loc,
+                    goal=goal,
                     goal_map=goal_map,
-                    distance_threshold=distance_threshold, 
-                    angle_threshold=angle_threshold
+                    distance_threshold=distance_threshold,
+                    angle_threshold=angle_threshold,
                 )
                 self.trackback.update(robot_loc)
             else:
