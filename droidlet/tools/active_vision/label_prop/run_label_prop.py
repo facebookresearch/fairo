@@ -11,9 +11,13 @@ import time
 from droidlet.perception.robot import LabelPropagate
 from PIL import Image
 import matplotlib.pyplot as plt
-from common_utils import log_time
 from math import isnan
-from common_utils import heuristics as heus, combinations as set_keys, prop_lengths
+from droidlet.tools.active_vision.common_utils import (
+    heuristics as heus,
+    combinations as set_keys,
+    prop_lengths,
+    log_time,
+)
 
 d3_40_colors_rgb: np.ndarray = np.array(
     [
@@ -77,12 +81,6 @@ def prop_and_combine(pth, out_name, f_name, prop_length):
         acopydir(
             os.path.join(x, "rgb"), os.path.join(out_dir, "rgb"), ".jpg"
         )  # only want to copy the propagated files!
-        # do label prop of length p on the GT frame (which is the first frame)
-        # create folder named px
-        # copy rgb over to px/rgb
-        # do label prop into px/seg
-        # out_dir = os.path.join(pth)
-        # pass
 
 
 def save_propagated_visual(semantic1, semantic2, save_dir, out_indx):
@@ -361,10 +359,11 @@ def combine(src, dst, og_data, input_folds):
 
 
 def sanity_check_traj(x):
+    """
+    Sanity checks whether x is eligble for label prop
+    """
     is_valid = True
     tid = x.split("/")[-3]
-    # if int(tid) not in [33, 89, 1, 4, 35]:
-    #     return False
     print(f"traj {x}")
     gt = x.split("/")[-1]
     reex_objects = [x for x in os.listdir(x) if x.isdigit()]
@@ -375,7 +374,7 @@ def sanity_check_traj(x):
         obj_path = os.path.join(x, obj)
         children = os.listdir(obj_path)
         print(f"children {children}")
-        for h in heus:  # ['r1', 'r2', 's1', 'c1l', 'c1s']:
+        for h in heus:
             if h not in children:
                 print(f"{h} missing in {obj_path}")
                 valid = False
@@ -396,7 +395,7 @@ def run_label_prop(data_dir, job_dir, job_out_dir, setting):
     jobs = []
 
     def get_lookuplist(valid_trajs):
-        return [f"{x}/{setting}/5" for x in valid_trajs]
+        return [f"{x}/{setting}" for x in valid_trajs]
 
     with executor.batch():
         for path in Path(data_dir).rglob("reexplore_data.json"):
@@ -463,15 +462,14 @@ if __name__ == "__main__":
         type=str,
     )
     parser.add_argument("--job_dir", type=str, default="", help="")
-    parser.add_argument("--setting", type=str)
+    parser.add_argument(
+        "--setting", type=str, default="instance", help="instance or class setting"
+    )
     parser.add_argument(
         "--slurm",
         action="store_true",
         default=False,
         help="Run the pipeline on slurm, else locally",
-    )
-    parser.add_argument(
-        "--noise", action="store_true", default=False, help="Spawn habitat with noise"
     )
 
     args = parser.parse_args()
