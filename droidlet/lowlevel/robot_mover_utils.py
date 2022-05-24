@@ -76,6 +76,7 @@ def transform_pose(XYZ, current_pose):
     XYZ[:, 1] = XYZ[:, 1] + current_pose[1]
     return XYZ
 
+
 def get_move_target_for_point(base_pos, target, eps=0.5):
     """
     For point, we first want to move close to the object and then point to it.
@@ -101,113 +102,127 @@ def get_move_target_for_point(base_pos, target, eps=0.5):
 
     return [targetx, targetz, yaw]
 
+
 def get_step_target_for_straightline_move(base_pos, target, step_size=0.1):
     """
     Heuristic to get step target of step_size for going to from base_pos to target
-    in a straight line. 
+    in a straight line.
     Args:
         base_pos ([x,z,yaw]): robot base in canonical coords
         target ([x,y,z]): point target in canonical coords
-    
+
     Returns:
-        move_target ([x,z,yaw]): robot base move target in canonical coords 
+        move_target ([x,z,yaw]): robot base move target in canonical coords
     """
 
     dx = target[0] - base_pos[0]
     dz = target[2] - base_pos[1]
 
-    if dx == 0: # vertical line 
+    if dx == 0:  # vertical line
         theta = math.radians(90)
     else:
-        theta = math.atan(abs(dz/dx))
-    
+        theta = math.atan(abs(dz / dx))
+
     signx = 1 if dx >= 0 else -1
     signz = 1 if dz >= 0 else -1
-    
+
     targetx = base_pos[0] + signx * step_size * math.cos(theta)
     targetz = base_pos[1] + signz * step_size * math.sin(theta)
 
     yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
-    
+
     return [targetx, targetz, yaw]
+
 
 def get_straightline_path_to(target, robot_pos, num_points=20, pct=0.5):
     pts = []
     cur_pos = robot_pos
-    while np.linalg.norm(target[:2]-cur_pos[:2]) > 0.5 and len(pts) < num_points:
+    while np.linalg.norm(target[:2] - cur_pos[:2]) > 0.5 and len(pts) < num_points:
         t = get_step_target_for_straightline_move(cur_pos, target, step_size=0.5)
         pts.append(t)
         cur_pos = t
     num_pts = len(pts)
-    logging.info(f'get_straightline_path_to returning {int(num_pts * pct)} of {len(pts)} pts')
+    logging.info(f"get_straightline_path_to returning {int(num_pts * pct)} of {len(pts)} pts")
     # only return 70% of the points
-    return np.asarray(pts[:int(num_pts * pct)])
+    return np.asarray(pts[: int(num_pts * pct)])
+
 
 def get_circle(r, n=10):
-    return [[math.cos(2*math.pi/n*x)*r,math.sin(2*math.pi/n*x)*r] for x in range(0,n+1)]
+    return [
+        [math.cos(2 * math.pi / n * x) * r, math.sin(2 * math.pi / n * x) * r]
+        for x in range(0, n + 1)
+    ]
+
 
 class CircleGuide:
     def __init__(self, target, start_pos, radius, include_approach, timeout):
         self.target = target
-        self.path, self.circle_begin_idx = get_circular_path(target, start_pos, radius, include_approach)
+        self.path, self.circle_begin_idx = get_circular_path(
+            target, start_pos, radius, include_approach
+        )
         self.idx, self.steps = 0, 0
         self.delta = 1
         self.timeout = timeout
         self.reverse = False
-    
+
     def get_next(self, stuck=False):
         val = None
         if self.steps >= self.timeout or self.steps >= len(self.path):
-            logging.info(f'CircleGuide.get_next({stuck}, {self.steps}) = Timing out!')
+            logging.info(f"CircleGuide.get_next({stuck}, {self.steps}) = Timing out!")
             return None
         if stuck:
             if self.steps > self.circle_begin_idx and not self.reverse:
-                self.idx = len(self.path)-1
+                self.idx = len(self.path) - 1
                 self.reverse = True
                 self.delta = -1
 
-        val = self.path[self.idx] 
+        val = self.path[self.idx]
         self.idx += self.delta
         self.steps += 1
-        logging.info(f'CircleGuide.get_next({stuck}) = {val}')
+        logging.info(f"CircleGuide.get_next({stuck}) = {val}")
         return val
+
 
 def get_circular_path(target, robot_pos, radius, include_approach=False):
     """
     get a circular path with num_points of radius from x
-    xyz 
+    xyz
     """
-    num_points=36
-    pts = get_circle(radius, num_points) # these are the x,z
-    logging.info(f'get_circle generates {len(pts), pts} pts ..')
+    num_points = 36
+    pts = get_circle(radius, num_points)  # these are the x,z
+    logging.info(f"get_circle generates {len(pts), pts} pts ..")
+
     def get_xyyaw(p, target):
         targetx = p[0] + target[0]
         targetz = p[1] + target[2]
         yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
         return [targetx, targetz, yaw]
-        
+
     pts = np.asarray([get_xyyaw(p, target) for p in pts])
 
     # find nearest pt to robot_pos as starting point
     def find_nearest_indx(pts, robot_pos):
-        idx = np.asarray([np.linalg.norm(np.asarray(p[:2]) - np.asarray(robot_pos[:2])) for p in pts]).argmin()
+        idx = np.asarray(
+            [np.linalg.norm(np.asarray(p[:2]) - np.asarray(robot_pos[:2])) for p in pts]
+        ).argmin()
         return idx
 
     idx = find_nearest_indx(pts, robot_pos)
     # rotate the pts to begin at idx
-    pts = np.concatenate((pts[idx:idx+5,:], pts[idx-5:idx,:]), axis=0)
+    pts = np.concatenate((pts[idx : idx + 5, :], pts[idx - 5 : idx, :]), axis=0)
 
     circle_begin_idx = 0
     # TODO: get step-wise move targets to nearest point? or capture move data?
     if include_approach:
         tg = pts[0]
         spath = get_straightline_path_to(
-            np.asarray([tg[0], CAMERA_HEIGHT, tg[1]]), robot_pos, pct=0.4)
+            np.asarray([tg[0], CAMERA_HEIGHT, tg[1]]), robot_pos, pct=0.4
+        )
         if spath.size > 0:
-            pts = np.concatenate((spath, pts), axis = 0)
+            pts = np.concatenate((spath, pts), axis=0)
             circle_begin_idx = len(spath)
-    
-    logging.info(f'')
+
+    logging.info(f"")
 
     return pts, circle_begin_idx
 
