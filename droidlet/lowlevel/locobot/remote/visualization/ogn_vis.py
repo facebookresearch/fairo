@@ -14,11 +14,11 @@ class ObjectGoalNavigationVisualization:
     This class is intended to visualize a single object goal navigation task.
     """
 
-    def __init__(self, goal_name, path):
+    def __init__(self, goal_name="no goal", path="images/default"):
         self.path = path
         os.makedirs(self.path, exist_ok=True)
 
-        self.vis_image = np.ones((655, 1165, 3)).astype(np.uint8) * 255
+        self.vis_image = np.ones((655, 1005, 3)).astype(np.uint8) * 255
 
         font = cv2.FONT_HERSHEY_SIMPLEX
         fontScale = 1
@@ -27,7 +27,7 @@ class ObjectGoalNavigationVisualization:
 
         text = "Predicted Semantic Map"
         textsize = cv2.getTextSize(text, font, fontScale, thickness)[0]
-        textX = 640 + (480 - textsize[0]) // 2 + 30
+        textX = 480 + (480 - textsize[0]) // 2 + 30
         textY = (50 + textsize[1]) // 2
         self.vis_image = cv2.putText(
             self.vis_image, text, (textX, textY), font, fontScale, color, thickness, cv2.LINE_AA
@@ -36,7 +36,7 @@ class ObjectGoalNavigationVisualization:
         # draw object goal
         text = "Observations (Goal: {})".format(goal_name)
         textsize = cv2.getTextSize(text, font, fontScale, thickness)[0]
-        textX = (640 - textsize[0]) // 2 + 15
+        textX = (480 - textsize[0]) // 2 + 15
         textY = (50 + textsize[1]) // 2
         self.vis_image = cv2.putText(
             self.vis_image, text, (textX, textY), font, fontScale, color, thickness, cv2.LINE_AA
@@ -44,19 +44,19 @@ class ObjectGoalNavigationVisualization:
 
         # draw outlines
         color = [100, 100, 100]
-        self.vis_image[49, 15:655] = color
-        self.vis_image[49, 670:1150] = color
+        self.vis_image[49, 15:495] = color
+        self.vis_image[49, 510:990] = color
         self.vis_image[50:530, 14] = color
-        self.vis_image[50:530, 655] = color
-        self.vis_image[50:530, 669] = color
-        self.vis_image[50:530, 1150] = color
-        self.vis_image[530, 15:655] = color
-        self.vis_image[530, 670:1150] = color
+        self.vis_image[50:530, 495] = color
+        self.vis_image[50:530, 509] = color
+        self.vis_image[50:530, 990] = color
+        self.vis_image[530, 15:495] = color
+        self.vis_image[530, 510:990] = color
 
         # draw legend
         legend = cv2.imread("visualization/legend.png")
         lx, ly, _ = legend.shape
-        self.vis_image[537 : 537 + lx, 155 : 155 + ly, :] = legend
+        self.vis_image[537 : 537 + lx, 75 : 75 + ly, :] = legend
 
         self.snapshot_idx = 1
         self.goal_map = np.zeros((480, 480))
@@ -84,8 +84,8 @@ class ObjectGoalNavigationVisualization:
     def update_semantic_frame(self, vis):
         """Visualize first-person semantic segmentation frame."""
         vis = vis[:, :, [2, 1, 0]]
-        vis = cv2.resize(vis, (640, 480), interpolation=cv2.INTER_NEAREST)
-        self.vis_image[50:530, 15:655] = vis
+        vis = cv2.resize(vis, (480, 480), interpolation=cv2.INTER_NEAREST)
+        self.vis_image[50:530, 15:495] = vis
 
     def update_semantic_map(self, sem_map):
         """Visualize top-down semantic map."""
@@ -115,4 +115,4 @@ class ObjectGoalNavigationVisualization:
         sem_map_vis = np.transpose(sem_map_vis, (1, 0, 2))
         sem_map_vis = sem_map_vis[:, :, [2, 1, 0]]
         sem_map_vis = cv2.resize(sem_map_vis, (480, 480), interpolation=cv2.INTER_NEAREST)
-        self.vis_image[50:530, 670:1150] = sem_map_vis
+        self.vis_image[50:530, 510:990] = sem_map_vis

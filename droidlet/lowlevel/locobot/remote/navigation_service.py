@@ -83,6 +83,8 @@ class Navigation(object):
         self._stop = True
         self._done_exploring = False
 
+        self.vis = ObjectGoalNavigationVisualization()
+
     def go_to_relative(self, goal, distance_threshold=None, angle_threshold=None):
         robot_loc = self.robot.get_base_state()
         abs_goal = du.get_relative_state(goal, (0.0, 0.0, -robot_loc[2]))
@@ -101,6 +103,7 @@ class Navigation(object):
         distance_threshold=None,
         angle_threshold=None,
         steps=100000000,
+        visualize=True,
     ):
         print(f"[navigation] Starting a go_to_absolute {goal if goal is not None else 'goal_map'}")
 
@@ -166,6 +169,11 @@ class Navigation(object):
                 # TODO: if the trackback fails, we're screwed. Handle this robustly.
             steps = steps - 1
 
+            if visualize:
+                self.vis.update_semantic_frame(self.slam.get_last_semantic_frame())
+                self.vis.update_semantic_map(self.slam.get_global_semantic_map())
+                self.vis.snapshot()
+
         self._busy = False
         return path_found, goal_reached
 
@@ -181,7 +189,7 @@ class Navigation(object):
                 vis_path = f"images/{self.robot.get_scene_name()}/{object_goal}"
             except:
                 vis_path = f"images/real_world/{object_goal}"
-            vis = ObjectGoalNavigationVisualization(object_goal, path=vis_path)
+            self.vis = ObjectGoalNavigationVisualization(object_goal, path=vis_path)
 
         object_goal_cat = coco_categories[object_goal]
         object_goal_cat_tensor = torch.tensor([object_goal_cat])
@@ -202,8 +210,12 @@ class Navigation(object):
                 )
                 goal_map = cat_sem_map == 1
                 if visualize:
-                    vis.add_location_goal(goal_map)
-                _, goal_reached = self.go_to_absolute(goal_map=goal_map, steps=20)
+                    self.vis.add_location_goal(goal_map)
+                _, goal_reached = self.go_to_absolute(
+                    goal_map=goal_map, 
+                    steps=20, 
+                    visualize=visualize
+                )
 
             else:
                 # Else if the object goal category is not present in the local map,
@@ -235,16 +247,14 @@ class Navigation(object):
                 if visualize:
                     goal_map = np.zeros((self.map_size, self.map_size))
                     goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
-                    vis.add_location_goal(goal_map)
-                self.go_to_absolute(goal=(*goal_in_world, 0), steps=10)
-
-            if visualize:
-                vis.update_semantic_frame(self.slam.get_last_semantic_frame())
-                vis.update_semantic_map(self.slam.get_global_semantic_map())
-                vis.snapshot()
+                    self.vis.add_location_goal(goal_map)
+                self.go_to_absolute(goal=(*goal_in_world, 0), steps=10, visualize=visualize)
 
         print(f"[navigation] Finished a go_to_object {object_goal}")
         print(f"goal reached: {goal_reached}")
+
+    def get_last_semantic_map_vis(self):
+        return self.vis.vis_image
 
     def explore(self, far_away_goal):
         if not hasattr(self, "_done_exploring"):

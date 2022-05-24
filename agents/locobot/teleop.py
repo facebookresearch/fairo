@@ -229,10 +229,10 @@ if __name__ == "__main__":
         # this goes from 21ms to 120ms
         rgb_depth = mover.get_rgb_depth()
 
-        # TODO Temporary hack to get semantic frame in dashboard
-        semantic_frame = mover.slam.get_last_semantic_frame()
-        if semantic_frame is not None:
-            rgb_depth.rgb = semantic_frame
+        # TODO Temporary hack to get semantic map in dashboard
+        semantic_map_vis = mover.nav.get_last_semantic_map_vis()
+        semantic_map_vis.wait()
+        rgb_depth.rgb = semantic_map_vis.value[:, :, [2, 1, 0]]
 
         # this takes about 1.5 to 2 fps
         serialized_image = rgb_depth.to_struct(resolution, quality)
