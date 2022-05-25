@@ -836,16 +836,16 @@ class TimedExplore(TrajectorySaverTask):
         else:
             self.finished = True
 
+
 def goto_util(agent, spawn_pos):
     logging.info(f"Spawning in {agent.backend} ..")
     if agent.backend == "habitat":
-        agent.mover.bot.respawn_agent(
-            spawn_pos["position"], spawn_pos["rotation"]
-        )
+        agent.mover.bot.respawn_agent(spawn_pos["position"], spawn_pos["rotation"])
     elif agent.backend == "hellorobot":
         agent.mover.move_absolute(spawn_pos, blocking=True)
     else:
         raise RuntimeError("Unknown backend specified {}" % (agent.backend,))
+
 
 class Reexplore(Task):
     """use slam to explore environemt, but also examine detections"""
