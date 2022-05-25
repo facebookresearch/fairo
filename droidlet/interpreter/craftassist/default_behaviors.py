@@ -49,8 +49,8 @@ def build_random_shape(agent, shape_util_dict, rand_range=(10, 0, 10), no_chat=F
                 )
             },
         )
-#        sio.emit("performDefaultBehavior", {"default_behavior": "build_random_shape",
-#                                            "msg": "I am building {} while you decide what you want me to do!".format(shape_name)})
+    #        sio.emit("performDefaultBehavior", {"default_behavior": "build_random_shape",
+    #                                            "msg": "I am building {} while you decide what you want me to do!".format(shape_name)})
     return schematic
 
 
@@ -61,5 +61,7 @@ def come_to_player(agent):
         return
     p = random.choice(agent.get_other_players())
     TaskNode(agent.memory, tasks.Move(agent, {"target": pos_to_np(p.pos), "approx": 3}).memid)
-#    sio.emit("performDefaultBehavior", {"default_behavior": "come_to_player", 
+
+
+#    sio.emit("performDefaultBehavior", {"default_behavior": "come_to_player",
 #                                        "msg": "I am coming to {} while you decide what you want me to do!".format(p.name)})
