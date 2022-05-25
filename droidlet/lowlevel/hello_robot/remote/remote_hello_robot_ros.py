@@ -264,7 +264,7 @@ if __name__ == "__main__":
     with Pyro4.Daemon(args.ip) as daemon:
         robot = RemoteHelloRobot(ip=args.ip)
         robot_uri = daemon.register(robot)
-        with Pyro4.locateNS() as ns:
+        with Pyro4.locateNS(host=args.ip) as ns:
             ns.register("hello_robot", robot_uri)
 
         print("Hello Robot Server is started...")
