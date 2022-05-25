@@ -93,7 +93,7 @@ def start_explore(agent, goal):
 
         data_path = (
             os.path.join(f"{agent.opts.data_store_path}", str(explore_count))
-            if os.getenv("CONTINUOUS_EXPLORE").lower() == "true"
+            if os.getenv("CONTINUOUS_EXPLORE") == "True"
             else agent.opts.data_store_path
         )
 
