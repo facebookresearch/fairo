@@ -35,9 +35,7 @@ ECS_INSTANCE_TIMEOUT = 45
 INTERACTION_JOB_POLL_TIME = 30
 
 HITL_TMP_DIR = (
-    os.environ["HITL_TMP_DIR"]
-    if os.getenv("HITL_TMP_DIR")
-    else f"{os.path.expanduser('~')}/.hitl"
+    os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
 )
 
 S3_BUCKET_NAME = "droidlet-hitl"
@@ -75,9 +73,7 @@ class OnCallJob(DataGenerator):
 
     """
 
-    def __init__(
-        self, instance_num: int, image_tag: str, timeout: float = -1
-    ) -> None:
+    def __init__(self, instance_num: int, image_tag: str, timeout: float = -1) -> None:
         super(OnCallJob, self).__init__(timeout)
         self._instance_num = instance_num
         self._image_tag = image_tag
@@ -97,9 +93,7 @@ class OnCallJob(DataGenerator):
             task_name = f"ca-oncall{self._batch_id}"
             self.task_name = task_name
             config["mephisto"]["task"]["task_name"] = task_name
-        logging.info(
-            f"Updating Mephisto config file to have task_name: {task_name}"
-        )
+        logging.info(f"Updating Mephisto config file to have task_name: {task_name}")
         with open(
             "../../crowdsourcing/turk_as_oncall/hydra_configs/conf/run_with_qual.yaml",
             "w",
@@ -123,9 +117,7 @@ class OnCallJob(DataGenerator):
         # run Mephisto to spin up & monitor turk jobs
         logging.info("Start running Mephisto...")
         MEPHISTO_AWS_ACCESS_KEY_ID = os.environ["MEPHISTO_AWS_ACCESS_KEY_ID"]
-        MEPHISTO_AWS_SECRET_ACCESS_KEY = os.environ[
-            "MEPHISTO_AWS_SECRET_ACCESS_KEY"
-        ]
+        MEPHISTO_AWS_SECRET_ACCESS_KEY = os.environ["MEPHISTO_AWS_SECRET_ACCESS_KEY"]
         MEPHISTO_REQUESTER = os.environ["MEPHISTO_REQUESTER"]
         p = subprocess.Popen(
             [
@@ -162,9 +154,7 @@ class OnCallJob(DataGenerator):
         logging.info("Free ECS instances...")
         free_ecs_instances(self.instance_ids)
 
-        logging.info(
-            "Retrieving results from local Mephisto DB and uploading to S3"
-        )
+        logging.info("Retrieving results from local Mephisto DB and uploading to S3")
         self.get_local_db_results()
 
         self.set_finished()
@@ -192,8 +182,7 @@ class OnCallJob(DataGenerator):
             # General stats
             worker_name = Worker.get(db, data["worker_id"]).worker_name
             avg_duration += (
-                data["data"]["times"]["task_end"]
-                - data["data"]["times"]["task_start"]
+                data["data"]["times"]["task_end"] - data["data"]["times"]["task_start"]
             ) / len(units)
             avg_usability += int(outputs["usability-rating"]) / len(units)
 
@@ -228,9 +217,7 @@ class OnCallJob(DataGenerator):
 
         # Build the summary stats list
         summary_stats.append(f"Average Task Duration: {avg_duration:.2f}\n")
-        summary_stats.append(
-            f"Average Usability Rating: {avg_usability:.2f}\n"
-        )
+        summary_stats.append(f"Average Usability Rating: {avg_usability:.2f}\n")
         summary_stats.append(
             f"Number of Commands Passed: {list(command_dict.values()).count('yes')}\n"
         )
@@ -240,9 +227,7 @@ class OnCallJob(DataGenerator):
         summary_stats.append(
             f"Number of Commands Disagreed: {list(command_dict.values()).count('disagree')}\n\n"
         )
-        summary_stats.append(
-            "List of failed commands (list_id|cmd_num|command_list|feedback):\n"
-        )
+        summary_stats.append("List of failed commands (list_id|cmd_num|command_list|feedback):\n")
         summary_stats.extend(
             [
                 f"{key[0]}|{key[1]}|{COMMAND_LISTS[key[0]].replace('|', ',')}|{feedback_dict[key]}\n"
