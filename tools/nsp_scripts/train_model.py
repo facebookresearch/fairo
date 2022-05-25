@@ -588,7 +588,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--dtype_samples",
-        default="templated_clarification:.01;annotated:.99",
+        default="templated_clarification:.02;annotated:.98",
         type=str,
         help="Sampling probabilities for handling different data types",
     )
