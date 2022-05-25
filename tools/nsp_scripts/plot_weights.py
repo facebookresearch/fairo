@@ -58,21 +58,26 @@ valid_csv = pd.read_csv("valid_outputs.csv", delimiter='|', header=0)
 
 train_accs = []
 for idx, row in train_csv.iterrows():
-    if int(row["iteration"]) == 0:
+    if int(row["iteration"]) == 400:
         train_accs.append(row["accuracy"])
 
-valid_accs = []
+anno_valid_accs = []
+clar_valid_accs = []
 for idx, row in valid_csv.iterrows():
     if row["data_type"] == "annotated":
-        valid_accs.append(row["accuracy"])
+        anno_valid_accs.append(row["accuracy"])
+    if row["data_type"] == "templated_clarification":
+        clar_valid_accs.append(row["accuracy"])
 
 Xt = list(range(len(train_accs)))
-Xv = list(range(len(valid_accs)))
+Xv = list(range(len(anno_valid_accs)))
+Xc = list(range(len(clar_valid_accs)))
 
 plt.xlabel("Epoch")
 plt.ylabel("Accuracy")
 plt.plot(Xt, train_accs, color='g', label='Train')
-plt.plot(Xv, valid_accs, color='b', label='Valid')
+plt.plot(Xv, anno_valid_accs, color='b', label='Annotated Valid')
+plt.plot(Xc, clar_valid_accs, color='r', label='Clarification Valid')
 plt.legend()
 plt.show()
 

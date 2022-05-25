@@ -103,6 +103,13 @@ class ModelTrainer:
                 "time",
             ],
         )
+        
+        #remove grad/weight trackers if they already exist
+        if os.path.isfile('gradients.csv'):
+            os.remove('gradients.csv')
+        if os.path.isfile('weights.csv'):
+            os.remove('weights.csv')
+
         self.tensorboard_dir = args.tensorboard_dir
 
     def train(self, model, dataset, tokenizer, model_identifier, full_tree_voc):
@@ -559,7 +566,7 @@ if __name__ == "__main__":
         help="Learning rate warmup steps for the decoder",
     )
     parser.add_argument(
-        "--decoder_learning_rate", default=1e-5, type=float, help="Learning rate for the decoder"
+        "--decoder_learning_rate", default=1e-6, type=float, help="Learning rate for the decoder"
     )
     parser.add_argument(
         "--lambda_span_loss",
@@ -605,7 +612,7 @@ if __name__ == "__main__":
         "--optional_identifier", default="", type=str, help="Optional run info eg. debug or test"
     )
     parser.add_argument(
-        "--hard", default=1, type=int, help="Whether to feed in failed examples during training"
+        "--hard", default=0, type=int, help="Whether to feed in failed examples during training"
     )
     parser.add_argument(
         "--alpha",
