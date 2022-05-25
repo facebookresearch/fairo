@@ -280,8 +280,10 @@ class TestCandidateSelection(unittest.TestCase):
             print("Semantic json not found!")
         return hsd
 
-    def _run_test(self, traj_path, good_candidates, bad_candidates, is_annot_validfn):
-        s = SampleGoodCandidates(traj_path, is_annot_validfn)
+    def _run_test(
+        self, traj_path, good_candidates, bad_candidates, is_annot_validfn, labels, setting
+    ):
+        s = SampleGoodCandidates(traj_path, is_annot_validfn, labels, setting)
 
         # Get good candidates
         good = s.get_n_candidates(5, good=True)
@@ -298,10 +300,10 @@ class TestCandidateSelection(unittest.TestCase):
         traj_path = f"{CANDIDATE_SELECTION_DIR}/class"
         good_candidates = [474, 953, 255, 10, 9]
         bad_candidates = [393, 38, 76, 739, 174]
+        labels = ["chair", "cushion", "door", "indoor-plant", "sofa", "table"]
 
         def is_annot_validfn(annot):
             hsd = self.load_semantic_json("apartment_0")
-            labels = ["chair", "cushion", "door", "indoor-plant", "sofa", "table"]
             label_id_dict = {}
             for obj_cls in hsd["classes"]:
                 if obj_cls["name"] in labels:
@@ -313,7 +315,9 @@ class TestCandidateSelection(unittest.TestCase):
                 return False
             return True
 
-        self._run_test(traj_path, good_candidates, bad_candidates, is_annot_validfn)
+        self._run_test(
+            traj_path, good_candidates, bad_candidates, is_annot_validfn, labels, "class"
+        )
 
     def test_samplecandidates_for_instance(self):
         """
@@ -329,7 +333,9 @@ class TestCandidateSelection(unittest.TestCase):
                 return False
             return True
 
-        self._run_test(traj_path, good_candidates, bad_candidates, is_annot_validfn)
+        self._run_test(
+            traj_path, good_candidates, bad_candidates, is_annot_validfn, instance_ids, "instance"
+        )
 
 
 if __name__ == "__main__":
