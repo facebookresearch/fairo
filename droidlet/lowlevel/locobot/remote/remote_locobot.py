@@ -8,6 +8,7 @@ from pyrobot import Robot
 import numpy as np
 from scipy.spatial.transform import Rotation
 import logging
+import quaternion
 import os
 import open3d as o3d
 from pyrobot.habitat.base_control_utils import LocalActionStatus
