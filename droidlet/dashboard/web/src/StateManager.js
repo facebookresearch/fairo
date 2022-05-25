@@ -274,6 +274,7 @@ class StateManager {
     socket.on("annotationRetrain", this.annotationRetrain);
     socket.on("saveRgbSegCallback", this.saveAnnotations);
     socket.on("handleMaxFrames", this.handleMaxFrames);
+    socket.on("performDefaultBehavior", this.handleDefaultBehavior);
   }
 
   updateStateManagerMemory(data) {
@@ -340,7 +341,7 @@ class StateManager {
     }
     this.memory.chats = res.allChats;
 
-    console.log('StateManager setChatResponse');
+    console.log("StateManager setChatResponse");
 
     // Set the commandState to display 'received' for one poll cycle and then switch
     this.memory.commandState = "received";
@@ -367,7 +368,7 @@ class StateManager {
   }
 
   setLastChatActionDict(res) {
-    console.log('StateManager setLastChatActionDict');
+    console.log("StateManager setLastChatActionDict");
     this.memory.lastChatActionDict = res.action_dict;
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
@@ -403,9 +404,13 @@ class StateManager {
 
   showAssistantReply(res) {
     if (!res.agent_reply) {
-      res.agent_reply = res.content.filter(entry => entry["id"] === "text")[0]["content"];
+      res.agent_reply = res.content.filter(
+        (entry) => entry["id"] === "text"
+      )[0]["content"];
     }
-    console.log("StateManager showAssistantReply " + JSON.stringify(res.agent_reply));
+    console.log(
+      "StateManager showAssistantReply " + JSON.stringify(res.agent_reply)
+    );
     this.memory.agent_replies.push({
       msg: res.agent_reply,
       timestamp: Date.now(),
@@ -802,6 +807,10 @@ class StateManager {
         });
       }
     });
+  }
+
+  handleDefaultBehavior(res) {
+    console.log("handleDefaultBehavior: " + res.msg);
   }
 
   handleMaxFrames(maxFrames) {

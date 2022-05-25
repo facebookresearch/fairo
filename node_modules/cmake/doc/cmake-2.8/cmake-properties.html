@@ -1,0 +1,1501 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>cmake-properties - cmake</title></head><body>
+<h2><a name="section_Index"></a>Master Index CMake 2.8.11.2</h2>
+<ul>
+  <li><a href="#section_Introduction"><b>Introduction</b></a></li>
+  <li><a href="#section_Properties"><b>Properties</b></a></li>
+  <li><a href="#section_PropertiesofGlobalScope"><b>Properties of Global Scope</b></a></li>
+  <li><a href="#section_PropertiesonDirectories"><b>Properties on Directories</b></a></li>
+  <li><a href="#section_PropertiesonTargets"><b>Properties on Targets</b></a></li>
+  <li><a href="#section_PropertiesonTests"><b>Properties on Tests</b></a></li>
+  <li><a href="#section_PropertiesonSourceFiles"><b>Properties on Source Files</b></a></li>
+  <li><a href="#section_PropertiesonCacheEntries"><b>Properties on Cache Entries</b></a></li>
+  <li><a href="#section_Copyright"><b>Copyright</b></a></li>
+  <li><a href="#section_SeeAlso"><b>See Also</b></a></li>
+</ul>
+<h2><a name="section_Introduction"></a>Introduction</h2>
+<p>cmake-properties - Reference of CMake properties.</p>
+
+<h2><a name="section_Properties"></a>Properties</h2>
+<pre>  CMake Properties - Properties supported by CMake, the Cross-Platform Makefile Generator.</pre>
+    
+<p>This is the documentation for the properties supported by CMake. Properties can have different scopes. They can either be assigned to a source file, a directory, a target or globally to CMake. By modifying the values of properties the behaviour of the build system can be customized.</p>
+
+<h2><a name="section_PropertiesofGlobalScope"></a>Properties of Global Scope</h2>
+<ul>
+    <li><a href="#prop_global:ALLOW_DUPLICATE_CUSTOM_TARGETS"><b><code>ALLOW_DUPLICATE_CUSTOM_TARGETS</code></b></a></li>
+    <li><a href="#prop_global:DEBUG_CONFIGURATIONS"><b><code>DEBUG_CONFIGURATIONS</code></b></a></li>
+    <li><a href="#prop_global:DISABLED_FEATURES"><b><code>DISABLED_FEATURES</code></b></a></li>
+    <li><a href="#prop_global:ENABLED_FEATURES"><b><code>ENABLED_FEATURES</code></b></a></li>
+    <li><a href="#prop_global:ENABLED_LANGUAGES"><b><code>ENABLED_LANGUAGES</code></b></a></li>
+    <li><a href="#prop_global:FIND_LIBRARY_USE_LIB64_PATHS"><b><code>FIND_LIBRARY_USE_LIB64_PATHS</code></b></a></li>
+    <li><a href="#prop_global:FIND_LIBRARY_USE_OPENBSD_VERSIONING"><b><code>FIND_LIBRARY_USE_OPENBSD_VERSIONING</code></b></a></li>
+    <li><a href="#prop_global:GLOBAL_DEPENDS_DEBUG_MODE"><b><code>GLOBAL_DEPENDS_DEBUG_MODE</code></b></a></li>
+    <li><a href="#prop_global:GLOBAL_DEPENDS_NO_CYCLES"><b><code>GLOBAL_DEPENDS_NO_CYCLES</code></b></a></li>
+    <li><a href="#prop_global:IN_TRY_COMPILE"><b><code>IN_TRY_COMPILE</code></b></a></li>
+    <li><a href="#prop_global:PACKAGES_FOUND"><b><code>PACKAGES_FOUND</code></b></a></li>
+    <li><a href="#prop_global:PACKAGES_NOT_FOUND"><b><code>PACKAGES_NOT_FOUND</code></b></a></li>
+    <li><a href="#prop_global:PREDEFINED_TARGETS_FOLDER"><b><code>PREDEFINED_TARGETS_FOLDER</code></b></a></li>
+    <li><a href="#prop_global:REPORT_UNDEFINED_PROPERTIES"><b><code>REPORT_UNDEFINED_PROPERTIES</code></b></a></li>
+    <li><a href="#prop_global:RULE_LAUNCH_COMPILE"><b><code>RULE_LAUNCH_COMPILE</code></b></a></li>
+    <li><a href="#prop_global:RULE_LAUNCH_CUSTOM"><b><code>RULE_LAUNCH_CUSTOM</code></b></a></li>
+    <li><a href="#prop_global:RULE_LAUNCH_LINK"><b><code>RULE_LAUNCH_LINK</code></b></a></li>
+    <li><a href="#prop_global:RULE_MESSAGES"><b><code>RULE_MESSAGES</code></b></a></li>
+    <li><a href="#prop_global:TARGET_ARCHIVES_MAY_BE_SHARED_LIBS"><b><code>TARGET_ARCHIVES_MAY_BE_SHARED_LIBS</code></b></a></li>
+    <li><a href="#prop_global:TARGET_SUPPORTS_SHARED_LIBS"><b><code>TARGET_SUPPORTS_SHARED_LIBS</code></b></a></li>
+    <li><a href="#prop_global:USE_FOLDERS"><b><code>USE_FOLDERS</code></b></a></li>
+    <li><a href="#prop_global:__CMAKE_DELETE_CACHE_CHANGE_VARS_"><b><code>__CMAKE_DELETE_CACHE_CHANGE_VARS_</code></b></a></li>
+</ul>
+<ul>
+  <li>
+    <a name="prop_global:ALLOW_DUPLICATE_CUSTOM_TARGETS"></a><b><code>ALLOW_DUPLICATE_CUSTOM_TARGETS</code></b>: Allow duplicate custom targets to be created.<br />
+    <p>Normally CMake requires that all targets built in a project have globally unique logical names (see policy CMP0002).  This is necessary to generate meaningful project file names in Xcode and VS IDE generators.  It also allows the target names to be referenced unambiguously.<br /></p>
+<p>Makefile generators are capable of supporting duplicate custom target names.  For projects that care only about Makefile generators and do not wish to support Xcode or VS IDE generators, one may set this property to true to allow duplicate custom targets.  The property allows multiple add_custom_target command calls in different directories to specify the same target name.  However, setting this property will cause non-Makefile generators to produce an error and refuse to generate the project.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:DEBUG_CONFIGURATIONS"></a><b><code>DEBUG_CONFIGURATIONS</code></b>: Specify which configurations are for debugging.<br />
+    <p>The value must be a semi-colon separated list of configuration names.  Currently this property is used only by the target_link_libraries command (see its documentation for details).  Additional uses may be defined in the future.  <br /></p>
+<p>This property must be set at the top level of the project and before the first target_link_libraries command invocation.  If any entry in the list does not match a valid configuration for the project the behavior is undefined.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:DISABLED_FEATURES"></a><b><code>DISABLED_FEATURES</code></b>: List of features which are disabled during the CMake run.<br />
+    <p>List of features which are disabled during the CMake run. By default it contains the names of all packages which were not found. This is determined using the &lt;NAME&gt;_FOUND variables. Packages which are searched QUIET are not listed. A project can add its own features to this list. This property is used by the macros in FeatureSummary.cmake.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:ENABLED_FEATURES"></a><b><code>ENABLED_FEATURES</code></b>: List of features which are enabled during the CMake run.<br />
+    <p>List of features which are enabled during the CMake run. By default it contains the names of all packages which were found. This is determined using the &lt;NAME&gt;_FOUND variables. Packages which are searched QUIET are not listed. A project can add its own features to this list. This property is used by the macros in FeatureSummary.cmake.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:ENABLED_LANGUAGES"></a><b><code>ENABLED_LANGUAGES</code></b>: Read-only property that contains the list of currently enabled languages<br />
+    <p>Set to list of currently enabled languages.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:FIND_LIBRARY_USE_LIB64_PATHS"></a><b><code>FIND_LIBRARY_USE_LIB64_PATHS</code></b>: Whether FIND_LIBRARY should automatically search lib64 directories.<br />
+    <p>FIND_LIBRARY_USE_LIB64_PATHS is a boolean specifying whether the FIND_LIBRARY command should automatically search the lib64 variant of directories called lib in the search path when building 64-bit binaries.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:FIND_LIBRARY_USE_OPENBSD_VERSIONING"></a><b><code>FIND_LIBRARY_USE_OPENBSD_VERSIONING</code></b>: Whether FIND_LIBRARY should find OpenBSD-style shared libraries.<br />
+    <p>This property is a boolean specifying whether the FIND_LIBRARY command should find shared libraries with OpenBSD-style versioned extension: ".so.&lt;major&gt;.&lt;minor&gt;".  The property is set to true on OpenBSD and false on other platforms.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:GLOBAL_DEPENDS_DEBUG_MODE"></a><b><code>GLOBAL_DEPENDS_DEBUG_MODE</code></b>: Enable global target dependency graph debug mode.<br />
+    <p>CMake automatically analyzes the global inter-target dependency graph at the beginning of native build system generation.  This property causes it to display details of its analysis to stderr.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:GLOBAL_DEPENDS_NO_CYCLES"></a><b><code>GLOBAL_DEPENDS_NO_CYCLES</code></b>: Disallow global target dependency graph cycles.<br />
+    <p>CMake automatically analyzes the global inter-target dependency graph at the beginning of native build system generation.  It reports an error if the dependency graph contains a cycle that does not consist of all STATIC library targets.  This property tells CMake to disallow all cycles completely, even among static libraries.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:IN_TRY_COMPILE"></a><b><code>IN_TRY_COMPILE</code></b>: Read-only property that is true during a try-compile configuration.<br />
+    <p>True when building a project inside a TRY_COMPILE or TRY_RUN command.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:PACKAGES_FOUND"></a><b><code>PACKAGES_FOUND</code></b>: List of packages which were found during the CMake run.<br />
+    <p>List of packages which were found during the CMake run. Whether a package has been found is determined using the &lt;NAME&gt;_FOUND variables.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:PACKAGES_NOT_FOUND"></a><b><code>PACKAGES_NOT_FOUND</code></b>: List of packages which were not found during the CMake run.<br />
+    <p>List of packages which were not found during the CMake run. Whether a package has been found is determined using the &lt;NAME&gt;_FOUND variables.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:PREDEFINED_TARGETS_FOLDER"></a><b><code>PREDEFINED_TARGETS_FOLDER</code></b>: Name of FOLDER for targets that are added automatically by CMake.<br />
+    <p>If not set, CMake uses "CMakePredefinedTargets" as a default value for this property. Targets such as INSTALL, PACKAGE and RUN_TESTS will be organized into this FOLDER. See also the documentation for the FOLDER target property.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:REPORT_UNDEFINED_PROPERTIES"></a><b><code>REPORT_UNDEFINED_PROPERTIES</code></b>: If set, report any undefined properties to this file.<br />
+    <p>If this property is set to a filename then when CMake runs it will report any properties or variables that were accessed but not defined into the filename specified in this property.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:RULE_LAUNCH_COMPILE"></a><b><code>RULE_LAUNCH_COMPILE</code></b>: Specify a launcher for compile rules.<br />
+    <p>Makefile generators prefix compiler commands with the given launcher command line.  This is intended to allow launchers to intercept build problems with high granularity.  Non-Makefile generators currently ignore this property.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:RULE_LAUNCH_CUSTOM"></a><b><code>RULE_LAUNCH_CUSTOM</code></b>: Specify a launcher for custom rules.<br />
+    <p>Makefile generators prefix custom commands with the given launcher command line.  This is intended to allow launchers to intercept build problems with high granularity.  Non-Makefile generators currently ignore this property.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:RULE_LAUNCH_LINK"></a><b><code>RULE_LAUNCH_LINK</code></b>: Specify a launcher for link rules.<br />
+    <p>Makefile generators prefix link and archive commands with the given launcher command line.  This is intended to allow launchers to intercept build problems with high granularity.  Non-Makefile generators currently ignore this property.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:RULE_MESSAGES"></a><b><code>RULE_MESSAGES</code></b>: Specify whether to report a message for each make rule.<br />
+    <p>This property specifies whether Makefile generators should add a progress message describing what each build rule does.  If the property is not set the default is ON.  Set the property to OFF to disable granular messages and report only as each target completes.  This is intended to allow scripted builds to avoid the build time cost of detailed reports.  If a CMAKE_RULE_MESSAGES cache entry exists its value initializes the value of this property.  Non-Makefile generators currently ignore this property.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:TARGET_ARCHIVES_MAY_BE_SHARED_LIBS"></a><b><code>TARGET_ARCHIVES_MAY_BE_SHARED_LIBS</code></b>: Set if shared libraries may be named like archives.<br />
+    <p>On AIX shared libraries may be named "lib&lt;name&gt;.a".  This property is set to true on such platforms.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:TARGET_SUPPORTS_SHARED_LIBS"></a><b><code>TARGET_SUPPORTS_SHARED_LIBS</code></b>: Does the target platform support shared libraries.<br />
+    <p>TARGET_SUPPORTS_SHARED_LIBS is a boolean specifying whether the target platform supports shared libraries. Basically all current general general purpose OS do so, the exception are usually embedded systems with no or special OSs.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:USE_FOLDERS"></a><b><code>USE_FOLDERS</code></b>: Use the FOLDER target property to organize targets into folders.<br />
+    <p>If not set, CMake treats this property as OFF by default. CMake generators that are capable of organizing into a hierarchy of folders use the values of the FOLDER target property to name those folders. See also the documentation for the FOLDER target property.</p>
+
+  </li>
+  <li>
+    <a name="prop_global:__CMAKE_DELETE_CACHE_CHANGE_VARS_"></a><b><code>__CMAKE_DELETE_CACHE_CHANGE_VARS_</code></b>: Internal property<br />
+    <p>Used to detect compiler changes, Do not set.</p>
+
+  </li>
+</ul>
+<h2><a name="section_PropertiesonDirectories"></a>Properties on Directories</h2>
+<ul>
+    <li><a href="#prop_dir:ADDITIONAL_MAKE_CLEAN_FILES"><b><code>ADDITIONAL_MAKE_CLEAN_FILES</code></b></a></li>
+    <li><a href="#prop_dir:CACHE_VARIABLES"><b><code>CACHE_VARIABLES</code></b></a></li>
+    <li><a href="#prop_dir:CLEAN_NO_CUSTOM"><b><code>CLEAN_NO_CUSTOM</code></b></a></li>
+    <li><a href="#prop_dir:COMPILE_DEFINITIONS"><b><code>COMPILE_DEFINITIONS</code></b></a></li>
+    <li><a href="#prop_dir:COMPILE_DEFINITIONS_CONFIG"><b><code>COMPILE_DEFINITIONS_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_dir:DEFINITIONS"><b><code>DEFINITIONS</code></b></a></li>
+    <li><a href="#prop_dir:EXCLUDE_FROM_ALL"><b><code>EXCLUDE_FROM_ALL</code></b></a></li>
+    <li><a href="#prop_dir:IMPLICIT_DEPENDS_INCLUDE_TRANSFORM"><b><code>IMPLICIT_DEPENDS_INCLUDE_TRANSFORM</code></b></a></li>
+    <li><a href="#prop_dir:INCLUDE_DIRECTORIES"><b><code>INCLUDE_DIRECTORIES</code></b></a></li>
+    <li><a href="#prop_dir:INCLUDE_REGULAR_EXPRESSION"><b><code>INCLUDE_REGULAR_EXPRESSION</code></b></a></li>
+    <li><a href="#prop_dir:INTERPROCEDURAL_OPTIMIZATION"><b><code>INTERPROCEDURAL_OPTIMIZATION</code></b></a></li>
+    <li><a href="#prop_dir:INTERPROCEDURAL_OPTIMIZATION_CONFIG"><b><code>INTERPROCEDURAL_OPTIMIZATION_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_dir:LINK_DIRECTORIES"><b><code>LINK_DIRECTORIES</code></b></a></li>
+    <li><a href="#prop_dir:LISTFILE_STACK"><b><code>LISTFILE_STACK</code></b></a></li>
+    <li><a href="#prop_dir:MACROS"><b><code>MACROS</code></b></a></li>
+    <li><a href="#prop_dir:PARENT_DIRECTORY"><b><code>PARENT_DIRECTORY</code></b></a></li>
+    <li><a href="#prop_dir:RULE_LAUNCH_COMPILE"><b><code>RULE_LAUNCH_COMPILE</code></b></a></li>
+    <li><a href="#prop_dir:RULE_LAUNCH_CUSTOM"><b><code>RULE_LAUNCH_CUSTOM</code></b></a></li>
+    <li><a href="#prop_dir:RULE_LAUNCH_LINK"><b><code>RULE_LAUNCH_LINK</code></b></a></li>
+    <li><a href="#prop_dir:TEST_INCLUDE_FILE"><b><code>TEST_INCLUDE_FILE</code></b></a></li>
+    <li><a href="#prop_dir:VARIABLES"><b><code>VARIABLES</code></b></a></li>
+    <li><a href="#prop_dir:VS_GLOBAL_SECTION_POST_section"><b><code>VS_GLOBAL_SECTION_POST_&lt;section&gt;</code></b></a></li>
+    <li><a href="#prop_dir:VS_GLOBAL_SECTION_PRE_section"><b><code>VS_GLOBAL_SECTION_PRE_&lt;section&gt;</code></b></a></li>
+</ul>
+<ul>
+  <li>
+    <a name="prop_dir:ADDITIONAL_MAKE_CLEAN_FILES"></a><b><code>ADDITIONAL_MAKE_CLEAN_FILES</code></b>: Additional files to clean during the make clean stage.<br />
+    <p>A list of files that will be cleaned as a part of the "make clean" stage. </p>
+
+  </li>
+  <li>
+    <a name="prop_dir:CACHE_VARIABLES"></a><b><code>CACHE_VARIABLES</code></b>: List of cache variables available in the current directory.<br />
+    <p>This read-only property specifies the list of CMake cache variables currently defined.  It is intended for debugging purposes.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:CLEAN_NO_CUSTOM"></a><b><code>CLEAN_NO_CUSTOM</code></b>: Should the output of custom commands be left.<br />
+    <p>If this is true then the outputs of custom commands for this directory will not be removed during the "make clean" stage. </p>
+
+  </li>
+  <li>
+    <a name="prop_dir:COMPILE_DEFINITIONS"></a><b><code>COMPILE_DEFINITIONS</code></b>: Preprocessor definitions for compiling a directory's sources.<br />
+    <p>The COMPILE_DEFINITIONS property may be set to a semicolon-separated list of preprocessor definitions using the syntax VAR or VAR=value.  Function-style definitions are not supported.  CMake will automatically escape the value correctly for the native build system (note that CMake language syntax may require escapes to specify some values).  This property may be set on a per-configuration basis using the name COMPILE_DEFINITIONS_&lt;CONFIG&gt; where &lt;CONFIG&gt; is an upper-case name (ex. "COMPILE_DEFINITIONS_DEBUG").  This property will be initialized in each directory by its value in the directory's parent.<br /></p>
+<p>CMake will automatically drop some definitions that are not supported by the native build tool.  The VS6 IDE does not support definition values with spaces (but NMake does).<br /></p>
+<p>Disclaimer: Most native build tools have poor support for escaping certain values.  CMake has work-arounds for many cases but some values may just not be possible to pass correctly.  If a value does not seem to be escaped correctly, do not attempt to work-around the problem by adding escape sequences to the value.  Your work-around may break in a future version of CMake that has improved escape support.  Instead consider defining the macro in a (configured) header file.  Then report the limitation.  Known limitations include:<br /></p>
+<pre>  #          - broken almost everywhere<br />  ;          - broken in VS IDE and Borland Makefiles<br />  ,          - broken in VS IDE<br />  %          - broken in some cases in NMake<br />  &amp; |        - broken in some cases on MinGW<br />  ^ &lt; &gt; \"   - broken in most Make tools on Windows<br /></pre>
+    <p>CMake does not reject these values outright because they do work in some cases.  Use with caution.  </p>
+
+  </li>
+  <li>
+    <a name="prop_dir:COMPILE_DEFINITIONS_CONFIG"></a><b><code>COMPILE_DEFINITIONS_&lt;CONFIG&gt;</code></b>: Per-configuration preprocessor definitions in a directory.<br />
+    <p>This is the configuration-specific version of COMPILE_DEFINITIONS.  This property will be initialized in each directory by its value in the directory's parent.<br /></p>
+
+  </li>
+  <li>
+    <a name="prop_dir:DEFINITIONS"></a><b><code>DEFINITIONS</code></b>: For CMake 2.4 compatibility only.  Use COMPILE_DEFINITIONS instead.<br />
+    <p>This read-only property specifies the list of flags given so far to the add_definitions command.  It is intended for debugging purposes.  Use the COMPILE_DEFINITIONS instead.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:EXCLUDE_FROM_ALL"></a><b><code>EXCLUDE_FROM_ALL</code></b>: Exclude the directory from the all target of its parent.<br />
+    <p>A property on a directory that indicates if its targets are excluded from the default build target. If it is not, then with a Makefile for example typing make will cause the targets to be built. The same concept applies to the default build of other generators.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:IMPLICIT_DEPENDS_INCLUDE_TRANSFORM"></a><b><code>IMPLICIT_DEPENDS_INCLUDE_TRANSFORM</code></b>: Specify #include line transforms for dependencies in a directory.<br />
+    <p>This property specifies rules to transform macro-like #include lines during implicit dependency scanning of C and C++ source files.  The list of rules must be semicolon-separated with each entry of the form "A_MACRO(%)=value-with-%" (the % must be literal).  During dependency scanning occurrences of A_MACRO(...) on #include lines will be replaced by the value given with the macro argument substituted for '%'.  For example, the entry<br /></p>
+<pre>  MYDIR(%)=&lt;mydir/%&gt;<br /></pre>
+    <p>will convert lines of the form<br /></p>
+<pre>  #include MYDIR(myheader.h)<br /></pre>
+    <p>to<br /></p>
+<pre>  #include &lt;mydir/myheader.h&gt;<br /></pre>
+    <p>allowing the dependency to be followed.<br /></p>
+<p>This property applies to sources in all targets within a directory.  The property value is initialized in each directory by its value in the directory's parent.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:INCLUDE_DIRECTORIES"></a><b><code>INCLUDE_DIRECTORIES</code></b>: List of preprocessor include file search directories.<br />
+    <p>This property specifies the list of directories given so far to the include_directories command. This property exists on directories and targets. In addition to accepting values from the include_directories command, values may be set directly on any directory or any target using the set_property command. A target gets its initial value for this property from the value of the directory property. A directory gets its initial value from its parent directory if it has one. Both directory and target property values are adjusted by calls to the include_directories command.<br /></p>
+<p>The target property values are used by the generators to set the include paths for the compiler. See also the include_directories command.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:INCLUDE_REGULAR_EXPRESSION"></a><b><code>INCLUDE_REGULAR_EXPRESSION</code></b>: Include file scanning regular expression.<br />
+    <p>This read-only property specifies the regular expression used during dependency scanning to match include files that should be followed.  See the include_regular_expression command.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:INTERPROCEDURAL_OPTIMIZATION"></a><b><code>INTERPROCEDURAL_OPTIMIZATION</code></b>: Enable interprocedural optimization for targets in a directory.<br />
+    <p>If set to true, enables interprocedural optimizations if they are known to be supported by the compiler.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:INTERPROCEDURAL_OPTIMIZATION_CONFIG"></a><b><code>INTERPROCEDURAL_OPTIMIZATION_&lt;CONFIG&gt;</code></b>: Per-configuration interprocedural optimization for a directory.<br />
+    <p>This is a per-configuration version of INTERPROCEDURAL_OPTIMIZATION.  If set, this property overrides the generic property for the named configuration.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:LINK_DIRECTORIES"></a><b><code>LINK_DIRECTORIES</code></b>: List of linker search directories.<br />
+    <p>This read-only property specifies the list of directories given so far to the link_directories command.  It is intended for debugging purposes.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:LISTFILE_STACK"></a><b><code>LISTFILE_STACK</code></b>: The current stack of listfiles being processed.<br />
+    <p>This property is mainly useful when trying to debug errors in your CMake scripts. It returns a list of what list files are currently being processed, in order. So if one listfile does an INCLUDE command then that is effectively pushing the included listfile onto the stack.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:MACROS"></a><b><code>MACROS</code></b>: List of macro commands available in the current directory.<br />
+    <p>This read-only property specifies the list of CMake macros currently defined.  It is intended for debugging purposes.  See the macro command.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:PARENT_DIRECTORY"></a><b><code>PARENT_DIRECTORY</code></b>: Source directory that added current subdirectory.<br />
+    <p>This read-only property specifies the source directory that added the current source directory as a subdirectory of the build.  In the top-level directory the value is the empty-string.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:RULE_LAUNCH_COMPILE"></a><b><code>RULE_LAUNCH_COMPILE</code></b>: Specify a launcher for compile rules.<br />
+    <p>See the global property of the same name for details.  This overrides the global property for a directory.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:RULE_LAUNCH_CUSTOM"></a><b><code>RULE_LAUNCH_CUSTOM</code></b>: Specify a launcher for custom rules.<br />
+    <p>See the global property of the same name for details.  This overrides the global property for a directory.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:RULE_LAUNCH_LINK"></a><b><code>RULE_LAUNCH_LINK</code></b>: Specify a launcher for link rules.<br />
+    <p>See the global property of the same name for details.  This overrides the global property for a directory.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:TEST_INCLUDE_FILE"></a><b><code>TEST_INCLUDE_FILE</code></b>: A cmake file that will be included when ctest is run.<br />
+    <p>If you specify TEST_INCLUDE_FILE, that file will be included and processed when ctest is run on the directory.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:VARIABLES"></a><b><code>VARIABLES</code></b>: List of variables defined in the current directory.<br />
+    <p>This read-only property specifies the list of CMake variables currently defined.  It is intended for debugging purposes.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:VS_GLOBAL_SECTION_POST_section"></a><b><code>VS_GLOBAL_SECTION_POST_&lt;section&gt;</code></b>: Specify a postSolution global section in Visual Studio.<br />
+    <p>Setting a property like this generates an entry of the following form in the solution file:<br /></p>
+<pre>  GlobalSection(&lt;section&gt;) = postSolution<br />    &lt;contents based on property value&gt;<br />  EndGlobalSection<br /></pre>
+    <p>The property must be set to a semicolon-separated list of key=value pairs. Each such pair will be transformed into an entry in the solution global section. Whitespace around key and value is ignored. List elements which do not contain an equal sign are skipped.<br /></p>
+<p>This property only works for Visual Studio 7 and above; it is ignored on other generators. The property only applies when set on a directory whose CMakeLists.txt conatins a project() command.<br /></p>
+<p>Note that CMake generates postSolution sections ExtensibilityGlobals and ExtensibilityAddIns by default. If you set the corresponding property, it will override the default section. For example, setting VS_GLOBAL_SECTION_POST_ExtensibilityGlobals will override the default contents of the ExtensibilityGlobals section, while keeping ExtensibilityAddIns on its default.</p>
+
+  </li>
+  <li>
+    <a name="prop_dir:VS_GLOBAL_SECTION_PRE_section"></a><b><code>VS_GLOBAL_SECTION_PRE_&lt;section&gt;</code></b>: Specify a preSolution global section in Visual Studio.<br />
+    <p>Setting a property like this generates an entry of the following form in the solution file:<br /></p>
+<pre>  GlobalSection(&lt;section&gt;) = preSolution<br />    &lt;contents based on property value&gt;<br />  EndGlobalSection<br /></pre>
+    <p>The property must be set to a semicolon-separated list of key=value pairs. Each such pair will be transformed into an entry in the solution global section. Whitespace around key and value is ignored. List elements which do not contain an equal sign are skipped.<br /></p>
+<p>This property only works for Visual Studio 7 and above; it is ignored on other generators. The property only applies when set on a directory whose CMakeLists.txt conatins a project() command.</p>
+
+  </li>
+</ul>
+<h2><a name="section_PropertiesonTargets"></a>Properties on Targets</h2>
+<ul>
+    <li><a href="#prop_tgt:CONFIG_OUTPUT_NAME"><b><code>&lt;CONFIG&gt;_OUTPUT_NAME</code></b></a></li>
+    <li><a href="#prop_tgt:CONFIG_POSTFIX"><b><code>&lt;CONFIG&gt;_POSTFIX</code></b></a></li>
+    <li><a href="#prop_tgt:ARCHIVE_OUTPUT_DIRECTORY"><b><code>ARCHIVE_OUTPUT_DIRECTORY</code></b></a></li>
+    <li><a href="#prop_tgt:ARCHIVE_OUTPUT_DIRECTORY_CONFIG"><b><code>ARCHIVE_OUTPUT_DIRECTORY_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:ARCHIVE_OUTPUT_NAME"><b><code>ARCHIVE_OUTPUT_NAME</code></b></a></li>
+    <li><a href="#prop_tgt:ARCHIVE_OUTPUT_NAME_CONFIG"><b><code>ARCHIVE_OUTPUT_NAME_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:AUTOMOC"><b><code>AUTOMOC</code></b></a></li>
+    <li><a href="#prop_tgt:AUTOMOC_MOC_OPTIONS"><b><code>AUTOMOC_MOC_OPTIONS</code></b></a></li>
+    <li><a href="#prop_tgt:BUILD_WITH_INSTALL_RPATH"><b><code>BUILD_WITH_INSTALL_RPATH</code></b></a></li>
+    <li><a href="#prop_tgt:BUNDLE"><b><code>BUNDLE</code></b></a></li>
+    <li><a href="#prop_tgt:BUNDLE_EXTENSION"><b><code>BUNDLE_EXTENSION</code></b></a></li>
+    <li><a href="#prop_tgt:COMPATIBLE_INTERFACE_BOOL"><b><code>COMPATIBLE_INTERFACE_BOOL</code></b></a></li>
+    <li><a href="#prop_tgt:COMPATIBLE_INTERFACE_STRING"><b><code>COMPATIBLE_INTERFACE_STRING</code></b></a></li>
+    <li><a href="#prop_tgt:COMPILE_DEFINITIONS"><b><code>COMPILE_DEFINITIONS</code></b></a></li>
+    <li><a href="#prop_tgt:COMPILE_DEFINITIONS_CONFIG"><b><code>COMPILE_DEFINITIONS_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:COMPILE_FLAGS"><b><code>COMPILE_FLAGS</code></b></a></li>
+    <li><a href="#prop_tgt:DEBUG_POSTFIX"><b><code>DEBUG_POSTFIX</code></b></a></li>
+    <li><a href="#prop_tgt:DEFINE_SYMBOL"><b><code>DEFINE_SYMBOL</code></b></a></li>
+    <li><a href="#prop_tgt:ENABLE_EXPORTS"><b><code>ENABLE_EXPORTS</code></b></a></li>
+    <li><a href="#prop_tgt:EXCLUDE_FROM_ALL"><b><code>EXCLUDE_FROM_ALL</code></b></a></li>
+    <li><a href="#prop_tgt:EXCLUDE_FROM_DEFAULT_BUILD"><b><code>EXCLUDE_FROM_DEFAULT_BUILD</code></b></a></li>
+    <li><a href="#prop_tgt:EXCLUDE_FROM_DEFAULT_BUILD_CONFIG"><b><code>EXCLUDE_FROM_DEFAULT_BUILD_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:EchoString"><b><code>EchoString</code></b></a></li>
+    <li><a href="#prop_tgt:FOLDER"><b><code>FOLDER</code></b></a></li>
+    <li><a href="#prop_tgt:FRAMEWORK"><b><code>FRAMEWORK</code></b></a></li>
+    <li><a href="#prop_tgt:Fortran_FORMAT"><b><code>Fortran_FORMAT</code></b></a></li>
+    <li><a href="#prop_tgt:Fortran_MODULE_DIRECTORY"><b><code>Fortran_MODULE_DIRECTORY</code></b></a></li>
+    <li><a href="#prop_tgt:GENERATOR_FILE_NAME"><b><code>GENERATOR_FILE_NAME</code></b></a></li>
+    <li><a href="#prop_tgt:GNUtoMS"><b><code>GNUtoMS</code></b></a></li>
+    <li><a href="#prop_tgt:HAS_CXX"><b><code>HAS_CXX</code></b></a></li>
+    <li><a href="#prop_tgt:IMPLICIT_DEPENDS_INCLUDE_TRANSFORM"><b><code>IMPLICIT_DEPENDS_INCLUDE_TRANSFORM</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED"><b><code>IMPORTED</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_CONFIGURATIONS"><b><code>IMPORTED_CONFIGURATIONS</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_IMPLIB"><b><code>IMPORTED_IMPLIB</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_IMPLIB_CONFIG"><b><code>IMPORTED_IMPLIB_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_LINK_DEPENDENT_LIBRARIES"><b><code>IMPORTED_LINK_DEPENDENT_LIBRARIES</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_LINK_DEPENDENT_LIBRARIES_CONFIG"><b><code>IMPORTED_LINK_DEPENDENT_LIBRARIES_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_LINK_INTERFACE_LANGUAGES"><b><code>IMPORTED_LINK_INTERFACE_LANGUAGES</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_LINK_INTERFACE_LANGUAGES_CONFIG"><b><code>IMPORTED_LINK_INTERFACE_LANGUAGES_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_LINK_INTERFACE_LIBRARIES"><b><code>IMPORTED_LINK_INTERFACE_LIBRARIES</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_LINK_INTERFACE_LIBRARIES_CONFIG"><b><code>IMPORTED_LINK_INTERFACE_LIBRARIES_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_LINK_INTERFACE_MULTIPLICITY"><b><code>IMPORTED_LINK_INTERFACE_MULTIPLICITY</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_LINK_INTERFACE_MULTIPLICITY_CONFIG"><b><code>IMPORTED_LINK_INTERFACE_MULTIPLICITY_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_LOCATION"><b><code>IMPORTED_LOCATION</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_LOCATION_CONFIG"><b><code>IMPORTED_LOCATION_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_NO_SONAME"><b><code>IMPORTED_NO_SONAME</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_NO_SONAME_CONFIG"><b><code>IMPORTED_NO_SONAME_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_SONAME"><b><code>IMPORTED_SONAME</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORTED_SONAME_CONFIG"><b><code>IMPORTED_SONAME_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORT_PREFIX"><b><code>IMPORT_PREFIX</code></b></a></li>
+    <li><a href="#prop_tgt:IMPORT_SUFFIX"><b><code>IMPORT_SUFFIX</code></b></a></li>
+    <li><a href="#prop_tgt:INCLUDE_DIRECTORIES"><b><code>INCLUDE_DIRECTORIES</code></b></a></li>
+    <li><a href="#prop_tgt:INSTALL_NAME_DIR"><b><code>INSTALL_NAME_DIR</code></b></a></li>
+    <li><a href="#prop_tgt:INSTALL_RPATH"><b><code>INSTALL_RPATH</code></b></a></li>
+    <li><a href="#prop_tgt:INSTALL_RPATH_USE_LINK_PATH"><b><code>INSTALL_RPATH_USE_LINK_PATH</code></b></a></li>
+    <li><a href="#prop_tgt:INTERFACE_COMPILE_DEFINITIONS"><b><code>INTERFACE_COMPILE_DEFINITIONS</code></b></a></li>
+    <li><a href="#prop_tgt:INTERFACE_INCLUDE_DIRECTORIES"><b><code>INTERFACE_INCLUDE_DIRECTORIES</code></b></a></li>
+    <li><a href="#prop_tgt:INTERFACE_POSITION_INDEPENDENT_CODE"><b><code>INTERFACE_POSITION_INDEPENDENT_CODE</code></b></a></li>
+    <li><a href="#prop_tgt:INTERPROCEDURAL_OPTIMIZATION"><b><code>INTERPROCEDURAL_OPTIMIZATION</code></b></a></li>
+    <li><a href="#prop_tgt:INTERPROCEDURAL_OPTIMIZATION_CONFIG"><b><code>INTERPROCEDURAL_OPTIMIZATION_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:LABELS"><b><code>LABELS</code></b></a></li>
+    <li><a href="#prop_tgt:LIBRARY_OUTPUT_DIRECTORY"><b><code>LIBRARY_OUTPUT_DIRECTORY</code></b></a></li>
+    <li><a href="#prop_tgt:LIBRARY_OUTPUT_DIRECTORY_CONFIG"><b><code>LIBRARY_OUTPUT_DIRECTORY_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:LIBRARY_OUTPUT_NAME"><b><code>LIBRARY_OUTPUT_NAME</code></b></a></li>
+    <li><a href="#prop_tgt:LIBRARY_OUTPUT_NAME_CONFIG"><b><code>LIBRARY_OUTPUT_NAME_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:LINKER_LANGUAGE"><b><code>LINKER_LANGUAGE</code></b></a></li>
+    <li><a href="#prop_tgt:LINK_DEPENDS"><b><code>LINK_DEPENDS</code></b></a></li>
+    <li><a href="#prop_tgt:LINK_DEPENDS_NO_SHARED"><b><code>LINK_DEPENDS_NO_SHARED</code></b></a></li>
+    <li><a href="#prop_tgt:LINK_FLAGS"><b><code>LINK_FLAGS</code></b></a></li>
+    <li><a href="#prop_tgt:LINK_FLAGS_CONFIG"><b><code>LINK_FLAGS_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:LINK_INTERFACE_LIBRARIES"><b><code>LINK_INTERFACE_LIBRARIES</code></b></a></li>
+    <li><a href="#prop_tgt:LINK_INTERFACE_LIBRARIES_CONFIG"><b><code>LINK_INTERFACE_LIBRARIES_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:LINK_INTERFACE_MULTIPLICITY"><b><code>LINK_INTERFACE_MULTIPLICITY</code></b></a></li>
+    <li><a href="#prop_tgt:LINK_INTERFACE_MULTIPLICITY_CONFIG"><b><code>LINK_INTERFACE_MULTIPLICITY_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:LINK_LIBRARIES"><b><code>LINK_LIBRARIES</code></b></a></li>
+    <li><a href="#prop_tgt:LINK_SEARCH_END_STATIC"><b><code>LINK_SEARCH_END_STATIC</code></b></a></li>
+    <li><a href="#prop_tgt:LINK_SEARCH_START_STATIC"><b><code>LINK_SEARCH_START_STATIC</code></b></a></li>
+    <li><a href="#prop_tgt:LOCATION"><b><code>LOCATION</code></b></a></li>
+    <li><a href="#prop_tgt:LOCATION_CONFIG"><b><code>LOCATION_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:MACOSX_BUNDLE"><b><code>MACOSX_BUNDLE</code></b></a></li>
+    <li><a href="#prop_tgt:MACOSX_BUNDLE_INFO_PLIST"><b><code>MACOSX_BUNDLE_INFO_PLIST</code></b></a></li>
+    <li><a href="#prop_tgt:MACOSX_FRAMEWORK_INFO_PLIST"><b><code>MACOSX_FRAMEWORK_INFO_PLIST</code></b></a></li>
+    <li><a href="#prop_tgt:MAP_IMPORTED_CONFIG_CONFIG"><b><code>MAP_IMPORTED_CONFIG_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:NO_SONAME"><b><code>NO_SONAME</code></b></a></li>
+    <li><a href="#prop_tgt:OSX_ARCHITECTURES"><b><code>OSX_ARCHITECTURES</code></b></a></li>
+    <li><a href="#prop_tgt:OSX_ARCHITECTURES_CONFIG"><b><code>OSX_ARCHITECTURES_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:OUTPUT_NAME"><b><code>OUTPUT_NAME</code></b></a></li>
+    <li><a href="#prop_tgt:OUTPUT_NAME_CONFIG"><b><code>OUTPUT_NAME_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:PDB_NAME"><b><code>PDB_NAME</code></b></a></li>
+    <li><a href="#prop_tgt:PDB_NAME_CONFIG"><b><code>PDB_NAME_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:PDB_OUTPUT_DIRECTORY"><b><code>PDB_OUTPUT_DIRECTORY</code></b></a></li>
+    <li><a href="#prop_tgt:PDB_OUTPUT_DIRECTORY_CONFIG"><b><code>PDB_OUTPUT_DIRECTORY_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:POSITION_INDEPENDENT_CODE"><b><code>POSITION_INDEPENDENT_CODE</code></b></a></li>
+    <li><a href="#prop_tgt:POST_INSTALL_SCRIPT"><b><code>POST_INSTALL_SCRIPT</code></b></a></li>
+    <li><a href="#prop_tgt:PREFIX"><b><code>PREFIX</code></b></a></li>
+    <li><a href="#prop_tgt:PRE_INSTALL_SCRIPT"><b><code>PRE_INSTALL_SCRIPT</code></b></a></li>
+    <li><a href="#prop_tgt:PRIVATE_HEADER"><b><code>PRIVATE_HEADER</code></b></a></li>
+    <li><a href="#prop_tgt:PROJECT_LABEL"><b><code>PROJECT_LABEL</code></b></a></li>
+    <li><a href="#prop_tgt:PUBLIC_HEADER"><b><code>PUBLIC_HEADER</code></b></a></li>
+    <li><a href="#prop_tgt:RESOURCE"><b><code>RESOURCE</code></b></a></li>
+    <li><a href="#prop_tgt:RULE_LAUNCH_COMPILE"><b><code>RULE_LAUNCH_COMPILE</code></b></a></li>
+    <li><a href="#prop_tgt:RULE_LAUNCH_CUSTOM"><b><code>RULE_LAUNCH_CUSTOM</code></b></a></li>
+    <li><a href="#prop_tgt:RULE_LAUNCH_LINK"><b><code>RULE_LAUNCH_LINK</code></b></a></li>
+    <li><a href="#prop_tgt:RUNTIME_OUTPUT_DIRECTORY"><b><code>RUNTIME_OUTPUT_DIRECTORY</code></b></a></li>
+    <li><a href="#prop_tgt:RUNTIME_OUTPUT_DIRECTORY_CONFIG"><b><code>RUNTIME_OUTPUT_DIRECTORY_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:RUNTIME_OUTPUT_NAME"><b><code>RUNTIME_OUTPUT_NAME</code></b></a></li>
+    <li><a href="#prop_tgt:RUNTIME_OUTPUT_NAME_CONFIG"><b><code>RUNTIME_OUTPUT_NAME_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:SKIP_BUILD_RPATH"><b><code>SKIP_BUILD_RPATH</code></b></a></li>
+    <li><a href="#prop_tgt:SOURCES"><b><code>SOURCES</code></b></a></li>
+    <li><a href="#prop_tgt:SOVERSION"><b><code>SOVERSION</code></b></a></li>
+    <li><a href="#prop_tgt:STATIC_LIBRARY_FLAGS"><b><code>STATIC_LIBRARY_FLAGS</code></b></a></li>
+    <li><a href="#prop_tgt:STATIC_LIBRARY_FLAGS_CONFIG"><b><code>STATIC_LIBRARY_FLAGS_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:SUFFIX"><b><code>SUFFIX</code></b></a></li>
+    <li><a href="#prop_tgt:TYPE"><b><code>TYPE</code></b></a></li>
+    <li><a href="#prop_tgt:VERSION"><b><code>VERSION</code></b></a></li>
+    <li><a href="#prop_tgt:VS_DOTNET_REFERENCES"><b><code>VS_DOTNET_REFERENCES</code></b></a></li>
+    <li><a href="#prop_tgt:VS_GLOBAL_variable"><b><code>VS_GLOBAL_&lt;variable&gt;</code></b></a></li>
+    <li><a href="#prop_tgt:VS_GLOBAL_KEYWORD"><b><code>VS_GLOBAL_KEYWORD</code></b></a></li>
+    <li><a href="#prop_tgt:VS_GLOBAL_PROJECT_TYPES"><b><code>VS_GLOBAL_PROJECT_TYPES</code></b></a></li>
+    <li><a href="#prop_tgt:VS_KEYWORD"><b><code>VS_KEYWORD</code></b></a></li>
+    <li><a href="#prop_tgt:VS_SCC_AUXPATH"><b><code>VS_SCC_AUXPATH</code></b></a></li>
+    <li><a href="#prop_tgt:VS_SCC_LOCALPATH"><b><code>VS_SCC_LOCALPATH</code></b></a></li>
+    <li><a href="#prop_tgt:VS_SCC_PROJECTNAME"><b><code>VS_SCC_PROJECTNAME</code></b></a></li>
+    <li><a href="#prop_tgt:VS_SCC_PROVIDER"><b><code>VS_SCC_PROVIDER</code></b></a></li>
+    <li><a href="#prop_tgt:VS_WINRT_EXTENSIONS"><b><code>VS_WINRT_EXTENSIONS</code></b></a></li>
+    <li><a href="#prop_tgt:VS_WINRT_REFERENCES"><b><code>VS_WINRT_REFERENCES</code></b></a></li>
+    <li><a href="#prop_tgt:WIN32_EXECUTABLE"><b><code>WIN32_EXECUTABLE</code></b></a></li>
+    <li><a href="#prop_tgt:XCODE_ATTRIBUTE_an-attribute"><b><code>XCODE_ATTRIBUTE_&lt;an-attribute&gt;</code></b></a></li>
+</ul>
+<ul>
+  <li>
+    <a name="prop_tgt:CONFIG_OUTPUT_NAME"></a><b><code>&lt;CONFIG&gt;_OUTPUT_NAME</code></b>: Old per-configuration target file base name.<br />
+    <p>This is a configuration-specific version of OUTPUT_NAME.  Use OUTPUT_NAME_&lt;CONFIG&gt; instead.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:CONFIG_POSTFIX"></a><b><code>&lt;CONFIG&gt;_POSTFIX</code></b>: Postfix to append to the target file name for configuration &lt;CONFIG&gt;.<br />
+    <p>When building with configuration &lt;CONFIG&gt; the value of this property is appended to the target file name built on disk.  For non-executable targets, this property is initialized by the value of the variable CMAKE_&lt;CONFIG&gt;_POSTFIX if it is set when a target is created.  This property is ignored on the Mac for Frameworks and App Bundles.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:ARCHIVE_OUTPUT_DIRECTORY"></a><b><code>ARCHIVE_OUTPUT_DIRECTORY</code></b>: Output directory in which to build ARCHIVE target files.<br />
+    <p>This property specifies the directory into which archive target files should be built. Multi-configuration generators (VS, Xcode) append a per-configuration subdirectory to the specified directory.  There are three kinds of target files that may be built: archive, library, and runtime.  Executables are always treated as runtime targets. Static libraries are always treated as archive targets. Module libraries are always treated as library targets. For non-DLL platforms shared libraries are treated as library targets. For DLL platforms the DLL part of a shared library is treated as a runtime target and the corresponding import library is treated as an archive target. All Windows-based systems including Cygwin are DLL platforms.  This property is initialized by the value of the variable CMAKE_ARCHIVE_OUTPUT_DIRECTORY if it is set when a target is created.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:ARCHIVE_OUTPUT_DIRECTORY_CONFIG"></a><b><code>ARCHIVE_OUTPUT_DIRECTORY_&lt;CONFIG&gt;</code></b>: Per-configuration output directory for ARCHIVE target files.<br />
+    <p>This is a per-configuration version of ARCHIVE_OUTPUT_DIRECTORY, but multi-configuration generators (VS, Xcode) do NOT append a per-configuration subdirectory to the specified directory.  This property is initialized by the value of the variable CMAKE_ARCHIVE_OUTPUT_DIRECTORY_&lt;CONFIG&gt; if it is set when a target is created.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:ARCHIVE_OUTPUT_NAME"></a><b><code>ARCHIVE_OUTPUT_NAME</code></b>: Output name for ARCHIVE target files.<br />
+    <p>This property specifies the base name for archive target files. It overrides OUTPUT_NAME and OUTPUT_NAME_&lt;CONFIG&gt; properties.  There are three kinds of target files that may be built: archive, library, and runtime.  Executables are always treated as runtime targets. Static libraries are always treated as archive targets. Module libraries are always treated as library targets. For non-DLL platforms shared libraries are treated as library targets. For DLL platforms the DLL part of a shared library is treated as a runtime target and the corresponding import library is treated as an archive target. All Windows-based systems including Cygwin are DLL platforms.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:ARCHIVE_OUTPUT_NAME_CONFIG"></a><b><code>ARCHIVE_OUTPUT_NAME_&lt;CONFIG&gt;</code></b>: Per-configuration output name for ARCHIVE target files.<br />
+    <p>This is the configuration-specific version of ARCHIVE_OUTPUT_NAME.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:AUTOMOC"></a><b><code>AUTOMOC</code></b>: Should the target be processed with automoc (for Qt projects).<br />
+    <p>AUTOMOC is a boolean specifying whether CMake will handle the Qt moc preprocessor automatically, i.e. without having to use the QT4_WRAP_CPP() or QT5_WRAP_CPP() macro. Currently Qt4 and Qt5 are supported.  When this property is set to TRUE, CMake will scan the source files at build time and invoke moc accordingly. If an #include statement like #include "moc_foo.cpp" is found, the Q_OBJECT class declaration is expected in the header, and moc is run on the header file. If an #include statement like #include "foo.moc" is found, then a Q_OBJECT is expected in the current source file and moc is run on the file itself. Additionally, all header files are parsed for Q_OBJECT macros, and if found, moc is also executed on those files. The resulting moc files, which are not included as shown above in any of the source files are included in a generated &lt;targetname&gt;_automoc.cpp file, which is compiled as part of the target.This property is initialized by the value of the variable CMAKE_AUTOMOC if it is set when a target is created.<br /></p>
+<p>Additional command line options for moc can be set via the AUTOMOC_MOC_OPTIONS property.<br /></p>
+<p>By setting the CMAKE_AUTOMOC_RELAXED_MODE variable to TRUE the rules for searching the files which will be processed by moc can be relaxed. See the documentation for this variable for more details.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:AUTOMOC_MOC_OPTIONS"></a><b><code>AUTOMOC_MOC_OPTIONS</code></b>: Additional options for moc when using automoc (see the AUTOMOC property)<br />
+    <p>This property is only used if the AUTOMOC property is set to TRUE for this target. In this case, it holds additional command line options which will be used when moc is executed during the build, i.e. it is equivalent to the optional OPTIONS argument of the qt4_wrap_cpp() macro.<br /></p>
+<p>By default it is empty.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:BUILD_WITH_INSTALL_RPATH"></a><b><code>BUILD_WITH_INSTALL_RPATH</code></b>: Should build tree targets have install tree rpaths.<br />
+    <p>BUILD_WITH_INSTALL_RPATH is a boolean specifying whether to link the target in the build tree with the INSTALL_RPATH.  This takes precedence over SKIP_BUILD_RPATH and avoids the need for relinking before installation.  This property is initialized by the value of the variable CMAKE_BUILD_WITH_INSTALL_RPATH if it is set when a target is created.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:BUNDLE"></a><b><code>BUNDLE</code></b>: This target is a CFBundle on the Mac.<br />
+    <p>If a module library target has this property set to true it will be built as a CFBundle when built on the mac. It will have the directory structure required for a CFBundle and will be suitable to be used for creating Browser Plugins or other application resources.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:BUNDLE_EXTENSION"></a><b><code>BUNDLE_EXTENSION</code></b>: The file extension used to name a BUNDLE target on the Mac.<br />
+    <p>The default value is "bundle" - you can also use "plugin" or whatever file extension is required by the host app for your bundle.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:COMPATIBLE_INTERFACE_BOOL"></a><b><code>COMPATIBLE_INTERFACE_BOOL</code></b>: Properties which must be compatible with their link interface<br />
+    <p>The COMPATIBLE_INTERFACE_BOOL property may contain a list of propertiesfor this target which must be consistent when evaluated as a boolean in the INTERFACE of all linked dependees.  For example, if a property "FOO" appears in the list, then for each dependee, the "INTERFACE_FOO" property content in all of its dependencies must be consistent with each other, and with the "FOO" property in the dependee.  Consistency in this sense has the meaning that if the property is set, then it must have the same boolean value as all others, and if the property is not set, then it is ignored.  Note that for each dependee, the set of properties from this property must not intersect with the set of properties from the COMPATIBLE_INTERFACE_STRING property.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:COMPATIBLE_INTERFACE_STRING"></a><b><code>COMPATIBLE_INTERFACE_STRING</code></b>: Properties which must be string-compatible with their link interface<br />
+    <p>The COMPATIBLE_INTERFACE_STRING property may contain a list of properties for this target which must be the same when evaluated as a string in the INTERFACE of all linked dependees.  For example, if a property "FOO" appears in the list, then for each dependee, the "INTERFACE_FOO" property content in all of its dependencies must be equal with each other, and with the "FOO" property in the dependee.  If the property is not set, then it is ignored.  Note that for each dependee, the set of properties from this property must not intersect with the set of properties from the COMPATIBLE_INTERFACE_BOOL property.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:COMPILE_DEFINITIONS"></a><b><code>COMPILE_DEFINITIONS</code></b>: Preprocessor definitions for compiling a target's sources.<br />
+    <p>The COMPILE_DEFINITIONS property may be set to a semicolon-separated list of preprocessor definitions using the syntax VAR or VAR=value.  Function-style definitions are not supported.  CMake will automatically escape the value correctly for the native build system (note that CMake language syntax may require escapes to specify some values).  This property may be set on a per-configuration basis using the name COMPILE_DEFINITIONS_&lt;CONFIG&gt; where &lt;CONFIG&gt; is an upper-case name (ex. "COMPILE_DEFINITIONS_DEBUG").<br /></p>
+<p>CMake will automatically drop some definitions that are not supported by the native build tool.  The VS6 IDE does not support definition values with spaces (but NMake does).<br /></p>
+<p>Contents of COMPILE_DEFINITIONS may use "generator expressions" with the syntax "$&lt;...&gt;".  Generator expressions are evaluted during build system generation to produce information specific to each build configuration.  Valid expressions are:<br /></p>
+<pre>  $&lt;0:...&gt;                  = empty string (ignores "...")<br />  $&lt;1:...&gt;                  = content of "..."<br />  $&lt;CONFIG:cfg&gt;             = '1' if config is "cfg", else '0'<br />  $&lt;CONFIGURATION&gt;          = configuration name<br />  $&lt;BOOL:...&gt;               = '1' if the '...' is true, else '0'<br />  $&lt;STREQUAL:a,b&gt;           = '1' if a is STREQUAL b, else '0'<br />  $&lt;ANGLE-R&gt;                = A literal '&gt;'. Used to compare strings which contain a '&gt;' for example.<br />  $&lt;COMMA&gt;                  = A literal ','. Used to compare strings which contain a ',' for example.<br />  $&lt;SEMICOLON&gt;              = A literal ';'. Used to prevent list expansion on an argument with ';'.<br />  $&lt;TARGET_NAME:...&gt;        = Marks ... as being the name of a target.  This is required if exporting targets to multiple dependent export sets.  The '...' must be a literal name of a target- it may not contain generator expressions.<br />  $&lt;INSTALL_INTERFACE:...&gt;  = content of "..." when the property is exported using install(EXPORT), and empty otherwise.<br />  $&lt;BUILD_INTERFACE:...&gt;    = content of "..." when the property is exported using export(), or when the target is used by another target in the same buildsystem. Expands to the empty string otherwise.<br />  $&lt;TARGET_FILE:tgt&gt;        = main file (.exe, .so.1.2, .a)<br />  $&lt;TARGET_LINKER_FILE:tgt&gt; = file used to link (.a, .lib, .so)<br />  $&lt;TARGET_SONAME_FILE:tgt&gt; = file with soname (.so.3)<br /></pre>
+    <p>where "tgt" is the name of a target.  Target file expressions produce a full path, but _DIR and _NAME versions can produce the directory and file name components:<br /></p>
+<pre>  $&lt;TARGET_FILE_DIR:tgt&gt;/$&lt;TARGET_FILE_NAME:tgt&gt;<br />  $&lt;TARGET_LINKER_FILE_DIR:tgt&gt;/$&lt;TARGET_LINKER_FILE_NAME:tgt&gt;<br />  $&lt;TARGET_SONAME_FILE_DIR:tgt&gt;/$&lt;TARGET_SONAME_FILE_NAME:tgt&gt;<br /></pre>
+    <p><br /></p>
+<pre>  $&lt;TARGET_PROPERTY:tgt,prop&gt;   = The value of the property prop on the target tgt.<br /></pre>
+    <p>Note that tgt is not added as a dependency of the target this expression is evaluated on.<br /></p>
+<pre>  $&lt;TARGET_POLICY:pol&gt;          = '1' if the policy was NEW when the 'head' target was created, else '0'.  If the policy was not set, the warning message for the policy will be emitted.  This generator expression only works for a subset of policies.<br />  $&lt;INSTALL_PREFIX&gt;         = Content of the install prefix when the target is exported via INSTALL(EXPORT) and empty otherwise.<br /></pre>
+    <p>Boolean expressions:<br /></p>
+<pre>  $&lt;AND:?[,?]...&gt;           = '1' if all '?' are '1', else '0'<br />  $&lt;OR:?[,?]...&gt;            = '0' if all '?' are '0', else '1'<br />  $&lt;NOT:?&gt;                  = '0' if '?' is '1', else '1'<br /></pre>
+    <p>where '?' is always either '0' or '1'.<br /></p>
+<p>Expressions with an implicit 'this' target:<br /></p>
+<pre>  $&lt;TARGET_PROPERTY:prop&gt;   = The value of the property prop on the target on which the generator expression is evaluated.<br /></pre>
+    <p>Disclaimer: Most native build tools have poor support for escaping certain values.  CMake has work-arounds for many cases but some values may just not be possible to pass correctly.  If a value does not seem to be escaped correctly, do not attempt to work-around the problem by adding escape sequences to the value.  Your work-around may break in a future version of CMake that has improved escape support.  Instead consider defining the macro in a (configured) header file.  Then report the limitation.  Known limitations include:<br /></p>
+<pre>  #          - broken almost everywhere<br />  ;          - broken in VS IDE and Borland Makefiles<br />  ,          - broken in VS IDE<br />  %          - broken in some cases in NMake<br />  &amp; |        - broken in some cases on MinGW<br />  ^ &lt; &gt; \"   - broken in most Make tools on Windows<br /></pre>
+    <p>CMake does not reject these values outright because they do work in some cases.  Use with caution.  </p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:COMPILE_DEFINITIONS_CONFIG"></a><b><code>COMPILE_DEFINITIONS_&lt;CONFIG&gt;</code></b>: Per-configuration preprocessor definitions on a target.<br />
+    <p>This is the configuration-specific version of COMPILE_DEFINITIONS.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:COMPILE_FLAGS"></a><b><code>COMPILE_FLAGS</code></b>: Additional flags to use when compiling this target's sources.<br />
+    <p>The COMPILE_FLAGS property sets additional compiler flags used to build sources within the target.  Use COMPILE_DEFINITIONS to pass additional preprocessor definitions.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:DEBUG_POSTFIX"></a><b><code>DEBUG_POSTFIX</code></b>: See target property &lt;CONFIG&gt;_POSTFIX.<br />
+    <p>This property is a special case of the more-general &lt;CONFIG&gt;_POSTFIX property for the DEBUG configuration.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:DEFINE_SYMBOL"></a><b><code>DEFINE_SYMBOL</code></b>: Define a symbol when compiling this target's sources.<br />
+    <p>DEFINE_SYMBOL sets the name of the preprocessor symbol defined when compiling sources in a shared library. If not set here then it is set to target_EXPORTS by default (with some substitutions if the target is not a valid C identifier). This is useful for headers to know whether they are being included from inside their library our outside to properly setup dllexport/dllimport decorations. </p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:ENABLE_EXPORTS"></a><b><code>ENABLE_EXPORTS</code></b>: Specify whether an executable exports symbols for loadable modules.<br />
+    <p>Normally an executable does not export any symbols because it is the final program.  It is possible for an executable to export symbols to be used by loadable modules.  When this property is set to true CMake will allow other targets to "link" to the executable with the TARGET_LINK_LIBRARIES command.  On all platforms a target-level dependency on the executable is created for targets that link to it.  For DLL platforms an import library will be created for the exported symbols and then used for linking.  All Windows-based systems including Cygwin are DLL platforms.  For non-DLL platforms that require all symbols to be resolved at link time, such as Mac OS X, the module will "link" to the executable using a flag like "-bundle_loader".  For other non-DLL platforms the link rule is simply ignored since the dynamic loader will automatically bind symbols when the module is loaded.  </p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:EXCLUDE_FROM_ALL"></a><b><code>EXCLUDE_FROM_ALL</code></b>: Exclude the target from the all target.<br />
+    <p>A property on a target that indicates if the target is excluded from the default build target. If it is not, then with a Makefile for example typing make will cause this target to be built. The same concept applies to the default build of other generators. Installing a target with EXCLUDE_FROM_ALL set to true has undefined behavior.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:EXCLUDE_FROM_DEFAULT_BUILD"></a><b><code>EXCLUDE_FROM_DEFAULT_BUILD</code></b>: Exclude target from "Build Solution".<br />
+    <p>This property is only used by Visual Studio generators 7 and above. When set to TRUE, the target will not be built when you press "Build Solution".</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:EXCLUDE_FROM_DEFAULT_BUILD_CONFIG"></a><b><code>EXCLUDE_FROM_DEFAULT_BUILD_&lt;CONFIG&gt;</code></b>: Per-configuration version of target exclusion from "Build Solution". <br />
+    <p>This is the configuration-specific version of EXCLUDE_FROM_DEFAULT_BUILD. If the generic EXCLUDE_FROM_DEFAULT_BUILD is also set on a target, EXCLUDE_FROM_DEFAULT_BUILD_&lt;CONFIG&gt; takes precedence in configurations for which it has a value.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:EchoString"></a><b><code>EchoString</code></b>: A message to be displayed when the target is built.<br />
+    <p>A message to display on some generators (such as makefiles) when the target is built.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:FOLDER"></a><b><code>FOLDER</code></b>: Set the folder name. Use to organize targets in an IDE.<br />
+    <p>Targets with no FOLDER property will appear as top level entities in IDEs like Visual Studio. Targets with the same FOLDER property value will appear next to each other in a folder of that name. To nest folders, use FOLDER values such as 'GUI/Dialogs' with '/' characters separating folder levels.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:FRAMEWORK"></a><b><code>FRAMEWORK</code></b>: This target is a framework on the Mac.<br />
+    <p>If a shared library target has this property set to true it will be built as a framework when built on the mac. It will have the directory structure required for a framework and will be suitable to be used with the -framework option</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:Fortran_FORMAT"></a><b><code>Fortran_FORMAT</code></b>: Set to FIXED or FREE to indicate the Fortran source layout.<br />
+    <p>This property tells CMake whether the Fortran source files in a target use fixed-format or free-format.  CMake will pass the corresponding format flag to the compiler.  Use the source-specific Fortran_FORMAT property to change the format of a specific source file.  If the variable CMAKE_Fortran_FORMAT is set when a target is created its value is used to initialize this property.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:Fortran_MODULE_DIRECTORY"></a><b><code>Fortran_MODULE_DIRECTORY</code></b>: Specify output directory for Fortran modules provided by the target.<br />
+    <p>If the target contains Fortran source files that provide modules and the compiler supports a module output directory this specifies the directory in which the modules will be placed.  When this property is not set the modules will be placed in the build directory corresponding to the target's source directory.  If the variable CMAKE_Fortran_MODULE_DIRECTORY is set when a target is created its value is used to initialize this property.<br /></p>
+<p>Note that some compilers will automatically search the module output directory for modules USEd during compilation but others will not.  If your sources USE modules their location must be specified by INCLUDE_DIRECTORIES regardless of this property.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:GENERATOR_FILE_NAME"></a><b><code>GENERATOR_FILE_NAME</code></b>: Generator's file for this target.<br />
+    <p>An internal property used by some generators to record the name of project or dsp file associated with this target. Note that at configure time, this property is only set for targets created by include_external_msproject().</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:GNUtoMS"></a><b><code>GNUtoMS</code></b>: Convert GNU import library (.dll.a) to MS format (.lib).<br />
+    <p>When linking a shared library or executable that exports symbols using GNU tools on Windows (MinGW/MSYS) with Visual Studio installed convert the import library (.dll.a) from GNU to MS format (.lib).  Both import libraries will be installed by install(TARGETS) and exported by install(EXPORT) and export() to be linked by applications with either GNU- or MS-compatible tools.<br /></p>
+<p>If the variable CMAKE_GNUtoMS is set when a target is created its value is used to initialize this property.  The variable must be set prior to the first command that enables a language such as project() or enable_language().  CMake provides the variable as an option to the user automatically when configuring on Windows with GNU tools.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:HAS_CXX"></a><b><code>HAS_CXX</code></b>: Link the target using the C++ linker tool (obsolete).<br />
+    <p>This is equivalent to setting the LINKER_LANGUAGE property to CXX.  See that property's documentation for details.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPLICIT_DEPENDS_INCLUDE_TRANSFORM"></a><b><code>IMPLICIT_DEPENDS_INCLUDE_TRANSFORM</code></b>: Specify #include line transforms for dependencies in a target.<br />
+    <p>This property specifies rules to transform macro-like #include lines during implicit dependency scanning of C and C++ source files.  The list of rules must be semicolon-separated with each entry of the form "A_MACRO(%)=value-with-%" (the % must be literal).  During dependency scanning occurrences of A_MACRO(...) on #include lines will be replaced by the value given with the macro argument substituted for '%'.  For example, the entry<br /></p>
+<pre>  MYDIR(%)=&lt;mydir/%&gt;<br /></pre>
+    <p>will convert lines of the form<br /></p>
+<pre>  #include MYDIR(myheader.h)<br /></pre>
+    <p>to<br /></p>
+<pre>  #include &lt;mydir/myheader.h&gt;<br /></pre>
+    <p>allowing the dependency to be followed.<br /></p>
+<p>This property applies to sources in the target on which it is set.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED"></a><b><code>IMPORTED</code></b>: Read-only indication of whether a target is IMPORTED.<br />
+    <p>The boolean value of this property is true for targets created with the IMPORTED option to add_executable or add_library.  It is false for targets built within the project.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_CONFIGURATIONS"></a><b><code>IMPORTED_CONFIGURATIONS</code></b>: Configurations provided for an IMPORTED target.<br />
+    <p>Set this to the list of configuration names available for an IMPORTED target.  The names correspond to configurations defined in the project from which the target is imported.  If the importing project uses a different set of configurations the names may be mapped using the MAP_IMPORTED_CONFIG_&lt;CONFIG&gt; property.  Ignored for non-imported targets.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_IMPLIB"></a><b><code>IMPORTED_IMPLIB</code></b>: Full path to the import library for an IMPORTED target.<br />
+    <p>Set this to the location of the ".lib" part of a windows DLL.  Ignored for non-imported targets.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_IMPLIB_CONFIG"></a><b><code>IMPORTED_IMPLIB_&lt;CONFIG&gt;</code></b>: &lt;CONFIG&gt;-specific version of IMPORTED_IMPLIB property.<br />
+    <p>Configuration names correspond to those provided by the project from which the target is imported.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_LINK_DEPENDENT_LIBRARIES"></a><b><code>IMPORTED_LINK_DEPENDENT_LIBRARIES</code></b>: Dependent shared libraries of an imported shared library.<br />
+    <p>Shared libraries may be linked to other shared libraries as part of their implementation.  On some platforms the linker searches for the dependent libraries of shared libraries they are including in the link.  Set this property to the list of dependent shared libraries of an imported library.  The list should be disjoint from the list of interface libraries in the IMPORTED_LINK_INTERFACE_LIBRARIES property.  On platforms requiring dependent shared libraries to be found at link time CMake uses this list to add appropriate files or paths to the link command line.  Ignored for non-imported targets.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_LINK_DEPENDENT_LIBRARIES_CONFIG"></a><b><code>IMPORTED_LINK_DEPENDENT_LIBRARIES_&lt;CONFIG&gt;</code></b>: &lt;CONFIG&gt;-specific version of IMPORTED_LINK_DEPENDENT_LIBRARIES.<br />
+    <p>Configuration names correspond to those provided by the project from which the target is imported.  If set, this property completely overrides the generic property for the named configuration.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_LINK_INTERFACE_LANGUAGES"></a><b><code>IMPORTED_LINK_INTERFACE_LANGUAGES</code></b>: Languages compiled into an IMPORTED static library.<br />
+    <p>Set this to the list of languages of source files compiled to produce a STATIC IMPORTED library (such as "C" or "CXX").  CMake accounts for these languages when computing how to link a target to the imported library.  For example, when a C executable links to an imported C++ static library CMake chooses the C++ linker to satisfy language runtime dependencies of the static library.  <br /></p>
+<p>This property is ignored for targets that are not STATIC libraries.  This property is ignored for non-imported targets.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_LINK_INTERFACE_LANGUAGES_CONFIG"></a><b><code>IMPORTED_LINK_INTERFACE_LANGUAGES_&lt;CONFIG&gt;</code></b>: &lt;CONFIG&gt;-specific version of IMPORTED_LINK_INTERFACE_LANGUAGES.<br />
+    <p>Configuration names correspond to those provided by the project from which the target is imported.  If set, this property completely overrides the generic property for the named configuration.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_LINK_INTERFACE_LIBRARIES"></a><b><code>IMPORTED_LINK_INTERFACE_LIBRARIES</code></b>: Transitive link interface of an IMPORTED target.<br />
+    <p>Set this to the list of libraries whose interface is included when an IMPORTED library target is linked to another target.  The libraries will be included on the link line for the target.  Unlike the LINK_INTERFACE_LIBRARIES property, this property applies to all imported target types, including STATIC libraries.  This property is ignored for non-imported targets.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_LINK_INTERFACE_LIBRARIES_CONFIG"></a><b><code>IMPORTED_LINK_INTERFACE_LIBRARIES_&lt;CONFIG&gt;</code></b>: &lt;CONFIG&gt;-specific version of IMPORTED_LINK_INTERFACE_LIBRARIES.<br />
+    <p>Configuration names correspond to those provided by the project from which the target is imported.  If set, this property completely overrides the generic property for the named configuration.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_LINK_INTERFACE_MULTIPLICITY"></a><b><code>IMPORTED_LINK_INTERFACE_MULTIPLICITY</code></b>: Repetition count for cycles of IMPORTED static libraries.<br />
+    <p>This is LINK_INTERFACE_MULTIPLICITY for IMPORTED targets.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_LINK_INTERFACE_MULTIPLICITY_CONFIG"></a><b><code>IMPORTED_LINK_INTERFACE_MULTIPLICITY_&lt;CONFIG&gt;</code></b>: &lt;CONFIG&gt;-specific version of IMPORTED_LINK_INTERFACE_MULTIPLICITY.<br />
+    <p>If set, this property completely overrides the generic property for the named configuration.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_LOCATION"></a><b><code>IMPORTED_LOCATION</code></b>: Full path to the main file on disk for an IMPORTED target.<br />
+    <p>Set this to the location of an IMPORTED target file on disk.  For executables this is the location of the executable file.  For bundles on OS X this is the location of the executable file inside Contents/MacOS under the application bundle folder.  For static libraries and modules this is the location of the library or module.  For shared libraries on non-DLL platforms this is the location of the shared library.  For frameworks on OS X this is the location of the library file symlink just inside the framework folder.  For DLLs this is the location of the ".dll" part of the library.  For UNKNOWN libraries this is the location of the file to be linked.  Ignored for non-imported targets.<br /></p>
+<p>Projects may skip IMPORTED_LOCATION if the configuration-specific property IMPORTED_LOCATION_&lt;CONFIG&gt; is set.  To get the location of an imported target read one of the LOCATION or LOCATION_&lt;CONFIG&gt; properties.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_LOCATION_CONFIG"></a><b><code>IMPORTED_LOCATION_&lt;CONFIG&gt;</code></b>: &lt;CONFIG&gt;-specific version of IMPORTED_LOCATION property.<br />
+    <p>Configuration names correspond to those provided by the project from which the target is imported.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_NO_SONAME"></a><b><code>IMPORTED_NO_SONAME</code></b>: Specifies that an IMPORTED shared library target has no "soname".  <br />
+    <p>Set this property to true for an imported shared library file that has no "soname" field.  CMake may adjust generated link commands for some platforms to prevent the linker from using the path to the library in place of its missing soname.  Ignored for non-imported targets.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_NO_SONAME_CONFIG"></a><b><code>IMPORTED_NO_SONAME_&lt;CONFIG&gt;</code></b>: &lt;CONFIG&gt;-specific version of IMPORTED_NO_SONAME property.<br />
+    <p>Configuration names correspond to those provided by the project from which the target is imported.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_SONAME"></a><b><code>IMPORTED_SONAME</code></b>: The "soname" of an IMPORTED target of shared library type.<br />
+    <p>Set this to the "soname" embedded in an imported shared library.  This is meaningful only on platforms supporting the feature.  Ignored for non-imported targets.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORTED_SONAME_CONFIG"></a><b><code>IMPORTED_SONAME_&lt;CONFIG&gt;</code></b>: &lt;CONFIG&gt;-specific version of IMPORTED_SONAME property.<br />
+    <p>Configuration names correspond to those provided by the project from which the target is imported.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORT_PREFIX"></a><b><code>IMPORT_PREFIX</code></b>: What comes before the import library name.<br />
+    <p>Similar to the target property PREFIX, but used for import libraries (typically corresponding to a DLL) instead of regular libraries. A target property that can be set to override the prefix (such as "lib") on an import library name.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:IMPORT_SUFFIX"></a><b><code>IMPORT_SUFFIX</code></b>: What comes after the import library name.<br />
+    <p>Similar to the target property SUFFIX, but used for import libraries (typically corresponding to a DLL) instead of regular libraries. A target property that can be set to override the suffix (such as ".lib") on an import library name.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:INCLUDE_DIRECTORIES"></a><b><code>INCLUDE_DIRECTORIES</code></b>: List of preprocessor include file search directories.<br />
+    <p>This property specifies the list of directories given so far to the include_directories command. This property exists on directories and targets. In addition to accepting values from the include_directories command, values may be set directly on any directory or any target using the set_property command. A target gets its initial value for this property from the value of the directory property. A directory gets its initial value from its parent directory if it has one. Both directory and target property values are adjusted by calls to the include_directories command.<br /></p>
+<p>The target property values are used by the generators to set the include paths for the compiler.  See also the include_directories command.<br /></p>
+<p>Contents of INCLUDE_DIRECTORIES may use "generator expressions" with the syntax "$&lt;...&gt;".  Generator expressions are evaluted during build system generation to produce information specific to each build configuration.  Valid expressions are:<br /></p>
+<pre>  $&lt;0:...&gt;                  = empty string (ignores "...")<br />  $&lt;1:...&gt;                  = content of "..."<br />  $&lt;CONFIG:cfg&gt;             = '1' if config is "cfg", else '0'<br />  $&lt;CONFIGURATION&gt;          = configuration name<br />  $&lt;BOOL:...&gt;               = '1' if the '...' is true, else '0'<br />  $&lt;STREQUAL:a,b&gt;           = '1' if a is STREQUAL b, else '0'<br />  $&lt;ANGLE-R&gt;                = A literal '&gt;'. Used to compare strings which contain a '&gt;' for example.<br />  $&lt;COMMA&gt;                  = A literal ','. Used to compare strings which contain a ',' for example.<br />  $&lt;SEMICOLON&gt;              = A literal ';'. Used to prevent list expansion on an argument with ';'.<br />  $&lt;TARGET_NAME:...&gt;        = Marks ... as being the name of a target.  This is required if exporting targets to multiple dependent export sets.  The '...' must be a literal name of a target- it may not contain generator expressions.<br />  $&lt;INSTALL_INTERFACE:...&gt;  = content of "..." when the property is exported using install(EXPORT), and empty otherwise.<br />  $&lt;BUILD_INTERFACE:...&gt;    = content of "..." when the property is exported using export(), or when the target is used by another target in the same buildsystem. Expands to the empty string otherwise.<br />  $&lt;TARGET_FILE:tgt&gt;        = main file (.exe, .so.1.2, .a)<br />  $&lt;TARGET_LINKER_FILE:tgt&gt; = file used to link (.a, .lib, .so)<br />  $&lt;TARGET_SONAME_FILE:tgt&gt; = file with soname (.so.3)<br /></pre>
+    <p>where "tgt" is the name of a target.  Target file expressions produce a full path, but _DIR and _NAME versions can produce the directory and file name components:<br /></p>
+<pre>  $&lt;TARGET_FILE_DIR:tgt&gt;/$&lt;TARGET_FILE_NAME:tgt&gt;<br />  $&lt;TARGET_LINKER_FILE_DIR:tgt&gt;/$&lt;TARGET_LINKER_FILE_NAME:tgt&gt;<br />  $&lt;TARGET_SONAME_FILE_DIR:tgt&gt;/$&lt;TARGET_SONAME_FILE_NAME:tgt&gt;<br /></pre>
+    <p><br /></p>
+<pre>  $&lt;TARGET_PROPERTY:tgt,prop&gt;   = The value of the property prop on the target tgt.<br /></pre>
+    <p>Note that tgt is not added as a dependency of the target this expression is evaluated on.<br /></p>
+<pre>  $&lt;TARGET_POLICY:pol&gt;          = '1' if the policy was NEW when the 'head' target was created, else '0'.  If the policy was not set, the warning message for the policy will be emitted.  This generator expression only works for a subset of policies.<br />  $&lt;INSTALL_PREFIX&gt;         = Content of the install prefix when the target is exported via INSTALL(EXPORT) and empty otherwise.<br /></pre>
+    <p>Boolean expressions:<br /></p>
+<pre>  $&lt;AND:?[,?]...&gt;           = '1' if all '?' are '1', else '0'<br />  $&lt;OR:?[,?]...&gt;            = '0' if all '?' are '0', else '1'<br />  $&lt;NOT:?&gt;                  = '0' if '?' is '1', else '1'<br /></pre>
+    <p>where '?' is always either '0' or '1'.<br /></p>
+<p>Expressions with an implicit 'this' target:<br /></p>
+<pre>  $&lt;TARGET_PROPERTY:prop&gt;   = The value of the property prop on the target on which the generator expression is evaluated.<br /></pre>
+    
+  </li>
+  <li>
+    <a name="prop_tgt:INSTALL_NAME_DIR"></a><b><code>INSTALL_NAME_DIR</code></b>: Mac OSX directory name for installed targets.<br />
+    <p>INSTALL_NAME_DIR is a string specifying the directory portion of the "install_name" field of shared libraries on Mac OSX to use in the installed targets. </p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:INSTALL_RPATH"></a><b><code>INSTALL_RPATH</code></b>: The rpath to use for installed targets.<br />
+    <p>A semicolon-separated list specifying the rpath to use in installed targets (for platforms that support it).  This property is initialized by the value of the variable CMAKE_INSTALL_RPATH if it is set when a target is created.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:INSTALL_RPATH_USE_LINK_PATH"></a><b><code>INSTALL_RPATH_USE_LINK_PATH</code></b>: Add paths to linker search and installed rpath.<br />
+    <p>INSTALL_RPATH_USE_LINK_PATH is a boolean that if set to true will append directories in the linker search path and outside the project to the INSTALL_RPATH.  This property is initialized by the value of the variable CMAKE_INSTALL_RPATH_USE_LINK_PATH if it is set when a target is created.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:INTERFACE_COMPILE_DEFINITIONS"></a><b><code>INTERFACE_COMPILE_DEFINITIONS</code></b>: List of public compile definitions for a library.<br />
+    <p>Targets may populate this property to publish the compile definitions required to compile against the headers for the target.  Consuming targets can add entries to their own COMPILE_DEFINITIONS property such as $&lt;TARGET_PROPERTY:foo,INTERFACE_COMPILE_DEFINITIONS&gt; to use the compile definitions specified in the interface of 'foo'.<br /></p>
+<p>Generator expressions are evaluted during build system generation to produce information specific to each build configuration.  Valid expressions are:<br /></p>
+<pre>  $&lt;0:...&gt;                  = empty string (ignores "...")<br />  $&lt;1:...&gt;                  = content of "..."<br />  $&lt;CONFIG:cfg&gt;             = '1' if config is "cfg", else '0'<br />  $&lt;CONFIGURATION&gt;          = configuration name<br />  $&lt;BOOL:...&gt;               = '1' if the '...' is true, else '0'<br />  $&lt;STREQUAL:a,b&gt;           = '1' if a is STREQUAL b, else '0'<br />  $&lt;ANGLE-R&gt;                = A literal '&gt;'. Used to compare strings which contain a '&gt;' for example.<br />  $&lt;COMMA&gt;                  = A literal ','. Used to compare strings which contain a ',' for example.<br />  $&lt;SEMICOLON&gt;              = A literal ';'. Used to prevent list expansion on an argument with ';'.<br />  $&lt;TARGET_NAME:...&gt;        = Marks ... as being the name of a target.  This is required if exporting targets to multiple dependent export sets.  The '...' must be a literal name of a target- it may not contain generator expressions.<br />  $&lt;INSTALL_INTERFACE:...&gt;  = content of "..." when the property is exported using install(EXPORT), and empty otherwise.<br />  $&lt;BUILD_INTERFACE:...&gt;    = content of "..." when the property is exported using export(), or when the target is used by another target in the same buildsystem. Expands to the empty string otherwise.<br />  $&lt;TARGET_FILE:tgt&gt;        = main file (.exe, .so.1.2, .a)<br />  $&lt;TARGET_LINKER_FILE:tgt&gt; = file used to link (.a, .lib, .so)<br />  $&lt;TARGET_SONAME_FILE:tgt&gt; = file with soname (.so.3)<br /></pre>
+    <p>where "tgt" is the name of a target.  Target file expressions produce a full path, but _DIR and _NAME versions can produce the directory and file name components:<br /></p>
+<pre>  $&lt;TARGET_FILE_DIR:tgt&gt;/$&lt;TARGET_FILE_NAME:tgt&gt;<br />  $&lt;TARGET_LINKER_FILE_DIR:tgt&gt;/$&lt;TARGET_LINKER_FILE_NAME:tgt&gt;<br />  $&lt;TARGET_SONAME_FILE_DIR:tgt&gt;/$&lt;TARGET_SONAME_FILE_NAME:tgt&gt;<br /></pre>
+    <p><br /></p>
+<pre>  $&lt;TARGET_PROPERTY:tgt,prop&gt;   = The value of the property prop on the target tgt.<br /></pre>
+    <p>Note that tgt is not added as a dependency of the target this expression is evaluated on.<br /></p>
+<pre>  $&lt;TARGET_POLICY:pol&gt;          = '1' if the policy was NEW when the 'head' target was created, else '0'.  If the policy was not set, the warning message for the policy will be emitted.  This generator expression only works for a subset of policies.<br />  $&lt;INSTALL_PREFIX&gt;         = Content of the install prefix when the target is exported via INSTALL(EXPORT) and empty otherwise.<br /></pre>
+    <p>Boolean expressions:<br /></p>
+<pre>  $&lt;AND:?[,?]...&gt;           = '1' if all '?' are '1', else '0'<br />  $&lt;OR:?[,?]...&gt;            = '0' if all '?' are '0', else '1'<br />  $&lt;NOT:?&gt;                  = '0' if '?' is '1', else '1'<br /></pre>
+    <p>where '?' is always either '0' or '1'.<br /></p>
+<p>Expressions with an implicit 'this' target:<br /></p>
+<pre>  $&lt;TARGET_PROPERTY:prop&gt;   = The value of the property prop on the target on which the generator expression is evaluated.<br /></pre>
+    
+  </li>
+  <li>
+    <a name="prop_tgt:INTERFACE_INCLUDE_DIRECTORIES"></a><b><code>INTERFACE_INCLUDE_DIRECTORIES</code></b>: List of public include directories for a library.<br />
+    <p>Targets may populate this property to publish the include directories required to compile against the headers for the target.  Consuming targets can add entries to their own INCLUDE_DIRECTORIES property such as $&lt;TARGET_PROPERTY:foo,INTERFACE_INCLUDE_DIRECTORIES&gt; to use the include directories specified in the interface of 'foo'.<br /></p>
+<p>Generator expressions are evaluted during build system generation to produce information specific to each build configuration.  Valid expressions are:<br /></p>
+<pre>  $&lt;0:...&gt;                  = empty string (ignores "...")<br />  $&lt;1:...&gt;                  = content of "..."<br />  $&lt;CONFIG:cfg&gt;             = '1' if config is "cfg", else '0'<br />  $&lt;CONFIGURATION&gt;          = configuration name<br />  $&lt;BOOL:...&gt;               = '1' if the '...' is true, else '0'<br />  $&lt;STREQUAL:a,b&gt;           = '1' if a is STREQUAL b, else '0'<br />  $&lt;ANGLE-R&gt;                = A literal '&gt;'. Used to compare strings which contain a '&gt;' for example.<br />  $&lt;COMMA&gt;                  = A literal ','. Used to compare strings which contain a ',' for example.<br />  $&lt;SEMICOLON&gt;              = A literal ';'. Used to prevent list expansion on an argument with ';'.<br />  $&lt;TARGET_NAME:...&gt;        = Marks ... as being the name of a target.  This is required if exporting targets to multiple dependent export sets.  The '...' must be a literal name of a target- it may not contain generator expressions.<br />  $&lt;INSTALL_INTERFACE:...&gt;  = content of "..." when the property is exported using install(EXPORT), and empty otherwise.<br />  $&lt;BUILD_INTERFACE:...&gt;    = content of "..." when the property is exported using export(), or when the target is used by another target in the same buildsystem. Expands to the empty string otherwise.<br />  $&lt;TARGET_FILE:tgt&gt;        = main file (.exe, .so.1.2, .a)<br />  $&lt;TARGET_LINKER_FILE:tgt&gt; = file used to link (.a, .lib, .so)<br />  $&lt;TARGET_SONAME_FILE:tgt&gt; = file with soname (.so.3)<br /></pre>
+    <p>where "tgt" is the name of a target.  Target file expressions produce a full path, but _DIR and _NAME versions can produce the directory and file name components:<br /></p>
+<pre>  $&lt;TARGET_FILE_DIR:tgt&gt;/$&lt;TARGET_FILE_NAME:tgt&gt;<br />  $&lt;TARGET_LINKER_FILE_DIR:tgt&gt;/$&lt;TARGET_LINKER_FILE_NAME:tgt&gt;<br />  $&lt;TARGET_SONAME_FILE_DIR:tgt&gt;/$&lt;TARGET_SONAME_FILE_NAME:tgt&gt;<br /></pre>
+    <p><br /></p>
+<pre>  $&lt;TARGET_PROPERTY:tgt,prop&gt;   = The value of the property prop on the target tgt.<br /></pre>
+    <p>Note that tgt is not added as a dependency of the target this expression is evaluated on.<br /></p>
+<pre>  $&lt;TARGET_POLICY:pol&gt;          = '1' if the policy was NEW when the 'head' target was created, else '0'.  If the policy was not set, the warning message for the policy will be emitted.  This generator expression only works for a subset of policies.<br />  $&lt;INSTALL_PREFIX&gt;         = Content of the install prefix when the target is exported via INSTALL(EXPORT) and empty otherwise.<br /></pre>
+    <p>Boolean expressions:<br /></p>
+<pre>  $&lt;AND:?[,?]...&gt;           = '1' if all '?' are '1', else '0'<br />  $&lt;OR:?[,?]...&gt;            = '0' if all '?' are '0', else '1'<br />  $&lt;NOT:?&gt;                  = '0' if '?' is '1', else '1'<br /></pre>
+    <p>where '?' is always either '0' or '1'.<br /></p>
+<p>Expressions with an implicit 'this' target:<br /></p>
+<pre>  $&lt;TARGET_PROPERTY:prop&gt;   = The value of the property prop on the target on which the generator expression is evaluated.<br /></pre>
+    
+  </li>
+  <li>
+    <a name="prop_tgt:INTERFACE_POSITION_INDEPENDENT_CODE"></a><b><code>INTERFACE_POSITION_INDEPENDENT_CODE</code></b>: Whether consumers need to create a position-independent target<br />
+    <p>The INTERFACE_POSITION_INDEPENDENT_CODE property informs consumers of this target whether they must set their POSITION_INDEPENDENT_CODE property to ON.  If this property is set to ON, then the POSITION_INDEPENDENT_CODE property on all consumers will be set to ON.  Similarly, if this property is set to OFF, then the POSITION_INDEPENDENT_CODE property on all consumers will be set to OFF.  If this property is undefined, then consumers will determine their POSITION_INDEPENDENT_CODE property by other means.  Consumers must ensure that the targets that they link to have a consistent requirement for their INTERFACE_POSITION_INDEPENDENT_CODE property.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:INTERPROCEDURAL_OPTIMIZATION"></a><b><code>INTERPROCEDURAL_OPTIMIZATION</code></b>: Enable interprocedural optimization for a target.<br />
+    <p>If set to true, enables interprocedural optimizations if they are known to be supported by the compiler.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:INTERPROCEDURAL_OPTIMIZATION_CONFIG"></a><b><code>INTERPROCEDURAL_OPTIMIZATION_&lt;CONFIG&gt;</code></b>: Per-configuration interprocedural optimization for a target.<br />
+    <p>This is a per-configuration version of INTERPROCEDURAL_OPTIMIZATION.  If set, this property overrides the generic property for the named configuration.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LABELS"></a><b><code>LABELS</code></b>: Specify a list of text labels associated with a target.<br />
+    <p>Target label semantics are currently unspecified.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LIBRARY_OUTPUT_DIRECTORY"></a><b><code>LIBRARY_OUTPUT_DIRECTORY</code></b>: Output directory in which to build LIBRARY target files.<br />
+    <p>This property specifies the directory into which library target files should be built. Multi-configuration generators (VS, Xcode) append a per-configuration subdirectory to the specified directory.  There are three kinds of target files that may be built: archive, library, and runtime.  Executables are always treated as runtime targets. Static libraries are always treated as archive targets. Module libraries are always treated as library targets. For non-DLL platforms shared libraries are treated as library targets. For DLL platforms the DLL part of a shared library is treated as a runtime target and the corresponding import library is treated as an archive target. All Windows-based systems including Cygwin are DLL platforms.  This property is initialized by the value of the variable CMAKE_LIBRARY_OUTPUT_DIRECTORY if it is set when a target is created.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LIBRARY_OUTPUT_DIRECTORY_CONFIG"></a><b><code>LIBRARY_OUTPUT_DIRECTORY_&lt;CONFIG&gt;</code></b>: Per-configuration output directory for LIBRARY target files.<br />
+    <p>This is a per-configuration version of LIBRARY_OUTPUT_DIRECTORY, but multi-configuration generators (VS, Xcode) do NOT append a per-configuration subdirectory to the specified directory.  This property is initialized by the value of the variable CMAKE_LIBRARY_OUTPUT_DIRECTORY_&lt;CONFIG&gt; if it is set when a target is created.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LIBRARY_OUTPUT_NAME"></a><b><code>LIBRARY_OUTPUT_NAME</code></b>: Output name for LIBRARY target files.<br />
+    <p>This property specifies the base name for library target files. It overrides OUTPUT_NAME and OUTPUT_NAME_&lt;CONFIG&gt; properties.  There are three kinds of target files that may be built: archive, library, and runtime.  Executables are always treated as runtime targets. Static libraries are always treated as archive targets. Module libraries are always treated as library targets. For non-DLL platforms shared libraries are treated as library targets. For DLL platforms the DLL part of a shared library is treated as a runtime target and the corresponding import library is treated as an archive target. All Windows-based systems including Cygwin are DLL platforms.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LIBRARY_OUTPUT_NAME_CONFIG"></a><b><code>LIBRARY_OUTPUT_NAME_&lt;CONFIG&gt;</code></b>: Per-configuration output name for LIBRARY target files.<br />
+    <p>This is the configuration-specific version of LIBRARY_OUTPUT_NAME.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LINKER_LANGUAGE"></a><b><code>LINKER_LANGUAGE</code></b>: Specifies language whose compiler will invoke the linker.<br />
+    <p>For executables, shared libraries, and modules, this sets the language whose compiler is used to link the target (such as "C" or "CXX").  A typical value for an executable is the language of the source file providing the program entry point (main).  If not set, the language with the highest linker preference value is the default.  See documentation of CMAKE_&lt;LANG&gt;_LINKER_PREFERENCE variables.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LINK_DEPENDS"></a><b><code>LINK_DEPENDS</code></b>: Additional files on which a target binary depends for linking.<br />
+    <p>Specifies a semicolon-separated list of full-paths to files on which the link rule for this target depends.  The target binary will be linked if any of the named files is newer than it.<br /></p>
+<p>This property is ignored by non-Makefile generators.  It is intended to specify dependencies on "linker scripts" for custom Makefile link rules.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LINK_DEPENDS_NO_SHARED"></a><b><code>LINK_DEPENDS_NO_SHARED</code></b>: Do not depend on linked shared library files.<br />
+    <p>Set this property to true to tell CMake generators not to add file-level dependencies on the shared library files linked by this target.  Modification to the shared libraries will not be sufficient to re-link this target.  Logical target-level dependencies will not be affected so the linked shared libraries will still be brought up to date before this target is built.<br /></p>
+<p>This property is initialized by the value of the variable CMAKE_LINK_DEPENDS_NO_SHARED if it is set when a target is created.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LINK_FLAGS"></a><b><code>LINK_FLAGS</code></b>: Additional flags to use when linking this target.<br />
+    <p>The LINK_FLAGS property can be used to add extra flags to the link step of a target. LINK_FLAGS_&lt;CONFIG&gt; will add to the configuration &lt;CONFIG&gt;, for example, DEBUG, RELEASE, MINSIZEREL, RELWITHDEBINFO. </p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LINK_FLAGS_CONFIG"></a><b><code>LINK_FLAGS_&lt;CONFIG&gt;</code></b>: Per-configuration linker flags for a target.<br />
+    <p>This is the configuration-specific version of LINK_FLAGS.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LINK_INTERFACE_LIBRARIES"></a><b><code>LINK_INTERFACE_LIBRARIES</code></b>: List public interface libraries for a shared library or executable.<br />
+    <p>By default linking to a shared library target transitively links to targets with which the library itself was linked.  For an executable with exports (see the ENABLE_EXPORTS property) no default transitive link dependencies are used.  This property replaces the default transitive link dependencies with an explicit list.  When the target is linked into another target the libraries listed (and recursively their link interface libraries) will be provided to the other target also.  If the list is empty then no transitive link dependencies will be incorporated when this target is linked into another target even if the default set is non-empty.  This property is initialized by the value of the variable CMAKE_LINK_INTERFACE_LIBRARIES if it is set when a target is created.  This property is ignored for STATIC libraries.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LINK_INTERFACE_LIBRARIES_CONFIG"></a><b><code>LINK_INTERFACE_LIBRARIES_&lt;CONFIG&gt;</code></b>: Per-configuration list of public interface libraries for a target.<br />
+    <p>This is the configuration-specific version of LINK_INTERFACE_LIBRARIES.  If set, this property completely overrides the generic property for the named configuration.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LINK_INTERFACE_MULTIPLICITY"></a><b><code>LINK_INTERFACE_MULTIPLICITY</code></b>: Repetition count for STATIC libraries with cyclic dependencies.<br />
+    <p>When linking to a STATIC library target with cyclic dependencies the linker may need to scan more than once through the archives in the strongly connected component of the dependency graph.  CMake by default constructs the link line so that the linker will scan through the component at least twice.  This property specifies the minimum number of scans if it is larger than the default.  CMake uses the largest value specified by any target in a component.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LINK_INTERFACE_MULTIPLICITY_CONFIG"></a><b><code>LINK_INTERFACE_MULTIPLICITY_&lt;CONFIG&gt;</code></b>: Per-configuration repetition count for cycles of STATIC libraries.<br />
+    <p>This is the configuration-specific version of LINK_INTERFACE_MULTIPLICITY.  If set, this property completely overrides the generic property for the named configuration.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LINK_LIBRARIES"></a><b><code>LINK_LIBRARIES</code></b>: List of direct link dependencies.<br />
+    <p>This property specifies the list of libraries or targets which will be used for linking. In addition to accepting values from the target_link_libraries command, values may be set directly on any target using the set_property command. <br /></p>
+<p>The target property values are used by the generators to set the link libraries for the compiler.  See also the target_link_libraries command.<br /></p>
+<p>Contents of LINK_LIBRARIES may use "generator expressions" with the syntax "$&lt;...&gt;".  Generator expressions are evaluted during build system generation to produce information specific to each build configuration.  Valid expressions are:<br /></p>
+<pre>  $&lt;0:...&gt;                  = empty string (ignores "...")<br />  $&lt;1:...&gt;                  = content of "..."<br />  $&lt;CONFIG:cfg&gt;             = '1' if config is "cfg", else '0'<br />  $&lt;CONFIGURATION&gt;          = configuration name<br />  $&lt;BOOL:...&gt;               = '1' if the '...' is true, else '0'<br />  $&lt;STREQUAL:a,b&gt;           = '1' if a is STREQUAL b, else '0'<br />  $&lt;ANGLE-R&gt;                = A literal '&gt;'. Used to compare strings which contain a '&gt;' for example.<br />  $&lt;COMMA&gt;                  = A literal ','. Used to compare strings which contain a ',' for example.<br />  $&lt;SEMICOLON&gt;              = A literal ';'. Used to prevent list expansion on an argument with ';'.<br />  $&lt;TARGET_NAME:...&gt;        = Marks ... as being the name of a target.  This is required if exporting targets to multiple dependent export sets.  The '...' must be a literal name of a target- it may not contain generator expressions.<br />  $&lt;INSTALL_INTERFACE:...&gt;  = content of "..." when the property is exported using install(EXPORT), and empty otherwise.<br />  $&lt;BUILD_INTERFACE:...&gt;    = content of "..." when the property is exported using export(), or when the target is used by another target in the same buildsystem. Expands to the empty string otherwise.<br />  $&lt;TARGET_FILE:tgt&gt;        = main file (.exe, .so.1.2, .a)<br />  $&lt;TARGET_LINKER_FILE:tgt&gt; = file used to link (.a, .lib, .so)<br />  $&lt;TARGET_SONAME_FILE:tgt&gt; = file with soname (.so.3)<br /></pre>
+    <p>where "tgt" is the name of a target.  Target file expressions produce a full path, but _DIR and _NAME versions can produce the directory and file name components:<br /></p>
+<pre>  $&lt;TARGET_FILE_DIR:tgt&gt;/$&lt;TARGET_FILE_NAME:tgt&gt;<br />  $&lt;TARGET_LINKER_FILE_DIR:tgt&gt;/$&lt;TARGET_LINKER_FILE_NAME:tgt&gt;<br />  $&lt;TARGET_SONAME_FILE_DIR:tgt&gt;/$&lt;TARGET_SONAME_FILE_NAME:tgt&gt;<br /></pre>
+    <p><br /></p>
+<pre>  $&lt;TARGET_PROPERTY:tgt,prop&gt;   = The value of the property prop on the target tgt.<br /></pre>
+    <p>Note that tgt is not added as a dependency of the target this expression is evaluated on.<br /></p>
+<pre>  $&lt;TARGET_POLICY:pol&gt;          = '1' if the policy was NEW when the 'head' target was created, else '0'.  If the policy was not set, the warning message for the policy will be emitted.  This generator expression only works for a subset of policies.<br />  $&lt;INSTALL_PREFIX&gt;         = Content of the install prefix when the target is exported via INSTALL(EXPORT) and empty otherwise.<br /></pre>
+    <p>Boolean expressions:<br /></p>
+<pre>  $&lt;AND:?[,?]...&gt;           = '1' if all '?' are '1', else '0'<br />  $&lt;OR:?[,?]...&gt;            = '0' if all '?' are '0', else '1'<br />  $&lt;NOT:?&gt;                  = '0' if '?' is '1', else '1'<br /></pre>
+    <p>where '?' is always either '0' or '1'.<br /></p>
+<p>Expressions with an implicit 'this' target:<br /></p>
+<pre>  $&lt;TARGET_PROPERTY:prop&gt;   = The value of the property prop on the target on which the generator expression is evaluated.<br /></pre>
+    
+  </li>
+  <li>
+    <a name="prop_tgt:LINK_SEARCH_END_STATIC"></a><b><code>LINK_SEARCH_END_STATIC</code></b>: End a link line such that static system libraries are used.<br />
+    <p>Some linkers support switches such as -Bstatic and -Bdynamic to determine whether to use static or shared libraries for -lXXX options.  CMake uses these options to set the link type for libraries whose full paths are not known or (in some cases) are in implicit link directories for the platform.  By default CMake adds an option at the end of the library list (if necessary) to set the linker search type back to its starting type.  This property switches the final linker search type to -Bstatic regardless of how it started.  See also LINK_SEARCH_START_STATIC.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LINK_SEARCH_START_STATIC"></a><b><code>LINK_SEARCH_START_STATIC</code></b>: Assume the linker looks for static libraries by default.<br />
+    <p>Some linkers support switches such as -Bstatic and -Bdynamic to determine whether to use static or shared libraries for -lXXX options.  CMake uses these options to set the link type for libraries whose full paths are not known or (in some cases) are in implicit link directories for the platform.  By default the linker search type is assumed to be -Bdynamic at the beginning of the library list.  This property switches the assumption to -Bstatic.  It is intended for use when linking an executable statically (e.g. with the GNU -static option).  See also LINK_SEARCH_END_STATIC.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LOCATION"></a><b><code>LOCATION</code></b>: Read-only location of a target on disk.<br />
+    <p>For an imported target, this read-only property returns the value of the LOCATION_&lt;CONFIG&gt; property for an unspecified configuration &lt;CONFIG&gt; provided by the target.<br /></p>
+<p>For a non-imported target, this property is provided for compatibility with CMake 2.4 and below.  It was meant to get the location of an executable target's output file for use in add_custom_command.  The path may contain a build-system-specific portion that is replaced at build time with the configuration getting built (such as "$(ConfigurationName)" in VS). In CMake 2.6 and above add_custom_command automatically recognizes a target name in its COMMAND and DEPENDS options and computes the target location.  In CMake 2.8.4 and above add_custom_command recognizes generator expressions to refer to target locations anywhere in the command.  Therefore this property is not needed for creating custom commands.<br /></p>
+<p>Do not set properties that affect the location of a target after reading this property.  These include properties whose names match "(RUNTIME|LIBRARY|ARCHIVE)_OUTPUT_(NAME|DIRECTORY)(_&lt;CONFIG&gt;)?", "(IMPLIB_)?(PREFIX|SUFFIX)", or "LINKER_LANGUAGE".  Failure to follow this rule is not diagnosed and leaves the location of the target undefined.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:LOCATION_CONFIG"></a><b><code>LOCATION_&lt;CONFIG&gt;</code></b>: Read-only property providing a target location on disk.<br />
+    <p>A read-only property that indicates where a target's main file is located on disk for the configuration &lt;CONFIG&gt;.  The property is defined only for library and executable targets.  An imported target may provide a set of configurations different from that of the importing project.  By default CMake looks for an exact-match but otherwise uses an arbitrary available configuration.  Use the MAP_IMPORTED_CONFIG_&lt;CONFIG&gt; property to map imported configurations explicitly.<br /></p>
+<p>Do not set properties that affect the location of a target after reading this property.  These include properties whose names match "(RUNTIME|LIBRARY|ARCHIVE)_OUTPUT_(NAME|DIRECTORY)(_&lt;CONFIG&gt;)?", "(IMPLIB_)?(PREFIX|SUFFIX)", or "LINKER_LANGUAGE".  Failure to follow this rule is not diagnosed and leaves the location of the target undefined.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:MACOSX_BUNDLE"></a><b><code>MACOSX_BUNDLE</code></b>: Build an executable as an application bundle on Mac OS X.<br />
+    <p>When this property is set to true the executable when built on Mac OS X will be created as an application bundle.  This makes it a GUI executable that can be launched from the Finder.  See the MACOSX_BUNDLE_INFO_PLIST target property for information about creation of the Info.plist file for the application bundle.  This property is initialized by the value of the variable CMAKE_MACOSX_BUNDLE if it is set when a target is created.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:MACOSX_BUNDLE_INFO_PLIST"></a><b><code>MACOSX_BUNDLE_INFO_PLIST</code></b>: Specify a custom Info.plist template for a Mac OS X App Bundle.<br />
+    <p>An executable target with MACOSX_BUNDLE enabled will be built as an application bundle on Mac OS X.  By default its Info.plist file is created by configuring a template called MacOSXBundleInfo.plist.in located in the CMAKE_MODULE_PATH.  This property specifies an alternative template file name which may be a full path.<br /></p>
+<p>The following target properties may be set to specify content to be configured into the file:<br /></p>
+<pre>  MACOSX_BUNDLE_INFO_STRING<br />  MACOSX_BUNDLE_ICON_FILE<br />  MACOSX_BUNDLE_GUI_IDENTIFIER<br />  MACOSX_BUNDLE_LONG_VERSION_STRING<br />  MACOSX_BUNDLE_BUNDLE_NAME<br />  MACOSX_BUNDLE_SHORT_VERSION_STRING<br />  MACOSX_BUNDLE_BUNDLE_VERSION<br />  MACOSX_BUNDLE_COPYRIGHT<br /></pre>
+    <p>CMake variables of the same name may be set to affect all targets in a directory that do not have each specific property set.  If a custom Info.plist is specified by this property it may of course hard-code all the settings instead of using the target properties.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:MACOSX_FRAMEWORK_INFO_PLIST"></a><b><code>MACOSX_FRAMEWORK_INFO_PLIST</code></b>: Specify a custom Info.plist template for a Mac OS X Framework.<br />
+    <p>An library target with FRAMEWORK enabled will be built as a framework on Mac OS X.  By default its Info.plist file is created by configuring a template called MacOSXFrameworkInfo.plist.in located in the CMAKE_MODULE_PATH.  This property specifies an alternative template file name which may be a full path.<br /></p>
+<p>The following target properties may be set to specify content to be configured into the file:<br /></p>
+<pre>  MACOSX_FRAMEWORK_ICON_FILE<br />  MACOSX_FRAMEWORK_IDENTIFIER<br />  MACOSX_FRAMEWORK_SHORT_VERSION_STRING<br />  MACOSX_FRAMEWORK_BUNDLE_VERSION<br /></pre>
+    <p>CMake variables of the same name may be set to affect all targets in a directory that do not have each specific property set.  If a custom Info.plist is specified by this property it may of course hard-code all the settings instead of using the target properties.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:MAP_IMPORTED_CONFIG_CONFIG"></a><b><code>MAP_IMPORTED_CONFIG_&lt;CONFIG&gt;</code></b>: Map from project configuration to IMPORTED target's configuration.<br />
+    <p>Set this to the list of configurations of an imported target that may be used for the current project's &lt;CONFIG&gt; configuration.  Targets imported from another project may not provide the same set of configuration names available in the current project.  Setting this property tells CMake what imported configurations are suitable for use when building the &lt;CONFIG&gt; configuration.  The first configuration in the list found to be provided by the imported target is selected.  If this property is set and no matching configurations are available, then the imported target is considered to be not found.  This property is ignored for non-imported targets.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:NO_SONAME"></a><b><code>NO_SONAME</code></b>: Whether to set "soname" when linking a shared library or module.<br />
+    <p>Enable this boolean property if a generated shared library or module should not have "soname" set. Default is to set "soname" on all shared libraries and modules as long as the platform supports it. Generally, use this property only for leaf private libraries or plugins. If you use it on normal shared libraries which other targets link against, on some platforms a linker will insert a full path to the library (as specified at link time) into the dynamic section of the dependent binary. Therefore, once installed, dynamic loader may eventually fail to locate the library for the binary.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:OSX_ARCHITECTURES"></a><b><code>OSX_ARCHITECTURES</code></b>: Target specific architectures for OS X.<br />
+    <p>The OSX_ARCHITECTURES property sets the target binary architecture for targets on OS X.  This property is initialized by the value of the variable CMAKE_OSX_ARCHITECTURES if it is set when a target is created.  Use OSX_ARCHITECTURES_&lt;CONFIG&gt; to set the binary architectures on a per-configuration basis.  &lt;CONFIG&gt; is an upper-case name (ex: "OSX_ARCHITECTURES_DEBUG").</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:OSX_ARCHITECTURES_CONFIG"></a><b><code>OSX_ARCHITECTURES_&lt;CONFIG&gt;</code></b>: Per-configuration OS X binary architectures for a target.<br />
+    <p>This property is the configuration-specific version of OSX_ARCHITECTURES.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:OUTPUT_NAME"></a><b><code>OUTPUT_NAME</code></b>: Output name for target files.<br />
+    <p>This sets the base name for output files created for an executable or library target.  If not set, the logical target name is used by default.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:OUTPUT_NAME_CONFIG"></a><b><code>OUTPUT_NAME_&lt;CONFIG&gt;</code></b>: Per-configuration target file base name.<br />
+    <p>This is the configuration-specific version of OUTPUT_NAME.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:PDB_NAME"></a><b><code>PDB_NAME</code></b>: Output name for MS debug symbols .pdb file.<br />
+    <p>Set the base name for debug symbols file created for an executable or library target.  If not set, the logical target name is used by default.  <br /></p>
+<p>This property is not implemented by the Visual Studio 6 generator.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:PDB_NAME_CONFIG"></a><b><code>PDB_NAME_&lt;CONFIG&gt;</code></b>: Per-configuration name for MS debug symbols .pdb file.  <br />
+    <p>This is the configuration-specific version of PDB_NAME.  <br /></p>
+<p>This property is not implemented by the Visual Studio 6 generator.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:PDB_OUTPUT_DIRECTORY"></a><b><code>PDB_OUTPUT_DIRECTORY</code></b>: Output directory for MS debug symbols .pdb files.<br />
+    <p>This property specifies the directory into which the MS debug symbols will be placed.  This property is initialized by the value of the variable CMAKE_PDB_OUTPUT_DIRECTORY if it is set when a target is created.<br /></p>
+<p>This property is not implemented by the Visual Studio 6 generator.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:PDB_OUTPUT_DIRECTORY_CONFIG"></a><b><code>PDB_OUTPUT_DIRECTORY_&lt;CONFIG&gt;</code></b>: Per-configuration output directory for MS debug symbols .pdb files.<br />
+    <p>This is a per-configuration version of PDB_OUTPUT_DIRECTORY, but multi-configuration generators (VS, Xcode) do NOT append a per-configuration subdirectory to the specified directory. This property is initialized by the value of the variable CMAKE_PDB_OUTPUT_DIRECTORY_&lt;CONFIG&gt; if it is set when a target is created.<br /></p>
+<p>This property is not implemented by the Visual Studio 6 generator.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:POSITION_INDEPENDENT_CODE"></a><b><code>POSITION_INDEPENDENT_CODE</code></b>: Whether to create a position-independent target<br />
+    <p>The POSITION_INDEPENDENT_CODE property determines whether position independent executables or shared libraries will be created.  This property is true by default for SHARED and MODULE library targets and false otherwise.  This property is initialized by the value of the variable CMAKE_POSITION_INDEPENDENT_CODE if it is set when a target is created.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:POST_INSTALL_SCRIPT"></a><b><code>POST_INSTALL_SCRIPT</code></b>: Deprecated install support.<br />
+    <p>The PRE_INSTALL_SCRIPT and POST_INSTALL_SCRIPT properties are the old way to specify CMake scripts to run before and after installing a target.  They are used only when the old INSTALL_TARGETS command is used to install the target.  Use the INSTALL command instead.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:PREFIX"></a><b><code>PREFIX</code></b>: What comes before the library name.<br />
+    <p>A target property that can be set to override the prefix (such as "lib") on a library name.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:PRE_INSTALL_SCRIPT"></a><b><code>PRE_INSTALL_SCRIPT</code></b>: Deprecated install support.<br />
+    <p>The PRE_INSTALL_SCRIPT and POST_INSTALL_SCRIPT properties are the old way to specify CMake scripts to run before and after installing a target.  They are used only when the old INSTALL_TARGETS command is used to install the target.  Use the INSTALL command instead.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:PRIVATE_HEADER"></a><b><code>PRIVATE_HEADER</code></b>: Specify private header files in a FRAMEWORK shared library target.<br />
+    <p>Shared library targets marked with the FRAMEWORK property generate frameworks on OS X and normal shared libraries on other platforms.  This property may be set to a list of header files to be placed in the PrivateHeaders directory inside the framework folder.  On non-Apple platforms these headers may be installed using the PRIVATE_HEADER option to the install(TARGETS) command.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:PROJECT_LABEL"></a><b><code>PROJECT_LABEL</code></b>: Change the name of a target in an IDE.<br />
+    <p>Can be used to change the name of the target in an IDE like Visual Studio. </p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:PUBLIC_HEADER"></a><b><code>PUBLIC_HEADER</code></b>: Specify public header files in a FRAMEWORK shared library target.<br />
+    <p>Shared library targets marked with the FRAMEWORK property generate frameworks on OS X and normal shared libraries on other platforms.  This property may be set to a list of header files to be placed in the Headers directory inside the framework folder.  On non-Apple platforms these headers may be installed using the PUBLIC_HEADER option to the install(TARGETS) command.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:RESOURCE"></a><b><code>RESOURCE</code></b>: Specify resource files in a FRAMEWORK shared library target.<br />
+    <p>Shared library targets marked with the FRAMEWORK property generate frameworks on OS X and normal shared libraries on other platforms.  This property may be set to a list of files to be placed in the Resources directory inside the framework folder.  On non-Apple platforms these files may be installed using the RESOURCE option to the install(TARGETS) command.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:RULE_LAUNCH_COMPILE"></a><b><code>RULE_LAUNCH_COMPILE</code></b>: Specify a launcher for compile rules.<br />
+    <p>See the global property of the same name for details.  This overrides the global and directory property for a target.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:RULE_LAUNCH_CUSTOM"></a><b><code>RULE_LAUNCH_CUSTOM</code></b>: Specify a launcher for custom rules.<br />
+    <p>See the global property of the same name for details.  This overrides the global and directory property for a target.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:RULE_LAUNCH_LINK"></a><b><code>RULE_LAUNCH_LINK</code></b>: Specify a launcher for link rules.<br />
+    <p>See the global property of the same name for details.  This overrides the global and directory property for a target.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:RUNTIME_OUTPUT_DIRECTORY"></a><b><code>RUNTIME_OUTPUT_DIRECTORY</code></b>: Output directory in which to build RUNTIME target files.<br />
+    <p>This property specifies the directory into which runtime target files should be built. Multi-configuration generators (VS, Xcode) append a per-configuration subdirectory to the specified directory.  There are three kinds of target files that may be built: archive, library, and runtime.  Executables are always treated as runtime targets. Static libraries are always treated as archive targets. Module libraries are always treated as library targets. For non-DLL platforms shared libraries are treated as library targets. For DLL platforms the DLL part of a shared library is treated as a runtime target and the corresponding import library is treated as an archive target. All Windows-based systems including Cygwin are DLL platforms.  This property is initialized by the value of the variable CMAKE_RUNTIME_OUTPUT_DIRECTORY if it is set when a target is created.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:RUNTIME_OUTPUT_DIRECTORY_CONFIG"></a><b><code>RUNTIME_OUTPUT_DIRECTORY_&lt;CONFIG&gt;</code></b>: Per-configuration output directory for RUNTIME target files.<br />
+    <p>This is a per-configuration version of RUNTIME_OUTPUT_DIRECTORY, but multi-configuration generators (VS, Xcode) do NOT append a per-configuration subdirectory to the specified directory.  This property is initialized by the value of the variable CMAKE_RUNTIME_OUTPUT_DIRECTORY_&lt;CONFIG&gt; if it is set when a target is created.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:RUNTIME_OUTPUT_NAME"></a><b><code>RUNTIME_OUTPUT_NAME</code></b>: Output name for RUNTIME target files.<br />
+    <p>This property specifies the base name for runtime target files.  It overrides OUTPUT_NAME and OUTPUT_NAME_&lt;CONFIG&gt; properties.  There are three kinds of target files that may be built: archive, library, and runtime.  Executables are always treated as runtime targets. Static libraries are always treated as archive targets. Module libraries are always treated as library targets. For non-DLL platforms shared libraries are treated as library targets. For DLL platforms the DLL part of a shared library is treated as a runtime target and the corresponding import library is treated as an archive target. All Windows-based systems including Cygwin are DLL platforms.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:RUNTIME_OUTPUT_NAME_CONFIG"></a><b><code>RUNTIME_OUTPUT_NAME_&lt;CONFIG&gt;</code></b>: Per-configuration output name for RUNTIME target files.<br />
+    <p>This is the configuration-specific version of RUNTIME_OUTPUT_NAME.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:SKIP_BUILD_RPATH"></a><b><code>SKIP_BUILD_RPATH</code></b>: Should rpaths be used for the build tree.<br />
+    <p>SKIP_BUILD_RPATH is a boolean specifying whether to skip automatic generation of an rpath allowing the target to run from the build tree.  This property is initialized by the value of the variable CMAKE_SKIP_BUILD_RPATH if it is set when a target is created.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:SOURCES"></a><b><code>SOURCES</code></b>: Source names specified for a target.<br />
+    <p>Read-only list of sources specified for a target.  The names returned are suitable for passing to the set_source_files_properties command.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:SOVERSION"></a><b><code>SOVERSION</code></b>: What version number is this target.<br />
+    <p>For shared libraries VERSION and SOVERSION can be used to specify the build version and api version respectively. When building or installing appropriate symlinks are created if the platform supports symlinks and the linker supports so-names. If only one of both is specified the missing is assumed to have the same version number. SOVERSION is ignored if NO_SONAME property is set. For shared libraries and executables on Windows the VERSION attribute is parsed to extract a "major.minor" version number. These numbers are used as the image version of the binary. </p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:STATIC_LIBRARY_FLAGS"></a><b><code>STATIC_LIBRARY_FLAGS</code></b>: Extra flags to use when linking static libraries.<br />
+    <p>Extra flags to use when linking a static library.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:STATIC_LIBRARY_FLAGS_CONFIG"></a><b><code>STATIC_LIBRARY_FLAGS_&lt;CONFIG&gt;</code></b>: Per-configuration flags for creating a static library.<br />
+    <p>This is the configuration-specific version of STATIC_LIBRARY_FLAGS.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:SUFFIX"></a><b><code>SUFFIX</code></b>: What comes after the target name.<br />
+    <p>A target property that can be set to override the suffix (such as ".so" or ".exe") on the name of a library, module or executable.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:TYPE"></a><b><code>TYPE</code></b>: The type of the target.<br />
+    <p>This read-only property can be used to test the type of the given target. It will be one of STATIC_LIBRARY, MODULE_LIBRARY, SHARED_LIBRARY, EXECUTABLE or one of the internal target types.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:VERSION"></a><b><code>VERSION</code></b>: What version number is this target.<br />
+    <p>For shared libraries VERSION and SOVERSION can be used to specify the build version and api version respectively. When building or installing appropriate symlinks are created if the platform supports symlinks and the linker supports so-names. If only one of both is specified the missing is assumed to have the same version number. For executables VERSION can be used to specify the build version. When building or installing appropriate symlinks are created if the platform supports symlinks. For shared libraries and executables on Windows the VERSION attribute is parsed to extract a "major.minor" version number. These numbers are used as the image version of the binary. </p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:VS_DOTNET_REFERENCES"></a><b><code>VS_DOTNET_REFERENCES</code></b>: Visual Studio managed project .NET references<br />
+    <p>Adds one or more semicolon-delimited .NET references to a generated Visual Studio project. For example, "System;System.Windows.Forms".</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:VS_GLOBAL_variable"></a><b><code>VS_GLOBAL_&lt;variable&gt;</code></b>: Visual Studio project-specific global variable.<br />
+    <p>Tell the Visual Studio generator to set the global variable '&lt;variable&gt;' to a given value in the generated Visual Studio project. Ignored on other generators. Qt integration works better if VS_GLOBAL_QtVersion is set to the version FindQt4.cmake found. For example, "4.7.3"</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:VS_GLOBAL_KEYWORD"></a><b><code>VS_GLOBAL_KEYWORD</code></b>: Visual Studio project keyword.<br />
+    <p>Sets the "keyword" attribute for a generated Visual Studio project. Defaults to "Win32Proj". You may wish to override this value with "ManagedCProj", for example, in a Visual Studio managed C++ unit test project.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:VS_GLOBAL_PROJECT_TYPES"></a><b><code>VS_GLOBAL_PROJECT_TYPES</code></b>: Visual Studio project type(s).<br />
+    <p>Can be set to one or more UUIDs recognized by Visual Studio to indicate the type of project. This value is copied verbatim into the generated project file. Example for a managed C++ unit testing project:<br /></p>
+<pre> {3AC096D0-A1C2-E12C-1390-A8335801FDAB};{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}<br /></pre>
+    <p>UUIDs are semicolon-delimited.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:VS_KEYWORD"></a><b><code>VS_KEYWORD</code></b>: Visual Studio project keyword.<br />
+    <p>Can be set to change the visual studio keyword, for example Qt integration works better if this is set to Qt4VSv1.0. </p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:VS_SCC_AUXPATH"></a><b><code>VS_SCC_AUXPATH</code></b>: Visual Studio Source Code Control Aux Path.<br />
+    <p>Can be set to change the visual studio source code control auxpath property.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:VS_SCC_LOCALPATH"></a><b><code>VS_SCC_LOCALPATH</code></b>: Visual Studio Source Code Control Local Path.<br />
+    <p>Can be set to change the visual studio source code control local path property.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:VS_SCC_PROJECTNAME"></a><b><code>VS_SCC_PROJECTNAME</code></b>: Visual Studio Source Code Control Project.<br />
+    <p>Can be set to change the visual studio source code control project name property.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:VS_SCC_PROVIDER"></a><b><code>VS_SCC_PROVIDER</code></b>: Visual Studio Source Code Control Provider.<br />
+    <p>Can be set to change the visual studio source code control provider property.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:VS_WINRT_EXTENSIONS"></a><b><code>VS_WINRT_EXTENSIONS</code></b>: Visual Studio project C++/CX language extensions for Windows Runtime<br />
+    <p>Can be set to enable C++/CX language extensions.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:VS_WINRT_REFERENCES"></a><b><code>VS_WINRT_REFERENCES</code></b>: Visual Studio project Windows Runtime Metadata references<br />
+    <p>Adds one or more semicolon-delimited WinRT references to a generated Visual Studio project. For example, "Windows;Windows.UI.Core".</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:WIN32_EXECUTABLE"></a><b><code>WIN32_EXECUTABLE</code></b>: Build an executable with a WinMain entry point on windows.<br />
+    <p>When this property is set to true the executable when linked on Windows will be created with a WinMain() entry point instead of just main().  This makes it a GUI executable instead of a console application.  See the CMAKE_MFC_FLAG variable documentation to configure use of MFC for WinMain executables.  This property is initialized by the value of the variable CMAKE_WIN32_EXECUTABLE if it is set when a target is created.</p>
+
+  </li>
+  <li>
+    <a name="prop_tgt:XCODE_ATTRIBUTE_an-attribute"></a><b><code>XCODE_ATTRIBUTE_&lt;an-attribute&gt;</code></b>: Set Xcode target attributes directly.<br />
+    <p>Tell the Xcode generator to set '&lt;an-attribute&gt;' to a given value in the generated Xcode project.  Ignored on other generators.</p>
+
+  </li>
+</ul>
+<h2><a name="section_PropertiesonTests"></a>Properties on Tests</h2>
+<ul>
+    <li><a href="#prop_test:ATTACHED_FILES"><b><code>ATTACHED_FILES</code></b></a></li>
+    <li><a href="#prop_test:ATTACHED_FILES_ON_FAIL"><b><code>ATTACHED_FILES_ON_FAIL</code></b></a></li>
+    <li><a href="#prop_test:COST"><b><code>COST</code></b></a></li>
+    <li><a href="#prop_test:DEPENDS"><b><code>DEPENDS</code></b></a></li>
+    <li><a href="#prop_test:ENVIRONMENT"><b><code>ENVIRONMENT</code></b></a></li>
+    <li><a href="#prop_test:FAIL_REGULAR_EXPRESSION"><b><code>FAIL_REGULAR_EXPRESSION</code></b></a></li>
+    <li><a href="#prop_test:LABELS"><b><code>LABELS</code></b></a></li>
+    <li><a href="#prop_test:MEASUREMENT"><b><code>MEASUREMENT</code></b></a></li>
+    <li><a href="#prop_test:PASS_REGULAR_EXPRESSION"><b><code>PASS_REGULAR_EXPRESSION</code></b></a></li>
+    <li><a href="#prop_test:PROCESSORS"><b><code>PROCESSORS</code></b></a></li>
+    <li><a href="#prop_test:REQUIRED_FILES"><b><code>REQUIRED_FILES</code></b></a></li>
+    <li><a href="#prop_test:RESOURCE_LOCK"><b><code>RESOURCE_LOCK</code></b></a></li>
+    <li><a href="#prop_test:RUN_SERIAL"><b><code>RUN_SERIAL</code></b></a></li>
+    <li><a href="#prop_test:TIMEOUT"><b><code>TIMEOUT</code></b></a></li>
+    <li><a href="#prop_test:WILL_FAIL"><b><code>WILL_FAIL</code></b></a></li>
+    <li><a href="#prop_test:WORKING_DIRECTORY"><b><code>WORKING_DIRECTORY</code></b></a></li>
+</ul>
+<ul>
+  <li>
+    <a name="prop_test:ATTACHED_FILES"></a><b><code>ATTACHED_FILES</code></b>: Attach a list of files to a dashboard submission.<br />
+    <p>Set this property to a list of files that will be encoded and submitted to the dashboard as an addition to the test result.</p>
+
+  </li>
+  <li>
+    <a name="prop_test:ATTACHED_FILES_ON_FAIL"></a><b><code>ATTACHED_FILES_ON_FAIL</code></b>: Attach a list of files to a dashboard submission if the test fails.<br />
+    <p>Same as ATTACHED_FILES, but these files will only be included if the test does not pass.</p>
+
+  </li>
+  <li>
+    <a name="prop_test:COST"></a><b><code>COST</code></b>: Set this to a floating point value. Tests in a test set will be run in descending order of cost.<br />
+    <p>This property describes the cost of a test. You can explicitly set this value; tests with higher COST values will run first.</p>
+
+  </li>
+  <li>
+    <a name="prop_test:DEPENDS"></a><b><code>DEPENDS</code></b>: Specifies that this test should only be run after the specified list of tests.<br />
+    <p>Set this to a list of tests that must finish before this test is run.</p>
+
+  </li>
+  <li>
+    <a name="prop_test:ENVIRONMENT"></a><b><code>ENVIRONMENT</code></b>: Specify environment variables that should be defined for running a test.<br />
+    <p>If set to a list of environment variables and values of the form MYVAR=value those environment variables will be defined while running the test. The environment is restored to its previous state after the test is done.</p>
+
+  </li>
+  <li>
+    <a name="prop_test:FAIL_REGULAR_EXPRESSION"></a><b><code>FAIL_REGULAR_EXPRESSION</code></b>: If the output matches this regular expression the test will fail.<br />
+    <p>If set, if the output matches one of specified regular expressions, the test will fail.For example: PASS_REGULAR_EXPRESSION "[^a-z]Error;ERROR;Failed"</p>
+
+  </li>
+  <li>
+    <a name="prop_test:LABELS"></a><b><code>LABELS</code></b>: Specify a list of text labels associated with a test.<br />
+    <p>The list is reported in dashboard submissions.</p>
+
+  </li>
+  <li>
+    <a name="prop_test:MEASUREMENT"></a><b><code>MEASUREMENT</code></b>: Specify a CDASH measurement and value to be reported for a test.<br />
+    <p>If set to a name then that name will be reported to CDASH as a named measurement with a value of 1. You may also specify a value by setting MEASUREMENT to "measurement=value".</p>
+
+  </li>
+  <li>
+    <a name="prop_test:PASS_REGULAR_EXPRESSION"></a><b><code>PASS_REGULAR_EXPRESSION</code></b>: The output must match this regular expression for the test to pass.<br />
+    <p>If set, the test output will be checked against the specified regular expressions and at least one of the regular expressions has to match, otherwise the test will fail.</p>
+
+  </li>
+  <li>
+    <a name="prop_test:PROCESSORS"></a><b><code>PROCESSORS</code></b>: How many process slots this test requires<br />
+    <p>Denotes the number of processors that this test will require. This is typically used for MPI tests, and should be used in conjunction with the ctest_test PARALLEL_LEVEL option.</p>
+
+  </li>
+  <li>
+    <a name="prop_test:REQUIRED_FILES"></a><b><code>REQUIRED_FILES</code></b>: List of files required to run the test.<br />
+    <p>If set to a list of files, the test will not be run unless all of the files exist.</p>
+
+  </li>
+  <li>
+    <a name="prop_test:RESOURCE_LOCK"></a><b><code>RESOURCE_LOCK</code></b>: Specify a list of resources that are locked by this test.<br />
+    <p>If multiple tests specify the same resource lock, they are guaranteed not to run concurrently.</p>
+
+  </li>
+  <li>
+    <a name="prop_test:RUN_SERIAL"></a><b><code>RUN_SERIAL</code></b>: Do not run this test in parallel with any other test.<br />
+    <p>Use this option in conjunction with the ctest_test PARALLEL_LEVEL option to specify that this test should not be run in parallel with any other tests.</p>
+
+  </li>
+  <li>
+    <a name="prop_test:TIMEOUT"></a><b><code>TIMEOUT</code></b>: How many seconds to allow for this test.<br />
+    <p>This property if set will limit a test to not take more than the specified number of seconds to run. If it exceeds that the test process will be killed and ctest will move to the next test. This setting takes precedence over CTEST_TESTING_TIMEOUT.</p>
+
+  </li>
+  <li>
+    <a name="prop_test:WILL_FAIL"></a><b><code>WILL_FAIL</code></b>: If set to true, this will invert the pass/fail flag of the test.<br />
+    <p>This property can be used for tests that are expected to fail and return a non zero return code.</p>
+
+  </li>
+  <li>
+    <a name="prop_test:WORKING_DIRECTORY"></a><b><code>WORKING_DIRECTORY</code></b>: The directory from which the test executable will be called.<br />
+    <p>If this is not set it is called from the directory the test executable is located in.</p>
+
+  </li>
+</ul>
+<h2><a name="section_PropertiesonSourceFiles"></a>Properties on Source Files</h2>
+<ul>
+    <li><a href="#prop_sf:ABSTRACT"><b><code>ABSTRACT</code></b></a></li>
+    <li><a href="#prop_sf:COMPILE_DEFINITIONS"><b><code>COMPILE_DEFINITIONS</code></b></a></li>
+    <li><a href="#prop_sf:COMPILE_DEFINITIONS_CONFIG"><b><code>COMPILE_DEFINITIONS_&lt;CONFIG&gt;</code></b></a></li>
+    <li><a href="#prop_sf:COMPILE_FLAGS"><b><code>COMPILE_FLAGS</code></b></a></li>
+    <li><a href="#prop_sf:EXTERNAL_OBJECT"><b><code>EXTERNAL_OBJECT</code></b></a></li>
+    <li><a href="#prop_sf:Fortran_FORMAT"><b><code>Fortran_FORMAT</code></b></a></li>
+    <li><a href="#prop_sf:GENERATED"><b><code>GENERATED</code></b></a></li>
+    <li><a href="#prop_sf:HEADER_FILE_ONLY"><b><code>HEADER_FILE_ONLY</code></b></a></li>
+    <li><a href="#prop_sf:KEEP_EXTENSION"><b><code>KEEP_EXTENSION</code></b></a></li>
+    <li><a href="#prop_sf:LABELS"><b><code>LABELS</code></b></a></li>
+    <li><a href="#prop_sf:LANGUAGE"><b><code>LANGUAGE</code></b></a></li>
+    <li><a href="#prop_sf:LOCATION"><b><code>LOCATION</code></b></a></li>
+    <li><a href="#prop_sf:MACOSX_PACKAGE_LOCATION"><b><code>MACOSX_PACKAGE_LOCATION</code></b></a></li>
+    <li><a href="#prop_sf:OBJECT_DEPENDS"><b><code>OBJECT_DEPENDS</code></b></a></li>
+    <li><a href="#prop_sf:OBJECT_OUTPUTS"><b><code>OBJECT_OUTPUTS</code></b></a></li>
+    <li><a href="#prop_sf:SYMBOLIC"><b><code>SYMBOLIC</code></b></a></li>
+    <li><a href="#prop_sf:WRAP_EXCLUDE"><b><code>WRAP_EXCLUDE</code></b></a></li>
+</ul>
+<ul>
+  <li>
+    <a name="prop_sf:ABSTRACT"></a><b><code>ABSTRACT</code></b>: Is this source file an abstract class.<br />
+    <p>A property on a source file that indicates if the source file represents a class that is abstract. This only makes sense for languages that have a notion of an abstract class and it is only used by some tools that wrap classes into other languages.</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:COMPILE_DEFINITIONS"></a><b><code>COMPILE_DEFINITIONS</code></b>: Preprocessor definitions for compiling a source file.<br />
+    <p>The COMPILE_DEFINITIONS property may be set to a semicolon-separated list of preprocessor definitions using the syntax VAR or VAR=value.  Function-style definitions are not supported.  CMake will automatically escape the value correctly for the native build system (note that CMake language syntax may require escapes to specify some values).  This property may be set on a per-configuration basis using the name COMPILE_DEFINITIONS_&lt;CONFIG&gt; where &lt;CONFIG&gt; is an upper-case name (ex. "COMPILE_DEFINITIONS_DEBUG").<br /></p>
+<p>CMake will automatically drop some definitions that are not supported by the native build tool.  The VS6 IDE does not support definition values with spaces (but NMake does).  Xcode does not support per-configuration definitions on source files.<br /></p>
+<p>Disclaimer: Most native build tools have poor support for escaping certain values.  CMake has work-arounds for many cases but some values may just not be possible to pass correctly.  If a value does not seem to be escaped correctly, do not attempt to work-around the problem by adding escape sequences to the value.  Your work-around may break in a future version of CMake that has improved escape support.  Instead consider defining the macro in a (configured) header file.  Then report the limitation.  Known limitations include:<br /></p>
+<pre>  #          - broken almost everywhere<br />  ;          - broken in VS IDE and Borland Makefiles<br />  ,          - broken in VS IDE<br />  %          - broken in some cases in NMake<br />  &amp; |        - broken in some cases on MinGW<br />  ^ &lt; &gt; \"   - broken in most Make tools on Windows<br /></pre>
+    <p>CMake does not reject these values outright because they do work in some cases.  Use with caution.  </p>
+
+  </li>
+  <li>
+    <a name="prop_sf:COMPILE_DEFINITIONS_CONFIG"></a><b><code>COMPILE_DEFINITIONS_&lt;CONFIG&gt;</code></b>: Per-configuration preprocessor definitions on a source file.<br />
+    <p>This is the configuration-specific version of COMPILE_DEFINITIONS.  Note that Xcode does not support per-configuration source file flags so this property will be ignored by the Xcode generator.</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:COMPILE_FLAGS"></a><b><code>COMPILE_FLAGS</code></b>: Additional flags to be added when compiling this source file.<br />
+    <p>These flags will be added to the list of compile flags when this source file builds.  Use COMPILE_DEFINITIONS to pass additional preprocessor definitions.</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:EXTERNAL_OBJECT"></a><b><code>EXTERNAL_OBJECT</code></b>: If set to true then this is an object file.<br />
+    <p>If this property is set to true then the source file is really an object file and should not be compiled.  It will still be linked into the target though.</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:Fortran_FORMAT"></a><b><code>Fortran_FORMAT</code></b>: Set to FIXED or FREE to indicate the Fortran source layout.<br />
+    <p>This property tells CMake whether a given Fortran source file uses fixed-format or free-format.  CMake will pass the corresponding format flag to the compiler.  Consider using the target-wide Fortran_FORMAT property if all source files in a target share the same format.</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:GENERATED"></a><b><code>GENERATED</code></b>: Is this source file generated as part of the build process.<br />
+    <p>If a source file is generated by the build process CMake will handle it differently in terms of dependency checking etc. Otherwise having a non-existent source file could create problems.</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:HEADER_FILE_ONLY"></a><b><code>HEADER_FILE_ONLY</code></b>: Is this source file only a header file.<br />
+    <p>A property on a source file that indicates if the source file is a header file with no associated implementation. This is set automatically based on the file extension and is used by CMake to determine if certain dependency information should be computed.</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:KEEP_EXTENSION"></a><b><code>KEEP_EXTENSION</code></b>: Make the output file have the same extension as the source file.<br />
+    <p>If this property is set then the file extension of the output file will be the same as that of the source file. Normally the output file extension is computed based on the language of the source file, for example .cxx will go to a .o extension.</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:LABELS"></a><b><code>LABELS</code></b>: Specify a list of text labels associated with a source file.<br />
+    <p>This property has meaning only when the source file is listed in a target whose LABELS property is also set.  No other semantics are currently specified.</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:LANGUAGE"></a><b><code>LANGUAGE</code></b>: What programming language is the file.<br />
+    <p>A property that can be set to indicate what programming language the source file is. If it is not set the language is determined based on the file extension. Typical values are CXX C etc. Setting this property for a file means this file will be compiled. Do not set this for header or files that should not be compiled.</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:LOCATION"></a><b><code>LOCATION</code></b>: The full path to a source file.<br />
+    <p>A read only property on a SOURCE FILE that contains the full path to the source file.</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:MACOSX_PACKAGE_LOCATION"></a><b><code>MACOSX_PACKAGE_LOCATION</code></b>: Place a source file inside a Mac OS X bundle, CFBundle, or framework.<br />
+    <p>Executable targets with the MACOSX_BUNDLE property set are built as Mac OS X application bundles on Apple platforms.  Shared library targets with the FRAMEWORK property set are built as Mac OS X frameworks on Apple platforms.  Module library targets with the BUNDLE property set are built as Mac OS X CFBundle bundles on Apple platforms.  Source files listed in the target with this property set will be copied to a directory inside the bundle or framework content folder specified by the property value.  For bundles the content folder is "&lt;name&gt;.app/Contents".  For frameworks the content folder is "&lt;name&gt;.framework/Versions/&lt;version&gt;".  For cfbundles the content folder is "&lt;name&gt;.bundle/Contents" (unless the extension is changed).  See the PUBLIC_HEADER, PRIVATE_HEADER, and RESOURCE target properties for specifying files meant for Headers, PrivateHeaders, or Resources directories.</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:OBJECT_DEPENDS"></a><b><code>OBJECT_DEPENDS</code></b>: Additional files on which a compiled object file depends.<br />
+    <p>Specifies a semicolon-separated list of full-paths to files on which any object files compiled from this source file depend.  An object file will be recompiled if any of the named files is newer than it.<br /></p>
+<p>This property need not be used to specify the dependency of a source file on a generated header file that it includes.  Although the property was originally introduced for this purpose, it is no longer necessary.  If the generated header file is created by a custom command in the same target as the source file, the automatic dependency scanning process will recognize the dependency.  If the generated header file is created by another target, an inter-target dependency should be created with the add_dependencies command (if one does not already exist due to linking relationships).</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:OBJECT_OUTPUTS"></a><b><code>OBJECT_OUTPUTS</code></b>: Additional outputs for a Makefile rule.<br />
+    <p>Additional outputs created by compilation of this source file. If any of these outputs is missing the object will be recompiled. This is supported only on Makefile generators and will be ignored on other generators.</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:SYMBOLIC"></a><b><code>SYMBOLIC</code></b>: Is this just a name for a rule.<br />
+    <p>If SYMBOLIC (boolean) is set to true the build system will be informed that the source file is not actually created on disk but instead used as a symbolic name for a build rule.</p>
+
+  </li>
+  <li>
+    <a name="prop_sf:WRAP_EXCLUDE"></a><b><code>WRAP_EXCLUDE</code></b>: Exclude this source file from any code wrapping techniques.<br />
+    <p>Some packages can wrap source files into alternate languages to provide additional functionality. For example, C++ code can be wrapped into Java or Python etc using SWIG etc. If WRAP_EXCLUDE is set to true (1 etc) that indicates then this source file should not be wrapped.</p>
+
+  </li>
+</ul>
+<h2><a name="section_PropertiesonCacheEntries"></a>Properties on Cache Entries</h2>
+<ul>
+    <li><a href="#property:ADVANCED"><b><code>ADVANCED</code></b></a></li>
+    <li><a href="#property:HELPSTRING"><b><code>HELPSTRING</code></b></a></li>
+    <li><a href="#property:MODIFIED"><b><code>MODIFIED</code></b></a></li>
+    <li><a href="#property:STRINGS"><b><code>STRINGS</code></b></a></li>
+    <li><a href="#property:TYPE"><b><code>TYPE</code></b></a></li>
+    <li><a href="#property:VALUE"><b><code>VALUE</code></b></a></li>
+</ul>
+<ul>
+  <li>
+    <a name="property:ADVANCED"></a><b><code>ADVANCED</code></b>: True if entry should be hidden by default in GUIs.<br />
+    <p>This is a boolean value indicating whether the entry is considered interesting only for advanced configuration.  The mark_as_advanced() command modifies this property.</p>
+
+  </li>
+  <li>
+    <a name="property:HELPSTRING"></a><b><code>HELPSTRING</code></b>: Help associated with entry in GUIs.<br />
+    <p>This string summarizes the purpose of an entry to help users set it through a CMake GUI.</p>
+
+  </li>
+  <li>
+    <a name="property:MODIFIED"></a><b><code>MODIFIED</code></b>: Internal management property.  Do not set or get.<br />
+    <p>This is an internal cache entry property managed by CMake to track interactive user modification of entries.  Ignore it.</p>
+
+  </li>
+  <li>
+    <a name="property:STRINGS"></a><b><code>STRINGS</code></b>: Enumerate possible STRING entry values for GUI selection.<br />
+    <p>For cache entries with type STRING, this enumerates a set of values.  CMake GUIs may use this to provide a selection widget instead of a generic string entry field.  This is for convenience only.  CMake does not enforce that the value matches one of those listed.</p>
+
+  </li>
+  <li>
+    <a name="property:TYPE"></a><b><code>TYPE</code></b>: Widget type for entry in GUIs.<br />
+    <p>Cache entry values are always strings, but CMake GUIs present widgets to help users set values.  The GUIs use this property as a hint to determine the widget type.  Valid TYPE values are:<br /></p>
+<pre>  BOOL          = Boolean ON/OFF value.<br />  PATH          = Path to a directory.<br />  FILEPATH      = Path to a file.<br />  STRING        = Generic string value.<br />  INTERNAL      = Do not present in GUI at all.<br />  STATIC        = Value managed by CMake, do not change.<br />  UNINITIALIZED = Type not yet specified.<br /></pre>
+    <p>Generally the TYPE of a cache entry should be set by the command which creates it (set, option, find_library, etc.).</p>
+
+  </li>
+  <li>
+    <a name="property:VALUE"></a><b><code>VALUE</code></b>: Value of a cache entry.<br />
+    <p>This property maps to the actual value of a cache entry.  Setting this property always sets the value without checking, so use with care.</p>
+
+  </li>
+</ul>
+<h2><a name="section_Copyright"></a>Copyright</h2>
+<p>Copyright 2000-2012 Kitware, Inc., Insight Software Consortium.  All rights reserved.</p>
+
+<p>Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:</p>
+
+<p>Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.</p>
+
+<p>Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.</p>
+
+<p>Neither the names of Kitware, Inc., the Insight Software Consortium, nor the names of their contributors may be used to endorse or promote products derived from this software without specific prior written permission.</p>
+
+<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+
+<h2><a name="section_SeeAlso"></a>See Also</h2>
+<ul>
+    <li><a href="#see:HomePage"><b><code>Home Page</code></b></a></li>
+    <li><a href="#see:FrequentlyAskedQuestions"><b><code>Frequently Asked Questions</code></b></a></li>
+    <li><a href="#see:OnlineDocumentation"><b><code>Online Documentation</code></b></a></li>
+    <li><a href="#see:MailingList"><b><code>Mailing List</code></b></a></li>
+</ul>
+<p>The following resources are available to get help using CMake:</p>
+
+<ul>
+  <li>
+    <a name="see:HomePage"></a><b><code>Home Page</code></b>: <a href="http://www.cmake.org">http://www.cmake.org</a><br />
+    <p>The primary starting point for learning about CMake.</p>
+
+  </li>
+  <li>
+    <a name="see:FrequentlyAskedQuestions"></a><b><code>Frequently Asked Questions</code></b>: <a href="http://www.cmake.org/Wiki/CMake_FAQ">http://www.cmake.org/Wiki/CMake_FAQ</a><br />
+    <p>A Wiki is provided containing answers to frequently asked questions. </p>
+
+  </li>
+  <li>
+    <a name="see:OnlineDocumentation"></a><b><code>Online Documentation</code></b>: <a href="http://www.cmake.org/HTML/Documentation.html">http://www.cmake.org/HTML/Documentation.html</a><br />
+    <p>Links to available documentation may be found on this web page.</p>
+
+  </li>
+  <li>
+    <a name="see:MailingList"></a><b><code>Mailing List</code></b>: <a href="http://www.cmake.org/HTML/MailingLists.html">http://www.cmake.org/HTML/MailingLists.html</a><br />
+    <p>For help and discussion about using cmake, a mailing list is provided at cmake@cmake.org. The list is member-post-only but one may sign up on the CMake web page. Please first read the full documentation at <a href="http://www.cmake.org">http://www.cmake.org</a> before posting questions to the list.</p>
+
+  </li>
+</ul>
+</body></html>

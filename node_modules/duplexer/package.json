@@ -1,0 +1,32 @@
+{
+  "name": "duplexer",
+  "version": "0.0.4",
+  "description": "Creates a duplex stream",
+  "keywords": [],
+  "author": "Raynos <raynos2@gmail.com>",
+  "repository": "git://github.com/Raynos/duplexer.git",
+  "main": "index",
+  "homepage": "https://github.com/Raynos/duplexer",
+  "contributors": [
+    {
+      "name": "Jake Verbaten"
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/Raynos/duplexer/issues",
+    "email": "raynos2@gmail.com"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "through": "~0.1.4"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/Raynos/duplexer/raw/master/LICENSE"
+    }
+  ],
+  "scripts": {
+    "test": "make test"
+  }
+}

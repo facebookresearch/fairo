@@ -1,0 +1,39 @@
+{
+    "name": "hyperquest",
+    "version": "0.1.8",
+    "description": "make streaming http requests",
+    "main": "index.js",
+    "dependencies": {
+        "through": "~2.2.0",
+        "duplexer": "~0.1.0"
+    },
+    "devDependencies": {
+        "tap": "~0.4.0"
+    },
+    "scripts": {
+        "test": "tap test/*.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/substack/hyperquest.git"
+    },
+    "homepage": "https://github.com/substack/hyperquest",
+    "keywords": [
+        "stream",
+        "http",
+        "transport",
+        "request",
+        "get",
+        "post",
+        "put",
+        "delete",
+        "duplex",
+        "pooling"
+    ],
+    "author": {
+        "name": "James Halliday",
+        "email": "mail@substack.net",
+        "url": "http://substack.net"
+    },
+    "license": "MIT"
+}

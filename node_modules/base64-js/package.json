@@ -1,0 +1,19 @@
+{
+	"author": "T. Jameson Little <t.jameson.little@gmail.com>",
+	"name": "base64-js",
+	"description": "Base64 encoding/decoding in pure JS",
+	"version": "0.0.2",
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/beatgammit/deflate-js.git"
+	},
+	"main": "lib/b64.js",
+	"scripts": {
+		"test": "cd test; node runner.js; cd -"
+	},
+	"engines": {
+		"node": ">= 0.4"
+	},
+	"dependencies": {},
+	"devDependencies": {}
+}
