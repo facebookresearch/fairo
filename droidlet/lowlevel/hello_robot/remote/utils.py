@@ -210,6 +210,8 @@ def goto(
 
         if obstacle_fn is not None:
             is_obstacle = obstacle_fn()
+        else:
+            is_obstacle = False
         if is_obstacle:
             print("Found obstacle before translating. Aborting")
             return "FAILED"
@@ -221,6 +223,8 @@ def goto(
         while is_moving:
             if obstacle_fn is not None:
                 is_obstacle = obstacle_fn()
+            else:
+                is_obstacle = False
             if is_obstacle:
                 # stop motion
                 print("Found obstacle while translating. Aborting")

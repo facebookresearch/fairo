@@ -202,7 +202,7 @@ class RemoteHelloRobot(object):
                 return result
 
             try:
-                status = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
+                status = goto(self, list(base_xyt), dryrun=False)
                 self._done = True
             except Exception as e:
                 print(e)
@@ -227,7 +227,7 @@ class RemoteHelloRobot(object):
                 return safe_call(self.cam, is_obstacle_in_front)
 
             try:
-                status = goto(self, list(xyt_position), dryrun=False, obstacle_fn=obstacle_fn)
+                status = goto(self, list(xyt_position), dryrun=False)
                 self._done = True
             except Exception as e:
                 print(e)
