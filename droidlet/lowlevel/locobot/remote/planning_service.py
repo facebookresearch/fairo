@@ -73,14 +73,12 @@ class Planner(object):
         # against robot initial state (if it wasn't zeros)
         stg_real = self.slam.map2robot(stg)
 
-        if (
-            goal is not None and 
-            self.goal_within_threshold(
-                stg_real, 
-                goal=goal, 
-                threshold=distance_threshold, 
-                angle_threshold=angle_threshold,
-        )):
+        if goal is not None and self.goal_within_threshold(
+            stg_real,
+            goal=goal,
+            threshold=distance_threshold,
+            angle_threshold=angle_threshold,
+        ):
             # is it the final goal? if so,
             # the stg goes to within a 5cm resolution
             # -- related to the SLAM service's 2D map resolution.
@@ -91,7 +89,7 @@ class Planner(object):
             )
             print(f"This is the final goal, so returning the target goal directly {goal}")
             target_goal = goal
-            
+
         else:
             if goal_map is not None and self.goal_within_threshold(stg_real, goal_map=goal_map):
                 print(
