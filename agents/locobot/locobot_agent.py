@@ -308,7 +308,8 @@ class LocobotAgent(DroidletAgent):
 
             self.mover = HelloRobotMover(ip=self.opts.ip)
             # Set downward tilt for exploration
-            self.mover.bot.set_tilt(math.radians(-30))
+            if self.opts.default_behavior in ["explore", "reexplore"]:
+                self.mover.bot.set_tilt(math.radians(-30))
 
     def get_player_struct_by_name(self, speaker_name):
         p = self.memory.get_player_by_name(speaker_name)
