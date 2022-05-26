@@ -5,6 +5,7 @@ import os
 import subprocess
 from subprocess import Popen, PIPE
 
+
 def compute_checksum_for_model(root_dir=None, agent=None, model_name=None):
     """
     Computes checksum for a given local artifact model and writes it to default_checksum directory
@@ -55,30 +56,28 @@ def compute_checksum_for_model(root_dir=None, agent=None, model_name=None):
     print(result)
 
     # read the hash
-    with open(checksum_write_path, 'r') as f:
+    with open(checksum_write_path, "r") as f:
         checksum = f.read().strip()
     print("CHECKSUM: %r" % checksum)
-    
+
     # write the checksum.txt into droidlet/artifacts/model/nlu folder
-    if model_name != 'nlu':
-        model_path = 'perception/' + agent
+    if model_name != "nlu":
+        model_path = "perception/" + agent
     else:
         model_path = model_name
-    with open(os.path.join(
-            root_dir, 
-            'droidlet/artifacts/models', 
-            model_path, 
-            'checksum.txt'
-        ), 'w') as f:
-        f.write(checksum + '\n')
-    
+    with open(
+        os.path.join(root_dir, "droidlet/artifacts/models", model_path, "checksum.txt"), "w"
+    ) as f:
+        f.write(checksum + "\n")
+
     return checksum
+
 
 def tar_and_upload(root_dir=None, checksum=None, agent=None, model_name=None):
     if not root_dir:
         print("Root directory not specified, defaulting to the relative upper four layers")
         root_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../../")
-    
+
     if not checksum:
         print("Load checksum from tracked folder")
         if model_name == "nlu":
@@ -89,11 +88,12 @@ def tar_and_upload(root_dir=None, checksum=None, agent=None, model_name=None):
                 checksum_name = "locobot_perception.txt"
             elif agent == "craftassist":
                 checksum_name = "craftassist_perception.txt"
-        with open(os.path.join(
-                root_dir, 
-                "droidlet/tools/artifact_scripts/tracked_checksums/", 
-                checksum_name
-            ), 'r') as f:
+        with open(
+            os.path.join(
+                root_dir, "droidlet/tools/artifact_scripts/tracked_checksums/", checksum_name
+            ),
+            "r",
+        ) as f:
             checksum = f.read().strip()
 
     if not agent:
@@ -103,7 +103,7 @@ def tar_and_upload(root_dir=None, checksum=None, agent=None, model_name=None):
     if not model_name:
         print("Model name not given, defaulting to nlu model")
         model_name = "nlu"
-    
+
     # construct the path
     artifact_path_name = os.path.join(root_dir, "droidlet/artifacts/models")
     artifact_path_name = artifact_path_name + "/" + model_name
