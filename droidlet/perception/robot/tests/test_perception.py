@@ -293,6 +293,10 @@ class TestCandidateSelection(unittest.TestCase):
         bad = s.get_n_candidates(5, good=False)
         assert np.array_equal(np.asarray(bad.sort()), np.asarray(bad_candidates.sort()))
 
+        # Get good candidates across all label
+        good = s.get_n_good_candidates_across_all_labels(5)
+        assert np.array_equal(np.asarray(good.sort()), np.asarray(good_candidates.sort()))
+
     def test_samplecandidates_for_class(self):
         """
         Tests candidate selection for the class setting (we care about instances belonging to labels)
