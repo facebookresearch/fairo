@@ -104,6 +104,9 @@ class RemoteHelloRobot(object):
         return self._robot.get_slam_pose()
 
     def pull_status(self):
+        """
+        A no-op in the ROS backend. Only there for API compatibility
+        """
         pass
 
     def is_base_moving(self):
@@ -124,6 +127,12 @@ class RemoteHelloRobot(object):
         self._robot.send_command("joint_head_tilt", tilt)
 
     def reset_camera(self):
+        """
+        Sets the camera facing the forward, i.e.
+        90 degrees from looking at the ground.
+        If the robot base's front is facing a wall,
+        the camera should be directly looking at the wall
+        """
         self.set_pan(0)
         self.set_tilt(0)
 

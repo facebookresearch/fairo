@@ -76,6 +76,9 @@ class RemoteHelloRobot(object):
         print(Style.RESET_ALL)
 
     def pull_status(self):
+        """
+        Force the Robot API to pull the latest status of all sensors immediately (instead of waiting for the next update)
+        """
         self._robot.pull_status()
 
     def _load_urdf(self):
@@ -154,6 +157,12 @@ class RemoteHelloRobot(object):
         self._robot.head.move_to("head_tilt", tilt)
 
     def reset_camera(self):
+        """
+        Sets the camera facing the forward, i.e.
+        90 degrees from looking at the ground.
+        If the robot base's front is facing a wall,
+        the camera should be directly looking at the wall
+        """
         self.set_pan(0)
         self.set_tilt(0)
 
