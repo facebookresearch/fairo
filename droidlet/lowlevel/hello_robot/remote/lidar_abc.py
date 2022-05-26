@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-class LidarABC(ABC):
 
+class LidarABC(ABC):
     @abstractmethod
     def __init__(self):
         pass

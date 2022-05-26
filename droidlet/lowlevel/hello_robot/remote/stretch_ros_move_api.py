@@ -24,6 +24,7 @@ class MoveNode(hm.HelloNode):
     Actuation:
         It implements base movement
     """
+
     def __init__(self):
         hm.HelloNode.__init__(self)
         self.rate = 10.0
@@ -189,6 +190,7 @@ class MoveNode(hm.HelloNode):
         #     joint_state = self.get_joint_state()
         #     if joint_state is not None:
         #         print(joint_state)
+
 
 if __name__ == "__main__":
     node = MoveNode()
