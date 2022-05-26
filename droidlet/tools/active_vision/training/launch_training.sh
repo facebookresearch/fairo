@@ -2,9 +2,8 @@
 set -ex
 # Runs coco-ization and training on label propagated datasets
 # Usage
-# ./launch_training.sh <path that is output dir of ./launch_candidate_selection.sh> <setting for noise>
-# ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/av_sanity50
-# ./launch_training.sh /checkpoint/apratik/jobs/reexplore/respawnv1/baselinev3_noisy --noisy
+# ./launch_training.sh <path that is output dir of label prop> <setting: instance or class>
+# ./launch_training.sh /checkpoint/apratik/jobs/reexplore/labelprop/test_pr2 instance
 
 if ! source activate /private/home/apratik/miniconda3/envs/droidlet; then
     echo "source activate not working, trying conda activate"

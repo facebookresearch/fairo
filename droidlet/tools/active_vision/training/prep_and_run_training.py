@@ -141,15 +141,12 @@ if __name__ == "__main__":
         type=str,
     )
     parser.add_argument("--job_dir", type=str, default="", help="")
-    parser.add_argument("--setting", type=str)
+    parser.add_argument("--setting", type=str, help="instance or class")
     parser.add_argument(
         "--slurm",
         action="store_true",
         default=False,
         help="Run the pipeline on slurm, else locally",
-    )
-    parser.add_argument(
-        "--noise", action="store_true", default=False, help="Spawn habitat with noise"
     )
     parser.add_argument(
         "--num_train_samples",
