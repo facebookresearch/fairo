@@ -35,7 +35,7 @@ class FMMPlanner(object):
 
         if vis_path is not None:
             goal_map = np.zeros_like(self.traversable)
-            goal_map[goal_x-3:goal_x+4, goal_y-3:goal_y+4] = 1
+            goal_map[goal_y-3:goal_y+4, goal_x-3:goal_x+4] = 1
             self._visualize(goal_map, vis_path)
 
     def set_multi_goal(self, goal_map, vis_path=None):
@@ -56,10 +56,10 @@ class FMMPlanner(object):
     
     def _visualize(self, goal_map, vis_path):
         r, c = self.traversable.shape
-        dist_vis = np.zeros((r, c * 3))
-        dist_vis[:, :c] = self.traversable
-        dist_vis[:, c : 2 * c] = goal_map
-        dist_vis[:, 2 * c :] = self.fmm_dist / self.fmm_dist.max()
+        dist_vis = np.zeros((c, r * 3))
+        dist_vis[:, :r] = self.traversable.T
+        dist_vis[:, r : 2 * r] = goal_map.T
+        dist_vis[:, 2 * r :] = (self.fmm_dist / self.fmm_dist.max()).T
         dist_vis = (dist_vis * 255.0).astype(np.uint8)
 
         folder = "/".join(vis_path.split("/")[:-1])
