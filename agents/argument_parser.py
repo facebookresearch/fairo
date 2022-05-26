@@ -111,9 +111,10 @@ class ArgumentParser:
             "--incoming_chat_path", default="incoming_chat.txt", help="path to incoming chat file"
         )
         loco_parser.add_argument(
-            "--draw_map", 
-            default="observations", 
-            help='"" for no map in dashboard, "memory" to draw from agent memory, and "observations" to draw directly from slam service')
+            "--draw_map",
+            default="observations",
+            help='"" for no map in dashboard, "memory" to draw from agent memory, and "observations" to draw directly from slam service',
+        )
         loco_parser.add_argument("--backend", default="habitat")
         loco_parser.add_argument(
             "--perception_model_dir",
@@ -131,7 +132,7 @@ class ArgumentParser:
         loco_parser.add_argument("--reexplore_json", default="", help="json for reexplore task")
         loco_parser.add_argument(
             "--default_behavior",
-            default='explore',
+            default="None",
             help="specifiy the default behavior",
         )
 

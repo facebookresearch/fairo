@@ -5,6 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import time
 import signal
+import math
 import random
 import logging
 import faulthandler
@@ -85,15 +86,11 @@ class LocobotAgent(DroidletAgent):
         self.point_targets = []
         self.init_event_handlers()
         # list of (prob, default function) pairs
-        if self.backend == "habitat":
-            if opts.default_behavior == 'reexplore':
-                self.visible_defaults = [(1.0, default_behaviors.reexplore)]
-            else:
-                self.visible_defaults = [(1.0, default_behaviors.explore)]
-        elif self.backend == "hellorobot":
-            self.visible_defaults = []
-        else:
-            raise RuntimeError("Unknown backend specified {}" % (self.backend,))
+        self.visible_defaults = []
+        if opts.default_behavior == "reexplore":
+            self.visible_defaults = [(1.0, default_behaviors.reexplore)]
+        elif opts.default_behavior == "explore":
+            self.visible_defaults = [(1.0, default_behaviors.explore)]
         self.interaction_logger = InteractionLogger()
         if os.path.exists("annotation_data/rgb"):
             shutil.rmtree("annotation_data/rgb")
@@ -210,7 +207,6 @@ class LocobotAgent(DroidletAgent):
 
             self.perception_modules["vision"] = Perception(model_path, default_keypoints_path=True)
 
-
     def init_memory(self):
         """Instantiates memory for the agent.
 
@@ -259,15 +255,15 @@ class LocobotAgent(DroidletAgent):
         # 4. self location
         # FIXME better pose object
         perception_output = perception_output._replace(self_pose=(x, z, yaw))
-        
+
         if self.opts.draw_map == "memory":
             # draw the map from memory
             self.draw_map_to_dashboard()
-        elif self.opts.draw_map == "observations": # else draw directly from current obs
-            self.draw_map_to_dashboard(obstacles=obstacles, xyyaw=(x,z,yaw))
+        elif self.opts.draw_map == "observations":  # else draw directly from current obs
+            self.draw_map_to_dashboard(obstacles=obstacles, xyyaw=(x, z, yaw))
         else:
             pass
-                
+
         self.memory.update(perception_output)
 
     def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
@@ -279,7 +275,7 @@ class LocobotAgent(DroidletAgent):
             # TODO: head or body? need better pose nodes
             yaw = self_mem.yaw
             xyyaw = (x, z, yaw)
-            
+
         sio.emit(
             "map",
             {
@@ -311,6 +307,8 @@ class LocobotAgent(DroidletAgent):
             from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
 
             self.mover = HelloRobotMover(ip=self.opts.ip)
+            # Set downward tilt for exploration
+            self.mover.bot.set_tilt(math.radians(-30))
 
     def get_player_struct_by_name(self, speaker_name):
         p = self.memory.get_player_by_name(speaker_name)
