@@ -274,7 +274,6 @@ class StateManager {
     socket.on("annotationRetrain", this.annotationRetrain);
     socket.on("saveRgbSegCallback", this.saveAnnotations);
     socket.on("handleMaxFrames", this.handleMaxFrames);
-    socket.on("performDefaultBehavior", this.handleDefaultBehavior);
   }
 
   updateStateManagerMemory(data) {
@@ -808,10 +807,6 @@ class StateManager {
       }
     });
   }
-
-  // handleDefaultBehavior(res) {
-  //   console.log("handleDefaultBehavior: " + res.msg);
-  // }
 
   handleMaxFrames(maxFrames) {
     this.maxOfflineFrames = maxFrames;
