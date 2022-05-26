@@ -290,11 +290,6 @@ class RemoteHelloRealsense(object):
         return rgb, depth, base2cam_rot, base2cam_trans
 
     def calibrate_tilt(self):
-        if self.use_ros is True:
-            print(
-                "NOT CALIBRATING CAMERA because we are using ROS driver which already calibrates"
-            )
-            return
         self.bot.set_tilt(math.radians(-60))
         time.sleep(2)
         pcd = self.get_open3d_pcd()
