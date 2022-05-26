@@ -290,7 +290,6 @@ class TrajectoryDataSaver:
     def save(self, rgb, depth, seg, pos, habitat_pos, habitat_rot):
         self.img_count = len(glob.glob(self.img_folder + "/*.jpg"))
         self.logger.info(f"Saving to {self.save_folder}, {self.img_count}, {self.dbg_str}")
-        print(f"saving {rgb.shape, depth.shape, seg.shape}")
         # store the images and depth
         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
         cv2.imwrite(self.img_folder + "/{:05d}.jpg".format(self.img_count), rgb)
