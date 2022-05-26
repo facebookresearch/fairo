@@ -12,7 +12,7 @@ import polymetis_pb2_grpc
 
 from .third_party.spidey_hand.spidey_hand import (
     SpideyHandGripper,
-) # add spidey hand class to this path
+)  # add spidey hand class to this path
 
 
 class SpideyGripperServer(polymetis_pb2_grpc.GripperServerServicer):
@@ -21,7 +21,7 @@ class SpideyGripperServer(polymetis_pb2_grpc.GripperServerServicer):
     """
 
     def __init__(self, comport):
-        self.gripper = SpideyHandGripper(comport=comport) #check class name
+        self.gripper = SpideyHandGripper(comport=comport)  # check class name
 
         # if not self.gripper.init_success:
         #     raise Exception(f"Unable to open comport to {comport}")
