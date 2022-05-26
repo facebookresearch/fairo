@@ -77,62 +77,65 @@ def get_annot(
                 annot_img[ceil(y)][floor(x)] = src_label[r][c]
                 annot_img[floor(y)][ceil(x)] = src_label[r][c]
 
-    def closest_non_zero(a, x, y):
-        def get_neighbors(a, curx, cury):
-            ns = []
-            if curx > 0:
-                ns.append((curx - 1, cury))  # n
-            if cury > 0:
-                ns.append((curx, cury - 1))  # w
-            if cury < 511:
-                ns.append((curx, cury + 1))  # e
-            if curx < 511:
-                ns.append((curx + 1, cury))  # s
-            if curx > 0 and cury > 0:
-                ns.append((curx - 1, cury - 1))  # nw
-            if curx > 0 and cury < 511:
-                ns.append((curx - 1, cury + 1))  # ne
-            if curx < 511 and cury < 511:
-                ns.append((curx + 1, cury + 1))  # se
-            if curx < 511 and cury > 0:
-                ns.append((curx + 1, cury - 1))  # sw
-            return ns
+    # TODO: https://github.com/facebookresearch/fairo/issues/1175
+    return annot_img
 
-        bfsq = deque([])
-        visited = np.zeros_like(a)
-        bfsq.append((x, y))
-        pop_count = 0
-        push_count = 1
-        while len(bfsq) > 0:
-            curx, cury = bfsq.popleft()
-            pop_count += 1
-            # if pop_count % 100 == 0:
-            # print(f'pop_count {pop_count}')
-            visited[curx][cury] = 1
-            if a[curx][cury] > 0:
-                return a[curx][cury]
-            if push_count < 8:
-                ns = get_neighbors(a, curx, cury)
-                for n in ns:
-                    if visited[n] == 0:
-                        push_count += 1
-                        bfsq.append(n)
-        # print(f'no nearest neighbor found after {pop_count} lookups! ...')
-        return 0
+    # def closest_non_zero(a, x, y):
+    #     def get_neighbors(a, curx, cury):
+    #         ns = []
+    #         if curx > 0:
+    #             ns.append((curx - 1, cury))  # n
+    #         if cury > 0:
+    #             ns.append((curx, cury - 1))  # w
+    #         if cury < 511:
+    #             ns.append((curx, cury + 1))  # e
+    #         if curx < 511:
+    #             ns.append((curx + 1, cury))  # s
+    #         if curx > 0 and cury > 0:
+    #             ns.append((curx - 1, cury - 1))  # nw
+    #         if curx > 0 and cury < 511:
+    #             ns.append((curx - 1, cury + 1))  # ne
+    #         if curx < 511 and cury < 511:
+    #             ns.append((curx + 1, cury + 1))  # se
+    #         if curx < 511 and cury > 0:
+    #             ns.append((curx + 1, cury - 1))  # sw
+    #         return ns
 
-    def do_nn_fill(annot_img):
-        print(f"doing nn fill ...")
-        start = time.time()
-        print(f"zeros {np.sum(annot_img == 0)}")
-        for x in range(len(annot_img)):
-            for y in range(len(annot_img[0])):
-                if annot_img[x][y] == 0:  # and random.randint(1,2) == 1:
-                    annot_img[x][y] = closest_non_zero(annot_img, x, y)
-        end = time.time()
-        print(f"took {end - start} seconds.")
-        return annot_img
+    #     bfsq = deque([])
+    #     visited = np.zeros_like(a)
+    #     bfsq.append((x, y))
+    #     pop_count = 0
+    #     push_count = 1
+    #     while len(bfsq) > 0:
+    #         curx, cury = bfsq.popleft()
+    #         pop_count += 1
+    #         # if pop_count % 100 == 0:
+    #         # print(f'pop_count {pop_count}')
+    #         visited[curx][cury] = 1
+    #         if a[curx][cury] > 0:
+    #             return a[curx][cury]
+    #         if push_count < 8:
+    #             ns = get_neighbors(a, curx, cury)
+    #             for n in ns:
+    #                 if visited[n] == 0:
+    #                     push_count += 1
+    #                     bfsq.append(n)
+    #     # print(f'no nearest neighbor found after {pop_count} lookups! ...')
+    #     return 0
 
-    return do_nn_fill(annot_img)
+    # def do_nn_fill(annot_img):
+    #     print(f"doing nn fill ...")
+    #     start = time.time()
+    #     print(f"zeros {np.sum(annot_img == 0)}")
+    #     for x in range(len(annot_img)):
+    #         for y in range(len(annot_img[0])):
+    #             if annot_img[x][y] == 0:  # and random.randint(1,2) == 1:
+    #                 annot_img[x][y] = closest_non_zero(annot_img, x, y)
+    #     end = time.time()
+    #     print(f"took {end - start} seconds.")
+    #     return annot_img
+
+    # return do_nn_fill(annot_img)
 
 
 class LabelPropagate(AbstractHandler):
