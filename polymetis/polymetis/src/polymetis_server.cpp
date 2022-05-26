@@ -126,6 +126,18 @@ void PolymetisControllerServerImpl::resetControllerContext() {
   custom_controller_context_.status = UNINITIALIZED;
 }
 
+int PolymetisControllerServerImpl::setThreadPriority(int prio) {
+  pthread_t curr_thr = pthread_self();
+  int policy_noop;
+  struct sched_param orig_param;
+
+  pthread_getschedparam(curr_thr, &policy_noop, &orig_param);
+  pthread_setschedprio(curr_thr, prio);
+
+  // Return original prio for keeping track
+  return orig_param.sched_priority;
+}
+
 Status
 PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
                                              const RobotState *robot_state,
@@ -222,6 +234,7 @@ Status PolymetisControllerServerImpl::SetController(
     ServerContext *context, ServerReader<ControllerChunk> *stream,
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
+  int orig_prio = setThreadPriority(NON_RT_PRIO);
 
   interval->set_start(-1);
   interval->set_end(-1);
@@ -267,7 +280,7 @@ Status PolymetisControllerServerImpl::SetController(
   }
   interval->set_start(custom_controller_context_.episode_begin);
 
-  // Return success.
+  setThreadPriority(orig_prio);
   return Status::OK;
 }
 
@@ -275,6 +288,7 @@ Status PolymetisControllerServerImpl::UpdateController(
     ServerContext *context, ServerReader<ControllerChunk> *stream,
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
+  int orig_prio = setThreadPriority(NON_RT_PRIO);
 
   interval->set_start(-1);
   interval->set_end(-1);
@@ -321,6 +335,7 @@ Status PolymetisControllerServerImpl::UpdateController(
     return Status(StatusCode::CANCELLED, error_msg);
   }
 
+  setThreadPriority(orig_prio);
   return Status::OK;
 }
 
