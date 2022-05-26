@@ -31,7 +31,7 @@ class Planner(object):
         distance_threshold=None,
         angle_threshold=None,
         step_size=25,
-        vis_path=None
+        vis_path=None,
     ):
         """
         Args:

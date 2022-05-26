@@ -35,7 +35,7 @@ class FMMPlanner(object):
 
         if vis_path is not None:
             goal_map = np.zeros_like(self.traversable)
-            goal_map[goal_x-3:goal_x+4, goal_y-3:goal_y+4] = 1
+            goal_map[goal_x - 3 : goal_x + 4, goal_y - 3 : goal_y + 4] = 1
             self._visualize(goal_map, vis_path)
 
     def set_multi_goal(self, goal_map, vis_path=None):
@@ -50,10 +50,10 @@ class FMMPlanner(object):
         dd = skfmm.distance(traversible_ma, dx=1)
         dd = ma.filled(dd, np.max(dd) + 1)
         self.fmm_dist = dd
-        
+
         if vis_path is not None:
             self._visualize(goal_map, vis_path)
-    
+
     def _visualize(self, goal_map, vis_path):
         r, c = self.traversable.shape
         dist_vis = np.zeros((r, c * 3))
