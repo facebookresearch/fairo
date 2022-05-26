@@ -124,6 +124,7 @@ class Navigation(object):
                 goal_map=goal_map,
                 distance_threshold=distance_threshold,
                 angle_threshold=angle_threshold,
+                vis_path=os.path.join(self.vis.path, f"planner_snapshot_{self.vis.snapshot_idx}.png")
             )
             print(f"[navigation] got short-term goal from planner: {stg}")
             if stg == False:

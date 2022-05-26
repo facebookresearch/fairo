@@ -31,6 +31,7 @@ class Planner(object):
         distance_threshold=None,
         angle_threshold=None,
         step_size=25,
+        vis_path=None
     ):
         """
         Args:
@@ -53,7 +54,7 @@ class Planner(object):
 
         if goal_map is not None:
             # TODO Is it necessary to check that at least one goal in the goal map is reachable?
-            self.planner.set_multi_goal(goal_map)
+            self.planner.set_multi_goal(goal_map, vis_path=vis_path)
 
         else:
             # convert robot co-ordinates to map co-ordinates
@@ -64,7 +65,7 @@ class Planner(object):
                 return False
 
             # set the goal location in planner
-            self.planner.set_goal(goal_map_location)
+            self.planner.set_goal(goal_map_location, vis_path=vis_path)
 
         # get short term goal
         stg = self.planner.get_short_term_goal(robot_map_location)
