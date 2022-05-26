@@ -15,6 +15,15 @@ import numpy as np
 
 
 class MoveNode(hm.HelloNode):
+    """
+    This class implements an interface to the Hello Robot Stretch via it's ROS driver.
+
+    Sensors:
+        It reads joint positions and Lidar
+
+    Actuation:
+        It implements base movement
+    """
     def __init__(self):
         hm.HelloNode.__init__(self)
         self.rate = 10.0
@@ -165,34 +174,21 @@ class MoveNode(hm.HelloNode):
         )
         self._thread = threading.Thread(target=self.background_loop, daemon=True)
         self._thread.start()
+
+        # Code that showcases usage of the Stretch ROS API and is useful for debugging
+        # FORWARD/BACKWARD in metres
         # self.send_command('translate_mobile_base', 0.1)
+        # ROTATE LEFT +ve / RIGHT -ve in radians
         # self.send_command('rotate_mobile_base', math.radians(90))
         # while not rospy.is_shutdown():
-        #     time.sleep(1)
-        #     # self.send_command('rotate_mobile_base', math.radians(90))
-        #     #     self.send_command('rotate_mobile_base', math.radians(6))
-        #     print("")
         #     print('slam_pose', self.get_slam_pose())
         #     print('odom', self.get_odom())
         #     print('scan_matched_pose', self.get_scan_matched_pose())
         #     print("")
-        #     # ROTATE LEFT +ve / RIGHT -ve in radians
-        #     self.send_command('rotate_mobile_base', math.radians(6))
-        #     # print(self.get_joint_state('head_pan'))
-        #     # joint_state = self.get_joint_state()
-        #     # if joint_state is not None:
-        #     #     print(joint_state)
-        #     # slam_pose = self.get_slam_pose()
-        #     # if slam_pose is not None:
-        #     #     # print(slam_pose)
-        #     #     x = slam_pose.pose.position.x
-        #     #     y = slam_pose.pose.position.y
-        #     #     theta = slam_pose.pose.orientation.z
-        #     #     print(x, y, theta)
-
-        #     # FORWARD/BACKWARD in metres
-        # self.send_command('translate_mobile_base', 0.05)
-
+        #     print(self.get_joint_state('head_pan'))
+        #     joint_state = self.get_joint_state()
+        #     if joint_state is not None:
+        #         print(joint_state)
 
 if __name__ == "__main__":
     node = MoveNode()
