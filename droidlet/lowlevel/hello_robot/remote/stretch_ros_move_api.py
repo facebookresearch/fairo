@@ -67,7 +67,8 @@ class MoveNode(hm.HelloNode):
                 ]
             )
             euler = euler_from_quaternion(quat)
-            return (pose.pose.pose.position.x, pose.pose.pose.position.y, euler[2])
+            yaw = euler[2] + math.pi
+            return (pose.pose.pose.position.x, pose.pose.pose.position.y, yaw)
         else:
             return (0.0, 0.0, 0.0)
 
@@ -89,7 +90,8 @@ class MoveNode(hm.HelloNode):
             ]
         )
         euler = euler_from_quaternion(quat)
-        return (pose.pose.position.x, pose.pose.position.y, euler[2])
+        yaw = euler[2] + math.pi
+        return (pose.pose.position.x, pose.pose.position.y, yaw)
 
     def get_joint_state(self, name=None):
         with self._lock:
