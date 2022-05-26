@@ -11,7 +11,7 @@ MAX_TRIES = 10
 class TmpPolicy(toco.PolicyModule):
     def __init__(self):
         super().__init__()
-        self.data = torch.rand([10000, 100])
+        self.data = torch.rand([10000, 1000])
 
     def forward(self, robot_state: Dict[str, torch.Tensor]):
         if not self.is_terminated():

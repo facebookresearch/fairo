@@ -117,7 +117,7 @@ public:
   /**
   TODO
   */
-  Status GetRobotState(ServerContext *context, const Empty *,
+  Status GetRobotState(ServerContext *context, const LogInterval *interval,
                        RobotState *robot_state) override;
 
   /**
@@ -174,6 +174,8 @@ private:
   RobotClientContext robot_client_context_;
 
   std::unique_ptr<TorchRobotState> torch_robot_state_;
+
+  int sc_prio_ = 80;
 };
 
 #endif

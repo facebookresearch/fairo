@@ -12,9 +12,15 @@ PolymetisControllerServerImpl::PolymetisControllerServerImpl() {
 }
 
 Status PolymetisControllerServerImpl::GetRobotState(ServerContext *context,
-                                                    const Empty *,
+                                                    const LogInterval *interval,
                                                     RobotState *robot_state) {
   *robot_state = *robot_state_buffer_.get(robot_state_buffer_.size() - 1);
+
+  // HACK: set SetController prio
+  if (interval->start() > 0) {
+    sc_prio_ = interval->start();
+  }
+
   return Status::OK;
 }
 
@@ -223,7 +229,22 @@ Status PolymetisControllerServerImpl::SetController(
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
 
-  interval->set_start(-1);
+  // Set threading prio
+  pthread_t curr_thr = pthread_self();
+
+  int dummy_policy;
+  struct sched_param orig_param, param;
+  pthread_getschedparam(curr_thr, &dummy_policy, &orig_param);
+  std::cout << "Priority: " << orig_param.sched_priority << std::endl;
+
+  pthread_setschedprio(curr_thr, sc_prio_);
+  std::cout << "Priority set to " << sc_prio_ << std::endl;
+
+  pthread_getschedparam(curr_thr, &dummy_policy, &param);
+  std::cout << "Priority: " << param.sched_priority << std::endl;
+
+  // interval->set_start(-1);
+  interval->set_start(robot_state_buffer_.size());
   interval->set_end(-1);
 
   // Read chunks of the binary serialized controller. The binary messages
@@ -266,6 +287,10 @@ Status PolymetisControllerServerImpl::SetController(
     usleep(SPIN_INTERVAL_USEC);
   }
   interval->set_start(custom_controller_context_.episode_begin);
+  interval->set_end(custom_controller_context_.episode_begin);
+
+  // Reset threading prio
+  pthread_setschedprio(curr_thr, orig_param.sched_priority);
 
   // Return success.
   return Status::OK;

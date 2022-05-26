@@ -28,7 +28,7 @@ service PolymetisControllerServer {
   rpc TerminateController(Empty) returns(LogInterval) {}
 
   // Get the current robot state
-  rpc GetRobotState(Empty) returns(RobotState) {}
+  rpc GetRobotState(LogInterval) returns(RobotState) {}
 
   // Get a stream of robot states
   rpc GetRobotStateStream(Empty) returns(stream RobotState) {}

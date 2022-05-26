@@ -150,9 +150,9 @@ class BaseRobotInterface:
             atexit.unregister(cancel_rpc)
             return results
 
-    def get_robot_state(self) -> RobotState:
+    def get_robot_state(self, prio=-1) -> RobotState:
         """Returns the latest RobotState."""
-        return self.grpc_connection.GetRobotState(EMPTY)
+        return self.grpc_connection.GetRobotState(LogInterval(start=prio))
 
     def get_previous_interval(self, timeout: float = None) -> LogInterval:
         """Get the log indices associated with the currently running policy."""
