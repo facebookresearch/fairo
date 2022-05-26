@@ -140,7 +140,13 @@ class SampleGoodCandidates:
                 return random.sample(arr, min(len(arr), n))
 
         if good:
-            return sample_even_or_random(self.good_candidates, n, evenly_spaced)
+            # build a list from dict
+            all_candidates = []
+            for k, v in self.good_candidates.items():
+                all_candidates.append(v)
+            # flatten list of lists
+            all_candidates = [x for y in all_candidates for x in y]
+            return sample_even_or_random(all_candidates, n, evenly_spaced)
         else:
             return sample_even_or_random(self.bad_candidates, n, evenly_spaced)
 
