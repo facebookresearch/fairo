@@ -290,6 +290,19 @@ class CraftAssistAgent(DroidletAgent):
             self.memory.update(sem_seg_perception_output)
         self.areas_to_perceive = []
         self.update_dashboard_world()
+        # 5. self location
+        # FIXME better pose object
+        ###perception_output = perception_output._replace(self_pose=(x, z, yaw))
+        #perception_output = perception_output._replace(self_pose=(0, 0, 0))
+        
+        if self.opts.draw_map == "memory":
+            # draw the map from memory
+            self.draw_map_to_dashboard()
+        elif self.opts.draw_map == "observations": # else draw directly from current obs
+            ###self.draw_map_to_dashboard(obstacles={}, xyyaw=(x,z,yaw))
+            self.draw_map_to_dashboard(obstacles={}, xyyaw=(0,0,0))
+        else:
+            pass
 
     def get_time(self):
         """round to 100th of second, return as
@@ -388,6 +401,26 @@ class CraftAssistAgent(DroidletAgent):
             sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
 
         return self.cagent.send_chat(chat_text)
+
+    def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
+        if not obstacles:
+            obstacles = self.memory.place_field.get_obstacle_list()
+        if not xyyaw:
+            self_mem = self.memory.get_mem_by_id(self.memory.self_memid)
+            x, y, z = self_mem.pos
+            # TODO: head or body? need better pose nodes
+            yaw = self_mem.yaw
+            xyyaw = (x, z, yaw)
+            
+        sio.emit(
+            "map",
+            {
+                "x": xyyaw[0],
+                "y": xyyaw[1],
+                "yaw": xyyaw[2],
+                "map": obstacles,
+            },
+        )
 
     def update_agent_pos_dashboard(self):
         agent_pos = self.get_player().pos

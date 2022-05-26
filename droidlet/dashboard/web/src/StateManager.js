@@ -809,9 +809,9 @@ class StateManager {
     });
   }
 
-  handleDefaultBehavior(res) {
-    console.log("handleDefaultBehavior: " + res.msg);
-  }
+  // handleDefaultBehavior(res) {
+  //   console.log("handleDefaultBehavior: " + res.msg);
+  // }
 
   handleMaxFrames(maxFrames) {
     this.maxOfflineFrames = maxFrames;

@@ -8,7 +8,7 @@ from droidlet.interpreter.craftassist import tasks
 from droidlet.dialog.dialogue_task import Say
 from droidlet.base_util import prepend_a_an, pos_to_np
 from droidlet.memory.memory_nodes import TaskNode
-from droidlet.event import sio
+#from droidlet.event import sio
 
 """This file contains functions that the agent can perform 
 at random when not following player instructions or interacting with the
