@@ -137,10 +137,15 @@ def get_step_target_for_straightline_move(base_pos, target, step_size=0.1):
 def get_straightline_path_to(target, robot_pos, num_points=20, pct=0.5):
     pts = []
     cur_pos = robot_pos
-    while np.linalg.norm(target[:2] - cur_pos[:2]) > 0.5 and len(pts) < num_points:
-        t = get_step_target_for_straightline_move(cur_pos, target, step_size=0.5)
-        pts.append(t)
-        cur_pos = t
+    while len(pts) < num_points:
+        d = np.linalg.norm(target[:2] - cur_pos[:2])
+        logging.info(f"distance to target {d}")
+        if np.linalg.norm(target[:2] - cur_pos[:2]) > 0.4:
+            t = get_step_target_for_straightline_move(cur_pos, target, step_size=0.1)
+            pts.append(t)
+            cur_pos = t
+        else:
+            break
     num_pts = len(pts)
     logging.info(f"get_straightline_path_to returning {int(num_pts * pct)} of {len(pts)} pts")
     # only return 70% of the points
@@ -190,7 +195,7 @@ def get_circular_path(target, robot_pos, radius, include_approach=False):
     """
     num_points = 36
     pts = get_circle(radius, num_points)  # these are the x,z
-    logging.info(f"get_circle generates {len(pts), pts} pts ..")
+    logging.info(f"get_circle generates {len(pts)} pts ..")
 
     def get_xyyaw(p, target):
         targetx = p[0] + target[0]
@@ -216,13 +221,13 @@ def get_circular_path(target, robot_pos, radius, include_approach=False):
     if include_approach:
         tg = pts[0]
         spath = get_straightline_path_to(
-            np.asarray([tg[0], CAMERA_HEIGHT, tg[1]]), robot_pos, pct=0.4
+            np.asarray([tg[0], CAMERA_HEIGHT, tg[1]]), robot_pos, pct=1
         )
         if spath.size > 0:
             pts = np.concatenate((spath, pts), axis=0)
             circle_begin_idx = len(spath)
 
-    logging.info(f"")
+    logging.info(f"get_circular_path generates {len(pts)} pts ..")
 
     return pts, circle_begin_idx
 
