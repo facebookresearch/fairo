@@ -313,7 +313,8 @@ class TrajectoryDataSaver:
         np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
 
         # store seg
-        np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
+        if seg is not None:
+            np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
 
         # store pos
         if os.path.isfile(os.path.join(self.save_folder, "data.json")):
@@ -326,17 +327,18 @@ class TrajectoryDataSaver:
             json.dump(self.pose_dict, fp)
 
         # store habitat pos
-        if os.path.isfile(os.path.join(self.save_folder, "data_hab.json")):
-            with open(os.path.join(self.save_folder, "data_hab.json"), "r") as fp:
-                self.pose_dict_hab = json.load(fp)
+        if habitat_pos is not None:
+            if os.path.isfile(os.path.join(self.save_folder, "data_hab.json")):
+                with open(os.path.join(self.save_folder, "data_hab.json"), "r") as fp:
+                    self.pose_dict_hab = json.load(fp)
 
-        self.pose_dict_hab[self.img_count] = {
-            "position": copy(habitat_pos),
-            "rotation": copy(habitat_rot),
-        }
+            self.pose_dict_hab[self.img_count] = {
+                "position": copy(habitat_pos),
+                "rotation": copy(habitat_rot),
+            }
 
-        with open(os.path.join(self.save_folder, "data_hab.json"), "w") as fp:
-            json.dump(self.pose_dict_hab, fp)
+            with open(os.path.join(self.save_folder, "data_hab.json"), "w") as fp:
+                json.dump(self.pose_dict_hab, fp)
 
 
 def visualize_examine(agent, robot_poses, object_xyz, label, obstacle_map, save_path, gt_pts=None):

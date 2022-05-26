@@ -273,6 +273,13 @@ class HelloRobotMover(MoverInterface):
         x_canonical = -y_robot
         return np.array([x_canonical, z_canonical, yaw])
 
+    def get_base_pos(self):
+        """
+        get the current robot position in the pyrobot coordinate system, used to setup exploration goals
+        """
+        future = safe_call(self.bot.get_base_state)
+        return future.value
+
     def get_current_pcd(self, in_cam=False, in_global=False):
         """Gets the current point cloud"""
         return self.cam.get_current_pcd()
@@ -396,6 +403,9 @@ class HelloRobotMover(MoverInterface):
         else:
             print("navigator executing another call right now")
         return self.nav_result
+
+    def is_done_exploring(self):
+        return self.nav.is_done_exploring().value
 
     def get_obstacles_in_canonical_coords(self):
         """
