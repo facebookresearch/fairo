@@ -240,9 +240,10 @@ class HelloRobotMover(MoverInterface):
         for xyt in xyt_positions:
             self.nav_result.wait()
             self.nav_result = safe_call(
-                self.nav.go_to_relative, goal=xyt,
+                self.nav.go_to_relative,
+                goal=xyt,
                 distance_threshold=distance_threshold,
-                angle_threshold=angle_threshold
+                angle_threshold=angle_threshold,
             )
             if blocking:
                 self.nav_result.wait()
@@ -269,7 +270,7 @@ class HelloRobotMover(MoverInterface):
             self.nav_result = self.nav.go_to_absolute(
                 goal=robot_coords,
                 distance_threshold=distance_threshold,
-                angle_threshold=angle_threshold
+                angle_threshold=angle_threshold,
             )
             if blocking:
                 self.nav_result.wait()

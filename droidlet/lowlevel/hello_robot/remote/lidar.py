@@ -3,6 +3,7 @@ import sys
 import threading
 import time
 import traceback
+
 if __name__ == "__main__":
     from lidar_abc import LidarABC
 else:
