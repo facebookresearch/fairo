@@ -3,9 +3,13 @@ import sys
 import threading
 import time
 import traceback
+if __name__ == "__main__":
+    from lidar_abc import LidarABC
+else:
+    from .lidar_abc import LidarABC
 
 
-class Lidar:
+class Lidar(LidarABC):
     def __init__(self):
         self._lidar = RPLidar("/dev/hello-lrf")
         self._lock = threading.Lock()
