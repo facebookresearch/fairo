@@ -212,7 +212,7 @@ class Navigation(object):
                 if visualize:
                     self.vis.add_location_goal(goal_map)
                 _, goal_reached = self.go_to_absolute(
-                    goal_map=goal_map, steps=20, visualize=visualize
+                    goal_map=goal_map, steps=50, visualize=visualize
                 )
 
             else:
