@@ -110,16 +110,23 @@ include_directories(
 )
 
 # Add server
-add_library(polymetis_server "src/polymetis_server.cpp")
-
-target_link_libraries(polymetis_server
+add_library(controller_manager "src/controller_manager.cpp")
+target_link_libraries(controller_manager
     generated_grpc_protos
     yaml-cpp
     spdlog::spdlog
 )
-target_link_libraries(polymetis_server -Wl,--no-as-needed torchscript_pinocchio)
-target_link_libraries(polymetis_server -Wl,--no-as-needed torchrot)
-target_link_libraries(polymetis_server -Wl,--no-as-needed torch_server_ops)
+target_link_libraries(controller_manager -Wl,--no-as-needed torchscript_pinocchio)
+target_link_libraries(controller_manager -Wl,--no-as-needed torchrot)
+target_link_libraries(controller_manager -Wl,--no-as-needed torch_server_ops)
+
+add_library(polymetis_server "src/polymetis_server.cpp")
+
+target_link_libraries(polymetis_server
+    generated_grpc_protos
+    spdlog::spdlog
+    controller_manager
+)
 
 add_executable(run_server "src/run_server.cpp")
 target_link_libraries(run_server polymetis_server)

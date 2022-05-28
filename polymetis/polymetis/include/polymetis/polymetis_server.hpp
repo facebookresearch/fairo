@@ -21,14 +21,10 @@
 
 #include "polymetis.grpc.pb.h"
 
-#include "polymetis/utils.h"
-#include "torch_server_ops.hpp"
-#include "yaml-cpp/yaml.h"
+#include "polymetis/controller_manager.hpp"
 
-#define MAX_CIRCULAR_BUFFER_SIZE 300000 // 5 minutes of data at 1kHz
-#define MAX_MODEL_BYTES 1048576         // 1 megabyte
-#define THRESHOLD_NS 1000000000         // 1s
-#define SPIN_INTERVAL_USEC 20000        // 0.02s (50hz)
+#define MAX_MODEL_BYTES 1048576  // 1 megabyte
+#define SPIN_INTERVAL_USEC 20000 // 0.02s (50hz)
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -42,40 +38,6 @@ using grpc::StatusCode;
 /**
 TODO
 */
-enum ControllerStatus {
-  UNINITIALIZED,
-  READY,
-  RUNNING,
-  TERMINATING,
-  TERMINATED
-};
-
-/**
-TODO
-*/
-struct CustomControllerContext {
-  uint episode_begin = -1;
-  uint episode_end = -1;
-  uint timestep = 0;
-  ControllerStatus status = UNINITIALIZED;
-  std::mutex controller_mtx;
-  TorchScriptedController *custom_controller = nullptr;
-
-  ~CustomControllerContext() { delete custom_controller; }
-};
-
-/**
-TODO
-*/
-struct RobotClientContext {
-  long int last_update_ns = 0;
-  RobotClientMetadata metadata;
-  TorchScriptedController *default_controller = nullptr;
-};
-
-/**
-TODO
-*/
 class PolymetisControllerServerImpl final
     : public PolymetisControllerServer::Service {
 public:
@@ -84,12 +46,7 @@ public:
   */
   explicit PolymetisControllerServerImpl();
 
-  /**
-  TODO
-  */
-  bool validRobotContext();
-
-  void resetControllerContext();
+  bool validRobotContext(void);
 
   // Robot client methods
 
@@ -162,18 +119,10 @@ private:
   std::vector<char> controller_model_buffer_; // buffer for loading controllers
   std::vector<char>
       updates_model_buffer_; // buffer for loading controller update params
-  int num_dofs_;
-  long int threshold_ns_ = THRESHOLD_NS;
 
   std::mutex service_mtx_;
 
-  CircularBuffer<RobotState> robot_state_buffer_ =
-      CircularBuffer<RobotState>(MAX_CIRCULAR_BUFFER_SIZE);
-
-  CustomControllerContext custom_controller_context_;
-  RobotClientContext robot_client_context_;
-
-  std::unique_ptr<TorchRobotState> torch_robot_state_;
+  ControllerManager controller_manager_;
 };
 
 #endif
