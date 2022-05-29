@@ -6,7 +6,8 @@ from PIL import Image
 import skimage.morphology
 from natsort import natsorted
 
-from segmentation.constants import map_color_palette
+# FIXME move this to perception
+from droidlet.lowlevel.hello_robot.remote.segmentation.constants import map_color_palette
 
 
 class ObjectGoalNavigationVisualization:
@@ -54,7 +55,9 @@ class ObjectGoalNavigationVisualization:
         self.vis_image[530, 670:1150] = color
 
         # draw legend
-        legend = cv2.imread("visualization/legend.png")
+        # FIXME don't load this here
+        legend_path = os.path.dirname(os.path.abspath(__file__)) + "/legend.png"
+        legend = cv2.imread(legend_path)
         lx, ly, _ = legend.shape
         self.vis_image[537 : 537 + lx, 155 : 155 + ly, :] = legend
 

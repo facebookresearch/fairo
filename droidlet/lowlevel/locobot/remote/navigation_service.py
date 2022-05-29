@@ -10,9 +10,6 @@ import Pyro4
 from rich import print
 
 from slam_pkg.utils import depth_util as du
-from visualization.ogn_vis import ObjectGoalNavigationVisualization
-from policy.goal_policy import GoalPolicy
-from segmentation.constants import coco_categories
 
 random.seed(0)
 torch.manual_seed(0)
@@ -65,17 +62,6 @@ class Navigation(object):
         self.slam = slam
         self.robot = robot
         self.trackback = Trackback(planner)
-
-        num_sem_categories = len(coco_categories)
-        self.map_size, self.local_map_size = self.slam.get_map_sizes()
-        self.goal_policy = GoalPolicy(
-            map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
-            num_outputs=2,
-            hidden_size=256,
-            num_sem_categories=num_sem_categories,
-        )
-        state_dict = torch.load("policy/goal_policy.pth", map_location="cpu")
-        self.goal_policy.load_state_dict(state_dict, strict=False)
 
         self._busy = False
         self._stop = True
@@ -144,83 +130,6 @@ class Navigation(object):
 
         self._busy = False
         return path_found, goal_reached
-
-    def go_to_object(self, object_goal: str, debug=False, visualize=True, max_steps=25):
-        assert (
-            object_goal in coco_categories
-        ), f"Object goal must be in {list(coco_categories.keys())}"
-        print(f"[navigation] Starting a go_to_object {object_goal}")
-
-        if visualize:
-            try:
-                # if in Habitat scene
-                vis_path = f"images/{self.robot.get_scene_name()}/{object_goal}"
-            except:
-                vis_path = f"images/real_world/{object_goal}"
-            vis = ObjectGoalNavigationVisualization(object_goal, path=vis_path)
-
-        object_goal_cat = coco_categories[object_goal]
-        object_goal_cat_tensor = torch.tensor([object_goal_cat])
-
-        goal_reached = False
-        step = 0
-
-        while not goal_reached and step < max_steps:
-            step += 1
-            sem_map = self.slam.get_global_semantic_map()
-            cat_sem_map = sem_map[object_goal_cat + 4, :, :]
-
-            if (cat_sem_map == 1).sum() > 0:
-                # If the object goal category is present in the local map, go to it
-                print(
-                    f"[navigation] High-level step {step}: Found a {object_goal} in the local map, "
-                    "starting go_to_absolute to reach it"
-                )
-                goal_map = cat_sem_map == 1
-                if visualize:
-                    vis.add_location_goal(goal_map)
-                _, goal_reached = self.go_to_absolute(goal_map=goal_map, steps=20)
-
-            else:
-                # Else if the object goal category is not present in the local map,
-                # predict where to explore next
-                map_features = self.slam.get_semantic_map_features()
-                orientation_tensor = self.slam.get_orientation()
-
-                goal_action = self.goal_policy(
-                    map_features, orientation_tensor, object_goal_cat_tensor, deterministic=False
-                )[0]
-
-                goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
-                global_loc = np.array(self.slam.robot2map(self.robot.get_base_state()[:2]))
-                goal_in_global_map = global_loc + (goal_in_local_map - self.local_map_size // 2)
-                goal_in_global_map = np.clip(goal_in_global_map, 0, self.map_size - 1)
-                goal_in_world = self.slam.map2robot(goal_in_global_map)
-
-                if debug:
-                    print("goal_action:       ", goal_action)
-                    print("goal_in_local_map: ", goal_in_local_map)
-                    print("global_loc:        ", global_loc)
-                    print("goal_in_global_map:", goal_in_global_map)
-                    print("goal_in_world:     ", goal_in_world)
-
-                print(
-                    f"[navigation] High-level step {step}: No {object_goal} in the semantic map, "
-                    f"starting a go_to_absolute {(*goal_in_world, 0)} to find one"
-                )
-                if visualize:
-                    goal_map = np.zeros((self.map_size, self.map_size))
-                    goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
-                    vis.add_location_goal(goal_map)
-                self.go_to_absolute(goal=(*goal_in_world, 0), steps=10)
-
-            if visualize:
-                vis.update_semantic_frame(self.slam.get_last_semantic_frame())
-                vis.update_semantic_map(self.slam.get_global_semantic_map())
-                vis.snapshot()
-
-        print(f"[navigation] Finished a go_to_object {object_goal}")
-        print(f"goal reached: {goal_reached}")
 
     def explore(self, far_away_goal):
         if not hasattr(self, "_done_exploring"):
