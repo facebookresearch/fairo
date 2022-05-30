@@ -156,8 +156,15 @@ class MapBuilder(object):
             .numpy()
         )
 
+        # Aggregate by taking the max of the previous map and current map — this is robust
+        # to false negatives in one frame but makes it impossible to remove false positives
         maps = np.concatenate((current_map[:, np.newaxis], self.semantic_map[:, np.newaxis]), 1)
         self.semantic_map = np.max(maps, 1)
+
+        # Aggregate by trusting the current map — this is not robust to false negatives in 
+        # one frame but it makes it possible to remove false positives
+        # current_mask = current_map[1, :, :] > 0
+        # self.semantic_map[:, current_mask] = current_map[:, current_mask]
 
         # Reset current location
         self.semantic_map[2, :, :].fill(0.0)

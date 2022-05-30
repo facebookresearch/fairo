@@ -1,4 +1,5 @@
 import os
+import shutil
 import glob
 import numpy as np
 import cv2
@@ -16,7 +17,8 @@ class ObjectGoalNavigationVisualization:
 
     def __init__(self, goal_name="no goal", path="images/default"):
         self.path = path
-        os.makedirs(self.path, exist_ok=True)
+        shutil.rmtree(self.path)
+        os.makedirs(self.path)
 
         self.vis_image = np.ones((655, 1005, 3)).astype(np.uint8) * 255
 
