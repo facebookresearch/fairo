@@ -234,7 +234,7 @@ Status PolymetisControllerServerImpl::SetController(
     ServerContext *context, ServerReader<ControllerChunk> *stream,
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
-  int orig_prio = setThreadPriority(NON_RT_PRIO);
+  int orig_prio = setThreadPriority(RT_LOW_PRIO);
 
   interval->set_start(-1);
   interval->set_end(-1);
@@ -288,7 +288,7 @@ Status PolymetisControllerServerImpl::UpdateController(
     ServerContext *context, ServerReader<ControllerChunk> *stream,
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
-  int orig_prio = setThreadPriority(NON_RT_PRIO);
+  int orig_prio = setThreadPriority(RT_LOW_PRIO);
 
   interval->set_start(-1);
   interval->set_end(-1);
