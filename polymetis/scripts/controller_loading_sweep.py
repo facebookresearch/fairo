@@ -1,4 +1,5 @@
 from typing import Dict
+import time
 import click
 import random
 
@@ -7,13 +8,14 @@ import torch
 import polymetis
 import torchcontrol as toco
 
-POLICY_SIZE_LIST = [7, 500, 10000]
+POLICY_SIZE_LIST = [100, 1000, 10000]
+# Note: 2 sec joint traj = 100
 
 
 class FatPolicy(toco.PolicyModule):
     def __init__(self, data_size):
         super().__init__()
-        self.data = torch.rand([data_size, 1024])
+        self.data = torch.rand([data_size, 256])
 
     def forward(self, robot_state: Dict[str, torch.Tensor]):
         if not self.is_terminated():
@@ -22,12 +24,14 @@ class FatPolicy(toco.PolicyModule):
 
 
 def run_experiment(robot, policy_size):
-    return robot.send_torch_policy(FatPolicy(policy_size))
+    state_log = robot.send_torch_policy(FatPolicy(policy_size))
+    time.sleep(0.1)
+    return state_log
 
 
 @click.command()
 @click.option("--priority", "-p", default=-1)
-@click.option("--repeats", "-r", default=20)
+@click.option("--repeats", "-r", default=100)
 def main(priority, repeats):
     # Initialize robot
     robot = polymetis.RobotInterface()

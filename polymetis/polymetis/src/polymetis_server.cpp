@@ -244,7 +244,6 @@ Status PolymetisControllerServerImpl::SetController(
   std::cout << "Priority: " << param.sched_priority << std::endl;
 
   // interval->set_start(-1);
-  interval->set_start(robot_state_buffer_.size());
   interval->set_end(-1);
 
   // Read chunks of the binary serialized controller. The binary messages
@@ -259,6 +258,7 @@ Status PolymetisControllerServerImpl::SetController(
     }
   }
 
+  interval->set_start(robot_state_buffer_.size());
   try {
     // Load new controller
     auto new_controller = new TorchScriptedController(
@@ -281,13 +281,13 @@ Status PolymetisControllerServerImpl::SetController(
     spdlog::error(error_msg);
     return Status(StatusCode::CANCELLED, error_msg);
   }
+  interval->set_end(robot_state_buffer_.size());
 
   // Respond with start index
   while (custom_controller_context_.status == READY) {
     usleep(SPIN_INTERVAL_USEC);
   }
-  interval->set_start(custom_controller_context_.episode_begin);
-  interval->set_end(custom_controller_context_.episode_begin);
+  // interval->set_start(custom_controller_context_.episode_begin);
 
   // Reset threading prio
   pthread_setschedprio(curr_thr, orig_param.sched_priority);
