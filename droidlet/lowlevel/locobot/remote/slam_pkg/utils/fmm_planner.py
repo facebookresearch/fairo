@@ -50,10 +50,10 @@ class FMMPlanner(object):
         dd = skfmm.distance(traversible_ma, dx=1)
         dd = ma.filled(dd, np.max(dd) + 1)
         self.fmm_dist = dd
-        
+
         if vis_path is not None:
             self._visualize(goal_map, vis_path)
-    
+
     def _visualize(self, goal_map, vis_path):
         r, c = self.traversable.shape
         dist_vis = np.zeros((c, r * 3))
