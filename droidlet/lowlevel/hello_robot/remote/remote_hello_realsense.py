@@ -176,7 +176,7 @@ class RemoteHelloRealsense(object):
 
     def get_semantics(self, rgb, depth):
         """Get semantic segmentation."""
-        semantics, semantics_vis = self.segmentation_model.get_prediction(rgb)
+        semantics, semantics_vis = self.segmentation_model.get_prediction(rgb, depth)
 
         # given RGB and depth are rotated after the point cloud creation,
         # we rotate them back here to align to the point cloud

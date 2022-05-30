@@ -23,7 +23,7 @@ class SemanticPredMaskRCNN:
         self.visualize = visualize
         self.num_sem_categories = len(coco_categories)
 
-    def get_prediction(self, img):
+    def get_prediction(self, img, depth=None):
         image_list = []
         img = img[:, :, ::-1]
         image_list.append(img)
@@ -37,19 +37,23 @@ class SemanticPredMaskRCNN:
             if class_idx in list(coco_categories_mapping.keys()):
                 idx = coco_categories_mapping[class_idx]
                 obj_mask = seg_predictions[0]["instances"].pred_masks[j] * 1.0
-                semantic_pred[:, :, idx] += obj_mask.cpu().numpy()
+                obj_mask = obj_mask.cpu().numpy()
+
+                if depth is not None:
+                    md = np.median(depth[obj_mask == 1])
+                    if md == 0:
+                        filter_mask = np.ones_like(obj_mask, dtype=bool)
+                    else:
+                        # Restrict objects to 2m depth
+                        filter_mask = (depth >= md + 1.0) | (depth <= md - 1.0)
+                    print(f"Median object depth: {md.item()}, filtering out {np.count_nonzero(filter_mask)} pixels")
+                    obj_mask[filter_mask] = 0.0
+                semantic_pred[:, :, idx] += obj_mask
 
         if self.visualize:
             img = vis_output.get_image()
 
         return semantic_pred, img
-
-
-def compress_sem_map(sem_map):
-    c_map = np.zeros((sem_map.shape[1], sem_map.shape[2]))
-    for i in range(sem_map.shape[0]):
-        c_map[sem_map[i] > 0.0] = i + 1
-    return c_map
 
 
 class ImageSegmentation:

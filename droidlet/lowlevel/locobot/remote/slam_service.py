@@ -119,8 +119,6 @@ class SLAM(object):
         pcd, rgb, depth = self.robot.get_current_pcd()
         pose = self.robot.get_base_state()
 
-        # Time:
-        # ~3.5sec on Mac
         t0 = time.time()
         semantics, self.last_semantic_frame = self.robot.get_semantics(rgb, depth)
         t1 = time.time()
@@ -128,8 +126,6 @@ class SLAM(object):
 
         self.map_builder.update_map(pcd)
 
-        # Time:
-        # ~3.5sec on Mac with 480 x 480 map
         t0 = time.time()
         self.map_builder.update_semantic_map(pcd, semantics, pose)
         t1 = time.time()
