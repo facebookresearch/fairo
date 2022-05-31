@@ -12,7 +12,7 @@ from rich import print
 from slam_pkg.utils.map_builder import MapBuilder as mb
 from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
-from segmentation.constants import coco_categories
+from droidlet.perception.robot.semantic_mapper.constants import coco_categories
 
 random.seed(0)
 torch.manual_seed(0)
@@ -27,6 +27,7 @@ class SLAM(object):
     def __init__(
         self,
         robot,
+        semantic_seg_model=None,
         map_size_cm=2400,
         resolution=5,
         robot_rad=30,
@@ -37,6 +38,7 @@ class SLAM(object):
         global_downscaling=2,
     ):
         self.robot = robot
+        self.semantic_seg_model = semantic_seg_model
         self.robot_rad = robot_rad
         self.map_resolution = resolution
         self.num_sem_categories = len(coco_categories)
@@ -115,11 +117,12 @@ class SLAM(object):
 
     def update_map(self):
         pcd, rgb, depth = self.robot.get_current_pcd()
-        semantics, self.last_semantic_frame = self.robot.get_semantics(rgb, depth)
         pose = self.robot.get_base_state()
 
         self.map_builder.update_map(pcd)
-        self.map_builder.update_semantic_map(pcd, semantics, pose)
+        if self.semantic_seg_model is not None:
+            semantics, self.last_semantic_frame = self.semantic_seg_model.get_semantics(rgb, depth)
+            self.map_builder.update_semantic_map(pcd, semantics, pose)
 
         # explore the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
@@ -204,19 +207,21 @@ if len(sys.argv) > 1:
     robot_name = sys.argv[1]
 with Pyro4.Daemon(ip) as daemon:
     robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
-
+    # FIXME make this robust
+    semantic_segmenter = Pyro4.Proxy("PYRONAME:" + "scene_semantics" + "@" + robot_ip)
     if robot_name == "hello_realsense":
         robot_height = 141  # cm
         min_z = 20  # because of the huge spatial variance in realsense readings
         max_z = robot_height + 5  # cm
         obj = SLAM(
             robot,
+            semantic_seg_model=semantic_segmenter,
             obstacle_threshold=10,
             agent_min_z=min_z,
             agent_max_z=max_z,
         )
     else:
-        obj = SLAM(robot)
+        obj = SLAM(robot, semantic_seg_model=semantic_segmenter)
     obj_uri = daemon.register(obj)
     with Pyro4.locateNS(host=robot_ip) as ns:
         ns.register("slam", obj_uri)

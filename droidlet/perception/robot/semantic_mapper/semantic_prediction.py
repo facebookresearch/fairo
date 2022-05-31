@@ -2,9 +2,11 @@
 # https://github.com/facebookresearch/detectron2/blob/master/demo/demo.py and
 # https://github.com/facebookresearch/detectron2/blob/master/demo/predictor.py
 
+import os
 import argparse
 import torch
 import numpy as np
+from PIL import Image
 
 from detectron2.config import get_cfg
 from detectron2.utils.logger import setup_logger
@@ -14,14 +16,75 @@ from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.utils.visualizer import ColorMode, Visualizer
 import detectron2.data.transforms as T
 
-from .constants import coco_categories_mapping, coco_categories
+import Pyro4
+
+from droidlet.perception.robot.semantic_mapper.constants import (
+    coco_categories_mapping,
+    coco_categories,
+    frame_color_palette,
+)
+
+Pyro4.config.SERIALIZER = "pickle"
+Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
+Pyro4.config.ITER_STREAMING = True
 
 
-class SemanticPredMaskRCNN:
-    def __init__(self, sem_pred_prob_thr: float, sem_gpu_id: int, visualize: bool):
-        self.segmentation_model = ImageSegmentation(sem_pred_prob_thr, sem_gpu_id)
+@Pyro4.expose
+class SemanticPredMaskRCNN(object):
+    def __init__(self, robot=None, sem_pred_prob_thr=0.8, sem_gpu_id=-1, visualize=False):
         self.visualize = visualize
         self.num_sem_categories = len(coco_categories)
+        # the robot is here in case we are in sim, and the robot will return the categories given by sim.
+        self.robot = robot
+        self.one_hot_encoding = np.eye(self.num_sem_categories)
+        self.scene_contains_semantic_annotations = False
+        if robot is not None:
+            self.scene_contains_semantic_annotations = robot.scene_contains_semantic_annotations()
+        if self.scene_contains_semantic_annotations:
+            print("Scene contains semantic annotations")
+            (
+                self.instance_id_to_category_id,
+                self.categories_present,
+            ) = self.robot.get_instance_id_to_category_id()
+        else:
+            print("Scene does not contain semantic annotations, loading model")
+            self.segmentation_model = ImageSegmentation(sem_pred_prob_thr, sem_gpu_id)
+
+    def get_semantic_frame_vis(self, rgb, semantics):
+        """Visualize first-person semantic segmentation frame."""
+        width, height = semantics.shape[:2]
+        vis_content = semantics
+        vis_content[:, :, -1] = 1e-5
+        vis_content = vis_content.argmax(-1)
+        vis = Image.new("P", (height, width))
+        vis.putpalette([int(x * 255.0) for x in frame_color_palette])
+        vis.putdata(vis_content.flatten().astype(np.uint8))
+        vis = vis.convert("RGB")
+        vis = np.array(vis)
+        vis = np.where(vis != 255, vis, rgb)
+        return vis
+
+    def get_semantics(self, rgb, depth, rotate=False):
+        if self.scene_contains_semantic_annotations:
+            instance_segmentation = self.robot.get_rgb_depth_segm()[2]
+            semantic_segmentation = self.instance_id_to_category_id[instance_segmentation]
+            semantics = self.one_hot_encoding[semantic_segmentation]
+            semantics_vis = self.get_semantic_frame_vis(rgb, semantics)
+        else:
+            semantics, semantics_vis = self.get_prediction(rgb)
+
+        if rotate:
+            # given RGB and depth are rotated after the point cloud creation,
+            # we rotate them back here to align to the point cloud
+            depth = np.rot90(depth, k=1, axes=(0, 1))
+            semantics = np.rot90(semantics, k=1, axes=(0, 1))
+
+        # apply the same depth filter to semantics as we applied to the point cloud
+        semantics = semantics.reshape(-1, self.num_sem_categories)
+        valid = (depth > 0).flatten()
+        semantics = semantics[valid]
+
+        return semantics, semantics_vis
 
     def get_prediction(self, img):
         image_list = []
@@ -55,20 +118,17 @@ def compress_sem_map(sem_map):
 class ImageSegmentation:
     def __init__(self, sem_pred_prob_thr, sem_gpu_id):
         string_args = f"""
-            --config-file segmentation/mask_rcnn_R_50_FPN_3x.yaml
+            --config-file {os.path.dirname(os.path.abspath(__file__)) + "/mask_rcnn_R_50_FPN_3x.yaml"}
             --input input1.jpeg
             --confidence-threshold {sem_pred_prob_thr}
             --opts MODEL.WEIGHTS
             detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl
             """
-
         if sem_gpu_id == -1:
             string_args += """ MODEL.DEVICE cpu"""
         else:
             string_args += f""" MODEL.DEVICE cuda:{sem_gpu_id}"""
-
         string_args = string_args.split()
-
         args = get_seg_parser().parse_args(string_args)
         logger = setup_logger()
         logger.info("Arguments: " + str(args))
@@ -229,3 +289,33 @@ class BatchPredictor:
         with torch.no_grad():
             predictions = self.model(inputs)
             return predictions
+
+
+if __name__ == "__main__":
+    import time
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Pass in server device IP")
+    parser.add_argument(
+        "--ip", help="local IP. Default is 192.168.0.0", type=str, default="0.0.0.0"
+    )
+    parser.add_argument(
+        "--robot_ip", help="remote robot ip. Default is 192.168.0.0", type=str, default="0.0.0.0"
+    )
+    parser.add_argument("--robot_name", default="remotelocobot")
+    args = parser.parse_args()
+
+    with Pyro4.Daemon(args.ip) as daemon:
+        robot = Pyro4.Proxy("PYRONAME:" + args.robot_name + "@" + args.robot_ip)
+        S = SemanticPredMaskRCNN(robot)
+        uri = daemon.register(S)
+        with Pyro4.locateNS(host=args.ip) as ns:
+            ns.register("scene_semantics", uri)
+
+        print("scene semantic prediction server is started...")
+
+        def callback():
+            time.sleep(0.0)
+            return True
+
+        daemon.requestLoop(callback)

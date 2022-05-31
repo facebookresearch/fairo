@@ -16,9 +16,7 @@ import open3d as o3d
 from pyrobot.habitat.base_control_utils import LocalActionStatus
 from slam_pkg.utils import depth_util as du
 from obstacle_utils import is_obstacle
-from droidlet.lowlevel.robot_mover_utils import (
-    transform_pose,
-)
+from droidlet.lowlevel.robot_mover_utils import transform_pose
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
 from segmentation.constants import coco_categories, frame_color_palette
 from segmentation.semantic_prediction import SemanticPredMaskRCNN
@@ -37,16 +35,8 @@ class RemoteLocobot(object):
         scene_path (str): the path to the scene file to load in habitat
     """
 
-    def __init__(
-        self,
-        scene_path,
-        noisy=False,
-        add_humans=True,
-    ):
-        backend_config = {
-            "scene_path": scene_path,
-            "physics_config": "DEFAULT",
-        }
+    def __init__(self, scene_path, noisy=False, add_humans=True):
+        backend_config = {"scene_path": scene_path, "physics_config": "DEFAULT"}
         self.add_humans = add_humans
         if backend_config["physics_config"] == "DEFAULT":
             assets_path = os.path.abspath(
@@ -61,7 +51,6 @@ class RemoteLocobot(object):
         self.backend_config = backend_config
 
         self.num_sem_categories = len(coco_categories)
-        self.one_hot_encoding = np.eye(self.num_sem_categories)
 
         # we do it this way to have the ability to restart from the client at arbitrary times
         self.restart_habitat()
@@ -85,19 +74,6 @@ class RemoteLocobot(object):
 
         # adds objects to the scene, doing scene-specific configurations
         reconfigure_scene(self, backend_config["scene_path"], self.add_humans)
-
-        self.scene_contains_semantic_annotations = self.scene_contains_semantic_annotations()
-        if self.scene_contains_semantic_annotations:
-            print("Scene contains semantic annotations")
-            (
-                self.instance_id_to_category_id,
-                self.categories_present,
-            ) = self.get_instance_id_to_category_id()
-        else:
-            print("Scene does not contain semantic annotations")
-            self.segmentation_model = SemanticPredMaskRCNN(
-                sem_pred_prob_thr=0.8, sem_gpu_id=-1, visualize=True
-            )
 
     def get_habitat_state(self):
         """Returns the habitat position and rotation of the agent as lists"""
@@ -189,11 +165,7 @@ class RemoteLocobot(object):
             obstacle = ret
             return obstacle
 
-    def go_to_absolute(
-        self,
-        xyt_position,
-        wait=True,
-    ):
+    def go_to_absolute(self, xyt_position, wait=True):
         """Moves the robot base to given goal state in the world frame.
 
         :param xyt_position: The goal state of the form (x,y,yaw)
@@ -208,11 +180,7 @@ class RemoteLocobot(object):
         status = self.get_base_status()
         return status
 
-    def go_to_relative(
-        self,
-        xyt_position,
-        wait=True,
-    ):
+    def go_to_relative(self, xyt_position, wait=True):
         """Moves the robot base to the given goal state relative to its current
         pose.
 
@@ -457,37 +425,6 @@ class RemoteLocobot(object):
 
         return instance_id_to_category_id, categories_present
 
-    def get_semantics(self, rgb, depth):
-        """Get semantic segmentation."""
-        if self.scene_contains_semantic_annotations:
-            instance_segmentation = self.get_rgb_depth_segm()[2]
-            semantic_segmentation = self.instance_id_to_category_id[instance_segmentation]
-            semantics = self.one_hot_encoding[semantic_segmentation]
-            semantics_vis = self.get_semantic_frame_vis(rgb, semantics)
-        else:
-            semantics, semantics_vis = self.segmentation_model.get_prediction(rgb)
-
-        # apply the same depth filter to semantics as we applied to the point cloud
-        semantics = semantics.reshape(-1, self.num_sem_categories)
-        valid = (depth > 0).flatten()
-        semantics = semantics[valid]
-
-        return semantics, semantics_vis
-
-    def get_semantic_frame_vis(self, rgb, semantics):
-        """Visualize first-person semantic segmentation frame."""
-        width, height = semantics.shape[:2]
-        vis_content = semantics
-        vis_content[:, :, -1] = 1e-5
-        vis_content = vis_content.argmax(-1)
-        vis = Image.new("P", (height, width))
-        vis.putpalette([int(x * 255.0) for x in frame_color_palette])
-        vis.putdata(vis_content.flatten().astype(np.uint8))
-        vis = vis.convert("RGB")
-        vis = np.array(vis)
-        vis = np.where(vis != 255, vis, rgb)
-        return vis
-
     def get_orientation(self):
         """Get discretized robot orientation."""
         # yaw is in radians in [-3.14, 3.14] in Habitat
@@ -498,7 +435,7 @@ class RemoteLocobot(object):
         return orientation
 
     def get_semantic_categories_in_scene(self):
-        if self.scene_contains_semantic_annotations:
+        if self.scene_contains_semantic_annotations():
             return self.categories_present
         else:
             return set()
@@ -553,9 +490,7 @@ if __name__ == "__main__":
 
     with Pyro4.Daemon(args.ip) as daemon:
         robot = RemoteLocobot(
-            scene_path=args.scene_path,
-            noisy=args.noisy,
-            add_humans=args.add_humans,
+            scene_path=args.scene_path, noisy=args.noisy, add_humans=args.add_humans
         )
         robot_uri = daemon.register(robot)
         with Pyro4.locateNS() as ns:
