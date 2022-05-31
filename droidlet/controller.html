@@ -13,6 +13,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -102,7 +103,7 @@
            <div itemprop="articleBody">
              
   <div class="section" id="controller">
-<span id="controller-label"></span><h1>Controller<a class="headerlink" href="#controller" title="Permalink to this headline"></a></h1>
+<span id="controller-label"></span><h1>Controller<a class="headerlink" href="#controller" title="Permalink to this heading"></a></h1>
 <p>In the “abstract” droidlet agent, the controller chooses whether to put Tasks on the Task Stack based on the memory state.   In the locobot agent and the craftassist agent subclasses, it consists of</p>
 <ul class="simple">
 <li><p>a <a class="reference external" href="https://github.com/facebookresearch/fairo/tree/main/droidlet/documents/logical_form_specification">DSL</a></p></li>
@@ -127,7 +128,7 @@
 </pre></div>
 </div>
 <div class="section" id="dialogue-manager">
-<h2>Dialogue Manager<a class="headerlink" href="#dialogue-manager" title="Permalink to this headline"></a></h2>
+<h2>Dialogue Manager<a class="headerlink" href="#dialogue-manager" title="Permalink to this heading"></a></h2>
 <p>The Dialogue Manager operates the logical forms and places dialogue tasks in the agent’s memory.</p>
 <blockquote>
 <div><dl class="py class">
@@ -172,7 +173,7 @@ Example: (“player_1”, “build a red cube”)</p>
 
 </div></blockquote>
 <div class="section" id="semantic-parser">
-<h3>Semantic Parser<a class="headerlink" href="#semantic-parser" title="Permalink to this headline"></a></h3>
+<h3>Semantic Parser<a class="headerlink" href="#semantic-parser" title="Permalink to this heading"></a></h3>
 <p>The training of the semantic parsing model is described in detail <a class="reference external" href="https://github.com/facebookresearch/fairo/blob/main/droidlet/perception/semantic_parsing/nsp_transformer_model/train_model.py">here</a> and the model architecture has been described <a class="reference external" href="https://github.com/facebookresearch/fairo/blob/main/droidlet/perception/semantic_parsing/nsp_transformer_model/encoder_decoder.py">here</a> and <a class="reference external" href="https://github.com/facebookresearch/fairo/blob/main/droidlet/perception/semantic_parsing/nsp_transformer_model/decoder_with_loss.py">here</a>.
 ; the interface is</p>
 <blockquote>
@@ -226,7 +227,7 @@ Uses beam search decoding, see <cite>beam_search</cite></p>
 </div>
 </div>
 <div class="section" id="dialogue-task">
-<h2>Dialogue Task<a class="headerlink" href="#dialogue-task" title="Permalink to this headline"></a></h2>
+<h2>Dialogue Task<a class="headerlink" href="#dialogue-task" title="Permalink to this heading"></a></h2>
 <p>The generic Dialogue Task is a Task</p>
 <p><a class="reference internal" href="tasks.html#tasks-label"><span class="std std-ref">Tasks</span></a></p>
 <p>A Task’s main method is .step(),
@@ -284,7 +285,7 @@ something about the current capabilities of the bot, to the user.</p>
 
 </div></blockquote>
 <div class="section" id="interpreter">
-<h3>Interpreter<a class="headerlink" href="#interpreter" title="Permalink to this headline"></a></h3>
+<h3>Interpreter<a class="headerlink" href="#interpreter" title="Permalink to this heading"></a></h3>
 <p>The <a class="reference external" href="https://github.com/facebookresearch/fairo/blob/main/droidlet/interpreter/interpreter.py">Interpreter</a> is responsible for using the world state (via <a class="reference internal" href="memory.html"><span class="doc">memory</span></a>) and a natural language utterance that has been parsed into a logical form over the agent’s DSL from the semantic parser to choose a <a class="reference internal" href="memory.html"><span class="doc">Task</span></a> to put on the Task Stack.   The <a class="reference external" href="https://github.com/facebookresearch/fairo/blob/main/droidlet/interpreter/robot/loco_interpreter.py">robot</a> and <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/craftassist/agent/dialogue_objects/mc_intepreter.py">craftassist</a> Interpreters are not the same, but the bulk of the work is done by the shared subinterpreters (in the files *_helper.py) <a class="reference external" href="https://github.com/facebookresearch/fairo/blob/main/droidlet/dialog/dialogue_objects/">here</a>.  The subinterpreters, registered in the main Interpreter <a class="reference external" href="https://github.com/facebookresearch/fairo/blob/main/droidlet/dialog/dialogue_objects/intepreter.py#L55">here</a> (and for the specialized versions <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/locobot/agent/dialogue_objects/loco_intepreter.py#L56">here</a> and <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/craftassist/agent/dialogue_objects/mc_intepreter.py#L61">here</a>), roughly follow the structure of the DSL.  This arrangement is to allow replacing the (currently heuristic) subinterpreters with learned versions or specializing them to new agents.</p>
 <blockquote>
 <div><dl class="py class">

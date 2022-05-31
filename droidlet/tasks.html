@@ -13,6 +13,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -102,7 +103,7 @@
            <div itemprop="articleBody">
              
   <div class="section" id="tasks">
-<span id="tasks-label"></span><h1>Tasks<a class="headerlink" href="#tasks" title="Permalink to this headline"></a></h1>
+<span id="tasks-label"></span><h1>Tasks<a class="headerlink" href="#tasks" title="Permalink to this heading"></a></h1>
 <p>Task objects abstract away the difficulties of actually carrying out the tasks, and allow a uniform interface to the controller and memory across different platforms.</p>
 <p>Task objects define a .step() method; on each iteration through the main agent loop, the Task is stepped, and the Task Stack steps its highest priority Task.
 The Task objects themselves are <em>not</em> generic across agents; and can be heuristic or learned.  In the current droidlet agent controller, they are registered <a class="reference external" href="https://github.com/facebookresearch/fairo/blob/main/droidlet/interpreter/interpreter.py#L83">here</a>, <a class="reference external" href="https://github.com/facebookresearch/fairo/blob/main/droidlet/interpreter/craftassist/mc_interpreter.py#L88">here</a> and <a class="reference external" href="https://github.com/facebookresearch/fairo/blob/main/droidlet/interpreter/robot/loco_interpreter.py#L71">here</a></p>

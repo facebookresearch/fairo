@@ -13,6 +13,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -101,25 +102,25 @@
            <div itemprop="articleBody">
              
   <div class="section" id="agents">
-<span id="droidlet-agents"></span><h1>Agents<a class="headerlink" href="#agents" title="Permalink to this headline"></a></h1>
+<span id="droidlet-agents"></span><h1>Agents<a class="headerlink" href="#agents" title="Permalink to this heading"></a></h1>
 <p>We instantiate a droidlet <a class="reference external" href="https://github.com/facebookresearch/fairo/tree/main/agents/locobot">agent</a> on a <a class="reference external" href="http://www.locobot.org/">Locobot</a> and an <a class="reference external" href="https://github.com/facebookresearch/fairo/tree/main/agents/craftassist">agent</a> in Minecraft using the <a class="reference external" href="https://arxiv.org/abs/1907.08584">Craftassist</a> framework (the droidlet project evolved from Craftassist).</p>
 <div class="section" id="locobot">
-<h2>Locobot<a class="headerlink" href="#locobot" title="Permalink to this headline"></a></h2>
+<h2>Locobot<a class="headerlink" href="#locobot" title="Permalink to this heading"></a></h2>
 <div class="section" id="locobot-perception">
-<h3>Locobot Perception<a class="headerlink" href="#locobot-perception" title="Permalink to this headline"></a></h3>
+<h3>Locobot Perception<a class="headerlink" href="#locobot-perception" title="Permalink to this heading"></a></h3>
 <p>We have a high-level pipeline that runs many of the perception handlers that exist.
 This pipeline is split into <code class="docutils literal notranslate"><span class="pre">Perception</span></code> and <code class="docutils literal notranslate"><span class="pre">SlowPerception</span></code>.</p>
 <div class="section" id="pipelines">
-<h4>Pipelines<a class="headerlink" href="#pipelines" title="Permalink to this headline"></a></h4>
+<h4>Pipelines<a class="headerlink" href="#pipelines" title="Permalink to this heading"></a></h4>
 <p><code class="docutils literal notranslate"><span class="pre">Perception</span></code> only consists of the fast processing modules, that can be run in the main thread and likely need to be run at a high frequency.
 <code class="docutils literal notranslate"><span class="pre">SlowPerception</span></code> consists of heavier modules such as Face Recognition, Object Detection and can be run at a much lower frequency in a background thread.</p>
 </div>
 <div class="section" id="components">
-<h4>Components<a class="headerlink" href="#components" title="Permalink to this headline"></a></h4>
+<h4>Components<a class="headerlink" href="#components" title="Permalink to this heading"></a></h4>
 <p>These pipelines are powered by components that can be stringed together in arbitrary ways, to create your own custom pipeline:</p>
 </div>
 <div class="section" id="data-structures">
-<h4>Data Structures<a class="headerlink" href="#data-structures" title="Permalink to this headline"></a></h4>
+<h4>Data Structures<a class="headerlink" href="#data-structures" title="Permalink to this heading"></a></h4>
 <p>The components use some data structure classes to create metadata such as object information and have convenient functions registered on these classes</p>
 <blockquote>
 <div><dl class="py class">
@@ -149,16 +150,16 @@ canonical world coordinates.</p>
 </div>
 </div>
 <div class="section" id="locobot-pyrobot-interface">
-<h3>Locobot PyRobot interface<a class="headerlink" href="#locobot-pyrobot-interface" title="Permalink to this headline"></a></h3>
+<h3>Locobot PyRobot interface<a class="headerlink" href="#locobot-pyrobot-interface" title="Permalink to this heading"></a></h3>
 <p>We have a <code class="docutils literal notranslate"><span class="pre">RemoteLocobot</span></code> object that runs on the robot, and marshals data back and forth from the robot to the server.
 Additionally, on the server-side, we have a <code class="docutils literal notranslate"><span class="pre">LoCoBotMover</span></code> class that communicates with <code class="docutils literal notranslate"><span class="pre">RemoteLocobot</span></code> and provides a low-level API to the robot.</p>
 </div>
 </div>
 <div class="section" id="craftassist">
-<h2>Craftassist<a class="headerlink" href="#craftassist" title="Permalink to this headline"></a></h2>
+<h2>Craftassist<a class="headerlink" href="#craftassist" title="Permalink to this heading"></a></h2>
 <p>Details for setting up and running the Cuberite server and Craftassist agent are <a class="reference external" href="https://github.com/facebookresearch/fairo/tree/main/agents/craftassist">here</a></p>
 <div class="section" id="craftassist-perception">
-<h3>Craftassist Perception<a class="headerlink" href="#craftassist-perception" title="Permalink to this headline"></a></h3>
+<h3>Craftassist Perception<a class="headerlink" href="#craftassist-perception" title="Permalink to this heading"></a></h3>
 <p>The craftassist perception modules are mostly heuristic.</p>
 <blockquote>
 <div><dl class="py class">
