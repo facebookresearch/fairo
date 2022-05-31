@@ -1,36 +1,31 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from typing import cast
-from collections import namedtuple
-from droidlet.base_util import XYZ
 import numpy as np
-
-# mainHand is the item in the player or agent's hand, that will be placed by a place block action
-# it is defined in lowlevel/minecraft/client/src/types.h as Item, and has fields id, meta
-Player = namedtuple(
-    "Player", "entityId, name, pos, look, mainHand, cagent_struct", defaults=(None,) * 6
-)
-Mob = namedtuple("Mob", "entityId, mobType, pos, look, cagent_struct", defaults=(None,) * 5)
-Pos = namedtuple("Pos", "x, y, z")
-Look = namedtuple("Look", "yaw, pitch")
-Item = namedtuple("Item", "id, meta")
-ItemStack = namedtuple("ItemStack", "item, pos, entityId")
+from typing import cast
+from droidlet.base_util import XYZ, Pos, Look
+from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item, ItemStack, Mob
 
 
-def flip_x(struct):
-    return Pos(-struct.x, struct.y, struct.z)
+def flip_x(struct, floor=False):
+    x, y, z = struct.x, struct.y, struct.z
+    if floor:
+        x = float(np.floor(x))
+        y = float(np.floor(y))
+        z = float(np.floor(z))
+    return Pos(-x, y, z)
 
 
 def flip_look(struct):
     return Look(-struct.yaw, -struct.pitch)
 
 
-def maybe_flip_x_or_look(struct):
+def maybe_flip_x_or_look(struct, floor=False):
     """
     struct is either a Mob, a Player, a Pos, or a Look
     we make a copy with the x negated if the struct is or has a Pos
     and with the yaw and pitch negated if the struct is or has a Look
+    if floor=True, will also floor pos in cagent world.
     """
     if getattr(struct, "x", None):
         return flip_x(struct)
@@ -46,7 +41,7 @@ def maybe_flip_x_or_look(struct):
         return Player(
             struct.entityId,
             struct.name,
-            flip_x(struct.pos),
+            flip_x(struct.pos, floor=floor),
             flip_look(struct.look),
             struct.mainHand,
             struct,
@@ -93,7 +88,6 @@ class CraftassistMover:
             "craft",
             "get_world_age",
             "get_time_of_day",
-            "send_chat",
             "get_vision",
             "disconnect",
         ]
@@ -108,10 +102,12 @@ class CraftassistMover:
         self.get_line_of_sight = struct_transform(self.cagent.get_line_of_sight)
         self.get_item_stacks = struct_transform(self.cagent.get_item_stacks)
         self.get_item_stack = struct_transform(self.cagent.get_item_stack)
-        self.get_player = struct_transform(self.cagent.get_player)
         self.get_mobs = struct_transform(self.cagent.get_mobs)
         self.get_other_players = struct_transform(self.cagent.get_other_players)
         self.get_other_player_by_name = struct_transform(self.cagent.get_other_player_by_name)
+
+    def get_player(self):
+        return maybe_flip_x_or_look(self.cagent.get_player(), floor=True)
 
     @struct_transform
     def get_player_line_of_sight(self, player_struct):
@@ -126,10 +122,10 @@ class CraftassistMover:
             return self.cagent.get_player_line_of_sight(player_struct)
 
     def dig(self, x, y, z):
-        self.cagent.place_block(-x, y, z)
+        return self.cagent.dig(-x, y, z)
 
     def place_block(self, x, y, z):
-        self.cagent.place_block(-x, y, z)
+        return self.cagent.place_block(-x, y, z)
 
     def get_changed_blocks(self):
         blocks = self.cagent.get_changed_blocks()
@@ -152,11 +148,13 @@ class CraftassistMover:
 
     def get_blocks(self, x, X, y, Y, z, Z):
         """
-        returns an (X-x+1) x (Y-y+1) x (Z-z+1) x 2 numpy array B of the blocks
+        returns an (Y-y+1) x (Z-z+1) x (X-x+1) x 2 numpy array B of the blocks
         in the rectanguloid with bounded by the input coordinates (including endpoints).
         Input coordinates are in droidlet coordinates; and the output array is
         in yzxb permutation, where B[0,0,0,:] corresponds to the id and meta of
         the block at x, y, z
+
+        TODO: we don't need yzx orientation anymore...
         """
         # negate the x coordinate to shift to cuberite coords
         B = self.cagent.get_blocks(-X, -x, y, Y, z, Z)

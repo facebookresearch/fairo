@@ -34,7 +34,9 @@ if __name__ == "__main__":
     dashboard.start()
 
 from droidlet.dialog.dialogue_manager import DialogueManager
+from droidlet.dialog.dialogue_task import build_question_json
 from droidlet.base_util import Pos, Look, npy_to_blocks_list
+from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item
 from agents.droidlet_agent import DroidletAgent
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
@@ -75,8 +77,6 @@ logging.getLogger().handlers.clear()
 sentry_sdk.init()  # enabled if SENTRY_DSN set in env
 DEFAULT_BEHAVIOUR_TIMEOUT = 20
 DEFAULT_FRAME = "SPEAKER"
-Player = namedtuple("Player", "entityId, name, pos, look, mainHand")
-Item = namedtuple("Item", "id, meta")
 
 
 class CraftAssistAgent(DroidletAgent):
@@ -315,17 +315,17 @@ class CraftAssistAgent(DroidletAgent):
             List of changed blocks
         """
         blocks = self.mover.get_changed_blocks()
-        safe_blocks = []
+        safe_blocks = deepcopy(blocks)
         if len(self.point_targets) > 0:
             for point_target in self.point_targets:
                 pt = point_target[0]
                 for b in blocks:
                     x, y, z = b[0]
-                    xok = x < pt[0] or x > pt[3]
-                    yok = y < pt[1] or y > pt[4]
-                    zok = z < pt[2] or z > pt[5]
-                    if xok and yok and zok:
-                        safe_blocks.append(b)
+                    xbad = x >= pt[0] and x <= pt[3]
+                    ybad = y >= pt[1] and y <= pt[4]
+                    zbad = z >= pt[2] and z <= pt[5]
+                    if xbad and ybad and zbad:
+                        if b in safe_blocks: safe_blocks.remove(b)
         else:
             safe_blocks = blocks
         return safe_blocks
@@ -346,7 +346,8 @@ class CraftAssistAgent(DroidletAgent):
         # flip x to move from droidlet coords to  cuberite coords
         target = [-target[3], target[1], target[2], -target[0], target[4], target[5]]
 
-        self.send_chat("/point {} {} {} {} {} {}".format(*target))
+        point_json = build_question_json("/point {} {} {} {} {} {}".format(*target))
+        self.send_chat(point_json)
 
         # sleep before the bot can take any actions
         # otherwise there might be bugs since the object is flashing
@@ -370,7 +371,9 @@ class CraftAssistAgent(DroidletAgent):
         chat_json = False
         try:
             chat_json = json.loads(chat)
-            chat_text = list(filter(lambda x: x["id"] == "text", chat_json["content"]))[0]["content"]
+            chat_text = list(filter(lambda x: x["id"] == "text", chat_json["content"]))[0][
+                "content"
+            ]
         except:
             chat_text = chat
 
@@ -379,7 +382,7 @@ class CraftAssistAgent(DroidletAgent):
 
         if chat_json:
             chat_json["chat_memid"] = chat_memid
-            chat_json["timestamp"] = round(datetime.timestamp(datetime.now())*1000)
+            chat_json["timestamp"] = round(datetime.timestamp(datetime.now()) * 1000)
             # Send the socket event to show this reply on dashboard
             sio.emit("showAssistantReply", chat_json)
         else:

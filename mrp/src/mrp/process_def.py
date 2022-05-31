@@ -1,9 +1,11 @@
-from mrp import util
 import dataclasses
 import inspect
 import os
 import pathlib
 import typing
+
+if typing.TYPE_CHECKING:
+    from mrp.runtime.base import BaseRuntime
 
 
 @dataclasses.dataclass
@@ -35,10 +37,14 @@ def process(
     name: str,
     root: str = None,
     runtime: "BaseRuntime" = None,
-    cfg: dict = {},
-    deps: typing.List[str] = [],
-    env: dict = {},
+    cfg: typing.Optional[dict] = None,
+    deps: typing.Optional[typing.List[str]] = None,
+    env: typing.Optional[dict] = None,
 ) -> ProcDef:
+    deps = deps or []
+    cfg = cfg or {}
+    env = env or {}
+
     if name in defined_processes:
         raise ValueError(f"mrp.process(name={name}) defined multiple times.")
 
