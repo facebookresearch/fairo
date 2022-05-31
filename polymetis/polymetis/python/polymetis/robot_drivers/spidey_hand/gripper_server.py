@@ -10,8 +10,8 @@ import grpc
 import polymetis_pb2
 import polymetis_pb2_grpc
 
-from .third_party.spidey_hand.spidey_hand import (
-    SpideyHandGripper,
+from .custom_driver.SpideyHand import (
+    SpideyHand,
 )  # add spidey hand class to this path
 
 
@@ -21,7 +21,7 @@ class SpideyGripperServer(polymetis_pb2_grpc.GripperServerServicer):
     """
 
     def __init__(self, comport):
-        self.gripper = SpideyHandGripper(comport=comport)  # check class name
+        self.gripper = SpideyHand(comport=comport)  # check class name
 
         # if not self.gripper.init_success:
         #     raise Exception(f"Unable to open comport to {comport}")
@@ -73,7 +73,7 @@ class SpideyGripperServer(polymetis_pb2_grpc.GripperServerServicer):
 
 
 class GripperServerLauncher:
-    def __init__(self, ip="localhost", port="50052", comport="/dev/ttyUSB0"):
+    def __init__(self, ip="localhost", port="50052", comport="/dev/ttyACM2"):
         self.address = f"{ip}:{port}"
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=2))
 
