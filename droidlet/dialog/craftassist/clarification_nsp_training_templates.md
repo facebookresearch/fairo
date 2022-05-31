@@ -127,11 +127,12 @@ The user is given the opportunity to interrupt the clarification process with a 
                                 }
                             }
                         },
-                        'relative_direction': 'NEAR'
+                        'relative_direction': 'NEAR',
+                        'text_span': [0,[25,28]]
                     }
                 }
             },
-            'text_span': [0,[24,28]] (**What should happen here?**)
+            'text_span': [0,[3,3]]
         }
     }]
 }
