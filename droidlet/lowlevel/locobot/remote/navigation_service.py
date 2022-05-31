@@ -105,7 +105,7 @@ class Navigation(object):
         steps=100000000,
         visualize=True,
     ):
-        print(f"[navigation] Starting a go_to_absolute {goal if goal is not None else 'goal_map'}")
+        # print(f"[navigation] Starting a go_to_absolute {goal if goal is not None else 'goal_map'}")
 
         # specify exactly one of goal or goal_map
         assert (goal is not None and goal_map is None) or (goal is None and goal_map is not None)
@@ -128,7 +128,7 @@ class Navigation(object):
                     self.vis.path, f"planner_snapshot_{self.vis.snapshot_idx}.png"
                 ),
             )
-            print(f"[navigation] got short-term goal from planner: {stg}")
+            # print(f"[navigation] got short-term goal from planner: {stg}")
             if stg == False:
                 # no path to end-goal
                 print(
@@ -139,17 +139,17 @@ class Navigation(object):
                 path_found = False
                 break
             robot_loc = self.robot.get_base_state()
-            print(f"[navigation] starting at point {robot_loc} and going to point {stg}")
+            # print(f"[navigation] starting at point {robot_loc} and going to point {stg}")
             status = safe_call(self.robot.go_to_absolute, stg)
             robot_loc = self.robot.get_base_state()
 
             print("[navigation] Finished a go_to_absolute")
             print(
-                " initial location: {} Final goal: {}".format(
+                " Initial location: {} Final goal: {}".format(
                     initial_robot_loc, goal if goal is not None else "goal map"
                 )
             )
-            print(" short-term goal: {}, Reached Location: {}".format(stg, robot_loc))
+            print(" Short-term goal: {}, Reached Location: {}".format(stg, robot_loc))
             print(" Robot Status: {}".format(status))
             if status == "SUCCEEDED":
                 goal_reached = self.planner.goal_within_threshold(
