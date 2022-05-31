@@ -169,8 +169,8 @@ class Memory2D extends React.Component {
       drag_coordinates,
       stageScale,
     } = this.state;
-    width = Math.min(width, height);
-    height = width;
+    //width = Math.min(width, height);
+    //height = width;
     let { objects } = memory;
     let { xmin, xmax, ymin, ymax } = this.state;
     let bot_x = bot_xyz[1];

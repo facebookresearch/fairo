@@ -21,6 +21,7 @@ from droidlet.memory.craftassist import mc_memory
 from droidlet.shared_data_struct import rotation
 from droidlet.lowlevel.minecraft.craftassist_mover import (
     CraftassistMover,
+    from_minecraft_look_to_droidlet,
     from_minecraft_xyz_to_droidlet,
 )
 
@@ -290,19 +291,9 @@ class CraftAssistAgent(DroidletAgent):
             self.memory.update(sem_seg_perception_output)
         self.areas_to_perceive = []
         self.update_dashboard_world()
-        # 5. self location
-        # FIXME better pose object
-        ###perception_output = perception_output._replace(self_pose=(x, z, yaw))
-        #perception_output = perception_output._replace(self_pose=(0, 0, 0))
-        
         if self.opts.draw_map == "memory":
-            # draw the map from memory
+            # draw the map from memory (default)
             self.draw_map_to_dashboard()
-        elif self.opts.draw_map == "observations": # else draw directly from current obs
-            ###self.draw_map_to_dashboard(obstacles={}, xyyaw=(x,z,yaw))
-            self.draw_map_to_dashboard(obstacles={}, xyyaw=(0,0,0))
-        else:
-            pass
 
     def get_time(self):
         """round to 100th of second, return as
@@ -405,11 +396,13 @@ class CraftAssistAgent(DroidletAgent):
     def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
         if not obstacles:
             obstacles = self.memory.place_field.get_obstacle_list()
-        if not xyyaw:
-            self_mem = self.memory.get_mem_by_id(self.memory.self_memid)
-            x, y, z = self_mem.pos
-            # TODO: head or body? need better pose nodes
-            yaw = self_mem.yaw
+        if not xyyaw:            
+            agent_pos = self.get_player().pos   # position of agent's feet
+            agent_look = self.get_player().look
+            mc_xyz = agent_pos.x, agent_pos.y, agent_pos.z
+            mc_look = agent_look.yaw, agent_look.pitch
+            x, _, z = from_minecraft_xyz_to_droidlet(mc_xyz)
+            yaw, _ = from_minecraft_look_to_droidlet(mc_look)
             xyyaw = (x, z, yaw)
             
         sio.emit(
@@ -419,6 +412,7 @@ class CraftAssistAgent(DroidletAgent):
                 "y": xyyaw[1],
                 "yaw": xyyaw[2],
                 "map": obstacles,
+                "draw_map": self.opts.draw_map,
             },
         )
 
