@@ -296,17 +296,19 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Pass in server device IP")
-    parser.add_argument(
-        "--ip", help="local IP. Default is 192.168.0.0", type=str, default="0.0.0.0"
-    )
-    parser.add_argument(
-        "--robot_ip", help="remote robot ip. Default is 192.168.0.0", type=str, default="0.0.0.0"
-    )
+    #    parser.add_argument(
+    #        "--ip", help="local IP. Default is 192.168.0.0", type=str, default="0.0.0.0"
+    #    )
+    #    parser.add_argument(
+    #        "--robot_ip", help="remote robot ip. Default is 192.168.0.0", type=str, default="0.0.0.0"
+    #    )
     parser.add_argument("--robot_name", default="remotelocobot")
+    robot_ip = os.getenv("LOCOBOT_IP")
+    ip = os.getenv("LOCAL_IP")
     args = parser.parse_args()
 
     with Pyro4.Daemon(args.ip) as daemon:
-        robot = Pyro4.Proxy("PYRONAME:" + args.robot_name + "@" + args.robot_ip)
+        robot = Pyro4.Proxy("PYRONAME:" + args.robot_name + "@" + robot_ip)
         S = SemanticPredMaskRCNN(robot)
         uri = daemon.register(S)
         with Pyro4.locateNS(host=args.ip) as ns:

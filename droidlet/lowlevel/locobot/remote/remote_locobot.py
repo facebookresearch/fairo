@@ -18,8 +18,7 @@ from slam_pkg.utils import depth_util as du
 from obstacle_utils import is_obstacle
 from droidlet.lowlevel.robot_mover_utils import transform_pose
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
-from segmentation.constants import coco_categories, frame_color_palette
-from segmentation.semantic_prediction import SemanticPredMaskRCNN
+from droidlet.perception.robot.semantic_mapper.constants import coco_categories
 from habitat_utils import reconfigure_scene
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
