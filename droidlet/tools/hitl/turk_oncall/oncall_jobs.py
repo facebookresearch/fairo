@@ -9,6 +9,9 @@ import subprocess
 import time
 import boto3
 import yaml
+import glob
+import json
+import urllib.parse
 
 from droidlet.tools.hitl.turk_oncall.allocate_oncall_instances import (
     allocate_oncall_instances,
@@ -18,6 +21,7 @@ from droidlet.tools.hitl.utils.hitl_utils import (
     generate_batch_id,
     deregister_dashboard_subdomain,
 )
+from droidlet.tools.hitl.utils.process_s3_logs import read_s3_bucket
 
 from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.task_runner import TaskRunner
@@ -35,10 +39,14 @@ ECS_INSTANCE_TIMEOUT = 45
 INTERACTION_JOB_POLL_TIME = 30
 
 HITL_TMP_DIR = (
-    os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
+    os.environ["HITL_TMP_DIR"]
+    if os.getenv("HITL_TMP_DIR")
+    else f"{os.path.expanduser('~')}/.hitl"
 )
 
 S3_BUCKET_NAME = "droidlet-hitl"
+S3_BASE_URL = f"https://s3.console.aws.amazon.com/s3/object/{S3_BUCKET_NAME}?region=us-west-2&prefix="
+S3_ROOT = "s3://droidlet-hitl"
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
 AWS_DEFAULT_REGION = os.environ["AWS_DEFAULT_REGION"]
@@ -73,7 +81,9 @@ class OnCallJob(DataGenerator):
 
     """
 
-    def __init__(self, instance_num: int, image_tag: str, timeout: float = -1) -> None:
+    def __init__(
+        self, instance_num: int, image_tag: str, timeout: float = -1
+    ) -> None:
         super(OnCallJob, self).__init__(timeout)
         self._instance_num = instance_num
         self._image_tag = image_tag
@@ -93,7 +103,9 @@ class OnCallJob(DataGenerator):
             task_name = f"ca-oncall{self._batch_id}"
             self.task_name = task_name
             config["mephisto"]["task"]["task_name"] = task_name
-        logging.info(f"Updating Mephisto config file to have task_name: {task_name}")
+        logging.info(
+            f"Updating Mephisto config file to have task_name: {task_name}"
+        )
         with open(
             "../../crowdsourcing/turk_as_oncall/hydra_configs/conf/run_with_qual.yaml",
             "w",
@@ -117,7 +129,9 @@ class OnCallJob(DataGenerator):
         # run Mephisto to spin up & monitor turk jobs
         logging.info("Start running Mephisto...")
         MEPHISTO_AWS_ACCESS_KEY_ID = os.environ["MEPHISTO_AWS_ACCESS_KEY_ID"]
-        MEPHISTO_AWS_SECRET_ACCESS_KEY = os.environ["MEPHISTO_AWS_SECRET_ACCESS_KEY"]
+        MEPHISTO_AWS_SECRET_ACCESS_KEY = os.environ[
+            "MEPHISTO_AWS_SECRET_ACCESS_KEY"
+        ]
         MEPHISTO_REQUESTER = os.environ["MEPHISTO_REQUESTER"]
         p = subprocess.Popen(
             [
@@ -154,26 +168,28 @@ class OnCallJob(DataGenerator):
         logging.info("Free ECS instances...")
         free_ecs_instances(self.instance_ids)
 
-        logging.info("Retrieving results from local Mephisto DB and uploading to S3")
-        self.get_local_db_results()
+        logging.info("Extracting and processing S3 logs")
+        agent_logs_map = self.process_s3_logs()
+
+        logging.info(
+            "Retrieving local Mephisto DB results and uploading summary"
+        )
+        self.get_local_db_results(agent_logs_map)
 
         self.set_finished()
 
     def get_batch_id(self):
         return self._batch_id
 
-    def get_local_db_results(self):
-
+    def get_local_db_results(self, agent_logs_map):
         NUM_CMDS = 3
         results = [
-            "worker_name|list_id|q1_result|q1_feedback|q2_result|q2_feedback|q3_result|q3_feedback|general_feedback\n"
+            "worker_name|logs_directory|list_id|q1_result|q1_feedback|q2_result|q2_feedback|q3_result|q3_feedback|general_feedback\n"
         ]
         softblock = []
-        command_dict = {}
-        feedback_dict = {}
         summary_stats = []
-        avg_duration = 0
-        avg_usability = 0
+        command_lut = {"result": {}, "feedback": {}, "logs": {}}
+        avg_duration = avg_usability = 0
         units = mephisto_data_browser.get_units_for_task_name(self.task_name)
         for unit in units:
             data = mephisto_data_browser.get_data_from_unit(unit)
@@ -182,30 +198,39 @@ class OnCallJob(DataGenerator):
             # General stats
             worker_name = Worker.get(db, data["worker_id"]).worker_name
             avg_duration += (
-                data["data"]["times"]["task_end"] - data["data"]["times"]["task_start"]
+                data["data"]["times"]["task_end"]
+                - data["data"]["times"]["task_start"]
             ) / len(units)
             avg_usability += int(outputs["usability-rating"]) / len(units)
 
             # Task results
             results_string = f"{worker_name}|"
+            agent = unit.get_assigned_agent().get_agent_id()
+            results_string += f"{agent_logs_map[agent]}|"
             list_id = int(outputs["listID"])
             results_string += f"{list_id}|"
             for i in range(NUM_CMDS):
                 # Store the command result
                 result = outputs[f"command_{i+1}"]
                 results_string += f"{result}|"
-                if command_dict.get((list_id, i), result) != result:
-                    command_dict[(list_id, i)] = "disagree"
+                if command_lut["result"].get((list_id, i), result) != result:
+                    command_lut["result"][(list_id, i)] = "disagree"
                 else:
-                    command_dict[(list_id, i)] = result
+                    command_lut["result"][(list_id, i)] = result
 
                 # Store any command feedback
                 cmd_feedback = outputs[f"command_{i+1}_feedback"]
                 results_string += f"{cmd_feedback}|"
                 if result == "no":
-                    if not feedback_dict.get((list_id, i), None):
-                        feedback_dict[(list_id, i)] = []
-                    feedback_dict[(list_id, i)].append(cmd_feedback)
+                    if not command_lut["feedback"].get((list_id, i), None):
+                        command_lut["feedback"][(list_id, i)] = []
+                    command_lut["feedback"][(list_id, i)].append(cmd_feedback)
+
+                    # Store logs URLs for failed commands
+                    if not command_lut["logs"].get((list_id, i), None):
+                        command_lut["logs"][(list_id, i)] = []
+                    log_url = f"{S3_BASE_URL}{batch_id}/interaction/{urllib.parse.quote_plus(agent_logs_map[agent])}/logs.tar.gz"
+                    command_lut["logs"][(list_id, i)].append(log_url)
 
                     # If they said the agent failed but didn't tell us why, softblock
                     if not cmd_feedback:
@@ -217,22 +242,27 @@ class OnCallJob(DataGenerator):
 
         # Build the summary stats list
         summary_stats.append(f"Average Task Duration: {avg_duration:.2f}\n")
-        summary_stats.append(f"Average Usability Rating: {avg_usability:.2f}\n")
         summary_stats.append(
-            f"Number of Commands Passed: {list(command_dict.values()).count('yes')}\n"
+            f"Average Usability Rating: {avg_usability:.2f}\n"
         )
         summary_stats.append(
-            f"Number of Commands Failed: {list(command_dict.values()).count('no')}\n"
+            f"Number of Commands Passed: {list(command_lut['result'].values()).count('yes')}\n"
         )
         summary_stats.append(
-            f"Number of Commands Disagreed: {list(command_dict.values()).count('disagree')}\n\n"
+            f"Number of Commands Failed: {list(command_lut['result'].values()).count('no')}\n"
         )
-        summary_stats.append("List of failed commands (list_id|cmd_num|command_list|feedback):\n")
+        summary_stats.append(
+            f"Number of Commands Disagreed: {list(command_lut['result'].values()).count('disagree')}\n\n"
+        )
+
+        summary_stats.append(
+            "List of failed commands (list_id|cmd_num|command_list|feedback|logs_url):\n"
+        )
         summary_stats.extend(
             [
-                f"{key[0]}|{key[1]}|{COMMAND_LISTS[key[0]].replace('|', ',')}|{feedback_dict[key]}\n"
-                for key in command_dict.keys()
-                if command_dict[key] == "no"
+                f"{key[0]}|{key[1]}|{COMMAND_LISTS[key[0]].replace('|', ',')}|{command_lut['feedback'][key]}|{command_lut['logs'][key]}\n"
+                for key in command_lut["result"].keys()
+                if command_lut["result"][key] == "no"
             ]
         )
 
@@ -263,6 +293,41 @@ class OnCallJob(DataGenerator):
             S3_BUCKET_NAME,
             f"{self._batch_id}/softblock.txt",
         )
+
+    def process_s3_logs(self) -> dict:
+        """
+        This reads the local logs directory after all tarfiles have been extracted.
+        It returns a map of Mephisto Agent IDs to the directory names of the logs they produced.
+        """
+        s3_logs_dir = os.path.join(HITL_TMP_DIR, f"{self._batch_id}/turk_logs")
+        parsed_logs_dir = os.path.join(
+            HITL_TMP_DIR, f"{self._batch_id}/parsed_turk_logs"
+        )
+        os.makedirs(s3_logs_dir, exist_ok=True)
+        os.makedirs(parsed_logs_dir, exist_ok=True)
+
+        subprocess.call(
+            [
+                f"aws s3 sync {S3_ROOT}/{self._batch_id}/interaction {s3_logs_dir}"
+            ],
+            shell=True,
+        )
+        logging.info("Waiting 2min for S3 directory sync to finish")
+        time.sleep(120)
+
+        # Extract tarfiles
+        read_s3_bucket(s3_logs_dir, parsed_logs_dir)
+
+        # Build a map of agent ids to logs directories
+        agent_logs_map = {}
+        for json_path in glob.glob(f"{parsed_logs_dir}/**/job_metadata.json"):
+            with open(json_path, "r") as f:
+                js = json.load(f)
+
+            dir = os.path.basename(os.path.dirname(json_path))
+            agent_logs_map[js["mephisto_agent_id"]] = dir
+
+        return agent_logs_map
 
 
 if __name__ == "__main__":
