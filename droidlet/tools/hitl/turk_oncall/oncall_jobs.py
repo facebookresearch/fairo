@@ -39,13 +39,13 @@ ECS_INSTANCE_TIMEOUT = 45
 INTERACTION_JOB_POLL_TIME = 30
 
 HITL_TMP_DIR = (
-    os.environ["HITL_TMP_DIR"]
-    if os.getenv("HITL_TMP_DIR")
-    else f"{os.path.expanduser('~')}/.hitl"
+    os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
 )
 
 S3_BUCKET_NAME = "droidlet-hitl"
-S3_BASE_URL = f"https://s3.console.aws.amazon.com/s3/object/{S3_BUCKET_NAME}?region=us-west-2&prefix="
+S3_BASE_URL = (
+    f"https://s3.console.aws.amazon.com/s3/object/{S3_BUCKET_NAME}?region=us-west-2&prefix="
+)
 S3_ROOT = "s3://droidlet-hitl"
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
@@ -81,9 +81,7 @@ class OnCallJob(DataGenerator):
 
     """
 
-    def __init__(
-        self, instance_num: int, image_tag: str, timeout: float = -1
-    ) -> None:
+    def __init__(self, instance_num: int, image_tag: str, timeout: float = -1) -> None:
         super(OnCallJob, self).__init__(timeout)
         self._instance_num = instance_num
         self._image_tag = image_tag
@@ -103,9 +101,7 @@ class OnCallJob(DataGenerator):
             task_name = f"ca-oncall{self._batch_id}"
             self.task_name = task_name
             config["mephisto"]["task"]["task_name"] = task_name
-        logging.info(
-            f"Updating Mephisto config file to have task_name: {task_name}"
-        )
+        logging.info(f"Updating Mephisto config file to have task_name: {task_name}")
         with open(
             "../../crowdsourcing/turk_as_oncall/hydra_configs/conf/run_with_qual.yaml",
             "w",
@@ -129,9 +125,7 @@ class OnCallJob(DataGenerator):
         # run Mephisto to spin up & monitor turk jobs
         logging.info("Start running Mephisto...")
         MEPHISTO_AWS_ACCESS_KEY_ID = os.environ["MEPHISTO_AWS_ACCESS_KEY_ID"]
-        MEPHISTO_AWS_SECRET_ACCESS_KEY = os.environ[
-            "MEPHISTO_AWS_SECRET_ACCESS_KEY"
-        ]
+        MEPHISTO_AWS_SECRET_ACCESS_KEY = os.environ["MEPHISTO_AWS_SECRET_ACCESS_KEY"]
         MEPHISTO_REQUESTER = os.environ["MEPHISTO_REQUESTER"]
         p = subprocess.Popen(
             [
@@ -171,9 +165,7 @@ class OnCallJob(DataGenerator):
         logging.info("Extracting and processing S3 logs")
         agent_logs_map = self.process_s3_logs()
 
-        logging.info(
-            "Retrieving local Mephisto DB results and uploading summary"
-        )
+        logging.info("Retrieving local Mephisto DB results and uploading summary")
         self.get_local_db_results(agent_logs_map)
 
         self.set_finished()
@@ -198,8 +190,7 @@ class OnCallJob(DataGenerator):
             # General stats
             worker_name = Worker.get(db, data["worker_id"]).worker_name
             avg_duration += (
-                data["data"]["times"]["task_end"]
-                - data["data"]["times"]["task_start"]
+                data["data"]["times"]["task_end"] - data["data"]["times"]["task_start"]
             ) / len(units)
             avg_usability += int(outputs["usability-rating"]) / len(units)
 
@@ -242,9 +233,7 @@ class OnCallJob(DataGenerator):
 
         # Build the summary stats list
         summary_stats.append(f"Average Task Duration: {avg_duration:.2f}\n")
-        summary_stats.append(
-            f"Average Usability Rating: {avg_usability:.2f}\n"
-        )
+        summary_stats.append(f"Average Usability Rating: {avg_usability:.2f}\n")
         summary_stats.append(
             f"Number of Commands Passed: {list(command_lut['result'].values()).count('yes')}\n"
         )
@@ -300,16 +289,12 @@ class OnCallJob(DataGenerator):
         It returns a map of Mephisto Agent IDs to the directory names of the logs they produced.
         """
         s3_logs_dir = os.path.join(HITL_TMP_DIR, f"{self._batch_id}/turk_logs")
-        parsed_logs_dir = os.path.join(
-            HITL_TMP_DIR, f"{self._batch_id}/parsed_turk_logs"
-        )
+        parsed_logs_dir = os.path.join(HITL_TMP_DIR, f"{self._batch_id}/parsed_turk_logs")
         os.makedirs(s3_logs_dir, exist_ok=True)
         os.makedirs(parsed_logs_dir, exist_ok=True)
 
         subprocess.call(
-            [
-                f"aws s3 sync {S3_ROOT}/{self._batch_id}/interaction {s3_logs_dir}"
-            ],
+            [f"aws s3 sync {S3_ROOT}/{self._batch_id}/interaction {s3_logs_dir}"],
             shell=True,
         )
         logging.info("Waiting 2min for S3 directory sync to finish")
