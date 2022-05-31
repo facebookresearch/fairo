@@ -2,6 +2,18 @@
 
 The following are templated interactions meant to show how the NSP should respond in different clarification cases.  These templates are used to generate tempalted training data.
 
+## Top Level Clarification Decision Tree ##
+
+<pre>
+            Initial Command (resulting in reference object clarification)
+                   |
+           Agent 'check_parse'
+         /      /        \     \
+       no    yes         reset  follow-up
+      /       |            |        \
+NSP Error  Clarification  Exit    New Parse
+</pre>
+
 ## Basic Clarification ##
 
 ### Basic Input ###
