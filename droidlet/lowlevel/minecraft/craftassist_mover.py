@@ -1,21 +1,10 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from typing import cast
-from collections import namedtuple
-from droidlet.base_util import XYZ
 import numpy as np
-
-# mainHand is the item in the player or agent's hand, that will be placed by a place block action
-# it is defined in lowlevel/minecraft/client/src/types.h as Item, and has fields id, meta
-Player = namedtuple(
-    "Player", "entityId, name, pos, look, mainHand, cagent_struct", defaults=(None,) * 6
-)
-Mob = namedtuple("Mob", "entityId, mobType, pos, look, cagent_struct", defaults=(None,) * 5)
-Pos = namedtuple("Pos", "x, y, z")
-Look = namedtuple("Look", "yaw, pitch")
-Item = namedtuple("Item", "id, meta")
-ItemStack = namedtuple("ItemStack", "item, pos, entityId")
+from typing import cast
+from droidlet.base_util import XYZ, Pos, Look
+from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item, ItemStack, Mob
 
 
 def flip_x(struct, floor=False):
@@ -99,7 +88,6 @@ class CraftassistMover:
             "craft",
             "get_world_age",
             "get_time_of_day",
-            "send_chat",
             "get_vision",
             "disconnect",
         ]
@@ -160,11 +148,13 @@ class CraftassistMover:
 
     def get_blocks(self, x, X, y, Y, z, Z):
         """
-        returns an (X-x+1) x (Y-y+1) x (Z-z+1) x 2 numpy array B of the blocks
+        returns an (Y-y+1) x (Z-z+1) x (X-x+1) x 2 numpy array B of the blocks
         in the rectanguloid with bounded by the input coordinates (including endpoints).
         Input coordinates are in droidlet coordinates; and the output array is
         in yzxb permutation, where B[0,0,0,:] corresponds to the id and meta of
         the block at x, y, z
+
+        TODO: we don't need yzx orientation anymore...
         """
         # negate the x coordinate to shift to cuberite coords
         B = self.cagent.get_blocks(-X, -x, y, Y, z, Z)

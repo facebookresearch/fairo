@@ -12,7 +12,8 @@ from droidlet.shared_data_struct.craftassist_shared_utils import MOBS_BY_ID
 from droidlet.interpreter.craftassist import dance
 from droidlet.interpreter.tests.all_test_commands import *
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
-from droidlet.lowlevel.minecraft.pyworld.utils import Mob, Pos, Look
+from droidlet.base_util import Pos, Look
+from droidlet.shared_data_struct.craftassist_shared_utils import Mob
 
 
 class ObjectsTest(BaseCraftassistTestCase):
