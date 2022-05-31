@@ -144,6 +144,7 @@ def argument_parse(input_arg):
         input_arg: a string consists of arguments separated by space.
     Returns:
         args: input arguments
+        gt_query_actions: dict, maps query exists in the dataset to parsed tree
     """
 
     parser = argparse.ArgumentParser()
@@ -270,7 +271,10 @@ def argument_parse(input_arg):
         args.dtype_samples = json.dumps(
             [["templated", 1.0 - args.rephrase_proba], ["rephrases", args.rephrase_proba]]
         )
-    return args
+    
+    gt_query_actions = get_ground_truth(not args.load_ground_truth, args.ground_truth_data_dir)
+
+    return args, gt_query_actions
 
 def model_configure(args):
     """
@@ -319,7 +323,7 @@ def dataset_configure(args, tokenizer):
 
     return dataset
 
-def chat_mode(chat, args, model, tokenizer, dataset):
+def chat_mode(chat, args, gt_query_actions, model, tokenizer, dataset):
     """
     Chat mode for NLU model, which takes a sentence of natural language as input 
     and outputs its logical form
@@ -333,7 +337,6 @@ def chat_mode(chat, args, model, tokenizer, dataset):
     Returns:
         logical form (dict)
     """
-    gt_query_actions = get_ground_truth(not args.load_ground_truth, args.ground_truth_data_dir)
 
     if chat in gt_query_actions:
         tree = gt_query_actions[chat]
