@@ -2,7 +2,6 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 */
 import React from "react";
-import InteractApp from "./components/Interact/InteractApp";
 import LocoView from "./components/LocoView";
 import VoxelWorld from "./components/VoxelWorld/VoxelWorld";
 

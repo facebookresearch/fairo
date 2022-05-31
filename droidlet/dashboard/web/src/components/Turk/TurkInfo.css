@@ -52,3 +52,12 @@
 .MuiInputBase-input {
   text-align: left !important;
 }
+
+.MsgButton {
+  color: black !important;
+  background-color: white !important; 
+}
+
+.MsgButton:disabled {
+  visibility: hidden;
+}
