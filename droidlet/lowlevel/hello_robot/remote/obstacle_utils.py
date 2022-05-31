@@ -124,8 +124,8 @@ def is_lidar_obstacle(lidar_scan, bbox=(0.0, 0.30, -0.20, 0.20), min_quality=0):
     in_bounds = (xs >= xmin) & (xs <= xmax) & (ys >= ymin) & (ys <= ymax)
     lidar_obstacle_detected = in_bounds.any()
     if lidar_obstacle_detected:
-        print("xs[in_bounds]:", xs[in_bounds])
-        print("ys[in_bounds]:", ys[in_bounds])
+        print("[is_lidar_obstacle] xs in bounds:", xs[in_bounds])
+        print("[is_lidar_obstacle] ys in bounds:", ys[in_bounds])
 
     return lidar_obstacle_detected
 
