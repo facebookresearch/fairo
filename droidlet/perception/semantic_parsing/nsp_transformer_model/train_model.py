@@ -40,6 +40,7 @@ from droidlet.perception.semantic_parsing.nsp_transformer_model.optimizer_warmup
 )
 from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset import CAIPDataset
 
+
 def save_model(model, model_identifier, dataset, args, full_tree_voc, epoch, flag_best):
     M = {
         "state_dict": model.state_dict(),
@@ -55,10 +56,12 @@ def save_model(model, model_identifier, dataset, args, full_tree_voc, epoch, fla
     if flag_best:
         torch.save(M, pjoin(args.output_dir, "caip_test_model.pth"))
 
+
 def save_best_model_log_file(log_dict, save_path):
-    with open(os.path.join(save_path, 'log.txt'), 'w') as f:
+    with open(os.path.join(save_path, "log.txt"), "w") as f:
         for key, value in log_dict.items():
             f.write(key + "|" + str(value) + "\n")
+
 
 def show_examples(model, dataset, tokenizer, n=10):
     model.eval()
@@ -74,6 +77,7 @@ def show_examples(model, dataset, tokenizer, n=10):
             print(tree)
             print("*********************************")
     model.train()
+
 
 class ModelTrainer:
     """Wrapper Class around training model and data loader"""
@@ -224,16 +228,21 @@ class ModelTrainer:
 
                 loss.backward()
                 # Add text span loss gradients
-                model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
-                    text_span_loss_attenuation_factor
-                    * (
-                        model.decoder.text_span_start_hidden_z.grad
-                        + model.decoder.text_span_end_hidden_z.grad
+                model.decoder.bert_final_layer_out.grad = (
+                    model.decoder.bert_final_layer_out.grad.add(
+                        text_span_loss_attenuation_factor
+                        * (
+                            model.decoder.text_span_start_hidden_z.grad
+                            + model.decoder.text_span_end_hidden_z.grad
+                        )
                     )
                 )
                 # Add fixed value loss gradients
-                model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
-                    fixed_value_loss_attenuation_factor * (model.decoder.fixed_span_hidden_z.grad)
+                model.decoder.bert_final_layer_out.grad = (
+                    model.decoder.bert_final_layer_out.grad.add(
+                        fixed_value_loss_attenuation_factor
+                        * (model.decoder.fixed_span_hidden_z.grad)
+                    )
                 )
                 if step % self.args.param_update_freq == 0:
                     torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -337,7 +346,7 @@ class ModelTrainer:
                 if tb:
                     tb.add_scalar("val_accuracy_" + str(dtype), a, global_step=e)
                     tb.add_scalar("val_loss_" + str(dtype), l, global_step=e)
-                
+
                 # compare evaluation accuracy and save the best model
                 if dtype == "annotated":
                     if a > best_accuracy:
@@ -347,27 +356,36 @@ class ModelTrainer:
                         self.best_model_logger["valid_loss"] = l
                         self.best_model_logger["valid_accuracy"] = a
                         # save the model for each epoch and update the best model
-                        save_model(model, model_identifier, dataset, self.args, full_tree_voc, e, True)
+                        save_model(
+                            model, model_identifier, dataset, self.args, full_tree_voc, e, True
+                        )
                     else:
                         # save the model for each epoch
-                        save_model(model, model_identifier, dataset, self.args, full_tree_voc, e, False)
+                        save_model(
+                            model, model_identifier, dataset, self.args, full_tree_voc, e, False
+                        )
 
         # update log information for the best model
         self.best_model_logger["train_loss"] = tot_loss / tot_steps
         self.best_model_logger["train_accruacy"] = tot_accuracy / tot_steps
         # compute the checksum
-        checksum = compute_checksum_for_model(root_dir=self.args.root_dir, agent="craftassist", model_name="nlu")
+        checksum = compute_checksum_for_model(
+            root_dir=self.args.root_dir, agent="craftassist", model_name="nlu"
+        )
         # log the hash and save it
         self.best_model_logger["hash"] = checksum
         save_path = "droidlet/artifacts/models/nlu/ttad_bert_updated/"
         save_best_model_log_file(self.best_model_logger, save_path)
         # transfer trained model and related files
         if self.args.output_dir != "droidlet/artifacts/models/nlu/ttad_bert_updated/":
-            shutil.copy(os.path.join(self.args.output_dir, "caip_test_model.pth"), 
-                "droidlet/artifacts/models/nlu/ttad_bert_updated/caip_test_model.pth"
+            shutil.copy(
+                os.path.join(self.args.output_dir, "caip_test_model.pth"),
+                "droidlet/artifacts/models/nlu/ttad_bert_updated/caip_test_model.pth",
             )
         # zip files and upload it to AWS S3
-        tar_and_upload(root_dir=self.args.root_dir, checksum=checksum, agent="craftassist", model_name="nlu")
+        tar_and_upload(
+            root_dir=self.args.root_dir, checksum=checksum, agent="craftassist", model_name="nlu"
+        )
 
         return (tot_loss / tot_steps, tot_accuracy / tot_steps)
 
@@ -503,6 +521,7 @@ def generate_model_name(args, optional_identifier=""):
     name += optional_identifier
     return name
 
+
 def build_grammar(args):
     data = {"train": {}, "valid": {}, "test": {}}
     dtypes = list(args.dtype_samples.keys())
@@ -532,22 +551,14 @@ if __name__ == "__main__":
         type=str,
         help="The root folder of the fairo project",
     )
-    parser.add_argument(
-        "--tensorboard_dir",
-        default=""
-    )
+    parser.add_argument("--tensorboard_dir", default="")
     parser.add_argument(
         "--output_dir",
         default="droidlet/artifacts/models/nlu/ttad_bert_updated/",
         type=str,
         help="Where we save the model",
     )
-    parser.add_argument(
-        "--model_name", 
-        default="caip_parser", 
-        type=str, 
-        help="Model name"
-    )
+    parser.add_argument("--model_name", default="caip_parser", type=str, help="Model name")
     parser.add_argument(
         "--tree_voc_file",
         default="droidlet/artifacts/models/nlu/ttad_bert_updated/caip_test_model_tree.json",
@@ -576,47 +587,20 @@ if __name__ == "__main__":
         help="Number of transformer layers in the decoder",
     )
     parser.add_argument(
-        "--num_highway", 
-        default=2, 
-        type=int, 
-        help="Number of highway layers in the mapping model"
+        "--num_highway", default=2, type=int, help="Number of highway layers in the mapping model"
     )
     # optimization arguments
     parser.add_argument(
-        "--optimizer", 
-        default="adam", 
-        type=str, 
-        help="Optimizer in [adam|adagrad]"
+        "--optimizer", default="adam", type=str, help="Optimizer in [adam|adagrad]"
+    )
+    parser.add_argument("--batch_size", default=56, type=int, help="Batch size")
+    parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
+    parser.add_argument("--num_epochs", default=10, type=int, help="Number of training epochs")
+    parser.add_argument(
+        "--examples_per_epoch", default=-1, type=int, help="Number of training examples per epoch"
     )
     parser.add_argument(
-        "--batch_size", 
-        default=56, 
-        type=int, 
-        help="Batch size"
-    )
-    parser.add_argument(
-        "--param_update_freq", 
-        default=1, 
-        type=int, 
-        help="Group N batch updates"
-    )
-    parser.add_argument(
-        "--num_epochs", 
-        default=10, 
-        type=int, 
-        help="Number of training epochs"
-    )
-    parser.add_argument(
-        "--examples_per_epoch", 
-        default=-1, 
-        type=int, 
-        help="Number of training examples per epoch"
-    )
-    parser.add_argument(
-        "--train_encoder", 
-        default=1, 
-        type=int, 
-        help="Whether to finetune the encoder"
+        "--train_encoder", default=1, type=int, help="Whether to finetune the encoder"
     )
     parser.add_argument(
         "--encoder_warmup_steps",
@@ -670,32 +654,17 @@ if __name__ == "__main__":
         help="Probability of replacing input token with [UNK]",
     )
     parser.add_argument(
-        "--encoder_dropout", 
-        default=0.0, 
-        type=float, 
-        help="Apply dropout to encoder output"
+        "--encoder_dropout", default=0.0, type=float, help="Apply dropout to encoder output"
     )
     parser.add_argument(
-        "--show_samples", 
-        action="store_true", 
-        help="show samples every few iterations"
+        "--show_samples", action="store_true", help="show samples every few iterations"
+    )
+    parser.add_argument("--tree_to_text", action="store_true", help="Back translation flag")
+    parser.add_argument(
+        "--optional_identifier", default="", type=str, help="Optional run info eg. debug or test"
     )
     parser.add_argument(
-        "--tree_to_text", 
-        action="store_true", 
-        help="Back translation flag"
-    )
-    parser.add_argument(
-        "--optional_identifier", 
-        default="", 
-        type=str, 
-        help="Optional run info eg. debug or test"
-    )
-    parser.add_argument(
-        "--hard", 
-        default=1, 
-        type=int, 
-        help="Whether to feed in failed examples during training"
+        "--hard", default=1, type=int, help="Whether to feed in failed examples during training"
     )
     parser.add_argument(
         "--alpha",
