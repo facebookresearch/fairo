@@ -1,27 +1,27 @@
 ## Chat Architecture Flowchart ##
 <pre>
-`handleSubmit`                            User sends a new chat (command status: 'sent')
+<i>handleSubmit</i>                              User sends a new chat (command status: 'sent')
                                                       |
-`setChatReponse`(in `StateManager`)      Agent receives the chat (command status: 'received' -> 'thinking' (500ms later))
+<i>setChatReponse</i> (in <i>StateManager</i>)         Agent receives the chat (command status: 'received' -> 'thinking' (500ms later))
                                                       |
-`returnTimelineEvent`(in `StateManager`)  Agent parses the chat (command status: 'done_thinking')
+<i>returnTimelineEvent</i> (in <i>StateManager</i>)     Agent parses the chat (command status: 'done_thinking')
                       ______________________/_________|_____   \
                       |                    /          |     |   \ 
-`handleAgentThinking` | Clarification needed          |      \--Task added to stack (command status: 'executing')
+<i>handleAgentThinking</i>   | Clarification needed          |      \--Task added to stack (command status: 'executing')
                       |           |           Uncaught failure           |       \
-`answerClarification` |     Verify parse              |                  |      "Stop" command issued  `issueResetCommand`
+<i>answerClarification</i>   |     Verify parse              |                  |      "Stop" command issued  <i>issueResetCommand</i>
                       |          y|     \n_____       |            Task Complete          |
-`answerClarification` |   Clarify ref objs     \      |       __________/      __________/
+<i>answerClarification</i>   |   Clarify ref objs     \      |       __________/      __________/
                       |_y/              \n____  \     |      /   _____________/
                                               \  \    |     /   /
                                               Error Marking Flow  (if Turk, otherwise end)
                                                       |
-`askActionQuestion`                     Did the agent execute correctly?
+<i>askActionQuestion</i>                       Did the agent execute correctly?
                                       n/                               \y
-`answerAction`               Is the parse correct?             (finished - no error)
-`answerParsing`            n/                     \y
-                (finished - nlu error)   Was there a vision error?   `askVisionQuestion`
-`answerVision`                         n/                         \y
+<i>answerAction</i>                 Is the parse correct?             (finished - no error)
+<i>answerParsing</i>              n/                     \y
+                (finished - nlu error)   Was there a vision error?   <i>askVisionQuestion</i>
+<i>answerVision</i>                           n/                         \y
                             (finished - other error)     (finished - vision error)
 </pre>
 
