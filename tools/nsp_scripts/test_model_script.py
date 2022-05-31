@@ -22,6 +22,7 @@ from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_parsing im
 from droidlet.perception.semantic_parsing.nsp_transformer_model.decoder_with_loss import *
 from droidlet.perception.semantic_parsing.nsp_transformer_model.encoder_decoder import *
 from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset import *
+from droidlet.perception.semantic_parsing.load_and_check_datasets import get_ground_truth
 from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_caip import caip_collate
 from droidlet.perception.semantic_parsing.utils.nsp_logger import NSPLogger
 
@@ -51,10 +52,10 @@ class ModelEvaluator:
         """
         train_sampler = SequentialSampler(dataset)
         model_collate_fn = functools.partial(
-            caip_collate, tokenizer=tokenizer, tree_to_text=args.tree_to_text
+            caip_collate, tokenizer=tokenizer, tree_to_text=self.args.tree_to_text
         )
         dataloader = DataLoader(
-            dataset, sampler=train_sampler, batch_size=args.batch_size, collate_fn=model_collate_fn
+            dataset, sampler=train_sampler, batch_size=self.args.batch_size, collate_fn=model_collate_fn
         )
         epoch_iterator = tqdm(dataloader, desc="Iteration", disable=True)
 
@@ -93,7 +94,7 @@ class ModelEvaluator:
                     text_span_acc.sum().item() / text_span_acc.shape[0]
                 )  # text_span_accuracy / batch_size
 
-                if step % args.vis_step_size == 0 and args.show_samples:
+                if step % self.args.vis_step_size == 0 and self.args.show_samples:
                     show_examples(self.args, model, dataset, tokenizer)
 
         self.evaluate_results_logger.log_dialogue_outputs(
@@ -135,7 +136,16 @@ def show_examples(args, model, dataset, tokenizer, n=10):
             print("*********************************")
     model.train()
 
-if __name__ == "__main__":
+def argument_parse(input_arg):
+    """
+    Parse input arguments of configuring model and dataset.
+
+    Args:
+        input_arg: a string consists of arguments separated by space.
+    Returns:
+        args: input arguments
+    """
+
     parser = argparse.ArgumentParser()
     # dataset arguments
     parser.add_argument(
@@ -150,7 +160,12 @@ if __name__ == "__main__":
         type=str,
         help="Where we save the model",
     )
-    parser.add_argument("--model_name", default="caip_parser", type=str, help="Model name")
+    parser.add_argument(
+        "--ground_truth_data_dir",
+        default="droidlet/artifacts/datasets/ground_truth/",
+        type=str,
+        help="tempalted/templated_filters/annotated/short_commands/high_pri_commands data",
+    )
     parser.add_argument(
         "--tree_voc_file",
         default="droidlet/artifacts/models/nlu/ttad_bert_updated/caip_test_model_tree.json",
@@ -159,6 +174,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--tree_to_text", action="store_true", help="Back translation flag")
     # model arguments
+    parser.add_argument("--model_name", default="caip_parser", type=str, help="Model name")
     parser.add_argument(
         "--pretrained_encoder_name",
         default="distilbert-base-uncased",
@@ -233,7 +249,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--well_formed_pen", default=1e2, type=float, help="Penalization for poorly formed trees"
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--load_ground_truth", action="store_false", help="Load ground truth for querying input chat"
+    )
+
+    if input_arg:
+        args = parser.parse_args(input_arg.split())
+    else:
+        args = parser.parse_args()
+
     dtype_samples = {}
     for x in args.dtype_samples.split(";"):
         y = x.split(":")
@@ -246,13 +270,18 @@ if __name__ == "__main__":
         args.dtype_samples = json.dumps(
             [["templated", 1.0 - args.rephrase_proba], ["rephrases", args.rephrase_proba]]
         )
+    return args
+
+def model_configure(args):
+    """
+    Configurate NLU model based on input arguments
     
-    # load grammar tree
-    if isfile(args.tree_voc_file):
-        logging.info("====== Loading Grammar ======")
-    else:
-        logging.info("====== Making Grammar ======")
-        build_grammar(args)
+    Args:
+        args: input arguments of model and dataset configuration
+    Returns:
+        encoder_decoder:model class with pretrained model
+        tokenizer: pretrained tokenizer
+    """
     with open(args.tree_voc_file) as fd:
         full_tree, tree_i2w = json.load(fd)
     full_tree_voc = (full_tree, tree_i2w)
@@ -260,9 +289,27 @@ if __name__ == "__main__":
     logging.info("====== Loading Pretrained Parameters ======")
     sd, _, _, _, _ = load_model(args.model_dir)
     logging.info("====== Setting up Model ======")
-    decoder_with_loss, encoder_decoder, tokenizer = build_model(args, full_tree_voc[1])
+    _, encoder_decoder, tokenizer = build_model(args, full_tree_voc[1])
     encoder_decoder.load_state_dict(sd, strict=True)
-    logging.info("====== Loading Dataset ======")
+    encoder_decoder = encoder_decoder.cuda()
+    encoder_decoder.eval()
+
+    return encoder_decoder, tokenizer
+
+def dataset_configure(args, tokenizer):
+    """
+    Configurate CAIP dataset based on input arguments
+
+    Args:
+        args: input arguments of model and dataset configuration
+        tokenizer: pretrained tokenizer
+    Returns:
+        dataset: 
+    """
+    with open(args.tree_voc_file) as fd:
+        full_tree, tree_i2w = json.load(fd)
+    full_tree_voc = (full_tree, tree_i2w)
+
     dataset = CAIPDataset(
         tokenizer, 
         args, 
@@ -270,10 +317,38 @@ if __name__ == "__main__":
         full_tree_voc=full_tree_voc
     )
 
-    logging.info("====== Evaluating Model ======")
-    encoder_decoder = encoder_decoder.cuda()
-    encoder_decoder.eval()
+    return dataset
+
+def chat_mode(chat, args, model, tokenizer, dataset):
+    """
+    Chat mode for NLU model, which takes a sentence of natural language as input 
+    and outputs its logical form
+
+    Args:
+        chat (str): chat input
+        args: input arguments of model and dataset configuration
+        model: model class with pretrained model
+        tokenizer: pretrained tokenizer
+        dataset: caip dataset
+    Returns:
+        logical form (dict)
+    """
+    gt_query_actions = get_ground_truth(not args.load_ground_truth, args.ground_truth_data_dir)
+
+    if chat in gt_query_actions:
+        tree = gt_query_actions[chat]
+    else:
+        btr = beam_search(chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen)
+
+        if btr[0][0].get("dialogue_type", "NONE") == "NOOP" and math.exp(btr[0][1]) < args.noop_thres:
+            tree = btr[1][0]
+        else:
+            tree = btr[0][0]
+
+    return tree
+
+def evaluation_mode(args, model, tokenizer, dataset):
     model_evaluator = ModelEvaluator(args)
     model_evaluator.evaluate(
-        encoder_decoder, dataset, tokenizer
+        model, dataset, tokenizer
     )
