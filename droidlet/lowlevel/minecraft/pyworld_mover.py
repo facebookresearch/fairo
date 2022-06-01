@@ -48,6 +48,8 @@ class PyWorldMover:
         to_npy_coords, from_npy_coords = build_coord_shifts(self.world_coord_shift)
         self.to_npy_coords = to_npy_coords
         self.from_npy_coords = from_npy_coords
+        player_struct = self.get_player()
+        self.eid = player_struct.eid
 
     def get_line_of_sight(self):
         D = DataCallback()
@@ -158,6 +160,22 @@ class PyWorldMover:
 
     def send_chat(self, chat_text):
         self.sio.emit("send_chat", chat_text)
+
+    # TODO is this supposed to include the self Player ?
+    def get_other_players(self):
+        D = DataCallback()
+        self.sio.emit("get_players", callback=D)
+        players = wait_for_data(D)
+        out = []
+        for p in players:
+            eid, name, pos, look, mainhand, _ = p
+            if eid != self.eid:
+                if mainhand is not None:
+                    mainhand = Item(*mainhand)
+                    out.append(Player(eid, name, Pos(*pos), Look(*look), mainhand))
+                else:
+                    out.append(Player(eid, name, Pos(*pos), Look(*look)))
+        return out
 
     def get_incoming_chats(self):
         D = DataCallback()

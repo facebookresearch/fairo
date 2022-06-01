@@ -90,6 +90,9 @@ class ArgumentParser:
             "--semseg_model_path", default="", help="path to semantic segmentation model"
         )
         mc_parser.add_argument(
+            "--backend", default="cuberite", help="is agent running in cuberite or pyworld?"
+        )
+        mc_parser.add_argument(
             "--geoscorer_model_path", default="", help="path to geoscorer model"
         )
         mc_parser.add_argument(
@@ -111,9 +114,10 @@ class ArgumentParser:
             "--incoming_chat_path", default="incoming_chat.txt", help="path to incoming chat file"
         )
         loco_parser.add_argument(
-            "--draw_map", 
-            default="observations", 
-            help='"" for no map in dashboard, "memory" to draw from agent memory, and "observations" to draw directly from slam service')
+            "--draw_map",
+            default="observations",
+            help='"" for no map in dashboard, "memory" to draw from agent memory, and "observations" to draw directly from slam service',
+        )
         loco_parser.add_argument("--backend", default="habitat")
         loco_parser.add_argument(
             "--perception_model_dir",

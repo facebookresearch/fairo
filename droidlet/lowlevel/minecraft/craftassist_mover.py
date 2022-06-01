@@ -77,6 +77,7 @@ class CraftassistMover:
             "drop_inventory_item_stack",
             "set_inventory_slot",
             "get_player_inventory",
+            "get_incoming_chats",
             "get_inventory_item_count",
             "get_inventory_items_counts",
             "send_chat",

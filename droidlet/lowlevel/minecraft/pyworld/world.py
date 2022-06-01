@@ -368,6 +368,10 @@ class World:
             eid = self.connected_sids.get(sid)
             return {"player": self.get_player_info(eid)}
 
+        @server.on("get_players")
+        def get_all_players(sid):
+            return self.get_players()
+
         @server.on("get_changed_blocks")
         def changed_blocks(sid):
             eid = self.connected_sids.get(sid)

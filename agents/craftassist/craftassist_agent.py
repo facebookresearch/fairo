@@ -18,6 +18,7 @@ from copy import deepcopy
 # also used as a standalone script and invoked via `python craftassist_agent.py`
 from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
 from droidlet.memory.craftassist import mc_memory
+from droidlet.memory.memory_nodes import ChatNode
 from droidlet.shared_data_struct import rotation
 from droidlet.lowlevel.minecraft.craftassist_mover import (
     CraftassistMover,
@@ -97,6 +98,7 @@ class CraftAssistAgent(DroidletAgent):
             "fill_idmeta": fill_idmeta,
             "color_bid_map": COLOR_BID_MAP,
         }
+        self.backend = opts.backend
         self.mark_airtouching_blocks = opts.mark_airtouching_blocks
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
@@ -124,9 +126,9 @@ class CraftAssistAgent(DroidletAgent):
         self.perceive_on_chat = True
 
     def get_chats(self):
-        """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
+        """This function is a wrapper around self.mover.get_incoming_chats and adds a new
         chat self.dashboard_chat which is set by the dashboard."""
-        all_chats = []#self.cagent.get_incoming_chats()
+        all_chats = self.mover.get_incoming_chats()
         updated_chats = []
         if self.dashboard_chat:
             updated_chats.append(self.dashboard_chat)
@@ -137,7 +139,7 @@ class CraftAssistAgent(DroidletAgent):
     def get_all_players(self):
         """This function is a wrapper around self.mover.get_other_players and adds a new
         player called "dashboard" if it doesn't already exist."""
-        all_players = []#self.mover.get_other_players()
+        all_players = self.mover.get_other_players()
         updated_players = all_players
         player_exists = False
         for player in all_players:
@@ -326,7 +328,8 @@ class CraftAssistAgent(DroidletAgent):
                     ybad = y >= pt[1] and y <= pt[4]
                     zbad = z >= pt[2] and z <= pt[5]
                     if xbad and ybad and zbad:
-                        if b in safe_blocks: safe_blocks.remove(b)
+                        if b in safe_blocks:
+                            safe_blocks.remove(b)
         else:
             safe_blocks = blocks
         return safe_blocks
@@ -359,16 +362,16 @@ class CraftAssistAgent(DroidletAgent):
     ###FIXME!!
     #    self.get_incoming_chats = self.get_chats
 
+    # WARNING!! this is in degrees.  agent's memory stores looks in radians.
+    # FIXME: normalize, switch in DSL to radians.
     def relative_head_pitch(self, angle):
         """Converts assistant's current pitch and yaw
         into a pitch and yaw relative to the angle."""
-        # warning: pitch is flipped!
-        new_pitch = self.get_player().look.pitch - angle
+        new_pitch = np.rad2deg(self.get_player().look.pitch) - angle
         self.set_look(self.get_player().look.yaw, new_pitch)
 
     def send_chat(self, chat: str):
         """Send chat from agent to player"""
-
         chat_json = False
         try:
             chat_json = json.loads(chat)
@@ -379,7 +382,9 @@ class CraftAssistAgent(DroidletAgent):
             chat_text = chat
 
         logging.info("Sending chat: {}".format(chat_text))
-        chat_memid = self.memory.add_chat(self.memory.self_memid, chat_text)
+        self.memory.nodes[ChatNode.NODE_TYPE].create(
+            self.memory, self.memory.self_memid, chat_text
+        )
 
         if chat_json:
             chat_json["chat_memid"] = chat_memid
@@ -389,7 +394,7 @@ class CraftAssistAgent(DroidletAgent):
         else:
             sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
 
-        # return self.cagent.send_chat(chat_text)
+        return self.send_chat(chat_text)
 
     def update_agent_pos_dashboard(self):
         agent_pos = self.get_player().pos
@@ -472,7 +477,6 @@ class CraftAssistAgent(DroidletAgent):
         self.mover.step_forward()
         self.update_agent_pos_dashboard()
 
-    # TODO update client so we can just loop through these
     # TODO rename things a bit- some perceptual things are here,
     #      but under current abstraction should be in init_perception
     def init_physical_interfaces(self):
@@ -480,11 +484,25 @@ class CraftAssistAgent(DroidletAgent):
         # For testing agent without cuberite server
         if self.opts.port == -1:
             return
-        logging.info("Attempting to connect to port {}".format(self.opts.port))
-        # self.cagent = MCAgent("localhost", self.opts.port, self.name)
-        logging.info("Logged in to server")
-        # self.mover = CraftassistMover(self.cagent)
-        self.mover = PyWorldMover(port=6001)
+        if self.backend == "cuberite":
+            logging.info(
+                "Attempting to connect to cuberite cagent on port {}".format(self.opts.port)
+            )
+            self.cagent = MCAgent("localhost", self.opts.port, self.name)
+            logging.info("Logged in to server")
+            self.mover = CraftassistMover(self.cagent)
+        elif self.backend == "pyworld":
+            logging.info("Attempting to connect to pyworld on port {}".format(self.opts.port))
+            # TODO allow pyworld ip to not be localhost
+            try:
+                self.mover = PyWorldMover(self.opts.port)
+                self.cagent = None
+                logging.info("Logged in to server")
+            except:
+                raise Exception("unable to connect to PyWorld on port {}".format(self.opts.port))
+        else:
+            raise Exception("unknown backend option {}".format(self.backend))
+
         for m in dir(self.mover):
             if callable(getattr(self.mover, m)) and m[0] != "_" and getattr(self, m, None) is None:
                 setattr(self, m, getattr(self.mover, m))
@@ -500,12 +518,6 @@ class CraftAssistAgent(DroidletAgent):
         except:  # this is for test/test_agent
             return
         PlayerNode.create(self.memory, p, memid=self.memory.self_memid)
-    
-    def get_mobs(self):
-        return self.mover.get_mobs()
-    
-    def get_item_stacks(self):
-        return self.mover.get_item_stacks()
 
 
 if __name__ == "__main__":
