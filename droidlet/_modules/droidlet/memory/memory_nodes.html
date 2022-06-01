@@ -106,7 +106,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Tuple</span>
 <span class="kn">from</span> <span class="nn">droidlet.base_util</span> <span class="kn">import</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">POINT_AT_TARGET</span><span class="p">,</span> <span class="n">to_player_struct</span>
 
 
@@ -150,7 +150,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">memid</span> <span class="o">=</span> <span class="n">memid</span>
 
     <span class="k">def</span> <span class="nf">get_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">get_tags_by_memid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">get_tags_by_memid</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
         <span class="n">blacklist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">PROPERTIES_BLACKLIST</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_more_properties_blacklist</span><span class="p">()</span>
@@ -196,8 +198,12 @@
 
 
 <span class="k">def</span> <span class="nf">link_archive_to_mem</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="n">archive_memid</span><span class="p">):</span>
-    <span class="n">agent_memory</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="n">archive_memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;_archive_of&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="n">memid</span><span class="p">)</span>
-    <span class="n">agent_memory</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;_has_archive&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="n">archive_memid</span><span class="p">)</span>
+    <span class="n">agent_memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+        <span class="n">agent_memory</span><span class="p">,</span> <span class="n">subj</span><span class="o">=</span><span class="n">archive_memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;_archive_of&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="n">memid</span>
+    <span class="p">)</span>
+    <span class="n">agent_memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+        <span class="n">agent_memory</span><span class="p">,</span> <span class="n">subj</span><span class="o">=</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;_has_archive&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="n">archive_memid</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">dehydrate</span><span class="p">(</span><span class="n">lf</span><span class="p">):</span>
@@ -451,6 +457,176 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">memid</span>
 
+    <span class="c1"># does not search archived mems for now</span>
+    <span class="c1"># TODO clean up input?</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_triples</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">agent_memory</span><span class="p">,</span>
+        <span class="n">subj</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">obj</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">subj_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">pred_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">obj_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_obj_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;if_exists&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;gets triples from the triplestore.</span>
+<span class="sd">        subj is always returned as a memid even when searched as text.</span>
+<span class="sd">        need at least one non-None part of the triple, and</span>
+<span class="sd">        text should not not be input for a part of a triple where a memid is set.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            subj (string): memid of subject</span>
+<span class="sd">            obj (string): memid of object</span>
+<span class="sd">            subj_text (string): text of the subject (if applicable, as opposed to subject memid)</span>
+<span class="sd">            pred_text (string): text of the predicate</span>
+<span class="sd">            obj_text (string): text of the subject (if applicable, as opposed to subject memid)</span>
+<span class="sd">            return_obj_text (string): if return_obj_text == &quot;if_exists&quot;, will return the obj_text</span>
+<span class="sd">                             if it exists, and the memid otherwise. If return_obj_text</span>
+<span class="sd">                             == &quot;always&quot;, returns the obj_text even if it is None. If</span>
+<span class="sd">                             return_obj_text == &quot;never&quot;, returns the obj memid.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list[tuple]: A list of tuples of the form : (subject, predicate, object)</span>
+
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; subj = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; obj_text = &#39;blue&#39;</span>
+<span class="sd">            &gt;&gt;&gt; pred_text = &quot;has_colour&quot;</span>
+<span class="sd">            &gt;&gt;&gt; get_triples(agent_memory,</span>
+<span class="sd">                            subj=subj,</span>
+<span class="sd">                            pred_text=pred_text,</span>
+<span class="sd">                            obj_text=obj_text)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">any</span><span class="p">([</span><span class="n">subj</span> <span class="ow">or</span> <span class="n">subj_text</span><span class="p">,</span> <span class="n">pred_text</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">or</span> <span class="n">obj_text</span><span class="p">])</span>
+        <span class="c1"># search by memid or by text, but not both</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="n">subj</span> <span class="ow">and</span> <span class="n">subj_text</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="n">obj</span> <span class="ow">and</span> <span class="n">obj_text</span><span class="p">)</span>
+        <span class="n">pairs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;subj&quot;</span><span class="p">,</span> <span class="n">subj</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;subj_text&quot;</span><span class="p">,</span> <span class="n">subj_text</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;pred_text&quot;</span><span class="p">,</span> <span class="n">pred_text</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;obj&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;obj_text&quot;</span><span class="p">,</span> <span class="n">obj_text</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pairs</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;=?&quot;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pairs</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">where</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">where_clause</span> <span class="o">=</span> <span class="n">where</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">where_clause</span> <span class="o">=</span> <span class="s2">&quot; AND &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">where</span><span class="p">)</span>
+        <span class="n">return_clause</span> <span class="o">=</span> <span class="s2">&quot;subj, pred_text, obj, obj_text &quot;</span>
+        <span class="n">sql</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;SELECT &quot;</span>
+            <span class="o">+</span> <span class="n">return_clause</span>
+            <span class="o">+</span> <span class="s2">&quot;FROM Triples INNER JOIN Memories as M ON Triples.subj=M.uuid WHERE M.is_snapshot=0 AND &quot;</span>
+            <span class="o">+</span> <span class="n">where_clause</span>
+        <span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="c1"># subj is always returned as memid, even if pred and obj are returned as text</span>
+        <span class="c1"># pred is always returned as text</span>
+        <span class="k">if</span> <span class="n">return_obj_text</span> <span class="o">==</span> <span class="s2">&quot;if_exists&quot;</span><span class="p">:</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">ot</span><span class="p">)</span> <span class="k">if</span> <span class="n">ot</span> <span class="k">else</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">o</span><span class="p">,</span> <span class="n">ot</span><span class="p">)</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">return_obj_text</span> <span class="o">==</span> <span class="s2">&quot;always&quot;</span><span class="p">:</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">ot</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">o</span><span class="p">,</span> <span class="n">ot</span><span class="p">)</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">o</span><span class="p">,</span> <span class="n">ot</span><span class="p">)</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="n">l</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">subj_memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tag_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Tag the subject with tag text.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            subj_memid (string): memid of subject</span>
+<span class="sd">            tag_text (string): string representation of the tag</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            memid of triple representing the tag</span>
+
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; subj_memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; tag_text = &quot;shiny&quot;</span>
+<span class="sd">            &gt;&gt;&gt; tag(agent_memory, subj_memid, tag_text)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">agent_memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">agent_memory</span><span class="p">,</span> <span class="n">subj</span><span class="o">=</span><span class="n">subj_memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_tag&quot;</span><span class="p">,</span> <span class="n">obj_text</span><span class="o">=</span><span class="n">tag_text</span>
+        <span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_tags_by_memid</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">subj_memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">return_text</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Find all tag for a given memid</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            subj_memid (string): the subject&#39;s memid (uuid from Memories table)</span>
+<span class="sd">            return_text (bool): if true, return the object text, otherwise return object memid</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list[string]: list of tags.</span>
+
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; subj_memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; get_tags_by_memid(agent_memory, subj_memid=subj_memid, return_text=True)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">return_text</span><span class="p">:</span>
+            <span class="n">return_clause</span> <span class="o">=</span> <span class="s2">&quot;obj_text&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">return_clause</span> <span class="o">=</span> <span class="s2">&quot;obj&quot;</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;SELECT DISTINCT(&quot;</span>
+            <span class="o">+</span> <span class="n">return_clause</span>
+            <span class="o">+</span> <span class="s1">&#39;) FROM Triples WHERE pred_text=&quot;has_tag&quot; AND subj=?&#39;</span>
+        <span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">subj_memid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,)</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span>
+
+    <span class="c1"># does not search archived mems for now</span>
+    <span class="c1"># assumes tag is tag text</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_memids_by_tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Find all memids with a given tag</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tag (string): string representation of the tag</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list[string]: list of memory ids (which are strings)</span>
+
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; tag = &quot;round&quot;</span>
+<span class="sd">            &gt;&gt;&gt; get_memids_by_tag(agent_memory, tag)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span>
+            <span class="s1">&#39;SELECT DISTINCT(Memories.uuid) FROM Memories INNER JOIN Triples as T ON T.subj=Memories.uuid WHERE T.pred_text=&quot;has_tag&quot; AND T.obj_text=? AND Memories.is_snapshot=0&#39;</span><span class="p">,</span>
+            <span class="n">tag</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,)</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="c1"># TODO remove_triple</span>
+    <span class="k">def</span> <span class="nf">untag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">subj_memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tag_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete tag for subject</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            subj_memid (string): memid of subject</span>
+<span class="sd">            tag_text (string): string representation of the tag</span>
+
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; subj_memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; tag_text = &quot;shiny&quot;</span>
+<span class="sd">            &gt;&gt;&gt; untag(agent_memory, subj_memid, tag_text)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># FIXME replace me with a basic filters when _self handled better</span>
+        <span class="n">triple_memids</span> <span class="o">=</span> <span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span>
+            <span class="s1">&#39;SELECT uuid FROM Triples WHERE subj=? AND pred_text=&quot;has_tag&quot; AND obj_text=?&#39;</span><span class="p">,</span>
+            <span class="n">subj_memid</span><span class="p">,</span>
+            <span class="n">tag_text</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">triple_memids</span><span class="p">:</span>
+            <span class="n">agent_memory</span><span class="o">.</span><span class="n">forget</span><span class="p">(</span><span class="n">triple_memids</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
 
 <span class="k">class</span> <span class="nc">InterpreterNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;for representing interpreter objects&quot;&quot;&quot;</span>
@@ -515,7 +691,9 @@
         <span class="k">return</span> <span class="n">memid</span>
 
     <span class="k">def</span> <span class="nf">get_members</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span><span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;member_of&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;member_of&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">SetNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -623,14 +801,16 @@
             <span class="n">player_struct</span><span class="o">.</span><span class="n">look</span><span class="o">.</span><span class="n">yaw</span><span class="p">,</span>
             <span class="s2">&quot;player&quot;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">memory</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_player&quot;</span><span class="p">)</span>
-        <span class="n">memory</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_physical_object&quot;</span><span class="p">)</span>
-        <span class="n">memory</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_animate&quot;</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_player&quot;</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_physical_object&quot;</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_animate&quot;</span><span class="p">)</span>
         <span class="c1"># this is a hack until memory_filters does &quot;not&quot;</span>
-        <span class="n">memory</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_not_location&quot;</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_not_location&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">player_struct</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">memory</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_name&quot;</span><span class="p">,</span> <span class="n">obj_text</span><span class="o">=</span><span class="n">player_struct</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                <span class="n">memory</span><span class="p">,</span> <span class="n">subj</span><span class="o">=</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_name&quot;</span><span class="p">,</span> <span class="n">obj_text</span><span class="o">=</span><span class="n">player_struct</span><span class="o">.</span><span class="n">name</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="n">memid</span>
 
     <span class="nd">@classmethod</span>
@@ -668,7 +848,21 @@
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">z</span>
 
     <span class="k">def</span> <span class="nf">get_struct</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">to_player_struct</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yaw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pitch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">to_player_struct</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yaw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pitch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="c1"># TODO consolidate anything using eid</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_player_by_eid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;PlayerNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Given eid, retrieve PlayerNode</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            eid (int): Entity ID</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span><span class="s2">&quot;SELECT uuid FROM ReferenceObjects WHERE eid=?&quot;</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">PlayerNode</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
 
 
 <div class="viewcode-block" id="SelfNode"><a class="viewcode-back" href="../../../memory.html#droidlet.memory.memory_nodes.SelfNode">[docs]</a><span class="k">class</span> <span class="nc">SelfNode</span><span class="p">(</span><span class="n">PlayerNode</span><span class="p">):</span>
@@ -927,7 +1121,40 @@
             <span class="n">chat</span><span class="p">,</span>
             <span class="n">memory</span><span class="o">.</span><span class="n">get_time</span><span class="p">(),</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="n">memid</span></div>
+        <span class="k">return</span> <span class="n">memid</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_most_recent_incoming_chat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">after</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;ChatNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get the most recent chat that came in since &#39;after&#39;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            after (int): Marks the beginning of time window (from now)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            SELECT uuid</span>
+<span class="sd">            FROM Chats</span>
+<span class="sd">            WHERE speaker != ? AND time &gt;= ?</span>
+<span class="sd">            ORDER BY time DESC</span>
+<span class="sd">            LIMIT 1</span>
+<span class="sd">            &quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="n">agent_memory</span><span class="o">.</span><span class="n">self_memid</span><span class="p">,</span>
+            <span class="n">after</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ChatNode</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_recent_chats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;ChatNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return a list of at most n chats</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n (int): number of recent chats</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span><span class="s2">&quot;SELECT uuid FROM Chats ORDER BY time DESC LIMIT ?&quot;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ChatNode</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">r</span><span class="p">)]</span></div>
 
 
 <div class="viewcode-block" id="TaskNode"><a class="viewcode-back" href="../../../memory.html#droidlet.memory.memory_nodes.TaskNode">[docs]</a><span class="k">class</span> <span class="nc">TaskNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
@@ -1141,7 +1368,9 @@
 
     <span class="k">def</span> <span class="nf">get_chat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ChatNode</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return the memory of the chat that caused this task&#39;s creation, or None&quot;&quot;&quot;</span>
-        <span class="n">triples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span><span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;chat_effect_&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span>
+        <span class="n">triples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;chat_effect_&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">triples</span><span class="p">:</span>
             <span class="n">chat_id</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">triples</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">ChatNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">chat_id</span><span class="p">)</span>
@@ -1150,7 +1379,9 @@
 
     <span class="k">def</span> <span class="nf">get_parent_task</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return the &#39;TaskNode&#39; of the parent task, or None&quot;&quot;&quot;</span>
-        <span class="n">triples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;_has_parent_task&quot;</span><span class="p">)</span>
+        <span class="n">triples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">subj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;_has_parent_task&quot;</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">triples</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">triples</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -1169,7 +1400,9 @@
 
     <span class="k">def</span> <span class="nf">get_child_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return tasks that were spawned beause of this task&quot;&quot;&quot;</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span><span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;_has_parent_task&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;_has_parent_task&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span>
+        <span class="p">)</span>
         <span class="n">memids</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">TaskNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">memids</span><span class="p">]</span>
 

@@ -111,7 +111,7 @@
 
 <span class="kn">from</span> <span class="nn">droidlet.dialog.string_lists</span> <span class="kn">import</span> <span class="n">MAP_YES</span><span class="p">,</span> <span class="n">MAP_DIRECTION_SYNTAX</span>
 <span class="kn">from</span> <span class="nn">droidlet.task.task</span> <span class="kn">import</span> <span class="n">Task</span><span class="p">,</span> <span class="n">task_to_generator</span><span class="p">,</span> <span class="n">ControlBlock</span>
-<span class="kn">from</span> <span class="nn">droidlet.memory.memory_nodes</span> <span class="kn">import</span> <span class="n">TaskNode</span>
+<span class="kn">from</span> <span class="nn">droidlet.memory.memory_nodes</span> <span class="kn">import</span> <span class="n">ChatNode</span><span class="p">,</span> <span class="n">TaskNode</span><span class="p">,</span> <span class="n">TripleNode</span>
 <span class="kn">from</span> <span class="nn">droidlet.dialog.post_process_logical_form</span> <span class="kn">import</span> <span class="n">retrieve_ref_obj_span</span>
 
 
@@ -138,12 +138,17 @@
     <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Wait for wait_time for an answer. Mark finished when a chat comes in.&quot;&quot;&quot;</span>
         <span class="c1"># FIXME: don&#39;t need a memory method for this, use query</span>
-        <span class="n">chatmem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_most_recent_incoming_chat</span><span class="p">(</span><span class="n">after</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">init_time</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">chatmem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">ChatNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">get_most_recent_incoming_chat</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">init_time</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">chatmem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">asker_memid</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span>
-                    <span class="n">subj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">asker_memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;dialogue_task_response&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="n">chatmem</span><span class="o">.</span><span class="n">memid</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span>
+                    <span class="n">subj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">asker_memid</span><span class="p">,</span>
+                    <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;dialogue_task_response&quot;</span><span class="p">,</span>
+                    <span class="n">obj</span><span class="o">=</span><span class="n">chatmem</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">return</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_time</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_time</span><span class="p">:</span>
@@ -263,7 +268,9 @@
         <span class="c1"># FIXME: change this to sqly when syntax for obj searches is settled:</span>
         <span class="c1"># search for a response to the confirmation question, which will be a triple</span>
         <span class="c1"># (self.memid, &quot;dialogue_task_reponse&quot;, chat_memid)</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;dialogue_task_response&quot;</span><span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">subj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;dialogue_task_response&quot;</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">t</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="n">chat_mems</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_mem_by_id</span><span class="p">(</span><span class="n">triples</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="k">for</span> <span class="n">triples</span> <span class="ow">in</span> <span class="n">t</span><span class="p">]</span>
@@ -394,12 +401,14 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">clarification_failed</span><span class="p">()</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># Found it! Add the approriate tag to current candidate and mark it as the output</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span>
                         <span class="n">subj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">current_candidate</span><span class="p">,</span>
                         <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_tag&quot;</span><span class="p">,</span>
                         <span class="n">obj_text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_obj_span</span><span class="p">,</span>
                     <span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span>
                         <span class="n">subj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span>
                         <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;dialogue_clarification_output&quot;</span><span class="p">,</span>
                         <span class="n">obj_text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">current_candidate</span><span class="p">,</span>

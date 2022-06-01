@@ -119,7 +119,7 @@
 <span class="kn">from</span> <span class="nn">.interpret_filters</span> <span class="kn">import</span> <span class="n">FilterInterpreter</span>
 <span class="kn">from</span> <span class="nn">droidlet.shared_data_structs</span> <span class="kn">import</span> <span class="n">ErrorWithResponse</span><span class="p">,</span> <span class="n">NextDialogueStep</span>
 <span class="kn">from</span> <span class="nn">droidlet.task.task</span> <span class="kn">import</span> <span class="n">task_to_generator</span><span class="p">,</span> <span class="n">ControlBlock</span>
-<span class="kn">from</span> <span class="nn">droidlet.memory.memory_nodes</span> <span class="kn">import</span> <span class="n">TripleNode</span><span class="p">,</span> <span class="n">TaskNode</span><span class="p">,</span> <span class="n">InterpreterNode</span>
+<span class="kn">from</span> <span class="nn">droidlet.memory.memory_nodes</span> <span class="kn">import</span> <span class="n">ChatNode</span><span class="p">,</span> <span class="n">TripleNode</span><span class="p">,</span> <span class="n">InterpreterNode</span>
 <span class="kn">from</span> <span class="nn">droidlet.dialog.dialogue_task</span> <span class="kn">import</span> <span class="n">ConfirmTask</span><span class="p">,</span> <span class="n">Say</span>
 
 
@@ -134,8 +134,11 @@
             <span class="k">if</span> <span class="p">(</span>
                 <span class="n">logical_form_memid</span> <span class="o">!=</span> <span class="s2">&quot;NULL&quot;</span>
             <span class="p">):</span>  <span class="c1"># if it were &quot;NULL&quot;, this is a dummy interpreter of some sort...</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span>
-                    <span class="n">subj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;logical_form_memid&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="n">logical_form_memid</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span>
+                    <span class="n">subj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span>
+                    <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;logical_form_memid&quot;</span><span class="p">,</span>
+                    <span class="n">obj</span><span class="o">=</span><span class="n">logical_form_memid</span><span class="p">,</span>
                 <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># ALL state is stored in memory, associated to the interpreter memid.</span>
@@ -225,7 +228,9 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">C</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpret_event</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logical_form</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">C</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">chat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_most_recent_incoming_chat</span><span class="p">()</span>
+                <span class="n">chat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">ChatNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">get_most_recent_incoming_chat</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">memory</span>
+                <span class="p">)</span>
                 <span class="n">TripleNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">subj</span><span class="o">=</span><span class="n">chat</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;chat_effect_&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="n">C</span><span class="o">.</span><span class="n">memid</span>
                 <span class="p">)</span>

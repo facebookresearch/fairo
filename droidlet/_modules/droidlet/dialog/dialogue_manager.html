@@ -109,6 +109,7 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
 
 <span class="kn">from</span> <span class="nn">droidlet.dialog.dialogue_task</span> <span class="kn">import</span> <span class="n">Say</span>
+<span class="kn">from</span> <span class="nn">droidlet.memory.memory_nodes</span> <span class="kn">import</span> <span class="n">ChatNode</span><span class="p">,</span> <span class="n">PlayerNode</span><span class="p">,</span> <span class="n">TripleNode</span>
 <span class="kn">from</span> <span class="nn">.load_datasets</span> <span class="kn">import</span> <span class="n">get_greetings</span><span class="p">,</span> <span class="n">get_safety_words</span>
 
 
@@ -151,18 +152,18 @@
 
     <span class="k">def</span> <span class="nf">get_last_m_chats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="c1"># fetch last m chats from memory</span>
-        <span class="n">all_chats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_recent_chats</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">m</span><span class="p">)</span>
+        <span class="n">all_chats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">ChatNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">get_recent_chats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">m</span><span class="p">)</span>
         <span class="n">chat_list_text</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">chat</span> <span class="ow">in</span> <span class="n">all_chats</span><span class="p">:</span>
-            <span class="n">speaker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_player_by_id</span><span class="p">(</span><span class="n">chat</span><span class="o">.</span><span class="n">speaker_id</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">speaker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">PlayerNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">chat</span><span class="o">.</span><span class="n">speaker_id</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
             <span class="n">chat_memid</span> <span class="o">=</span> <span class="n">chat</span><span class="o">.</span><span class="n">memid</span>
             <span class="c1"># get logical form if any else None</span>
             <span class="n">logical_form_memid</span><span class="p">,</span> <span class="n">chat_status</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
-            <span class="n">logical_form_triples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span>
-                <span class="n">subj</span><span class="o">=</span><span class="n">chat_memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_logical_form&quot;</span>
+            <span class="n">logical_form_triples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">subj</span><span class="o">=</span><span class="n">chat_memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_logical_form&quot;</span>
             <span class="p">)</span>
-            <span class="n">processed_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span>
-                <span class="n">subj</span><span class="o">=</span><span class="n">chat_memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_tag&quot;</span><span class="p">,</span> <span class="n">obj_text</span><span class="o">=</span><span class="s2">&quot;uninterpreted&quot;</span>
+            <span class="n">processed_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">subj</span><span class="o">=</span><span class="n">chat_memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_tag&quot;</span><span class="p">,</span> <span class="n">obj_text</span><span class="o">=</span><span class="s2">&quot;uninterpreted&quot;</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">logical_form_triples</span><span class="p">:</span>
                 <span class="n">logical_form_memid</span> <span class="o">=</span> <span class="n">logical_form_triples</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
@@ -216,7 +217,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">chat_status</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="c1"># Mark chat as processed</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">untag</span><span class="p">(</span><span class="n">chat_memid</span><span class="p">,</span> <span class="s2">&quot;uninterpreted&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">untag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">chat_memid</span><span class="p">,</span> <span class="s2">&quot;uninterpreted&quot;</span><span class="p">)</span>
 
         <span class="c1"># FIXME handle this in gt (all of this will be folded into manager</span>
         <span class="c1"># 1. Check against safety phrase list</span>

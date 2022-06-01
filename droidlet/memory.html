@@ -170,41 +170,6 @@ the database.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.add_triple">
-<span class="sig-name descname"><span class="pre">add_triple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subj_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'has_tag'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.add_triple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.add_triple" title="Permalink to this definition"></a></dt>
-<dd><dl class="simple">
-<dt>Adds (subj, pred, obj) triple to the triplestore.</dt><dd><p>_text is the name field of a NamedAbstraction; if
-such a NamedAbstraction does not exist, this builds it as a side effect.
-subj and obj can be memids or text, but pred_text is required</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>subj</strong> (<em>string</em>) – memid of subject</p></li>
-<li><p><strong>obj</strong> (<em>string</em>) – memid of object</p></li>
-<li><p><strong>subj_text</strong> (<em>string</em>) – text representation for subject</p></li>
-<li><p><strong>pred_text</strong> (<em>string</em>) – predicate text</p></li>
-<li><p><strong>obj_text</strong> (<em>string</em>) – text representation for object</p></li>
-<li><p><strong>confidence</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – The confidence score for the triple</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>memid of triple</p>
-</dd>
-</dl>
-<dl>
-<dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subj</span> <span class="o">=</span> <span class="s1">&#39;10517cc584844659907ccfa6161e9d32&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obj_text</span> <span class="o">=</span> <span class="s1">&#39;blue&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pred_text</span> <span class="o">=</span> <span class="s2">&quot;has_colour&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">add_triple</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="n">subj</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="n">pred_text</span><span class="p">,</span> <span class="n">obj_text</span><span class="o">=</span><span class="n">obj_text</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.basic_search">
 <span class="sig-name descname"><span class="pre">basic_search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.basic_search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.basic_search" title="Permalink to this definition"></a></dt>
 <dd><p>Perform a basic search using the query</p>
@@ -299,30 +264,6 @@ return the memory node</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.get_memids_by_tag">
-<span class="sig-name descname"><span class="pre">get_memids_by_tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.get_memids_by_tag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.get_memids_by_tag" title="Permalink to this definition"></a></dt>
-<dd><p>Find all memids with a given tag</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>tag</strong> (<em>string</em>) – string representation of the tag</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>list of memory ids (which are strings)</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a>[string]</p>
-</dd>
-</dl>
-<dl>
-<dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tag</span> <span class="o">=</span> <span class="s2">&quot;round&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">get_memids_by_tag</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.get_recent_entities">
 <span class="sig-name descname"><span class="pre">get_recent_entities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12000</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#droidlet.memory.memory_nodes.MemoryNode" title="droidlet.memory.memory_nodes.MemoryNode"><span class="pre">MemoryNode</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.get_recent_entities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.get_recent_entities" title="Permalink to this definition"></a></dt>
 <dd><p>Get all entities of given memtype that were recently (within the
@@ -351,33 +292,6 @@ time window) attended</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.get_tags_by_memid">
-<span class="sig-name descname"><span class="pre">get_tags_by_memid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subj_memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.get_tags_by_memid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.get_tags_by_memid" title="Permalink to this definition"></a></dt>
-<dd><p>Find all tag for a given memid</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>subj_memid</strong> (<em>string</em>) – the subject’s memid (uuid from Memories table)</p></li>
-<li><p><strong>return_text</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – if true, return the object text, otherwise return object memid</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>list of tags.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a>[string]</p>
-</dd>
-</dl>
-<dl>
-<dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subj_memid</span> <span class="o">=</span> <span class="s1">&#39;10517cc584844659907ccfa6161e9d32&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">get_tags_by_memid</span><span class="p">(</span><span class="n">subj_memid</span><span class="o">=</span><span class="n">subj_memid</span><span class="p">,</span> <span class="n">return_text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.get_time">
 <span class="sig-name descname"><span class="pre">get_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.get_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.get_time" title="Permalink to this definition"></a></dt>
 <dd><p>Get current time</p>
@@ -392,45 +306,6 @@ time window) attended</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.get_triples">
-<span class="sig-name descname"><span class="pre">get_triples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subj_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_obj_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'if_exists'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.get_triples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.get_triples" title="Permalink to this definition"></a></dt>
-<dd><p>gets triples from the triplestore.
-subj is always returned as a memid even when searched as text.
-need at least one non-None part of the triple, and
-text should not not be input for a part of a triple where a memid is set.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>subj</strong> (<em>string</em>) – memid of subject</p></li>
-<li><p><strong>obj</strong> (<em>string</em>) – memid of object</p></li>
-<li><p><strong>subj_text</strong> (<em>string</em>) – text of the subject (if applicable, as opposed to subject memid)</p></li>
-<li><p><strong>pred_text</strong> (<em>string</em>) – text of the predicate</p></li>
-<li><p><strong>obj_text</strong> (<em>string</em>) – text of the subject (if applicable, as opposed to subject memid)</p></li>
-<li><p><strong>return_obj_text</strong> (<em>string</em>) – if return_obj_text == “if_exists”, will return the obj_text
-if it exists, and the memid otherwise. If return_obj_text
-== “always”, returns the obj_text even if it is None. If
-return_obj_text == “never”, returns the obj memid.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A list of tuples of the form : (subject, predicate, object)</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a>]</p>
-</dd>
-</dl>
-<dl>
-<dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subj</span> <span class="o">=</span> <span class="s1">&#39;10517cc584844659907ccfa6161e9d32&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">obj_text</span> <span class="o">=</span> <span class="s1">&#39;blue&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">pred_text</span> <span class="o">=</span> <span class="s2">&quot;has_colour&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">get_triples</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="n">subj</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="n">pred_text</span><span class="p">,</span> <span class="n">obj_text</span><span class="o">=</span><span class="n">obj_text</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.get_world_time">
 <span class="sig-name descname"><span class="pre">get_world_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.get_world_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.get_world_time" title="Permalink to this definition"></a></dt>
 <dd><p>Get the current time in game world</p>
@@ -440,31 +315,6 @@ return_obj_text == “never”, returns the obj memid.</p></li>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.tag">
-<span class="sig-name descname"><span class="pre">tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subj_memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.tag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.tag" title="Permalink to this definition"></a></dt>
-<dd><p>Tag the subject with tag text.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>subj_memid</strong> (<em>string</em>) – memid of subject</p></li>
-<li><p><strong>tag_text</strong> (<em>string</em>) – string representation of the tag</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>memid of triple representing the tag</p>
-</dd>
-</dl>
-<dl>
-<dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subj_memid</span> <span class="o">=</span> <span class="s1">&#39;10517cc584844659907ccfa6161e9d32&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tag_text</span> <span class="o">=</span> <span class="s2">&quot;shiny&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tag</span><span class="p">(</span><span class="n">subj_memid</span><span class="p">,</span> <span class="n">tag_text</span><span class="p">)</span>
-</pre></div>
-</div>
 </dd>
 </dl>
 </dd></dl>
@@ -626,28 +476,6 @@ return_obj_text == “never”, returns the obj memid.</p></li>
 <dt>Examples ::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">task</span> <span class="o">=</span> <span class="n">Move</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="n">pos_to_np</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="s2">&quot;approx&quot;</span> <span class="p">:</span> <span class="mi">3</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">memid</span> <span class="o">=</span> <span class="s1">&#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">task_stack_update_task</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.untag">
-<span class="sig-name descname"><span class="pre">untag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subj_memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.untag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.untag" title="Permalink to this definition"></a></dt>
-<dd><p>Delete tag for subject</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>subj_memid</strong> (<em>string</em>) – memid of subject</p></li>
-<li><p><strong>tag_text</strong> (<em>string</em>) – string representation of the tag</p></li>
-</ul>
-</dd>
-</dl>
-<dl>
-<dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subj_memid</span> <span class="o">=</span> <span class="s1">&#39;10517cc584844659907ccfa6161e9d32&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tag_text</span> <span class="o">=</span> <span class="s2">&quot;shiny&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">untag</span><span class="p">(</span><span class="n">subj_memid</span><span class="p">,</span> <span class="n">tag_text</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd>
