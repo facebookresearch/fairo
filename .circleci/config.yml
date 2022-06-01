@@ -458,6 +458,18 @@ jobs:
             cd perception/sandbox/eyehandcal
             pip install -e .
             pytest tests
+  polygrasp:
+    machine:
+      image: ubuntu-2004:202104-01
+    resource_class: gpu.nvidia.small
+    steps:
+      - checkout
+      - run:
+          name: Initialize Git submodules
+          command: |
+            git submodule update --init --recursive ./perception/sandbox/polygrasp/
+      - restore_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "perception/sandbox/polygrasp/setup.py" }}
 
 workflows:
   build:
@@ -474,6 +486,7 @@ workflows:
       - fairotag
       - fairomsg
       - eyehandcal
+      - polygrasp
       - update-docs:
           requires:
             - polymetis-local-ubuntu-20
