@@ -263,7 +263,7 @@ if __name__ == "__main__":
         "--ip",
         help="Server device (robot) IP. Default is 192.168.0.0",
         type=str,
-        default="0.0.0.0",
+        default="192.168.0.0",
     )
 
     args = parser.parse_args()
@@ -272,8 +272,10 @@ if __name__ == "__main__":
 
     with Pyro4.Daemon(args.ip) as daemon:
         robot = RemoteHelloRobot(ip=args.ip)
+        print("IP address =", args.ip)
         robot_uri = daemon.register(robot)
-        with Pyro4.locateNS() as ns:
+        print("Robot URI =", robot_uri)
+        with Pyro4.locateNS(host=args.ip) as ns:
             ns.register("hello_robot", robot_uri)
 
         print("Hello Robot Server is started...")
