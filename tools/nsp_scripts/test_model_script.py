@@ -22,7 +22,7 @@ from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_parsing im
 from droidlet.perception.semantic_parsing.nsp_transformer_model.decoder_with_loss import *
 from droidlet.perception.semantic_parsing.nsp_transformer_model.encoder_decoder import *
 from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset import *
-from droidlet.perception.semantic_parsing.load_and_check_datasets import get_ground_truth
+from droidlet.perception.semantic_parsing.load_and_check_datasets import GT_QUERY_ACTIONS
 from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_caip import caip_collate
 from droidlet.perception.semantic_parsing.utils.nsp_logger import NSPLogger
 
@@ -144,7 +144,6 @@ def argument_parse(input_arg):
         input_arg: a string consists of arguments separated by space.
     Returns:
         args: input arguments
-        gt_query_actions: dict, maps query exists in the dataset to parsed tree
     """
 
     parser = argparse.ArgumentParser()
@@ -271,10 +270,8 @@ def argument_parse(input_arg):
         args.dtype_samples = json.dumps(
             [["templated", 1.0 - args.rephrase_proba], ["rephrases", args.rephrase_proba]]
         )
-    
-    gt_query_actions = get_ground_truth(not args.load_ground_truth, args.ground_truth_data_dir)
 
-    return args, gt_query_actions
+    return args
 
 def model_configure(args):
     """
@@ -323,7 +320,7 @@ def dataset_configure(args, tokenizer):
 
     return dataset
 
-def chat_mode(chat, args, gt_query_actions, model, tokenizer, dataset):
+def chat_mode(chat, args, model, tokenizer, dataset):
     """
     Chat mode for NLU model, which takes a sentence of natural language as input 
     and outputs its logical form
@@ -337,9 +334,8 @@ def chat_mode(chat, args, gt_query_actions, model, tokenizer, dataset):
     Returns:
         logical form (dict)
     """
-
-    if chat in gt_query_actions:
-        tree = gt_query_actions[chat]
+    if args.load_ground_truth and chat in GT_QUERY_ACTIONS:
+        tree = GT_QUERY_ACTIONS[chat]
     else:
         btr = beam_search(chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen)
 
