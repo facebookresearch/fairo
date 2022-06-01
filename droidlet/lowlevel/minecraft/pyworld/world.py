@@ -242,7 +242,7 @@ class World:
         import eventlet
         import time
 
-        server = socketio.Server(async_mode="eventlet", cors_allowed_origins='*')
+        server = socketio.Server(async_mode="eventlet", cors_allowed_origins="*")
         self.connected_sids = {}
 
         self.start_time = time.time()
@@ -263,7 +263,7 @@ class World:
 
         @server.on("getVoxelWorldInitialState")
         def testing(sid):
-            print('test get VW initial status')
+            print("test get VW initial status")
 
         @server.on("get_world_info")
         def get_world_info(sid):

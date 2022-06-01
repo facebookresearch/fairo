@@ -168,7 +168,7 @@ class PyWorldMover:
         else:
             chats = []
         return chats
-    
+
     def get_mobs(self):
         return []
 
