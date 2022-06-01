@@ -2,37 +2,37 @@
 
 ## Installation
 
-In a new conda environment, [install Polymetis](https://facebookresearch.github.io/fairo/polymetis/installation.html#simple).
-
-Install the package itself:
-
 ```bash
-pip install -e ../../../msg ../../realsense_driver/
-pip install -e .
+git submodule update --init --recursive .
+mrp up --norun
 ```
 
-Then, follow the instructions in the forked repos to create the necessary isolated conda environments:
+Then, follow the instructions in the forked repos under [third_party](./third_party/) to download pretrained model weights:
 
-1. [UnseenObjectClustering](https://github.com/1heart/UnseenObjectClustering)
-1. [graspnet-baseline](https://github.com/1heart/graspnet-baseline)
+1. [UnseenObjectClustering](./third_party/UnseenObjectClustering/README.md)
+1. [graspnet-baseline](./third_party/graspnet-baseline/README.md)
 
 ## Usage
 
 Make necessary configuration modifications. For example:
 - [conf/run_grasp.yaml](./conf/run_grasp.yaml) contains the configuration, e.g. robot IP.
 - [conf/masks/](./conf/masks/) contains a folder to define workspace masks for each camera, for each bin.
-- We expect calibrated camera parameters out of [eyehandcal](../eyehandcal).
+- We expect calibrated camera parameters out of [eyehandcal](../eyehandcal); if this is not calibrated, please follow instructions there.
 
 
 Ensure Polymetis is running on the machine connected to the robot. Then, start the necessary pointcloud/grasping/gripper servers:
 
 ```bash
 mrp up
+
+mrp ps  # Ensure processes are alive
+mrp logs --old  # Check logs
 ```
 
 The example script to bring everything together and execute the grasps:
 
 ```bash
+conda activate mrp_polygrasp
 python scripts/run_grasp.py  # Connect to robot, gripper, servers; run grasp
 ```
 
@@ -43,7 +43,7 @@ This continuously grasps from bin 1 to bin 2 until there are no more objects det
 To test without a robot or cameras, run
 
 ```bash
-python scripts/run_grasp.py robot=robot_mock cam=cam_mock
+python scripts/run_grasp.py robot=robot_mock cam=cam_mock num_bin_shifts=1 num_grasps_per_bin_shift=1
 ```
 
 which runs the loop without connecting to a real robot and loading the RGBD images from [data/rgbd.npy](data/rgbd.npy).

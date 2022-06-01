@@ -60,7 +60,9 @@ class GraspServer:
             req.reply(serdes.grasp_group_to_bytes(filtered_grasp_group))
 
         self.grasp_server = a0.RpcServer(grasp_topic_key, grasp_onrequest, None)
-        self.collision_server = a0.RpcServer(collision_topic_key, collision_onrequest, None)
+        self.collision_server = a0.RpcServer(
+            collision_topic_key, collision_onrequest, None
+        )
 
         signal.pause()
 
@@ -71,7 +73,9 @@ class GraspClient:
         self.collision_client = a0.RpcClient(collision_topic_key)
         self.view_json_path = view_json_path
 
-    def downsample_pcd(self, pcd: o3d.geometry.PointCloud, max_num_bits=8 * 1024 * 1024):
+    def downsample_pcd(
+        self, pcd: o3d.geometry.PointCloud, max_num_bits=8 * 1024 * 1024
+    ):
         # a0 default max msg size 16MB; make sure every msg < 1/2 of max
         i = 1
         while True:
@@ -92,7 +96,9 @@ class GraspClient:
         result_bits = self.grasp_client.send_blocking(bits).payload
         return serdes.capnp_to_grasp_group(result_bits)
 
-    def get_collision(self, grasps: graspnetAPI.GraspGroup, scene_pcd: o3d.geometry.PointCloud):
+    def get_collision(
+        self, grasps: graspnetAPI.GraspGroup, scene_pcd: o3d.geometry.PointCloud
+    ):
         request = polygrasp_msgs.CollisionRequest()
         request.pcd = self.downsample_pcd(scene_pcd)
         request.grasps = serdes.grasp_group_to_bytes(grasps)
@@ -138,7 +144,9 @@ class GraspClient:
             grasp_o3d_geometry.sample_points_uniformly(number_of_points=5000)
             for grasp_o3d_geometry in grasp_o3d_geometries
         ]
-        vis = self.visualize(scene_pcd=scene_pcd, plot=plot, render=render, save_view=save_view)
+        vis = self.visualize(
+            scene_pcd=scene_pcd, plot=plot, render=render, save_view=save_view
+        )
 
         # Save scene
         grasp_image = np.array(vis.capture_screen_float_buffer(do_render=True))

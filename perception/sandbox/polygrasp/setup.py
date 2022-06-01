@@ -17,11 +17,6 @@ install_requires = [
     "ikpy",  # TODO: switch to better IK lib
 ]
 
-dependency_links = [
-    "git+https://github.com/facebookresearch/fairo.git@main#subdirectory=msg",
-    "git+https://github.com/facebookresearch/fairo.git@main#subdirectory=perception/realsense_driver",
-]
-
 setup(
     name="polygrasp",
     author="Yixin Lin",
@@ -32,5 +27,4 @@ setup(
     include_package_data=True,
     scripts=["scripts/run_grasp.py"],
     install_requires=install_requires,
-    dependency_links=dependency_links,
 )

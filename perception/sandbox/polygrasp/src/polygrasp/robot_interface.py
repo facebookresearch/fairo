@@ -52,7 +52,8 @@ def min_dist_grasp(default_ee_quat, grasps):
     """Find the grasp with minimum orientation distance to the reference grasp"""
     with torch.no_grad():
         rots_as_quat = [
-            torch.Tensor(R.from_matrix(grasp.rotation_matrix).as_quat()) for grasp in grasps
+            torch.Tensor(R.from_matrix(grasp.rotation_matrix).as_quat())
+            for grasp in grasps
         ]
         dists = [compute_quat_dist(rot, default_ee_quat) for rot in rots_as_quat]
         i = torch.argmin(torch.Tensor(dists)).item()
@@ -68,7 +69,9 @@ def min_dist_grasp_no_z(default_ee_quat, grasps):
     with torch.no_grad():
         rots_as_R = [R.from_quat(compute_des_pose(grasp)[2]) for grasp in grasps]
         default_r = R.from_quat(default_ee_quat)
-        dists = [np.linalg.norm((rot.inv() * default_r).as_rotvec()[:2]) for rot in rots_as_R]
+        dists = [
+            np.linalg.norm((rot.inv() * default_r).as_rotvec()[:2]) for rot in rots_as_R
+        ]
         i = torch.argmin(torch.Tensor(dists)).item()
     log.info(f"Grasp {i} has angle {dists[i]} from reference.")
     return grasps[i], i
@@ -147,7 +150,9 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             curr_ee_pos, curr_ee_ori = self.get_ee_pose()
 
             xyz_diff = torch.linalg.norm(curr_ee_pos - position)
-            ori_diff = (R.from_quat(curr_ee_ori).inv() * R.from_quat(orientation)).magnitude()
+            ori_diff = (
+                R.from_quat(curr_ee_ori).inv() * R.from_quat(orientation)
+            ).magnitude()
             log.info(f"Dist to goal: xyz diff {xyz_diff}, ori diff {ori_diff}")
 
             if (
@@ -173,7 +178,9 @@ class GraspingRobotInterface(polymetis.RobotInterface):
                 if grasp.width > self.gripper_max_width:
                     continue
 
-                grasp_point, grasp_approach_delta, des_ori_quat = compute_des_pose(grasp)
+                grasp_point, grasp_approach_delta, des_ori_quat = compute_des_pose(
+                    grasp
+                )
                 point_a = grasp_point + self.k_approach * grasp_approach_delta
                 point_b = grasp_point + self.k_grasp * grasp_approach_delta
 
@@ -183,7 +190,8 @@ class GraspingRobotInterface(polymetis.RobotInterface):
                 if len(feasible_i) == num_grasp_choices:
                     if i >= num_grasp_choices:
                         print(
-                            f"Kinematically filtered {i + 1 - num_grasp_choices} grasps to get 5 feasible positions"
+                            f"Kinematically filtered {i + 1 - num_grasp_choices} grasps"
+                            " to get 5 feasible positions"
                         )
                     break
 
@@ -212,7 +220,9 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         grip_ee_pos = torch.Tensor(grasp_point + grasp_approach_delta * self.k_grasp)
 
         states += self.move_until_success(
-            position=grip_ee_pos, orientation=torch.Tensor(des_ori_quat), time_to_go=time_to_go
+            position=grip_ee_pos,
+            orientation=torch.Tensor(des_ori_quat),
+            time_to_go=time_to_go,
         )
         self.gripper_close()
 

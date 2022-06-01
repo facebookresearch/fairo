@@ -43,26 +43,33 @@ def get_obj_grasps(grasp_client, obj_pcds, scene_pcd):
         filtered_grasp_group = grasp_client.get_collision(grasp_group, scene_pcd)
         if len(filtered_grasp_group) < len(grasp_group):
             print(
-                f"Filtered {len(grasp_group) - len(filtered_grasp_group)}/{len(grasp_group)} grasps due to collision."
+                "Filtered"
+                f" {len(grasp_group) - len(filtered_grasp_group)}/{len(grasp_group)} grasps"
+                " due to collision."
             )
         if len(filtered_grasp_group) > 0:
             return obj_i, filtered_grasp_group
     raise Exception(
-        f"Unable to find any grasps after filtering, for any of the {len(obj_pcds)} objects"
+        "Unable to find any grasps after filtering, for any of the"
+        f" {len(obj_pcds)} objects"
     )
 
 
 def merge_pcds(pcds, eps=0.1, min_samples=2):
     """Cluster object pointclouds from different cameras based on centroid using DBSCAN; merge when within eps"""
     xys = np.array([pcd.get_center()[:2] for pcd in pcds])
-    cluster_labels = sklearn.cluster.DBSCAN(eps=eps, min_samples=min_samples).fit(xys).labels_
+    cluster_labels = (
+        sklearn.cluster.DBSCAN(eps=eps, min_samples=min_samples).fit(xys).labels_
+    )
 
     # Logging
     total_n_objs = len(xys)
     total_clusters = cluster_labels.max() + 1
     unclustered_objs = (cluster_labels < 0).sum()
     print(
-        f"Clustering objects from all cameras: {total_clusters} clusters, plus {unclustered_objs} non-clustered objects; went from {total_n_objs} to {total_clusters + unclustered_objs} objects"
+        f"Clustering objects from all cameras: {total_clusters} clusters, plus"
+        f" {unclustered_objs} non-clustered objects; went from {total_n_objs} to"
+        f" {total_clusters + unclustered_objs} objects"
     )
 
     # Cluster label == -1 when unclustered, otherwise cluster label >=0
@@ -138,15 +145,19 @@ def main(cfg):
 
     print("Loading camera workspace masks")
     masks_1 = np.array(
-        [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_1], dtype=np.float64
+        [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_1],
+        dtype=np.float64,
     )
     masks_2 = np.array(
-        [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_2], dtype=np.float64
+        [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_2],
+        dtype=np.float64,
     )
 
     print("Connect to grasp candidate selection and pointcloud processor")
     segmentation_client = SegmentationClient()
-    grasp_client = GraspClient(view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path))
+    grasp_client = GraspClient(
+        view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path)
+    )
 
     root_working_dir = os.getcwd()
     for outer_i in range(cfg.num_bin_shifts):
@@ -170,7 +181,8 @@ def main(cfg):
             os.chdir(f"{timestamp}")
 
             print(
-                f"=== Grasp {i + 1}/{cfg.num_grasps_per_bin_shift}, logging to {os.getcwd()} ==="
+                f"=== Grasp {i + 1}/{cfg.num_grasps_per_bin_shift}, logging to"
+                f" {os.getcwd()} ==="
             )
 
             print("Getting rgbd and pcds..")
@@ -187,20 +199,29 @@ def main(cfg):
                     rgbd_masked[i], min_mask_size=cfg.min_mask_size
                 )
                 unmerged_obj_pcds += [
-                    cameras.get_pcd_i(obj_masked_rgbd, i) for obj_masked_rgbd in obj_masked_rgbds
+                    cameras.get_pcd_i(obj_masked_rgbd, i)
+                    for obj_masked_rgbd in obj_masked_rgbds
                 ]
             obj_pcds = merge_pcds(unmerged_obj_pcds)
             if len(obj_pcds) == 0:
-                print(f"Failed to find any objects with mask size > {cfg.min_mask_size}!")
+                print(
+                    f"Failed to find any objects with mask size > {cfg.min_mask_size}!"
+                )
                 break
 
             print("Getting grasps per object...")
-            obj_i, filtered_grasp_group = get_obj_grasps(grasp_client, obj_pcds, scene_pcd)
+            obj_i, filtered_grasp_group = get_obj_grasps(
+                grasp_client, obj_pcds, scene_pcd
+            )
 
             print("Choosing a grasp for the object")
-            chosen_grasp, final_filtered_grasps = robot.select_grasp(filtered_grasp_group)
+            chosen_grasp, final_filtered_grasps = robot.select_grasp(
+                filtered_grasp_group
+            )
             grasp_client.visualize_grasp(scene_pcd, final_filtered_grasps)
-            grasp_client.visualize_grasp(obj_pcds[obj_i], final_filtered_grasps, name="obj")
+            grasp_client.visualize_grasp(
+                obj_pcds[obj_i], final_filtered_grasps, name="obj"
+            )
 
             traj = execute_grasp(robot, chosen_grasp, hori_offset, time_to_go)
 

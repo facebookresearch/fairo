@@ -86,7 +86,9 @@ class PointCloudSubscriber(CameraSubscriber):
 
         return pcd
 
-    def get_pcd(self, rgbds: np.ndarray, masks: np.ndarray = None) -> o3d.geometry.PointCloud:
+    def get_pcd(
+        self, rgbds: np.ndarray, masks: np.ndarray = None
+    ) -> o3d.geometry.PointCloud:
         if masks is None:
             masks = np.ones([self.n_cams, self.height, self.width])
         pcds = [self.get_pcd_i(rgbds[i], i, masks[i]) for i in range(len(rgbds))]
@@ -113,7 +115,13 @@ if __name__ == "__main__":
     intrinsics = cameras.get_intrinsics()
     intrinsics_py = [
         dict(
-            coeffs=x.coeffs, fx=x.fx, fy=x.fy, height=x.height, ppx=x.ppx, ppy=x.ppy, width=x.width
+            coeffs=x.coeffs,
+            fx=x.fx,
+            fy=x.fy,
+            height=x.height,
+            ppx=x.ppx,
+            ppy=x.ppy,
+            width=x.width,
         )
         for x in intrinsics
     ]

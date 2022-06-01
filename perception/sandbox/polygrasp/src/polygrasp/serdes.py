@@ -20,7 +20,8 @@ geometry_msgs = fairomsg.get_msgs("geometry_msgs")
 print("capnp loading polygrasp")
 _schema_parser = capnp.SchemaParser()
 polygrasp_msgs = _schema_parser.load(
-    os.path.join(polygrasp.__path__[0], "polygrasp.capnp"), imports=site.getsitepackages()
+    os.path.join(polygrasp.__path__[0], "polygrasp.capnp"),
+    imports=site.getsitepackages(),
 )
 
 """Byte conversions"""
@@ -55,7 +56,9 @@ def open3d_pcd_to_bytes(cloud: open3d.geometry.PointCloud):
 
 def bytes_to_open3d_pcd(arr_bytes: bytes):
     arr = bytes_to_np(arr_bytes)
-    result = open3d.geometry.PointCloud(open3d.cuda.pybind.utility.Vector3dVector(arr[:, :3]))
+    result = open3d.geometry.PointCloud(
+        open3d.cuda.pybind.utility.Vector3dVector(arr[:, :3])
+    )
     if arr.shape[1] == 6:
         result.colors = open3d.cuda.pybind.utility.Vector3dVector(arr[:, 3:])
 
@@ -103,7 +106,9 @@ def capnp_to_rgbd(blob):
 
 def load_bw_img(path):
     grayscale_img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-    thresh, bw_img = cv2.threshold(grayscale_img, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    thresh, bw_img = cv2.threshold(
+        grayscale_img, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU
+    )
     return bw_img.astype(bool)
 
 
