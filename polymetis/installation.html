@@ -475,6 +475,9 @@ title="Print to PDF"
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -c pytorch -c fair-robotics -c aihabitat -c conda-forge polymetis
 </pre></div>
 </div>
+<blockquote>
+<div><p>Note: We build the conda package with the <a class="reference external" href="https://github.com/frankaemika/libfranka/tree/0.9.0">libfranka v0.9.0</a>, which requires <a class="reference external" href="https://frankaemika.github.io/docs/libfranka_changelog.html#id1">Franka Control Interface (FCI) version &gt;=4.2.1</a>. If you have a different version of FCI, consider building from source with the compatible version of libfranka (see below).</p>
+</div></blockquote>
 </li>
 </ol>
 </section>
@@ -504,7 +507,13 @@ conda activate polymetis-local
 <li><p>Build from source:</p>
 <ul>
 <li><p>Optionally, build <a class="reference external" href="https://frankaemika.github.io/docs/libfranka.html">libfranka</a> for use on Franka Panda hardware:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./scripts/build_libfranka.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># OPTIONAL: checkout custom version of libfranka</span>
+<span class="nb">cd</span> ./polymetis/src/clients/franka_panda_client/libfranka
+git checkout <span class="m">0</span>.9.0
+<span class="nb">cd</span> -
+
+<span class="c1"># Build libfranka</span>
+./scripts/build_libfranka.sh
 </pre></div>
 </div>
 </li>
