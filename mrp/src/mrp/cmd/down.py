@@ -1,3 +1,4 @@
+import mrp
 from mrp import life_cycle
 from mrp import process_def
 from mrp.cmd import _autocomplete
@@ -6,8 +7,9 @@ import click
 
 @click.command()
 @click.option("--all", is_flag=True)
+@click.option("--wait/--nowait", is_flag=True)
 @click.argument("procs", nargs=-1, shell_complete=_autocomplete.defined_processes)
-def cli(*cmd_procs, all=False, procs=None):
+def cli(*cmd_procs, procs=None, all=False, wait=True):
     procs = procs or []
 
     # Get all MRP procs running in the system
@@ -30,3 +32,6 @@ def cli(*cmd_procs, all=False, procs=None):
     for proc in down_procs:
         click.echo(f"stopping {proc}...")
         life_cycle.set_ask(proc, life_cycle.Ask.DOWN)
+
+    if wait and down_procs:
+        mrp.cmd.wait(*down_procs)

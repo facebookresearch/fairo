@@ -10,7 +10,6 @@ import minimumEditDistance from "minimum-edit-distance";
 import { removeStopwords } from "stopword";
 import "status-indicator/styles.css";
 import "./TurkInfo.css";
-import { red } from "@material-ui/core/colors";
 
 class TurkInfo extends Component {
   constructor(props) {
@@ -31,6 +30,7 @@ class TurkInfo extends Component {
       feedback: "",
       commandCorpus: [],
       bonus: "$0.00",
+      isOncall: false,
     };
     this.calcCreativity = this.calcCreativity.bind(this);
   }
@@ -77,6 +77,15 @@ class TurkInfo extends Component {
   componentDidMount() {
     this.props.stateManager.connect(this);
     this.props.stateManager.forceErrorLabeling(true);
+
+    // If this is a Turk-as-Oncall job then turn off some features
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('job_type')) {
+      if (urlParams.get('job_type') === "oncall") {
+        this.setState( { isOncall: true } );
+      }
+    }
+
     // Download existing command corpus from S3 and parse into commands
     fetch("https://craftassist.s3.us-west-2.amazonaws.com/pubr/nsp_data.txt")
       .then((response) => response.blob())
@@ -205,83 +214,135 @@ class TurkInfo extends Component {
     });
   }
 
-  render() {
+  renderStoplight(){
+    if (this.state.isOncall) return
+    else {
+      return (
+        <div className="stoplight">
+          <h4>HIT Performance Indicator:</h4>
+          {this.state.performanceIndicator[0] ? (
+            <status-indicator positive pulse></status-indicator>
+          ) : (
+            <status-indicator positive></status-indicator>
+          )}
+          {this.state.performanceIndicator[1] ? (
+            <status-indicator intermediary pulse></status-indicator>
+          ) : (
+            <status-indicator intermediary></status-indicator>
+          )}
+          {this.state.performanceIndicator[2] ? (
+            <status-indicator negative pulse></status-indicator>
+          ) : (
+            <status-indicator negative></status-indicator>
+          )}
+          <p style={{ color: "#39ff14" }}>Current Bonus: {this.state.bonus}</p>
+          <p>Feedback: {this.state.feedback}</p>
+        </div>
+      )
+    }
+  }
+
+  renderTimer(){
     const { timeElapsed } = this.state;
     let seconds = ("0" + (Math.floor(timeElapsed / 1000) % 60)).slice(-2);
     let minutes = ("0" + (Math.floor(timeElapsed / 60000) % 60)).slice(-2);
+    if (this.state.isOncall) {
+      return (
+        <div>
+          <div style={{ fontSize: 40 }}>
+            {minutes} : {seconds}
+          </div>
+          <br />
+          <Button
+            className="MsgButton"
+            variant="contained"
+            color={this.state.isTimerOn ? "secondary" : "primary"}
+            onClick={this.handleClick.bind(this)}
+            disabled={false}
+          >
+            {this.state.isTimerOn ? "End" : "Start"}
+          </Button>
+          <br />
+          {this.state.isTimerOn ? (
+            <div>
+              <p>Please interact with the assistant.</p>
+              <p>
+                When you've finished interacting with the assistant,
+                press the 'End' button to proceed to next steps.
+              </p>
+            </div>
+          ) : (
+            <div>
+              <p>Please click on the button to start the session. </p>
+            </div>
+          )}
+        </div>
+      )
+    } else {
+      return (
+        <div>
+          <div style={{ fontSize: 40 }}>
+            {minutes} : {seconds}
+          </div>
+          <br />
+          <Button
+            className="MsgButton"
+            variant="contained"
+            color={this.state.isTimerOn ? "secondary" : "primary"}
+            onClick={this.handleClick.bind(this)}
+            disabled={this.state.isTimerOn ? minutes < 5 : false}
+          >
+            {this.state.isTimerOn ? "End" : "Start"}
+          </Button>
+          <br />
+          {this.state.isTimerOn ? (
+            <div>
+              {minutes < 5 ? (
+                <div>
+                  <p>Please interact with the assistant.</p>
+                  <p>
+                    The 'End' button will appear when 5 minutes have
+                    passed.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <p>
+                    When you've finished interacting with the assistant,
+                    press the 'End' button to proceed to next steps.
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div>
+              <p>Please click on the button to start the session. </p>
+              <p>
+                When at least 5 minutes have passed and you are finished,
+                click on the button to end the session and proceed to next
+                steps.
+              </p>
+            </div>
+          )}
+        </div>
+      )
+    }
+  }
+
+  render() {
     return (
       <ThemeProvider theme={muiTheme}>
         <div className="App">
           <div className="infoContent">
-            <div className="stoplight">
-              <h4>HIT Performance Indicator:</h4>
-              {this.state.performanceIndicator[0] ? (
-                <status-indicator positive pulse></status-indicator>
-              ) : (
-                <status-indicator positive></status-indicator>
-              )}
-              {this.state.performanceIndicator[1] ? (
-                <status-indicator intermediary pulse></status-indicator>
-              ) : (
-                <status-indicator intermediary></status-indicator>
-              )}
-              {this.state.performanceIndicator[2] ? (
-                <status-indicator negative pulse></status-indicator>
-              ) : (
-                <status-indicator negative></status-indicator>
-              )}
-              <p style={{ color: "#39ff14" }}>Current Bonus: {this.state.bonus}</p>
-              <p>Feedback: {this.state.feedback}</p>
-            </div>
+            {this.renderStoplight()}
+            
             {this.state.isSessionEnd ? (
               <p style={{ fontSize: 40, lineHeight: "40px" }}>
                 Thanks for interacting with the bot. You may leave the page now.
               </p>
             ) : (
-              <div>
-                <div style={{ fontSize: 40 }}>
-                  {minutes} : {seconds}
-                </div>
-                <br />
-                <Button
-                  className="MsgButton"
-                  variant="contained"
-                  color={this.state.isTimerOn ? "secondary" : "primary"}
-                  onClick={this.handleClick.bind(this)}
-                  disabled={this.state.isTimerOn ? minutes < 5 : false}
-                >
-                  {this.state.isTimerOn ? "End" : "Start"}
-                </Button>
-                <br />
-                {this.state.isTimerOn ? (
-                  <div>
-                    {minutes < 5 ? (
-                      <div>
-                        <p>Please interact with the assistant.</p>
-                        <p>
-                          The 'End' button will appear when 5 minutes have
-                          passed.
-                        </p>
-                      </div>
-                    ) : (
-                      <div>
-                        <p>
-                          When you've finished interacting with the assistant,
-                          press the 'End' button to proceed to next steps.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div>
-                    <p>Please click on the button to start the session. </p>
-                    <p>
-                      When at least 5 minutes have passed and you are finished,
-                      click on the button to end the session and proceed to next
-                      steps.
-                    </p>
-                  </div>
-                )}
+              <div className="timer">
+                {this.renderTimer()}
               </div>
             )}
           </div>
