@@ -22,8 +22,8 @@ class SpideyHand:
         """Request the status from the gripper and return it in the Robotiq2FGripper_robot_input msg type."""
 
         # Check if read was successful
-        if status is None:
-            return False
+        # if status is None:
+        #     return False
 
         return True
 
