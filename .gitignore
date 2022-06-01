@@ -63,3 +63,5 @@ annotation_data/model/model_999.pth
 .circleci/habitat_docker/conda.txt
 .circleci/habitat_docker/requirements.txt
 .circleci/habitat_docker/Replica-Dataset
+agents/craftassist/tests/error_details.csv
+agents/craftassist/tests/dashboard_data.db

@@ -18,6 +18,7 @@ from copy import deepcopy
 # also used as a standalone script and invoked via `python craftassist_agent.py`
 from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
 from droidlet.memory.craftassist import mc_memory
+from droidlet.memory.memory_nodes import ChatNode
 from droidlet.shared_data_struct import rotation
 from droidlet.lowlevel.minecraft.craftassist_mover import (
     CraftassistMover,
@@ -368,7 +369,6 @@ class CraftAssistAgent(DroidletAgent):
 
     def send_chat(self, chat: str):
         """Send chat from agent to player"""
-
         chat_json = False
         try:
             chat_json = json.loads(chat)
@@ -379,7 +379,7 @@ class CraftAssistAgent(DroidletAgent):
             chat_text = chat
 
         logging.info("Sending chat: {}".format(chat_text))
-        chat_memid = self.memory.add_chat(self.memory.self_memid, chat_text)
+        self.memory.nodes[ChatNode.NODE_TYPE].create(self.memory, self.memory.self_memid, chat_text)
 
         if chat_json:
             chat_json["chat_memid"] = chat_memid
@@ -390,6 +390,7 @@ class CraftAssistAgent(DroidletAgent):
             sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
 
         return self.cagent.send_chat(chat_text)
+
 
     def update_agent_pos_dashboard(self):
         agent_pos = self.get_player().pos
