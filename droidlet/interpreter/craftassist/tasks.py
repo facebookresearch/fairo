@@ -101,6 +101,9 @@ class DanceMove(Task):
         agent = self.agent
         if self.finished:
             return
+        # WARNING: these are in degrees to match MC and DSL;
+        # memory stores angles in radians; but these are give by interpreter in angles
+        # FIXME change DSL to use radians for fixed values and convert everything to radians
         if self.relative_yaw:
             agent.turn_angle(self.relative_yaw)
         if self.relative_pitch:
@@ -108,8 +111,7 @@ class DanceMove(Task):
         if self.head_xyz is not None:
             agent.look_at(self.head_xyz[0], self.head_xyz[1], self.head_xyz[2])
         elif self.head_yaw_pitch is not None:
-            # warning: pitch is flipped!  client uses -pitch for up,
-            agent.set_look(self.head_yaw_pitch[0], -self.head_yaw_pitch[1])
+            agent.set_look(self.head_yaw_pitch[0], self.head_yaw_pitch[1])
 
         if self.translate:
             step = self.STEP_FNS[self.translate]
