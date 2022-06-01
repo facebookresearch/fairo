@@ -48,7 +48,7 @@ class SpideyHand:
 
     def goto(self, actuation):  # send over pyserial
         # time.sleep(0.1)
-        # actuation
+        print("\nacutation: ", actuation)
         if actuation == 0:
             self.ser.write("Z".encode("utf-8"))
             pressures = self._true_pressure_bar()

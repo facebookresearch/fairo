@@ -63,7 +63,7 @@ class GripperInterface:
         """
         self._send_gripper_command(
             self.grpc_connection.Goto,
-            polymetis_pb2.GripperCommand(width=width, speed=speed, force=force),
+            polymetis_pb2.GripperCommand(width=25, speed=speed, force=force),
             blocking=blocking,
         )
 

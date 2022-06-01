@@ -60,7 +60,7 @@ class SpideyGripperServer(polymetis_pb2_grpc.GripperServerServicer):
         return state
 
     def Goto(self, request, context):
-        self.gripper.goto(pos=request.width, vel=request.speed)
+        self.gripper.goto(request.width)
         # self.gripper.sendCommand()
 
         return polymetis_pb2.Empty()
