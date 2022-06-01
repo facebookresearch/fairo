@@ -98,7 +98,7 @@ def down_existing(names: typing.List[str], force: bool):
 @click.option("--reset_logs", is_flag=True, default=False)
 def cli(
     *cmd_procs,
-    procs=[],
+    procs=None,
     verbose=True,
     deps=True,
     build=True,
@@ -107,6 +107,8 @@ def cli(
     force=False,
     reset_logs=False,
 ):
+    procs = procs or []
+
     # Support procs as *args when using cmd syntax.
     procs += cmd_procs
 

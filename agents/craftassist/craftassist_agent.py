@@ -36,6 +36,7 @@ if __name__ == "__main__":
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.dialogue_task import build_question_json
 from droidlet.base_util import Pos, Look, npy_to_blocks_list
+from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item
 from agents.droidlet_agent import DroidletAgent
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
@@ -76,8 +77,6 @@ logging.getLogger().handlers.clear()
 sentry_sdk.init()  # enabled if SENTRY_DSN set in env
 DEFAULT_BEHAVIOUR_TIMEOUT = 20
 DEFAULT_FRAME = "SPEAKER"
-Player = namedtuple("Player", "entityId, name, pos, look, mainHand")
-Item = namedtuple("Item", "id, meta")
 
 
 class CraftAssistAgent(DroidletAgent):
@@ -359,11 +358,12 @@ class CraftAssistAgent(DroidletAgent):
     ###FIXME!!
     #    self.get_incoming_chats = self.get_chats
 
+    # WARNING!! this is in degrees.  agent's memory stores looks in radians.
+    # FIXME: normalize, switch in DSL to radians.
     def relative_head_pitch(self, angle):
         """Converts assistant's current pitch and yaw
         into a pitch and yaw relative to the angle."""
-        # warning: pitch is flipped!
-        new_pitch = self.get_player().look.pitch - angle
+        new_pitch = np.rad2deg(self.get_player().look.pitch) - angle
         self.set_look(self.get_player().look.yaw, new_pitch)
 
     def send_chat(self, chat: str):
@@ -372,7 +372,9 @@ class CraftAssistAgent(DroidletAgent):
         chat_json = False
         try:
             chat_json = json.loads(chat)
-            chat_text = list(filter(lambda x: x["id"] == "text", chat_json["content"]))[0]["content"]
+            chat_text = list(filter(lambda x: x["id"] == "text", chat_json["content"]))[0][
+                "content"
+            ]
         except:
             chat_text = chat
 
@@ -381,7 +383,7 @@ class CraftAssistAgent(DroidletAgent):
 
         if chat_json:
             chat_json["chat_memid"] = chat_memid
-            chat_json["timestamp"] = round(datetime.timestamp(datetime.now())*1000)
+            chat_json["timestamp"] = round(datetime.timestamp(datetime.now()) * 1000)
             # Send the socket event to show this reply on dashboard
             sio.emit("showAssistantReply", chat_json)
         else:
