@@ -1,4 +1,8 @@
+import os
 import mrp
+
+if "CUDA_HOME" not in os.environ:
+    raise RuntimeError("Please set the CUDA_HOME environment variable to compile third_party/graspnet-baseline/pointnet2 and third_party/graspnet-baseline/knn.")
 
 polygrasp_setup_commands = [
     ["pip", "install", "-e", "../../../msg"],

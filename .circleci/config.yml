@@ -468,8 +468,6 @@ jobs:
           name: Initialize Git submodules
           command: |
             git submodule update --init --recursive ./perception/sandbox/polygrasp/
-      - restore_cache:
-          key: deps9-{{ .Branch }}-{{ checksum "perception/sandbox/polygrasp/setup.py" }}
 
 workflows:
   build:
