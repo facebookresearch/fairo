@@ -46,9 +46,11 @@ class SemanticPredMaskRCNN:
                     else:
                         # Restrict objects to 2m depth
                         filter_mask = (depth >= md + 1.0) | (depth <= md - 1.0)
-                    print(f"Median object depth: {md.item()}, filtering out {np.count_nonzero(filter_mask)} pixels")
+                    print(
+                        f"Median object depth: {md.item()}, filtering out {np.count_nonzero(filter_mask)} pixels"
+                    )
                     obj_mask[filter_mask] = 0.0
-                    
+
                 semantic_pred[:, :, idx] += obj_mask
 
         if self.visualize:
