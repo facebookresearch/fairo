@@ -14,6 +14,7 @@ install_requires = [
     "open3d",
     "fairomsg",
     "realsense_wrapper",
+    "ikpy",
 ]
 
 dependency_links = [
