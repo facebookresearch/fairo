@@ -80,6 +80,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         gripper: polymetis.GripperInterface,
         k_approach=1.5,
         k_grasp=0.72,
+        gripper_max_width=0.085,
         # ikpy params:
         base_elements=["panda_link0"],
         soft_limits=[
@@ -100,6 +101,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         self.default_ee_quat = torch.Tensor([1, 0, 0, 0])
         self.k_approach = k_approach
         self.k_grasp = k_grasp
+        self.gripper_max_width = gripper_max_width
 
         with tempfile.NamedTemporaryFile(mode="w+") as f:
             f.write(self.metadata.urdf_file)
@@ -157,6 +159,9 @@ class GraspingRobotInterface(polymetis.RobotInterface):
                 break
         return states
 
+    def check_feasibility(self, point: np.ndarray):
+        return self.ik(point) is not None
+
     def select_grasp(
         self, grasps: graspnetAPI.GraspGroup, num_grasp_choices=5
     ) -> graspnetAPI.Grasp:
@@ -165,17 +170,14 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             for i, grasp in enumerate(grasps):
                 print(f"checking feasibility {i}/{len(grasps)}")
 
-                if grasp.width > 0.085:
+                if grasp.width > self.gripper_max_width:
                     continue
 
                 grasp_point, grasp_approach_delta, des_ori_quat = compute_des_pose(grasp)
                 point_a = grasp_point + self.k_approach * grasp_approach_delta
                 point_b = grasp_point + self.k_grasp * grasp_approach_delta
 
-                def check_feasibility(point):
-                    return self.ik(point) is not None
-
-                if check_feasibility(point_a) and check_feasibility(point_b):
+                if self.check_feasibility(point_a) and self.check_feasibility(point_b):
                     feasible_i.append(i)
 
                 if len(feasible_i) == num_grasp_choices:
@@ -216,7 +218,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
 
         log.info(f"Waiting for gripper to close...")
         while self.gripper.get_state().is_moving:
-            time.sleep(0.5)
+            time.sleep(0.2)
 
         gripper_state = self.gripper.get_state()
         width = gripper_state.width
