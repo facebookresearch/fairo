@@ -1,0 +1,508 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 440,
+      "max": [
+        36.50392150878906,
+        131.6512451171875,
+        -85.1248550415039
+      ],
+      "min": [
+        -72.56036376953125,
+        43.64396667480469,
+        -136.2748260498047
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 5280,
+      "componentType": 5126,
+      "count": 440,
+      "max": [
+        0.9690911769866943,
+        1.0,
+        1.0
+      ],
+      "min": [
+        -0.9690911769866943,
+        -1.0,
+        -1.0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 440,
+      "max": [
+        0.875,
+        1.0
+      ],
+      "min": [
+        0.125,
+        0.0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 720,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 10560,
+      "componentType": 5126,
+      "count": 192,
+      "max": [
+        36.50392150878906,
+        47.45246887207031,
+        -91.04370880126953
+      ],
+      "min": [
+        -36.50392150878906,
+        43.53062438964844,
+        -129.36795043945313
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 12864,
+      "componentType": 5126,
+      "count": 192,
+      "max": [
+        0.8660280108451843,
+        0.955105721950531,
+        1.0
+      ],
+      "min": [
+        -0.6011105179786682,
+        -1.0,
+        -1.0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 3520,
+      "componentType": 5126,
+      "count": 192,
+      "max": [
+        0.65625,
+        0.9790664911270142
+      ],
+      "min": [
+        0.34375,
+        0.02093350887298584
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 2880,
+      "componentType": 5125,
+      "count": 432,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 15168,
+      "componentType": 5126,
+      "count": 192,
+      "max": [
+        -62.72587585449219,
+        124.51644897460938,
+        -100.67092895507813
+      ],
+      "min": [
+        -71.795654296875,
+        115.44667053222656,
+        -119.74071502685547
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 17472,
+      "componentType": 5126,
+      "count": 192,
+      "max": [
+        0.8703888058662415,
+        0.8703891634941101,
+        0.870388388633728
+      ],
+      "min": [
+        -0.8703890442848206,
+        -0.8703885078430176,
+        -0.8703889846801758
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 5056,
+      "componentType": 5126,
+      "count": 192,
+      "max": [
+        1.125,
+        1.3743400573730469
+      ],
+      "min": [
+        0.375,
+        0.3743400275707245
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 4608,
+      "componentType": 5125,
+      "count": 288,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 19776,
+      "componentType": 5126,
+      "count": 978,
+      "max": [
+        63.42463684082031,
+        143.0194091796875,
+        -67.17919921875
+      ],
+      "min": [
+        -56.67470932006836,
+        57.417633056640625,
+        -153.23245239257813
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 31512,
+      "componentType": 5126,
+      "count": 978,
+      "max": [
+        0.9998446702957153,
+        0.9993283152580261,
+        0.9918919801712036
+      ],
+      "min": [
+        -0.985973060131073,
+        -0.978974461555481,
+        -0.9918920397758484
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 6592,
+      "componentType": 5126,
+      "count": 978,
+      "max": [
+        0.875,
+        1.0
+      ],
+      "min": [
+        0.125,
+        0.0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 5760,
+      "componentType": 5125,
+      "count": 978,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "The_Cyborg_Lord/Elijah_The_Peacock (https://sketchfab.com/The_Cyborg_Lord)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/low-poly-sheep-20ef523bee784e4a939b4c5f8734edfc",
+      "title": "Low Poly Sheep"
+    },
+    "generator": "Sketchfab-12.68.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 9672,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14416,
+      "byteOffset": 9672,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 43248,
+      "byteOffset": 24088,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 67336,
+      "uri": "scene.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "textures/material_baseColor.png"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "Sheep_Skin",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.087,
+          0.087,
+          0.087,
+          1.0
+        ],
+        "metallicFactor": 0.0
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "Hoof",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1.0,
+          0.726542,
+          0.526,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.9958803758205093
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "material",
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.8942628736559436
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "wool",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.838,
+          0.838,
+          0.838,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.9862678982542721
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "pCylinder12_Sheep_Skin_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "pCylinder12_Hoof_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 5,
+            "POSITION": 4,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 1,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "pCylinder12_EYE_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 9,
+            "POSITION": 8,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 2,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "pCylinder12_wool_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 13,
+            "POSITION": 12,
+            "TEXCOORD_0": 14
+          },
+          "indices": 15,
+          "material": 3,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.220446049250313e-16,
+        -1.0,
+        0.0,
+        0.0,
+        1.0,
+        2.220446049250313e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        -1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "93a394d9c394413ba37c841927fc9c8f.fbx"
+    },
+    {
+      "children": [
+        3
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "matrix": [
+        0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.009999999776482582,
+        0.0,
+        8.881784197001252e-16,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "pCylinder12"
+    },
+    {
+      "mesh": 0,
+      "name": "pCylinder12_Sheep_Skin_0"
+    },
+    {
+      "mesh": 1,
+      "name": "pCylinder12_Hoof_0"
+    },
+    {
+      "mesh": 2,
+      "name": "pCylinder12_EYE_0"
+    },
+    {
+      "mesh": 3,
+      "name": "pCylinder12_wool_0"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    }
+  ]
+}
