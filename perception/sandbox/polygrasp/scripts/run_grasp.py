@@ -36,7 +36,6 @@ def save_rgbd_masked(rgbd, rgbd_masked):
     plt.close(f)
 
 
-
 def get_obj_grasps(grasp_client, obj_pcds, scene_pcd):
     for obj_i, obj_pcd in enumerate(obj_pcds):
         print(f"Getting obj {obj_i} grasp...")
@@ -52,6 +51,7 @@ def get_obj_grasps(grasp_client, obj_pcds, scene_pcd):
         f"Unable to find any grasps after filtering, for any of the {len(obj_pcds)} objects"
     )
 
+
 def merge_pcds(pcds, eps=0.1, min_samples=2):
     """Cluster object pointclouds from different cameras based on centroid using DBSCAN; merge when within eps"""
     xys = np.array([pcd.get_center()[:2] for pcd in pcds])
@@ -61,7 +61,9 @@ def merge_pcds(pcds, eps=0.1, min_samples=2):
     total_n_objs = len(xys)
     total_clusters = cluster_labels.max() + 1
     unclustered_objs = (cluster_labels < 0).sum()
-    print(f"Clustering objects from all cameras: {total_clusters} clusters, plus {unclustered_objs} non-clustered objects; went from {total_n_objs} to {total_clusters + unclustered_objs} objects")
+    print(
+        f"Clustering objects from all cameras: {total_clusters} clusters, plus {unclustered_objs} non-clustered objects; went from {total_n_objs} to {total_clusters + unclustered_objs} objects"
+    )
 
     # Cluster label == -1 when unclustered, otherwise cluster label >=0
     final_pcds = []
@@ -74,12 +76,14 @@ def merge_pcds(pcds, eps=0.1, min_samples=2):
                 cluster_to_pcd[cluster_label] += pcd
         else:
             final_pcds.append(pcd)
-    
+
     return list(cluster_to_pcd.values()) + final_pcds
 
 
 def execute_grasp(robot, chosen_grasp, hori_offset, time_to_go):
-    traj, success = robot.grasp(chosen_grasp, time_to_go=time_to_go, gripper_width_success_threshold=0.001)
+    traj, success = robot.grasp(
+        chosen_grasp, time_to_go=time_to_go, gripper_width_success_threshold=0.001
+    )
     print(f"Grasp success: {success}")
 
     if success:
@@ -157,7 +161,7 @@ def main(cfg):
             masks = masks_2
             hori_offset = torch.Tensor([0, 0.4, 0])
         time_to_go = 3
-        
+
         for i in range(cfg.num_grasps_per_bin_shift):
             # Create directory for current grasp iteration
             os.chdir(root_working_dir)
@@ -179,17 +183,19 @@ def main(cfg):
             print("Segmenting image...")
             unmerged_obj_pcds = []
             for i in range(cameras.n_cams):
-                obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd_masked[i], min_mask_size=cfg.min_mask_size)
-                unmerged_obj_pcds += [cameras.get_pcd_i(obj_masked_rgbd, i) for obj_masked_rgbd in obj_masked_rgbds]
+                obj_masked_rgbds, obj_masks = segmentation_client.segment_img(
+                    rgbd_masked[i], min_mask_size=cfg.min_mask_size
+                )
+                unmerged_obj_pcds += [
+                    cameras.get_pcd_i(obj_masked_rgbd, i) for obj_masked_rgbd in obj_masked_rgbds
+                ]
             obj_pcds = merge_pcds(unmerged_obj_pcds)
             if len(obj_pcds) == 0:
                 print(f"Failed to find any objects with mask size > {cfg.min_mask_size}!")
                 break
 
             print("Getting grasps per object...")
-            obj_i, filtered_grasp_group = get_obj_grasps(
-                grasp_client, obj_pcds, scene_pcd
-            )
+            obj_i, filtered_grasp_group = get_obj_grasps(grasp_client, obj_pcds, scene_pcd)
 
             print("Choosing a grasp for the object")
             chosen_grasp, final_filtered_grasps = robot.select_grasp(filtered_grasp_group)
