@@ -10,18 +10,24 @@ import random
 import numpy as np
 import shutil
 import json
+import time
 
-random.seed(2021)  # fixing a random seed to fix default exploration goal
+# Fixing a random seed for slurm. Slurm jobs otherwise inherit the same seed for all jobs
+# resulting in the same end goal being explored
+seed = (os.getpid() * int(time.time())) % 123456789
+rng = random.Random(seed)
+logging.info(f"Seed chosen: {seed}")
 
 
 def get_distant_goal(x, y, t, l1_thresh=35):
     # Get a distant goal for the slam exploration
     # Pick a random quadrant, get
     while True:
-        xt = random.randint(-19, 19)
-        yt = random.randint(-19, 19)
+        xt = rng.randint(-19, 19)
+        yt = rng.randint(-19, 19)
         d = np.linalg.norm(np.asarray([x, y]) - np.asarray([xt, yt]), ord=1)
         if d > l1_thresh:
+            logging.info(f"get_distant_goal {(xt, yt, 0)}")
             return (xt, yt, 0)
 
 
@@ -82,7 +88,8 @@ def start_explore(agent, goal):
         logger.info(
             f"Starting exploration {explore_count} \
             first_exploration_done {first_exploration_done} \
-            os.getenv('CONTINUOUS_EXPLORE') {os.getenv('CONTINUOUS_EXPLORE', 'False')}"
+            os.getenv('CONTINUOUS_EXPLORE') {os.getenv('CONTINUOUS_EXPLORE', 'False')} \
+            os.getenv('NOISY_HABITAT') {os.getenv('NOISY_HABITAT')}"
         )
 
         # FIXME, don't clear the memory, place_field, etc.  explore more reasonably
@@ -96,10 +103,16 @@ def start_explore(agent, goal):
         objects = DetectedObjectNode.get_all(agent.memory)
         logger.info(f"{len(objects)} memids in memory")
 
+        data_path = (
+            os.path.join(f"{agent.opts.data_store_path}", str(explore_count))
+            if os.getenv("CONTINUOUS_EXPLORE") == "True"
+            else agent.opts.data_store_path
+        )
+
         task_data = {
             "goal": goal,
             "save_data": os.getenv("SAVE_EXPLORATION", "False") == "True",
-            "data_path": os.path.join(f"{os.getenv('HEURISTIC', 'default')}", str(explore_count)),
+            "data_path": data_path,
         }
         logger.info(f"task_data {task_data}")
 
@@ -123,7 +136,7 @@ def explore(agent):
     start_explore(agent, goal)
 
 
-def get_task_data(agent):
+def get_task_data_for_reexplore(agent):
     try:
         with open(agent.opts.reexplore_json, "r") as f:
             reex = json.load(f)
@@ -139,16 +152,24 @@ def get_task_data(agent):
     task_data = {
         "spawn_pos": reex[reex_key]["spawn_pos"],
         "base_pos": reex[reex_key]["base_pos"],
+        "label": reex[reex_key]["label"],
         "target": {"xyz": reex[reex_key]["target"], "label": "object"},
         "data_path": f"{agent.opts.data_store_path}/{reexplore_id}",
         "vis_path": f"{agent.opts.data_store_path}/{reexplore_id}",
     }
+    logger = logging.getLogger("default_behavior")
+    logger.info(f"task_data {task_data}")
     add_or_replace(agent, "reexplore_id", str(reexplore_id + 1))
     return task_data
 
 
 def reexplore(agent):
-    task_data = get_task_data(agent)
+    task_data = get_task_data_for_reexplore(agent)
+
+    if task_data is not None and os.path.isdir(task_data["data_path"]):
+        logging.info(f"rmtree {task_data['data_path']} ...")
+        shutil.rmtree(task_data["data_path"])
+
     logging.info(f"task_data {task_data}")
     if task_data is not None:
         agent.memory.task_stack_push(tasks.Reexplore(agent, task_data))

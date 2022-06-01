@@ -4,10 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import json
+from collections import defaultdict
 
 
-def get_cache_key(data_dir, img_id):
-    return data_dir + "_" + str(img_id)
+def get_cache_key(data_dir, setting, img_id):
+    return data_dir + "_" + setting + "_" + str(img_id)
 
 
 def cached(file_name):
@@ -18,7 +19,7 @@ def cached(file_name):
             cache = {}
 
         def new_func(sample_class, img_id):
-            k = get_cache_key(sample_class.data_dir, img_id)
+            k = get_cache_key(sample_class.data_dir, sample_class.setting, img_id)
             if k in cache:
                 return cache[k]
             val = original_func(sample_class, img_id)
@@ -32,13 +33,15 @@ def cached(file_name):
 
 
 class SampleGoodCandidates:
-    def __init__(self, data_dir, is_annot_validfn):
+    def __init__(self, data_dir, is_annot_validfn, labels, setting):
         self.data_dir = data_dir
         self.img_dir = os.path.join(data_dir, "rgb")
         self.seg_dir = os.path.join(data_dir, "seg")
-        self.good_candidates = []
+        self.good_candidates = defaultdict(list)
         self.bad_candidates = []
         self.is_annot_validfn = is_annot_validfn
+        self.setting = setting
+        self.labels = labels
         self.filter_candidates()
 
     def filter_candidates(self):
@@ -48,14 +51,15 @@ class SampleGoodCandidates:
                 return int(x.split(".")[0])
 
             img_id = get_id_from_filename(x)
-            if self.is_good_candidate(img_id):
-                self.good_candidates.append(img_id)
+            is_good, cat_id = self.is_good_candidate(img_id)
+            if is_good:
+                self.good_candidates[cat_id].append(img_id)
             else:
                 self.bad_candidates.append(img_id)
 
         print(f"{len(self.good_candidates)} good candidates found!")
 
-    @cached("candidates_cached.json")
+    # @cached('/checkpoint/apratik/candidates_cached_reexplore_n22.json')
     def is_good_candidate(self, x):
         """
         checks if an image is a good candidate by checking that the mask is within a certain distance from the
@@ -69,14 +73,19 @@ class SampleGoodCandidates:
         # Load Annotations
         annot = np.load(seg_path).astype(np.uint32)
         all_binary_mask = np.zeros_like(annot)
+        largest_mask_id, largest_mask_area = -1, 0
 
         for i in np.sort(np.unique(annot.reshape(-1), axis=0)):
             if self.is_annot_validfn(i):
                 binary_mask = (annot == i).astype(np.uint8)
+                cur_area = binary_mask.sum()
+                if cur_area > largest_mask_area:
+                    largest_mask_area = cur_area
+                    largest_mask_id = i
                 all_binary_mask = np.bitwise_or(binary_mask, all_binary_mask)
 
         if not all_binary_mask.any():
-            return False
+            return False, None
 
         # Check that all masks are within a certain distance from the boundary
         # all pixels [:10,:], [:,:10], [-10:], [:-10] must be 0:
@@ -86,21 +95,60 @@ class SampleGoodCandidates:
             or all_binary_mask[:, -10:].any()
             or all_binary_mask[-10:, :].any()
         ):
-            return False
+            return False, None
 
         if all_binary_mask.sum() < 5000:
-            return False
+            return False, None
 
-        return True
+        return True, int(largest_mask_id)
 
-    def get_n_candidates(self, n, good=True):
+    def get_n_good_candidates_across_all_labels(self, n):
+        label_counts = defaultdict(int)
+        labels_found = list(self.good_candidates.keys())
+        ctr = 0
+        # choose n labels in a round robin manner so that all labels are uniformly chosen
+        for _ in range(n):
+            label_counts[labels_found[ctr]] += 1
+            ctr = (ctr + 1) % len(labels_found)
+
+        print(f"selecting candidates per label ... \n {label_counts} \n")
+        candidates = []
+        for label, count in label_counts.items():
+            # pick candidates_per_label for each label
+            candidates.append(
+                [
+                    (self.good_candidates[label][int(x)], label)
+                    for x in np.linspace(
+                        0, len(self.good_candidates[label]), count, endpoint=False
+                    )
+                ]
+            )
+        candidates = [x for y in candidates for x in y]
+        return candidates
+
+    def get_n_candidates(self, n, good, evenly_spaced=False):
         # go through the images and filter candidates
         # mark all the good candidates and then uniformly sample from them
         # Pick n things uniformly from all the good candidates
+        def sample_even_or_random(arr, n, evenly_spaced=False):
+            if len(arr) == 0:
+                return []
+
+            if evenly_spaced:
+                return [arr[int(x)] for x in np.linspace(0, len(arr), n, endpoint=False)]
+            else:
+                return random.sample(arr, min(len(arr), n))
+
         if good:
-            return random.sample(self.good_candidates, min(len(self.good_candidates), n))
+            # build a list from dict
+            all_candidates = []
+            for k, v in self.good_candidates.items():
+                all_candidates.append(v)
+            # flatten list of lists
+            all_candidates = [x for y in all_candidates for x in y]
+            return sample_even_or_random(all_candidates, n, evenly_spaced)
         else:
-            return random.sample(self.bad_candidates, min(len(self.bad_candidates), n))
+            return sample_even_or_random(self.bad_candidates, n, evenly_spaced)
 
     def visualize(self, candidates):
         fig, axs = plt.subplots(1, len(candidates), figsize=(2 * len(candidates), 4))

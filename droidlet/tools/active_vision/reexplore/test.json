@@ -1,0 +1,55 @@
+{
+    "0": {
+        "src_img_id": 13,
+        "spawn_pos": [
+            0,0,0
+        ],
+        "base_pos": [
+            0,0,0
+        ],
+        "target": [
+            1.5,0,1.5
+        ],
+        "label": 1
+    },
+    "1": {
+        "src_img_id": 13,
+        "spawn_pos": [
+            0,0,0
+        ],
+        "base_pos": [
+            0,0,0
+        ],
+        "target": [
+            -1.5,0,1.5
+        ],
+        "label": 1
+    },
+    "2": {
+        "src_img_id": 13,
+        "spawn_pos": [
+            0,0,0
+        ],
+        "base_pos": [
+            0,0,0
+        ],
+        "target": [
+            -1.5,0,-1.5
+        ],
+        "label": 1
+    },
+    "4": {
+        "src_img_id": 13,
+        "spawn_pos": [
+            0,0,0
+        ],
+        "base_pos": [
+            0,0,0
+        ],
+        "target": [
+            1.5,0,-1.5
+        ],
+        "label": 1
+    }
+
+}
