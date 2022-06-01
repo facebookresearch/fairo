@@ -33,6 +33,9 @@ droidlet/artifacts/datasets/*
 !droidlet/artifacts/datasets/.gitignore
 *.gz
 *.vscode
+*.swo
+*.swp
+*.swn
 external_push
 artifact_scripts/upload*
 .mypy_cache
