@@ -275,7 +275,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 </pre>
 
 The specificatition sets positive yaw to be rotations to the left and negative yaw to be rotations to the right;
-and positive pitch up (90) and negative pitch down (-90).
+and positive pitch up (90) and negative pitch down (-90).  TODO switch all angular fixed values to radians.
 	
 #### DanceType ####
 <pre>
