@@ -28,7 +28,7 @@ class MockedGraspingRobotInterface:
         return torch.zeros(3), None
 
     def select_grasp(self, grasp_group):
-        return grasp_group[0]
+        return grasp_group[0], grasp_group
 
 
 class MockedCam(PointCloudSubscriber):

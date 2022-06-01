@@ -195,7 +195,6 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         self,
         grasp: graspnetAPI.Grasp,
         time_to_go=3,
-        offset=np.array([0.0, 0.0, 0.0]),
         gripper_width_success_threshold=0.0005,
     ):
         states = []
@@ -203,12 +202,12 @@ class GraspingRobotInterface(polymetis.RobotInterface):
 
         self.gripper_open()
         states += self.move_until_success(
-            position=torch.Tensor(grasp_point + grasp_approach_delta * self.k_approach + offset),
+            position=torch.Tensor(grasp_point + grasp_approach_delta * self.k_approach),
             orientation=torch.Tensor(des_ori_quat),
             time_to_go=time_to_go,
         )
 
-        grip_ee_pos = torch.Tensor(grasp_point + grasp_approach_delta * self.k_grasp + offset)
+        grip_ee_pos = torch.Tensor(grasp_point + grasp_approach_delta * self.k_grasp)
 
         states += self.move_until_success(
             position=grip_ee_pos, orientation=torch.Tensor(des_ori_quat), time_to_go=time_to_go

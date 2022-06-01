@@ -6,7 +6,6 @@ import numpy as np
 import open3d as o3d
 
 import a0
-import realsense_wrapper
 from polygrasp import serdes
 
 log = logging.getLogger(__name__)
@@ -22,6 +21,9 @@ class CameraSubscriber:
         with open(extrinsics_file, "r") as f:
             self.extrinsics = json.load(f)
 
+        assert len(self.intrinsics) == len(self.extrinsics)
+        self.n_cams = len(self.intrinsics)
+
         self.sub = a0.SubscriberSync(topic, a0.INIT_MOST_RECENT, a0.ITER_NEWEST)
         self.recent_rgbd = None
 
@@ -34,9 +36,6 @@ class CameraSubscriber:
 class PointCloudSubscriber(CameraSubscriber):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        assert len(self.intrinsics) == len(self.extrinsics)
-        self.n_cams = len(self.intrinsics)
 
         self.width = self.intrinsics[0].width
         self.height = self.intrinsics[0].height
@@ -99,6 +98,7 @@ class PointCloudSubscriber(CameraSubscriber):
 
 if __name__ == "__main__":
     import argparse
+    import realsense_wrapper
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -108,8 +108,7 @@ if __name__ == "__main__":
         help="JSON file to overwrite with current intrinsics.",
     )
     args = parser.parse_args()
-    # Recommended resolution for depth accuracy for D435: https://dev.intelrealsense.com/docs/tuning-depth-cameras-for-best-performance
-    cameras = realsense_wrapper.RealsenseAPI(width=848, height=480)
+    cameras = realsense_wrapper.RealsenseAPI()
 
     intrinsics = cameras.get_intrinsics()
     intrinsics_py = [
