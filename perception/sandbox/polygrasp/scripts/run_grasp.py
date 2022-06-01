@@ -16,7 +16,6 @@ import torch
 import hydra
 import omegaconf
 
-from polygrasp.robot_interface import compute_des_pose
 from polygrasp.segmentation_rpc import SegmentationClient
 from polygrasp.grasp_rpc import GraspClient
 from polygrasp.serdes import load_bw_img
@@ -38,19 +37,9 @@ def save_rgbd_masked(rgbd, rgbd_masked):
     plt.close(f)
 
 
-def save_obj_masked(obj_masked_rgbd, obj_i, obj_mask_size):
-    plt.imshow(obj_masked_rgbd[:, :, :3])
-    plt.title(f"Object {obj_i}, mask size {obj_mask_size}")
-    plt.savefig(f"object_{obj_i}_masked")
-    plt.close()
-
 
 def get_obj_grasps(grasp_client, obj_masked_rgbds, obj_pcds, scene_pcd):
     for obj_i, obj_pcd in enumerate(obj_pcds):
-        # obj_mask_size = obj_mask.sum()
-        # save_obj_masked(obj_masked_rgbd, obj_i, obj_mask_size)
-        # print(f"Getting obj {obj_i} pcd...")
-        # pcd = cameras.get_pcd_i(obj_masked_rgbd, cam_i)
         print(f"Getting obj {obj_i} grasp...")
         grasp_group = grasp_client.get_grasps(obj_pcd)
         filtered_grasp_group = grasp_client.get_collision(grasp_group, scene_pcd)
@@ -70,7 +59,6 @@ def execute_grasp(robot, chosen_grasp, grasp_offset, hori_offset, time_to_go):
     print(f"Grasp success: {success}")
 
     if success:
-        import pdb; pdb.set_trace()
         print("Placing object in hand")
         curr_pose, curr_ori = robot.get_ee_pose()
         traj += robot.move_until_success(
@@ -136,15 +124,13 @@ def main(cfg):
 
         if cam_i == 0:
             masks = masks_1
-            # hori_offset = torch.Tensor([0, -0.4, 0])
+            hori_offset = torch.Tensor([0, -0.4, 0])
             grasp_offset = np.array([0.0, 0.0, 0.00])
-            time_to_go = 3
         else:
             masks = masks_2
-            # hori_offset = torch.Tensor([0, 0.4, 0])
+            hori_offset = torch.Tensor([0, 0.4, 0])
             grasp_offset = np.array([0.0, 0.0, 0.0])
-            time_to_go = 3
-        hori_offset = torch.Tensor([0, 0.0, 0])
+        time_to_go = 3
         
         for i in range(cfg.num_grasps_per_bin_shift):
             # Create directory for current grasp iteration
@@ -193,26 +179,13 @@ def main(cfg):
 
             print("Getting grasps per object...")
             obj_i, filtered_grasp_group = get_obj_grasps(
-                # cameras, cam_i, rgbd, grasp_client, obj_masked_rgbds, obj_masks
                 grasp_client, obj_masked_rgbds, obj_pcds, scene_pcd
             )
 
-            # cam_pcd = cameras.get_pcd_i(rgbd[cam_i], cam_i)
             print("Choosing a grasp for the object")
             chosen_grasp, final_filtered_grasps = robot.select_grasp(filtered_grasp_group)
             grasp_client.visualize_grasp(scene_pcd, final_filtered_grasps)
             grasp_client.visualize_grasp(obj_pcds[obj_i], final_filtered_grasps, name="obj")
-            # for g in final_filtered_grasps:
-            #     print("Executing grasp")
-            #     traj, success = robot.grasp(g, offset=grasp_offset, time_to_go=time_to_go, gripper_width_success_threshold=0.001)
-            #     if success:
-            #         break
-            # for grasp in final_filtered_grasps:
-            #     curr_ee_pos = robot.get_ee_pose()[0]
-            #     des_ee_ori = torch.Tensor(compute_des_pose(grasp)[2])
-            #     joint_pos = robot.ik(curr_ee_pos, des_ee_ori)
-            #     import ipdb; ipdb.set_trace()
-            #     robot.move_to_joint_positions(joint_pos)
 
             traj = execute_grasp(robot, chosen_grasp, grasp_offset, hori_offset, time_to_go)
 

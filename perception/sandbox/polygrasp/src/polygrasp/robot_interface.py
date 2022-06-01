@@ -9,7 +9,9 @@ import torch
 import hydra
 import graspnetAPI
 import polymetis
+
 import ikpy.chain
+import tempfile
 
 log = logging.getLogger(__name__)
 
@@ -41,26 +43,26 @@ def compute_quat_dist(a, b):
     return torch.acos((2 * (a * b).sum() ** 2 - 1).clip(-1, 1))
 
 
-def min_dist_grasp(default_ee_pose, grasps):
+def min_dist_grasp(default_ee_quat, grasps):
     """Find the grasp with minimum orientation distance to the reference grasp"""
     with torch.no_grad():
         rots_as_quat = [
             torch.Tensor(R.from_matrix(grasp.rotation_matrix).as_quat()) for grasp in grasps
         ]
-        dists = [compute_quat_dist(rot, default_ee_pose) for rot in rots_as_quat]
+        dists = [compute_quat_dist(rot, default_ee_quat) for rot in rots_as_quat]
         i = torch.argmin(torch.Tensor(dists)).item()
     log.info(f"Grasp {i} has angle {dists[i]} from reference.")
     return grasps[i], i
 
 
-def min_dist_grasp_no_z(default_ee_pose, grasps):
+def min_dist_grasp_no_z(default_ee_quat, grasps):
     """
     Find the grasp with minimum orientation distance to the reference grasp
     disregarding orientation about z axis
     """
     with torch.no_grad():
         rots_as_R = [R.from_quat(compute_des_pose(grasp)[2]) for grasp in grasps]
-        default_r = R.from_quat(default_ee_pose)
+        default_r = R.from_quat(default_ee_quat)
         dists = [np.linalg.norm((rot.inv() * default_r).as_rotvec()[:2]) for rot in rots_as_R]
         i = torch.argmin(torch.Tensor(dists)).item()
     log.info(f"Grasp {i} has angle {dists[i]} from reference.")
@@ -69,21 +71,13 @@ def min_dist_grasp_no_z(default_ee_pose, grasps):
 
 class GraspingRobotInterface(polymetis.RobotInterface):
     def __init__(
-        self, gripper: polymetis.GripperInterface, k_approach=1.5, k_grasp=0.72, *args, **kwargs
-    ):
-        super().__init__(*args, **kwargs)
-        self.gripper = hydra.utils.instantiate(gripper)
-
-        # self.default_ee_pose = torch.Tensor([0.9418, 0.3289, -0.0368, -0.0592])
-        self.default_ee_pose = torch.Tensor([1, 0, 0, 0])
-        self.k_approach = k_approach
-        self.k_grasp = k_grasp
-
-        self.robot_model_ikpy = ikpy.chain.Chain.from_urdf_file(
-            "/home/yixinlin/dev/fairo/polymetis/polymetis/data/franka_panda/panda_arm.urdf",
-            base_elements=["panda_link0"],
-        )
-        soft_limits = [
+        self,
+        gripper: polymetis.GripperInterface,
+        k_approach=1.5,
+        k_grasp=0.72,
+        # ikpy params:
+        base_elements=["panda_link0"],
+        soft_limits=[
             (-2.70, 2.70),
             (-1.56, 1.56),
             (-2.7, 2.7),
@@ -91,10 +85,27 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             (-2.7, 2.7),
             (-0.02, 3.55),
             (-2.7, 2.7),
-        ]
+        ],
+        *args,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self.gripper = hydra.utils.instantiate(gripper)
+
+        self.default_ee_quat = torch.Tensor([1, 0, 0, 0])
+        self.k_approach = k_approach
+        self.k_grasp = k_grasp
+
+        with tempfile.NamedTemporaryFile(mode="w+") as f:
+            f.write(self.metadata.urdf_file)
+            f.seek(0)
+            self.robot_model_ikpy = ikpy.chain.Chain.from_urdf_file(
+                f.name,
+                base_elements=base_elements,
+            )
         for i in range(len(soft_limits)):
             self.robot_model_ikpy.links[i + 1].bounds = soft_limits[i]
-
+        
     def ik(self, position, orientation=None):
         curr_joint_pos = [0] + self.get_joint_positions().numpy().tolist() + [0]
         des_homog_transform = np.eye(4)
@@ -124,11 +135,8 @@ class GraspingRobotInterface(polymetis.RobotInterface):
     ):
         states = []
         for _ in range(max_attempts):
-            # joint_pos = self.robot_model.inverse_kinematics(position, orientation, rest_pose=self.get_joint_positions())
             joint_pos = self.ik(position, orientation)
             states += self.move_to_joint_positions(joint_pos, time_to_go=time_to_go)
-
-            # states += self.move_to_ee_pose(position=position, orientation=orientation, time_to_go=time_to_go)
             curr_ee_pos, curr_ee_ori = self.get_ee_pose()
 
             xyz_diff = torch.linalg.norm(curr_ee_pos - position)
@@ -144,7 +152,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
                 break
         return states
 
-    def select_grasp(self, grasps: graspnetAPI.GraspGroup) -> graspnetAPI.Grasp:
+    def select_grasp(self, grasps: graspnetAPI.GraspGroup, num_grasp_choices=5) -> graspnetAPI.Grasp:
         with torch.no_grad():
             feasible_i = []
             for i, grasp in enumerate(grasps):
@@ -163,16 +171,16 @@ class GraspingRobotInterface(polymetis.RobotInterface):
                 if check_feasibility(point_a) and check_feasibility(point_b):
                     feasible_i.append(i)
 
-                if len(feasible_i) == 5:
-                    if i >= 5:
+                if len(feasible_i) == num_grasp_choices:
+                    if i >= num_grasp_choices:
                         print(
-                            f"Kinematically filtered {i + 1 - 5} grasps to get 5 feasible positions"
+                            f"Kinematically filtered {i + 1 - num_grasp_choices} grasps to get 5 feasible positions"
                         )
                     break
 
             # Choose the grasp closest to the neutral position
             filtered_grasps = grasps[feasible_i]
-            grasp, i = min_dist_grasp_no_z(self.default_ee_pose, filtered_grasps)
+            grasp, i = min_dist_grasp_no_z(self.default_ee_quat, filtered_grasps)
             log.info(f"Closest grasp to ee ori, within top 5: {i + 1}")
             return grasp, filtered_grasps
 
