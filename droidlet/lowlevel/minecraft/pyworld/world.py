@@ -242,7 +242,7 @@ class World:
         import eventlet
         import time
 
-        server = socketio.Server(async_mode="eventlet")
+        server = socketio.Server(async_mode="eventlet", cors_allowed_origins='*')
         self.connected_sids = {}
 
         self.start_time = time.time()
@@ -261,8 +261,13 @@ class World:
         def init_player_event(sid, data):
             self.connect_player(sid, data)
 
+        @server.on("getVoxelWorldInitialState")
+        def testing(sid):
+            print('test get VW initial status')
+
         @server.on("get_world_info")
         def get_world_info(sid):
+            print("get world info")
             return {"sl": self.sl, "coord_shift": self.coord_shift}
 
         @server.on("send_chat")
@@ -395,5 +400,5 @@ if __name__ == "__main__":
     world_opts = Opt()
     world_opts.sl = 32
     world_opts.world_server = True
-    world_opts.port = 6000
+    world_opts.port = 6001
     world = World(world_opts, spec)

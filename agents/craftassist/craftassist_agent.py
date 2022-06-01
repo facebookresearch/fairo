@@ -23,6 +23,7 @@ from droidlet.lowlevel.minecraft.craftassist_mover import (
     CraftassistMover,
     from_minecraft_xyz_to_droidlet,
 )
+from droidlet.lowlevel.minecraft.pyworld_mover import PyWorldMover
 
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 import droidlet.dashboard as dashboard
@@ -125,7 +126,7 @@ class CraftAssistAgent(DroidletAgent):
     def get_chats(self):
         """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
         chat self.dashboard_chat which is set by the dashboard."""
-        all_chats = self.cagent.get_incoming_chats()
+        all_chats = []#self.cagent.get_incoming_chats()
         updated_chats = []
         if self.dashboard_chat:
             updated_chats.append(self.dashboard_chat)
@@ -136,7 +137,7 @@ class CraftAssistAgent(DroidletAgent):
     def get_all_players(self):
         """This function is a wrapper around self.mover.get_other_players and adds a new
         player called "dashboard" if it doesn't already exist."""
-        all_players = self.mover.get_other_players()
+        all_players = []#self.mover.get_other_players()
         updated_players = all_players
         player_exists = False
         for player in all_players:
@@ -388,7 +389,7 @@ class CraftAssistAgent(DroidletAgent):
         else:
             sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
 
-        return self.cagent.send_chat(chat_text)
+        # return self.cagent.send_chat(chat_text)
 
     def update_agent_pos_dashboard(self):
         agent_pos = self.get_player().pos
@@ -480,9 +481,10 @@ class CraftAssistAgent(DroidletAgent):
         if self.opts.port == -1:
             return
         logging.info("Attempting to connect to port {}".format(self.opts.port))
-        self.cagent = MCAgent("localhost", self.opts.port, self.name)
+        # self.cagent = MCAgent("localhost", self.opts.port, self.name)
         logging.info("Logged in to server")
-        self.mover = CraftassistMover(self.cagent)
+        # self.mover = CraftassistMover(self.cagent)
+        self.mover = PyWorldMover(port=6001)
         for m in dir(self.mover):
             if callable(getattr(self.mover, m)) and m[0] != "_" and getattr(self, m, None) is None:
                 setattr(self, m, getattr(self.mover, m))
@@ -498,6 +500,12 @@ class CraftAssistAgent(DroidletAgent):
         except:  # this is for test/test_agent
             return
         PlayerNode.create(self.memory, p, memid=self.memory.self_memid)
+    
+    def get_mobs(self):
+        return self.mover.get_mobs()
+    
+    def get_item_stacks(self):
+        return self.mover.get_item_stacks()
 
 
 if __name__ == "__main__":
