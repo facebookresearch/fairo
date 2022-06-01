@@ -6,7 +6,7 @@ ARG AWS_ACCESS_KEY_ID
 ARG AWS_SECRET_ACCESS_KEY
 
 # Clone/make repo
-RUN time git clone --recurse-submodules ./droidlet --shallow-submodules --depth 1 --branch ${current_branch} --jobs 5 https://github.com/facebookresearch/fairo
+RUN time git clone --recurse-submodules="./droidlet" --shallow-submodules --depth 1 --branch ${current_branch} --jobs 5 https://github.com/facebookresearch/fairo
 WORKDIR fairo
 
 RUN pip3 install -r requirements.txt
