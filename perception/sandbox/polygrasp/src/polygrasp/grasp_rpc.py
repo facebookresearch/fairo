@@ -138,9 +138,6 @@ class GraspClient:
             grasp_o3d_geometry.sample_points_uniformly(number_of_points=5000)
             for grasp_o3d_geometry in grasp_o3d_geometries
         ]
-        # scene = scene_pcd
-        # for pcd in grasp_pointclouds[:10]:
-        #     scene += pcd
         vis = self.visualize(scene_pcd=scene_pcd, plot=plot, render=render, save_view=save_view)
 
         # Save scene
