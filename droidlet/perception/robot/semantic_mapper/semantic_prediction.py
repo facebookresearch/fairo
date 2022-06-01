@@ -307,11 +307,11 @@ if __name__ == "__main__":
     ip = os.getenv("LOCAL_IP")
     args = parser.parse_args()
 
-    with Pyro4.Daemon(args.ip) as daemon:
+    with Pyro4.Daemon(ip) as daemon:
         robot = Pyro4.Proxy("PYRONAME:" + args.robot_name + "@" + robot_ip)
         S = SemanticPredMaskRCNN(robot)
         uri = daemon.register(S)
-        with Pyro4.locateNS(host=args.ip) as ns:
+        with Pyro4.locateNS(host=ip) as ns:
             ns.register("scene_semantics", uri)
 
         print("scene semantic prediction server is started...")
