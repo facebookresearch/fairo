@@ -17,8 +17,12 @@ log = logging.getLogger(__name__)
 
 
 def compute_des_pose(best_grasp):
+    """Convert between GraspNet coordinates to robot coordinates."""
+
+    # Grasp point
     grasp_point = best_grasp.translation
 
+    # Compute plane of rotation through three orthogonal vectors on plane of rotation
     grasp_approach_delta = best_grasp.rotation_matrix @ np.array([-0.3, 0.0, 0])
     grasp_approach_delta_plus = best_grasp.rotation_matrix @ np.array([-0.3, 0.1, 0])
     grasp_approach_delta_minus = best_grasp.rotation_matrix @ np.array([-0.3, -0.1, 0])
@@ -29,6 +33,7 @@ def compute_des_pose(best_grasp):
     bz = np.cross(bx, by)
     plane_rot = R.from_matrix(np.vstack([bx, by, bz]).T)
 
+    # Convert between GraspNet neutral orientation to robot neutral orientation
     des_ori = plane_rot * R.from_euler("y", 90, degrees=True)
     des_ori_quat = des_ori.as_quat()
 
@@ -105,7 +110,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             )
         for i in range(len(soft_limits)):
             self.robot_model_ikpy.links[i + 1].bounds = soft_limits[i]
-        
+
     def ik(self, position, orientation=None):
         curr_joint_pos = [0] + self.get_joint_positions().numpy().tolist() + [0]
         des_homog_transform = np.eye(4)
@@ -148,11 +153,13 @@ class GraspingRobotInterface(polymetis.RobotInterface):
                 and states[-1].prev_command_successful
                 and xyz_diff < success_dist
                 and ori_diff < 0.2
-            ):  # TODO: orientation diff
+            ):
                 break
         return states
 
-    def select_grasp(self, grasps: graspnetAPI.GraspGroup, num_grasp_choices=5) -> graspnetAPI.Grasp:
+    def select_grasp(
+        self, grasps: graspnetAPI.GraspGroup, num_grasp_choices=5
+    ) -> graspnetAPI.Grasp:
         with torch.no_grad():
             feasible_i = []
             for i, grasp in enumerate(grasps):
@@ -209,7 +216,8 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         self.gripper_close()
 
         log.info(f"Waiting for gripper to close...")
-        time.sleep(1.5)
+        while self.gripper.get_state().is_moving:
+            time.sleep(0.5)
 
         gripper_state = self.gripper.get_state()
         width = gripper_state.width
