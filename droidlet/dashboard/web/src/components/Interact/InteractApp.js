@@ -39,6 +39,8 @@ class InteractApp extends Component {
       feedback: "",
       isSaveFeedback: false,
       clarify: false,
+      current_conversation: "",
+      conversation_turn: 0,
     };
 
     this.state = this.initialState;
@@ -130,6 +132,10 @@ class InteractApp extends Component {
       agent_replies: this.props.stateManager.memory.agent_replies,
     });
 
+    // Add the response to the current conversation
+    const { current_conversation } = this.state;
+    let new_conversation = current_conversation + " Agent: " + msg;
+
     const { agent_replies } = this.state;
     let new_agent_replies = disablePreviousAnswer
       ? agent_replies.map((item) => ({ ...item, isQuestion: false, enableBack: false }))
@@ -144,8 +150,14 @@ class InteractApp extends Component {
         enableBack: enableBack,
       },
     ];
-    this.setState({
-      agent_replies: new_agent_replies,
+    this.setState( prevState => {
+      return {
+        agent_replies: new_agent_replies,
+        current_conversation: new_conversation,
+        conversation_turn: prevState.conversation_turn + 1,
+        // Enable follow up responses to the second conversational turn:
+        disableInput: prevState.conversation_turn === 1 ? false : true,
+      }
     });
     this.props.stateManager.memory.agent_replies = new_agent_replies;
   }
@@ -248,7 +260,6 @@ class InteractApp extends Component {
     } else if (chatmsg.replace(/\s/g, "") !== "") {
       //add to chat history box of parent
       this.updateChat({ msg: chatmsg, timestamp: Date.now() });
-      this.setState({ last_command: chatmsg });
       //log message to flask
       this.props.stateManager.logInteractiondata("text command", chatmsg);
       //log message to Mephisto
@@ -256,8 +267,32 @@ class InteractApp extends Component {
         JSON.stringify({ msg: { command: chatmsg } }),
         "*"
       );
-      //send message
       this.props.stateManager.sendCommandToTurkInfo(chatmsg);
+
+      if (this.state.clarify) {
+        // if we're in active clarification, keep the conversation going
+        // Should only get here if we're sending a follow up command
+        chatmsg = this.state.current_conversation + " User: " + chatmsg;
+        this.setState ( prevState => {
+          return {
+            current_conversation: chatmsg,
+            conversation_turn: prevState.conversation_turn + 1,
+          }
+        }, () => {
+          console.log("Conversation turn " + this.state.conversation_turn + " -- " + this.state.current_conversation);
+        });
+      } else {
+        // Otherwise, start a new conversation
+        this.setState({ 
+          last_command: chatmsg,
+          current_conversation: "User: " + chatmsg,
+          conversation_turn: 1,
+        }, () => {
+          console.log("Conversation turn " + this.state.conversation_turn + " -- " + this.state.current_conversation);
+        });
+      }
+      
+      //send message
       this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
       // status updates
       this.props.stateManager.memory.commandState = "sent";
@@ -337,7 +372,8 @@ class InteractApp extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (this.state.commandState !== prevState.commandState) {
-      if (this.state.commandState !== "idle") {
+      if (this.state.commandState !== "idle" && this.state.conversation_turn !== 2) {
+        // Enable user input for commands and followups, otherwise restrict to response options
         let disableInput = true;
         this.setState({
           disableInput: disableInput,
@@ -927,7 +963,20 @@ class InteractApp extends Component {
       chatmsg = "no";
     }
     this.updateChat({ msg: chatmsg, timestamp: Date.now() });
-    this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
+
+    // Send entire current conversation to the NSP
+    const { current_conversation } = this.state
+    let new_conversation = current_conversation + " User: " + chatmsg;
+    this.setState( prevState => {
+      return { 
+        current_conversation: new_conversation,
+        conversation_turn: prevState.conversation_turn + 1,
+      }
+    }, () => {
+      console.log("Conversation turn " + this.state.conversation_turn + " -- " + new_conversation);
+    });
+    this.props.stateManager.socket.emit("sendCommandToAgent", new_conversation);
+
     this.removeButtonsFromLastQuestion();
   }
 
@@ -978,7 +1027,7 @@ class InteractApp extends Component {
                     placeholder={
                       this.state.disableInput
                         ? `Waiting for Assistant${this.state.ellipsis}`
-                        : "Type your command or response here"
+                        : "Type your command or follow-up response here"
                     }
                     type="text"
                     disabled={this.state.disableInput}
