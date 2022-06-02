@@ -325,7 +325,12 @@ class Navigation(object):
                 goal_map = 1 - skimage.morphology.binary_dilation(
                     1 - goal_map, skimage.morphology.disk(10)
                 ).astype(int)
-                goal_map = skimage.morphology.binary_dilation(goal_map, skimage.morphology.disk(1)).astype(int) - goal_map
+                goal_map = (
+                    skimage.morphology.binary_dilation(
+                        goal_map, skimage.morphology.disk(1)
+                    ).astype(int)
+                    - goal_map
+                )
 
                 if visualize:
                     self.vis.add_location_goal(goal_map)
