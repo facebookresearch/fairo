@@ -13,6 +13,7 @@ from multiprocessing import set_start_method
 from collections import namedtuple
 from datetime import datetime
 from copy import deepcopy
+from typing import cast
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
@@ -23,6 +24,7 @@ from droidlet.lowlevel.minecraft.craftassist_mover import (
     CraftassistMover,
     from_minecraft_look_to_droidlet,
     from_minecraft_xyz_to_droidlet,
+    Look,
 )
 
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
@@ -393,14 +395,29 @@ class CraftAssistAgent(DroidletAgent):
 
         return self.cagent.send_chat(chat_text)
 
+    def get_detected_objects_for_map(self):
+        # FIXME should not be using WHERE clause hack
+        search_res = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject WHERE y>-500")
+        memids, mems = search_res if search_res is not None else [], []
+        detections_for_map = []
+        for mem in mems:
+            if hasattr(mem, "obj_id") and hasattr(mem, "pos"):
+                detections_for_map.append([mem.obj_id, list(mem.pos)])
+            elif hasattr(mem, "pos"):
+                detections_for_map.append(["no_id", list(mem.pos)])
+        return detections_for_map
+    
     def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
+        detections_for_map = []
         if not obstacles:
             obstacles = self.memory.place_field.get_obstacle_list()
+            # if we are getting obstacles from memory, get detections from memory for map too
+            detections_for_map = self.get_detected_objects_for_map()
         if not xyyaw:            
             agent_pos = self.get_player().pos   # position of agent's feet
             agent_look = self.get_player().look
             mc_xyz = agent_pos.x, agent_pos.y, agent_pos.z
-            mc_look = agent_look.yaw, agent_look.pitch
+            mc_look = Look(agent_look.yaw, agent_look.pitch)
             x, _, z = from_minecraft_xyz_to_droidlet(mc_xyz)
             yaw, _ = from_minecraft_look_to_droidlet(mc_look)
             xyyaw = (x, z, yaw)
@@ -413,6 +430,7 @@ class CraftAssistAgent(DroidletAgent):
                 "yaw": xyyaw[2],
                 "map": obstacles,
                 "draw_map": self.opts.draw_map,
+                "detections_from_memory": detections_for_map,
             },
         )
 
