@@ -35,9 +35,7 @@ class AwaitResponse(Task):
     def step(self):
         """Wait for wait_time for an answer. Mark finished when a chat comes in."""
         # FIXME: don't need a memory method for this, use query
-        chatmem = self.agent.memory.nodes[
-            ChatNode.NODE_TYPE
-        ].get_most_recent_incoming_chat(
+        chatmem = self.agent.memory.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(
             self.agent.memory, after=self.init_time + 1
         )
         if chatmem is not None:
@@ -52,9 +50,7 @@ class AwaitResponse(Task):
             return
         if self.agent.memory.get_time() - self.init_time > self.wait_time:
             self.finished = True
-            self.agent.send_chat(
-                "Okay! I'll stop waiting for you to answer that."
-            )
+            self.agent.send_chat("Okay! I'll stop waiting for you to answer that.")
         return
 
 
@@ -144,9 +140,7 @@ class ConfirmTask(Task):
     def __init__(self, agent, task_data={}):
         task_data["blocking"] = True
         super().__init__(agent, task_data=task_data)
-        self.question = task_data.get(
-            "question"
-        )  # chat text that will be sent to user
+        self.question = task_data.get("question")  # chat text that will be sent to user
         self.task_memids = task_data.get(
             "task_memids"
         )  # list of Task objects, will be pushed in order
@@ -162,9 +156,7 @@ class ConfirmTask(Task):
                 Say(self.agent, {"response_options": self.question}),
                 AwaitResponse(self.agent, {"asker_memid": self.memid}),
             ]
-            task_data = {
-                "new_tasks": [task_to_generator(t) for t in task_list]
-            }
+            task_data = {"new_tasks": [task_to_generator(t) for t in task_list]}
             self.add_child_task(ControlBlock(self.agent, task_data))
             self.asked = True
             return
@@ -180,15 +172,11 @@ class ConfirmTask(Task):
         )
         if not t:
             return
-        chat_mems = [
-            self.agent.memory.get_mem_by_id(triples[2]) for triples in t
-        ]
+        chat_mems = [self.agent.memory.get_mem_by_id(triples[2]) for triples in t]
         if any([c.chat_text in MAP_YES for c in chat_mems]):
             for m in self.task_memids:
                 # activate
-                TaskNode(self.agent.memory, m).get_update_status(
-                    {"prio": 1, "paused": 0}
-                )
+                TaskNode(self.agent.memory, m).get_update_status({"prio": 1, "paused": 0})
         else:
             for m in self.task_memids:
                 # mark tasks as finished
@@ -227,22 +215,16 @@ def build_question_json(
             chat_obj["content"].append({"id": "image_link", "content": f"{m}"})
     if text_response_options:
         for tro in text_response_options:
-            chat_obj["content"].append(
-                {"id": "response_option", "content": f"{tro}"}
-            )
+            chat_obj["content"].append({"id": "response_option", "content": f"{tro}"})
     if media_response_options:
         for mro in media_response_options:
-            chat_obj["content"].append(
-                {"id": "response_image_link", "content": f"{mro}"}
-            )
+            chat_obj["content"].append({"id": "response_image_link", "content": f"{mro}"})
 
     return json.dumps(chat_obj)
 
 
 def map_yes_last_chat(task: Task):
-    chat_mem = task.agent.memory.nodes[
-        ChatNode.NODE_TYPE
-    ].get_most_recent_incoming_chat(
+    chat_mem = task.agent.memory.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(
         task.agent.memory, after=task.step_time + 1
     )
 
@@ -286,17 +268,11 @@ class ClarifyNoMatch(Task):
             .get("location", {})
             .get("reference_object", {}),  # TODO more robust?
         )
-        self.ref_obj_span = self.ref_obj.get(
-            "text_span", retrieve_ref_obj_span(self.ref_obj)
-        )
-        self.relative_direction = (
-            self.dlf["action"].get("location", {}).get("relative_direction")
-        )
+        self.ref_obj_span = self.ref_obj.get("text_span", retrieve_ref_obj_span(self.ref_obj))
+        self.relative_direction = self.dlf["action"].get("location", {}).get("relative_direction")
         self.finished = False
         self.step_time = self.agent.memory.get_time()
-        self.max_asks = (
-            len(self.candidates) + 1
-        )  # verify action + ref_obj span, then candidates
+        self.max_asks = len(self.candidates) + 1  # verify action + ref_obj span, then candidates
         self.asks = 1
         clarify_dlf_task = TaskNode(agent.memory, self.memid)
         clarify_dlf_task.update_task(task=self)
@@ -323,9 +299,7 @@ class ClarifyNoMatch(Task):
                         subj_memid=self.current_candidate,
                         tag_text="active_clarification",
                     )
-                    self.point_at(
-                        self.agent.memory.get_mem_by_id(self.current_candidate)
-                    )
+                    self.point_at(self.agent.memory.get_mem_by_id(self.current_candidate))
                 elif response == "no" or response == "stop":
                     # Bad parse or user reset
                     self.clarification_failed()
@@ -352,9 +326,7 @@ class ClarifyNoMatch(Task):
                         subj_memid=self.current_candidate,
                         tag_text="active_clarification",
                     )
-                    self.point_at(
-                        self.agent.memory.get_mem_by_id(self.current_candidate)
-                    )
+                    self.point_at(self.agent.memory.get_mem_by_id(self.current_candidate))
                 elif response == "stop":
                     # Reset by user, exit
                     self.clarification_failed()
@@ -390,12 +362,8 @@ class ClarifyNoMatch(Task):
                 "Unable to retrieve bounds of target to point at, this should not happen."
             )
             return
-        question = (
-            f"Is this the {self.ref_obj_span}? (Look for the flashing object)"
-        )
-        question_obj = build_question_json(
-            question, text_response_options=["yes", "no"]
-        )
+        question = f"Is this the {self.ref_obj_span}? (Look for the flashing object)"
+        question_obj = build_question_json(question, text_response_options=["yes", "no"])
         task_list = [
             Say(self.agent, {"response_options": question_obj}),
             Point(self.agent, {"bounds": bounds, "sleep_time": 0}),
@@ -417,9 +385,7 @@ class ClarifyNoMatch(Task):
         if dir_lang:
             dir_lang += " "
         question = f"I'm not sure about something. I think you wanted me to {self.action.lower()} {dir_lang}a {self.ref_obj_span}, is that right?"
-        question_obj = build_question_json(
-            question, text_response_options=["yes", "no"]
-        )
+        question_obj = build_question_json(question, text_response_options=["yes", "no"])
         task_list = [
             Say(self.agent, {"response_options": question_obj}),
             AwaitResponse(self.agent, {"asker_memid": self.memid}),
