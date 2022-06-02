@@ -49,7 +49,7 @@ class PyWorldMover:
         self.to_npy_coords = to_npy_coords
         self.from_npy_coords = from_npy_coords
         player_struct = self.get_player()
-        self.eid = player_struct.eid
+        self.entityId = player_struct.entityId
 
     def get_line_of_sight(self):
         D = DataCallback()
@@ -110,12 +110,12 @@ class PyWorldMover:
         D = DataCallback()
         self.sio.emit("get_player", callback=D)
         try:
-            eid, name, pos, look, mainhand, _ = wait_for_data(D)["player"]
+            entityId, name, pos, look, mainhand, _ = wait_for_data(D)["player"]
             if mainhand is not None:
                 mainhand = Item(*mainhand)
-                return Player(eid, name, Pos(*pos), Look(*look), mainhand)
+                return Player(entityId, name, Pos(*pos), Look(*look), mainhand)
             else:
-                return Player(eid, name, Pos(*pos), Look(*look))
+                return Player(entityId, name, Pos(*pos), Look(*look))
         except:
             return None
 
@@ -168,13 +168,13 @@ class PyWorldMover:
         players = wait_for_data(D)
         out = []
         for p in players:
-            eid, name, pos, look, mainhand, _ = p
-            if eid != self.eid:
+            entityId, name, pos, look, mainhand, _ = p
+            if entityId != self.entityId:
                 if mainhand is not None:
                     mainhand = Item(*mainhand)
-                    out.append(Player(eid, name, Pos(*pos), Look(*look), mainhand))
+                    out.append(Player(entityId, name, Pos(*pos), Look(*look), mainhand))
                 else:
-                    out.append(Player(eid, name, Pos(*pos), Look(*look)))
+                    out.append(Player(entityId, name, Pos(*pos), Look(*look)))
         return out
 
     def get_incoming_chats(self):
@@ -214,7 +214,7 @@ class PyWorldMover:
 
 
 if __name__ == "__main__":
-    m = PyWorldMover(port=6000)
+    m = PyWorldMover(port=6001)
     m.set_held_item((1, 0))
     r = m.place_block(10, 10, 10)
     print(r)
