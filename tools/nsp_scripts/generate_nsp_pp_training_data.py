@@ -188,7 +188,7 @@ def build_followup_lf(
     response_type: str,
 ):
     lf = deepcopy(ORIG_CMD_LF)
-    lf["event_sequence"][0]["action_type"] = action.strip()
+    lf["event_sequence"][0]["action_type"] = action.strip().upper()
 
     lf_ref_obj = new_ref_obj if new_ref_obj else ref_obj
     ref_obj_span = build_span(second_turn, lf_ref_obj)
