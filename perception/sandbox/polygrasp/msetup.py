@@ -13,11 +13,12 @@ polygrasp_setup_commands = [
 mrp.process(
     name="segmentation_server",
     runtime=mrp.Conda(
-        yaml="./third_party/UnseenObjectClustering/environment.yml",
-        setup_commands=[
-            ["pip", "install", "-e", "./third_party/UnseenObjectClustering/"]
-        ]
-        + polygrasp_setup_commands,
+        # yaml="./third_party/UnseenObjectClustering/environment.yml",
+        # setup_commands=[
+        #     ["pip", "install", "-e", "./third_party/UnseenObjectClustering/"]
+        # ]
+        # + polygrasp_setup_commands,
+        use_named_env="unseen-object-clustering",
         run_command=["python", "-m", "utils.mrp_wrapper"],
     ),
 )
@@ -25,12 +26,13 @@ mrp.process(
 mrp.process(
     name="grasp_server",
     runtime=mrp.Conda(
-        yaml="./third_party/graspnet-baseline/environment.yml",
-        setup_commands=[
-            ["pip", "install", "./third_party/graspnet-baseline/pointnet2/"],
-            ["pip", "install", "-e", "./third_party/graspnet-baseline/"],
-        ]
-        + polygrasp_setup_commands,
+        # yaml="./third_party/graspnet-baseline/environment.yml",
+        # setup_commands=[
+        #     ["pip", "install", "./third_party/graspnet-baseline/pointnet2/"],
+        #     ["pip", "install", "-e", "./third_party/graspnet-baseline/"],
+        # ]
+        # + polygrasp_setup_commands,
+        use_named_env="mrp_grasp_server",
         run_command=["python", "-m", "graspnet_baseline.mrp_wrapper"],
     ),
 )

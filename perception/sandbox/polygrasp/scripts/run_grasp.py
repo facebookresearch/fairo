@@ -15,9 +15,12 @@ import torch
 import hydra
 import omegaconf
 
+import polygrasp
 from polygrasp.segmentation_rpc import SegmentationClient
 from polygrasp.grasp_rpc import GraspClient
 from polygrasp.serdes import load_bw_img
+
+import fairotag
 
 
 def save_rgbd_masked(rgbd, rgbd_masked):
@@ -189,8 +192,34 @@ def main(cfg):
             rgbd = cameras.get_rgbd()
 
             rgbd_masked = rgbd * masks[:, :, :, None]
+
+            frt_cams = [fairotag.CameraModule() for _ in range(cameras.n_cams)]
+            for frt, intrinsics in zip(frt_cams, cameras.intrinsics):
+                frt.set_intrinsics(intrinsics)
+            MARKER_LENGTH = 0.05
+            MARKER_ID = [0, 1, 2]
+            for i in MARKER_ID:
+                for frt in frt_cams:
+                    frt.register_marker_size(i, MARKER_LENGTH)
+
+            uint_rgbs = rgbd_masked[:,:,:,:3].astype(np.uint8)
+            id_to_pose = {}
+            for frt, uint_rgb, extrinsics in zip(frt_cams, uint_rgbs, cameras.extrinsic_transforms):
+                # import cv2
+                # uint_rgb = cv2.imread("/private/home/yixinlin/dev/fairo/perception/sandbox/polygrasp/data/example_markers.png")
+
+                markers = frt.detect_markers(uint_rgb)
+                for marker in markers:
+                    if marker.pose:
+                        homog_translation = np.ones(4)
+                        homog_translation[:3] = marker.pose.translation()
+                        transformed_pos = extrinsics @ homog_translation
+                        id_to_pose[marker.id] = transformed_pos[:3]
+            
+            import pdb; pdb.set_trace()
+
             scene_pcd = cameras.get_pcd(rgbd)
-            save_rgbd_masked(rgbd, rgbd_masked)
+            # save_rgbd_masked(rgbd, rgbd_masked)
 
             print("Segmenting image...")
             unmerged_obj_pcds = []
