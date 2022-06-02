@@ -261,11 +261,14 @@ Status PolymetisControllerServerImpl::SetController(
     custom_controller_context_.controller_mtx.lock();
 
     resetControllerContext();
+    auto old_controller = custom_controller_context_.custom_controller;
     custom_controller_context_.custom_controller = new_controller;
     custom_controller_context_.status = READY;
 
     custom_controller_context_.controller_mtx.unlock();
     spdlog::info("Loaded new controller.");
+
+    delete old_controller;
 
   } catch (const std::exception &e) {
     std::string error_msg =
