@@ -42,7 +42,9 @@ RESOLVE_POINT_LF = {
     "dialogue_type": "PUT_MEMORY",
     "filters": {
         "where_clause": {
-            "AND": {"pred_text": "has_tag", "obj_text": "active_clarification"}
+            "AND": [
+                {"pred_text": "has_tag", "obj_text": "active_clarification"}
+            ]
         }
     },
     "upsert": {
