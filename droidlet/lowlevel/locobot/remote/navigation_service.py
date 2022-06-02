@@ -217,17 +217,18 @@ class Navigation(object):
         object_goal_cat_tensor = torch.tensor([object_goal_cat])
 
         goal_reached = False
-        step = 0
+        high_level_step = 0
+        low_level_steps_with_goal_remaining = 0
         
-        while not goal_reached and step < max_steps:
-            step += 1
+        while not goal_reached and high_level_step < max_steps:
+            high_level_step += 1
             sem_map = self.slam.get_global_semantic_map()
             cat_sem_map = sem_map[object_goal_cat + 4, :, :]
             
             if (cat_sem_map == 1).sum() > 0:
                 # If the object goal category is present in the local map, go to it
                 print(
-                    f"[navigation] High-level step {step}: Found a {object_goal} in the local map, "
+                    f"[navigation] High-level step {high_level_step}: Found a {object_goal} in the local map, "
                     "starting go_to_absolute to reach it"
                 )
                 goal_map = cat_sem_map == 1
@@ -247,44 +248,51 @@ class Navigation(object):
                 map_features = self.slam.get_semantic_map_features()
                 orientation_tensor = self.slam.get_orientation()
 
-                goal_action = self.goal_policy(
-                    map_features, orientation_tensor, object_goal_cat_tensor, deterministic=False
-                )[0]
+                if low_level_steps_with_goal_remaining == 0:
+                    low_level_steps_with_goal_remaining = 10
 
-                goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
-                global_loc = np.array(self.slam.robot2map(self.robot.get_base_state()[:2]))
-                goal_in_global_map = global_loc + (goal_in_local_map - self.local_map_size // 2)
-                goal_in_global_map = np.clip(goal_in_global_map, 0, self.map_size - 1)
-                goal_in_world = self.slam.map2robot(goal_in_global_map)
+                    goal_action = self.goal_policy(
+                        map_features, orientation_tensor, object_goal_cat_tensor, deterministic=False
+                    )[0]
 
-                if debug:
-                    print("goal_action:       ", goal_action)
-                    print("goal_in_local_map: ", goal_in_local_map)
-                    print("global_loc:        ", global_loc)
-                    print("goal_in_global_map:", goal_in_global_map)
-                    print("goal_in_world:     ", goal_in_world)
+                    goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
+                    global_loc = np.array(self.slam.robot2map(self.robot.get_base_state()[:2]))
+                    goal_in_global_map = global_loc + (goal_in_local_map - self.local_map_size // 2)
+                    goal_in_global_map = np.clip(goal_in_global_map, 0, self.map_size - 1)
+                    goal_in_world = self.slam.map2robot(goal_in_global_map)
 
-                print(
-                    f"[navigation] High-level step {step}: No {object_goal} in the semantic map, "
-                    f"starting a go_to_absolute {(*goal_in_world, 0)} predicted by the learned policy "
-                    "to find one"
-                )
-                if visualize:
-                    goal_map = np.zeros((self.map_size, self.map_size))
-                    goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
-                    self.vis.add_location_goal(goal_map)
+                    if debug:
+                        print("goal_action:       ", goal_action)
+                        print("goal_in_local_map: ", goal_in_local_map)
+                        print("global_loc:        ", global_loc)
+                        print("goal_in_global_map:", goal_in_global_map)
+                        print("goal_in_world:     ", goal_in_world)
+
+                    print(
+                        f"[navigation] High-level step {high_level_step}: No {object_goal} in the semantic map, "
+                        f"starting a go_to_absolute {(*goal_in_world, 0)} predicted by the learned policy "
+                        "to find one"
+                    )
+                    if visualize:
+                        goal_map = np.zeros((self.map_size, self.map_size))
+                        goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
+                        self.vis.add_location_goal(goal_map)
+
+                else:    
+                    low_level_steps_with_goal_remaining -= 1
+
                 self.go_to_absolute(
                     goal=(*goal_in_world, 0), 
                     distance_threshold=0.5,
                     angle_threshold=30,
-                    steps=10, 
+                    steps=1, 
                     visualize=visualize
                 )
 
             elif exploration_method == "frontier":
                 # ... or frontier exploration (goal = unexplored area)
                 print(
-                    f"[navigation] High-level step {step}: No {object_goal} in the semantic map, "
+                    f"[navigation] High-level step {high_level_step}: No {object_goal} in the semantic map, "
                     f"starting a go_to_absolute decided by frontier exploration to find one"
                 )
                 goal_map = sem_map[1, :, :] == 0
@@ -303,7 +311,7 @@ class Navigation(object):
                     goal_map=goal_map, 
                     distance_threshold=0.5,
                     angle_threshold=30,
-                    steps=50, 
+                    steps=1, 
                     visualize=visualize
                 )
 
