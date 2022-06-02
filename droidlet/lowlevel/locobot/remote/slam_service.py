@@ -221,7 +221,7 @@ with Pyro4.Daemon(ip) as daemon:
         max_z = robot_height + 5  # cm
         obj = SLAM(
             robot,
-            obstacle_threshold=10,
+            obstacle_threshold=500,
             agent_min_z=min_z,
             agent_max_z=max_z,
         )

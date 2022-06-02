@@ -48,15 +48,15 @@ class Trackback(object):
             if d > self.dist(cur_loc, x):
                 ans = x
                 d = self.dist(cur_loc, x)
-        if ans is None:
-            print("couldn't find a trackback location, tracking back to a random location")
-            # if no trackback option found, then
-            # try to trackback to a random location within a neighborhood
-            # around current location
-            x = cur_loc[0] + random.uniform(-0.2, 0.2)
-            y = cur_loc[1] + random.uniform(-0.2, 0.2)
-            angle = random.uniform(-math.pi, math.pi)
-            ans = (x, y, angle)
+        # if ans is None:
+        #     print("couldn't find a trackback location")
+        #     # if no trackback option found, then
+        #     # try to trackback to a random location within a neighborhood
+        #     # around current location
+        #     x = cur_loc[0] + random.uniform(-0.2, 0.2)
+        #     y = cur_loc[1] + random.uniform(-0.2, 0.2)
+        #     angle = random.uniform(-math.pi, math.pi)
+        #     ans = (x, y, angle)
         return ans
 
 
@@ -105,8 +105,6 @@ class Navigation(object):
         steps=100000000,
         visualize=True,
     ):
-        # print(f"[navigation] Starting a go_to_absolute {goal if goal is not None else 'goal_map'}")
-
         # specify exactly one of goal or goal_map
         assert (goal is not None and goal_map is None) or (goal is None and goal_map is not None)
 
@@ -117,18 +115,15 @@ class Navigation(object):
         goal_reached = False
         path_found = True
 
-        while (not goal_reached) and steps > 0 and self._stop is False:
+        while not goal_reached and steps > 0 and self._stop is False:
             stg = self.planner.get_short_term_goal(
                 robot_loc,
                 goal=goal,
                 goal_map=goal_map,
-                distance_threshold=distance_threshold,
-                angle_threshold=angle_threshold,
                 vis_path=os.path.join(
                     self.vis.path, f"planner_snapshot_{self.vis.snapshot_idx}.png"
                 ),
             )
-            # print(f"[navigation] got short-term goal from planner: {stg}")
             if stg == False:
                 # no path to end-goal
                 print(
@@ -139,7 +134,6 @@ class Navigation(object):
                 path_found = False
                 break
             robot_loc = self.robot.get_base_state()
-            # print(f"[navigation] starting at point {robot_loc} and going to point {stg}")
             status = safe_call(self.robot.go_to_absolute, stg)
             robot_loc = self.robot.get_base_state()
 
@@ -156,20 +150,42 @@ class Navigation(object):
                     robot_loc,
                     goal=goal,
                     goal_map=goal_map,
-                    threshold=distance_threshold,
+                    distance_threshold=distance_threshold,
                     angle_threshold=angle_threshold,
                 )
                 self.trackback.update(robot_loc)
             else:
-                # collided with something unexpected.
+                # collided with something unexpected
                 robot_loc = self.robot.get_base_state()
+
+                # add an obstacle where the collision occurred
+                print(f" Collided at {robot_loc}. Adding an obstacle to the map")
+                width = 3
+                length = 2
+                buf = 2
+                x1, y1, t1 = robot_loc
+                for i in range(length):
+                    for j in range(width):
+                        wx = x1 + 0.05 * \
+                            ((i + buf) * np.cos(t1)
+                             + (j - width // 2) * np.sin(t1))
+                        wy = y1 + 0.05 * \
+                            ((i + buf) * np.sin(t1)
+                             - (j - width // 2) * np.cos(t1))
+                        self.slam.add_obstacle((wx, wy))
 
                 # trackback to a known good location
                 trackback_loc = self.trackback.get_loc(robot_loc)
+                if trackback_loc is not None:
+                    print(f"Tracking back to {trackback_loc}")
+                    trackback_status = self.robot.go_to_absolute(trackback_loc, trackback=True)
+                    print(" Robot Trackback Status: {}".format(trackback_status))
 
-                print(f"Collided at {robot_loc}." f"Tracking back to {trackback_loc}")
-                safe_call(self.robot.go_to_absolute, trackback_loc)
+                else:
+                    print("Could not find a track back location. Staying in place")
+
                 # TODO: if the trackback fails, we're screwed. Handle this robustly.
+
             steps = steps - 1
 
             if visualize:
@@ -218,7 +234,11 @@ class Navigation(object):
                 if visualize:
                     self.vis.add_location_goal(goal_map)
                 _, goal_reached = self.go_to_absolute(
-                    goal_map=goal_map, steps=50, visualize=visualize
+                    goal_map=goal_map, 
+                    distance_threshold=0.5,
+                    angle_threshold=30,
+                    steps=50, 
+                    visualize=visualize
                 )
 
             elif exploration_method == "learned":
@@ -253,7 +273,13 @@ class Navigation(object):
                     goal_map = np.zeros((self.map_size, self.map_size))
                     goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
                     self.vis.add_location_goal(goal_map)
-                self.go_to_absolute(goal=(*goal_in_world, 0), steps=10, visualize=visualize)
+                self.go_to_absolute(
+                    goal=(*goal_in_world, 0), 
+                    distance_threshold=0.5,
+                    angle_threshold=30,
+                    steps=10, 
+                    visualize=visualize
+                )
 
             elif exploration_method == "frontier":
                 # ... or frontier exploration (goal = unexplored area)
@@ -264,7 +290,7 @@ class Navigation(object):
                 goal_map = sem_map[1, :, :] == 0
                 
                 # Set a disk around the robot to explored
-                # TODO Check that the circle fits in the map
+                # TODO Check that the explored disk fits in the map
                 radius = 60
                 explored_disk = skimage.morphology.disk(radius)
                 x, y = [int(coord) for coord in self.slam.robot2map(self.robot.get_base_state()[:2])]
@@ -273,7 +299,13 @@ class Navigation(object):
 
                 # if visualize:
                 #     self.vis.add_location_goal(goal_map)
-                self.go_to_absolute(goal_map=goal_map, steps=50, visualize=visualize)
+                self.go_to_absolute(
+                    goal_map=goal_map, 
+                    distance_threshold=0.5,
+                    angle_threshold=30,
+                    steps=50, 
+                    visualize=visualize
+                )
 
         print(f"[navigation] Finished a go_to_object {object_goal}")
         print(f"goal reached: {goal_reached}")

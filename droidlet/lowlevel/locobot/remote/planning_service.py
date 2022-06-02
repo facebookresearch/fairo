@@ -28,8 +28,6 @@ class Planner(object):
         robot_location,
         goal=None,
         goal_map=None,
-        distance_threshold=None,
-        angle_threshold=None,
         step_size=25,
         vis_path=None,
     ):
@@ -74,64 +72,37 @@ class Planner(object):
         # against robot initial state (if it wasn't zeros)
         stg_real = self.slam.map2robot(stg)
 
-        if goal is not None and self.goal_within_threshold(
-            stg_real,
-            goal=goal,
-            threshold=distance_threshold,
-            angle_threshold=angle_threshold,
-        ):
-            # is it the final goal? if so,
-            # the stg goes to within a 5cm resolution
-            # -- related to the SLAM service's 2D map resolution.
-            # so, finally, issue a last call to go to the precise final location
-            # and to also use the rotation from the final goal
-            print(
-                "Short-term goal {} is within threshold or target goal {}".format(stg_real, goal)
-            )
-            print(f"This is the final goal, so returning the target goal directly {goal}")
-            target_goal = goal
-
-        else:
-            if goal_map is not None and self.goal_within_threshold(stg_real, goal_map=goal_map):
-                print(
-                    f"Short-term goal {stg_real} is within threshold of closest goal in goal map"
-                )
-            elif goal_map is not None:
-                print(
-                    f"Short-term goal {stg_real} is not within threshold of closest goal in goal map"
-                )
-            elif goal is not None:
-                print(f"Short-term goal {stg_real} is not within threshold of target goal {goal}")
-
-            rotation_angle = np.arctan2(
-                stg_real[1] - robot_location[1], stg_real[0] - robot_location[0]
-            )
-            target_goal = (stg_real[0], stg_real[1], rotation_angle)
+        rotation_angle = np.arctan2(
+            stg_real[1] - robot_location[1], stg_real[0] - robot_location[0]
+        )
+        target_goal = (stg_real[0], stg_real[1], rotation_angle)
 
         return target_goal
 
     def goal_within_threshold(
-        self, robot_location, goal=None, goal_map=None, threshold=None, angle_threshold=None
+        self, 
+        robot_location, 
+        goal=None, 
+        goal_map=None, 
+        distance_threshold=None, 
+        angle_threshold=None
     ):
         # specify exactly one of goal or goal_map
         assert (goal is not None and goal_map is None) or (goal is None and goal_map is not None)
 
         if angle_threshold is None:
-            angle_threshold = 1  # in degrees
+            # in degrees
+            # angle_threshold = 1
+            angle_threshold = 30
 
-        if goal is not None:
-            if threshold is None:
-                # in metres. map_resolution is the resolution of the SLAM's 2D map, so the planner can't
-                # plan anything lower than this
-                threshold = (float(self.map_resolution) - 1e-10) / 100.0
+        if distance_threshold is None:
+            # in metres
+            # map_resolution is the resolution of the SLAM's 2D map, so the planner can't
+            # plan anything lower than this
+            # distance_threshold = (float(self.map_resolution) - 1e-10) / 100.0
+            distance_threshold = 0.5
 
-        elif goal_map is not None:
-            if threshold is None:
-                # when the goal is specified as a goal map, the threshold can be higher - goal maps are
-                # used for object goal navigation and the object goal category is often within a larger
-                # obstacle (e.g., a tv or vase on a table) so we can't approach it too closely
-                threshold = 1.0
-
+        if goal_map is not None:
             # check whether the robot is within threshold of the closest goal in the goal map
             robot_map_location = self.slam.robot2map(robot_location)
             goal_locations = np.transpose(np.nonzero((goal_map.T == 1)))
@@ -147,18 +118,18 @@ class Planner(object):
             abs_angle = math.fabs(math.degrees(angle)) % 360
 
             within_threshold = (
-                diff[0] < threshold and diff[1] < threshold and abs_angle < angle_threshold
+                diff[0] < distance_threshold and diff[1] < distance_threshold and abs_angle < angle_threshold
             )
             print("goal_within_threshold: ", within_threshold)
-            print(f"Distance: {distance} < {threshold}")
+            print(f"Distance: {distance} < {distance_threshold}")
             print(f"Angle: {abs_angle} < {angle_threshold}")
             print(f"Robot Location: {robot_location}")
             print(f"Goal:           {goal}")
 
         else:
-            within_threshold = diff[0] < threshold and diff[1] < threshold
+            within_threshold = diff[0] < distance_threshold and diff[1] < distance_threshold
             print("goal_within_threshold: ", within_threshold)
-            print(f"Distance: {distance} < {threshold}")
+            print(f"Distance: {distance} < {distance_threshold}")
             print(f"Robot Location: {robot_location}")
             print(f"Goal:           {goal}")
 

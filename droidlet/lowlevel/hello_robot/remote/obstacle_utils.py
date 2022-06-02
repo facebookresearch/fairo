@@ -97,7 +97,7 @@ def is_obstacle(
         return obstacle
 
 
-def is_lidar_obstacle(lidar_scan, bbox=(0.0, 0.30, -0.20, 0.20), min_quality=0):
+def is_lidar_obstacle(lidar_scan, bbox=(0.0, 0.45, -0.20, 0.20), min_quality=0):
     # bbox specifies coordinates of rectangle (xmin, xmax, ymin, ymax) centered
     # at lidar. Any points within this box are considered an obstacle.
     # Note that positive x is the front of the robot.

@@ -81,7 +81,10 @@ class MapBuilder(object):
         return map_gt
 
     def add_obstacle(self, location):
-        self.map[round(location[1]), round(location[0]), 1] = 1
+        try:
+            self.map[round(location[1]), round(location[0]), 1] = 1
+        except IndexError:
+            print("Cannot add obstacle as it is out of the map")
 
     def update_semantic_map(self, pcd, semantic_channels, pose, scale=2):
         # convert point from m to cm

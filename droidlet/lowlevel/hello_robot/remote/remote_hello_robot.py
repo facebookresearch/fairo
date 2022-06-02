@@ -20,7 +20,7 @@ import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
 import numpy as np
 import cv2
-from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
+from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto, goto_trackback
 
 
 Pyro4.config.SERIALIZER = "pickle"
@@ -200,7 +200,7 @@ class RemoteHelloRobot(object):
                 cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + self._ip)
             self.cam = cam
 
-    def go_to_absolute(self, xyt_position):
+    def go_to_absolute(self, xyt_position, trackback=False):
         """Moves the robot base to given goal state in the world frame.
 
         :param xyt_position: The goal state of the form (x,y,yaw)
@@ -217,7 +217,10 @@ class RemoteHelloRobot(object):
             def obstacle_fn():
                 return self.cam.is_obstacle_in_front()
 
-            status = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
+            if trackback:
+                status = goto_trackback(self, list(base_xyt), dryrun=False)
+            else:
+                status = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
         return status
 
