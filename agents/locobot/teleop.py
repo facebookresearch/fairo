@@ -54,7 +54,9 @@ mover = None
 
 @sio.on("sendCommandToAgent")
 def get_command(sid, command):
-    command, value = command.split()
+    arguments = command.split()
+    command = arguments[0]
+    value = " ".join(arguments[1:])
     print(command)
     print(value)
     test_command(sid, [command], value=value)
@@ -140,8 +142,9 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             mover.move_absolute(xyyaw_f, blocking=False)
             sync()
         elif command == "MOVE_TO_OBJECT":
-            arguments = value.strip()
-            object_goal, exploration_method = arguments.split("_")
+            object_goal, exploration_method = value.split("_")
+            object_goal = object_goal.strip()
+            exploration_method = exploration_method.strip()
             print(f"action: MOVE_TO_OBJECT {object_goal} with {exploration_method} exploration")
             mover.move_to_object(object_goal, exploration_method=exploration_method, blocking=False)
             sync()
