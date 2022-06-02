@@ -86,9 +86,8 @@ class ObjectGoalNavigationVisualization:
 
     def update_semantic_frame(self, vis):
         """Visualize first-person semantic segmentation frame."""
-        cv2.imwrite(f"{self.path}/semantic_frame_{self.snapshot_idx}.png", vis)
-
         vis = vis[:, :, [2, 1, 0]]
+        cv2.imwrite(f"{self.path}/semantic_frame_{self.snapshot_idx}.png", vis)
         vis = cv2.resize(vis, (480, 480), interpolation=cv2.INTER_NEAREST)
         self.vis_image[50:530, 15:495] = vis
 

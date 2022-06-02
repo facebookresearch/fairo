@@ -311,7 +311,7 @@ class Navigation(object):
 
                 # Set a disk around the robot to explored
                 # TODO Check that the explored disk fits in the map
-                radius = 60
+                radius = 10
                 explored_disk = skimage.morphology.disk(radius)
                 x, y = [
                     int(coord) for coord in self.slam.robot2map(self.robot.get_base_state()[:2])
@@ -319,12 +319,15 @@ class Navigation(object):
                 goal_map[y - radius : y + radius + 1, x - radius : x + radius + 1][
                     explored_disk == 1
                 ] = 0
+
+                # Select the frontier
                 goal_map = 1 - skimage.morphology.binary_dilation(
                     1 - goal_map, skimage.morphology.disk(10)
                 ).astype(int)
+                goal_map = skimage.morphology.binary_dilation(goal_map, skimage.morphology.disk(1)).astype(int) - goal_map
 
-                # if visualize:
-                #     self.vis.add_location_goal(goal_map)
+                if visualize:
+                    self.vis.add_location_goal(goal_map)
                 self.go_to_absolute(
                     goal_map=goal_map, 
                     distance_threshold=0.5,
