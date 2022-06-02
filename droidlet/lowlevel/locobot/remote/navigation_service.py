@@ -180,15 +180,23 @@ class Navigation(object):
         self._busy = False
         return path_found, goal_reached
 
-    def go_to_object(self, object_goal: str, exploration_method="learned", 
-                     debug=False, visualize=True, max_steps=25):
+    def go_to_object(
+        self,
+        object_goal: str,
+        exploration_method="learned",
+        debug=False,
+        visualize=True,
+        max_steps=25,
+    ):
         assert exploration_method in ["learned", "frontier"]
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
-        print(f"[navigation] Starting a go_to_object {object_goal} with "
-              f"{exploration_method} exploration")
-        
+        print(
+            f"[navigation] Starting a go_to_object {object_goal} with "
+            f"{exploration_method} exploration"
+        )
+
         if visualize:
             try:
                 # if in Habitat scene
@@ -196,18 +204,18 @@ class Navigation(object):
             except:
                 vis_path = f"images/real_world/{object_goal}"
             self.vis = ObjectGoalNavigationVisualization(object_goal, path=vis_path)
-        
+
         object_goal_cat = coco_categories[object_goal]
         object_goal_cat_tensor = torch.tensor([object_goal_cat])
 
         goal_reached = False
         step = 0
-        
+
         while not goal_reached and step < max_steps:
             step += 1
             sem_map = self.slam.get_global_semantic_map()
             cat_sem_map = sem_map[object_goal_cat + 4, :, :]
-            
+
             if (cat_sem_map == 1).sum() > 0:
                 # If the object goal category is present in the local map, go to it
                 print(
@@ -262,14 +270,20 @@ class Navigation(object):
                     f"starting a go_to_absolute decided by frontier exploration to find one"
                 )
                 goal_map = sem_map[1, :, :] == 0
-                
+
                 # Set a disk around the robot to explored
                 # TODO Check that the circle fits in the map
                 radius = 60
                 explored_disk = skimage.morphology.disk(radius)
-                x, y = [int(coord) for coord in self.slam.robot2map(self.robot.get_base_state()[:2])]
-                goal_map[y-radius:y+radius+1, x-radius:x+radius+1][explored_disk == 1] = 0
-                goal_map = 1 - skimage.morphology.binary_dilation(1 - goal_map, skimage.morphology.disk(10)).astype(int)
+                x, y = [
+                    int(coord) for coord in self.slam.robot2map(self.robot.get_base_state()[:2])
+                ]
+                goal_map[y - radius : y + radius + 1, x - radius : x + radius + 1][
+                    explored_disk == 1
+                ] = 0
+                goal_map = 1 - skimage.morphology.binary_dilation(
+                    1 - goal_map, skimage.morphology.disk(10)
+                ).astype(int)
 
                 # if visualize:
                 #     self.vis.add_location_goal(goal_map)
