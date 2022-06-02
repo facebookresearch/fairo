@@ -187,7 +187,7 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   // Select controller
   TorchScriptedController *controller;
   if (custom_controller_context_.status == RUNNING) {
-    controller = custom_controller_context_.custom_controller;
+    controller = custom_controller_context_.custom_controller.get();
   } else {
     controller = robot_client_context_.default_controller;
   }

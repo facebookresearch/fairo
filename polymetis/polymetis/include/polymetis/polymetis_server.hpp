@@ -61,8 +61,6 @@ struct CustomControllerContext {
   ControllerStatus status = UNINITIALIZED;
   std::mutex controller_mtx;
   std::unique_ptr<TorchScriptedController> custom_controller;
-
-  ~CustomControllerContext() { delete custom_controller; }
 };
 
 /**
