@@ -166,12 +166,8 @@ class Navigation(object):
                 x1, y1, t1 = robot_loc
                 for i in range(length):
                     for j in range(width):
-                        wx = x1 + 0.05 * \
-                            ((i + buf) * np.cos(t1)
-                             + (j - width // 2) * np.sin(t1))
-                        wy = y1 + 0.05 * \
-                            ((i + buf) * np.sin(t1)
-                             - (j - width // 2) * np.cos(t1))
+                        wx = x1 + 0.05 * ((i + buf) * np.cos(t1) + (j - width // 2) * np.sin(t1))
+                        wy = y1 + 0.05 * ((i + buf) * np.sin(t1) - (j - width // 2) * np.cos(t1))
                         self.slam.add_obstacle((wx, wy))
 
                 # trackback to a known good location
@@ -228,7 +224,7 @@ class Navigation(object):
         high_level_step = 0
         low_level_step = 0
         low_level_steps_with_goal_remaining = 0
-        
+
         while not goal_reached and low_level_step < max_steps:
             low_level_step += 1
             sem_map = self.slam.get_global_semantic_map()
@@ -245,11 +241,11 @@ class Navigation(object):
                 if visualize:
                     self.vis.add_location_goal(goal_map)
                 _, goal_reached = self.go_to_absolute(
-                    goal_map=goal_map, 
+                    goal_map=goal_map,
                     distance_threshold=0.5,
                     angle_threshold=30,
-                    steps=50, 
-                    visualize=visualize
+                    steps=50,
+                    visualize=visualize,
                 )
 
             elif exploration_method == "learned":
@@ -263,12 +259,17 @@ class Navigation(object):
                     orientation_tensor = self.slam.get_orientation()
 
                     goal_action = self.goal_policy(
-                        map_features, orientation_tensor, object_goal_cat_tensor, deterministic=False
+                        map_features,
+                        orientation_tensor,
+                        object_goal_cat_tensor,
+                        deterministic=False,
                     )[0]
 
                     goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
                     global_loc = np.array(self.slam.robot2map(self.robot.get_base_state()[:2]))
-                    goal_in_global_map = global_loc + (goal_in_local_map - self.local_map_size // 2)
+                    goal_in_global_map = global_loc + (
+                        goal_in_local_map - self.local_map_size // 2
+                    )
                     goal_in_global_map = np.clip(goal_in_global_map, 0, self.map_size - 1)
                     goal_in_world = self.slam.map2robot(goal_in_global_map)
 
@@ -289,15 +290,15 @@ class Navigation(object):
                         goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
                         self.vis.add_location_goal(goal_map)
 
-                else:    
+                else:
                     low_level_steps_with_goal_remaining -= 1
 
                 self.go_to_absolute(
-                    goal=(*goal_in_world, 0), 
+                    goal=(*goal_in_world, 0),
                     distance_threshold=0.5,
                     angle_threshold=30,
-                    steps=1, 
-                    visualize=visualize
+                    steps=1,
+                    visualize=visualize,
                 )
 
             elif exploration_method == "frontier":
@@ -326,11 +327,11 @@ class Navigation(object):
                 # if visualize:
                 #     self.vis.add_location_goal(goal_map)
                 self.go_to_absolute(
-                    goal_map=goal_map, 
+                    goal_map=goal_map,
                     distance_threshold=0.5,
                     angle_threshold=30,
-                    steps=1, 
-                    visualize=visualize
+                    steps=1,
+                    visualize=visualize,
                 )
 
         print(f"[navigation] Finished a go_to_object {object_goal}")

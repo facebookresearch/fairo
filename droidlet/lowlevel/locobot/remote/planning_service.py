@@ -80,12 +80,12 @@ class Planner(object):
         return target_goal
 
     def goal_within_threshold(
-        self, 
-        robot_location, 
-        goal=None, 
-        goal_map=None, 
-        distance_threshold=None, 
-        angle_threshold=None
+        self,
+        robot_location,
+        goal=None,
+        goal_map=None,
+        distance_threshold=None,
+        angle_threshold=None,
     ):
         # specify exactly one of goal or goal_map
         assert (goal is not None and goal_map is None) or (goal is None and goal_map is not None)
@@ -118,7 +118,9 @@ class Planner(object):
             abs_angle = math.fabs(math.degrees(angle)) % 360
 
             within_threshold = (
-                diff[0] < distance_threshold and diff[1] < distance_threshold and abs_angle < angle_threshold
+                diff[0] < distance_threshold
+                and diff[1] < distance_threshold
+                and abs_angle < angle_threshold
             )
             print("goal_within_threshold: ", within_threshold)
             print(f"Distance: {distance} < {distance_threshold}")

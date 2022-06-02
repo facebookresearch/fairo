@@ -13,7 +13,11 @@ import math
 from rich import print
 import Pyro4
 import numpy as np
-from droidlet.lowlevel.hello_robot.remote.utils import goto_trackback, transform_global_to_base, goto
+from droidlet.lowlevel.hello_robot.remote.utils import (
+    goto_trackback,
+    transform_global_to_base,
+    goto,
+)
 from stretch_ros_move_api import MoveNode as Robot
 from droidlet.lowlevel.pyro_utils import safe_call
 import traceback

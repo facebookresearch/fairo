@@ -20,7 +20,11 @@ import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
 import numpy as np
 import cv2
-from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto, goto_trackback
+from droidlet.lowlevel.hello_robot.remote.utils import (
+    transform_global_to_base,
+    goto,
+    goto_trackback,
+)
 
 
 Pyro4.config.SERIALIZER = "pickle"
