@@ -17,7 +17,7 @@ class ObjectGoalNavigationVisualization:
 
     def __init__(self, goal_name="no goal", path="images/default"):
         self.path = path
-        shutil.rmtree(self.path)
+        shutil.rmtree(self.path, ignore_errors=True)
         os.makedirs(self.path)
 
         self.vis_image = np.ones((655, 1005, 3)).astype(np.uint8) * 255
@@ -81,7 +81,8 @@ class ObjectGoalNavigationVisualization:
         out.release()
 
     def add_location_goal(self, goal_map):
-        self.goal_map = np.stack((self.goal_map, goal_map), 0).max(0)
+        # self.goal_map = np.stack((self.goal_map, goal_map), 0).max(0)
+        self.goal_map = goal_map
 
     def update_semantic_frame(self, vis):
         """Visualize first-person semantic segmentation frame."""

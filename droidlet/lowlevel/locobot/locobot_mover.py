@@ -160,15 +160,16 @@ class LoCoBotMover:
             )
         return "finished"
 
-    def move_to_object(self, object_goal: str, blocking=True):
+    def move_to_object(self, object_goal: str, exploration_method: str, blocking=True):
         """Command to execute a move to an object category.
 
         Args:
             object_goal: supported COCO object category
+            exploration_method: learned or frontier
         """
         if self.nav_result.ready:
             self.nav_result.wait()
-            self.nav_result = safe_call(self.nav.go_to_object, object_goal)
+            self.nav_result = self.nav.go_to_object(object_goal, exploration_method)
             if blocking:
                 self.nav_result.wait()
         else:

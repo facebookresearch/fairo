@@ -9,7 +9,7 @@ import numpy as np
 import Pyro4
 from rich import print
 from droidlet.lowlevel.pyro_utils import safe_call
-
+import skimage.morphology
 
 from slam_pkg.utils import depth_util as du
 from visualization.ogn_vis import ObjectGoalNavigationVisualization
@@ -180,12 +180,15 @@ class Navigation(object):
         self._busy = False
         return path_found, goal_reached
 
-    def go_to_object(self, object_goal: str, debug=False, visualize=True, max_steps=25):
+    def go_to_object(self, object_goal: str, exploration_method="learned", 
+                     debug=False, visualize=True, max_steps=25):
+        assert exploration_method in ["learned", "frontier"]
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
-        print(f"[navigation] Starting a go_to_object {object_goal}")
-
+        print(f"[navigation] Starting a go_to_object {object_goal} with "
+              f"{exploration_method} exploration")
+        
         if visualize:
             try:
                 # if in Habitat scene
@@ -193,18 +196,18 @@ class Navigation(object):
             except:
                 vis_path = f"images/real_world/{object_goal}"
             self.vis = ObjectGoalNavigationVisualization(object_goal, path=vis_path)
-
+        
         object_goal_cat = coco_categories[object_goal]
         object_goal_cat_tensor = torch.tensor([object_goal_cat])
 
         goal_reached = False
         step = 0
-
+        
         while not goal_reached and step < max_steps:
             step += 1
             sem_map = self.slam.get_global_semantic_map()
             cat_sem_map = sem_map[object_goal_cat + 4, :, :]
-
+            
             if (cat_sem_map == 1).sum() > 0:
                 # If the object goal category is present in the local map, go to it
                 print(
@@ -218,9 +221,9 @@ class Navigation(object):
                     goal_map=goal_map, steps=50, visualize=visualize
                 )
 
-            else:
+            elif exploration_method == "learned":
                 # Else if the object goal category is not present in the local map,
-                # predict where to explore next
+                # predict where to explore next with either a learned policy...
                 map_features = self.slam.get_semantic_map_features()
                 orientation_tensor = self.slam.get_orientation()
 
@@ -243,13 +246,34 @@ class Navigation(object):
 
                 print(
                     f"[navigation] High-level step {step}: No {object_goal} in the semantic map, "
-                    f"starting a go_to_absolute {(*goal_in_world, 0)} to find one"
+                    f"starting a go_to_absolute {(*goal_in_world, 0)} predicted by the learned policy "
+                    "to find one"
                 )
                 if visualize:
                     goal_map = np.zeros((self.map_size, self.map_size))
                     goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
                     self.vis.add_location_goal(goal_map)
                 self.go_to_absolute(goal=(*goal_in_world, 0), steps=10, visualize=visualize)
+
+            elif exploration_method == "frontier":
+                # ... or frontier exploration (goal = unexplored area)
+                print(
+                    f"[navigation] High-level step {step}: No {object_goal} in the semantic map, "
+                    f"starting a go_to_absolute decided by frontier exploration to find one"
+                )
+                goal_map = sem_map[1, :, :] == 0
+                
+                # Set a disk around the robot to explored
+                # TODO Check that the circle fits in the map
+                radius = 60
+                explored_disk = skimage.morphology.disk(radius)
+                x, y = [int(coord) for coord in self.slam.robot2map(self.robot.get_base_state()[:2])]
+                goal_map[y-radius:y+radius+1, x-radius:x+radius+1][explored_disk == 1] = 0
+                goal_map = 1 - skimage.morphology.binary_dilation(1 - goal_map, skimage.morphology.disk(10)).astype(int)
+
+                # if visualize:
+                #     self.vis.add_location_goal(goal_map)
+                self.go_to_absolute(goal_map=goal_map, steps=50, visualize=visualize)
 
         print(f"[navigation] Finished a go_to_object {object_goal}")
         print(f"goal reached: {goal_reached}")

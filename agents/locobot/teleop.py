@@ -140,9 +140,10 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             mover.move_absolute(xyyaw_f, blocking=False)
             sync()
         elif command == "MOVE_TO_OBJECT":
-            object_goal = value.strip()
-            print("action: MOVE_TO_OBJECT", object_goal)
-            mover.move_to_object(object_goal, blocking=False)
+            arguments = value.strip()
+            object_goal, exploration_method = arguments.split("_")
+            print(f"action: MOVE_TO_OBJECT {object_goal} with {exploration_method} exploration")
+            mover.move_to_object(object_goal, exploration_method=exploration_method, blocking=False)
             sync()
         elif command == "LOOK_AT":
             xyz = value.split(',')
