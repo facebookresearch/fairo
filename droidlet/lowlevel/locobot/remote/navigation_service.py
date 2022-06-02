@@ -303,32 +303,40 @@ class Navigation(object):
 
             elif exploration_method == "frontier":
                 # ... or frontier exploration (goal = unexplored area)
-                high_level_step += 1
-                print(
-                    f"[navigation] High-level step {high_level_step}: No {object_goal} in the semantic map, "
-                    f"starting a go_to_absolute decided by frontier exploration to find one"
-                )
-                goal_map = sem_map[1, :, :] == 0
+                if low_level_steps_with_goal_remaining == 0:
+                    high_level_step += 1
+                    low_level_steps_with_goal_remaining = 3
 
-                # Set a disk around the robot to explored
-                # TODO Check that the explored disk fits in the map
-                radius = 10
-                explored_disk = skimage.morphology.disk(radius)
-                x, y = [
-                    int(coord) for coord in self.slam.robot2map(self.robot.get_base_state()[:2])
-                ]
-                goal_map[y - radius : y + radius + 1, x - radius : x + radius + 1][
-                    explored_disk == 1
-                ] = 0
+                    print(
+                        f"[navigation] High-level step {high_level_step}: No {object_goal} in the semantic map, "
+                        f"starting a go_to_absolute decided by frontier exploration to find one"
+                    )
 
-                # Select the frontier
-                goal_map = 1 - skimage.morphology.binary_dilation(
-                    1 - goal_map, skimage.morphology.disk(10)
-                ).astype(int)
-                goal_map = skimage.morphology.binary_dilation(goal_map, skimage.morphology.disk(1)).astype(int) - goal_map
+                    goal_map = sem_map[1, :, :] == 0
 
-                if visualize:
-                    self.vis.add_location_goal(goal_map)
+                    # Set a disk around the robot to explored
+                    # TODO Check that the explored disk fits in the map
+                    radius = 10
+                    explored_disk = skimage.morphology.disk(radius)
+                    x, y = [
+                        int(coord) for coord in self.slam.robot2map(self.robot.get_base_state()[:2])
+                    ]
+                    goal_map[y - radius : y + radius + 1, x - radius : x + radius + 1][
+                        explored_disk == 1
+                    ] = 0
+
+                    # Select the frontier
+                    goal_map = 1 - skimage.morphology.binary_dilation(
+                        1 - goal_map, skimage.morphology.disk(10)
+                    ).astype(int)
+                    goal_map = skimage.morphology.binary_dilation(goal_map, skimage.morphology.disk(1)).astype(int) - goal_map
+
+                    if visualize:
+                        self.vis.add_location_goal(goal_map)
+                
+                else:
+                    low_level_steps_with_goal_remaining -= 1
+
                 self.go_to_absolute(
                     goal_map=goal_map,
                     distance_threshold=0.5,
