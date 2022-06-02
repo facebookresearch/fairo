@@ -234,6 +234,8 @@ Status PolymetisControllerServerImpl::SetController(
     ServerContext *context, ServerReader<ControllerChunk> *stream,
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
+
+  TorchScriptedController *new_controller, *old_controller;
   int orig_prio = setThreadPriority(RT_LOW_PRIO);
 
   interval->set_start(-1);
@@ -253,7 +255,7 @@ Status PolymetisControllerServerImpl::SetController(
 
   try {
     // Load new controller
-    auto new_controller = new TorchScriptedController(
+    new_controller = new TorchScriptedController(
         controller_model_buffer_.data(), controller_model_buffer_.size(),
         *torch_robot_state_);
 
@@ -261,7 +263,7 @@ Status PolymetisControllerServerImpl::SetController(
     custom_controller_context_.controller_mtx.lock();
 
     resetControllerContext();
-    auto old_controller = custom_controller_context_.custom_controller;
+    old_controller = custom_controller_context_.custom_controller;
     custom_controller_context_.custom_controller = new_controller;
     custom_controller_context_.status = READY;
 
