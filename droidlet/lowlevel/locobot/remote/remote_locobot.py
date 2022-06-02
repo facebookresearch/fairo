@@ -193,6 +193,7 @@ class RemoteLocobot(object):
         self,
         xyt_position,
         wait=True,
+        trackback=False
     ):
         """Moves the robot base to given goal state in the world frame.
 

@@ -81,17 +81,21 @@ class ObjectGoalNavigationVisualization:
         out.release()
 
     def add_location_goal(self, goal_map):
-        # self.goal_map = np.stack((self.goal_map, goal_map), 0).max(0)
+        np.save(f"{self.path}/goal_map_{self.snapshot_idx}.npy", goal_map)
         self.goal_map = goal_map
 
     def update_semantic_frame(self, vis):
         """Visualize first-person semantic segmentation frame."""
+        cv2.imwrite(f"{self.path}/semantic_frame_{self.snapshot_idx}.png", vis)
+
         vis = vis[:, :, [2, 1, 0]]
         vis = cv2.resize(vis, (480, 480), interpolation=cv2.INTER_NEAREST)
         self.vis_image[50:530, 15:495] = vis
 
     def update_semantic_map(self, sem_map):
         """Visualize top-down semantic map."""
+        np.save(f"{self.path}/semantic_map_{self.snapshot_idx}.npy", sem_map)
+
         sem_channels = sem_map[4:]
         sem_channels[-1] = 1e-5
         obstacle_mask = np.rint(sem_map[0]) == 1

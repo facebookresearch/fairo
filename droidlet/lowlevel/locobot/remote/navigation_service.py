@@ -197,7 +197,7 @@ class Navigation(object):
         return path_found, goal_reached
 
     def go_to_object(self, object_goal: str, exploration_method="learned", 
-                     debug=False, visualize=True, max_steps=25):
+                     debug=False, visualize=True, max_steps=250):
         assert exploration_method in ["learned", "frontier"]
         assert (
             object_goal in coco_categories
@@ -218,15 +218,17 @@ class Navigation(object):
 
         goal_reached = False
         high_level_step = 0
+        low_level_step = 0
         low_level_steps_with_goal_remaining = 0
         
-        while not goal_reached and high_level_step < max_steps:
-            high_level_step += 1
+        while not goal_reached and low_level_step < max_steps:
+            low_level_step += 1
             sem_map = self.slam.get_global_semantic_map()
             cat_sem_map = sem_map[object_goal_cat + 4, :, :]
             
             if (cat_sem_map == 1).sum() > 0:
                 # If the object goal category is present in the local map, go to it
+                high_level_step += 1
                 print(
                     f"[navigation] High-level step {high_level_step}: Found a {object_goal} in the local map, "
                     "starting go_to_absolute to reach it"
@@ -245,11 +247,12 @@ class Navigation(object):
             elif exploration_method == "learned":
                 # Else if the object goal category is not present in the local map,
                 # predict where to explore next with either a learned policy...
-                map_features = self.slam.get_semantic_map_features()
-                orientation_tensor = self.slam.get_orientation()
-
                 if low_level_steps_with_goal_remaining == 0:
+                    high_level_step += 1
                     low_level_steps_with_goal_remaining = 10
+
+                    map_features = self.slam.get_semantic_map_features()
+                    orientation_tensor = self.slam.get_orientation()
 
                     goal_action = self.goal_policy(
                         map_features, orientation_tensor, object_goal_cat_tensor, deterministic=False
@@ -291,6 +294,7 @@ class Navigation(object):
 
             elif exploration_method == "frontier":
                 # ... or frontier exploration (goal = unexplored area)
+                high_level_step += 1
                 print(
                     f"[navigation] High-level step {high_level_step}: No {object_goal} in the semantic map, "
                     f"starting a go_to_absolute decided by frontier exploration to find one"
