@@ -265,7 +265,7 @@ class StateManager {
     socket.on("depth", this.processDepth);
     socket.on("image", this.processRGBDepth); // RGB + Depth
     socket.on("objects", this.processObjects);
-    socket.on("updateVoxelWorldState", this.updateVoxelWorld);
+    // socket.on("updateVoxelWorldState", this.updateVoxelWorld);
     socket.on("setVoxelWorldInitialState", this.setVoxelWorldInitialState);
     socket.on("showAssistantReply", this.showAssistantReply);
     socket.on("humans", this.processHumans);
@@ -280,7 +280,8 @@ class StateManager {
     this.worldSocket = io.connect(worldUrl, {
       transports: ["polling", "websocket"],
     });
-    const wSocket = this.webSocket;
+    const wSocket = this.worldSocket;
+    wSocket.on("updateVoxelWorldState", this.updateVoxelWorld);
   }
 
   updateStateManagerMemory(data) {

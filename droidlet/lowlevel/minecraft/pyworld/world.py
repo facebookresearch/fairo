@@ -262,8 +262,29 @@ class World:
             self.connect_player(sid, data)
 
         @server.on("getVoxelWorldInitialState")
-        def testing(sid):
+        def get_voxel_world_initial_state(sid):
             print("test get VW initial status")
+            blocks = self.blocks_to_dict()
+            blocks = [
+                ((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))
+                for xyz, idm in blocks.items()
+            ]
+            payload = {
+                "status": "updateVoxelWorldState",
+                "world_state": {
+                    # "agent": [
+                    #     {
+                    #         "name": "agent",
+                    #         "x": float(agent_pos.x),
+                    #         "y": float(agent_pos.y),
+                    #         "z": float(agent_pos.z),
+                    #     }
+                    # ]
+                    "block": blocks
+                },
+            }
+
+            server.emit("updateVoxelWorldState", payload)
 
         @server.on("get_world_info")
         def get_world_info(sid):
@@ -402,7 +423,7 @@ if __name__ == "__main__":
 
     spec = {"players": [], "mobs": [], "item_stacks": [], "coord_shift": (0, 0, 0), "agent": {}}
     world_opts = Opt()
-    world_opts.sl = 32
+    world_opts.sl = 16
     world_opts.world_server = True
     world_opts.port = 6001
     world = World(world_opts, spec)

@@ -50,17 +50,38 @@ window.addEventListener("keydown", function (ev) {
     }
   });
 
-for (let ix = -SL/2; ix < SL/2; ix++) {
-    for (let iz = -SL/2; iz < SL/2; iz++) {
-        for (let iy = 2; iy < 4; iy++) {
-            dVoxelEngine.setVoxel([ix,iy,iz], 9);
-        }
-    }
-}
-for (let ix = -SL/2; ix < SL/2; ix++) {
-    for (let iz = -SL/2; iz < SL/2; iz++) {
-        dVoxelEngine.setVoxel([ix,4,iz], 8);
-    }
-}
+// for (let ix = -SL/2; ix < SL/2; ix++) {
+//     for (let iz = -SL/2; iz < SL/2; iz++) {
+//         for (let iy = 2; iy < 4; iy++) {
+//             dVoxelEngine.setVoxel([ix,iy,iz], 9);
+//         }
+//     }
+// }
+// for (let ix = -SL/2; ix < SL/2; ix++) {
+//     for (let iz = -SL/2; iz < SL/2; iz++) {
+//         dVoxelEngine.setVoxel([ix,4,iz], 8);
+//     }
+// }
 
 dVoxelEngine.render();
+
+function updateAgents(agentsInfo) {
+  dVoxelEngine.updateAgents(agentsInfo);
+}
+
+function updateBlocks(blocksInfo) {
+  dVoxelEngine.updateBlocks(blocksInfo);
+}
+
+function setBlock(x, y, z, idm) {
+  dVoxelEngine.setBlock(x, y, z, idm);
+}
+
+function flashBlocks(bbox) {
+  dVoxelEngine.flashBlocks(bbox);
+}
+
+module.exports.updateAgents = updateAgents;
+module.exports.updateBlocks = updateBlocks;
+module.exports.setBlock = setBlock;
+module.exports.flashBlocks = flashBlocks;

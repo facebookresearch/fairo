@@ -16,7 +16,7 @@ class VoxelWorld extends React.Component {
   }
 
   getVoxelWorldInitialState() {
-    this.props.stateManager.socket.emit("getVoxelWorldInitialState");
+    this.props.stateManager.worldSocket.emit("getVoxelWorldInitialState");
   }
 
   connectToWorld() {

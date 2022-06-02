@@ -7,7 +7,7 @@ import { VoxelPlayer} from './VoxelPlayer.mjs';
 import { VoxelItem} from './VoxelItem.mjs';
 import { VoxelMob} from './VoxelMob.mjs';
 import { GLTFLoader } from './GLTFLoader.mjs';
-import { VW_ITEM_MAP, VW_MOB_MAP, VW_AVATAR_MAP } from './model_luts.mjs'
+import { VW_ITEM_MAP, VW_MOB_MAP, VW_AVATAR_MAP, MINECRAFT_BLOCK_MAP } from './model_luts.mjs'
 import { OrbitControls } from './OrbitControls.mjs';
 import {traceRay} from './dvoxel_raycast.mjs'
 
@@ -59,9 +59,11 @@ for (let ix = 0; ix < SL; ix++) {
     }
 }
 
+
 const MoveStep = 0.5 // normalized -- block length is 1 here
 
 let controlled_player;
+let agent_player;
 
 
 function pos2Name(x, y, z, box=false) {
@@ -283,7 +285,7 @@ class DVoxelEngine {
                 const opts = {
                     GLTFLoader: GLTFLoader,
                     name: key,
-                    position: [50, 250, 50]
+                    position: [100, 500, -500]
                 };
                 VoxelPlayer.build(world, opts).then(
                     function (player) {
@@ -292,48 +294,51 @@ class DVoxelEngine {
                             controlled_player = player;
                             cameraTest(player);
                         }
+                        if (player.avatarType === "agent") {
+                            agent_player = player;
+                        }
                     }
                 );
             }
         };
         
-        const TEST_ITEMS = ['pink wool', 'white wool', 'blue wool', 'brown wool', 'grass']
-        TEST_ITEMS.forEach(function(key, index) {
-            console.log(key)
-            let max = 5, min = -5
-            let ix = Math.floor(Math.random() * (max - min + 1) + min)
-            let iz = Math.floor(Math.random() * (max - min + 1) + min)
-            const itemOpts = {
-                GLTFLoader: GLTFLoader,
-                name: key,
-                position: [ix * blockScale, 5 * blockScale, iz * blockScale]
-            };
-            VoxelItem.build(world, itemOpts).then(
-                function (item) {
-                    // window.setInterval(walkabout, 1000, item, 50);
-                }
-            );
-            }
-        ) 
+        // const TEST_ITEMS = ['pink wool', 'white wool', 'blue wool', 'brown wool', 'grass']
+        // TEST_ITEMS.forEach(function(key, index) {
+        //     console.log(key)
+        //     let max = 5, min = -5
+        //     let ix = Math.floor(Math.random() * (max - min + 1) + min)
+        //     let iz = Math.floor(Math.random() * (max - min + 1) + min)
+        //     const itemOpts = {
+        //         GLTFLoader: GLTFLoader,
+        //         name: key,
+        //         position: [ix * blockScale, 5 * blockScale, iz * blockScale]
+        //     };
+        //     VoxelItem.build(world, itemOpts).then(
+        //         function (item) {
+        //             // window.setInterval(walkabout, 1000, item, 50);
+        //         }
+        //     );
+        //     }
+        // ) 
 
-        const TEST_MOBS = ['cow', 'chicken']
-        TEST_MOBS.forEach(function(key, index) {
-            console.log(key)
-            let max = 5, min = -5
-            let ix = Math.floor(Math.random() * (max - min + 1) + min)
-            let iz = Math.floor(Math.random() * (max - min + 1) + min)
-            const mobOpts = {
-                GLTFLoader: GLTFLoader,
-                name: key,
-                position: [ix * blockScale, 5 * blockScale, iz * blockScale]
-            };
-            VoxelMob.build(world, mobOpts).then(
-                function (mob) {
-                    window.setInterval(walkabout, 1000, mob, 50);
-                }
-            );
-            }
-        ) 
+        // const TEST_MOBS = ['cow', 'chicken']
+        // TEST_MOBS.forEach(function(key, index) {
+        //     console.log(key)
+        //     let max = 5, min = -5
+        //     let ix = Math.floor(Math.random() * (max - min + 1) + min)
+        //     let iz = Math.floor(Math.random() * (max - min + 1) + min)
+        //     const mobOpts = {
+        //         GLTFLoader: GLTFLoader,
+        //         name: key,
+        //         position: [ix * blockScale, 5 * blockScale, iz * blockScale]
+        //     };
+        //     VoxelMob.build(world, mobOpts).then(
+        //         function (mob) {
+        //             window.setInterval(walkabout, 1000, mob, 50);
+        //         }
+        //     );
+        //     }
+        // ) 
         
         
         window.setInterval(render, renderInterval);
@@ -359,7 +364,7 @@ class DVoxelEngine {
         let block_data = VW_ITEM_MAP[blockName];
         let blockMaterials;
         if (preLoadBlockMaterials.has(blockName)) {
-            console.log('preloaddding!!!' + blockName)
+            // console.log('preloaddding!!!' + blockName)
             blockMaterials = preLoadBlockMaterials.get(blockName);
         } else {
             blockMaterials = [
@@ -447,6 +452,50 @@ class DVoxelEngine {
         console.log(x + ' ' + y + ' ' + z)
         return getBlock2(x, y, z)
     }
+
+
+    // function updateAgents(agentsInfo) {
+    //     dVoxelEngine.updateAgents(agentsInfo);
+    //   }
+      
+    //   function updateBlocks(blocksInfo) {
+    //     dVoxelEngine.updateBlocks(blocksInfo);
+    //   }
+      
+    //   function setBlock(x, y, z, idm) {
+    //     dVoxelEngine.setBlock(x, y, z, idm);
+    //   }
+      
+    //   function flashBlocks(bbox) {
+    //     dVoxelEngine.flashBlocks(bbox);
+    //   }
+
+    updateAgents(agentsInfo) {
+        console.log("DVoxel Engine update agents")
+    }
+
+    updateBlocks(blocksInfo) {
+        console.log("blocksInfo")
+        console.log(blocksInfo)
+        let that = this
+        blocksInfo.forEach(function(key, index) {
+            let xyz = key[0]
+            let idm = key[1]
+            let bid = MINECRAFT_BLOCK_MAP[idm[0].toString() + "," + idm[1].toString()]
+            console.log("xyz: " + xyz + "  bid: " + bid)
+            that.setVoxel([xyz[0],xyz[1],xyz[2]], bid);
+        });
+        console.log("DVoxel Engine update blocks")
+    }
+
+    setBlock(x, y, z, idm) {
+        console.log("DVoxel Engine set block")
+    }
+
+    flashBlocks(bbox) {
+        console.log("DVoxel Engine flash bbox")
+    }
+
 }
 
 function setBlock2(x, y, z, id) {
