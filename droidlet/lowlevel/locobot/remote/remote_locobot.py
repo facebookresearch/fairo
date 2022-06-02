@@ -189,12 +189,7 @@ class RemoteLocobot(object):
             obstacle = ret
             return obstacle
 
-    def go_to_absolute(
-        self,
-        xyt_position,
-        wait=True,
-        trackback=False
-    ):
+    def go_to_absolute(self, xyt_position, wait=True, trackback=False):
         """Moves the robot base to given goal state in the world frame.
 
         :param xyt_position: The goal state of the form (x,y,yaw)

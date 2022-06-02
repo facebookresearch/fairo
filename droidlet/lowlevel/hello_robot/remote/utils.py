@@ -241,7 +241,7 @@ def goto(
     dryrun=False,
     obstacle_fn=None,
     forward_dist=0.25,
-    turn_angle=np.pi / 6
+    turn_angle=np.pi / 6,
 ):
     """
     Moves the robot to the given goal state in the relative frame (base frame).
