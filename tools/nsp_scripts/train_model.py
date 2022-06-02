@@ -21,7 +21,9 @@ import torch.utils.tensorboard
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.optim import Adam
 
-from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_model import build_model
+from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_model import (
+    build_model,
+)
 from droidlet.perception.semantic_parsing.utils.nsp_logger import NSPLogger
 from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_parsing import (
     compute_accuracy,
@@ -41,7 +43,9 @@ from droidlet.perception.semantic_parsing.nsp_transformer_model.encoder_decoder 
 from droidlet.perception.semantic_parsing.nsp_transformer_model.optimizer_warmup import (
     OptimWarmupEncoderDecoder,
 )
-from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset import CAIPDataset
+from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset import (
+    CAIPDataset,
+)
 
 
 def save_model(model, model_identifier, dataset, args, full_tree_voc, epoch):
@@ -52,7 +56,9 @@ def save_model(model, model_identifier, dataset, args, full_tree_voc, epoch):
         "full_tree_voc": full_tree_voc,
         "args": args,
     }
-    path = pjoin(args.output_dir, "{}_ep{}.pth".format(model_identifier, epoch))
+    path = pjoin(
+        args.output_dir, "{}_ep{}.pth".format(model_identifier, epoch)
+    )
     print("saving model to PATH::{} at epoch {}".format(path, epoch))
     torch.save(M, path)
 
@@ -63,7 +69,10 @@ def show_examples(model, dataset, tokenizer, n=10):
         for cid in range(n):
             chat = dataset[cid][2][1]
             btr = beam_search(chat, model, tokenizer, dataset, 5, 10)
-            if btr[0][0].get("dialogue_type", "NONE") == "NOOP" and math.exp(btr[0][1]) < 0.95:
+            if (
+                btr[0][0].get("dialogue_type", "NONE") == "NOOP"
+                and math.exp(btr[0][1]) < 0.95
+            ):
                 tree = btr[1][0]
             else:
                 tree = btr[0][0]
@@ -103,16 +112,18 @@ class ModelTrainer:
                 "time",
             ],
         )
-        
-        #remove grad/weight trackers if they already exist
-        if os.path.isfile('gradients.csv'):
-            os.remove('gradients.csv')
-        if os.path.isfile('weights.csv'):
-            os.remove('weights.csv')
+
+        # remove grad/weight trackers if they already exist
+        if os.path.isfile("gradients.csv"):
+            os.remove("gradients.csv")
+        if os.path.isfile("weights.csv"):
+            os.remove("weights.csv")
 
         self.tensorboard_dir = args.tensorboard_dir
 
-    def train(self, model, dataset, tokenizer, model_identifier, full_tree_voc):
+    def train(
+        self, model, dataset, tokenizer, model_identifier, full_tree_voc
+    ):
         """Training loop (all epochs at once)
 
         Args:
@@ -127,7 +138,9 @@ class ModelTrainer:
 
         """
         if self.tensorboard_dir:
-            tensorboard_dir = os.path.join(self.tensorboard_dir, model_identifier)
+            tensorboard_dir = os.path.join(
+                self.tensorboard_dir, model_identifier
+            )
             #            os.mkdir(self.tensorboard_dir, exist_ok=True)
             tb = torch.utils.tensorboard.SummaryWriter(log_dir=tensorboard_dir)
         else:
@@ -135,9 +148,13 @@ class ModelTrainer:
 
         # make data sampler
         train_sampler = RandomSampler(dataset)
-        logging.info("Initializing train data sampler: {}".format(train_sampler))
+        logging.info(
+            "Initializing train data sampler: {}".format(train_sampler)
+        )
         model_collate_fn = functools.partial(
-            caip_collate, tokenizer=tokenizer, tree_to_text=self.args.tree_to_text
+            caip_collate,
+            tokenizer=tokenizer,
+            tree_to_text=self.args.tree_to_text,
         )
         train_dataloader = DataLoader(
             dataset,
@@ -178,7 +195,9 @@ class ModelTrainer:
             for step, batch in enumerate(epoch_iterator):
                 batch_examples = batch[-1]
                 batch_tensors = [
-                    t.to(model.decoder.lm_head.predictions.decoder.weight.device)
+                    t.to(
+                        model.decoder.lm_head.predictions.decoder.weight.device
+                    )
                     for t in batch[:4]
                 ]
                 x, x_mask, y, y_mask = batch_tensors
@@ -199,16 +218,21 @@ class ModelTrainer:
 
                 loss.backward()
                 # Add text span loss gradients
-                model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
-                    text_span_loss_attenuation_factor
-                    * (
-                        model.decoder.text_span_start_hidden_z.grad
-                        + model.decoder.text_span_end_hidden_z.grad
+                model.decoder.bert_final_layer_out.grad = (
+                    model.decoder.bert_final_layer_out.grad.add(
+                        text_span_loss_attenuation_factor
+                        * (
+                            model.decoder.text_span_start_hidden_z.grad
+                            + model.decoder.text_span_end_hidden_z.grad
+                        )
                     )
                 )
                 # Add fixed value loss gradients
-                model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
-                    fixed_value_loss_attenuation_factor * (model.decoder.fixed_span_hidden_z.grad)
+                model.decoder.bert_final_layer_out.grad = (
+                    model.decoder.bert_final_layer_out.grad.add(
+                        fixed_value_loss_attenuation_factor
+                        * (model.decoder.fixed_span_hidden_z.grad)
+                    )
                 )
                 if step % self.args.param_update_freq == 0:
                     torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -219,7 +243,9 @@ class ModelTrainer:
                     # hacky
                     lm_acc = full_acc
                 else:
-                    lm_acc, sp_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
+                    lm_acc, sp_acc, text_span_acc, full_acc = compute_accuracy(
+                        outputs, y
+                    )
                 if self.args.hard:
                     if e > 0 or tot_steps > 2 * self.args.decoder_warmup_steps:
                         for acc, exple in zip(lm_acc, batch_examples):
@@ -251,8 +277,14 @@ class ModelTrainer:
                     if args.show_samples:
                         show_examples(model, dataset, tokenizer)
                     if tb:
-                        tb.add_scalar("accuracy", loc_full_acc / loc_steps, global_step=tot_steps)
-                        tb.add_scalar("loss", loc_loss / loc_steps, global_step=tot_steps)
+                        tb.add_scalar(
+                            "accuracy",
+                            loc_full_acc / loc_steps,
+                            global_step=tot_steps,
+                        )
+                        tb.add_scalar(
+                            "loss", loc_loss / loc_steps, global_step=tot_steps
+                        )
                     # print(
                     #     "{:2d} - {:5d} \t L: {:.3f} A: {:.3f} \t {:.2f}".format(
                     #         e,
@@ -271,8 +303,16 @@ class ModelTrainer:
                             time() - st_time,
                         )
                     )
-                    logging.info("text span acc: {:.3f}".format(text_span_accuracy / loc_steps))
-                    logging.info("text span loss: {:.3f}".format(text_span_loc_loss / loc_steps))
+                    logging.info(
+                        "text span acc: {:.3f}".format(
+                            text_span_accuracy / loc_steps
+                        )
+                    )
+                    logging.info(
+                        "text span loss: {:.3f}".format(
+                            text_span_loc_loss / loc_steps
+                        )
+                    )
                     # Log training outputs to CSV
                     self.train_outputs_logger.log_dialogue_outputs(
                         [
@@ -294,7 +334,9 @@ class ModelTrainer:
                     loc_full_acc = 0.0
                     text_span_accuracy = 0.0
                     text_span_loc_loss = 0.0
-            save_model(model, model_identifier, dataset, self.args, full_tree_voc, e)
+            save_model(
+                model, model_identifier, dataset, self.args, full_tree_voc, e
+            )
 
             # Save model weights
             # print("Epoch #" + str(e) + " weights:")
@@ -302,7 +344,7 @@ class ModelTrainer:
                 csv_writer = csv.writer(f, delimiter=",")
                 row = []
                 for m in model.modules():
-                    if hasattr(m, 'weight'):
+                    if hasattr(m, "weight"):
                         try:
                             row.append(torch.norm(m.weight).item())
                         except:
@@ -314,19 +356,20 @@ class ModelTrainer:
                 csv_writer = csv.writer(f, delimiter=",")
                 row = []
                 for m in model.modules():
-                    if hasattr(m, 'weight'):
+                    if hasattr(m, "weight"):
                         try:
                             row.append(torch.norm(m.weight.grad).item())
                         except:
                             pass
                 csv_writer.writerow(row)
-                    
 
             # Evaluating model
             model.eval()
             logging.info("evaluating model")
             for dtype, ratio in self.args.dtype_samples.items():
-                l, a = self.eval_model_on_dataset(e, model, dtype, full_tree_voc, tokenizer)
+                l, a = self.eval_model_on_dataset(
+                    e, model, dtype, full_tree_voc, tokenizer
+                )
                 logging.info(
                     "evaluating on {} valid: \t Loss: {:.4f} \t Accuracy: {:.4f} at epoch {}".format(
                         dtype, l, a, e
@@ -338,7 +381,9 @@ class ModelTrainer:
                     )
                 )
                 if tb:
-                    tb.add_scalar("val_accuracy_" + str(dtype), a, global_step=e)
+                    tb.add_scalar(
+                        "val_accuracy_" + str(dtype), a, global_step=e
+                    )
                     tb.add_scalar("val_loss_" + str(dtype), l, global_step=e)
 
         return (tot_loss / tot_steps, tot_accuracy / tot_steps)
@@ -351,7 +396,10 @@ class ModelTrainer:
             caip_collate, tokenizer=tokenizer, tree_to_text=args.tree_to_text
         )
         train_dataloader = DataLoader(
-            dataset, sampler=train_sampler, batch_size=args.batch_size, collate_fn=model_collate_fn
+            dataset,
+            sampler=train_sampler,
+            batch_size=args.batch_size,
+            collate_fn=model_collate_fn,
         )
         epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable=True)
         # training loop
@@ -369,7 +417,9 @@ class ModelTrainer:
         with torch.no_grad():
             for step, batch in enumerate(epoch_iterator):
                 batch_tensors = [
-                    t.to(model.decoder.lm_head.predictions.decoder.weight.device)
+                    t.to(
+                        model.decoder.lm_head.predictions.decoder.weight.device
+                    )
                     for t in batch[:4]
                 ]
                 x, x_mask, y, y_mask = batch_tensors
@@ -377,7 +427,9 @@ class ModelTrainer:
                 loss = outputs["loss"]
                 text_span_loss = outputs["text_span_loss"]
                 # compute accuracy and add hard examples
-                lm_acc, sp_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
+                lm_acc, sp_acc, text_span_acc, full_acc = compute_accuracy(
+                    outputs, y
+                )
                 # book-keeping
                 # shapes of accuracies are [B]
                 tot_int_acc += (
@@ -404,7 +456,13 @@ class ModelTrainer:
         )
 
     def eval_model_on_dataset(
-        self, epoch, encoder_decoder, dtype, full_tree_voc, tokenizer, split="valid"
+        self,
+        epoch,
+        encoder_decoder,
+        dtype,
+        full_tree_voc,
+        tokenizer,
+        split="valid",
     ):
         """Evaluate model on a given validation dataset
 
@@ -416,7 +474,11 @@ class ModelTrainer:
 
         """
         valid_dataset = CAIPDataset(
-            tokenizer, self.args, prefix=split, dtype=dtype, full_tree_voc=full_tree_voc
+            tokenizer,
+            self.args,
+            prefix=split,
+            dtype=dtype,
+            full_tree_voc=full_tree_voc,
         )
         l, _, _, a, text_span_acc, text_span_loss = self.validate(
             encoder_decoder, valid_dataset, tokenizer, self.args
@@ -425,7 +487,9 @@ class ModelTrainer:
         #    "evaluating on {} valid: \t Loss: {:.4f} \t Accuracy: {:.4f}".format(dtype, l, a)
         # )
         logging.info(
-            "text span Loss: {:.4f} \t Accuracy: {:.4f}".format(text_span_loss, text_span_acc)
+            "text span Loss: {:.4f} \t Accuracy: {:.4f}".format(
+                text_span_loss, text_span_acc
+            )
         )
         self.valid_outputs_logger.log_dialogue_outputs(
             [epoch, dtype, l, a, text_span_acc, text_span_loss, time()]
@@ -464,11 +528,18 @@ def generate_model_name(args, optional_identifier=""):
         "train_encoder": "tr",
         "fixed_value_weight": "fv",
     }
-    dsets = {"templated": "t", "templated_clarification": "tc", "templated_filters": "tf", "annotated": "a"}
+    dsets = {
+        "templated": "t",
+        "templated_clarification": "tc",
+        "templated_filters": "tf",
+        "annotated": "a",
+    }
     for k, v in vars(args).items():
         if k in args_keys:
             if k == "dtype_samples":
-                v = "_".join([dsets[k] + str(v) for k, v in args.dtype_samples.items()])
+                v = "_".join(
+                    [dsets[k] + str(v) for k, v in args.dtype_samples.items()]
+                )
             name += "{param}{value}-".format(param=args_keys[k], value=v)
     # In case we want additional identification for the model, eg. test run
     name += "{time}|".format(time=time_now)
@@ -484,9 +555,15 @@ def build_grammar(args):
             fname = pjoin(args.data_dir, "{}/{}.txt".format(spl, dt))
             logging.info("loading file {}".format(fname))
             if isfile(fname):
-                data[spl][fname.split("/")[-1][:-4]] = process_txt_data(filepath=fname)
+                data[spl][fname.split("/")[-1][:-4]] = process_txt_data(
+                    filepath=fname
+                )
     full_tree, tree_i2w = make_full_tree(
-        [(d_list, 1.0) for spl, dtype_dict in data.items() for dtype, d_list in dtype_dict.items()]
+        [
+            (d_list, 1.0)
+            for spl, dtype_dict in data.items()
+            for dtype, d_list in dtype_dict.items()
+        ]
     )
     json.dump((full_tree, tree_i2w), open(args.tree_voc_file, "w"))
 
@@ -506,7 +583,9 @@ if __name__ == "__main__":
         type=str,
         help="Where we save the model",
     )
-    parser.add_argument("--model_name", default="caip_parser", type=str, help="Model name")
+    parser.add_argument(
+        "--model_name", default="caip_parser", type=str, help="Model name"
+    )
     parser.add_argument(
         "--tree_voc_file",
         default="droidlet/artifacts/models/nlu/ttad_bert_updated/caip_test_model_tree.json",
@@ -535,20 +614,41 @@ if __name__ == "__main__":
         help="Number of transformer layers in the decoder",
     )
     parser.add_argument(
-        "--num_highway", default=2, type=int, help="Number of highway layers in the mapping model"
+        "--num_highway",
+        default=2,
+        type=int,
+        help="Number of highway layers in the mapping model",
     )
     # optimization arguments
     parser.add_argument(
-        "--optimizer", default="adam", type=str, help="Optimizer in [adam|adagrad]"
-    )
-    parser.add_argument("--batch_size", default=16, type=int, help="Batch size")
-    parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
-    parser.add_argument("--num_epochs", default=10, type=int, help="Number of training epochs")
-    parser.add_argument(
-        "--examples_per_epoch", default=-1, type=int, help="Number of training examples per epoch"
+        "--optimizer",
+        default="adam",
+        type=str,
+        help="Optimizer in [adam|adagrad]",
     )
     parser.add_argument(
-        "--train_encoder", default=1, type=int, help="Whether to finetune the encoder"
+        "--batch_size", default=10, type=int, help="Batch size"
+    )
+    parser.add_argument(
+        "--param_update_freq",
+        default=1,
+        type=int,
+        help="Group N batch updates",
+    )
+    parser.add_argument(
+        "--num_epochs", default=10, type=int, help="Number of training epochs"
+    )
+    parser.add_argument(
+        "--examples_per_epoch",
+        default=-1,
+        type=int,
+        help="Number of training examples per epoch",
+    )
+    parser.add_argument(
+        "--train_encoder",
+        default=1,
+        type=int,
+        help="Whether to finetune the encoder",
     )
     parser.add_argument(
         "--encoder_warmup_steps",
@@ -557,7 +657,10 @@ if __name__ == "__main__":
         help="Learning rate warmup steps for the encoder",
     )
     parser.add_argument(
-        "--encoder_learning_rate", default=0.0, type=float, help="Learning rate for the encoder"
+        "--encoder_learning_rate",
+        default=0.0,
+        type=float,
+        help="Learning rate for the encoder",
     )
     parser.add_argument(
         "--decoder_warmup_steps",
@@ -566,7 +669,10 @@ if __name__ == "__main__":
         help="Learning rate warmup steps for the decoder",
     )
     parser.add_argument(
-        "--decoder_learning_rate", default=1e-6, type=float, help="Learning rate for the decoder"
+        "--decoder_learning_rate",
+        default=1e-6,
+        type=float,
+        help="Learning rate for the decoder",
     )
     parser.add_argument(
         "--lambda_span_loss",
@@ -588,12 +694,15 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--dtype_samples",
-        default="templated_clarification:.02;annotated:.98",
+        default="templated_clarification:.1;annotated:.9",
         type=str,
         help="Sampling probabilities for handling different data types",
     )
     parser.add_argument(
-        "--rephrase_proba", default=-1.0, type=float, help="Only specify probablility of rephrases"
+        "--rephrase_proba",
+        default=-1.0,
+        type=float,
+        help="Only specify probablility of rephrases",
     )
     parser.add_argument(
         "--word_dropout",
@@ -602,17 +711,30 @@ if __name__ == "__main__":
         help="Probability of replacing input token with [UNK]",
     )
     parser.add_argument(
-        "--encoder_dropout", default=0.0, type=float, help="Apply dropout to encoder output"
+        "--encoder_dropout",
+        default=0.0,
+        type=float,
+        help="Apply dropout to encoder output",
     )
     parser.add_argument(
-        "--show_samples", action="store_true", help="show samples every few iterations"
-    )
-    parser.add_argument("--tree_to_text", action="store_true", help="Back translation flag")
-    parser.add_argument(
-        "--optional_identifier", default="", type=str, help="Optional run info eg. debug or test"
+        "--show_samples",
+        action="store_true",
+        help="show samples every few iterations",
     )
     parser.add_argument(
-        "--hard", default=0, type=int, help="Whether to feed in failed examples during training"
+        "--tree_to_text", action="store_true", help="Back translation flag"
+    )
+    parser.add_argument(
+        "--optional_identifier",
+        default="",
+        type=str,
+        help="Optional run info eg. debug or test",
+    )
+    parser.add_argument(
+        "--hard",
+        default=0,
+        type=int,
+        help="Whether to feed in failed examples during training",
     )
     parser.add_argument(
         "--alpha",
@@ -637,7 +759,10 @@ if __name__ == "__main__":
     # HACK: allows us to give rephrase proba only instead of full dictionary
     if args.rephrase_proba > 0:
         args.dtype_samples = json.dumps(
-            [["templated", 1.0 - args.rephrase_proba], ["rephrases", args.rephrase_proba]]
+            [
+                ["templated", 1.0 - args.rephrase_proba],
+                ["rephrases", args.rephrase_proba],
+            ]
         )
 
     model_identifier = generate_model_name(args, args.optional_identifier)
@@ -646,7 +771,9 @@ if __name__ == "__main__":
     l_handler = logging.handlers.WatchedFileHandler(
         "{}/{}.log".format(args.output_dir, model_identifier)
     )
-    l_format = logging.Formatter(fmt="%(asctime)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S")
+    l_format = logging.Formatter(
+        fmt="%(asctime)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S"
+    )
     l_handler.setFormatter(l_format)
     l_root = logging.getLogger()
     l_root.setLevel(os.environ.get("LOGLEVEL", "INFO"))
@@ -682,5 +809,9 @@ if __name__ == "__main__":
     full_tree_voc = (full_tree, tree_i2w)
     model_trainer = ModelTrainer(args)
     loss, accu = model_trainer.train(
-        encoder_decoder, train_dataset, tokenizer, model_identifier, full_tree_voc
+        encoder_decoder,
+        train_dataset,
+        tokenizer,
+        model_identifier,
+        full_tree_voc,
     )

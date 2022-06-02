@@ -167,6 +167,7 @@ def build_follow_up(
         near_phrase,
         new_ref_obj,
         second_turn,
+        response_type,
     )
     file.write(f"{second_turn}|{lf}\n")
 
@@ -182,6 +183,7 @@ def build_followup_lf(
     near_phrase: str,
     new_ref_obj: str,
     second_turn: str,
+    response_type: str,
 ):
     lf = deepcopy(ORIG_CMD_LF)
     lf["event_sequence"][0]["action_type"] = action.strip()
@@ -189,8 +191,7 @@ def build_followup_lf(
     lf_ref_obj = new_ref_obj if new_ref_obj else ref_obj
     ref_obj_span = build_span(second_turn, lf_ref_obj)
 
-    if new_ref_obj:
-        # new_ref_obj only appears in a replacement followup
+    if response_type == "replacement":
         # in a modification we don't want the has_name key, just rely on the modification
         lf["event_sequence"][0]["reference_object"]["filters"]["where_clause"][
             "AND"
@@ -212,12 +213,31 @@ def build_followup_lf(
                 "obj_text": build_span(second_turn, lf_adj),
             }
         )
+
+        # if there is a modified adj, won't be able to create a contiguous span with it
         ref_obj_text = lf_adj.strip() + " " + lf_ref_obj.strip()
-        lf["event_sequence"][0]["reference_object"]["text_span"] = build_span(
-            second_turn, ref_obj_text
-        )
+        try_span = build_span(second_turn, ref_obj_text)
+        if try_span:
+            lf["event_sequence"][0]["reference_object"]["text_span"] = try_span
+        else:
+            lf["event_sequence"][0]["reference_object"][
+                "text_span"
+            ] = ref_obj_span
     else:
         lf["event_sequence"][0]["reference_object"]["text_span"] = ref_obj_span
+
+    # No empty where clause
+    if (
+        len(
+            lf["event_sequence"][0]["reference_object"]["filters"][
+                "where_clause"
+            ]["AND"]
+        )
+        == 0
+    ):
+        lf["event_sequence"][0]["reference_object"]["filters"].pop(
+            "where_clause", None
+        )
 
     if near_thing:
         selector = deepcopy(NEAR_SELECTOR)
@@ -255,6 +275,8 @@ def build_resolve_point_lf(ref_obj: str, turn: str):
 def build_span(turn: str, text: str):
     cleantext = text.strip()
     char_idx = turn.find(cleantext)
+    if char_idx == -1:
+        return False
     start_idx = len(turn[:char_idx].strip().split(" "))
     end_idx = start_idx + len(cleantext.split(" ")) - 1
 
