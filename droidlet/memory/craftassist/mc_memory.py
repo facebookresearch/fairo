@@ -434,6 +434,8 @@ class MCAgentMemory(AgentMemory):
             count = c[0] + dn
             self.db_write("UPDATE ReferenceObjects SET voxel_count=? WHERE uuid=?", count, memid)
             return count
+        elif dn > 0:
+            self.db_write("INSERT INTO ReferenceObjects (voxel_count, uuid) VALUES (?, ?)", dn, memid)
         else:
             return None
 
