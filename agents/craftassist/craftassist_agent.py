@@ -16,7 +16,11 @@ from copy import deepcopy
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
-from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
+from droidlet.interpreter.craftassist import (
+    default_behaviors,
+    inventory,
+    dance,
+)
 from droidlet.memory.craftassist import mc_memory
 from droidlet.memory.memory_nodes import ChatNode
 from droidlet.shared_data_struct import rotation
@@ -43,8 +47,14 @@ from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
-from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
-from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
+from droidlet.interpreter.craftassist import (
+    MCGetMemoryHandler,
+    PutMemoryHandler,
+    MCInterpreter,
+)
+from droidlet.perception.craftassist.low_level_perception import (
+    LowLevelMCPerception,
+)
 from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
 from droidlet.lowlevel.minecraft.mc_util import (
     cluster_areas,
@@ -145,7 +155,11 @@ class CraftAssistAgent(DroidletAgent):
                 player_exists = True
         if not player_exists:
             newPlayer = Player(
-                12345678, "dashboard", Pos(0.0, 64.0, 0.0), Look(0.0, 0.0), Item(0, 0)
+                12345678,
+                "dashboard",
+                Pos(0.0, 64.0, 0.0),
+                Look(0.0, 0.0),
+                Item(0, 0),
             )
             updated_players.append(newPlayer)
         return updated_players
@@ -166,7 +180,11 @@ class CraftAssistAgent(DroidletAgent):
             MAX_RADIUS = 50
             logging.info("in setup_world_initial_state")
             agent_pos = self.get_player().pos
-            x, y, z = round(agent_pos.x), round(agent_pos.y), round(agent_pos.z)
+            x, y, z = (
+                round(agent_pos.x),
+                round(agent_pos.y),
+                round(agent_pos.z),
+            )
             origin = (x - MAX_RADIUS, y - MAX_RADIUS, z - MAX_RADIUS)
             yzxb = self.get_blocks(
                 x - MAX_RADIUS,
@@ -178,7 +196,10 @@ class CraftAssistAgent(DroidletAgent):
             )
             blocks = npy_to_blocks_list(yzxb, origin=origin)
             blocks = [
-                ((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))
+                (
+                    (int(xyz[0]), int(xyz[1]), int(xyz[2])),
+                    (int(idm[0]), int(idm[1])),
+                )
                 for xyz, idm in blocks
             ]
             payload = {
@@ -214,7 +235,9 @@ class CraftAssistAgent(DroidletAgent):
         )
         # Add all dances to memory
         dance.add_default_dances(self.memory)
-        file_log_handler = logging.FileHandler("agent.{}.log".format(self.name))
+        file_log_handler = logging.FileHandler(
+            "agent.{}.log".format(self.name)
+        )
         file_log_handler.setFormatter(log_formatter)
         logging.getLogger().addHandler(file_log_handler)
 
@@ -226,9 +249,13 @@ class CraftAssistAgent(DroidletAgent):
     def init_perception(self):
         """Initialize perception modules"""
         self.perception_modules = {}
-        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
+        self.perception_modules["language_understanding"] = NSPQuerier(
+            self.opts, self
+        )
         self.perception_modules["low_level"] = LowLevelMCPerception(self)
-        self.perception_modules["heuristic"] = heuristic_perception.PerceptionWrapper(
+        self.perception_modules[
+            "heuristic"
+        ] = heuristic_perception.PerceptionWrapper(
             self,
             low_level_data=self.low_level_data,
             mark_airtouching_blocks=self.mark_airtouching_blocks,
@@ -236,13 +263,18 @@ class CraftAssistAgent(DroidletAgent):
         # set up the SubComponentClassifier model
         if os.path.isfile(self.opts.semseg_model_path):
             self.perception_modules["semseg"] = SubcomponentClassifierWrapper(
-                self, self.opts.semseg_model_path, low_level_data=self.low_level_data
+                self,
+                self.opts.semseg_model_path,
+                low_level_data=self.low_level_data,
             )
 
     def init_controller(self):
         """Initialize all controllers"""
         dialogue_object_classes = {}
-        dialogue_object_classes["bot_capabilities"] = {"task": MCBotCapabilities, "data": {}}
+        dialogue_object_classes["bot_capabilities"] = {
+            "task": MCBotCapabilities,
+            "data": {},
+        }
         dialogue_object_classes["interpreter"] = MCInterpreter
         dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
@@ -274,7 +306,9 @@ class CraftAssistAgent(DroidletAgent):
         # 1. perceive from NLU parser
         super().perceive()
         # 2. perceive from low_level perception module
-        low_level_perception_output = self.perception_modules["low_level"].perceive()
+        low_level_perception_output = self.perception_modules[
+            "low_level"
+        ].perceive()
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
         self.areas_to_perceive = self.memory.update(
             low_level_perception_output, self.areas_to_perceive
@@ -282,11 +316,15 @@ class CraftAssistAgent(DroidletAgent):
         # 3. with the updated areas_to_perceive, perceive from heuristic perception module
         if force or not self.memory.task_stack_peek():
             # perceive from heuristic perception module
-            heuristic_perception_output = self.perception_modules["heuristic"].perceive()
+            heuristic_perception_output = self.perception_modules[
+                "heuristic"
+            ].perceive()
             self.memory.update(heuristic_perception_output)
         # 4. if semantic segmentation model is initialized, call perceive
         if "semseg" in self.perception_modules:
-            sem_seg_perception_output = self.perception_modules["semseg"].perceive()
+            sem_seg_perception_output = self.perception_modules[
+                "semseg"
+            ].perceive()
             self.memory.update(sem_seg_perception_output)
         self.areas_to_perceive = []
         self.update_dashboard_world()
@@ -326,7 +364,8 @@ class CraftAssistAgent(DroidletAgent):
                     ybad = y >= pt[1] and y <= pt[4]
                     zbad = z >= pt[2] and z <= pt[5]
                     if xbad and ybad and zbad:
-                        if b in safe_blocks: safe_blocks.remove(b)
+                        if b in safe_blocks:
+                            safe_blocks.remove(b)
         else:
             safe_blocks = blocks
         return safe_blocks
@@ -345,9 +384,18 @@ class CraftAssistAgent(DroidletAgent):
 
         # TODO: put this in mover
         # flip x to move from droidlet coords to  cuberite coords
-        target = [-target[3], target[1], target[2], -target[0], target[4], target[5]]
+        target = [
+            -target[3],
+            target[1],
+            target[2],
+            -target[0],
+            target[4],
+            target[5],
+        ]
 
-        point_json = build_question_json("/point {} {} {} {} {} {}".format(*target))
+        point_json = build_question_json(
+            "/point {} {} {} {} {} {}".format(*target)
+        )
         self.send_chat(point_json)
 
         # sleep before the bot can take any actions
@@ -372,25 +420,31 @@ class CraftAssistAgent(DroidletAgent):
         chat_json = False
         try:
             chat_json = json.loads(chat)
-            chat_text = list(filter(lambda x: x["id"] == "text", chat_json["content"]))[0][
-                "content"
-            ]
+            chat_text = list(
+                filter(lambda x: x["id"] == "text", chat_json["content"])
+            )[0]["content"]
         except:
             chat_text = chat
 
         logging.info("Sending chat: {}".format(chat_text))
-        self.memory.nodes[ChatNode.NODE_TYPE].create(self.memory, self.memory.self_memid, chat_text)
+        chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
+            self.memory, self.memory.self_memid, chat_text
+        )
 
         if chat_json:
             chat_json["chat_memid"] = chat_memid
-            chat_json["timestamp"] = round(datetime.timestamp(datetime.now()) * 1000)
+            chat_json["timestamp"] = round(
+                datetime.timestamp(datetime.now()) * 1000
+            )
             # Send the socket event to show this reply on dashboard
             sio.emit("showAssistantReply", chat_json)
         else:
-            sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
+            sio.emit(
+                "showAssistantReply",
+                {"agent_reply": "Agent: {}".format(chat_text)},
+            )
 
         return self.cagent.send_chat(chat_text)
-
 
     def update_agent_pos_dashboard(self):
         agent_pos = self.get_player().pos
@@ -439,10 +493,16 @@ class CraftAssistAgent(DroidletAgent):
 
         blocks = npy_to_blocks_list(yzxb, origin=origin)
         blocks = [
-            ((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))
+            (
+                (int(xyz[0]), int(xyz[1]), int(xyz[2])),
+                (int(idm[0]), int(idm[1])),
+            )
             for xyz, idm in blocks
         ]
-        payload = {"status": "updateVoxelWorldState", "world_state": {"block": blocks}}
+        payload = {
+            "status": "updateVoxelWorldState",
+            "world_state": {"block": blocks},
+        }
         sio.emit("updateVoxelWorldState", payload)
 
     def step_pos_x(self):
@@ -486,7 +546,11 @@ class CraftAssistAgent(DroidletAgent):
         logging.info("Logged in to server")
         self.mover = CraftassistMover(self.cagent)
         for m in dir(self.mover):
-            if callable(getattr(self.mover, m)) and m[0] != "_" and getattr(self, m, None) is None:
+            if (
+                callable(getattr(self.mover, m))
+                and m[0] != "_"
+                and getattr(self, m, None) is None
+            ):
                 setattr(self, m, getattr(self.mover, m))
         self.get_incoming_chats = self.get_chats
         self.get_other_players = self.get_all_players
