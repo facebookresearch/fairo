@@ -1211,7 +1211,9 @@ class TestDialogueManager(unittest.TestCase):
         parsing_model_status = False
         pass_cnt, fail_cnt, model_pass_cnt, model_fail_cnt = 0, 0, 0, 0
         status = True
+        print("Parse {} sentences.".format(len(common_functional_commands.keys())))
         for command in common_functional_commands.keys():
+            print("Parse {}".format(command))
             ground_truth_parse = common_functional_commands[command]
             if command in self.ground_truth_actions:
                 model_prediction = self.ground_truth_actions[command]
