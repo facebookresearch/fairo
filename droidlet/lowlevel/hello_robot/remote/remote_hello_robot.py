@@ -222,7 +222,7 @@ class RemoteHelloRobot(object):
                 return self.cam.is_obstacle_in_front()
 
             if trackback:
-                status = goto_trackback(self, list(base_xyt), dryrun=False)
+                status = goto_trackback(self, list(base_xyt), dryrun=False, optimize_distance=True)
             else:
                 status = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
