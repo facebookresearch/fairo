@@ -249,6 +249,12 @@ void FrankaTorqueControlClient::updateServerCommand(
     // Error code: can only set to 0 if no errors and 1 if any errors exist for
     // now
     robot_state_.set_error_code(bool(libfranka_robot_state.current_errors));
+
+    // Print warning if error rate > 20
+    double success_rate = libfranka_robot_state.control_command_success_rate;
+    if (success_rate > 0.2) {
+      std::cout << success_rate << "  ";
+    }
   }
   setTimestampToNow(robot_state_.mutable_timestamp());
 
