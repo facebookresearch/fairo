@@ -20,4 +20,4 @@ def get_ground_truth(no_ground_truth, ground_truth_data_dir):
     return ground_truth_actions
 
 
-GT_QUERY_ACTIONS = get_ground_truth(False, "droidlet/artifacts/datasets/ground_truth/")
+# GT_QUERY_ACTIONS = get_ground_truth(False, "droidlet/artifacts/datasets/ground_truth/")
