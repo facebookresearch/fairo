@@ -26,7 +26,7 @@ from droidlet.perception.semantic_parsing.load_and_check_datasets import get_gro
 from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_caip import caip_collate
 from droidlet.perception.semantic_parsing.utils.nsp_logger import NSPLogger
 
-GT_QUERY_ACTIONS = get_ground_truth(False, "droidlet/artifacts/datasets/ground_truth/")
+GT_QUERY_ACTIONS = get_ground_truth(False, os.path.join(os.path.dirname(__file__), "../../droidlet/artifacts/datasets/ground_truth/"))
 
 class ModelEvaluator:
     """Wrapper Class around evaluating model"""
