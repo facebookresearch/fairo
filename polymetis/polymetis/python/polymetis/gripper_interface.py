@@ -79,7 +79,9 @@ class GripperInterface:
             blocking=blocking,
         )
 
-    def test_func(self, arg1: float):
+    def test_func(self, speed: float, force: float, blocking: bool = True):
         self._send_gripper_command(
-            self.grpc_connection.TestFunc, polymetis_pb2.GripperCommand(arg1=arg1)
+            self.grpc_connection.TestFunc,
+            polymetis_pb2.GripperCommand(width=0.0, speed=speed, force=force), 
+            blocking=blocking
         )
