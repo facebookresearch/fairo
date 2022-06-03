@@ -60,12 +60,17 @@ service GripperServer {
     rpc GetState(Empty) returns(GripperState) {}
     rpc Goto(GripperCommand) returns(Empty) {}
     rpc Grasp(GripperCommand) returns(Empty) {}
+    rpc TestFunc(DexterousGripperCommand) returns(Empty) {}
 }
 
 message GripperCommand {
     float width = 1;
     float speed = 2;
     float force = 3;
+}
+
+message DexterousGripperCommand {
+    repeated float joints = 1;
 }
 
 message GripperState {
