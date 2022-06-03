@@ -51,11 +51,6 @@ class PyWorldMover:
         player_struct = self.get_player()
         self.entityId = player_struct.entityId
 
-    def get_line_of_sight(self):
-        D = DataCallback()
-        self.sio.emit("line_of_sight", {}, callback=D)
-        return wait_for_data(D)
-
     def set_look(self, yaw, pitch):
         self.sio.emit("set_look", {"yaw": yaw, "pitch": pitch})
 
@@ -122,10 +117,23 @@ class PyWorldMover:
     def get_line_of_sight(self):
         D = DataCallback()
         self.sio.emit("line_of_sight", {}, callback=D)
-        pos = wait_for_data(D)
-        if pos is not None:
-            pos = pos["pos"]
-        return pos
+        pos = wait_for_data(D)["pos"]
+        if pos != "":
+            return Pos(*pos)
+        else:
+            return None
+
+    def get_player_line_of_sight(self, player_struct):
+        D = DataCallback()
+        pos = player_struct.pos
+        look = player_struct.look
+        pose_data = {"pos": (pos.x, pos.y, pos.z), "yaw": look.yaw, "pitch": look.pitch}
+        self.sio.emit("line_of_sight", pose_data, callback=D)
+        pos = wait_for_data(D)["pos"]
+        if pos == "":
+            return None
+        else:
+            return Pos(*pos)
 
     def get_changed_blocks(self):
         D = DataCallback()
@@ -151,7 +159,9 @@ class PyWorldMover:
         TODO we don't need yzx orientation anymore...
         """
         D = DataCallback()
-        self.sio.emit("get_blocks", {"bounds": (x, X, y, Y, z, Z)}, callback=D)
+        self.sio.emit(
+            "get_blocks", {"bounds": (int(x), int(X), int(y), int(Y), int(z), int(Z))}, callback=D
+        )
         flattened_blocks = wait_for_data(D)
         npy_blocks = np.zeros((Y - y + 1, Z - z + 1, X - x + 1, 2), dtype="int32")
         for b in flattened_blocks:

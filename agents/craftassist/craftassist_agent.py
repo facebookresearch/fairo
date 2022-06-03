@@ -24,7 +24,6 @@ from droidlet.lowlevel.minecraft.craftassist_mover import (
     CraftassistMover,
     from_minecraft_xyz_to_droidlet,
 )
-from droidlet.lowlevel.minecraft.pyworld_mover import PyWorldMover
 
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 import droidlet.dashboard as dashboard
@@ -46,7 +45,6 @@ from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
-from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
 from droidlet.lowlevel.minecraft.mc_util import (
     cluster_areas,
     MCTime,
@@ -485,6 +483,8 @@ class CraftAssistAgent(DroidletAgent):
         if self.opts.port == -1:
             return
         if self.backend == "cuberite":
+            from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
+
             logging.info(
                 "Attempting to connect to cuberite cagent on port {}".format(self.opts.port)
             )
@@ -492,6 +492,8 @@ class CraftAssistAgent(DroidletAgent):
             logging.info("Logged in to server")
             self.mover = CraftassistMover(self.cagent)
         elif self.backend == "pyworld":
+            from droidlet.lowlevel.minecraft.pyworld_mover import PyWorldMover
+
             logging.info("Attempting to connect to pyworld on port {}".format(self.opts.port))
             # TODO allow pyworld ip to not be localhost
             try:
