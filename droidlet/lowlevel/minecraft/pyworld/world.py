@@ -393,6 +393,16 @@ class World:
         def get_all_players(sid):
             return self.get_players()
 
+        @server.on("get_mobs")
+        def send_mobs(sid):
+            mobs = self.get_mobs()
+            serialized_mobs = []
+            for m in mobs:
+                x, y, z = mob.pos
+                yaw, pitch = mob.look
+                serialized_mobs.append((m.entityId, m.mobType, x, y, z, yaw, pitch))
+            return serialized_mobs
+
         @server.on("get_changed_blocks")
         def changed_blocks(sid):
             eid = self.connected_sids.get(sid)

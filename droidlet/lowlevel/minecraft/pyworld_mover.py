@@ -198,7 +198,13 @@ class PyWorldMover:
         return chats
 
     def get_mobs(self):
-        return []
+        D = DataCallback()
+        self.sio.emit("mobs", callback=D)
+        serialized_mobs = wait_for_data(D)
+        mobs = []
+        for m in serialized_mobs:
+            mobs.append(Mob(m[0], m[1], Pos(m[2], m[3], m[4]), Look(m[5], m[6])))
+        return mobs
 
     def get_item_stacks(self):
         return []
