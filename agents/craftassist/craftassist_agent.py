@@ -401,10 +401,9 @@ class CraftAssistAgent(DroidletAgent):
         memids, mems = search_res if search_res is not None else [], []
         detections_for_map = []
         for mem in mems:
-            if hasattr(mem, "obj_id") and hasattr(mem, "pos"):
-                detections_for_map.append([mem.obj_id, list(mem.pos)])
-            elif hasattr(mem, "pos"):
-                detections_for_map.append(["no_id", list(mem.pos)])
+            if hasattr(mem, "pos"):
+                id_str = "no_id" if not hasattr(mem, "obj_id") else mem.obj_id
+                detections_for_map.append([id_str, list(mem.pos)])
         return detections_for_map
     
     def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
