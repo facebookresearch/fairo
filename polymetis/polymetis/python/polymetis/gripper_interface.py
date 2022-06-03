@@ -84,6 +84,6 @@ class GripperInterface:
     def test_func(self, joints: List[float], blocking: bool = True):
         self._send_gripper_command(
             self.grpc_connection.TestFunc,
-            polymetis_pb2.DexterousGripperCommand(joints=joints), 
-            blocking=blocking
+            polymetis_pb2.DexterousGripperCommand(joints=joints),
+            blocking=blocking,
         )
