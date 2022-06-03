@@ -5,6 +5,8 @@
 CFG="Release"
 DEV_PYTHON="OFF"
 BUILD_FRANKA="ON"
+BUILD_ALLEGRO="ON"
+REBUILD_LIBFRANKA="ON"
 
 cd ./polymetis/polymetis
 rm -rf build

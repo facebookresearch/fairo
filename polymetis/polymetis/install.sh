@@ -13,22 +13,22 @@ if [ -z "$PREFIX" ]; then PREFIX=$CONDA_PREFIX; fi
 if [ -z "$PYTHON" ]; then PYTHON=python; fi
 if [ -z "$BUILD_TESTS" ]; then BUILD_TESTS=ON; fi
 if [ -z "$BUILD_DOCS" ]; then BUILD_DOCS=OFF; fi
-if [ -z "$BUILD_ALLEGRO" ]; then BUILD_ALLEGRO=ON; fi
+if [ -z "$BUILD_FRANKA" ]; then BUILD_FRANKA=OFF; fi
+if [ -z "$BUILD_ALLEGRO" ]; then BUILD_ALLEGRO=OFF; fi
+if [ -z "$REBUILD_LIBFRANKA" ]; then REBUILD_LIBFRANKA=OFF; fi
 
 # Build libfranka
 # (Note: Build if libfranka is not built locally or if forced by setting BUILD_FRANKA)
 LIBFRANKA_PATH="src/clients/franka_panda_client/third_party/libfranka"
 BUILD_PATH="${LIBFRANKA_PATH}/build"
 
-if [ -z "$BUILD_FRANKA" ]; then 
+if [ "$BUILD_FRANKA" == "ON" ]; then 
     if [ ! -d "$BUILD_PATH" ]; then 
-        BUILD_FRANKA="ON"; 
-    else
-        BUILD_FRANKA="OFF"; 
+        REBUILD_LIBFRANKA="ON"; 
     fi
 fi
 
-if [ "$BUILD_FRANKA" == "ON" ]; then
+if [ "$REBUILD_LIBFRANKA" == "ON" ]; then
     if [ -d "$BUILD_PATH" ]; then rm -r $BUILD_PATH; fi
     mkdir -p $BUILD_PATH && cd $BUILD_PATH
     cmake -DCMAKE_BUILD_TYPE=$CFG -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=ON \
