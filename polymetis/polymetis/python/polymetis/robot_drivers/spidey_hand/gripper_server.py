@@ -71,6 +71,10 @@ class SpideyGripperServer(polymetis_pb2_grpc.GripperServerServicer):
 
         return polymetis_pb2.Empty()
 
+    def TestFunc(self, request, context):
+        print(f'testing here: {request.arg1}')
+        return polymetis_pb2.Empty()
+
 
 class GripperServerLauncher:
     def __init__(self, ip="localhost", port="50052", comport="/dev/ttyACM2"):
