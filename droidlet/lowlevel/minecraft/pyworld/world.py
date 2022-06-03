@@ -412,8 +412,8 @@ class World:
             mobs = self.get_mobs()
             serialized_mobs = []
             for m in mobs:
-                x, y, z = mob.pos
-                yaw, pitch = mob.look
+                x, y, z = m.pos
+                yaw, pitch = m.look
                 serialized_mobs.append((m.entityId, m.mobType, x, y, z, yaw, pitch))
             return serialized_mobs
 

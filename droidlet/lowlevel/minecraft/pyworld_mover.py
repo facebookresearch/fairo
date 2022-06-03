@@ -199,7 +199,7 @@ class PyWorldMover:
 
     def get_mobs(self):
         D = DataCallback()
-        self.sio.emit("mobs", callback=D)
+        self.sio.emit("get_mobs", callback=D)
         serialized_mobs = wait_for_data(D)
         mobs = []
         for m in serialized_mobs:
