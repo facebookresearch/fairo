@@ -1,6 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+import time
 import numpy as np
 from typing import Sequence, Dict
 from droidlet.base_util import Pos, Look
@@ -72,6 +73,20 @@ class World:
         if hasattr(opts, "world_server") and opts.world_server:
             port = getattr(opts, "port", 25565)
             self.setup_server(port=port)
+
+    def start(self, tick_rate=0.01, step_rate=0.2):
+        """
+        step the world every step_rate seconds
+        sleep for tick_rate seconds between polls.
+        """
+        # FIXME do this in a subprocess, etc.
+        self.time = time.time()
+        while True:
+            t = time.time()
+            if t - self.time > step_rate:
+                self.step()
+                self.time = t
+            time.sleep(tick_rate)
 
     def set_count(self, count):
         self.count = count
@@ -240,7 +255,6 @@ class World:
     def setup_server(self, port=25565):
         import socketio
         import eventlet
-        import time
 
         server = socketio.Server(async_mode="eventlet", cors_allowed_origins="*")
         self.connected_sids = {}
@@ -437,3 +451,4 @@ if __name__ == "__main__":
     world_opts.world_server = True
     world_opts.port = 6001
     world = World(world_opts, spec)
+    world.start()
