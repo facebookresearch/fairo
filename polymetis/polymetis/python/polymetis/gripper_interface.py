@@ -81,6 +81,5 @@ class GripperInterface:
 
     def test_func(self, arg1: float):
         self._send_gripper_command(
-            self.grpc_connection.TestFunc,
-            polymetis_pb2.GripperCommand(arg1=arg1)
+            self.grpc_connection.TestFunc, polymetis_pb2.GripperCommand(arg1=arg1)
         )

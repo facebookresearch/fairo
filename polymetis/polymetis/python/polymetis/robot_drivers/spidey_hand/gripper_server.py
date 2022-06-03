@@ -72,7 +72,7 @@ class SpideyGripperServer(polymetis_pb2_grpc.GripperServerServicer):
         return polymetis_pb2.Empty()
 
     def TestFunc(self, request, context):
-        print(f'testing here: {request.arg1}')
+        print(f"testing here: {request.arg1}")
         return polymetis_pb2.Empty()
 
 
