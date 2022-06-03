@@ -162,6 +162,16 @@ def main(cfg):
         view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path)
     )
 
+    print("Loading ARTag modules")
+    frt_cams = [fairotag.CameraModule() for _ in range(cameras.n_cams)]
+    for frt, intrinsics in zip(frt_cams, cameras.intrinsics):
+        frt.set_intrinsics(intrinsics)
+    # MARKER_LENGTH = 0.04
+    # MARKER_ID = [18]
+    # for i in MARKER_ID:
+    #     for frt in frt_cams:
+    #         frt.register_marker_size(i, MARKER_LENGTH)
+
     root_working_dir = os.getcwd()
     for outer_i in range(cfg.num_bin_shifts):
         cam_i = outer_i % 2
@@ -190,36 +200,24 @@ def main(cfg):
 
             print("Getting rgbd and pcds..")
             rgbd = cameras.get_rgbd()
-
             rgbd_masked = rgbd * masks[:, :, :, None]
 
-            frt_cams = [fairotag.CameraModule() for _ in range(cameras.n_cams)]
-            for frt, intrinsics in zip(frt_cams, cameras.intrinsics):
-                frt.set_intrinsics(intrinsics)
-            MARKER_LENGTH = 0.05
-            MARKER_ID = [0, 1, 2]
-            for i in MARKER_ID:
-                for frt in frt_cams:
-                    frt.register_marker_size(i, MARKER_LENGTH)
-
+            print("Detecting markers & their corresponding points")
             uint_rgbs = rgbd_masked[:,:,:,:3].astype(np.uint8)
             id_to_pose = {}
-            for frt, uint_rgb, extrinsics in zip(frt_cams, uint_rgbs, cameras.extrinsic_transforms):
-                # import cv2
-                # uint_rgb = cv2.imread("/private/home/yixinlin/dev/fairo/perception/sandbox/polygrasp/data/example_markers.png")
-
+            for i, (frt, uint_rgb) in enumerate(zip(frt_cams, uint_rgbs)):
                 markers = frt.detect_markers(uint_rgb)
                 for marker in markers:
-                    if marker.pose:
-                        homog_translation = np.ones(4)
-                        homog_translation[:3] = marker.pose.translation()
-                        transformed_pos = extrinsics @ homog_translation
-                        id_to_pose[marker.id] = transformed_pos[:3]
-            
-            import pdb; pdb.set_trace()
+                    w_i, h_i = marker.corner.mean(axis=0).round().astype(int)
+
+                    single_point = np.zeros_like(rgbd[i])
+                    single_point[h_i, w_i, :] = rgbd[i, h_i, w_i, :]
+                    pcd = cameras.get_pcd_i(single_point, i)
+                    xyz = pcd.get_center()
+                    id_to_pose[marker.id] = xyz
 
             scene_pcd = cameras.get_pcd(rgbd)
-            # save_rgbd_masked(rgbd, rgbd_masked)
+            save_rgbd_masked(rgbd, rgbd_masked)
 
             print("Segmenting image...")
             unmerged_obj_pcds = []
@@ -237,6 +235,18 @@ def main(cfg):
                     f"Failed to find any objects with mask size > {cfg.min_mask_size}!"
                 )
                 break
+            
+            print(f"Finding ARTag")
+            id_to_pcd = {}
+            obj_centers = np.array([x.get_center() for x in obj_pcds])
+            for id, pose in id_to_pose.items():
+                dists = np.linalg.norm(obj_centers - pose, axis=1)
+                argmin = dists.argmin()
+                min = dists[argmin]
+                if min < 0.05:
+                    id_to_pcd[id] = obj_pcds[argmin]
+            print(f"Found object pointclouds corresponding to ARTag ids {list(id_to_pcd.keys())}")
+            import pdb; pdb.set_trace()
 
             print("Getting grasps per object...")
             obj_i, filtered_grasp_group = get_obj_grasps(

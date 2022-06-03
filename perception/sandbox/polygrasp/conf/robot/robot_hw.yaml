@@ -1,5 +1,6 @@
 robot:
   _target_: polygrasp.robot_interface.GraspingRobotInterface
+  enforce_version: false
   ip_address: "100.67.224.116"
   k_approach: 0.9
   k_grasp: 0.55
