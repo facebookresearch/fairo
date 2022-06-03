@@ -11,9 +11,9 @@ from polymetis import RobotInterface
 from torchcontrol.transform import Rotation as R
 from torchcontrol.transform import Transformation as T
 
-POS_RANGE_UPPER = [0.6, 0.2, 0.6]
-POS_RANGE_LOWER = [0.4, -0.2, 0.2]
-ORI_RANGE = [0.5, 0.5, 0.5]
+POS_RANGE_UPPER = [0.6, 0.1, 0.5]
+POS_RANGE_LOWER = [0.4, -0.1, 0.3]
+ORI_RANGE = [0.3, 0.3, 0.3]
 
 DEFAULT_MAX_ITERS = 3
 
@@ -64,8 +64,7 @@ def main(argv):
                 f"Moving to random pose ({i + 1}): pos={pos_sampled}, quat={ori_sampled.as_quat()}"
             )
             state_log = robot.move_to_ee_pose(
-                position=pos_sampled,
-                orientation=ori_sampled.as_quat(),
+                position=pos_sampled, orientation=ori_sampled.as_quat(), time_to_go=4.0
             )
             print(f"\t Episode length: {len(state_log)}")
 
