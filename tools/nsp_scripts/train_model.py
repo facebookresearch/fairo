@@ -627,7 +627,7 @@ if __name__ == "__main__":
         help="Optimizer in [adam|adagrad]",
     )
     parser.add_argument(
-        "--batch_size", default=10, type=int, help="Batch size"
+        "--batch_size", default=16, type=int, help="Batch size"
     )
     parser.add_argument(
         "--param_update_freq",
@@ -694,7 +694,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--dtype_samples",
-        default="templated_clarification:.1;annotated:.9",
+        default="templated_clarification:.07;annotated:.93",
         type=str,
         help="Sampling probabilities for handling different data types",
     )
