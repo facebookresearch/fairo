@@ -13,6 +13,8 @@ import polymetis_pb2_grpc
 
 EMPTY = polymetis_pb2.Empty()
 
+from typing import List
+
 
 class GripperInterface:
     """Gripper interface class to initialize a connection to a gRPC gripper server.
@@ -79,9 +81,9 @@ class GripperInterface:
             blocking=blocking,
         )
 
-    def test_func(self, speed: float, force: float, blocking: bool = True):
+    def test_func(self, joints: List[float], blocking: bool = True):
         self._send_gripper_command(
             self.grpc_connection.TestFunc,
-            polymetis_pb2.GripperCommand(width=0.0, speed=speed, force=force), 
+            polymetis_pb2.DexterousGripperCommand(joints=joints), 
             blocking=blocking
         )
