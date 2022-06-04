@@ -160,15 +160,17 @@ class Navigation(object):
 
                 # add an obstacle where the collision occurred
                 print(f" Collided at {robot_loc}. Adding an obstacle to the map")
-                width = 3
-                length = 2
-                buf = 2
+                width = 3   # width of obstacle rectangle
+                length = 2  # depth of obstacle rectangle
+                buf = 1     # buffer space between robot and obstacle placed in front of it
                 x1, y1, t1 = robot_loc
+                obstacle_locs = []
                 for i in range(length):
                     for j in range(width):
                         wx = x1 + 0.05 * ((i + buf) * np.cos(t1) + (j - width // 2) * np.sin(t1))
                         wy = y1 + 0.05 * ((i + buf) * np.sin(t1) - (j - width // 2) * np.cos(t1))
-                        self.slam.add_obstacle((wx, wy))
+                        obstacle_locs.append((wx, wy))
+                self.slam.add_obstacles(obstacle_locs)
 
                 # trackback to a known good location
                 trackback_loc = self.trackback.get_loc(robot_loc)
@@ -198,7 +200,7 @@ class Navigation(object):
         exploration_method="learned",
         debug=False,
         visualize=True,
-        max_steps=250,
+        max_steps=400,
     ):
         assert exploration_method in ["learned", "frontier"]
         assert (

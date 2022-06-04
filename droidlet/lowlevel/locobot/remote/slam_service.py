@@ -115,6 +115,15 @@ class SLAM(object):
             location = self.real2map(location)
         self.map_builder.add_obstacle(location)
 
+    def add_obstacles(self, locations, in_map=False):
+        """
+        add a list of obstacles at the given locations.
+        if in_map=False, then location is given in real co-ordinates
+        if in_map=True, then location is given in map co-ordinates
+        """
+        for loc in locations:
+            self.add_obstacle(loc, in_map=in_map)
+
     def update_map(self):
         pcd, rgb, depth = self.robot.get_current_pcd()
         pose = self.robot.get_base_state()
@@ -132,7 +141,7 @@ class SLAM(object):
         print("update_semantic_map()", t1 - t0)
 
         # explore the map by robot shape
-        obstacle = self.map_builder.map[:, :, 1] >= 1.0
+        obstacle = self.map_builder.map[:, :, 1] >= self.obs_threshold
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
         self.traversable = traversable
@@ -143,7 +152,7 @@ class SLAM(object):
     def get_map(self):
         """returns the location of obstacles created by slam only for the obstacles,"""
         # get the index correspnding to obstacles
-        indices = np.where(self.map_builder.map[:, :, 1] >= 1.0)
+        indices = np.where(self.map_builder.map[:, :, 1] >= self.obs_threshold)
         # convert them into robot frame
         real_world_locations = [
             self.map2real([indice[0], indice[1]]).tolist()
@@ -221,7 +230,7 @@ with Pyro4.Daemon(ip) as daemon:
         max_z = robot_height + 5  # cm
         obj = SLAM(
             robot,
-            obstacle_threshold=500,
+            obstacle_threshold=300,
             agent_min_z=min_z,
             agent_max_z=max_z,
         )

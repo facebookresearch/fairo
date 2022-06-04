@@ -73,6 +73,8 @@ class MapBuilder(object):
         )
 
         self.map = self.map + geocentric_flat
+        # maps = np.concatenate((self.map[:, np.newaxis], geocentric_flat[:, np.newaxis]), 1)
+        # self.map = np.max(maps, 1)
 
         map_gt = self.map[:, :, 1] / self.obs_threshold
         map_gt[map_gt >= 0.5] = 1.0
@@ -82,7 +84,7 @@ class MapBuilder(object):
 
     def add_obstacle(self, location):
         try:
-            self.map[round(location[1]), round(location[0]), 1] = 1
+            self.map[round(location[1]), round(location[0]), 1] = self.obs_threshold
         except IndexError:
             print("Cannot add obstacle as it is out of the map")
 
@@ -146,7 +148,7 @@ class MapBuilder(object):
                         max=1.0,
                     ),
                     torch.clamp(
-                        all_height_proj[:, 0:1, :, :] / self.obs_threshold, min=0.0, max=1.0
+                        all_height_proj[:, 0:1, :, :], min=0.0, max=1.0
                     ),
                     torch.zeros(1, 2, self.map_size, self.map_size),
                     torch.clamp(
