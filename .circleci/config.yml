@@ -70,10 +70,10 @@ commands:
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-local
-            cd polymetis/polymetis
 
             export BUILD_DOCS="ON"
-            ./install.sh
+            ./polymetis/build_libfranka.sh
+            ./polymetis/build_and_install_polymetis.sh
       - polymetis_tests
       - run:
           name: Generate documentation
