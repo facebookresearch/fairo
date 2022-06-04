@@ -18,13 +18,13 @@ if [ -z "$BUILD_ALLEGRO" ]; then BUILD_ALLEGRO=OFF; fi
 if [ -z "$REBUILD_LIBFRANKA" ]; then REBUILD_LIBFRANKA=OFF; fi
 
 # Build libfranka
-# (Note: Build if libfranka is not built locally or if forced by setting BUILD_FRANKA)
+# (Note: Build if BUILD_FRANKA=ON but libfranka is not built locally, or if forced by setting REBUILD_LIBFRANKA)
 LIBFRANKA_PATH="src/clients/franka_panda_client/third_party/libfranka"
 BUILD_PATH="${LIBFRANKA_PATH}/build"
 
-if [ "$BUILD_FRANKA" == "ON" ]; then 
-    if [ ! -d "$BUILD_PATH" ]; then 
-        REBUILD_LIBFRANKA="ON"; 
+if [ ! -d "$BUILD_PATH" ]; then 
+    if [ "$BUILD_FRANKA" == "ON" ]; then 
+        REBUILD_LIBFRANKA="ON";
     fi
 fi
 
@@ -37,6 +37,11 @@ if [ "$REBUILD_LIBFRANKA" == "ON" ]; then
         -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PREFIX/bin ..
     cmake --build .
     cd -
+fi
+
+# Build Franka clients if libfranka is built
+if [ -d "$BUILD_PATH" ]; then 
+    BUILD_FRANKA="ON";
 fi
 
 # Build c++ 
