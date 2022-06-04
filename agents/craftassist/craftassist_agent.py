@@ -18,7 +18,7 @@ from copy import deepcopy
 # also used as a standalone script and invoked via `python craftassist_agent.py`
 from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
 from droidlet.memory.craftassist import mc_memory
-from droidlet.memory.memory_nodes import ChatNode
+from droidlet.memory.memory_nodes import ChatNode, SelfNode
 from droidlet.shared_data_struct import rotation
 from droidlet.lowlevel.minecraft.craftassist_mover import (
     CraftassistMover,
@@ -39,7 +39,6 @@ from droidlet.dialog.dialogue_task import build_question_json
 from droidlet.base_util import Pos, Look, npy_to_blocks_list
 from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item
 from agents.droidlet_agent import DroidletAgent
-from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
@@ -326,7 +325,8 @@ class CraftAssistAgent(DroidletAgent):
                     ybad = y >= pt[1] and y <= pt[4]
                     zbad = z >= pt[2] and z <= pt[5]
                     if xbad and ybad and zbad:
-                        if b in safe_blocks: safe_blocks.remove(b)
+                        if b in safe_blocks:
+                            safe_blocks.remove(b)
         else:
             safe_blocks = blocks
         return safe_blocks
@@ -379,7 +379,9 @@ class CraftAssistAgent(DroidletAgent):
             chat_text = chat
 
         logging.info("Sending chat: {}".format(chat_text))
-        self.memory.nodes[ChatNode.NODE_TYPE].create(self.memory, self.memory.self_memid, chat_text)
+        self.memory.nodes[ChatNode.NODE_TYPE].create(
+            self.memory, self.memory.self_memid, chat_text
+        )
 
         if chat_json:
             chat_json["chat_memid"] = chat_memid
@@ -390,7 +392,6 @@ class CraftAssistAgent(DroidletAgent):
             sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
 
         return self.cagent.send_chat(chat_text)
-
 
     def update_agent_pos_dashboard(self):
         agent_pos = self.get_player().pos
@@ -499,7 +500,7 @@ class CraftAssistAgent(DroidletAgent):
             p = self.get_player()
         except:  # this is for test/test_agent
             return
-        PlayerNode.create(self.memory, p, memid=self.memory.self_memid)
+        SelfNode.update(self.memory, p, memid=self.memory.self_memid)
 
 
 if __name__ == "__main__":
