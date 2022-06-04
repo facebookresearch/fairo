@@ -510,14 +510,7 @@ class MemorySearcher:
         else:
             # queries with no WHERE clause will not return archived/snapshotted memories.
             # to get a snapshot or to get all mems snapshotted or not use explicit WHERE.
-            node_types = agent_memory.node_children.get(memtype, [])
-            memids = [
-                m[0]
-                for nt in node_types
-                for m in agent_memory._db_read(
-                    "SELECT uuid FROM Memories WHERE node_type=? AND is_snapshot=?", nt, 0
-                )
-            ]
+            memids = get_all_memids_of_node_type(agent_memory, memtype)
         memids = self.handle_selector(agent_memory, query, memids)
         if self.ignore_self:
             try:
