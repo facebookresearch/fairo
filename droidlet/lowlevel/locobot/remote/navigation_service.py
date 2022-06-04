@@ -160,9 +160,9 @@ class Navigation(object):
 
                 # add an obstacle where the collision occurred
                 print(f" Collided at {robot_loc}. Adding an obstacle to the map")
-                width = 3   # width of obstacle rectangle
+                width = 3  # width of obstacle rectangle
                 length = 2  # depth of obstacle rectangle
-                buf = 1     # buffer space between robot and obstacle placed in front of it
+                buf = 1  # buffer space between robot and obstacle placed in front of it
                 x1, y1, t1 = robot_loc
                 obstacle_locs = []
                 for i in range(length):

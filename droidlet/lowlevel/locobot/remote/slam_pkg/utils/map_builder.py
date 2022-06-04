@@ -147,9 +147,7 @@ class MapBuilder(object):
                         min=0.0,
                         max=1.0,
                     ),
-                    torch.clamp(
-                        all_height_proj[:, 0:1, :, :], min=0.0, max=1.0
-                    ),
+                    torch.clamp(all_height_proj[:, 0:1, :, :], min=0.0, max=1.0),
                     torch.zeros(1, 2, self.map_size, self.map_size),
                     torch.clamp(
                         all_height_proj[:, 1:] / self.cat_pred_threshold, min=0.0, max=1.0
