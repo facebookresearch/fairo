@@ -20,6 +20,7 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import PA
 
 class World:
     def __init__(self, opts, spec):
+        self.is_server = False
         self.opts = opts
         self.count = 0
         # sidelength of the cubical npy array defining the extent of the world
@@ -99,14 +100,16 @@ class World:
                 p.step()
         self.count += 1
 
+        if self.is_server:
+            self.broadcast_updates()
+
+    def broadcast_updates(self):
         # broadcast updates
-        players = self.get_players()
         players = [
             {"name": player.name, "x": player.pos.x, "y": player.pos.y, "z": player.pos.z}
-            for player in players
+            for player in self.get_players()
             if player.name in ["craftassist_agent", "dashboard_player"]
         ]
-
         mobs = [
             {
                 "entityId": m.entityId,
@@ -124,7 +127,7 @@ class World:
             "world_state": {"agent": players, "mob": mobs, "item_stack": item_stacks},
         }
         print(f"Server stepping, payload: {payload}")
-        server.emit("updateVoxelWorldState", payload)
+        self.server.emit("updateVoxelWorldState", payload)
 
     def place_block(self, block, force=False):
         loc, idm = block
@@ -283,7 +286,10 @@ class World:
         import socketio
         import eventlet
 
+        self.is_server = True
+
         server = socketio.Server(async_mode="eventlet", cors_allowed_origins="*")
+        self.server = server
         self.connected_sids = {}
 
         self.start_time = time.time()
