@@ -101,29 +101,30 @@ class World:
 
         # broadcast updates
         players = self.get_players()
-        players = [{"name": player.name, "x": player.pos.x, "y": player.pos.y, "z": player.pos.z} for player in players if player.name in ['craftassist_agent', 'dashboard_player']]
-        
-        mobs = [{
+        players = [
+            {"name": player.name, "x": player.pos.x, "y": player.pos.y, "z": player.pos.z}
+            for player in players
+            if player.name in ["craftassist_agent", "dashboard_player"]
+        ]
+
+        mobs = [
+            {
                 "entityId": m.entityId,
                 "pos": m.pos,
                 "look": m.look,
                 "mobType": m.mobType,
                 "color": m.color,
-                "name": m.mobname
-                } 
-            for m in self.mobs]
+                "name": m.mobname,
+            }
+            for m in self.mobs
+        ]
         item_stacks = [i.get_info() for i in self.item_stacks]
         payload = {
             "status": "updateVoxelWorldState",
-            "world_state": {
-                "agent": players,
-                "mob": mobs,
-                "item_stack": item_stacks
-            },
+            "world_state": {"agent": players, "mob": mobs, "item_stack": item_stacks},
         }
         print(f"Server stepping, payload: {payload}")
         server.emit("updateVoxelWorldState", payload)
-
 
     def place_block(self, block, force=False):
         loc, idm = block
@@ -310,16 +311,22 @@ class World:
                 for xyz, idm in blocks.items()
             ]
             players = self.get_players()
-            players = [{"name": player.name, "x": player.pos.x, "y": player.pos.y, "z": player.pos.z} for player in players if player.name in ['craftassist_agent', 'dashboard_player']]
-            mobs = [{
-                "entityId": m.entityId,
-                "pos": m.pos,
-                "look": m.look,
-                "mobType": m.mobType,
-                "color": m.color,
-                "name": m.mobname
-                } 
-            for m in self.mobs]
+            players = [
+                {"name": player.name, "x": player.pos.x, "y": player.pos.y, "z": player.pos.z}
+                for player in players
+                if player.name in ["craftassist_agent", "dashboard_player"]
+            ]
+            mobs = [
+                {
+                    "entityId": m.entityId,
+                    "pos": m.pos,
+                    "look": m.look,
+                    "mobType": m.mobType,
+                    "color": m.color,
+                    "name": m.mobname,
+                }
+                for m in self.mobs
+            ]
             item_stacks = [i.get_info() for i in self.item_stacks]
 
             payload = {
@@ -328,7 +335,7 @@ class World:
                     "agent": players,
                     "block": blocks,
                     "mob": mobs,
-                    "item_stack": item_stacks
+                    "item_stack": item_stacks,
                 },
             }
             print(f"Initial payload: {payload}")
@@ -475,6 +482,7 @@ class World:
 
 
 if __name__ == "__main__":
+
     class Opt:
         pass
 
