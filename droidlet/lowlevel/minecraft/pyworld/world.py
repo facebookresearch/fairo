@@ -99,6 +99,32 @@ class World:
                 p.step()
         self.count += 1
 
+        # broadcast updates
+        players = self.get_players()
+        players = [{"name": player.name, "x": player.pos.x, "y": player.pos.y, "z": player.pos.z} for player in players if player.name in ['craftassist_agent', 'dashboard_player']]
+        
+        mobs = [{
+                "entityId": m.entityId,
+                "pos": m.pos,
+                "look": m.look,
+                "mobType": m.mobType,
+                "color": m.color,
+                "name": m.mobname
+                } 
+            for m in self.mobs]
+        item_stacks = [i.get_info() for i in self.item_stacks]
+        payload = {
+            "status": "updateVoxelWorldState",
+            "world_state": {
+                "agent": players,
+                "mob": mobs,
+                "item_stack": item_stacks
+            },
+        }
+        print(f"Server stepping, payload: {payload}")
+        server.emit("updateVoxelWorldState", payload)
+
+
     def place_block(self, block, force=False):
         loc, idm = block
         if idm[0] == 383:
@@ -283,21 +309,29 @@ class World:
                 ((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))
                 for xyz, idm in blocks.items()
             ]
+            players = self.get_players()
+            players = [{"name": player.name, "x": player.pos.x, "y": player.pos.y, "z": player.pos.z} for player in players if player.name in ['craftassist_agent', 'dashboard_player']]
+            mobs = [{
+                "entityId": m.entityId,
+                "pos": m.pos,
+                "look": m.look,
+                "mobType": m.mobType,
+                "color": m.color,
+                "name": m.mobname
+                } 
+            for m in self.mobs]
+            item_stacks = [i.get_info() for i in self.item_stacks]
+
             payload = {
                 "status": "updateVoxelWorldState",
                 "world_state": {
-                    # "agent": [
-                    #     {
-                    #         "name": "agent",
-                    #         "x": float(agent_pos.x),
-                    #         "y": float(agent_pos.y),
-                    #         "z": float(agent_pos.z),
-                    #     }
-                    # ]
-                    "block": blocks
+                    "agent": players,
+                    "block": blocks,
+                    "mob": mobs,
+                    "item_stack": item_stacks
                 },
             }
-
+            print(f"Initial payload: {payload}")
             server.emit("updateVoxelWorldState", payload)
 
         @server.on("get_world_info")
@@ -441,7 +475,6 @@ class World:
 
 
 if __name__ == "__main__":
-
     class Opt:
         pass
 
@@ -449,6 +482,6 @@ if __name__ == "__main__":
     world_opts = Opt()
     world_opts.sl = 16
     world_opts.world_server = True
-    world_opts.port = 6001
+    world_opts.port = 6002
     world = World(world_opts, spec)
     world.start()

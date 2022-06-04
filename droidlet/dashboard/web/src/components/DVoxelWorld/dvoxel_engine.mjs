@@ -35,7 +35,20 @@ const bid2Name = {
     9: 'dirt',
     46: 'white wool',
     47: 'orange wool',
-    48: 'magenta wool'
+    48: 'magenta wool',
+    49: 'light blue wool',
+    50: 'yellow wool',
+    51: 'lime wool',
+    52: 'pink wool',
+    53: 'gray wool',
+    54: 'light gray wool',
+    55: 'cyan wool',
+    56: 'purple wool',
+    57: 'blue wool',
+    58: 'brown wool',
+    59: 'green wool',
+    60: 'red wool',
+    61: 'black wool'
 }
 
 const minCameraPitch = (0.5 * Math.PI) / 4;
@@ -45,7 +58,7 @@ const TEXTURE_PATH = "https://cdn.jsdelivr.net/gh/snyxan/assets@main/block_textu
 
 
 const SL = 16
-const voxelOffset = [SL/2, SL/2, SL/2]
+const voxelOffset = [0, 0, 0]//[SL/2, SL/2, SL/2]
 
 // voxel related constants
 let voxels = new Array();
@@ -64,6 +77,10 @@ const MoveStep = 0.5 // normalized -- block length is 1 here
 
 let controlled_player;
 let agent_player;
+const AGENT_NAME = "craftassist_agent";
+const PLAYER_NAME = "dashboard_player";
+
+let mobs = {}
 
 
 function pos2Name(x, y, z, box=false) {
@@ -413,7 +430,7 @@ class DVoxelEngine {
         cube.position.set(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale)
         // const cubeAABB = cube.geometry.computeBoundingBox();
         cube.name = pos2Name(pos[0], pos[1], pos[2])
-        console.log("Adding voxel with name: " + cube.name)
+        // console.log("Adding voxel with name: " + cube.name)
         this.scene.add( cube );
         const box = new THREE.BoxHelper(cube, 0x000000);
         box.name = pos2Name(pos[0], pos[1], pos[2], true)
@@ -453,36 +470,75 @@ class DVoxelEngine {
         return getBlock2(x, y, z)
     }
 
-
-    // function updateAgents(agentsInfo) {
-    //     dVoxelEngine.updateAgents(agentsInfo);
-    //   }
-      
-    //   function updateBlocks(blocksInfo) {
-    //     dVoxelEngine.updateBlocks(blocksInfo);
-    //   }
-      
-    //   function setBlock(x, y, z, idm) {
-    //     dVoxelEngine.setBlock(x, y, z, idm);
-    //   }
-      
-    //   function flashBlocks(bbox) {
-    //     dVoxelEngine.flashBlocks(bbox);
-    //   }
-
     updateAgents(agentsInfo) {
         console.log("DVoxel Engine update agents")
+        console.log(agentsInfo)
+
+        let that = this
+        agentsInfo.forEach(function(key, index) {
+            let name = key["name"]
+            let x = key["x"]
+            let y = key["y"]
+            let z = key["z"]
+            console.log("name: " + name + "x: " + x + ", y" + y + ", z" + z)
+            if (name == AGENT_NAME) {
+                agent_player.moveTo(x * blockScale, y * blockScale, z * blockScale)
+            } else if (name == PLAYER_NAME) {
+                controlled_player.moveTo(x * blockScale, y * blockScale, z * blockScale)
+            }
+        })
+    }
+
+    updateMobs(mobsInfo) {
+        console.log("DVoxel Engine update mobs")
+        console.log(mobsInfo)
+        let that = this
+        let world = {
+            THREE: THREE,
+            scene: scene,
+            render: render,
+            camera: camera,
+        };
+        mobsInfo.forEach(function(key, index) {
+            const entityId = key['entityId'].toString()
+            const pos = key['pos']
+            const name = key['name']
+            if (entityId in mobs) {
+                console.log("mob already exists, updating states")
+            } else {
+                const mobOpts = {
+                    GLTFLoader: GLTFLoader,
+                    name: name,
+                    position: [pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale]
+                };
+                VoxelMob.build(world, mobOpts).then(
+                    function (newMob) {
+                        mobs[entityId] = newMob;
+                    }
+                );
+            }
+            // console.log("mobs in the world: ")
+            // console.log(mobs)
+            // console.log("this mob")
+            // console.log(mobs[parseInt(entityId)])
+            // mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale)
+        })
+    }
+
+    updateItemStacks(itemStacksInfo) {
+        console.log("DVoxel Engine update item stacks")
+        console.log(itemStacksInfo)
     }
 
     updateBlocks(blocksInfo) {
-        console.log("blocksInfo")
-        console.log(blocksInfo)
+        // console.log("blocksInfo")
+        // console.log(blocksInfo)
         let that = this
         blocksInfo.forEach(function(key, index) {
             let xyz = key[0]
             let idm = key[1]
             let bid = MINECRAFT_BLOCK_MAP[idm[0].toString() + "," + idm[1].toString()]
-            console.log("xyz: " + xyz + "  bid: " + bid)
+            // console.log("xyz: " + xyz + "  bid: " + bid)
             that.setVoxel([xyz[0],xyz[1],xyz[2]], bid);
         });
         console.log("DVoxel Engine update blocks")
@@ -499,6 +555,7 @@ class DVoxelEngine {
 }
 
 function setBlock2(x, y, z, id) {
+    // console.log("set block: " + x + ", " + y + "," + z + ', ' + id)
     voxels[x + voxelOffset[0]][y + voxelOffset[1]][z + voxelOffset[2]] = id
 }
 

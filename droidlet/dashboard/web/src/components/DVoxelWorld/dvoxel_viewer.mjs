@@ -69,6 +69,14 @@ function updateAgents(agentsInfo) {
   dVoxelEngine.updateAgents(agentsInfo);
 }
 
+function updateMobs(mobsInfo) {
+  dVoxelEngine.updateMobs(mobsInfo);
+}
+
+function updateItemStacks(itemStacksInfo) {
+  dVoxelEngine.updateItemStacks(itemStacksInfo);
+}
+
 function updateBlocks(blocksInfo) {
   dVoxelEngine.updateBlocks(blocksInfo);
 }
@@ -82,6 +90,8 @@ function flashBlocks(bbox) {
 }
 
 module.exports.updateAgents = updateAgents;
+module.exports.updateMobs = updateMobs;
+module.exports.updateItemStacks = updateItemStacks;
 module.exports.updateBlocks = updateBlocks;
 module.exports.setBlock = setBlock;
 module.exports.flashBlocks = flashBlocks;

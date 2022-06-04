@@ -26,7 +26,7 @@ def instantiate_world_from_spec(opts):
     world_opts = Opt()
     world_opts.sl = opts.SL
     world_opts.world_server = True
-    world_opts.port = 6001
+    world_opts.port = 6002
     mobs = []
     for mob_spec in scene_spec["mobs"]:
         # FIXME add more possibilities:

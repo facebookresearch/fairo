@@ -276,7 +276,7 @@ class StateManager {
     socket.on("saveRgbSegCallback", this.saveAnnotations);
     socket.on("handleMaxFrames", this.handleMaxFrames);
 
-    const worldUrl = "http://localhost:6001";
+    const worldUrl = "http://localhost:6002";
     this.worldSocket = io.connect(worldUrl, {
       transports: ["polling", "websocket"],
     });
