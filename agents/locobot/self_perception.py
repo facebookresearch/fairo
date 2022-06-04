@@ -21,7 +21,7 @@ class SelfPerception:
             # FIXME! agent pose memory type+data structure
             self.agent.pos = np.array(base_pos[:2], dtype="float32")
             self.agent.base_yaw = float(base_pos[2])
-            # TODO get rid of this:
+            # FIXME get rid of this:
             self.agent.yaw = float(base_pos[2] + pan)
             self.agent.pan = float(pan)
             self.agent.pitch = float(tilt)

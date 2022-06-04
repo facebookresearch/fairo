@@ -79,8 +79,13 @@ class LocobotAgent(DroidletAgent):
         self.no_default_behavior = opts.no_default_behavior
         self.last_chat_time = -1000000000000
         self.name = name
-        self.player = Player(100, name, Pos(0, 0, 0), Look(0, 0))
+
+        # FIXME these should only be stored in memory, not here
+        self.pitch = 0.0
+        self.yaw = 0.0
         self.pos = Pos(0, 0, 0)
+        self.player = Player(100, name, self.pos, Look(self.yaw, self.pitch))
+
         self.uncaught_error_count = 0
         self.last_task_memid = None
         self.point_targets = []
