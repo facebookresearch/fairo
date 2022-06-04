@@ -9,7 +9,6 @@ class SelfPerception:
         self.agent = agent
         self.memory = agent.memory
         self.perceive_freq = perceive_freq
-        self.update_self_memory()
 
     def perceive(self, force=False):
         # FIXME (low pri) remove these in code, get from sql

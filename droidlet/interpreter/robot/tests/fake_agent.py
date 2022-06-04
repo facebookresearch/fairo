@@ -322,11 +322,6 @@ class FakeMover:
         self.turn = Turn(self, agent)
         self.gripper_state = "open"  # open, closed, occupied
 
-        # FIXME these should only be stored in memory, not here
-        self.pitch = 0.0
-        self.yaw = 0.0
-        self.pos = Pos(0, 0, 0)
-
     #        self.set_joint_positions = SetJointPositions(agent)
     #        self.set_pan = SetPan(agent)
     #        self.set_pan_tilt = SetPanTilt(agent)
