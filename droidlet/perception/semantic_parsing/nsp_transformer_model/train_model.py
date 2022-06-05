@@ -26,10 +26,6 @@ from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_parsing im
     compute_accuracy,
     beam_search,
 )
-from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_artifacts import (
-    compute_checksum_for_model,
-    tar_and_upload,
-)
 from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_caip import (
     make_full_tree,
     process_txt_data,
@@ -40,8 +36,7 @@ from droidlet.perception.semantic_parsing.nsp_transformer_model.optimizer_warmup
 )
 from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset import CAIPDataset
 
-
-def save_model(model, model_identifier, dataset, args, full_tree_voc, epoch, flag_best):
+def save_model(model, model_identifier, dataset, args, full_tree_voc, epoch):
     M = {
         "state_dict": model.state_dict(),
         "tree_voc": dataset.tree_voc,
@@ -52,16 +47,6 @@ def save_model(model, model_identifier, dataset, args, full_tree_voc, epoch, fla
     path = pjoin(args.output_dir, "{}_ep{}.pth".format(model_identifier, epoch))
     print("saving model to PATH::{} at epoch {}".format(path, epoch))
     torch.save(M, path)
-
-    if flag_best:
-        torch.save(M, pjoin(args.output_dir, "caip_test_model.pth"))
-
-
-def save_best_model_log_file(log_dict, save_path):
-    with open(os.path.join(save_path, "log.txt"), "w") as f:
-        for key, value in log_dict.items():
-            f.write(key + "|" + str(value) + "\n")
-
 
 def show_examples(model, dataset, tokenizer, n=10):
     model.eval()
@@ -109,34 +94,6 @@ class ModelTrainer:
                 "time",
             ],
         )
-        # Info recorder of the best model
-        self.best_model_logger = {
-            "epoch": 0,
-            "data_type": "annotated",
-            "train_loss": 0.0,
-            "train_accruacy": 0.0,
-            "valid_loss": 0.0,
-            "valid_accuracy": 0.0,
-            "hash": "",
-            "batch_size": "batch",
-            "decoder_learning_rate": "dec_lr",
-            "decoder_warmup_steps": "dec_ws",
-            "dtype_samples": "data",
-            "encoder_learning_rate": "enc_lr",
-            "encoder_warmup_steps": "enc_ws",
-            "model_name": "name",
-            "node_label_smoothing": "n_ls",
-            "num_highway": "hw",
-            "param_update_freq": "upd_frq",
-            "word_dropout": "word_drp",
-            "alpha": "a",
-            "train_encoder": "tr",
-            "fixed_value_weight": "fv",
-        }
-        # Store training hyper-paraments
-        for k, v in vars(args).items():
-            if k in self.best_model_logger:
-                self.best_model_logger[k] = v
         self.tensorboard_dir = args.tensorboard_dir
 
     def train(self, model, dataset, tokenizer, model_identifier, full_tree_voc):
@@ -193,8 +150,6 @@ class ModelTrainer:
         text_span_tot_loss = 0.0
         text_span_loc_loss = 0.0
         tot_accuracy = 0.0
-        # tracking the best sequence prediction accuracy for evaluation
-        best_accuracy = -1.0
         for e in range(self.args.num_epochs):
             logging.info("Epoch: {}".format(e))
             loc_steps = 0
@@ -328,6 +283,7 @@ class ModelTrainer:
                     loc_full_acc = 0.0
                     text_span_accuracy = 0.0
                     text_span_loc_loss = 0.0
+            save_model(model, model_identifier, dataset, self.args, full_tree_voc, e)
             # Evaluating model
             model.eval()
             logging.info("evaluating model")
@@ -346,46 +302,6 @@ class ModelTrainer:
                 if tb:
                     tb.add_scalar("val_accuracy_" + str(dtype), a, global_step=e)
                     tb.add_scalar("val_loss_" + str(dtype), l, global_step=e)
-
-                # compare evaluation accuracy and save the best model
-                if dtype == "annotated":
-                    if a > best_accuracy:
-                        best_accuracy = a
-                        # record the info for the best model
-                        self.best_model_logger["epoch"] = e
-                        self.best_model_logger["valid_loss"] = l
-                        self.best_model_logger["valid_accuracy"] = a
-                        # save the model for each epoch and update the best model
-                        save_model(
-                            model, model_identifier, dataset, self.args, full_tree_voc, e, True
-                        )
-                    else:
-                        # save the model for each epoch
-                        save_model(
-                            model, model_identifier, dataset, self.args, full_tree_voc, e, False
-                        )
-
-        # update log information for the best model
-        self.best_model_logger["train_loss"] = tot_loss / tot_steps
-        self.best_model_logger["train_accruacy"] = tot_accuracy / tot_steps
-        # compute the checksum
-        checksum = compute_checksum_for_model(
-            root_dir=self.args.root_dir, agent="craftassist", model_name="nlu"
-        )
-        # log the hash and save it
-        self.best_model_logger["hash"] = checksum
-        save_path = "droidlet/artifacts/models/nlu/ttad_bert_updated/"
-        save_best_model_log_file(self.best_model_logger, save_path)
-        # transfer trained model and related files
-        if self.args.output_dir != "droidlet/artifacts/models/nlu/ttad_bert_updated/":
-            shutil.copy(
-                os.path.join(self.args.output_dir, "caip_test_model.pth"),
-                "droidlet/artifacts/models/nlu/ttad_bert_updated/caip_test_model.pth",
-            )
-        # zip files and upload it to AWS S3
-        tar_and_upload(
-            root_dir=self.args.root_dir, checksum=checksum, agent="craftassist", model_name="nlu"
-        )
 
         return (tot_loss / tot_steps, tot_accuracy / tot_steps)
 

@@ -1,4 +1,4 @@
 vision_retrain/outputs/
 nsp_retrain/outputs/
-nsp_retrain/configs/split_masks.pth
+nsp_retrain/configs/
 turk_oncall/outputs/

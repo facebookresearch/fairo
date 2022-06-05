@@ -13,6 +13,73 @@ from subprocess import Popen, PIPE
 ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../")
 print("Rootdir : %r" % ROOTDIR)
 
+def tar_and_upload(agent, artifact_name, model_name=None):
+    checksum_name = ""
+    if artifact_name == "models":
+        if model_name == "nlu":
+            # compute for NLU model
+            checksum_name = "nlu.txt"
+        elif model_name == "perception":
+            if agent == "locobot":
+                checksum_name = "locobot_perception.txt"
+            elif agent == "craftassist":
+                checksum_name = "craftassist_perception.txt"
+    else:
+        # datasets
+        checksum_name = "datasets.txt"
+
+    print("Load checksum from tracked folder")
+    with open(
+        os.path.join(
+            ROOTDIR, "droidlet/tools/artifact_scripts/tracked_checksums/", checksum_name
+        ),
+        "r",
+    ) as f:
+        checksum = f.read().strip()
+
+    if not agent:
+        print("Agent name not specified, defaulting to craftassist agent")
+        agent = "craftassist"
+
+    if not model_name:
+        print("Model name not given, defaulting to nlu model")
+        model_name = "nlu"
+
+    # construct the path
+    artifact_path_name = os.path.join(ROOTDIR, "droidlet/artifacts", artifact_name)
+    artifact_path_name = artifact_path_name + "/" + model_name
+    artifact_name = artifact_name + "_" + model_name
+    if model_name != "nlu":
+        # agent specific models
+        artifact_path_name = artifact_path_name + "/" + agent
+        artifact_name = artifact_name + "_" + agent
+    print(artifact_name, artifact_path_name)
+    print("Now making the tar file...")
+    process = Popen(
+        [
+            "tar",
+            "-czvf",
+            artifact_name + "_" + checksum + ".tar.gz",
+            '--exclude="*/\.*"',
+            '--exclude="*checksum*"',
+            artifact_path_name,
+        ],
+        stdout=PIPE,
+        stderr=PIPE,
+    )
+
+    stdout, stderr = process.communicate()
+    print(stdout.decode("utf-8"))
+    print(stderr.decode("utf-8"))
+    print("Now uploading ...")
+    process = Popen(
+        ["aws", "s3", "cp", artifact_name + "_" + checksum + ".tar.gz", "s3://craftassist/pubr/"],
+        stdout=PIPE,
+        stderr=PIPE,
+    )
+    stdout, stderr = process.communicate()
+    print(stdout.decode("utf-8"))
+
 
 def compute_checksum_tar_and_upload(agent, artifact_name, model_name=None):
     if not agent:
