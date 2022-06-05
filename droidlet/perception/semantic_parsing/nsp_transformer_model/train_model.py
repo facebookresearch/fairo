@@ -36,6 +36,7 @@ from droidlet.perception.semantic_parsing.nsp_transformer_model.optimizer_warmup
 )
 from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset import CAIPDataset
 
+
 def save_model(model, model_identifier, dataset, args, full_tree_voc, epoch):
     M = {
         "state_dict": model.state_dict(),
@@ -47,6 +48,7 @@ def save_model(model, model_identifier, dataset, args, full_tree_voc, epoch):
     path = pjoin(args.output_dir, "{}_ep{}.pth".format(model_identifier, epoch))
     print("saving model to PATH::{} at epoch {}".format(path, epoch))
     torch.save(M, path)
+
 
 def show_examples(model, dataset, tokenizer, n=10):
     model.eval()

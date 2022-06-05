@@ -13,6 +13,7 @@ from subprocess import Popen, PIPE
 ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../")
 print("Rootdir : %r" % ROOTDIR)
 
+
 def tar_and_upload(agent, artifact_name, model_name=None):
     checksum_name = ""
     if artifact_name == "models":
@@ -30,9 +31,7 @@ def tar_and_upload(agent, artifact_name, model_name=None):
 
     print("Load checksum from tracked folder")
     with open(
-        os.path.join(
-            ROOTDIR, "droidlet/tools/artifact_scripts/tracked_checksums/", checksum_name
-        ),
+        os.path.join(ROOTDIR, "droidlet/tools/artifact_scripts/tracked_checksums/", checksum_name),
         "r",
     ) as f:
         checksum = f.read().strip()

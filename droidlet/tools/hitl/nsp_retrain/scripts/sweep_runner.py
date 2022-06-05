@@ -10,6 +10,7 @@ import stat
 import subprocess
 import torch
 
+
 def write_data_chunk_to_file(data, target_fname, commands_only=False, mask=None):
     count = 0
     os.makedirs(os.path.dirname(target_fname), exist_ok=True)
@@ -35,12 +36,14 @@ if __name__ == "__main__":
     parser.add_argument("--sweep_name", default="", help="name of sweep")
     parser.add_argument("--output_dir", default="", help="where to put job_output")
     parser.add_argument("--data_dir", default="")
-    parser.add_argument("--no_sweep", action="store_true", default=False, help="just set up files, no run")
+    parser.add_argument(
+        "--no_sweep", action="store_true", default=False, help="just set up files, no run"
+    )
     parser.add_argument(
         "--append_date", action="store_false", help="append date to output dir and job name"
     )
     parser.add_argument("--partition", default="learnfair", help="name of partition")
-    opts = parser.parse_args()    
+    opts = parser.parse_args()
 
     ###############################################
     # copy data, make splits, write data splits:
@@ -78,8 +81,8 @@ if __name__ == "__main__":
             data = fd.readlines()
         for k in ["train", "valid", "test"]:
             mask = masks.get(k)
-            if mask is not None and len(mask)>0:
-                fname = os.path.join(os.path.join(target_data_folder, k+"/"), dtype + ".txt")
+            if mask is not None and len(mask) > 0:
+                fname = os.path.join(os.path.join(target_data_folder, k + "/"), dtype + ".txt")
                 print("writing {} split of {}".format(k, dtype))
                 write_data_chunk_to_file(data, fname, mask=mask)
     print("done writing splits")
@@ -101,12 +104,12 @@ if __name__ == "__main__":
         job_name = job_name + nowstr
         output_dir = os.path.join(output_dir, job_name)
         scripts_dir = os.path.join(scripts_dir, job_name)
-    print("making job dirs {} and script dirs {}".format(output_dir,  scripts_dir))
+    print("making job dirs {} and script dirs {}".format(output_dir, scripts_dir))
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(scripts_dir, exist_ok=True)
 
     sweep_config_path = os.path.join(opts.sweep_config_folder, "sweep_config.txt")
-          
+
     with open(sweep_config_path) as f:
         args = {}
         for l in f.readlines():
@@ -142,8 +145,15 @@ if __name__ == "__main__":
     print("the sweep will use data in " + target_data_folder)
     print("models will be written to " + model_out)
 
-    train_command = "droidlet/perception/semantic_parsing/nsp_transformer_model/train_model.py" + " --data_dir " + target_data_folder + " --output_dir " + model_out + " "
-    
+    train_command = (
+        "droidlet/perception/semantic_parsing/nsp_transformer_model/train_model.py"
+        + " --data_dir "
+        + target_data_folder
+        + " --output_dir "
+        + model_out
+        + " "
+    )
+
     errpaths = []
     outpaths = []
     modelpaths = []
@@ -173,9 +183,11 @@ if __name__ == "__main__":
         body += "source activate /private/home/ethancarlson/.conda/envs/droidlet_env \n"
         #######
         body += "cd " + opts.droidlet_dir + " \n"
-        body += "/private/home/ethancarlson/.conda/envs/droidlet_env/bin/ipython -- " +  train_command
+        body += (
+            "/private/home/ethancarlson/.conda/envs/droidlet_env/bin/ipython -- " + train_command
+        )
         body += all_arglists[i]
-        #body += " --sbatch --save_model_uid " + job_name + "_" + str(i)
+        # body += " --sbatch --save_model_uid " + job_name + "_" + str(i)
         scriptname = os.path.join(scripts_dir, str(i) + ".sh")
         g = open(scriptname, "w")
         g.write(body)
@@ -200,8 +212,8 @@ if __name__ == "__main__":
 
     # Moving sweep monitoring to be internal to nsp_retrain_infra.py
 
-    #this_dir = os.path.dirname(os.path.abspath(__file__))
-    #shutil.copyfile(os.path.join(this_dir, "sweep_monitor.py"), os.path.join(model_out, "sweep_monitor.py"))
-    #for i in range(300):
+    # this_dir = os.path.dirname(os.path.abspath(__file__))
+    # shutil.copyfile(os.path.join(this_dir, "sweep_monitor.py"), os.path.join(model_out, "sweep_monitor.py"))
+    # for i in range(300):
     #    cmd = 'echo -e "cd {}\n python sweep_monitor.py" | at now +{} minutes'.format(model_out, (i+1)*10)
     #    os.system(cmd)
