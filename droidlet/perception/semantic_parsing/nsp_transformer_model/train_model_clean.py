@@ -96,7 +96,6 @@ class NLUModelTrainer:
             [{"params": model.decoder.fixed_span_head.parameters()}], lr=0.001
         )
 
-        
     def run_epoch(self, phase, epoch, dataset, dataloader):
         """
         Model runs through given dataloader for single epoch
@@ -108,8 +107,8 @@ class NLUModelTrainer:
             dataloader: Dataset loader
 
         Returns:
-            Tuple of (Loss, Accuracy, Steps, Train Dataset) 
-            or 
+            Tuple of (Loss, Accuracy, Steps, Train Dataset)
+            or
             (Loss, Int. Accuracy, Span Accuracy, Accuracy, Text Span Accuracy, Text Span Loss)
 
         """
@@ -118,7 +117,7 @@ class NLUModelTrainer:
             model.train()
         else:
             model.eval()
-        
+
         epoch_iterator = tqdm(dataloader, desc="Iteration", disable=True)
         ep_steps = 0
         ep_loss = 0.0
@@ -127,7 +126,7 @@ class NLUModelTrainer:
         ep_full_acc = 0.0
         ep_text_span_accuracy = 0.0
         ep_text_span_loss = 0.0
-        
+
         loc_steps = 0
         loc_loss = 0.0
         loc_int_acc = 0.0
@@ -139,8 +138,7 @@ class NLUModelTrainer:
         for step, batch in enumerate(epoch_iterator):
             batch_examples = batch[-1]
             batch_tensors = [
-                t.to(model.decoder.lm_head.predictions.decoder.weight.device)
-                for t in batch[:4]
+                t.to(model.decoder.lm_head.predictions.decoder.weight.device) for t in batch[:4]
             ]
             x, x_mask, y, y_mask = batch_tensors
 
@@ -198,20 +196,23 @@ class NLUModelTrainer:
 
             # add hard examples into the training dataset
             if phase == "train" and self.args.hard:
-                if epoch > 0 or epoch * len(epoch_iterator) + ep_steps > 2 * self.args.decoder_warmup_steps:
+                if (
+                    epoch > 0
+                    or epoch * len(epoch_iterator) + ep_steps > 2 * self.args.decoder_warmup_steps
+                ):
                     for acc, exple in zip(lm_acc, batch_examples):
                         if not acc.item():
                             if step % self.args.hard_iter == 100:
                                 print("ADDING HE:", step, exple[0])
                             dataset.add_hard_example(exple)
-            
+
             # book-keeping
             # shapes of accuracies are [B]
             # internal_nodes_accuracy / batch_size
-            loc_int_acc += lm_acc.sum().item() / lm_acc.shape[0] 
+            loc_int_acc += lm_acc.sum().item() / lm_acc.shape[0]
             ep_int_acc += lm_acc.sum().item() / lm_acc.shape[0]
             # weighted_accuracy / batch_size
-            loc_full_acc += full_acc.sum().item() / full_acc.shape[0] 
+            loc_full_acc += full_acc.sum().item() / full_acc.shape[0]
             ep_full_acc += full_acc.sum().item() / full_acc.shape[0]
             # text_span_accuracy / batch_size
             loc_text_span_accuracy += text_span_acc.sum().item() / text_span_acc.shape[0]
@@ -228,21 +229,20 @@ class NLUModelTrainer:
             # test span loss
             loc_text_span_loss += text_span_loss.item()
             ep_text_span_loss += text_span_loss.item()
-            
 
             if phase == "train" and step % self.args.log_iter == 0:
                 if self.args.show_samples:
                     self.show_examples(dataset)
                 if self.tb:
                     self.tb.add_scalar(
-                        "accuracy", 
-                        loc_full_acc / loc_steps, 
-                        global_step = epoch * len(epoch_iterator) + ep_steps
+                        "accuracy",
+                        loc_full_acc / loc_steps,
+                        global_step=epoch * len(epoch_iterator) + ep_steps,
                     )
                     self.tb.add_scalar(
-                        "loss", 
-                        loc_loss / loc_steps, 
-                        global_step = epoch * len(epoch_iterator) + ep_steps
+                        "loss",
+                        loc_loss / loc_steps,
+                        global_step=epoch * len(epoch_iterator) + ep_steps,
                     )
                 print(
                     "{:2d} - {:5d} \t L: {:.3f} A: {:.3f} \t {:.2f}".format(
@@ -270,7 +270,7 @@ class NLUModelTrainer:
                         epoch,
                         step,
                         # loss averaged over number of steps between gradient updates
-                        loc_loss / loc_steps,  
+                        loc_loss / loc_steps,
                         loc_full_acc / loc_steps,
                         loc_text_span_accuracy / loc_steps,
                         loc_text_span_loss / loc_steps,
@@ -286,13 +286,8 @@ class NLUModelTrainer:
                 loc_text_span_accuracy = 0.0
                 loc_text_span_loss = 0.0
 
-        if phase == 'train':
-            return (
-                ep_loss, 
-                ep_full_acc,
-                ep_steps, 
-                dataset
-            )
+        if phase == "train":
+            return (ep_loss, ep_full_acc, ep_steps, dataset)
         else:
             return (
                 ep_loss / ep_steps,
@@ -302,7 +297,6 @@ class NLUModelTrainer:
                 ep_text_span_accuracy / ep_steps,
                 ep_text_span_loss / ep_steps,
             )
-
 
     def train(self, epoch, dataset):
         """Training loop (one epoch at once)
@@ -321,11 +315,13 @@ class NLUModelTrainer:
             caip_collate, tokenizer=self.tokenizer, tree_to_text=self.args.tree_to_text
         )
         train_dataloader = DataLoader(
-            dataset, sampler=train_sampler, batch_size=self.args.batch_size, collate_fn=model_collate_fn
+            dataset,
+            sampler=train_sampler,
+            batch_size=self.args.batch_size,
+            collate_fn=model_collate_fn,
         )
 
         return self.run_epoch("train", epoch, dataset, train_dataloader)
-
 
     def validate(self, epoch, dataset, dtype):
         """Validation loop
@@ -336,7 +332,7 @@ class NLUModelTrainer:
             dtype: Type of data, [templated, templated_filters, annotated]
 
         Returns:
-            Tuple(Loss, Accuracy) 
+            Tuple(Loss, Accuracy)
 
         """
         # make data sampler
@@ -345,12 +341,17 @@ class NLUModelTrainer:
             caip_collate, tokenizer=self.tokenizer, tree_to_text=self.args.tree_to_text
         )
         val_dataloader = DataLoader(
-            dataset, sampler=val_sampler, batch_size=self.args.batch_size, collate_fn=model_collate_fn
+            dataset,
+            sampler=val_sampler,
+            batch_size=self.args.batch_size,
+            collate_fn=model_collate_fn,
         )
 
         print(len(val_dataloader))
 
-        loss, _, _, acc, text_span_acc, text_span_loss = self.run_epoch("val", epoch, dataset, val_dataloader)
+        loss, _, _, acc, text_span_acc, text_span_loss = self.run_epoch(
+            "val", epoch, dataset, val_dataloader
+        )
         logging.info(
             "text span Loss: {:.4f} \t Accuracy: {:.4f}".format(text_span_loss, text_span_acc)
         )
@@ -374,7 +375,6 @@ class NLUModelTrainer:
 
         return loss, acc
 
-
     def save_model(self, epoch, dataset):
         M = {
             "state_dict": self.model.state_dict(),
@@ -387,14 +387,22 @@ class NLUModelTrainer:
         print("saving model to PATH::{} at epoch {}".format(path, epoch))
         torch.save(M, path)
 
-
     def show_examples(self, dataset):
         self.model.eval()
         with torch.no_grad():
             for cid in range(self.args.nm_shows):
                 chat = dataset[cid][2][1]
-                btr = beam_search(chat, self.model, self.tokenizer, self.args.beam_size, self.args.well_formed_pen)
-                if btr[0][0].get("dialogue_type", "NONE") == "NOOP" and math.exp(btr[0][1]) < self.args.noop_thres:
+                btr = beam_search(
+                    chat,
+                    self.model,
+                    self.tokenizer,
+                    self.args.beam_size,
+                    self.args.well_formed_pen,
+                )
+                if (
+                    btr[0][0].get("dialogue_type", "NONE") == "NOOP"
+                    and math.exp(btr[0][1]) < self.args.noop_thres
+                ):
                     tree = btr[1][0]
                 else:
                     tree = btr[0][0]
@@ -445,6 +453,7 @@ def generate_model_name(args, optional_identifier=""):
     name += "{time}|".format(time=time_now)
     name += optional_identifier
     return name
+
 
 def build_grammar(args):
     data = {"train": {}, "valid": {}, "test": {}}
@@ -641,7 +650,7 @@ if __name__ == "__main__":
         args.dtype_samples = json.dumps(
             [["templated", 1.0 - args.rephrase_proba], ["rephrases", args.rephrase_proba]]
         )
-    
+
     # build up directory for saving output
     os.makedirs(args.output_dir, exist_ok=True)
 
@@ -693,12 +702,14 @@ if __name__ == "__main__":
             full_tree_voc=full_tree_voc,
         )
         val_datasets[dtype] = val_dataset
-    
+
     print(val_datasets)
 
     logging.info("====== Initializing NLU Model Trainer ======")
     encoder_decoder = encoder_decoder.cuda()
-    model_trainer = NLUModelTrainer(args, encoder_decoder, tokenizer, model_identifier, full_tree_voc)
+    model_trainer = NLUModelTrainer(
+        args, encoder_decoder, tokenizer, model_identifier, full_tree_voc
+    )
 
     logging.info("====== Starting Training Process ======")
     train_steps = 0
@@ -718,7 +729,9 @@ if __name__ == "__main__":
         logging.info("evaluating model")
         for dtype, val_dataset in val_datasets.items():
             val_loss, val_acc = model_trainer.validate(epoch, val_dataset, dtype)
-    
-    print("Training done! Loss: {:.4f} \t Accuracy: {:.4f}".format(
-        train_loss / train_steps, train_acc / train_steps
-    ))
+
+    print(
+        "Training done! Loss: {:.4f} \t Accuracy: {:.4f}".format(
+            train_loss / train_steps, train_acc / train_steps
+        )
+    )
