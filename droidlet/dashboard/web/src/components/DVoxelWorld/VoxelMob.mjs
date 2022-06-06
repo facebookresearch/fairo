@@ -13,6 +13,7 @@ class VoxelMob {
         this.mobType = opts.name;
         this.mesh = model;
         this.position_offset = opts.position_offset;
+        this.visible = true;
     }
 
     move(x, y, z) {
@@ -24,6 +25,20 @@ class VoxelMob {
     moveTo(x, y, z) {
         let xyz = applyOffset([x,y,z], this.position_offset);
         this.mesh.position.set(xyz[0], xyz[1], xyz[2]);
+    }
+
+    remove() {
+        if (this.visible) {
+            this.world.scene.remove(this.mesh);
+            this.visible = false;
+        }
+    }
+
+    add() {
+        if (!this.visible) {
+            this.world.scene.add(this.mesh);
+            this.visible = true;
+        }
     }
 
     static build (world, opts) {

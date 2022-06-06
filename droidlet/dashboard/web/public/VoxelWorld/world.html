@@ -38,6 +38,7 @@
     // Send a message to the parent window when the user clicks in so the prompt text can be removed
     window.addEventListener("click", () => {
       window.parent.postMessage(JSON.stringify({ msg: "click" }), "*");
+      document.body.requestPointerLock();
     }, false);
     
     window.addEventListener("message", (event) => {

@@ -20,6 +20,7 @@ const defaultCameraFarPlane = 10000
 const fps = 20
 const renderInterval = 1000 / fps
 let controls, camera, scene, renderer, loader, preLoadBlockMaterials
+const followPointerScale = 150;
 
 const preLoadMaterialNames = ['grass', 'dirt']//, 'white wool', 'orange wool', 'magenta wool'];
 const blockScale = 50;
@@ -136,6 +137,9 @@ function handleKeypress(e, player) {
         case "t":
             player.toggle();
             break;
+        case "r":
+            player.rotateTo(0,0);
+            break;
         case "w":
             camera_vec = cameraVector();
             direction_vec = new THREE.Vector3(camera_vec[0], 0, camera_vec[2])
@@ -180,10 +184,19 @@ function handleKeypress(e, player) {
 
 function cameraTest(player) {
     controls.enabled = false;
+    player.possess();
     window.addEventListener("keydown", function (e) {
         handleKeypress(e, player);
     });
-    player.possess();
+    document.addEventListener("mousemove", function (ev) {
+      if (document.pointerLockElement === document.body) {
+        let Xdiff = -ev.movementX / followPointerScale;
+        let Ydiff = -ev.movementY / followPointerScale;
+        
+        player.cameraPitch(Ydiff);
+        player.rotate(Xdiff);
+      }
+    });
 };
 
 
