@@ -19,5 +19,8 @@ def get_ground_truth(no_ground_truth, ground_truth_data_dir):
 
     return ground_truth_actions
 
-
-GT_QUERY_ACTIONS = get_ground_truth(False, "droidlet/artifacts/datasets/ground_truth/")
+root_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../")
+GT_QUERY_ACTIONS = get_ground_truth(
+    False, 
+    os.path.join(root_dir, "droidlet/artifacts/datasets/ground_truth/")
+)
