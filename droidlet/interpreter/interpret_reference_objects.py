@@ -252,7 +252,7 @@ def interpret_reference_object(
                 logging.info("Follow up command issued")
                 raise ErrorWithResponse("")
             else:
-                #If we found a match, supply it
+                # If we found a match, supply it
                 query = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(r[0])
                 _, ref_obj_mems = interpreter.memory.basic_search(query)
                 update_attended_and_link_lf(interpreter, ref_obj_mems)
