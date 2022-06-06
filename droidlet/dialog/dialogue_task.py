@@ -240,8 +240,6 @@ def map_yes_last_chat(task: Task):
     else:
         response = chat
 
-    logging.info("Mapped response: " + response)
-
     return response
 
 
@@ -304,7 +302,13 @@ class ClarifyNoMatch(Task):
                     # Bad parse or user reset
                     self.clarification_failed()
                 else:
-                    # User sent a followup chat, exit this task silently
+                    # User sent a followup chat, exit this task and mark as a followup
+                    self.agent.memory.nodes[TripleNode.NODE_TYPE].create(
+                        self.agent.memory,
+                        subj=self.memid,
+                        pred_text="dialogue_clarification_output",
+                        obj_text="follow_up",
+                    )
                     self.finished = True
 
                 return

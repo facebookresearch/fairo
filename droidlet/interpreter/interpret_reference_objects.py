@@ -245,11 +245,18 @@ def interpret_reference_object(
             task_mem.memid
         )
         _, r = interpreter.memory.basic_search(query)
+        r = [x for x in r if x]
         if r:
-            query = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(r[0])
-            _, ref_obj_mems = interpreter.memory.basic_search(query)
-            update_attended_and_link_lf(interpreter, ref_obj_mems)
-            return ref_obj_mems
+            if r[0] == "follow_up":
+                # User sent a follow up response, exit this interpreter
+                logging.info("Follow up command issued")
+                raise ErrorWithResponse("")
+            else:
+                #If we found a match, supply it
+                query = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(r[0])
+                _, ref_obj_mems = interpreter.memory.basic_search(query)
+                update_attended_and_link_lf(interpreter, ref_obj_mems)
+                return ref_obj_mems
         else:
             raise ErrorWithResponse("I don't know what you're referring to")
 

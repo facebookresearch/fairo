@@ -151,7 +151,8 @@ class Interpreter(InterpreterBase):
         except NextDialogueStep:
             return
         except ErrorWithResponse as err:
-            Say(agent, task_data={"response_options": err.chat})
+            if err.chat:
+                Say(agent, task_data={"response_options": err.chat})
             self.finished = True
         return
 

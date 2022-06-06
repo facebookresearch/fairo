@@ -39,6 +39,7 @@ class InteractApp extends Component {
       feedback: "",
       isSaveFeedback: false,
       clarify: false,
+      followup: false,
       current_conversation: "",
       conversation_turn: 0,
     };
@@ -267,7 +268,6 @@ class InteractApp extends Component {
         JSON.stringify({ msg: { command: chatmsg } }),
         "*"
       );
-      this.props.stateManager.sendCommandToTurkInfo(chatmsg);
 
       if (this.state.clarify) {
         // if we're in active clarification, keep the conversation going
@@ -277,9 +277,8 @@ class InteractApp extends Component {
           return {
             current_conversation: chatmsg,
             conversation_turn: prevState.conversation_turn + 1,
+            followup: true,
           }
-        }, () => {
-          console.log("Conversation turn " + this.state.conversation_turn + " -- " + this.state.current_conversation);
         });
       } else {
         // Otherwise, start a new conversation
@@ -287,8 +286,6 @@ class InteractApp extends Component {
           last_command: chatmsg,
           current_conversation: "User: " + chatmsg,
           conversation_turn: 1,
-        }, () => {
-          console.log("Conversation turn " + this.state.conversation_turn + " -- " + this.state.current_conversation);
         });
       }
       
@@ -297,6 +294,7 @@ class InteractApp extends Component {
       // status updates
       this.props.stateManager.memory.commandState = "sent";
       if (this.state.agentType === "craftassist") {
+        this.handleClearInterval();
         this.handleAgentThinking();
       }
     }
@@ -437,7 +435,8 @@ class InteractApp extends Component {
       });
       if (!res.task) {
         // If there's no task, leave this state
-        if (this.state.isTurk) {
+        if (this.state.isTurk && !this.state.followup) {
+          // Don't do error marking if the user sent a new command
           this.askActionQuestion();
         }
         this.handleClearInterval();
@@ -483,6 +482,7 @@ class InteractApp extends Component {
         disableInput: false,
         commandState: "idle",
         clarify: false,
+        followup: false,
       });
     }
   }
@@ -969,11 +969,10 @@ class InteractApp extends Component {
     let new_conversation = current_conversation + " User: " + chatmsg;
     this.setState( prevState => {
       return { 
+        followup: false,
         current_conversation: new_conversation,
         conversation_turn: prevState.conversation_turn + 1,
       }
-    }, () => {
-      console.log("Conversation turn " + this.state.conversation_turn + " -- " + new_conversation);
     });
     this.props.stateManager.socket.emit("sendCommandToAgent", new_conversation);
 
