@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 // src/components/Memory2D.js
 
 import React from "react";
-import { Stage, Layer, Circle, Line, Text } from "react-konva";
+import { Stage, Layer, Circle, Line, Text, Group } from "react-konva";
 import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
 
 var hashCode = function (s) {
@@ -41,6 +41,7 @@ class Memory2D extends React.Component {
     this.state = this.initialState;
     this.outer_div = React.createRef();
     this.resizeHandler = this.resizeHandler.bind(this);
+    this.handleObjClick = this.handleObjClick.bind(this);
   }
   handleDrag = (className, drag_coordinates) => {
     this.setState({ memory2d_className: className });
@@ -96,6 +97,9 @@ class Memory2D extends React.Component {
       stageY:
         -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
     });
+  };
+  handleObjClick = (obj_type) => {
+    console.log(obj_type + " clicked");
   };
   resizeHandler() {
     if (this.props.isMobile) {
@@ -171,8 +175,8 @@ class Memory2D extends React.Component {
       drag_coordinates,
       stageScale,
     } = this.state;
-    //width = Math.min(width, height);
-    //height = width;
+    width = Math.min(width, height);
+    height = width;
     let { objects } = memory;
     let { xmin, xmax, ymin, ymax } = this.state;
     let bot_x = bot_xyz[1];
@@ -200,8 +204,16 @@ class Memory2D extends React.Component {
         let color = "#827f7f";
         let x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
         let y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
-        mapBoundary.push(
-          <Circle key={j++} radius={2} x={x} y={y} fill={color} />
+        // FIXME: need to also add mobile support by using onTap/onTouchEnd
+        renderedObjects.push(
+          <Circle
+            key={j++}
+            radius={2}
+            x={x}
+            y={y}
+            fill={color}
+            onClick={this.handleObjClick("obstacle_map")}
+          />
         );
       });
     }
@@ -221,6 +233,7 @@ class Memory2D extends React.Component {
           x={x}
           y={y}
           fill={color}
+          onClick={this.handleObjClick("detection_from_memory")}
           onMouseEnter={(e) => {
             this.setState({
               tooltip: String(obj_id),
@@ -272,18 +285,24 @@ class Memory2D extends React.Component {
       a line to show orientation
     */
     renderedObjects.push(
-      <Circle key={j++} radius={10} x={bot_x} y={bot_y} fill="red" />
-    );
-    renderedObjects.push(
-      <Line
+      <Group
         key={j++}
-        x={bot_x}
-        y={bot_y}
-        points={[0, 0, 12, 0]}
-        rotation={(-bot_yaw * 180) / Math.PI}
-        stroke="black"
-      />
+        onClick={(e) => {
+          this.handleObjClick("bot");
+        }}
+      >
+        <Circle key={j++} radius={10} x={bot_x} y={bot_y} fill="red" />
+        <Line
+          key={j++}
+          x={bot_x}
+          y={bot_y}
+          points={[0, 0, 12, 0]}
+          rotation={(-bot_yaw * 180) / Math.PI}
+          stroke="black"
+        />
+      </Group>
     );
+
     var gridLayer = [];
     var padding = 10;
     var gridKey = 12344;
@@ -302,7 +321,6 @@ class Memory2D extends React.Component {
         />
       );
     }
-
     gridLayer.push(<Line key={gridKey + i++} points={[0, 0, 10, 10]} />);
     for (j = 0; j < height / padding; j++) {
       gridLayer.push(
@@ -314,6 +332,7 @@ class Memory2D extends React.Component {
         />
       );
     }
+
     let coordinateAxesLayer = [];
     let rootPointDefault = [9, 0, -9];
     let coordinateRootPoint = this.convertCoordinate(rootPointDefault);
