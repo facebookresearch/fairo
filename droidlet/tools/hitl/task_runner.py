@@ -7,8 +7,8 @@ import time
 
 from typing import List
 
-from .data_generator import DataGenerator
-from .job_listener import JobListener
+from droidlet.tools.hitl.data_generator import DataGenerator
+from droidlet.tools.hitl.job_listener import JobListener
 
 RUN_POLL_TIME = 5
 
