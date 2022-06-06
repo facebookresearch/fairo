@@ -1194,10 +1194,6 @@ class TestDialogueManager(unittest.TestCase):
         opts.no_ground_truth = False
         self.chat_parser = NSPQuerier(opts=opts)
         print(next(self.chat_parser.parsing_model.model.encoder_decoder.parameters()).is_cuda)
-        self.chat_parser.parsing_model.model = (
-            self.chat_parser.parsing_model.model.encoder_decoder.cuda()
-        )
-        print(next(self.chat_parser.parsing_model.model.encoder_decoder.parameters()).is_cuda)
         self.ground_truth_actions = {}
         print("fetching data from ground truth, from directory: %r" % (opts.ground_truth_data_dir))
         if not opts.no_ground_truth:
