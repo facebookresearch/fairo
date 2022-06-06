@@ -72,8 +72,8 @@ commands:
             conda activate polymetis-local
 
             export BUILD_DOCS="ON"
-            ./polymetis/build_libfranka.sh
-            ./polymetis/build_and_install_polymetis.sh
+            ./polymetis/scripts/build_libfranka.sh
+            ./polymetis/scripts/build_and_install_polymetis.sh
       - polymetis_tests
       - run:
           name: Generate documentation
