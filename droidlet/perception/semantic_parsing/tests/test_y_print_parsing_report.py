@@ -1193,7 +1193,6 @@ class TestDialogueManager(unittest.TestCase):
         opts.nsp_models_dir = TTAD_MODEL_DIR
         opts.no_ground_truth = False
         self.chat_parser = NSPQuerier(opts=opts)
-        print(next(self.chat_parser.parsing_model.model.encoder_decoder.parameters()).is_cuda)
         self.ground_truth_actions = {}
         print("fetching data from ground truth, from directory: %r" % (opts.ground_truth_data_dir))
         if not opts.no_ground_truth:
@@ -1212,9 +1211,7 @@ class TestDialogueManager(unittest.TestCase):
         parsing_model_status = False
         pass_cnt, fail_cnt, model_pass_cnt, model_fail_cnt = 0, 0, 0, 0
         status = True
-        print("Parse {} commonly functional commands".format(len(common_functional_commands)))
         for command in common_functional_commands.keys():
-            print("Currently parse: {}".format(command))
             ground_truth_parse = common_functional_commands[command]
             if command in self.ground_truth_actions:
                 model_prediction = self.ground_truth_actions[command]
@@ -1228,7 +1225,6 @@ class TestDialogueManager(unittest.TestCase):
                 except:
                     status = False
             # compute parsing pipeline accuracy
-            print("Compare prediction against gt.")
             status = status and compare_full_dictionaries(ground_truth_parse, model_prediction)
             if status:
                 pass_cnt += 1
@@ -1243,7 +1239,6 @@ class TestDialogueManager(unittest.TestCase):
                     fontcolors.FAIL + "FAIL" + fontcolors.ENDC,
                 ]
             # compute model correctness status
-            print("Compare model correctness status.")
             try:
                 model_output = remove_text_span(
                     self.chat_parser.parsing_model.query_for_logical_form(chat=command)
