@@ -1,7 +1,6 @@
 import os
 import json
 
-
 def get_ground_truth(no_ground_truth, ground_truth_data_dir):
     # Load all ground truth commands and their parses
     ground_truth_actions = {}
@@ -18,3 +17,5 @@ def get_ground_truth(no_ground_truth, ground_truth_data_dir):
                             ground_truth_actions[clean_text] = json.loads(logical_form)
 
     return ground_truth_actions
+
+GT_QUERY_ACTIONS = get_ground_truth(False, "droidlet/artifacts/datasets/ground_truth/")

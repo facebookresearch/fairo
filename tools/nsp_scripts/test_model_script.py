@@ -22,11 +22,9 @@ from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_parsing im
 from droidlet.perception.semantic_parsing.nsp_transformer_model.decoder_with_loss import *
 from droidlet.perception.semantic_parsing.nsp_transformer_model.encoder_decoder import *
 from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset import *
-from droidlet.perception.semantic_parsing.load_and_check_datasets import get_ground_truth
+from droidlet.perception.semantic_parsing.load_and_check_datasets import GT_QUERY_ACTIONS
 from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_caip import caip_collate
 from droidlet.perception.semantic_parsing.utils.nsp_logger import NSPLogger
-
-GT_QUERY_ACTIONS = get_ground_truth(False, "droidlet/artifacts/datasets/ground_truth/")
 
 class ModelEvaluator:
     """Wrapper Class around evaluating model"""
