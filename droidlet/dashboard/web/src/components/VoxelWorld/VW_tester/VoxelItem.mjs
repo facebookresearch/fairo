@@ -4,6 +4,8 @@
 
 import {VW_ITEM_MAP} from "./model_luts.mjs"
 
+const MODEL_PATH = "./models/";
+
 class VoxelItem {
     constructor (model, world, opts) {
         this.world = world;
@@ -51,65 +53,99 @@ class VoxelItem {
     };
 
     static build (world, opts) {
-        // This could all live in the constructor, but leaving it this way for now to
-        // 1) mirror the syntax of VoxelMob and 2) allow for easy extension to load models
+        // Load item model or textures
+        let loader, item;
 
-        // Load texture images and apply to geometry
         let item_data = VW_ITEM_MAP[opts.name];
-        const loader = new world.THREE.TextureLoader();
-        const itemMaterials = [
-            new world.THREE.MeshBasicMaterial({ 
-                map: loader.load('./block_textures/'+item_data["sides"]), 
-                color: item_data["color"],
-                opacity: item_data["opacity"],
-                transparent: true,
-                side: world.THREE.DoubleSide }), //right side
-            new world.THREE.MeshBasicMaterial({ 
-                map: loader.load('./block_textures/'+item_data["sides"]), 
-                color: item_data["color"], 
-                opacity: item_data["opacity"], 
-                transparent: true, 
-                side: world.THREE.DoubleSide }), //left side
-            new world.THREE.MeshBasicMaterial({ 
-                map: loader.load('./block_textures/'+item_data["top"]), 
-                color: item_data["color"], 
-                opacity: item_data["opacity"], 
-                transparent: true, 
-                side: world.THREE.DoubleSide }), //top side
-            new world.THREE.MeshBasicMaterial({ 
-                map: loader.load('./block_textures/'+item_data["bottom"]), 
-                color: item_data["color"], 
-                opacity: item_data["opacity"], 
-                transparent: true, 
-                side: world.THREE.DoubleSide }), //bottom side
-            new world.THREE.MeshBasicMaterial({ 
-                map: loader.load('./block_textures/'+item_data["sides"]), 
-                color: item_data["color"], 
-                opacity: item_data["opacity"], 
-                transparent: true, 
-                side: world.THREE.DoubleSide }), //front side
-            new world.THREE.MeshBasicMaterial({ 
-                map: loader.load('./block_textures/'+item_data["sides"]), 
-                color: item_data["color"], 
-                opacity: item_data["opacity"], 
-                transparent: true, 
-                side: world.THREE.DoubleSide }), //back side
-        ];
         opts.scale = opts.scale || 1.0;
-        const geo = new world.THREE.BoxGeometry( (20*opts.scale), (20*opts.scale), (20*opts.scale) );
-        let itemMesh = new world.THREE.Mesh( geo, itemMaterials );
-
         opts.position = opts.position || [0, 0, 0];
-        opts.position = applyOffset(opts.position, [(25*opts.scale),(25*opts.scale),(25*opts.scale)]);  // move to the center of the voxel
-        itemMesh.position.set(opts.position[0], opts.position[1], opts.position[2]);
-        itemMesh.rotation.set(0, Math.PI/4, Math.PI/4);
-        world.scene.add(itemMesh);
+        opts.position_offset = item_data.position_offset || [(25*opts.scale),(25*opts.scale),(25*opts.scale)];
+        opts.position = applyOffset(opts.position, opts.position_offset);
+        opts.rotation = opts.rotation || [0, 0, 0];
+        opts.rotation_offset = item_data.rotation_offset || [0, Math.PI/4, Math.PI/4];
+        opts.rotation = applyOffset(opts.rotation, opts.rotation_offset);
 
-        return new Promise(resolve => {
-            const item = new VoxelItem(itemMesh, world, opts);
-            item.hoverID = window.setInterval(hover, 100, item);
-            resolve(item);
-        });
+        if ("model_file" in item_data) {
+            // This is a GTFL model
+
+            const path = MODEL_PATH + item_data.model_folder;
+            loader = new opts.GLTFLoader();
+            loader.setPath(path);
+
+            return loader.loadAsync( item_data.model_file ).then(
+                function (gltf) {
+                    let model = gltf.scene;
+                    model.scale.multiplyScalar(opts.scale * item_data.default_scale);
+                    model.position.set(opts.position[0], opts.position[1], opts.position[2]);
+                    model.rotation.x += opts.rotation[0];
+                    model.rotation.y += opts.rotation[1];
+                    model.rotation.z += opts.rotation[2];
+                    world.scene.add( model );
+                    return model;
+                }
+            ).then(
+                function (model) {
+                    item = new VoxelItem(model, world, opts);
+                    item.hoverID = window.setInterval(hover, 100, item);
+                    return item
+               }
+            );
+
+        } else {
+            // This is a material, load the texture
+
+            loader = new world.THREE.TextureLoader();
+            const itemMaterials = [
+                new world.THREE.MeshBasicMaterial({ 
+                    map: loader.load('./block_textures/'+item_data["sides"]), 
+                    color: item_data["color"],
+                    opacity: item_data["opacity"],
+                    transparent: true,
+                    side: world.THREE.DoubleSide }), //right side
+                new world.THREE.MeshBasicMaterial({ 
+                    map: loader.load('./block_textures/'+item_data["sides"]), 
+                    color: item_data["color"], 
+                    opacity: item_data["opacity"], 
+                    transparent: true, 
+                    side: world.THREE.DoubleSide }), //left side
+                new world.THREE.MeshBasicMaterial({ 
+                    map: loader.load('./block_textures/'+item_data["top"]), 
+                    color: item_data["color"], 
+                    opacity: item_data["opacity"], 
+                    transparent: true, 
+                    side: world.THREE.DoubleSide }), //top side
+                new world.THREE.MeshBasicMaterial({ 
+                    map: loader.load('./block_textures/'+item_data["bottom"]), 
+                    color: item_data["color"], 
+                    opacity: item_data["opacity"], 
+                    transparent: true, 
+                    side: world.THREE.DoubleSide }), //bottom side
+                new world.THREE.MeshBasicMaterial({ 
+                    map: loader.load('./block_textures/'+item_data["sides"]), 
+                    color: item_data["color"], 
+                    opacity: item_data["opacity"], 
+                    transparent: true, 
+                    side: world.THREE.DoubleSide }), //front side
+                new world.THREE.MeshBasicMaterial({ 
+                    map: loader.load('./block_textures/'+item_data["sides"]), 
+                    color: item_data["color"], 
+                    opacity: item_data["opacity"], 
+                    transparent: true, 
+                    side: world.THREE.DoubleSide }), //back side
+            ];
+            const geo = new world.THREE.BoxGeometry( (20*opts.scale), (20*opts.scale), (20*opts.scale) );
+            let itemMesh = new world.THREE.Mesh( geo, itemMaterials );
+            itemMesh.position.set(opts.position[0], opts.position[1], opts.position[2]);
+            itemMesh.rotation.set(opts.rotation[0], opts.rotation[1], opts.rotation[2]);
+
+            world.scene.add(itemMesh);
+
+            return new Promise(resolve => {
+                item = new VoxelItem(itemMesh, world, opts);
+                item.hoverID = window.setInterval(hover, 100, item);
+                resolve(item);
+            });
+        }
     };
 };
 
