@@ -445,12 +445,12 @@ class InteractApp extends Component {
         this.setState( {clarify: true });
         setTimeout(() => {
           this.sendTaskStackPoll();
-        }, 1000);
+        }, 2000);
       } else {
         // Otherwise send out a new task stack poll after a delay
         setTimeout(() => {
           this.sendTaskStackPoll();
-        }, 1000);
+        }, 2000);
       }
     }
   }
