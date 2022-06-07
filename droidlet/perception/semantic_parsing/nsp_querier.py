@@ -15,6 +15,7 @@ from .utils.nsp_logger import NSPLogger
 from .utils.validate_json import JSONValidator
 from droidlet.base_util import hash_user
 
+
 class MockNSPQuerier(object):
     def __init__(self, opts):
         """
@@ -27,8 +28,9 @@ class MockNSPQuerier(object):
         DUMMY_TREE = {
             "dialogue_type": "GET_MEMORY",
         }
-        
+
         return DUMMY_TREE
+
 
 class NSPQuerier(object):
     def __init__(self, opts, agent=None):

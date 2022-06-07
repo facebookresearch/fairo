@@ -9,6 +9,7 @@ from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier, MockNSP
 from droidlet.shared_data_structs import MockOpt
 from prettytable import PrettyTable
 
+
 class fontcolors:
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
@@ -1184,6 +1185,7 @@ def compare_full_dictionaries(d1, d2):
     else:
         return compare_dicts(d1, d2)
 
+
 @pytest.mark.usefixtures("flag_m")
 class TestDialogueManager(unittest.TestCase):
     def setUp(self):
@@ -1195,12 +1197,12 @@ class TestDialogueManager(unittest.TestCase):
         if self.flag_m == "True":
             opts.flag_m = True
         self.opts = opts
-        
+
         if opts.flag_m:
             self.chat_parser = NSPQuerier(opts=opts)
         else:
             self.chat_parser = MockNSPQuerier(opts=opts)
-        
+
         self.ground_truth_actions = {}
         print("fetching data from ground truth, from directory: %r" % (opts.ground_truth_data_dir))
         if not opts.no_ground_truth:

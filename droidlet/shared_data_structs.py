@@ -124,7 +124,7 @@ class MockOpt:
         self.no_default_behavior = False
         self.log_timeline = False
         self.enable_timeline = False
-        # flag for whether loading true model or 
+        # flag for whether loading true model or
         self.flag_m = False
 
 
