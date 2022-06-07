@@ -339,7 +339,7 @@ class StateManager {
       alert("Received text message: " + res.chat);
     }
     this.memory.chats = res.allChats;
-
+    console.log("StateManager setChatResponse");
     // Set the commandState to display 'received' for one poll cycle and then switch
     this.memory.commandState = "received";
     setTimeout(() => {
@@ -365,6 +365,10 @@ class StateManager {
   }
 
   setLastChatActionDict(res) {
+<<<<<<< HEAD
+    console.log("StateManager setLastChatActionDict");
+=======
+>>>>>>> main
     this.memory.lastChatActionDict = res.action_dict;
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
@@ -398,6 +402,16 @@ class StateManager {
   }
 
   showAssistantReply(res) {
+<<<<<<< HEAD
+    console.log(
+      "StateManager showAssistantReply " + JSON.stringify(res.agent_reply)
+    );
+    this.memory.agent_replies.push({
+      msg: res.agent_reply,
+      timestamp: Date.now(),
+    });
+    this.memory.last_reply = res.agent_reply;
+=======
     // TODO handle content types besides plain text
     
     let chat, response_options, isQuestion, questionType;
@@ -421,6 +435,7 @@ class StateManager {
     }
     this.memory.last_reply = chat;
     
+>>>>>>> main
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
         ref.setState({
@@ -1060,6 +1075,7 @@ class StateManager {
       if (ref instanceof Memory2D) {
         ref.setState({
           isLoaded: true,
+          detections_from_memory: res.detections_from_memory,
           memory: this.memory,
           bot_xyz: [res.x, res.y, res.yaw],
           obstacle_map: res.map,
