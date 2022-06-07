@@ -38,7 +38,7 @@ from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset imp
 
 
 class NLUModelTrainer:
-    """Wrapper Class around training model and data loader"""
+    """Wrapper Class around NLU model trainer"""
 
     def __init__(self, args, model, tokenizer, model_identifier, full_tree_voc):
         # Setup arguments
@@ -310,7 +310,7 @@ class NLUModelTrainer:
 
         """
         # make data sampler
-        train_sampler = SequentialSampler(dataset)
+        train_sampler = RandomSampler(dataset)
         model_collate_fn = functools.partial(
             caip_collate, tokenizer=self.tokenizer, tree_to_text=self.args.tree_to_text
         )
