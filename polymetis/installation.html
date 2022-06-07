@@ -507,13 +507,11 @@ conda activate polymetis-local
 <li><p>Build from source:</p>
 <ul>
 <li><p>Optionally, build <a class="reference external" href="https://frankaemika.github.io/docs/libfranka.html">libfranka</a> for use on Franka Panda hardware:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># OPTIONAL: checkout custom version of libfranka</span>
-<span class="nb">cd</span> ./polymetis/src/clients/franka_panda_client/libfranka
-git checkout <span class="m">0</span>.9.0
-<span class="nb">cd</span> -
-
-<span class="c1"># Build libfranka</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build libfranka</span>
 ./scripts/build_libfranka.sh
+
+<span class="c1"># OPTIONAL: Build custom version of libfranka instead</span>
+./scripts/build_libfranka.sh &lt;version_tag_or_commit_hash&gt;
 </pre></div>
 </div>
 </li>

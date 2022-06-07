@@ -45,13 +45,11 @@
 1. Build from source:
     - Optionally, build [libfranka](https://frankaemika.github.io/docs/libfranka.html) for use on Franka Panda hardware:
         ```bash
-        # OPTIONAL: checkout custom version of libfranka
-        cd ./polymetis/src/clients/franka_panda_client/libfranka
-        git checkout 0.9.0
-        cd -
-        
         # Build libfranka
         ./scripts/build_libfranka.sh
+
+        # OPTIONAL: Build custom version of libfranka instead
+        ./scripts/build_libfranka.sh <version_tag_or_commit_hash>
         ```
     - Optionally, [install the CUDA-enabled version of PyTorch](https://pytorch.org/get-started/locally/) (by default, only the CPU version is enabled).
     - Build Polymetis from source:
