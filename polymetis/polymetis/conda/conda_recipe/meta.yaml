@@ -29,7 +29,7 @@ requirements:
     - spdlog
     - urdfdom=2.3.3=hc9558a2_0
     - urdfdom_headers=1.0.5=hc9558a2_2
-    - yaml-cpp
+    - yaml-cpp ==0.6.3
 
   run:
     - asv
@@ -41,7 +41,7 @@ requirements:
     - dash
     - doxygen
     - grpc-cpp ==1.41.1
-    - grpcio
+    - grpcio ==1.46.0
     - habitat-sim=0.2.1=py3.8_bullet_linux_fc7fb11ccec407753a73ab810d1dbb5f57d0f9b9
     - hydra-core==1.0.6
     - myst-parser
@@ -49,10 +49,13 @@ requirements:
     - openmpi ==2.1.2
     - pandas
     - pinocchio ==2.5.2
+    - pip
     - plotly
     - poco ==1.9.0 # needed by libfranka
     - protobuf
     - pybullet ==3.17
+    - pymodbus
+    - pyserial
     - pytest
     - pytest-benchmark
     - python ==3.8

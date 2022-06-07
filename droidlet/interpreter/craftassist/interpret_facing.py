@@ -1,9 +1,10 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-
+import numpy as np
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.interpreter import interpret_relative_direction
+from droidlet.interpreter.facing_utils import number_from_span, interpret_relative_yaw
 from word2number.w2n import word_to_num
 
 
@@ -24,10 +25,15 @@ def number_from_span(span):
     return degrees
 
 
+# WARNING: everything here is in degrees.
+# TODO: change fixed values in DSL to be radians
 class FacingInterpreter:
     def __call__(self, interpreter, speaker, d):
         self_mem = interpreter.memory.get_mem_by_id(interpreter.memory.self_memid)
         current_yaw, current_pitch = self_mem.get_yaw_pitch()
+        # WARNING:
+        current_yaw = np.rad2deg(current_yaw)
+        current_pitch = np.rad2deg(current_pitch)
         if d.get("yaw_pitch"):
             span = d["yaw_pitch"]
             # for now assumed in (yaw, pitch) or yaw, pitch or yaw pitch formats
@@ -42,20 +48,7 @@ class FacingInterpreter:
             w = d["pitch"].strip(" degrees").strip(" degree")
             return {"head_yaw_pitch": (current_yaw, word_to_num(w))}
         elif d.get("relative_yaw"):
-            # TODO in the task use turn angle
-            if "left" in d["relative_yaw"] or "right" in d["relative_yaw"]:
-                left = "left" in d["relative_yaw"] or "leave" in d["relative_yaw"]  # lemmatizer :)
-                degrees = number_from_span(d["relative_yaw"]) or 90
-                if degrees > 0 and left:
-                    return {"relative_yaw": -degrees}
-                else:
-                    return {"relative_yaw": degrees}
-            else:
-                try:
-                    degrees = int(number_from_span(d["relative_yaw"]))
-                    return {"relative_yaw": degrees}
-                except:
-                    pass
+            return interpret_relative_yaw(d)
         elif d.get("relative_pitch"):
             if "down" in d["relative_pitch"] or "up" in d["relative_pitch"]:
                 down = "down" in d["relative_pitch"]

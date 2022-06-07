@@ -14,8 +14,15 @@ from agents.scheduler import EmptyScheduler
 from droidlet.event import sio, dispatch
 from droidlet.interpreter import InterpreterBase
 from droidlet.memory.save_and_fetch_commands import *
+from droidlet.memory.memory_nodes import (
+    TaskNode,
+    TripleNode,
+    ChatNode,
+    ProgramNode
+)
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.perception.semantic_parsing.semantic_parsing_util import postprocess_logical_form
+
 random.seed(0)
 
 DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
@@ -148,19 +155,23 @@ class DroidletAgent(BaseAgent):
         def get_chat_action_dict(sid, chat):
             logging.debug(f"Looking for action dict for command [{chat}] in memory")
             logical_form = None
+            ref_obj_data = None
             try:
                 chat_memids, _ = self.memory.basic_search(
                     f"SELECT MEMORY FROM Chat WHERE chat={chat}"
                 )
-                logical_form_triples = self.memory.get_triples(
-                    subj=chat_memids[0], pred_text="has_logical_form"
+                logical_form_triples = self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                    self.memory, subj=chat_memids[0], pred_text="has_logical_form"
                 )
                 if logical_form_triples:
                     logical_form_mem = self.memory.get_mem_by_id(logical_form_triples[0][2])
                     logical_form = logical_form_mem.logical_form
                 if logical_form:
                     logical_form = postprocess_logical_form(
-                        self.memory, speaker="dashboard", chat=chat, logical_form=logical_form_mem.logical_form
+                        self.memory,
+                        speaker="dashboard",
+                        chat=chat,
+                        logical_form=logical_form_mem.logical_form,
                     )
                     where = "WHERE <<?, attended_while_interpreting, #{}>>".format(
                         logical_form_mem.memid
@@ -206,9 +217,12 @@ class DroidletAgent(BaseAgent):
 
         @sio.on("taskStackPoll")
         def poll_task_stack(sid):
-            logging.info("Poll to see if task stack is empty")
             task = True if self.memory.task_stack_peek() else False
-            res = {"task": task}
+            _, interpreter_mems = self.memory.basic_search(
+                "SELECT MEMORY FROM Interpreter WHERE finished = 0"
+            )
+            clairfy = True if len(interpreter_mems) > 0 else False
+            res = {"task": task, "clarify": clairfy}
             sio.emit("taskStackPollResponse", res)
 
     def init_physical_interfaces(self):
@@ -293,32 +307,30 @@ class DroidletAgent(BaseAgent):
         self.maybe_dump_memory_to_dashboard()
 
     def task_step(self, sleep_time=0.25):
-        query = "SELECT MEMORY FROM Task WHERE prio=-1"
+        query = "SELECT MEMORY FROM Task WHERE prio={}".format(TaskNode.CHECK_PRIO)
         _, task_mems = self.memory.basic_search(query)
         for mem in task_mems:
             if mem.task.init_condition.check():
-                mem.get_update_status({"prio": 0})
+                mem.get_update_status({"prio": TaskNode.CHECK_PRIO + 1})
 
-        # this is "select TaskNodes whose priority is >= 0 and are not paused"
-        query = "SELECT MEMORY FROM Task WHERE ((prio>=0) AND (paused <= 0))"
-        _, task_mems = self.memory.basic_search(query)
-        for mem in task_mems:
-            if mem.task.run_condition.check():
-                # eventually we need to use the multiplex filter to decide what runs
-                mem.get_update_status({"prio": 1, "running": 1})
-            if mem.task.stop_condition.check():
-                mem.get_update_status({"prio": 0, "running": 0})
-        # this is "select TaskNodes that are runnning (running >= 1) and are not paused"
-        query = "SELECT MEMORY FROM Task WHERE ((running>=1) AND (paused <= 0))"
+        query = "SELECT MEMORY FROM Task WHERE ((prio>{}) AND (paused <= 0))".format(
+            TaskNode.CHECK_PRIO
+        )
         _, task_mems = self.memory.basic_search(query)
         if not task_mems:
             time.sleep(sleep_time)
             return
         task_mems = self.scheduler.filter(task_mems)
+        task_mems.sort(reverse=True, key=lambda x: x.prio)
         for mem in task_mems:
-            mem.task.step()
-            if mem.task.finished:
-                mem.update_task()
+            # prio/finished could have been changed by another Task, e.g. a ControlBlock
+            mem.update_node()
+            if mem.prio > TaskNode.CHECK_PRIO:
+                # FIXME set the other ones to running=0.  doesn't matter rn bc scheduler is empty, everything runs
+                mem.get_update_status({"running": 1})
+                mem.task.step()
+                if mem.task.finished:
+                    mem.update_task()
 
     def get_time(self):
         # round to 100th of second, return as
@@ -329,18 +341,21 @@ class DroidletAgent(BaseAgent):
         """this munges the results of the semantic parser and writes them to memory"""
 
         # add postprocessed chat here
-        chat_memid = self.memory.add_chat(
-            self.memory.get_player_by_name(speaker).memid, preprocessed_chat
+        memid, _ = self.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}')
+        chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
+            self.memory, memid[0], preprocessed_chat
         )
         post_processed_parse = postprocess_logical_form(
             self.memory, speaker=speaker, chat=chat, logical_form=chat_parse
         )
-        logical_form_memid = self.memory.add_logical_form(post_processed_parse)
-        self.memory.add_triple(
-            subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
+        logical_form_memid = self.memory.nodes[ProgramNode.NODE_TYPE].create(self.memory, post_processed_parse)
+        self.memory.nodes[TripleNode.NODE_TYPE].create(
+            self.memory, subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
         )
         # New chat, mark as uninterpreted.
-        self.memory.tag(subj_memid=chat_memid, tag_text="uninterpreted")
+        self.memory.nodes[TripleNode.NODE_TYPE].tag(
+            self.memory, subj_memid=chat_memid, tag_text="uninterpreted"
+        )
         return logical_form_memid, chat_memid
 
     def perceive(self, force=False):
@@ -351,9 +366,14 @@ class DroidletAgent(BaseAgent):
             force=force
         )
         # unpack the results from the semantic parsing model
-        force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
-            nlu_perceive_output
-        )
+        (
+            force,
+            received_chats_flag,
+            speaker,
+            chat,
+            preprocessed_chat,
+            chat_parse,
+        ) = nlu_perceive_output
         if received_chats_flag:
             # put results from semantic parsing model into memory, if necessary
             self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)
@@ -398,7 +418,7 @@ class DroidletAgent(BaseAgent):
 
         # check to see if some Tasks were put in memory that need to be
         # hatched using agent object (self):
-        query = "SELECT MEMORY FROM Task WHERE prio==-3"
+        query = "SELECT MEMORY FROM Task WHERE prio={}".format(TaskNode.EGG_PRIO)
         _, task_mems = self.memory.basic_search(query)
         for task_mem in task_mems:
             task_mem.task["class"](

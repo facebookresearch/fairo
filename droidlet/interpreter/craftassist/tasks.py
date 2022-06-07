@@ -101,6 +101,9 @@ class DanceMove(Task):
         agent = self.agent
         if self.finished:
             return
+        # WARNING: these are in degrees to match MC and DSL;
+        # memory stores angles in radians; but these are give by interpreter in angles
+        # FIXME change DSL to use radians for fixed values and convert everything to radians
         if self.relative_yaw:
             agent.turn_angle(self.relative_yaw)
         if self.relative_pitch:
@@ -108,8 +111,7 @@ class DanceMove(Task):
         if self.head_xyz is not None:
             agent.look_at(self.head_xyz[0], self.head_xyz[1], self.head_xyz[2])
         elif self.head_yaw_pitch is not None:
-            # warning: pitch is flipped!  client uses -pitch for up,
-            agent.set_look(self.head_yaw_pitch[0], -self.head_yaw_pitch[1])
+            agent.set_look(self.head_yaw_pitch[0], self.head_yaw_pitch[1])
 
         if self.translate:
             step = self.STEP_FNS[self.translate]
@@ -286,8 +288,6 @@ class Build(Task):
         self.schematic, _ = blocks_list_to_npy(task_data["blocks_list"])
         self.origin = task_data["origin"]
         self.verbose = task_data.get("verbose", True)
-        self.relations = task_data.get("relations", [])
-        self.default_behavior = task_data.get("default_behavior")
         self.force = task_data.get("force", False)
         self.attempts = 3 * np.ones(self.schematic.shape[:3], dtype=np.uint8)
         self.fill_message = task_data.get("fill_message", False)
@@ -315,7 +315,9 @@ class Build(Task):
             if mem and all(xyz in xyzs for xyz in mem.blocks.keys()):
                 for pred in ["has_tag", "has_name", "has_colour"]:
                     self.destroyed_block_object_triples.extend(
-                        agent.memory.get_triples(subj=mem.memid, pred_text=pred)
+                        agent.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                            agent.memory, subj=mem.memid, pred_text=pred
+                        )
                     )
                 logging.debug(
                     "Destroying block object {} tags={}".format(
@@ -394,44 +396,10 @@ class Build(Task):
             ]
         )
         if len(xyzs) != 0:
-            logging.debug("Excavating {} blocks first".format(len(xyzs)))
-            target = self.get_next_destroy_target(agent, xyzs)
-            if target is None:
-                logging.debug("No path from {} to {}".format(agent.pos, xyzs))
-                agent.send_chat("There's no path, so I'm giving up")
-                self.finished = True
-                return
-
-            if manhat_dist(agent.pos, target) <= self.DIG_REACH:
-                success = agent.dig(*target)
-                if success:
-                    agent.memory.maybe_remove_inst_seg(target)
-                    if self.is_destroy_schm:
-                        agent.memory.maybe_remove_block_from_memory(
-                            target, (0, 0), agent.areas_to_perceive
-                        )
-                    else:
-                        interesting, player_placed, agent_placed = agent.perception_modules[
-                            "low_level"
-                        ].mark_blocks_with_env_change(
-                            target,
-                            (0, 0),
-                            agent.low_level_data["boring_blocks"],
-                            agent_placed=True,
-                        )
-                        agent.memory.maybe_add_block_to_memory(
-                            interesting, player_placed, agent_placed, target, (0, 0)
-                        )
-                        self.add_tags(agent, (target, (0, 0)))
-                    agent.get_changed_blocks()
-            else:
-                mv = Move(agent, {"target": target, "approx": self.DIG_REACH})
-                self.add_child_task(mv)
-
+            self.remove_blocks(xyzs, agent)
             return
-
         # for a build task with destroy schematic,
-        # it is done when all different blocks are removed
+        # it is done when all different blocks are removed.
         elif self.is_destroy_schm:
             self.finish(agent)
             return
@@ -449,74 +417,117 @@ class Build(Task):
             self.step_any_dir(agent)
             return
         if manhat_dist(agent.pos, target) <= self.PLACE_REACH:
-            # block is within reach
-            assert current_idm[0] != idm[0], "current={} idm={}".format(current_idm, idm)
-            if current_idm[0] != 0:
-                logging.debug(
-                    "removing block {} @ {} from {}".format(current_idm, target, agent.pos)
-                )
-                agent.dig(*target)
-            if idm[0] > 0:
-                agent.set_held_item(idm)
-                logging.debug("placing block {} @ {} from {}".format(idm, target, agent.pos))
-                x, y, z = target
-                if agent.place_block(x, y, z):
-                    B = agent.get_blocks(x, x, y, y, z, z)
-                    if B[0, 0, 0, 0] == idm[0]:
-                        interesting, player_placed, agent_placed = agent.perception_modules[
-                            "low_level"
-                        ].mark_blocks_with_env_change(
-                            (x, y, z),
-                            tuple(idm),
-                            agent.low_level_data["boring_blocks"],
-                            agent_placed=True,
-                        )
-                        agent.memory.maybe_add_block_to_memory(
-                            interesting, player_placed, agent_placed, (x, y, z), tuple(idm)
-                        )
-                        changed_blocks = agent.get_changed_blocks()
-                        self.new_blocks.append(((x, y, z), tuple(idm)))
-                        self.add_tags(agent, ((x, y, z), tuple(idm)))
-                    else:
-                        logging.error(
-                            "failed to place block {} @ {}, but place_block returned True. \
-                                Got {} instead.".format(
-                                idm, target, B[0, 0, 0, :]
-                            )
-                        )
-                else:
-                    logging.warn("failed to place block {} from {}".format(target, agent.pos))
-                if idm[0] == 6:  # hacky: all saplings have id 6
-                    agent.set_held_item([351, 15])  # use bone meal on tree saplings
-                    if len(changed_blocks) > 0:
-                        sapling_pos = changed_blocks[0][0]
-                        x, y, z = sapling_pos
-                        for _ in range(6):  # use at most 6 bone meal (should be enough)
-                            agent.use_item_on_block(x, y, z)
-                            changed_blocks = agent.get_changed_blocks()
-                            changed_block_poss = {block[0] for block in changed_blocks}
-                            # sapling has grown to a full tree, stop using bone meal
-                            if (x, y, z) in changed_block_poss:
-                                break
-
-            self.attempts[tuple(yzx)] -= 1
-            if self.attempts[tuple(yzx)] == 0 and not self.giving_up_message_sent:
-                agent.send_chat(
-                    "I'm skipping a block because I can't place it. Maybe something is in the way."
-                )
-                self.giving_up_message_sent = True
+            self.try_place_block(target, yzx, current_idm, idm, agent)
+            return
         else:
             # too far to place; move first
             task = Move(agent, {"target": target, "approx": self.PLACE_REACH})
-
             self.add_child_task(task)
+
+    def remove_blocks(self, xyzs, agent):
+        logging.debug("Excavating {} blocks first".format(len(xyzs)))
+        target = self.get_next_destroy_target(agent, xyzs)
+        if target is None:
+            logging.debug("No path from {} to {}".format(agent.pos, xyzs))
+            agent.send_chat("There's no path, so I'm giving up")
+            self.finished = True
+            return
+
+        if manhat_dist(agent.pos, target) <= self.DIG_REACH:
+            success = agent.dig(*target)
+            if success:
+                self.perceive_removed_blocks(target, agent)
+        else:
+            mv = Move(agent, {"target": target, "approx": self.DIG_REACH})
+            self.add_child_task(mv)
+
+        return
+
+    # FIXME, this should go in agent...
+    # is being done here just so its easy to know agent placed block
+    def perceive_removed_blocks(self, target, agent):
+        agent.memory.maybe_remove_inst_seg(target)
+        if self.is_destroy_schm:
+            agent.memory.maybe_remove_block_from_memory(target, (0, 0), agent.areas_to_perceive)
+        else:
+            interesting, player_placed, agent_placed = agent.perception_modules[
+                "low_level"
+            ].mark_blocks_with_env_change(
+                target,
+                (0, 0),
+                agent.low_level_data["boring_blocks"],
+                agent_placed=True,
+            )
+            agent.memory.maybe_add_block_to_memory(
+                interesting, player_placed, agent_placed, target, (0, 0)
+            )
+            self.add_tags(agent, (target, (0, 0)))
+        # this is just clearing the changed blocks
+        agent.get_changed_blocks()
+
+    def try_place_block(self, target, yzx, current_idm, idm, agent):
+        assert current_idm[0] != idm[0], "current={} idm={}".format(current_idm, idm)
+        assert idm[0] > 0
+        agent.set_held_item(idm)
+        logging.debug("placing block {} @ {} from {}".format(idm, target, agent.pos))
+        x, y, z = target.tolist()
+        if agent.place_block(x, y, z):
+            B = agent.get_blocks(x, x, y, y, z, z)
+            if B[0, 0, 0, 0] == idm[0]:
+                self.new_blocks.append((target, tuple(idm)))
+                self.perceive_placed_block((x, y, z), idm, agent)
+            else:
+                logging.error(
+                    "failed to place block {} @ {}, but place_block returned True. \
+                        Got {} instead.".format(
+                        idm, target, B[0, 0, 0, :]
+                    )
+                )
+        else:
+            logging.warn("failed to place block {} from {}".format(target, agent.pos))
+        if idm[0] == 6:  # hacky: all saplings have id 6
+            agent.set_held_item([351, 15])  # use bone meal on tree saplings
+            if len(changed_blocks) > 0:
+                sapling_pos = changed_blocks[0][0]
+                x, y, z = sapling_pos
+                for _ in range(6):  # use at most 6 bone meal (should be enough)
+                    agent.use_item_on_block(x, y, z)
+                    changed_blocks = agent.get_changed_blocks()
+                    changed_block_poss = {block[0] for block in changed_blocks}
+                    # sapling has grown to a full tree, stop using bone meal
+                    if (x, y, z) in changed_block_poss:
+                        break
+
+        self.attempts[tuple(yzx)] -= 1
+        if self.attempts[tuple(yzx)] == 0 and not self.giving_up_message_sent:
+            agent.send_chat(
+                "I'm skipping a block because I can't place it. Maybe something is in the way."
+            )
+            self.giving_up_message_sent = True
+
+    # FIXME, this should go in agent...
+    # is being done here just so its easy to know agent placed block
+    def perceive_placed_block(self, target, idm, agent):
+        interesting, player_placed, agent_placed = agent.perception_modules[
+            "low_level"
+        ].mark_blocks_with_env_change(
+            target,
+            tuple(idm),
+            agent.low_level_data["boring_blocks"],
+            agent_placed=True,
+        )
+        agent.memory.maybe_add_block_to_memory(
+            interesting, player_placed, agent_placed, target, tuple(idm)
+        )
+        changed_blocks = agent.get_changed_blocks()
+        self.add_tags(agent, (target, tuple(idm)))
 
     def add_tags(self, agent, block):
         # xyz, _ = npy_to_blocks_list(self.schematic, self.origin)[0]
         xyz = block[0]
         # this should not be an empty list- it is assumed the block passed in was just placed
         try:
-            blockobj_memid = agent.memory.get_block_object_ids_by_xyz(xyz)[0]
+            blockobj_memid = agent.memory.get_object_info_by_xyz(xyz, "BlockObjects")[0]
             self.blockobj_memid = blockobj_memid
         except:
             logging.debug(
@@ -537,15 +548,19 @@ class Build(Task):
                 TripleNode.create(agent.memory, subj=blockobj_memid, pred_text=pred, obj_text=obj)
                 # sooooorrry  FIXME? when we handle triples better
                 if "has_" in pred:
-                    agent.memory.tag(self.blockobj_memid, obj)
+                    agent.memory.nodes[TripleNode.NODE_TYPE].tag(
+                        agent.memory, self.blockobj_memid, obj
+                    )
 
-        agent.memory.tag(blockobj_memid, "_in_progress")
+        agent.memory.nodes[TripleNode.NODE_TYPE].tag(agent.memory, blockobj_memid, "_in_progress")
         if self.dig_message:
-            agent.memory.tag(blockobj_memid, "hole")
+            agent.memory.nodes[TripleNode.NODE_TYPE].tag(agent.memory, blockobj_memid, "hole")
 
     def finish(self, agent):
         if self.blockobj_memid is not None:
-            agent.memory.untag(self.blockobj_memid, "_in_progress")
+            agent.memory.nodes[TripleNode.NODE_TYPE].untag(
+                agent.memory, self.blockobj_memid, "_in_progress"
+            )
         if self.verbose:
             if self.is_destroy_schm:
                 agent.send_chat("I finished destroying this")
@@ -865,18 +880,21 @@ class Spawn(Task):
                 mobmem = agent.memory.get_mem_by_id(memid)
                 agent.memory.update_recent_entities(mems=[mobmem])
                 if self.memid is not None:
-                    agent.memory.add_triple(
-                        subj=self.memid, pred_text="task_effect_", obj=mobmem.memid
+                    agent.memory.nodes[TripleNode.NODE_TYPE].create(
+                        agent.memory, subj=self.memid, pred_text="task_effect_", obj=mobmem.memid
                     )
                     # the chat_effect_ triple was already made when the task is added if there was a chat...
                     # but it points to the task memory.  link the chat to the mob memory:
-                    chat_mem_triples = agent.memory.get_triples(
-                        subj=None, pred_text="chat_effect_", obj=self.memid
+                    chat_mem_triples = agent.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                        agent.memory, subj=None, pred_text="chat_effect_", obj=self.memid
                     )
                     if len(chat_mem_triples) > 0:
                         chat_memid = chat_mem_triples[0][0]
-                        agent.memory.add_triple(
-                            subj=chat_memid, pred_text="chat_effect_", obj=mobmem.memid
+                        agent.memory.nodes[TripleNode.NODE_TYPE].create(
+                            agent.memory,
+                            subj=chat_memid,
+                            pred_text="chat_effect_",
+                            obj=mobmem.memid,
                         )
             self.finished = True
 
@@ -968,7 +986,9 @@ class Get(Task):
         if delta > 0:
             agent.inventory.add_item_stack(self.idm, (self.obj_memid, delta))
             agent.send_chat("Got Item!")
-            agent.memory.tag(self.obj_memid, "_in_inventory")
+            agent.memory.nodes[TripleNode.NODE_TYPE].tag(
+                agent.memory, self.obj_memid, "_in_inventory"
+            )
             self.finished = True
             return
 
@@ -1044,7 +1064,9 @@ class Drop(Task):
         if dropped_item_stack:
             agent.memory.update_item_stack_eid(self.obj_memid, dropped_item_stack.entityId)
             agent.memory.set_item_stack_position(dropped_item_stack)
-            agent.memory.tag(self.obj_memid, "_on_ground")
+            agent.memory.nodes[TripleNode.NODE_TYPE].tag(
+                agent.memory, self.obj_memid, "_on_ground"
+            )
 
         x, y, z = agent.get_player().pos
         target = (x, y + 2, z)

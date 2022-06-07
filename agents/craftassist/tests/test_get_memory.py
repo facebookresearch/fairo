@@ -7,6 +7,7 @@ import droidlet.base_util
 import droidlet.lowlevel.minecraft.shape_util
 import droidlet.lowlevel.minecraft.shapes
 import droidlet.lowlevel.minecraft.shapes as shapes
+from droidlet.memory.memory_nodes import TripleNode
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.interpreter.tests.all_test_commands import *
 
@@ -15,19 +16,23 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
         cube_triples = {"has_name": "cube", "has_shape": "cube"}
-        self.cube = self.add_object(droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)), (9, 63, -2), relations=cube_triples)
+        self.cube = self.add_object(
+            droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)),
+            (1, 63, -2),
+            relations=cube_triples,
+        )
         sphere_triples = {"has_name": "sphere", "has_shape": "sphere"}
         self.sphere = self.add_object(
-            shapes.sphere(radius=1), (11, 64, 2), relations=sphere_triples
+            shapes.sphere(radius=1), (-1, 64, 2), relations=sphere_triples
         )
         triangle_triples = {"has_name": "triangle", "has_shape": "triangle"}
-        self.triangle = self.add_object(shapes.triangle(), (6, 64, -5), relations=triangle_triples)
+        self.triangle = self.add_object(shapes.triangle(), (4, 64, -5), relations=triangle_triples)
         self.set_looking_at(list(self.cube.blocks.keys())[0])
 
     def test_get_name_and_left_of(self):
         # set the name
         name = "fluffball"
-        self.agent.memory.add_triple(subj=self.cube.memid, pred_text="has_name", obj_text=name)
+        self.agent.memory.nodes[TripleNode.NODE_TYPE].create(self.agent.memory, subj=self.cube.memid, pred_text="has_name", obj_text=name)
 
         # get the name
         d = GET_MEMORY_COMMANDS["what is where I am looking"]
@@ -45,7 +50,7 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
         self.handle_logical_form(d, stop_on_chat=True)
         # check that proper chat was sent
         # note: the agent excludes itself from these by default, maybe fix?
-        self.assertIn("SPEAKER", self.last_outgoing_chat())
+        self.assertIn("sphere", self.last_outgoing_chat())
 
         d = GET_MEMORY_COMMANDS["what is the thing closest to me?"]
         self.handle_logical_form(d, stop_on_chat=True)
@@ -116,17 +121,24 @@ class GetMemoryCountAndSizeTest(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
         red_cube_triples = {"has_name": "cube", "has_shape": "cube", "has_colour": "red"}
+        yellow_cube_triples = {"has_name": "cube", "has_shape": "cube", "has_colour": "yellow"}
         blue_cube_triples = {"has_name": "cube", "has_shape": "cube", "has_colour": "blue"}
         red_sphere_triples = {"has_name": "sphere", "has_shape": "sphere", "has_colour": "red"}
         blue_sphere_triples = {"has_name": "sphere", "has_shape": "sphere", "has_colour": "blue"}
         self.cube1 = self.add_object(
-            droidlet.lowlevel.minecraft.shapes.cube(size=2, bid=(35, 14)), (19, 63, 14), relations=red_cube_triples
+            droidlet.lowlevel.minecraft.shapes.cube(size=2, bid=(35, 14)),
+            (19, 63, 14),
+            relations=red_cube_triples,
         )
         self.cube2 = self.add_object(
-            droidlet.lowlevel.minecraft.shapes.cube(size=2, bid=(35, 14)), (15, 63, 15), relations=red_cube_triples
+            droidlet.lowlevel.minecraft.shapes.cube(size=2, bid=(35, 14)),
+            (15, 63, 15),
+            relations=yellow_cube_triples,
         )
         self.cube3 = self.add_object(
-            droidlet.lowlevel.minecraft.shapes.cube(size=3, bid=(35, 11)), (14, 63, 19), relations=blue_cube_triples
+            droidlet.lowlevel.minecraft.shapes.cube(size=3, bid=(35, 11)),
+            (14, 63, 19),
+            relations=blue_cube_triples,
         )
         self.sphere1 = self.add_object(
             shapes.sphere(bid=(35, 14), radius=2), (14, 63, 8), relations=red_sphere_triples

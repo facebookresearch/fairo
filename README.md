@@ -8,6 +8,6 @@
 
 - [Droidlet](./droidlet) is an **_early research project for AI researchers_** to explore ideas around grounded dialogue, interactive learning and human-computer interfaces. It helps you rapidly build agents (real or virtual) that perform a wide variety of tasks specified by humans. The agents can use natural language, memory and humans in the loop.
 - [Polymetis](./polymetis) is a PyTorch-based real-time controller manager. It lets you write PyTorch controllers for robots, test them in simulation, and seamlessly transfer to real-time hardware.
-- [Facebook Robotics Platform](./fbrp) lets you deploy, launch, manage, and orchestrate heterogeneous robots with ease.
+- [Meta Robotics Platform](./mrp) lets you deploy, launch, manage, and orchestrate heterogeneous robots with ease.
 
 Fairo is [MIT licensed](./LICENSE).

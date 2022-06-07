@@ -6,9 +6,11 @@ import unittest
 import numpy as np
 
 from droidlet.interpreter.robot.tests.base_fakeagent_test_case import BaseFakeAgentTestCase
-import droidlet.lowlevel.rotation as rotation
+from droidlet.shared_data_struct import rotation
 from droidlet.interpreter.tests.all_test_commands import MOVE_COMMANDS
-from droidlet.perception.semantic_parsing.tests.test_y_print_parsing_report import GROUND_TRUTH_PARSES
+from droidlet.perception.semantic_parsing.tests.test_y_print_parsing_report import (
+    GROUND_TRUTH_PARSES,
+)
 from droidlet.lowlevel.locobot.tests.test_utils import assert_turn_degree
 
 CUBE1 = (9, 0, 4)
@@ -17,13 +19,17 @@ TOY = (2, 0, 4)
 CAMERA_HEIGHT = 1.0
 
 
-def add_two_cubes(test):
+def add_first_cube(test):
     test.agent.add_object(CUBE1, tags=["cube", "_physical_object"])
+
+def add_second_cube(test):
     test.agent.add_object(CUBE2, tags=["cube", "_physical_object"])
 
 
 def add_a_toy(test):
     test.agent.add_object(TOY, tags=["toy", "_physical_object"])
+
+
 #    test.set_looking_at(test.cube_right[0][0])
 
 
@@ -91,7 +97,7 @@ class MoveAbsoluteTest(BaseFakeAgentTestCase):
 class MoveRefObjectsTest(BaseFakeAgentTestCase):
     def setUp(self):
         super().setUp()
-        add_two_cubes(self)
+        add_first_cube(self)
 
     # do this one after we have players
     #    def test_move_here(self):
@@ -105,13 +111,15 @@ class MoveRefObjectsTest(BaseFakeAgentTestCase):
         d = MOVE_COMMANDS["go to the cube"]
         self.handle_logical_form(d)
 
-        assert np.abs(self.agent.pos[1] - CUBE1[2]) < 1 or np.abs(self.agent.pos[1] - CUBE2[2]) < 1
+        assert np.abs(self.agent.pos[1] - CUBE1[2]) < 1
 
     def test_between_cubes(self):
+        add_second_cube(self)
         d = MOVE_COMMANDS["go between the cubes"]
         self.handle_logical_form(d)
         print(self.agent.pos)
         assert self.agent.pos[1] > CUBE1[2] and self.agent.pos[1] < CUBE2[2]
+
 
 @unittest.skip("skipping until fake agent mover has caught up with hello mover")
 class GetBringTest(BaseFakeAgentTestCase):
@@ -154,6 +162,7 @@ class TurnTest(BaseFakeAgentTestCase):
         old_yaw = changes[0]["agent"]["base_yaw"]
         new_yaw = changes[1]["agent"]["base_yaw"]
         assert_turn_degree(old_yaw, new_yaw, 90)
+
 
 @unittest.skip("skipping until fake agent mover has caught up with hello mover")
 class DanceTest(BaseFakeAgentTestCase):

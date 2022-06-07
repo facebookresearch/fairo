@@ -87,7 +87,7 @@ add_custom_command(
 )
 
 add_library(
-    generated_grpc_protos 
+    generated_grpc_protos
       ${loader_proto_srcs}
       ${loader_proto_hdrs}
       ${loader_grpc_srcs}
@@ -104,7 +104,7 @@ include_directories(
     "${CMAKE_CURRENT_BINARY_DIR}"
     "$ENV{CONDA_PREFIX}/include/"
     ${EIGEN3_INCLUDE_DIR}
-    ${pinocchio_INCLUDE_DIRS} 
+    ${pinocchio_INCLUDE_DIRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/pinocchio_isolation/include"
 )

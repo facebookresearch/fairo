@@ -9,10 +9,8 @@ import tempfile
 import threading
 import atexit
 import logging
-from enum import Enum
 
 import grpc  # This requires `conda install grpcio protobuf`
-import numpy as np
 import torch
 
 import polymetis
@@ -324,7 +322,7 @@ class RobotInterface(BaseRobotInterface):
         """Sets the home pose for `go_home()` to use."""
         self.home_pose = home_pose
 
-    def set_robot_model(self, robot_description_path: str, ee_link_name: str):
+    def set_robot_model(self, robot_description_path: str, ee_link_name: str = None):
         """Loads the URDF as a RobotModelPinocchio."""
         # Create Torchscript Pinocchio model for DynamicsControllers
         self.robot_model = toco.models.RobotModelPinocchio(
@@ -415,8 +413,8 @@ class RobotInterface(BaseRobotInterface):
         torch_policy = toco.policies.JointTrajectoryExecutor(
             joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
             joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
-            Kp=Kq or self.Kq_default,
-            Kd=Kqd or self.Kqd_default,
+            Kp=self.Kq_default if Kq is None else Kq,
+            Kd=self.Kqd_default if Kqd is None else Kqd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
@@ -510,8 +508,8 @@ class RobotInterface(BaseRobotInterface):
         torch_policy = toco.policies.EndEffectorTrajectoryExecutor(
             ee_pose_trajectory=[waypoint["pose"] for waypoint in waypoints],
             ee_twist_trajectory=[waypoint["twist"] for waypoint in waypoints],
-            Kp=Kx or self.Kx_default,
-            Kd=Kxd or self.Kxd_default,
+            Kp=self.Kx_default if Kx is None else Kx,
+            Kd=self.Kxd_default if Kxd is None else Kxd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
@@ -529,8 +527,8 @@ class RobotInterface(BaseRobotInterface):
         """
         torch_policy = toco.policies.JointImpedanceControl(
             joint_pos_current=self.get_joint_positions(),
-            Kp=Kq or self.Kq_default,
-            Kd=Kqd or self.Kqd_default,
+            Kp=self.Kq_default if Kq is None else Kq,
+            Kd=self.Kqd_default if Kqd is None else Kqd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
@@ -544,8 +542,8 @@ class RobotInterface(BaseRobotInterface):
         """
         torch_policy = toco.policies.CartesianImpedanceControl(
             joint_pos_current=self.get_joint_positions(),
-            Kp=Kx or self.Kx_default,
-            Kd=Kxd or self.Kxd_default,
+            Kp=self.Kx_default if Kx is None else Kx,
+            Kd=self.Kxd_default if Kxd is None else Kxd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )

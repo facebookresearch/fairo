@@ -24,7 +24,7 @@ from droidlet.lowlevel.robot_mover_utils import (
 
 # FXIME!!! everything here should be essentially self-contained
 from agents.locobot.self_perception import SelfPerception
-import droidlet.lowlevel.rotation as rotation
+import droidlet.shared_data_struct.rotation as rotation
 from droidlet.perception.robot.tests.utils import get_fake_detection
 from droidlet.shared_data_struct.robot_shared_utils import Pos, RobotPerceptionData
 
@@ -78,10 +78,12 @@ class FakeMoverCommand:
                 {"name": self.NAME, "step_data": self.get_step_data()}
             )
 
-    def __call__(self, *args):
+    def __call__(self, *args, **kwargs):
         if hasattr(self.agent, "recorder"):
-            self.agent.recorder.record_action({"name": self.NAME, "args": list(args)})
-        return self.action(*args)
+            self.agent.recorder.record_action(
+                {"name": self.NAME, "args": list(args), "kwargs": list(kwargs)}
+            )
+        return self.action(*args, **kwargs)
 
 
 def abs_min(x, y):
@@ -94,7 +96,8 @@ def abs_min(x, y):
 class MoveAbsolute(FakeMoverCommand):
     NAME = "move_absolute"
 
-    def action(self, xyt_positions):
+    def action(self, xyt_positions, blocking=False):
+        # ignores the "blocking" keyword, sig just to match regular agent
         self.xyt_positions = xyt_positions
         self.position_index = 0
         self.agent.mover.current_action = self
@@ -336,6 +339,11 @@ class FakeMover:
         else:
             return self.current_action.step()
 
+    def is_busy(self):
+        if not self.current_action:
+            return False
+        return True
+
     def is_object_in_gripper(self):
         return self.gripper_state == "occupied"
 
@@ -354,6 +362,9 @@ class FakeMover:
 
     def get_pan(self):
         return self.agent.pan
+
+    def stop(self):
+        pass
 
     def reset(self):
         pass
@@ -454,6 +465,7 @@ class FakeAgent(DroidletAgent):
         self.logical_form = {"logical_form": lf, "chatstr": chatstr, "speaker": speaker}
 
     def step(self):
+        self.mover.bot_step()
         if hasattr(self.world, "step"):
             self.world.step()
         if hasattr(self, "recorder"):
@@ -503,7 +515,10 @@ class FakeAgent(DroidletAgent):
         for raw_chatstr in self.world.chat_log[c:]:
             match = re.search("^<([^>]+)> (.*)", raw_chatstr)
             speaker_name = match.group(1)
-            if not self.memory.get_player_by_name(speaker_name):
+            memid, memnode = self.memory.basic_search(
+                f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker_name}"
+            )
+            if len(memnode) == 0:
                 # FIXME! name used as eid
                 PlayerNode.create(
                     self.memory,
@@ -513,9 +528,11 @@ class FakeAgent(DroidletAgent):
         return self.world.chat_log[c:].copy()
 
     def get_player_struct_by_name(self, speaker_name):
-        p = self.memory.get_player_by_name(speaker_name)
-        if p:
-            return p.get_struct()
+        _, p = self.memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player and name={speaker_name}"
+        )
+        if len(p) != 0:
+            return p[0].get_struct()
         else:
             return None
 

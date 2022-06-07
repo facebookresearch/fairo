@@ -79,14 +79,8 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
   }
 
   // Parse yaml
-  bool limit_rate_ = config["limit_rate"].as<bool>();
-  double lpf_cutoff_freq = config["lpf_cutoff_frequency"].as<double>();
-  if (lpf_cutoff_freq > 0.0) {
-    double tmp = 2 * M_PI * lpf_cutoff_freq / FRANKA_HZ;
-    lpf_alpha_ = tmp / (tmp + 1.0);
-  } else {
-    lpf_alpha_ = 1.0;
-  }
+  limit_rate_ = config["limit_rate"].as<bool>();
+  lpf_cutoff_freq_ = config["lpf_cutoff_frequency"].as<double>();
 
   cartesian_pos_ulimits_ =
       config["limits"]["cartesian_pos_upper"].as<std::array<double, 3>>();
@@ -162,8 +156,7 @@ void FrankaTorqueControlClient::run() {
     while (is_robot_operational) {
       // Send lambda function
       try {
-        robot_ptr_->control(control_callback, limit_rate_,
-                            franka::kMaxCutoffFrequency);
+        robot_ptr_->control(control_callback, limit_rate_, lpf_cutoff_freq_);
       } catch (const std::exception &ex) {
         spdlog::error("Robot is unable to be controlled: {}", ex.what());
         is_robot_operational = false;
@@ -343,11 +336,6 @@ void FrankaTorqueControlClient::postprocessTorques(
      */
     std::array<double, NUM_DOFS> &torque_applied) {
   for (int i = 0; i < 7; i++) {
-    // Apply low pass filter
-    torque_applied[i] = lpf_alpha_ * torque_applied[i] +
-                        (1.0 - lpf_alpha_) * torque_applied_prev_[i];
-    torque_applied_prev_[i] = torque_applied[i];
-
     // Clamp torques
     if (torque_applied[i] > joint_torques_limits_[i]) {
       torque_applied[i] = joint_torques_limits_[i];
@@ -373,27 +361,48 @@ void FrankaTorqueControlClient::computeSafetyReflex(
    */
   double upper_violation, lower_violation;
   double lower_sign = 1.0;
+  bool safety_constraint_triggered = false;
 
+  std::string item_name_str(item_name);
   if (invert_lower) {
     lower_sign = -1.0;
   }
 
+  // Init constraint active map
+  if (active_constraints_map_.find(item_name_str) ==
+      active_constraints_map_.end()) {
+    active_constraints_map_.emplace(std::make_pair(item_name_str, false));
+  }
+
+  // Check limits & compute safety controller
   for (int i = 0; i < N; i++) {
     upper_violation = values[i] - upper_limit[i];
     lower_violation = lower_sign * lower_limit[i] - values[i];
 
-    // Check hard limits
+    // Check hard limits (use active_constraints_map_ to prevent flooding
+    // terminal)
     if (upper_violation > 0 || lower_violation > 0) {
-      spdlog::error("Safety limits exceeded: "
-                    "\n\ttype = \"{}\""
-                    "\n\tdim = {}"
-                    "\n\tlimits = {}, {}"
-                    "\n\tvalue = {}",
-                    item_name, i, lower_sign * lower_limit[i], upper_limit[i],
-                    values[i]);
-      throw std::runtime_error(
-          "Error: Safety limits exceeded in FrankaTorqueControlClient.\n");
-      break;
+      safety_constraint_triggered = true;
+
+      if (!active_constraints_map_[item_name_str]) {
+        active_constraints_map_[item_name_str] = true;
+
+        spdlog::warn("Safety limits exceeded: "
+                     "\n\ttype = \"{}\""
+                     "\n\tdim = {}"
+                     "\n\tlimits = {}, {}"
+                     "\n\tvalue = {}",
+                     item_name_str, i, lower_sign * lower_limit[i],
+                     upper_limit[i], values[i]);
+
+        std::string error_str =
+            "Safety limits exceeded in FrankaTorqueControlClient. ";
+        if (!readonly_mode_) {
+          throw std::runtime_error(error_str + "\n");
+        } else {
+          spdlog::warn(error_str + "Ignoring issue during readonly mode.");
+        }
+      }
     }
 
     // Check soft limits & compute feedback forces (safety controller)
@@ -404,5 +413,11 @@ void FrankaTorqueControlClient::computeSafetyReflex(
         safety_torques[i] += k * (margin + lower_violation);
       }
     }
+  }
+
+  // Reset constraint active map
+  if (!safety_constraint_triggered && active_constraints_map_[item_name_str]) {
+    active_constraints_map_[item_name_str] = false;
+    spdlog::info("Safety limits no longer violated: \"{}\"", item_name_str);
   }
 }

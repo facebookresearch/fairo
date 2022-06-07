@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from typing import List
 import torch
 from droidlet.memory.filters_conversions import get_inequality_symbol, sqly_to_new_filters
+from droidlet.memory.memory_nodes import TripleNode
 
 ####################################################################################
 ### This file is split between the basic memory searcher, and memory filters objects
@@ -108,7 +109,9 @@ def get_property_value(agent_memory, mem, prop, get_all=False):
         r = agent_memory._db_read(cmd, mem.memid)
         return r[0][0]
     # is it a triple?
-    triples = agent_memory.get_triples(subj=mem.memid, pred_text=prop, return_obj_text="always")
+    triples = agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
+        agent_memory, subj=mem.memid, pred_text=prop, return_obj_text="always"
+    )
     if len(triples) > 0:
         if get_all:
             return [t[2] for t in triples]
@@ -177,9 +180,13 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
     if comparison_symbol != "=" and comparison_symbol != "=#=":
         raise Exception("Triple values need to have '=' or '=#=' as comparison symbol for now")
     if comparison_symbol == "=":
-        triples = agent_memory.get_triples(pred_text=prop, obj_text=value[0])
+        triples = agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            agent_memory, pred_text=prop, obj_text=value[0]
+        )
     else:
-        triples = agent_memory.get_triples(pred_text=prop, obj=value[0])
+        triples = agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            agent_memory, pred_text=prop, obj=value[0]
+        )
     if len(triples) > 0:
         return filter_memids_by_nodetype(agent_memory, [t[0] for t in triples], memtype)
 
@@ -316,9 +323,9 @@ class MemorySearcher:
         find all records matching a single comparator
         """
         # TODO: if input_left or input_right are subqueries...
-        v = where_clause["input_left"]["value_extractor"]
+        v = where_clause["input_left"]
         input_left = v.get("attribute")
-        input_right = where_clause["input_right"]["value_extractor"]
+        input_right = where_clause["input_right"]
         if type(input_right) is dict:
             raise Exception(
                 "currently basic search assumes input_right is a fixed value (not FILTERS): {}".format(
@@ -364,7 +371,9 @@ class MemorySearcher:
                 except:
                     raise Exception("error in subquery {}".format(where_clause))
 
-        triples = agent_memory.get_triples(**where_clause)
+        triples = agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            agent_memory, **where_clause
+        )
         if where_clause.get("subj"):
             memids = [t[2] for t in triples]
         else:
@@ -445,7 +454,7 @@ class MemorySearcher:
         else:
             return memids
 
-    def handle_output(self, agent_memory, query, memids):
+    def handle_output(self, agent_memory, query, memids, get_all):
         output = query.get("output", "MEMORY")
         if output == "MEMORY":
             return [agent_memory.get_mem_by_id(m) for m in memids]
@@ -463,22 +472,31 @@ class MemorySearcher:
                 except:
                     raise Exception("malformed output clause: {}".format(query))
             values_dict = {m: [] for m in memids}
-            for aname in attribute_name_list:
-                if type(aname) is not str:
-                    raise Exception(
-                        "output attribute in basic search should be (list of) simple properties, instead got: {}".format(
-                            attribute_name_list
+            for m in memids:
+                attributes = []
+                for aname in attribute_name_list:
+                    if type(aname) is not str:
+                        raise Exception(
+                            "output attribute in basic search should be (list of) simple properties, instead got: {}".format(
+                                attribute_name_list
+                            )
                         )
-                    )
-                for m in memids:
-                    values_dict[m].append(get_property_value(agent_memory, m, aname))
-            if len(attribute_name_list) == 1:
-                for m in values_dict:
-                    values_dict[m] = values_dict[m][0]
+                    prop_vals = get_property_value(agent_memory, m, aname, get_all)
+                    if type(prop_vals) is list:
+                        for prop_val in prop_vals:
+                            attributes.append(prop_val)
+                    else:
+                        attributes.append(prop_vals)
+                if len(attribute_name_list) == 1:
+                    # attributes for this memid are single values
+                    values_dict[m] += attributes
+                else:
+                    # attributes for this memid are a list
+                    values_dict[m].append(attributes)
             # TODO switch everything to dicts
             return [values_dict[m] for m in memids]
 
-    def search(self, agent_memory, query=None, default_memtype="ReferenceObject"):
+    def search(self, agent_memory, query=None, default_memtype="ReferenceObject", get_all=False):
         # returns a list of memids and accompanying values
         # TODO values are MemoryNodes when query is SELECT MEMORIES
         query = query or self.query
@@ -503,7 +521,18 @@ class MemorySearcher:
             except:
                 pass
             # TODO/FIXME switch output format to dicts
-        return memids, self.handle_output(agent_memory, query, memids)
+
+        vals = self.handle_output(agent_memory, query, memids, get_all)
+        repeated_memids = []
+        flattened_vals = []
+        for idx, v in enumerate(vals):
+            if type(v) is list:
+                repeated_memids += [memids[idx]] * len(v)
+                flattened_vals += v
+            else:
+                repeated_memids.append(memids[idx])
+                flattened_vals.append(v)
+        return repeated_memids, flattened_vals
 
 
 # TODO subclass for filters that return at most one memory,value?

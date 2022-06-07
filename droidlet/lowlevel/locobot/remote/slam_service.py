@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import numpy as np
 import Pyro4
@@ -6,7 +7,8 @@ import select
 from slam_pkg.utils.map_builder import MapBuilder as mb
 from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
-
+from rich import print
+from droidlet.lowlevel.pyro_utils import safe_call
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
@@ -20,9 +22,10 @@ class SLAM(object):
         robot,
         map_size=4000,
         resolution=5,
-        robot_rad=25,
+        robot_rad=30,
         agent_min_z=5,
         agent_max_z=70,
+        obstacle_threshold=1,
     ):
         self.robot = robot
         self.robot_rad = robot_rad
@@ -32,6 +35,7 @@ class SLAM(object):
             resolution=resolution,
             agent_min_z=agent_min_z,
             agent_max_z=agent_max_z,
+            obs_thr=obstacle_threshold,
         )
         self.map_size = map_size
         # if the map is a previous map loaded from disk, and
@@ -88,10 +92,8 @@ class SLAM(object):
         self.map_builder.add_obstacle(location)
 
     def update_map(self):
-        robot_relative_pos = du.get_relative_state(self.robot.get_base_state(), self.init_state)
-        pcd = self.robot.get_current_pcd(in_cam=False)[0]
-
-        self.map_builder.update_map(pcd, robot_relative_pos)
+        pcd = safe_call(self.robot.get_current_pcd)[0]
+        self.map_builder.update_map(pcd)
 
         # explore the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
@@ -113,17 +115,32 @@ class SLAM(object):
         ]
         return real_world_locations
 
-    def reset_map(self):
-        self.map_builder.reset_map(self.map_size)
+    def reset_map(self, z_bins=None, obs_thr=None):
+        self.map_builder.reset_map(self.map_size, z_bins=z_bins, obs_thr=obs_thr)
 
 
 robot_ip = os.getenv("LOCOBOT_IP")
 ip = os.getenv("LOCAL_IP")
+robot_name = "remotelocobot"
+if len(sys.argv) > 1:
+    robot_name = sys.argv[1]
 with Pyro4.Daemon(ip) as daemon:
-    robot = Pyro4.Proxy("PYRONAME:remotelocobot@" + robot_ip)
-    obj = SLAM(robot)
+    robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
+
+    if robot_name == "hello_realsense":
+        robot_height = 141  # cm
+        min_z = 20  # because of the huge spatial variance in realsense readings
+        max_z = robot_height + 5  # cm
+        obj = SLAM(
+            robot,
+            obstacle_threshold=10,
+            agent_min_z=min_z,
+            agent_max_z=max_z,
+        )
+    else:
+        obj = SLAM(robot)
     obj_uri = daemon.register(obj)
-    with Pyro4.locateNS(robot_ip) as ns:
+    with Pyro4.locateNS(host=robot_ip) as ns:
         ns.register("slam", obj_uri)
 
     print("SLAM Server is started...")

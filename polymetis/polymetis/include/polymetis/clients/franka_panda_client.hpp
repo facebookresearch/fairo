@@ -57,11 +57,8 @@ private:
 
   // Torque processing
   bool limit_rate_;
-  double lpf_alpha_;
+  double lpf_cutoff_freq_;
   std::array<double, NUM_DOFS> torque_applied_prev_;
-
-  bool limits_exceeded_;
-  std::string error_str_;
 
   std::array<double, 3> cartesian_pos_ulimits_, cartesian_pos_llimits_;
   std::array<double, NUM_DOFS> joint_pos_ulimits_, joint_pos_llimits_,
@@ -69,6 +66,7 @@ private:
   double elbow_vel_limit_;
 
   // safety controller
+  std::unordered_map<std::string, bool> active_constraints_map_;
   bool is_safety_controller_active_;
   double margin_cartesian_pos_, margin_joint_pos_, margin_joint_vel_;
   double k_cartesian_pos_, k_joint_pos_, k_joint_vel_;

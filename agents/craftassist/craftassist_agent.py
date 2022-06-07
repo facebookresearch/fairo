@@ -8,14 +8,23 @@ import signal
 import random
 import sentry_sdk
 import time
+import json
 from multiprocessing import set_start_method
 from collections import namedtuple
+from datetime import datetime
+from copy import deepcopy
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
 from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
 from droidlet.memory.craftassist import mc_memory
-from droidlet.perception.craftassist import rotation
+from droidlet.memory.memory_nodes import ChatNode
+from droidlet.shared_data_struct import rotation
+from droidlet.lowlevel.minecraft.craftassist_mover import (
+    CraftassistMover,
+    from_minecraft_xyz_to_droidlet,
+)
+
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 import droidlet.dashboard as dashboard
 
@@ -26,7 +35,9 @@ if __name__ == "__main__":
     dashboard.start()
 
 from droidlet.dialog.dialogue_manager import DialogueManager
+from droidlet.dialog.dialogue_task import build_question_json
 from droidlet.base_util import Pos, Look, npy_to_blocks_list
+from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item
 from agents.droidlet_agent import DroidletAgent
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
@@ -67,8 +78,6 @@ logging.getLogger().handlers.clear()
 sentry_sdk.init()  # enabled if SENTRY_DSN set in env
 DEFAULT_BEHAVIOUR_TIMEOUT = 20
 DEFAULT_FRAME = "SPEAKER"
-Player = namedtuple("Player", "entityId, name, pos, look, mainHand")
-Item = namedtuple("Item", "id, meta")
 
 
 class CraftAssistAgent(DroidletAgent):
@@ -126,9 +135,9 @@ class CraftAssistAgent(DroidletAgent):
         return updated_chats
 
     def get_all_players(self):
-        """This function is a wrapper around self.cagent.get_other_players and adds a new
+        """This function is a wrapper around self.mover.get_other_players and adds a new
         player called "dashboard" if it doesn't already exist."""
-        all_players = self.cagent.get_other_players()
+        all_players = self.mover.get_other_players()
         updated_players = all_players
         player_exists = False
         for player in all_players:
@@ -143,9 +152,10 @@ class CraftAssistAgent(DroidletAgent):
 
     def get_all_player_line_of_sight(self, player_struct):
         """return a fixed value for "dashboard" player"""
-        if isinstance(player_struct, Player):
+        # FIXME, this is too dangerous.
+        if player_struct.name == "dashboard":
             return Pos(-1, 63, 14)
-        return self.cagent.get_player_line_of_sight(player_struct)
+        return self.mover.get_player_line_of_sight(player_struct)
 
     def init_event_handlers(self):
         """Handle the socket events"""
@@ -207,6 +217,10 @@ class CraftAssistAgent(DroidletAgent):
         file_log_handler = logging.FileHandler("agent.{}.log".format(self.name))
         file_log_handler.setFormatter(log_formatter)
         logging.getLogger().addHandler(file_log_handler)
+
+        # add method to convert coordinates from cuberite to droidlet:
+        self.memory.to_droidlet_coords = from_minecraft_xyz_to_droidlet
+
         logging.info("Initialized agent memory")
 
     def init_perception(self):
@@ -301,18 +315,18 @@ class CraftAssistAgent(DroidletAgent):
         Returns:
             List of changed blocks
         """
-        blocks = self.cagent.get_changed_blocks()
-        safe_blocks = []
+        blocks = self.mover.get_changed_blocks()
+        safe_blocks = deepcopy(blocks)
         if len(self.point_targets) > 0:
             for point_target in self.point_targets:
                 pt = point_target[0]
                 for b in blocks:
                     x, y, z = b[0]
-                    xok = x < pt[0] or x > pt[3]
-                    yok = y < pt[1] or y > pt[4]
-                    zok = z < pt[2] or z > pt[5]
-                    if xok and yok and zok:
-                        safe_blocks.append(b)
+                    xbad = x >= pt[0] and x <= pt[3]
+                    ybad = y >= pt[1] and y <= pt[4]
+                    zbad = z >= pt[2] and z <= pt[5]
+                    if xbad and ybad and zbad:
+                        if b in safe_blocks: safe_blocks.remove(b)
         else:
             safe_blocks = blocks
         return safe_blocks
@@ -327,27 +341,56 @@ class CraftAssistAgent(DroidletAgent):
                     z1 <= z2.
         """
         assert len(target) == 6
-        self.send_chat("/point {} {} {} {} {} {}".format(*target))
         self.point_targets.append((target, time.time()))
+
+        # TODO: put this in mover
+        # flip x to move from droidlet coords to  cuberite coords
+        target = [-target[3], target[1], target[2], -target[0], target[4], target[5]]
+
+        point_json = build_question_json("/point {} {} {} {} {} {}".format(*target))
+        self.send_chat(point_json)
+
         # sleep before the bot can take any actions
         # otherwise there might be bugs since the object is flashing
         # deal with this in the task...
         if sleep:
             time.sleep(sleep)
 
+    ###FIXME!!
+    #    self.get_incoming_chats = self.get_chats
+
+    # WARNING!! this is in degrees.  agent's memory stores looks in radians.
+    # FIXME: normalize, switch in DSL to radians.
     def relative_head_pitch(self, angle):
         """Converts assistant's current pitch and yaw
         into a pitch and yaw relative to the angle."""
-        # warning: pitch is flipped!
-        new_pitch = self.get_player().look.pitch - angle
+        new_pitch = np.rad2deg(self.get_player().look.pitch) - angle
         self.set_look(self.get_player().look.yaw, new_pitch)
 
-    def send_chat(self, chat):
+    def send_chat(self, chat: str):
         """Send chat from agent to player"""
-        logging.info("Sending chat: {}".format(chat))
-        sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat)})
-        self.memory.add_chat(self.memory.self_memid, chat)
-        return self.cagent.send_chat(chat)
+        chat_json = False
+        try:
+            chat_json = json.loads(chat)
+            chat_text = list(filter(lambda x: x["id"] == "text", chat_json["content"]))[0][
+                "content"
+            ]
+        except:
+            chat_text = chat
+
+        logging.info("Sending chat: {}".format(chat_text))
+        self.memory.nodes[ChatNode.NODE_TYPE].create(self.memory, self.memory.self_memid, chat_text)
+
+        if chat_json:
+            chat_json["chat_memid"] = chat_memid
+            chat_json["timestamp"] = round(datetime.timestamp(datetime.now()) * 1000)
+            # Send the socket event to show this reply on dashboard
+            sio.emit("showAssistantReply", chat_json)
+        else:
+            sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
+
+        return self.cagent.send_chat(chat_text)
+
 
     def update_agent_pos_dashboard(self):
         agent_pos = self.get_player().pos
@@ -403,31 +446,31 @@ class CraftAssistAgent(DroidletAgent):
         sio.emit("updateVoxelWorldState", payload)
 
     def step_pos_x(self):
-        self.cagent.step_pos_x()
+        self.mover.step_pos_x()
         self.update_agent_pos_dashboard()
 
     def step_neg_x(self):
-        self.cagent.step_neg_x()
+        self.mover.step_neg_x()
         self.update_agent_pos_dashboard()
 
     def step_pos_y(self):
-        self.cagent.step_pos_y()
+        self.mover.step_pos_y()
         self.update_agent_pos_dashboard()
 
     def step_neg_y(self):
-        self.cagent.step_neg_y()
+        self.mover.step_neg_y()
         self.update_agent_pos_dashboard()
 
     def step_pos_z(self):
-        self.cagent.step_pos_z()
+        self.mover.step_pos_z()
         self.update_agent_pos_dashboard()
 
     def step_neg_z(self):
-        self.cagent.step_neg_z()
+        self.mover.step_neg_z()
         self.update_agent_pos_dashboard()
 
     def step_forward(self):
-        self.cagent.step_forward()
+        self.mover.step_forward()
         self.update_agent_pos_dashboard()
 
     # TODO update client so we can just loop through these
@@ -441,50 +484,13 @@ class CraftAssistAgent(DroidletAgent):
         logging.info("Attempting to connect to port {}".format(self.opts.port))
         self.cagent = MCAgent("localhost", self.opts.port, self.name)
         logging.info("Logged in to server")
-        self.dig = self.cagent.dig
-        self.drop_item_stack_in_hand = self.cagent.drop_item_stack_in_hand
-        self.drop_item_in_hand = self.cagent.drop_item_in_hand
-        self.drop_inventory_item_stack = self.cagent.drop_inventory_item_stack
-        self.set_inventory_slot = self.cagent.set_inventory_slot
-        self.get_player_inventory = self.cagent.get_player_inventory
-        self.get_inventory_item_count = self.cagent.get_inventory_item_count
-        self.get_inventory_items_counts = self.cagent.get_inventory_items_counts
-        # defined above...
-        # self.send_chat = self.cagent.send_chat
-        self.set_held_item = self.cagent.set_held_item
-        self.step_pos_x = self.step_pos_x
-        self.step_neg_x = self.step_neg_x
-        self.step_pos_z = self.step_pos_z
-        self.step_neg_z = self.step_neg_z
-        self.step_pos_y = self.step_pos_y
-        self.step_neg_y = self.step_neg_y
-        self.step_forward = self.step_forward
-        self.look_at = self.cagent.look_at
-        self.set_look = self.cagent.set_look
-        self.turn_angle = self.cagent.turn_angle
-        self.turn_left = self.cagent.turn_left
-        self.turn_right = self.cagent.turn_right
-        self.place_block = self.cagent.place_block
-        self.use_entity = self.cagent.use_entity
-        self.use_item = self.cagent.use_item
-        self.use_item_on_block = self.cagent.use_item_on_block
-        self.is_item_stack_on_ground = self.cagent.is_item_stack_on_ground
-        self.craft = self.cagent.craft
-        self.get_blocks = self.cagent.get_blocks
-        self.get_local_blocks = self.cagent.get_local_blocks
+        self.mover = CraftassistMover(self.cagent)
+        for m in dir(self.mover):
+            if callable(getattr(self.mover, m)) and m[0] != "_" and getattr(self, m, None) is None:
+                setattr(self, m, getattr(self.mover, m))
         self.get_incoming_chats = self.get_chats
-        self.get_player = self.cagent.get_player
-        self.get_mobs = self.cagent.get_mobs
         self.get_other_players = self.get_all_players
-        self.get_other_player_by_name = self.cagent.get_other_player_by_name
-        self.get_vision = self.cagent.get_vision
-        self.get_line_of_sight = self.cagent.get_line_of_sight
         self.get_player_line_of_sight = self.get_all_player_line_of_sight
-        self.get_changed_blocks = self.cagent.get_changed_blocks
-        self.get_item_stacks = self.cagent.get_item_stacks
-        self.get_world_age = self.cagent.get_world_age
-        self.get_time_of_day = self.cagent.get_time_of_day
-        self.get_item_stack = self.cagent.get_item_stack
 
     def add_self_memory_node(self):
         """Adds agent node into its own memory"""

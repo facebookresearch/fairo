@@ -15,13 +15,17 @@ from droidlet.shared_data_structs import MockOpt
 
 TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../../../droidlet/artifacts/models/nlu/")
 TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../droidlet/artifacts/datasets/annotated_data/")
-
+GROUND_TRUTH_DATA_DIR = os.path.join(
+    os.path.dirname(__file__), "../../../droidlet/artifacts/datasets/ground_truth/"
+)
 
 class PutMemoryTestCase(BaseCraftassistTestCase):
     def setUp(self):
         opts = MockOpt()
         opts.nsp_models_dir = TTAD_MODEL_DIR
         opts.nsp_data_dir = TTAD_BERT_DATA_DIR
+        opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR
+        opts.no_ground_truth = False
         super().setUp(agent_opts=opts)
 
         self.cube_right = self.add_object(
@@ -35,7 +39,6 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
         self.add_incoming_chat(chat, self.speaker)
         # run the semantic parsing model (and other chat munging):
         nlu_perceive_output = self.agent.perception_modules["language_understanding"].perceive()
-        print(nlu_perceive_output)
         force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
             nlu_perceive_output
         )

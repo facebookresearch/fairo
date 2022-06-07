@@ -36,6 +36,12 @@ commands:
 
             python ./polymetis/polymetis/tests/cpp/test_server.py
       - run:
+          name: Run Allegro Hand client unit tests
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-local
+            test_allegro_hand_client
+      - run:
           name: Run integration tests (empty client)
           command: |
             . /opt/conda/etc/profile.d/conda.sh
@@ -234,7 +240,7 @@ jobs:
         name: Pull docker image
         command: |
           set -ex
-          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:9.0
+          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:11.0
           echo Pulling docker image $DOCKER_IMAGE
           docker pull $DOCKER_IMAGE >/dev/null
 
@@ -245,7 +251,7 @@ jobs:
           set -ex
 
           cd ${HOME}/project/
-          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:9.0
+          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:11.0
           mkdir shared
           docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
           pip3 install codecov
@@ -332,21 +338,47 @@ jobs:
             pip install clang-format
             export PATH=$PATH
             ./scripts/format_cpp.sh check all
-  fbrp:
+  mrp:
     docker:
       - image: python:3.8
-    resource_class: medium+
     steps:
       - checkout
+      - run:
+          name: Install Conda
+          command: |
+            wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+            bash miniconda.sh -b -p /opt/conda
+            echo 'export PATH=/opt/conda/bin:$PATH' >> $BASH_ENV
       - run:
           name: Install PyTest
           command: pip install pytest
       - run:
-          name: Install FBRP
-          command: python3 -m pip install ./fbrp
+          name: Install MRP
+          command: python3 -m pip install ./mrp
       - run:
           name: Run PyTest
-          command: pytest ./fbrp
+          command: pytest -s -vvv ./mrp
+  mrp-lint:
+    docker:
+      - image: python:3.8
+    steps:
+      - checkout
+      - run:
+          name: Install Deps
+          command: pip install -U black flake8
+      - run:
+          name: flake8
+          command: cd mrp ; flake8
+      - run:
+          name: black
+          command: black --check ./mrp
+  fairomsg:
+    docker:
+      - image: cimg/python:3.8
+    steps:
+      - checkout
+      - run: pip install ./msg
+      - run: pip install pytest && pytest ./msg/tests
   update-docs:
     docker:
       - image: cimg/node:current
@@ -361,7 +393,7 @@ jobs:
       - run:
           name: Install gh-pages utility
           command: |
-            sudo npm install -g gh-pages
+            npm install -g gh-pages
             git config user.email "bot@fb.com"
             git config user.name "bot"
       - add_ssh_keys:  # read & write access for bot
@@ -399,6 +431,33 @@ jobs:
             cd perception/fairotag
             pip install -e .
             pytest
+  eyehandcal:
+    docker:
+      - image: continuumio/miniconda3
+    resource_class: large
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "perception/sandbox/eyehandcal/environment.yml" }}
+      - run:
+          name: Setup env
+          command: |
+            apt-get update
+            apt-get install -y build-essential libgl1-mesa-dev
+            [ -d ~/testenv ] || conda env create -f perception/sandbox/eyehandcal/environment.yml -p ~/testenv
+      - save_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "perception/sandbox/eyehandcal/environment.yml" }}
+          paths:
+            - "~/testenv"
+      - run:
+          name: Run tests
+          command: |
+            conda init bash
+            source ~/.bashrc
+            conda activate ~/testenv
+            cd perception/sandbox/eyehandcal
+            pip install -e .
+            pytest tests
 
 workflows:
   build:
@@ -410,8 +469,11 @@ workflows:
       - polymetis-conda-ubuntu-18
       - polymetis-conda-ubuntu-20
       - formatting
-      - fbrp
+      - mrp
+      - mrp-lint
       - fairotag
+      - fairomsg
+      - eyehandcal
       - update-docs:
           requires:
             - polymetis-local-ubuntu-20

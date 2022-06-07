@@ -9,6 +9,7 @@ import random
 import logging
 import faulthandler
 from multiprocessing import set_start_method
+
 if __name__ == "__main__":
     set_start_method("spawn", force=True)
 import shutil
@@ -27,6 +28,7 @@ from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.droidlet_agent import DroidletAgent
 from agents.argument_parser import ArgumentParser
 import agents.locobot.label_prop as LP
+from droidlet.memory.memory_nodes import ChatNode
 from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
 from droidlet.perception.robot import Perception
 from droidlet.perception.semantic_parsing.utils.interaction_logger import InteractionLogger
@@ -39,7 +41,7 @@ from droidlet.interpreter.robot import (
     LocoInterpreter,
 )
 from droidlet.dialog.robot import LocoBotCapabilities
-import droidlet.lowlevel.hello_robot.rotation as rotation
+from droidlet.shared_data_struct import rotation
 from droidlet.event import sio
 
 faulthandler.register(signal.SIGUSR1)
@@ -84,12 +86,12 @@ class LocobotAgent(DroidletAgent):
         self.point_targets = []
         self.init_event_handlers()
         # list of (prob, default function) pairs
-        if self.backend == 'habitat':
+        if self.backend == "habitat":
             self.visible_defaults = [(1.0, default_behaviors.explore)]
-        elif self.backend == 'hellorobot':
+        elif self.backend == "hellorobot":
             self.visible_defaults = []
         else:
-            raise RuntimeError("Unknown backend specified {}" % (self.backend, ))
+            raise RuntimeError("Unknown backend specified {}" % (self.backend,))
         self.interaction_logger = InteractionLogger()
         if os.path.exists("annotation_data/rgb"):
             shutil.rmtree("annotation_data/rgb")
@@ -142,8 +144,8 @@ class LocobotAgent(DroidletAgent):
             objects = DetectedObjectNode.get_all(self.memory)
             for o in objects:
                 del o["feature_repr"]  # pickling optimization
-            self.dashboard_memory["objects"] = objects
-            sio.emit("updateState", {"memory": self.dashboard_memory})
+#            self.dashboard_memory["objects"] = objects
+#            sio.emit("updateState", {"memory": self.dashboard_memory})
 
         @sio.on("interaction data")
         def log_interaction_data(sid, interactionData):
@@ -206,6 +208,7 @@ class LocobotAgent(DroidletAgent):
 
             self.perception_modules["vision"] = Perception(model_path, default_keypoints_path=True)
 
+
     def init_memory(self):
         """Instantiates memory for the agent.
 
@@ -236,24 +239,67 @@ class LocobotAgent(DroidletAgent):
         # 1. perceive from NLU parser
         super().perceive(force=force)
         # 2. perceive from robot perception modules
-        self.perception_modules["self"].perceive(force=force)
-        rgb_depth = self.mover.get_rgb_depth()
-        xyz = self.mover.get_base_pos_in_canonical_coords()
-        x, y, yaw = xyz
-        if self.backend == 'habitat':
-            sio.emit(
-                "map",
-                {"x": x, "y": y, "yaw": yaw, "map": self.mover.get_obstacles_in_canonical_coords()},
-            )
-
         previous_objects = DetectedObjectNode.get_all(self.memory)
-        # perception_output is a namedtuple of : new_detections, updated_detections, humans
-        perception_output = self.perception_modules["vision"].perceive(rgb_depth,
-                                                               xyz,
-                                                               previous_objects,
-                                                               force=force)
+        # perception_output is a namedtuple of:
+        # new_detections, updated_detections, humans, self_pose, obstacle_map
+        self.perception_modules["self"].perceive(force=force)
+        x, z, yaw = self.mover.get_base_pos_in_canonical_coords()
+        rgb_depth = self.mover.get_rgb_depth()
+
+        perception_output = self.perception_modules["vision"].perceive(
+            rgb_depth, (x, z, yaw), previous_objects, force=force
+        )
+        # 3. update the occupancy map
+        # TODO just the diff? otherwise speed up?
+        obstacles = self.mover.get_obstacles_in_canonical_coords()
+        perception_output = perception_output._replace(obstacle_map=obstacles)
+
+        # 4. self location
+        # FIXME better pose object
+        perception_output = perception_output._replace(self_pose=(x, z, yaw))
+        
+        if self.opts.draw_map == "memory":
+            # draw the map from memory
+            self.draw_map_to_dashboard()
+        elif self.opts.draw_map == "observations": # else draw directly from current obs
+            self.draw_map_to_dashboard(obstacles=obstacles, xyyaw=(x,z,yaw))
+        else:
+            pass
+                
         self.memory.update(perception_output)
 
+    def get_detected_objects_for_map(self):
+        memids, mems = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
+        detections_for_map = []
+        for mem in mems:
+            if hasattr(mem, "obj_id") and hasattr(mem, "pos"):
+                detections_for_map.append([mem.obj_id, list(mem.pos)])
+            elif hasattr(mem, "pos"):
+                detections_for_map.append(["no_id", list(mem.pos)])
+        return detections_for_map
+    
+    def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
+        detections_for_map = []
+        if not obstacles:
+            obstacles = self.memory.place_field.get_obstacle_list()
+            # if we are getting obstacles from memory, get detections from memory for map too
+            detections_for_map = self.get_detected_objects_for_map()
+        if not xyyaw:
+            self_mem = self.memory.get_mem_by_id(self.memory.self_memid)
+            x, y, z = self_mem.pos
+            # TODO: head or body? need better pose nodes
+            yaw = self_mem.yaw
+            xyyaw = (x, z, yaw)
+        sio.emit(
+            "map",
+            {
+                "x": xyyaw[0],
+                "y": xyyaw[1],
+                "yaw": xyyaw[2],
+                "map": obstacles,
+                "detections_from_memory": detections_for_map
+            },
+        )
 
     def init_controller(self):
         """Instantiates controllers - the components that convert a text chat to task(s)."""
@@ -263,22 +309,23 @@ class LocobotAgent(DroidletAgent):
         dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = DialogueManager(
-            memory=self.memory,
-            dialogue_object_classes=dialogue_object_classes,
-            opts=self.opts,
+            memory=self.memory, dialogue_object_classes=dialogue_object_classes, opts=self.opts
         )
 
     def init_physical_interfaces(self):
         """Instantiates the interface to physically move the robot."""
-        if self.backend == 'habitat':
+        if self.backend == "habitat":
             from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
+
             self.mover = LoCoBotMover(ip=self.opts.ip, backend=self.opts.backend)
         else:
             from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
+
             self.mover = HelloRobotMover(ip=self.opts.ip)
 
     def get_player_struct_by_name(self, speaker_name):
-        p = self.memory.get_player_by_name(speaker_name)
+        _, memnode = self.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker_name}')
+        p = memnode[0] if len(memnode)==1 else None
         if p:
             return p.get_struct()
         else:
@@ -291,7 +338,8 @@ class LocobotAgent(DroidletAgent):
         all_chats = []
         speaker_name = "dashboard"
         if self.dashboard_chat is not None:
-            if not self.memory.get_player_by_name(speaker_name):
+            memids, _ = self.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker_name}')
+            if len(memids)==0:
                 PlayerNode.create(
                     self.memory,
                     to_player_struct((None, None, None), None, None, None, speaker_name),
@@ -305,7 +353,7 @@ class LocobotAgent(DroidletAgent):
         logging.info("Sending chat: {}".format(chat))
         # Send the socket event to show this reply on dashboard
         sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat)})
-        self.memory.add_chat(self.memory.self_memid, chat)
+        self.memory.nodes[ChatNode.NODE_TYPE].create(self.memory, self.memory.self_memid, chat)
         # actually send the chat, FIXME FOR HACKATHON
         # return self._cpp_send_chat(chat)
 
@@ -340,7 +388,6 @@ if __name__ == "__main__":
     # Check that models and datasets are up to date
     if not opts.dev:
         try_download_artifacts(agent="locobot")
-
 
     sa = LocobotAgent(opts)
     sa.start()

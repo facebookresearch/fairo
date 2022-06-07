@@ -13,6 +13,7 @@ if [ -z "$PREFIX" ]; then PREFIX=$CONDA_PREFIX; fi
 if [ -z "$PYTHON" ]; then PYTHON=python; fi
 if [ -z "$BUILD_TESTS" ]; then BUILD_TESTS=ON; fi
 if [ -z "$BUILD_DOCS" ]; then BUILD_DOCS=OFF; fi
+if [ -z "$BUILD_ALLEGRO" ]; then BUILD_ALLEGRO=ON; fi
 
 # Build libfranka
 # (Note: Build if libfranka is not built locally or if forced by setting BUILD_FRANKA)
@@ -42,6 +43,7 @@ fi
 mkdir -p build
 cd build
 cmake -DCMAKE_BUILD_TYPE=$CFG -DBUILD_FRANKA=$BUILD_FRANKA -DBUILD_TESTS=$BUILD_TESTS -DBUILD_DOCS=$BUILD_DOCS \
+    -DBUILD_ALLEGRO=$BUILD_ALLEGRO \
     -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=$PREFIX/lib \
     -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=$PREFIX/lib \
     -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PREFIX/bin ..

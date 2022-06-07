@@ -14,7 +14,11 @@ def remove_duplicates_long_commands_and_NOOPs(
         data = fd.readlines()
 
     for line in data:
-        command, action_dict = line.split("|")
+        parts = line.split("|")
+        if len(parts) > 2:
+            prefix, command, action_dict = parts
+        else:
+            command, action_dict = line.split("|")
         words_arr = command.split(" ")
         if command in new_data:
             continue
