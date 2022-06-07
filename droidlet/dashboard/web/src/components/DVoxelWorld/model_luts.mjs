@@ -235,6 +235,35 @@ const VW_ITEM_MAP = {
         "bottom": 'glass.png',
         "top": 'glass.png',
     },
+
+    "ball": {
+        "model_folder": "low_poly_ball/",
+        "model_file": "scene.gltf",
+        "default_scale": 0.1,
+        "rotation_offset": [0, 0, 0],
+        "position_offset": [25, 25, 25] 
+    },
+    "apple": {
+        "model_folder": "low_poly_apple/",
+        "model_file": "scene.gltf",
+        "default_scale": 0.5,
+        "rotation_offset": [0, 0, 0],
+        "position_offset": [25, 25, 25] 
+    },
+    "hammer": {
+        "model_folder": "low_poly_hammer/",
+        "model_file": "scene.gltf",
+        "default_scale": 150,
+        "rotation_offset": [0, 0, 0],
+        "position_offset": [25, 25, 25] 
+    },
+    "wrench": {
+        "model_folder": "low_poly_wrench/",
+        "model_file": "scene.gltf",
+        "default_scale": 10,
+        "rotation_offset": [0, 0, 0],
+        "position_offset": [25, 25, 25] 
+    },
 };
 
 const VW_MOB_MAP = {
