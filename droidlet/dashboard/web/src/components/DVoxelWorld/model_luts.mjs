@@ -264,6 +264,13 @@ const VW_ITEM_MAP = {
         "rotation_offset": [0, 0, 0],
         "position_offset": [25, 25, 25] 
     },
+    "tree": {
+        "model_folder": "low_poly_tree/",
+        "model_file": "scene.gltf",
+        "default_scale": 0.06,
+        "rotation_offset": [0, 0, 0],
+        "position_offset": [25, 25, 25] 
+    },
 };
 
 const VW_MOB_MAP = {
