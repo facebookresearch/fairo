@@ -259,15 +259,19 @@ class Docker(BaseRuntime):
         if uses_ldap or nfs_mounts:
             dockerfile = [f"FROM {self.image}"]
             if uses_ldap:
-                dockerfile.append(
-                    " && ".join(
-                        [
-                            "RUN apt update",
-                            "DEBIAN_FRONTEND=noninteractive apt install -y sssd",
-                            "rm -rf /var/lib/apt/lists/*",
-                        ]
-                    )
+                # We try to inject sssd to allow the container to communicate with the ldap server.
+                # We assume the docker container provides apt. If there is no apt, we skip this step. The user id and group ids will still correctly match the active user, but the user and group names will not be fetchable.
+                apt_install_sssd_cmd = " && ".join(
+                    [
+                        "apt update",
+                        "DEBIAN_FRONTEND=noninteractive apt install -y sssd",
+                        "rm -rf /var/lib/apt/lists/*",
+                    ]
                 )
+                try_apt_install_sssd_cmd = (
+                    f"if [ $(which apt) ] ; then $({apt_install_sssd_cmd}) ; fi"
+                )
+                dockerfile.append(f"RUN {try_apt_install_sssd_cmd}")
             for nfs_mount in nfs_mounts:
                 relpath = os.path.relpath(nfs_mount["host"], nfs_mount["host_nfs_root"])
                 container_fullpath = os.path.join(

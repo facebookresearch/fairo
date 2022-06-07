@@ -6,7 +6,7 @@ import os
 import logging
 from typing import List
 from collections import namedtuple
-from droidlet.memory.memory_nodes import PlayerNode
+from droidlet.memory.memory_nodes import PlayerNode, TripleNode
 from droidlet.memory.sql_memory import AgentMemory
 from droidlet.memory.robot.loco_memory_nodes import *
 
@@ -103,7 +103,7 @@ class LocoAgentMemory(AgentMemory):
     def update_other_players(self, player_list: List):
         # input is a list of player_structs from agent
         for p in player_list:
-            mem = self.get_player_by_eid(p.entityId)
+            mem = self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self, p.entityId)
             if mem is None:
                 memid = PlayerNode.create(self, p)
             else:
@@ -115,17 +115,15 @@ class LocoAgentMemory(AgentMemory):
     ######################
 
     def get_detected_objects_tagged(self, *tags) -> List["DetectedObjectNode"]:
-        memids = set.intersection(*[set(self.get_memids_by_tag(t)) for t in tags])
+        memids = set.intersection(
+            *[set(self.nodes[TripleNode.NODE_TYPE].get_memids_by_tag(self, t)) for t in tags]
+        )
         logging.info("get_detected_objects_tagged {}, tags {}".format(memids, tags))
         return memids
 
     ###############
     ###  Dances  ##
     ###############
-
-    def add_dance(self, dance_fn, name=None, tags=[]):
-        # a dance is movement determined as a sequence of steps, rather than by its destination
-        return DanceNode.create(self, dance_fn, name=name, tags=tags)
 
     def clear(self, objects):
         for o in objects:

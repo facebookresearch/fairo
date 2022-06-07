@@ -20,7 +20,9 @@ class Planner(object):
         self.slam = slam
         self.map_resolution = self.slam.get_map_resolution()
 
-    def get_short_term_goal(self, robot_location, goal, step_size=25):
+    def get_short_term_goal(
+        self, robot_location, goal, step_size=25, distance_threshold=None, angle_threshold=None
+    ):
         """
         robot_location is simply get_base_state
         """
@@ -54,7 +56,7 @@ class Planner(object):
         # against robot initial state (if it wasn't zeros)
         stg_real = self.slam.map2robot(stg)
 
-        if self.goal_within_threshold(stg_real, goal):
+        if self.goal_within_threshold(stg_real, goal, distance_threshold, angle_threshold):
             # is it the final goal? if so,
             # the stg goes to within a 5cm resolution
             # -- related to the SLAM service's 2D map resolution.
@@ -63,6 +65,7 @@ class Planner(object):
             print(
                 "Short-term goal {} is within threshold or target goal {}".format(stg_real, goal)
             )
+            print(f"This is the final goal, so returning the target goal directly {goal}")
             target_goal = goal
         else:
             print(
@@ -76,27 +79,37 @@ class Planner(object):
             target_goal = (stg_real[0], stg_real[1], rotation_angle)
         return target_goal
 
-    def goal_within_threshold(self, robot_location, goal):
-        distance = np.linalg.norm(np.array(robot_location[:2]) - np.array(goal[:2]))
-        # in metres. map_resolution is the resolution of the SLAM's 2D map, so the planner can't
-        # plan anything lower than this
-        threshold = (float(self.map_resolution) - 1e-10) / 100.0
+    def goal_within_threshold(self, robot_location, goal, threshold=None, angle_threshold=None):
+        if threshold is None:
+            # in metres. map_resolution is the resolution of the SLAM's 2D map, so the planner can't
+            # plan anything lower than this
+            threshold = (float(self.map_resolution) - 1e-10) / 100.0
+        if angle_threshold is None:
+            angle_threshold = 1  # in degrees
+
+        diff = np.abs(np.array(robot_location[:2]) - np.array(goal[:2]))
+        distance = np.linalg.norm(diff)
 
         if len(robot_location) == 3 and len(goal) == 3:
-            angle_threshold = 1  # in degrees
             angle = robot_location[2] - goal[2]
             abs_angle = math.fabs(math.degrees(angle)) % 360
 
-            within_threshold = distance < threshold and abs_angle < angle_threshold
+            within_threshold = (
+                diff[0] < threshold and diff[1] < threshold and abs_angle < angle_threshold
+            )
             print("goal_within_threshold: ", within_threshold)
-            print("Distance: {} < {}".format(distance, threshold))
+            print(
+                "Distance: x: {} < {}, y: {} < {}".format(diff[0], threshold, diff[1], threshold)
+            )
             print("Angle: {} < {}".format(abs_angle, angle_threshold))
             print("Robot Location: {}".format(robot_location))
             print("Goal:           {}".format(goal))
         else:
-            within_threshold = distance < threshold
+            within_threshold = diff[0] < threshold and diff[1] < threshold
             print("goal_within_threshold: ", within_threshold)
-            print("Distance: {} < {}".format(distance, threshold))
+            print(
+                "Distance: x: {} < {}, y: {} < {}".format(diff[0], threshold, diff[1], threshold)
+            )
             print("Robot Location: {}".format(robot_location))
             print("Goal:           {}".format(goal))
         return within_threshold
@@ -109,7 +122,7 @@ with Pyro4.Daemon(ip) as daemon:
     slam = Pyro4.Proxy("PYRONAME:slam@" + robot_ip)
     obj = Planner(slam)
     obj_uri = daemon.register(obj)
-    with Pyro4.locateNS() as ns:
+    with Pyro4.locateNS(host=robot_ip) as ns:
         ns.register("planner", obj_uri)
 
     print("Planner Server is started...")
