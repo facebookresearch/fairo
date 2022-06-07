@@ -28,6 +28,7 @@ from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.droidlet_agent import DroidletAgent
 from agents.argument_parser import ArgumentParser
 import agents.locobot.label_prop as LP
+from droidlet.memory.memory_nodes import ChatNode
 from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
 from droidlet.perception.robot import Perception
 from droidlet.perception.semantic_parsing.utils.interaction_logger import InteractionLogger
@@ -323,7 +324,8 @@ class LocobotAgent(DroidletAgent):
             self.mover = HelloRobotMover(ip=self.opts.ip)
 
     def get_player_struct_by_name(self, speaker_name):
-        p = self.memory.get_player_by_name(speaker_name)
+        _, memnode = self.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker_name}')
+        p = memnode[0] if len(memnode)==1 else None
         if p:
             return p.get_struct()
         else:
@@ -336,7 +338,8 @@ class LocobotAgent(DroidletAgent):
         all_chats = []
         speaker_name = "dashboard"
         if self.dashboard_chat is not None:
-            if not self.memory.get_player_by_name(speaker_name):
+            memids, _ = self.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker_name}')
+            if len(memids)==0:
                 PlayerNode.create(
                     self.memory,
                     to_player_struct((None, None, None), None, None, None, speaker_name),
@@ -350,7 +353,7 @@ class LocobotAgent(DroidletAgent):
         logging.info("Sending chat: {}".format(chat))
         # Send the socket event to show this reply on dashboard
         sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat)})
-        self.memory.add_chat(self.memory.self_memid, chat)
+        self.memory.nodes[ChatNode.NODE_TYPE].create(self.memory, self.memory.self_memid, chat)
         # actually send the chat, FIXME FOR HACKATHON
         # return self._cpp_send_chat(chat)
 

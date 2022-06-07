@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 from droidlet.base_util import XYZ, Pos
-from droidlet.memory.memory_nodes import ReferenceObjectNode, MemoryNode, NODELIST
+from droidlet.memory.memory_nodes import ReferenceObjectNode, MemoryNode, NODELIST, TripleNode
 import pickle
 
 
@@ -66,15 +66,15 @@ class DetectedObjectNode(ReferenceObjectNode):
         if hasattr(detected_obj, "properties") and detected_obj.properties is not None:
             cls.safe_tag(detected_obj, memory, memid, "has_properties", "properties")
             for prop in detected_obj.properties:
-                memory.tag(memid, prop)
+                memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, prop)
 
         # Tag everything with has_tag predicate
         if hasattr(detected_obj, "color") and detected_obj.color is not None:
-            memory.tag(memid, detected_obj.color)
+            memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, detected_obj.color)
         if hasattr(detected_obj, "label") and detected_obj.label is not None:
-            memory.tag(memid, detected_obj.label)
-        memory.tag(memid, "_physical_object")
-        memory.tag(memid, "_not_location")
+            memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, detected_obj.label)
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_physical_object")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_not_location")
         return memid
 
     @classmethod
@@ -105,7 +105,9 @@ class DetectedObjectNode(ReferenceObjectNode):
     def safe_tag(cls, detected_obj, memory, subj_memid, pred_text, attr):
         attr = getattr(detected_obj, attr, None)
         if attr is not None:
-            memory.add_triple(subj=subj_memid, pred_text=pred_text, obj_text=str(attr))
+            memory.nodes[TripleNode.NODE_TYPE].create(
+                memory, subj=subj_memid, pred_text=pred_text, obj_text=str(attr)
+            )
 
     @classmethod
     def get_all(cls, memory) -> list:
@@ -120,8 +122,8 @@ class DetectedObjectNode(ReferenceObjectNode):
     @classmethod
     def from_node(cls, memory, node) -> list:
         def get_value(memid, pred_text):
-            triple = memory.get_triples(
-                subj=memid, pred_text=pred_text, return_obj_text="if_exists"
+            triple = memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                memory, subj=memid, pred_text=pred_text, return_obj_text="if_exists"
             )
             if len(triple) > 0 and len(triple[0]) >= 3 and triple[0][2] != memid:
                 return triple[0][2]
@@ -227,7 +229,7 @@ class HumanPoseNode(ReferenceObjectNode):
             memid,
             pickle.dumps(humanpose.keypoints),
         )
-        memory.tag(memid, "_human_pose")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_human_pose")
         return memid
 
     @classmethod
@@ -284,10 +286,14 @@ class DanceNode(MemoryNode):
         # TODO put in db via pickle like tasks?
         memory.dances[memid] = dance_fn
         if name is not None:
-            memory.add_triple(subj=memid, pred_text="has_name", obj_text=name)
+            memory.nodes[TripleNode.NODE_TYPE].create(
+                memory, subj=memid, pred_text="has_name", obj_text=name
+            )
         if len(tags) > 0:
             for tag in tags:
-                memory.add_triple(subj=memid, pred_text="has_tag", obj_text=tag)
+                memory.nodes[TripleNode.NODE_TYPE].create(
+                    memory, subj=memid, pred_text="has_tag", obj_text=tag
+                )
         return memid
 
 

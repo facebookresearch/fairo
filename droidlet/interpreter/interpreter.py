@@ -16,7 +16,7 @@ from .interpret_location import ReferenceLocationInterpreter, interpret_relative
 from .interpret_filters import FilterInterpreter
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 from droidlet.task.task import task_to_generator, ControlBlock
-from droidlet.memory.memory_nodes import TripleNode, TaskNode, InterpreterNode
+from droidlet.memory.memory_nodes import ChatNode, TripleNode, InterpreterNode
 from droidlet.dialog.dialogue_task import ConfirmTask, Say
 
 
@@ -31,8 +31,11 @@ class InterpreterBase:
             if (
                 logical_form_memid != "NULL"
             ):  # if it were "NULL", this is a dummy interpreter of some sort...
-                self.memory.add_triple(
-                    subj=self.memid, pred_text="logical_form_memid", obj=logical_form_memid
+                self.memory.nodes[TripleNode.NODE_TYPE].create(
+                    self.memory,
+                    subj=self.memid,
+                    pred_text="logical_form_memid",
+                    obj=logical_form_memid,
                 )
         else:
             # ALL state is stored in memory, associated to the interpreter memid.
@@ -118,10 +121,13 @@ class Interpreter(InterpreterBase):
     def step(self, agent) -> Tuple[Optional[str], Any]:
         start_time = datetime.datetime.now()
         assert self.logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND"
+        self.finished = False
         try:
             C = self.interpret_event(agent, self.speaker, self.logical_form)
             if C is not None:
-                chat = self.memory.get_most_recent_incoming_chat()
+                chat = self.memory.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(
+                    self.memory
+                )
                 TripleNode.create(
                     self.memory, subj=chat.memid, pred_text="chat_effect_", obj=C.memid
                 )
@@ -226,7 +232,11 @@ class Interpreter(InterpreterBase):
             location_d = d.get("location", default_loc)
             # FIXME, this is hacky.  need more careful way of storing this in task
             # and to pass to task generator
-            mems = self.subinterpret["reference_locations"](self, speaker, location_d)
+            try:
+                mems = self.subinterpret["reference_locations"](self, speaker, location_d)
+            except NextDialogueStep:
+                # TODO allow for clarification
+                raise ErrorWithResponse("I don't understand where you want me to move.")
             # FIXME this should go in the ref_location subinterpret:
             steps, reldir = interpret_relative_direction(self, location_d)
             pos, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)

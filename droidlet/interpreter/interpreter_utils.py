@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 from copy import deepcopy
+from droidlet.memory.memory_nodes import TripleNode
 
 SPEAKERLOOK = {"reference_object": {"special_reference": "SPEAKER_LOOK"}}
 SPEAKERPOS = {"reference_object": {"special_reference": "SPEAKER"}}
@@ -44,8 +45,11 @@ def update_attended_and_link_lf(interpreter, mems):
     # a dummy interpreter may have no logical form memid associated to it...
     if lf_memid:
         for m in mems:
-            interpreter.memory.add_triple(
-                subj=m.memid, pred_text="attended_while_interpreting", obj=lf_memid
+            interpreter.memory.nodes[TripleNode.NODE_TYPE].create(
+                interpreter.memory,
+                subj=m.memid,
+                pred_text="attended_while_interpreting",
+                obj=lf_memid,
             )
 
 

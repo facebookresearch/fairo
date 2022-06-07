@@ -408,6 +408,505 @@ exports[`Storyshots Example/Page Logged Out 1`] = `
 </article>
 `;
 
+exports[`Storyshots InteractApp Default 1`] = `
+<div
+  className="App"
+  style={
+    Object {
+      "padding": 0,
+    }
+  }
+>
+  <div
+    className="content"
+  >
+    <div>
+      <div>
+        <p>
+          Enter the command to the assistant in the input box below, then press 'Enter'.
+        </p>
+      </div>
+      <div
+        className="center"
+      >
+        <div
+          className="chat"
+        >
+          <div
+            className="time"
+          >
+            Assistant is
+             
+            <span
+              style={
+                Object {
+                  "color": "red",
+                }
+              }
+            >
+              not connected
+            </span>
+          </div>
+          <div
+            className="messages"
+          >
+            <div
+              className="messsages-content"
+              id="scrollbar"
+            >
+              <ul
+                className="messagelist"
+                id="chat"
+              >
+                <li
+                  className="message-item"
+                >
+                  <div
+                    className="message agent"
+                  >
+                    Press the start button to begin!
+                  </div>
+                  <div
+                    className="answer-buttons"
+                  >
+                    <button
+                      className="MuiButtonBase-root MuiButton-root MuiButton-contained yes-button MuiButton-containedPrimary"
+                      disabled={false}
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onDragLeave={[Function]}
+                      onFocus={[Function]}
+                      onKeyDown={[Function]}
+                      onKeyUp={[Function]}
+                      onMouseDown={[Function]}
+                      onMouseLeave={[Function]}
+                      onMouseUp={[Function]}
+                      onTouchEnd={[Function]}
+                      onTouchMove={[Function]}
+                      onTouchStart={[Function]}
+                      style={
+                        Object {
+                          "display": "none",
+                        }
+                      }
+                      tabIndex={0}
+                      type="button"
+                    >
+                      <span
+                        className="MuiButton-label"
+                      >
+                        Yes
+                      </span>
+                    </button>
+                    <button
+                      className="MuiButtonBase-root MuiButton-root MuiButton-contained no-button MuiButton-containedPrimary"
+                      disabled={false}
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onDragLeave={[Function]}
+                      onFocus={[Function]}
+                      onKeyDown={[Function]}
+                      onKeyUp={[Function]}
+                      onMouseDown={[Function]}
+                      onMouseLeave={[Function]}
+                      onMouseUp={[Function]}
+                      onTouchEnd={[Function]}
+                      onTouchMove={[Function]}
+                      onTouchStart={[Function]}
+                      style={
+                        Object {
+                          "display": "none",
+                        }
+                      }
+                      tabIndex={0}
+                      type="button"
+                    >
+                      <span
+                        className="MuiButton-label"
+                      >
+                        No
+                      </span>
+                    </button>
+                    <button
+                      className="MuiButtonBase-root MuiButton-root MuiButton-contained back-button MuiButton-containedPrimary"
+                      disabled={false}
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onDragLeave={[Function]}
+                      onFocus={[Function]}
+                      onKeyDown={[Function]}
+                      onKeyUp={[Function]}
+                      onMouseDown={[Function]}
+                      onMouseLeave={[Function]}
+                      onMouseUp={[Function]}
+                      onTouchEnd={[Function]}
+                      onTouchMove={[Function]}
+                      onTouchStart={[Function]}
+                      style={
+                        Object {
+                          "display": "none",
+                        }
+                      }
+                      tabIndex={0}
+                      type="button"
+                    >
+                      <span
+                        className="MuiButton-label"
+                      >
+                        Go Back
+                      </span>
+                    </button>
+                  </div>
+                </li>
+                <div
+                  className="messagesEnd"
+                />
+              </ul>
+            </div>
+          </div>
+          <div
+            className="input"
+          >
+            <input
+              disabled={false}
+              id="msg"
+              placeholder="Type your command or response here"
+              type="text"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Storyshots LiveHumans Default 1`] = `
+<div
+  className="react-draggable"
+  onMouseDown={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  style={
+    Object {
+      "boxSizing": "border-box",
+      "cursor": "move",
+      "display": "inline-block",
+      "flexShrink": 0,
+      "height": "320px",
+      "left": 0,
+      "maxHeight": 9007199254740991,
+      "maxWidth": 9007199254740991,
+      "minHeight": undefined,
+      "minWidth": undefined,
+      "position": "absolute",
+      "top": 0,
+      "transform": "translate(10px,10px)",
+      "userSelect": "auto",
+      "width": "320px",
+    }
+  }
+  transform={null}
+>
+  <p>
+    Loading...
+  </p>
+  <div>
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "top": "-5px",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "position": "absolute",
+          "right": "-5px",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-5px",
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "left": "-5px",
+          "position": "absolute",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "ne-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "se-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "sw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "nw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+  </div>
+</div>
+`;
+
+exports[`Storyshots LiveHumans Loading 1`] = `
+<div
+  className="react-draggable"
+  onMouseDown={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  style={
+    Object {
+      "boxSizing": "border-box",
+      "cursor": "move",
+      "display": "inline-block",
+      "flexShrink": 0,
+      "height": "320px",
+      "left": 0,
+      "maxHeight": 9007199254740991,
+      "maxWidth": 9007199254740991,
+      "minHeight": undefined,
+      "minWidth": undefined,
+      "position": "absolute",
+      "top": 0,
+      "transform": "translate(10px,10px)",
+      "userSelect": "auto",
+      "width": "320px",
+    }
+  }
+  transform={null}
+>
+  <p>
+    Loading...
+  </p>
+  <div>
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "top": "-5px",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "position": "absolute",
+          "right": "-5px",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-5px",
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "left": "-5px",
+          "position": "absolute",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "ne-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "se-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "sw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "nw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+  </div>
+</div>
+`;
+
 exports[`Storyshots LiveImage Default 1`] = `
 <div
   className="react-draggable"
@@ -1244,7 +1743,7 @@ exports[`Storyshots LocoView Default 1`] = `
         "minWidth": undefined,
         "position": "absolute",
         "top": 0,
-        "transform": "translate(10px,400px)",
+        "transform": "translate(10px,10px)",
         "userSelect": "auto",
         "width": "320px",
       }
@@ -1404,7 +1903,7 @@ exports[`Storyshots LocoView Default 1`] = `
         "minWidth": undefined,
         "position": "absolute",
         "top": 0,
-        "transform": "translate(340px,400px)",
+        "transform": "translate(340px,10px)",
         "userSelect": "auto",
         "width": "320px",
       }
@@ -1564,7 +2063,7 @@ exports[`Storyshots LocoView Default 1`] = `
         "minWidth": undefined,
         "position": "absolute",
         "top": 0,
-        "transform": "translate(10px,730px)",
+        "transform": "translate(10px,340px)",
         "userSelect": "auto",
         "width": "320px",
       }
@@ -1724,7 +2223,7 @@ exports[`Storyshots LocoView Default 1`] = `
         "minWidth": undefined,
         "position": "absolute",
         "top": 0,
-        "transform": "translate(340px,730px)",
+        "transform": "translate(340px,340px)",
         "userSelect": "auto",
         "width": "320px",
       }
@@ -1878,4 +2377,96 @@ exports[`Storyshots Memory2D Loading 1`] = `
 <p>
   Loading
 </p>
+`;
+
+exports[`Storyshots TurkInfo Default 1`] = `
+<div
+  className="App"
+>
+  <div
+    className="infoContent"
+  >
+    <div
+      className="stoplight"
+    >
+      <h4>
+        HIT Performance Indicator:
+      </h4>
+      <status-indicator
+        positive={true}
+      />
+      <status-indicator
+        intermediary={true}
+      />
+      <status-indicator
+        negative={true}
+      />
+      <p
+        style={
+          Object {
+            "color": "#39ff14",
+          }
+        }
+      >
+        Current Bonus: 
+        $0.00
+      </p>
+      <p>
+        Feedback: 
+        
+      </p>
+    </div>
+    <div
+      className="timer"
+    >
+      <div>
+        <div
+          style={
+            Object {
+              "fontSize": 40,
+            }
+          }
+        >
+          00
+           : 
+          00
+        </div>
+        <br />
+        <button
+          className="MuiButtonBase-root MuiButton-root MuiButton-contained MsgButton MuiButton-containedPrimary"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={0}
+          type="button"
+        >
+          <span
+            className="MuiButton-label"
+          >
+            Start
+          </span>
+        </button>
+        <br />
+        <div>
+          <p>
+            Please click on the button to start the session. 
+          </p>
+          <p>
+            When at least 5 minutes have passed and you are finished, click on the button to end the session and proceed to next steps.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 `;

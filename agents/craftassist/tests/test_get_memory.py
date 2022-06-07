@@ -7,6 +7,7 @@ import droidlet.base_util
 import droidlet.lowlevel.minecraft.shape_util
 import droidlet.lowlevel.minecraft.shapes
 import droidlet.lowlevel.minecraft.shapes as shapes
+from droidlet.memory.memory_nodes import TripleNode
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.interpreter.tests.all_test_commands import *
 
@@ -31,7 +32,7 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
     def test_get_name_and_left_of(self):
         # set the name
         name = "fluffball"
-        self.agent.memory.add_triple(subj=self.cube.memid, pred_text="has_name", obj_text=name)
+        self.agent.memory.nodes[TripleNode.NODE_TYPE].create(self.agent.memory, subj=self.cube.memid, pred_text="has_name", obj_text=name)
 
         # get the name
         d = GET_MEMORY_COMMANDS["what is where I am looking"]
@@ -120,6 +121,7 @@ class GetMemoryCountAndSizeTest(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
         red_cube_triples = {"has_name": "cube", "has_shape": "cube", "has_colour": "red"}
+        yellow_cube_triples = {"has_name": "cube", "has_shape": "cube", "has_colour": "yellow"}
         blue_cube_triples = {"has_name": "cube", "has_shape": "cube", "has_colour": "blue"}
         red_sphere_triples = {"has_name": "sphere", "has_shape": "sphere", "has_colour": "red"}
         blue_sphere_triples = {"has_name": "sphere", "has_shape": "sphere", "has_colour": "blue"}
@@ -131,7 +133,7 @@ class GetMemoryCountAndSizeTest(BaseCraftassistTestCase):
         self.cube2 = self.add_object(
             droidlet.lowlevel.minecraft.shapes.cube(size=2, bid=(35, 14)),
             (15, 63, 15),
-            relations=red_cube_triples,
+            relations=yellow_cube_triples,
         )
         self.cube3 = self.add_object(
             droidlet.lowlevel.minecraft.shapes.cube(size=3, bid=(35, 11)),

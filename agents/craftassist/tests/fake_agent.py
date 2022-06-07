@@ -9,10 +9,11 @@ from typing import List, Tuple
 
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, Block
 from droidlet.memory.memory_nodes import ChatNode
-from droidlet.lowlevel.minecraft.pyworld.utils import Look, Pos, Item, Player
+from droidlet.base_util import Look, Pos
+from droidlet.shared_data_struct.craftassist_shared_utils import Item, Player
 from agents.droidlet_agent import DroidletAgent
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
-from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
+from droidlet.memory.craftassist.mc_memory_nodes import TripleNode, VoxelObjectNode
 from agents.craftassist.craftassist_agent import CraftAssistAgent
 from droidlet.shared_data_structs import MockOpt
 from droidlet.dialog.dialogue_manager import DialogueManager
@@ -74,7 +75,11 @@ class FakeAgent(DroidletAgent):
         do_heuristic_perception=False,
         prebuilt_perception=None,
         low_level_data=None,
+        use_place_field=True,
+        prebuilt_db=None,
     ):
+        self.prebuilt_db = prebuilt_db
+        self.use_place_field = use_place_field
         self.mark_airtouching_blocks = do_heuristic_perception
         self.head_height = HEAD_HEIGHT
         self.world = world
@@ -133,13 +138,17 @@ class FakeAgent(DroidletAgent):
         T = FakeMCTime(self.world)
         low_level_data = self.low_level_data.copy()
         low_level_data["check_inside"] = heuristic_perception.check_inside
-
-        self.memory = MCAgentMemory(
-            load_minecraft_specs=False,
-            coordinate_transforms=self.coordinate_transforms,
-            agent_time=T,
-            agent_low_level_data=low_level_data,
-        )
+        kwargs = {
+            "load_minecraft_specs": False,
+            "coordinate_transforms": self.coordinate_transforms,
+            "agent_time": T,
+            "agent_low_level_data": low_level_data,
+        }
+        if not self.use_place_field:
+            kwargs["place_field_pixels_per_unit"] = -1
+        if self.prebuilt_db is not None:
+            kwargs["copy_from_backup"] = self.prebuilt_db
+        self.memory = MCAgentMemory(**kwargs)
         # Add dances to memory
         dance.add_default_dances(self.memory)
 
@@ -327,13 +336,13 @@ class FakeAgent(DroidletAgent):
         boring_blocks = self.low_level_data["boring_blocks"]
         self.set_blocks(xyzbms, boring_blocks, origin)
         abs_xyz = tuple(np.array(xyzbms[0][0]) + origin)
-        memid = self.memory.get_block_object_ids_by_xyz(abs_xyz)[0]
+        memid = self.memory.get_object_info_by_xyz(abs_xyz, "BlockObjects")[0]
         for pred, obj in relations.items():
-            self.memory.add_triple(subj=memid, pred_text=pred, obj_text=obj)
+            self.memory.nodes[TripleNode.NODE_TYPE].create(self.memory, subj=memid, pred_text=pred, obj_text=obj)
             # sooooorrry  FIXME? when we handle triples better in interpreter_helper
             if "has_" in pred:
-                self.memory.tag(memid, obj)
-        return self.memory.get_object_by_id(memid)
+                self.memory.nodes[TripleNode.NODE_TYPE].tag(self.memory, memid, obj)
+        return self.memory.get_mem_by_id(memid)
 
     # WARNING!! this does not step the world, but directly fast-forwards
     # to count.  Use only in world setup, once world is running!
@@ -355,8 +364,8 @@ class FakeAgent(DroidletAgent):
             c = [c[0], h, c[1]]
         else:
             c = [self.pos[0], h, self.pos[2]]
-        C = self.world.to_world_coords(c)
-        A = self.world.to_world_coords(self.pos)
+        C = self.world.to_npy_coords(c)
+        A = self.world.to_npy_coords(self.pos)
         shifted_agent_pos = [A[0] - C[0] + r, A[2] - C[2] + r]
         npy = self.world.get_blocks(
             c[0] - r, c[0] + r, c[1], c[1], c[2] - r, c[2] + r, transpose=False
@@ -370,7 +379,7 @@ class FakeAgent(DroidletAgent):
         nummobs = {-1: "rabbit", -2: "cow", -3: "pig", -4: "chicken", -5: "sheep"}
         for mob in self.world.mobs:
             # todo only in the plane?
-            p = np.round(np.array(self.world.to_world_coords(mob.pos)))
+            p = np.round(np.array(self.world.to_npy_coords(mob.pos)))
             p = p - C
             try:
                 npy[p[0] + r, p[1] + r] = mobnums[mob.mobname]
@@ -424,12 +433,22 @@ class FakePlayer(FakeAgent):
         get_world_pos=False,
         name="",
         active=True,
+        low_level_data=None,
+        use_place_field=False,
+        prebuilt_db=None,
     ):
         class NubWorld:
             def __init__(self):
                 self.count = 0
 
-        super().__init__(NubWorld(), opts=opts, do_heuristic_perception=do_heuristic_perception)
+        super().__init__(
+            NubWorld(),
+            opts=opts,
+            do_heuristic_perception=do_heuristic_perception,
+            low_level_data=low_level_data,
+            use_place_field=use_place_field,
+            prebuilt_db=prebuilt_db,
+        )
         # if active is set to false, the fake player's step is passed.
         self.active = active
         self.get_world_pos = get_world_pos
@@ -497,4 +516,4 @@ class FakePlayer(FakeAgent):
             self.pos = np.array(
                 (float(xz[0]) + off[0], float(h + 1) + off[1], float(xz[1]) + off[2]), dtype="int"
             )
-        self.world.players.append(self)
+        self.world.players[self.entityId] = self
