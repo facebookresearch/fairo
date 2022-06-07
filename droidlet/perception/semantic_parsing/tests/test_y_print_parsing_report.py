@@ -4,10 +4,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 import json
-from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
+import pytest
+from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier, MockNSPQuerier
 from droidlet.shared_data_structs import MockOpt
 from prettytable import PrettyTable
-
 
 class fontcolors:
     HEADER = "\033[95m"
@@ -1184,7 +1184,7 @@ def compare_full_dictionaries(d1, d2):
     else:
         return compare_dicts(d1, d2)
 
-
+@pytest.mark.usefixtures("flag_m")
 class TestDialogueManager(unittest.TestCase):
     def setUp(self):
         opts = MockOpt()
@@ -1192,7 +1192,15 @@ class TestDialogueManager(unittest.TestCase):
         opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR
         opts.nsp_models_dir = TTAD_MODEL_DIR
         opts.no_ground_truth = False
-        self.chat_parser = NSPQuerier(opts=opts)
+        if self.flag_m == "True":
+            opts.flag_m = True
+        self.opts = opts
+        
+        if opts.flag_m:
+            self.chat_parser = NSPQuerier(opts=opts)
+        else:
+            self.chat_parser = MockNSPQuerier(opts=opts)
+        
         self.ground_truth_actions = {}
         print("fetching data from ground truth, from directory: %r" % (opts.ground_truth_data_dir))
         if not opts.no_ground_truth:
@@ -1219,9 +1227,14 @@ class TestDialogueManager(unittest.TestCase):
                 print(command)
                 try:
                     # else query the model and remove the value for key "text_span"
-                    model_prediction = remove_text_span(
-                        self.chat_parser.parsing_model.query_for_logical_form(chat=command)
-                    )
+                    if self.opts.flag_m:
+                        model_prediction = remove_text_span(
+                            self.chat_parser.parsing_model.query_for_logical_form(chat=command)
+                        )
+                    else:
+                        model_prediction = remove_text_span(
+                            self.chat_parser.query_for_logical_form(chat=command)
+                        )
                 except:
                     status = False
             # compute parsing pipeline accuracy
@@ -1240,9 +1253,14 @@ class TestDialogueManager(unittest.TestCase):
                 ]
             # compute model correctness status
             try:
-                model_output = remove_text_span(
-                    self.chat_parser.parsing_model.query_for_logical_form(chat=command)
-                )
+                if self.opts.flag_m:
+                    model_output = remove_text_span(
+                        self.chat_parser.parsing_model.query_for_logical_form(chat=command)
+                    )
+                else:
+                    model_output = remove_text_span(
+                        self.chat_parser.query_for_logical_form(chat=command)
+                    )
                 parsing_model_status = compare_full_dictionaries(ground_truth_parse, model_output)
             except:
                 parsing_model_status = False

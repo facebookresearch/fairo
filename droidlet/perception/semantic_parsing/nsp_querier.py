@@ -15,6 +15,20 @@ from .utils.nsp_logger import NSPLogger
 from .utils.validate_json import JSONValidator
 from droidlet.base_util import hash_user
 
+class MockNSPQuerier(object):
+    def __init__(self, opts):
+        """
+        This class is a Mock for NSP Querier. It takes query as input
+        and returns dummy tree.
+        """
+        self.opts = opts
+
+    def query_for_logical_form(self, chat):
+        DUMMY_TREE = {
+            "dialogue_type": "GET_MEMORY",
+        }
+        
+        return DUMMY_TREE
 
 class NSPQuerier(object):
     def __init__(self, opts, agent=None):
