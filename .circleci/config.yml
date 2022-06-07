@@ -258,29 +258,9 @@ jobs:
           export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
           codecov -n "locobot tests" -f test*.xml || echo "Codecov did not collect coverage reports"
   
-  polymetis-local-ubuntu-18:
+  polymetis-local:
     docker:
-      - image: fairrobotics/kuka-workspace:ubuntu-18
-        auth:
-          username: yixinlin
-          password: $DOCKERHUB_PASSWORD
-    steps:
-      - checkout
-      - restore_cache:
-          key: deps9-{{ .Branch }}-ubuntu-18-{{ checksum "polymetis/polymetis/environment.yml" }}
-      - run:
-          name: Create Conda environment
-          command: |
-            . /opt/conda/etc/profile.d/conda.sh
-            [ -d /opt/conda/envs/polymetis-local ] || mamba env create -f polymetis/polymetis/environment.yml
-      - save_cache:
-          key: deps9-{{ .Branch }}-ubuntu-18-{{ checksum "polymetis/polymetis/environment.yml" }}
-          paths:
-            - "/opt/conda/envs/polymetis-local"
-      - polymetis_local_build
-  polymetis-local-ubuntu-20:
-    docker:
-      - image: fairrobotics/kuka-workspace:ubuntu-20
+      - image: continuumio/miniconda3
         auth:
           username: yixinlin
           password: $DOCKERHUB_PASSWORD
@@ -298,19 +278,9 @@ jobs:
           paths:
             - "/opt/conda/envs/polymetis-local"
       - polymetis_local_build
-  polymetis-conda-ubuntu-18:
+  polymetis-conda:
     docker:
-      - image: fairrobotics/kuka-workspace:ubuntu-18
-        auth:
-          username: yixinlin
-          password: $DOCKERHUB_PASSWORD
-    resource_class: medium+
-    steps:
-      - checkout
-      - polymetis_build_conda_pkg
-  polymetis-conda-ubuntu-20:
-    docker:
-      - image: fairrobotics/kuka-workspace:ubuntu-20
+      - image: continuumio/miniconda3
         auth:
           username: yixinlin
           password: $DOCKERHUB_PASSWORD
@@ -464,10 +434,8 @@ workflows:
     jobs:
       - minecraft
       - locobot
-      - polymetis-local-ubuntu-18
-      - polymetis-local-ubuntu-20
-      - polymetis-conda-ubuntu-18
-      - polymetis-conda-ubuntu-20
+      - polymetis-local
+      - polymetis-conda
       - formatting
       - mrp
       - mrp-lint
@@ -476,7 +444,7 @@ workflows:
       - eyehandcal
       - update-docs:
           requires:
-            - polymetis-local-ubuntu-20
+            - polymetis-local
             - minecraft
           filters:
             branches:
