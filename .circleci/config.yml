@@ -101,6 +101,7 @@ commands:
           name: Create Conda environment
           command: |
             . /opt/conda/etc/profile.d/conda.sh
+            conda install -c conda-forge mamba
             [ -d /opt/conda/envs/polymetis-local ] || mamba create -n polymetis-local python=3.8
       - run:
           name: Create Conda package
@@ -272,6 +273,7 @@ jobs:
           name: Create Conda environment
           command: |
             . /opt/conda/etc/profile.d/conda.sh
+            conda install -c conda-forge mamba
             [ -d /opt/conda/envs/polymetis-local ] || mamba env create -f polymetis/polymetis/environment.yml
       - save_cache:
           key: deps9-{{ .Branch }}-ubuntu-20-{{ checksum "polymetis/polymetis/environment.yml" }}
