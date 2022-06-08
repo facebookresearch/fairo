@@ -385,9 +385,6 @@ class ModelTrainer:
         l, _, _, a, text_span_acc, text_span_loss = self.validate(
             encoder_decoder, valid_dataset, tokenizer, self.args
         )
-        # logging.info(
-        #    "evaluating on {} valid: \t Loss: {:.4f} \t Accuracy: {:.4f}".format(dtype, l, a)
-        # )
         logging.info(
             "text span Loss: {:.4f} \t Accuracy: {:.4f}".format(text_span_loss, text_span_acc)
         )

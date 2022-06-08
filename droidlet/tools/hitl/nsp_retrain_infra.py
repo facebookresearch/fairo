@@ -18,7 +18,7 @@ from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.job_listener import JobListener
 from droidlet.tools.hitl.task_runner import TaskRunner
 from droidlet.tools.artifact_scripts.compute_checksum import compute_checksum_for_directory
-from droidlet.tools.artifact_scripts.upload_artifacts_to_aws import tar_and_upload
+from droidlet.tools.artifact_scripts.upload_artifacts_to_aws import tar_and_upload, compute_checksum_tar_and_upload
 
 
 log_formatter = logging.Formatter(
@@ -54,7 +54,7 @@ class NSPRetrainingJob(DataGenerator):
         i = max(range(len(l)), key=lambda i: l[i])
         return l[i], i
 
-    def get_accs_losses(self):
+    def get_accuracy_and_losses(self):
         accs = {}
         losses = {}
         logs = [l for l in os.listdir() if l[-4:] == ".log"]
@@ -389,7 +389,7 @@ class NSPRetrainingJob(DataGenerator):
                     f"NSP Retrain child process timed out after {NSP_RETRAIN_TIMEOUT} seconds"
                 )
             if self.slurm_jobs_finished(job_ids):
-                accs, losses = self.get_accs_losses()
+                accs, losses = self.get_accuracy_and_losses()
                 self.copy_best_model(accs, losses)
                 break
             time.sleep(MODEL_OUTPUT_POLL_TIME)
@@ -405,15 +405,21 @@ class NSPRetrainingJob(DataGenerator):
             "droidlet/artifacts/models/nlu/ttad_bert_updated/caip_test_model.pth",
         )
 
-        # Compute the checksum
+        # Compute the checksum for model and dataset
         compute_checksum_for_directory("craftassist", "models", "nlu")
-        checksum = ""
-        with open("droidlet/tools/artifact_scripts/tracked_checksums/nlu.txt", "r") as f:
-            checksum = f.read().strip()
+        compute_checksum_for_directory("craftassist", "datasets", "")
 
+        # read checksum of model and dataset
+        checksum_m = ""
+        with open("droidlet/tools/artifact_scripts/tracked_checksums/nlu.txt", "r") as f:
+            checksum_m = f.read().strip()
+        checksum_d = ""
+        with open("droidlet/tools/artifact_scripts/tracked_checksums/datasets.txt", "r") as f:
+            checksum_d = f.read().strip()
+        
         # Write the checksum to artifacts
-        with open("droidlet/artifacts/models/nlu/nlu_checksum.txt", "w") as f:
-            f.write(checksum + "\n")
+        # with open("droidlet/artifacts/models/nlu/nlu_checksum.txt", "w") as f:
+        #     f.write(checksum + "\n")
 
         # Log the information for the best model
         with open("droidlet/artifacts/models/nlu/model_log.txt", "w") as f_log, open(
@@ -427,10 +433,14 @@ class NSPRetrainingJob(DataGenerator):
             f_log.write("epoch " + epoch + "\n")
             f_log.write("valid_accuracy " + acc + "\n")
             f_log.write("valid_loss " + loss + "\n")
-            f_log.write("checksum " + checksum + "\n")
+            f_log.write("hash_model " + checksum_m + "\n")
+            f_log.write("hash_dataset " + checksum_d + "\n")
 
         # Tar the model folder and upload it to AWS
-        tar_and_upload("craftassist", "models", "nlu")
+        # tar_and_upload("craftassist", "models", "nlu")
+        compute_checksum_tar_and_upload("craftassist", "models", "nlu")
+        compute_checksum_tar_and_upload("craftassist", "datasets", "")
+
 
         logging.info(f"NSP Retraining Job finished")
         self.set_finished(True)
