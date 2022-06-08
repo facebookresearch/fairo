@@ -35,7 +35,7 @@ class RobotModelPinocchio(torch.nn.Module):
 
     Args:
         urdf_filename (str): path to the urdf file.
-        ee_link_name (str, optional): name of the end-effector link. Defaults to None,
+        ee_link_name (str, optional): name of the end-effector link. Defaults to "",
                                       which would require you to specify link_name
                                       when using methods which require a link frame;
                                       otherwise, the end-effector link will be used
