@@ -42,19 +42,19 @@ class RobotModelPinocchio(torch.nn.Module):
                                       by default.
     """
 
-    def __init__(self, urdf_filename: str, ee_link_name: str = None):
+    def __init__(self, urdf_filename: str, ee_link_name: str = ""):
         super().__init__()
         self.model = torch.classes.torchscript_pinocchio.RobotModelPinocchio(
             urdf_filename, False
         )
-        self.ee_link_name = None
+        self.ee_link_name = ""
         self.ee_link_idx = None
         self.set_ee_link(ee_link_name)
 
-    def set_ee_link(self, ee_link_name):
+    def set_ee_link(self, ee_link_name: str = ""):
         """Sets the `ee_link_name`, `ee_link_idx` using pinocchio::ModelTpl::getBodyId."""
         self.ee_link_name = ee_link_name
-        if self.ee_link_name is not None:
+        if self.ee_link_name:
             self.ee_link_idx = self.model.get_link_idx_from_name(self.ee_link_name)
         else:
             self.ee_link_idx = None
