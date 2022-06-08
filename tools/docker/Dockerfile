@@ -1,5 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-FROM shaomai/craftassist:latest as base
+FROM shaomai/craftassist:1 as base
 
 ARG current_branch
 ARG AWS_ACCESS_KEY_ID
@@ -10,7 +10,7 @@ RUN time git clone --recursive --shallow-submodules --depth 1 --branch ${current
 WORKDIR fairo
 
 RUN source activate /root/miniconda3/envs/droidlet
-RUN mamba install -r conda.txt -y
+RUN mamba install python=3.8 --file conda.txt -c conda-forge  -c pytorch -c nvidia
 RUN pip3 install -r requirements.txt
 RUN pip3 install -r agents/craftassist/requirements.txt
 
