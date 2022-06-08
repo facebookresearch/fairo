@@ -365,10 +365,7 @@ class StateManager {
   }
 
   setLastChatActionDict(res) {
-<<<<<<< HEAD
     console.log("StateManager setLastChatActionDict");
-=======
->>>>>>> main
     this.memory.lastChatActionDict = res.action_dict;
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
@@ -402,16 +399,6 @@ class StateManager {
   }
 
   showAssistantReply(res) {
-<<<<<<< HEAD
-    console.log(
-      "StateManager showAssistantReply " + JSON.stringify(res.agent_reply)
-    );
-    this.memory.agent_replies.push({
-      msg: res.agent_reply,
-      timestamp: Date.now(),
-    });
-    this.memory.last_reply = res.agent_reply;
-=======
     // TODO handle content types besides plain text
     
     let chat, response_options, isQuestion, questionType;
@@ -435,7 +422,6 @@ class StateManager {
     }
     this.memory.last_reply = chat;
     
->>>>>>> main
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
         ref.setState({
