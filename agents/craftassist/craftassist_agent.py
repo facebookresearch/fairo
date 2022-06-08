@@ -384,9 +384,9 @@ class CraftAssistAgent(DroidletAgent):
             chat_text = chat
 
         logging.info("Sending chat: {}".format(chat_text))
-        self.memory.nodes[ChatNode.NODE_TYPE].create(self.memory, self.memory.self_memid, chat_text)
+        chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(self.memory, self.memory.self_memid, chat_text)
 
-        if chat_json:
+        if chat_json and not isinstance(chat_json, int):
             chat_json["chat_memid"] = chat_memid
             chat_json["timestamp"] = round(datetime.timestamp(datetime.now()) * 1000)
             # Send the socket event to show this reply on dashboard
