@@ -285,7 +285,10 @@ class RobotInterface(BaseRobotInterface):
 
         with tempfile.NamedTemporaryFile("w+") as urdf_file:
             urdf_file.write(self.metadata.urdf_file)
-            self.set_robot_model(urdf_file.name, self.metadata.ee_link_name)
+            if hasattr(self.metadata, "ee_link_name"):
+                self.set_robot_model(urdf_file.name, self.metadata.ee_link_name)
+            else:
+                self.set_robot_model(urdf_file.name, None)
 
         self.set_home_pose(torch.Tensor(self.metadata.rest_pose))
 
