@@ -10,6 +10,7 @@ RUN time git clone --recursive --shallow-submodules --depth 1 --branch ${current
 WORKDIR fairo
 
 RUN source activate /root/miniconda3/envs/droidlet
+RUN pip3 install -r conda.txt
 RUN pip3 install -r requirements.txt
 RUN pip3 install -r agents/craftassist/requirements.txt
 
