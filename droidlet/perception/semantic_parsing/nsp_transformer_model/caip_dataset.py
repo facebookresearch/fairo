@@ -123,6 +123,7 @@ class CAIPDataset(Dataset):
         text, tree = tokenize_linearize(
             p_text, p_tree, self.tokenizer, self.full_tree, self.word_noise
         )
+
         text_idx_ls = self.tokenizer.convert_tokens_to_ids(text.split())
         tree_idx_ls = [
             [

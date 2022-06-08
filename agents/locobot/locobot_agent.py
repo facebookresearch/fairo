@@ -144,8 +144,8 @@ class LocobotAgent(DroidletAgent):
             objects = DetectedObjectNode.get_all(self.memory)
             for o in objects:
                 del o["feature_repr"]  # pickling optimization
-            self.dashboard_memory["objects"] = objects
-            sio.emit("updateState", {"memory": self.dashboard_memory})
+#            self.dashboard_memory["objects"] = objects
+#            sio.emit("updateState", {"memory": self.dashboard_memory})
 
         @sio.on("interaction data")
         def log_interaction_data(sid, interactionData):
@@ -268,16 +268,28 @@ class LocobotAgent(DroidletAgent):
                 
         self.memory.update(perception_output)
 
+    def get_detected_objects_for_map(self):
+        memids, mems = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
+        detections_for_map = []
+        for mem in mems:
+            if hasattr(mem, "obj_id") and hasattr(mem, "pos"):
+                detections_for_map.append([mem.obj_id, list(mem.pos)])
+            elif hasattr(mem, "pos"):
+                detections_for_map.append(["no_id", list(mem.pos)])
+        return detections_for_map
+    
     def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
+        detections_for_map = []
         if not obstacles:
             obstacles = self.memory.place_field.get_obstacle_list()
+            # if we are getting obstacles from memory, get detections from memory for map too
+            detections_for_map = self.get_detected_objects_for_map()
         if not xyyaw:
             self_mem = self.memory.get_mem_by_id(self.memory.self_memid)
             x, y, z = self_mem.pos
             # TODO: head or body? need better pose nodes
             yaw = self_mem.yaw
             xyyaw = (x, z, yaw)
-            
         sio.emit(
             "map",
             {
@@ -285,6 +297,7 @@ class LocobotAgent(DroidletAgent):
                 "y": xyyaw[1],
                 "yaw": xyyaw[2],
                 "map": obstacles,
+                "detections_from_memory": detections_for_map
             },
         )
 
