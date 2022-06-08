@@ -26,6 +26,7 @@ RUN apt-get install -y \
         zlib1g-dev \
         libblas-dev \
         liblapack-dev \
+        wget \
         ;
 
 SHELL ["/bin/bash", "-c"]
@@ -41,6 +42,8 @@ RUN conda --version
 SHELL ["/bin/bash", "-c"]
 
 RUN conda install mamba setuptools cmake -y -c conda-forge
+
+ADD ./requirements.txt /pip.txt
 
 RUN mamba create -n droidlet python=3.8 -c conda-forge -y && \
     conda init bash && \

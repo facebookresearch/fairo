@@ -1,5 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-FROM shaomai/craftassist:latest as base
+FROM shaomai/conda_ca_test:latest as base
 
 ARG current_branch
 ARG AWS_ACCESS_KEY_ID
