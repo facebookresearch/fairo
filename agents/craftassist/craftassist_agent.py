@@ -399,7 +399,9 @@ class CraftAssistAgent(DroidletAgent):
     def get_detected_objects_for_map(self):
         # FIXME should not be using WHERE clause hack
         search_res = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject WHERE y>-500")
-        memids, mems = search_res if search_res is not None else [], []
+        memids, mems = [], []
+        if search_res is not None:
+            memids, mems = search_res
         detections_for_map = []
         for mem in mems:
             if hasattr(mem, "pos"):
