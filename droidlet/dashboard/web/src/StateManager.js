@@ -400,14 +400,18 @@ class StateManager {
 
   showAssistantReply(res) {
     // TODO handle content types besides plain text
-    
+
     let chat, response_options, isQuestion, questionType;
     try {
-      if (res.content_type === "point") { return }  // Let the minecraft client handle point
+      if (res.content_type === "point") {
+        return;
+      } // Let the minecraft client handle point
       let content = res.content;
-      chat = content.filter(entry => entry["id"] === "text")[0]["content"];
+      chat = content.filter((entry) => entry["id"] === "text")[0]["content"];
       if (res.content_type === "chat_and_text_options") {
-        response_options = content.filter(entry => entry["id"] === "response_option").map(x => x["content"]);
+        response_options = content
+          .filter((entry) => entry["id"] === "response_option")
+          .map((x) => x["content"]);
         isQuestion = true;
         questionType = "clarification";
       } else {
@@ -429,7 +433,7 @@ class StateManager {
           response_options: response_options,
         });
         ref.addNewAgentReplies({
-          msg: chat, 
+          msg: chat,
           isQuestion: isQuestion,
           questionType: questionType,
           enableBack: false,
@@ -1057,6 +1061,7 @@ class StateManager {
   }
 
   processMap(res) {
+    console.log(JSON.stringify(res));
     this.refs.forEach((ref) => {
       if (ref instanceof Memory2D) {
         ref.setState({
