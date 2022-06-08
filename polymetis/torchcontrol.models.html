@@ -440,11 +440,11 @@ a C++ rigid body dynamics library.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>urdf_filename</strong> (<em>str</em>) – path to the urdf file.</p></li>
-<li><p><strong>ee_link_name</strong> (<em>str</em><em>, </em><em>optional</em>) – name of the end-effector link. Defaults to None,
-which would require you to specify link_name
-when using methods which require a link frame;
-otherwise, the end-effector link will be used
-by default.</p></li>
+<li><p><strong>ee_link_name</strong> (<em>str</em><em>, </em><em>optional</em>) – name of the end-effector link. Defaults to None.
+Having a value of either None or “” would require
+you to specify link_name when using methods which
+require a link frame; otherwise, the end-effector
+link will be used by default.</p></li>
 </ul>
 </dd>
 </dl>
@@ -546,7 +546,7 @@ end-effector link, if it was set during initialization.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.set_ee_link">
-<span class="sig-name descname"><span class="pre">set_ee_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ee_link_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.set_ee_link" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">set_ee_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ee_link_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.set_ee_link" title="Permalink to this definition">#</a></dt>
 <dd><p>Sets the <cite>ee_link_name</cite>, <cite>ee_link_idx</cite> using pinocchio::ModelTpl::getBodyId.</p>
 </dd></dl>
 
