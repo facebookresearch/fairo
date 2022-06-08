@@ -43,6 +43,7 @@ SHELL ["/bin/bash", "-c"]
 
 RUN conda install mamba setuptools cmake -y -c conda-forge
 
+ADD ./conda.txt /conda.txt
 ADD ./requirements.txt /pip.txt
 
 RUN mamba create -n droidlet python=3.8 -c conda-forge -y && \
