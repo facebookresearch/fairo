@@ -217,7 +217,12 @@ def interpret_reference_object(
         candidate_mems = apply_memory_filters(interpreter, speaker, filters_d)
 
         # Compare num matches to expected and clarify
-        if (len(candidate_mems) != num_refs) and allow_clarification:
+        if (
+            (len(candidate_mems) != num_refs)
+            and allow_clarification
+            and interpreter.logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND"
+        ):
+            # TODO extend clarification to work with more 'dialogue_type's
             clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
             raise NextDialogueStep()
 
