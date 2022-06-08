@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 import os
-from typing import Tuple
+from typing import Tuple, Optional
 
 import torch
 from polymetis.utils.data_dir import PKG_ROOT_DIR
@@ -42,21 +42,22 @@ class RobotModelPinocchio(torch.nn.Module):
                                       by default.
     """
 
-    def __init__(self, urdf_filename: str, ee_link_name: str = ""):
+    def __init__(self, urdf_filename: str, ee_link_name: Optional[str] = None):
         super().__init__()
         self.model = torch.classes.torchscript_pinocchio.RobotModelPinocchio(
             urdf_filename, False
         )
-        self.ee_link_name = ""
+        self.ee_link_name = None
         self.ee_link_idx = None
         self.set_ee_link(ee_link_name)
 
-    def set_ee_link(self, ee_link_name: str = ""):
+    def set_ee_link(self, ee_link_name: Optional[str] = None):
         """Sets the `ee_link_name`, `ee_link_idx` using pinocchio::ModelTpl::getBodyId."""
         self.ee_link_name = ee_link_name
-        if self.ee_link_name:
+        if self.ee_link_name is not None and self.ee_link_name:
             self.ee_link_idx = self.model.get_link_idx_from_name(self.ee_link_name)
-        else:
+        else:  # self.ee_link_name = None or ""
+            self.ee_link_name = None
             self.ee_link_idx = None
 
     def _get_link_idx_or_use_ee(self, link_name: str) -> int:
