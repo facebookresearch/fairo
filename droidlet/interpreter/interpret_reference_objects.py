@@ -221,7 +221,7 @@ def interpret_reference_object(
         if hasattr(interpreter, "logical_form"):
             command_type = interpreter.logical_form.get("dialogue_type", None)
 
-        # Compare num matches to expected and clarify        
+        # Compare num matches to expected and clarify
         if (
             (len(candidate_mems) != num_refs)
             and allow_clarification
