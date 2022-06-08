@@ -425,7 +425,7 @@ class StateManager {
       isQuestion = false;
     }
     this.memory.last_reply = chat;
-
+    
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
         ref.setState({
