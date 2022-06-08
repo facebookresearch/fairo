@@ -18,7 +18,10 @@ from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.job_listener import JobListener
 from droidlet.tools.hitl.task_runner import TaskRunner
 from droidlet.tools.artifact_scripts.compute_checksum import compute_checksum_for_directory
-from droidlet.tools.artifact_scripts.upload_artifacts_to_aws import tar_and_upload, compute_checksum_tar_and_upload
+from droidlet.tools.artifact_scripts.upload_artifacts_to_aws import (
+    tar_and_upload,
+    compute_checksum_tar_and_upload,
+)
 
 
 log_formatter = logging.Formatter(
@@ -416,7 +419,7 @@ class NSPRetrainingJob(DataGenerator):
         checksum_d = ""
         with open("droidlet/tools/artifact_scripts/tracked_checksums/datasets.txt", "r") as f:
             checksum_d = f.read().strip()
-        
+
         # Write the checksum to artifacts
         # with open("droidlet/artifacts/models/nlu/nlu_checksum.txt", "w") as f:
         #     f.write(checksum + "\n")
@@ -440,7 +443,6 @@ class NSPRetrainingJob(DataGenerator):
         # tar_and_upload("craftassist", "models", "nlu")
         compute_checksum_tar_and_upload("craftassist", "models", "nlu")
         compute_checksum_tar_and_upload("craftassist", "datasets", "")
-
 
         logging.info(f"NSP Retraining Job finished")
         self.set_finished(True)
