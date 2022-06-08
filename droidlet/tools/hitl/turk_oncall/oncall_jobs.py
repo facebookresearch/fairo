@@ -320,7 +320,6 @@ if __name__ == "__main__":
     ocj = OnCallJob(
         instance_num=2,
         image_tag="oncall_v1",
-        task_name="oncall_t2",
         timeout=30,
     )
     batch_id = ocj.get_batch_id()
