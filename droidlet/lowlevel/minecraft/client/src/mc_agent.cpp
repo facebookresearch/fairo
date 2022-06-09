@@ -26,7 +26,7 @@ class Agent {
   // Main constructor
   //  - host/port: the Minecraft server to connect to
   //  - username:  username visible to other players on the server. Recommended to be unique.
-  Agent(const string& host, int port, const string& username) : client_(host, port, username) {}
+  Agent(const string& host, int port, const string& username, double x, double y, double z) : client_(host, port, username, x, y, z) {}
 
   ////////////////
   // Observations
@@ -355,7 +355,7 @@ void Agent::doMove(int x, int y, int z) {
 
 PYBIND11_MODULE(mc_agent, m) {
   py::class_<Agent>(m, "Agent")
-      .def(py::init<const string&, int, const string&>())
+      .def(py::init<const string&, int, const string&, double, double, double>())
       .def("disconnect", &Agent::disconnect, "Disconnect the agent from the server")
       .def("dig", &Agent::dig)
       .def("drop_item_stack_in_hand", &Agent::dropItemStackInHand)

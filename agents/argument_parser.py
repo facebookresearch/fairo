@@ -103,6 +103,13 @@ class ArgumentParser:
             default="memory", 
             help='"" for no map in dashboard, "memory" to draw from agent memory')        
         mc_parser.add_argument("--port", type=int, default=25565)
+        mc_parser.add_argument(
+        "--spawn_location",
+        type=float,
+        nargs=3,
+        default=[0, 63, 0],
+        help="Spawn location of the agent",
+    )
 
     def add_loco_parser(self):
         loco_parser = self.parser.add_argument_group("Locobot Agent Args")

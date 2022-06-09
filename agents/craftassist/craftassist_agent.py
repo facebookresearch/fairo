@@ -525,7 +525,7 @@ class CraftAssistAgent(DroidletAgent):
         if self.opts.port == -1:
             return
         logging.info("Attempting to connect to port {}".format(self.opts.port))
-        self.cagent = MCAgent("localhost", self.opts.port, self.name)
+        self.cagent = MCAgent("localhost", self.opts.port, self.name, *self.opts.spawn_location)
         logging.info("Logged in to server")
         self.mover = CraftassistMover(self.cagent)
         for m in dir(self.mover):
