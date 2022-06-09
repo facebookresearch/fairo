@@ -100,7 +100,7 @@ class ArgumentParser:
         )
         mc_parser.add_argument(
             "--draw_map", 
-            default="memory", 
+            default="", 
             help='"" for no map in dashboard, "memory" to draw from agent memory')        
         mc_parser.add_argument("--port", type=int, default=25565)
 

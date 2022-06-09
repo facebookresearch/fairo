@@ -104,6 +104,8 @@ class CraftAssistAgent(DroidletAgent):
         self.agent_type = "craftassist"
         self.point_targets = []
         self.last_chat_time = 0
+        # dashboard disabled by default
+        self.enable_map = False
         # areas must be perceived at each step
         # List of tuple (XYZ, radius), each defines a cube
         self.areas_to_perceive = []
@@ -292,7 +294,11 @@ class CraftAssistAgent(DroidletAgent):
         self.areas_to_perceive = []
         # 5. update dashboard world and map
         self.update_dashboard_world()
-        if self.opts.draw_map == "memory":
+
+        @sio.on("toggle_map")
+        def handle_toggle_map(sid, data):
+            self.enable_map = data["enable_map"]
+        if self.enable_map and self.opts.draw_map == "memory":
             self.draw_map_to_dashboard()
 
     def get_time(self):
