@@ -124,7 +124,7 @@ class CAIPDataset(Dataset):
             p_text, p_tree, self.tokenizer, self.full_tree, self.word_noise
         )
 
-        text_idx_ls = self.tokenizer.convert_tokens_to_ids(text.split())
+        text_idx_ls = self.tokenizer.convert_tokens_to_ids(text.split()) 
         tree_idx_ls = [
             [
                 self.tree_idxs[w],
@@ -153,7 +153,8 @@ class CAIPDataset(Dataset):
                 stripped_tree_tokens += [x for x in tree_tokens if x != ""]
 
             extended_tree = ["[CLS]"] + stripped_tree_tokens + ["[SEP]"]
-            tree_idx_ls = self.tokenizer.convert_tokens_to_ids(extended_tree)
+
+            tree_idx_ls =  self.tokenizer.convert_tokens_to_ids(extended_tree)
         return (text_idx_ls, tree_idx_ls, (text, p_text, p_tree))
 
     def add_hard_example(self, exple):

@@ -26,6 +26,7 @@ from droidlet.perception.semantic_parsing.load_and_check_datasets import get_gro
 from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_caip import caip_collate
 from droidlet.perception.semantic_parsing.utils.nsp_logger import NSPLogger
 
+
 GT_QUERY_ACTIONS = get_ground_truth(
     False, 
     os.path.join(
@@ -34,6 +35,7 @@ GT_QUERY_ACTIONS = get_ground_truth(
         "droidlet/artifacts/datasets/ground_truth/"
     )
 )
+
 
 class ModelEvaluator:
     """Wrapper Class around evaluating model"""
@@ -169,7 +171,11 @@ def argument_parse(input_arg):
         "--ground_truth_data_dir",
         default="droidlet/artifacts/datasets/ground_truth/",
         type=str,
+<<<<<<< HEAD
         help="templated/templated_filters/annotated/short_commands/high_pri_commands data",
+=======
+        help="tempalted/templated_filters/annotated/short_commands/high_pri_commands data",
+>>>>>>> 20abe43e (conflict resolved)
     )
     parser.add_argument(
         "--tree_voc_file",
@@ -324,10 +330,12 @@ def dataset_configure(args, tokenizer):
 
     return dataset
 
+
 def query_model(chat, args, model, tokenizer, dataset):
     """
     Query mode for NLU model, which takes a sentence of natural language as input 
     and outputs its logical form
+
     Args:
         chat (str): chat input
         args: input arguments of model and dataset configuration
@@ -348,6 +356,7 @@ def query_model(chat, args, model, tokenizer, dataset):
             tree = btr[0][0]
 
     return tree
+
 
 def eval_model(args, model, tokenizer, dataset):
     """
