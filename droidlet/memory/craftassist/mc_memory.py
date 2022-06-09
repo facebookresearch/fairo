@@ -61,7 +61,7 @@ class MCAgentMemory(AgentMemory):
         schema_paths=SCHEMAS,
         load_minecraft_specs=True,
         load_block_types=True,
-        preception_range=PERCEPTION_RANGE,
+        perception_range=PERCEPTION_RANGE,
         agent_time=None,
         coordinate_transforms=None,
         agent_low_level_data={},
@@ -84,7 +84,7 @@ class MCAgentMemory(AgentMemory):
         self.check_inside_perception = agent_low_level_data.get("check_inside", None)
 
         self.dances = {}
-        self.perception_range = preception_range
+        self.perception_range = perception_range
 
         if copy_from_backup is not None:
             copy_from_backup.backup(self.db)

@@ -22,7 +22,9 @@ from droidlet.memory.memory_nodes import ChatNode, SelfNode
 from droidlet.shared_data_struct import rotation
 from droidlet.lowlevel.minecraft.craftassist_mover import (
     CraftassistMover,
+    from_minecraft_look_to_droidlet,
     from_minecraft_xyz_to_droidlet,
+    Look,
 )
 
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
@@ -288,7 +290,10 @@ class CraftAssistAgent(DroidletAgent):
             sem_seg_perception_output = self.perception_modules["semseg"].perceive()
             self.memory.update(sem_seg_perception_output)
         self.areas_to_perceive = []
+        # 5. update dashboard world and map
         self.update_dashboard_world()
+        if self.opts.draw_map == "memory":
+            self.draw_map_to_dashboard()
 
     def get_time(self):
         """round to 100th of second, return as
@@ -379,11 +384,9 @@ class CraftAssistAgent(DroidletAgent):
             chat_text = chat
 
         logging.info("Sending chat: {}".format(chat_text))
-        self.memory.nodes[ChatNode.NODE_TYPE].create(
-            self.memory, self.memory.self_memid, chat_text
-        )
+        chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(self.memory, self.memory.self_memid, chat_text)
 
-        if chat_json:
+        if chat_json and not isinstance(chat_json, int):
             chat_json["chat_memid"] = chat_memid
             chat_json["timestamp"] = round(datetime.timestamp(datetime.now()) * 1000)
             # Send the socket event to show this reply on dashboard
@@ -392,6 +395,45 @@ class CraftAssistAgent(DroidletAgent):
             sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
 
         return self.cagent.send_chat(chat_text)
+
+    def get_detected_objects_for_map(self):
+        search_res = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
+        memids, mems = [], []
+        if search_res is not None:
+            memids, mems = search_res
+        detections_for_map = []
+        for mem in mems:
+            if hasattr(mem, "pos"):
+                id_str = "no_id" if not hasattr(mem, "obj_id") else mem.obj_id
+                detections_for_map.append([id_str, list(mem.pos)])
+        return detections_for_map
+
+    def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
+        detections_for_map = []
+        if not obstacles:
+            obstacles = self.memory.place_field.get_obstacle_list()
+            # if we are getting obstacles from memory, get detections from memory for map too
+            detections_for_map = self.get_detected_objects_for_map()
+        if not xyyaw:            
+            agent_pos = self.get_player().pos   # position of agent's feet
+            agent_look = self.get_player().look
+            mc_xyz = agent_pos.x, agent_pos.y, agent_pos.z
+            mc_look = Look(agent_look.yaw, agent_look.pitch)
+            x, _, z = from_minecraft_xyz_to_droidlet(mc_xyz)
+            yaw, _ = from_minecraft_look_to_droidlet(mc_look)
+            xyyaw = (x, z, yaw)
+
+        sio.emit(
+            "map",
+            {
+                "x": xyyaw[0],
+                "y": xyyaw[1],
+                "yaw": xyyaw[2],
+                "map": obstacles,
+                "draw_map": self.opts.draw_map,
+                "detections_from_memory": detections_for_map,
+            },
+        )
 
     def update_agent_pos_dashboard(self):
         agent_pos = self.get_player().pos
