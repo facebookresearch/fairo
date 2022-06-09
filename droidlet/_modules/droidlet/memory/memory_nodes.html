@@ -789,6 +789,7 @@
 <span class="sd">            &gt;&gt;&gt; create(memory, player_struct)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">memid</span> <span class="o">=</span> <span class="n">memid</span> <span class="ow">or</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
+
         <span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
             <span class="s2">&quot;INSERT INTO ReferenceObjects(uuid, eid, name, x, y, z, pitch, yaw, ref_type) VALUES (?,?,?,?,?,?,?,?,?)&quot;</span><span class="p">,</span>
             <span class="n">memid</span><span class="p">,</span>
@@ -866,7 +867,7 @@
 
 
 <div class="viewcode-block" id="SelfNode"><a class="viewcode-back" href="../../../memory.html#droidlet.memory.memory_nodes.SelfNode">[docs]</a><span class="k">class</span> <span class="nc">SelfNode</span><span class="p">(</span><span class="n">PlayerNode</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This class is a special PLayerNode for representing the</span>
+    <span class="sd">&quot;&quot;&quot;This class is a special PlayerNode for representing the</span>
 <span class="sd">    agent&#39;s self</span>
 
 <span class="sd">    Args:</span>
@@ -885,7 +886,37 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">TABLE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;uuid&quot;</span><span class="p">,</span> <span class="s2">&quot;eid&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="s2">&quot;pitch&quot;</span><span class="p">,</span> <span class="s2">&quot;yaw&quot;</span><span class="p">,</span> <span class="s2">&quot;ref_type&quot;</span><span class="p">]</span>
-    <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;Self&quot;</span></div>
+    <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;Self&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">player_struct</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">memid</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Creates a new entry into the ReferenceObjects table</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            string: memid of the entry</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="n">memid</span> <span class="ow">or</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">player_struct</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">eid</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">pitch</span><span class="p">,</span> <span class="n">yaw</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">eid</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">player_struct</span><span class="o">.</span><span class="n">entityId</span><span class="p">,</span> <span class="n">player_struct</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">player_struct</span><span class="o">.</span><span class="n">pos</span>
+            <span class="n">yaw</span><span class="p">,</span> <span class="n">pitch</span> <span class="o">=</span> <span class="n">player_struct</span><span class="o">.</span><span class="n">look</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;INSERT INTO ReferenceObjects(uuid, eid, name, x, y, z, pitch, yaw, ref_type) VALUES (?,?,?,?,?,?,?,?,?)&quot;</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">pitch</span><span class="p">,</span> <span class="n">yaw</span><span class="p">,</span> <span class="s2">&quot;self&quot;</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;AGENT&quot;</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;SELF&quot;</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_physical_object&quot;</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_animate&quot;</span><span class="p">)</span>
+        <span class="c1"># this is a hack until memory_filters does &quot;not&quot;</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_not_location&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                <span class="n">memory</span><span class="p">,</span> <span class="n">subj</span><span class="o">=</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_name&quot;</span><span class="p">,</span> <span class="n">obj_text</span><span class="o">=</span><span class="n">player_struct</span><span class="o">.</span><span class="n">name</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">memid</span></div>
 
 
 <span class="c1"># locations should always be archives?</span>
