@@ -115,6 +115,7 @@ class ModelEvaluator:
         print("Accuracy: {:.3f}".format(tot_accu / tot_steps))
         print("Text span accuracy: {:.3f}".format(text_span_tot_acc / tot_steps))
 
+
 def build_grammar(args):
     data = {"train": {}, "valid": {}, "test": {}}
     dtypes = list(args.dtype_samples.keys())
@@ -128,6 +129,7 @@ def build_grammar(args):
         [(d_list, 1.0) for spl, dtype_dict in data.items() for dtype, d_list in dtype_dict.items()]
     )
     json.dump((full_tree, tree_i2w), open(args.tree_voc_file, "w"))
+
 
 def show_examples(args, model, dataset, tokenizer, n=10):
     model.eval()
@@ -143,6 +145,7 @@ def show_examples(args, model, dataset, tokenizer, n=10):
             print(tree)
             print("*********************************")
     model.train()
+
 
 def argument_parse(input_arg):
     """
@@ -171,11 +174,7 @@ def argument_parse(input_arg):
         "--ground_truth_data_dir",
         default="droidlet/artifacts/datasets/ground_truth/",
         type=str,
-<<<<<<< HEAD
         help="templated/templated_filters/annotated/short_commands/high_pri_commands data",
-=======
-        help="tempalted/templated_filters/annotated/short_commands/high_pri_commands data",
->>>>>>> 20abe43e (conflict resolved)
     )
     parser.add_argument(
         "--tree_voc_file",
