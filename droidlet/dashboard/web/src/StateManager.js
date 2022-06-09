@@ -75,6 +75,7 @@ class StateManager {
     isTurk: false,
     agent_replies: [{}],
     last_reply: "",
+    enable_map: false,
   };
   session_id = null;
 
@@ -425,7 +426,7 @@ class StateManager {
       isQuestion = false;
     }
     this.memory.last_reply = chat;
-    
+
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
         ref.setState({
@@ -1092,6 +1093,13 @@ class StateManager {
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation();
     }
+  }
+
+  handleMapToggle() {
+    this.enable_map = !this.enable_map;
+    console.log("toggle_map " + this.enable_map);
+    console.log("agent: " + this.memory.agentType);
+    this.socket.emit("toggle_map", { enable_map: this.enable_map });
   }
 
   connect(o) {

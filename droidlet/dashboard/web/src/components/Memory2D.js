@@ -185,6 +185,7 @@ class Memory2D extends React.Component {
         <div ref={this.outer_div} style={{ height: "100%", width: "100%" }} />
       );
     }
+    if (!this.props.stateManager.enable_map) return <p>Dashboard Disabled</p>;
 
     bot_x = parseInt(((bot_x - xmin) / (xmax - xmin)) * width);
     bot_y = parseInt(((bot_y - ymin) / (ymax - ymin)) * height);
@@ -461,6 +462,7 @@ class Memory2D extends React.Component {
       />
     );
     coordinateAxesLayer.push(axesX, axesZ, notches);
+
     // final render
     return (
       <div ref={this.outer_div} style={{ height: "100%", width: "100%" }}>

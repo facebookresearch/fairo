@@ -144,8 +144,20 @@ class Settings extends React.Component {
           />
         )}
 
-        <p>FPS: {this.state.fps}</p>
+        <p> FPS: {this.state.fps}</p>
         <p> Connection Status: {status_indicator} </p>
+        <p>
+          <div style={{ position: "absolute", left: "-15px" }}>
+            <FormControlLabel
+              onChange={(e) => {
+                this.props.stateManager.handleMapToggle();
+              }}
+              control={<Switch size="small" />}
+              label="Toggle Dashboard: "
+              labelPlacement="start"
+            />
+          </div>
+        </p>
         <div style={slider_style}>
           <label style={labelStyle}>Image Quality: &nbsp;</label>
           <span>{this.state.image_quality}</span>
