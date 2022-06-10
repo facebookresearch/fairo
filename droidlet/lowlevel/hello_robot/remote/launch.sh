@@ -64,6 +64,6 @@ python3 ./remote_hello_saver.py --ip $ip &
 BGPID3=$!
 trap 'echo "Killing $BGPID"; kill $BGPID3; exit' INT
 timeout --foreground 10s bash -c "until python check_connected.py hello_data_logger $ip; do sleep 0.5; done;" || true
->>>>>>> main
+
 
 ./launch_navigation.sh

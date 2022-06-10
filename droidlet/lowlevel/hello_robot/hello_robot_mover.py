@@ -271,7 +271,7 @@ class HelloRobotMover(MoverInterface):
             self.nav_result.wait()
             robot_coords = base_canonical_coords_to_pyrobot_coords(xzt)
             self.nav_result = safe_call(
-                self.nav.go_to_absolute
+                self.nav.go_to_absolute,
                 goal=robot_coords,
                 distance_threshold=distance_threshold,
                 angle_threshold=angle_threshold,
