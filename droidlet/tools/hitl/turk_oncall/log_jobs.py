@@ -1,6 +1,8 @@
 import os
 import re
 import tarfile
+
+from numpy import outer
 import boto3
 import botocore
 import logging
@@ -59,12 +61,12 @@ logger.addHandler(sh)
 
 
 class TaoLogOutputJob(DataGenerator):
-    """TODO:
-    1. Unzip log and read
-    2. Find Traceback
-    3. Output traceback to a file
-    """
-
+    ''' Process tao log and output: 
+           1. Unzip log and read
+           2. Find Traceback
+           3. Output traceback to a file
+           4. Save on s3
+    '''
     def __init__(self, batch_id: int, timeout: float = -1) -> None:
         super().__init__(timeout)
         self._batch_id = batch_id
@@ -108,8 +110,18 @@ class TaoLogOutputJob(DataGenerator):
                             content += line
 
                 if len(df) > 0:
+                    out_fpath = f"{fpath}.traceback.csv"
                     # Dedup based on content column and save
-                    df.to_csv(f"{fpath}.traceback.csv")
+                    df.to_csv(out_fpath)
+
+                    # save to s3
+                    try: 
+                        remote_path = out_fpath.replace(f"{tmp_dir}/", '')
+                        resp = s3.meta.client.upload_file(out_fpath, S3_BUCKET_NAME, remote_path)
+                    except botocore.exceptions.ClientError as e:
+                        logging.info(
+                            f"[TAO Log Listener] Not able to save file {out_fpath} on s3."
+                        )                        
 
     def run(self) -> None:
         logging.info(f"[Tao Log Output Job] {self._batch_id} log process started")
