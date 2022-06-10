@@ -12,7 +12,12 @@ from rich import print
 from slam_pkg.utils.map_builder import MapBuilder as mb
 from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
+
 from droidlet.perception.robot.semantic_mapper.constants import coco_categories
+=======
+from rich import print
+from droidlet.lowlevel.pyro_utils import safe_call
+>>>>>>> main
 
 random.seed(0)
 torch.manual_seed(0)
@@ -41,6 +46,7 @@ class SLAM(object):
         self.semantic_seg_model = semantic_seg_model
         self.robot_rad = robot_rad
         self.map_resolution = resolution
+        # TODO: handle this more gracefully; its only needed for map builder
         self.num_sem_categories = len(coco_categories)
         self.obs_threshold = obstacle_threshold
         self.map_builder = mb(
@@ -116,10 +122,10 @@ class SLAM(object):
         self.map_builder.add_obstacle(location)
 
     def update_map(self):
-        pcd, rgb, depth = self.robot.get_current_pcd()
+        pcd, rgb, depth = safe_call(self.robot.get_current_pcd)
         pose = self.robot.get_base_state()
-
         self.map_builder.update_map(pcd)
+        
         if self.semantic_seg_model is not None:
             semantics, self.last_semantic_frame = self.semantic_seg_model.get_semantics(rgb, depth)
             self.map_builder.update_semantic_map(pcd, semantics, pose)
@@ -171,6 +177,7 @@ class SLAM(object):
         local_map = global_map[:, r1:r2, c1:c2]
         return local_map
 
+    # FIXME: don't get this from here.  keep and serve semantic map from separate service
     def get_semantic_map_features(self):
         """
         Returns:

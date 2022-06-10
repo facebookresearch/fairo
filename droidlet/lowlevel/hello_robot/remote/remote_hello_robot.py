@@ -75,6 +75,12 @@ class RemoteHelloRobot(object):
         val_in_range("CPU Temp", p.status["cpu_temp"], vmin=15, vmax=80)
         print(Style.RESET_ALL)
 
+    def pull_status(self):
+        """
+        Force the Robot API to pull the latest status of all sensors immediately (instead of waiting for the next update)
+        """
+        self._robot.pull_status()
+
     def _load_urdf(self):
         import os
 
@@ -151,6 +157,12 @@ class RemoteHelloRobot(object):
         self._robot.head.move_to("head_tilt", tilt)
 
     def reset_camera(self):
+        """
+        Sets the camera facing the forward, i.e.
+        90 degrees from looking at the ground.
+        If the robot base's front is facing a wall,
+        the camera should be directly looking at the wall
+        """
         self.set_pan(0)
         self.set_tilt(0)
 
@@ -214,7 +226,7 @@ class RemoteHelloRobot(object):
             def obstacle_fn():
                 return self.cam.is_obstacle_in_front()
 
-            status = goto(self._robot, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
+            status = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
         return status
 
@@ -233,9 +245,22 @@ class RemoteHelloRobot(object):
             def obstacle_fn():
                 return self.cam.is_obstacle_in_front()
 
-            status = goto(self._robot, list(xyt_position), dryrun=False, obstacle_fn=obstacle_fn)
+            status = goto(self, list(xyt_position), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
         return status
+
+    def is_base_moving(self):
+        robot = self._robot
+        left_wheel_moving = (
+            robot.base.left_wheel.status["is_moving_filtered"]
+            or robot.base.left_wheel.status["is_moving"]
+        )
+        right_wheel_moving = (
+            robot.base.right_wheel.status["is_moving_filtered"]
+            or robot.base.right_wheel.status["is_moving"]
+        )
+        is_moving = left_wheel_moving or right_wheel_moving
+        return is_moving
 
     def is_busy(self):
         return not self.is_moving()

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -ex
 
+
 DROIDLET_DIR="$dirname $(dirname $(dirname $(dirname $(dirname "$(realpath "$0")"))))"
 SEMANTIC_PREDICTION_RELDIR="perception/robot/semantic_mapper"
 SEMANTIC_PREDICTION_RELPATH="${SEMANTIC_PREDICTION_RELDIR}/semantic_prediction.py"

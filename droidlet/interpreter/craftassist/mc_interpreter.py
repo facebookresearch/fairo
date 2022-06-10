@@ -43,7 +43,7 @@ from .interpret_attributes import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
 from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
 from droidlet.shared_data_structs import ErrorWithResponse
-from droidlet.memory.memory_nodes import PlayerNode
+from droidlet.memory.memory_nodes import PlayerNode, TripleNode
 from droidlet.memory.craftassist.mc_memory_nodes import MobNode, ItemStackNode
 from droidlet.interpreter.craftassist import tasks, dance
 from droidlet.task.task import ControlBlock, maybe_bundle_task_list
@@ -247,7 +247,13 @@ class MCInterpreter(Interpreter):
             if len(objs) == 0:
                 raise ErrorWithResponse("I don't understand what you want me to build")
             tagss = [
-                [(p, v) for (_, p, v) in self.memory.get_triples(subj=obj.memid)] for obj in objs
+                [
+                    (p, v)
+                    for (_, p, v) in self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                        self.memory, subj=obj.memid
+                    )
+                ]
+                for obj in objs
             ]
             interprets = [
                 [list(obj.blocks.items()), obj.memid, tags] for (obj, tags) in zip(objs, tagss)
@@ -312,9 +318,9 @@ class MCInterpreter(Interpreter):
         for hole in holes:
             poss = list(hole.blocks.keys())
             try:
-                fill_memid = agent.memory.get_triples(subj=hole.memid, pred_text="has_fill_type")[
-                    0
-                ][2]
+                fill_memid = agent.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                    self.memory, subj=hole.memid, pred_text="has_fill_type"
+                )[0][2]
                 fill_block_mem = self.memory.get_mem_by_id(fill_memid)
                 fill_idm = (fill_block_mem.b, fill_block_mem.m)
             except:
@@ -512,6 +518,7 @@ class MCInterpreter(Interpreter):
         item_stack = agent.get_item_stack(obj.eid)
         idm = (item_stack.item.id, item_stack.item.meta)
         task_data = {"idm": idm, "pos": obj.pos, "eid": obj.eid, "obj_memid": obj.memid}
+        # MAYBE BUG?: task_to_generator is not imported from anywhere
         return task_to_generator(self.task_objects["get"](agent, task_data))
 
     # FIXME this is not compositional/does not handle loops ("get all the x")
@@ -538,4 +545,5 @@ class MCInterpreter(Interpreter):
         item_stack = agent.get_item_stack(obj.eid)
         idm = (item_stack.item.id, item_stack.item.meta)
         task_data = {"eid": obj.eid, "idm": idm, "obj_memid": obj.memid}
+        # MAYBE BUG?: task_to_generator is not imported from anywhere
         return task_to_generator(self.task_objects["drop"](agent, task_data))

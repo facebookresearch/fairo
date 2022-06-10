@@ -8,6 +8,8 @@ import torch
 import numpy as np
 import Pyro4
 from rich import print
+from droidlet.lowlevel.pyro_utils import safe_call
+
 
 from slam_pkg.utils import depth_util as du
 
@@ -67,21 +69,23 @@ class Navigation(object):
         self._stop = True
         self._done_exploring = False
 
-    def go_to_relative(self, goal):
+    def go_to_relative(self, goal, distance_threshold=None, angle_threshold=None):
         robot_loc = self.robot.get_base_state()
         abs_goal = du.get_relative_state(goal, (0.0, 0.0, -robot_loc[2]))
         abs_goal = list(abs_goal)
         abs_goal[0] += robot_loc[0]
         abs_goal[1] += robot_loc[1]
         abs_goal[2] = goal[2] + robot_loc[2]
-        return self.go_to_absolute(abs_goal)
+        return self.go_to_absolute(
+            abs_goal, distance_threshold=distance_threshold, angle_threshold=angle_threshold
+        )
 
-    def go_to_absolute(self, goal=None, goal_map=None, steps=100000000):
+
+    def go_to_absolute(self, goal=None, goal_map=None, steps=100000000, distance_threshold=None, angle_threshold=None):
         print(f"[navigation] Starting a go_to_absolute {goal if goal is not None else 'goal_map'}")
 
         # specify exactly one of goal or goal_map
         assert (goal is not None and goal_map is None) or (goal is None and goal_map is not None)
-
         self._busy = True
         self._stop = False
         robot_loc = self.robot.get_base_state()
@@ -90,7 +94,14 @@ class Navigation(object):
         path_found = True
 
         while (not goal_reached) and steps > 0 and self._stop is False:
-            stg = self.planner.get_short_term_goal(robot_loc, goal=goal, goal_map=goal_map)
+            stg = self.planner.get_short_term_goal(
+                robot_loc,
+                goal=goal,
+                goal_map=goal_map,
+                distance_threshold=distance_threshold,
+                angle_threshold=angle_threshold,
+            )
+            print(f"[nav] got short-term goal from planner: {stg}")
             if stg == False:
                 # no path to end-goal
                 print(
@@ -100,7 +111,9 @@ class Navigation(object):
                 )
                 path_found = False
                 break
-            status = self.robot.go_to_absolute(stg)
+            robot_loc = self.robot.get_base_state()
+            print(f"[navigation] starting at point {robot_loc} and going to point {stg}")
+            status = safe_call(self.robot.go_to_absolute, stg)
             robot_loc = self.robot.get_base_state()
 
             print("[navigation] Finished a go_to_absolute")
@@ -113,7 +126,7 @@ class Navigation(object):
             print(" Robot Status: {}".format(status))
             if status == "SUCCEEDED":
                 goal_reached = self.planner.goal_within_threshold(
-                    robot_loc, goal=goal, goal_map=goal_map
+                    robot_loc, goal=goal, goal_map=goal_map, distance_threshold=distance_threshold, angle_threshold=angle_threshold
                 )
                 self.trackback.update(robot_loc)
             else:
@@ -124,7 +137,7 @@ class Navigation(object):
                 trackback_loc = self.trackback.get_loc(robot_loc)
 
                 print(f"Collided at {robot_loc}." f"Tracking back to {trackback_loc}")
-                self.robot.go_to_absolute(trackback_loc)
+                safe_call(self.robot.go_to_absolute, trackback_loc)
                 # TODO: if the trackback fails, we're screwed. Handle this robustly.
             steps = steps - 1
 

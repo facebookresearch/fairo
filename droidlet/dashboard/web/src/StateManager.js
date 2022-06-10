@@ -69,7 +69,7 @@ class StateManager {
     timelineDetails: [],
     timelineFilters: ["Perceive", "Dialogue", "Interpreter", "Memory"],
     timelineSearchPattern: "",
-    agentType: "locobot",
+    agentType: null,
     commandState: "idle",
     commandPollTime: 500,
     isTurk: false,
@@ -339,9 +339,7 @@ class StateManager {
       alert("Received text message: " + res.chat);
     }
     this.memory.chats = res.allChats;
-
-    console.log('StateManager setChatResponse');
-
+    console.log("StateManager setChatResponse");
     // Set the commandState to display 'received' for one poll cycle and then switch
     this.memory.commandState = "received";
     setTimeout(() => {
@@ -367,7 +365,7 @@ class StateManager {
   }
 
   setLastChatActionDict(res) {
-    console.log('StateManager setLastChatActionDict');
+    console.log("StateManager setLastChatActionDict");
     this.memory.lastChatActionDict = res.action_dict;
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
@@ -392,7 +390,6 @@ class StateManager {
   setVoxelWorldInitialState(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof VoxelWorld) {
-        //console.log("set Voxel World Initial state: " + res.world_state);
         ref.setState({
           world_state: res.world_state,
           status: res.status,
@@ -402,19 +399,44 @@ class StateManager {
   }
 
   showAssistantReply(res) {
-    if (!res.agent_reply) {
-      res.agent_reply = res.content.filter(entry => entry["id"] === "text")[0]["content"];
+    // TODO handle content types besides plain text
+
+    let chat, response_options, isQuestion, questionType;
+    try {
+      if (res.content_type === "point") {
+        return;
+      } // Let the minecraft client handle point
+      let content = res.content;
+      chat = content.filter((entry) => entry["id"] === "text")[0]["content"];
+      if (res.content_type === "chat_and_text_options") {
+        response_options = content
+          .filter((entry) => entry["id"] === "response_option")
+          .map((x) => x["content"]);
+        isQuestion = true;
+        questionType = "clarification";
+      } else {
+        // Currently unsupported - media, chat + media
+        response_options = [];
+        isQuestion = false;
+      }
+    } catch (e) {
+      chat = res.agent_reply;
+      response_options = [];
+      isQuestion = false;
     }
-    console.log("StateManager showAssistantReply " + JSON.stringify(res.agent_reply));
-    this.memory.agent_replies.push({
-      msg: res.agent_reply,
-      timestamp: Date.now(),
-    });
-    this.memory.last_reply = res.agent_reply;
+    this.memory.last_reply = chat;
+    
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
         ref.setState({
           agent_replies: this.memory.agent_replies,
+          response_options: response_options,
+        });
+        ref.addNewAgentReplies({
+          msg: chat,
+          isQuestion: isQuestion,
+          questionType: questionType,
+          enableBack: false,
         });
       }
     });
@@ -1039,10 +1061,12 @@ class StateManager {
   }
 
   processMap(res) {
+    console.log(JSON.stringify(res));
     this.refs.forEach((ref) => {
       if (ref instanceof Memory2D) {
         ref.setState({
           isLoaded: true,
+          detections_from_memory: res.detections_from_memory,
           memory: this.memory,
           bot_xyz: [res.x, res.y, res.yaw],
           obstacle_map: res.map,
