@@ -6,6 +6,7 @@ import argparse
 import logging
 import os
 import shutil
+from tabnanny import check
 import time
 from subprocess import Popen, PIPE
 import boto3
@@ -16,6 +17,11 @@ import random
 from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.job_listener import JobListener
 from droidlet.tools.hitl.task_runner import TaskRunner
+from droidlet.tools.artifact_scripts.compute_checksum import compute_checksum_for_directory
+from droidlet.tools.artifact_scripts.upload_artifacts_to_aws import (
+    tar_and_upload,
+    compute_checksum_tar_and_upload,
+)
 
 
 log_formatter = logging.Formatter(
@@ -51,8 +57,9 @@ class NSPRetrainingJob(DataGenerator):
         i = max(range(len(l)), key=lambda i: l[i])
         return l[i], i
 
-    def get_accs(self):
+    def get_accuracy_and_losses(self):
         accs = {}
+        losses = {}
         logs = [l for l in os.listdir() if l[-4:] == ".log"]
         if (
             len(logs) < NUM_TRAINING_RUNS
@@ -60,31 +67,38 @@ class NSPRetrainingJob(DataGenerator):
             return False
         for log in logs:
             accs[log] = []
+            losses[log] = []
             f = open(log)
             l = f.readlines()
             for line in l:
                 if "evaluating on" in line:
                     s = line.split("\t")
                     a = s[2][11:17]
+                    l = s[1][7:13]
                     accs[log].append(float(a))
-        return accs
+                    losses[log].append(float(l))
+        return accs, losses
 
-    def copy_best_model(self, accs):
+    def copy_best_model(self, accs, losses):
         macc = 0.0
         mname = ""
         midx = 0
+        loss = 0.0
         for name, acc in accs.items():
             m, mi = self.max_and_argmax(acc)
             if m >= macc:
                 macc = m
                 mname = name
                 midx = mi
+                loss = losses[name][mi]
         source_model = mname[:-4] + "_ep" + str(midx) + ".pth"
         # TODO some sort of lock/semaphore?
         shutil.copyfile(source_model, MODEL_NAME)
         f = open(MODEL_INFO_NAME, "w")
         f.write(source_model + "\n")
+        f.write("epoch " + str(midx) + "\n")
         f.write("valid acc " + str(macc) + "\n")
+        f.write("valid loss " + str(loss) + "\n")
         f.close()
 
     def download_data(self, opts, batch_id):
@@ -96,7 +110,7 @@ class NSPRetrainingJob(DataGenerator):
         data_filepath = download_dir + "/nsp_data.txt"
         try:
             s3.download_file(
-                "droidlet-hitl", "nsp_data.txt", data_filepath
+                "droidlet-hitl", batch_id + "/nsp_data.txt", data_filepath
             )  # Will overwrite file if exists
         except:
             logging.info(f"Exception raised on S3 data file download")
@@ -271,11 +285,14 @@ class NSPRetrainingJob(DataGenerator):
         if not os.path.isdir(opts.sweep_config_folder):
             raise FileNotFoundError("sweep_config_folder not found or arg not pathlike")
         if not os.path.isdir(opts.sweep_scripts_output_dir):
-            raise FileNotFoundError("sweep_scripts_output_dir not found or arg not pathlike")
+            logging.info(f"Specificed directory for sweep scripts output doesn't exist, build it")
+            os.makedirs(opts.sweep_scripts_output_dir, exist_ok=True)
         if not os.path.isdir(opts.output_dir):
-            raise FileNotFoundError("output_dir not found or arg not pathlike")
+            logging.info(f"Specificed directory for output doesn't exist, build it")
+            os.makedirs(opts.output_dir, exist_ok=True)
         if not os.path.isdir(opts.checkpoint_dir):
-            raise FileNotFoundError("checkpoint_dir not found or arg not pathlike")
+            logging.info(f"Specificed directory for checkpoint doesn't exist, build it")
+            os.makedirs(opts.checkpoint_dir, exist_ok=True)
         if opts.new_data_training_threshold < 0:
             raise ValueError("new_data_training_threshold must be >= 0")
         if len(opts.retrain_data_splits) != 3:
@@ -375,14 +392,56 @@ class NSPRetrainingJob(DataGenerator):
                     f"NSP Retrain child process timed out after {NSP_RETRAIN_TIMEOUT} seconds"
                 )
             if self.slurm_jobs_finished(job_ids):
-                accs = self.get_accs()
-                self.copy_best_model(accs)
+                accs, losses = self.get_accuracy_and_losses()
+                self.copy_best_model(accs, losses)
                 break
             time.sleep(MODEL_OUTPUT_POLL_TIME)
 
         # Save the best model in S3 bucket and close out
         upload_key = batch_id + "/best_model/best_model.pth"
         s3.upload_file("best_model.pth", "droidlet-hitl", upload_key)
+
+        # Copy the best model to artifacts folder
+        os.chdir(opts.droidlet_dir)
+        shutil.copyfile(
+            model_out + "best_model.pth",
+            "droidlet/artifacts/models/nlu/ttad_bert_updated/caip_test_model.pth",
+        )
+
+        # Compute the checksum for model and dataset
+        compute_checksum_for_directory("craftassist", "models", "nlu")
+        compute_checksum_for_directory("craftassist", "datasets", "")
+
+        # Read checksum of model and dataset
+        checksum_m = ""
+        with open("droidlet/tools/artifact_scripts/tracked_checksums/nlu.txt", "r") as f:
+            checksum_m = f.read().strip()
+        checksum_d = ""
+        with open("droidlet/tools/artifact_scripts/tracked_checksums/datasets.txt", "r") as f:
+            checksum_d = f.read().strip()
+
+        # Write the checksum to artifacts
+        with open("droidlet/artifacts/models/nlu/nlu_checksum.txt", "w") as f:
+            f.write(checksum_m + "\n")
+
+        # Log the information for the best model
+        with open("droidlet/artifacts/models/nlu/model_log.txt", "w") as f_log, open(
+            model_out + MODEL_INFO_NAME, "r"
+        ) as f:
+            contents = f.readlines()
+            epoch = contents[1].split(" ")[1].split("\n")[0]
+            acc = contents[2].split(" ")[2].split("\n")[0]
+            loss = contents[3].split(" ")[2].split("\n")[0]
+
+            f_log.write("epoch " + epoch + "\n")
+            f_log.write("valid_accuracy " + acc + "\n")
+            f_log.write("valid_loss " + loss + "\n")
+            f_log.write("hash_model " + checksum_m + "\n")
+            f_log.write("hash_dataset " + checksum_d + "\n")
+
+        # Tar the model folder and upload it to AWS
+        tar_and_upload("craftassist", "models", "nlu")
+        compute_checksum_tar_and_upload("craftassist", "datasets", "")
 
         logging.info(f"NSP Retraining Job finished")
         self.set_finished(True)
@@ -429,8 +488,14 @@ class NSPNewDataListener(JobListener):
 
 
 if __name__ == "__main__":
+    root_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../")
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--droidlet_dir", type=str, help="Absolute location of droidlet root")
+    # Retrain pipeline arguments
+    parser.add_argument("--batch_id", type=str, default="456", help="Id for this retraining job")
+    parser.add_argument(
+        "--droidlet_dir", type=str, default=root_dir, help="Relative location of droidlet root"
+    )
     parser.add_argument(
         "--full_data_dir",
         default="droidlet/artifacts/datasets/full_data/",
@@ -438,17 +503,38 @@ if __name__ == "__main__":
         help="Relative location for data storage",
     )
     parser.add_argument(
-        "--sweep_runner_dir", type=str, help="Absolute location of sweep_runner script"
+        "--sweep_runner_dir",
+        type=str,
+        default=os.path.join(root_dir, "droidlet/tools/hitl/nsp_retrain/scripts/"),
+        help="Relative location of sweep_runner script",
     )
     parser.add_argument(
-        "--sweep_config_folder", type=str, help="Absolute location of sweep configs"
+        "--sweep_config_folder",
+        type=str,
+        default=os.path.join(root_dir, "droidlet/tools/hitl/nsp_retrain/configs/"),
+        help="Relative location of sweep configs",
     )
     parser.add_argument(
-        "--sweep_scripts_output_dir", type=str, help="Absolute location for sweep shell scripts"
+        "--sweep_scripts_output_dir",
+        type=str,
+        default=os.path.join(
+            root_dir, "droidlet/tools/hitl/nsp_retrain/outputs/nsp/sweeps/scripts/"
+        ),
+        help="Relative location for sweep shell scripts",
     )
-    parser.add_argument("--output_dir", type=str, help="Absolute location for sweep job outputs")
     parser.add_argument(
-        "--checkpoint_dir", type=str, help="Absolute location of NSP checkpoint folder"
+        "--output_dir",
+        type=str,
+        default=os.path.join(
+            root_dir, "droidlet/tools/hitl/nsp_retrain/outputs/nsp/sweeps/job_output"
+        ),
+        help="Relative location for sweep job outputs",
+    )
+    parser.add_argument(
+        "--checkpoint_dir",
+        type=str,
+        default=os.path.join(root_dir, "droidlet/tools/hitl/nsp_retrain/outputs/"),
+        help="Relative location of NSP checkpoint folder",
     )
     parser.add_argument(
         "--retrain_data_splits",
@@ -463,9 +549,50 @@ if __name__ == "__main__":
         type=int,
         help="Number of new data samples below which no training occurs",
     )
+    # Training hyperparameter
+    parser.add_argument(
+        "--batch_size",
+        default=32,
+        type=int,
+        help="Number of data per batch",
+    )
+    parser.add_argument(
+        "--num_epochs",
+        default=100,
+        type=int,
+        help="Number of training epochs",
+    )
+    parser.add_argument(
+        "--dtype_samples",
+        default="annotated:1.0",
+        type=str,
+        help="Sampling probabilities for handling different data types",
+    )
+    parser.add_argument(
+        "-decoder_learning_rate", type=float, nargs="+", help="Learning rate for the decoder"
+    )
+    parser.add_argument(
+        "-encoder_learning_rate", type=float, nargs="+", help="Learning rate for the decoder"
+    )
     opts = parser.parse_args()
 
-    ndl = NSPNewDataListener(batch_id=456, opts=opts)
+    # build up sweep config folder if it doesn't exist
+    if not os.path.isdir(opts.sweep_config_folder):
+        os.makedirs(opts.sweep_config_folder, exist_ok=True)
+
+    # Setup sweep configuration file
+    with open(os.path.join(opts.sweep_config_folder, "sweep_config.txt"), "w") as f:
+        f.write("batch_size = " + str(opts.batch_size) + "\n")
+        f.write("num_epochs = " + str(opts.num_epochs) + "\n")
+        f.write("dtype_samples = " + str(opts.dtype_samples) + "\n")
+        f.write("decoder_learning_rate = ")
+        dlr_list = list(map(str, opts.decoder_learning_rate))
+        f.write(", ".join(dlr_list) + "\n")
+        f.write("encoder_learning_rate = ")
+        elr_list = list(map(str, opts.encoder_learning_rate))
+        f.write(", ".join(elr_list) + "\n")
+
+    ndl = NSPNewDataListener(batch_id=opts.batch_id, opts=opts)
     runner = TaskRunner()
     runner.register_job_listeners([ndl])
     runner.run()
