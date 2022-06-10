@@ -23,15 +23,14 @@ class Planner(object):
         self.slam = slam
         self.map_resolution = self.slam.get_map_resolution()
 
-
     def get_short_term_goal(
-            self,
-            robot_location,
-            goal=None,
-            goal_map=None,
-            step_size=25,
-            distance_threshold=None,
-            angle_threshold=None
+        self,
+        robot_location,
+        goal=None,
+        goal_map=None,
+        step_size=25,
+        distance_threshold=None,
+        angle_threshold=None,
     ):
         """
         Args:
@@ -74,13 +73,12 @@ class Planner(object):
         # against robot initial state (if it wasn't zeros)
         stg_real = self.slam.map2robot(stg)
 
-
         if goal is not None:
             if self.goal_within_threshold(
-                    stg_real,
-                    distance_threshold=distance_threshold,
-                    angle_threshold=angle_threshold,
-                    goal=goal
+                stg_real,
+                distance_threshold=distance_threshold,
+                angle_threshold=angle_threshold,
+                goal=goal,
             ):
                 # is it the final goal? if so,
                 # the stg goes to within a 5cm resolution
@@ -88,7 +86,9 @@ class Planner(object):
                 # so, finally, issue a last call to go to the precise final location
                 # and to also use the rotation from the final goal
                 print(
-                    "Short-term goal {} is within threshold or target goal {}".format(stg_real, goal)
+                    "Short-term goal {} is within threshold or target goal {}".format(
+                        stg_real, goal
+                    )
                 )
                 print(f"This is the final goal, so returning the target goal directly {goal}")
                 target_goal = goal
@@ -111,12 +111,18 @@ class Planner(object):
 
         return target_goal
 
-
-    def goal_within_threshold(self, robot_location, goal=None, goal_map=None, threshold=None, angle_threshold=None):
+    def goal_within_threshold(
+        self,
+        robot_location,
+        goal=None,
+        goal_map=None,
+        distance_threshold=None,
+        angle_threshold=None,
+    ):
         # specify exactly one of goal or goal_map
         assert (goal is not None and goal_map is None) or (goal is None and goal_map is not None)
 
-        if threshold is None:
+        if distance_threshold is None:
             # in metres. map_resolution is the resolution of the SLAM's 2D map, so the planner can't
             # plan anything lower than this
             threshold = (float(self.map_resolution) - 1e-10) / 100.0
