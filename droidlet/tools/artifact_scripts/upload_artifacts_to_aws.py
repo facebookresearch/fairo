@@ -58,7 +58,7 @@ def tar_and_upload(agent, artifact_name, model_name=None):
             artifact_path_name = artifact_path_name + "/" + agent
             artifact_name = artifact_name + "_" + agent
         print(artifact_name, artifact_path_name)
-    
+
     # Change the directory to artifacts
     os.chdir(os.path.join(ROOTDIR, "droidlet/artifacts/"))
 
