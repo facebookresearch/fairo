@@ -1,8 +1,8 @@
 import os
 import re
 import tarfile
-
-from numpy import outer
+import argparse
+import shutil
 import boto3
 import botocore
 import logging
@@ -77,15 +77,15 @@ class TaoLogOutputJob(DataGenerator):
         file.extractall(folder_path)
         file.close()
 
-    def get_log_traceback(self, path: str):
+    def get_log_traceback(self, path: str, df: pd.DataFrame):
         logging.info(f"Processing log file in {path}")
+
         # get log files in the path
         for fname in os.listdir(path):
-            if fname.endswith(".log"):
+            # only process agent log
+            if fname == 'agent.log':
                 # found a log file
                 fpath = os.path.join(path, fname)
-                df = pd.DataFrame(columns=[COL_CONTENT, COL_FREQ])
-                df = df.set_index(COL_CONTENT)
 
                 with open(fpath) as file:
                     content = ""
@@ -109,24 +109,15 @@ class TaoLogOutputJob(DataGenerator):
                         else:
                             content += line
 
-                if len(df) > 0:
-                    out_fpath = f"{fpath}.traceback.csv"
-                    # Dedup based on content column and save
-                    df.to_csv(out_fpath)
-
-                    # save to s3
-                    try: 
-                        remote_path = out_fpath.replace(f"{tmp_dir}/", '')
-                        resp = s3.meta.client.upload_file(out_fpath, S3_BUCKET_NAME, remote_path)
-                    except botocore.exceptions.ClientError as e:
-                        logging.info(
-                            f"[TAO Log Listener] Not able to save file {out_fpath} on s3."
-                        )                        
+                      
 
     def run(self) -> None:
         logging.info(f"[Tao Log Output Job] {self._batch_id} log process started")
         batch_id = self._batch_id
         batch_prefix = f"{batch_id}/interaction/"
+
+        df = pd.DataFrame(columns = [COL_CONTENT, COL_FREQ])
+        df = df.set_index(COL_CONTENT)
 
         for obj in bucket.objects.filter(Prefix=batch_prefix):
             # tempory file destination
@@ -145,8 +136,28 @@ class TaoLogOutputJob(DataGenerator):
                 # extract log file
                 self.unzip(dest, folder_path)
                 # process traceback
-                self.get_log_traceback(folder_path)
+                self.get_log_traceback(folder_path, df)
 
+        if len(df) > 0:
+            out_remote_path = f"{batch_id}/log_traceback.csv"
+            out_local_path = os.path.join(tmp_dir, out_remote_path)
+
+            # Dedup based on content column and save
+            df.to_csv(out_local_path)
+            logging.info(f"[Tao Log Output Job] Saving processed log file to s3://{S3_BUCKET_NAME}/{out_remote_path}")
+
+            # save to s3
+            try: 
+                resp = s3.meta.client.upload_file(out_local_path, S3_BUCKET_NAME, out_remote_path)
+            except botocore.exceptions.ClientError as e:
+                logging.info(
+                    f"[TAO Log Listener] Not able to save file {out_local_path} to s3."
+                )    
+
+        # delete from local temporary storage
+        batch_tmp_path = os.path.join(tmp_dir, f"{batch_id}")
+        shutil.rmtree(batch_tmp_path)
+        
         # update status
         stat_fname = f"{batch_id}.stat"
         obj = s3.Object(S3_BUCKET_NAME, f"{batch_id}/{stat_fname}")
@@ -191,10 +202,19 @@ class TaoLogListener(JobListener):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--tao_job_batch_id",
+        type=int,
+        required=True,
+        help="TAO job batch id",
+    )
+    opts = parser.parse_args()
+
     runner = TaskRunner()
 
-    # test on hard coded batch id
-    tao_log_listener = TaoLogListener(batch_id=20220224132033)
+    # test on hard coded batch id 
+    tao_log_listener = TaoLogListener(batch_id=opts.tao_job_batch_id)
     runner.register_job_listeners([tao_log_listener])
 
     runner.run()
