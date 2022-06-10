@@ -45,18 +45,23 @@ def tar_and_upload(agent, artifact_name, model_name=None):
         print("Agent name not specified, defaulting to craftassist agent")
         agent = "craftassist"
 
-    if not model_name:
-        print("Model name not given, defaulting to nlu model")
-        model_name = "nlu"
-
     # construct the path
-    artifact_path_name = os.path.join(ROOTDIR, "droidlet/artifacts", artifact_name)
-    artifact_path_name = artifact_path_name + "/" + model_name
-    artifact_name = artifact_name + "_" + model_name
-    if model_name != "nlu":
-        # agent specific models
-        artifact_path_name = artifact_path_name + "/" + agent
-        artifact_name = artifact_name + "_" + agent
+    artifact_path_name = artifact_name + "/"
+    if artifact_name == "models":
+        if not model_name:
+            model_name = "nlu"
+            print("Model type not specified, defaulting to NLU model.")
+        artifact_path_name = artifact_path_name + model_name
+        artifact_name = artifact_name + "_" + model_name
+        if model_name != "nlu":
+            # agent specific models
+            artifact_path_name = artifact_path_name + "/" + agent
+            artifact_name = artifact_name + "_" + agent
+        print(artifact_name, artifact_path_name)
+    
+    # Change the directory to artifacts
+    os.chdir(os.path.join(ROOTDIR, "droidlet/artifacts/"))
+
     print(artifact_name, artifact_path_name)
     print("Now making the tar file...")
     process = Popen(
