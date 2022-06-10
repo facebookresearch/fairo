@@ -20,7 +20,7 @@ HOLE_NAMES = ["RECTANGULOID", "ELLIPSOID", "SPHERE"]
 # FIXME! better control of distribution and put this in a different file
 # also no control of cuberite coloring
 def random_mob_color(mobname, color_set="main"):
-    if color_set == 'main':
+    if color_set == "main":
         if mobname == "rabbit":
             return np.random.choice(["brown", "white", "black", "mottled", "gray"])
         if mobname == "pig":
@@ -32,7 +32,7 @@ def random_mob_color(mobname, color_set="main"):
         if mobname == "cow":
             return np.random.choice(["brown", "white", "black", "mottled", "gray"])
         return "white"
-    else: 
+    else:
         # new color set for compositional generalization
         if mobname == "rabbit":
             return np.random.choice(["orange", "purple", "blue"])
