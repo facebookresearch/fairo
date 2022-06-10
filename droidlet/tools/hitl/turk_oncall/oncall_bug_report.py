@@ -86,8 +86,8 @@ class TaoBugReportJob(DataGenerator):
         2. Find Traceback block in the log files
         3. Output traceback to a local temporary file, each batch correspond to one combined traceback report file
         4. Save the traceback report to s3 and clean up local temporary storage
-        5. Update the stat file on s3 to "done" 
-        
+        5. Update the stat file on s3 to "done"
+
     On a high level:
     - The input of this data generator is a request specifying the batch id for the logs in the corresponding batch to be processed
     - The output of this data generator is a csv file uploaded to s3 which contains the traceback for agent logs in the batch.
@@ -201,10 +201,11 @@ class TaoLogListener(JobListener):
     The TaoLogListener constructor takes a batch_id input, which specified the batch the listener is associated with.
 
     The steps are:
-        1. Check if there s3 for a stat file in the batch folder  
+        1. Check if there s3 for a stat file in the batch folder
         2. If the stat file indicate the logs are ready, initiate a bug report job
 
     """
+
     def __init__(self, batch_id: int, timeout: float = -1) -> None:
         super(TaoLogListener, self).__init__(timeout=timeout)
         self._batch_id = batch_id
