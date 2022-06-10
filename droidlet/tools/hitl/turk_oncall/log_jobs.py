@@ -61,12 +61,13 @@ logger.addHandler(sh)
 
 
 class TaoLogOutputJob(DataGenerator):
-    ''' Process tao log and output: 
-           1. Unzip log and read
-           2. Find Traceback
-           3. Output traceback to a file
-           4. Save on s3
-    '''
+    """Process tao log and output:
+    1. Unzip log and read
+    2. Find Traceback
+    3. Output traceback to a file
+    4. Save on s3
+    """
+
     def __init__(self, batch_id: int, timeout: float = -1) -> None:
         super().__init__(timeout)
         self._batch_id = batch_id
@@ -83,7 +84,7 @@ class TaoLogOutputJob(DataGenerator):
         # get log files in the path
         for fname in os.listdir(path):
             # only process agent log
-            if fname == 'agent.log':
+            if fname == "agent.log":
                 # found a log file
                 fpath = os.path.join(path, fname)
 
@@ -109,14 +110,12 @@ class TaoLogOutputJob(DataGenerator):
                         else:
                             content += line
 
-                      
-
     def run(self) -> None:
         logging.info(f"[Tao Log Output Job] {self._batch_id} log process started")
         batch_id = self._batch_id
         batch_prefix = f"{batch_id}/interaction/"
 
-        df = pd.DataFrame(columns = [COL_CONTENT, COL_FREQ])
+        df = pd.DataFrame(columns=[COL_CONTENT, COL_FREQ])
         df = df.set_index(COL_CONTENT)
 
         for obj in bucket.objects.filter(Prefix=batch_prefix):
@@ -144,20 +143,20 @@ class TaoLogOutputJob(DataGenerator):
 
             # Dedup based on content column and save
             df.to_csv(out_local_path)
-            logging.info(f"[Tao Log Output Job] Saving processed log file to s3://{S3_BUCKET_NAME}/{out_remote_path}")
+            logging.info(
+                f"[Tao Log Output Job] Saving processed log file to s3://{S3_BUCKET_NAME}/{out_remote_path}"
+            )
 
             # save to s3
-            try: 
+            try:
                 resp = s3.meta.client.upload_file(out_local_path, S3_BUCKET_NAME, out_remote_path)
             except botocore.exceptions.ClientError as e:
-                logging.info(
-                    f"[TAO Log Listener] Not able to save file {out_local_path} to s3."
-                )    
+                logging.info(f"[TAO Log Listener] Not able to save file {out_local_path} to s3.")
 
         # delete from local temporary storage
         batch_tmp_path = os.path.join(tmp_dir, f"{batch_id}")
         shutil.rmtree(batch_tmp_path)
-        
+
         # update status
         stat_fname = f"{batch_id}.stat"
         obj = s3.Object(S3_BUCKET_NAME, f"{batch_id}/{stat_fname}")
@@ -213,7 +212,7 @@ if __name__ == "__main__":
 
     runner = TaskRunner()
 
-    # test on hard coded batch id 
+    # test on hard coded batch id
     tao_log_listener = TaoLogListener(batch_id=opts.tao_job_batch_id)
     runner.register_job_listeners([tao_log_listener])
 
