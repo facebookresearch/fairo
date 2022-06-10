@@ -54,7 +54,6 @@ class Planner(object):
         if goal_map is not None:
             # TODO Is it necessary to check that at least one goal in the goal map is reachable?
             self.planner.set_multi_goal(goal_map)
-
         else:
             # convert robot co-ordinates to map co-ordinates
             goal_map_location = self.slam.robot2map(goal[:2])
@@ -73,25 +72,22 @@ class Planner(object):
         # against robot initial state (if it wasn't zeros)
         stg_real = self.slam.map2robot(stg)
 
-        if goal is not None:
-            if self.goal_within_threshold(
-                stg_real,
-                distance_threshold=distance_threshold,
-                angle_threshold=angle_threshold,
-                goal=goal,
-            ):
-                # is it the final goal? if so,
-                # the stg goes to within a 5cm resolution
-                # -- related to the SLAM service's 2D map resolution.
-                # so, finally, issue a last call to go to the precise final location
-                # and to also use the rotation from the final goal
-                print(
-                    "Short-term goal {} is within threshold or target goal {}".format(
-                        stg_real, goal
-                    )
-                )
-                print(f"This is the final goal, so returning the target goal directly {goal}")
-                target_goal = goal
+        if goal is not None and self.goal_within_threshold(
+            stg_real,
+            distance_threshold=distance_threshold,
+            angle_threshold=angle_threshold,
+            goal=goal,
+        ):
+            # is it the final goal? if so,
+            # the stg goes to within a 5cm resolution
+            # -- related to the SLAM service's 2D map resolution.
+            # so, finally, issue a last call to go to the precise final location
+            # and to also use the rotation from the final goal
+            print(
+                "Short-term goal {} is within threshold or target goal {}".format(stg_real, goal)
+            )
+            print(f"This is the final goal, so returning the target goal directly {goal}")
+            target_goal = goal
         else:
             if goal_map is not None and self.goal_within_threshold(stg_real, goal_map=goal_map):
                 print(
