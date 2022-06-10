@@ -11,7 +11,7 @@ import time
 import json
 from multiprocessing import set_start_method
 from collections import namedtuple
-from datetime import datetime
+from datetime import datetime, timedelta
 from copy import deepcopy
 
 # `from craftassist.agent` instead of `from .` because this file is
@@ -104,8 +104,9 @@ class CraftAssistAgent(DroidletAgent):
         self.agent_type = "craftassist"
         self.point_targets = []
         self.last_chat_time = 0
-        # dashboard disabled by default
+        # map disabled by default
         self.enable_map = False
+        self.map_last_updated = datetime.now()
         # areas must be perceived at each step
         # List of tuple (XYZ, radius), each defines a cube
         self.areas_to_perceive = []
@@ -299,7 +300,9 @@ class CraftAssistAgent(DroidletAgent):
         def handle_toggle_map(sid, data):
             self.enable_map = data["enable_map"]
         if self.enable_map and self.opts.draw_map == "memory":
-            self.draw_map_to_dashboard()
+            if datetime.now() >= self.map_last_updated + timedelta(seconds=0.05*self.opts.map_update_ticks):
+                self.map_last_updated = datetime.now()
+                self.draw_map_to_dashboard()
 
     def get_time(self):
         """round to 100th of second, return as
