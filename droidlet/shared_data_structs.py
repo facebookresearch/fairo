@@ -37,7 +37,6 @@ class NextDialogueStep(Exception):
 # FIXME!  why is this here?
 class RGBDepth:
     """Class for the current RGB, depth and point cloud fetched from the robot.
-
     Args:
         rgb (np.array): RGB image fetched from the robot
         depth (np.array): depth map fetched from the robot
@@ -125,6 +124,8 @@ class MockOpt:
         self.no_default_behavior = False
         self.log_timeline = False
         self.enable_timeline = False
+        # flag for whether loading true model or
+        self.flag_m = False
 
 
 class PriorityQueue:

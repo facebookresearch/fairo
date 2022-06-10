@@ -16,6 +16,22 @@ from .utils.validate_json import JSONValidator
 from droidlet.base_util import hash_user
 
 
+class MockNSPQuerier(object):
+    def __init__(self, opts):
+        """
+        This class is a Mock for NSP Querier. It takes query as input
+        and returns dummy tree.
+        """
+        self.opts = opts
+
+    def query_for_logical_form(self, chat):
+        DUMMY_TREE = {
+            "dialogue_type": "GET_MEMORY",
+        }
+
+        return DUMMY_TREE
+
+
 class NSPQuerier(object):
     def __init__(self, opts, agent=None):
         """This class provides an API that takes in chat as plain text
@@ -135,10 +151,8 @@ class NSPQuerier(object):
         1. Preprocess the incoming chat
         2. check against ground truth and get logical form
         3. query model and get logical form
-
         Args:
             chatstr (str) : chat or command that needs to be parsed
-
         Returns:
             Dict: logical form found either in ground truth or from model
         """
@@ -151,11 +165,9 @@ class NSPQuerier(object):
 
     def validate_parse_tree(self, parse_tree: Dict, debug: bool = True) -> bool:
         """Validate the parse tree against current grammar.
-
         Args:
             parse_tree (Dict): logical form to be validated.
             debug (bool): whether to print error trace for debugging.
-
         Returns:
             True if parse tree is valid, False if not.
         """
@@ -172,17 +184,14 @@ class NSPQuerier(object):
         """Get logical form output for a given chat command.
         First check the ground truth file for the chat string. If not
         in ground truth, query semantic parsing model to get the output.
-
         Args:
             chat (str): Input chat provided by the user.
             parsing_model (NSPBertModel): Semantic parsing model, pre-trained and loaded
                 by agent
-
         Return:
             Dict: Logical form representation of the task. See paper for more
                 in depth explanation of logical forms:
                 https://arxiv.org/abs/1907.08584
-
         Examples:
             >>> get_logical_form("destroy this", parsing_model)
             {
