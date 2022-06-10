@@ -234,7 +234,7 @@ class TaoLogListener(JobListener):
                     # create a tao bug report job
                     tlo_job = TaoBugReportJob(batch_id=batch_id)
                     runner.register_data_generators([tlo_job])
-                else: 
+                else:
                     logging.info(
                         f"[TAO Log Listener] Status for {batch_id} is not {STAT_READY}, but is {stat}"
                     )
@@ -242,6 +242,7 @@ class TaoLogListener(JobListener):
             if not self.check_parent_finished():
                 finished = False
             self.set_finished(finished)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -257,18 +258,18 @@ if __name__ == "__main__":
 
     class MockDataGenerator(DataGenerator):
         # for test purpose
-        def __init__(self,  timeout: float = -1) -> None:
+        def __init__(self, timeout: float = -1) -> None:
             super().__init__(timeout)
-        
+
         def run(self) -> None:
-            batch_id=opts.tao_job_batch_id
+            batch_id = opts.tao_job_batch_id
 
             # Add stat file
             stat_fname = f"{batch_id}.stat"
 
             obj = s3.Object(S3_BUCKET_NAME, f"{batch_id}/{stat_fname}")
-            result = obj.put(Body='ready').get('ResponseMetadata')
-            if result.get('HTTPStatusCode') == 200:
+            result = obj.put(Body="ready").get("ResponseMetadata")
+            if result.get("HTTPStatusCode") == 200:
                 self.set_finished()
             else:
                 logging.info(f"[Oncall Job] {batch_id}.stat not updated")
