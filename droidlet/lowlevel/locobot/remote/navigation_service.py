@@ -80,8 +80,14 @@ class Navigation(object):
             abs_goal, distance_threshold=distance_threshold, angle_threshold=angle_threshold
         )
 
-
-    def go_to_absolute(self, goal=None, goal_map=None, steps=100000000, distance_threshold=None, angle_threshold=None):
+    def go_to_absolute(
+        self,
+        goal=None,
+        goal_map=None,
+        steps=100000000,
+        distance_threshold=None,
+        angle_threshold=None,
+    ):
         print(f"[navigation] Starting a go_to_absolute {goal if goal is not None else 'goal_map'}")
 
         # specify exactly one of goal or goal_map
@@ -126,7 +132,11 @@ class Navigation(object):
             print(" Robot Status: {}".format(status))
             if status == "SUCCEEDED":
                 goal_reached = self.planner.goal_within_threshold(
-                    robot_loc, goal=goal, goal_map=goal_map, distance_threshold=distance_threshold, angle_threshold=angle_threshold
+                    robot_loc,
+                    goal=goal,
+                    goal_map=goal_map,
+                    distance_threshold=distance_threshold,
+                    angle_threshold=angle_threshold,
                 )
                 self.trackback.update(robot_loc)
             else:
