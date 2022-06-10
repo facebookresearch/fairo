@@ -233,7 +233,7 @@ def argument_parse(input_arg):
     )
     parser.add_argument(
         "--dtype_samples",
-        default="templated:.55;templated_filters:.05;annotated:.4",
+        default="annotated:1.0",
         type=str,
         help="Sampling probabilities for handling different data types",
     )
@@ -324,7 +324,8 @@ def dataset_configure(args, tokenizer):
         tokenizer, 
         args, 
         prefix="test", 
-        full_tree_voc=full_tree_voc
+        full_tree_voc=full_tree_voc,
+        dtype="annotated",
     )
 
     return dataset
