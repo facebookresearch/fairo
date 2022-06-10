@@ -1,29 +1,42 @@
 import re
+import os
 import pandas as pd
 
-date_line_reg = re.compile(r'/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/')
-COL_ST = 'start'
-COL_CON = 'content'
-df = pd.DataFrame(columns = [COL_ST, COL_CON])
+COL_CONTENT = 'content'
+COL_FREQ = 'freq'
 
-with open('/private/home/chuxi/.hitl/tmp/20220224132033/interaction/2022-02-24T21:30:54.916839+00:00/agent.log') as file:
-    block = {COL_ST: '', COL_CON: ''}
+def process_log(path: str):
+    # get log files in the path
+    for fname in os.listdir(path):
+        if fname.endswith('.log'):
+            # found a log file
+            fpath = os.path.join(path, fname)
+            df = pd.DataFrame(columns = [COL_CONTENT, COL_FREQ])
+            df = df.set_index(COL_CONTENT)
 
-    for line in file:
-        # check if starts with YYYY-MM-DD
-        if re.match(r'^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])', line):
-            # if the block has content & starts with trace back, append to df
-            if block[COL_CON] and block[COL_CON].startswith('Traceback'):
-                df = df.append(block, ignore_index = True)
-            block[COL_ST] = line
-            block[COL_CON] = ''
-        else:
-            block[COL_CON] += line
+            with open(fpath) as file:
+                content = ''
+                for line in file:
+                    # check if starts with YYYY-MM-DD
+                    # or line starts with logging level
+                    if re.match(r'^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])', line) \
+                        or line.startswith('DEBUG')\
+                        or line.startswith('INFO')\
+                        or line.startswith('WARNING')\
+                        or line.startswith('ERROR')\
+                        or line.startswith('CRITICAL'):
+                        # if the content exists & starts with trace back, append to df
+                        if content and content.startswith('Traceback'):
+                            if content not in df.index:
+                                df.loc[content] = 0
+                            df.loc[content] += 1
+                        content = ''
+                    else:
+                        content += line
 
-df.to_csv('/private/home/chuxi/.hitl/tmp/20220224132033/interaction/2022-02-24T21:30:54.916839+00:00/agent.log.raw.csv')
-df = df.groupby(COL_CON,as_index=False).size()
-print(df.head(10))
-df.to_csv('/private/home/chuxi/.hitl/tmp/20220224132033/interaction/2022-02-24T21:30:54.916839+00:00/agent.log.count.csv')
+            if len(df) > 0:
+                # Dedup based on content column and save
+                df.to_csv(f"{fpath}.traceback.csv")
 
-
+process_log('/private/home/chuxi/.hitl/tmp/20220224132033/interaction/2022-02-24T21:20:35.330930+00:00')
 
