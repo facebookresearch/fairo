@@ -173,8 +173,8 @@ class OnCallJob(DataGenerator):
         stat_fname = f"{batch_id}.stat"
 
         obj = s3.Object(S3_BUCKET_NAME, f"{batch_id}/{stat_fname}")
-        result = obj.put(Body='ready').get('ResponseMetadata')
-        if result.get('HTTPStatusCode') != 200:
+        result = obj.put(Body="ready").get("ResponseMetadata")
+        if result.get("HTTPStatusCode") != 200:
             logging.info(f"[Oncall Job] {batch_id}.stat not updated")
         else:
             # Add a listener
