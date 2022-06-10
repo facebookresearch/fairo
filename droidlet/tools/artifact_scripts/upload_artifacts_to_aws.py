@@ -16,8 +16,8 @@ print("Rootdir : %r" % ROOTDIR)
 
 def tar_and_upload(agent, artifact_name, model_name=None):
     """
-    Instead of computing hash, extract stored hash given speified artifact 
-    from txt file under the folder of tracked_checksums, then tar all files  
+    Instead of computing hash, extract stored hash given speified artifact
+    from txt file under the folder of tracked_checksums, then tar all files
     for the artifact and upload it to AWS.
     """
     checksum_name = ""
@@ -88,7 +88,7 @@ def tar_and_upload(agent, artifact_name, model_name=None):
     )
     stdout, stderr = process.communicate()
     print(stdout.decode("utf-8"))
-    
+
 
 def compute_checksum_tar_and_upload(agent, artifact_name, model_name=None):
     if not agent:
