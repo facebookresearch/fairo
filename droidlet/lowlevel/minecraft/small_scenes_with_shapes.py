@@ -19,18 +19,32 @@ HOLE_NAMES = ["RECTANGULOID", "ELLIPSOID", "SPHERE"]
 
 # FIXME! better control of distribution and put this in a different file
 # also no control of cuberite coloring
-def random_mob_color(mobname):
-    if mobname == "rabbit":
-        return np.random.choice(["brown", "white", "black", "mottled", "gray"])
-    if mobname == "pig":
-        return np.random.choice(["brown", "white", "black", "mottled", "pink"])
-    if mobname == "chicken":
-        return np.random.choice(["white", "yellow", "brown"])
-    if mobname == "sheep":
-        return np.random.choice(["brown", "white", "black", "mottled", "gray"])
-    if mobname == "cow":
-        return np.random.choice(["brown", "white", "black", "mottled", "gray"])
-    return "white"
+def random_mob_color(mobname, color_set="main"):
+    if color_set == 'main':
+        if mobname == "rabbit":
+            return np.random.choice(["brown", "white", "black", "mottled", "gray"])
+        if mobname == "pig":
+            return np.random.choice(["brown", "white", "black", "mottled", "pink"])
+        if mobname == "chicken":
+            return np.random.choice(["white", "yellow", "brown"])
+        if mobname == "sheep":
+            return np.random.choice(["brown", "white", "black", "mottled", "gray"])
+        if mobname == "cow":
+            return np.random.choice(["brown", "white", "black", "mottled", "gray"])
+        return "white"
+    else: 
+        # new color set for compositional generalization
+        if mobname == "rabbit":
+            return np.random.choice(["orange", "purple", "blue"])
+        if mobname == "pig":
+            return np.random.choice(["magenta", "green", "violet", "orange"])
+        if mobname == "chicken":
+            return np.random.choice(["blue", "cyan", "navy"])
+        if mobname == "sheep":
+            return np.random.choice(["tan", "purple", "green"])
+        if mobname == "cow":
+            return np.random.choice(["orange", "magenta", "maroon"])
+        return "green"
 
 
 def parse_and_execute_mob_config(args):
