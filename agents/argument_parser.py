@@ -101,7 +101,11 @@ class ArgumentParser:
         mc_parser.add_argument(
             "--draw_map", 
             default="", 
-            help='"" for no map in dashboard, "memory" to draw from agent memory')        
+            help='"" for no map in dashboard, "memory" to draw from agent memory')
+        mc_parser.add_argument(
+            "--map_update_ticks", 
+            default=20, 
+            help='number of ticks after which agent updates map')
         mc_parser.add_argument("--port", type=int, default=25565)
 
     def add_loco_parser(self):
