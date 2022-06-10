@@ -14,10 +14,8 @@ from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
 
 from droidlet.perception.robot.semantic_mapper.constants import coco_categories
-=======
 from rich import print
 from droidlet.lowlevel.pyro_utils import safe_call
->>>>>>> main
 
 random.seed(0)
 torch.manual_seed(0)
@@ -125,7 +123,7 @@ class SLAM(object):
         pcd, rgb, depth = safe_call(self.robot.get_current_pcd)
         pose = self.robot.get_base_state()
         self.map_builder.update_map(pcd)
-        
+
         if self.semantic_seg_model is not None:
             semantics, self.last_semantic_frame = self.semantic_seg_model.get_semantics(rgb, depth)
             self.map_builder.update_semantic_map(pcd, semantics, pose)
