@@ -1,3 +1,15 @@
+"""
+Copyright (c) Facebook, Inc. and its affiliates.
+
+This file include a Turk-on-call(TAO) log listener and TAO bug report job data generator for smarter bug report.
+
+The class TaoLogListener(JobListener) listens to the status file for a TAO job batch, 
+and initiate a bug report job once logs are ready.
+
+The class TaoBugReportJob(DataGenerator) read in the logs for a TAO job batch,
+extract traceback, and output the content of the traceback and the frequency of the traceback to s3. 
+
+"""
 import os
 import re
 import tarfile
@@ -37,9 +49,6 @@ s3 = boto3.resource(
 bucket = s3.Bucket(S3_BUCKET_NAME)
 tmp_dir = os.path.join(HITL_TMP_DIR, "tmp")
 
-COL_CONTENT = "content"
-COL_FREQ = "freq"
-
 """
 stat file state 
     - ready:        log generated
@@ -47,6 +56,14 @@ stat file state
 """
 STAT_READY = "ready"
 STAT_DONE = "done"
+
+"""
+column names for df & output log csv file
+    - content:      traceback content 
+    - freq:         count of traceback appear in a batch
+"""
+COL_CONTENT = "content"
+COL_FREQ = "freq"
 
 log_formatter = logging.Formatter(
     "%(asctime)s [%(filename)s:%(lineno)s - %(funcName)s() %(levelname)s]: %(message)s"
@@ -60,12 +77,21 @@ sh.setFormatter(log_formatter)
 logger.addHandler(sh)
 
 
-class TaoLogOutputJob(DataGenerator):
-    """Process tao log and output:
-    1. Unzip log and read
-    2. Find Traceback
-    3. Output traceback to a file
-    4. Save on s3
+class TaoBugReportJob(DataGenerator):
+    """
+    This Data Generator is responsible for spinning up a TAO(Turk-As-Oncall) bug report job.
+
+    It include the following steps:
+        1. Unzip log and read
+        2. Find Traceback block in the log files
+        3. Output traceback to a local temporary file, each batch correspond to one combined traceback report file
+        4. Save the traceback report to s3 and clean up local temporary storage
+        5. Update the stat file on s3 to "done" 
+        
+    On a high level:
+    - The input of this data generator is a request specifying the batch id for the logs in the corresponding batch to be processed
+    - The output of this data generator is a csv file uploaded to s3 which contains the traceback for agent logs in the batch.
+
     """
 
     def __init__(self, batch_id: int, timeout: float = -1) -> None:
@@ -169,6 +195,16 @@ class TaoLogOutputJob(DataGenerator):
 
 
 class TaoLogListener(JobListener):
+    """
+    This Listener is responsible for listening to new generated log for a TAO job batch.
+
+    The TaoLogListener constructor takes a batch_id input, which specified the batch the listener is associated with.
+
+    The steps are:
+        1. Check if there s3 for a stat file in the batch folder  
+        2. If the stat file indicate the logs are ready, initiate a bug report job
+
+    """
     def __init__(self, batch_id: int, timeout: float = -1) -> None:
         super(TaoLogListener, self).__init__(timeout=timeout)
         self._batch_id = batch_id
@@ -193,8 +229,8 @@ class TaoLogListener(JobListener):
                 stat = resp["Body"].read().decode("utf-8")
 
                 if stat == STAT_READY:
-                    # create a tao log output job
-                    tlo_job = TaoLogOutputJob(batch_id=batch_id)
+                    # create a tao bug report job
+                    tlo_job = TaoBugReportJob(batch_id=batch_id)
                     runner.register_data_generators([tlo_job])
 
             self.set_finished(True)
@@ -212,7 +248,6 @@ if __name__ == "__main__":
 
     runner = TaskRunner()
 
-    # test on hard coded batch id
     tao_log_listener = TaoLogListener(batch_id=opts.tao_job_batch_id)
     runner.register_job_listeners([tao_log_listener])
 
