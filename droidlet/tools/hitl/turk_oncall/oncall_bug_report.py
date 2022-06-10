@@ -76,6 +76,7 @@ sh = logging.StreamHandler()
 sh.setFormatter(log_formatter)
 logger.addHandler(sh)
 
+
 class TaoBugReportJob(DataGenerator):
     """
     This Data Generator is responsible for spinning up a TAO(Turk-As-Oncall) bug report job.
