@@ -154,7 +154,7 @@ def fetch_models_from_aws(agent=None, model_name=None, checksum_val=None):
     # assign checksum file name
     if model_name == "nlu":
         checksum_file = "nlu.txt"
-    elif model_name =="tasks":
+    elif model_name == "tasks":
         checksum_file = "tasks.txt"
     else:
         checksum_file = agent + "_perception.txt"
