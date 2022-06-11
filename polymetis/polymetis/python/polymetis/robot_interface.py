@@ -589,9 +589,9 @@ class RobotInterface(BaseRobotInterface):
         return update_idx
 
 
-    def start_joint_velocity(self, joint_vel_desired, Kq=None, Kqd=None, **kwargs):
-        """Starts joint position control mode.
-        Runs an non-blocking joint velocity controller.
+    def start_joint_velocity_control(self, joint_vel_desired, Kq=None, Kqd=None, **kwargs):
+        """Starts joint velocity control mode.
+        Runs a non-blocking joint velocity controller.
         The desired joint velocities can be updated using `update_desired_joint_velocities`
         """
         torch_policy = toco.policies.JointVelocityControl(
@@ -606,14 +606,14 @@ class RobotInterface(BaseRobotInterface):
 
 
     def update_desired_joint_velocities(self, velocities: torch.Tensor):
-        """Update the desired joint positions used by the joint position control mode.
-        Requires starting a joint impedance controller with `start_joint_impedance` beforehand.
+        """Update the desired joint velocities used by the joint velocities control mode.
+        Requires starting a joint velocities controller with `start_joint_velocity_control` beforehand.
         """
         try:
             update_idx = self.update_current_policy({"joint_vel_desired": velocities})
         except grpc.RpcError as e:
             log.error(
-                "Unable to update desired joint velocities. Use 'start_joint_velocities' to start a joint velocities controller."
+                "Unable to update desired joint velocities. Use 'start_joint_velocity_control' to start a joint velocities controller."
             )
             raise e
 
