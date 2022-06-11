@@ -1,7 +1,10 @@
 from math import radians
+from threading import Thread
+
 from droidlet.lowlevel.minecraft.pyworld.world import World
 from droidlet.lowlevel.minecraft.iglu_util import IGLU_BLOCK_MAP
 from droidlet.lowlevel.minecraft.pyworld.fake_mobs import SimpleMob, make_mob_opts
+from droidlet.lowlevel.minecraft.pyworld.ticker import Ticker
 from droidlet.lowlevel.minecraft.small_scenes_with_shapes import build_shape_scene
 
 
@@ -66,5 +69,9 @@ if __name__ == "__main__":
     opts.cuberite_z_offset = 0
     opts.iglu_scenes = ""
 
+    ticker = Ticker(tick_rate=0.01, step_rate=0.2, ip='localhost', port=6002)
+    ticker_thread = Thread(target=ticker.start, args=())
+    ticker_thread.start()
+
     world = instantiate_world_from_spec(opts)
-    world.start()
+    
