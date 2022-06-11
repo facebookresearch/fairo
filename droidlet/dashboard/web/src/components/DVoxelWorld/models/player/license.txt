@@ -1,0 +1,11 @@
+Model Information:
+* title:	Personnage Minecraft
+* source:	https://sketchfab.com/3d-models/personnage-minecraft-3545d47789044cfba03b9813d96aa9c5
+* author:	TiSzma (https://sketchfab.com/TiSzma)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Personnage Minecraft" (https://sketchfab.com/3d-models/personnage-minecraft-3545d47789044cfba03b9813d96aa9c5) by TiSzma (https://sketchfab.com/TiSzma) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
