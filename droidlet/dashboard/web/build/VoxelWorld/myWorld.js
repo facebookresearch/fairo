@@ -4090,6 +4090,7 @@ class VoxelMob {
     this.mobType = opts.name;
     this.mesh = model;
     this.position_offset = opts.position_offset;
+    this.visible = true;
   }
 
   move(x, y, z) {
@@ -4101,6 +4102,20 @@ class VoxelMob {
   moveTo(x, y, z) {
     let xyz = applyOffset([x, y, z], this.position_offset);
     this.mesh.position.set(xyz[0], xyz[1], xyz[2]);
+  }
+
+  remove() {
+    if (this.visible) {
+      this.world.scene.remove(this.mesh);
+      this.visible = false;
+    }
+  }
+
+  add() {
+    if (!this.visible) {
+      this.world.scene.add(this.mesh);
+      this.visible = true;
+    }
   }
 
   static build(world, opts) {
@@ -4162,11 +4177,13 @@ class VoxelPlayer {
     this.scale = opts.scale;
     this.mesh = model;
     this.position_offset = opts.position_offset;
+    this.rotation_offset = opts.rotation_offset;
     this.possessed = false;
     this.pov = 3;
     this.matrix = new world.THREE.Matrix4();
     this.cam_vector = new world.THREE.Vector3();
     this.cam_pitch = 0;
+    this.visible = true;
   }
 
   move(x, y, z) {
@@ -4178,23 +4195,28 @@ class VoxelPlayer {
     if (this.possessed) this.updateCamera();
   }
 
-  rotate(d_yaw) {
-    this.mesh.rotateY(d_yaw);
-    if (this.possessed) this.updateCamera();
-  }
-
   moveTo(x, y, z) {
     let xyz = applyOffset([x, y, z], this.position_offset);
     this.mesh.position.set(xyz[0], xyz[1], xyz[2]);
     if (this.possessed) this.updateCamera();
   }
 
-  updatePov(type) {
-    if (type === 'first' || type === 1) {
-      this.pov = 1;
-      this.cam_pitch = 0;
-    } else if (type === 'third' || type === 3) this.pov = 3;
+  rotate(d_yaw) {
+    this.mesh.rotateY(d_yaw);
+    if (this.possessed) this.updateCamera();
+  }
 
+  rotateTo(yaw, pitch) {
+    this.mesh.rotation.set(this.opts.rotation_offset[0], this.opts.rotation_offset[1], this.opts.rotation_offset[2]);
+    this.mesh.rotateY(yaw);
+    this.cam_pitch = 0;
+    this.cameraPitch(pitch);
+    if (this.possessed) this.updateCamera();
+  }
+
+  updatePov(type) {
+    if (type === 'first' || type === 1) this.pov = 1;else if (type === 'third' || type === 3) this.pov = 3;
+    this.cam_pitch = 0;
     this.possess();
   }
 
@@ -4203,25 +4225,46 @@ class VoxelPlayer {
     if (this.possessed) this.updateCamera();
   }
 
+  remove() {
+    if (this.visible) {
+      if (this.possessed) this.depossess();
+      this.world.scene.remove(this.mesh);
+      this.visible = false;
+    }
+  }
+
+  add() {
+    if (!this.visible) {
+      this.world.scene.add(this.mesh);
+      this.visible = true;
+    }
+  }
+
   cameraPitch(d_pitch) {
     this.cam_pitch += d_pitch;
   }
 
   updateCamera() {
-    let final_cam_vector;
+    let final_cam_vector; // Different offsets may break this
+
     this.matrix.extractRotation(this.mesh.matrix);
 
     if (this.pov === 1) {
-      this.cam_vector.set(50 * this.scale, 75 * this.scale, 0);
+      this.cam_vector.set(0, 40 * this.scale, 50 * this.scale);
       final_cam_vector = this.cam_vector.applyMatrix4(this.matrix);
       this.world.camera.position.copy(this.mesh.position).add(final_cam_vector);
-      this.world.camera.setRotationFromQuaternion(this.mesh.quaternion);
+      this.world.camera.setRotationFromEuler(this.mesh.rotation);
+      this.world.camera.rotation.x += this.opts.rotation_offset[0];
+      this.world.camera.rotation.y += this.opts.rotation_offset[1] + Math.PI; // ^This seems like a hack, maybe come back to. Why does it look towards the mesh?
+
+      this.world.camera.rotation.z += this.opts.rotation_offset[2];
       this.world.camera.rotateX(this.cam_pitch);
     } else {
       this.cam_vector.set(0, 700 * this.scale, -900 * this.scale);
       final_cam_vector = this.cam_vector.applyMatrix4(this.matrix);
       this.world.camera.position.copy(this.mesh.position).add(final_cam_vector);
       this.world.camera.lookAt(this.mesh.position);
+      this.world.camera.rotateX(this.cam_pitch);
     }
 
     this.world.render();
@@ -4323,6 +4366,7 @@ const defaultCameraFarPlane = 10000;
 const fps = 20;
 const renderInterval = 1000 / fps;
 let controls, camera, scene, renderer, loader, preLoadBlockMaterials;
+const followPointerScale = 150;
 const preLoadMaterialNames = ['grass', 'dirt']; //, 'white wool', 'orange wool', 'magenta wool'];
 
 const blockScale = 50;
@@ -4382,6 +4426,7 @@ let agent_player;
 const AGENT_NAME = "craftassist_agent";
 const PLAYER_NAME = "dashboard_player";
 let mobs = {};
+let cursorX, cursorY;
 
 function pos2Name(x, y, z, box = false) {
   if (box) {
@@ -4448,6 +4493,10 @@ function handleKeypress(e, player) {
       player.toggle();
       break;
 
+    case "r":
+      player.rotateTo(0, 0);
+      break;
+
     case "w":
       camera_vec = cameraVector();
       direction_vec = new THREE.Vector3(camera_vec[0], 0, camera_vec[2]);
@@ -4496,10 +4545,18 @@ function handleKeypress(e, player) {
 
 function cameraTest(player) {
   controls.enabled = false;
+  player.possess();
   window.addEventListener("keydown", function (e) {
     handleKeypress(e, player);
   });
-  player.possess();
+  document.addEventListener("mousemove", function (ev) {
+    if (document.pointerLockElement === document.body) {
+      let Xdiff = -ev.movementX / followPointerScale;
+      let Ydiff = -ev.movementY / followPointerScale;
+      player.cameraPitch(Ydiff);
+      player.rotate(Xdiff);
+    }
+  });
 }
 
 ;
@@ -4750,17 +4807,7 @@ class DVoxelEngine {
     const box = new THREE.BoxHelper(cube, 0x000000);
     box.name = pos2Name(pos[0], pos[1], pos[2], true);
     this.scene.add(box);
-    setBlock2(pos[0], pos[1], pos[2], bid); // const cubeAABB = new THREE.Mesh( cube, new THREE.MeshBasicMaterial( 0xff0000 ) );
-    // cubeAABB.geometry.computeBoundingBox();
-    // const box = new THREE.Box3();
-    // box.copy( cube.geometry.boundingBox ).applyMatrix4( cube.matrixWorld );
-    // const box = new THREE.Box3().setFromObject( cubeAABB, 0xffff00 );
-    // this.scene.add( box );
-    // const geometry2 = new THREE.BoxGeometry( 50, 50, 50 );
-    // const material2 = new THREE.MeshBasicMaterial( {color: 0xff0000} );
-    // const cube2 = new THREE.Mesh( geometry2, material2 );
-    // cube2.position.set(150, 75, 100)
-    // this.scene.add( cube2 );
+    setBlock2(pos[0], pos[1], pos[2], bid);
   }
 
   raycastVoxels(v) {
@@ -4775,7 +4822,7 @@ class DVoxelEngine {
 
   getBlock(x, y, z) {
     // outside zone, always return 0 -- hack for raycasting
-    if (x < -SL / 2 || x >= SL / 2 || y < -SL / 2 || y >= SL / 2 || z < -SL / 2 || z >= SL / 2) {
+    if (x < 0 || x >= SL || y < 0 || y >= SL || z < 0 || z >= SL) {
       console.log("OUTSIDE RAYCAST REGION");
       return 0;
     }
@@ -4795,9 +4842,9 @@ class DVoxelEngine {
       let z = key["z"];
       console.log("name: " + name + "x: " + x + ", y" + y + ", z" + z);
 
-      if (name == AGENT_NAME) {
+      if (name == AGENT_NAME && agent_player != null) {
         agent_player.moveTo(x * blockScale, y * blockScale, z * blockScale);
-      } else if (name == PLAYER_NAME) {
+      } else if (name == PLAYER_NAME && controlled_player != null) {
         controlled_player.moveTo(x * blockScale, y * blockScale, z * blockScale);
       }
     });
@@ -4813,6 +4860,7 @@ class DVoxelEngine {
       render: render,
       camera: camera
     };
+    let mobsInWorld = new Set();
     mobsInfo.forEach(function (key, index) {
       const entityId = key['entityId'].toString();
       const pos = key['pos'];
@@ -4830,13 +4878,21 @@ class DVoxelEngine {
         _VoxelMob.VoxelMob.build(world, mobOpts).then(function (newMob) {
           mobs[entityId] = newMob;
         });
-      } // console.log("mobs in the world: ")
-      // console.log(mobs)
-      // console.log("this mob")
-      // console.log(mobs[parseInt(entityId)])
-      // mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale)
+      }
 
+      console.log("mobs in the world: ");
+      console.log(Object.keys(mobs));
+      console.log("this mob");
+      console.log(entityId);
+      console.log(mobs[entityId]);
+
+      if (entityId in mobs) {
+        mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
+      }
+
+      mobsInWorld.add(entityId);
     });
+    mobs;
   }
 
   updateItemStacks(itemStacksInfo) {
@@ -4873,12 +4929,14 @@ class DVoxelEngine {
 exports.DVoxelEngine = DVoxelEngine;
 
 function setBlock2(x, y, z, id) {
-  // console.log("set block: " + x + ", " + y + "," + z + ', ' + id)
   voxels[x + voxelOffset[0]][y + voxelOffset[1]][z + voxelOffset[2]] = id;
 }
 
 function getBlock2(x, y, z) {
-  console.log;
+  if (x + voxelOffset[0] < 0 || x + voxelOffset[0] >= SL || y + voxelOffset[1] < 0 || y + voxelOffset[1] >= SL || z + voxelOffset[2] < 0 || z + voxelOffset[2] >= SL) {
+    console.log("Get Block 2 out of index");
+  }
+
   return voxels[x + voxelOffset[0]][y + voxelOffset[1]][z + voxelOffset[2]];
 }
 
@@ -5207,16 +5265,50 @@ window.addEventListener("keydown", function (ev) {
 });
 window.addEventListener("keydown", function (ev) {
   if (ev.keyCode === "3".charCodeAt(0)) {
-    let ix = Math.floor(Math.random() * (max - min + 1) + min);
-    let iz = Math.floor(Math.random() * (max - min + 1) + min);
-    dVoxelEngine.setBlock([ix, 5, iz], 47);
+    let hitBlock = dVoxelEngine.raycastVoxels(dVoxelEngine);
+    let hitX = Math.floor(hitBlock[0]);
+    let hitY = Math.floor(hitBlock[1]) + 1;
+    let hitZ = Math.floor(hitBlock[2]);
+
+    if (dVoxelEngine.getBlock(hitX, hitY, hitZ) == 0) {
+      dVoxelEngine.setVoxel([hitX, hitY, hitZ], 47);
+    }
   }
 });
 window.addEventListener("keydown", function (ev) {
   if (ev.keyCode === "4".charCodeAt(0)) {
-    let ix = Math.floor(Math.random() * (max - min + 1) + min);
-    let iz = Math.floor(Math.random() * (max - min + 1) + min);
-    dVoxelEngine.setBlock([ix, 5, iz], 48);
+    let hitBlock = dVoxelEngine.raycastVoxels(dVoxelEngine);
+    let hitX = Math.floor(hitBlock[0]);
+    let hitY = Math.floor(hitBlock[1]) + 1;
+    let hitZ = Math.floor(hitBlock[2]);
+
+    if (dVoxelEngine.getBlock(hitX, hitY, hitZ) == 0) {
+      dVoxelEngine.setVoxel([hitX, hitY, hitZ], 48);
+    }
+  }
+});
+window.addEventListener("keydown", function (ev) {
+  if (ev.keyCode === "5".charCodeAt(0)) {
+    let hitBlock = dVoxelEngine.raycastVoxels(dVoxelEngine);
+    let hitX = Math.floor(hitBlock[0]);
+    let hitY = Math.floor(hitBlock[1]) + 1;
+    let hitZ = Math.floor(hitBlock[2]);
+
+    if (dVoxelEngine.getBlock(hitX, hitY, hitZ) == 0) {
+      dVoxelEngine.setVoxel([hitX, hitY, hitZ], 49);
+    }
+  }
+});
+window.addEventListener("keydown", function (ev) {
+  if (ev.keyCode === "6".charCodeAt(0)) {
+    let hitBlock = dVoxelEngine.raycastVoxels(dVoxelEngine);
+    let hitX = Math.floor(hitBlock[0]);
+    let hitY = Math.floor(hitBlock[1]) + 1;
+    let hitZ = Math.floor(hitBlock[2]);
+
+    if (dVoxelEngine.getBlock(hitX, hitY, hitZ) == 0) {
+      dVoxelEngine.setVoxel([hitX, hitY, hitZ], 50);
+    }
   }
 });
 window.addEventListener("keydown", function (ev) {
@@ -5534,7 +5626,7 @@ const VW_ITEM_MAP = {
     "bottom": 'wool.png',
     "top": 'wool.png'
   },
-  "pruple wool": {
+  "purple wool": {
     "color": 0x800080,
     "opacity": 1.0,
     "sides": 'wool.png',

@@ -185,7 +185,7 @@ const VW_ITEM_MAP = {
         "bottom": 'wool.png',
         "top": 'wool.png',
     },
-    "pruple wool": {
+    "purple wool": {
         "color": 0x800080,
         "opacity": 1.0,
         "sides": 'wool.png',

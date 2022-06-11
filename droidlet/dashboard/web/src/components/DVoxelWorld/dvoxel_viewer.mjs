@@ -23,17 +23,49 @@ window.addEventListener("keydown", function (ev) {
 
   window.addEventListener("keydown", function (ev) {
     if (ev.keyCode === "3".charCodeAt(0)) {
-        let ix = Math.floor(Math.random() * (max - min + 1) + min)
-        let iz = Math.floor(Math.random() * (max - min + 1) + min)
-        dVoxelEngine.setBlock([ix,5,iz], 47);
+        let hitBlock = dVoxelEngine.raycastVoxels(dVoxelEngine);
+        let hitX = Math.floor(hitBlock[0])
+        let hitY = Math.floor(hitBlock[1]) + 1
+        let hitZ = Math.floor(hitBlock[2])
+        if (dVoxelEngine.getBlock(hitX, hitY, hitZ) == 0) {
+          dVoxelEngine.setVoxel([hitX, hitY, hitZ], 47);
+        }
     }
   });
 
   window.addEventListener("keydown", function (ev) {
     if (ev.keyCode === "4".charCodeAt(0)) {
-        let ix = Math.floor(Math.random() * (max - min + 1) + min)
-        let iz = Math.floor(Math.random() * (max - min + 1) + min)
-        dVoxelEngine.setBlock([ix,5,iz], 48);
+        let hitBlock = dVoxelEngine.raycastVoxels(dVoxelEngine);
+        let hitX = Math.floor(hitBlock[0])
+        let hitY = Math.floor(hitBlock[1]) + 1
+        let hitZ = Math.floor(hitBlock[2])
+        if (dVoxelEngine.getBlock(hitX, hitY, hitZ) == 0) {
+          dVoxelEngine.setVoxel([hitX, hitY, hitZ], 48);
+        }
+    }
+  });
+
+  window.addEventListener("keydown", function (ev) {
+    if (ev.keyCode === "5".charCodeAt(0)) {
+        let hitBlock = dVoxelEngine.raycastVoxels(dVoxelEngine);
+        let hitX = Math.floor(hitBlock[0])
+        let hitY = Math.floor(hitBlock[1]) + 1
+        let hitZ = Math.floor(hitBlock[2])
+        if (dVoxelEngine.getBlock(hitX, hitY, hitZ) == 0) {
+          dVoxelEngine.setVoxel([hitX, hitY, hitZ], 49);
+        }
+    }
+  });
+
+  window.addEventListener("keydown", function (ev) {
+    if (ev.keyCode === "6".charCodeAt(0)) {
+        let hitBlock = dVoxelEngine.raycastVoxels(dVoxelEngine);
+        let hitX = Math.floor(hitBlock[0])
+        let hitY = Math.floor(hitBlock[1]) + 1
+        let hitZ = Math.floor(hitBlock[2])
+        if (dVoxelEngine.getBlock(hitX, hitY, hitZ) == 0) {
+          dVoxelEngine.setVoxel([hitX, hitY, hitZ], 50);
+        }
     }
   });
   window.addEventListener("keydown", function (ev) {

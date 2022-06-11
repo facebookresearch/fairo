@@ -84,6 +84,8 @@ const PLAYER_NAME = "dashboard_player";
 let mobs = {}
 
 
+let cursorX, cursorY
+
 function pos2Name(x, y, z, box=false) {
     if (box) {
         return x + ',' + y + ',' + z + 'box'
@@ -449,18 +451,7 @@ class DVoxelEngine {
         box.name = pos2Name(pos[0], pos[1], pos[2], true)
         this.scene.add(box);
 
-        setBlock2(pos[0], pos[1], pos[2], bid)
-        // const cubeAABB = new THREE.Mesh( cube, new THREE.MeshBasicMaterial( 0xff0000 ) );
-        // cubeAABB.geometry.computeBoundingBox();
-        // const box = new THREE.Box3();
-        // box.copy( cube.geometry.boundingBox ).applyMatrix4( cube.matrixWorld );
-        // const box = new THREE.Box3().setFromObject( cubeAABB, 0xffff00 );
-        // this.scene.add( box );
-        // const geometry2 = new THREE.BoxGeometry( 50, 50, 50 );
-        // const material2 = new THREE.MeshBasicMaterial( {color: 0xff0000} );
-        // const cube2 = new THREE.Mesh( geometry2, material2 );
-        // cube2.position.set(150, 75, 100)
-        // this.scene.add( cube2 );
+        setBlock2(pos[0], pos[1], pos[2], bid);
     }
 
     raycastVoxels(v) {
@@ -475,7 +466,7 @@ class DVoxelEngine {
 
     getBlock(x, y, z) {
         // outside zone, always return 0 -- hack for raycasting
-        if (x < -SL/2 || x >= SL/2 || y < -SL/2 || y >= SL/2 || z < -SL/2 || z >= SL/2) {
+        if (x < 0 || x >= SL || y < 0 || y >= SL || z < 0 || z >= SL) {
             console.log("OUTSIDE RAYCAST REGION")
             return 0
         }
@@ -494,9 +485,9 @@ class DVoxelEngine {
             let y = key["y"]
             let z = key["z"]
             console.log("name: " + name + "x: " + x + ", y" + y + ", z" + z)
-            if (name == AGENT_NAME) {
+            if (name == AGENT_NAME && agent_player != null) {
                 agent_player.moveTo(x * blockScale, y * blockScale, z * blockScale)
-            } else if (name == PLAYER_NAME) {
+            } else if (name == PLAYER_NAME && controlled_player != null) {
                 controlled_player.moveTo(x * blockScale, y * blockScale, z * blockScale)
             }
         })
@@ -512,6 +503,7 @@ class DVoxelEngine {
             render: render,
             camera: camera,
         };
+        let mobsInWorld = new Set()
         mobsInfo.forEach(function(key, index) {
             const entityId = key['entityId'].toString()
             const pos = key['pos']
@@ -530,12 +522,14 @@ class DVoxelEngine {
                     }
                 );
             }
-            // console.log("mobs in the world: ")
-            // console.log(mobs)
-            // console.log("this mob")
-            // console.log(mobs[parseInt(entityId)])
-            // mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale)
+            if (entityId in mobs) {
+                mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale)
+            }
+            
+            mobsInWorld.add(entityId)
         })
+
+        mobs
     }
 
     updateItemStacks(itemStacksInfo) {
@@ -568,12 +562,13 @@ class DVoxelEngine {
 }
 
 function setBlock2(x, y, z, id) {
-    // console.log("set block: " + x + ", " + y + "," + z + ', ' + id)
     voxels[x + voxelOffset[0]][y + voxelOffset[1]][z + voxelOffset[2]] = id
 }
 
 function getBlock2(x, y, z) {
-    console.log
+    if (x + voxelOffset[0] < 0 || x + voxelOffset[0] >= SL || y + voxelOffset[1] < 0 || y + voxelOffset[1] >= SL || z + voxelOffset[2] < 0 || z + voxelOffset[2] >= SL) {
+        console.log("Get Block 2 out of index")
+    }
     return voxels[x + voxelOffset[0]][y + voxelOffset[1]][z + voxelOffset[2]]
 }
 
