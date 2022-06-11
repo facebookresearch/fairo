@@ -46,7 +46,6 @@ from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
-from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
 from droidlet.lowlevel.minecraft.mc_util import (
     cluster_areas,
     MCTime,
@@ -98,6 +97,7 @@ class CraftAssistAgent(DroidletAgent):
             "fill_idmeta": fill_idmeta,
             "color_bid_map": COLOR_BID_MAP,
         }
+        self.backend = opts.backend
         self.mark_airtouching_blocks = opts.mark_airtouching_blocks
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
@@ -125,9 +125,9 @@ class CraftAssistAgent(DroidletAgent):
         self.perceive_on_chat = True
 
     def get_chats(self):
-        """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
+        """This function is a wrapper around self.mover.get_incoming_chats and adds a new
         chat self.dashboard_chat which is set by the dashboard."""
-        all_chats = self.cagent.get_incoming_chats()
+        all_chats = self.mover.get_incoming_chats()
         updated_chats = []
         if self.dashboard_chat:
             updated_chats.append(self.dashboard_chat)
@@ -394,7 +394,7 @@ class CraftAssistAgent(DroidletAgent):
         else:
             sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
 
-        return self.cagent.send_chat(chat_text)
+        return self.send_chat(chat_text)
 
     def get_detected_objects_for_map(self):
         search_res = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
@@ -516,7 +516,6 @@ class CraftAssistAgent(DroidletAgent):
         self.mover.step_forward()
         self.update_agent_pos_dashboard()
 
-    # TODO update client so we can just loop through these
     # TODO rename things a bit- some perceptual things are here,
     #      but under current abstraction should be in init_perception
     def init_physical_interfaces(self):
@@ -524,10 +523,29 @@ class CraftAssistAgent(DroidletAgent):
         # For testing agent without cuberite server
         if self.opts.port == -1:
             return
-        logging.info("Attempting to connect to port {}".format(self.opts.port))
-        self.cagent = MCAgent("localhost", self.opts.port, self.name)
-        logging.info("Logged in to server")
-        self.mover = CraftassistMover(self.cagent)
+        if self.backend == "cuberite":
+            from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
+
+            logging.info(
+                "Attempting to connect to cuberite cagent on port {}".format(self.opts.port)
+            )
+            self.cagent = MCAgent("localhost", self.opts.port, self.name)
+            logging.info("Logged in to server")
+            self.mover = CraftassistMover(self.cagent)
+        elif self.backend == "pyworld":
+            from droidlet.lowlevel.minecraft.pyworld_mover import PyWorldMover
+
+            logging.info("Attempting to connect to pyworld on port {}".format(self.opts.port))
+            # TODO allow pyworld ip to not be localhost
+            try:
+                self.mover = PyWorldMover(self.opts.port)
+                self.cagent = None
+                logging.info("Logged in to server")
+            except:
+                raise Exception("unable to connect to PyWorld on port {}".format(self.opts.port))
+        else:
+            raise Exception("unknown backend option {}".format(self.backend))
+
         for m in dir(self.mover):
             if callable(getattr(self.mover, m)) and m[0] != "_" and getattr(self, m, None) is None:
                 setattr(self, m, getattr(self.mover, m))
