@@ -298,14 +298,12 @@ class World:
         for player_eid in self.connected_sids.values():
             player_info = self.get_player_info(player_eid)
             if player_info.name == player_name:
-                return {"player":player_info }
+                return {"player": player_info}
         return None
-
 
     def setup_server(self, port=25565):
         import socketio
         import eventlet
-
 
         self.is_server = True
 
@@ -495,11 +493,6 @@ class World:
         app = socketio.WSGIApp(server)
         eventlet.wsgi.server(eventlet.listen(("", port)), app)
         return server
-
-        
-
-
-        
 
 
 if __name__ == "__main__":
