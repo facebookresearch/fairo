@@ -76,20 +76,6 @@ class World:
             port = getattr(opts, "port", 25565)
             self.server = self.setup_server(port=port)
 
-    def start(self, tick_rate=0.01, step_rate=0.2):
-        """
-        step the world every step_rate seconds
-        sleep for tick_rate seconds between polls.
-        """
-        # FIXME do this in a subprocess, etc.
-        self.time = time.time()
-        while True:
-            t = time.time()
-            if t - self.time > step_rate:
-                self.step()
-                self.time = t
-            time.sleep(tick_rate)
-
     def set_count(self, count):
         self.count = count
 
@@ -506,4 +492,3 @@ if __name__ == "__main__":
     world_opts.world_server = True
     world_opts.port = 6002
     world = World(world_opts, spec)
-    world.start()
