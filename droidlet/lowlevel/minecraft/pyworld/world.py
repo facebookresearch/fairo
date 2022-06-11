@@ -144,7 +144,8 @@ class World:
         try:  # FIXME only allow placing non-air blocks in air locations?
             if tuple(self.blocks[loc]) != (7, 0) or force:
                 self.blocks[loc] = idm
-                self.broadcast_block_update(loc, idm)
+                if self.is_server:
+                    self.broadcast_block_update(loc, idm)
                 for sid, store in self.changed_blocks_store.items():
                     store[tuple(loc)] = idm
                 return True
