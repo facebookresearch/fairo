@@ -10,6 +10,7 @@ from droidlet.memory.sql_memory import AgentMemory, DEFAULT_PIXELS_PER_UNIT
 from droidlet.base_util import diag_adjacent, IDM, XYZ, Block, npy_to_blocks_list
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
+    SelfNode,
     PlayerNode,
     MemoryNode,
     ChatNode,
@@ -60,7 +61,7 @@ class MCAgentMemory(AgentMemory):
         schema_paths=SCHEMAS,
         load_minecraft_specs=True,
         load_block_types=True,
-        preception_range=PERCEPTION_RANGE,
+        perception_range=PERCEPTION_RANGE,
         agent_time=None,
         coordinate_transforms=None,
         agent_low_level_data={},
@@ -83,7 +84,7 @@ class MCAgentMemory(AgentMemory):
         self.check_inside_perception = agent_low_level_data.get("check_inside", None)
 
         self.dances = {}
-        self.perception_range = preception_range
+        self.perception_range = perception_range
 
         if copy_from_backup is not None:
             copy_from_backup.backup(self.db)
@@ -172,11 +173,6 @@ class MCAgentMemory(AgentMemory):
         # 3. Update agent's current position and attributes in memory
         if perception_output.agent_attributes:
             agent_player = perception_output.agent_attributes
-            memid = (
-                self.nodes[PlayerNode.NODE_TYPE]
-                .get_player_by_eid(self, agent_player.entityId)
-                .memid
-            )
             cmd = (
                 "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
             )
@@ -190,11 +186,11 @@ class MCAgentMemory(AgentMemory):
                 agent_player.pos.z,
                 agent_player.look.pitch,
                 agent_player.look.yaw,
-                memid,
+                self.self_memid,
             )
             ap = (agent_player.pos.x, agent_player.pos.y, agent_player.pos.z)
             self.place_field.update_map(
-                [{"pos": ap, "is_obstacle": True, "memid": memid, "is_move": True}]
+                [{"pos": ap, "is_obstacle": True, "memid": self.self_memid, "is_move": True}]
             )
 
         # 4. Update other in-game players in agent's memory

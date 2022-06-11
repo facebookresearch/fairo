@@ -50,6 +50,7 @@ import TurkInfo from "./components/Turk/TurkInfo";
 class StateManager {
   refs = [];
   socket = null;
+  worldSocket = null;
   default_url = "http://localhost:8000";
   connected = false;
   initialMemoryState = {
@@ -264,7 +265,7 @@ class StateManager {
     socket.on("depth", this.processDepth);
     socket.on("image", this.processRGBDepth); // RGB + Depth
     socket.on("objects", this.processObjects);
-    socket.on("updateVoxelWorldState", this.updateVoxelWorld);
+    // socket.on("updateVoxelWorldState", this.updateVoxelWorld);
     socket.on("setVoxelWorldInitialState", this.setVoxelWorldInitialState);
     socket.on("showAssistantReply", this.showAssistantReply);
     socket.on("humans", this.processHumans);
@@ -274,6 +275,13 @@ class StateManager {
     socket.on("annotationRetrain", this.annotationRetrain);
     socket.on("saveRgbSegCallback", this.saveAnnotations);
     socket.on("handleMaxFrames", this.handleMaxFrames);
+
+    const worldUrl = "http://localhost:6002";
+    this.worldSocket = io.connect(worldUrl, {
+      transports: ["polling", "websocket"],
+    });
+    const wSocket = this.worldSocket;
+    wSocket.on("updateVoxelWorldState", this.updateVoxelWorld);
   }
 
   updateStateManagerMemory(data) {
@@ -339,7 +347,7 @@ class StateManager {
       alert("Received text message: " + res.chat);
     }
     this.memory.chats = res.allChats;
-
+    console.log("StateManager setChatResponse");
     // Set the commandState to display 'received' for one poll cycle and then switch
     this.memory.commandState = "received";
     setTimeout(() => {
@@ -365,6 +373,7 @@ class StateManager {
   }
 
   setLastChatActionDict(res) {
+    console.log("StateManager setLastChatActionDict");
     this.memory.lastChatActionDict = res.action_dict;
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
@@ -399,14 +408,18 @@ class StateManager {
 
   showAssistantReply(res) {
     // TODO handle content types besides plain text
-    
+
     let chat, response_options, isQuestion, questionType;
     try {
-      if (res.content_type === "point") { return }  // Let the minecraft client handle point
+      if (res.content_type === "point") {
+        return;
+      } // Let the minecraft client handle point
       let content = res.content;
-      chat = content.filter(entry => entry["id"] === "text")[0]["content"];
+      chat = content.filter((entry) => entry["id"] === "text")[0]["content"];
       if (res.content_type === "chat_and_text_options") {
-        response_options = content.filter(entry => entry["id"] === "response_option").map(x => x["content"]);
+        response_options = content
+          .filter((entry) => entry["id"] === "response_option")
+          .map((x) => x["content"]);
         isQuestion = true;
         questionType = "clarification";
       } else {
@@ -428,7 +441,7 @@ class StateManager {
           response_options: response_options,
         });
         ref.addNewAgentReplies({
-          msg: chat, 
+          msg: chat,
           isQuestion: isQuestion,
           questionType: questionType,
           enableBack: false,
@@ -1056,10 +1069,12 @@ class StateManager {
   }
 
   processMap(res) {
+    console.log(JSON.stringify(res));
     this.refs.forEach((ref) => {
       if (ref instanceof Memory2D) {
         ref.setState({
           isLoaded: true,
+          detections_from_memory: res.detections_from_memory,
           memory: this.memory,
           bot_xyz: [res.x, res.y, res.yaw],
           obstacle_map: res.map,
