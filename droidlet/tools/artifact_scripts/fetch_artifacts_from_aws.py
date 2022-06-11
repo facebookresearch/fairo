@@ -68,7 +68,7 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
     Args:
         agent: agent name - "locobot" or "craftassist"
         artifact_name: "datasets" or "models"
-        model_name: "nlu" or "perception"
+        model_name: "nlu", "perception" or "tasks"
         checksum_file_name: name of the file containing checksum
         checksum_val: checksum value
     """
@@ -98,7 +98,7 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
         artifact_name = artifact_name + "_" + model_name
         mode = 0o777
         os.makedirs(artifact_path, mode, exist_ok=True)
-        if model_name != "nlu":
+        if model_name == "perception":
             artifact_path = artifact_path + "/" + agent
             artifact_name = artifact_name + "_" + agent
 
@@ -154,6 +154,8 @@ def fetch_models_from_aws(agent=None, model_name=None, checksum_val=None):
     # assign checksum file name
     if model_name == "nlu":
         checksum_file = "nlu.txt"
+    elif model_name =="tasks":
+        checksum_file = "tasks.txt"
     else:
         checksum_file = agent + "_perception.txt"
 

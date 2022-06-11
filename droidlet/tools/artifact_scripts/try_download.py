@@ -36,6 +36,7 @@ def try_download_artifacts(agent=None, test_mode=False):
     os.makedirs(os.path.join(artifact_path, "datasets/robot"), exist_ok=True)
     os.makedirs(os.path.join(artifact_path, "models"), exist_ok=True)
     os.makedirs(os.path.join(artifact_path, "models/nlu"), exist_ok=True)
+    os.makedirs(os.path.join(artifact_path, "models/tasks"), exist_ok=True)
     os.makedirs(os.path.join(artifact_path, "models/perception"), exist_ok=True)
     os.makedirs(os.path.join(artifact_path, "models/perception", agent), exist_ok=True)
     if test_mode:
@@ -47,6 +48,7 @@ def try_download_artifacts(agent=None, test_mode=False):
     # Remove existing checksum files so that they can be re-calculated
     fileList = [
         os.path.join(artifact_path, "models/nlu/nlu_checksum.txt"),
+        os.path.join(artifact_path, "models/tasks/tasks_checksum.txt"),
         os.path.join(artifact_path, "models/perception", agent, "perception_checksum.txt"),
         os.path.join(artifact_path, "datasets/checksum.txt"),
     ]
@@ -60,7 +62,6 @@ def try_download_artifacts(agent=None, test_mode=False):
     )
 
     # Compute local checksum for nlu directory and try download if different from remote.
-
     artifact_path = os.path.join(artifact_path_original, "models/nlu")
     checksum_write_path = os.path.join(artifact_path, "nlu_checksum.txt")
     result = subprocess.check_output(
@@ -68,6 +69,15 @@ def try_download_artifacts(agent=None, test_mode=False):
     )
     print(result)
     compare_checksum_try_download(agent, checksum_write_path, "nlu")
+
+    # Compute and attempt download for tasks model
+    artifact_path = os.path.join(artifact_path_original, "models/tasks")
+    checksum_write_path = os.path.join(artifact_path, "tasks_checksum.txt")
+    result = subprocess.check_output(
+        [compute_shasum_script_path, artifact_path, checksum_write_path], text=True
+    )
+    print(result)
+    compare_checksum_try_download(agent, checksum_write_path, "tasks")
 
     # Compute and attempt download for perception model
     artifact_path = os.path.join(artifact_path_original, "models/perception", agent)
