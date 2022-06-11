@@ -101,6 +101,9 @@ class DanceMove(Task):
         agent = self.agent
         if self.finished:
             return
+        # WARNING: these are in degrees to match MC and DSL;
+        # memory stores angles in radians; but these are give by interpreter in angles
+        # FIXME change DSL to use radians for fixed values and convert everything to radians
         if self.relative_yaw:
             agent.turn_angle(self.relative_yaw)
         if self.relative_pitch:
@@ -108,8 +111,7 @@ class DanceMove(Task):
         if self.head_xyz is not None:
             agent.look_at(self.head_xyz[0], self.head_xyz[1], self.head_xyz[2])
         elif self.head_yaw_pitch is not None:
-            # warning: pitch is flipped!  client uses -pitch for up,
-            agent.set_look(self.head_yaw_pitch[0], -self.head_yaw_pitch[1])
+            agent.set_look(self.head_yaw_pitch[0], self.head_yaw_pitch[1])
 
         if self.translate:
             step = self.STEP_FNS[self.translate]
@@ -313,7 +315,9 @@ class Build(Task):
             if mem and all(xyz in xyzs for xyz in mem.blocks.keys()):
                 for pred in ["has_tag", "has_name", "has_colour"]:
                     self.destroyed_block_object_triples.extend(
-                        agent.memory.get_triples(subj=mem.memid, pred_text=pred)
+                        agent.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                            agent.memory, subj=mem.memid, pred_text=pred
+                        )
                     )
                 logging.debug(
                     "Destroying block object {} tags={}".format(
@@ -523,7 +527,7 @@ class Build(Task):
         xyz = block[0]
         # this should not be an empty list- it is assumed the block passed in was just placed
         try:
-            blockobj_memid = agent.memory.get_block_object_ids_by_xyz(xyz)[0]
+            blockobj_memid = agent.memory.get_object_info_by_xyz(xyz, "BlockObjects")[0]
             self.blockobj_memid = blockobj_memid
         except:
             logging.debug(
@@ -544,15 +548,19 @@ class Build(Task):
                 TripleNode.create(agent.memory, subj=blockobj_memid, pred_text=pred, obj_text=obj)
                 # sooooorrry  FIXME? when we handle triples better
                 if "has_" in pred:
-                    agent.memory.tag(self.blockobj_memid, obj)
+                    agent.memory.nodes[TripleNode.NODE_TYPE].tag(
+                        agent.memory, self.blockobj_memid, obj
+                    )
 
-        agent.memory.tag(blockobj_memid, "_in_progress")
+        agent.memory.nodes[TripleNode.NODE_TYPE].tag(agent.memory, blockobj_memid, "_in_progress")
         if self.dig_message:
-            agent.memory.tag(blockobj_memid, "hole")
+            agent.memory.nodes[TripleNode.NODE_TYPE].tag(agent.memory, blockobj_memid, "hole")
 
     def finish(self, agent):
         if self.blockobj_memid is not None:
-            agent.memory.untag(self.blockobj_memid, "_in_progress")
+            agent.memory.nodes[TripleNode.NODE_TYPE].untag(
+                agent.memory, self.blockobj_memid, "_in_progress"
+            )
         if self.verbose:
             if self.is_destroy_schm:
                 agent.send_chat("I finished destroying this")
@@ -872,18 +880,21 @@ class Spawn(Task):
                 mobmem = agent.memory.get_mem_by_id(memid)
                 agent.memory.update_recent_entities(mems=[mobmem])
                 if self.memid is not None:
-                    agent.memory.add_triple(
-                        subj=self.memid, pred_text="task_effect_", obj=mobmem.memid
+                    agent.memory.nodes[TripleNode.NODE_TYPE].create(
+                        agent.memory, subj=self.memid, pred_text="task_effect_", obj=mobmem.memid
                     )
                     # the chat_effect_ triple was already made when the task is added if there was a chat...
                     # but it points to the task memory.  link the chat to the mob memory:
-                    chat_mem_triples = agent.memory.get_triples(
-                        subj=None, pred_text="chat_effect_", obj=self.memid
+                    chat_mem_triples = agent.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                        agent.memory, subj=None, pred_text="chat_effect_", obj=self.memid
                     )
                     if len(chat_mem_triples) > 0:
                         chat_memid = chat_mem_triples[0][0]
-                        agent.memory.add_triple(
-                            subj=chat_memid, pred_text="chat_effect_", obj=mobmem.memid
+                        agent.memory.nodes[TripleNode.NODE_TYPE].create(
+                            agent.memory,
+                            subj=chat_memid,
+                            pred_text="chat_effect_",
+                            obj=mobmem.memid,
                         )
             self.finished = True
 
@@ -975,7 +986,9 @@ class Get(Task):
         if delta > 0:
             agent.inventory.add_item_stack(self.idm, (self.obj_memid, delta))
             agent.send_chat("Got Item!")
-            agent.memory.tag(self.obj_memid, "_in_inventory")
+            agent.memory.nodes[TripleNode.NODE_TYPE].tag(
+                agent.memory, self.obj_memid, "_in_inventory"
+            )
             self.finished = True
             return
 
@@ -1051,7 +1064,9 @@ class Drop(Task):
         if dropped_item_stack:
             agent.memory.update_item_stack_eid(self.obj_memid, dropped_item_stack.entityId)
             agent.memory.set_item_stack_position(dropped_item_stack)
-            agent.memory.tag(self.obj_memid, "_on_ground")
+            agent.memory.nodes[TripleNode.NODE_TYPE].tag(
+                agent.memory, self.obj_memid, "_on_ground"
+            )
 
         x, y, z = agent.get_player().pos
         target = (x, y + 2, z)

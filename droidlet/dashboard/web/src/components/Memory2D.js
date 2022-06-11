@@ -25,6 +25,7 @@ class Memory2D extends React.Component {
       width: 600,
       isLoaded: false,
       memory: null,
+      detections_from_memory: [],
       xmin: -10,
       xmax: 10,
       ymin: -10,
@@ -163,6 +164,7 @@ class Memory2D extends React.Component {
       height,
       width,
       memory,
+      detections_from_memory,
       bot_xyz,
       obstacle_map,
       tooltip,
@@ -203,6 +205,37 @@ class Memory2D extends React.Component {
         );
       });
     }
+
+    // Put detected objects from memory on map
+    detections_from_memory.forEach((obj) => {
+      let obj_id = obj[0];
+      let xyz = obj[1];
+      let color = "#0000FF";
+      let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
+      let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
+      y = height - y;
+      renderedObjects.push(
+        <Circle
+          key={j++}
+          radius={3}
+          x={x}
+          y={y}
+          fill={color}
+          onMouseEnter={(e) => {
+            this.setState({
+              tooltip: String(obj_id),
+            });
+
+            e.currentTarget.setRadius(6);
+          }}
+          onMouseLeave={(e) => {
+            this.setState({ tooltip: null });
+            e.currentTarget.setRadius(3);
+          }}
+        />
+      );
+    });
+
     if (objects !== undefined && objects.forEach !== undefined) {
       objects.forEach((obj, key, map) => {
         let color = colorScheme[Math.abs(hashCode(obj.label)) % 10];

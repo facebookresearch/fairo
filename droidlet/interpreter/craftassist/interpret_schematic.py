@@ -11,6 +11,7 @@ from typing import List, Tuple, Union, Optional
 # TODO with subinterpret
 from droidlet.memory.craftassist.mc_memory_nodes import SchematicNode
 from droidlet.interpreter.craftassist import size_words
+from droidlet.memory.memory_nodes import TripleNode
 from .block_handler import get_block_type
 from droidlet.base_util import number_from_span, Block
 from droidlet.shared_data_structs import ErrorWithResponse
@@ -218,12 +219,23 @@ def interpret_named_schematic(
         )
         return shape_blocks, None, tags
 
-    schematic = interpreter.memory.get_schematic_by_name(name)
-    if schematic is None:
-        schematic = interpreter.memory.get_schematic_by_name(stemmed_name)
-        if schematic is None:
+    _, schematic = interpreter.memory.basic_search(
+        f"SELECT MEMORY FROM Schematic WHERE (has_name={name} OR has_tag={name})"
+    )
+    if not schematic:
+        _, schematic = interpreter.memory.basic_search(
+            f"SELECT MEMORY FROM Schematic WHERE (has_name={stemmed_name} or has_tag={stemmed_name})"
+        )
+        if not schematic:
             raise ErrorWithResponse("I don't know what you want me to build.")
-    triples = [(p, v) for (_, p, v) in interpreter.memory.get_triples(subj=schematic.memid)]
+    # if there are multiple automatically select one
+    schematic = random.choice(schematic)
+    triples = [
+        (p, v)
+        for (_, p, v) in interpreter.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            interpreter.memory, subj=schematic.memid
+        )
+    ]
     blocks = schematic.blocks
     # TODO generalize to more general block properties
     # Longer term: remove and put a call to the modify model here

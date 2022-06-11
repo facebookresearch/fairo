@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from typing import List
 import torch
 from droidlet.memory.filters_conversions import get_inequality_symbol, sqly_to_new_filters
+from droidlet.memory.memory_nodes import TripleNode
 
 ####################################################################################
 ### This file is split between the basic memory searcher, and memory filters objects
@@ -108,7 +109,9 @@ def get_property_value(agent_memory, mem, prop, get_all=False):
         r = agent_memory._db_read(cmd, mem.memid)
         return r[0][0]
     # is it a triple?
-    triples = agent_memory.get_triples(subj=mem.memid, pred_text=prop, return_obj_text="always")
+    triples = agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
+        agent_memory, subj=mem.memid, pred_text=prop, return_obj_text="always"
+    )
     if len(triples) > 0:
         if get_all:
             return [t[2] for t in triples]
@@ -177,9 +180,13 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
     if comparison_symbol != "=" and comparison_symbol != "=#=":
         raise Exception("Triple values need to have '=' or '=#=' as comparison symbol for now")
     if comparison_symbol == "=":
-        triples = agent_memory.get_triples(pred_text=prop, obj_text=value[0])
+        triples = agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            agent_memory, pred_text=prop, obj_text=value[0]
+        )
     else:
-        triples = agent_memory.get_triples(pred_text=prop, obj=value[0])
+        triples = agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            agent_memory, pred_text=prop, obj=value[0]
+        )
     if len(triples) > 0:
         return filter_memids_by_nodetype(agent_memory, [t[0] for t in triples], memtype)
 
@@ -364,7 +371,9 @@ class MemorySearcher:
                 except:
                     raise Exception("error in subquery {}".format(where_clause))
 
-        triples = agent_memory.get_triples(**where_clause)
+        triples = agent_memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            agent_memory, **where_clause
+        )
         if where_clause.get("subj"):
             memids = [t[2] for t in triples]
         else:
@@ -499,12 +508,9 @@ class MemorySearcher:
         if query.get("where_clause"):
             memids = self.handle_where(agent_memory, query["where_clause"], memtype)
         else:
-            node_types = agent_memory.node_children.get(memtype, [])
-            memids = [
-                m[0]
-                for nt in node_types
-                for m in agent_memory._db_read("SELECT uuid FROM Memories WHERE node_type=?", nt)
-            ]
+            # queries with no WHERE clause will not return archived/snapshotted memories.
+            # to get a snapshot or to get all mems snapshotted or not use explicit WHERE.
+            memids = get_all_memids_of_node_type(agent_memory, memtype)
         memids = self.handle_selector(agent_memory, query, memids)
         if self.ignore_self:
             try:

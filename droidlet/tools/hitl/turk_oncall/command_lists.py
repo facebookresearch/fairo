@@ -30,7 +30,7 @@ ANSWER_LISTS = [
     "assistant should make a square|assistant answer should make sense|assistant should anwer yes",
     "assistant should make a square|assistant should answer big|assistant should destroy the square",
     "assistant should make a square|assistant should make a yellow circle|assistant should answer circle",
-    "assistant should make a square|assistant should make a yellow circle|assistant should answer with circle location,"
+    "assistant should make a square|assistant should make a yellow circle|assistant should answer with circle location",
     "assistant should make a yellow circle|assistant answer should make sense|assistant should say they don't know how to do that",
     "assistant should answer with their location|assistant should say a capability|assistant should answer with your location",
     "assistant should spawn two pigs|assistant should answer with location of a pig|assistant should go to a pig",
