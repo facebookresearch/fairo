@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
 import logging
-from .modeling_bert import BertModel, BertOnlyMLMHead
+from .modeling_bert import BertModel
 from .tokenization_utils import fixed_span_values_voc
 
+from transformers.models.bert.modeling_bert import BertOnlyMLMHead
 
 def my_xavier_init(m, gain=1):
     """Xavier initialization: weights initialization that tries to make variance of outputs
