@@ -102,9 +102,10 @@ class ArgumentParser:
             help="run thenearby_airtouching_blocks heuristic?",
         )
         mc_parser.add_argument(
-            "--draw_map", 
-            default="memory", 
-            help='"" for no map in dashboard, "memory" to draw from agent memory')        
+            "--draw_map",
+            default="",
+            help='"" for no map in dashboard, "memory" to draw from agent memory',
+        )
         mc_parser.add_argument("--port", type=int, default=25565)
 
     def add_loco_parser(self):
