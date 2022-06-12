@@ -338,6 +338,8 @@ class NSPRetrainingJob(DataGenerator):
             + opts.droidlet_dir
             + " --full_data_dir "
             + full_data_dir
+            + " --pretrained_encoder_name "
+            + opts.pretrained_encoder_name
         )
 
         # Initialize the training run
@@ -548,6 +550,14 @@ if __name__ == "__main__":
         default=100,
         type=int,
         help="Number of new data samples below which no training occurs",
+    )
+    # NLU model arguments
+    parser.add_argument(
+        "--pretrained_encoder_name",
+        default="distilbert-base-uncased",
+        type=str,
+        help="Pretrained text encoder."
+        "See full list at https://huggingface.co/transformers/pretrained_models.html",
     )
     # Training hyperparameter
     parser.add_argument(
