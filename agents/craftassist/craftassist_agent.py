@@ -384,7 +384,9 @@ class CraftAssistAgent(DroidletAgent):
             chat_text = chat
 
         logging.info("Sending chat: {}".format(chat_text))
-        chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(self.memory, self.memory.self_memid, chat_text)
+        chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
+            self.memory, self.memory.self_memid, chat_text
+        )
 
         if chat_json and not isinstance(chat_json, int):
             chat_json["chat_memid"] = chat_memid
@@ -394,7 +396,7 @@ class CraftAssistAgent(DroidletAgent):
         else:
             sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
 
-        return self.send_chat(chat_text)
+        return self.mover.send_chat(chat_text)
 
     def get_detected_objects_for_map(self):
         search_res = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
@@ -414,8 +416,8 @@ class CraftAssistAgent(DroidletAgent):
             obstacles = self.memory.place_field.get_obstacle_list()
             # if we are getting obstacles from memory, get detections from memory for map too
             detections_for_map = self.get_detected_objects_for_map()
-        if not xyyaw:            
-            agent_pos = self.get_player().pos   # position of agent's feet
+        if not xyyaw:
+            agent_pos = self.get_player().pos  # position of agent's feet
             agent_look = self.get_player().look
             mc_xyz = agent_pos.x, agent_pos.y, agent_pos.z
             mc_look = Look(agent_look.yaw, agent_look.pitch)
