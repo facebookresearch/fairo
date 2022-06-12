@@ -43,6 +43,14 @@ if __name__ == "__main__":
         "--append_date", action="store_false", help="append date to output dir and job name"
     )
     parser.add_argument("--partition", default="learnfair", help="name of partition")
+    # NLU model arguments
+    parser.add_argument(
+        "--pretrained_encoder_name",
+        default="distilbert-base-uncased",
+        type=str,
+        help="Pretrained text encoder "
+        "See full list at https://huggingface.co/transformers/pretrained_models.html",
+    )
     opts = parser.parse_args()
 
     ###############################################
@@ -151,7 +159,8 @@ if __name__ == "__main__":
         + target_data_folder
         + " --output_dir "
         + model_out
-        + " "
+        + " --pretrained_encoder_name "
+        + opts.pretrained_encoder_name
     )
 
     errpaths = []
