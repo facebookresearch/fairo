@@ -8,6 +8,7 @@ The TAO smark bug report module are mainly composed of two component:
 2. TAO Bug Report Job class - which reads in the logs for a TAO job batch, extracts traceback, and outputs the content of the traceback and the frequency of the traceback to s3.
 
 The relationship between the above classes and the Oncall Job class are shown as the figure below:
+<img width="1819" alt="TAO Smart Bug Report Module Structure" src="https://user-images.githubusercontent.com/51009396/173457822-47ce8b2e-6d53-4b44-8c02-dd0cd0c019b3.png">
 
 The logic for extracting traceback are based on the pattern, the traceback are located in between either a line start with date (YYYY-MM-DD) or a line starts with logging keywords(DEBUG, INFO, WARNING, ERROR, and CRITICAL). Thus anything in between lines with such pattern are read in to a string, and if this block is a traceback (i.e. line starts with "Traceback"), it would be included in the bug report output. 
 
