@@ -122,7 +122,7 @@ class ArgumentParser:
             "--incoming_chat_path", default="incoming_chat.txt", help="path to incoming chat file"
         )
         loco_parser.add_argument(
-            name="--map_data",
+            "--map_data",
             default="observations",
             help='"memory" to draw from agent memory, and "observations" to draw directly from slam service (default)'
         )
