@@ -7,10 +7,12 @@ import os
 import subprocess
 
 
-def compute_checksum_for_directory(agent=None, artifact_type=None, model_name=None, checksum_write_path=None):
+def compute_checksum_for_directory(
+    agent=None, artifact_type=None, model_name=None, checksum_write_path=None
+):
     """
     Computes checksum for a given local artifact directory and writes it to default_checksum directory
-    to help track the hash. 
+    to help track the hash.
 
     Args:
         agent: Name of agent.
