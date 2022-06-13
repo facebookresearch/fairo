@@ -20,7 +20,7 @@ from droidlet.tools.hitl.task_runner import TaskRunner
 from droidlet.tools.artifact_scripts.compute_checksum import compute_checksum_for_directory
 from droidlet.tools.artifact_scripts.upload_artifacts_to_aws import (
     tar_and_upload,
-    upload_artifacts_to_aws,
+    compute_checksum_tar_and_upload,
 )
 
 
@@ -422,8 +422,8 @@ class NSPRetrainingJob(DataGenerator):
         with open("droidlet/tools/artifact_scripts/tracked_checksums/datasets.txt", "r") as f:
             checksum_d = f.read().strip()
 
-        # Write the checksum to artifacts
-        with open("droidlet/artifacts/models/nlu/nlu_checksum.txt", "w") as f:
+        # Write the checksum to local artifacts
+        with open("droidlet/artifacts/models/nlu/checksum.txt", "w") as f:
             f.write(checksum_m + "\n")
 
         # Log the information for the best model
@@ -452,7 +452,7 @@ class NSPRetrainingJob(DataGenerator):
         ) as f:
             checksum = f.read().strip()
         tar_and_upload("craftassist", "models", "nlu", checksum)
-        upload_artifacts_to_aws("craftassist", "datasets", "")
+        compute_checksum_tar_and_upload("craftassist", "datasets", "")
 
         logging.info(f"NSP Retraining Job finished")
         self.set_finished(True)
