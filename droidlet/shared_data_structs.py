@@ -120,6 +120,7 @@ class MockOpt:
         self.mark_airtouching_blocks = False
         # test does not instantiate cpp client
         self.port = -1
+        self.backend = "pyworld"
         self.no_default_behavior = False
         self.log_timeline = False
         self.enable_timeline = False
