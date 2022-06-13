@@ -96,6 +96,9 @@ class ArgumentParser:
             "--semseg_model_path", default="", help="path to semantic segmentation model"
         )
         mc_parser.add_argument(
+            "--backend", default="cuberite", help="is agent running in cuberite or pyworld?"
+        )
+        mc_parser.add_argument(
             "--geoscorer_model_path", default="", help="path to geoscorer model"
         )
         mc_parser.add_argument(

@@ -50,6 +50,7 @@ import TurkInfo from "./components/Turk/TurkInfo";
 class StateManager {
   refs = [];
   socket = null;
+  worldSocket = null;
   default_url = "http://localhost:8000";
   connected = false;
   initialMemoryState = {
@@ -270,7 +271,7 @@ class StateManager {
     socket.on("depth", this.processDepth);
     socket.on("image", this.processRGBDepth); // RGB + Depth
     socket.on("objects", this.processObjects);
-    socket.on("updateVoxelWorldState", this.updateVoxelWorld);
+    // socket.on("updateVoxelWorldState", this.updateVoxelWorld);
     socket.on("setVoxelWorldInitialState", this.setVoxelWorldInitialState);
     socket.on("showAssistantReply", this.showAssistantReply);
     socket.on("humans", this.processHumans);
@@ -280,6 +281,13 @@ class StateManager {
     socket.on("annotationRetrain", this.annotationRetrain);
     socket.on("saveRgbSegCallback", this.saveAnnotations);
     socket.on("handleMaxFrames", this.handleMaxFrames);
+
+    const worldUrl = "http://localhost:6002";
+    this.worldSocket = io.connect(worldUrl, {
+      transports: ["polling", "websocket"],
+    });
+    const wSocket = this.worldSocket;
+    wSocket.on("updateVoxelWorldState", this.updateVoxelWorld);
   }
 
   updateStateManagerMemory(data) {
