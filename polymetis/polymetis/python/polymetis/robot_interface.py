@@ -588,6 +588,39 @@ class RobotInterface(BaseRobotInterface):
 
         return update_idx
 
+
+    def start_joint_velocity_control(self, joint_vel_desired, hz=None, Kq=None, Kqd=None, **kwargs):
+        """Starts joint velocity control mode.
+        Runs a non-blocking joint velocity controller.
+        The desired joint velocities can be updated using `update_desired_joint_velocities`
+        """
+        torch_policy = toco.policies.JointVelocityControl(
+            joint_vel_desired=joint_vel_desired,
+            Kp=self.Kq_default if Kq is None else Kq,
+            Kd=self.Kqd_default if Kqd is None else Kqd,
+            robot_model=self.robot_model,
+            hz=self.metadata.hz if hz is None else hz,
+            ignore_gravity=self.use_grav_comp,
+        )
+
+        return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
+
+
+    def update_desired_joint_velocities(self, velocities: torch.Tensor):
+        """Update the desired joint velocities used by the joint velocities control mode.
+        Requires starting a joint velocities controller with `start_joint_velocity_control` beforehand.
+        """
+        try:
+            update_idx = self.update_current_policy({"joint_vel_desired": velocities})
+        except grpc.RpcError as e:
+            log.error(
+                "Unable to update desired joint velocities. Use 'start_joint_velocity_control' to start a joint velocities controller."
+            )
+            raise e
+
+        return update_idx
+
+
     """
     PyRobot backward compatibility methods
     """
