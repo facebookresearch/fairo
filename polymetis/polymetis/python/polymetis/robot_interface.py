@@ -588,8 +588,9 @@ class RobotInterface(BaseRobotInterface):
 
         return update_idx
 
-
-    def start_joint_velocity_control(self, joint_vel_desired, hz=None, Kq=None, Kqd=None, **kwargs):
+    def start_joint_velocity_control(
+        self, joint_vel_desired, hz=None, Kq=None, Kqd=None, **kwargs
+    ):
         """Starts joint velocity control mode.
         Runs a non-blocking joint velocity controller.
         The desired joint velocities can be updated using `update_desired_joint_velocities`
@@ -605,7 +606,6 @@ class RobotInterface(BaseRobotInterface):
 
         return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
 
-
     def update_desired_joint_velocities(self, velocities: torch.Tensor):
         """Update the desired joint velocities used by the joint velocities control mode.
         Requires starting a joint velocities controller with `start_joint_velocity_control` beforehand.
@@ -619,7 +619,6 @@ class RobotInterface(BaseRobotInterface):
             raise e
 
         return update_idx
-
 
     """
     PyRobot backward compatibility methods
