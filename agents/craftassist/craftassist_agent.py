@@ -104,8 +104,7 @@ class CraftAssistAgent(DroidletAgent):
         self.agent_type = "craftassist"
         self.point_targets = []
         self.last_chat_time = 0
-        # map disabled by default
-        self.enable_map = False
+        self.dash_enable_map = False # dash has map disabled by default
         self.map_last_updated = datetime.now()
         # areas must be perceived at each step
         # List of tuple (XYZ, radius), each defines a cube
@@ -298,8 +297,8 @@ class CraftAssistAgent(DroidletAgent):
 
         @sio.on("toggle_map")
         def handle_toggle_map(sid, data):
-            self.enable_map = data["enable_map"]
-        if self.enable_map and self.opts.draw_map == "memory":
+            self.dash_enable_map = data["dash_enable_map"]
+        if self.opts.draw_map and self.dash_enable_map:
             if datetime.now() >= self.map_last_updated + timedelta(seconds=0.05*self.opts.map_update_ticks):
                 self.map_last_updated = datetime.now()
                 self.draw_map_to_dashboard()
