@@ -25,6 +25,7 @@ s3 = boto3.resource(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
 
+
 class MockOnCallJob(DataGenerator):
     # for test purpose
     def __init__(self, batch_id: int, timeout: float = -1) -> None:
