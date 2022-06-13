@@ -445,8 +445,8 @@ class NSPRetrainingJob(DataGenerator):
         # Load checksum for model artifact
         with open(
             os.path.join(
-                self.opts.droidlet_dir, 
-                "droidlet/tools/artifact_scripts/tracked_checksums/nlu.txt", 
+                self.opts.droidlet_dir,
+                "droidlet/tools/artifact_scripts/tracked_checksums/nlu.txt",
             ),
             "r",
         ) as f:
