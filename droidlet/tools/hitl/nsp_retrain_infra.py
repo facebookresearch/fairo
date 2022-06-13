@@ -20,7 +20,7 @@ from droidlet.tools.hitl.task_runner import TaskRunner
 from droidlet.tools.artifact_scripts.compute_checksum import compute_checksum_for_directory
 from droidlet.tools.artifact_scripts.upload_artifacts_to_aws import (
     tar_and_upload,
-    compute_checksum_tar_and_upload,
+    upload_artifacts_to_aws,
 )
 
 
@@ -441,9 +441,18 @@ class NSPRetrainingJob(DataGenerator):
             f_log.write("hash_model " + checksum_m + "\n")
             f_log.write("hash_dataset " + checksum_d + "\n")
 
-        # Tar the model folder and upload it to AWS
-        tar_and_upload("craftassist", "models", "nlu")
-        compute_checksum_tar_and_upload("craftassist", "datasets", "")
+        # Tar model and dataset artifacts and upload them to AWS
+        # Load checksum for model artifact
+        with open(
+            os.path.join(
+                self.opts.droidlet_dir, 
+                "droidlet/tools/artifact_scripts/tracked_checksums/nlu.txt", 
+            ),
+            "r",
+        ) as f:
+            checksum = f.read().strip()
+        tar_and_upload("craftassist", "models", "nlu", checksum)
+        upload_artifacts_to_aws("craftassist", "datasets", "")
 
         logging.info(f"NSP Retraining Job finished")
         self.set_finished(True)
