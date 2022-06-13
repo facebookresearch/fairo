@@ -589,7 +589,7 @@ class RobotInterface(BaseRobotInterface):
         return update_idx
 
 
-    def start_joint_velocity_control(self, joint_vel_desired, Kq=None, Kqd=None, **kwargs):
+    def start_joint_velocity_control(self, joint_vel_desired, hz=None, Kq=None, Kqd=None, **kwargs):
         """Starts joint velocity control mode.
         Runs a non-blocking joint velocity controller.
         The desired joint velocities can be updated using `update_desired_joint_velocities`
@@ -599,6 +599,7 @@ class RobotInterface(BaseRobotInterface):
             Kp=self.Kq_default if Kq is None else Kq,
             Kd=self.Kqd_default if Kqd is None else Kqd,
             robot_model=self.robot_model,
+            hz=self.metadata.hz if hz is None else hz,
             ignore_gravity=self.use_grav_comp,
         )
 

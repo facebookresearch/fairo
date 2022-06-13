@@ -21,7 +21,7 @@ class JointVelocityControl(toco.PolicyModule):
         Kp,
         Kd,
         robot_model: torch.nn.Module,
-        hz=torch.tensor(0, dtype=torch.int32),
+        hz: int,
         ignore_gravity=True,
     ):
         """
@@ -30,7 +30,7 @@ class JointVelocityControl(toco.PolicyModule):
             Kp: P gains in joint space
             Kd: D gains in joint space
             robot_model: A robot model from torchcontrol.models
-            hz: Optional[Int]: frequency of the calls to forward(). If this is omited then it is estimated on the fly
+            hz: int: frequency of the calls to forward()
             ignore_gravity: `True` if the robot is already gravity compensated, `False` otherwise
         """
         super().__init__()
@@ -40,16 +40,10 @@ class JointVelocityControl(toco.PolicyModule):
         self.invdyn = toco.modules.feedforward.InverseDynamics(
             self.robot_model, ignore_gravity=ignore_gravity
         )
-        self.hz = hz
-        if self.hz > 0:
-            self.dt = 1./(self.hz.to(torch.float))
-        else:
-            # In the first timestep, dt is impossible to estimate so best guess is 0.0
-            self.dt = torch.tensor(0.0)
+        self.hz = to_tensor(hz)
+        self.dt = 1./(self.hz.to(torch.float))
         self.joint_pd = toco.modules.feedback.JointSpacePD(Kp, Kd)
-        self.previous_timestamp = torch.zeros(2, dtype=torch.int32)
         self.is_initialized = False
-        self.timestep_to_seconds_transformation = torch.Tensor([1, 1e-9])
 
         # Reference velocity
         self.joint_vel_desired = torch.nn.Parameter(to_tensor(joint_vel_desired))
@@ -69,16 +63,9 @@ class JointVelocityControl(toco.PolicyModule):
         joint_vel_current = state_dict["joint_velocities"]
         current_timestamp = state_dict["timestamp"]
 
-        # Approximate discretization timestep dt if needed ( assuming dt is consistent between the calls of self.forward() )
-        if self.is_initialized:
-            if self.hz == 0:
-                self.dt = torch.dot((current_timestamp-self.previous_timestamp).to(torch.float), self.timestep_to_seconds_transformation)
-                self.previous_timestamp = torch.clone(current_timestamp)
-        else:
+        if not self.is_initialized:
             self.joint_pos_desired = torch.clone(joint_pos_current)
             self.is_initialized = True
-            if self.hz == 0:
-                self.previous_timestamp = torch.clone(current_timestamp)
 
         # original formulation of the PI controller is to integrate (v_desired - v_current) * dt, which is the integral
         # of v_desired * dt (desired position resulting from all desired velocities) minus the integral of v_current * dt (current position).
