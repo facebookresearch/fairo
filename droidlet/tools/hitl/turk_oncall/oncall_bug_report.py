@@ -23,6 +23,7 @@ import pandas as pd
 from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.job_listener import JobListener
 from droidlet.tools.hitl.task_runner import TaskRunner
+from droidlet.tools.hitl.turk_oncall.tests.oncall_job_mock import MockOnCallJob
 
 
 ECS_INSTANCE_TIMEOUT = 45
@@ -33,8 +34,6 @@ HITL_TMP_DIR = (
 )
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
-NSP_OUTPUT_FNAME = "nsp_outputs"
-ANNOTATED_COMMANDS_FNAME = "nsp_data.txt"
 
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
@@ -122,7 +121,7 @@ class TaoBugReportJob(DataGenerator):
                         if (
                             re.match(r"^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])", line)
                             or line.startswith("DEBUG")
-                            or line.startswith("INFO")
+                            or line.startswith("≈")
                             or line.startswith("WARNING")
                             or line.startswith("ERROR")
                             or line.startswith("CRITICAL")
@@ -177,7 +176,7 @@ class TaoBugReportJob(DataGenerator):
             try:
                 resp = s3.meta.client.upload_file(out_local_path, S3_BUCKET_NAME, out_remote_path)
             except botocore.exceptions.ClientError as e:
-                logging.info(f"[TAO Log Listener] Not able to save file {out_local_path} to s3.")
+                logging.info(f"[TAO Bug Report Job] Not able to save file {out_local_path} to s3.")
 
         # delete from local temporary storage
         batch_tmp_path = os.path.join(tmp_dir, f"{batch_id}")
@@ -189,7 +188,7 @@ class TaoBugReportJob(DataGenerator):
 
         result = obj.put(Body=STAT_DONE).get("ResponseMetadata")
         if result.get("HTTPStatusCode") == 200:
-            self.set_finished()
+            self.set_finished(True)
         else:
             logging.info(f"[Tao Bug Report Job] {self._batch_id}.stat not updated")
 
@@ -256,25 +255,7 @@ if __name__ == "__main__":
 
     runner = TaskRunner()
 
-    class MockDataGenerator(DataGenerator):
-        # for test purpose
-        def __init__(self, timeout: float = -1) -> None:
-            super().__init__(timeout)
-
-        def run(self) -> None:
-            batch_id = opts.tao_job_batch_id
-
-            # Add stat file
-            stat_fname = f"{batch_id}.stat"
-
-            obj = s3.Object(S3_BUCKET_NAME, f"{batch_id}/{stat_fname}")
-            result = obj.put(Body="ready").get("ResponseMetadata")
-            if result.get("HTTPStatusCode") == 200:
-                self.set_finished()
-            else:
-                logging.info(f"[Oncall Job] {batch_id}.stat not updated")
-
-    mock_data_generator = MockDataGenerator()
+    mock_data_generator = MockOnCallJob(opts.tao_job_batch_id)
     runner.register_data_generators([mock_data_generator])
     tao_log_listener = TaoLogListener(batch_id=opts.tao_job_batch_id)
     tao_log_listener.add_parent_jobs([mock_data_generator])
