@@ -2,9 +2,9 @@ import pytest
 
 
 def pytest_addoption(parser):
-    parser.addoption("--flag_m", action="store", default="Whether to load real NSP model")
+    parser.addoption("--flag_load_nsp_model", action="store_true", help="Whether to load real NSP model")
 
 
 @pytest.fixture()
-def flag_m(request):
-    setattr(request.cls, "flag_m", request.config.getoption("--flag_m"))
+def flag_load_nsp_model(request):
+    setattr(request.cls, "flag_load_nsp_model", request.config.getoption("--flag_load_nsp_model"))
