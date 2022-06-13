@@ -50,7 +50,7 @@ class JointVelocityControl(toco.PolicyModule):
         # Reference velocity
         self.joint_vel_desired = torch.nn.Parameter(to_tensor(joint_vel_desired))
         # Initialize position desired
-        self.joint_pos_desired = torch.zeros_like(joint_vel_desired)
+        self.joint_pos_desired = torch.zeros_like(self.joint_vel_desired)
 
     def forward(self, state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         """
