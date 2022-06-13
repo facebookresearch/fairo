@@ -185,7 +185,12 @@ class Memory2D extends React.Component {
         <div ref={this.outer_div} style={{ height: "100%", width: "100%" }} />
       );
     }
-    if (!this.props.stateManager.enable_map) return <p>Dashboard Disabled</p>;
+    if (
+      !this.props.stateManager.dash_enable_map ||
+      !this.props.stateManager.agent_enable_map
+    ) {
+      return <p>Map Disabled</p>;
+    }
 
     bot_x = parseInt(((bot_x - xmin) / (xmax - xmin)) * width);
     bot_y = parseInt(((bot_y - ymin) / (ymax - ymin)) * height);

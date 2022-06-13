@@ -108,6 +108,10 @@ class DroidletAgent(BaseAgent):
         def report_agent_type(sid):
             sio.emit("updateAgentType", {"agent_type": self.agent_type})
 
+        @sio.on("does_agent_want_map")
+        def report_agent_wants_map(sid):
+            sio.emit("agentWantsMap", {"agent_enable_map": self.opts.draw_map})
+
         @sio.on("saveErrorDetailsToDb")
         def save_error_details_to_db(sid, postData):
             logging.debug("in save_error_details_to_db, got PostData: %r" % (postData))

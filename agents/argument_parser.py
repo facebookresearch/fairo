@@ -47,6 +47,12 @@ class ArgumentParser:
             default=False,
             help="enables the dashboard timeline to display events",
         )
+        self.parser.add_argument(
+            "--draw_map",
+            action="store_true", 
+            default=False,
+            help="use this option to enable the memory map"
+        )
 
     def add_nsp_parser(self):
         nsp_parser = self.parser.add_argument_group("Neural Semantic Parser Args")
@@ -99,12 +105,9 @@ class ArgumentParser:
             help="run thenearby_airtouching_blocks heuristic?",
         )
         mc_parser.add_argument(
-            "--draw_map", 
-            default="", 
-            help='"" for no map in dashboard, "memory" to draw from agent memory')
-        mc_parser.add_argument(
             "--map_update_ticks", 
             default=20, 
+            type=int,
             help='number of ticks after which agent updates map')
         mc_parser.add_argument("--port", type=int, default=25565)
 
@@ -119,9 +122,10 @@ class ArgumentParser:
             "--incoming_chat_path", default="incoming_chat.txt", help="path to incoming chat file"
         )
         loco_parser.add_argument(
-            "--draw_map", 
-            default="observations", 
-            help='"" for no map in dashboard, "memory" to draw from agent memory, and "observations" to draw directly from slam service')
+            name="--map_data",
+            default="observations",
+            help='"memory" to draw from agent memory, and "observations" to draw directly from slam service (default)'
+        )
         loco_parser.add_argument("--backend", default="habitat")
         loco_parser.add_argument(
             "--perception_model_dir",
