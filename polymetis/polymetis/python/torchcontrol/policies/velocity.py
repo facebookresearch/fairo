@@ -14,6 +14,7 @@ class JointVelocityControl(toco.PolicyModule):
     """
     Velocity control in joint space.
     """
+    hz: int
 
     def __init__(
         self,
@@ -40,8 +41,8 @@ class JointVelocityControl(toco.PolicyModule):
         self.invdyn = toco.modules.feedforward.InverseDynamics(
             self.robot_model, ignore_gravity=ignore_gravity
         )
-        self.hz = to_tensor(hz)
-        self.dt = 1./(self.hz.to(torch.float))
+        self.hz = hz
+        self.dt = 1./(self.hz)
         self.joint_pd = toco.modules.feedback.JointSpacePD(Kp, Kd)
         self.is_initialized = False
 
