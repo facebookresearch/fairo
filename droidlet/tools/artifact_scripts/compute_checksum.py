@@ -8,7 +8,7 @@ import subprocess
 
 
 def compute_checksum_for_directory(
-    agent=None, artifact_type=None, model_name=None, checksum_write_path=None
+    agent=None, artifact_type=None, model_name=None
 ):
     """
     Computes checksum for a given local artifact directory and writes it to default_checksum directory
@@ -58,10 +58,10 @@ def compute_checksum_for_directory(
         checksum_name = "datasets.txt"
 
     artifact_path = os.path.join(ROOTDIR, "droidlet/artifacts", artifact_folder_name)
-    if checksum_write_path is None:
-        checksum_write_path = os.path.join(
-            ROOTDIR, "droidlet/tools/artifact_scripts/tracked_checksums/" + checksum_name
-        )
+
+    checksum_write_path = os.path.join(
+        ROOTDIR, "droidlet/tools/artifact_scripts/tracked_checksums/" + checksum_name
+    )
 
     # Run the script computes the checksum
     result = subprocess.check_output(
