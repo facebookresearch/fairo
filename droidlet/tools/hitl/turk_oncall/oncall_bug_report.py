@@ -99,7 +99,7 @@ class TaoBugReportJob(DataGenerator):
         self._batch_id = batch_id
 
     def unzip(self, file_path: str, folder_path: str):
-        logging.info(f"Tao Log Output Job] Extracting from compressed file {file_path}")
+        logging.info(f"Tao Bug Report Job] Extracting from compressed file {file_path}")
         file = tarfile.open(file_path)
         file.extractall(folder_path)
         file.close()
@@ -137,7 +137,7 @@ class TaoBugReportJob(DataGenerator):
                             content += line
 
     def run(self) -> None:
-        logging.info(f"[Tao Log Output Job] {self._batch_id} log process started")
+        logging.info(f"[Tao Bug Report Job] {self._batch_id} log process started")
         batch_id = self._batch_id
         batch_prefix = f"{batch_id}/interaction/"
 
@@ -156,7 +156,7 @@ class TaoBugReportJob(DataGenerator):
             try:
                 bucket.download_file(obj.key, dest)
             except botocore.exceptions.ClientError as e:
-                logging.info(f"[Tao Log Output Job] Cannot download {obj.key}")
+                logging.info(f"[Tao Bug Report Job] Cannot download {obj.key}")
             else:
                 # extract log file
                 self.unzip(dest, folder_path)
@@ -170,7 +170,7 @@ class TaoBugReportJob(DataGenerator):
             # Dedup based on content column and save
             df.to_csv(out_local_path)
             logging.info(
-                f"[Tao Log Output Job] Saving processed log file to s3://{S3_BUCKET_NAME}/{out_remote_path}"
+                f"[Tao Bug Report Job] Saving processed log file to s3://{S3_BUCKET_NAME}/{out_remote_path}"
             )
 
             # save to s3
@@ -191,7 +191,7 @@ class TaoBugReportJob(DataGenerator):
         if result.get("HTTPStatusCode") == 200:
             self.set_finished()
         else:
-            logging.info(f"[Tao Log Output Job] {self._batch_id}.stat not updated")
+            logging.info(f"[Tao Bug Report Job] {self._batch_id}.stat not updated")
 
 
 class TaoLogListener(JobListener):
@@ -216,6 +216,7 @@ class TaoLogListener(JobListener):
         while not self.check_is_finished():
             logging.info(f"[TAO Log Listener] Checking status for {batch_id}...")
             stat_fname = f"{batch_id}.stat"
+            finished = True
 
             # check if stat file exist
             try:
@@ -233,9 +234,14 @@ class TaoLogListener(JobListener):
                     # create a tao bug report job
                     tlo_job = TaoBugReportJob(batch_id=batch_id)
                     runner.register_data_generators([tlo_job])
+                else: 
+                    logging.info(
+                        f"[TAO Log Listener] Status for {batch_id} is not {STAT_READY}, but is {stat}"
+                    )
 
-            self.set_finished(True)
-
+            if not self.check_parent_finished():
+                finished = False
+            self.set_finished(finished)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -249,7 +255,28 @@ if __name__ == "__main__":
 
     runner = TaskRunner()
 
+    class MockDataGenerator(DataGenerator):
+        # for test purpose
+        def __init__(self,  timeout: float = -1) -> None:
+            super().__init__(timeout)
+        
+        def run(self) -> None:
+            batch_id=opts.tao_job_batch_id
+
+            # Add stat file
+            stat_fname = f"{batch_id}.stat"
+
+            obj = s3.Object(S3_BUCKET_NAME, f"{batch_id}/{stat_fname}")
+            result = obj.put(Body='ready').get('ResponseMetadata')
+            if result.get('HTTPStatusCode') == 200:
+                self.set_finished()
+            else:
+                logging.info(f"[Oncall Job] {batch_id}.stat not updated")
+
+    mock_data_generator = MockDataGenerator()
+    runner.register_data_generators([mock_data_generator])
     tao_log_listener = TaoLogListener(batch_id=opts.tao_job_batch_id)
+    tao_log_listener.add_parent_jobs([mock_data_generator])
     runner.register_job_listeners([tao_log_listener])
 
     runner.run()
