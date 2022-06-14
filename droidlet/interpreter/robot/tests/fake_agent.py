@@ -6,7 +6,7 @@ import numpy as np
 import re
 import logging
 import math
-from droidlet.base_util import Look, to_player_struct
+from droidlet.base_util import Pos, Look, to_player_struct
 from droidlet.interpreter import InterpreterBase
 from droidlet.interpreter.robot import dance
 from droidlet.memory.memory_nodes import PlayerNode

@@ -161,7 +161,7 @@ function processCommandList() {
     feedback.classList.add("form-control");
     feedback.id = "command_" + i + "_feedback";
     feedback.name = feedback.id;
-    feedback.placeholder = "Please describe what happened instead";
+    feedback.placeholder = "Please describe what happened instead (required!)";
     document.getElementById("survey").appendChild(feedback);
     document.getElementById("survey").appendChild(document.createElement("br"));
     document.getElementById("survey").appendChild(document.createElement("br"));

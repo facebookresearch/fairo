@@ -33,7 +33,7 @@ class PyWorldMover:
         try:
             sio.connect("http://{}:{}".format(ip, port))
             time.sleep(0.1)
-            sio.emit("init_player", {"player_type": "agent"})
+            sio.emit("init_player", {"player_type": "agent", "name": "craftassist_agent"})
         except:
             raise Exception("unable to connect to server on port {} at ip {}".format(port, ip))
 
@@ -48,11 +48,8 @@ class PyWorldMover:
         to_npy_coords, from_npy_coords = build_coord_shifts(self.world_coord_shift)
         self.to_npy_coords = to_npy_coords
         self.from_npy_coords = from_npy_coords
-
-    def get_line_of_sight(self):
-        D = DataCallback()
-        self.sio.emit("line_of_sight", {}, callback=D)
-        return wait_for_data(D)
+        player_struct = self.get_player()
+        self.entityId = player_struct.entityId
 
     def set_look(self, yaw, pitch):
         self.sio.emit("set_look", {"yaw": yaw, "pitch": pitch})
@@ -108,22 +105,35 @@ class PyWorldMover:
         D = DataCallback()
         self.sio.emit("get_player", callback=D)
         try:
-            eid, name, pos, look, mainhand, _ = wait_for_data(D)["player"]
+            entityId, name, pos, look, mainhand, _ = wait_for_data(D)["player"]
             if mainhand is not None:
                 mainhand = Item(*mainhand)
-                return Player(eid, name, Pos(*pos), Look(*look), mainhand)
+                return Player(entityId, name, Pos(*pos), Look(*look), mainhand)
             else:
-                return Player(eid, name, Pos(*pos), Look(*look))
+                return Player(entityId, name, Pos(*pos), Look(*look))
         except:
             return None
 
     def get_line_of_sight(self):
         D = DataCallback()
         self.sio.emit("line_of_sight", {}, callback=D)
-        pos = wait_for_data(D)
-        if pos is not None:
-            pos = pos["pos"]
-        return pos
+        pos = wait_for_data(D)["pos"]
+        if pos != "":
+            return Pos(*pos)
+        else:
+            return None
+
+    def get_player_line_of_sight(self, player_struct):
+        D = DataCallback()
+        pos = player_struct.pos
+        look = player_struct.look
+        pose_data = {"pos": (pos.x, pos.y, pos.z), "yaw": look.yaw, "pitch": look.pitch}
+        self.sio.emit("line_of_sight", pose_data, callback=D)
+        pos = wait_for_data(D)["pos"]
+        if pos == "":
+            return None
+        else:
+            return Pos(*pos)
 
     def get_changed_blocks(self):
         D = DataCallback()
@@ -149,7 +159,9 @@ class PyWorldMover:
         TODO we don't need yzx orientation anymore...
         """
         D = DataCallback()
-        self.sio.emit("get_blocks", {"bounds": (x, X, y, Y, z, Z)}, callback=D)
+        self.sio.emit(
+            "get_blocks", {"bounds": (int(x), int(X), int(y), int(Y), int(z), int(Z))}, callback=D
+        )
         flattened_blocks = wait_for_data(D)
         npy_blocks = np.zeros((Y - y + 1, Z - z + 1, X - x + 1, 2), dtype="int32")
         for b in flattened_blocks:
@@ -158,6 +170,22 @@ class PyWorldMover:
 
     def send_chat(self, chat_text):
         self.sio.emit("send_chat", chat_text)
+
+    # TODO is this supposed to include the self Player ?
+    def get_other_players(self):
+        D = DataCallback()
+        self.sio.emit("get_players", callback=D)
+        players = wait_for_data(D)
+        out = []
+        for p in players:
+            entityId, name, pos, look, mainhand, _ = p
+            if entityId != self.entityId:
+                if mainhand is not None:
+                    mainhand = Item(*mainhand)
+                    out.append(Player(entityId, name, Pos(*pos), Look(*look), mainhand))
+                else:
+                    out.append(Player(entityId, name, Pos(*pos), Look(*look)))
+        return out
 
     def get_incoming_chats(self):
         D = DataCallback()
@@ -168,6 +196,18 @@ class PyWorldMover:
         else:
             chats = []
         return chats
+
+    def get_mobs(self):
+        D = DataCallback()
+        self.sio.emit("get_mobs", callback=D)
+        serialized_mobs = wait_for_data(D)
+        mobs = []
+        for m in serialized_mobs:
+            mobs.append(Mob(m[0], m[1], Pos(m[2], m[3], m[4]), Look(m[5], m[6])))
+        return mobs
+
+    def get_item_stacks(self):
+        return []
 
 
 ### NOT DONE:
@@ -190,7 +230,7 @@ class PyWorldMover:
 
 
 if __name__ == "__main__":
-    m = PyWorldMover(port=6000)
+    m = PyWorldMover(port=6001)
     m.set_held_item((1, 0))
     r = m.place_block(10, 10, 10)
     print(r)
