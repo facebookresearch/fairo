@@ -1186,7 +1186,7 @@ def compare_full_dictionaries(d1, d2):
         return compare_dicts(d1, d2)
 
 
-@pytest.mark.usefixtures("flag_load_nsp_model")
+@pytest.mark.usefixtures("flag_LoadNspModel")
 class TestDialogueManager(unittest.TestCase):
     def setUp(self):
         opts = MockOpt()
@@ -1194,7 +1194,7 @@ class TestDialogueManager(unittest.TestCase):
         opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR
         opts.nsp_models_dir = TTAD_MODEL_DIR
         opts.no_ground_truth = False
-        opts.flag_load_nsp_model = self.flag_load_nsp_model
+        opts.flag_load_nsp_model = self.flag_LoadNspModel
         self.opts = opts
 
         if opts.flag_load_nsp_model:
