@@ -1186,7 +1186,7 @@ def compare_full_dictionaries(d1, d2):
         return compare_dicts(d1, d2)
 
 
-@pytest.mark.usefixtures("flag_LoadNspModel")
+@pytest.mark.usefixtures("flag_load_nsp_model")
 class TestDialogueManager(unittest.TestCase):
     def setUp(self):
         opts = MockOpt()
@@ -1194,10 +1194,10 @@ class TestDialogueManager(unittest.TestCase):
         opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR
         opts.nsp_models_dir = TTAD_MODEL_DIR
         opts.no_ground_truth = False
-        opts.flag_load_nsp_model = self.flag_LoadNspModel
+        opts.flag_load_nsp_model = self.flag_load_nsp_model
         self.opts = opts
 
-        if opts.flag_load_nsp_model:
+        if opts.flag_load_nsp_model == "True":
             self.chat_parser = NSPQuerier(opts=opts)
         else:
             self.chat_parser = MockNSPQuerier(opts=opts)
@@ -1228,7 +1228,7 @@ class TestDialogueManager(unittest.TestCase):
                 print(command)
                 try:
                     # else query the model and remove the value for key "text_span"
-                    if self.opts.flag_load_nsp_model:
+                    if self.opts.flag_load_nsp_model  == "True":
                         model_prediction = remove_text_span(
                             self.chat_parser.parsing_model.query_for_logical_form(chat=command)
                         )
@@ -1254,7 +1254,7 @@ class TestDialogueManager(unittest.TestCase):
                 ]
             # compute model correctness status
             try:
-                if self.opts.flag_load_nsp_model:
+                if self.opts.flag_load_nsp_model  == "True":
                     model_output = remove_text_span(
                         self.chat_parser.parsing_model.query_for_logical_form(chat=command)
                     )
