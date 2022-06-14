@@ -732,6 +732,14 @@ The desired joint positions can be updated using <cite>update_desired_joint_posi
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="polymetis.robot_interface.RobotInterface.start_joint_velocity_control">
+<span class="sig-name descname"><span class="pre">start_joint_velocity_control</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_vel_desired</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kqd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#polymetis.robot_interface.RobotInterface.start_joint_velocity_control" title="Permalink to this definition">#</a></dt>
+<dd><p>Starts joint velocity control mode.
+Runs a non-blocking joint velocity controller.
+The desired joint velocities can be updated using <cite>update_desired_joint_velocities</cite></p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="polymetis.robot_interface.RobotInterface.update_desired_ee_pose">
 <span class="sig-name descname"><span class="pre">update_desired_ee_pose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#polymetis.robot_interface.RobotInterface.update_desired_ee_pose" title="Permalink to this definition">#</a></dt>
 <dd><p>Update the desired EE pose used by the Cartesian position control mode.
@@ -743,6 +751,13 @@ Requires starting a Cartesian impedance controller with <cite>start_cartesian_im
 <span class="sig-name descname"><span class="pre">update_desired_joint_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#polymetis.robot_interface.RobotInterface.update_desired_joint_positions" title="Permalink to this definition">#</a></dt>
 <dd><p>Update the desired joint positions used by the joint position control mode.
 Requires starting a joint impedance controller with <cite>start_joint_impedance</cite> beforehand.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polymetis.robot_interface.RobotInterface.update_desired_joint_velocities">
+<span class="sig-name descname"><span class="pre">update_desired_joint_velocities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">velocities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#polymetis.robot_interface.RobotInterface.update_desired_joint_velocities" title="Permalink to this definition">#</a></dt>
+<dd><p>Update the desired joint velocities used by the joint velocities control mode.
+Requires starting a joint velocities controller with <cite>start_joint_velocity_control</cite> beforehand.</p>
 </dd></dl>
 
 </dd></dl>
