@@ -114,7 +114,7 @@ def compute_checksum_tar_and_upload(agent, artifact_name, model_name=None):
 
     # Tar and upload the local artifact folder
     tar_and_upload(agent, artifact_name, model_name, checksum)
-    
+
 
 def upload_agent_datasets(agent=None):
     compute_checksum_tar_and_upload(agent=agent, artifact_name="datasets")
