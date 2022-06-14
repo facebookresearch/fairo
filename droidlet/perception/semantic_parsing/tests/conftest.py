@@ -3,7 +3,10 @@ import pytest
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--flag_load_nsp_model", action="store", default="False", help="Whether to load real NSP model"
+        "--flag_load_nsp_model",
+        action="store",
+        default="False",
+        help="Whether to load real NSP model",
     )
 
 

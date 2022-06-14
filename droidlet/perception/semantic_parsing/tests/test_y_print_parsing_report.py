@@ -1228,7 +1228,7 @@ class TestDialogueManager(unittest.TestCase):
                 print(command)
                 try:
                     # else query the model and remove the value for key "text_span"
-                    if self.opts.flag_load_nsp_model  == "True":
+                    if self.opts.flag_load_nsp_model == "True":
                         model_prediction = remove_text_span(
                             self.chat_parser.parsing_model.query_for_logical_form(chat=command)
                         )
@@ -1254,7 +1254,7 @@ class TestDialogueManager(unittest.TestCase):
                 ]
             # compute model correctness status
             try:
-                if self.opts.flag_load_nsp_model  == "True":
+                if self.opts.flag_load_nsp_model == "True":
                     model_output = remove_text_span(
                         self.chat_parser.parsing_model.query_for_logical_form(chat=command)
                     )
