@@ -6,5 +6,5 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture()
-def flag_LoadNspModel(request):
-    setattr(request.cls, "flag_LoadNspModel", request.config.getoption("--flag_LoadNspModel"))
+def flag_load_nsp_model(request):
+    setattr(request.cls, "flag_load_nsp_model", request.config.getoption("--flag_load_nsp_model"))
