@@ -3,6 +3,7 @@ from threading import Thread
 
 from droidlet.lowlevel.minecraft.pyworld.world import World
 from droidlet.lowlevel.minecraft.iglu_util import IGLU_BLOCK_MAP
+from droidlet.lowlevel.minecraft.pyworld.item import GettableItem
 from droidlet.lowlevel.minecraft.pyworld.fake_mobs import SimpleMob, make_mob_opts
 from droidlet.lowlevel.minecraft.pyworld.ticker import Ticker
 from droidlet.lowlevel.minecraft.small_scenes_with_shapes import build_shape_scene
@@ -39,6 +40,8 @@ def instantiate_world_from_spec(opts):
         mobs.append(
             SimpleMob(mob_opt, start_pos=(x, y, z), start_look=(radians(yaw), radians(pitch)))
         )
+    # FIXME get this from the scene generator
+    items = getattr(opts, "gettable_items", [])
     world = World(
         world_opts,
         {
@@ -46,7 +49,7 @@ def instantiate_world_from_spec(opts):
             "mobs": mobs,
             "players": [],
             "agent": None,
-            "item_stacks": [],
+            "items": items,
         },
     )
     return world
@@ -68,6 +71,8 @@ if __name__ == "__main__":
     opts.cuberite_y_offset = 0
     opts.cuberite_z_offset = 0
     opts.iglu_scenes = ""
+    # FIXME! put in the scene spec generator
+    opts.gettable_items = [GettableItem("block")]
 
     ticker = Ticker(tick_rate=0.01, step_rate=0.2, ip="localhost", port=6002)
     ticker_thread = Thread(target=ticker.start, args=())

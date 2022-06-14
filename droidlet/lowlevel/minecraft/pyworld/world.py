@@ -152,7 +152,7 @@ class World:
             }
             for m in self.mobs
         ]
-        items = [i.get_info() for i in self.item_stacks]
+        items = self.get_items()
         # FIXME !!!! item_stacks
         payload = {
             "status": "updateVoxelWorldState",
@@ -232,7 +232,7 @@ class World:
         return [m.get_info() for m in self.mobs]
 
     def get_items(self):
-        return [i.get_info() for m in self.items.values()]
+        return [i.get_info() for i in self.items.values()]
 
     def get_player_info(self, eid):
         """

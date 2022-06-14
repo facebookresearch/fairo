@@ -6,7 +6,7 @@ import time
 import socketio
 from droidlet.base_util import XYZ, Pos, Look
 from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item, ItemStack, Mob
-from droidlet.lowlevel.minecraft.pyworld.utils import build_coord_shifts BEDROCK
+from droidlet.lowlevel.minecraft.pyworld.utils import build_coord_shifts, BEDROCK
 
 
 class DataCallback:
@@ -142,13 +142,14 @@ class PyWorldMover:
         item_stacks = []
         for item in items:
             pos = Pos(item["x"], item["y"], item["z"])
-            item_stacks.append(ItemStack(Item(item["id"], item["meta"]), pos, item["entityId"]))
+            item_stacks.append(
+                ItemStack(Item(item["id"], item["meta"]), pos, item["entityId"], item["typeName"])
+            )
         return item_stacks
 
     def drop_inventory_item_stacks(self, bid=None, meta=None, count=1, entityId=None):
         pass
 
-    
     def get_changed_blocks(self):
         D = DataCallback()
         self.sio.emit("get_changed_blocks", callback=D)
@@ -241,7 +242,7 @@ class PyWorldMover:
 
 
 if __name__ == "__main__":
-    m = PyWorldMover(port=6001)
+    m = PyWorldMover(port=6002)
     m.set_held_item((1, 0))
     r = m.place_block(10, 10, 10)
     print(r)
