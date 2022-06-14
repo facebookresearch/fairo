@@ -2,7 +2,9 @@ import pytest
 
 
 def pytest_addoption(parser):
-    parser.addoption("--flag_LoadNspModel", action="store_true", help="Whether to load real NSP model")
+    parser.addoption(
+        "--flag_LoadNspModel", action="store_true", help="Whether to load real NSP model"
+    )
 
 
 @pytest.fixture()
