@@ -480,6 +480,7 @@ class BertForPreTraining(BertPreTrainedModel):
             attentions=outputs.attentions,
         )
 
+
 @dataclass
 class BertForPreTrainingOutput(ModelOutput):
     """
