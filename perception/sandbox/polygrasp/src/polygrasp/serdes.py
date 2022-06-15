@@ -73,10 +73,9 @@ def pcd_to_capnp(pcd: o3d.geometry.PointCloud):
     result.data = open3d_pcd_to_bytes(pcd)
     return result
 
-
 def capnp_to_pcd(blob):
-    capnp_pcd = sensor_msgs.PointCloud2.from_bytes(blob)
-    return bytes_to_open3d_pcd(capnp_pcd.data)
+    with sensor_msgs.PointCloud2.from_bytes(blob) as capnp_pcd:
+        return bytes_to_open3d_pcd(capnp_pcd.data)
 
 
 def grasp_group_to_capnp(grasp_group: graspnetAPI.grasp.GraspGroup):
@@ -86,10 +85,9 @@ def grasp_group_to_capnp(grasp_group: graspnetAPI.grasp.GraspGroup):
 
 
 def capnp_to_grasp_group(blob):
-    capnp_gg = std_msgs.ByteMultiArray.from_bytes(blob)
-
-    gg = bytes_to_grasp_group(capnp_gg.data)
-    return gg
+    with std_msgs.ByteMultiArray.from_bytes(blob) as capnp_gg:
+        gg = bytes_to_grasp_group(capnp_gg.data)
+        return gg
 
 
 def rgbd_to_capnp(rgbd):
@@ -100,8 +98,8 @@ def rgbd_to_capnp(rgbd):
 
 
 def capnp_to_rgbd(blob):
-    img = sensor_msgs.Image.from_bytes(blob)
-    return bytes_to_np(img.data)
+    with sensor_msgs.Image.from_bytes(blob) as img:
+        return bytes_to_np(img.data)
 
 
 def load_bw_img(path):

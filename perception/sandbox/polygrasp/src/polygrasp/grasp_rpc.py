@@ -51,9 +51,9 @@ class GraspServer:
             log.info(f"Got request; computing collisions...")
 
             payload = req.pkt.payload
-            msg = polygrasp_msgs.CollisionRequest.from_bytes(payload)
-            grasp_group = serdes.bytes_to_grasp_group(msg.grasps)
-            scene_pcd = serdes.capnp_to_pcd(msg.pcd)
+            with polygrasp_msgs.CollisionRequest.from_bytes(payload) as msg:
+                grasp_group = serdes.bytes_to_grasp_group(msg.grasps)
+                scene_pcd = serdes.capnp_to_pcd(msg.pcd)
 
             filtered_grasp_group = self._get_collisions(grasp_group, scene_pcd)
             log.info(f"Done. Replying with serialized filtered grasps...")
