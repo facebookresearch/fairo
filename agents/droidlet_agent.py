@@ -35,9 +35,12 @@ MEMORY_DUMP_KEYFRAME_TIME = 0.5
 # 2: has a turnable head, can point, and has basic locomotion
 # 3: can send and receive chats
 class DroidletAgent(BaseAgent):
-    def __init__(self, opts, name=None):
+    def __init__(self, opts):
         logging.info("Agent.__init__ started")
-        self.name = name or default_agent_name()
+        self.name = opts.name if opts.name else default_agent_name()
+        logging.info("Agent name ... %r"% (self.name))
+        
+        # self.name = name or default_agent_name()
         self.opts = opts
         self.dialogue_manager = None
         self.init_physical_interfaces()

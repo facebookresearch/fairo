@@ -12,6 +12,11 @@ log_formatter = logging.Formatter(
 )
 
 def make_swarm_minecraft(num_workers=1):
+    # set up opts 
+    base_path = os.path.dirname(__file__)
+    parser = ArgumentParser("Minecraft", base_path)
+    opts = parser.parse()
+    
     # set up logging
     logging.basicConfig(level=opts.log_level.upper())
     # set up stdout logging
@@ -21,11 +26,6 @@ def make_swarm_minecraft(num_workers=1):
     logger.addHandler(sh)
     logging.info("LOG LEVEL: {}".format(logger.level))
 
-    # set up opts 
-    base_path = os.path.dirname(__file__)
-    parser = ArgumentParser("Minecraft", base_path)
-    opts = parser.parse()
-    
     # this is the method that will spawn other processes
     set_start_method("spawn", force=True)
     opts.name = "swarm_master_bot"

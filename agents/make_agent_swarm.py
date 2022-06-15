@@ -1,6 +1,6 @@
 import logging
 
-from agents.swarm_utils import get_memory_handlers_dict, get_swarm_interpreter, safe_object
+from agents.swarm_utils import get_memory_handlers_dict, get_safe_single_object_attr_dict, get_swarm_interpreter, safe_object
 from agents.swarm_worker_wrapper_process import SwarmWorkerProcessWrapper
 from droidlet.dialog.swarm_dialogue_manager import SwarmDialogueManager
 
@@ -14,8 +14,8 @@ class SwarmMasterWrapper():
 
         # init workers
         self.num_workers = len(worker_agents) 
-        self.init_controller()
         self.init_all_workers(worker_agents, self.opts)
+        self.init_controller()
         self.init_memory_handlers_dict()
         
         # task_step_filters is used to filter out tasks meant for worker agents
@@ -40,12 +40,12 @@ class SwarmMasterWrapper():
     def init_controller(self):
         dialogue_object_classes = self.agent.dialogue_manager.dialogue_objects
         # overwrite the interpreter and init dialogue manager for swarm that overwrites the get_last_m_chats
-        dialogue_object_classes["interpreter"] = get_swarm_interpreter(self.base_agent)
-        self.base_agent.dialogue_manager = SwarmDialogueManager(
-                memory=self.base_agent.memory,
+        dialogue_object_classes["interpreter"] = get_swarm_interpreter(self.agent)
+        self.agent.dialogue_manager = SwarmDialogueManager(
+                memory=self.agent.memory,
                 dialogue_object_classes=dialogue_object_classes,
-                opts=self.base_agent.opts,
-                low_level_interpreter_data=self.base_agent.dialogue_manager.low_level_interpreter_data
+                opts=self.agent.opts,
+                low_level_interpreter_data=self.agent.dialogue_manager.low_level_interpreter_data
             )
 
     def init_memory_handlers_dict(self):
@@ -55,7 +55,7 @@ class SwarmMasterWrapper():
         map of {method_name: method}
         """
         # TODO: customize to different agent
-        self.handle_query_dict = get_memory_handlers_dict(self.base_agent)
+        self.handle_query_dict = get_memory_handlers_dict(self.agent)
 
     def handle_worker_perception(self):
         """
@@ -69,8 +69,8 @@ class SwarmMasterWrapper():
         # Iterate over all workers
         for i in range(self.num_workers):
             # while things still in worker's perception queue
-            while not self.swarm_workers[i].perceptions.empty:
-                eid, name, obj = self.swarm_workers[i].perceptions.get_nowait()
+            while not self.swarm_workers[i].output_perception_info_queue.empty:
+                eid, name, obj = self.swarm_workers[i].output_perception_info_queue.get_nowait()
                 tmp_perceptions[i][name] = obj
                 worker_eids[i] = eid 
         
@@ -90,7 +90,25 @@ class SwarmMasterWrapper():
                 self.agent.memory.db_write(cmd, eid, tmp_perceptions[i]["pos"].x, 
                                                 tmp_perceptions[i]["pos"].y, 
                                                 tmp_perceptions[i]["pos"].z, memid)
-
+    def get_new_tasks(self, tag):
+        """
+        Get task from memory for this tag and return the list
+        :param tag:
+        :return:
+        """
+        query = "SELECT MEMORY FROM Task WHERE prio=-1"
+        _, task_mems = self.agent.memory.basic_search(query)
+        task_list = []
+        for mem in task_mems:
+            if tag not in mem.get_tags():
+                continue
+            else:
+                task_name = mem.task.__class__.__name__.lower()
+                task_data = get_safe_single_object_attr_dict(mem.task)
+                memid = mem.task.memid
+                task_list.append((task_name, task_data, memid))
+        return task_list
+        
     def assign_new_tasks_to_workers(self):
         """
         get new tasks for each worker and add to the channel that they are
@@ -184,5 +202,6 @@ class SwarmMasterWrapper():
                                 
             except Exception as e:
                 self.agent.handle_exception(e)
-        for swarm_worker in self.swarm_workers:
-            swarm_worker.join()
+        
+        # for swarm_worker in self.swarm_workers:
+        #     swarm_worker.join()

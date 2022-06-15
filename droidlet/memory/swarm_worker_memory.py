@@ -1,5 +1,5 @@
 import pdb, sys
-from droidlet.memory.memory_nodes import ChatNode, PlayerNode, ProgramNode, ReferenceObjectNode, TimeNode
+from droidlet.memory.memory_nodes import ChatNode, MemoryNode, PlayerNode, ProgramNode, ReferenceObjectNode, TimeNode
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 from typing import Optional, List, Tuple, Sequence, Union
 from droidlet.base_util import XYZ, Block
@@ -75,7 +75,7 @@ class SwarmWorkerMemory():
         self.send_queue.put(tuple(send_command))
         while query_id not in self.receive_dict.keys():
             x = self.receive_queue.get()
-            self.receadeive_dict[x[0]] = x[1]
+            self.receive_dict[x[0]] = x[1]
         to_return = self.receive_dict[query_id]
         del self.receive_dict[query_id]
         return to_return

@@ -54,6 +54,21 @@ class MCInterpreter(Interpreter):
 
     Handlers should add/remove/reorder tasks on the stack, but not execute them.
     """
+    # Moving this outside so we can launch workers with these
+    task_objects = {
+            "move": tasks.Move,
+            "undo": tasks.Undo,
+            "build": tasks.Build,
+            "destroy": tasks.Destroy,
+            "spawn": tasks.Spawn,
+            "fill": tasks.Fill,
+            "dig": tasks.Dig,
+            "dance": tasks.Dance,
+            "point": tasks.Point,
+            "dancemove": tasks.DanceMove,
+            "get": tasks.Get,
+            "drop": tasks.Drop,
+        }
 
     def __init__(self, speaker, logical_form_memid, agent_memory, memid=None, low_level_data=None):
         super().__init__(speaker, logical_form_memid, agent_memory, memid=memid)
@@ -85,20 +100,6 @@ class MCInterpreter(Interpreter):
         self.action_handlers["GET"] = self.handle_get
         self.action_handlers["DROP"] = self.handle_drop
 
-        self.task_objects = {
-            "move": tasks.Move,
-            "undo": tasks.Undo,
-            "build": tasks.Build,
-            "destroy": tasks.Destroy,
-            "spawn": tasks.Spawn,
-            "fill": tasks.Fill,
-            "dig": tasks.Dig,
-            "dance": tasks.Dance,
-            "point": tasks.Point,
-            "dancemove": tasks.DanceMove,
-            "get": tasks.Get,
-            "drop": tasks.Drop,
-        }
 
     def handle_modify(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
