@@ -91,7 +91,9 @@ def compute_checksum(agent, artifact_name, model_name=None):
 
 def compute_checksum_tar_and_upload(agent, artifact_name, model_name=None):
     # Compute the checksum and write into corresponding file
-    checksum, artifact_path_name, artifact_name = compute_checksum(agent, artifact_name, model_name)
+    checksum, artifact_path_name, artifact_name = compute_checksum(
+        agent, artifact_name, model_name
+    )
 
     # Tar and upload the local artifact folder
     tar_and_upload(checksum, artifact_path_name, artifact_name)
