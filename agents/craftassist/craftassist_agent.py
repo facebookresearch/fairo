@@ -577,10 +577,11 @@ class CraftAssistAgent(DroidletAgent):
         except:  # this is for test/test_agent
             return
         # SelfNode.create(self.memory, p, memid=self.memory.self_memid)
+        # NOTE: previously create here...
         if agent_node_creation:
-            AgentNode.create(self.memory, p, memid=self.memory.self_memid)
+            AgentNode.update(self.memory, p, memid=self.memory.self_memid)
         else:
-            SelfNode.create(self.memory, p, memid=self.memory.self_memid)
+            SelfNode.update(self.memory, p, memid=self.memory.self_memid)
             # self.memory.tag(self.memory.self_memid, "agent")
 
 
