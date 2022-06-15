@@ -1,7 +1,6 @@
 import argparse
 import logging
 import os
-
 from agents.argument_parser import ArgumentParser
 from agents.craftassist.craftassist_agent import CraftAssistAgent
 from agents.make_agent_swarm import SwarmMasterWrapper
@@ -34,6 +33,7 @@ def make_swarm_minecraft():
     # this is the method that will spawn other processes
     set_start_method("spawn", force=True)
     opts.name = "swarm_master_bot"
+    opts.mark_agent = True
     swarm_master_agent = CraftAssistAgent(opts) 
     # Init the wrapper around the master agent with above agent, opts and 
     master = SwarmMasterWrapper(agent=swarm_master_agent, worker_agents=[None] * num_workers, opts=opts)

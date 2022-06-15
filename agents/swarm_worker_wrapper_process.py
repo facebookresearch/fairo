@@ -1,9 +1,11 @@
 import logging
 from multiprocessing import Process, Queue
 from copy import deepcopy
+from collections import namedtuple
 
 from agents.swarm_utils import get_default_task_info
-from agents.craftassist.craftassist_agent import CraftAssistAgent
+from agents.craftassist.craftassist_agent import CraftAssistAgent, Player, Item
+
 from droidlet.memory.swarm_worker_memory import ForkedPdb, SwarmWorkerMemory
 from droidlet.perception.craftassist.swarm_worker_perception import SwarmLowLevelMCPerception
 
@@ -77,7 +79,8 @@ class SwarmWorkerProcessWrapper(Process):
         # memory_query_answer_from_master: worker receives the memory query response from master from the queue
         agent.memory = SwarmWorkerMemory(memory_send_queue=self.memory_query_from_worker,
                                          memory_receive_queue=self.memory_query_answer_from_master,
-                                         memory_tag="worker_bot_{}".format(agent.agent_index))
+                                         memory_tag="worker_bot_{}".format(agent.agent_index),
+                                         mark_agent=True)
         # controller
         agent.disable_chat = True
 
@@ -250,19 +253,22 @@ class SwarmWorkerProcessWrapper(Process):
         # this is what happens when the process is started -> when
         # process.start() is called.
         self.opts.name = "worker_bot_" + str(self.worker_index)
+        # Create an Agent Node for this agent.
+        self.opts.mark_agent = True
         agent = CraftAssistAgent(self.opts)
         # Init the worker with CA agent and let master know of memid and init completion
         self.init_worker(agent)
         agent.task_filter = agent.name
         self.query_or_updates_from_worker.put(("initialization", True))
-        self.query_or_updates_from_worker.put(("memid", agent.memory.self_memid))
-
+        # ForkedPdb().set_trace()
+        agent_player_struct = agent.get_player()
+        updated_player_struct = Player(agent_player_struct.entityId, agent_player_struct.name, agent_player_struct.pos, agent_player_struct.look, Item(0, 0))
+        x = (agent.memory.self_memid, updated_player_struct)
+        self.query_or_updates_from_worker.put(("memid", x))
         while True:
             self.perceive(agent)
             self.send_perception_updates(agent) #-- skip, send no updates back right now
             self.handle_input_task(agent)
-            
             self.task_step(agent)
-
             # self.handle_master_query(agent)
             agent.count += 1

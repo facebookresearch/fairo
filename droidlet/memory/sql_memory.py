@@ -88,6 +88,7 @@ class AgentMemory:
         agent_time=None,
         on_delete_callback=None,
         place_field_pixels_per_unit=DEFAULT_PIXELS_PER_UNIT,
+        mark_agent=False
     ):
         if db_log_path:
             self._db_log_file = gzip.open(db_log_path + ".gz", "w")
@@ -97,7 +98,7 @@ class AgentMemory:
         self.db = sqlite3.connect(db_file, check_same_thread=False)
         self.task_db = {}
         self._safe_pickle_saved_attrs = {}
-
+        self.mark_agent = mark_agent
         self.on_delete_callback = on_delete_callback
 
         self.init_time_interface(agent_time)
@@ -141,8 +142,11 @@ class AgentMemory:
     def make_self_mem(self):
         # create a "self" memory to reference in Triples
         self.self_memid = "0" * len(uuid.uuid4().hex)
+        node_type = 'Self'
+        if self.mark_agent:
+            node_type= 'Agent'
         self.db_write(
-            "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, "Self", 0, 0, -1, False
+            "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, node_type, 0, 0, -1, False
         )
         player_struct = None
         SelfNode.create(self, player_struct, memid=self.self_memid)

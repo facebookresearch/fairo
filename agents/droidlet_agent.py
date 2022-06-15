@@ -338,14 +338,23 @@ class DroidletAgent(BaseAgent):
         #         import ipdb;ipdb.set_trace()
         #         logging.info(self.memory.get_mem_by_id(t[0]).get_tags())
             # task_mem =           
-            
-
+        # import ipdb;ipdb.set_trace()
+        task_executor = True
+        if self.dialogue_manager.dialogue_target:
+            # If a target executor for the task is specified, check whether this agent is an executor.
+            executor_tag = self.dialogue_manager.dialogue_target
+            if executor_tag in self.memory.get_mem_by_id(self.memory.self_memid).get_tags():
+                task_executor = True
+            else:
+                task_executor = False
+                
         query = "SELECT MEMORY FROM Task WHERE prio={}".format(TaskNode.CHECK_PRIO)
         _, task_mems = self.memory.basic_search(query)
         
         # NOTE: master can set child's priority for all workers here.
         for mem in task_mems:
-            if not self.filter_task(mem): 
+            # Not a child's task and this agent is the task_executor
+            if (not self.filter_task(mem)) and task_executor: 
                 if mem.task.init_condition.check():
                     mem.get_update_status({"prio": TaskNode.CHECK_PRIO + 1})
 
@@ -360,7 +369,7 @@ class DroidletAgent(BaseAgent):
         task_mems.sort(reverse=True, key=lambda x: x.prio)
         for mem in task_mems:
             # prio/finished could have been changed by another Task, e.g. a ControlBlock
-            if not self.filter_task(mem):
+            if (not self.filter_task(mem)) and (task_executor):
                 mem.update_node()
                 if mem.prio > TaskNode.CHECK_PRIO:
                     # FIXME set the other ones to running=0.  doesn't matter rn bc scheduler is empty, everything runs

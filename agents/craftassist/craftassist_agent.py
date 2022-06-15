@@ -41,6 +41,7 @@ from droidlet.dialog.dialogue_task import build_question_json
 from droidlet.base_util import Pos, Look, npy_to_blocks_list
 from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item
 from agents.droidlet_agent import DroidletAgent
+from droidlet.memory.memory_nodes import SelfNode, AgentNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
@@ -98,9 +99,13 @@ class CraftAssistAgent(DroidletAgent):
             "color_bid_map": COLOR_BID_MAP,
         }
         self.backend = opts.backend
+        self.mark_agent = False
+        if opts.mark_agent:
+            self.mark_agent = opts.mark_agent
         self.mark_airtouching_blocks = opts.mark_airtouching_blocks
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
+        
         self.agent_type = "craftassist"
         self.point_targets = []
         self.last_chat_time = 0
@@ -109,7 +114,7 @@ class CraftAssistAgent(DroidletAgent):
         # areas must be perceived at each step
         # List of tuple (XYZ, radius), each defines a cube
         self.areas_to_perceive = []
-        self.add_self_memory_node()
+        self.add_self_memory_node(agent_node_creation=self.mark_agent)
         self.init_event_handlers()
 
         shape_util_dict = {
@@ -208,6 +213,7 @@ class CraftAssistAgent(DroidletAgent):
             db_log_path="agent_memory.{}.log".format(self.name),
             agent_time=MCTime(self.get_world_time),
             agent_low_level_data=low_level_data,
+            mark_agent=self.mark_agent
         )
         # Add all dances to memory
         dance.add_default_dances(self.memory)
@@ -563,14 +569,19 @@ class CraftAssistAgent(DroidletAgent):
         self.get_other_players = self.get_all_players
         self.get_player_line_of_sight = self.get_all_player_line_of_sight
 
-    def add_self_memory_node(self):
+    def add_self_memory_node(self, agent_node_creation= False):
         """Adds agent node into its own memory"""
         # how/when to, memory is initialized before physical interfaces...
         try:
             p = self.get_player()
         except:  # this is for test/test_agent
             return
-        SelfNode.update(self.memory, p, memid=self.memory.self_memid)
+        # SelfNode.create(self.memory, p, memid=self.memory.self_memid)
+        if agent_node_creation:
+            AgentNode.create(self.memory, p, memid=self.memory.self_memid)
+        else:
+            SelfNode.create(self.memory, p, memid=self.memory.self_memid)
+            # self.memory.tag(self.memory.self_memid, "agent")
 
 
 if __name__ == "__main__":

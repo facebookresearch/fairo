@@ -125,8 +125,6 @@ class SwarmMasterWrapper():
         
         for i in range(self.num_workers):
             task_list = self.get_new_tasks(tag="worker_bot_{}".format(i+1))
-            # if task_list:
-            #     import ipdb;ipdb.set_trace()
             for new_task in task_list:
                 self.swarm_workers[i].input_task_queue.put(new_task)
 
@@ -156,8 +154,11 @@ class SwarmMasterWrapper():
                     self.init_status[i] = True
                 elif name == "memid":
                     # the master receives each worker's memid and stores them
-                    self.swarm_workers_memid[i] = obj
-    
+                    (memid, player) = obj
+                    self.swarm_workers_memid[i] = memid
+                    from droidlet.memory.memory_nodes import AgentNode
+                    AgentNode.create(self.agent.memory, player, memid=memid)
+                
     def handle_worker_memory_queries(self):
         """
         go over each worker's memory query and send response to the

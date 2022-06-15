@@ -781,7 +781,6 @@ class SelfNode(PlayerNode):
         >>> memid = '10517cc584844659907ccfa6161e9d32'
         >>> SelfNode(agent_memory=agent_memory, memid=memid)
     """
-
     TABLE_COLUMNS = ["uuid", "eid", "name", "x", "y", "z", "pitch", "yaw", "ref_type"]
     NODE_TYPE = "Self"
 
@@ -814,6 +813,28 @@ class SelfNode(PlayerNode):
                 memory, subj=memid, pred_text="has_name", obj_text=player_struct.name
             )
         return memid
+
+
+class AgentNode(PlayerNode):
+    """This class is a special PlayerNode for representing an
+    agent
+
+    Args:
+        agent_memory  (AgentMemory): An AgentMemory object
+        memid (string): Memory ID for this node
+
+    Examples::
+        >>> node_list = [TaskNode, ChatNode, PlayerNode, SelfNode]
+        >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
+        >>> agent_memory = AgentMemory(db_file=":memory:",
+                                       schema_paths=schema_path,
+                                       db_log_path=None,
+                                       nodelist=node_list)
+        >>> memid = '10517cc584844659907ccfa6161e9d32'
+        >>> AgentNode(agent_memory=agent_memory, memid=memid)
+    """
+    TABLE_COLUMNS = ["uuid", "eid", "name", "x", "y", "z", "pitch", "yaw", "ref_type"]
+    NODE_TYPE = "Agent"
 
 
 # locations should always be archives?
@@ -1369,6 +1390,7 @@ NODELIST = [
     TimeNode,
     PlayerNode,
     SelfNode,
+    AgentNode,
     ProgramNode,
     NamedAbstractionNode,
     ReferenceObjectNode,

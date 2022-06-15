@@ -46,6 +46,7 @@ class DialogueManager(object):
         self.low_level_interpreter_data = low_level_interpreter_data
         self.safety_words = get_safety_words()
         self.greetings = get_greetings(self.opts.ground_truth_data_dir)
+        self.dialogue_target = None
 
     def get_last_m_chats(self, m=1):
         # fetch last m chats from memory
@@ -136,6 +137,11 @@ class DialogueManager(object):
         """
         memory = self.memory
         logical_form = memory.get_mem_by_id(logical_form_memid).logical_form
+
+        if logical_form.get("dialogue_target"):
+            #TODO(kavya): fix this to reuse what we use for reading filters.
+            triple = logical_form["dialogue_target"]["filters"]["where_clause"]["AND"][0]
+            self.dialogue_target = triple['obj_text']
 
         if logical_form["dialogue_type"] == "NOOP":
             return {"task": Say, "data": {"response_options": "I don't know how to answer that."}}

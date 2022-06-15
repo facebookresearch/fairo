@@ -47,25 +47,29 @@ class SwarmWorkerMemory():
         memory_send_queue,
         memory_receive_queue,
         memory_tag,
+        mark_agent=False
     ):
         self.send_queue = memory_send_queue
         self.receive_queue = memory_receive_queue
         self.memory_tag = memory_tag
+        self.mark_agent = mark_agent
         self.receive_dict = {}
         self._safe_pickle_saved_attrs = {}
         mem_id_len = len(uuid.uuid4().hex)
         self.self_memid = "0" * (mem_id_len // 2) + uuid.uuid4().hex[: mem_id_len - mem_id_len // 2]
-        
+        node_type = 'Player'
+        if self.mark_agent:
+            node_type= 'Agent'
         # FIXME: insert player for locobot?
         self.db_write(
-            "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, "Player", 0, 0, -1, False
+            "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, node_type, 0, 0, -1, False
         )
         self.tag(self.self_memid, "_physical_object")
         self.tag(self.self_memid, "_animate")
         # this is a hack until memory_filters does "not"
         self.tag(self.self_memid, "_not_location")
         self.tag(self.self_memid, "AGENT")
-        # self.tag(self.self_memid, "SELF")
+        self.tag(self.self_memid, "WORKER")
 
     def _db_command(self, command_name, *args):
         query_id = uuid.uuid4().hex
