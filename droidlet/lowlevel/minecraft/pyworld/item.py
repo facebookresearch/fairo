@@ -10,7 +10,7 @@ class GettableItem:
         self.entityId = entityId
         self.typeName = typeName
         self.pos = pos or Pos()
-        self.in_inventory = -1
+        self.holder_entityId = -1
         # TODO: remove these, let agent get it from the typeName
         # machinery to make sure typeName and bid, meta match up in mc
         self.id = idm[0]
@@ -32,7 +32,7 @@ class GettableItem:
             "x": self.pos.x or "",
             "y": self.pos.y or "",
             "z": self.pos.z or "",
-            "in_inventory": self.in_inventory,
+            "holder_entityId": self.holder_entityId,
         }
         return info
 
@@ -40,4 +40,4 @@ class GettableItem:
         """
         record that self is in inventory of the entity with entityId
         """
-        self.in_inventory = entityId
+        self.holder_entityId = entityId

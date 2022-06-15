@@ -7,7 +7,7 @@ from threading import Thread
 from typing import Sequence, Dict
 from droidlet.base_util import Pos, Look
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM
-from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item, ItemStack
+from droidlet.shared_data_struct.craftassist_shared_utils import Player, Slot, Item, ItemStack
 from droidlet.shared_data_struct.rotation import look_vec
 from droidlet.lowlevel.minecraft.pyworld.fake_mobs import make_mob_opts, MOB_META, SimpleMob
 from droidlet.lowlevel.minecraft.pyworld.utils import (
@@ -234,14 +234,17 @@ class World:
     def get_items(self):
         return [i.get_info() for i in self.items.values()]
 
-    # FIXME: deprecate this
     def get_item_stacks(self):
         item_stacks = []
         for item in self.get_items():
-            pos = Pos(item["x"], item["y"], item["z"])
-            item_stacks.append(
-                ItemStack(Item(item["id"], item["meta"]), pos, item["entityId"], item["typeName"])
-            )
+            # only return items not in any agent's inventory in this method, matching cuberite
+            if item["holder_entityId"] < 0:
+                pos = Pos(item["x"], item["y"], item["z"])
+                item_stacks.append(
+                    ItemStack(
+                        Slot(item["id"], item["meta"], 1), pos, item["entityId"], item["typeName"]
+                    )
+                )
         return item_stacks
 
     def get_player_info(self, eid):
