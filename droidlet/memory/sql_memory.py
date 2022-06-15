@@ -89,7 +89,7 @@ class AgentMemory:
         agent_time=None,
         on_delete_callback=None,
         place_field_pixels_per_unit=DEFAULT_PIXELS_PER_UNIT,
-        mark_agent=False
+        mark_agent=False,
     ):
         if db_log_path:
             self._db_log_file = gzip.open(db_log_path + ".gz", "w")
@@ -143,17 +143,23 @@ class AgentMemory:
     def make_self_mem(self):
         # create a "self" memory to reference in Triples
         self.self_memid = "0" * len(uuid.uuid4().hex)
-        node_type = 'Self'
+        node_type = "Self"
         if self.mark_agent:
-            node_type= 'Agent'
+            node_type = "Agent"
         self.db_write(
-            "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, node_type, 0, 0, -1, False
+            "INSERT INTO Memories VALUES (?,?,?,?,?,?)",
+            self.self_memid,
+            node_type,
+            0,
+            0,
+            -1,
+            False,
         )
         # NOTE: we weren't creating this: #153-157 before.
         player_struct = None
-        if node_type == 'Self':
+        if node_type == "Self":
             SelfNode.create(self, player_struct, memid=self.self_memid)
-        elif node_type == 'Agent':
+        elif node_type == "Agent":
             AgentNode.create(self, player_struct, memid=self.self_memid)
         self.nodes[TripleNode.NODE_TYPE].tag(self.self_memid, "_physical_object")
         self.nodes[TripleNode.NODE_TYPE].tag(self.self_memid, "_animate")

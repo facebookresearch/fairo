@@ -68,7 +68,7 @@ class MCAgentMemory(AgentMemory):
         agent_low_level_data={},
         place_field_pixels_per_unit=DEFAULT_PIXELS_PER_UNIT,
         copy_from_backup=None,
-        mark_agent=False
+        mark_agent=False,
     ):
         super(MCAgentMemory, self).__init__(
             db_file=db_file,
@@ -78,7 +78,7 @@ class MCAgentMemory(AgentMemory):
             agent_time=agent_time,
             coordinate_transforms=coordinate_transforms,
             place_field_pixels_per_unit=place_field_pixels_per_unit,
-            mark_agent=mark_agent
+            mark_agent=mark_agent,
         )
         self.low_level_block_data = agent_low_level_data.get("block_data", {})
         self.banned_default_behaviors = []  # FIXME: move into triple store?

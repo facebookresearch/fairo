@@ -781,6 +781,7 @@ class SelfNode(PlayerNode):
         >>> memid = '10517cc584844659907ccfa6161e9d32'
         >>> SelfNode(agent_memory=agent_memory, memid=memid)
     """
+
     TABLE_COLUMNS = ["uuid", "eid", "name", "x", "y", "z", "pitch", "yaw", "ref_type"]
     NODE_TYPE = "Self"
 
@@ -833,6 +834,7 @@ class AgentNode(PlayerNode):
         >>> memid = '10517cc584844659907ccfa6161e9d32'
         >>> AgentNode(agent_memory=agent_memory, memid=memid)
     """
+
     TABLE_COLUMNS = ["uuid", "eid", "name", "x", "y", "z", "pitch", "yaw", "ref_type"]
     NODE_TYPE = "Agent"
 

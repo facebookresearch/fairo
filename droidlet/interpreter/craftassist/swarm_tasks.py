@@ -8,46 +8,47 @@ from droidlet.interpreter.craftassist import tasks
 
 # single agent task reference
 TASK_MAP = {
-            "move": tasks.Move,
-            "undo": tasks.Undo,
-            "build": tasks.Build,
-            "destroy": tasks.Destroy,
-            "spawn": tasks.Spawn,
-            "fill": tasks.Fill,
-            "dig": tasks.Dig,
-            "dance": tasks.Dance,
-            "point": tasks.Point,
-            "dancemove": tasks.DanceMove,
-            "get": tasks.Get,
-            "drop": tasks.Drop,
-            "control": ControlBlock,
-        }
+    "move": tasks.Move,
+    "undo": tasks.Undo,
+    "build": tasks.Build,
+    "destroy": tasks.Destroy,
+    "spawn": tasks.Spawn,
+    "fill": tasks.Fill,
+    "dig": tasks.Dig,
+    "dance": tasks.Dance,
+    "point": tasks.Point,
+    "dancemove": tasks.DanceMove,
+    "get": tasks.Get,
+    "drop": tasks.Drop,
+    "control": ControlBlock,
+}
 
 
 def get_worker_idx_from_memid(swarm_workers_memid, memid):
     if memid not in swarm_workers_memid:
         return 0
     else:
-        return (swarm_workers_memid.index(memid) + 1)
+        return swarm_workers_memid.index(memid) + 1
 
 
 class BaseSwarmTask(Task):
     """
     Base Task Class for the swarm
     """
-    
+
     memory_tag = "worker_bot_{}"
-    def __init__(self, agent, task_data={}, subcontrol='equal'):
+
+    def __init__(self, agent, task_data={}, subcontrol="equal"):
         super().__init__(agent, task_data)
         # movement should be a Movement object from dance.py
         self.all_swarm_workers_memid = agent.swarm_workers_memid
         self.last_stepped_time = agent.memory.get_time()
-        
+
         # self.swarm_worker_tasks = []
         self.get_task_agents(agent, task_data)
         self.distribute(task_data)
         TaskNode(agent.memory, self.memid).update_task(task=self)
-    
+
     def get_task_agents(self, agent, task_data):
         self.task_agents_memid = task_data.get("task_agents_memid")
         if self.task_agents_memid is None:
@@ -55,10 +56,9 @@ class BaseSwarmTask(Task):
         self.num_agents = len(self.task_agents_memid)
 
     def distribute(self, task_data):
-        """divide task to swarm workers
-        """
+        """divide task to swarm workers"""
         raise NotImplementedError
-    
+
     def assign_to_worker(self, worker_memid, task_name, task_data):
         worker_idx = get_worker_idx_from_memid(self.all_swarm_workers_memid, worker_memid)
         # import ipdb;ipdb.set_trace()
@@ -72,22 +72,27 @@ class BaseSwarmTask(Task):
             # add special triple here: "_task_owner" -> agent_name
             self.agent.memory.tag(tmp_task.memid, self.memory_tag.format(worker_idx))
 
+
 class SwarmMove(BaseSwarmTask):
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
-    
+
     def distribute(self, task_data):
         for i in range(self.num_agents):
             # increment x axis by 1 for each worker.
-            task_data['target'][2] = task_data['target'][2] + i + 1
+            task_data["target"][2] = task_data["target"][2] + i + 1
             if "dialogue_target" in task_data:
                 worker_memid = self.task_agents_memid[i]
-                if task_data['dialogue_target'] in self.agent.memory.get_mem_by_id(worker_memid).get_tags():
+                if (
+                    task_data["dialogue_target"]
+                    in self.agent.memory.get_mem_by_id(worker_memid).get_tags()
+                ):
                     logging.info("for agent: %r move task data is : %r" % (i, task_data))
                     self.assign_to_worker(self.task_agents_memid[i], "move", task_data)
             else:
                 logging.info("for agent: %r move task data is : %r" % (i, task_data))
                 self.assign_to_worker(self.task_agents_memid[i], "move", task_data)
+
 
 class SwarmSpawn(BaseSwarmTask):
     def __init__(self, agent, task_data):
@@ -97,6 +102,7 @@ class SwarmSpawn(BaseSwarmTask):
         for i in range(self.num_agents):
             logging.info("for agent: %r spawn task data is : %r" % (i, task_data))
             self.assign_to_worker(self.task_agents_memid[i], "spawn", task_data)
+
 
 class SwarmDance(BaseSwarmTask):
     def __init__(self, agent, task_data):
@@ -120,25 +126,34 @@ class SwarmDanceMove(BaseSwarmTask):
 class SwarmBuild(BaseSwarmTask):
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
-    
+
     def distribute(self, task_data):
         self.task_data = task_data
         block_list = task_data["blocks_list"]
         block_list.sort(key=lambda x: x[0][0])
         self.num_blocks = len(block_list)
-        self.num_blocks_per_agent = np.array([self.num_blocks//self.num_agents] * self.num_agents)
-        self.num_blocks_per_agent[-1] += self.num_blocks - (self.num_blocks//self.num_agents * self.num_agents)
+        self.num_blocks_per_agent = np.array(
+            [self.num_blocks // self.num_agents] * self.num_agents
+        )
+        self.num_blocks_per_agent[-1] += self.num_blocks - (
+            self.num_blocks // self.num_agents * self.num_agents
+        )
         tmp_ind = 0
         for i in range(self.num_agents):
             tmp_task_data = deepcopy(task_data)
-            tmp_task_data["blocks_list"] = block_list[tmp_ind: tmp_ind + self.num_blocks_per_agent[i]]
-            tmp_blocks_array = np.array([(x, y, z, b, m) for ((x, y, z), (b, m)) in tmp_task_data["blocks_list"]])
+            tmp_task_data["blocks_list"] = block_list[
+                tmp_ind : tmp_ind + self.num_blocks_per_agent[i]
+            ]
+            tmp_blocks_array = np.array(
+                [(x, y, z, b, m) for ((x, y, z), (b, m)) in tmp_task_data["blocks_list"]]
+            )
             offset = np.min(tmp_blocks_array[:, :3], axis=0)
             # get offset to modify the origin
             tmp_task_data["origin"] += np.array(offset)
             tmp_ind += self.num_blocks_per_agent[i]
             logging.info("for agent: %r build task data is : %r" % (i, tmp_task_data))
             self.assign_to_worker(self.task_agents_memid[i], "build", tmp_task_data)
+
 
 class SwarmDestroy(BaseSwarmTask):
     def __init__(self, agent, task_data):
@@ -148,19 +163,26 @@ class SwarmDestroy(BaseSwarmTask):
         self.schematic = task_data["schematic"]
         self.schematic.sort(key=lambda x: x[0][0])
         self.num_blocks = len(self.schematic)
-        self.num_blocks_per_agent = np.array([self.num_blocks//self.num_agents] * self.num_agents)
-        self.num_blocks_per_agent[-1] += self.num_blocks - self.num_blocks//self.num_agents * self.num_agents
+        self.num_blocks_per_agent = np.array(
+            [self.num_blocks // self.num_agents] * self.num_agents
+        )
+        self.num_blocks_per_agent[-1] += (
+            self.num_blocks - self.num_blocks // self.num_agents * self.num_agents
+        )
         tmp_ind = 0
         for i in range(self.num_agents):
             tmp_task_data = deepcopy(task_data)
-            tmp_task_data["schematic"] = self.schematic[tmp_ind: tmp_ind + self.num_blocks_per_agent[i]]
+            tmp_task_data["schematic"] = self.schematic[
+                tmp_ind : tmp_ind + self.num_blocks_per_agent[i]
+            ]
             tmp_ind += self.num_blocks_per_agent[i]
             self.assign_to_worker(self.task_agents_memid[i], "destroy", tmp_task_data)
+
 
 class SwarmDig(BaseSwarmTask):
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
-        
+
     def distribute(self, task_data):
         logging.info("Dig task with task_data: %r" % (task_data))
         self.origin = task_data["origin"]
@@ -176,19 +198,19 @@ class SwarmDig(BaseSwarmTask):
         scheme = np.zeros([self.num_agents, 3], dtype=np.int32)
         scheme[:] = np.array([self.width // self.num_agents, self.depth, self.length])
 
-        offset = np.zeros([self.num_agents], dtype = np.int32)
-        offset[:] = self.width//self.num_agents
-        
-        offset[-1] += self.width - self.width// self.num_agents * self.num_agents
-        scheme[-1, 0] += self.width - self.width// self.num_agents * self.num_agents
+        offset = np.zeros([self.num_agents], dtype=np.int32)
+        offset[:] = self.width // self.num_agents
+
+        offset[-1] += self.width - self.width // self.num_agents * self.num_agents
+        scheme[-1, 0] += self.width - self.width // self.num_agents * self.num_agents
 
         tmp_m = np.array([mx, my, mz])
         for i in range(self.num_agents):
             tmp_task_data = deepcopy(task_data)
-            tmp_task_data["origin"] = np.array([tmp_m[0], tmp_m[1] + scheme[i,1] - 1, tmp_m[2]])
-            tmp_task_data['width'] = scheme[i, 0]
-            tmp_task_data['depth'] = scheme[i, 1]
-            tmp_task_data['length'] = scheme[i, 2]
+            tmp_task_data["origin"] = np.array([tmp_m[0], tmp_m[1] + scheme[i, 1] - 1, tmp_m[2]])
+            tmp_task_data["width"] = scheme[i, 0]
+            tmp_task_data["depth"] = scheme[i, 1]
+            tmp_task_data["length"] = scheme[i, 2]
             tmp_m[0] = tmp_m[0] + offset[i]
             if np.min(scheme[i]) <= 0:
                 continue

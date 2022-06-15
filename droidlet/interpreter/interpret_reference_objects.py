@@ -47,7 +47,7 @@ def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent
     # TODO/FIXME! add things to workspace memory
     agent_memory = agent_memory or interpreter.memory
     if type(S) is dict and "fixed_value" in S:
-        S = S['fixed_value']
+        S = S["fixed_value"]
     if type(S) is dict and "coordinates_span" in S:
         coord_span = S["coordinates_span"]
         loc = cast(XYZ, tuple(int(float(w)) for w in re.findall("[-0-9.]+", coord_span)))
@@ -193,7 +193,7 @@ def interpret_reference_object(
             update_attended_and_link_lf(interpreter, mems)
             # No filter by sublocation etc if a mem matches the text_span exactly...
             return mems
-        
+
         # Add extra tags to the filters
         if any(extra_tags):
             extra_clauses = []
@@ -210,7 +210,7 @@ def interpret_reference_object(
         filters_no_select.pop("selector", None)
         # filters_no_select.pop("location", None)
         candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
-        
+
         # candidate_mems = apply_memory_filters(interpreter, speaker, filters_d)
 
         # Clarification only enabled for HUMAN_GIVE_COMMAND

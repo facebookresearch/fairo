@@ -5,8 +5,12 @@ from typing import Tuple, Any, Optional
 
 class SwarmMCInterpreter(MCInterpreter):
     # self, speaker, logical_form_memid, agent_memory, memid=None, low_level_data=None):
-    def __init__(self, speaker: str, logical_form_memid, agent_memory, memid=None, low_level_data=None):
-        super(SwarmMCInterpreter, self).__init__(speaker, logical_form_memid, agent_memory, memid, low_level_data)
+    def __init__(
+        self, speaker: str, logical_form_memid, agent_memory, memid=None, low_level_data=None
+    ):
+        super(SwarmMCInterpreter, self).__init__(
+            speaker, logical_form_memid, agent_memory, memid, low_level_data
+        )
         # self.task_objects = {
         #     "move": tasks.Move,
         #     "undo": tasks.Undo,
@@ -41,7 +45,7 @@ class SwarmMCInterpreter(MCInterpreter):
             self.archived_loop_data = self.loop_data
             self.loop_data = None
         if hasattr(agent, "swarm_workers"):
-            for i in range(agent.num_agents-1):
+            for i in range(agent.num_agents - 1):
                 agent.swarm_workers[i].query_from_master.put(("stop", None))
         if self.memory.task_stack_pause():
             return None, "Stopping.  What should I do next?", None
@@ -53,7 +57,7 @@ class SwarmMCInterpreter(MCInterpreter):
     def handle_resume(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
         if hasattr(agent, "swarm_workers"):
-            for i in range(agent.num_agents-1):
+            for i in range(agent.num_agents - 1):
                 agent.swarm_workers[i].query_from_master.put(("resume", None))
         if self.memory.task_stack_resume():
             if self.archived_loop_data is not None:

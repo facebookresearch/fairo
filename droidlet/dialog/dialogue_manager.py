@@ -137,7 +137,7 @@ class DialogueManager(object):
         """
         memory = self.memory
         logical_form = memory.get_mem_by_id(logical_form_memid).logical_form
-        
+
         if logical_form["dialogue_type"] == "NOOP":
             return {"task": Say, "data": {"response_options": "I don't know how to answer that."}}
         elif logical_form["dialogue_type"] == "GET_CAPABILITIES":

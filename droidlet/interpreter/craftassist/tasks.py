@@ -358,7 +358,7 @@ class Build(Task):
         ox, oy, oz = self.origin
         sy, sz, sx, _ = self.schematic.shape
         current = agent.get_blocks(ox, ox + sx - 1, oy, oy + sy - 1, oz, oz + sz - 1)
-        
+
         # are we done?
         # TODO: diff ignores block meta right now because placing stairs and
         # chests in the appropriate orientation is non-trivial

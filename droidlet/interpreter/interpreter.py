@@ -19,6 +19,7 @@ from droidlet.task.task import task_to_generator, ControlBlock
 from droidlet.memory.memory_nodes import ChatNode, TripleNode, InterpreterNode
 from droidlet.dialog.dialogue_task import ConfirmTask, Say
 
+
 class ForkedPdb(pdb.Pdb):
     """A Pdb subclass that may be used
     from a forked multiprocessing child
@@ -136,14 +137,14 @@ class Interpreter(InterpreterBase):
         # import ipdb;ipdb.set_trace()
         # self.logical_form.pop('dialogue_target', None)
         self.dialogue_target = None
-        #TODO kavya: move this to subintepreter.
+        # TODO kavya: move this to subintepreter.
         if self.logical_form.get("dialogue_target"):
-            #TODO(kavya): fix this to reuse what we use for reading filters.
+            # TODO(kavya): fix this to reuse what we use for reading filters.
             triple = self.logical_form["dialogue_target"]["filters"]["where_clause"]["AND"][0]
-            self.dialogue_target = triple['obj_text']
+            self.dialogue_target = triple["obj_text"]
         assert self.logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND"
         self.finished = False
-        # subinterpret dialogue_target -> set of target names. Store in memory / variable 
+        # subinterpret dialogue_target -> set of target names. Store in memory / variable
         # interpret event uses that to pass down
         try:
             C = self.interpret_event(agent, self.speaker, self.logical_form)
@@ -248,6 +249,7 @@ class Interpreter(InterpreterBase):
 
     def handle_move(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         Move = self.task_objects["move"]
+
         def new_tasks():
             # import ipdb;ipdb.set_trace()
             # TODO if we do this better will be able to handle "stay between the x"
