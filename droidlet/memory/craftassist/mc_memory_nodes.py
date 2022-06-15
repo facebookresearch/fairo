@@ -666,7 +666,6 @@ class ItemStackNode(ReferenceObjectNode):
                 item_stack.entityId,
             )
             (memid,) = r
-        if memid:
             return memory.get_mem_by_id(memid)
 
 

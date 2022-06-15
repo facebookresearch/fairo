@@ -20,7 +20,7 @@ from droidlet.lowlevel.minecraft.mc_util import manhat_dist, strip_idmeta
 
 from droidlet.task.task import BaseMovementTask, Task
 from droidlet.memory.memory_nodes import TaskNode, TripleNode
-from droidlet.memory.craftassist.mc_memory_nodes import MobNode
+from droidlet.memory.craftassist.mc_memory_nodes import MobNode, ItemStackNode
 
 # tasks should be interruptible; that is, if they
 # store state, stopping the task and doing something
@@ -453,10 +453,7 @@ class Build(Task):
             interesting, player_placed, agent_placed = agent.perception_modules[
                 "low_level"
             ].mark_blocks_with_env_change(
-                target,
-                (0, 0),
-                agent.low_level_data["boring_blocks"],
-                agent_placed=True,
+                target, (0, 0), agent.low_level_data["boring_blocks"], agent_placed=True,
             )
             agent.memory.maybe_add_block_to_memory(
                 interesting, player_placed, agent_placed, target, (0, 0)
@@ -511,10 +508,7 @@ class Build(Task):
         interesting, player_placed, agent_placed = agent.perception_modules[
             "low_level"
         ].mark_blocks_with_env_change(
-            target,
-            tuple(idm),
-            agent.low_level_data["boring_blocks"],
-            agent_placed=True,
+            target, tuple(idm), agent.low_level_data["boring_blocks"], agent_placed=True,
         )
         agent.memory.maybe_add_block_to_memory(
             interesting, player_placed, agent_placed, target, tuple(idm)
@@ -969,7 +963,7 @@ class Get(Task):
         super().__init__(agent)
         self.idm = task_data.get("idm")
         self.pos = task_data["pos"]
-        self.eid = task_data.get["eid"]
+        self.eid = task_data["eid"]
         self.obj_memid = task_data["obj_memid"]
         self.approx = 1
         self.attempts = 10
@@ -992,7 +986,7 @@ class Get(Task):
 
         if delta > 0:
             ItemStackNode.to_inventory(agent.memory, agent.memory.get_mem_by_id(self.obj_memid))
-            Say("Got Item!")
+            agent.send_chat("Got Item!")
             self.finished = True
             return
 

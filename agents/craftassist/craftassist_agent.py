@@ -390,7 +390,7 @@ class CraftAssistAgent(DroidletAgent):
         else:
             sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
 
-        return self.send_chat(chat_text)
+        return self.mover.send_chat(chat_text)
 
     def get_detected_objects_for_map(self):
         search_res = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")

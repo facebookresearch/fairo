@@ -223,7 +223,7 @@ def interpret_reference_object(
 
         # Compare num matches to expected and clarify
         if (
-            (len(candidate_mems) != num_refs)
+            (len(candidate_mems) < num_refs)
             and allow_clarification
             and command_type == "HUMAN_GIVE_COMMAND"
         ):
