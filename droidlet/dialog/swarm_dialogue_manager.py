@@ -20,8 +20,8 @@ class SwarmDialogueManager(DialogueManager):
         all_chats = self.memory.nodes[ChatNode.NODE_TYPE].get_recent_chats(self.memory, n=m)
         chat_list_text = []
         for chat in all_chats:
-            # does not need to interpret its own swarm chats
-            speaker = self.memory.nodes[PlayerNode.NODE_TYPE](self.memory, chat.speaker_id).name
+            # does not need to interpret chats from swarm workers
+            speaker = self.memory.get_player_by_id(chat.speaker_id).name
             if self.neglect(speaker):
                 continue
             chat_memid = chat.memid
