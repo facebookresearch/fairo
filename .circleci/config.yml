@@ -477,6 +477,8 @@ jobs:
             sudo ln -s ~/miniconda3/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
             echo ". ~/miniconda3/etc/profile.d/conda.sh" >> ~/.bashrc && \
             echo "conda activate base" >> ~/.bashrc
+      - restore_cache:
+          key: deps9-{{ checksum "perception/sandbox/polygrasp/msetup.py" }}-{{ checksum "perception/sandbox/polygrasp/third_party/graspnet-baseline/environment.yml" }}-{{ checksum "perception/sandbox/polygrasp/third_party/UnseenObjectClustering/environment.yml" }}
       - run:
           name: Install mamba
           command: |
@@ -487,13 +489,44 @@ jobs:
           command: |
             . ~/miniconda3/bin/activate
             conda activate base
-            pip install -y mrp
+            pip install mrp
       - run:
-          name: Install mrp
+          name: Create conda environments
           command: |
             . ~/miniconda3/bin/activate
             conda activate base
+
+            cd perception/sandbox/polygrasp/
+            export CUDA_HOME=/usr/local/cuda
             mrp up --norun
+      - run:
+          name: Download parameters
+          command: |
+            . ~/miniconda3/bin/activate
+            conda activate base
+            pip install gdown
+
+            cd perception/sandbox/polygrasp/
+            gdown --id 1O-ymMGD_qDEtYxRU19zSv17Lgg6fSinQ -O ./third_party/UnseenObjectClustering/data/
+            gdown --id 1hd0G8LN6tRpi4742XOTEisbTXNZ-1jmk -O ./third_party/graspnet-baseline/data/graspnet/
+
+            cd third_party/UnseenObjectClustering/data/
+            unzip ./checkpoints.zip
+      - save_cache:
+          key: deps9-{{ checksum "perception/sandbox/polygrasp/msetup.py" }}-{{ checksum "perception/sandbox/polygrasp/third_party/graspnet-baseline/environment.yml" }}-{{ checksum "perception/sandbox/polygrasp/third_party/UnseenObjectClustering/environment.yml" }}
+          paths:
+            - "/home/circleci/miniconda3/envs"
+            - "/home/circleci/project/perception/sandbox/polygrasp/third_party/UnseenObjectClustering/data/"
+            - "/home/circleci/project/perception/sandbox/polygrasp/third_party/graspnet-baseline/data/"
+      - run:
+          name: Run test
+          command: |
+            # Fix QT load issue: https://forum.qt.io/topic/119109/using-pyqt5-with-opencv-python-cv2-causes-error-could-not-load-qt-platform-plugin-xcb-even-though-it-was-found/
+            mv /home/circleci/miniconda3/envs/mrp_polygrasp/lib/python3.8/site-packages/cv2/qt/plugins/platforms /home/circleci/miniconda3/envs/mrp_polygrasp/lib/python3.8/site-packages/cv2/qt/plugins/platforms_old
+
+            conda activate mrp_polygrasp
+            cd perception/sandbox/polygrasp/
+            python 
 
 
 workflows:

@@ -45,6 +45,7 @@ This continuously grasps from bin 1 to bin 2 until there are no more objects det
 To test without a robot or cameras, run
 
 ```bash
+conda activate mrp_polygrasp
 python scripts/run_grasp.py robot=robot_mock cam=cam_mock num_bin_shifts=1 num_grasps_per_bin_shift=1
 ```
 
