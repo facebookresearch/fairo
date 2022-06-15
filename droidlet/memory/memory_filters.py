@@ -387,6 +387,8 @@ class MemorySearcher:
         """
         returns a list of memids whose memories satisfy the where clause
         """
+        if not where_clause:
+            return []
         # do this brutally for now, if we need can make more efficient
         if where_clause.get("AND"):
             memid_lists = []
