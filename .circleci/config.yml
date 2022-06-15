@@ -460,7 +460,7 @@ jobs:
             pytest tests
   polygrasp:
     machine:
-      image: ubuntu-2004:202104-01
+      image: ubuntu-2004-cuda-11.4:202110-01
     resource_class: gpu.nvidia.small
     steps:
       - checkout
@@ -468,6 +468,33 @@ jobs:
           name: Initialize Git submodules
           command: |
             git submodule update --init --recursive ./perception/sandbox/polygrasp/
+      - run:
+          name: Install Miniconda3
+          command: |
+            wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+            /bin/bash ~/miniconda.sh -b -p ~/miniconda3 && \
+            rm ~/miniconda.sh && \
+            sudo ln -s ~/miniconda3/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+            echo ". ~/miniconda3/etc/profile.d/conda.sh" >> ~/.bashrc && \
+            echo "conda activate base" >> ~/.bashrc
+      - run:
+          name: Install mamba
+          command: |
+            . ~/miniconda3/bin/activate
+            conda install -y -c conda-forge mamba -n base
+      - run:
+          name: Install mrp
+          command: |
+            . ~/miniconda3/bin/activate
+            conda activate base
+            pip install -y mrp
+      - run:
+          name: Install mrp
+          command: |
+            . ~/miniconda3/bin/activate
+            conda activate base
+            mrp up --norun
+
 
 workflows:
   build:
