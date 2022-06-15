@@ -82,6 +82,7 @@ const AGENT_NAME = "craftassist_agent";
 const PLAYER_NAME = "dashboard_player";
 
 let mobs = {}
+let itemStacks = {}
 
 
 let cursorX, cursorY
@@ -496,7 +497,6 @@ class DVoxelEngine {
     updateMobs(mobsInfo) {
         console.log("DVoxel Engine update mobs")
         console.log(mobsInfo)
-        let that = this
         let world = {
             THREE: THREE,
             scene: scene,
@@ -528,13 +528,42 @@ class DVoxelEngine {
             
             mobsInWorld.add(entityId)
         })
-
-        mobs
     }
 
     updateItemStacks(itemStacksInfo) {
         console.log("DVoxel Engine update item stacks")
         console.log(itemStacksInfo)
+        let world = {
+            THREE: THREE,
+            scene: scene,
+            render: render,
+            camera: camera,
+        };
+        let itemStacksInWorld = new Set()
+        itemStacksInfo.forEach(function(key, index) {
+            const entityId = key['entityId'].toString()
+            const pos = key['pos']
+            const name = key['name']
+            if (entityId in itemStacks) {
+                console.log("item already exists, updating states")
+            } else {
+                const itemStackOpts = {
+                    GLTFLoader: GLTFLoader,
+                    name: name,
+                    position: [pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale]
+                };
+                VoxelItem.build(world, itemStackOpts).then(
+                    function (newItemStack) {
+                        itemStacks[entityId] = newItemStack;
+                    }
+                );
+            }
+            if (entityId in itemStacks) {
+                itemStacks[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale)
+            }
+            
+            itemStacksInWorld.add(entityId)
+        })
     }
 
     updateBlocks(blocksInfo) {
