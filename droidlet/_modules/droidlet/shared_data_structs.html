@@ -140,7 +140,6 @@
 <span class="c1"># FIXME!  why is this here?</span>
 <div class="viewcode-block" id="RGBDepth"><a class="viewcode-back" href="../../droidlet_agents.html#droidlet.shared_data_structs.RGBDepth">[docs]</a><span class="k">class</span> <span class="nc">RGBDepth</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Class for the current RGB, depth and point cloud fetched from the robot.</span>
-
 <span class="sd">    Args:</span>
 <span class="sd">        rgb (np.array): RGB image fetched from the robot</span>
 <span class="sd">        depth (np.array): depth map fetched from the robot</span>
@@ -228,6 +227,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">no_default_behavior</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log_timeline</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">enable_timeline</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># flag for whether loading true model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flag_load_nsp_model</span> <span class="o">=</span> <span class="kc">False</span>
 
 
 <span class="k">class</span> <span class="nc">PriorityQueue</span><span class="p">:</span>

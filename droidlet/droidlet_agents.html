@@ -126,17 +126,14 @@ This pipeline is split into <code class="docutils literal notranslate"><span cla
 <div><dl class="py class">
 <dt class="sig sig-object py" id="droidlet.shared_data_structs.RGBDepth">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.shared_data_structs.</span></span><span class="sig-name descname"><span class="pre">RGBDepth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rgb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/shared_data_structs.html#RGBDepth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.shared_data_structs.RGBDepth" title="Permalink to this definition"></a></dt>
-<dd><p>Class for the current RGB, depth and point cloud fetched from the robot.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>rgb</strong> (<em>np.array</em>) – RGB image fetched from the robot</p></li>
-<li><p><strong>depth</strong> (<em>np.array</em>) – depth map fetched from the robot</p></li>
-<li><p><strong>pts</strong> (<em>np.array</em><em> [</em><em>(</em><em>x</em><em>,</em><em>y</em><em>,</em><em>z</em><em>)</em><em>]</em>) – array of x,y,z coordinates of the pointcloud corresponding</p></li>
-<li><p><strong>maps.</strong> (<em>to the rgb and depth</em>) – </p></li>
-</ul>
-</dd>
-</dl>
+<dd><p>Class for the current RGB, depth and point cloud fetched from the robot.
+:param rgb: RGB image fetched from the robot
+:type rgb: np.array
+:param depth: depth map fetched from the robot
+:type depth: np.array
+:param pts: array of x,y,z coordinates of the pointcloud corresponding
+:type pts: np.array [(x,y,z)]
+:param to the rgb and depth maps.:</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="droidlet.shared_data_structs.RGBDepth.get_coords_for_point">
 <span class="sig-name descname"><span class="pre">get_coords_for_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/shared_data_structs.html#RGBDepth.get_coords_for_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.shared_data_structs.RGBDepth.get_coords_for_point" title="Permalink to this definition"></a></dt>
