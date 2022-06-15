@@ -21,6 +21,7 @@ from droidlet.memory.memory_util import parse_sql, format_query
 from droidlet.memory.place_field import PlaceField, EmptyPlaceField
 
 from droidlet.memory.memory_nodes import (  # noqa
+    AgentNode,
     TaskNode,
     TripleNode,
     SelfNode,
@@ -148,10 +149,18 @@ class AgentMemory:
         self.db_write(
             "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, node_type, 0, 0, -1, False
         )
+        # NOTE: we weren't creating this: #153-157 before.
         player_struct = None
-        SelfNode.create(self, player_struct, memid=self.self_memid)
-        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "AGENT")
-        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "SELF")
+        if node_type == 'Self':
+            SelfNode.create(self, player_struct, memid=self.self_memid)
+        elif node_type == 'Agent':
+            AgentNode.create(self, player_struct, memid=self.self_memid)
+        self.nodes[TripleNode.NODE_TYPE].tag(self.self_memid, "_physical_object")
+        self.nodes[TripleNode.NODE_TYPE].tag(self.self_memid, "_animate")
+        self.nodes[TripleNode.NODE_TYPE].tag(self.self_memid, "_not_location")
+        self.nodes[TripleNode.NODE_TYPE].tag(self.self_memid, "AGENT")
+        self.nodes[TripleNode.NODE_TYPE].tag(self.self_memid, "SELF")
+        self.nodes[TripleNode.NODE_TYPE].tag(self.self_memid, "beta")
 
     def init_time_interface(self, agent_time=None):
         """Initialiaze the current time in memory

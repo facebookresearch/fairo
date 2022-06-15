@@ -70,6 +70,7 @@ class SwarmWorkerMemory():
         self.tag(self.self_memid, "_not_location")
         self.tag(self.self_memid, "AGENT")
         self.tag(self.self_memid, "WORKER")
+        self.tag(self.self_memid, "alpha")
 
     def _db_command(self, command_name, *args):
         query_id = uuid.uuid4().hex

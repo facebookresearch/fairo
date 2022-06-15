@@ -287,12 +287,17 @@ def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
     modified_where = convert_task_where(filters_d.get("where_clause", {}))
     return interpret_where_clause(interpreter, speaker, modified_where, memory_type="Task")
 
+def interpret_agent_filter(interpreter):
+    #TODO (kavya): replace player with Self when all agents register themselves as "SelfNode" not PlayerNode as is current
+    # skip where clause.
+    query = {"memory_type": "Agent"}
+    return BasicFilter(interpreter.memory, query, ignore_self=False)
 
 def interpret_dance_filter(interpreter, speaker, filters_d, get_all=False):
     return interpret_where_backoff(
         interpreter, speaker, filters_d.get("where_clause", {}), memory_type="Dance"
     )
-
+    
 
 class FilterInterpreter:
     def __call__(self, interpreter, speaker, filters_d, get_all=False):
@@ -330,6 +335,29 @@ class FilterInterpreter:
             )
         elif memtype == "TASKS":
             F = interpret_task_filter(interpreter, speaker, filters_d)
+        elif memtype =="AGENT":
+            # memory_type = "Agent"
+            ### NOT WORKING
+            # tags, _ = backoff_where(filters_d.get("where_clause"), {})
+            # F = interpret_where_backoff(
+            #     interpreter,
+            #     speaker,
+            #     filters_d.get('where_clause', {}),
+            #     memory_type="Agent",
+            #     ignore_self=False,
+            # )
+            # ALSO super weird if I just call with filters_d['where_clause'] -> poorly formed dict : _physical_object
+            # TODO: when we tag as "agent"
+            
+            # filters_d["where_clause"]  = filters_d.get("where_clause", {})
+            # if "AND" in filters_d["where_clause"]:
+            #     filters_d["where_clause"]["AND"].append({"pred_text": "has_name", "obj_text": "agent"})
+            # else:
+            #     filters_d["where_clause"]["AND"] = [{"pred_text": "has_name", "obj_text": "agent"}]
+            
+            # get memtype agent that has current pos at SPEAKERLOOK
+            # import ipdb;ipdb.set_trace()
+            F = interpret_agent_filter(interpreter)
         else:
             memtype_key = memtype.lower() + "_filters"
             try:
@@ -338,5 +366,7 @@ class FilterInterpreter:
                 raise ErrorWithResponse(
                     "failed at interpreting filters of type {}".format(memtype)
                 )
+        #TODO(kavya): This is really confusing, right now interpret_reference_object calls this method and strips out this key altogether, which means
+        # this will never quite do anything.
         F = maybe_apply_selector(interpreter, speaker, filters_d, F)
         return maybe_append_left(F, to_append=val_map)

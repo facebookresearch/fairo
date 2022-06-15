@@ -107,13 +107,16 @@ class SwarmMasterWrapper():
         _, task_mems = self.agent.memory.basic_search(query)
         task_list = []
         for mem in task_mems:
-            if tag not in mem.get_tags():
+            all_mem_tags = mem.get_tags()
+            # single tag value
+            if tag not in all_mem_tags:
                 continue
             else:
                 task_name = mem.task.__class__.__name__.lower()
                 task_data = get_safe_single_object_attr_dict(mem.task)
                 memid = mem.task.memid
                 task_list.append((task_name, task_data, memid))
+
         return task_list
         
     def assign_new_tasks_to_workers(self):
@@ -127,7 +130,8 @@ class SwarmMasterWrapper():
             task_list = self.get_new_tasks(tag="worker_bot_{}".format(i+1))
             for new_task in task_list:
                 self.swarm_workers[i].input_task_queue.put(new_task)
-
+    
+            
     def update_tasks_with_worker_data(self):
         """
         update task status with info sent from workers

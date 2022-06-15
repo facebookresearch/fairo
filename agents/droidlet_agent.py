@@ -312,6 +312,7 @@ class DroidletAgent(BaseAgent):
         - filter is None or
         - check whether task_filters is true for any memory here.
         """
+        # handle task on fiters.
         if task_filter is None:
             task_filter = self.task_step_filters
         if task_filter is None:
@@ -331,30 +332,18 @@ class DroidletAgent(BaseAgent):
         self.maybe_dump_memory_to_dashboard()
 
     def task_step(self, sleep_time=0.25):
-        tasks_out = self.memory._db_read("SELECT uuid, action_name, prio, running, finished from Tasks")  
-        # logging.info(tasks_out)
-        # for t in tasks_out:
-        #     if t[4] > 1:
-        #         import ipdb;ipdb.set_trace()
-        #         logging.info(self.memory.get_mem_by_id(t[0]).get_tags())
-            # task_mem =           
-        # import ipdb;ipdb.set_trace()
-        task_executor = True
-        if self.dialogue_manager.dialogue_target:
-            # If a target executor for the task is specified, check whether this agent is an executor.
-            executor_tag = self.dialogue_manager.dialogue_target
-            if executor_tag in self.memory.get_mem_by_id(self.memory.self_memid).get_tags():
-                task_executor = True
-            else:
-                task_executor = False
+        tasks_out = self.memory._db_read("SELECT uuid, action_name, prio, running, finished from Tasks")           
+        # if len(tasks_out) == 1 and tasks_out[0][1] == "controlblock":
+        #     import ipdb;ipdb.set_trace()
                 
         query = "SELECT MEMORY FROM Task WHERE prio={}".format(TaskNode.CHECK_PRIO)
         _, task_mems = self.memory.basic_search(query)
         
         # NOTE: master can set child's priority for all workers here.
         for mem in task_mems:
-            # Not a child's task and this agent is the task_executor
-            if (not self.filter_task(mem)) and task_executor: 
+            task_filter_flag = self.filter_task(mem)
+            if (not task_filter_flag):
+                # Not a child's task and this agent is the task_executor
                 if mem.task.init_condition.check():
                     mem.get_update_status({"prio": TaskNode.CHECK_PRIO + 1})
 
@@ -369,7 +358,8 @@ class DroidletAgent(BaseAgent):
         task_mems.sort(reverse=True, key=lambda x: x.prio)
         for mem in task_mems:
             # prio/finished could have been changed by another Task, e.g. a ControlBlock
-            if (not self.filter_task(mem)) and (task_executor):
+            task_filter_flag = self.filter_task(mem)
+            if (not task_filter_flag):
                 mem.update_node()
                 if mem.prio > TaskNode.CHECK_PRIO:
                     # FIXME set the other ones to running=0.  doesn't matter rn bc scheduler is empty, everything runs

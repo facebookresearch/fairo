@@ -137,12 +137,7 @@ class DialogueManager(object):
         """
         memory = self.memory
         logical_form = memory.get_mem_by_id(logical_form_memid).logical_form
-
-        if logical_form.get("dialogue_target"):
-            #TODO(kavya): fix this to reuse what we use for reading filters.
-            triple = logical_form["dialogue_target"]["filters"]["where_clause"]["AND"][0]
-            self.dialogue_target = triple['obj_text']
-
+        
         if logical_form["dialogue_type"] == "NOOP":
             return {"task": Say, "data": {"response_options": "I don't know how to answer that."}}
         elif logical_form["dialogue_type"] == "GET_CAPABILITIES":

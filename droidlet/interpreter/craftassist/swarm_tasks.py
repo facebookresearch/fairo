@@ -79,9 +79,15 @@ class SwarmMove(BaseSwarmTask):
     def distribute(self, task_data):
         for i in range(self.num_agents):
             # increment x axis by 1 for each worker.
-            task_data['target'][2] = task_data['target'][2] + i 
-            logging.info("for agent: %r move task data is : %r" % (i, task_data))
-            self.assign_to_worker(self.task_agents_memid[i], "move", task_data)
+            task_data['target'][2] = task_data['target'][2] + i + 1
+            if "dialogue_target" in task_data:
+                worker_memid = self.task_agents_memid[i]
+                if task_data['dialogue_target'] in self.agent.memory.get_mem_by_id(worker_memid).get_tags():
+                    logging.info("for agent: %r move task data is : %r" % (i, task_data))
+                    self.assign_to_worker(self.task_agents_memid[i], "move", task_data)
+            else:
+                logging.info("for agent: %r move task data is : %r" % (i, task_data))
+                self.assign_to_worker(self.task_agents_memid[i], "move", task_data)
 
 class SwarmSpawn(BaseSwarmTask):
     def __init__(self, agent, task_data):

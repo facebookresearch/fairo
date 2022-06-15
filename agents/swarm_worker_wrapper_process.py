@@ -202,7 +202,6 @@ class SwarmWorkerProcessWrapper(Process):
         :return:
         """
         while not self.input_task_queue.empty():
-            # ForkedPdb().set_trace()
             task_class_name, task_data, task_memid = self.input_task_queue.get_nowait()
             if task_class_name not in self.task_object_mapping.keys():
                 logging.info("task cannot be handled by this worker right now.")
