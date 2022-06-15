@@ -25,9 +25,10 @@ class GettableItem:
     def get_info(self):
         info = {
             "entityId": self.entityId,
-            "typeName": self.typeName,
+            "name": self.typeName,
             "id": self.id,
             "meta": self.meta,
+            "pos": self.pos,
             "x": self.pos.x or "",
             "y": self.pos.y or "",
             "z": self.pos.z or "",
