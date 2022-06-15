@@ -1,6 +1,6 @@
 # Training Semantic Parsing Models
 
-### Setup
+## Setup
 
 Training code for semantic parsing models is in
 ```
@@ -16,7 +16,7 @@ conda activate droidlet_env
 For a list of pytorch and CUDA compatible versions, see:
 https://pytorch.org/get-started/previous-versions/
 
-### Parser Training Instructions
+## Parser Training Instructions
 
 First, if you don't have dataset, you will need to run
 ```
@@ -35,3 +35,17 @@ $ cp $PATH_TO_BEST_CHECKPOINT_MODEL droidlet/artifacts/models/nlu/caip_test_mode
 ```
 
 You can now use that model to run the agent.
+
+## List of scripts
+1. [train_model.py](./train_model.py) - The main training script for NLU model.
+2. [test_model_script.py](./test_model_script.py) - The evaluation script for NLU model, which supports query and evaluate modes.
+3. [caip_dataset.py](./caip_dataset.py) - The CAIP dataset definition for NLU model.
+4. [decoder_with_loss.py](./decoder_with_loss.py) - The definition of decoder part of NLU model.
+5. [encoder_decoder.py](./encoder_decoder.py) - The definition of encoder-decoder model of NLU.
+6. [modeling_bert.py](./modeling_bert.py) - The customized bert related modules.
+7. [label_smoothing_loss.py](./label_smoothing_loss.py) - The definition of label smoothing loss.
+8. [optimizer_warmup.py](./optimizer_warmup.py) - Custom wrapper for adam optimizer with warmup training.
+9. [tokenization_utils.py](./tokenization_utils.py) - Dictionary between span and values.
+10. [utils_caip.py](./utils_caip.py) - Utility for caip dataset.
+11. [utils_model.py](./utils_model.py) - Utility for NLU model.
+12. [utils_parsing.py](./utils_parsing.py) - Utility for semantic parsing. 
