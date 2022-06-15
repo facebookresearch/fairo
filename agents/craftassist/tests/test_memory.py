@@ -7,13 +7,13 @@ import unittest
 import droidlet.base_util
 import droidlet.lowlevel.minecraft.shape_util
 import droidlet.lowlevel.minecraft.shapes
-from droidlet.memory.craftassist.mc_memory import MCAgentMemory
-from droidlet.shared_data_struct.craftassist_shared_utils import MOBS_BY_ID
+from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
+from droidlet.base_util import Look, Pos
 from droidlet.interpreter.craftassist import dance
 from droidlet.interpreter.tests.all_test_commands import *
-from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
-from droidlet.base_util import Pos, Look
-from droidlet.shared_data_struct.craftassist_shared_utils import Mob
+from droidlet.memory.craftassist.mc_memory import MCAgentMemory
+from droidlet.memory.craftassist.mc_memory_nodes import MobNode, TripleNode
+from droidlet.shared_data_struct.craftassist_shared_utils import MOBS_BY_ID, Mob
 
 
 class ObjectsTest(BaseCraftassistTestCase):
@@ -25,8 +25,12 @@ class ObjectsTest(BaseCraftassistTestCase):
         self.obj_b = self.add_object([((0, 0, z), (41, 0)) for z in [-4, -5]])
 
         # give them unique tags
-        self.agent.memory.tag(self.obj_a.memid, "tag_A")
-        self.agent.memory.tag(self.obj_b.memid, "tag_B")
+        self.agent.memory.nodes[TripleNode.NODE_TYPE].tag(
+            self.agent.memory, self.obj_a.memid, "tag_A"
+        )
+        self.agent.memory.nodes[TripleNode.NODE_TYPE].tag(
+            self.agent.memory, self.obj_b.memid, "tag_B"
+        )
 
     def test_merge_tags(self):
         obj = self.add_object([((0, 0, -3), (41, 0))])
@@ -73,7 +77,9 @@ class MethodsTests(unittest.TestCase):
         # add mob
         chicken = {v: k for k, v in MOBS_BY_ID.items()}["chicken"]
         mob_id, mob_type, pos, look = 42, chicken, Pos(3, 4, 5), Look(0.0, 0.0)
-        self.memory.set_mob_position(Mob(mob_id, mob_type, pos, look))
+        self.memory.nodes[MobNode.NODE_TYPE].set_mob_position(
+            self.memory, Mob(mob_id, mob_type, pos, look)
+        )
 
         # get mob
         self.assertIsNotNone(self.memory.get_entity_by_eid(mob_id))
@@ -81,7 +87,9 @@ class MethodsTests(unittest.TestCase):
         # update mob
         pos = Pos(6, 7, 8)
         look = Look(120.0, 50.0)
-        self.memory.set_mob_position(Mob(mob_id, mob_type, pos, look))
+        self.memory.nodes[MobNode.NODE_TYPE].set_mob_position(
+            self.memory, Mob(mob_id, mob_type, pos, look)
+        )
 
         # get mob
         mob_node = self.memory.get_entity_by_eid(mob_id)
@@ -91,7 +99,9 @@ class MethodsTests(unittest.TestCase):
     def test_add_guardian_mob(self):
         guardian = {v: k for k, v in MOBS_BY_ID.items()}["guardian"]
         mob_id, mob_type, pos, look = 42, guardian, Pos(3, 4, 5), Look(0.0, 0.0)
-        self.memory.set_mob_position(Mob(mob_id, mob_type, pos, look))
+        self.memory.nodes[MobNode.NODE_TYPE].set_mob_position(
+            self.memory, Mob(mob_id, mob_type, pos, look)
+        )
 
 
 if __name__ == "__main__":

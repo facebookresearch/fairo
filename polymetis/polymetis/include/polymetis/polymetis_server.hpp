@@ -60,9 +60,7 @@ struct CustomControllerContext {
   uint timestep = 0;
   ControllerStatus status = UNINITIALIZED;
   std::mutex controller_mtx;
-  TorchScriptedController *custom_controller = nullptr;
-
-  ~CustomControllerContext() { delete custom_controller; }
+  std::unique_ptr<TorchScriptedController> custom_controller;
 };
 
 /**

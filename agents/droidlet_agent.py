@@ -14,7 +14,12 @@ from agents.scheduler import EmptyScheduler
 from droidlet.event import sio, dispatch
 from droidlet.interpreter import InterpreterBase
 from droidlet.memory.save_and_fetch_commands import *
-from droidlet.memory.memory_nodes import TaskNode
+from droidlet.memory.memory_nodes import (
+    TaskNode,
+    TripleNode,
+    ChatNode,
+    ProgramNode
+)
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.perception.semantic_parsing.semantic_parsing_util import postprocess_logical_form
 
@@ -103,6 +108,10 @@ class DroidletAgent(BaseAgent):
         def report_agent_type(sid):
             sio.emit("updateAgentType", {"agent_type": self.agent_type})
 
+        @sio.on("does_agent_want_map")
+        def report_agent_wants_map(sid):
+            sio.emit("agentWantsMap", {"agent_enable_map": self.opts.draw_map})
+
         @sio.on("saveErrorDetailsToDb")
         def save_error_details_to_db(sid, postData):
             logging.debug("in save_error_details_to_db, got PostData: %r" % (postData))
@@ -155,8 +164,8 @@ class DroidletAgent(BaseAgent):
                 chat_memids, _ = self.memory.basic_search(
                     f"SELECT MEMORY FROM Chat WHERE chat={chat}"
                 )
-                logical_form_triples = self.memory.get_triples(
-                    subj=chat_memids[0], pred_text="has_logical_form"
+                logical_form_triples = self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                    self.memory, subj=chat_memids[0], pred_text="has_logical_form"
                 )
                 if logical_form_triples:
                     logical_form_mem = self.memory.get_mem_by_id(logical_form_triples[0][2])
@@ -336,18 +345,21 @@ class DroidletAgent(BaseAgent):
         """this munges the results of the semantic parser and writes them to memory"""
 
         # add postprocessed chat here
-        chat_memid = self.memory.add_chat(
-            self.memory.get_player_by_name(speaker).memid, preprocessed_chat
+        memid, _ = self.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}')
+        chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
+            self.memory, memid[0], preprocessed_chat
         )
         post_processed_parse = postprocess_logical_form(
             self.memory, speaker=speaker, chat=chat, logical_form=chat_parse
         )
-        logical_form_memid = self.memory.add_logical_form(post_processed_parse)
-        self.memory.add_triple(
-            subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
+        logical_form_memid = self.memory.nodes[ProgramNode.NODE_TYPE].create(self.memory, post_processed_parse)
+        self.memory.nodes[TripleNode.NODE_TYPE].create(
+            self.memory, subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
         )
         # New chat, mark as uninterpreted.
-        self.memory.tag(subj_memid=chat_memid, tag_text="uninterpreted")
+        self.memory.nodes[TripleNode.NODE_TYPE].tag(
+            self.memory, subj_memid=chat_memid, tag_text="uninterpreted"
+        )
         return logical_form_memid, chat_memid
 
     def perceive(self, force=False):
@@ -358,9 +370,14 @@ class DroidletAgent(BaseAgent):
             force=force
         )
         # unpack the results from the semantic parsing model
-        force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
-            nlu_perceive_output
-        )
+        (
+            force,
+            received_chats_flag,
+            speaker,
+            chat,
+            preprocessed_chat,
+            chat_parse,
+        ) = nlu_perceive_output
         if received_chats_flag:
             # put results from semantic parsing model into memory, if necessary
             self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)

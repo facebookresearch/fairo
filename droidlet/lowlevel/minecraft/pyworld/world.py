@@ -1,7 +1,9 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+import time
 import numpy as np
+from threading import Thread
 from typing import Sequence, Dict
 from droidlet.base_util import Pos, Look
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM
@@ -19,6 +21,7 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import PA
 
 class World:
     def __init__(self, opts, spec):
+        self.is_server = False
         self.opts = opts
         self.count = 0
         # sidelength of the cubical npy array defining the extent of the world
@@ -71,7 +74,7 @@ class World:
 
         if hasattr(opts, "world_server") and opts.world_server:
             port = getattr(opts, "port", 25565)
-            self.setup_server(port=port)
+            self.server = self.setup_server(port=port)
 
     def set_count(self, count):
         self.count = count
@@ -83,6 +86,45 @@ class World:
             if hasattr(p, "step"):
                 p.step()
         self.count += 1
+
+        if self.is_server:
+            self.broadcast_updates()
+
+    def broadcast_updates(self):
+        # broadcast updates
+        players = [
+            {"name": player.name, "x": player.pos.x, "y": player.pos.y, "z": player.pos.z}
+            for player in self.get_players()
+            if player.name in ["craftassist_agent", "dashboard_player"]
+        ]
+        mobs = [
+            {
+                "entityId": m.entityId,
+                "pos": m.pos,
+                "look": m.look,
+                "mobType": m.mobType,
+                "color": m.color,
+                "name": m.mobname,
+            }
+            for m in self.mobs
+        ]
+        item_stacks = [i.get_info() for i in self.item_stacks]
+        payload = {
+            "status": "updateVoxelWorldState",
+            "world_state": {"agent": players, "mob": mobs, "item_stack": item_stacks},
+        }
+        # print(f"Server stepping, payload: {payload}")
+        self.server.emit("updateVoxelWorldState", payload)
+
+    def broadcast_block_update(self, loc, idm):
+        blocks = [((int(loc[0]), int(loc[1]), int(loc[2])), (int(idm[0]), int(idm[1])))]
+        payload = {
+            "status": "updateVoxelWorldState",
+            "world_state": {
+                "block": blocks,
+            },
+        }
+        self.server.emit("updateVoxelWorldState", payload)
 
     def place_block(self, block, force=False):
         loc, idm = block
@@ -102,6 +144,8 @@ class World:
         try:  # FIXME only allow placing non-air blocks in air locations?
             if tuple(self.blocks[loc]) != (7, 0) or force:
                 self.blocks[loc] = idm
+                if self.is_server:
+                    self.broadcast_block_update(loc, idm)
                 for sid, store in self.changed_blocks_store.items():
                     store[tuple(loc)] = idm
                 return True
@@ -237,12 +281,21 @@ class World:
             self.changed_blocks_store[sid] = {}
             self.incoming_chats_store[sid] = []
 
+    def get_player_by_name(self, player_name):
+        for player_eid in self.connected_sids.values():
+            player_info = self.get_player_info(player_eid)
+            if player_info.name == player_name:
+                return {"player": player_info}
+        return None
+
     def setup_server(self, port=25565):
         import socketio
         import eventlet
-        import time
 
-        server = socketio.Server(async_mode="eventlet")
+        self.is_server = True
+
+        server = socketio.Server(async_mode="eventlet", cors_allowed_origins="*")
+        self.server = server
         self.connected_sids = {}
 
         self.start_time = time.time()
@@ -261,8 +314,27 @@ class World:
         def init_player_event(sid, data):
             self.connect_player(sid, data)
 
+        @server.on("getVoxelWorldInitialState")
+        def get_voxel_world_initial_state(sid):
+            print("test get VW initial status")
+            blocks = self.blocks_to_dict()
+            blocks = [
+                ((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))
+                for xyz, idm in blocks.items()
+            ]
+
+            payload = {
+                "status": "updateVoxelWorldState",
+                "world_state": {
+                    "block": blocks,
+                },
+            }
+            print(f"Initial payload: {payload}")
+            server.emit("updateVoxelWorldState", payload)
+
         @server.on("get_world_info")
         def get_world_info(sid):
+            print("get world info")
             return {"sl": self.sl, "coord_shift": self.coord_shift}
 
         @server.on("send_chat")
@@ -363,6 +435,20 @@ class World:
             eid = self.connected_sids.get(sid)
             return {"player": self.get_player_info(eid)}
 
+        @server.on("get_players")
+        def get_all_players(sid):
+            return self.get_players()
+
+        @server.on("get_mobs")
+        def send_mobs(sid):
+            mobs = self.get_mobs()
+            serialized_mobs = []
+            for m in mobs:
+                x, y, z = m.pos
+                yaw, pitch = m.look
+                serialized_mobs.append((m.entityId, m.mobType, x, y, z, yaw, pitch))
+            return serialized_mobs
+
         @server.on("get_changed_blocks")
         def changed_blocks(sid):
             eid = self.connected_sids.get(sid)
@@ -377,13 +463,23 @@ class World:
             x, X, y, Y, z, Z = data["bounds"]
             npy = self.get_blocks(x, X, y, Y, z, Z, transpose=False)
             nz_locs = list(zip(*np.nonzero(npy[:, :, :, 0])))
-            nz_idms = [tuple(self.blocks[l].tolist()) for l in nz_locs]
+            nz_idms = [tuple(int(i) for i in self.blocks[l]) for l in nz_locs]
             nz_locs = [(int(x), int(y), int(z)) for x, y, z in nz_locs]
             flattened_blocks = [nz_locs[i] + nz_idms[i] for i in range(len(nz_locs))]
             return flattened_blocks
 
+        @server.on("start_world")
+        def start_world(sid):
+            self.start()
+
+        @server.on("step_world")
+        def step_world(sid):
+
+            self.step()
+
         app = socketio.WSGIApp(server)
         eventlet.wsgi.server(eventlet.listen(("", port)), app)
+        return server
 
 
 if __name__ == "__main__":
@@ -393,7 +489,7 @@ if __name__ == "__main__":
 
     spec = {"players": [], "mobs": [], "item_stacks": [], "coord_shift": (0, 0, 0), "agent": {}}
     world_opts = Opt()
-    world_opts.sl = 32
+    world_opts.sl = 16
     world_opts.world_server = True
-    world_opts.port = 6000
+    world_opts.port = 6002
     world = World(world_opts, spec)

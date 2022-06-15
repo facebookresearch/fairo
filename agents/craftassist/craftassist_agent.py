@@ -11,17 +11,20 @@ import time
 import json
 from multiprocessing import set_start_method
 from collections import namedtuple
-from datetime import datetime
+from datetime import datetime, timedelta
 from copy import deepcopy
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
 from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
 from droidlet.memory.craftassist import mc_memory
+from droidlet.memory.memory_nodes import ChatNode, SelfNode
 from droidlet.shared_data_struct import rotation
 from droidlet.lowlevel.minecraft.craftassist_mover import (
     CraftassistMover,
+    from_minecraft_look_to_droidlet,
     from_minecraft_xyz_to_droidlet,
+    Look,
 )
 
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
@@ -38,13 +41,11 @@ from droidlet.dialog.dialogue_task import build_question_json
 from droidlet.base_util import Pos, Look, npy_to_blocks_list
 from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item
 from agents.droidlet_agent import DroidletAgent
-from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
-from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
 from droidlet.lowlevel.minecraft.mc_util import (
     cluster_areas,
     MCTime,
@@ -96,12 +97,15 @@ class CraftAssistAgent(DroidletAgent):
             "fill_idmeta": fill_idmeta,
             "color_bid_map": COLOR_BID_MAP,
         }
+        self.backend = opts.backend
         self.mark_airtouching_blocks = opts.mark_airtouching_blocks
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
         self.agent_type = "craftassist"
         self.point_targets = []
         self.last_chat_time = 0
+        self.dash_enable_map = False # dash has map disabled by default
+        self.map_last_updated = datetime.now()
         # areas must be perceived at each step
         # List of tuple (XYZ, radius), each defines a cube
         self.areas_to_perceive = []
@@ -123,9 +127,9 @@ class CraftAssistAgent(DroidletAgent):
         self.perceive_on_chat = True
 
     def get_chats(self):
-        """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
+        """This function is a wrapper around self.mover.get_incoming_chats and adds a new
         chat self.dashboard_chat which is set by the dashboard."""
-        all_chats = self.cagent.get_incoming_chats()
+        all_chats = self.mover.get_incoming_chats()
         updated_chats = []
         if self.dashboard_chat:
             updated_chats.append(self.dashboard_chat)
@@ -288,7 +292,16 @@ class CraftAssistAgent(DroidletAgent):
             sem_seg_perception_output = self.perception_modules["semseg"].perceive()
             self.memory.update(sem_seg_perception_output)
         self.areas_to_perceive = []
+        # 5. update dashboard world and map
         self.update_dashboard_world()
+
+        @sio.on("toggle_map")
+        def handle_toggle_map(sid, data):
+            self.dash_enable_map = data["dash_enable_map"]
+        if self.opts.draw_map and self.dash_enable_map:
+            if datetime.now() >= self.map_last_updated + timedelta(seconds=0.05*self.opts.map_update_ticks):
+                self.map_last_updated = datetime.now()
+                self.draw_map_to_dashboard()
 
     def get_time(self):
         """round to 100th of second, return as
@@ -325,7 +338,8 @@ class CraftAssistAgent(DroidletAgent):
                     ybad = y >= pt[1] and y <= pt[4]
                     zbad = z >= pt[2] and z <= pt[5]
                     if xbad and ybad and zbad:
-                        if b in safe_blocks: safe_blocks.remove(b)
+                        if b in safe_blocks:
+                            safe_blocks.remove(b)
         else:
             safe_blocks = blocks
         return safe_blocks
@@ -368,7 +382,6 @@ class CraftAssistAgent(DroidletAgent):
 
     def send_chat(self, chat: str):
         """Send chat from agent to player"""
-
         chat_json = False
         try:
             chat_json = json.loads(chat)
@@ -379,9 +392,11 @@ class CraftAssistAgent(DroidletAgent):
             chat_text = chat
 
         logging.info("Sending chat: {}".format(chat_text))
-        chat_memid = self.memory.add_chat(self.memory.self_memid, chat_text)
+        chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
+            self.memory, self.memory.self_memid, chat_text
+        )
 
-        if chat_json:
+        if chat_json and not isinstance(chat_json, int):
             chat_json["chat_memid"] = chat_memid
             chat_json["timestamp"] = round(datetime.timestamp(datetime.now()) * 1000)
             # Send the socket event to show this reply on dashboard
@@ -389,7 +404,46 @@ class CraftAssistAgent(DroidletAgent):
         else:
             sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
 
-        return self.cagent.send_chat(chat_text)
+        return self.mover.send_chat(chat_text)
+
+    def get_detected_objects_for_map(self):
+        search_res = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
+        memids, mems = [], []
+        if search_res is not None:
+            memids, mems = search_res
+        detections_for_map = []
+        for mem in mems:
+            if hasattr(mem, "pos"):
+                id_str = "no_id" if not hasattr(mem, "obj_id") else mem.obj_id
+                detections_for_map.append([id_str, list(mem.pos)])
+        return detections_for_map
+
+    def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
+        detections_for_map = []
+        if not obstacles:
+            obstacles = self.memory.place_field.get_obstacle_list()
+            # if we are getting obstacles from memory, get detections from memory for map too
+            detections_for_map = self.get_detected_objects_for_map()
+        if not xyyaw:
+            agent_pos = self.get_player().pos  # position of agent's feet
+            agent_look = self.get_player().look
+            mc_xyz = agent_pos.x, agent_pos.y, agent_pos.z
+            mc_look = Look(agent_look.yaw, agent_look.pitch)
+            x, _, z = from_minecraft_xyz_to_droidlet(mc_xyz)
+            yaw, _ = from_minecraft_look_to_droidlet(mc_look)
+            xyyaw = (x, z, yaw)
+
+        sio.emit(
+            "map",
+            {
+                "x": xyyaw[0],
+                "y": xyyaw[1],
+                "yaw": xyyaw[2],
+                "map": obstacles,
+                "draw_map": self.opts.draw_map,
+                "detections_from_memory": detections_for_map,
+            },
+        )
 
     def update_agent_pos_dashboard(self):
         agent_pos = self.get_player().pos
@@ -472,7 +526,6 @@ class CraftAssistAgent(DroidletAgent):
         self.mover.step_forward()
         self.update_agent_pos_dashboard()
 
-    # TODO update client so we can just loop through these
     # TODO rename things a bit- some perceptual things are here,
     #      but under current abstraction should be in init_perception
     def init_physical_interfaces(self):
@@ -480,10 +533,29 @@ class CraftAssistAgent(DroidletAgent):
         # For testing agent without cuberite server
         if self.opts.port == -1:
             return
-        logging.info("Attempting to connect to port {}".format(self.opts.port))
-        self.cagent = MCAgent("localhost", self.opts.port, self.name)
-        logging.info("Logged in to server")
-        self.mover = CraftassistMover(self.cagent)
+        if self.backend == "cuberite":
+            from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
+
+            logging.info(
+                "Attempting to connect to cuberite cagent on port {}".format(self.opts.port)
+            )
+            self.cagent = MCAgent("localhost", self.opts.port, self.name)
+            logging.info("Logged in to server")
+            self.mover = CraftassistMover(self.cagent)
+        elif self.backend == "pyworld":
+            from droidlet.lowlevel.minecraft.pyworld_mover import PyWorldMover
+
+            logging.info("Attempting to connect to pyworld on port {}".format(self.opts.port))
+            # TODO allow pyworld ip to not be localhost
+            try:
+                self.mover = PyWorldMover(self.opts.port)
+                self.cagent = None
+                logging.info("Logged in to server")
+            except:
+                raise Exception("unable to connect to PyWorld on port {}".format(self.opts.port))
+        else:
+            raise Exception("unknown backend option {}".format(self.backend))
+
         for m in dir(self.mover):
             if callable(getattr(self.mover, m)) and m[0] != "_" and getattr(self, m, None) is None:
                 setattr(self, m, getattr(self.mover, m))
@@ -498,7 +570,7 @@ class CraftAssistAgent(DroidletAgent):
             p = self.get_player()
         except:  # this is for test/test_agent
             return
-        PlayerNode.create(self.memory, p, memid=self.memory.self_memid)
+        SelfNode.update(self.memory, p, memid=self.memory.self_memid)
 
 
 if __name__ == "__main__":
