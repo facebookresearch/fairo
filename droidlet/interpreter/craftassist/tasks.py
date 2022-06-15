@@ -453,10 +453,7 @@ class Build(Task):
             interesting, player_placed, agent_placed = agent.perception_modules[
                 "low_level"
             ].mark_blocks_with_env_change(
-                target,
-                (0, 0),
-                agent.low_level_data["boring_blocks"],
-                agent_placed=True,
+                target, (0, 0), agent.low_level_data["boring_blocks"], agent_placed=True,
             )
             agent.memory.maybe_add_block_to_memory(
                 interesting, player_placed, agent_placed, target, (0, 0)
@@ -511,10 +508,7 @@ class Build(Task):
         interesting, player_placed, agent_placed = agent.perception_modules[
             "low_level"
         ].mark_blocks_with_env_change(
-            target,
-            tuple(idm),
-            agent.low_level_data["boring_blocks"],
-            agent_placed=True,
+            target, tuple(idm), agent.low_level_data["boring_blocks"], agent_placed=True,
         )
         agent.memory.maybe_add_block_to_memory(
             interesting, player_placed, agent_placed, target, tuple(idm)
@@ -967,28 +961,32 @@ class Get(Task):
 
     def __init__(self, agent, task_data):
         super().__init__(agent)
-        self.idm = task_data["idm"]
+        self.idm = task_data.get("idm")
         self.pos = task_data["pos"]
-        self.eid = task_data["eid"]
+        self.eid = task_data.get["eid"]
         self.obj_memid = task_data["obj_memid"]
         self.approx = 1
         self.attempts = 10
-        self.item_count_before_get = agent.get_inventory_item_count(self.idm[0], self.idm[1])
+        if self.idm is not None:
+            self.item_count_before_get = agent.get_inventory_item_count(self.idm[0], self.idm[1])
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
     def step(self):
         super().step()
         agent = self.agent
-        delta = (
-            agent.get_inventory_item_count(self.idm[0], self.idm[1]) - self.item_count_before_get
-        )
-        if delta > 0:
-            agent.inventory.add_item_stack(self.idm, (self.obj_memid, delta))
-            agent.send_chat("Got Item!")
-            agent.memory.nodes[TripleNode.NODE_TYPE].tag(
-                agent.memory, self.obj_memid, "_in_inventory"
+        delta = 0
+        if self.idm is not None:
+            delta = (
+                agent.get_inventory_item_count(self.idm[0], self.idm[1])
+                - self.item_count_before_get
             )
+        else:
+            delta = agent.pick_entityId(self.eid)
+
+        if delta > 0:
+            ItemStackNode.to_inventory(agent.memory, agent.memory.get_mem_by_id(self.obj_memid))
+            Say("Got Item!")
             self.finished = True
             return
 
@@ -1029,6 +1027,11 @@ class Drop(Task):
         self.obj_memid = task_data["obj_memid"]
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
+    def get_memids_by_eid(self, memory, eid):
+        cmd = "SELECT MEMORY FROM ReferenceObjects WHERE eid={}".format(eid)
+        memids, _ = memory.basic_search(cmd)
+        return memids
+
     def find_nearby_new_item_stack(self, agent, id, meta):
         mindist = 3
         near_new_item_stack = None
@@ -1039,7 +1042,8 @@ class Drop(Task):
                     (item_stack.pos.x, item_stack.pos.y, item_stack.pos.z), (x, y, z)
                 )
                 if dist < mindist:
-                    if not agent.memory.get_entity_by_eid(item_stack.entityId):
+                    memids = self.get_memids_by_eid(agent.memory, item_stack.entityId)
+                    if not memids:
                         mindist = dist
                         near_new_item_stack = item_stack
 
@@ -1051,14 +1055,15 @@ class Drop(Task):
         agent = self.agent
         if self.finished:
             return
-        if not agent.inventory.contains(self.eid):
+        if not self.get_memids_by_eid(agent.memory, self.eid):
             agent.send_chat("I can't find it in my inventory!")
             self.finished = False
             return
+        node = agent.memory.get_mem_by_id(self.obj_memid)
+        count = node.count
         id, m = self.idm
-        count = self.inventory.get_item_stack_count_from_memid(self.obj_memid)
         agent.drop_inventory_item_stack(id, m, count)
-        agent.inventory.remove_item_stack(self.idm, self.obj_memid)
+        ItemStackNode.drop(agent.memory, node)
 
         mindist, dropped_item_stack = self.get_nearby_new_item_stack(agent, id, m)
         if dropped_item_stack:

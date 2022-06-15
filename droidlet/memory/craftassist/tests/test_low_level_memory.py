@@ -136,16 +136,11 @@ class BasicTest(unittest.TestCase):
             self.memory, ItemStack(12, Item(0, 0), Pos(0, 0, 0)), low_level_data
         )
         # test update_item_stack_eid
-        assert self.memory.update_item_stack_eid(item_memid, 23).eid == 23
+        assert ItemStack.update_item_stack_eid(self.memory, item_memid, 23).eid == 23
         # test set_item_stack_position
         new_item = ItemStack(23, Item(0, 0), Pos(2, 2, 2))
-        self.memory.set_item_stack_position(new_item)
+        ItemStack.set_item_stack_position(self.memory, new_item)
         assert self.memory.get_mem_by_id(item_memid).pos == (2.0, 2.0, 2.0)
-        # test get_all_item_stacks
-        item_2_memid = ItemStackNode.create(
-            self.memory, ItemStack(34, Item(10, 4), Pos(2, 3, 3)), low_level_data
-        )
-        assert len(self.memory.get_all_item_stacks()) == 2
 
     def test_dance_api(self):
         self.memory = MCAgentMemory()

@@ -16,7 +16,7 @@ from copy import deepcopy
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
-from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
+from droidlet.interpreter.craftassist import default_behaviors, dance
 from droidlet.memory.craftassist import mc_memory
 from droidlet.memory.memory_nodes import ChatNode, SelfNode
 from droidlet.shared_data_struct import rotation
@@ -108,7 +108,6 @@ class CraftAssistAgent(DroidletAgent):
         # List of tuple (XYZ, radius), each defines a cube
         self.areas_to_perceive = []
         self.add_self_memory_node()
-        self.init_inventory()
         self.init_event_handlers()
 
         shape_util_dict = {
@@ -195,11 +194,6 @@ class CraftAssistAgent(DroidletAgent):
                 },
             }
             sio.emit("setVoxelWorldInitialState", payload)
-
-    def init_inventory(self):
-        """Initialize the agent's inventory"""
-        self.inventory = inventory.Inventory()
-        logging.info("Initialized agent inventory")
 
     def init_memory(self):
         """Intialize the agent memory and logging."""
@@ -384,7 +378,9 @@ class CraftAssistAgent(DroidletAgent):
             chat_text = chat
 
         logging.info("Sending chat: {}".format(chat_text))
-        chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(self.memory, self.memory.self_memid, chat_text)
+        chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
+            self.memory, self.memory.self_memid, chat_text
+        )
 
         if chat_json and not isinstance(chat_json, int):
             chat_json["chat_memid"] = chat_memid
@@ -414,8 +410,8 @@ class CraftAssistAgent(DroidletAgent):
             obstacles = self.memory.place_field.get_obstacle_list()
             # if we are getting obstacles from memory, get detections from memory for map too
             detections_for_map = self.get_detected_objects_for_map()
-        if not xyyaw:            
-            agent_pos = self.get_player().pos   # position of agent's feet
+        if not xyyaw:
+            agent_pos = self.get_player().pos  # position of agent's feet
             agent_look = self.get_player().look
             mc_xyz = agent_pos.x, agent_pos.y, agent_pos.z
             mc_look = Look(agent_look.yaw, agent_look.pitch)
