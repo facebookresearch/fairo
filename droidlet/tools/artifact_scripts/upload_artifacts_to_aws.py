@@ -14,32 +14,13 @@ ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../")
 print("Rootdir : %r" % ROOTDIR)
 
 
-def tar_and_upload(agent, artifact_name, model_name=None, checksum=None):
+def tar_and_upload(checksum=None, artifact_path_name=None, artifact_name=None):
     """
     Tar all files for the artifact and upload it to AWS.
     """
-    if not agent:
-        print("Agent name not specified, defaulting to craftassist agent")
-        agent = "craftassist"
-
-    # construct the path
-    artifact_path_name = artifact_name + "/"
-    if artifact_name == "models":
-        if not model_name:
-            model_name = "nlu"
-            print("Model type not specified, defaulting to NLU model.")
-        artifact_path_name = artifact_path_name + model_name
-        artifact_name = artifact_name + "_" + model_name
-        if model_name != "nlu":
-            # agent specific models
-            artifact_path_name = artifact_path_name + "/" + agent
-            artifact_name = artifact_name + "_" + agent
-        print(artifact_name, artifact_path_name)
-
     # Change the directory to artifacts
     os.chdir(os.path.join(ROOTDIR, "droidlet/artifacts/"))
 
-    print(artifact_name, artifact_path_name)
     print("Now making the tar file...")
     process = Popen(
         [
@@ -105,15 +86,15 @@ def compute_checksum(agent, artifact_name, model_name=None):
         checksum = f.read().strip()
     print("CHECKSUM: %r" % checksum)
 
-    return checksum
+    return checksum, artifact_path_name, artifact_name
 
 
 def compute_checksum_tar_and_upload(agent, artifact_name, model_name=None):
     # Compute the checksum and write into corresponding file
-    checksum = compute_checksum(agent, artifact_name, model_name)
+    checksum, artifact_path_name, artifact_name = compute_checksum(agent, artifact_name, model_name)
 
     # Tar and upload the local artifact folder
-    tar_and_upload(agent, artifact_name, model_name, checksum)
+    tar_and_upload(checksum, artifact_path_name, artifact_name)
     
 
 def upload_agent_datasets(agent=None):

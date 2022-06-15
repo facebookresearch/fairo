@@ -19,6 +19,7 @@ from droidlet.tools.hitl.job_listener import JobListener
 from droidlet.tools.hitl.task_runner import TaskRunner
 from droidlet.tools.artifact_scripts.compute_checksum import compute_checksum_for_directory
 from droidlet.tools.artifact_scripts.upload_artifacts_to_aws import (
+    compute_checksum,
     tar_and_upload,
     compute_checksum_tar_and_upload,
 )
@@ -414,19 +415,16 @@ class NSPRetrainingJob(DataGenerator):
         compute_checksum_for_directory("craftassist", "models", "nlu")
         compute_checksum_for_directory("craftassist", "datasets", "")
 
-        # Read checksum of model and dataset
-        checksum_m = ""
-        with open("droidlet/tools/artifact_scripts/tracked_checksums/nlu.txt", "r") as f:
-            checksum_m = f.read().strip()
+        # Read checksum of dataset
         checksum_d = ""
         with open("droidlet/tools/artifact_scripts/tracked_checksums/datasets.txt", "r") as f:
             checksum_d = f.read().strip()
 
-        # Write the checksum to local artifacts
-        with open("droidlet/artifacts/models/nlu/checksum.txt", "w") as f:
-            f.write(checksum_m + "\n")
+        # Write the checksum to local model 
+        checksum_m, artifact_path_name, artifact_name = compute_checksum("craftassist", "models", "nlu")
 
         # Log the information for the best model
+        os.chdir(self.opts.droidlet_dir)
         with open("droidlet/artifacts/models/nlu/model_log.txt", "w") as f_log, open(
             model_out + MODEL_INFO_NAME, "r"
         ) as f:
@@ -441,17 +439,9 @@ class NSPRetrainingJob(DataGenerator):
             f_log.write("hash_model " + checksum_m + "\n")
             f_log.write("hash_dataset " + checksum_d + "\n")
 
-        # Tar model and dataset artifacts and upload them to AWS
-        # Load checksum for model artifact
-        with open(
-            os.path.join(
-                self.opts.droidlet_dir,
-                "droidlet/tools/artifact_scripts/tracked_checksums/nlu.txt",
-            ),
-            "r",
-        ) as f:
-            checksum = f.read().strip()
-        tar_and_upload("craftassist", "models", "nlu", checksum)
+        # Tar model and upload them to AWS
+        tar_and_upload(checksum_m, artifact_path_name, artifact_name)
+        # Compute checksum, tar and uploaf for dataset
         compute_checksum_tar_and_upload("craftassist", "datasets", "")
 
         logging.info(f"NSP Retraining Job finished")
