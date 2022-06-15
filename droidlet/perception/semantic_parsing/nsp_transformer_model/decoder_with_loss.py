@@ -7,6 +7,7 @@ from droidlet.perception.semantic_parsing.nsp_transformer_model.label_smoothing_
 
 from transformers.models.bert.modeling_bert import BertOnlyMLMHead
 
+
 def my_xavier_init(m, gain=1):
     """Xavier initialization: weights initialization that tries to make variance of outputs
     of a layer equal to variance of its inputs.
