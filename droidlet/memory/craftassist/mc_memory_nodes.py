@@ -584,7 +584,7 @@ class ItemStackNode(ReferenceObjectNode):
             >>> create(memory, item_stack)
         """
         bid_to_name = block_data_info.get("bid_to_name", {})
-        type_name = bid_to_name[(item_stack.item.id, item_stack.item.meta)]
+        type_name = bid_to_name.get((item_stack.item.id, item_stack.item.meta), "")
         memid = cls.new(memory)
         memory.db_write(
             "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, type_name, ref_type, voxel_count, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -648,11 +648,11 @@ class ItemStackNode(ReferenceObjectNode):
         return memory.get_mem_by_id(memid)
 
     @classmethod
-    def set_item_stack_position(cls, memory, item_stack):
-        """If the node exists, update the position of item stack in memory
-        else create a new node.
+    def update_item_stack_position(cls, memory, item_stack):
+        """update the position of item stack in memory
         Returns :
-            Updated or new ItemStackNode
+            Updated or new ItemStackNode, or None id there is none corresponding to 
+            item_stack's entityId
         """
         r = memory._db_read_one(
             "SELECT uuid FROM ReferenceObjects WHERE eid=?", item_stack.entityId
@@ -666,9 +666,8 @@ class ItemStackNode(ReferenceObjectNode):
                 item_stack.entityId,
             )
             (memid,) = r
-        else:
-            memid = ItemStackNode.create(memory, item_stack, memory.low_level_block_data)
-        return memory.get_mem_by_id(memid)
+        if memid:
+            return memory.get_mem_by_id(memid)
 
 
 class SchematicNode(MemoryNode):

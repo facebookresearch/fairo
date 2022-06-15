@@ -155,11 +155,15 @@ class MCAgentMemory(AgentMemory):
                 for pickable_items in perception_output.agent_pickable_items[
                     "in_perception_items"
                 ]:
-                    self.set_item_stack_position(pickable_items)
+                    if not ItemStackNode.update_item_stack_position(self, pickable_items):
+                        ItemStackNode.create(self, pickable_items, self.block_data_info)
+
             # 2.2 Update previous pickable_item_stack based on perception
             if perception_output.agent_pickable_items["all_items"]:
                 # Note: item stacks are not stored properly in memory right now @Yuxuan to fix this.
-                old_item_stacks = self.get_all_item_stacks()
+                old_item_stacks = self._db_read(
+                    "SELECT uuid, eid FROM ReferenceObjects WHERE ref_type=?", "item_stack"
+                )
                 if old_item_stacks:
                     for old_item_stack in old_item_stacks:
                         memid = old_item_stack[0]

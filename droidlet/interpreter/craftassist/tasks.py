@@ -1067,8 +1067,10 @@ class Drop(Task):
 
         mindist, dropped_item_stack = self.get_nearby_new_item_stack(agent, id, m)
         if dropped_item_stack:
-            agent.memory.update_item_stack_eid(self.obj_memid, dropped_item_stack.entityId)
-            agent.memory.set_item_stack_position(dropped_item_stack)
+            ItemStackNode.update_item_stack_eid(
+                agent.memory, self.obj_memid, dropped_item_stack.entityId
+            )
+            ItemStackNode.update_item_stack_position(agent.memory, dropped_item_stack)
             agent.memory.nodes[TripleNode.NODE_TYPE].tag(
                 agent.memory, self.obj_memid, "_on_ground"
             )
