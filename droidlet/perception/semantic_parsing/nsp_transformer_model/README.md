@@ -36,7 +36,6 @@ $ cp $PATH_TO_BEST_CHECKPOINT_MODEL droidlet/artifacts/models/nlu/caip_test_mode
 
 You can now use that model to run the agent.
 
-<<<<<<< HEAD
 ## Parser Evaluating Instructions
 
 We support interative way to evaluate or query semantic parser via ipython,
@@ -58,8 +57,6 @@ For evaluate model, you can run
 eval_model(args, model, tokenizer, dataset)
 ```
 
-=======
->>>>>>> 9e0adfbd (transfer nsp scripts to nsp transformer model)
 ## List of scripts
 1. [train_model.py](./train_model.py) - The main training script for NLU model.
 2. [test_model_script.py](./test_model_script.py) - The evaluation script for NLU model, which supports query and evaluate modes.
@@ -73,7 +70,6 @@ eval_model(args, model, tokenizer, dataset)
 10. [utils_caip.py](./utils_caip.py) - Utility for caip dataset.
 11. [utils_model.py](./utils_model.py) - Utility for NLU model.
 12. [utils_parsing.py](./utils_parsing.py) - Utility for semantic parsing. 
-<<<<<<< HEAD
 13. [query_model.py](./query_model.py) - The definition of NLU query model.
 
 ## Data Processing Scripts
@@ -83,5 +79,3 @@ This is a suite of data processing scripts that are used to process datasets for
 3. [process_templated_generations_for_train.py](./process_templated_generations_for_train.py) - Creates a train/test/valid split of templated data from templated generations created using the generation script.
 4. [remove_static_valid_commands.py](./remove_static_valid_commands.py): Sets aside commands to be used for validation.
 5. [update_valid_test_sets.py](./update_valid_test_sets.py) - Updates the valid splits with updated action dictionaries.
-=======
->>>>>>> 9e0adfbd (transfer nsp scripts to nsp transformer model)
