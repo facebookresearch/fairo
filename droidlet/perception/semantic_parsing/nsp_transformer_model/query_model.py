@@ -61,8 +61,4 @@ class NSPBertModel(object):
             tree = btr[1][0]
         else:
             tree = btr[0][0]
-<<<<<<< HEAD
         return tree
-=======
-        return tree
->>>>>>> 2415bd9a (add back)
