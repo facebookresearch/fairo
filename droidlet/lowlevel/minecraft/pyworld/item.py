@@ -4,8 +4,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from droidlet.base_util import Pos
 from droidlet.lowlevel.minecraft.pyworld.utils import make_pose
 
+
 class GettableItem:
-    def __init__(self, typeName, entityId=None, pos=None, idm=(0,0)):
+    def __init__(self, typeName, entityId=None, pos=None, idm=(0, 0)):
         self.entityId = entityId
         self.typeName = typeName
         self.pos = pos or Pos()
@@ -30,12 +31,12 @@ class GettableItem:
             "x": self.pos.x or "",
             "y": self.pos.y or "",
             "z": self.pos.z or "",
-            "in_inventory": self.in_inventory
-            }
+            "in_inventory": self.in_inventory,
+        }
         return info
 
     def attach_to_entity(self, entityId):
-        """ 
+        """
         record that self is in inventory of the entity with entityId
         """
         self.in_inventory = entityId
