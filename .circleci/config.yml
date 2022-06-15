@@ -522,11 +522,13 @@ jobs:
           name: Run test
           command: |
             # Fix QT load issue: https://forum.qt.io/topic/119109/using-pyqt5-with-opencv-python-cv2-causes-error-could-not-load-qt-platform-plugin-xcb-even-though-it-was-found/
-            mv /home/circleci/miniconda3/envs/mrp_polygrasp/lib/python3.8/site-packages/cv2/qt/plugins/platforms /home/circleci/miniconda3/envs/mrp_polygrasp/lib/python3.8/site-packages/cv2/qt/plugins/platforms_old
+            rm -rf /home/circleci/miniconda3/envs/mrp_polygrasp/lib/python3.8/site-packages/cv2/qt/plugins/platforms
 
             conda activate mrp_polygrasp
             cd perception/sandbox/polygrasp/
-            python 
+
+            mrp up grasp_server segmentation_server --nobuild
+            python scripts/run_grasp.py robot=robot_mock cam=cam_mock num_bin_shifts=1 num_grasps_per_bin_shift=1
 
 
 workflows:
