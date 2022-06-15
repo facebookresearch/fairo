@@ -1224,6 +1224,9 @@ class TaskNode(MemoryNode):
     # use this to update prio or running, don't do it directly on task or in db!!
     def get_update_status(self, status, force_db_update=True, force_task_update=True):
         """
+        EGG_PRIO = -3
+        CHECK_PRIO = 0
+        FINISHED_PRIO = -1
         status is a dict with possible keys "prio", "running", "paused", "finished".
 
         prio > CHECK_PRIO  :  run me if possible, check my terminate condition

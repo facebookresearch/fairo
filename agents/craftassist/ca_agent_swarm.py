@@ -33,8 +33,7 @@ def make_swarm_minecraft(num_workers=1):
     # Init the wrapper around the master agent with above agent, opts and 
     master = SwarmMasterWrapper(agent=swarm_master_agent, worker_agents=[None] * num_workers, opts=opts)
     master.start()
-    
-    
+
 
 if __name__ == "__main__":
-    make_swarm_minecraft()
+    make_swarm_minecraft(num_workers=1)

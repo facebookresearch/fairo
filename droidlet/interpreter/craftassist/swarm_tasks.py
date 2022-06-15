@@ -1,6 +1,6 @@
 from copy import deepcopy
 import numpy as np
-
+import logging
 from droidlet.task.task import ControlBlock, Task
 from droidlet.memory.memory_nodes import TaskNode
 from droidlet.interpreter.craftassist import tasks
@@ -60,9 +60,13 @@ class BaseSwarmTask(Task):
     
     def assign_to_worker(self, worker_memid, task_name, task_data):
         worker_idx = get_worker_idx_from_memid(self.all_swarm_workers_memid, worker_memid)
+        # import ipdb;ipdb.set_trace()
         if worker_idx == 0:
-            TASK_MAP[task_name](self.agent, task_data)
+            # master agent, create and tag task
+            t = TASK_MAP[task_name](self.agent, task_data)
+            self.agent.memory.tag(t.memid, self.agent.name)
         else:
+            # tag children's tasks with them
             tmp_task = TASK_MAP[task_name](self.agent, task_data)
             self.agent.memory.tag(tmp_task.memid, self.memory_tag.format(worker_idx))
 
@@ -72,6 +76,7 @@ class SwarmMove(BaseSwarmTask):
     
     def distribute(self, task_data):
         for i in range(self.num_agents):
+            logging.info("for agent: %r move task data is : %r" % (i, task_data))
             self.assign_to_worker(self.task_agents_memid[i], "move", task_data)
 
 
@@ -104,7 +109,7 @@ class SwarmBuild(BaseSwarmTask):
         block_list.sort(key=lambda x: x[0][0])
         self.num_blocks = len(block_list)
         self.num_blocks_per_agent = np.array([self.num_blocks//self.num_agents] * self.num_agents)
-        self.num_blocks_per_agent[-1] += self.num_blocks - self.num_blocks//self.num_agents * self.num_agents
+        self.num_blocks_per_agent[-1] += self.num_blocks - (self.num_blocks//self.num_agents * self.num_agents)
         tmp_ind = 0
         for i in range(self.num_agents):
             tmp_task_data = deepcopy(task_data)
@@ -114,6 +119,7 @@ class SwarmBuild(BaseSwarmTask):
             # get offset to modify the origin
             tmp_task_data["origin"] += np.array(offset)
             tmp_ind += self.num_blocks_per_agent[i]
+            logging.info("for agent: %r build task data is : %r" % (i, tmp_task_data))
             self.assign_to_worker(self.task_agents_memid[i], "build", tmp_task_data)
 
 class SwarmDestroy(BaseSwarmTask):
@@ -138,6 +144,7 @@ class SwarmDig(BaseSwarmTask):
         super().__init__(agent, task_data)
         
     def distribute(self, task_data):
+        logging.info("Dig task with task_data: %r" % (task_data))
         self.origin = task_data["origin"]
         self.length = task_data["length"]
         self.width = task_data["width"]

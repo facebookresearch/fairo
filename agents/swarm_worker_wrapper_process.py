@@ -4,7 +4,7 @@ from copy import deepcopy
 
 from agents.swarm_utils import get_default_task_info
 from agents.craftassist.craftassist_agent import CraftAssistAgent
-from droidlet.memory.swarm_worker_memory import SwarmWorkerMemory
+from droidlet.memory.swarm_worker_memory import ForkedPdb, SwarmWorkerMemory
 from droidlet.perception.craftassist.swarm_worker_perception import SwarmLowLevelMCPerception
 
 
@@ -55,16 +55,16 @@ class SwarmWorkerProcessWrapper(Process):
         # task_stack store current tasks
         # duplicate_tasks store duplicated task memid sent from the master
         # prio, running, pause stores the priority, running status, stop status of each task
-        agent.task_stack = {}
+        agent.task_stack = dict()
         agent.duplicate_tasks = []
-        agent.prio = {}
-        agent.running = {}
-        agent.pause = {}
+        agent.prio = dict()
+        agent.running = dict()
+        agent.pause = dict()
 
         # queues for communicating with the master agent
         agent.memory_query_from_worker = self.memory_query_from_worker
         agent.memory_query_answer_from_master = self.memory_query_answer_from_master
-        agent.query_or_updates_from_worker = self.query_or_updates_from_worker
+        # agent.query_or_updates_from_worker = self.query_or_updates_from_worker
         agent.query_from_master = self.query_from_master
 
         #### temporary for debug
@@ -86,7 +86,9 @@ class SwarmWorkerProcessWrapper(Process):
         for v in agent.perception_modules.values():
             v.perceive(force=force)
 
-    
+    def send_perception_updates(self, agent):
+        pass
+
     def get_task_data(self, task_data):
         if "task_data" in task_data:
             return task_data["task_data"]
@@ -100,10 +102,10 @@ class SwarmWorkerProcessWrapper(Process):
         reject the task if the full task information is incomplete from the master
         the function is necessary for multiprocessing
         """
-        if task_name not in self.TASK_INFO.keys():
+        if task_name not in self.task_object_info.keys():
             logging.info("task {} received without checking arguments")
             return True
-        for key in self.TASK_INFO[task_name.lower()]:
+        for key in self.task_object_info[task_name.lower()]:
             if key not in task_data:
                 return False
         return True
@@ -125,9 +127,9 @@ class SwarmWorkerProcessWrapper(Process):
         finished_task_memids = []
         for memid, task in agent.task_stack.items():
             pre_task_status = (agent.prio[memid], agent.running[memid], task.finished)
-            if agent.prio[memid] == -1:  # new task
+            if agent.prio[memid] == 0:  # new task
                 if task.init_condition.check():  # if init condition is true, set pri to be run
-                    agent.prio[memid] = 0
+                    agent.prio[memid] = 1
             cur_task_status = (agent.prio[memid], agent.running[memid], task.finished)
             if cur_task_status != pre_task_status:
                 task_updates.append((memid, cur_task_status))
@@ -139,40 +141,48 @@ class SwarmWorkerProcessWrapper(Process):
         finished_task_memids = []
         for memid, task in agent.task_stack.items():
             pre_task_status = (agent.prio[memid], agent.running[memid], task.finished)
-            if (not agent.pause[memid]) and (agent.prio[memid] > -1):
+            if (not agent.pause[memid]) and (agent.prio[memid] > 0 ):
                 # if task.run_condition.check():  # can it be run ?
-                agent.prio[memid] = 1
+                # agent.prio[memid] = 1
                 agent.running[memid] = 1
-                # if task.stop_condition.check():  # does it need to be stoppped ?
-                #     agent.prio[memid] = 0
-                #     agent.running[memid] = 0
-            cur_task_status = (agent.prio[memid], agent.running[memid], task.finished)
-            if cur_task_status != pre_task_status:
-                task_updates.append((memid, cur_task_status))
-        # send task updates once the task status is changed
-        self.send_task_updates(task_updates)
-
-
-        # Invokd task.step() if running >=1 and not paused, send updates to master
-        task_updates = []
-        finished_task_memids = []
-        for memid, task in agent.task_stack.items():
-            pre_task_status = (agent.prio[memid], agent.running[memid], task.finished)
-            if (not agent.pause[memid]) and (agent.running[memid] >= 1):
+                cur_task_status = (agent.prio[memid], agent.running[memid], task.finished)
+                # ForkedPdb().set_trace()
+                logging.info("task for agent: %r finished: %r" % (task, task.finished))
                 task.step()
                 if task.finished:
                     finished_task_memids.append(memid)
                     cur_task_status = (0, 0, task.finished)
+                # if task.terminate_condition.check():  # does it need to be stoppped ?
+                #     agent.prio[memid] = -1
+                #     agent.running[memid] = 0
+            # cur_task_status = (agent.prio[memid], agent.running[memid], task.finished)
             if cur_task_status != pre_task_status:
                 task_updates.append((memid, cur_task_status))
         # send task updates once the task status is changed
         self.send_task_updates(task_updates)
+
+
+        # Invoke task.step() if running >=1 and not paused, send updates to master
+        # task_updates = []
+        # finished_task_memids = []
+        # for memid, task in agent.task_stack.items():
+        #     pre_task_status = (agent.prio[memid], agent.running[memid], task.finished)
+        #     if (not agent.pause[memid]) and (agent.running[memid] >= 1):
+        #         task.step()
+        #         if task.finished:
+        #             finished_task_memids.append(memid)
+        #             cur_task_status = (0, 0, task.finished)
+        #     if cur_task_status != pre_task_status:
+        #         task_updates.append((memid, cur_task_status))
+        # # send task updates once the task status is changed
+        # self.send_task_updates(task_updates)
 
         # For tasks finished, delete from task_stack, priority and running dicts
         for memid in finished_task_memids:
             del agent.task_stack[memid]
             del agent.prio[memid]
             del agent.running[memid]
+        logging.info("worker agent's task stack is: %r"%(agent.task_stack))
         return task_updates
 
 
@@ -184,8 +194,9 @@ class SwarmWorkerProcessWrapper(Process):
         :return:
         """
         while not self.input_task_queue.empty():
+            # ForkedPdb().set_trace()
             task_class_name, task_data, task_memid = self.input_task_queue.get_nowait()
-            if task_class_name not in self.TASK_MAP.keys():
+            if task_class_name not in self.task_object_mapping.keys():
                 logging.info("task cannot be handled by this worker right now.")
                 continue
             # Handle new task
@@ -194,7 +205,7 @@ class SwarmWorkerProcessWrapper(Process):
                 # if it is a new task, check the info completeness and then create it
                 task_data = self.get_task_data(task_data)
                 if self.check_task_info_completeness(task_class_name, task_data):
-                    new_task = self.TASK_MAP[task_class_name](agent, task_data)
+                    new_task = self.task_object_mapping[task_class_name](agent, task_data)
                     if task_memid is None:
                         task_memid = new_task.memid
                     else:
@@ -202,33 +213,33 @@ class SwarmWorkerProcessWrapper(Process):
                         agent.duplicate_tasks.append(new_task.memid)
                     # can send updates back to main agent to mark as finished
                     agent.task_stack[task_memid] = new_task
-                    agent.prio[task_memid] = -1
-                    agent.running[task_memid] = -1
-                    agent.pause[task_memid] = False
+                    agent.prio[task_memid] = 0
+                    agent.running[task_memid] = 0
+                    agent.pause[task_memid] = False # or 0
             elif task_memid in agent.task_stack.keys():
                 # if it is an existing task, update master with the existing task status
                 self.send_task_updates([(task_memid, (
                 agent.prio[task_memid], agent.running[task_memid], agent.task_stack[task_memid].finished))])
             elif task_memid in agent.duplicate_tasks:
-                # if it is a ghost task(ie: duplicate task), update master about task status so that it won't be
+                # if it is a duplicate task, update master about task status so that it won't be
                 # sent to the worker again
                 self.send_task_updates([(task_memid, (0, 0, True))])
 
-    def handle_master_query(self, agent):
-        # query_from_master, worker receives the query/commands from the master from the queue
-        while not self.query_from_master.empty():
-            query_name, query_data = self.query_from_master.get_nowait()
-            # Hand;ing stop and resume as unique cases right now...
-            if query_name == "stop":
-                for memid, task in agent.task_stack.items():
-                    if not task.finished:
-                        agent.pause[memid] = True
-            elif query_name == "resume":
-                for memid, task in agent.task_stack.items():
-                    agent.pause[memid] = False
-            else:
-                logging.info("Query not currently handled by the worker : {}".format(query_name))
-                raise NotImplementedError
+    # def handle_master_query(self, agent):
+    #     # query_from_master, worker receives the query/commands from the master from the queue
+    #     while not self.query_from_master.empty():
+    #         query_name, query_data = self.query_from_master.get_nowait()
+    #         # Hand;ing stop and resume as unique cases right now...
+    #         if query_name == "stop":
+    #             for memid, task in agent.task_stack.items():
+    #                 if not task.finished:
+    #                     agent.pause[memid] = True
+    #         elif query_name == "resume":
+    #             for memid, task in agent.task_stack.items():
+    #                 agent.pause[memid] = False
+    #         else:
+    #             logging.info("Query not currently handled by the worker : {}".format(query_name))
+    #             raise NotImplementedError
 
     def run(self):
         # this is what happens when the process is started -> when
@@ -237,14 +248,15 @@ class SwarmWorkerProcessWrapper(Process):
         agent = CraftAssistAgent(self.opts)
         # Init the worker with CA agent and let master know of memid and init completion
         self.init_worker(agent)
+        agent.task_filter = agent.name
         self.query_or_updates_from_worker.put(("initialization", True))
         # TODO: look into why we need agent's memory ?
         self.query_or_updates_from_worker.put(("memid", agent.memory.self_memid))
 
         while True:
             self.perceive(agent)
-            # self.send_perception_updates(agent) -- skip, send no updates back right now
+            self.send_perception_updates(agent) #-- skip, send no updates back right now
             self.handle_input_task(agent)
             self.task_step(agent)
-            self.handle_master_query(agent)
+            # self.handle_master_query(agent)
             agent.count += 1

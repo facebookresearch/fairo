@@ -19,6 +19,7 @@ class SwarmMasterWrapper():
         self.init_memory_handlers_dict()
         
         # task_step_filters is used to filter out tasks meant for worker agents
+        # self.agent.task_filter = self.agent.name
         self.agent.task_step_filters = ["worker_bot_{}".format(i+1) for i in range(self.num_workers)]
         self.agent.num_agents = self.num_workers + 1 # including main agent
 
@@ -90,13 +91,15 @@ class SwarmMasterWrapper():
                 self.agent.memory.db_write(cmd, eid, tmp_perceptions[i]["pos"].x, 
                                                 tmp_perceptions[i]["pos"].y, 
                                                 tmp_perceptions[i]["pos"].z, memid)
+    
+
     def get_new_tasks(self, tag):
         """
         Get task from memory for this tag and return the list
         :param tag:
         :return:
         """
-        query = "SELECT MEMORY FROM Task WHERE prio=-1"
+        query = "SELECT MEMORY FROM Task WHERE prio=0"
         _, task_mems = self.agent.memory.basic_search(query)
         task_list = []
         for mem in task_mems:
@@ -115,8 +118,11 @@ class SwarmMasterWrapper():
         listening on
         :return:
         """
+        
         for i in range(self.num_workers):
             task_list = self.get_new_tasks(tag="worker_bot_{}".format(i+1))
+            # if task_list:
+            #     import ipdb;ipdb.set_trace()
             for new_task in task_list:
                 self.swarm_workers[i].input_task_queue.put(new_task)
 
@@ -138,6 +144,7 @@ class SwarmMasterWrapper():
                         mem = self.agent.memory.get_mem_by_id(memid)
                         mem.get_update_status({"prio": cur_task_status[0], "running": cur_task_status[1]})
                         if cur_task_status[2]: # if marked as finished
+                            # import ipdb;ipdb.set_trace()
                             mem.task.finished = True
                 elif name == "initialization":
                     # signal indicating the worker initialization is finished

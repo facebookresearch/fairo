@@ -26,21 +26,19 @@ class SwarmDialogueManager(DialogueManager):
                 continue
             chat_memid = chat.memid
             # get logical form if any else None
-            logical_form, chat_status = None, ""
+            logical_form_memid, chat_status = None, ""
             logical_form_triples = self.memory.get_triples(
                 subj=chat_memid, pred_text="has_logical_form"
             )
             processed_status = self.memory.get_triples(
-                subj=chat_memid, pred_text="has_tag", obj_text="unprocessed"
+                subj=chat_memid, pred_text="has_tag", obj_text="uninterpreted"
             )
             if logical_form_triples:
-                logical_form = self.memory.nodes[ProgramNode.NODE_TYPE](
-                    self.memory, logical_form_triples[0][2]
-                ).logical_form
+                logical_form_memid = logical_form_triples[0][2]
 
             if processed_status:
                 chat_status = processed_status[0][2]
             chat_str = chat.chat_text
-            chat_list_text.append((speaker, chat_str, logical_form, chat_status, chat_memid))
+            chat_list_text.append((speaker, chat_str, logical_form_memid, chat_status, chat_memid))
 
         return chat_list_text

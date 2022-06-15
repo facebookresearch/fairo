@@ -55,8 +55,14 @@ def get_default_task_info(task_object_mapping):
     "dance": ["movement"] etc
     """
     DEFAULT_TASK_INFO = {
-        "move": ["target", "approx"]
+        "move": ["target", "approx"],
+        "build": ["embed", "blocks_list", "origin", 
+                  "verbose", "relations", "default_behavior", 
+                  "force", "fill_message", "schematic_memid", 
+                  "schematic_tags", "PLACE_REACH", "is_destroy_schm", 
+                  "dig_message", "DIG_REACH"],
     }
+
     task_info = {}
     for key in task_object_mapping:
         if key in DEFAULT_TASK_INFO.keys():
@@ -82,6 +88,9 @@ def get_memory_handlers_dict(agent):
     agent_type = agent.__class__.__name__.lower()
     mem_query_to_method = {
             "get_time": agent.memory.get_time,
+            "maybe_remove_inst_seg": agent.memory.maybe_remove_inst_seg,
+            "maybe_add_block_to_memory": agent.memory.maybe_add_block_to_memory,
+            "maybe_remove_block_from_memory": agent.memory.maybe_remove_block_from_memory,
             "get_world_time": agent.memory.get_world_time,
             "add_tick": agent.memory.add_tick,
             "update": agent.memory.update,

@@ -73,6 +73,7 @@ class SwarmWorkerMemory():
         for a in args:
             send_command.append(a)
         self.send_queue.put(tuple(send_command))
+        logging.info("Adding this to sed queue: %r" % (send_command))
         while query_id not in self.receive_dict.keys():
             x = self.receive_queue.get()
             self.receive_dict[x[0]] = x[1]
@@ -80,6 +81,15 @@ class SwarmWorkerMemory():
         del self.receive_dict[query_id]
         return to_return
 
+    def maybe_remove_inst_seg(self, xyz: XYZ):
+        return self._db_command("maybe_remove_inst_seg", xyz)
+
+    def maybe_add_block_to_memory(self, interesting, player_placed, agent_placed, xyz, idm):
+        return self._db_command("maybe_add_block_to_memory", interesting, player_placed, agent_placed, xyz, idm)
+
+    def maybe_remove_block_from_memory(self, xyz, idm, areas_to_perceive):
+        return self._db_command("maybe_remove_block_from_memory", xyz, idm, areas_to_perceive)
+        
     def get_time(self):
         return self._db_command("get_time")
     

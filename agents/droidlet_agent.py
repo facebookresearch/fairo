@@ -306,6 +306,23 @@ class DroidletAgent(BaseAgent):
                 return
             else:
                 raise e
+    
+    def filter_task(self, mem, task_filter=None):
+        """Check if either:
+        - filter is None or
+        - check whether task_filters is true for any memory here.
+        """
+        if task_filter is None:
+            task_filter = self.task_step_filters
+        if task_filter is None:
+            # This task hasn't explicitly been tagged yet and available, step through
+            return False
+
+        # This task has been explicitly tagged for this agent, step through
+        for filter in task_filter: 
+            if filter in mem.get_tags():
+                return True
+        return False
 
     def step(self):
         if self.count == 0:
@@ -316,9 +333,11 @@ class DroidletAgent(BaseAgent):
     def task_step(self, sleep_time=0.25):
         query = "SELECT MEMORY FROM Task WHERE prio={}".format(TaskNode.CHECK_PRIO)
         _, task_mems = self.memory.basic_search(query)
+        
         for mem in task_mems:
-            if mem.task.init_condition.check():
-                mem.get_update_status({"prio": TaskNode.CHECK_PRIO + 1})
+            if not self.filter_task(mem): 
+                if mem.task.init_condition.check():
+                    mem.get_update_status({"prio": TaskNode.CHECK_PRIO + 1})
 
         query = "SELECT MEMORY FROM Task WHERE ((prio>{}) AND (paused <= 0))".format(
             TaskNode.CHECK_PRIO
@@ -331,13 +350,14 @@ class DroidletAgent(BaseAgent):
         task_mems.sort(reverse=True, key=lambda x: x.prio)
         for mem in task_mems:
             # prio/finished could have been changed by another Task, e.g. a ControlBlock
-            mem.update_node()
-            if mem.prio > TaskNode.CHECK_PRIO:
-                # FIXME set the other ones to running=0.  doesn't matter rn bc scheduler is empty, everything runs
-                mem.get_update_status({"running": 1})
-                mem.task.step()
-                if mem.task.finished:
-                    mem.update_task()
+            if not self.filter_task(mem):
+                mem.update_node()
+                if mem.prio > TaskNode.CHECK_PRIO:
+                    # FIXME set the other ones to running=0.  doesn't matter rn bc scheduler is empty, everything runs
+                    mem.get_update_status({"running": 1})
+                    mem.task.step()
+                    if mem.task.finished:
+                        mem.update_task()
 
     def get_time(self):
         # round to 100th of second, return as
