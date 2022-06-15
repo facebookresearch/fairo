@@ -222,6 +222,7 @@ def interpret_reference_object(
             command_type = interpreter.logical_form.get("dialogue_type", None)
 
         # Compare num matches to expected and clarify
+        # for now don't enter into clarification pathway if |candidate_mem| > num_refs, it isn't built out...
         if (
             (len(candidate_mems) < num_refs)
             and allow_clarification

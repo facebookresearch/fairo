@@ -79,6 +79,7 @@ class LocobotAgent(DroidletAgent):
         self.no_default_behavior = opts.no_default_behavior
         self.last_chat_time = -1000000000000
         self.name = name
+        self.dash_enable_map = False # dash has map disabled by default
 
         # FIXME these should only be stored in memory, not here
         self.pitch = 0.0
@@ -266,13 +267,16 @@ class LocobotAgent(DroidletAgent):
         # FIXME better pose object
         perception_output = perception_output._replace(self_pose=(x, z, yaw))
 
-        if self.opts.draw_map == "memory":
-            # draw the map from memory
-            self.draw_map_to_dashboard()
-        elif self.opts.draw_map == "observations":  # else draw directly from current obs
-            self.draw_map_to_dashboard(obstacles=obstacles, xyyaw=(x, z, yaw))
-        else:
-            pass
+        @sio.on("toggle_map")
+        def handle_toggle_map(sid, data):
+            self.dash_enable_map = data["dash_enable_map"]
+        if self.opts.draw_map and self.dash_enable_map:
+            if self.opts.map_data == "memory":          # draw the map from memory
+                self.draw_map_to_dashboard()
+            elif self.opts.map_data == "observations":  # else draw directly from current obs
+                self.draw_map_to_dashboard(obstacles=obstacles, xyyaw=(x, z, yaw))
+            else:
+                pass
 
         self.memory.update(perception_output)
 
