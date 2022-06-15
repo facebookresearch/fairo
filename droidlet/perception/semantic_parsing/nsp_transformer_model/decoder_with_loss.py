@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 import logging
-from .modeling_bert import BertModel
-from .tokenization_utils import fixed_span_values_voc
+from droidlet.perception.semantic_parsing.nsp_transformer_model.modeling_bert import BertModel
+from droidlet.perception.semantic_parsing.nsp_transformer_model.tokenization_utils import fixed_span_values_voc
+from droidlet.perception.semantic_parsing.nsp_transformer_model.label_smoothing_loss import LabelSmoothingLoss
 
 from transformers.models.bert.modeling_bert import BertOnlyMLMHead
 
