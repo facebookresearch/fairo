@@ -31,7 +31,7 @@ GT_QUERY_ACTIONS = get_ground_truth(
     False, 
     os.path.join(
         os.path.dirname(os.path.abspath(__file__)), 
-        "../../",
+        "../../../../",
         "droidlet/artifacts/datasets/ground_truth/"
     )
 )
