@@ -420,8 +420,10 @@ class NSPRetrainingJob(DataGenerator):
         with open("droidlet/tools/artifact_scripts/tracked_checksums/datasets.txt", "r") as f:
             checksum_d = f.read().strip()
 
-        # Write the checksum to local model 
-        checksum_m, artifact_path_name, artifact_name = compute_checksum("craftassist", "models", "nlu")
+        # Write the checksum to local model
+        checksum_m, artifact_path_name, artifact_name = compute_checksum(
+            "craftassist", "models", "nlu"
+        )
 
         # Log the information for the best model
         os.chdir(self.opts.droidlet_dir)
