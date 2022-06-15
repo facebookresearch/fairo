@@ -595,7 +595,7 @@ class ItemStackNode(ReferenceObjectNode):
             item_stack.pos.z,
             type_name,
             "item_stack",
-            item_stack.count,
+            item_stack.item.count,
             memory.get_time(),
         )
         memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, type_name)
