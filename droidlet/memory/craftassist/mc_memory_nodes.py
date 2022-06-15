@@ -651,7 +651,7 @@ class ItemStackNode(ReferenceObjectNode):
     def update_item_stack_position(cls, memory, item_stack):
         """update the position of item stack in memory
         Returns :
-            Updated or new ItemStackNode, or None id there is none corresponding to 
+            Updated or new ItemStackNode, or None id there is none corresponding to
             item_stack's entityId
         """
         r = memory._db_read_one(
