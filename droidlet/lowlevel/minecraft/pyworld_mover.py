@@ -143,7 +143,7 @@ class PyWorldMover:
         for item in items:
             pos = Pos(item["x"], item["y"], item["z"])
             item_stacks.append(
-                ItemStack(Item(item["id"], item["meta"]), pos, item["entityId"], item["typeName"])
+                ItemStack(Item(item["id"], item["meta"]), pos, item["entityId"], item["name"])
             )
         return item_stacks
 

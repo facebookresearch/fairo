@@ -495,7 +495,6 @@ class MCInterpreter(Interpreter):
 
         return new_tasks
 
-    # FIXME this is not compositional/does not handle loops ("get all the x")
     def handle_get(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'get' command by either pushing a dialogue object
