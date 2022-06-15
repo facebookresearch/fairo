@@ -9,7 +9,6 @@ import logging
 import logging.handlers
 import os
 import math
-import shutil
 from time import time
 
 from os.path import isfile
