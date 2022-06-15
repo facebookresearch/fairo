@@ -36,6 +36,27 @@ $ cp $PATH_TO_BEST_CHECKPOINT_MODEL droidlet/artifacts/models/nlu/caip_test_mode
 
 You can now use that model to run the agent.
 
+## Parser Evaluating Instructions
+
+We support interative way to evaluate or query semantic parser via ipython,
+```
+ipython
+from droidlet.perception.semantic_parsing.nsp_transformer_model.test_model_script import *
+```
+Then run the following to parse input arguments, build the model, tokenzier and dataset,
+```
+model, tokenizer = model_configure(args)
+dataset = dataset_configure(args, tokenizer)
+```
+For query model, you can run
+```
+query_model("hello", args, model, tokenizer, dataset)
+```
+For evaluate model, you can run
+```
+eval_model(args, model, tokenizer, dataset)
+```
+
 ## List of scripts
 1. [train_model.py](./train_model.py) - The main training script for NLU model.
 2. [test_model_script.py](./test_model_script.py) - The evaluation script for NLU model, which supports query and evaluate modes.
