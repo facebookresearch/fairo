@@ -70,3 +70,4 @@ eval_model(args, model, tokenizer, dataset)
 10. [utils_caip.py](./utils_caip.py) - Utility for caip dataset.
 11. [utils_model.py](./utils_model.py) - Utility for NLU model.
 12. [utils_parsing.py](./utils_parsing.py) - Utility for semantic parsing. 
+13. [query_model.py](./query_model.py) - The definition of NLU query model.
