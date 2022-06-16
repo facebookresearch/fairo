@@ -81,11 +81,14 @@
       console.log("world.html get data")
       // document.getElementById("text-container").innerHTML=event.data
       status = event.data['status']
-      worldState = event.data['world_state']
-      updateAgents(worldState['agent'])
-      updateMobs(worldState['mob'])
-      updateItemStacks(worldState['item_stack'])
-      updateBlocks(worldState['block'])
+
+      if (status == "updateVoxelWorldState") {
+        worldState = event.data['world_state']
+        updateAgents(worldState['agent'])
+        updateMobs(worldState['mob'])
+        updateItemStacks(worldState['item_stack'])
+        updateBlocks(worldState['block'])
+      } 
       
       flash_bbox = event.data['flash_bbox']
       if (flash_bbox) {

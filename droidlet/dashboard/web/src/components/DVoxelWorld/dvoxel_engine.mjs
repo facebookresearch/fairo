@@ -149,7 +149,8 @@ function handleKeypress(e, player) {
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
             control_pos = player.mesh.position;
-            player.move(direction_vec.x, direction_vec.y, direction_vec.z)
+            player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+            updatePlayerPosition(player);
             break;
         case "s":
             camera_vec = cameraVector();
@@ -157,7 +158,8 @@ function handleKeypress(e, player) {
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
             control_pos = player.mesh.position;
-            player.move(direction_vec.x, direction_vec.y, direction_vec.z)
+            player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+            updatePlayerPosition(player);
             break;
         case "a":
             camera_vec = cameraVector();
@@ -165,7 +167,8 @@ function handleKeypress(e, player) {
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
             control_pos = player.mesh.position;
-            player.move(direction_vec.x, direction_vec.y, direction_vec.z)
+            player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+            updatePlayerPosition(player);
             break;   
         case "d":
             camera_vec = cameraVector();
@@ -173,13 +176,16 @@ function handleKeypress(e, player) {
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
             control_pos = player.mesh.position;
-            player.move(direction_vec.x, direction_vec.y, direction_vec.z)
+            player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+            updatePlayerPosition(player);
             break;    
         case "Shift":
-            player.move(0, -1 * MoveStep * blockScale, 0)
+            player.move(0, -1 * MoveStep * blockScale, 0);
+            updatePlayerPosition(player);
             break;    
         case " ":
-            player.move(0, 1 * MoveStep * blockScale, 0)
+            player.move(0, 1 * MoveStep * blockScale, 0);
+            updatePlayerPosition(player);
             break;    
     }
 }
@@ -198,9 +204,36 @@ function cameraTest(player) {
         
         player.cameraPitch(Ydiff);
         player.rotate(Xdiff);
+        updatePlayerLook(player);
       }
     });
 };
+
+function updatePlayerLook(player) {
+    let pitchYaw = player.getPitchYaw();
+    let pitch = pitchYaw[0];
+    let yaw = pitchYaw[1]
+    let payload = {
+        "status": "set_look",
+        "pitch": pitch,
+        "yaw": yaw
+    }
+    window.postMessage(payload, "*");
+}
+
+function updatePlayerPosition(player) {
+    let pos = player.getPosition();
+    let x = pos.x / blockScale;
+    let y = pos.y / blockScale;
+    let z = pos.z / blockScale;
+    let payload = {
+        "status": "abs_move",
+        "x": x,
+        "y": y,
+        "z": z
+    }
+    window.postMessage(payload, "*");
+}
 
 
 class DVoxelEngine {

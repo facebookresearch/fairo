@@ -2,6 +2,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+import {MathUtils} from './three.module.mjs';
 import {VW_AVATAR_MAP} from "./model_luts.mjs"
 const PLAYER_PATH = "https://cdn.jsdelivr.net/gh/snyxan/assets@main/models/";
 
@@ -48,6 +49,16 @@ class VoxelPlayer {
         this.cam_pitch = 0
         this.cameraPitch(pitch)
         if (this.possessed) this.updateCamera();
+    }
+
+    getPitchYaw() {
+        let pitch = MathUtils.radToDeg(this.mesh.rotation.x);
+        let yaw = MathUtils.radToDeg(this.mesh.rotation.y);
+        return [pitch, yaw]
+    }
+
+    getPosition() {
+        return this.mesh.position;
     }
 
     updatePov(type) {
