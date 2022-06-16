@@ -161,12 +161,12 @@ class AgentMemory:
             SelfNode.create(self, player_struct, memid=self.self_memid)
         elif node_type == "Agent":
             AgentNode.create(self, player_struct, memid=self.self_memid)
-        self.nodes[TripleNode.NODE_TYPE].tag(self.self_memid, "_physical_object")
-        self.nodes[TripleNode.NODE_TYPE].tag(self.self_memid, "_animate")
-        self.nodes[TripleNode.NODE_TYPE].tag(self.self_memid, "_not_location")
-        self.nodes[TripleNode.NODE_TYPE].tag(self.self_memid, "AGENT")
-        self.nodes[TripleNode.NODE_TYPE].tag(self.self_memid, "SELF")
-        self.nodes[TripleNode.NODE_TYPE].tag(self.self_memid, "beta")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_physical_object")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_animate")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_not_location")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "AGENT")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "SELF")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "beta")
 
     def init_time_interface(self, agent_time=None):
         """Initialiaze the current time in memory
