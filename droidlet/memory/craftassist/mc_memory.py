@@ -155,7 +155,7 @@ class MCAgentMemory(AgentMemory):
                 for pickable_items in perception_output.agent_pickable_items[
                     "in_perception_items"
                 ]:
-                    if not ItemStackNode.update_item_stack_position(self, pickable_items):
+                    if not ItemStackNode.maybe_update_item_stack_position(self, pickable_items):
                         ItemStackNode.create(self, pickable_items, self.low_level_block_data)
 
             # 2.2 Update previous pickable_item_stack based on perception
