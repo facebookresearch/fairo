@@ -184,6 +184,7 @@
                     <span class="n">mobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mob</span><span class="p">)</span>
             <span class="n">perceive_info</span><span class="p">[</span><span class="s2">&quot;mobs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mobs</span> <span class="k">if</span> <span class="n">mobs</span> <span class="k">else</span> <span class="kc">None</span>
 
+            <span class="c1"># FIXME!  add a step to perceive items picked and/or items in inventory</span>
             <span class="c1"># Find items that can be picked by the agent, and in perception range</span>
             <span class="n">all_items</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
             <span class="n">in_perception_items</span> <span class="o">=</span> <span class="p">[]</span>
