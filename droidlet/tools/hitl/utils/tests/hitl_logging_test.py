@@ -1,3 +1,9 @@
+"""
+Copyright (c) Facebook, Inc. and its affiliates.
+
+Unit test for hitl_logging.py
+"""
+
 from droidlet.tools.hitl.utils.hitl_logging import HitlLogging
 from droidlet.tools.hitl.utils.hitl_utils import generate_batch_id
 import unittest
