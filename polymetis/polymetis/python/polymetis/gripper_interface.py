@@ -61,9 +61,14 @@ class GripperInterface:
             vel: Velocity of the movement
             force: Maximum force the gripper will exert
         """
+        cmd = polymetis_pb2.GripperCommand(
+            width=width, speed=speed, force=force, grasp=False
+        )
+        cmd.timestamp.GetCurrentTime()
+
         self._send_gripper_command(
             self.grpc_connection.Goto,
-            polymetis_pb2.GripperCommand(width=width, speed=speed, force=force),
+            cmd,
             blocking=blocking,
         )
 
@@ -73,8 +78,13 @@ class GripperInterface:
             vel: Velocity of the movement
             force: Maximum force the gripper will exert
         """
+        cmd = polymetis_pb2.GripperCommand(
+            width=0.0, speed=speed, force=force, grasp=True
+        )
+        cmd.timestamp.GetCurrentTime()
+
         self._send_gripper_command(
-            self.grpc_connection.Grasp,
-            polymetis_pb2.GripperCommand(width=0.0, speed=speed, force=force),
+            self.grpc_connection.Goto,
+            cmd,
             blocking=blocking,
         )

@@ -59,13 +59,16 @@ service PolymetisControllerServer {
 service GripperServer {
     rpc GetState(Empty) returns(GripperState) {}
     rpc Goto(GripperCommand) returns(Empty) {}
-    rpc Grasp(GripperCommand) returns(Empty) {}
+
+    rpc GetCommand(GripperState) returns(GripperCommand) {}
 }
 
 message GripperCommand {
-    float width = 1;
-    float speed = 2;
-    float force = 3;
+    google.protobuf.Timestamp timestamp = 1;
+    float width = 2;
+    float speed = 3;
+    float force = 4;
+    bool grasp = 5;
 }
 
 message GripperState {
