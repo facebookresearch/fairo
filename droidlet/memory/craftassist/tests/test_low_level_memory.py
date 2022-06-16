@@ -145,7 +145,7 @@ class BasicTest(unittest.TestCase):
         # test set_item_stack_position
 
         new_item = ItemStack(Slot(sand_bid, sand_meta, sand_count), Pos(2, 2, 2), new_eid)
-        ItemStackNode.update_item_stack_position(self.memory, new_item)
+        ItemStackNode.maybe_update_item_stack_position(self.memory, new_item)
         assert self.memory.get_mem_by_id(item_memid).pos == (2.0, 2.0, 2.0)
 
     def test_dance_api(self):

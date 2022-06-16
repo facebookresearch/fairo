@@ -453,10 +453,7 @@ class Build(Task):
             interesting, player_placed, agent_placed = agent.perception_modules[
                 "low_level"
             ].mark_blocks_with_env_change(
-                target,
-                (0, 0),
-                agent.low_level_data["boring_blocks"],
-                agent_placed=True,
+                target, (0, 0), agent.low_level_data["boring_blocks"], agent_placed=True,
             )
             agent.memory.maybe_add_block_to_memory(
                 interesting, player_placed, agent_placed, target, (0, 0)
@@ -511,10 +508,7 @@ class Build(Task):
         interesting, player_placed, agent_placed = agent.perception_modules[
             "low_level"
         ].mark_blocks_with_env_change(
-            target,
-            tuple(idm),
-            agent.low_level_data["boring_blocks"],
-            agent_placed=True,
+            target, tuple(idm), agent.low_level_data["boring_blocks"], agent_placed=True,
         )
         agent.memory.maybe_add_block_to_memory(
             interesting, player_placed, agent_placed, target, tuple(idm)
@@ -991,7 +985,9 @@ class Get(Task):
             delta = agent.pick_entityId(self.eid)
 
         if delta > 0:
-            ItemStackNode.to_inventory(agent.memory, agent.memory.get_mem_by_id(self.obj_memid))
+            ItemStackNode.add_to_inventory(
+                agent.memory, agent.memory.get_mem_by_id(self.obj_memid)
+            )
             agent.send_chat("Got Item!")
             self.finished = True
             return
@@ -1069,14 +1065,14 @@ class Drop(Task):
         count = node.count
         id, m = self.idm
         agent.drop_inventory_item_stack(id, m, count)
-        ItemStackNode.drop(agent.memory, node)
+        ItemStackNode.remove_from_inventory(agent.memory, node)
 
         mindist, dropped_item_stack = self.get_nearby_new_item_stack(agent, id, m)
         if dropped_item_stack:
             ItemStackNode.update_item_stack_eid(
                 agent.memory, self.obj_memid, dropped_item_stack.entityId
             )
-            ItemStackNode.update_item_stack_position(agent.memory, dropped_item_stack)
+            ItemStackNode.maybe_update_item_stack_position(agent.memory, dropped_item_stack)
             agent.memory.nodes[TripleNode.NODE_TYPE].tag(
                 agent.memory, self.obj_memid, "_on_ground"
             )

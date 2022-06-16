@@ -626,12 +626,12 @@ class ItemStackNode(ReferenceObjectNode):
         return x, x, y, y, z, z
 
     @classmethod
-    def to_inventory(cls, memory, item_stack_node):
+    def add_to_inventory(cls, memory, item_stack_node):
         memory.nodes[TripleNode.NODE_TYPE].untag(memory, item_stack_node.memid, "_on_ground")
         memory.nodes[TripleNode.NODE_TYPE].tag(memory, item_stack_node.memid, "_in_inventory")
 
     @classmethod
-    def drop(cls, memory, item_stack_node):
+    def remove_from_inventory(cls, memory, item_stack_node):
         assert "_in_inventory" in item_stack_node.get_tags()
         memory.nodes[TripleNode.NODE_TYPE].untag(memory, item_stack_node.memid, "_in_inventory")
         memory.nodes[TripleNode.NODE_TYPE].tag(memory, item_stack_node.memid, "_on_ground")
@@ -648,7 +648,7 @@ class ItemStackNode(ReferenceObjectNode):
         return memory.get_mem_by_id(memid)
 
     @classmethod
-    def update_item_stack_position(cls, memory, item_stack):
+    def maybe_update_item_stack_position(cls, memory, item_stack):
         """update the position of item stack in memory
         Returns :
             Updated or new ItemStackNode, or None id there is none corresponding to
