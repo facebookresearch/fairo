@@ -5,10 +5,8 @@ import numpy as np
 import time
 import socketio
 from droidlet.base_util import XYZ, Pos, Look
-from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item, ItemStack, Mob
-from droidlet.lowlevel.minecraft.pyworld.utils import build_coord_shifts
-
-BEDROCK = (7, 0)
+from droidlet.shared_data_struct.craftassist_shared_utils import Player, Slot, Item, ItemStack, Mob
+from droidlet.lowlevel.minecraft.pyworld.utils import build_coord_shifts, BEDROCK
 
 
 class DataCallback:
@@ -56,24 +54,31 @@ class PyWorldMover:
 
     def step_pos_x(self):
         self.sio.emit("rel_move", {"x": 1})
+        self.pick_nearby_items()
 
     def step_neg_x(self):
         self.sio.emit("rel_move", {"x": -1})
+        self.pick_nearby_items()
 
     def step_pos_y(self):
         self.sio.emit("rel_move", {"y": 1})
+        self.pick_nearby_items()
 
     def step_neg_y(self):
         self.sio.emit("rel_move", {"y": -1})
+        self.pick_nearby_items()
 
     def step_pos_z(self):
         self.sio.emit("rel_move", {"z": 1})
+        self.pick_nearby_items()
 
     def step_neg_z(self):
         self.sio.emit("rel_move", {"z": -1})
+        self.pick_nearby_items()
 
     def step_forward(self):
         self.sio.emit("rel_move", {"forward": 1})
+        self.pick_nearby_items()
 
     def set_held_item(self, idm):
         self.sio.emit("set_held_item", {"idm": idm})
@@ -134,6 +139,60 @@ class PyWorldMover:
             return None
         else:
             return Pos(*pos)
+
+    def get_item_stacks(self, holder_entityId=-1, get_all=False):
+        """
+        by default
+        only return items not in any agent's inventory, matching cuberite
+        returns a list of ItemStacks
+        """
+        D = DataCallback()
+        self.sio.emit("get_item_info", callback=D)
+        items = wait_for_data(D)
+        # TODO "stacks" with count, like MC?
+        # right now make a separate "item_stack" for each one
+        item_stacks = []
+        for item in items:
+            if item["holder_entityId"] == holder_entityId or get_all:
+                pos = Pos(item["x"], item["y"], item["z"])
+                item_stacks.append(
+                    ItemStack(
+                        Slot(item["id"], item["meta"], 1), pos, item["entityId"], item["name"]
+                    )
+                )
+        return item_stacks
+
+    def get_inventory_item_count(bid, meta, entityId=None):
+        item_stacks = get_item_stacks(holder_entityId=self.entityId)
+        count = 0
+        for item_stack in item_stacks:
+            correct_idm = item_stack.item.id == bid[0] and item_stack.item.meta == bid[1]
+            if item_stack.entityId == entityId or correct_idm:
+                count = count + 1
+        return count
+
+    # FIXME, make a regular pick, split the Task into a Move and Pick.  rn
+    # just following MC blindly
+    def pick_nearby_items(self, pick_range=1.5):
+        pos = np.array(self.get_player().pos)
+        item_stacks = self.get_item_stacks()
+        for item_stack in item_stacks:
+            if np.linalg.norm(np.array(item_stack.pos) - pos) < pick_range:
+                count = self.sio.emit("pick_items", [item_stack.entityId])
+
+    def drop_inventory_item_stack(self, bid=None, meta=None, count=1, entityId=-1):
+        dropped = 0
+        item_stacks = get_item_stacks(holder_entityId=self.entityId)
+        assert bid is not None or entityId > 0
+        for item_stack in item_stacks:
+            correct_idm = bid is None or (
+                item_stack.item.id == bid[0] and item_stack.item.meta == bid[1]
+            )
+            if item_stack.entityId == entityId or correct_idm:
+                sio.emit("drop_items", [item_stack.entityId])
+                dropped = dropped + 1
+                if dropped > count:
+                    return
 
     def get_changed_blocks(self):
         D = DataCallback()
@@ -206,9 +265,6 @@ class PyWorldMover:
             mobs.append(Mob(m[0], m[1], Pos(m[2], m[3], m[4]), Look(m[5], m[6])))
         return mobs
 
-    def get_item_stacks(self):
-        return []
-
 
 ### NOT DONE:
 #    "drop_item_stack_in_hand",
@@ -230,7 +286,7 @@ class PyWorldMover:
 
 
 if __name__ == "__main__":
-    m = PyWorldMover(port=6001)
+    m = PyWorldMover(port=6002)
     m.set_held_item((1, 0))
     r = m.place_block(10, 10, 10)
     print(r)
