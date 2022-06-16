@@ -495,7 +495,6 @@ class World:
                     new_pos = Pos(x, y, z)
                     self.players[eid] = self.players[eid]._replace(pos=new_pos)
 
-
         @server.on("set_held_item")
         def set_agent_mainhand(sid, data):
             if data.get("idm") is not None:
