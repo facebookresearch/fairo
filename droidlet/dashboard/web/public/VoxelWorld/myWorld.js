@@ -4189,6 +4189,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.VoxelPlayer = void 0;
 
+var _threeModule = require("./three.module.mjs");
+
 var _model_luts = require("./model_luts.mjs");
 
 // Copyright (c) Facebook, Inc. and its affiliates.
@@ -4239,6 +4241,18 @@ class VoxelPlayer {
     this.cam_pitch = 0;
     this.cameraPitch(pitch);
     if (this.possessed) this.updateCamera();
+  }
+
+  getPitchYaw() {
+    let pitch = _threeModule.MathUtils.radToDeg(this.mesh.rotation.x);
+
+    let yaw = _threeModule.MathUtils.radToDeg(this.mesh.rotation.y);
+
+    return [pitch, yaw];
+  }
+
+  getPosition() {
+    return this.mesh.position;
   }
 
   updatePov(type) {
@@ -4353,7 +4367,7 @@ function applyOffset(pos, offset) {
   return [pos[0] + offset[0], pos[1] + offset[1], pos[2] + offset[2]];
 }
 
-},{"./model_luts.mjs":9}],6:[function(require,module,exports){
+},{"./model_luts.mjs":9,"./three.module.mjs":10}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4532,6 +4546,7 @@ function handleKeypress(e, player) {
       direction_vec.multiplyScalar(MoveStep * blockScale);
       control_pos = player.mesh.position;
       player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+      updatePlayerPosition(player);
       break;
 
     case "s":
@@ -4541,6 +4556,7 @@ function handleKeypress(e, player) {
       direction_vec.multiplyScalar(MoveStep * blockScale);
       control_pos = player.mesh.position;
       player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+      updatePlayerPosition(player);
       break;
 
     case "a":
@@ -4550,6 +4566,7 @@ function handleKeypress(e, player) {
       direction_vec.multiplyScalar(MoveStep * blockScale);
       control_pos = player.mesh.position;
       player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+      updatePlayerPosition(player);
       break;
 
     case "d":
@@ -4559,14 +4576,17 @@ function handleKeypress(e, player) {
       direction_vec.multiplyScalar(MoveStep * blockScale);
       control_pos = player.mesh.position;
       player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+      updatePlayerPosition(player);
       break;
 
     case "Shift":
       player.move(0, -1 * MoveStep * blockScale, 0);
+      updatePlayerPosition(player);
       break;
 
     case " ":
       player.move(0, 1 * MoveStep * blockScale, 0);
+      updatePlayerPosition(player);
       break;
   }
 }
@@ -4583,11 +4603,38 @@ function cameraTest(player) {
       let Ydiff = -ev.movementY / followPointerScale;
       player.cameraPitch(Ydiff);
       player.rotate(Xdiff);
+      updatePlayerLook(player);
     }
   });
 }
 
 ;
+
+function updatePlayerLook(player) {
+  let pitchYaw = player.getPitchYaw();
+  let pitch = pitchYaw[0];
+  let yaw = pitchYaw[1];
+  let payload = {
+    "status": "set_look",
+    "pitch": pitch,
+    "yaw": yaw
+  };
+  window.postMessage(payload, "*");
+}
+
+function updatePlayerPosition(player) {
+  let pos = player.getPosition();
+  let x = pos.x / blockScale;
+  let y = pos.y / blockScale;
+  let z = pos.z / blockScale;
+  let payload = {
+    "status": "abs_move",
+    "x": x,
+    "y": y,
+    "z": z
+  };
+  window.postMessage(payload, "*");
+}
 
 class DVoxelEngine {
   render() {

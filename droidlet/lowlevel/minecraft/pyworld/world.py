@@ -469,6 +469,32 @@ class World:
                     new_pos = Pos(x, y, z)
                     self.players[eid] = self.players[eid]._replace(pos=new_pos)
 
+        @server.on("abs_move")
+        def move_agent_abs(sid, data):
+            eid = self.connected_sids.get(sid)
+            player_struct = self.get_player_info(eid)
+            x, y, z = player_struct.pos
+            x = data.get("x", 0)
+            y = data.get("y", 0)
+            z = data.get("z", 0)
+
+            nx, ny, nz = self.to_npy_coords((x, y, z))
+            # agent is 2 blocks high
+            if (
+                nx >= 0
+                and ny >= 0
+                and nz >= 0
+                and nx < self.sl
+                and ny < self.sl - 1
+                and nz < self.sl
+            ):
+                if (
+                    self.blocks[nx, ny, nz, 0] in PASSABLE_BLOCKS
+                    and self.blocks[nx, ny + 1, nz, 0] in PASSABLE_BLOCKS
+                ):
+                    new_pos = Pos(x, y, z)
+                    self.players[eid] = self.players[eid]._replace(pos=new_pos)
+
         @server.on("set_held_item")
         def set_agent_mainhand(sid, data):
             if data.get("idm") is not None:

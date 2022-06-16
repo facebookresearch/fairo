@@ -142,7 +142,7 @@ class PyWorldMover:
 
     def get_item_stacks(self, holder_entityId=-1, get_all=False):
         """
-        by default 
+        by default
         only return items not in any agent's inventory, matching cuberite
         returns a list of ItemStacks
         """
