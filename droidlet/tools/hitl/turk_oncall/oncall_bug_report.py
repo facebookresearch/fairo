@@ -251,23 +251,28 @@ class TaoLogListener(JobListener):
                 finished = False
             self.set_finished(finished)
 
+def process_past_logs(batch_ids: list):
+    runner = TaskRunner()
+
+    for batch_id in batch_ids:
+        mock_data_generator = MockOnCallJob(batch_id)
+        runner.register_data_generators([mock_data_generator])
+        tao_log_listener = TaoLogListener(batch_id=batch_id)
+        tao_log_listener.add_parent_jobs([mock_data_generator])
+        runner.register_job_listeners([tao_log_listener])
+    runner.run()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--tao_job_batch_id",
+        "-i",
+        "--tao_job_batch_ids",
         type=int,
+        nargs='+',
         required=True,
-        help="TAO job batch id",
+        help="TAO job batch ids",
     )
     opts = parser.parse_args()
-
-    runner = TaskRunner()
-
-    mock_data_generator = MockOnCallJob(opts.tao_job_batch_id)
-    runner.register_data_generators([mock_data_generator])
-    tao_log_listener = TaoLogListener(batch_id=opts.tao_job_batch_id)
-    tao_log_listener.add_parent_jobs([mock_data_generator])
-    runner.register_job_listeners([tao_log_listener])
-
-    runner.run()
+    print(opts.tao_job_batch_ids)
+    process_past_logs(opts.tao_job_batch_ids)
