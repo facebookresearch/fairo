@@ -174,7 +174,7 @@ class TaoBugReportJob(DataGenerator):
             out_local_path = os.path.join(tmp_dir, out_remote_path)
 
             # Sort and save to s3
-            df = df.sort_values(by = COL_FREQ, ascending=False)
+            df = df.sort_values(by=COL_FREQ, ascending=False)
 
             df.to_csv(out_local_path)
             logging.info(
