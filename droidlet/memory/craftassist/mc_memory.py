@@ -155,11 +155,15 @@ class MCAgentMemory(AgentMemory):
                 for pickable_items in perception_output.agent_pickable_items[
                     "in_perception_items"
                 ]:
-                    self.set_item_stack_position(pickable_items)
+                    if not ItemStackNode.maybe_update_item_stack_position(self, pickable_items):
+                        ItemStackNode.create(self, pickable_items, self.low_level_block_data)
+
             # 2.2 Update previous pickable_item_stack based on perception
             if perception_output.agent_pickable_items["all_items"]:
                 # Note: item stacks are not stored properly in memory right now @Yuxuan to fix this.
-                old_item_stacks = self.get_all_item_stacks()
+                old_item_stacks = self._db_read(
+                    "SELECT uuid, eid FROM ReferenceObjects WHERE ref_type=?", "item_stack"
+                )
                 if old_item_stacks:
                     for old_item_stack in old_item_stacks:
                         memid = old_item_stack[0]
@@ -576,42 +580,3 @@ class MCAgentMemory(AgentMemory):
             if mob_name_to_properties.get(type_name) is not None:
                 for prop in mob_name_to_properties[type_name]:
                     self.nodes[TripleNode.NODE_TYPE].tag(self, memid, prop)
-
-    ####################
-    ###  ItemStacks  ###
-    ####################
-
-    def update_item_stack_eid(self, memid, eid) -> "ItemStackNode":
-        """Update ItemStack in memory and return the corresponding node
-        Returns:
-            ItemStackNode
-        """
-        r = self._db_read_one("SELECT * FROM ReferenceObjects WHERE uuid=?", memid)
-        if r:
-            self.db_write("UPDATE ReferenceObjects SET eid=? WHERE uuid=?", eid, memid)
-        return self.get_mem_by_id(memid)
-
-    def set_item_stack_position(self, item_stack) -> "ItemStackNode":
-        """If the node exists, update the position of item stack in memory
-        else create a new node.
-        Returns :
-            Updated or new ItemStackNode
-        """
-        r = self._db_read_one("SELECT uuid FROM ReferenceObjects WHERE eid=?", item_stack.entityId)
-        if r:
-            self.db_write(
-                "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE eid=?",
-                item_stack.pos.x,
-                item_stack.pos.y,
-                item_stack.pos.z,
-                item_stack.entityId,
-            )
-            (memid,) = r
-        else:
-            memid = ItemStackNode.create(self, item_stack, self.low_level_block_data)
-        return self.get_mem_by_id(memid)
-
-    def get_all_item_stacks(self):
-        """Get all nodes that are of type "item_stack" """
-        r = self._db_read("SELECT uuid, eid FROM ReferenceObjects WHERE ref_type=?", "item_stack")
-        return r

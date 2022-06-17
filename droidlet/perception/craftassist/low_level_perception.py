@@ -81,6 +81,7 @@ class LowLevelMCPerception:
                     mobs.append(mob)
             perceive_info["mobs"] = mobs if mobs else None
 
+            # FIXME!  add a step to perceive items picked and/or items in inventory
             # Find items that can be picked by the agent, and in perception range
             all_items = set()
             in_perception_items = []

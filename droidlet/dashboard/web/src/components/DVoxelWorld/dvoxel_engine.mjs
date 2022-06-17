@@ -82,6 +82,7 @@ const AGENT_NAME = "craftassist_agent";
 const PLAYER_NAME = "dashboard_player";
 
 let mobs = {}
+let itemStacks = {}
 
 
 let cursorX, cursorY
@@ -148,7 +149,8 @@ function handleKeypress(e, player) {
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
             control_pos = player.mesh.position;
-            player.move(direction_vec.x, direction_vec.y, direction_vec.z)
+            player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+            updatePlayerPosition(player);
             break;
         case "s":
             camera_vec = cameraVector();
@@ -156,7 +158,8 @@ function handleKeypress(e, player) {
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
             control_pos = player.mesh.position;
-            player.move(direction_vec.x, direction_vec.y, direction_vec.z)
+            player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+            updatePlayerPosition(player);
             break;
         case "a":
             camera_vec = cameraVector();
@@ -164,7 +167,8 @@ function handleKeypress(e, player) {
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
             control_pos = player.mesh.position;
-            player.move(direction_vec.x, direction_vec.y, direction_vec.z)
+            player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+            updatePlayerPosition(player);
             break;   
         case "d":
             camera_vec = cameraVector();
@@ -172,13 +176,16 @@ function handleKeypress(e, player) {
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
             control_pos = player.mesh.position;
-            player.move(direction_vec.x, direction_vec.y, direction_vec.z)
+            player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+            updatePlayerPosition(player);
             break;    
         case "Shift":
-            player.move(0, -1 * MoveStep * blockScale, 0)
+            player.move(0, -1 * MoveStep * blockScale, 0);
+            updatePlayerPosition(player);
             break;    
         case " ":
-            player.move(0, 1 * MoveStep * blockScale, 0)
+            player.move(0, 1 * MoveStep * blockScale, 0);
+            updatePlayerPosition(player);
             break;    
     }
 }
@@ -197,9 +204,36 @@ function cameraTest(player) {
         
         player.cameraPitch(Ydiff);
         player.rotate(Xdiff);
+        updatePlayerLook(player);
       }
     });
 };
+
+function updatePlayerLook(player) {
+    let pitchYaw = player.getPitchYaw();
+    let pitch = pitchYaw[0];
+    let yaw = pitchYaw[1]
+    let payload = {
+        "status": "set_look",
+        "pitch": pitch,
+        "yaw": yaw
+    }
+    window.postMessage(payload, "*");
+}
+
+function updatePlayerPosition(player) {
+    let pos = player.getPosition();
+    let x = pos.x / blockScale;
+    let y = pos.y / blockScale;
+    let z = pos.z / blockScale;
+    let payload = {
+        "status": "abs_move",
+        "x": x,
+        "y": y,
+        "z": z
+    }
+    window.postMessage(payload, "*");
+}
 
 
 class DVoxelEngine {
@@ -496,7 +530,6 @@ class DVoxelEngine {
     updateMobs(mobsInfo) {
         console.log("DVoxel Engine update mobs")
         console.log(mobsInfo)
-        let that = this
         let world = {
             THREE: THREE,
             scene: scene,
@@ -528,13 +561,42 @@ class DVoxelEngine {
             
             mobsInWorld.add(entityId)
         })
-
-        mobs
     }
 
     updateItemStacks(itemStacksInfo) {
         console.log("DVoxel Engine update item stacks")
         console.log(itemStacksInfo)
+        let world = {
+            THREE: THREE,
+            scene: scene,
+            render: render,
+            camera: camera,
+        };
+        let itemStacksInWorld = new Set()
+        itemStacksInfo.forEach(function(key, index) {
+            const entityId = key['entityId'].toString()
+            const pos = key['pos']
+            const name = key['name']
+            if (entityId in itemStacks) {
+                console.log("item already exists, updating states")
+            } else {
+                const itemStackOpts = {
+                    GLTFLoader: GLTFLoader,
+                    name: name,
+                    position: [pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale]
+                };
+                VoxelItem.build(world, itemStackOpts).then(
+                    function (newItemStack) {
+                        itemStacks[entityId] = newItemStack;
+                    }
+                );
+            }
+            if (entityId in itemStacks) {
+                itemStacks[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale)
+            }
+            
+            itemStacksInWorld.add(entityId)
+        })
     }
 
     updateBlocks(blocksInfo) {

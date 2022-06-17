@@ -35,7 +35,7 @@ class BaseCraftassistTestCase(unittest.TestCase):
         spec = {
             "players": players,
             "mobs": [],
-            "item_stacks": [],
+            "items": [],
             "ground_generator": flat_ground_generator,
             "agent": {"pos": (0, 63, 0)},
             "coord_shift": (-16, 54, -16),
@@ -138,10 +138,10 @@ class BaseCraftassistTestCase(unittest.TestCase):
         """Add a chat to memory as if it was just spoken by SPEAKER"""
         self.world.chat_log.append("<" + speaker_name + ">" + " " + chat)
         if add_to_memory:
-            memid, _ = self.agent.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={self.speaker}')
-            self.agent.memory.nodes[ChatNode.NODE_TYPE].create(
-                self.agent.memory, memid[0], chat
+            memid, _ = self.agent.memory.basic_search(
+                f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={self.speaker}"
             )
+            self.agent.memory.nodes[ChatNode.NODE_TYPE].create(self.agent.memory, memid[0], chat)
 
     def assert_schematics_equal(self, a, b):
         """Check equality between two list[(xyz, idm)] schematics
@@ -159,5 +159,7 @@ class BaseCraftassistTestCase(unittest.TestCase):
         return self.agent.get_last_outgoing_chat()
 
     def get_speaker_pos(self) -> XYZ:
-        _, memnode = self.agent.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={self.speaker}')
+        _, memnode = self.agent.memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={self.speaker}"
+        )
         return memnode[0].pos
