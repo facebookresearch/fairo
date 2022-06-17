@@ -5,7 +5,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Callable
+from typing import Dict, Callable, Optional
 import enum
 import time
 import numpy as np
@@ -34,9 +34,12 @@ class ServiceInfo:
 class SimInterface(AbstractRobotClient):
     def __init__(
         self,
+        metadata_cfg,
         hz,
         intraprocess=False,  # TODO
     ):
+        super().__init__(metadata_cfg=metadata_cfg)
+
         self.hz = hz
 
         self.control_items = []
@@ -54,6 +57,7 @@ class SimInterface(AbstractRobotClient):
         channel = grpc.insecure_channel(f"{ip}:{port}")
         if server_type is ControlType.ARM:
             connection = polymetis_pb2_grpc.PolymetisControllerServerStub(channel)
+            connection.InitRobotClient(self.metadata.get_proto())
         elif server_type is ControlType.ARM:
             connection = polymetis_pb2_grpc.GripperServerStub(channel)
         else:
@@ -70,7 +74,7 @@ class SimInterface(AbstractRobotClient):
     def run(self):
         assert self.step_callback is not None, "Step callback not assigned!"
 
-        spinner = Spinner(self.metadata.get_proto().hz)
+        spinner = Spinner(self.hz)
         while True:
             # Perform control updates
             for service_info in self.control_items:

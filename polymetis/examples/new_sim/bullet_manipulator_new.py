@@ -7,18 +7,17 @@ import hydra
 
 import polymetis_pb2
 import polysim
+from polymetis.utils.data_dir import get_full_path_to_urdf
 
 
 class BulletManipulator:
     def __init__(
         self,
-        robot_model_cfg: DictConfig,
+        cfg: DictConfig,
         gui: bool,
-        use_grav_comp: bool = True,
         gravity: float = 9.81,
     ):
-        self.cfg = robot_model_cfg
-        self.use_grav_comp = use_grav_comp
+        self.cfg = cfg
 
         # Initialize PyBullet simulation
         if self.gui:
@@ -26,7 +25,8 @@ class BulletManipulator:
         else:
             self.sim = BulletClient(connection_mode=pybullet.DIRECT)
 
-        self.robot_id = self.sim.loadURDF(abs_urdf_path)
+        urdf_path = get_full_path_to_urdf(self.cfg.robot_description_path)
+        self.robot_id = self.sim.loadURDF(urdf_path)
 
         self.sim.setGravity(0, 0, -gravity)
 
@@ -52,22 +52,19 @@ class BulletManipulator:
         return self.arm_state
 
     def get_gripper_state(self) -> polymetis_pb2.GripperState:
-        pass  # TODO
+        return polymetis_pb2.GripperState()  # TODO
 
     def apply_arm_control(self, cmd: polymetis_pb2.TorqueCommand):
         # Extract torques
         commanded_torques = np.array(list(cmd.joint_torques))
 
         # Compute grav comp
-        if self.use_grav_comp:
-            joint_pos = list(self.arm_state.joint_positions)
-            grav_comp_torques = self.sim.calculateInverseDynamics(
-                joint_pos=joint_pos,
-                joint_vel=[0] * len(joint_pos),
-                joint_acc=[0] * len(joint_pos),
-            )
-        else:
-            grav_comp_torques = np.zeros_like(commanded_torques)
+        joint_pos = list(self.arm_state.joint_positions)
+        grav_comp_torques = self.sim.calculateInverseDynamics(
+            joint_pos=joint_pos,
+            joint_vel=[0] * len(joint_pos),
+            joint_acc=[0] * len(joint_pos),
+        )
 
         # Set sim torques
         applied_torques = commanded_torques + grav_comp_torques
@@ -85,7 +82,7 @@ class BulletManipulator:
         self.arm_state.motor_torques_external[:] = np.zeros_like(applied_torques)
 
     def apply_gripper_control(self, cmd: polymetis_pb2.GripperCommand):
-        pass  # apply gripper action
+        pass  # TODO
 
     def step(self):
         self.sim.stepSimulation()
@@ -94,10 +91,10 @@ class BulletManipulator:
 @hydra.main()
 def main(cfg):
     # Create sim
-    sim = BulletManipulator(...)  # TODO
+    sim = BulletManipulator(cfg.robot_model, gui=cfg.gui)
 
     # Connect to Polymetis sim interface
-    ps_interface = polysim.SimInterface(cfg.sim_cfg)  # TODO
+    ps_interface = polysim.SimInterface(cfg.robot_client.metadata_cfg, cfg.hz)
     ps_interface.register_control_callback(
         server_ip=cfg.arm.ip,
         server_port=cfg.arm.port,
