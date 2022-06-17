@@ -6,12 +6,17 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import Dict, Callable, Optional
-import enum
+from enum import Enum
+from dataclasses import dataclass
 import time
+
+import grpc
 import numpy as np
 import hydra
 from omegaconf.dictconfig import DictConfig
 
+import polymetis_pb2
+import polymetis_pb2_grpc
 from polymetis.utils import Spinner
 from polymetis.robot_client.abstract_robot_client import (
     AbstractRobotClient,
@@ -54,11 +59,11 @@ class SimInterface(AbstractRobotClient):
         action_callback: Callable,
     ):
         # Connect to server
-        channel = grpc.insecure_channel(f"{ip}:{port}")
+        channel = grpc.insecure_channel(f"{server_ip}:{server_port}")
         if server_type is ControlType.ARM:
             connection = polymetis_pb2_grpc.PolymetisControllerServerStub(channel)
             connection.InitRobotClient(self.metadata.get_proto())
-        elif server_type is ControlType.ARM:
+        elif server_type is ControlType.GRIPPER:
             connection = polymetis_pb2_grpc.GripperServerStub(channel)
         else:
             raise AttributeError("Invalid server type.")

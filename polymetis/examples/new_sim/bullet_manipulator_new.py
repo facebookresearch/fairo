@@ -4,6 +4,9 @@
 # LICENSE file in the root directory of this source tree.
 
 import hydra
+from omegaconf.dictconfig import DictConfig
+import pybullet
+from pybullet_utils.bullet_client import BulletClient
 
 import polymetis_pb2
 import polysim
@@ -20,7 +23,7 @@ class BulletManipulator:
         self.cfg = cfg
 
         # Initialize PyBullet simulation
-        if self.gui:
+        if gui:
             self.sim = BulletClient(connection_mode=pybullet.GUI)
         else:
             self.sim = BulletClient(connection_mode=pybullet.DIRECT)
@@ -36,18 +39,14 @@ class BulletManipulator:
 
     def get_arm_state(self) -> polymetis_pb2.RobotState:
         # Timestamp
-        robot_state.timestamp.GetCurrentTime()
+        self.arm_state.timestamp.GetCurrentTime()
 
         # Joint pos & vel
         joint_cur_states = self.sim.getJointStates(
-            self.robot_id, self.controlled_joints
+            self.robot_id, self.cfg.controlled_joints
         )
-        self.arm_state.joint_positions[:] = [
-            joint_cur_states[i][0] for i in range(self.n_dofs)
-        ]
-        self.arm_state.joint_velocities[:] = [
-            joint_cur_states[i][1] for i in range(self.n_dofs)
-        ]
+        self.arm_state.joint_positions[:] = [joint_cur_states[i][0] for i in range(7)]
+        self.arm_state.joint_velocities[:] = [joint_cur_states[i][1] for i in range(7)]
 
         return self.arm_state
 
@@ -88,7 +87,7 @@ class BulletManipulator:
         self.sim.stepSimulation()
 
 
-@hydra.main()
+@hydra.main(config_path=".", config_name="config")
 def main(cfg):
     # Create sim
     sim = BulletManipulator(cfg.robot_model, gui=cfg.gui)
