@@ -294,14 +294,20 @@ class Memory2D extends React.Component {
     var padding = 10;
     var gridKey = 12344;
     for (var i = 0; i < width / padding; i++) {
+      // Vertical Lines
+      let startX = drag_coordinates[0] % (padding * stageScale);
+      let plotX =
+        startX +
+        Math.round(i * padding * stageScale - drag_coordinates[0]) +
+        0.5;
       gridLayer.push(
         <Line
           key={gridKey + i}
           points={[
-            Math.round(i * padding) + 0.5,
-            0,
-            Math.round(i * padding) + 0.5,
-            height,
+            plotX / stageScale,
+            (0 - drag_coordinates[1]) / stageScale,
+            plotX / stageScale,
+            (height - drag_coordinates[1]) / stageScale,
           ]}
           stroke="#f5f5f5"
           strokeWidth={1}
@@ -311,10 +317,19 @@ class Memory2D extends React.Component {
 
     gridLayer.push(<Line key={gridKey + i++} points={[0, 0, 10, 10]} />);
     for (j = 0; j < height / padding; j++) {
+      // Horizontal Lines
+      let startY = drag_coordinates[1] % (padding * stageScale);
+      let plotY =
+        startY + Math.round(j * padding * stageScale - drag_coordinates[1]);
       gridLayer.push(
         <Line
           key={gridKey + i + j}
-          points={[0, Math.round(j * padding), width, Math.round(j * padding)]}
+          points={[
+            (0 - drag_coordinates[0]) / stageScale,
+            plotY / stageScale,
+            (width - drag_coordinates[0]) / stageScale,
+            plotY / stageScale,
+          ]}
           stroke="#ddd"
           strokeWidth={0.5}
         />
