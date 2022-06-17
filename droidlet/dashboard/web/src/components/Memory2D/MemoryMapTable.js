@@ -7,8 +7,13 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
+
+import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
+import ClearIcon from "@material-ui/icons/Clear";
+
+const MAX_TABLE_CELL_WIDTH = 100;
 
 const StyledTableCell = withStyles((theme) => ({
   head: {
@@ -31,11 +36,10 @@ const StyledTableRow = withStyles((theme) => ({
 
 const useStyles = makeStyles({
   table: {
-    maxWidth: 200,
+    maxWidth: 300,
   },
   th: {
-    maxWidth: 100,
-    maxHeight: 55,
+    maxWidth: MAX_TABLE_CELL_WIDTH,
     overflow: "hidden",
   },
 });
@@ -57,6 +61,16 @@ export default function MemoryMapTable(props) {
           <TableRow>
             <StyledTableCell>Attribute</StyledTableCell>
             <StyledTableCell>Value</StyledTableCell>
+            <StyledTableCell>
+              <IconButton
+                onClick={(e) => {
+                  props.onTableDone(e);
+                }}
+                color="secondary"
+              >
+                <ClearIcon />
+              </IconButton>
+            </StyledTableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -67,14 +81,23 @@ export default function MemoryMapTable(props) {
                 component="th"
                 scope="row"
               >
-                {row.attribute}
+                {shortenLongTableEntries(row.attribute)}
               </StyledTableCell>
               <StyledTableCell
                 className={classes.th}
                 component="th"
                 scope="row"
               >
-                {row.value}
+                {shortenLongTableEntries(row.value)}
+              </StyledTableCell>
+              <StyledTableCell
+                className={classes.th}
+                component="th"
+                scope="row"
+              >
+                <IconButton disableRipple>
+                  <DeleteIcon />
+                </IconButton>
               </StyledTableCell>
             </StyledTableRow>
           ))}
@@ -83,20 +106,28 @@ export default function MemoryMapTable(props) {
               className={classes.th}
               component="th"
               scope="row"
-              colSpan={2}
+              colSpan={3}
               align="center"
             >
-              <IconButton
+              <Button
+                variant="contained"
                 onClick={(e) => {
                   props.onTableDone(e);
                 }}
               >
-                <DeleteIcon />
-              </IconButton>
+                Done
+              </Button>
             </StyledTableCell>
           </StyledTableRow>
         </TableBody>
       </Table>
     </TableContainer>
   );
+}
+
+function shortenLongTableEntries(e) {
+  if (e.length > 16) {
+    return e.substring(0, 6) + "..." + e.substring(e.length - 6);
+  }
+  return e;
 }

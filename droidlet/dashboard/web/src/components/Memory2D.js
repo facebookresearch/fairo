@@ -6,15 +6,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import React from "react";
 import { Stage, Layer, Circle, Line, Text, Group } from "react-konva";
-import { Grid, Cell } from "react-konva-grid";
 import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
 import MemoryMapTable from "./Memory2D/MemoryMapTable";
-import IconButton from "@material-ui/core/IconButton";
-import DeleteIcon from "@material-ui/icons/Delete";
-
-function createData(name, calories) {
-  return { name, calories };
-}
 
 var hashCode = function (s) {
   return s.split("").reduce(function (a, b) {
@@ -113,6 +106,10 @@ class Memory2D extends React.Component {
     });
   };
   handleObjClick = (obj_type, x, y, data) => {
+    /* 
+     * Potentially useful code to debug table positioning when zooming in *
+     *
+     * 
     let {
       table_coords,
       drag_coordinates,
@@ -125,15 +122,6 @@ class Memory2D extends React.Component {
     width = Math.min(width, height);
     height = width;
 
-    console.log(obj_type + " clicked");
-    console.log(Object.keys(data).length);
-
-    // FIXME: no table tracking support for objects in obstacle_map
-    let obj =
-      obj_type + " " + (obj_type !== "obstacle_map" ? data["memid"] : "");
-    console.log(obj);
-
-    /*
     console.log("x:", x, "y:", y);
     console.log("drag_coordinates:", drag_coordinates[0], ", ", drag_coordinates[1]);
     console.log("stage_coords:", stageX, ", ", stageY);
@@ -142,8 +130,9 @@ class Memory2D extends React.Component {
     console.log("will plot table at: [", (x + drag_coordinates[0]), ", ", (Math.min(height, width) - y - drag_coordinates[1]), "]");
     */
 
+    console.log(obj_type + " clicked");
+
     this.setState({
-      table_obj: obj,
       table_visible: true,
       table_coords: [x, y],
       table_data: data,
@@ -154,7 +143,7 @@ class Memory2D extends React.Component {
     let ret = { position: "absolute" };
     let final_coords = [tc[0] + dc[0], Math.min(h, w) - (tc[1] + dc[1])];
     let final_pos = ["left", "bottom"];
-    let table_dims = [200, 33 * Object.keys(td).length + 96];
+    let table_dims = [200, 61 * Object.keys(td).length + 100];
     if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
       final_coords[1] = Math.min(h, w) - final_coords[1];
       final_pos[1] = "top";
@@ -193,7 +182,7 @@ class Memory2D extends React.Component {
     }
   }
   componentDidUpdate(prevProps, prevState) {
-    const { bot_xyz, table_visible, table_obj, bot_data } = this.state;
+    const { bot_xyz, bot_data } = this.state;
     let { xmin, xmax, ymin, ymax } = this.state;
     let bot_x = bot_xyz[0],
       bot_y = bot_xyz[1];
@@ -217,18 +206,6 @@ class Memory2D extends React.Component {
     if (state_changed) {
       this.setState({ xmin: xmin, ymin: ymin, xmax: xmax, ymax: ymax });
     }
-
-    // to properly update table data on new sio.emit from agent
-    if (table_visible) {
-      if (table_obj.startsWith("bot")) {
-        if (
-          prevState.bot_data.pos[0] !== bot_data.pos[0] ||
-          prevState.bot_data.pos[2] !== bot_data.pos[2]
-        ) {
-          this.setState({ table_data: bot_data });
-        }
-      }
-    }
     this.resizeHandler();
   }
 
@@ -243,7 +220,6 @@ class Memory2D extends React.Component {
       width,
       memory,
       detections_from_memory,
-      bot_xyz,
       bot_data,
       obstacle_map,
       tooltip,
@@ -580,7 +556,7 @@ class Memory2D extends React.Component {
 
     // table props
     const onTableDone = (e) => {
-      this.setState({ table_visible: false, table_obj: null });
+      this.setState({ table_visible: false });
     };
     const rows = [];
     if (table_visible) {
