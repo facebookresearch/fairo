@@ -25,7 +25,10 @@ class EncoderDecoderWithLoss(nn.Module):
         self.decoder = decoder
         self.train_encoder = args.train_encoder
 
-        if args.pretrained_encoder_name == "bert-large-uncased" and args.decoder_config_name == "bert-base-uncased":
+        if (
+            args.pretrained_encoder_name == "bert-large-uncased"
+            and args.decoder_config_name == "bert-base-uncased"
+        ):
             self.proj_encoder_decoder = nn.Linear(1024, 768)
         else:
             self.proj_encoder_decoder = None
@@ -56,7 +59,7 @@ class EncoderDecoderWithLoss(nn.Module):
             x_reps = model[0]
         if not self.train_encoder:
             x_reps = x_reps.detach()
-        
+
         if self.proj_encoder_decoder:
             x_reps = self.proj_encoder_decoder(x_reps)
 
