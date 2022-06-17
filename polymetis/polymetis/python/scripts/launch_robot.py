@@ -79,15 +79,19 @@ def main(cfg):
     signal.signal(signal.SIGTERM, lambda signal_number, stack_frame: cleanup())
 
     # Start client
-    t0 = time.time()
-    while not check_server_exists(cfg.ip, cfg.port):
-        time.sleep(0.1)
-        if time.time() - t0 > cfg.timeout:
-            raise ConnectionError("Robot client: Unable to locate server.")
+    if cfg.robot_client:
+        t0 = time.time()
+        while not check_server_exists(cfg.ip, cfg.port):
+            time.sleep(0.1)
+            if time.time() - t0 > cfg.timeout:
+                raise ConnectionError("Robot client: Unable to locate server.")
 
-    log.info(f"Starting robot client...")
-    client = hydra.utils.instantiate(cfg.robot_client)
-    client.run()
+        log.info(f"Starting robot client...")
+        client = hydra.utils.instantiate(cfg.robot_client)
+        client.run()
+
+    else:
+        signal.pause()
 
 
 if __name__ == "__main__":

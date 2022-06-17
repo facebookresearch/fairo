@@ -6,6 +6,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
+import signal
 import hydra
 
 from polymetis.robot_servers import GripperServerLauncher
@@ -20,8 +21,12 @@ def main(cfg):
 
     else:
         # Run client
-        gripper_client = hydra.utils.instantiate(cfg.gripper)
-        gripper_client.run()
+        if cfg.gripper:
+            gripper_client = hydra.utils.instantiate(cfg.gripper)
+            gripper_client.run()
+
+        else:
+            signal.pause()
 
 
 if __name__ == "__main__":
