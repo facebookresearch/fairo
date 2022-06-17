@@ -1093,6 +1093,7 @@ class StateManager {
           detections_from_memory: res.detections_from_memory,
           memory: this.memory,
           bot_xyz: [res.x, res.y, res.yaw],
+          bot_data: res.bot_data,
           obstacle_map: res.map,
         });
       }
