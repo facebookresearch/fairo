@@ -391,7 +391,7 @@ class World:
             ]
 
             payload = {"status": "updateVoxelWorldState", "world_state": {"block": blocks}}
-            print(f"Initial payload: {payload}")
+            # print(f"Initial payload: {payload}")
             server.emit("updateVoxelWorldState", payload)
 
         @server.on("get_world_info")
@@ -404,8 +404,9 @@ class World:
             eid = self.connected_sids.get(sid)
             player_struct = self.get_player_info(eid)
             chat_with_name = "<{}> {}".format(player_struct.name, chat_text)
-            for sid, store in self.incoming_chats_store.items():
-                store.append(chat_with_name)
+            for other_sid, store in self.incoming_chats_store.items():
+                if sid != other_sid:
+                    store.append(chat_with_name)
 
         @server.on("get_incoming_chats")
         def get_chats(sid):
@@ -489,8 +490,8 @@ class World:
                 and nz < self.sl
             ):
                 if (
-                    self.blocks[nx, ny, nz, 0] in PASSABLE_BLOCKS
-                    and self.blocks[nx, ny + 1, nz, 0] in PASSABLE_BLOCKS
+                    self.blocks[int(nx), int(ny), int(nz), 0] in PASSABLE_BLOCKS
+                    and self.blocks[int(nx), int(ny) + 1, int(nz), 0] in PASSABLE_BLOCKS
                 ):
                     new_pos = Pos(x, y, z)
                     self.players[eid] = self.players[eid]._replace(pos=new_pos)
@@ -598,7 +599,6 @@ class World:
 
         @server.on("step_world")
         def step_world(sid):
-
             self.step()
 
         app = socketio.WSGIApp(server)
