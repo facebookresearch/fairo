@@ -41,7 +41,6 @@ class Memory2D extends React.Component {
       drag_coordinates: [0, 0],
       enlarge_bot_marker: false,
       table_data: null,
-      table_obj: null,
       table_visible: false,
       table_coords: [0, 0],
     };
