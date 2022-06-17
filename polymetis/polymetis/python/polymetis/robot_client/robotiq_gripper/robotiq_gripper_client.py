@@ -11,11 +11,10 @@ from google.protobuf import timestamp_pb2
 import polymetis_pb2
 import polymetis_pb2_grpc
 
+from polymetis.utils import Spinner
 from .third_party.robotiq_2finger_grippers.robotiq_2f_gripper import (
     Robotiq2FingerGripper,
 )
-
-HZ = 60
 
 
 class RobotiqGripperClient:
@@ -23,7 +22,9 @@ class RobotiqGripperClient:
     Communicates with the gripper through modbus
     """
 
-    def __init__(self, server_ip, server_port, comport="/dev/ttyUSB0"):
+    def __init__(self, server_ip, server_port, comport="/dev/ttyUSB0", hz=60):
+        self.hz = hz
+
         # Connect to gripper
         self.gripper = Robotiq2FingerGripper(comport=comport)
 
@@ -79,9 +80,7 @@ class RobotiqGripperClient:
     def run(self):
         prev_timestamp = timestamp_pb2.Timestamp()
 
-        dt = 1.0 / HZ
-        t0 = time.time()
-        t_target = t0 + dt
+        spinner = Spinner(self.hz)
         while True:
             # Retrieve state
             state = self.get_gripper_state()
@@ -95,5 +94,4 @@ class RobotiqGripperClient:
                 prev_timestamp = cmd.timestamp
 
             # Spin
-            time.sleep(max(0.0, t_target - time.time()))
-            t_target += dt
+            spinner.spin()
