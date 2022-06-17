@@ -1,6 +1,7 @@
 """
 Job management utils
 """
+import logging
 from math import isnan
 import boto3
 import datetime
@@ -8,19 +9,40 @@ import pandas as pd
 from enum import Enum
 import os
 
+# for s3
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
 AWS_DEFAULT_REGION = os.environ["AWS_DEFAULT_REGION"]
+S3_BUCKET_NAME = "droidlet-hitl"
+S3_ROOT = "s3://droidlet-hitl"
+
+# for ecr
+AWS_ECR_ACCESS_KEY_ID = os.environ["AWS_ECR_ACCESS_KEY_ID"]
+AWS_ECR_SECRET_ACCESS_KEY = os.environ["AWS_ECR_SECRET_ACCESS_KEY"]
 AWS_ECR_REGION = os.environ["AWS_ECR_REGION"] if os.getenv("AWS_ECR_REGION") else "us-west-1"
 AWS_ECR_REGISTRY_ID = "492338101900"
 AWS_ECR_REPO_NAME = "craftassist"
 
+# local tmp directory
+HITL_TMP_DIR = (
+    os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
+)
+
 ecr = boto3.client(
     "ecr",
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    aws_access_key_id=AWS_ECR_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_ECR_SECRET_ACCESS_KEY,
     region_name=AWS_ECR_REGION,
 )
+
+s3 = boto3.resource(
+    "s3",
+    region_name=AWS_DEFAULT_REGION,
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+)
+
+bucket = s3.Bucket(S3_BUCKET_NAME)
 
 class MetaData(Enum):
     ID = "id"
@@ -106,19 +128,14 @@ for job in Job:
 class JobManagementUtil:
     def __init__(self):
         df = pd.DataFrame(columns = rec_cols, index = [0])
-        self.__batch_id = -1
-        self.__rec_df = df
+        self._batch_id = None
+        self._rec_df = df
+        self._local_path = os.path.join(HITL_TMP_DIR, "tmp", f"job_management_{datetime.datetime.now()}.csv")
 
-    def set_meta_time(self, meta_data: MetaData):
-        self.validate_and_set_time(meta_data)
-
-    def set_meta_data(self, meta_data: MetaData, val):
-        self.__rec_df.at[0, meta_data.name] = val        
-
-    def validate_and_set_time(self, time_type, job_type = None):
+    def _validate_and_set_time(self, time_type, job_type = None):
         time = datetime.datetime.now()
 
-        df = self.__rec_df
+        df = self._rec_df
 
         # Check type and get corresponding column name
         if time_type == MetaData.START_TIME or time_type == MetaData.END_TIME:
@@ -140,20 +157,44 @@ class JobManagementUtil:
 
         # Set time
         df.at[0, col_to_set] = time
-        
+        self._save_tmp()
+    
+    def _save_tmp(self):
+        self._rec_df.to_csv(self._local_path)
+
+    def set_meta_start(self):
+        self.set_meta_time(MetaData.START_TIME)
+
+    def set_meta_end(self):
+        self.set_meta_time(MetaData.END_TIME)
+
+    def set_meta_time(self, meta_data: MetaData):
+        self.validate_and_set_time(meta_data)
+
+    def set_meta_data(self, meta_data: MetaData, val):
+        self._rec_df.at[0, meta_data.name] = val  
+        self._save_tmp()
+  
     def set_job_stat(self, job_type: Job, job_stat: JobStat, val):
-        self.__rec_df.at[0, get_job_stat_col(job_type, job_stat)] = val
+        self._rec_df.at[0, get_job_stat_col(job_type, job_stat)] = val
+        self._save_tmp()
 
     def set_job_stat_relative(self, job_type: Job, job_stat: JobStat, relative_val):
-        self.__rec_df.at[0, get_job_stat_col(job_type, job_stat)] += relative_val
+        self._rec_df.at[0, get_job_stat_col(job_type, job_stat)] += relative_val
+        self._save_tmp()
 
     def set_job_time(self, job_type: Job, job_stat: JobStat):
         self.validate_and_set_time(job_type, job_stat)
     
     def save_to_s3(self):
         # check __batch_id for saving to s3
-        if self.__batch_id == -1:
-            raise ValueError("Cannot save to s3 unless batch id is defined")
+        if self._batch_id is None:
+            logging.error("Must have an associated batch to be able to save to s3")
+            raise TypeError("No associated batch_id set")
+        # save to s3
+
+
+
 
 if __name__ == "__main__":
     sha256 = get_dashboard_version("cw_test1")
