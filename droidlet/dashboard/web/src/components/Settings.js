@@ -119,7 +119,7 @@ class Settings extends React.Component {
             this.props.stateManager.handleMapToggle();
           }}
           control={<Switch size="small" />}
-          label="Toggle Dashboard: "
+          label="Toggle Map: "
           labelPlacement="start"
         />
       );

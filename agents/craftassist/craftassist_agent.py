@@ -409,14 +409,12 @@ class CraftAssistAgent(DroidletAgent):
         detections_for_map = []
         for mem in mems:
             if hasattr(mem, "pos"):
-                print(vars(mem))
                 id_str = "no_id" if not hasattr(mem, "obj_id") else mem.obj_id
                 obj = vars(mem)
-                obj.pop('agent_memory', None)
+                obj.pop('agent_memory', None)   # not necessary to show memory object type and location 
                 obj["node_type"] = type(mem).__name__
                 obj["obj_id"] = id_str
                 obj["pos"] = list(mem.pos)
-                #detections_for_map.append([id_str, list(mem.pos)])
                 detections_for_map.append(obj)
         return detections_for_map
 
