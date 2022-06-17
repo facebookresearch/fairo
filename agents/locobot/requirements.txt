@@ -1,5 +1,5 @@
 -r ../../requirements.txt
-norfair
+norfair=0.4.3
 facenet-pytorch
 krovetz
 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu113/torch1.10/index.html
