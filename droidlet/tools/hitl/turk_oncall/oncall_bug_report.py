@@ -7,7 +7,7 @@ The class TaoLogListener(JobListener) listens to the status file for a TAO job b
 and initiate a bug report job once logs are ready.
 
 The class TaoBugReportJob(DataGenerator) read in the logs for a TAO job batch,
-extract traceback, and output the content of the traceback and the frequency of the traceback to s3. 
+extract traceback, and output the content of the traceback, the frequency, and associated chat of the traceback to s3. 
 
 """
 import os
@@ -63,6 +63,7 @@ column names for df & output log csv file
 """
 COL_CONTENT = "content"
 COL_FREQ = "freq"
+COL_CHAT = "chat_content"
 
 log_formatter = logging.Formatter(
     "%(asctime)s [%(filename)s:%(lineno)s - %(funcName)s() %(levelname)s]: %(message)s"
@@ -116,6 +117,10 @@ class TaoBugReportJob(DataGenerator):
                 with open(fpath) as file:
                     content = ""
                     for line in file:
+                        # extract chat
+                        if "ttad pre-coref" in line:
+                            chat = line
+
                         # check if starts with YYYY-MM-DD
                         # or line starts with logging level
                         if (
@@ -129,8 +134,10 @@ class TaoBugReportJob(DataGenerator):
                             # if the content exists & starts with trace back, append to df
                             if content and content.startswith("Traceback"):
                                 if content not in df.index:
-                                    df.loc[content] = 0
-                                df.loc[content] += 1
+                                    df.at[content, COL_FREQ] = 0
+                                    df.at[content, COL_CHAT] = []
+                                df.at[content, COL_FREQ] += 1
+                                df.at[content, COL_CHAT].append(chat)
                             content = ""
                         else:
                             content += line
@@ -140,7 +147,7 @@ class TaoBugReportJob(DataGenerator):
         batch_id = self._batch_id
         batch_prefix = f"{batch_id}/interaction/"
 
-        df = pd.DataFrame(columns=[COL_CONTENT, COL_FREQ])
+        df = pd.DataFrame(columns=[COL_CONTENT, COL_FREQ, COL_CHAT])
         df = df.set_index(COL_CONTENT)
 
         for obj in bucket.objects.filter(Prefix=batch_prefix):
@@ -166,7 +173,9 @@ class TaoBugReportJob(DataGenerator):
             out_remote_path = f"{batch_id}/log_traceback.csv"
             out_local_path = os.path.join(tmp_dir, out_remote_path)
 
-            # Dedup based on content column and save
+            # Sort and save to s3
+            df = df.sort_values(by = COL_FREQ, ascending=False)
+
             df.to_csv(out_local_path)
             logging.info(
                 f"[Tao Bug Report Job] Saving processed log file to s3://{S3_BUCKET_NAME}/{out_remote_path}"
