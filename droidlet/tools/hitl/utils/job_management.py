@@ -22,6 +22,7 @@ ecr = boto3.client(
     region_name=AWS_ECR_REGION,
 )
 
+
 class MetaData(Enum):
     ID = "id"
     NAME = "name"
@@ -30,10 +31,12 @@ class MetaData(Enum):
     START_TIME = "start_time"
     END_TIME = "end_time"
 
+
 class Job(Enum):
     INTERACTION = "interaction"
     ANNOTATION = "annotation"
     RETRAIN = "retrain"
+
 
 class JobStat(Enum):
     REQUESTED = "#requested"
@@ -48,36 +51,27 @@ class JobStat(Enum):
     NEW_DATA_SZ = "new_data_sz"
     MODEL_ACCURACY = "model_accuracy"
 
+
 # statastics that all jobs have
-STAT_FOR_ALL = set([
-    JobStat.REQUESTED, 
-    JobStat.COMPLETED, 
-    JobStat.START_TIME, 
-    JobStat.END_TIME
-])
+STAT_FOR_ALL = set([JobStat.REQUESTED, JobStat.COMPLETED, JobStat.START_TIME, JobStat.END_TIME])
 
 # statatics that are unique for a job (not in the STAT_FOR_ALL set)
 STAT_JOB_PAIR = {
-    Job.INTERACTION: set([
-        JobStat.SESSION_LOG, 
-        JobStat.COMMAND, 
-        JobStat.ERR_COMMAND, 
-        JobStat.DASHBOARD_VER
-    ]),
-    Job.RETRAIN: set([
-        JobStat.ORI_DATA_SZ, 
-        JobStat.NEW_DATA_SZ, 
-        JobStat.MODEL_ACCURACY
-    ])
+    Job.INTERACTION: set(
+        [JobStat.SESSION_LOG, JobStat.COMMAND, JobStat.ERR_COMMAND, JobStat.DASHBOARD_VER]
+    ),
+    Job.RETRAIN: set([JobStat.ORI_DATA_SZ, JobStat.NEW_DATA_SZ, JobStat.MODEL_ACCURACY]),
 }
 
-def get_job_stat_col(job: Job, job_stat: JobStat): 
+
+def get_job_stat_col(job: Job, job_stat: JobStat):
     """
-    Gets Job statstic column name if the this job_stat is allowed for the input job 
+    Gets Job statstic column name if the this job_stat is allowed for the input job
     """
-    assert(job_stat in STAT_FOR_ALL or job_stat in STAT_JOB_PAIR[job])
+    assert job_stat in STAT_FOR_ALL or job_stat in STAT_JOB_PAIR[job]
 
     return f"{job.name}.{job_stat.name}"
+
 
 def get_dashboard_version(image_tag: str):
     response = ecr.batch_get_image(
@@ -85,13 +79,15 @@ def get_dashboard_version(image_tag: str):
         repositoryName=AWS_ECR_REPO_NAME,
         imageIds=[
             {"imageTag": image_tag},
-            ]
+        ],
     )
     assert len(response["images"]) == 1
     return response["images"][0]["imageId"]["imageDigest"]
 
+
 def get_s3_link(batch_id: int):
     return f"https://s3.console.aws.amazon.com/s3/buckets/droidlet-hitl?region={AWS_DEFAULT_REGION}&prefix={batch_id}"
+
 
 # Pepare record columns
 rec_cols = [md.name for md in MetaData]
@@ -103,9 +99,10 @@ for job in Job:
         for stat in STAT_JOB_PAIR[job]:
             rec_cols.append(get_job_stat_col(job, stat))
 
+
 class JobManagementUtil:
     def __init__(self):
-        df = pd.DataFrame(columns = rec_cols, index = [0])
+        df = pd.DataFrame(columns=rec_cols, index=[0])
         self.__batch_id = -1
         self.__rec_df = df
 
@@ -113,9 +110,9 @@ class JobManagementUtil:
         self.validate_and_set_time(meta_data)
 
     def set_meta_data(self, meta_data: MetaData, val):
-        self.__rec_df.at[0, meta_data.name] = val        
+        self.__rec_df.at[0, meta_data.name] = val
 
-    def validate_and_set_time(self, time_type, job_type = None):
+    def validate_and_set_time(self, time_type, job_type=None):
         time = datetime.datetime.now()
 
         df = self.__rec_df
@@ -124,23 +121,25 @@ class JobManagementUtil:
         if time_type == MetaData.START_TIME or time_type == MetaData.END_TIME:
             start_col = MetaData.START_TIME.name
             col_to_set = time_type.name
-        elif (time_type == JobStat.START_TIME or time_type == JobStat.END_TIME) and job_type is not None:
+        elif (
+            time_type == JobStat.START_TIME or time_type == JobStat.END_TIME
+        ) and job_type is not None:
             start_col = get_job_stat_col(job_type, JobStat.START_TIME)
             col_to_set = get_job_stat_col(job_type, time_type)
         else:
             raise TypeError(f"Cannot set time for the type {time_type}")
 
-        # Validate has start time for recording end time 
+        # Validate has start time for recording end time
         if time_type == MetaData.END_TIME or time_type == JobStat.END_TIME:
             # start time need to be set
-            assert(not isnan(df.at[0, start_col]))
-        
+            assert not isnan(df.at[0, start_col])
+
         # Validate not set before
-        assert(isnan(df.at[0, col_to_set]))
+        assert isnan(df.at[0, col_to_set])
 
         # Set time
         df.at[0, col_to_set] = time
-        
+
     def set_job_stat(self, job_type: Job, job_stat: JobStat, val):
         self.__rec_df.at[0, get_job_stat_col(job_type, job_stat)] = val
 
@@ -149,11 +148,12 @@ class JobManagementUtil:
 
     def set_job_time(self, job_type: Job, job_stat: JobStat):
         self.validate_and_set_time(job_type, job_stat)
-    
+
     def save_to_s3(self):
         # check __batch_id for saving to s3
         if self.__batch_id == -1:
             raise ValueError("Cannot save to s3 unless batch id is defined")
+
 
 if __name__ == "__main__":
     sha256 = get_dashboard_version("cw_test1")

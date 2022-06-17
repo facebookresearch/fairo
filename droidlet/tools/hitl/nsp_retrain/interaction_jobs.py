@@ -87,8 +87,6 @@ class InteractionJob(DataGenerator):
         self._batch_id = generate_batch_id()
 
         # TODO: init meta data file, record start time
-        
-
 
     def run(self) -> None:
         batch_id = self._batch_id
