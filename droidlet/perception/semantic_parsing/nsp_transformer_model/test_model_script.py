@@ -304,7 +304,6 @@ def argument_parse(input_arg):
 def model_configure(args):
     """
     Configurate NLU model based on input arguments
-
     Args:
         args: input arguments of model and dataset configuration
     Returns:
@@ -388,11 +387,10 @@ def eval_model(args, model, tokenizer, dataset):
         tokenizer: pretrained tokenizer
         dataset: caip dataset
     Returns:
-
     """
     model_evaluator = ModelEvaluator(args)
     model_evaluator.evaluate(model, dataset, tokenizer)
-    
+
 
 if __name__ == "__main__":
     args = argument_parse("")
