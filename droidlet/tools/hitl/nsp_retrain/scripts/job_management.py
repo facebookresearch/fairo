@@ -1,13 +1,18 @@
 """
 Job management utils
 """
+from curses import start_color
+from math import isnan
+from tkinter import E
 import boto3
+import datetime
+import pandas as pd
+from enum import Enum
 import os
-import json
 
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
-AWS_ECR_REGION = "us-west-1"
+AWS_ECR_REGION = os.environ["AWS_SECRET_ACCESS_KEY"] if if os.getenv("AWS_SECRET_ACCESS_KEY") else "us-west-1"
 AWS_ECR_REGISTRY_ID = "492338101900"
 AWS_ECR_REPO_NAME = "craftassist"
 
@@ -18,19 +23,137 @@ ecr = boto3.client(
     region_name=AWS_ECR_REGION,
 )
 
+class MetaData(Enum):
+    ID = "id"
+    NAME = "name"
+    S3_LINK = "s3_link"
+    COST = "cost"
+    START_TIME = "start_time"
+    END_TIME = "end_time"
 
-def get_dashboard_version(image_tag: str):
-    response = ecr.batch_get_image(
-        registryId=AWS_ECR_REGISTRY_ID,
-        repositoryName=AWS_ECR_REPO_NAME,
-        imageIds=[
-            {"imageTag": image_tag},
-        ],
-    )
-    assert len(response["images"]) == 1
-    return response["images"][0]["imageId"]["imageDigest"]
+class Job(Enum):
+    INTERACTION = "interaction"
+    ANNOTATION = "annotation"
+    RETRAIN = "retrain"
 
+class JobStat(Enum):
+    REQUESTED = "#requested"
+    COMPLETED = "#completed"
+    START_TIME = "start_time"
+    END_TIME = "end_time"
+    SESSION_LOG = "#session_log"
+    COMMAND = "#command"
+    ERR_COMMAND = "#err_command"
+    DASHBOARD_VER = "dashboard_ver"
+    ORI_DATA_SZ = "ori_data_sz"
+    NEW_DATA_SZ = "new_data_sz"
+    MODEL_ACCURACY = "model_accuracy"
+
+# statastics that all jobs have
+STAT_FOR_ALL = set([
+    JobStat.REQUESTED, 
+    JobStat.COMPLETED, 
+    JobStat.START_TIME, 
+    JobStat.END_TIME
+])
+
+# statatics that are unique for a job (not in the STAT_FOR_ALL set)
+STAT_JOB_PAIR = {
+    Job.INTERACTION: set([
+        JobStat.SESSION_LOG, 
+        JobStat.COMMAND, 
+        JobStat.ERR_COMMAND, 
+        JobStat.DASHBOARD_VER
+    ]),
+    Job.RETRAIN: set([
+        JobStat.ORI_DATA_SZ, 
+        JobStat.NEW_DATA_SZ, 
+        JobStat.MODEL_ACCURACY
+    ])
+}
+
+def get_job_stat_col(job: Job, job_stat: JobStat): 
+    """
+    Gets Job statstic column name if the this job_stat is allowed for the input job 
+    """
+    assert(job_stat in STAT_FOR_ALL or job_stat in STAT_JOB_PAIR[job])
+
+    return f"{job.name}.{job_stat.name}"
+
+# Pepare record columns
+rec_cols = [md.name for md in MetaData]
+
+for job in Job:
+    for stat in STAT_FOR_ALL:
+        rec_cols.append(get_job_stat_col(job, stat))
+    for stat in STAT_JOB_PAIR[job]:
+        rec_cols.append(get_job_stat_col(job, stat))
+
+class JobManagementUtil:
+    def __init__(self, batch_id: int):
+        df = pd.DataFrame(columns = rec_cols)
+        df = df.append({ 
+            MetaData.ID.name: batch_id, 
+            MetaData.S3_LINK.name: f"https://s3.console.aws.amazon.com/s3/buckets/droidlet-hitl?region=us-west-2&prefix={batch_id}"
+        }, ignore_index=True)
+        self.__rec_df = df
+
+    def set_meta_time(self, meta_data: MetaData):
+        self.validate_and_set_time(meta_data)
+
+    def set_meta_data(self, meta_data: MetaData, val):
+        self.__rec_df.at[0, meta_data.name] = val        
+
+    def validate_and_set_time(self, time_type, job_type = None):
+        time = datetime.datetime.now()
+
+        df = self.__rec_df
+
+        # Check type and get corresponding column name
+        if time_type == MetaData.START_TIME or time_type == MetaData.END_TIME:
+            start_col = MetaData.START_TIME.name
+            col_to_set = time_type.name
+        elif (time_type == JobStat.STAER_TIME or time_type == JobStat.END_TIME) and job_type is not None:
+            start_col = get_job_stat_col(job_type, JobStat.START_TIME)
+            col_to_set = get_job_stat_col(job_type, time_type)
+        else:
+            raise TypeError(f"Cannot set time for the type {time_type}")
+
+        # Validate has start time for recording end time 
+        if time_type == MetaData.END_TIME or time_type == JobStat.END_TIME:
+            # start time need to be set
+            assert(not isnan(df.at[0, start_col]))
+        
+        # Validate not set before
+        assert(isnan(df.at[0, col_to_set]))
+
+        # Set time
+        df.at[0, col_to_set] = time
+        
+    def set_job_stat(self, job_type: Job, job_stat: JobStat, val):
+        self.__rec_df.at[0, get_job_stat_col(job_type, job_stat)] = val
+
+    def set_job_stat_relative(self, job_type: Job, job_stat: JobStat, relative_val):
+        self.__rec_df.at[0, get_job_stat_col(job_type, job_stat)] += relative_val
+
+    def set_job_time(self, job_type: Job, job_stat: JobStat):
+        self.validate_and_set_time(job_type, job_stat)
+
+    def get_dashboard_version(self, image_tag: str):
+        response = ecr.batch_get_image(
+            registryId=AWS_ECR_REGISTRY_ID,
+            repositoryName=AWS_ECR_REPO_NAME,
+            imageIds=[
+                {"imageTag": image_tag},
+            ],
+        )
+        assert len(response["images"]) == 1
+        return response["images"][0]["imageId"]["imageDigest"]
+    
+    def save_to_s3(self):
+        pass
 
 if __name__ == "__main__":
-    sha256 = get_dashboard_version("cw_test1")
+    jm = JobManagementUtil(111)
+    sha256 = jm.get_dashboard_version("cw_test1")
     print(sha256)
