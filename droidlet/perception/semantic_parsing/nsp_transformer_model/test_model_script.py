@@ -388,14 +388,11 @@ def eval_model(args, model, tokenizer, dataset):
 
     """
     model_evaluator = ModelEvaluator(args)
-    model_evaluator.evaluate(
-        model, dataset, tokenizer
-    )
-
+    model_evaluator.evaluate(model, dataset, tokenizer)
 
 if __name__ == "__main__":
     args = argument_parse("")
-    # TODO: print model hash 
+    # TODO: print model hash
     print("loading model")
     model, tokenizer = model_configure(args)
     # TODO: print data hash
