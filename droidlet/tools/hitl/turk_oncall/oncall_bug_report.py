@@ -251,6 +251,7 @@ class TaoLogListener(JobListener):
                 finished = False
             self.set_finished(finished)
 
+
 def process_past_logs(batch_ids: list):
     runner = TaskRunner()
 
@@ -269,7 +270,7 @@ if __name__ == "__main__":
         "-i",
         "--tao_job_batch_ids",
         type=int,
-        nargs='+',
+        nargs="+",
         required=True,
         help="TAO job batch ids",
     )
