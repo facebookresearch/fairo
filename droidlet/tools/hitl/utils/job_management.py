@@ -44,6 +44,7 @@ s3 = boto3.resource(
 
 bucket = s3.Bucket(S3_BUCKET_NAME)
 
+
 class MetaData(Enum):
     ID = "id"
     NAME = "name"
@@ -123,12 +124,14 @@ for job in Job:
 
 class JobManagementUtil:
     def __init__(self):
-        df = pd.DataFrame(columns = rec_cols, index = [0])
+        df = pd.DataFrame(columns=rec_cols, index=[0])
         self._batch_id = None
         self._rec_df = df
-        self._local_path = os.path.join(HITL_TMP_DIR, "tmp", f"job_management_{datetime.datetime.now()}.csv")
+        self._local_path = os.path.join(
+            HITL_TMP_DIR, "tmp", f"job_management_{datetime.datetime.now()}.csv"
+        )
 
-    def _validate_and_set_time(self, time_type, job_type = None):
+    def _validate_and_set_time(self, time_type, job_type=None):
         time = datetime.datetime.now()
 
         df = self._rec_df
@@ -156,7 +159,7 @@ class JobManagementUtil:
         # Set time
         df.at[0, col_to_set] = time
         self._save_tmp()
-    
+
     def _save_tmp(self):
         self._rec_df.to_csv(self._local_path)
 
@@ -170,9 +173,9 @@ class JobManagementUtil:
         self.validate_and_set_time(meta_data)
 
     def set_meta_data(self, meta_data: MetaData, val):
-        self._rec_df.at[0, meta_data.name] = val  
+        self._rec_df.at[0, meta_data.name] = val
         self._save_tmp()
-  
+
     def set_job_stat(self, job_type: Job, job_stat: JobStat, val):
         self._rec_df.at[0, get_job_stat_col(job_type, job_stat)] = val
         self._save_tmp()
@@ -190,9 +193,6 @@ class JobManagementUtil:
             logging.error("Must have an associated batch to be able to save to s3")
             raise TypeError("No associated batch_id set")
         # save to s3
-
-
-
 
 
 if __name__ == "__main__":
