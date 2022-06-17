@@ -1,9 +1,7 @@
 """
 Job management utils
 """
-from curses import start_color
 from math import isnan
-from tkinter import E
 import boto3
 import datetime
 import pandas as pd
@@ -12,7 +10,8 @@ import os
 
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
-AWS_ECR_REGION = os.environ["AWS_SECRET_ACCESS_KEY"] if if os.getenv("AWS_SECRET_ACCESS_KEY") else "us-west-1"
+AWS_DEFAULT_REGION = os.environ["AWS_DEFAULT_REGION"]
+AWS_ECR_REGION = os.environ["AWS_ECR_REGION"] if os.getenv("AWS_ECR_REGION") else "us-west-1"
 AWS_ECR_REGISTRY_ID = "492338101900"
 AWS_ECR_REPO_NAME = "craftassist"
 
@@ -80,22 +79,34 @@ def get_job_stat_col(job: Job, job_stat: JobStat):
 
     return f"{job.name}.{job_stat.name}"
 
+def get_dashboard_version(image_tag: str):
+    response = ecr.batch_get_image(
+        registryId=AWS_ECR_REGISTRY_ID,
+        repositoryName=AWS_ECR_REPO_NAME,
+        imageIds=[
+            {"imageTag": image_tag},
+            ]
+    )
+    assert len(response["images"]) == 1
+    return response["images"][0]["imageId"]["imageDigest"]
+
+def get_s3_link(batch_id: int):
+    return f"https://s3.console.aws.amazon.com/s3/buckets/droidlet-hitl?region={AWS_DEFAULT_REGION}&prefix={batch_id}"
+
 # Pepare record columns
 rec_cols = [md.name for md in MetaData]
 
 for job in Job:
     for stat in STAT_FOR_ALL:
         rec_cols.append(get_job_stat_col(job, stat))
-    for stat in STAT_JOB_PAIR[job]:
-        rec_cols.append(get_job_stat_col(job, stat))
+    if job in STAT_JOB_PAIR.keys():
+        for stat in STAT_JOB_PAIR[job]:
+            rec_cols.append(get_job_stat_col(job, stat))
 
 class JobManagementUtil:
-    def __init__(self, batch_id: int):
-        df = pd.DataFrame(columns = rec_cols)
-        df = df.append({ 
-            MetaData.ID.name: batch_id, 
-            MetaData.S3_LINK.name: f"https://s3.console.aws.amazon.com/s3/buckets/droidlet-hitl?region=us-west-2&prefix={batch_id}"
-        }, ignore_index=True)
+    def __init__(self):
+        df = pd.DataFrame(columns = rec_cols, index = [0])
+        self.__batch_id = -1
         self.__rec_df = df
 
     def set_meta_time(self, meta_data: MetaData):
@@ -113,7 +124,7 @@ class JobManagementUtil:
         if time_type == MetaData.START_TIME or time_type == MetaData.END_TIME:
             start_col = MetaData.START_TIME.name
             col_to_set = time_type.name
-        elif (time_type == JobStat.STAER_TIME or time_type == JobStat.END_TIME) and job_type is not None:
+        elif (time_type == JobStat.START_TIME or time_type == JobStat.END_TIME) and job_type is not None:
             start_col = get_job_stat_col(job_type, JobStat.START_TIME)
             col_to_set = get_job_stat_col(job_type, time_type)
         else:
@@ -138,22 +149,12 @@ class JobManagementUtil:
 
     def set_job_time(self, job_type: Job, job_stat: JobStat):
         self.validate_and_set_time(job_type, job_stat)
-
-    def get_dashboard_version(self, image_tag: str):
-        response = ecr.batch_get_image(
-            registryId=AWS_ECR_REGISTRY_ID,
-            repositoryName=AWS_ECR_REPO_NAME,
-            imageIds=[
-                {"imageTag": image_tag},
-            ],
-        )
-        assert len(response["images"]) == 1
-        return response["images"][0]["imageId"]["imageDigest"]
     
     def save_to_s3(self):
-        pass
+        # check __batch_id for saving to s3
+        if self.__batch_id == -1:
+            raise ValueError("Cannot save to s3 unless batch id is defined")
 
 if __name__ == "__main__":
-    jm = JobManagementUtil(111)
-    sha256 = jm.get_dashboard_version("cw_test1")
+    sha256 = get_dashboard_version("cw_test1")
     print(sha256)
