@@ -60,7 +60,7 @@ service GripperServer {
     rpc GetState(Empty) returns(GripperState) {}
     rpc Goto(GripperCommand) returns(Empty) {}
 
-    rpc GetCommand(GripperState) returns(GripperCommand) {}
+    rpc ControlUpdate(GripperState) returns(GripperCommand) {}
 }
 
 message GripperCommand {

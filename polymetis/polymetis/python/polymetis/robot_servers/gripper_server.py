@@ -23,7 +23,7 @@ class PolymetisGripperServer(polymetis_pb2_grpc.GripperServerServicer):
     def GetState(self, request, context):
         return self.gripper_state_cache
 
-    def GetCommand(self, request, context):
+    def ControlUpdate(self, request, context):
         self.gripper_state_cache = request
         return self.gripper_cmd_cache
 

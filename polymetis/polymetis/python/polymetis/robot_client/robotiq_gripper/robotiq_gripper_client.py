@@ -87,7 +87,7 @@ class RobotiqGripperClient:
             state = self.get_gripper_state()
 
             # Query for command
-            cmd = self.connection.GetCommand(state)
+            cmd = self.connection.ControlUpdate(state)
 
             # Apply command if command is updated
             if cmd.timestamp != prev_timestamp:
