@@ -485,10 +485,6 @@ jobs:
             . ~/miniconda3/bin/activate
             conda install -y -c conda-forge mamba -n base
       - run:
-          name: Remove python2 as default
-          command: |
-            sudo apt remove python-is-python2
-      - run:
           name: Install mrp
           command: |
             . ~/miniconda3/bin/activate
@@ -499,6 +495,9 @@ jobs:
           command: |
             . ~/miniconda3/bin/activate
             conda activate base
+
+            export CONDA_PREFIX=$CONDA_PREFIX
+            export PATH=$PATH
 
             cd perception/sandbox/polygrasp/
             export CUDA_HOME=/usr/local/cuda
