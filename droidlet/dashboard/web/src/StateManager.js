@@ -287,6 +287,12 @@ class StateManager {
       transports: ["polling", "websocket"],
     });
     const wSocket = this.worldSocket;
+    wSocket.on("connect", (msg) => {
+      this.worldSocket.emit("init_player", {
+        player_type: "player",
+        name: "dashboard_player",
+      });
+    });
     wSocket.on("updateVoxelWorldState", this.updateVoxelWorld);
   }
 

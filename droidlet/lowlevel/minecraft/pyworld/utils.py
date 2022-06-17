@@ -12,6 +12,7 @@ FLAT_GROUND_DEPTH = 8
 BEDROCK = (7, 0)
 DIRT = (3, 0)
 GRASS = (2, 0)
+AIR = (0, 0)
 
 
 class PickleMock(Mock):

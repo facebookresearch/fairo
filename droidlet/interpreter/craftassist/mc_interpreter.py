@@ -495,7 +495,6 @@ class MCInterpreter(Interpreter):
 
         return new_tasks
 
-    # FIXME this is not compositional/does not handle loops ("get all the x")
     def handle_get(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'get' command by either pushing a dialogue object
@@ -512,16 +511,21 @@ class MCInterpreter(Interpreter):
         objs = self.subinterpret["reference_objects"](
             self, speaker, ref_d, extra_tags=["_on_ground"]
         )
+
+        objs = [obj for obj in objs if isinstance(obj, ItemStackNode)]
+
         if len(objs) == 0:
             raise ErrorWithResponse("I don't understand what you want me to get.")
-        obj = [obj for obj in objs if isinstance(obj, ItemStackNode)][0]
-        item_stack = agent.get_item_stack(obj.eid)
-        idm = (item_stack.item.id, item_stack.item.meta)
-        task_data = {"idm": idm, "pos": obj.pos, "eid": obj.eid, "obj_memid": obj.memid}
-        # MAYBE BUG?: task_to_generator is not imported from anywhere
-        return task_to_generator(self.task_objects["get"](agent, task_data))
 
-    # FIXME this is not compositional/does not handle loops ("get all the x")
+        tasks = []
+        for obj in objs:
+            item_stack = agent.get_item_stack(obj.eid)
+            idm = (item_stack.item.id, item_stack.item.meta)
+            task_data = {"idm": idm, "pos": obj.pos, "eid": obj.eid, "obj_memid": obj.memid}
+            tasks.append(self.task_objects["get"](agent, task_data))
+
+        return maybe_bundle_task_list(agent, tasks)
+
     def handle_drop(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'drop' command by either pushing a dialogue object
@@ -538,12 +542,17 @@ class MCInterpreter(Interpreter):
         objs = self.subinterpret["reference_objects"](
             self, speaker, ref_d, extra_tags=["_in_inventory"]
         )
+
+        objs = [obj for obj in objs if isinstance(obj, ItemStackNode)]
+
         if len(objs) == 0:
             raise ErrorWithResponse("I don't understand what you want me to drop.")
 
-        obj = [obj for obj in objs if isinstance(obj, ItemStackNode)][0]
-        item_stack = agent.get_item_stack(obj.eid)
-        idm = (item_stack.item.id, item_stack.item.meta)
-        task_data = {"eid": obj.eid, "idm": idm, "obj_memid": obj.memid}
-        # MAYBE BUG?: task_to_generator is not imported from anywhere
-        return task_to_generator(self.task_objects["drop"](agent, task_data))
+        tasks = []
+        for obj in objs:
+            item_stack = agent.get_item_stack(obj.eid)
+            idm = (item_stack.item.id, item_stack.item.meta)
+            task_data = {"eid": obj.eid, "idm": idm, "obj_memid": obj.memid}
+            tasks.append(self.task_objects["drop"](agent, task_data))
+
+        return maybe_bundle_task_list(agent, tasks)

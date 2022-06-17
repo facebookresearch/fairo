@@ -16,7 +16,7 @@ from copy import deepcopy
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
-from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
+from droidlet.interpreter.craftassist import default_behaviors, dance
 from droidlet.memory.craftassist import mc_memory
 from droidlet.memory.memory_nodes import ChatNode, SelfNode
 from droidlet.shared_data_struct import rotation
@@ -110,7 +110,6 @@ class CraftAssistAgent(DroidletAgent):
         # List of tuple (XYZ, radius), each defines a cube
         self.areas_to_perceive = []
         self.add_self_memory_node()
-        self.init_inventory()
         self.init_event_handlers()
 
         shape_util_dict = {
@@ -197,11 +196,6 @@ class CraftAssistAgent(DroidletAgent):
                 },
             }
             sio.emit("setVoxelWorldInitialState", payload)
-
-    def init_inventory(self):
-        """Initialize the agent's inventory"""
-        self.inventory = inventory.Inventory()
-        logging.info("Initialized agent inventory")
 
     def init_memory(self):
         """Intialize the agent memory and logging."""
