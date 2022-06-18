@@ -116,6 +116,7 @@ class TaoBugReportJob(DataGenerator):
 
                 with open(fpath) as file:
                     content = ""
+                    chat = ""
                     for line in file:
                         # extract chat
                         if "ttad pre-coref" in line:
@@ -186,6 +187,8 @@ class TaoBugReportJob(DataGenerator):
                 resp = s3.meta.client.upload_file(out_local_path, S3_BUCKET_NAME, out_remote_path)
             except botocore.exceptions.ClientError as e:
                 logging.info(f"[TAO Bug Report Job] Not able to save file {out_local_path} to s3.")
+        else:
+            logging.info(f"[TAO Bug Report Job] Did not find traceback in {batch_id} logs.")
 
         # delete from local temporary storage
         batch_tmp_path = os.path.join(tmp_dir, f"{batch_id}")
@@ -253,6 +256,9 @@ class TaoLogListener(JobListener):
 
 
 def process_past_logs(batch_ids: list):
+    """
+    porcess past logs in batch listed in batch ids
+    """
     runner = TaskRunner()
 
     for batch_id in batch_ids:
