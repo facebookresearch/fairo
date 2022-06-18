@@ -48,4 +48,4 @@ The output log file would be located on s3:
 s3://droidlet-hitl/{test_batch_id}/log_traceback.csv 
 ```
 An example log_traceback.csv is as follow:
-  <img width="1173" alt="Example log_traceback.csv" src="https://user-images.githubusercontent.com/51009396/173154746-f8dc5247-77b1-4b70-bb35-4c89804beec4.png">
+<img width="1256" alt="Example log_traceback.csv" src="https://user-images.githubusercontent.com/51009396/174422200-6710551c-98ee-448c-9ce9-120de37140e8.png">
