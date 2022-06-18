@@ -53,30 +53,23 @@ if __name__ == "__main__":
     start_datetime = datetime.strptime(str(start_batch_id), TIME_FORMAT)
     end_datetime = datetime.strptime(str(end_batch_id), TIME_FORMAT)
 
-    paginator = s3_client.get_paginator('list_objects')
-    result = paginator.paginate(Bucket=S3_BUCKET_NAME, Delimiter='/')
+    paginator = s3_client.get_paginator("list_objects")
+    result = paginator.paginate(Bucket=S3_BUCKET_NAME, Delimiter="/")
 
     # crawl batch id from s3 bucket
     batch_ids = []
-    for prefix in result.search('CommonPrefixes'):
-        name = prefix.get('Prefix')[:-1]
-        
+    for prefix in result.search("CommonPrefixes"):
+        name = prefix.get("Prefix")[:-1]
+
         batch_id = int(name) if name.isdigit() else None
-        
+
         if batch_id:
             try:
                 batch_datetime = datetime.strptime(str(batch_id), TIME_FORMAT)
                 if batch_datetime >= start_datetime and batch_datetime <= end_datetime:
                     batch_ids.append(batch_id)
             except ValueError:
-                pass 
+                pass
 
     # process logs
     process_past_logs(batch_ids)
-
-
-            
-
-
-
-
