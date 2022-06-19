@@ -79,3 +79,4 @@ This is a suite of data processing scripts that are used to process datasets for
 3. [process_templated_generations_for_train.py](./process_templated_generations_for_train.py) - Creates a train/test/valid split of templated data from templated generations created using the generation script.
 4. [remove_static_valid_commands.py](./remove_static_valid_commands.py): Sets aside commands to be used for validation.
 5. [update_valid_test_sets.py](./update_valid_test_sets.py) - Updates the valid splits with updated action dictionaries.
+
