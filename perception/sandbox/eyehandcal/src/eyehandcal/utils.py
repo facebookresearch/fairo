@@ -92,6 +92,11 @@ def world_marker_proj_hand_camera(param, pos_ee_base, ori_ee_base, K):
     pos_marker_image = K.matmul(pos_marker_camera)
     return pos_marker_image[:2]/pos_marker_image[2]
 
+proj_funcs = {'hand_marker_proj_world_camera': hand_marker_proj_world_camera, 
+                'world_marker_proj_hand_camera': world_marker_proj_hand_camera,
+                'wrist_camera': world_marker_proj_hand_camera,
+                'world_camera': hand_marker_proj_world_camera}
+
 
 def pointloss(param, obs_marker_2d, pos_ee_base, ori_ee_base, K, proj_func):
     proj_marker_2d = proj_func(param, pos_ee_base, ori_ee_base, K)
