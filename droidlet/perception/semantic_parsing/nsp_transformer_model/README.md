@@ -71,3 +71,11 @@ eval_model(args, model, tokenizer, dataset)
 11. [utils_model.py](./utils_model.py) - Utility for NLU model.
 12. [utils_parsing.py](./utils_parsing.py) - Utility for semantic parsing. 
 13. [query_model.py](./query_model.py) - The definition of NLU query model.
+
+## Data Processing Scripts
+This is a suite of data processing scripts that are used to process datasets for training the semantic parser and ground truth lookup at agent runtime. This includes
+1. [process_templated_for_gt.py](./process_templated_for_gt.py) - Deduplicates templated datasets for use in ground truth.
+2. [create_annotated_split.py](./create_annotated_split.py) - Creates a train/test/valid split of a data type, i.e. annotated or templated.
+3. [process_templated_generations_for_train.py](./process_templated_generations_for_train.py) - Creates a train/test/valid split of templated data from templated generations created using the generation script.
+4. [remove_static_valid_commands.py](./remove_static_valid_commands.py): Sets aside commands to be used for validation.
+5. [update_valid_test_sets.py](./update_valid_test_sets.py) - Updates the valid splits with updated action dictionaries.
