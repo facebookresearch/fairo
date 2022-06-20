@@ -497,6 +497,7 @@ jobs:
             conda activate base
 
             cd perception/sandbox/polygrasp/
+            export PATH=$CONDA_PREFIX/bin/:$PATH
             export CUDA_HOME=/usr/local/cuda
             mrp up --norun --verbose
       - run:
