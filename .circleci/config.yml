@@ -546,7 +546,6 @@ jobs:
             mrp up grasp_server segmentation_server --nobuild
             python scripts/run_grasp.py robot=robot_mock cam=cam_mock num_bin_shifts=1 num_grasps_per_bin_shift=1
 
-
 workflows:
   build:
     jobs:
