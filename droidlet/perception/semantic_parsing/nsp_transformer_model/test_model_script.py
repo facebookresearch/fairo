@@ -46,11 +46,7 @@ class ModelEvaluator:
         self.args = args
         self.evaluate_results_logger = NSPLogger(
             "evaluation_results.csv",
-            [
-                "accuracy",
-                "text_span_accuracy",
-                "inference_speed"
-            ],
+            ["accuracy", "text_span_accuracy", "inference_speed"],
         )
 
     def evaluate(self, model, dataset, tokenizer):
@@ -146,7 +142,7 @@ def build_grammar(args):
 def show_examples(args, model, dataset, tokenizer, n=10):
     with torch.no_grad():
         for _ in range(n):
-            cid = random.randint(0, len(dataset)-1)
+            cid = random.randint(0, len(dataset) - 1)
             chat = dataset[cid][2][1]
             btr = beam_search(
                 chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen
