@@ -471,7 +471,7 @@ jobs:
       - run:
           name: Delete extraneous circleci stuff
           command: |
-            rm -rf .circleci
+            rm -rf ~/.circlerc
       - run:
           name: Install Miniconda3
           command: |
