@@ -584,7 +584,9 @@ class ItemStackNode(ReferenceObjectNode):
             >>> create(memory, item_stack)
         """
         bid_to_name = block_data_info.get("bid_to_name", {})
-        type_name = bid_to_name.get((item_stack.item.id, item_stack.item.meta), "")
+        type_name = getattr(item_stack, "typeName", None) or bid_to_name.get(
+            (item_stack.item.id, item_stack.item.meta), ""
+        )
         memid = cls.new(memory)
         memory.db_write(
             "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, type_name, ref_type, voxel_count, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
