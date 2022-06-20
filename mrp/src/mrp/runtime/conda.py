@@ -374,9 +374,6 @@ class Conda(BaseRuntime):
                 f"""
                     eval "$(conda shell.bash hook)"
                     conda activate {self._env_name()}
-                    echo "shell: $SHELL"
-                    echo "Conda env: $CONDA_PREFIX"
-                    echo "PATH: $PATH"
                     cd {root}
                     {setup_command}
                 """,

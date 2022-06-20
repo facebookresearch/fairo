@@ -470,8 +470,8 @@ jobs:
             git submodule update --init --recursive ./perception/sandbox/polygrasp/
       - run:
           name: Delete extraneous circleci stuff
-          command: |
-            rm -rf ~/.circlerc
+          # This is extremely important for some esoteric $PATH issues involving mrp, Python subprocess, and /bin/bash
+          command: rm -rf ~/.circlerc
       - run:
           name: Install Miniconda3
           command: |
@@ -493,7 +493,7 @@ jobs:
           command: |
             . ~/miniconda3/bin/activate
             conda activate base
-            pip install -e ./mrp
+            pip install /mrp
       - run:
           name: Create conda environments
           command: |
@@ -502,7 +502,7 @@ jobs:
 
             cd perception/sandbox/polygrasp/
             export CUDA_HOME=/usr/local/cuda
-            mrp up --norun --verbose
+            mrp up --norun
       - run:
           name: Download parameters
           command: |

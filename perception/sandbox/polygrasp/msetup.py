@@ -4,9 +4,6 @@ import mrp
 if "CUDA_HOME" not in os.environ:
     raise RuntimeError("Please set the CUDA_HOME environment variable to compile third_party/graspnet-baseline/pointnet2 and third_party/graspnet-baseline/knn.")
 
-if "CONDA_PREFIX" not in os.environ:
-    raise RuntimeError(f"No conda environment detected. Please activate a conda environment before running.")
-
 polygrasp_setup_commands = [
     ["pip", "install", "-e", "../../../msg"],
     ["pip", "install", "-e", "../../realsense_driver"],
