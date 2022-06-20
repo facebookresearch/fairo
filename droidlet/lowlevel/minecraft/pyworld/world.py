@@ -7,7 +7,7 @@ from threading import Thread
 from typing import Sequence, Dict
 from droidlet.base_util import Pos, Look
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM
-from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item
+from droidlet.shared_data_struct.craftassist_shared_utils import Player, Slot, Item, ItemStack
 from droidlet.shared_data_struct.rotation import look_vec
 from droidlet.lowlevel.minecraft.pyworld.fake_mobs import make_mob_opts, MOB_META, SimpleMob
 from droidlet.lowlevel.minecraft.pyworld.utils import (
@@ -15,6 +15,8 @@ from droidlet.lowlevel.minecraft.pyworld.utils import (
     make_pose,
     build_coord_shifts,
     shift_coords,
+    BEDROCK,
+    AIR,
 )
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import PASSABLE_BLOCKS
 
@@ -33,6 +35,9 @@ class World:
         self.to_npy_coords = to_npy_coords
         self.from_npy_coords = from_npy_coords
 
+        # TODO point to the actual object?  for now this just stores the eid to avoid collisions
+        self.all_eids = {}
+
         self.blocks = np.zeros((opts.sl, opts.sl, opts.sl, 2), dtype="int32")
         if spec.get("ground_generator"):
             ground_args = spec.get("ground_args", None)
@@ -42,18 +47,34 @@ class World:
                 spec["ground_generator"](self, **ground_args)
         else:
             build_ground(self)
+        # TODO make some machinery to never allow these to go out of sync- adding blocks
+        # and removing them should go through interface
+        nz_blocks = [
+            (int(l[0]), int(l[1]), int(l[2]))
+            for l in zip(*np.nonzero(self.blocks[:, :, :, 0] > 0))
+        ]
+        self.blocks_dict = {l: tuple(int(i) for i in self.blocks[l].tolist()) for l in nz_blocks}
+
         self.mobs = []
         for m in spec["mobs"]:
             m.add_to_world(self)
-        self.item_stacks = []
-        for i in spec["item_stacks"]:
+        self.items = {}
+        for i in spec.get("items"):
             i.add_to_world(self)
         self.players = {}
+        # TODO make this more robust
+        # rn it is a dict for each player entityId with
+        # item typeNames as keys, and a list of item objects as values
+        self.player_inventories = {}
         for p in spec["players"]:
+            # FIXME! world should assign and manage entityId
             if hasattr(p, "add_to_world"):
                 p.add_to_world(self)
             else:
                 self.players[p.entityId] = p
+                # players cannot have anything in their inventory at init, TODO
+                self.player_inventories[p.entityId] = {}
+
         self.agent_data = spec["agent"]
         self.chat_log = []
 
@@ -75,6 +96,29 @@ class World:
         if hasattr(opts, "world_server") and opts.world_server:
             port = getattr(opts, "port", 25565)
             self.server = self.setup_server(port=port)
+
+    def new_eid(self, entityId=None):
+        count = 0
+        while entityId is None:
+            eid = int(np.random.randint(0, 1000000000))
+            if self.all_eids.get(eid, False):
+                count = count + 1
+            else:
+                entityId = eid
+            if count > 10000:
+                raise Exception(
+                    "Tried to add a new entity 10000 times, could not make an entityId"
+                )
+        if type(entityId) is not int:
+            raise Exception(
+                "tried to add a new entity with bad entityId type {}".format(type(entityId))
+            )
+        if entityId < 1:
+            raise Exception(
+                "tried to add a new entity with negative entityId  {}".format(entityId)
+            )
+        self.all_eids[entityId] = True
+        return entityId
 
     def set_count(self, count):
         self.count = count
@@ -108,23 +152,29 @@ class World:
             }
             for m in self.mobs
         ]
-        item_stacks = [i.get_info() for i in self.item_stacks]
+        items = self.get_items()
+        # FIXME !!!! item_stacks
         payload = {
             "status": "updateVoxelWorldState",
-            "world_state": {"agent": players, "mob": mobs, "item_stack": item_stacks},
+            "world_state": {"agent": players, "mob": mobs, "item_stack": items},
         }
         # print(f"Server stepping, payload: {payload}")
         self.server.emit("updateVoxelWorldState", payload)
 
     def broadcast_block_update(self, loc, idm):
         blocks = [((int(loc[0]), int(loc[1]), int(loc[2])), (int(idm[0]), int(idm[1])))]
-        payload = {
-            "status": "updateVoxelWorldState",
-            "world_state": {
-                "block": blocks,
-            },
-        }
+        payload = {"status": "updateVoxelWorldState", "world_state": {"block": blocks}}
         self.server.emit("updateVoxelWorldState", payload)
+
+    def get_height_map(self):
+        """
+        get the ground height at each location, to maybe place items, mobs, and players
+        """
+        height_map = np.zeros((self.sl, self.sl))
+        for l, idm in self.blocks_dict.items():
+            if l[1] > height_map[l[0], l[2]] and idm[0] > 0:
+                height_map[l[0], l[2]] = l[1]
+        return height_map
 
     def place_block(self, block, force=False):
         loc, idm = block
@@ -139,15 +189,19 @@ class World:
             except:
                 return False
         # mobs keep loc in real coords, block objects we convert to the numpy index
-        loc = tuple(self.to_npy_coords(loc))
+        loc = tuple(int(i) for i in self.to_npy_coords(loc))
         idm = tuple(int(s) for s in idm)
         try:  # FIXME only allow placing non-air blocks in air locations?
-            if tuple(self.blocks[loc]) != (7, 0) or force:
+            if tuple(int(i) for i in self.blocks[loc]) != BEDROCK or force:
                 self.blocks[loc] = idm
                 if self.is_server:
                     self.broadcast_block_update(loc, idm)
                 for sid, store in self.changed_blocks_store.items():
                     store[tuple(loc)] = idm
+                if idm != AIR:
+                    self.blocks_dict[loc] = idm
+                else:
+                    self.blocks_dict.pop(loc, None)
                 return True
             else:
                 return False
@@ -156,7 +210,7 @@ class World:
             return False
 
     def dig(self, loc: XYZ):
-        return self.place_block((loc, (0, 0)))
+        return self.place_block((loc, AIR))
 
     def blocks_to_dict(self):
         d = {}
@@ -177,6 +231,22 @@ class World:
     def get_mobs(self):
         return [m.get_info() for m in self.mobs]
 
+    def get_items(self):
+        return [i.get_info() for i in self.items.values()]
+
+    def get_item_stacks(self):
+        item_stacks = []
+        for item in self.get_items():
+            # only return items not in any agent's inventory in this method, matching cuberite
+            if item["holder_entityId"] < 0:
+                pos = Pos(item["x"], item["y"], item["z"])
+                item_stacks.append(
+                    ItemStack(
+                        Slot(item["id"], item["meta"], 1), pos, item["entityId"], item["typeName"]
+                    )
+                )
+        return item_stacks
+
     def get_player_info(self, eid):
         """
         returns a Player struct
@@ -194,9 +264,6 @@ class World:
 
     def get_players(self):
         return [self.get_player_info(eid) for eid in self.players]
-
-    def get_item_stacks(self):
-        return [i.get_info() for i in self.item_stacks]
 
     def get_blocks(self, xa, xb, ya, yb, za, zb, transpose=True):
         xa, ya, za = self.to_npy_coords((xa, ya, za))
@@ -250,7 +317,7 @@ class World:
                     for k in range(-1, 2):
                         sp = tuple(np.add(p, (i, j, k)))
                         if all([x >= 0 for x in sp]) and all([x < self.sl for x in sp]):
-                            if tuple(self.blocks[sp]) != (0, 0):
+                            if tuple(self.blocks[sp]) != AIR:
                                 # TODO: deal with close blocks artifacts,
                                 # etc
                                 pos = self.from_npy_coords(sp)
@@ -270,7 +337,7 @@ class World:
         x, y, z, pitch, yaw = make_pose(
             self.sl, self.sl, loc=data.get("loc"), pitchyaw=data.get("pitchyaw")
         )
-        entityId = data.get("entityId") or int(np.random.randint(0, 100000000))
+        entityId = self.new_eid(entityId=data.get("entityId"))
         # FIXME
         name = data.get("name", "anonymous")
         p = Player(entityId, name, Pos(int(x), int(y), int(z)), Look(float(yaw), float(pitch)))
@@ -323,13 +390,8 @@ class World:
                 for xyz, idm in blocks.items()
             ]
 
-            payload = {
-                "status": "updateVoxelWorldState",
-                "world_state": {
-                    "block": blocks,
-                },
-            }
-            print(f"Initial payload: {payload}")
+            payload = {"status": "updateVoxelWorldState", "world_state": {"block": blocks}}
+            # print(f"Initial payload: {payload}")
             server.emit("updateVoxelWorldState", payload)
 
         @server.on("get_world_info")
@@ -342,8 +404,9 @@ class World:
             eid = self.connected_sids.get(sid)
             player_struct = self.get_player_info(eid)
             chat_with_name = "<{}> {}".format(player_struct.name, chat_text)
-            for sid, store in self.incoming_chats_store.items():
-                store.append(chat_with_name)
+            for other_sid, store in self.incoming_chats_store.items():
+                if sid != other_sid:
+                    store.append(chat_with_name)
 
         @server.on("get_incoming_chats")
         def get_chats(sid):
@@ -407,6 +470,32 @@ class World:
                     new_pos = Pos(x, y, z)
                     self.players[eid] = self.players[eid]._replace(pos=new_pos)
 
+        @server.on("abs_move")
+        def move_agent_abs(sid, data):
+            eid = self.connected_sids.get(sid)
+            player_struct = self.get_player_info(eid)
+            x, y, z = player_struct.pos
+            x = data.get("x", 0)
+            y = data.get("y", 0)
+            z = data.get("z", 0)
+
+            nx, ny, nz = self.to_npy_coords((x, y, z))
+            # agent is 2 blocks high
+            if (
+                nx >= 0
+                and ny >= 0
+                and nz >= 0
+                and nx < self.sl
+                and ny < self.sl - 1
+                and nz < self.sl
+            ):
+                if (
+                    self.blocks[int(nx), int(ny), int(nz), 0] in PASSABLE_BLOCKS
+                    and self.blocks[int(nx), int(ny) + 1, int(nz), 0] in PASSABLE_BLOCKS
+                ):
+                    new_pos = Pos(x, y, z)
+                    self.players[eid] = self.players[eid]._replace(pos=new_pos)
+
         @server.on("set_held_item")
         def set_agent_mainhand(sid, data):
             if data.get("idm") is not None:
@@ -449,6 +538,42 @@ class World:
                 serialized_mobs.append((m.entityId, m.mobType, x, y, z, yaw, pitch))
             return serialized_mobs
 
+        @server.on("get_item_info")
+        def send_items(sid):
+            return self.get_items()
+
+        @server.on("pick_items")
+        def pick_items(sid, data):
+            """
+            data should be a list of entityId
+            """
+            player_eid = self.connected_sids[sid]
+            count = 0
+            for eid in data:
+                item = self.items.get(eid)
+                if item is not None:
+                    # TODO check it isn't already attached?
+                    item.attach_to_entity(player_eid)
+                    count += 1
+                # TODO inform caller if eid doesn't exist?
+            return count
+
+        @server.on("drop_items")
+        def drop_items(sid, data):
+            """
+            data should be a list of entityId
+            """
+            player_eid = self.connected_sids[sid]
+            count = 0
+            for eid in data:
+                item = self.items.get(eid)
+                if item is not None:
+                    if item.in_inventory == player_eid:
+                        item.attach_to_entity(-1)
+                        count += 1
+                        # TODO inform caller if eid doesn't exist?
+            return count
+
         @server.on("get_changed_blocks")
         def changed_blocks(sid):
             eid = self.connected_sids.get(sid)
@@ -474,7 +599,6 @@ class World:
 
         @server.on("step_world")
         def step_world(sid):
-
             self.step()
 
         app = socketio.WSGIApp(server)
@@ -487,7 +611,7 @@ if __name__ == "__main__":
     class Opt:
         pass
 
-    spec = {"players": [], "mobs": [], "item_stacks": [], "coord_shift": (0, 0, 0), "agent": {}}
+    spec = {"players": [], "mobs": [], "items": [], "coord_shift": (0, 0, 0), "agent": {}}
     world_opts = Opt()
     world_opts.sl = 16
     world_opts.world_server = True

@@ -555,18 +555,19 @@ class ItemStackNode(ReferenceObjectNode):
         >>> ItemStackNode(agent_memory=agent_memory, memid=memid)
     """
 
-    TABLE_ROWS = ["uuid", "eid", "x", "y", "z", "type_name", "ref_type", "created"]
+    TABLE_ROWS = ["uuid", "eid", "x", "y", "z", "type_name", "ref_type", "voxel_count", "created"]
     TABLE = "ReferenceObjects"
     NODE_TYPE = "ItemStack"
 
     def __init__(self, agent_memory, memid: str):
         super().__init__(agent_memory, memid)
-        eid, x, y, z = self.agent_memory._db_read_one(
-            "SELECT eid, x, y, z FROM ReferenceObjects WHERE uuid=?", self.memid
+        eid, x, y, z, count = self.agent_memory._db_read_one(
+            "SELECT eid, x, y, z, voxel_count FROM ReferenceObjects WHERE uuid=?", self.memid
         )
         self.memid = memid
         self.eid = eid
         self.pos = (x, y, z)
+        self.count = count
 
     @classmethod
     def create(cls, memory, item_stack, block_data_info) -> str:
@@ -583,10 +584,12 @@ class ItemStackNode(ReferenceObjectNode):
             >>> create(memory, item_stack)
         """
         bid_to_name = block_data_info.get("bid_to_name", {})
-        type_name = bid_to_name[(item_stack.item.id, item_stack.item.meta)]
+        type_name = getattr(item_stack, "typeName", None) or bid_to_name.get(
+            (item_stack.item.id, item_stack.item.meta), ""
+        )
         memid = cls.new(memory)
         memory.db_write(
-            "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, type_name, ref_type, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, type_name, ref_type, voxel_count, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
             memid,
             item_stack.entityId,
             item_stack.pos.x,
@@ -594,6 +597,7 @@ class ItemStackNode(ReferenceObjectNode):
             item_stack.pos.z,
             type_name,
             "item_stack",
+            item_stack.item.count,
             memory.get_time(),
         )
         memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, type_name)
@@ -622,6 +626,49 @@ class ItemStackNode(ReferenceObjectNode):
     def get_bounds(self):
         x, y, z = self.pos
         return x, x, y, y, z, z
+
+    @classmethod
+    def add_to_inventory(cls, memory, item_stack_node):
+        memory.nodes[TripleNode.NODE_TYPE].untag(memory, item_stack_node.memid, "_on_ground")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, item_stack_node.memid, "_in_inventory")
+
+    @classmethod
+    def remove_from_inventory(cls, memory, item_stack_node):
+        assert "_in_inventory" in item_stack_node.get_tags()
+        memory.nodes[TripleNode.NODE_TYPE].untag(memory, item_stack_node.memid, "_in_inventory")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, item_stack_node.memid, "_on_ground")
+
+    @classmethod
+    def update_item_stack_eid(cls, memory, memid, eid):
+        """Update ItemStack in memory and return the corresponding node
+        Returns:
+            ItemStackNode
+        """
+        r = memory._db_read_one("SELECT * FROM ReferenceObjects WHERE uuid=?", memid)
+        if r:
+            memory.db_write("UPDATE ReferenceObjects SET eid=? WHERE uuid=?", eid, memid)
+        return memory.get_mem_by_id(memid)
+
+    @classmethod
+    def maybe_update_item_stack_position(cls, memory, item_stack):
+        """update the position of item stack in memory
+        Returns :
+            Updated or new ItemStackNode, or None id there is none corresponding to
+            item_stack's entityId
+        """
+        r = memory._db_read_one(
+            "SELECT uuid FROM ReferenceObjects WHERE eid=?", item_stack.entityId
+        )
+        if r:
+            memory.db_write(
+                "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE eid=?",
+                item_stack.pos.x,
+                item_stack.pos.y,
+                item_stack.pos.z,
+                item_stack.entityId,
+            )
+            (memid,) = r
+            return memory.get_mem_by_id(memid)
 
 
 class SchematicNode(MemoryNode):
