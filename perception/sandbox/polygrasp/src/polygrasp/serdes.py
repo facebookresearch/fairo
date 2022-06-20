@@ -73,6 +73,7 @@ def pcd_to_capnp(pcd: o3d.geometry.PointCloud):
     result.data = open3d_pcd_to_bytes(pcd)
     return result
 
+
 def capnp_to_pcd(blob):
     with sensor_msgs.PointCloud2.from_bytes(blob) as capnp_pcd:
         return bytes_to_open3d_pcd(capnp_pcd.data)

@@ -13,6 +13,8 @@ import polymetis
 import ikpy.chain
 import tempfile
 
+from . import compute_quat_dist
+
 log = logging.getLogger(__name__)
 
 
@@ -42,10 +44,6 @@ def compute_des_pose(best_grasp):
 
 def grasp_to_pose(grasp: graspnetAPI.Grasp):
     return grasp.translation, R.from_matrix(grasp.rotation_matrix).as_quat()
-
-
-def compute_quat_dist(a, b):
-    return torch.acos((2 * (a * b).sum() ** 2 - 1).clip(-1, 1))
 
 
 def min_dist_grasp(default_ee_quat, grasps):

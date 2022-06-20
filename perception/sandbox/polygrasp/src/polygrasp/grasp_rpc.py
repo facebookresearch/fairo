@@ -149,9 +149,7 @@ class GraspClient:
             grasp_o3d_geometry.sample_points_uniformly(number_of_points=5000)
             for grasp_o3d_geometry in grasp_o3d_geometries
         ]
-        vis = self.visualize(
-            scene_pcd=scene_pcd, render=render, save_view=save_view
-        )
+        vis = self.visualize(scene_pcd=scene_pcd, render=render, save_view=save_view)
 
         # Save scene
         grasp_image = np.array(vis.capture_screen_float_buffer(do_render=True))
@@ -175,7 +173,11 @@ class GraspClient:
 
         return vis
 
-    def get_obj_grasps(self, obj_pcds: List[o3d.geometry.PointCloud], scene_pcd: o3d.geometry.PointCloud):
+    def get_obj_grasps(
+        self,
+        obj_pcds: List[o3d.geometry.PointCloud],
+        scene_pcd: o3d.geometry.PointCloud,
+    ):
         """
         Get grasps for each object pointcloud, then filter by
         checking collisions against the scene pointcloud.

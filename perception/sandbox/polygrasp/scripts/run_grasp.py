@@ -73,7 +73,12 @@ def merge_pcds(pcds: List[o3d.geometry.PointCloud], eps=0.1, min_samples=2):
     return list(cluster_to_pcd.values()) + final_pcds
 
 
-def execute_grasp(robot: GraspingRobotInterface, chosen_grasp: graspnetAPI.Grasp, hori_offset: np.ndarray, time_to_go: float):
+def execute_grasp(
+    robot: GraspingRobotInterface,
+    chosen_grasp: graspnetAPI.Grasp,
+    hori_offset: np.ndarray,
+    time_to_go: float,
+):
     """
     Executes a grasp. First attempts to grasp the robot; if successful,
     then the end-effector moves
@@ -196,7 +201,9 @@ def main(cfg):
                     cameras.get_pcd_i(obj_masked_rgbd, i)
                     for obj_masked_rgbd in obj_masked_rgbds
                 ]
-            print(f"Merging {len(unmerged_obj_pcds)} object pcds by clustering their centroids")
+            print(
+                f"Merging {len(unmerged_obj_pcds)} object pcds by clustering their centroids"
+            )
             obj_pcds = merge_pcds(unmerged_obj_pcds)
             if len(obj_pcds) == 0:
                 print(
