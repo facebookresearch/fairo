@@ -9,6 +9,7 @@ import faulthandler
 import threading
 import functools
 import cv2
+import matplotlib.pyplot as plt
 
 from droidlet import dashboard
 from droidlet.dashboard.o3dviz import O3DViz
@@ -159,14 +160,11 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             mover.bot.set_pan(0.)
         elif command == "TAKE_PHOTO":
             filename = value.strip()
-            print(f"Saving frames to pictures/{filename}", filename)
             rgb_depth = mover.get_rgb_depth()
-            print("rgb_depth.rgb.shape", rgb_depth.rgb.shape)
-            print("rgb_depth.depth.shape", rgb_depth.depth.shape)
-            print("rgb_depth.depth.min()", rgb_depth.depth.min())
-            print("rgb_depth.depth.max()", rgb_depth.depth.max())
-            cv2.imwrite(f"pictures/{filename}_rgb.png", rgb_depth.rgb)
-            cv2.imwrite(f"pictures/{filename}_depth.png", rgb_depth.depth)
+            plt.imsave(f"pictures/{filename}_rgb.png", rgb_depth.rgb)
+            plt.imsave(f"pictures/{filename}_depth.png", rgb_depth.depth)
+            np.save(f"pictures/{filename}_rgb.npy", rgb_depth.rgb)
+            np.save(f"pictures/{filename}_depth.npy", rgb_depth.depth)
 
         print(command, movement)
 
