@@ -348,7 +348,6 @@ class NSPRetrainingJob(DataGenerator):
         if opts.use_32g_gpu:
             sweep_args += "--use_32g_gpu "
 
-
         # Initialize the training run
         try:
             logging.info(f"Executing in new shell: \n{sweep_args}")
