@@ -489,15 +489,12 @@ jobs:
           command: |
             . ~/miniconda3/bin/activate
             conda activate base
-            pip install mrp
+            pip install -e ./mrp
       - run:
           name: Create conda environments
           command: |
             . ~/miniconda3/bin/activate
             conda activate base
-
-            export CONDA_PREFIX=$CONDA_PREFIX
-            export PATH=$PATH
 
             cd perception/sandbox/polygrasp/
             export CUDA_HOME=/usr/local/cuda
