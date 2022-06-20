@@ -8,6 +8,7 @@ import logging
 import faulthandler
 import threading
 import functools
+import cv2
 
 from droidlet import dashboard
 from droidlet.dashboard.o3dviz import O3DViz
@@ -156,6 +157,11 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
         elif command == "RESET":
             mover.bot.set_tilt(0.)
             mover.bot.set_pan(0.)
+        elif command == "TAKE_PHOTO":
+            path = value.strip()
+            rgb_depth = mover.get_rgb_depth()
+            cv2.imwrite(f"pictures/{path}_rgb.png", rgb_depth.rgb)
+            cv2.imwrite(f"pictures/{path}_depth.png", rgb_depth.depth)
 
         print(command, movement)
 
