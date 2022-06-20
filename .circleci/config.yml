@@ -469,6 +469,10 @@ jobs:
           command: |
             git submodule update --init --recursive ./perception/sandbox/polygrasp/
       - run:
+          name: Delete extraneous circleci stuff
+          command: |
+            rm -rf .circleci
+      - run:
           name: Install Miniconda3
           command: |
             wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
