@@ -19,8 +19,13 @@ from polygrasp.segmentation_rpc import SegmentationClient
 from polygrasp.grasp_rpc import GraspClient
 from polygrasp.serdes import load_bw_img
 
+from polygrasp.robot_interface import GraspingRobotInterface
+import graspnetAPI
+import open3d as o3d
+from typing import List
 
-def save_rgbd_masked(rgbd, rgbd_masked):
+
+def save_rgbd_masked(rgbd: np.ndarray, rgbd_masked: np.ndarray):
     num_cams = rgbd.shape[0]
     f, axarr = plt.subplots(2, num_cams)
 
@@ -36,26 +41,7 @@ def save_rgbd_masked(rgbd, rgbd_masked):
     plt.close(f)
 
 
-def get_obj_grasps(grasp_client, obj_pcds, scene_pcd):
-    for obj_i, obj_pcd in enumerate(obj_pcds):
-        print(f"Getting obj {obj_i} grasp...")
-        grasp_group = grasp_client.get_grasps(obj_pcd)
-        filtered_grasp_group = grasp_client.get_collision(grasp_group, scene_pcd)
-        if len(filtered_grasp_group) < len(grasp_group):
-            print(
-                "Filtered"
-                f" {len(grasp_group) - len(filtered_grasp_group)}/{len(grasp_group)} grasps"
-                " due to collision."
-            )
-        if len(filtered_grasp_group) > 0:
-            return obj_i, filtered_grasp_group
-    raise Exception(
-        "Unable to find any grasps after filtering, for any of the"
-        f" {len(obj_pcds)} objects"
-    )
-
-
-def merge_pcds(pcds, eps=0.1, min_samples=2):
+def merge_pcds(pcds: List[o3d.geometry.PointCloud], eps=0.1, min_samples=2):
     """Cluster object pointclouds from different cameras based on centroid using DBSCAN; merge when within eps"""
     xys = np.array([pcd.get_center()[:2] for pcd in pcds])
     cluster_labels = (
@@ -87,7 +73,15 @@ def merge_pcds(pcds, eps=0.1, min_samples=2):
     return list(cluster_to_pcd.values()) + final_pcds
 
 
-def execute_grasp(robot, chosen_grasp, hori_offset, time_to_go):
+def execute_grasp(robot: GraspingRobotInterface, chosen_grasp: graspnetAPI.Grasp, hori_offset: np.ndarray, time_to_go: float):
+    """
+    Executes a grasp. First attempts to grasp the robot; if successful,
+    then the end-effector moves
+        1. Up
+        2. Horizontally by `hori_offset` (in meters),
+        3. Down
+        4. Releases the object by opening the gripper
+    """
     traj, success = robot.grasp(
         chosen_grasp, time_to_go=time_to_go, gripper_width_success_threshold=0.001
     )
@@ -202,6 +196,7 @@ def main(cfg):
                     cameras.get_pcd_i(obj_masked_rgbd, i)
                     for obj_masked_rgbd in obj_masked_rgbds
                 ]
+            print(f"Merging {len(unmerged_obj_pcds)} object pcds by clustering their centroids")
             obj_pcds = merge_pcds(unmerged_obj_pcds)
             if len(obj_pcds) == 0:
                 print(
@@ -210,8 +205,8 @@ def main(cfg):
                 break
 
             print("Getting grasps per object...")
-            obj_i, filtered_grasp_group = get_obj_grasps(
-                grasp_client, obj_pcds, scene_pcd
+            obj_i, filtered_grasp_group = grasp_client.get_obj_grasps(
+                obj_pcds, scene_pcd
             )
 
             print("Choosing a grasp for the object")

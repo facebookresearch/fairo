@@ -135,9 +135,11 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             return None
 
     def gripper_open(self):
+        """Open the gripper. (Assumes Robotiq griper)"""
         self.gripper.goto(1, 1, 1)
 
     def gripper_close(self):
+        """Closes the gripper. (Assumes Robotiq gripper)"""
         self.gripper.goto(0, 1, 1)
 
     def move_until_success(
@@ -207,6 +209,12 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         time_to_go=3,
         gripper_width_success_threshold=0.0005,
     ):
+        """
+        Given a graspnetAPI.Grasp object, the robot opens the gripper, moves the end effector
+        close to object, and closes the gripper.
+
+        Returns the trajectory and success/failure based on gripper width threshold.
+        """
         states = []
         grasp_point, grasp_approach_delta, des_ori_quat = compute_des_pose(grasp)
 

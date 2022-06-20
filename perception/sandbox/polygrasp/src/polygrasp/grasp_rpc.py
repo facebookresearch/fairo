@@ -1,4 +1,5 @@
 import logging
+from typing import List
 import numpy as np
 import open3d as o3d
 from matplotlib import pyplot as plt
@@ -48,6 +49,9 @@ class GraspServer:
             req.reply(serdes.grasp_group_to_capnp(grasp_group).to_bytes())
 
         def collision_onrequest(req):
+            """
+            Calls the collision detector from graspnet-baseline's server.
+            """
             log.info(f"Got request; computing collisions...")
 
             payload = req.pkt.payload
@@ -108,7 +112,8 @@ class GraspClient:
 
         return serdes.bytes_to_grasp_group(result_bits)
 
-    def visualize(self, scene_pcd, plot=False, render=False, save_view=False):
+    def visualize(self, scene_pcd, render=False, save_view=False):
+        """Render a scene's pointcloud and return the Open3d Visualizer."""
         vis = o3d.visualization.Visualizer()
         vis.create_window()
         vis.add_geometry(scene_pcd, reset_bounding_box=True)
@@ -134,18 +139,18 @@ class GraspClient:
         scene_pcd: o3d.geometry.PointCloud,
         grasp_group: graspnetAPI.GraspGroup,
         n=5,
-        plot=False,
         render=False,
         save_view=False,
         name="scene",
     ) -> None:
+        """Visualize grasps upon a scene's pointcloud."""
         grasp_o3d_geometries = grasp_group.to_open3d_geometry_list()
         grasp_pointclouds = [
             grasp_o3d_geometry.sample_points_uniformly(number_of_points=5000)
             for grasp_o3d_geometry in grasp_o3d_geometries
         ]
         vis = self.visualize(
-            scene_pcd=scene_pcd, plot=plot, render=render, save_view=save_view
+            scene_pcd=scene_pcd, render=render, save_view=save_view
         )
 
         # Save scene
@@ -169,3 +174,25 @@ class GraspClient:
         save_img(grasp_image, f"{name}_with_grasps")
 
         return vis
+
+    def get_obj_grasps(self, obj_pcds: List[o3d.geometry.PointCloud], scene_pcd: o3d.geometry.PointCloud):
+        """
+        Get grasps for each object pointcloud, then filter by
+        checking collisions against the scene pointcloud.
+        """
+        for obj_i, obj_pcd in enumerate(obj_pcds):
+            print(f"Getting obj {obj_i} grasp...")
+            grasp_group = self.get_grasps(obj_pcd)
+            filtered_grasp_group = self.get_collision(grasp_group, scene_pcd)
+            if len(filtered_grasp_group) < len(grasp_group):
+                print(
+                    "Filtered"
+                    f" {len(grasp_group) - len(filtered_grasp_group)}/{len(grasp_group)} grasps"
+                    " due to collision."
+                )
+            if len(filtered_grasp_group) > 0:
+                return obj_i, filtered_grasp_group
+        raise Exception(
+            "Unable to find any grasps after filtering, for any of the"
+            f" {len(obj_pcds)} objects"
+        )
