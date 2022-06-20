@@ -158,10 +158,15 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             mover.bot.set_tilt(0.)
             mover.bot.set_pan(0.)
         elif command == "TAKE_PHOTO":
-            path = value.strip()
+            filename = value.strip()
+            print(f"Saving frames to pictures/{filename}", filename)
             rgb_depth = mover.get_rgb_depth()
-            cv2.imwrite(f"pictures/{path}_rgb.png", rgb_depth.rgb)
-            cv2.imwrite(f"pictures/{path}_depth.png", rgb_depth.depth)
+            print("rgb_depth.rgb.shape", rgb_depth.rgb.shape)
+            print("rgb_depth.depth.shape", rgb_depth.depth.shape)
+            print("rgb_depth.depth.min()", rgb_depth.depth.min())
+            print("rgb_depth.depth.max()", rgb_depth.depth.max())
+            cv2.imwrite(f"pictures/{filename}_rgb.png", rgb_depth.rgb)
+            cv2.imwrite(f"pictures/{filename}_depth.png", rgb_depth.depth)
 
         print(command, movement)
 
