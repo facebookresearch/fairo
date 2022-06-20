@@ -514,16 +514,7 @@ jobs:
             pip install gdown
 
             cd perception/sandbox/polygrasp/
-
-            if [ ! -f "./third_party/graspnet-baseline/data/graspnet/checkpoint-rs.tar" ]; then
-              gdown --id 1hd0G8LN6tRpi4742XOTEisbTXNZ-1jmk -O ./third_party/graspnet-baseline/data/graspnet/
-            fi
-
-            if [ ! -d "./third_party/UnseenObjectClustering/data/checkpoints" ]; then
-              gdown --id 1O-ymMGD_qDEtYxRU19zSv17Lgg6fSinQ -O ./third_party/UnseenObjectClustering/data/
-              cd third_party/UnseenObjectClustering/data/
-              unzip ./checkpoints.zip
-            fi
+            ./scripts/download_weights.sh
       - save_cache:
           key: deps9-{{ checksum "perception/sandbox/polygrasp/msetup.py" }}-{{ checksum "perception/sandbox/polygrasp/third_party/graspnet-baseline/environment.yml" }}-{{ checksum "perception/sandbox/polygrasp/third_party/UnseenObjectClustering/environment.yml" }}
           paths:

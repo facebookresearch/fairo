@@ -7,12 +7,11 @@ git submodule update --init --recursive .
 mrp up --norun
 ```
 
-Then, follow the instructions in the forked repos under [third_party](./third_party/) to download pretrained model weights:
+## Download weights
 
-1. [UnseenObjectClustering](./third_party/UnseenObjectClustering/README.md)
-    1. `gdown --id 1O-ymMGD_qDEtYxRU19zSv17Lgg6fSinQ -O ./third_party/UnseenObjectClustering/data/`
-1. [graspnet-baseline](./third_party/graspnet-baseline/README.md)
-    1. `gdown --id 1hd0G8LN6tRpi4742XOTEisbTXNZ-1jmk -O data/`
+```bash
+./scripts/download_weights.sh
+```
 
 ## Usage
 
