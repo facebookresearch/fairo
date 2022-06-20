@@ -373,6 +373,11 @@ class Conda(BaseRuntime):
             result = subprocess.run(
                 f"""
                     eval "$(conda shell.bash hook)"
+                    echo "shell: $SHELL"
+                    echo "Conda env: $CONDA_PREFIX"
+                    echo "startend ============"
+                    echo $(env)
+                    echo "end ============"
                     conda activate {self._env_name()}
                     cd {root}
                     {setup_command}
