@@ -493,7 +493,7 @@ jobs:
           command: |
             . ~/miniconda3/bin/activate
             conda activate base
-            pip install /mrp
+            pip install mrp
       - run:
           name: Create conda environments
           command: |
