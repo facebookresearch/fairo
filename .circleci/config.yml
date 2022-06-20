@@ -475,11 +475,14 @@ jobs:
       - run:
           name: Install Miniconda3
           command: |
-            wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-            /bin/bash ~/miniconda.sh -b -p ~/miniconda3 && \
-            rm ~/miniconda.sh && \
-            sudo ln -s ~/miniconda3/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
-            echo ". ~/miniconda3/etc/profile.d/conda.sh" >> ~/.bashrc && \
+            if [ ! -d ~/miniconda3 ]; then
+              wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
+              /bin/bash ~/miniconda.sh -b -p ~/miniconda3
+              rm ~/miniconda.sh
+            fi
+
+            sudo ln -s ~/miniconda3/etc/profile.d/conda.sh /etc/profile.d/conda.sh
+            echo ". ~/miniconda3/etc/profile.d/conda.sh" >> ~/.bashrc
             echo "conda activate base" >> ~/.bashrc
       - restore_cache:
           key: deps9-{{ checksum "perception/sandbox/polygrasp/msetup.py" }}-{{ checksum "perception/sandbox/polygrasp/third_party/graspnet-baseline/environment.yml" }}-{{ checksum "perception/sandbox/polygrasp/third_party/UnseenObjectClustering/environment.yml" }}
@@ -511,27 +514,35 @@ jobs:
             pip install gdown
 
             cd perception/sandbox/polygrasp/
-            gdown --id 1O-ymMGD_qDEtYxRU19zSv17Lgg6fSinQ -O ./third_party/UnseenObjectClustering/data/
-            gdown --id 1hd0G8LN6tRpi4742XOTEisbTXNZ-1jmk -O ./third_party/graspnet-baseline/data/graspnet/
 
-            cd third_party/UnseenObjectClustering/data/
-            unzip ./checkpoints.zip
+            if [ ! -f "./third_party/graspnet-baseline/data/graspnet/checkpoint-rs.tar" ]; then
+              gdown --id 1hd0G8LN6tRpi4742XOTEisbTXNZ-1jmk -O ./third_party/graspnet-baseline/data/graspnet/
+            fi
+
+            if [ ! -d "./third_party/UnseenObjectClustering/data/checkpoints" ]; then
+              gdown --id 1O-ymMGD_qDEtYxRU19zSv17Lgg6fSinQ -O ./third_party/UnseenObjectClustering/data/
+              cd third_party/UnseenObjectClustering/data/
+              unzip ./checkpoints.zip
+            fi
       - save_cache:
           key: deps9-{{ checksum "perception/sandbox/polygrasp/msetup.py" }}-{{ checksum "perception/sandbox/polygrasp/third_party/graspnet-baseline/environment.yml" }}-{{ checksum "perception/sandbox/polygrasp/third_party/UnseenObjectClustering/environment.yml" }}
           paths:
+            - "/home/circleci/.config/mrp/conda"
             - "/home/circleci/miniconda3/envs"
             - "/home/circleci/project/perception/sandbox/polygrasp/third_party/UnseenObjectClustering/data/"
             - "/home/circleci/project/perception/sandbox/polygrasp/third_party/graspnet-baseline/data/"
       - run:
           name: Run test
           command: |
-            # Fix QT load issue: https://forum.qt.io/topic/119109/using-pyqt5-with-opencv-python-cv2-causes-error-could-not-load-qt-platform-plugin-xcb-even-though-it-was-found/
-            rm -rf /home/circleci/miniconda3/envs/mrp_polygrasp/lib/python3.8/site-packages/cv2/qt/plugins/platforms
-
-            conda activate mrp_polygrasp
             cd perception/sandbox/polygrasp/
 
+            conda activate mrp_polygrasp
+
+            # Fix QT load issue: https://forum.qt.io/topic/119109/using-pyqt5-with-opencv-python-cv2-causes-error-could-not-load-qt-platform-plugin-xcb-even-though-it-was-found/
+            rm -rf $CONDA_PREFIX/lib/python3.8/site-packages/cv2/qt/plugins/platforms
+
             export CUDA_HOME=/usr/local/cuda
+            mrp logs &
             mrp up grasp_server segmentation_server --nobuild
             python scripts/run_grasp.py robot=robot_mock cam=cam_mock num_bin_shifts=1 num_grasps_per_bin_shift=1
 
