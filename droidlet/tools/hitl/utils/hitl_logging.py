@@ -68,11 +68,16 @@ class HitlLogging:
         logger.addHandler(fh)
         logger.addHandler(sh)
 
-        self.__logger__ = logger
-        self.__log_file__ = log_file
+        self._logger = logger
+        self._log_file = log_file
 
     def get_logger(self):
-        return self.__logger__
+        return self._logger
 
     def get_log_file(self):
-        return self.__log_file__
+        return self._log_file
+
+    def shutdown(self):
+        for handler in self._logger.handlers:
+            self._logger.removeHandler(handler)
+            handler.close()

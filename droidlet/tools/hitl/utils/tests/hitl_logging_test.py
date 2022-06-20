@@ -4,6 +4,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 Unit test for hitl_logging.py
 """
 
+from pathlib import Path
+import shutil
 from droidlet.tools.hitl.utils.hitl_logging import HitlLogging
 from droidlet.tools.hitl.utils.hitl_utils import generate_batch_id
 import unittest
@@ -39,21 +41,29 @@ class TestLoggerClass2:
 
 
 class TestHitlLogging(unittest.TestCase):
-    def test_hitl_logging_3instances(self):
-        test_cl1 = TestLoggerClass1()
-        test_cl2 = TestLoggerClass2()
-        test_cl2_instance2 = TestLoggerClass2()
+    def setUp(self):
+        test_cls = []
+        test_cls.append(TestLoggerClass1())
+        test_cls.append(TestLoggerClass2())
+        test_cls.append(TestLoggerClass2())
 
-        hl1 = test_cl1.call_logging()
-        hl2 = test_cl2.call_logging()
-        hl3 = test_cl2_instance2.call_logging()
+        log_files = []
+
+        for cl in test_cls:
+            hl = cl.call_logging()
+            log_files.append(hl.get_log_file())
+            hl.shutdown()
+
+        self._log_files = log_files
+        
+
+    def test_hitl_logging_3instances(self):
+        log_files = self._log_files
 
         # should generate 3 log files
-        log_files = []
-        log_files.append(hl1.get_log_file())
-        log_files.append(hl2.get_log_file())
-        log_files.append(hl3.get_log_file())
-
+        self.assertEqual(len(log_files), 3)
+        
+        # check log file content
         for log_fname in log_files:
             self.assertTrue(os.path.exists(log_fname))
             log_f = open(log_fname, "r")
@@ -61,6 +71,11 @@ class TestHitlLogging(unittest.TestCase):
                 self.assertTrue(msg in line)
             log_f.close()
 
+    def tearDown(self):
+        log_fname = self._log_files[0]
+        path = os.path.dirname(log_fname)
+        path = Path(path).parent.absolute()
+        shutil.rmtree(path=path)
 
 if __name__ == "__main__":
     unittest.main()
