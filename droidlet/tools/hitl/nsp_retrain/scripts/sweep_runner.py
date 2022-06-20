@@ -51,6 +51,18 @@ if __name__ == "__main__":
         help="Pretrained text encoder "
         "See full list at https://huggingface.co/transformers/pretrained_models.html",
     )
+    parser.add_argument(
+        "--decoder_config_name",
+        default="bert-base-uncased",
+        type=str,
+        help="Name of Huggingface config used to initialize decoder architecture"
+        "See full list at https://huggingface.co/transformers/pretrained_models.html",
+    )
+    parser.add_argument(
+        "--use_32g_gpu",
+        action="store_true",
+        help="Whether use GPU with 32g memory for training",
+    )
     opts = parser.parse_args()
 
     ###############################################
@@ -161,6 +173,8 @@ if __name__ == "__main__":
         + model_out
         + " --pretrained_encoder_name "
         + opts.pretrained_encoder_name
+        + " --decoder_config_name "
+        + opts.decoder_config_name
     )
 
     errpaths = []
@@ -177,7 +191,10 @@ if __name__ == "__main__":
         body += "#SBATCH --partition=" + opts.partition + "\n"
         body += "#SBATCH --nodes=1 \n"
         body += "#SBATCH --ntasks-per-node=1 \n"
-        body += "#SBATCH --gres=gpu:1 \n"
+        if opts.use_32g_gpu:
+            body += "#SBATCH --gres=gpu:1 -C volta32gb \n"
+        else:
+            body += "#SBATCH --gres=gpu:1 \n"
         body += "#SBATCH --cpus-per-task=10 \n"
         body += "#SBATCH --signal=B:USR1@60 #Signal is sent to batch script itself \n"
         body += "#SBATCH --open-mode=append \n"
