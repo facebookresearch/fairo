@@ -55,14 +55,13 @@ class TestHitlLogging(unittest.TestCase):
             hl.shutdown()
 
         self._log_files = log_files
-        
 
     def test_hitl_logging_3instances(self):
         log_files = self._log_files
 
         # should generate 3 log files
         self.assertEqual(len(log_files), 3)
-        
+
         # check log file content
         for log_fname in log_files:
             self.assertTrue(os.path.exists(log_fname))
@@ -76,6 +75,7 @@ class TestHitlLogging(unittest.TestCase):
         path = os.path.dirname(log_fname)
         path = Path(path).parent.absolute()
         shutil.rmtree(path=path)
+
 
 if __name__ == "__main__":
     unittest.main()
