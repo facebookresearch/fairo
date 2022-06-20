@@ -14,15 +14,6 @@ polygrasp_setup_commands = [
 ]
 
 mrp.process(
-    name="test_env",
-    runtime=mrp.Conda(
-        dependencies=["python=3.8"],
-        setup_commands=["pip", "install", "pycapnp"],
-        run_command=["python"]
-    )
-)
-
-mrp.process(
     name="segmentation_server",
     runtime=mrp.Conda(
         yaml="./third_party/UnseenObjectClustering/environment.yml",
