@@ -10,6 +10,8 @@ import functools
 import logging
 import os
 from tqdm import tqdm
+import random
+import time
 
 import torch
 from torch.utils.data import DataLoader, SequentialSampler
@@ -47,6 +49,7 @@ class ModelEvaluator:
             [
                 "accuracy",
                 "text_span_accuracy",
+                "inference_speed"
             ],
         )
 
@@ -78,6 +81,7 @@ class ModelEvaluator:
         tot_span_acc = 0.0
         tot_accu = 0.0
         text_span_tot_acc = 0.0
+        tot_time_cost = 0.0
         # disable autograd to reduce memory usage
         with torch.no_grad():
             for step, batch in enumerate(epoch_iterator):
@@ -86,9 +90,9 @@ class ModelEvaluator:
                     for t in batch[:4]
                 ]
                 x, x_mask, y, y_mask = batch_tensors
+                time_s = time.time()
                 outputs = model(x, x_mask, y, y_mask, None, True)
-                loss = outputs["loss"]
-                text_span_loss = outputs["text_span_loss"]
+                time_e = time.time()
                 # compute accuracy and add hard examples
                 lm_acc, sp_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
                 # book-keeping
@@ -100,6 +104,8 @@ class ModelEvaluator:
                     sp_acc.sum().item() / sp_acc.shape[0]
                 )  # weighted_accuracy / batch_size
                 tot_accu += full_acc.sum().item() / full_acc.shape[0]
+                # time cost
+                tot_time_cost += (time_e - time_s) / full_acc.shape[0]
                 tot_steps += 1
                 # text span stats
                 text_span_tot_acc += (
@@ -110,14 +116,16 @@ class ModelEvaluator:
                     show_examples(self.args, model, dataset, tokenizer)
 
         self.evaluate_results_logger.log_dialogue_outputs(
-            [tot_accu / tot_steps, text_span_tot_acc / tot_steps]
+            [tot_accu / tot_steps, text_span_tot_acc / tot_steps, tot_steps / tot_time_cost]
         )
 
         logging.info("Accuracy: {:.3f}".format(tot_accu / tot_steps))
         logging.info("Text span accuracy: {:.3f}".format(text_span_tot_acc / tot_steps))
+        logging.info("Inference speed (fps): {:.1f}".format(tot_steps / tot_time_cost))
         print("Evaluation done!")
         print("Accuracy: {:.3f}".format(tot_accu / tot_steps))
         print("Text span accuracy: {:.3f}".format(text_span_tot_acc / tot_steps))
+        print(("Inference speed (fps): {:.1f}".format(tot_steps / tot_time_cost)))
 
 
 def build_grammar(args):
@@ -136,9 +144,9 @@ def build_grammar(args):
 
 
 def show_examples(args, model, dataset, tokenizer, n=10):
-    model.eval()
     with torch.no_grad():
-        for cid in range(n):
+        for _ in range(n):
+            cid = random.randint(0, len(dataset)-1)
             chat = dataset[cid][2][1]
             btr = beam_search(
                 chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen
@@ -153,7 +161,6 @@ def show_examples(args, model, dataset, tokenizer, n=10):
             print(chat)
             print(tree)
             print("*********************************")
-    model.train()
 
 
 def argument_parse(input_arg):
