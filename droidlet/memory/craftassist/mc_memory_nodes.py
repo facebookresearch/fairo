@@ -477,9 +477,6 @@ class MobNode(ReferenceObjectNode):
         # this is a hack until memory_filters does "not"
         memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_not_location")
         memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, mobtype)
-        memory.nodes[TripleNode.NODE_TYPE].create(
-            memory, subj=memid, pred_text="has_name", obj_text=mobtype
-        )
         return memid
 
     def get_pos(self) -> XYZ:
