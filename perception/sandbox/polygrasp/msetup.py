@@ -4,10 +4,15 @@ import mrp
 if "CUDA_HOME" not in os.environ:
     raise RuntimeError("Please set the CUDA_HOME environment variable to compile third_party/graspnet-baseline/pointnet2 and third_party/graspnet-baseline/knn.")
 
+if "CONDA_PREFIX" not in os.environ:
+    raise RuntimeError(f"No conda environment detected. Please activate a conda environment before running.")
+
+pip_path = f"{os.environ['CONDA_PREFIX']}/bin/pip"
+
 polygrasp_setup_commands = [
-    ["pip", "install", "-e", "../../../msg"],
-    ["pip", "install", "-e", "../../realsense_driver"],
-    ["pip", "install", "-e", "."],
+    [pip_path, "install", "-e", "../../../msg"],
+    [pip_path, "install", "-e", "../../realsense_driver"],
+    [pip_path, "install", "-e", "."],
 ]
 
 mrp.process(
@@ -15,7 +20,7 @@ mrp.process(
     runtime=mrp.Conda(
         yaml="./third_party/UnseenObjectClustering/environment.yml",
         setup_commands=[
-            ["pip", "install", "-e", "./third_party/UnseenObjectClustering/"]
+            [pip_path, "install", "-e", "./third_party/UnseenObjectClustering/"]
         ]
         + polygrasp_setup_commands,
         run_command=["python", "-m", "utils.mrp_wrapper"],
@@ -27,8 +32,8 @@ mrp.process(
     runtime=mrp.Conda(
         yaml="./third_party/graspnet-baseline/environment.yml",
         setup_commands=[
-            ["pip", "install", "./third_party/graspnet-baseline/pointnet2/"],
-            ["pip", "install", "-e", "./third_party/graspnet-baseline/"],
+            [pip_path, "install", "./third_party/graspnet-baseline/pointnet2/"],
+            [pip_path, "install", "-e", "./third_party/graspnet-baseline/"],
         ]
         + polygrasp_setup_commands,
         run_command=["python", "-m", "graspnet_baseline.mrp_wrapper"],
