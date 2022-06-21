@@ -8,7 +8,6 @@ import { VoxelItem} from './VoxelItem.mjs';
 import { VoxelMob} from './VoxelMob.mjs';
 import { GLTFLoader } from './GLTFLoader.mjs';
 import { VW_ITEM_MAP, VW_MOB_MAP, VW_AVATAR_MAP, MINECRAFT_BLOCK_MAP } from './model_luts.mjs'
-import { OrbitControls } from './OrbitControls.mjs';
 import {traceRay} from './dvoxel_raycast.mjs'
 
 const defaultCameraWidth = 512
@@ -17,9 +16,9 @@ const defaultCameraAspectRatio = defaultCameraWidth / defaultCameraHeight
 const defaultCameraFOV = 45
 const defaultCameraNearPlane = 1
 const defaultCameraFarPlane = 10000
-const fps = 20
+const fps = 60
 const renderInterval = 1000 / fps
-let controls, camera, scene, renderer, loader, preLoadBlockMaterials
+let camera, crosshair, scene, renderer, loader, preLoadBlockMaterials;
 const followPointerScale = 150;
 
 const preLoadMaterialNames = ['grass', 'dirt']//, 'white wool', 'orange wool', 'magenta wool'];
@@ -192,7 +191,6 @@ function handleKeypress(e, player) {
 
 
 function cameraTest(player) {
-    controls.enabled = false;
     player.possess();
     window.addEventListener("keydown", function (e) {
         handleKeypress(e, player);
@@ -255,17 +253,19 @@ class DVoxelEngine {
         this.cameraFarPlane = opts.cameraFarPlane || defaultCameraFarPlane;
 
         this.camera = new THREE.PerspectiveCamera( this.cameraFOV, this.cameraWidth / this.cameraHeight, this.cameraNearPlane, this.cameraFarPlane);
-        camera = this.camera
         this.camera.position.set( 500, 800, 1300 );
-        this.camera.position.set( 1000, 1600, 2600 );
         this.camera.lookAt( 0, 0, 0 );
+        camera = this.camera;
 
-        const gridHelper = new THREE.GridHelper( 1000, 20 );
-        this.scene.add( gridHelper );
-        const geometry = new THREE.PlaneGeometry( 1000, 1000 );
-        geometry.rotateX( - Math.PI / 2 );
-        let plane = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false } ) );
-        this.scene.add( plane );
+        crosshair = new THREE.Mesh(
+            new THREE.RingGeometry( 1, 1.2, 20 ),
+            new THREE.MeshBasicMaterial( { color: 0xff0000, side: THREE.DoubleSide } )
+          );
+        crosshair.position.copy( camera.position );
+        crosshair.rotation.copy( camera.rotation );
+        scene.add(crosshair);
+
+        
 
         const ambientLight = new THREE.AmbientLight( 0x606060 );
         this.scene.add( ambientLight );
@@ -278,16 +278,6 @@ class DVoxelEngine {
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( window.innerWidth, window.innerHeight );
 
-        controls = new OrbitControls( this.camera, this.renderer.domElement );
-        controls.listenToKeyEvents( window );
-        controls.addEventListener( 'change', render );
-
-        controls.enableZoom = true;
-        controls.zoomSpeed = 0.5;
-        controls.minPolarAngle = minCameraPitch;
-        controls.maxPolarAngle = maxCameraPitch;
-
-
         // loader and preloaded materials -- to improve performance
         loader = new THREE.TextureLoader();
         preLoadBlockMaterials = new Map();
@@ -298,40 +288,22 @@ class DVoxelEngine {
                     [
                         new THREE.MeshBasicMaterial({ 
                             map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                            color: block_data["color"],
-                            opacity: block_data["opacity"],
-                            transparent: true,
-                            side: THREE.DoubleSide }), //right side
+                            color: block_data["color"]}), //right side
                         new THREE.MeshBasicMaterial({ 
                             map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                            color: block_data["color"], 
-                            opacity: block_data["opacity"], 
-                            transparent: true, 
-                            side: THREE.DoubleSide }), //left side
+                            color: block_data["color"]}), //left side
                         new THREE.MeshBasicMaterial({ 
                             map: loader.load(TEXTURE_PATH+block_data["top"]), 
-                            color: block_data["color"], 
-                            opacity: block_data["opacity"], 
-                            transparent: true, 
-                            side: THREE.DoubleSide }), //top side
+                            color: block_data["color"]}), //top side
                         new THREE.MeshBasicMaterial({ 
                             map: loader.load(TEXTURE_PATH+block_data["bottom"]), 
-                            color: block_data["color"], 
-                            opacity: block_data["opacity"], 
-                            transparent: true, 
-                            side: THREE.DoubleSide }), //bottom side
+                            color: block_data["color"]}), //bottom side
                         new THREE.MeshBasicMaterial({ 
                             map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                            color: block_data["color"], 
-                            opacity: block_data["opacity"], 
-                            transparent: true, 
-                            side: THREE.DoubleSide }), //front side
+                            color: block_data["color"]}), //front side
                         new THREE.MeshBasicMaterial({ 
                             map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                            color: block_data["color"], 
-                            opacity: block_data["opacity"], 
-                            transparent: true, 
-                            side: THREE.DoubleSide }), //back side
+                            color: block_data["color"]}), //back side
                     ]);
             }
         );
@@ -344,6 +316,7 @@ class DVoxelEngine {
             scene: scene,
             render: render,
             camera: camera,
+            crosshair: crosshair,
         };
 
         for (const key in VW_AVATAR_MAP) {
@@ -436,51 +409,35 @@ class DVoxelEngine {
             blockMaterials = [
                 new THREE.MeshBasicMaterial({ 
                     map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                    color: block_data["color"],
-                    opacity: block_data["opacity"],
-                    transparent: true,
-                    side: THREE.DoubleSide }), //right side
+                    color: block_data["color"]}), //right side
                 new THREE.MeshBasicMaterial({ 
                     map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                    color: block_data["color"], 
-                    opacity: block_data["opacity"], 
-                    transparent: true, 
-                    side: THREE.DoubleSide }), //left side
+                    color: block_data["color"]}), //left side
                 new THREE.MeshBasicMaterial({ 
                     map: loader.load(TEXTURE_PATH+block_data["top"]), 
-                    color: block_data["color"], 
-                    opacity: block_data["opacity"], 
-                    transparent: true, 
-                    side: THREE.DoubleSide }), //top side
+                    color: block_data["color"]}), //top side
                 new THREE.MeshBasicMaterial({ 
                     map: loader.load(TEXTURE_PATH+block_data["bottom"]), 
-                    color: block_data["color"], 
-                    opacity: block_data["opacity"], 
-                    transparent: true, 
-                    side: THREE.DoubleSide }), //bottom side
+                    color: block_data["color"]}), //bottom side
                 new THREE.MeshBasicMaterial({ 
                     map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                    color: block_data["color"], 
-                    opacity: block_data["opacity"], 
-                    transparent: true, 
-                    side: THREE.DoubleSide }), //front side
+                    color: block_data["color"]}), //front side
                 new THREE.MeshBasicMaterial({ 
                     map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                    color: block_data["color"], 
-                    opacity: block_data["opacity"], 
-                    transparent: true, 
-                    side: THREE.DoubleSide }), //back side
+                    color: block_data["color"]}), //back side
             ];
         }
         
         // const material = new THREE.MeshBasicMaterial( {color: colorCode} );
         // const cube = new THREE.Mesh( geometry, material );
         const cube = new THREE.Mesh( geometry, blockMaterials );
-        cube.position.set(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale)
-        // const cubeAABB = cube.geometry.computeBoundingBox();
+        cube.matrixAutoUpdate = false;
+        cube.position.set(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
+        cube.updateMatrix();
         cube.name = pos2Name(pos[0], pos[1], pos[2])
         // console.log("Adding voxel with name: " + cube.name)
         this.scene.add( cube );
+
         const box = new THREE.BoxHelper(cube, 0x000000);
         box.name = pos2Name(pos[0], pos[1], pos[2], true)
         this.scene.add(box);

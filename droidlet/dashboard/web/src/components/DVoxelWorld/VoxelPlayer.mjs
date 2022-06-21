@@ -57,6 +57,17 @@ class VoxelPlayer {
         return [pitch, yaw]
     }
 
+    getLookPitchYaw() {
+        let cameraLook = new this.world.THREE.Vector3();
+        this.world.camera.getWorldDirection(cameraLook);
+        let cameraEuler = new this.world.THREE.Euler();
+        cameraEuler.setFromVector3(cameraLook);
+        
+        let pitch = MathUtils.radToDeg(cameraEuler.x);
+        let yaw = MathUtils.radToDeg(cameraEuler.y);
+        return [pitch, yaw]
+    }
+
     getPosition() {
         return this.mesh.position;
     }
@@ -115,6 +126,10 @@ class VoxelPlayer {
             this.world.camera.lookAt( this.mesh.position );
             this.world.camera.rotateX(this.cam_pitch);
         }
+
+        this.world.crosshair.position.copy( this.world.camera.position );
+        this.world.crosshair.rotation.copy( this.world.camera.rotation );
+        this.world.crosshair.translateZ( -150 );
 
         this.world.render();
     };
