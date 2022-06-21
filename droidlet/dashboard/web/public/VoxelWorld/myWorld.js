@@ -4251,6 +4251,17 @@ class VoxelPlayer {
     return [pitch, yaw];
   }
 
+  getLookPitchYaw() {
+    let cameraLook = new this.world.THREE.Vector3();
+    this.world.camera.getWorldDirection(cameraLook);
+    let cameraEuler = new this.world.THREE.Euler();
+    cameraEuler.setFromVector3(cameraLook);
+    
+    let pitch = _threeModule.MathUtils.radToDeg(cameraEuler.x);
+    let yaw = _threeModule.MathUtils.radToDeg(cameraEuler.y);
+    return [pitch, yaw]
+}
+
   getPosition() {
     return this.mesh.position;
   }
@@ -4307,6 +4318,10 @@ class VoxelPlayer {
       this.world.camera.lookAt(this.mesh.position);
       this.world.camera.rotateX(this.cam_pitch);
     }
+
+    this.world.crosshair.position.copy( this.world.camera.position );
+    this.world.crosshair.rotation.copy( this.world.camera.rotation );
+    this.world.crosshair.translateZ( -150 );
 
     this.world.render();
   }
@@ -4407,7 +4422,7 @@ const defaultCameraFarPlane = 10000;
 const fps = 60;
 const renderInterval = 1000 / fps;
 // let controls, 
-let camera, scene, renderer, loader, preLoadBlockMaterials;
+let camera, crosshair, scene, renderer, loader, preLoadBlockMaterials;
 const followPointerScale = 150;
 const preLoadMaterialNames = ['grass', 'dirt']; //, 'white wool', 'orange wool', 'magenta wool'];
 
@@ -4613,6 +4628,7 @@ function cameraTest(player) {
 
 function updatePlayerLook(player) {
   let pitchYaw = player.getPitchYaw();
+  // console.log(player.getLookPitchYaw());
   let pitch = pitchYaw[0];
   let yaw = pitchYaw[1];
   let payload = {
@@ -4653,10 +4669,20 @@ class DVoxelEngine {
     this.cameraNearPlane = opts.cameraNearPlane || defaultCameraNearPlane;
     this.cameraFarPlane = opts.cameraFarPlane || defaultCameraFarPlane;
     this.camera = new THREE.PerspectiveCamera(this.cameraFOV, this.cameraWidth / this.cameraHeight, this.cameraNearPlane, this.cameraFarPlane);
-    camera = this.camera;
     // this.camera.position.set(500, 800, 1300);
     this.camera.position.set(1000, 1600, 2600);
     this.camera.lookAt(0, 0, 0);
+    camera = this.camera
+
+    crosshair = new THREE.Mesh(
+      new THREE.RingGeometry( 1, 1.2, 20 ),
+      new THREE.MeshBasicMaterial( { color: 0xff0000, side: THREE.DoubleSide } )
+    );
+    crosshair.position.copy( camera.position );
+    crosshair.rotation.copy( camera.rotation );
+    scene.add(crosshair);
+
+    
     // const gridHelper = new THREE.GridHelper(1000, 20);
     // this.scene.add(gridHelper);
     // const geometry = new THREE.PlaneGeometry(1000, 1000);
@@ -4739,7 +4765,8 @@ class DVoxelEngine {
       THREE: THREE,
       scene: scene,
       render: render,
-      camera: camera
+      camera: camera,
+      crosshair: crosshair,
     };
 
     for (const key in _model_luts.VW_AVATAR_MAP) {
@@ -4805,14 +4832,14 @@ class DVoxelEngine {
   }
 
   appendTo(element) {
-    console.log(element);
+    // console.log(element);
     element.appendChild(this.renderer.domElement);
   }
 
   setVoxel(pos, bid) {
     if (bid == 0) {
       let obj = scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2]));
-      console.log('deleting');
+      // console.log('deleting');
       // console.log(obj);
       this.scene.remove(scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2])));
       this.scene.remove(scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2], true)));
@@ -4897,24 +4924,24 @@ class DVoxelEngine {
     let hitNormal = [0, 0, 0];
     let epsilon = 1e-8;
     (0, _dvoxel_raycast.traceRay)(v, cameraPosition(), cameraVector(), 30, hitPosition, hitNormal, epsilon);
-    console.log('raycast result');
-    console.log(hitPosition);
+    // console.log('raycast result');
+    // console.log(hitPosition);
     return hitPosition;
   }
 
   getBlock(x, y, z) {
     // outside zone, always return 0 -- hack for raycasting
     if (x < 0 || x >= SL || y < 0 || y >= SL || z < 0 || z >= SL) {
-      console.log("OUTSIDE RAYCAST REGION");
+      // console.log("OUTSIDE RAYCAST REGION");
       return 0;
     }
 
-    console.log(x + ' ' + y + ' ' + z);
+    // console.log(x + ' ' + y + ' ' + z);
     return getBlock2(x, y, z);
   }
 
   updateAgents(agentsInfo) {
-    console.log("DVoxel Engine update agents");
+    // console.log("DVoxel Engine update agents");
     // console.log(agentsInfo);
     let that = this;
     agentsInfo.forEach(function (key, index) {
@@ -4933,7 +4960,7 @@ class DVoxelEngine {
   }
 
   updateMobs(mobsInfo) {
-    console.log("DVoxel Engine update mobs");
+    // console.log("DVoxel Engine update mobs");
     // console.log(mobsInfo);
     let world = {
       THREE: THREE,
@@ -4970,7 +4997,7 @@ class DVoxelEngine {
   }
 
   updateItemStacks(itemStacksInfo) {
-    console.log("DVoxel Engine update item stacks");
+    // console.log("DVoxel Engine update item stacks");
     // console.log(itemStacksInfo);
     let world = {
       THREE: THREE,
@@ -4985,7 +5012,7 @@ class DVoxelEngine {
       const name = key['name'];
 
       if (entityId in itemStacks) {
-        console.log("item already exists, updating states");
+        // console.log("item already exists, updating states");
       } else {
         const itemStackOpts = {
           GLTFLoader: _GLTFLoader.GLTFLoader,
@@ -5019,15 +5046,15 @@ class DVoxelEngine {
 
       that.setVoxel([xyz[0], xyz[1], xyz[2]], bid);
     });
-    console.log("DVoxel Engine update blocks");
+    // console.log("DVoxel Engine update blocks");
   }
 
   setBlock(x, y, z, idm) {
-    console.log("DVoxel Engine set block");
+    // console.log("DVoxel Engine set block");
   }
 
   flashBlocks(bbox) {
-    console.log("DVoxel Engine flash bbox");
+    // console.log("DVoxel Engine flash bbox");
   }
 
 }
@@ -5040,7 +5067,7 @@ function setBlock2(x, y, z, id) {
 
 function getBlock2(x, y, z) {
   if (x + voxelOffset[0] < 0 || x + voxelOffset[0] >= SL || y + voxelOffset[1] < 0 || y + voxelOffset[1] >= SL || z + voxelOffset[2] < 0 || z + voxelOffset[2] >= SL) {
-    console.log("Get Block 2 out of index");
+    // console.log("Get Block 2 out of index");
   }
 
   return voxels[x + voxelOffset[0]][y + voxelOffset[1]][z + voxelOffset[2]];
