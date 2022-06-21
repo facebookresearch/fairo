@@ -94,10 +94,9 @@ class TaskRunner:
 
     def set_meta_data(self, meta_data: MetaData, val):
         self._job_manage_util.set_meta_data(meta_data, val)
-    
+
     def set_job_stat(self, job_type: Job, job_stat: JobStat, val):
         self._job_manage_util.set_job_stat(job_type, job_stat, val)
 
     def set_job_time(self, job_type: Job, job_stat: JobStat):
         self._job_manage_util.set_job_time(job_type, job_stat)
-    
