@@ -162,7 +162,7 @@ class PyWorldMover:
                 pos = Pos(item["x"], item["y"], item["z"])
                 item_stacks.append(
                     ItemStack(
-                        Slot(item["id"], item["meta"], 1), pos, item["entityId"], item["name"]
+                        Slot(item["id"], item["meta"], 1), pos, item["entityId"], item["typeName"]
                     )
                 )
         return item_stacks
