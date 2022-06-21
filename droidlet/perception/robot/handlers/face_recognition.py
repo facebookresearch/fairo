@@ -7,7 +7,8 @@ import logging
 import numpy as np
 import cv2
 import torch
-import face_recognition as fr
+# TODO This is causing an "illegal hardware instruction" on Apple M1
+# import face_recognition as fr
 from facenet_pytorch import MTCNN
 from .detector import Detection
 

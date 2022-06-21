@@ -5,9 +5,7 @@ from droidlet.task.robot.semantic_nav.visualization.ogn_vis import (
     ObjectGoalNavigationVisualization,
 )
 from droidlet.task.robot.semantic_nav.policy.goal_policy import GoalPolicy
-
-# FIXME, move this to perception
-from droidlet.lowlevel.hello_robot.remote.segmentation.constants import coco_categories
+from droidlet.perception.robot.semantic_mapper.constants import coco_categories
 
 
 # for first step of refactor, just going to rename things.
@@ -102,7 +100,7 @@ class ScoutObject:
             )
             goal_map = cat_sem_map == 1
             if self.visualize:
-                vis.add_location_goal(goal_map)
+                self.vis.add_location_goal(goal_map)
             _, goal_reached = mover.nav.go_to_absolute(goal_map=goal_map, steps=20).value
             if goal_reached:
                 self.finished = True

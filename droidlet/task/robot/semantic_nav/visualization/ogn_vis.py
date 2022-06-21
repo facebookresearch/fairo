@@ -6,8 +6,7 @@ from PIL import Image
 import skimage.morphology
 from natsort import natsorted
 
-# FIXME move this to perception
-from droidlet.lowlevel.hello_robot.remote.segmentation.constants import map_color_palette
+from droidlet.perception.robot.semantic_mapper.constants import map_color_palette
 
 
 class ObjectGoalNavigationVisualization:
