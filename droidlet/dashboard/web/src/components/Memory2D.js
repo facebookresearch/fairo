@@ -5,8 +5,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 // src/components/Memory2D.js
 
 import React from "react";
-import { Stage, Layer, Circle, Line, Text } from "react-konva";
+import { Stage, Layer, Circle, Line, Text, Group } from "react-konva";
 import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
+import MemoryMapTable from "./Memory2D/MemoryMapTable";
 
 var hashCode = function (s) {
   return s.split("").reduce(function (a, b) {
@@ -31,16 +32,22 @@ class Memory2D extends React.Component {
       ymin: -10,
       ymax: 10,
       bot_xyz: [0.0, 0.0, 0.0],
+      bot_data: null,
       tooltip: null,
       stageScale: 1,
       stageX: 0,
       stageY: 0,
       memory2d_className: "memory2d",
       drag_coordinates: [0, 0],
+      enlarge_bot_marker: false,
+      table_data: null,
+      table_visible: false,
+      table_coords: [0, 0],
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
     this.resizeHandler = this.resizeHandler.bind(this);
+    this.handleObjClick = this.handleObjClick.bind(this);
   }
   handleDrag = (className, drag_coordinates) => {
     this.setState({ memory2d_className: className });
@@ -97,6 +104,53 @@ class Memory2D extends React.Component {
         -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
     });
   };
+  handleObjClick = (obj_type, x, y, data) => {
+    /* 
+     * Potentially useful code to debug table positioning when zooming in *
+     *
+     * 
+    let {
+      table_coords,
+      drag_coordinates,
+      stageX,
+      stageY,
+      stageScale,
+      height,
+      width,
+    } = this.state;
+    width = Math.min(width, height);
+    height = width;
+
+    console.log("x:", x, "y:", y);
+    console.log("drag_coordinates:", drag_coordinates[0], ", ", drag_coordinates[1]);
+    console.log("stage_coords:", stageX, ", ", stageY);
+    console.log("stageScale:", stageScale);
+    console.log("width:", width, "height:", height);
+    console.log("will plot table at: [", (x + drag_coordinates[0]), ", ", (Math.min(height, width) - y - drag_coordinates[1]), "]");
+    */
+
+    console.log(obj_type + " clicked");
+
+    this.setState({
+      table_visible: true,
+      table_coords: [x, y],
+      table_data: data,
+    });
+  };
+  positionTable = (h, w, tc, dc, td) => {
+    // this takes all these parameters so table will properly update position on change
+    let ret = { position: "absolute" };
+    let final_coords = [tc[0] + dc[0], Math.min(h, w) - (tc[1] + dc[1])];
+    let final_pos = ["left", "bottom"];
+    let table_dims = [200, 61 * Object.keys(td).length + 100];
+    if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
+      final_coords[1] = Math.min(h, w) - final_coords[1];
+      final_pos[1] = "top";
+    }
+    ret[final_pos[0]] = final_coords[0];
+    ret[final_pos[1]] = final_coords[1];
+    return ret;
+  };
   resizeHandler() {
     if (this.props.isMobile) {
       let dimensions = this.props.dimensions;
@@ -127,7 +181,7 @@ class Memory2D extends React.Component {
     }
   }
   componentDidUpdate(prevProps, prevState) {
-    const { bot_xyz } = this.state;
+    const { bot_xyz, bot_data } = this.state;
     let { xmin, xmax, ymin, ymax } = this.state;
     let bot_x = bot_xyz[0],
       bot_y = bot_xyz[1];
@@ -165,19 +219,24 @@ class Memory2D extends React.Component {
       width,
       memory,
       detections_from_memory,
-      bot_xyz,
+      bot_data,
       obstacle_map,
       tooltip,
       drag_coordinates,
       stageScale,
+      enlarge_bot_marker,
+      table_data,
+      table_visible,
+      table_coords,
     } = this.state;
     width = Math.min(width, height);
     height = width;
     let { objects } = memory;
     let { xmin, xmax, ymin, ymax } = this.state;
-    let bot_x = bot_xyz[1];
-    let bot_y = -bot_xyz[0];
-    let bot_yaw = bot_xyz[2];
+
+    let bot_x = bot_data.pos[2];
+    let bot_y = -bot_data.pos[0];
+    let bot_yaw = bot_data.yaw;
 
     if (height === 0 && width === 0) {
       // return early for performance
@@ -206,36 +265,53 @@ class Memory2D extends React.Component {
         let color = "#827f7f";
         let x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
         let y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
-        mapBoundary.push(
-          <Circle key={j++} radius={2} x={x} y={y} fill={color} />
+        renderedObjects.push(
+          // FIXME: may need to also add mobile support? by using onTap/onTouchEnd
+          <Circle
+            key={j++}
+            radius={2}
+            x={x}
+            y={y}
+            fill={color}
+            onClick={(e) => {
+              this.handleObjClick("obstacle_map", x, y, {
+                x: obj[0],
+                y: obj[1],
+              });
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.setRadius(5);
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.setRadius(2);
+            }}
+          />
         );
       });
     }
 
     // Put detected objects from memory on map
     detections_from_memory.forEach((obj) => {
-      let obj_id = obj[0];
-      let xyz = obj[1];
+      let obj_id = obj.obj_id;
+      let xyz = obj.pos;
       let color = "#0000FF";
       let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
       let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
       y = height - y;
       renderedObjects.push(
         <Circle
-          key={j++}
+          key={obj.memid}
           radius={3}
           x={x}
           y={y}
           fill={color}
-          onMouseEnter={(e) => {
-            this.setState({
-              tooltip: String(obj_id),
-            });
-
+          onClick={(e) => {
+            this.handleObjClick("detection_from_memory", x, y, obj);
+          }}
+          onMouseOver={(e) => {
             e.currentTarget.setRadius(6);
           }}
-          onMouseLeave={(e) => {
-            this.setState({ tooltip: null });
+          onMouseOut={(e) => {
             e.currentTarget.setRadius(3);
           }}
         />
@@ -256,15 +332,10 @@ class Memory2D extends React.Component {
             x={x}
             y={y}
             fill={color}
-            onMouseEnter={(e) => {
-              this.setState({
-                tooltip: JSON.stringify(obj, null, 4),
-              });
-
+            onMouseOver={(e) => {
               e.currentTarget.setRadius(6);
             }}
-            onMouseLeave={(e) => {
-              this.setState({ tooltip: null });
+            onMouseOut={(e) => {
               e.currentTarget.setRadius(3);
             }}
           />
@@ -278,18 +349,31 @@ class Memory2D extends React.Component {
       a line to show orientation
     */
     renderedObjects.push(
-      <Circle key={j++} radius={10} x={bot_x} y={bot_y} fill="red" />
-    );
-    renderedObjects.push(
-      <Line
-        key={j++}
+      <Group
+        key={bot_data.memid}
         x={bot_x}
         y={bot_y}
-        points={[0, 0, 12, 0]}
-        rotation={(-bot_yaw * 180) / Math.PI}
-        stroke="black"
-      />
+        onClick={(e) => {
+          this.handleObjClick("bot", bot_x, bot_y, bot_data);
+        }}
+        onMouseOver={(e) => {
+          this.setState({ enlarge_bot_marker: true });
+        }}
+        onMouseOut={(e) => {
+          this.setState({ enlarge_bot_marker: false });
+        }}
+      >
+        <Circle key={j++} radius={enlarge_bot_marker ? 15 : 10} fill="red" />
+        <Line
+          key={j++}
+          points={enlarge_bot_marker ? [0, 0, 18, 0] : [0, 0, 12, 0]}
+          rotation={(-bot_yaw * 180) / Math.PI}
+          stroke="black"
+          strokeWidth={enlarge_bot_marker ? 1.5 : 1}
+        />
+      </Group>
     );
+
     var gridLayer = [];
     var padding = 10;
     var gridKey = 12344;
@@ -315,7 +399,7 @@ class Memory2D extends React.Component {
       );
     }
 
-    gridLayer.push(<Line key={gridKey + i++} points={[0, 0, 10, 10]} />);
+    //gridLayer.push(<Line key={gridKey + i++} points={[0, 0, 10, 10]} />); // this draws a diagonal line at the top left of the grid?
     for (j = 0; j < height / padding; j++) {
       // Horizontal Lines
       let startY = drag_coordinates[1] % (padding * stageScale);
@@ -335,6 +419,7 @@ class Memory2D extends React.Component {
         />
       );
     }
+
     let coordinateAxesLayer = [];
     let rootPointDefault = [9, 0, -9];
     let coordinateRootPoint = this.convertCoordinate(rootPointDefault);
@@ -483,43 +568,77 @@ class Memory2D extends React.Component {
     );
     coordinateAxesLayer.push(axesX, axesZ, notches);
 
+    // table props
+    const onTableDone = (e) => {
+      this.setState({ table_visible: false });
+    };
+    const rows = [];
+    if (table_visible) {
+      console.assert(table_data !== null, "table_data should be initialized");
+      let data = Object.entries(table_data);
+      data.forEach((entry) =>
+        rows.push({
+          attribute: entry[0].toString(),
+          value: entry[1].toString(),
+        })
+      );
+    }
+
     // final render
     return (
-      <div ref={this.outer_div} style={{ height: "100%", width: "100%" }}>
-        <Stage
-          draggable
-          className={this.state.memory2d_className}
-          width={width}
-          height={height}
-          onWheel={this.handleWheel}
-          scaleX={this.state.stageScale}
-          scaleY={this.state.stageScale}
-          x={this.state.stageX}
-          y={this.state.stageY}
-          onDragMove={(e) =>
-            this.handleDrag("memory2d dragging-memory2d", [
-              e.target.attrs.x,
-              e.target.attrs.y,
-            ])
-          }
-          onDragEnd={(e) =>
-            this.handleDrag("memory2d", [e.target.attrs.x, e.target.attrs.y])
-          }
-        >
-          <Layer className="gridLayer">{gridLayer}</Layer>
-          <Layer className="coordinateAxesLayer">{coordinateAxesLayer}</Layer>
-          <Layer className="mapBoundary">{mapBoundary}</Layer>
-          <Layer className="renderedObjects">{renderedObjects}</Layer>
-          <Layer>
-            <Text
-              text={tooltip}
-              offsetX={-DEFAULT_SPACING}
-              offsetY={-DEFAULT_SPACING}
-              visible={tooltip != null}
-              shadowEnabled={true}
-            />
-          </Layer>
-        </Stage>
+      <div
+        ref={this.outer_div}
+        style={{ height: "100%", width: "100%", position: "relative" }}
+      >
+        <div style={{ position: "absolute" }}>
+          <Stage
+            draggable
+            className={this.state.memory2d_className}
+            width={width}
+            height={height}
+            onWheel={this.handleWheel}
+            scaleX={this.state.stageScale}
+            scaleY={this.state.stageScale}
+            x={this.state.stageX}
+            y={this.state.stageY}
+            onDragMove={(e) =>
+              this.handleDrag("memory2d dragging-memory2d", [
+                e.target.attrs.x,
+                e.target.attrs.y,
+              ])
+            }
+            onDragEnd={(e) =>
+              this.handleDrag("memory2d", [e.target.attrs.x, e.target.attrs.y])
+            }
+          >
+            <Layer className="gridLayer">{gridLayer}</Layer>
+            <Layer className="coordinateAxesLayer">{coordinateAxesLayer}</Layer>
+            <Layer className="mapBoundary">{mapBoundary}</Layer>
+            <Layer className="renderedObjects">{renderedObjects}</Layer>
+            <Layer>
+              <Text
+                text={tooltip}
+                offsetX={-DEFAULT_SPACING}
+                offsetY={-DEFAULT_SPACING}
+                visible={tooltip !== null}
+                shadowEnabled={true}
+              />
+            </Layer>
+          </Stage>
+        </div>
+        {table_visible && (
+          <div
+            style={this.positionTable(
+              height,
+              width,
+              table_coords,
+              drag_coordinates,
+              table_data
+            )}
+          >
+            <MemoryMapTable rows={rows} onTableDone={onTableDone} />
+          </div>
+        )}
       </div>
     );
   }
