@@ -64,13 +64,13 @@ class Job(Enum):
 
 
 class JobStat(Enum):
-    REQUESTED = "#requested"
-    COMPLETED = "#completed"
+    NUM_REQUESTED = "num_requested"
+    NUM_COMPLETED = "num_completed"
     START_TIME = "start_time"
     END_TIME = "end_time"
-    SESSION_LOG = "#session_log"
-    COMMAND = "#command"
-    ERR_COMMAND = "#err_command"
+    NUM_SESSION_LOG = "num_session_log"
+    NUM_COMMAND = "num_command"
+    NUM_ERR_COMMAND = "num_err_command"
     DASHBOARD_VER = "dashboard_ver"
     ORI_DATA_SZ = "ori_data_sz"
     NEW_DATA_SZ = "new_data_sz"

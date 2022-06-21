@@ -23,6 +23,7 @@ from droidlet.tools.hitl.utils.hitl_utils import (
     deregister_dashboard_subdomain,
     dedup_commands,
 )
+from droidlet.tools.hitl.utils.job_management import Job, JobManagementUtil, JobStat, MetaData, get_dashboard_version, get_s3_link
 from droidlet.tools.hitl.utils.process_s3_logs import read_s3_bucket, read_turk_logs
 
 from droidlet.tools.hitl.data_generator import DataGenerator
@@ -77,7 +78,7 @@ class InteractionJob(DataGenerator):
     """
 
     def __init__(
-        self, instance_num: int, image_tag: str, task_name: str, timeout: float = -1
+        self, job_mng_util: JobManagementUtil, instance_num: int, image_tag: str, task_name: str, timeout: float = -1
     ) -> None:
         super(InteractionJob, self).__init__(timeout)
         self._instance_num = instance_num
@@ -85,10 +86,16 @@ class InteractionJob(DataGenerator):
         self._task_name = task_name
         self.instance_ids = None
         self._batch_id = generate_batch_id()
+        self._job_mng_util = job_mng_util
 
-        # TODO: init meta data file, record start time
+        # set meta data
+        job_mng_util.set_meta_data(MetaData.BATCH_ID, self._batch_id)
+        job_mng_util.set_meta_data(MetaData.NAME, task_name)
+        job_mng_util.set_meta_data(MetaData.S3_LINK, get_s3_link(self._batch_id))
+        job_mng_util.set_job_stat(Job.INTERACTION, JobStat.DASHBOARD_VER, get_dashboard_version(image_tag))
 
     def run(self) -> None:
+        self._job_mng_util.set_job_time(Job.INTERACTION, JobStat.START_TIME)
         batch_id = self._batch_id
 
         # allocate AWS ECS instances and register DNS records
@@ -140,6 +147,7 @@ class InteractionJob(DataGenerator):
         logging.info(f"Processing S3 logs...")
         self.process_s3_logs(batch_id)
 
+        self._job_mng_util.set_job_time(Job.INTERACTION, JobStat.END_TIME)
         self.set_finished()
 
     def process_s3_logs(self, batch_id) -> None:
