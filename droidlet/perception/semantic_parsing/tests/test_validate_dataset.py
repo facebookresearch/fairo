@@ -44,5 +44,6 @@ class DataValidationTest(unittest.TestCase):
         )
         self.assertTrue(res)
 
+
 if __name__ == "__main__":
     unittest.main()
