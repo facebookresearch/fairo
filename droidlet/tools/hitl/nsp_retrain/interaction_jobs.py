@@ -23,7 +23,14 @@ from droidlet.tools.hitl.utils.hitl_utils import (
     deregister_dashboard_subdomain,
     dedup_commands,
 )
-from droidlet.tools.hitl.utils.job_management import Job, JobManagementUtil, JobStat, MetaData, get_dashboard_version, get_s3_link
+from droidlet.tools.hitl.utils.job_management import (
+    Job,
+    JobManagementUtil,
+    JobStat,
+    MetaData,
+    get_dashboard_version,
+    get_s3_link,
+)
 from droidlet.tools.hitl.utils.process_s3_logs import read_s3_bucket, read_turk_logs
 
 from droidlet.tools.hitl.data_generator import DataGenerator
@@ -78,7 +85,12 @@ class InteractionJob(DataGenerator):
     """
 
     def __init__(
-        self, job_mng_util: JobManagementUtil, instance_num: int, image_tag: str, task_name: str, timeout: float = -1
+        self,
+        job_mng_util: JobManagementUtil,
+        instance_num: int,
+        image_tag: str,
+        task_name: str,
+        timeout: float = -1,
     ) -> None:
         super(InteractionJob, self).__init__(timeout)
         self._instance_num = instance_num
@@ -92,7 +104,9 @@ class InteractionJob(DataGenerator):
         job_mng_util.set_meta_data(MetaData.BATCH_ID, self._batch_id)
         job_mng_util.set_meta_data(MetaData.NAME, task_name)
         job_mng_util.set_meta_data(MetaData.S3_LINK, get_s3_link(self._batch_id))
-        job_mng_util.set_job_stat(Job.INTERACTION, JobStat.DASHBOARD_VER, get_dashboard_version(image_tag))
+        job_mng_util.set_job_stat(
+            Job.INTERACTION, JobStat.DASHBOARD_VER, get_dashboard_version(image_tag)
+        )
 
     def run(self) -> None:
         self._job_mng_util.set_job_time(Job.INTERACTION, JobStat.START_TIME)

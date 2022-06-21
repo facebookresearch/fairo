@@ -51,7 +51,13 @@ if __name__ == "__main__":
     instance_num = opts.interaction_job_num
     runner = TaskRunner()
 
-    ij = InteractionJob(runner.get_job_manage_util(), instance_num, opts.image_tag, opts.task_name, timeout=IJ_TIMEOUT)
+    ij = InteractionJob(
+        runner.get_job_manage_util(),
+        instance_num,
+        opts.image_tag,
+        opts.task_name,
+        timeout=IJ_TIMEOUT,
+    )
     batch_id = ij.get_batch_id()
     listener = InteractionLogListener(batch_id, IL_TIMEOUT)
 
