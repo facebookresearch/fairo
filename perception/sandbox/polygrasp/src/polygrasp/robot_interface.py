@@ -83,8 +83,8 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         k_grasp=0.72,
         gripper_max_width=0.085,
         # ikpy params:
-        base_elements=["panda_link0"],
-        soft_limits=[
+        base_elements=("panda_link0",),
+        soft_limits=(
             (-2.70, 2.70),
             (-1.56, 1.56),
             (-2.7, 2.7),
@@ -92,7 +92,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             (-2.7, 2.7),
             (-0.02, 3.55),
             (-2.7, 2.7),
-        ],
+        ),
         *args,
         **kwargs,
     ):
@@ -129,7 +129,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             )
             return joint_pos_ikpy[1:-1]
         except ValueError as e:
-            print(f"Can't find IK solution! {e}")
+            log.warning(f"Can't find IK solution! {e}")
             return None
 
     def gripper_open(self):
@@ -173,7 +173,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         with torch.no_grad():
             feasible_i = []
             for i, grasp in enumerate(grasps):
-                print(f"checking feasibility {i}/{len(grasps)}")
+                log.info(f"checking feasibility {i}/{len(grasps)}")
 
                 if grasp.width > self.gripper_max_width:
                     continue
@@ -189,7 +189,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
 
                 if len(feasible_i) == num_grasp_choices:
                     if i >= num_grasp_choices:
-                        print(
+                        log.info(
                             f"Kinematically filtered {i + 1 - num_grasp_choices} grasps"
                             " to get 5 feasible positions"
                         )
@@ -199,7 +199,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             filtered_grasps = grasps[feasible_i]
             grasp, i = min_dist_grasp_no_z(self.default_ee_quat, filtered_grasps)
             log.info(f"Closest grasp to ee ori, within top 5: {i + 1}")
-            return grasp, filtered_grasps
+            return filtered_grasps, i
 
     def grasp(
         self,

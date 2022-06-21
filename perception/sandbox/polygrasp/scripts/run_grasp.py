@@ -217,9 +217,11 @@ def main(cfg):
             )
 
             print("Choosing a grasp for the object")
-            chosen_grasp, final_filtered_grasps = robot.select_grasp(
+            final_filtered_grasps, chosen_grasp_i = robot.select_grasp(
                 filtered_grasp_group
             )
+            chosen_grasp = final_filtered_grasps[chosen_grasp_i]
+
             grasp_client.visualize_grasp(scene_pcd, final_filtered_grasps)
             grasp_client.visualize_grasp(
                 obj_pcds[obj_i], final_filtered_grasps, name="obj"
