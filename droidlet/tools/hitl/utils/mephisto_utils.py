@@ -61,7 +61,7 @@ def check_run_status(run_id: int, mturk_with_qual_list) -> None:
     for unit in units:
         if unit.db_status == "completed":
             completed_num += 1
-            completed_units .append(unit)
+            completed_units.append(unit)
         elif unit.db_status == "launched":
             launched_num += 1
         elif unit.db_status == "assigned":
@@ -92,7 +92,9 @@ def check_run_status(run_id: int, mturk_with_qual_list) -> None:
     turker_set = set()
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
-        duration = (data["data"]["times"]["task_end"] - data["data"]["times"]["task_start"]) / 60 # in minutes
+        duration = (
+            data["data"]["times"]["task_end"] - data["data"]["times"]["task_start"]
+        ) / 60  # in minutes
         total_time_completed_in_min += duration
         total_cnt += 1
         worker_name = db.get_worker(worker_id=unit.worker_id)["worker_name"]
@@ -111,12 +113,18 @@ def check_run_status(run_id: int, mturk_with_qual_list) -> None:
             print(f"This Mephisto worker {worker_name} is not in the Mephisto allowlist")
     print(turker_set)
     print(f"Identical turker num: {len(set(list(turker_set)))}")
-    print(f"For mephisto/mturk debug: total num: {total_cnt}, # who pass mturk qual: {turkers_with_mturk_qual_cnt}")
-    print(f"Total completed HITS\t\t{total_cnt}\tavg time spent\t{total_time_completed_in_min / total_cnt} mins")
-    print(f"HITS passed qualification\t{passed_cnt}\tavg time spent\t{passed_time / passed_cnt} mins")
-    print(f"HITS failed qualification\t{total_cnt - passed_cnt}\tavg time spent\t{(total_time_completed_in_min - passed_time) / (total_cnt - passed_cnt)} mins")
-
-
+    print(
+        f"For mephisto/mturk debug: total num: {total_cnt}, # who pass mturk qual: {turkers_with_mturk_qual_cnt}"
+    )
+    print(
+        f"Total completed HITS\t\t{total_cnt}\tavg time spent\t{total_time_completed_in_min / total_cnt} mins"
+    )
+    print(
+        f"HITS passed qualification\t{passed_cnt}\tavg time spent\t{passed_time / passed_cnt} mins"
+    )
+    print(
+        f"HITS failed qualification\t{total_cnt - passed_cnt}\tavg time spent\t{(total_time_completed_in_min - passed_time) / (total_cnt - passed_cnt)} mins"
+    )
 
 
 def check_workers_in_allowlist(qual_name: str, turker_list=None) -> None:
@@ -135,7 +143,6 @@ def check_workers_in_allowlist(qual_name: str, turker_list=None) -> None:
     print(f"Total number of workers in db: {len(all_workers)} ")
     print(f"Number of workers in {qual_name} allowlist: {cnt}")
     return allowed_workers
-
 
 
 def check_all_qual() -> None:
@@ -164,6 +171,7 @@ def check_account_balance(
     )
     print(f"Account balance: {mturk.get_account_balance()}")
 
+
 def check_mturk_qual_turkers(
     aws_access_key_id: str = None,
     aws_secret_access_key: str = None,
@@ -189,10 +197,13 @@ def check_mturk_qual_turkers(
     while next_token != None:
         for qual in partial_qual_list:
             full_worker_list.append(qual["WorkerId"])
-        results = mturk.list_workers_with_qualification_type(QualificationTypeId=qual_id, NextToken=next_token)
+        results = mturk.list_workers_with_qualification_type(
+            QualificationTypeId=qual_id, NextToken=next_token
+        )
         partial_qual_list = results["Qualifications"]
         next_token = None if not "NextToken" in results else results["NextToken"]
     return full_worker_list
+
 
 def validate_commands(commands: List[str]) -> bool:
     # filter empty commands
@@ -255,6 +266,7 @@ def backend_validation(turk_dir_root: str, qual_name: str) -> None:
                         f"Worker [{worker.worker_name}] failed backend validation, revoke qualification [{qual_name}] and soft-block on future HITs."
                     )
 
+
 def check_mturk_datastore():
     db = LocalMephistoDB()
     turk_db = db.get_datastore_for_provider("mturk")
@@ -262,9 +274,13 @@ def check_mturk_datastore():
     print(mapping["mturk_qualification_id"])
 
 
-def grant_qual_to_turker(qual_id, worker_id,aws_access_key_id: str = None,
+def grant_qual_to_turker(
+    qual_id,
+    worker_id,
+    aws_access_key_id: str = None,
     aws_secret_access_key: str = None,
-    aws_default_region: str = None,):
+    aws_default_region: str = None,
+):
     aws_access_key_id = aws_access_key_id or os.environ["AWS_ACCESS_KEY_ID"]
     aws_secret_access_key = aws_secret_access_key or os.environ["AWS_SECRET_ACCESS_KEY"]
     aws_default_region = aws_default_region or os.environ["AWS_DEFAULT_REGION"]
@@ -280,10 +296,9 @@ def grant_qual_to_turker(qual_id, worker_id,aws_access_key_id: str = None,
 
     mturk.associate_qualification_with_worker(QualificationTypeId=qual_id, WorkerId=worker_id)
 
+
 if __name__ == "__main__":
     QUAL_ID = ""
     workers_with_qual = check_mturk_qual_turkers(qual_id=QUAL_ID)
     check_run_status(205, mturk_with_qual_list=workers_with_qual)
     check_workers_in_allowlist("PILOT_ALLOWLIST_QUAL_0920_0")
-
-
