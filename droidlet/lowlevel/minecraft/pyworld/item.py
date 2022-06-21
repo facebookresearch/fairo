@@ -31,9 +31,9 @@ class GettableItem:
             "id": self.id,
             "meta": self.meta,
             "pos": self.pos,
-            "x": self.pos.x or "",
-            "y": self.pos.y or "",
-            "z": self.pos.z or "",
+            "x": self.pos.x,
+            "y": self.pos.y,
+            "z": self.pos.z,
             "holder_entityId": self.holder_entityId,
             "properties": self.properties,
         }
