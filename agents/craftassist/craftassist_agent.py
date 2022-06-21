@@ -292,6 +292,7 @@ class CraftAssistAgent(DroidletAgent):
         @sio.on("toggle_map")
         def handle_toggle_map(sid, data):
             self.dash_enable_map = data["dash_enable_map"]
+            #self.draw_map_to_dashboard()
         if self.opts.draw_map and self.dash_enable_map:
             if datetime.now() >= self.map_last_updated + timedelta(seconds=0.05*self.opts.map_update_ticks):
                 self.map_last_updated = datetime.now()
@@ -409,7 +410,12 @@ class CraftAssistAgent(DroidletAgent):
         for mem in mems:
             if hasattr(mem, "pos"):
                 id_str = "no_id" if not hasattr(mem, "obj_id") else mem.obj_id
-                detections_for_map.append([id_str, list(mem.pos)])
+                obj = vars(mem)
+                obj.pop('agent_memory', None)   # not necessary to show memory object type and location 
+                obj["node_type"] = type(mem).__name__
+                obj["obj_id"] = id_str
+                obj["pos"] = list(mem.pos)
+                detections_for_map.append(obj)
         return detections_for_map
 
     def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
@@ -434,8 +440,8 @@ class CraftAssistAgent(DroidletAgent):
                 "y": xyyaw[1],
                 "yaw": xyyaw[2],
                 "map": obstacles,
-                "draw_map": self.opts.draw_map,
-                "detections_from_memory": detections_for_map,
+                "bot_data": detections_for_map[0],
+                "detections_from_memory": detections_for_map[1:],
             },
         )
 
