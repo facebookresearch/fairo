@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import numpy as np
 import hydra
 from omegaconf.dictconfig import DictConfig
 import pybullet
@@ -29,12 +30,31 @@ class BulletManipulator:
             self.sim = BulletClient(connection_mode=pybullet.DIRECT)
 
         urdf_path = get_full_path_to_urdf(self.cfg.robot_description_path)
-        self.robot_id = self.sim.loadURDF(urdf_path)
+        self.robot_id = self.sim.loadURDF(
+            urdf_path,
+            basePosition=[0.0, 0.0, 0.0],
+            useFixedBase=True,
+            flags=pybullet.URDF_USE_INERTIA_FROM_FILE,
+        )
 
-        self.sim.setGravity(0, 0, -gravity)
+        for i in range(self.cfg.num_dofs):
+            self.sim.resetJointState(
+                bodyUniqueId=self.robot_id,
+                jointIndex=self.cfg.controlled_joints[i],
+                targetValue=self.cfg.rest_pose[i],
+                targetVelocity=0,
+            )
 
         # Initialize states
         self.arm_state = polymetis_pb2.RobotState()
+        self.arm_state.prev_joint_torques_computed[:] = np.zeros(7)
+        self.arm_state.prev_joint_torques_computed_safened[:] = np.zeros(7)
+        self.arm_state.motor_torques_measured[:] = np.zeros(7)
+        self.arm_state.motor_torques_external[:] = np.zeros(7)
+
+        self.arm_state.prev_command_successful = True
+        self.arm_state.error_code = 0
+
         self.gripper_state = polymetis_pb2.GripperState()
 
     def get_arm_state(self) -> polymetis_pb2.RobotState:
@@ -51,7 +71,8 @@ class BulletManipulator:
         return self.arm_state
 
     def get_gripper_state(self) -> polymetis_pb2.GripperState:
-        return polymetis_pb2.GripperState()  # TODO
+        # TODO
+        return self.gripper_state
 
     def apply_arm_control(self, cmd: polymetis_pb2.TorqueCommand):
         # Extract torques
@@ -60,9 +81,10 @@ class BulletManipulator:
         # Compute grav comp
         joint_pos = list(self.arm_state.joint_positions)
         grav_comp_torques = self.sim.calculateInverseDynamics(
-            joint_pos=joint_pos,
-            joint_vel=[0] * len(joint_pos),
-            joint_acc=[0] * len(joint_pos),
+            self.robot_id,
+            joint_pos,
+            [0] * len(joint_pos),
+            [0] * len(joint_pos),
         )
 
         # Set sim torques
@@ -79,6 +101,9 @@ class BulletManipulator:
         self.arm_state.prev_joint_torques_computed_safened[:] = commanded_torques
         self.arm_state.motor_torques_measured[:] = applied_torques
         self.arm_state.motor_torques_external[:] = np.zeros_like(applied_torques)
+
+        self.arm_state.prev_command_successful = True
+        self.arm_state.error_code = 0
 
     def apply_gripper_control(self, cmd: polymetis_pb2.GripperCommand):
         pass  # TODO

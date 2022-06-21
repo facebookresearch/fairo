@@ -6,6 +6,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import Callable
+import time
 import numpy as np
 import hydra
 from omegaconf.dictconfig import DictConfig
