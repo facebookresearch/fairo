@@ -2,10 +2,10 @@
 Job management utils
 """
 import logging
-from math import isnan
 import boto3
+import botocore
 import datetime
-import pandas as pd
+import json
 from enum import Enum
 import os
 
@@ -28,6 +28,9 @@ HITL_TMP_DIR = (
     os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
 )
 
+# job management record path prefix
+JOB_MNG_PATH_PREFIX = "job_management_records"
+
 ecr = boto3.client(
     "ecr",
     aws_access_key_id=AWS_ECR_ACCESS_KEY_ID,
@@ -46,7 +49,7 @@ bucket = s3.Bucket(S3_BUCKET_NAME)
 
 
 class MetaData(Enum):
-    ID = "id"
+    BATCH_ID = "batch_id"
     NAME = "name"
     S3_LINK = "s3_link"
     COST = "cost"
@@ -82,17 +85,10 @@ STAT_JOB_PAIR = {
     Job.INTERACTION: set(
         [JobStat.SESSION_LOG, JobStat.COMMAND, JobStat.ERR_COMMAND, JobStat.DASHBOARD_VER]
     ),
-    Job.RETRAIN: set([JobStat.ORI_DATA_SZ, JobStat.NEW_DATA_SZ, JobStat.MODEL_ACCURACY]),
+    Job.RETRAIN: set(
+        [JobStat.ORI_DATA_SZ, JobStat.NEW_DATA_SZ, JobStat.MODEL_ACCURACY]
+    ),
 }
-
-
-def get_job_stat_col(job: Job, job_stat: JobStat):
-    """
-    Gets Job statstic column name if the this job_stat is allowed for the input job
-    """
-    assert job_stat in STAT_FOR_ALL or job_stat in STAT_JOB_PAIR[job]
-
-    return f"{job.name}.{job_stat.name}"
 
 
 def get_dashboard_version(image_tag: str):
@@ -110,58 +106,51 @@ def get_dashboard_version(image_tag: str):
 def get_s3_link(batch_id: int):
     return f"https://s3.console.aws.amazon.com/s3/buckets/droidlet-hitl?region={AWS_DEFAULT_REGION}&prefix={batch_id}"
 
-
-# Pepare record columns
-rec_cols = [md.name for md in MetaData]
-
-for job in Job:
-    for stat in STAT_FOR_ALL:
-        rec_cols.append(get_job_stat_col(job, stat))
-    if job in STAT_JOB_PAIR.keys():
-        for stat in STAT_JOB_PAIR[job]:
-            rec_cols.append(get_job_stat_col(job, stat))
-
-
 class JobManagementUtil:
     def __init__(self):
-        df = pd.DataFrame(columns=rec_cols, index=[0])
-        self._batch_id = None
-        self._rec_df = df
-        self._local_path = os.path.join(
-            HITL_TMP_DIR, "tmp", f"job_management_{datetime.datetime.now()}.csv"
+        # prepare dict for recording the data
+        rec_dict = {}
+
+        for meta_data in MetaData:
+            rec_dict[meta_data._name_] = None
+        
+        for job in Job:
+            rec_dict[job._name_] = {}
+            for stat in STAT_FOR_ALL:
+                rec_dict[job._name_][stat._name_] = None
+
+            if job in STAT_JOB_PAIR.keys():
+                for stat in STAT_JOB_PAIR[job]:
+                    rec_dict[job._name_][stat._name_] = None
+        
+        self._record_dict = rec_dict
+        time_format = "%Y%m-%d_%H:%M:%S.%f"
+        tmp_fname = f"job_management_{datetime.datetime.now().strftime(time_format)}.json"
+
+        folder_path = os.path.join(
+            HITL_TMP_DIR, "tmp", JOB_MNG_PATH_PREFIX
         )
+        os.makedirs(folder_path, exist_ok=True)
+        self._local_path = os.path.join(folder_path, tmp_fname)
 
     def _validate_and_set_time(self, time_type, job_type=None):
-        time = datetime.datetime.now()
+        time = str(datetime.datetime.now())
 
-        df = self._rec_df
+        rec_dict = self._record_dict
 
-        # Check type and get corresponding column name
         if time_type == MetaData.START_TIME or time_type == MetaData.END_TIME:
-            start_col = MetaData.START_TIME.name
-            col_to_set = time_type.name
+            rec_dict[time_type._name_] = time
         elif (
             time_type == JobStat.START_TIME or time_type == JobStat.END_TIME
         ) and job_type is not None:
-            start_col = get_job_stat_col(job_type, JobStat.START_TIME)
-            col_to_set = get_job_stat_col(job_type, time_type)
+            rec_dict[job_type._name_][time_type._name_] = time
         else:
-            raise TypeError(f"Cannot set time for the type {time_type}")
+            raise RuntimeError(f"Cannot set time for the type {time_type}")
 
-        # Validate has start time for recording end time
-        if time_type == MetaData.END_TIME or time_type == JobStat.END_TIME:
-            # start time need to be set
-            assert not isnan(df.at[0, start_col])
-
-        # Validate not set before
-        assert isnan(df.at[0, col_to_set])
-
-        # Set time
-        df.at[0, col_to_set] = time
         self._save_tmp()
 
     def _save_tmp(self):
-        self._rec_df.to_csv(self._local_path)
+        json.dump(self._record_dict, open(self._local_path, 'w'))
 
     def set_meta_start(self):
         self.set_meta_time(MetaData.START_TIME)
@@ -170,30 +159,31 @@ class JobManagementUtil:
         self.set_meta_time(MetaData.END_TIME)
 
     def set_meta_time(self, meta_data: MetaData):
-        self.validate_and_set_time(meta_data)
+        self._validate_and_set_time(meta_data)
 
     def set_meta_data(self, meta_data: MetaData, val):
-        self._rec_df.at[0, meta_data.name] = val
+        self._record_dict[meta_data._name_] = val
         self._save_tmp()
 
     def set_job_stat(self, job_type: Job, job_stat: JobStat, val):
-        self._rec_df.at[0, get_job_stat_col(job_type, job_stat)] = val
-        self._save_tmp()
-
-    def set_job_stat_relative(self, job_type: Job, job_stat: JobStat, relative_val):
-        self._rec_df.at[0, get_job_stat_col(job_type, job_stat)] += relative_val
+        self._record_dict[job_type._name_][job_stat._name_] = val
         self._save_tmp()
 
     def set_job_time(self, job_type: Job, job_stat: JobStat):
-        self.validate_and_set_time(job_type, job_stat)
+        self._validate_and_set_time(job_type, job_stat)
 
     def save_to_s3(self):
-        # check __batch_id for saving to s3
-        if self._batch_id is None:
+        batch_id = self._record_dict[MetaData.BATCH_ID]
+        # check batch_id for saving to s3
+        if batch_id is None:
             logging.error("Must have an associated batch to be able to save to s3")
-            raise TypeError("No associated batch_id set")
+            raise RuntimeError("No associated batch_id set")
         # save to s3
-
+        remote_file_path = f"{JOB_MNG_PATH_PREFIX}/{batch_id}.json"
+        try:
+            resp = s3.meta.client.upload_file(self._local_path, S3_BUCKET_NAME, remote_file_path)
+        except botocore.exceptions.ClientError as e:
+            logging.info(f"[Job Management Util] Not able to save file {self._local_path} to s3.")
 
 if __name__ == "__main__":
     sha256 = get_dashboard_version("cw_test1")
