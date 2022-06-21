@@ -85,9 +85,7 @@ STAT_JOB_PAIR = {
     Job.INTERACTION: set(
         [JobStat.SESSION_LOG, JobStat.COMMAND, JobStat.ERR_COMMAND, JobStat.DASHBOARD_VER]
     ),
-    Job.RETRAIN: set(
-        [JobStat.ORI_DATA_SZ, JobStat.NEW_DATA_SZ, JobStat.MODEL_ACCURACY]
-    ),
+    Job.RETRAIN: set([JobStat.ORI_DATA_SZ, JobStat.NEW_DATA_SZ, JobStat.MODEL_ACCURACY]),
 }
 
 
@@ -106,6 +104,7 @@ def get_dashboard_version(image_tag: str):
 def get_s3_link(batch_id: int):
     return f"https://s3.console.aws.amazon.com/s3/buckets/droidlet-hitl?region={AWS_DEFAULT_REGION}&prefix={batch_id}"
 
+
 class JobManagementUtil:
     def __init__(self):
         # prepare dict for recording the data
@@ -113,7 +112,7 @@ class JobManagementUtil:
 
         for meta_data in MetaData:
             rec_dict[meta_data._name_] = None
-        
+
         for job in Job:
             rec_dict[job._name_] = {}
             for stat in STAT_FOR_ALL:
@@ -122,14 +121,12 @@ class JobManagementUtil:
             if job in STAT_JOB_PAIR.keys():
                 for stat in STAT_JOB_PAIR[job]:
                     rec_dict[job._name_][stat._name_] = None
-        
+
         self._record_dict = rec_dict
         time_format = "%Y%m-%d_%H:%M:%S.%f"
         tmp_fname = f"job_management_{datetime.datetime.now().strftime(time_format)}.json"
 
-        folder_path = os.path.join(
-            HITL_TMP_DIR, "tmp", JOB_MNG_PATH_PREFIX
-        )
+        folder_path = os.path.join(HITL_TMP_DIR, "tmp", JOB_MNG_PATH_PREFIX)
         os.makedirs(folder_path, exist_ok=True)
         self._local_path = os.path.join(folder_path, tmp_fname)
 
@@ -150,7 +147,7 @@ class JobManagementUtil:
         self._save_tmp()
 
     def _save_tmp(self):
-        json.dump(self._record_dict, open(self._local_path, 'w'))
+        json.dump(self._record_dict, open(self._local_path, "w"))
 
     def set_meta_start(self):
         self.set_meta_time(MetaData.START_TIME)
@@ -184,6 +181,7 @@ class JobManagementUtil:
             resp = s3.meta.client.upload_file(self._local_path, S3_BUCKET_NAME, remote_file_path)
         except botocore.exceptions.ClientError as e:
             logging.info(f"[Job Management Util] Not able to save file {self._local_path} to s3.")
+
 
 if __name__ == "__main__":
     sha256 = get_dashboard_version("cw_test1")
