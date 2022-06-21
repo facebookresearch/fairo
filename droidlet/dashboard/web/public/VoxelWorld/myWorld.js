@@ -4085,7 +4085,7 @@ function hover(obj) {
     obj.hoverDirection = -1;
   }
 
-  obj.world.render();
+  // obj.world.render();
 }
 
 ;
@@ -4387,7 +4387,7 @@ var _GLTFLoader = require("./GLTFLoader.mjs");
 
 var _model_luts = require("./model_luts.mjs");
 
-var _OrbitControls = require("./OrbitControls.mjs");
+// var _OrbitControls = require("./OrbitControls.mjs");
 
 var _dvoxel_raycast = require("./dvoxel_raycast.mjs");
 
@@ -4592,7 +4592,7 @@ function handleKeypress(e, player) {
 }
 
 function cameraTest(player) {
-  controls.enabled = false;
+  // controls.enabled = false;
   player.possess();
   window.addEventListener("keydown", function (e) {
     handleKeypress(e, player);
@@ -4656,8 +4656,8 @@ class DVoxelEngine {
     this.camera.position.set(500, 800, 1300);
     this.camera.position.set(1000, 1600, 2600);
     this.camera.lookAt(0, 0, 0);
-    const gridHelper = new THREE.GridHelper(1000, 20);
-    this.scene.add(gridHelper);
+    // const gridHelper = new THREE.GridHelper(1000, 20);
+    // this.scene.add(gridHelper);
     const geometry = new THREE.PlaneGeometry(1000, 1000);
     geometry.rotateX(-Math.PI / 2);
     let plane = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
@@ -4675,13 +4675,13 @@ class DVoxelEngine {
     renderer = this.renderer;
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    controls = new _OrbitControls.OrbitControls(this.camera, this.renderer.domElement);
-    controls.listenToKeyEvents(window);
-    controls.addEventListener('change', render);
-    controls.enableZoom = true;
-    controls.zoomSpeed = 0.5;
-    controls.minPolarAngle = minCameraPitch;
-    controls.maxPolarAngle = maxCameraPitch; // loader and preloaded materials -- to improve performance
+    // controls = new _OrbitControls.OrbitControls(this.camera, this.renderer.domElement);
+    // controls.listenToKeyEvents(window);
+    // controls.addEventListener('change', render);
+    // controls.enableZoom = true;
+    // controls.zoomSpeed = 0.5;
+    // controls.minPolarAngle = minCameraPitch;
+    // controls.maxPolarAngle = maxCameraPitch; // loader and preloaded materials -- to improve performance
 
     loader = new THREE.TextureLoader();
     preLoadBlockMaterials = new Map();
@@ -4927,39 +4927,39 @@ class DVoxelEngine {
 
   updateMobs(mobsInfo) {
     console.log("DVoxel Engine update mobs");
-    console.log(mobsInfo);
-    let world = {
-      THREE: THREE,
-      scene: scene,
-      render: render,
-      camera: camera
-    };
-    let mobsInWorld = new Set();
-    mobsInfo.forEach(function (key, index) {
-      const entityId = key['entityId'].toString();
-      const pos = key['pos'];
-      const name = key['name'];
+    // console.log(mobsInfo);
+    // let world = {
+    //   THREE: THREE,
+    //   scene: scene,
+    //   render: render,
+    //   camera: camera
+    // };
+    // let mobsInWorld = new Set();
+    // mobsInfo.forEach(function (key, index) {
+    //   const entityId = key['entityId'].toString();
+    //   const pos = key['pos'];
+    //   const name = key['name'];
 
-      if (entityId in mobs) {
-        console.log("mob already exists, updating states");
-      } else {
-        const mobOpts = {
-          GLTFLoader: _GLTFLoader.GLTFLoader,
-          name: name,
-          position: [pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale]
-        };
+    //   if (entityId in mobs) {
+    //     console.log("mob already exists, updating states");
+    //   } else {
+    //     const mobOpts = {
+    //       GLTFLoader: _GLTFLoader.GLTFLoader,
+    //       name: name,
+    //       position: [pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale]
+    //     };
 
-        _VoxelMob.VoxelMob.build(world, mobOpts).then(function (newMob) {
-          mobs[entityId] = newMob;
-        });
-      }
+    //     _VoxelMob.VoxelMob.build(world, mobOpts).then(function (newMob) {
+    //       mobs[entityId] = newMob;
+    //     });
+    //   }
 
-      if (entityId in mobs) {
-        mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
-      }
+    //   if (entityId in mobs) {
+    //     mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
+    //   }
 
-      mobsInWorld.add(entityId);
-    });
+    //   mobsInWorld.add(entityId);
+    // });
   }
 
   updateItemStacks(itemStacksInfo) {

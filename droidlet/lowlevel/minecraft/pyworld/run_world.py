@@ -72,7 +72,7 @@ if __name__ == "__main__":
     opts.cuberite_z_offset = 0
     opts.iglu_scenes = ""
     # FIXME! put in the scene spec generator
-    opts.gettable_items = [GettableItem("ball")]
+    opts.gettable_items = [] #[GettableItem("ball")]
 
     ticker = Ticker(tick_rate=0.01, step_rate=0.2, ip="localhost", port=6002)
     ticker_thread = Thread(target=ticker.start, args=())
