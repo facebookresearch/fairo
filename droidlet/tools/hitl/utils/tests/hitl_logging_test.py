@@ -3,9 +3,10 @@ from droidlet.tools.hitl.utils.hitl_utils import generate_batch_id
 import unittest
 import os
 
-# Generate a batch id        
+# Generate a batch id
 batch_id = generate_batch_id()
 msg = "I am a message"
+
 
 class TestLoggerClass1:
     def __init__(self) -> None:
@@ -18,6 +19,7 @@ class TestLoggerClass1:
         hl_logger.error(msg)
         return hl
 
+
 class TestLoggerClass2:
     def __init__(self) -> None:
         pass
@@ -28,6 +30,7 @@ class TestLoggerClass2:
         hl_logger = hl.get_logger()
         hl_logger.warning(msg)
         return hl
+
 
 class TestHitlLogging(unittest.TestCase):
     def test_hitl_logging_3instances(self):
@@ -45,13 +48,13 @@ class TestHitlLogging(unittest.TestCase):
         log_files.append(hl2.get_log_file())
         log_files.append(hl3.get_log_file())
 
-
         for log_fname in log_files:
             self.assertTrue(os.path.exists(log_fname))
-            log_f = open(log_fname, 'r')
+            log_f = open(log_fname, "r")
             for line in log_f:
                 self.assertTrue(msg in line)
             log_f.close()
+
 
 if __name__ == "__main__":
     unittest.main()
