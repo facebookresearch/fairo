@@ -23,6 +23,7 @@ from droidlet.tools.artifact_scripts.upload_artifacts_to_aws import (
     tar_and_upload,
     compute_checksum_tar_and_upload,
 )
+from droidlet.tools.hitl.utils.job_management import Job, JobManagementUtil, JobStat
 
 
 log_formatter = logging.Formatter(
@@ -48,11 +49,13 @@ MODEL_INFO_NAME = "best_model_info.txt"
 
 
 class NSPRetrainingJob(DataGenerator):
-    def __init__(self, batch_id, opts):
+    def __init__(self, job_mng_util: JobManagementUtil,batch_id, opts):
         super(NSPRetrainingJob, self).__init__()
+        self._job_mng_util = job_mng_util
         self.batch_id = batch_id
         self.opts = opts
         self.exec_training_run = True
+        job_mng_util.set_job_stat(Job.RETRAIN, True)
 
     def max_and_argmax(self, l):
         i = max(range(len(l)), key=lambda i: l[i])
@@ -273,6 +276,7 @@ class NSPRetrainingJob(DataGenerator):
         return True
 
     def run(self):
+        self._job_mng_util.set_job_start(Job.INTERACTION)
         logging.info(f"NSP Retraining Job initialized, downloading new data")
         opts = self.opts
 
@@ -441,6 +445,11 @@ class NSPRetrainingJob(DataGenerator):
             f_log.write("hash_model " + checksum_m + "\n")
             f_log.write("hash_dataset " + checksum_d + "\n")
 
+            # update corresponding job status
+            self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.MODEL_ACCURACY, acc)
+            self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.MODEL_EPOCH, epoch)
+            self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.MODEL_LOSS, loss)
+
         # Tar model and upload them to AWS
         tar_and_upload(checksum_m, artifact_path_name, artifact_name)
         # Compute checksum, tar and uploaf for dataset
@@ -448,6 +457,7 @@ class NSPRetrainingJob(DataGenerator):
 
         logging.info(f"NSP Retraining Job finished")
         self.set_finished(True)
+        self._job_mng_util.set_job_end(Job.INTERACTION)
         return
 
 
@@ -458,7 +468,7 @@ class NSPNewDataListener(JobListener):
         self.new_data_found = False
         self.opts = opts
 
-    def run(self, runner):
+    def run(self, runner: TaskRunner):
         logging.info(f"NSP New Data Listener running")
 
         while not self.check_is_finished():
@@ -482,7 +492,7 @@ class NSPNewDataListener(JobListener):
                 logging.info(f"NSP Listener has found new data")
 
                 # Initialize retraining job
-                nsp_rt = NSPRetrainingJob(batch_id=self.batch_id, opts=self.opts)
+                nsp_rt = NSPRetrainingJob(job_mng_util= runner.get_job_manage_util(), batch_id=self.batch_id, opts=self.opts)
                 runner.register_data_generators([nsp_rt])
 
                 logging.info(f"NSP data gen job registered, listener return")

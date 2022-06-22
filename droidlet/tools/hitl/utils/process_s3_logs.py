@@ -76,6 +76,8 @@ def get_stats(command_list):
     print(f"avg_len {avg_len}")
     print(f"valid {interested}")
     print(f"valid rate {interested / len_dedup * 100}%")
+    # return deduped length
+    return len_dedup
 
 
 def read_turk_logs(turk_output_directory, filename):

@@ -24,7 +24,7 @@ from droidlet.tools.hitl.utils.hitl_utils import (
     dedup_commands,
 )
 from droidlet.tools.hitl.utils.job_management import Job, JobManagementUtil, JobStat, MetaData, get_dashboard_version, get_s3_link
-from droidlet.tools.hitl.utils.process_s3_logs import read_s3_bucket, read_turk_logs
+from droidlet.tools.hitl.utils.process_s3_logs import get_stats, read_s3_bucket, read_turk_logs
 
 from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.job_listener import JobListener
@@ -93,9 +93,11 @@ class InteractionJob(DataGenerator):
         job_mng_util.set_meta_data(MetaData.NAME, task_name)
         job_mng_util.set_meta_data(MetaData.S3_LINK, get_s3_link(self._batch_id))
         job_mng_util.set_job_stat(Job.INTERACTION, JobStat.DASHBOARD_VER, get_dashboard_version(image_tag))
+        job_mng_util.set_job_stat(Job.INTERACTION, JobStat.ENABLED, True)
+        job_mng_util.set_job_stat(Job.INTERACTION, JobStat.NUM_REQUESTED, instance_num)
 
     def run(self) -> None:
-        self._job_mng_util.set_job_time(Job.INTERACTION, JobStat.START_TIME)
+        self._job_mng_util.set_job_start(Job.INTERACTION)
         batch_id = self._batch_id
 
         # allocate AWS ECS instances and register DNS records
@@ -104,6 +106,7 @@ class InteractionJob(DataGenerator):
             self._instance_num, batch_id, self._image_tag, self._task_name, ECS_INSTANCE_TIMEOUT
         )
         self.instance_ids = instance_ids
+        self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.NUM_COMPLETED)
 
         # run Mephisto to spin up & monitor turk jobs
         logging.info(f"Start running Mephisto...")
@@ -147,7 +150,7 @@ class InteractionJob(DataGenerator):
         logging.info(f"Processing S3 logs...")
         self.process_s3_logs(batch_id)
 
-        self._job_mng_util.set_job_time(Job.INTERACTION, JobStat.END_TIME)
+        self._job_mng_util.set_job_end(Job.INTERACTION)
         self.set_finished()
 
     def process_s3_logs(self, batch_id) -> None:
@@ -217,12 +220,14 @@ class InteractionLogListener(JobListener):
                 commands = response["Body"].read().decode("utf-8").split("\n")
                 cmd_id = 0
                 cmd_list = dedup_commands(commands)
+                runner.get_job_manage_util().set_job_stat(Job.INTERACTION, JobStat.NUM_COMMAND, cmd_list)
+
                 for cmd in cmd_list:
                     logging.info(
                         f"Pushing Annotation Job [{batch_id}-{cmd_id}-{cmd}] to runner..."
                     )
                     annotation_job = AnnotationJob(
-                        batch_id, cmd, cmd_id, self.get_remaining_time()
+                        runner.get_job_manage_util(), batch_id, cmd, cmd_id, self.get_remaining_time()
                     )
                     runner.register_data_generators([annotation_job])
                     cmd_id += 1
@@ -282,7 +287,7 @@ class InteractionLogListener(JobListener):
 
 if __name__ == "__main__":
     runner = TaskRunner()
-    ij = InteractionJob(1, timeout=10)
+    ij = InteractionJob(runner.get_job_manage_util(), 1, "cw_test1", "test", timeout=10)
     batch_id = ij.get_batch_id()
     listener = InteractionLogListener(batch_id, 15)
     runner.register_data_generators([ij])

@@ -64,6 +64,7 @@ class Job(Enum):
 
 
 class JobStat(Enum):
+    ENABLED = "enabled"
     NUM_REQUESTED = "num_requested"
     NUM_COMPLETED = "num_completed"
     START_TIME = "start_time"
@@ -75,17 +76,19 @@ class JobStat(Enum):
     ORI_DATA_SZ = "ori_data_sz"
     NEW_DATA_SZ = "new_data_sz"
     MODEL_ACCURACY = "model_accuracy"
+    MODEL_EPOCH = "model_epoch"
+    MODEL_LOSS = "model_loss"
 
 
 # statastics that all jobs have
-STAT_FOR_ALL = set([JobStat.REQUESTED, JobStat.COMPLETED, JobStat.START_TIME, JobStat.END_TIME])
+STAT_FOR_ALL = set([JobStat.ENABLED, JobStat.NUM_REQUESTED, JobStat.NUM_COMPLETED, JobStat.START_TIME, JobStat.END_TIME])
 
 # statatics that are unique for a job (not in the STAT_FOR_ALL set)
 STAT_JOB_PAIR = {
     Job.INTERACTION: set(
-        [JobStat.SESSION_LOG, JobStat.COMMAND, JobStat.ERR_COMMAND, JobStat.DASHBOARD_VER]
+        [JobStat.NUM_SESSION_LOG, JobStat.NUM_COMMAND, JobStat.NUM_ERR_COMMAND, JobStat.DASHBOARD_VER]
     ),
-    Job.RETRAIN: set([JobStat.ORI_DATA_SZ, JobStat.NEW_DATA_SZ, JobStat.MODEL_ACCURACY]),
+    Job.RETRAIN: set([JobStat.ORI_DATA_SZ, JobStat.NEW_DATA_SZ, JobStat.MODEL_ACCURACY, JobStat.MODEL_EPOCH, JobStat.MODEL_LOSS]),
 }
 
 
@@ -130,33 +133,34 @@ class JobManagementUtil:
         os.makedirs(folder_path, exist_ok=True)
         self._local_path = os.path.join(folder_path, tmp_fname)
 
-    def _validate_and_set_time(self, time_type, job_type=None):
-        time = str(datetime.datetime.now())
+    def _set_time(self, time_type, job_type=None):
+        time_now = str(datetime.datetime.now())
 
         rec_dict = self._record_dict
+        tname = time_type._name_
 
-        if time_type == MetaData.START_TIME or time_type == MetaData.END_TIME:
-            rec_dict[time_type._name_] = time
-        elif (
-            time_type == JobStat.START_TIME or time_type == JobStat.END_TIME
-        ) and job_type is not None:
-            rec_dict[job_type._name_][time_type._name_] = time
+        if job_type is not None:
+            # set job start / end
+            jname = job_type._name_
+            if rec_dict[jname][tname] is None:
+                rec_dict[jname][tname] = []
+            rec_dict[jname][tname].append(time_now)
+        elif rec_dict[tname]:
+            # set meta data start / end, can only be set once
+            logging.error(f"[Job Management Util] Cannot set meta data start/end time twice, ignoring setting {tname}.")
         else:
-            raise RuntimeError(f"Cannot set time for the type {time_type}")
-
+            # set meta data start / end when there is no existing record
+            rec_dict[tname] = time_now
         self._save_tmp()
 
     def _save_tmp(self):
         json.dump(self._record_dict, open(self._local_path, "w"))
 
     def set_meta_start(self):
-        self.set_meta_time(MetaData.START_TIME)
+        self._set_time(MetaData.START_TIME)
 
     def set_meta_end(self):
-        self.set_meta_time(MetaData.END_TIME)
-
-    def set_meta_time(self, meta_data: MetaData):
-        self._validate_and_set_time(meta_data)
+        self._set_time(MetaData.END_TIME)
 
     def set_meta_data(self, meta_data: MetaData, val):
         self._record_dict[meta_data._name_] = val
@@ -166,14 +170,17 @@ class JobManagementUtil:
         self._record_dict[job_type._name_][job_stat._name_] = val
         self._save_tmp()
 
-    def set_job_time(self, job_type: Job, job_stat: JobStat):
-        self._validate_and_set_time(job_type, job_stat)
+    def set_job_start(self, job_type: Job):
+        self._set_time(JobStat.START_TIME, job_type)
+    
+    def set_job_end(self, job_type: Job):
+        self._set_time(JobStat.END_TIME, job_type)
 
     def save_to_s3(self):
         batch_id = self._record_dict[MetaData.BATCH_ID]
         # check batch_id for saving to s3
         if batch_id is None:
-            logging.error("Must have an associated batch to be able to save to s3")
+            logging.error("[Job Management Util] Must have an associated batch to be able to save to s3")
             raise RuntimeError("No associated batch_id set")
         # save to s3
         remote_file_path = f"{JOB_MNG_PATH_PREFIX}/{batch_id}.json"
