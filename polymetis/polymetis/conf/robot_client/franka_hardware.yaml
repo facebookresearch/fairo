@@ -32,30 +32,30 @@ robot_client:
       # bounding box of the workspace
       cartesian_pos_upper:
         - 1.0
-        - 0.4
+        - 1.0
         - 1.0
       cartesian_pos_lower:
-        - 0.1
-        - -0.4
+        - -1.0
+        - -1.0
         - -0.05
 
       # the remaining limits are set to the original franka limits minus a margin
       joint_pos_upper: #margin: 0.1 rad
-        - 2.80
+        - 3.14
         - 1.66
-        - 2.80
+        - 2.90
         - -0.17
-        - 2.80
+        - 2.90
         - 3.65
-        - 2.80
+        - 2.90
       joint_pos_lower: #margin: 0.1 rad
-        - -2.80
+        - -3.14
         - -1.66
-        - -2.80
+        - -2.90
         - -2.97
-        - -2.80
+        - -2.90
         - 0.08
-        - -2.80
+        - -2.90
       joint_vel: #margin: 0.1 rad/s
         - 2.075
         - 2.075

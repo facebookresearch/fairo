@@ -55,3 +55,6 @@ dependencies:
     - sphinx-book-theme
     - tqdm
     - withbullet
+    - rich
+    - loguru
+    - smbus2
