@@ -1,29 +1,12 @@
-import os
 import sys
-import subprocess
-import time
 import signal
 import random
 import logging
 import faulthandler
-import threading
-import functools
+import time
 
 from droidlet import dashboard
-from droidlet.dashboard.o3dviz import O3DViz
-import numpy as np
-from scipy.spatial import distance
-import open3d as o3d
-from droidlet.lowlevel.hello_robot.remote.obstacle_utils import (
-    get_points_in_front,
-    is_obstacle,
-    get_o3d_pointcloud,
-    get_ground_plane,
-)
-from droidlet.task.robot.semantic_nav.semantic_nav_task import ScoutObject
-
-import time
-import math
+from droidlet.task.robot.semantic_exploration.modular_semantic_scout import ModularSemanticScout
 
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
@@ -36,14 +19,6 @@ if __name__ == "__main__":
     # o3dviz = O3DViz(webrtc_streaming)
     # o3dviz.start()
 
-from droidlet.interpreter.robot import (
-    dance,
-    default_behaviors,
-    LocoGetMemoryHandler,
-    PutMemoryHandler,
-    LocoInterpreter,
-)
-from droidlet.dialog.robot import LocoBotCapabilities
 from droidlet.event import sio
 
 faulthandler.register(signal.SIGUSR1)
@@ -58,12 +33,16 @@ logging.getLogger().handlers.clear()
 
 mover = None
 
+# TODO Cleaner way to get scout object state (semantic map + goal) in dashboard
+scout_vis = None
+
 
 @sio.on("sendCommandToAgent")
 def get_command(sid, command):
-    command, value = command.split()
-    print(command)
-    print(value)
+    tokens = command.split()
+    command, value = tokens[0], " ".join(tokens[1:])
+    if len(value) == 0:
+        value = None
     test_command(sid, [command], value=value)
 
 
@@ -84,10 +63,14 @@ def unstop_robot(sid):
 
 def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3}, value=None):
     print(commands, data, value)
+
     move_dist = float(data["move"])
     yaw = float(data["yaw"])
     velocity = float(data["velocity"])
+
     global mover
+    global scout_vis
+
     if mover == None:
         return
     if value is not None:
@@ -149,13 +132,34 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             print("action: MOVE_ABSOLUTE", xyyaw_f)
             mover.move_absolute(xyyaw_f, blocking=False)
             sync()
-        elif command == "MOVE_TO_OBJECT":
+        elif command == "SEARCH_OBJECT_MODULAR_LEARNED":
             object_goal = value.strip()
-            print("action: MOVE_TO_OBJECT", object_goal)
-            S = ScoutObject(mover, object_goal=object_goal, visualize=True)
-            while not S.finished:
-                S.step(mover)
-        #            sync()
+            print("action: SEARCH_OBJECT_MODULAR_LEARNED", object_goal)
+            scout = ModularSemanticScout(
+                mover,
+                object_goal=object_goal,
+                exploration_method="learned",
+                visualize=True
+            )
+            while not scout.finished:
+                scout.step(mover)
+                scout_vis = scout.vis_image
+        elif command == "SEARCH_OBJECT_MODULAR_HEURISTIC":
+            object_goal = value.strip()
+            print("action: SEARCH_OBJECT_MODULAR_HEURISTIC", object_goal)
+            scout = ModularSemanticScout(
+                mover,
+                object_goal=object_goal,
+                exploration_method="heuristic",
+                visualize=True
+            )
+            while not scout.finished:
+                scout.step(mover)
+                scout_vis = scout.vis_image
+        elif command == "SEARCH_OBJECT_END_TO_END":
+            object_goal = value.strip()
+            print("action: SEARCH_OBJECT_MODULAR_HEURISTIC", object_goal)
+            raise NotImplementedError
         elif command == "LOOK_AT":
             xyz = value.split(",")
             xyz = [float(p) for p in xyz]
@@ -247,10 +251,10 @@ if __name__ == "__main__":
         # this goes from 21ms to 120ms
         rgb_depth = mover.get_rgb_depth()
 
-        # TODO Temporary hack to get semantic frame in dashboard
-        semantic_frame = mover.slam.get_last_semantic_frame()
-        if semantic_frame is not None:
-            rgb_depth.rgb = semantic_frame
+        # TODO Cleaner way to get scout object state (semantic map + goal) in dashboard
+        if scout_vis is not None:
+            rgb_depth.rgb = scout_vis[:, :, [2, 1, 0]]
+            # semantic_map_vis.value[:, :, [2, 1, 0]]
 
         # this takes about 1.5 to 2 fps
         serialized_image = rgb_depth.to_struct(resolution, quality)
