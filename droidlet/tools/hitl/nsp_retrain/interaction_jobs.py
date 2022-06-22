@@ -137,8 +137,7 @@ class InteractionJob(DataGenerator):
 
         # Keep running Mephisto until timeout or job finished
         while not self.check_is_timeout() and p.poll() is None:
-            # TODO: update job completed 
-
+            # TODO: update job completed
 
             logging.debug(
                 f"[Interaction Job] Interaction Job still running...Remaining time: {self.get_remaining_time()}"
@@ -193,9 +192,15 @@ class InteractionJob(DataGenerator):
         err_command_list = read_turk_logs(parsed_logs_dir, ERR_DETAIL_FNAME)
 
         # update job status
-        self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.NUM_SESSION_LOG, log_file_ct, True)
-        self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.NUM_COMMAND, len(command_list), True)
-        self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.NUM_ERR_COMMAND, len(err_command_list), True)
+        self._job_mng_util.set_job_stat(
+            Job.INTERACTION, JobStat.NUM_SESSION_LOG, log_file_ct, True
+        )
+        self._job_mng_util.set_job_stat(
+            Job.INTERACTION, JobStat.NUM_COMMAND, len(command_list), True
+        )
+        self._job_mng_util.set_job_stat(
+            Job.INTERACTION, JobStat.NUM_ERR_COMMAND, len(err_command_list), True
+        )
 
         logging.info(f"command list from interactions: {command_list}")
 

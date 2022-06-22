@@ -115,6 +115,7 @@ STAT_JOB_PAIR = {
 # update job stat interval in seconds
 DEFAULT_STAT_UPDATE_INTERVAL = 60
 
+
 def get_dashboard_version(image_tag: str):
     response = ecr.batch_get_image(
         registryId=AWS_ECR_REGISTRY_ID,
@@ -132,7 +133,7 @@ def get_s3_link(batch_id: int):
 
 
 class JobManagementUtil:
-    def __init__(self, stat_update_interval = DEFAULT_STAT_UPDATE_INTERVAL):
+    def __init__(self, stat_update_interval=DEFAULT_STAT_UPDATE_INTERVAL):
         # prepare dict for recording the data
         rec_dict = {}
 
@@ -195,15 +196,19 @@ class JobManagementUtil:
         self._record_dict[meta_data._name_] = val
         self._save_tmp()
 
-    def set_job_stat(self, job_type: Job, job_stat: JobStat, val, force_update = False):
+    def set_job_stat(self, job_type: Job, job_stat: JobStat, val, force_update=False):
         jname = job_type._name_
         sname = job_stat._name_
         curr_timestamp = datetime.datetime.now()
-        since_last_update = curr_timestamp - self._last_update 
+        since_last_update = curr_timestamp - self._last_update
         since_last_update = since_last_update.total_seconds()
 
-        if self._record_dict[jname][sname] is None or since_last_update > self._stat_update_interval or force_update:
-            # update if the not updated before 
+        if (
+            self._record_dict[jname][sname] is None
+            or since_last_update > self._stat_update_interval
+            or force_update
+        ):
+            # update if the not updated before
             # or the duration since last update is larger than the update interval
             # or force update (for job finish status update purpose)
             self._record_dict[jname][sname] = val

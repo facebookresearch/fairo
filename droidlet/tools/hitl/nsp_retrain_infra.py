@@ -245,7 +245,9 @@ class NSPRetrainingJob(DataGenerator):
         )
 
         # Save nsp retrain job stat
-        self._job_mng_util.set_job_stat(Job.RETRAIN, JobStat.ORI_DATA_SZ, total_rows - new_data_rows)
+        self._job_mng_util.set_job_stat(
+            Job.RETRAIN, JobStat.ORI_DATA_SZ, total_rows - new_data_rows
+        )
         self._job_mng_util.set_job_stat(Job.register, JobStat.NEW_DATA_SZ, total_rows)
 
         # Save locally and upload to S3
