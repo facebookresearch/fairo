@@ -16,9 +16,9 @@ const defaultCameraAspectRatio = defaultCameraWidth / defaultCameraHeight
 const defaultCameraFOV = 45
 const defaultCameraNearPlane = 1
 const defaultCameraFarPlane = 10000
-const fps = 60
+const fps = 2
 const renderInterval = 1000 / fps
-let camera, crosshair, scene, renderer, loader, preLoadBlockMaterials;
+let camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
 const followPointerScale = 150;
 
 const preLoadMaterialNames = ['grass', 'dirt']//, 'white wool', 'orange wool', 'magenta wool'];
@@ -244,6 +244,8 @@ class DVoxelEngine {
         scene = this.scene
         this.scene.background = new THREE.Color( 0xf0f0f0 );
 
+        this.sceneItems = [];
+        sceneItems = this.sceneItems;
 
         this.cameraWidth = opts.cameraWidth || defaultCameraWidth;
         this.cameraHeight = opts.cameraHeight || defaultCameraHeight;
@@ -257,15 +259,21 @@ class DVoxelEngine {
         this.camera.lookAt( 0, 0, 0 );
         camera = this.camera;
 
-        crosshair = new THREE.Mesh(
-            new THREE.RingGeometry( 1, 1.2, 20 ),
-            new THREE.MeshBasicMaterial( { color: 0xff0000, side: THREE.DoubleSide } )
-          );
-        crosshair.position.copy( camera.position );
-        crosshair.rotation.copy( camera.rotation );
-        scene.add(crosshair);
-
+        const reticleMaterial = new THREE.LineBasicMaterial({
+            color: 0xff0000,
+            linecap: "square"
+        });
         
+        let points = [
+            new THREE.Vector3( -3, -3, 0 ),
+            new THREE.Vector3( 0, 0, 0 ),
+            new THREE.Vector3( 3, -3, 0 )
+        ];
+        const reticleGeo = new THREE.BufferGeometry().setFromPoints( points );
+        reticle = new THREE.Line( reticleGeo, reticleMaterial );
+        reticle.position.copy( camera.position );
+        reticle.rotation.copy( camera.rotation );
+        scene.add(reticle);
 
         const ambientLight = new THREE.AmbientLight( 0x606060 );
         this.scene.add( ambientLight );
@@ -316,7 +324,8 @@ class DVoxelEngine {
             scene: scene,
             render: render,
             camera: camera,
-            crosshair: crosshair,
+            reticle: reticle,
+            sceneItems: sceneItems,
         };
 
         for (const key in VW_AVATAR_MAP) {
@@ -384,7 +393,7 @@ class DVoxelEngine {
     }
 
     appendTo(element) {
-        console.log(element)
+        // console.log(element)
         element.appendChild(this.renderer.domElement)
     }
 
@@ -401,6 +410,8 @@ class DVoxelEngine {
         const blockName = bid2Name[bid];
         const geometry = new THREE.BoxGeometry( blockScale, blockScale, blockScale );
         let block_data = VW_ITEM_MAP[blockName];
+        console.log(blockName);
+        console.log(block_data);
         let blockMaterials;
         if (preLoadBlockMaterials.has(blockName)) {
             // console.log('preloaddding!!!' + blockName)
@@ -428,18 +439,17 @@ class DVoxelEngine {
             ];
         }
         
-        // const material = new THREE.MeshBasicMaterial( {color: colorCode} );
-        // const cube = new THREE.Mesh( geometry, material );
-        const cube = new THREE.Mesh( geometry, blockMaterials );
+        const cube = new THREE.Mesh(geometry, blockMaterials);
         cube.matrixAutoUpdate = false;
         cube.position.set(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
         cube.updateMatrix();
-        cube.name = pos2Name(pos[0], pos[1], pos[2])
+        cube.name = pos2Name(pos[0], pos[1], pos[2]);
         // console.log("Adding voxel with name: " + cube.name)
-        this.scene.add( cube );
-
+        this.scene.add(cube);
+        this.sceneItems.push(cube);
+        
         const box = new THREE.BoxHelper(cube, 0x000000);
-        box.name = pos2Name(pos[0], pos[1], pos[2], true)
+        box.name = pos2Name(pos[0], pos[1], pos[2], true);
         this.scene.add(box);
 
         setBlock2(pos[0], pos[1], pos[2], bid);
@@ -466,8 +476,8 @@ class DVoxelEngine {
     }
 
     updateAgents(agentsInfo) {
-        console.log("DVoxel Engine update agents")
-        console.log(agentsInfo)
+        // console.log("DVoxel Engine update agents")
+        // console.log(agentsInfo)
 
         let that = this
         agentsInfo.forEach(function(key, index) {
@@ -475,18 +485,19 @@ class DVoxelEngine {
             let x = key["x"]
             let y = key["y"]
             let z = key["z"]
-            console.log("name: " + name + "x: " + x + ", y" + y + ", z" + z)
-            if (name == AGENT_NAME && agent_player != null) {
+            // console.log("name: " + name + "x: " + x + ", y" + y + ", z" + z)
+            if (name === AGENT_NAME && agent_player != null) {
                 agent_player.moveTo(x * blockScale, y * blockScale, z * blockScale)
-            } else if (name == PLAYER_NAME && controlled_player != null) {
-                controlled_player.moveTo(x * blockScale, y * blockScale, z * blockScale)
+            } else if (name === PLAYER_NAME && controlled_player != null) {
+                // console.log("player move: " + x + " " + y + " " + z);
+                // controlled_player.moveTo(x * blockScale, y * blockScale, z * blockScale)
             }
         })
     }
 
     updateMobs(mobsInfo) {
-        console.log("DVoxel Engine update mobs")
-        console.log(mobsInfo)
+        // console.log("DVoxel Engine update mobs")
+        // console.log(mobsInfo)
         let world = {
             THREE: THREE,
             scene: scene,
@@ -499,7 +510,7 @@ class DVoxelEngine {
             const pos = key['pos']
             const name = key['name']
             if (entityId in mobs) {
-                console.log("mob already exists, updating states")
+                // console.log("mob already exists, updating states")
             } else {
                 const mobOpts = {
                     GLTFLoader: GLTFLoader,
@@ -521,8 +532,8 @@ class DVoxelEngine {
     }
 
     updateItemStacks(itemStacksInfo) {
-        console.log("DVoxel Engine update item stacks")
-        console.log(itemStacksInfo)
+        // console.log("DVoxel Engine update item stacks")
+        // console.log(itemStacksInfo)
         let world = {
             THREE: THREE,
             scene: scene,
@@ -535,7 +546,7 @@ class DVoxelEngine {
             const pos = key['pos']
             const name = key['name']
             if (entityId in itemStacks) {
-                console.log("item already exists, updating states")
+                // console.log("item already exists, updating states")
             } else {
                 const itemStackOpts = {
                     GLTFLoader: GLTFLoader,
@@ -567,15 +578,15 @@ class DVoxelEngine {
             // console.log("xyz: " + xyz + "  bid: " + bid)
             that.setVoxel([xyz[0],xyz[1],xyz[2]], bid);
         });
-        console.log("DVoxel Engine update blocks")
+        // console.log("DVoxel Engine update blocks")
     }
 
     setBlock(x, y, z, idm) {
-        console.log("DVoxel Engine set block")
+        // console.log("DVoxel Engine set block")
     }
 
     flashBlocks(bbox) {
-        console.log("DVoxel Engine flash bbox")
+        // console.log("DVoxel Engine flash bbox")
     }
 
 }
@@ -592,12 +603,10 @@ function getBlock2(x, y, z) {
 }
 
 function cameraVector() {
-    let temporaryVector = new THREE.Vector3;
-    temporaryVector.multiplyScalar(0)
-    temporaryVector.z = -1
-    temporaryVector.transformDirection( camera.matrixWorld )
+    let temporaryVector = new THREE.Vector3();
+    camera.getWorldDirection(temporaryVector);
     return [temporaryVector.x, temporaryVector.y, temporaryVector.z];
-}
+  }
 
 function cameraPosition() {
     let temporaryPosition = new THREE.Vector3;

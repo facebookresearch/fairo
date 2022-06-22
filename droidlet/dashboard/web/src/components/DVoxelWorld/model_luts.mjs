@@ -99,7 +99,7 @@ const VW_ITEM_MAP = {
     // 61: 0x1a1a1a, // Black Wool
 
     // 66: null, // Yellow Glass
-
+    
     "stone": {
         "color": 0xffffff,
         "opacity": 1.0,
@@ -201,6 +201,13 @@ const VW_ITEM_MAP = {
     },
     "brown wool": {
         "color": 0xdd992c,
+        "opacity": 1.0,
+        "sides": 'wool.png',
+        "bottom": 'wool.png',
+        "top": 'wool.png',
+    },
+    "lime wool": {
+        "color": 0x00ff00,
         "opacity": 1.0,
         "sides": 'wool.png',
         "bottom": 'wool.png',
