@@ -9,14 +9,16 @@ from ipaddress import ip_address
 from polymetis import RobotInterface
 from polymetis import GripperInterface
 
+
 def do_grasps(n):
     # Do n iterations of a basic grasping motion.
     robot.go_home(time_to_go=1)
     for i in range(0, n):
-        robot.move_to_joint_positions([90,90,90,90,90,-20,0,0,0,0],0.2)
+        robot.move_to_joint_positions([90, 90, 90, 90, 90, -20, 0, 0, 0, 0], 0.2)
         time.sleep(1)
-        robot.move_to_joint_positions([0,0,0,0,0,0,0,0,0,0],0.2)
+        robot.move_to_joint_positions([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0.2)
         time.sleep(1)
+
 
 if __name__ == "__main__":
 
@@ -24,25 +26,24 @@ if __name__ == "__main__":
     # the robot arm.
     time_scale = 12
     test_sequence = [
-        [[-1, -0.1, 0, 0, 1.2, 0.5, 0.4], time_scale/2],
-        [[-1, 0.1, 0, 0, 1.2, 0, -0.4], time_scale/4],
-        [[0, -0.1, 0, 0, -1.2, 0, 0.4], time_scale/2],
-        [[0, 0.1, -1, 0, 1.2, 0.5, -0.4], time_scale/2],
-        [[0, -0.1, -1, 0, 1.2, 0, 0.4], time_scale/2],
-        [[-1, 0.1, 0, 0, 1.2, 0.5, -0.4], time_scale/2],
-        [[-1,-0.1, 0, 0, 1.2, 0, 0.4], time_scale/4],
-        [[0, 0.1, 0, 0, -1.2, 0, -0.4], time_scale/2],
-        [[0,-0.1, -1, 0, 1.2, 0.5, 0.4], time_scale/2],
-        [[0, 0.1, -1, 0, 1.2, 0, -0.4], time_scale/2],
-        [[0, 0, 0, 0, 0, 0, 0], time_scale/3],
-
+        [[-1, -0.1, 0, 0, 1.2, 0.5, 0.4], time_scale / 2],
+        [[-1, 0.1, 0, 0, 1.2, 0, -0.4], time_scale / 4],
+        [[0, -0.1, 0, 0, -1.2, 0, 0.4], time_scale / 2],
+        [[0, 0.1, -1, 0, 1.2, 0.5, -0.4], time_scale / 2],
+        [[0, -0.1, -1, 0, 1.2, 0, 0.4], time_scale / 2],
+        [[-1, 0.1, 0, 0, 1.2, 0.5, -0.4], time_scale / 2],
+        [[-1, -0.1, 0, 0, 1.2, 0, 0.4], time_scale / 4],
+        [[0, 0.1, 0, 0, -1.2, 0, -0.4], time_scale / 2],
+        [[0, -0.1, -1, 0, 1.2, 0.5, 0.4], time_scale / 2],
+        [[0, 0.1, -1, 0, 1.2, 0, -0.4], time_scale / 2],
+        [[0, 0, 0, 0, 0, 0, 0], time_scale / 3],
     ]
 
     robot = RobotInterface(ip_address="127.0.0.1", port=50052)
     robot.get_robot_state()
     print(robot.get_joint_positions())
     print(robot.get_joint_velocities())
-    robot.set_home_pose([0,0,0,0,0,0,0,0,0,0])
+    robot.set_home_pose([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     # Initialize robot interface
     panda = RobotInterface(
@@ -74,4 +75,3 @@ if __name__ == "__main__":
         state_log = panda.move_to_joint_positions(
             joint_positions_desired, time_to_go=time_to_go
         )
-
