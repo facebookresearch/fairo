@@ -251,7 +251,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="meshes/visual/leftfinger.dae"/>
+        <mesh filename="meshes/visual/finger.dae"/>
       </geometry>
     </visual>
     <collision>

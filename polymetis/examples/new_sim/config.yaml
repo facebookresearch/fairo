@@ -1,5 +1,5 @@
 defaults:
-  - robot_model: franka_panda
+  - robot_model: franka_panda_with_hand
   - robot_client: franka_sim
 
 hz: 240

@@ -37,7 +37,7 @@ class BulletManipulator:
             flags=pybullet.URDF_USE_INERTIA_FROM_FILE,
         )
 
-        for i in range(self.cfg.num_dofs):
+        for i in range(7):
             self.sim.resetJointState(
                 bodyUniqueId=self.robot_id,
                 jointIndex=self.cfg.controlled_joints[i],
@@ -71,7 +71,21 @@ class BulletManipulator:
         return self.arm_state
 
     def get_gripper_state(self) -> polymetis_pb2.GripperState:
-        # TODO
+        joint_cur_states = self.sim.getJointStates(
+            self.robot_id, self.cfg.gripper.controlled_joints
+        )
+        self.gripper_state.width = float(
+            joint_cur_states[0][0] + joint_cur_states[1][0]
+        )
+        self.gripper_state.max_width = self.cfg.gripper.max_width
+        self.gripper_state.is_grasped = False  # TODO
+        self.gripper_state.is_moving = np.all(
+            [
+                abs(joint_cur_states[i][1]) < self.cfg.gripper.moving_threshold
+                for i in range(2)
+            ]
+        )
+
         return self.gripper_state
 
     def apply_arm_control(self, cmd: polymetis_pb2.TorqueCommand):
@@ -80,12 +94,13 @@ class BulletManipulator:
 
         # Compute grav comp
         joint_pos = list(self.arm_state.joint_positions)
+        finger_pos = [self.gripper_state.width / 2.0] * 2
         grav_comp_torques = self.sim.calculateInverseDynamics(
             self.robot_id,
-            joint_pos,
-            [0] * len(joint_pos),
-            [0] * len(joint_pos),
-        )
+            joint_pos + finger_pos,
+            [0] * 9,
+            [0] * 9,
+        )[:7]
 
         # Set sim torques
         applied_torques = commanded_torques + grav_comp_torques
@@ -106,7 +121,12 @@ class BulletManipulator:
         self.arm_state.error_code = 0
 
     def apply_gripper_control(self, cmd: polymetis_pb2.GripperCommand):
-        pass  # TODO
+        self.sim.setJointMotorControlArray(
+            bodyIndex=self.robot_id,
+            jointIndices=self.cfg.gripper.controlled_joints,
+            controlMode=pybullet.POSITION_CONTROL,
+            targetPositions=[cmd.width / 2.0] * 2,
+        )
 
     def step(self):
         self.sim.stepSimulation()
@@ -118,6 +138,9 @@ def main(cfg):
     sim = BulletManipulator(cfg.robot_model, gui=cfg.gui)
 
     # Connect to Polymetis sim interface
+    cfg.robot_client.metadata_cfg.robot_model_cfg.robot_description_path = (
+        cfg.robot_model.metadata_urdf_path
+    )  # HACK
     ps_interface = polysim.SimInterface(cfg.robot_client.metadata_cfg, cfg.hz)
     ps_interface.register_control_callback(
         server_ip=cfg.arm.ip,
