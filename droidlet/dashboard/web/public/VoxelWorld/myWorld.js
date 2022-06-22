@@ -3917,6 +3917,8 @@ var _model_luts = require("./model_luts.mjs");
 // Copyright (c) Facebook, Inc. and its affiliates.
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
+const MODEL_PATH = "https://cdn.jsdelivr.net/gh/snyxan/assets@main/models/";
+
 class VoxelItem {
   constructor(model, world, opts) {
     this.world = world;
@@ -3968,68 +3970,93 @@ class VoxelItem {
   }
 
   static build(world, opts) {
-    // This could all live in the constructor, but leaving it this way for now to
-    // 1) mirror the syntax of VoxelMob and 2) allow for easy extension to load models
-    // Load texture images and apply to geometry
+    // Load item model or textures
+    let loader, item;
     let item_data = _model_luts.VW_ITEM_MAP[opts.name];
-    const loader = new world.THREE.TextureLoader();
-    const itemMaterials = [new world.THREE.MeshBasicMaterial({
-      map: loader.load('./block_textures/' + item_data["sides"]),
-      color: item_data["color"],
-      opacity: item_data["opacity"],
-      transparent: true,
-      side: world.THREE.DoubleSide
-    }), //right side
-    new world.THREE.MeshBasicMaterial({
-      map: loader.load('./block_textures/' + item_data["sides"]),
-      color: item_data["color"],
-      opacity: item_data["opacity"],
-      transparent: true,
-      side: world.THREE.DoubleSide
-    }), //left side
-    new world.THREE.MeshBasicMaterial({
-      map: loader.load('./block_textures/' + item_data["top"]),
-      color: item_data["color"],
-      opacity: item_data["opacity"],
-      transparent: true,
-      side: world.THREE.DoubleSide
-    }), //top side
-    new world.THREE.MeshBasicMaterial({
-      map: loader.load('./block_textures/' + item_data["bottom"]),
-      color: item_data["color"],
-      opacity: item_data["opacity"],
-      transparent: true,
-      side: world.THREE.DoubleSide
-    }), //bottom side
-    new world.THREE.MeshBasicMaterial({
-      map: loader.load('./block_textures/' + item_data["sides"]),
-      color: item_data["color"],
-      opacity: item_data["opacity"],
-      transparent: true,
-      side: world.THREE.DoubleSide
-    }), //front side
-    new world.THREE.MeshBasicMaterial({
-      map: loader.load('./block_textures/' + item_data["sides"]),
-      color: item_data["color"],
-      opacity: item_data["opacity"],
-      transparent: true,
-      side: world.THREE.DoubleSide
-    }) //back side
-    ];
     opts.scale = opts.scale || 1.0;
-    const geo = new world.THREE.BoxGeometry(20 * opts.scale, 20 * opts.scale, 20 * opts.scale);
-    let itemMesh = new world.THREE.Mesh(geo, itemMaterials);
     opts.position = opts.position || [0, 0, 0];
-    opts.position = applyOffset(opts.position, [25 * opts.scale, 25 * opts.scale, 25 * opts.scale]); // move to the center of the voxel
+    opts.position_offset = item_data.position_offset || [25 * opts.scale, 25 * opts.scale, 25 * opts.scale];
+    opts.position = applyOffset(opts.position, opts.position_offset);
+    opts.rotation = opts.rotation || [0, 0, 0];
+    opts.rotation_offset = item_data.rotation_offset || [0, Math.PI / 4, Math.PI / 4];
+    opts.rotation = applyOffset(opts.rotation, opts.rotation_offset);
 
-    itemMesh.position.set(opts.position[0], opts.position[1], opts.position[2]);
-    itemMesh.rotation.set(0, Math.PI / 4, Math.PI / 4);
-    world.scene.add(itemMesh);
-    return new Promise(resolve => {
-      const item = new VoxelItem(itemMesh, world, opts);
-      item.hoverID = window.setInterval(hover, 100, item);
-      resolve(item);
-    });
+    if ("model_file" in item_data) {
+      // This is a GTFL model
+      const path = MODEL_PATH + item_data.model_folder;
+      loader = new opts.GLTFLoader();
+      loader.setPath(path);
+      return loader.loadAsync(item_data.model_file).then(function (gltf) {
+        let model = gltf.scene;
+        model.scale.multiplyScalar(opts.scale * item_data.default_scale);
+        model.position.set(opts.position[0], opts.position[1], opts.position[2]);
+        model.rotation.x += opts.rotation[0];
+        model.rotation.y += opts.rotation[1];
+        model.rotation.z += opts.rotation[2];
+        world.scene.add(model);
+        return model;
+      }).then(function (model) {
+        item = new VoxelItem(model, world, opts);
+        item.hoverID = window.setInterval(hover, 100, item);
+        return item;
+      });
+    } else {
+      // This is a material, load the texture
+      loader = new world.THREE.TextureLoader();
+      const itemMaterials = [new world.THREE.MeshBasicMaterial({
+        map: loader.load('./block_textures/' + item_data["sides"]),
+        color: item_data["color"],
+        opacity: item_data["opacity"],
+        transparent: true,
+        side: world.THREE.DoubleSide
+      }), //right side
+      new world.THREE.MeshBasicMaterial({
+        map: loader.load('./block_textures/' + item_data["sides"]),
+        color: item_data["color"],
+        opacity: item_data["opacity"],
+        transparent: true,
+        side: world.THREE.DoubleSide
+      }), //left side
+      new world.THREE.MeshBasicMaterial({
+        map: loader.load('./block_textures/' + item_data["top"]),
+        color: item_data["color"],
+        opacity: item_data["opacity"],
+        transparent: true,
+        side: world.THREE.DoubleSide
+      }), //top side
+      new world.THREE.MeshBasicMaterial({
+        map: loader.load('./block_textures/' + item_data["bottom"]),
+        color: item_data["color"],
+        opacity: item_data["opacity"],
+        transparent: true,
+        side: world.THREE.DoubleSide
+      }), //bottom side
+      new world.THREE.MeshBasicMaterial({
+        map: loader.load('./block_textures/' + item_data["sides"]),
+        color: item_data["color"],
+        opacity: item_data["opacity"],
+        transparent: true,
+        side: world.THREE.DoubleSide
+      }), //front side
+      new world.THREE.MeshBasicMaterial({
+        map: loader.load('./block_textures/' + item_data["sides"]),
+        color: item_data["color"],
+        opacity: item_data["opacity"],
+        transparent: true,
+        side: world.THREE.DoubleSide
+      }) //back side
+      ];
+      const geo = new world.THREE.BoxGeometry(20 * opts.scale, 20 * opts.scale, 20 * opts.scale);
+      let itemMesh = new world.THREE.Mesh(geo, itemMaterials);
+      itemMesh.position.set(opts.position[0], opts.position[1], opts.position[2]);
+      itemMesh.rotation.set(opts.rotation[0], opts.rotation[1], opts.rotation[2]);
+      world.scene.add(itemMesh);
+      return new Promise(resolve => {
+        item = new VoxelItem(itemMesh, world, opts);
+        item.hoverID = window.setInterval(hover, 100, item);
+        resolve(item);
+      });
+    }
   }
 
 }
@@ -4162,6 +4189,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.VoxelPlayer = void 0;
 
+var _threeModule = require("./three.module.mjs");
+
 var _model_luts = require("./model_luts.mjs");
 
 // Copyright (c) Facebook, Inc. and its affiliates.
@@ -4212,6 +4241,18 @@ class VoxelPlayer {
     this.cam_pitch = 0;
     this.cameraPitch(pitch);
     if (this.possessed) this.updateCamera();
+  }
+
+  getPitchYaw() {
+    let pitch = _threeModule.MathUtils.radToDeg(this.mesh.rotation.x);
+
+    let yaw = _threeModule.MathUtils.radToDeg(this.mesh.rotation.y);
+
+    return [pitch, yaw];
+  }
+
+  getPosition() {
+    return this.mesh.position;
   }
 
   updatePov(type) {
@@ -4326,7 +4367,7 @@ function applyOffset(pos, offset) {
   return [pos[0] + offset[0], pos[1] + offset[1], pos[2] + offset[2]];
 }
 
-},{"./model_luts.mjs":9}],6:[function(require,module,exports){
+},{"./model_luts.mjs":9,"./three.module.mjs":10}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -4426,6 +4467,7 @@ let agent_player;
 const AGENT_NAME = "craftassist_agent";
 const PLAYER_NAME = "dashboard_player";
 let mobs = {};
+let itemStacks = {};
 let cursorX, cursorY;
 
 function pos2Name(x, y, z, box = false) {
@@ -4504,6 +4546,7 @@ function handleKeypress(e, player) {
       direction_vec.multiplyScalar(MoveStep * blockScale);
       control_pos = player.mesh.position;
       player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+      updatePlayerPosition(player);
       break;
 
     case "s":
@@ -4513,6 +4556,7 @@ function handleKeypress(e, player) {
       direction_vec.multiplyScalar(MoveStep * blockScale);
       control_pos = player.mesh.position;
       player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+      updatePlayerPosition(player);
       break;
 
     case "a":
@@ -4522,6 +4566,7 @@ function handleKeypress(e, player) {
       direction_vec.multiplyScalar(MoveStep * blockScale);
       control_pos = player.mesh.position;
       player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+      updatePlayerPosition(player);
       break;
 
     case "d":
@@ -4531,14 +4576,17 @@ function handleKeypress(e, player) {
       direction_vec.multiplyScalar(MoveStep * blockScale);
       control_pos = player.mesh.position;
       player.move(direction_vec.x, direction_vec.y, direction_vec.z);
+      updatePlayerPosition(player);
       break;
 
     case "Shift":
       player.move(0, -1 * MoveStep * blockScale, 0);
+      updatePlayerPosition(player);
       break;
 
     case " ":
       player.move(0, 1 * MoveStep * blockScale, 0);
+      updatePlayerPosition(player);
       break;
   }
 }
@@ -4555,11 +4603,38 @@ function cameraTest(player) {
       let Ydiff = -ev.movementY / followPointerScale;
       player.cameraPitch(Ydiff);
       player.rotate(Xdiff);
+      updatePlayerLook(player);
     }
   });
 }
 
 ;
+
+function updatePlayerLook(player) {
+  let pitchYaw = player.getPitchYaw();
+  let pitch = pitchYaw[0];
+  let yaw = pitchYaw[1];
+  let payload = {
+    "status": "set_look",
+    "pitch": pitch,
+    "yaw": yaw
+  };
+  window.postMessage(payload, "*");
+}
+
+function updatePlayerPosition(player) {
+  let pos = player.getPosition();
+  let x = pos.x / blockScale;
+  let y = pos.y / blockScale;
+  let z = pos.z / blockScale;
+  let payload = {
+    "status": "abs_move",
+    "x": x,
+    "y": y,
+    "z": z
+  };
+  window.postMessage(payload, "*");
+}
 
 class DVoxelEngine {
   render() {
@@ -4853,7 +4928,6 @@ class DVoxelEngine {
   updateMobs(mobsInfo) {
     console.log("DVoxel Engine update mobs");
     console.log(mobsInfo);
-    let that = this;
     let world = {
       THREE: THREE,
       scene: scene,
@@ -4880,24 +4954,49 @@ class DVoxelEngine {
         });
       }
 
-      console.log("mobs in the world: ");
-      console.log(Object.keys(mobs));
-      console.log("this mob");
-      console.log(entityId);
-      console.log(mobs[entityId]);
-
       if (entityId in mobs) {
         mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
       }
 
       mobsInWorld.add(entityId);
     });
-    mobs;
   }
 
   updateItemStacks(itemStacksInfo) {
     console.log("DVoxel Engine update item stacks");
     console.log(itemStacksInfo);
+    let world = {
+      THREE: THREE,
+      scene: scene,
+      render: render,
+      camera: camera
+    };
+    let itemStacksInWorld = new Set();
+    itemStacksInfo.forEach(function (key, index) {
+      const entityId = key['entityId'].toString();
+      const pos = key['pos'];
+      const name = key['name'];
+
+      if (entityId in itemStacks) {
+        console.log("item already exists, updating states");
+      } else {
+        const itemStackOpts = {
+          GLTFLoader: _GLTFLoader.GLTFLoader,
+          name: name,
+          position: [pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale]
+        };
+
+        _VoxelItem.VoxelItem.build(world, itemStackOpts).then(function (newItemStack) {
+          itemStacks[entityId] = newItemStack;
+        });
+      }
+
+      if (entityId in itemStacks) {
+        itemStacks[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
+      }
+
+      itemStacksInWorld.add(entityId);
+    });
   }
 
   updateBlocks(blocksInfo) {
@@ -5674,6 +5773,41 @@ const VW_ITEM_MAP = {
     "sides": 'glass.png',
     "bottom": 'glass.png',
     "top": 'glass.png'
+  },
+  "ball": {
+    "model_folder": "low_poly_ball/",
+    "model_file": "scene.gltf",
+    "default_scale": 0.1,
+    "rotation_offset": [0, 0, 0],
+    "position_offset": [25, 25, 25]
+  },
+  "apple": {
+    "model_folder": "low_poly_apple/",
+    "model_file": "scene.gltf",
+    "default_scale": 0.5,
+    "rotation_offset": [0, 0, 0],
+    "position_offset": [25, 25, 25]
+  },
+  "hammer": {
+    "model_folder": "low_poly_hammer/",
+    "model_file": "scene.gltf",
+    "default_scale": 150,
+    "rotation_offset": [0, 0, 0],
+    "position_offset": [25, 25, 25]
+  },
+  "wrench": {
+    "model_folder": "low_poly_wrench/",
+    "model_file": "scene.gltf",
+    "default_scale": 10,
+    "rotation_offset": [0, 0, 0],
+    "position_offset": [25, 25, 25]
+  },
+  "tree": {
+    "model_folder": "low_poly_tree/",
+    "model_file": "scene.gltf",
+    "default_scale": 0.06,
+    "rotation_offset": [0, 0, 0],
+    "position_offset": [25, 25, 25]
   }
 };
 exports.VW_ITEM_MAP = VW_ITEM_MAP;

@@ -20,6 +20,7 @@ class Settings extends React.Component {
       url: this.props.stateManager.url,
       fps: 0,
       connected: false,
+      agent_enable_map: false,
       image_quality: -1,
       image_resolution: -1,
       use_old_annotation: stateManager.useDesktopComponentOnMobile,
@@ -110,6 +111,20 @@ class Settings extends React.Component {
       status_indicator = <status-indicator negative pulse></status-indicator>;
     }
 
+    var map_switch = <p />; // only display switch if agent sent --draw_map option
+    if (this.state.agent_enable_map === true) {
+      map_switch = (
+        <FormControlLabel
+          onChange={(e) => {
+            this.props.stateManager.handleMapToggle();
+          }}
+          control={<Switch size="small" />}
+          label="Toggle Map: "
+          labelPlacement="start"
+        />
+      );
+    }
+
     var image_slider_disabled = false;
     if (this.state.image_quality === -1) {
       image_slider_disabled = true;
@@ -144,8 +159,13 @@ class Settings extends React.Component {
           />
         )}
 
-        <p>FPS: {this.state.fps}</p>
+        <p> FPS: {this.state.fps} </p>
         <p> Connection Status: {status_indicator} </p>
+        <p>
+          <div style={{ position: "absolute", left: "-15px" }}>
+            {map_switch}
+          </div>
+        </p>
         <div style={slider_style}>
           <label style={labelStyle}>Image Quality: &nbsp;</label>
           <span>{this.state.image_quality}</span>

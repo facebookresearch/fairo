@@ -11,7 +11,7 @@ scikit-learn>=0.23.1
 snowballstemmer>=1.2.1
 spacy==2.3.0
 word2number>=1.1
-transformers==3.3.1
+transformers>=4.17.0
 
 awscli>=1.19.0
 black>=18.9b0

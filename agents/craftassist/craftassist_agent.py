@@ -11,12 +11,12 @@ import time
 import json
 from multiprocessing import set_start_method
 from collections import namedtuple
-from datetime import datetime
+from datetime import datetime, timedelta
 from copy import deepcopy
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
-from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
+from droidlet.interpreter.craftassist import default_behaviors, dance
 from droidlet.memory.craftassist import mc_memory
 from droidlet.memory.memory_nodes import ChatNode, SelfNode
 from droidlet.shared_data_struct import rotation
@@ -104,11 +104,12 @@ class CraftAssistAgent(DroidletAgent):
         self.agent_type = "craftassist"
         self.point_targets = []
         self.last_chat_time = 0
+        self.dash_enable_map = False # dash has map disabled by default
+        self.map_last_updated = datetime.now()
         # areas must be perceived at each step
         # List of tuple (XYZ, radius), each defines a cube
         self.areas_to_perceive = []
         self.add_self_memory_node()
-        self.init_inventory()
         self.init_event_handlers()
 
         shape_util_dict = {
@@ -195,11 +196,6 @@ class CraftAssistAgent(DroidletAgent):
                 },
             }
             sio.emit("setVoxelWorldInitialState", payload)
-
-    def init_inventory(self):
-        """Initialize the agent's inventory"""
-        self.inventory = inventory.Inventory()
-        logging.info("Initialized agent inventory")
 
     def init_memory(self):
         """Intialize the agent memory and logging."""
@@ -292,8 +288,15 @@ class CraftAssistAgent(DroidletAgent):
         self.areas_to_perceive = []
         # 5. update dashboard world and map
         self.update_dashboard_world()
-        if self.opts.draw_map == "memory":
-            self.draw_map_to_dashboard()
+
+        @sio.on("toggle_map")
+        def handle_toggle_map(sid, data):
+            self.dash_enable_map = data["dash_enable_map"]
+            #self.draw_map_to_dashboard()
+        if self.opts.draw_map and self.dash_enable_map:
+            if datetime.now() >= self.map_last_updated + timedelta(seconds=0.05*self.opts.map_update_ticks):
+                self.map_last_updated = datetime.now()
+                self.draw_map_to_dashboard()
 
     def get_time(self):
         """round to 100th of second, return as
@@ -384,7 +387,9 @@ class CraftAssistAgent(DroidletAgent):
             chat_text = chat
 
         logging.info("Sending chat: {}".format(chat_text))
-        chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(self.memory, self.memory.self_memid, chat_text)
+        chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
+            self.memory, self.memory.self_memid, chat_text
+        )
 
         if chat_json and not isinstance(chat_json, int):
             chat_json["chat_memid"] = chat_memid
@@ -394,7 +399,7 @@ class CraftAssistAgent(DroidletAgent):
         else:
             sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat_text)})
 
-        return self.send_chat(chat_text)
+        return self.mover.send_chat(chat_text)
 
     def get_detected_objects_for_map(self):
         search_res = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
@@ -405,7 +410,12 @@ class CraftAssistAgent(DroidletAgent):
         for mem in mems:
             if hasattr(mem, "pos"):
                 id_str = "no_id" if not hasattr(mem, "obj_id") else mem.obj_id
-                detections_for_map.append([id_str, list(mem.pos)])
+                obj = vars(mem)
+                obj.pop('agent_memory', None)   # not necessary to show memory object type and location 
+                obj["node_type"] = type(mem).__name__
+                obj["obj_id"] = id_str
+                obj["pos"] = list(mem.pos)
+                detections_for_map.append(obj)
         return detections_for_map
 
     def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
@@ -414,8 +424,8 @@ class CraftAssistAgent(DroidletAgent):
             obstacles = self.memory.place_field.get_obstacle_list()
             # if we are getting obstacles from memory, get detections from memory for map too
             detections_for_map = self.get_detected_objects_for_map()
-        if not xyyaw:            
-            agent_pos = self.get_player().pos   # position of agent's feet
+        if not xyyaw:
+            agent_pos = self.get_player().pos  # position of agent's feet
             agent_look = self.get_player().look
             mc_xyz = agent_pos.x, agent_pos.y, agent_pos.z
             mc_look = Look(agent_look.yaw, agent_look.pitch)
@@ -430,8 +440,8 @@ class CraftAssistAgent(DroidletAgent):
                 "y": xyyaw[1],
                 "yaw": xyyaw[2],
                 "map": obstacles,
-                "draw_map": self.opts.draw_map,
-                "detections_from_memory": detections_for_map,
+                "bot_data": detections_for_map[0],
+                "detections_from_memory": detections_for_map[1:],
             },
         )
 

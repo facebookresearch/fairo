@@ -25,6 +25,7 @@ from droidlet.tools.hitl.utils.process_s3_logs import read_s3_bucket
 
 from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.task_runner import TaskRunner
+from droidlet.tools.hitl.turk_oncall.oncall_bug_report import TaoLogListener
 
 from command_lists import COMMAND_LISTS
 
@@ -168,7 +169,19 @@ class OnCallJob(DataGenerator):
         logging.info("Retrieving local Mephisto DB results and uploading summary")
         self.get_local_db_results(agent_logs_map)
 
-        self.set_finished()
+        # Add stat file
+        stat_fname = f"{batch_id}.stat"
+
+        obj = s3.Object(S3_BUCKET_NAME, f"{batch_id}/{stat_fname}")
+        result = obj.put(Body="ready").get("ResponseMetadata")
+        if result.get("HTTPStatusCode") != 200:
+            logging.info(f"[Oncall Job] {batch_id}.stat not updated")
+        else:
+            # Add a listener
+            tao_log_listener = TaoLogListener(batch_id)
+            tao_log_listener.add_parent_jobs([self])
+            runner.register_job_listeners([tao_log_listener])
+            self.set_finished()
 
     def get_batch_id(self):
         return self._batch_id

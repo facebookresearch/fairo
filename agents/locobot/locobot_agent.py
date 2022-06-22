@@ -79,6 +79,7 @@ class LocobotAgent(DroidletAgent):
         self.no_default_behavior = opts.no_default_behavior
         self.last_chat_time = -1000000000000
         self.name = name
+        self.dash_enable_map = False # dash has map disabled by default
 
         # FIXME these should only be stored in memory, not here
         self.pitch = 0.0
@@ -149,8 +150,9 @@ class LocobotAgent(DroidletAgent):
             objects = DetectedObjectNode.get_all(self.memory)
             for o in objects:
                 del o["feature_repr"]  # pickling optimization
-#            self.dashboard_memory["objects"] = objects
-#            sio.emit("updateState", {"memory": self.dashboard_memory})
+
+        #            self.dashboard_memory["objects"] = objects
+        #            sio.emit("updateState", {"memory": self.dashboard_memory})
 
         @sio.on("interaction data")
         def log_interaction_data(sid, interactionData):
@@ -265,26 +267,36 @@ class LocobotAgent(DroidletAgent):
         # FIXME better pose object
         perception_output = perception_output._replace(self_pose=(x, z, yaw))
 
-        if self.opts.draw_map == "memory":
-            # draw the map from memory
-            self.draw_map_to_dashboard()
-        elif self.opts.draw_map == "observations":  # else draw directly from current obs
-            self.draw_map_to_dashboard(obstacles=obstacles, xyyaw=(x, z, yaw))
-        else:
-            pass
+        @sio.on("toggle_map")
+        def handle_toggle_map(sid, data):
+            self.dash_enable_map = data["dash_enable_map"]
+        if self.opts.draw_map and self.dash_enable_map:
+            if self.opts.map_data == "memory":          # draw the map from memory
+                self.draw_map_to_dashboard()
+            elif self.opts.map_data == "observations":  # else draw directly from current obs
+                self.draw_map_to_dashboard(obstacles=obstacles, xyyaw=(x, z, yaw))
+            else:
+                pass
 
         self.memory.update(perception_output)
 
     def get_detected_objects_for_map(self):
-        memids, mems = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
+        search_res = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
+        memids, mems = [], []
+        if search_res is not None:
+            memids, mems = search_res
         detections_for_map = []
         for mem in mems:
-            if hasattr(mem, "obj_id") and hasattr(mem, "pos"):
-                detections_for_map.append([mem.obj_id, list(mem.pos)])
-            elif hasattr(mem, "pos"):
-                detections_for_map.append(["no_id", list(mem.pos)])
+            if hasattr(mem, "pos"):
+                id_str = "no_id" if not hasattr(mem, "obj_id") else mem.obj_id
+                obj = vars(mem)
+                obj.pop('agent_memory', None)   # not necessary to show memory object type and location 
+                obj["node_type"] = type(mem).__name__
+                obj["obj_id"] = id_str
+                obj["pos"] = list(mem.pos)
+                detections_for_map.append(obj)
         return detections_for_map
-    
+
     def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
         detections_for_map = []
         if not obstacles:
@@ -304,7 +316,8 @@ class LocobotAgent(DroidletAgent):
                 "y": xyyaw[1],
                 "yaw": xyyaw[2],
                 "map": obstacles,
-                "detections_from_memory": detections_for_map
+                "bot_data": detections_for_map[0],
+                "detections_from_memory": detections_for_map[1:],
             },
         )
 
@@ -324,11 +337,13 @@ class LocobotAgent(DroidletAgent):
         if self.backend == "habitat":
             from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 
+            print("here")
             self.mover = LoCoBotMover(ip=self.opts.ip, backend=self.opts.backend)
         else:
             from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
 
             self.mover = HelloRobotMover(ip=self.opts.ip)
+        print("done with physical init")
 
     def get_player_struct_by_name(self, speaker_name):
         _, memnode = self.memory.basic_search(

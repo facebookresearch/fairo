@@ -12,8 +12,9 @@ from droidlet.shared_data_structs import PriorityQueue
 Player = namedtuple(
     "Player", "entityId, name, pos, look, mainHand, cagent_struct", defaults=(None,) * 6
 )
+Slot = namedtuple("Slot", "id, meta, count, damage", defaults=(None,) * 4)
 Item = namedtuple("Item", "id, meta")
-ItemStack = namedtuple("ItemStack", "item, pos, entityId")
+ItemStack = namedtuple("ItemStack", "item, pos, entityId, typeName", defaults=(None,) * 4)
 Mob = namedtuple("Mob", "entityId, mobType, pos, look, cagent_struct", defaults=(None,) * 5)
 
 
