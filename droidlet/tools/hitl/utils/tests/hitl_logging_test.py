@@ -27,7 +27,6 @@ class TestLoggerClass1:
         hl_logger.error(msg)
         return hl
 
-
 class TestLoggerClass2:
     def __init__(self) -> None:
         pass
