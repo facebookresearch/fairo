@@ -23,7 +23,14 @@ from droidlet.tools.hitl.utils.hitl_utils import (
     deregister_dashboard_subdomain,
     dedup_commands,
 )
-from droidlet.tools.hitl.utils.job_management import Job, JobManagementUtil, JobStat, MetaData, get_dashboard_version, get_s3_link
+from droidlet.tools.hitl.utils.job_management import (
+    Job,
+    JobManagementUtil,
+    JobStat,
+    MetaData,
+    get_dashboard_version,
+    get_s3_link,
+)
 from droidlet.tools.hitl.utils.process_s3_logs import get_stats, read_s3_bucket, read_turk_logs
 
 from droidlet.tools.hitl.data_generator import DataGenerator
@@ -97,7 +104,9 @@ class InteractionJob(DataGenerator):
         job_mng_util.set_meta_data(MetaData.BATCH_ID, self._batch_id)
         job_mng_util.set_meta_data(MetaData.NAME, task_name)
         job_mng_util.set_meta_data(MetaData.S3_LINK, get_s3_link(self._batch_id))
-        job_mng_util.set_job_stat(Job.INTERACTION, JobStat.DASHBOARD_VER, get_dashboard_version(image_tag))
+        job_mng_util.set_job_stat(
+            Job.INTERACTION, JobStat.DASHBOARD_VER, get_dashboard_version(image_tag)
+        )
         job_mng_util.set_job_stat(Job.INTERACTION, JobStat.ENABLED, True)
         job_mng_util.set_job_stat(Job.INTERACTION, JobStat.NUM_REQUESTED, instance_num)
 
@@ -225,14 +234,20 @@ class InteractionLogListener(JobListener):
                 commands = response["Body"].read().decode("utf-8").split("\n")
                 cmd_id = 0
                 cmd_list = dedup_commands(commands)
-                runner.get_job_manage_util().set_job_stat(Job.INTERACTION, JobStat.NUM_COMMAND, cmd_list)
+                runner.get_job_manage_util().set_job_stat(
+                    Job.INTERACTION, JobStat.NUM_COMMAND, cmd_list
+                )
 
                 for cmd in cmd_list:
                     logging.info(
                         f"Pushing Annotation Job [{batch_id}-{cmd_id}-{cmd}] to runner..."
                     )
                     annotation_job = AnnotationJob(
-                        runner.get_job_manage_util(), batch_id, cmd, cmd_id, self.get_remaining_time()
+                        runner.get_job_manage_util(),
+                        batch_id,
+                        cmd,
+                        cmd_id,
+                        self.get_remaining_time(),
                     )
                     runner.register_data_generators([annotation_job])
                     cmd_id += 1

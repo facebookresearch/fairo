@@ -49,7 +49,14 @@ class AnnotationJob(DataGenerator):
 
     """
 
-    def __init__(self, job_mng_util: JobManagementUtil, batch_id: int, command: str, cmd_id: int, timeout: float = -1) -> None:
+    def __init__(
+        self,
+        job_mng_util: JobManagementUtil,
+        batch_id: int,
+        command: str,
+        cmd_id: int,
+        timeout: float = -1,
+    ) -> None:
         super(AnnotationJob, self).__init__(timeout)
         self._job_mng_util = job_mng_util
         self._batch_id = batch_id
@@ -58,7 +65,7 @@ class AnnotationJob(DataGenerator):
         job_mng_util.set_job_stat(Job.ANNOTATION, JobStat.ENABLED, True)
 
     def run(self) -> None:
-        self._job_mng_util.set_job_start(job_type = Job.ANNOTATION)
+        self._job_mng_util.set_job_start(job_type=Job.ANNOTATION)
         try:
             MTURK_AWS_ACCESS_KEY_ID = os.environ["MTURK_AWS_ACCESS_KEY_ID"]
             MTURK_AWS_SECRET_ACCESS_KEY = os.environ["MTURK_AWS_SECRET_ACCESS_KEY"]
@@ -109,11 +116,13 @@ class AnnotationJob(DataGenerator):
                 f"Annotation Job [{self._batch_id}-{self._cmd_id}-{self._command}] terminated unexpectedly..."
             )
 
-        self._job_mng_util.set_job_end(job_type = Job.ANNOTATION)
+        self._job_mng_util.set_job_end(job_type=Job.ANNOTATION)
         self.set_finished()
 
 
 if __name__ == "__main__":
     runner = TaskRunner()
-    aj = AnnotationJob(runner.get_job_manage_util(), 987, "destory the biggest house behind me", 1, 300)
+    aj = AnnotationJob(
+        runner.get_job_manage_util(), 987, "destory the biggest house behind me", 1, 300
+    )
     aj.run()

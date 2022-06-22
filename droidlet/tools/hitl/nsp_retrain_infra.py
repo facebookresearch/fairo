@@ -49,7 +49,7 @@ MODEL_INFO_NAME = "best_model_info.txt"
 
 
 class NSPRetrainingJob(DataGenerator):
-    def __init__(self, job_mng_util: JobManagementUtil,batch_id, opts):
+    def __init__(self, job_mng_util: JobManagementUtil, batch_id, opts):
         super(NSPRetrainingJob, self).__init__()
         self._job_mng_util = job_mng_util
         self.batch_id = batch_id
@@ -492,7 +492,11 @@ class NSPNewDataListener(JobListener):
                 logging.info(f"NSP Listener has found new data")
 
                 # Initialize retraining job
-                nsp_rt = NSPRetrainingJob(job_mng_util= runner.get_job_manage_util(), batch_id=self.batch_id, opts=self.opts)
+                nsp_rt = NSPRetrainingJob(
+                    job_mng_util=runner.get_job_manage_util(),
+                    batch_id=self.batch_id,
+                    opts=self.opts,
+                )
                 runner.register_data_generators([nsp_rt])
 
                 logging.info(f"NSP data gen job registered, listener return")

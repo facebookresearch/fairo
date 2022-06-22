@@ -81,14 +81,35 @@ class JobStat(Enum):
 
 
 # statastics that all jobs have
-STAT_FOR_ALL = set([JobStat.ENABLED, JobStat.NUM_REQUESTED, JobStat.NUM_COMPLETED, JobStat.START_TIME, JobStat.END_TIME])
+STAT_FOR_ALL = set(
+    [
+        JobStat.ENABLED,
+        JobStat.NUM_REQUESTED,
+        JobStat.NUM_COMPLETED,
+        JobStat.START_TIME,
+        JobStat.END_TIME,
+    ]
+)
 
 # statatics that are unique for a job (not in the STAT_FOR_ALL set)
 STAT_JOB_PAIR = {
     Job.INTERACTION: set(
-        [JobStat.NUM_SESSION_LOG, JobStat.NUM_COMMAND, JobStat.NUM_ERR_COMMAND, JobStat.DASHBOARD_VER]
+        [
+            JobStat.NUM_SESSION_LOG,
+            JobStat.NUM_COMMAND,
+            JobStat.NUM_ERR_COMMAND,
+            JobStat.DASHBOARD_VER,
+        ]
     ),
-    Job.RETRAIN: set([JobStat.ORI_DATA_SZ, JobStat.NEW_DATA_SZ, JobStat.MODEL_ACCURACY, JobStat.MODEL_EPOCH, JobStat.MODEL_LOSS]),
+    Job.RETRAIN: set(
+        [
+            JobStat.ORI_DATA_SZ,
+            JobStat.NEW_DATA_SZ,
+            JobStat.MODEL_ACCURACY,
+            JobStat.MODEL_EPOCH,
+            JobStat.MODEL_LOSS,
+        ]
+    ),
 }
 
 
@@ -147,7 +168,9 @@ class JobManagementUtil:
             rec_dict[jname][tname].append(time_now)
         elif rec_dict[tname]:
             # set meta data start / end, can only be set once
-            logging.error(f"[Job Management Util] Cannot set meta data start/end time twice, ignoring setting {tname}.")
+            logging.error(
+                f"[Job Management Util] Cannot set meta data start/end time twice, ignoring setting {tname}."
+            )
         else:
             # set meta data start / end when there is no existing record
             rec_dict[tname] = time_now
@@ -172,7 +195,7 @@ class JobManagementUtil:
 
     def set_job_start(self, job_type: Job):
         self._set_time(JobStat.START_TIME, job_type)
-    
+
     def set_job_end(self, job_type: Job):
         self._set_time(JobStat.END_TIME, job_type)
 
@@ -180,7 +203,9 @@ class JobManagementUtil:
         batch_id = self._record_dict[MetaData.BATCH_ID]
         # check batch_id for saving to s3
         if batch_id is None:
-            logging.error("[Job Management Util] Must have an associated batch to be able to save to s3")
+            logging.error(
+                "[Job Management Util] Must have an associated batch to be able to save to s3"
+            )
             raise RuntimeError("No associated batch_id set")
         # save to s3
         remote_file_path = f"{JOB_MNG_PATH_PREFIX}/{batch_id}.json"
