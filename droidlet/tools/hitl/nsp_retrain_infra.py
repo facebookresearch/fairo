@@ -55,7 +55,7 @@ class NSPRetrainingJob(DataGenerator):
         self.batch_id = batch_id
         self.opts = opts
         self.exec_training_run = True
-        job_mng_util.set_job_stat(Job.RETRAIN, True)
+        job_mng_util.set_job_stat(Job.RETRAIN, JobStat.ENABLED, True)
 
     def max_and_argmax(self, l):
         i = max(range(len(l)), key=lambda i: l[i])
@@ -244,6 +244,10 @@ class NSPRetrainingJob(DataGenerator):
             f"Percent of data used for testing: {(sum(1 for i in final_masks['test'] if i)*100 / total_rows):.2f}%"
         )
 
+        # Save nsp retrain job stat
+        self._job_mng_util.set_job_stat(Job.RETRAIN, JobStat.ORI_DATA_SZ, total_rows - new_data_rows)
+        self._job_mng_util.set_job_stat(Job.register, JobStat.NEW_DATA_SZ, total_rows)
+
         # Save locally and upload to S3
         mask_filepath = os.path.join(batch_config_dir, "split_masks.pth")
         torch.save({"annotated": final_masks}, mask_filepath)
@@ -363,12 +367,15 @@ class NSPRetrainingJob(DataGenerator):
         # Wait for child process to finish and log outputs/errors
         now = datetime.now()
         while sweep.poll() != 0:
+            # TODO: update job completed
+
             if (datetime.now() - now).seconds > NSP_RETRAIN_TIMEOUT:
                 sweep.kill()
                 raise TimeoutError(
                     f"NSP Retrain child process timed out after {NSP_RETRAIN_TIMEOUT} seconds"
                 )
                 break
+
         outs, errs = sweep.stdout.read(), sweep.stderr.read()
         logging.info(f"Sweep script outputs: \n{outs}")
         logging.info(f"Sweep script errors: \n{errs}")
@@ -456,8 +463,11 @@ class NSPRetrainingJob(DataGenerator):
         compute_checksum_tar_and_upload("craftassist", "datasets", "")
 
         logging.info(f"NSP Retraining Job finished")
+
+        # TODO: update total finished jobs
+        self._job_mng_util.set_job_end(Job.RETRAIN)
+
         self.set_finished(True)
-        self._job_mng_util.set_job_end(Job.INTERACTION)
         return
 
 

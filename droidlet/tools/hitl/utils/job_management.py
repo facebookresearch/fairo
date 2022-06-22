@@ -112,6 +112,8 @@ STAT_JOB_PAIR = {
     ),
 }
 
+# update job stat interval in seconds
+DEFAULT_STAT_UPDATE_INTERVAL = 60
 
 def get_dashboard_version(image_tag: str):
     response = ecr.batch_get_image(
@@ -130,7 +132,7 @@ def get_s3_link(batch_id: int):
 
 
 class JobManagementUtil:
-    def __init__(self):
+    def __init__(self, stat_update_interval = DEFAULT_STAT_UPDATE_INTERVAL):
         # prepare dict for recording the data
         rec_dict = {}
 
@@ -153,6 +155,10 @@ class JobManagementUtil:
         folder_path = os.path.join(HITL_TMP_DIR, "tmp", JOB_MNG_PATH_PREFIX)
         os.makedirs(folder_path, exist_ok=True)
         self._local_path = os.path.join(folder_path, tmp_fname)
+
+        # stat only update if either not set before, or updated for longer than the interval
+        self._last_update = datetime.datetime.now()
+        self._stat_update_interval = stat_update_interval
 
     def _set_time(self, time_type, job_type=None):
         time_now = str(datetime.datetime.now())
@@ -189,9 +195,20 @@ class JobManagementUtil:
         self._record_dict[meta_data._name_] = val
         self._save_tmp()
 
-    def set_job_stat(self, job_type: Job, job_stat: JobStat, val):
-        self._record_dict[job_type._name_][job_stat._name_] = val
-        self._save_tmp()
+    def set_job_stat(self, job_type: Job, job_stat: JobStat, val, force_update = False):
+        jname = job_type._name_
+        sname = job_stat._name_
+        curr_timestamp = datetime.datetime.now()
+        since_last_update = curr_timestamp - self._last_update 
+        since_last_update = since_last_update.total_seconds()
+
+        if self._record_dict[jname][sname] is None or since_last_update > self._stat_update_interval or force_update:
+            # update if the not updated before 
+            # or the duration since last update is larger than the update interval
+            # or force update (for job finish status update purpose)
+            self._record_dict[jname][sname] = val
+            self._last_update = curr_timestamp
+            self._save_tmp()
 
     def set_job_start(self, job_type: Job):
         self._set_time(JobStat.START_TIME, job_type)

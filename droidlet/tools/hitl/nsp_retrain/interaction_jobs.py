@@ -31,7 +31,7 @@ from droidlet.tools.hitl.utils.job_management import (
     get_dashboard_version,
     get_s3_link,
 )
-from droidlet.tools.hitl.utils.process_s3_logs import get_stats, read_s3_bucket, read_turk_logs
+from droidlet.tools.hitl.utils.process_s3_logs import read_s3_bucket, read_turk_logs
 
 from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.job_listener import JobListener
@@ -48,6 +48,7 @@ HITL_TMP_DIR = (
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
 NSP_OUTPUT_FNAME = "nsp_outputs"
+ERR_DETAIL_FNAME = "error_details"
 ANNOTATED_COMMANDS_FNAME = "nsp_data.txt"
 
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
@@ -120,7 +121,6 @@ class InteractionJob(DataGenerator):
             self._instance_num, batch_id, self._image_tag, self._task_name, ECS_INSTANCE_TIMEOUT
         )
         self.instance_ids = instance_ids
-        self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.NUM_COMPLETED)
 
         # run Mephisto to spin up & monitor turk jobs
         logging.info(f"Start running Mephisto...")
@@ -137,6 +137,9 @@ class InteractionJob(DataGenerator):
 
         # Keep running Mephisto until timeout or job finished
         while not self.check_is_timeout() and p.poll() is None:
+            # TODO: update job completed 
+
+
             logging.debug(
                 f"[Interaction Job] Interaction Job still running...Remaining time: {self.get_remaining_time()}"
             )
@@ -164,6 +167,7 @@ class InteractionJob(DataGenerator):
         logging.info(f"Processing S3 logs...")
         self.process_s3_logs(batch_id)
 
+        # TODO: update final finished jobs
         self._job_mng_util.set_job_end(Job.INTERACTION)
         self.set_finished()
 
@@ -184,8 +188,15 @@ class InteractionJob(DataGenerator):
         )
         time.sleep(120)
 
-        read_s3_bucket(s3_logs_dir, parsed_logs_dir)
+        log_file_ct = read_s3_bucket(s3_logs_dir, parsed_logs_dir)
         command_list = read_turk_logs(parsed_logs_dir, NSP_OUTPUT_FNAME)
+        err_command_list = read_turk_logs(parsed_logs_dir, ERR_DETAIL_FNAME)
+
+        # update job status
+        self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.NUM_SESSION_LOG, log_file_ct, True)
+        self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.NUM_COMMAND, len(command_list), True)
+        self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.NUM_ERR_COMMAND, len(err_command_list), True)
+
         logging.info(f"command list from interactions: {command_list}")
 
         logging.info(f"Uploading command list to S3...")
@@ -234,9 +245,6 @@ class InteractionLogListener(JobListener):
                 commands = response["Body"].read().decode("utf-8").split("\n")
                 cmd_id = 0
                 cmd_list = dedup_commands(commands)
-                runner.get_job_manage_util().set_job_stat(
-                    Job.INTERACTION, JobStat.NUM_COMMAND, cmd_list
-                )
 
                 for cmd in cmd_list:
                     logging.info(

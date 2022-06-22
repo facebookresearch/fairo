@@ -85,6 +85,8 @@ class AnnotationJob(DataGenerator):
 
             # Keep running Mephisto until timeout or job finished
             while not self.check_is_timeout() and p.poll() is None:
+                # TODO: update job completed
+
                 logging.info(
                     f"Annotation Job [{self._batch_id}-{self._cmd_id}-{self._command}] still running...Remaining time: {self.get_remaining_time()}"
                 )
@@ -116,6 +118,7 @@ class AnnotationJob(DataGenerator):
                 f"Annotation Job [{self._batch_id}-{self._cmd_id}-{self._command}] terminated unexpectedly..."
             )
 
+        # TODO: update total finished jobs
         self._job_mng_util.set_job_end(job_type=Job.ANNOTATION)
         self.set_finished()
 
