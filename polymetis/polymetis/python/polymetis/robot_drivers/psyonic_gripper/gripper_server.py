@@ -35,28 +35,29 @@ class PsyonicGripperServer(polymetis_pb2_grpc.PolymetisControllerServerServicer)
         self._metadata = metadata
 
     def SetController(self, request, context):
-        #determine frequency to execute commands
+        # determine frequency to execute commands
         hz = self._metadata.get_proto().hz
 
-        #combine chunks into complete bytes string
-        policy = b''
+        # combine chunks into complete bytes string
+        policy = b""
         for chunk in request:
             policy += chunk.torchscript_binary_chunk
 
-        #convert bytes string to torch policy and extract waypoints
+        # convert bytes string to torch policy and extract waypoints
         buffer = io.BytesIO(policy)
         policy = torch.jit.load(buffer)
         waypoints = policy.joint_pos_trajectory.tolist()
 
-        #iterate through waypoints and set hand to joint angles
+        # iterate through waypoints and set hand to joint angles
         for angle_set in waypoints:
-            joint_angles = JointData(*angle_set[:-4]) #declare JointData but remove 4 zeros from each angle set.
+            joint_angles = JointData(
+                *angle_set[:-4]
+            )  # declare JointData but remove 4 zeros from each angle set.
             self._hand.set_position(joint_angles)
-            time.sleep(1/hz)
+            time.sleep(1 / hz)
 
-
-        #self._hand.set_velocity(joint_angles)
-        #self._hand.set_torque(joint_angles)
+        # self._hand.set_velocity(joint_angles)
+        # self._hand.set_torque(joint_angles)
 
         return polymetis_pb2.LogInterval()
 
@@ -70,10 +71,10 @@ class PsyonicGripperServer(polymetis_pb2_grpc.PolymetisControllerServerServicer)
         """Returns the current state of the robot"""
         print("ROBOT STATE REQUEST", request)
 
-        position = np.array( self._hand.position.to_list() ) #length 6
-        velocity = np.array( self._hand.velocity.to_list() ) #length 6
-        current = np.array( self._hand.current.to_list() ) #length 6
-        touch = np.array( [ np.array(f) for f in self._hand.touch.to_list() ])
+        position = np.array(self._hand.position.to_list())  # length 6
+        velocity = np.array(self._hand.velocity.to_list())  # length 6
+        current = np.array(self._hand.current.to_list())  # length 6
+        touch = np.array([np.array(f) for f in self._hand.touch.to_list()])
 
         print(f"position: {position}")
         print(f"current: {current}")
@@ -82,8 +83,10 @@ class PsyonicGripperServer(polymetis_pb2_grpc.PolymetisControllerServerServicer)
         # TODO: populate the fields of the robot state message with data from the hand.
         # Joint torques need to be computed from current values.
         state = polymetis_pb2.RobotState(
-            joint_positions=np.concatenate((position,[0,0,0,0])), #URDF shows 10 revolute joints, but hand only offers control of 6 of those? So we add 4 extra zeros to the position array.
-            joint_velocities=np.concatenate((velocity,[0,0,0,0])),
+            joint_positions=np.concatenate(
+                (position, [0, 0, 0, 0])
+            ),  # URDF shows 10 revolute joints, but hand only offers control of 6 of those? So we add 4 extra zeros to the position array.
+            joint_velocities=np.concatenate((velocity, [0, 0, 0, 0])),
         )
 
         return state

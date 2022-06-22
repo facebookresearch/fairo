@@ -16,19 +16,18 @@ if __name__ == "__main__":
     # the robot arm.
     time_scale = 12
     test_sequence = [
-        [[0, 0, 0, 0, 0, 0, 0], time_scale/3],
-        [[-1, -0.1, 0, 0, 1.2, 0.5, 0.4], time_scale/2],
-        [[-1, 0.1, 0, 0, 1.2, 0, -0.4], time_scale/4],
-        [[0, -0.1, 0, 0, -1.2, 0, 0.4], time_scale/2],
-        [[0, 0.1, -1, 0, 1.2, 0.5, -0.4], time_scale/2],
-        [[0, -0.1, -1, 0, 1.2, 0, 0.4], time_scale/2],
-        [[-1, 0.1, 0, 0, 1.2, 0.5, -0.4], time_scale/2],
-        [[-1,-0.1, 0, 0, 1.2, 0, 0.4], time_scale/4],
-        [[0, 0.1, 0, 0, -1.2, 0, -0.4], time_scale/2],
-        [[0,-0.1, -1, 0, 1.2, 0.5, 0.4], time_scale/2],
-        [[0, 0.1, -1, 0, 1.2, 0, -0.4], time_scale/2],
-        [[0, 0, 0, 0, 0, 0, 0], time_scale/3],
-
+        [[0, 0, 0, 0, 0, 0, 0], time_scale / 3],
+        [[-1, -0.1, 0, 0, 1.2, 0.5, 0.4], time_scale / 2],
+        [[-1, 0.1, 0, 0, 1.2, 0, -0.4], time_scale / 4],
+        [[0, -0.1, 0, 0, -1.2, 0, 0.4], time_scale / 2],
+        [[0, 0.1, -1, 0, 1.2, 0.5, -0.4], time_scale / 2],
+        [[0, -0.1, -1, 0, 1.2, 0, 0.4], time_scale / 2],
+        [[-1, 0.1, 0, 0, 1.2, 0.5, -0.4], time_scale / 2],
+        [[-1, -0.1, 0, 0, 1.2, 0, 0.4], time_scale / 4],
+        [[0, 0.1, 0, 0, -1.2, 0, -0.4], time_scale / 2],
+        [[0, -0.1, -1, 0, 1.2, 0.5, 0.4], time_scale / 2],
+        [[0, 0.1, -1, 0, 1.2, 0, -0.4], time_scale / 2],
+        [[0, 0, 0, 0, 0, 0, 0], time_scale / 3],
     ]
 
     gripper = GripperInterface(ip_address="localhost")
@@ -57,12 +56,12 @@ if __name__ == "__main__":
             # Update the target position
             target_positions[joint] = (44 / 21) * angle
 
-        gripper.goto(width=1, speed=0.8, force=.1)
+        gripper.goto(width=1, speed=0.8, force=0.1)
         time.sleep(2.0)
         state = gripper.get_state()
         print(f"state: {state}")
 
-        gripper.goto(width=0, speed=0.8, force=.1)
+        gripper.goto(width=0, speed=0.8, force=0.1)
         time.sleep(2.0)
         state = gripper.get_state()
         print(f"state: {state}")
