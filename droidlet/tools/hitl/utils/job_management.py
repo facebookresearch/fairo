@@ -200,7 +200,7 @@ class JobManagementUtil:
         self._set_time(JobStat.END_TIME, job_type)
 
     def save_to_s3(self):
-        batch_id = self._record_dict[MetaData.BATCH_ID]
+        batch_id = self._record_dict[MetaData.BATCH_ID._name_]
         # check batch_id for saving to s3
         if batch_id is None:
             logging.error(
