@@ -20,3 +20,9 @@
 [submodule "polymetis/polymetis/tests/cpp/fake_clock"]
 	path = polymetis/polymetis/tests/cpp/fake_clock
 	url = https://github.com/korfuri/fake_clock
+[submodule "perception/sandbox/polygrasp/third_party/UnseenObjectClustering"]
+	path = perception/sandbox/polygrasp/third_party/UnseenObjectClustering
+	url = git@github.com:1heart/UnseenObjectClustering.git
+[submodule "perception/sandbox/polygrasp/third_party/graspnet-baseline"]
+	path = perception/sandbox/polygrasp/third_party/graspnet-baseline
+	url = git@github.com:1heart/graspnet-baseline.git
