@@ -91,6 +91,6 @@ class TaskRunner:
             self._job_manage_util.set_meta_end()
             self._job_manage_util.save_to_s3()
         return finished
-    
+
     def get_job_manage_util(self):
         return self._job_manage_util
