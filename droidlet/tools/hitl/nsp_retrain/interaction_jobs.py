@@ -23,20 +23,8 @@ from droidlet.tools.hitl.utils.hitl_utils import (
     deregister_dashboard_subdomain,
     dedup_commands,
 )
-<<<<<<< HEAD
 from droidlet.tools.hitl.utils.job_management import Job, JobManagementUtil, JobStat, MetaData, get_dashboard_version, get_s3_link
 from droidlet.tools.hitl.utils.process_s3_logs import get_stats, read_s3_bucket, read_turk_logs
-=======
-from droidlet.tools.hitl.utils.job_management import (
-    Job,
-    JobManagementUtil,
-    JobStat,
-    MetaData,
-    get_dashboard_version,
-    get_s3_link,
-)
-from droidlet.tools.hitl.utils.process_s3_logs import read_s3_bucket, read_turk_logs
->>>>>>> ea75f40ee3136c4a853f1ef7359d6cb841503fe9
 
 from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.job_listener import JobListener
