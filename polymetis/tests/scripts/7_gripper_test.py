@@ -13,28 +13,26 @@ def main():
     state = gripper.get_state()
     print(f"state: {state}")
 
-    gripper.goto(width=1, speed=0.2, force=.1)
+    gripper.goto(width=1, speed=0.2, force=0.1)
     time.sleep(7.0)
     state = gripper.get_state()
     print(f"state: {state}")
 
-    gripper.goto(width=0, speed=0.2, force=.1)
+    gripper.goto(width=0, speed=0.2, force=0.1)
     time.sleep(7.0)
     state = gripper.get_state()
     print(f"state: {state}")
 
-    gripper.goto(width=1, speed=0.8, force=.1)
+    gripper.goto(width=1, speed=0.8, force=0.1)
     time.sleep(7.0)
     state = gripper.get_state()
     print(f"state: {state}")
 
-    gripper.goto(width=0, speed=0.8, force=.1)
+    gripper.goto(width=0, speed=0.8, force=0.1)
     time.sleep(7.0)
     state = gripper.get_state()
     print(f"state: {state}")
 
 
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
