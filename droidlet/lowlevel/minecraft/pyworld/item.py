@@ -6,7 +6,7 @@ from droidlet.lowlevel.minecraft.pyworld.utils import make_pose
 
 
 class GettableItem:
-    def __init__(self, typeName, entityId=None, pos=None, idm=(0, 0)):
+    def __init__(self, typeName, entityId=None, pos=None, idm=(0, 0), properties=[]):
         self.entityId = entityId
         self.typeName = typeName
         self.pos = pos or Pos()
@@ -15,6 +15,8 @@ class GettableItem:
         # machinery to make sure typeName and bid, meta match up in mc
         self.id = idm[0]
         self.meta = idm[1]
+        # properties is a list of tuples of the form (predicate_text, object_text)
+        self.properties = properties
 
     def add_to_world(self, world):
         self.entityId = world.new_eid(entityId=self.entityId)
@@ -25,14 +27,15 @@ class GettableItem:
     def get_info(self):
         info = {
             "entityId": self.entityId,
-            "name": self.typeName,
+            "typeName": self.typeName,
             "id": self.id,
             "meta": self.meta,
             "pos": self.pos,
-            "x": self.pos.x or "",
-            "y": self.pos.y or "",
-            "z": self.pos.z or "",
+            "x": self.pos.x,
+            "y": self.pos.y,
+            "z": self.pos.z,
             "holder_entityId": self.holder_entityId,
+            "properties": self.properties,
         }
         return info
 
