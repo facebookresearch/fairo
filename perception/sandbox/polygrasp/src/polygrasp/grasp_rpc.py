@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 import a0
 
 import graspnetAPI
+from . import wait_until_a0_server_ready, start_a0_server_heartbeat
 from polygrasp import serdes
 from polygrasp.serdes import polygrasp_msgs
 
@@ -64,15 +65,20 @@ class GraspServer:
             req.reply(serdes.grasp_group_to_bytes(filtered_grasp_group))
 
         self.grasp_server = a0.RpcServer(grasp_topic_key, grasp_onrequest, None)
+        start_a0_server_heartbeat(grasp_topic_key)
         self.collision_server = a0.RpcServer(
             collision_topic_key, collision_onrequest, None
         )
+        start_a0_server_heartbeat(collision_topic_key)
 
         signal.pause()
 
 
 class GraspClient:
     def __init__(self, view_json_path):
+        wait_until_a0_server_ready(grasp_topic_key)
+        wait_until_a0_server_ready(collision_topic_key)
+
         self.grasp_client = a0.RpcClient(grasp_topic_key)
         self.collision_client = a0.RpcClient(collision_topic_key)
         self.view_json_path = view_json_path

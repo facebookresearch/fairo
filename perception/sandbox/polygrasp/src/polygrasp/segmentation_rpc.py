@@ -4,6 +4,7 @@ import numpy as np
 import signal
 
 from polygrasp import serdes
+from . import wait_until_a0_server_ready, start_a0_server_heartbeat
 
 topic_key = "segmentation"
 
@@ -12,6 +13,7 @@ log = logging.getLogger(__name__)
 
 class SegmentationClient:
     def __init__(self):
+        wait_until_a0_server_ready(topic_key)
         self.client = a0.RpcClient(topic_key)
 
     def segment_img(self, rgbd, min_mask_size=2500):
@@ -51,6 +53,7 @@ class SegmentationServer:
             log.info("Done. Replying with serialized segmentations...")
             req.reply(serdes.rgbd_to_capnp(result).to_bytes())
 
-        server = a0.RpcServer(topic_key, onrequest, None)
         log.info("Starting server...")
+        server = a0.RpcServer(topic_key, onrequest, None)
+        start_a0_server_heartbeat(topic_key)
         signal.pause()
