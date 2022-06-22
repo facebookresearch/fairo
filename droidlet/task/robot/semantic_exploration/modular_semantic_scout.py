@@ -11,14 +11,16 @@ from droidlet.perception.robot.semantic_mapper.constants import coco_categories
 
 
 class ModularSemanticScout:
-    def __init__(self,
-                 mover,
-                 object_goal: str,
-                 exploration_method: str,
-                 debug=False,
-                 visualize=True,
-                 max_steps=400,
-                 steps_per_goal=10):
+    def __init__(
+        self,
+        mover,
+        object_goal: str,
+        exploration_method: str,
+        debug=False,
+        visualize=True,
+        max_steps=400,
+        steps_per_goal=10,
+    ):
         assert exploration_method in ["learned", "heuristic"]
         self.exploration_method = exploration_method
         assert (
@@ -40,11 +42,7 @@ class ModularSemanticScout:
         self.map_size, self.local_map_size = mover.slam.get_map_sizes()
 
         self.goal_policy = GoalPolicy(
-            map_features_shape=(
-                num_sem_categories + 8,
-                self.local_map_size,
-                self.local_map_size
-            ),
+            map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
             num_outputs=2,
             hidden_size=256,
             num_sem_categories=num_sem_categories,
@@ -114,22 +112,16 @@ class ModularSemanticScout:
         # TODO Check that the explored disk fits in the map
         radius = 10
         explored_disk = skimage.morphology.disk(radius)
-        x, y = [
-            int(coord) for coord in mover.slam.robot2map(mover.bot.get_base_state()[:2])
-        ]
-        goal_map[y - radius: y + radius + 1, x - radius: x + radius + 1][
-            explored_disk == 1
-            ] = 0
+        x, y = [int(coord) for coord in mover.slam.robot2map(mover.bot.get_base_state()[:2])]
+        goal_map[y - radius : y + radius + 1, x - radius : x + radius + 1][explored_disk == 1] = 0
 
         # Select the frontier
         goal_map = 1 - skimage.morphology.binary_dilation(
             1 - goal_map, skimage.morphology.disk(10)
         ).astype(int)
         goal_map = (
-                skimage.morphology.binary_dilation(
-                    goal_map, skimage.morphology.disk(1)
-                ).astype(int)
-                - goal_map
+            skimage.morphology.binary_dilation(goal_map, skimage.morphology.disk(1)).astype(int)
+            - goal_map
         )
 
         if self.visualize:
