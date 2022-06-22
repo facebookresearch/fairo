@@ -46,10 +46,10 @@ class HitlLogging():
         os.makedirs(log_dir, exist_ok=True)
 
         log_file = f"{log_dir}/{logger_name}.log"
-        fh = logging.FileHandler(log_file)        
+        fh = logging.FileHandler(log_file)
         fh.setFormatter(formatter)
 
-        sh = logging.StreamHandler() 
+        sh = logging.StreamHandler()
         sh.setFormatter(formatter)
 
         logger = logging.getLogger(logger_name)
