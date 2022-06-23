@@ -38,6 +38,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         gui: bool,
         use_grav_comp: bool = True,
         gravity: float = 9.81,
+        extract_config_from_rdf = True,
     ):
         self.robot_model_cfg = robot_model_cfg
         self.robot_description_path = get_full_path_to_urdf(
@@ -84,6 +85,42 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         else:
             raise Exception(f"Unknown robot definition extension {ext}!")
 
+        if extract_config_from_rdf:
+            print()
+            print("************ CONFIG INFO ************")
+            num_joints = self.sim.getNumJoints(self.robot_id) 
+            # controlled joints
+            # print("Num Joints:", num_joints)
+            # num dofs
+            for i in range(num_joints):
+                (jointIdx,
+                jointName,
+                jointType,
+                qIndex,
+                uIndex,
+                flags,
+                jointDamping,
+                jointFriction,
+                jointLowerLimit,
+                jointUpperLimit,
+                jointMaxForce,
+                jointMaxVelocity,
+                linkName,
+                jointAxis,
+                parentFramePos,
+                parentFrameOrn,
+                parentIdx) = self.sim.getJointInfo(self.robot_id, i)
+
+                print("Joint", jointName.decode('utf-8'))
+                # rest pose
+                # joint limit low
+                print("\tLimit low :", jointLowerLimit)
+                # joint limit high
+                print("\tLimit High:", jointUpperLimit)
+                # joint damping
+                print("\tJoint Damping:", jointDamping)
+                # torque limits
+        print("*************************************")
         # Enable torque control
         self.sim.setJointMotorControlArray(
             self.robot_id,
@@ -101,6 +138,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
     @staticmethod
     def load_robot_description_from_urdf(abs_urdf_path: str, sim: BulletClient):
         """Loads a URDF file into the simulation."""
+        breakpoint()
         log.info("loading urdf file: {}".format(abs_urdf_path))
         robot_id = sim.loadURDF(
             abs_urdf_path,

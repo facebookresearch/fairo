@@ -86,6 +86,7 @@ def main(cfg):
             raise ConnectionError("Robot client: Unable to locate server.")
 
     log.info(f"Starting robot client...")
+    breakpoint()
     client = hydra.utils.instantiate(cfg.robot_client)
     client.run()
 
