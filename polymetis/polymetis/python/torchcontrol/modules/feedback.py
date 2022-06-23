@@ -88,6 +88,60 @@ class JointSpacePD(toco.ControlModule):
         )
 
 
+class AdaptiveJointSpacePD(toco.ControlModule):
+    """
+    PD feedback control in joint space
+    Adapts gains based on joint position to achieve constant end-effector dynamics
+
+    Module parameters:
+        - Kp: P gain matrix of shape (6, 6)
+        - Kd: D gain matrix of shape (6, 6)
+    """
+
+    def __init__(self, Kp: torch.Tensor, Kd: torch.Tensor):
+        """
+        Args:
+            Kp: P gain matrix of shape (6, 6) or shape (6,) representing a 6-by-6 diagonal matrix
+            Kd: D gain matrix of shape (6, 6) or shape (6,) representing a 6-by-6 diagonal matrix
+        """
+        super().__init__()
+
+        Kp = diagonalize_gain(to_tensor(Kp))
+        Kd = diagonalize_gain(to_tensor(Kd))
+        assert Kp.shape == torch.Size([6, 6])
+        assert Kd.shape == torch.Size([6, 6])
+
+        self.Kp = torch.nn.Parameter(Kp)
+        self.Kd = torch.nn.Parameter(Kd)
+
+    def forward(
+        self,
+        joint_pos_current: torch.Tensor,
+        joint_vel_current: torch.Tensor,
+        joint_pos_desired: torch.Tensor,
+        joint_vel_desired: torch.Tensor,
+        jacobian: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        nA is the action dimension and N is the number of degrees of freedom
+
+        Args:
+            joint_pos_current: Current joint position of shape (N,)
+            joint_vel_current: Current joint velocity of shape (N,)
+            joint_pos_desired: Desired joint position of shape (N,)
+            joint_vel_desired: Desired joint velocity of shape (N,)
+            jacobian: End-effector jacobian of shape (N, 6)
+
+        Returns:
+            Output action of shape (nA,)
+        """
+        Kq = jacobian.T @ self.Kp @ jacobian
+        Kqd = jacobian.T @ self.Kd @ jacobian
+        return Kq @ (joint_pos_desired - joint_pos_current) + Kqd @ (
+            joint_vel_desired - joint_vel_current
+        )
+
+
 class CartesianSpacePDFast(toco.ControlModule):
     """
     PD feedback control in SE3 pose space
