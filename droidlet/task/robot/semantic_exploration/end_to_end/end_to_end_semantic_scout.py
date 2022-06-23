@@ -162,9 +162,9 @@ class RLSegFTAgent(Agent):
 
 class EndToEndSemanticScout:
     """
-    Environment setup on Mac:
+    Environment setup on Apple M1 Mac:
     - fix default dependencies
-        remove pytorch and torchvision from fairo/conda.txt — we install them later
+        remove cudatoolkit, pytorch, and torchvision from fairo/conda.txt — we install them later
         remove habitat-sim from fairo/agents/locobot/conda.txt — we install it later
         comment out detectron2 in agents/locobot/requirements.txt — we install it later
     - create environment
