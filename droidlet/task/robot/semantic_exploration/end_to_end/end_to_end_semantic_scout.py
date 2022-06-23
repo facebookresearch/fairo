@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import os
+import time
 
 from gym.spaces import Box
 from gym.spaces import Dict as SpaceDict
@@ -8,6 +9,7 @@ from gym.spaces import Discrete
 from habitat.config import Config
 from habitat.core.logging import logger
 from habitat.core.agent import Agent
+from habitat.sims.habitat_simulator.actions import HabitatSimActions
 
 from .src import POLICY_CLASSES
 from .src.default import get_config
@@ -190,11 +192,15 @@ class EndToEndSemanticScout:
 
         self.max_steps = max_steps
         self.object_goal = object_goal
-        self.object_goal_cat = coco_categories[object_goal]
-        self.object_goal_cat_tensor = torch.tensor([self.object_goal_cat])
-
-        self.step_count = 0
-        self.finished = False
+        coco_id_to_habitat_id = {
+            0: 0,  # chair
+            1: 5,  # couch
+            2: 2,  # potted plant
+            3: 1,  # bed
+            4: 3,  # toilet
+            5: 4,  # tv
+        }
+        self.object_goal_cat = coco_id_to_habitat_id[coco_categories[object_goal]]
 
         this_dir = os.path.dirname(os.path.abspath(__file__))
         challenge_config_file = this_dir + "/configs/challenge_objectnav2022.local.rgbd.yaml"
@@ -213,11 +219,88 @@ class EndToEndSemanticScout:
         config.freeze()
 
         self.agent = RLSegFTAgent(config)
-        # self.agent.reset()
+
+        self.step_count = 0
+        self.finished = False
+        self.agent.reset()
 
     def step(self, mover):
         self.step_count += 1
-        print(self.step_count)
+        print("Step", self.step_count)
+
+        pose = mover.bot.get_base_state()
+        gps = np.array(pose[:2], dtype=np.float32)
+        compass = np.array(pose[2], dtype=np.float32)
+
+        def preprocess_depth(depth, min_depth=0.5, max_depth=5.0):
+            depth = np.clip(depth, min_depth, max_depth)
+            depth = (depth - min_depth) / (max_depth - min_depth)
+            depth = np.expand_dims(depth, -1)
+            return depth
+
+        rgb_depth = mover.get_rgb_depth()
+        rgb = rgb_depth.rgb
+        depth = rgb_depth.depth
+
+        print("objectgoal", self.object_goal_cat)
+        print("gps", gps)
+        print("compass", compass)
+
+        print("before: depth.min(), depth.max()", (depth.min(), depth.max()))
+        depth = preprocess_depth(depth)
+        print("after: depth.min(), depth.max()", (depth.min(), depth.max()))
+
+        # TODO Set Habitat camera parameters to Habitat Challenge to gain confidence
+        #  in policy:
+        #  done - (480, 640) instead of (512, 512)
+        #  hacky done - [0.5, 5.0] depth range instead of [0.0, 10.0]
+        #  try without - 79 HFOV instead of 90
+        #  done- 0.88 camera height instead of 0.6 (is it 0.6?)
+
+        # obs = {
+        #     "objectgoal": 0,
+        #     "gps": np.zeros(2, dtype=np.float32),
+        #     "compass": np.zeros(1, dtype=np.float32),
+        #     "rgb": np.zeros((480, 640, 3), dtype=np.uint8),
+        #     "depth": np.zeros((480, 640, 1), dtype=np.float32),
+        # }
+        obs = {
+            "objectgoal": self.object_goal_cat,
+            "gps": gps,
+            "compass": compass,
+            "rgb": rgb,
+            "depth": depth,
+        }
+
+        t0 = time.time()
+        action = self.agent.act(obs)
+        t1 = time.time()
+
+        # TODO Compute relative (x, y, yaw) from action
+        forward_dist = 0.25
+        turn_angle = 30
+
+        if action == HabitatSimActions.MOVE_FORWARD:
+            print("Action: forward")
+            x = forward_dist
+            y, yaw = 0, 0
+        elif action == HabitatSimActions.TURN_RIGHT:
+            print("Action: right")
+            x, y = 0, 0
+            yaw = np.radians(-turn_angle)
+        elif action == HabitatSimActions.TURN_LEFT:
+            print("Action: left")
+            x, y = 0, 0
+            yaw = np.radians(turn_angle)
+
+        print(f"Time {t1 - t0:.2f}")
+        print()
+
+        mover.bot.go_to_relative((x, y, yaw), wait=True)
+
+        # TODO Can we use localization to enforce deterministic actions
+        #  with the same effect as in simulation (exactly 25cm forward and
+        #  exactly 30 degree turns)?
 
         if self.step_count > self.max_steps:
             self.finished = True

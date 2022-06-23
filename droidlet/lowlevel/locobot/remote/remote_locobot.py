@@ -64,6 +64,9 @@ class RemoteLocobot(object):
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
 
+    def get_habitat_configs(self):
+        return self._robot.configs
+
     def restart_habitat(self):
         if hasattr(self, "_robot"):
             del self._robot
@@ -97,7 +100,7 @@ class RemoteLocobot(object):
 
     def get_img_resolution(self):
         """return height and width"""
-        return (512, 512)
+        return self._robot.configs.COMMON.SIMULATOR.AGENT.SENSORS.RESOLUTIONS[0]
 
     def get_pcd_data(self):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""

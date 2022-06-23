@@ -75,13 +75,19 @@ _SIMULATORC.AGENT.SENSORS.TYPES = ["COLOR", "DEPTH", "SEMANTIC"]
 
 # x, y, z and roll pitch yaw w.r.t to agent in meters and radians
 # TODO: Check if these units are consistant with Habitat-sim
+# _SIMULATORC.AGENT.SENSORS.POSES = [
+#     [0.0, 0.6, 0.0, 0.0, 0.0, 0.0],
+#     [0.0, 0.6, 0.0, 0.0, 0.0, 0.0],
+#     [0.0, 0.6, 0.0, 0.0, 0.0, 0.0],
+# ]
 _SIMULATORC.AGENT.SENSORS.POSES = [
-    [0.0, 0.6, 0.0, 0.0, 0.0, 0.0],
-    [0.0, 0.6, 0.0, 0.0, 0.0, 0.0],
-    [0.0, 0.6, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.88, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.88, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.88, 0.0, 0.0, 0.0, 0.0],
 ]
 # Height and Widhth in Pixels
-_SIMULATORC.AGENT.SENSORS.RESOLUTIONS = [[512, 512], [512, 512], [512, 512]]
+# _SIMULATORC.AGENT.SENSORS.RESOLUTIONS = [[512, 512], [512, 512], [512, 512]]
+_SIMULATORC.AGENT.SENSORS.RESOLUTIONS = [[480, 640], [480, 640], [480, 640]]
 
 
 def get_cfg():

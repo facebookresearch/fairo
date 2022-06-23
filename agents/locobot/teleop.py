@@ -238,13 +238,13 @@ if __name__ == "__main__":
         counter += 1
         iter_time = time.time_ns() - start_time
         if float(iter_time) / 1e9 > fps_freq:
-            print(
-                "FPS: ",
-                round(counter / (float(iter_time) / 1e9), 1),
-                "  ",
-                int(iter_time / 1e6 / counter),
-                "ms",
-            )
+            # print(
+            #     "FPS: ",
+            #     round(counter / (float(iter_time) / 1e9), 1),
+            #     "  ",
+            #     int(iter_time / 1e6 / counter),
+            #     "ms",
+            # )
             counter = 0
             start_time = time.time_ns()
 
@@ -253,6 +253,8 @@ if __name__ == "__main__":
         sio.emit("image_settings", log_settings)
         resolution = log_settings["image_resolution"]
         quality = log_settings["image_quality"]
+
+        # print(mover.bot.get_habitat_configs())
 
         # this goes from 21ms to 120ms
         rgb_depth = mover.get_rgb_depth()
