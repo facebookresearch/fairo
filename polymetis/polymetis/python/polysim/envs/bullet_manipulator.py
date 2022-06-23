@@ -38,7 +38,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         gui: bool,
         use_grav_comp: bool = True,
         gravity: float = 9.81,
-        extract_config_from_rdf = False,
+        extract_config_from_rdf=False,
     ):
         self.robot_model_cfg = robot_model_cfg
         self.robot_description_path = get_full_path_to_urdf(
@@ -88,7 +88,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         if extract_config_from_rdf:
             print()
             print("************ CONFIG INFO ************")
-            num_joints = self.sim.getNumJoints(self.robot_id) 
+            num_joints = self.sim.getNumJoints(self.robot_id)
             for i in range(num_joints):
                 (
                     jointIdx,
@@ -110,7 +110,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
                     parentIdx,
                 ) = self.sim.getJointInfo(self.robot_id, i)
 
-                print("Joint", jointName.decode('utf-8'))
+                print("Joint", jointName.decode("utf-8"))
                 print("\tLimit low :", jointLowerLimit)
                 print("\tLimit High:", jointUpperLimit)
                 print("\tJoint Damping:", jointDamping)
