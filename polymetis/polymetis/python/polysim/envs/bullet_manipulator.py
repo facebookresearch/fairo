@@ -88,7 +88,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         if extract_config_from_rdf:
             log.info()
             log.info("************ CONFIG INFO ************")
-            num_joints = self.sim.getNumJoints(self.robot_id) 
+            num_joints = self.sim.getNumJoints(self.robot_id)
             for i in range(num_joints):
                 (
                     jointIdx,
@@ -110,7 +110,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
                     parentIdx,
                 ) = self.sim.getJointInfo(self.robot_id, i)
 
-                log.info("Joint", jointName.decode('utf-8'))
+                log.info("Joint", jointName.decode("utf-8"))
                 log.info("\tLimit low :", jointLowerLimit)
                 log.info("\tLimit High:", jointUpperLimit)
                 log.info("\tJoint Damping:", jointDamping)
