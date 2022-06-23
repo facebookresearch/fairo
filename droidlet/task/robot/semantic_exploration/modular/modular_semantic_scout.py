@@ -3,10 +3,8 @@ import torch
 import numpy as np
 import skimage.morphology
 
-from droidlet.task.robot.semantic_exploration.visualization.semantic_exploration_vis import (
-    SemanticExplorationVisualization,
-)
-from droidlet.task.robot.semantic_exploration.policy.goal_policy import GoalPolicy
+from .visualization.semantic_exploration_vis import SemanticExplorationVisualization
+from .policy.goal_policy import GoalPolicy
 from droidlet.perception.robot.semantic_mapper.constants import coco_categories
 
 

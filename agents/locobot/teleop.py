@@ -6,7 +6,8 @@ import faulthandler
 import time
 
 from droidlet import dashboard
-from droidlet.task.robot.semantic_exploration.modular_semantic_scout import ModularSemanticScout
+from droidlet.task.robot.semantic_exploration.modular import ModularSemanticScout
+from droidlet.task.robot.semantic_exploration.end_to_end import EndToEndSemanticScout
 
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
@@ -158,8 +159,13 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
                 scout_vis = scout.vis_image
         elif command == "SEARCH_OBJECT_END_TO_END":
             object_goal = value.strip()
-            print("action: SEARCH_OBJECT_MODULAR_HEURISTIC", object_goal)
-            raise NotImplementedError
+            print("action: SEARCH_OBJECT_END_TO_END", object_goal)
+            scout = EndToEndSemanticScout(
+                mover,
+                object_goal=object_goal,
+            )
+            while not scout.finished:
+                scout.step(mover)
         elif command == "LOOK_AT":
             xyz = value.split(",")
             xyz = [float(p) for p in xyz]
