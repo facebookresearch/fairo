@@ -257,7 +257,7 @@ class TaoLogListener(JobListener):
 
 def process_past_logs(batch_ids: list):
     """
-    porcess past logs in batch listed in batch ids
+    process past logs in every batch listed in batch ids
     """
     runner = TaskRunner()
 
