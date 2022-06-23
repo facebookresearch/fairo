@@ -215,7 +215,7 @@ class EndToEndSemanticScout:
         config.MODEL.DEPTH_ENCODER.ddppo_checkpoint = (
             this_dir + "/" + config.MODEL.DEPTH_ENCODER.ddppo_checkpoint
         )
-        config.TORCH_GPU_ID = -1
+        config.TORCH_GPU_ID = 0
         config.freeze()
 
         self.agent = RLSegFTAgent(config)
