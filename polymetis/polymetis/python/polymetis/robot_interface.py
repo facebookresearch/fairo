@@ -520,18 +520,27 @@ class RobotInterface(BaseRobotInterface):
     Continuous control methods
     """
 
-    def start_joint_impedance(self, Kq=None, Kqd=None, **kwargs):
+    def start_joint_impedance(self, Kq=None, Kqd=None, adaptive=False, **kwargs):
         """Starts joint position control mode.
         Runs an non-blocking joint impedance controller.
         The desired joint positions can be updated using `update_desired_joint_positions`
         """
-        torch_policy = toco.policies.JointImpedanceControl(
-            joint_pos_current=self.get_joint_positions(),
-            Kp=self.Kq_default if Kq is None else Kq,
-            Kd=self.Kqd_default if Kqd is None else Kqd,
-            robot_model=self.robot_model,
-            ignore_gravity=self.use_grav_comp,
-        )
+        if adaptive:
+            torch_policy = toco.policies.AdaptiveJointImpedanceControl(
+                joint_pos_current=self.get_joint_positions(),
+                Kp=self.Kx_default if Kq is None else Kq,
+                Kd=self.Kxd_default if Kqd is None else Kqd,
+                robot_model=self.robot_model,
+                ignore_gravity=self.use_grav_comp,
+            )
+        else:
+            torch_policy = toco.policies.JointImpedanceControl(
+                joint_pos_current=self.get_joint_positions(),
+                Kp=self.Kq_default if Kq is None else Kq,
+                Kd=self.Kqd_default if Kqd is None else Kqd,
+                robot_model=self.robot_model,
+                ignore_gravity=self.use_grav_comp,
+            )
 
         return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
 
