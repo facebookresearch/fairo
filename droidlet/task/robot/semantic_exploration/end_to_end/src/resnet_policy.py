@@ -50,9 +50,7 @@ class PointNavResNetPolicy(Policy):
         )
 
     @classmethod
-    def from_config(
-        cls, config, observation_space: spaces.Dict, action_space
-    ):
+    def from_config(cls, config, observation_space: spaces.Dict, action_space):
         return cls(
             observation_space=observation_space,
             action_space=action_space,
@@ -89,30 +87,18 @@ class PointNavResNetNet(Net):
         rnn_input_size = self._n_prev_action
 
         if "objectgoal" in observation_space.spaces:
-            self._n_object_categories = (
-                int(
-                    observation_space.spaces["objectgoal"].high[0]
-                )
-                + 1
-            )
-            self.obj_categories_embedding = nn.Embedding(
-                self._n_object_categories, 32
-            )
+            self._n_object_categories = int(observation_space.spaces["objectgoal"].high[0]) + 1
+            self.obj_categories_embedding = nn.Embedding(self._n_object_categories, 32)
             rnn_input_size += 32
 
         if "gps" in observation_space.spaces:
-            input_gps_dim = observation_space.spaces[
-                "gps"
-            ].shape[0]
+            input_gps_dim = observation_space.spaces["gps"].shape[0]
             self.gps_embedding = nn.Linear(input_gps_dim, 32)
             rnn_input_size += 32
 
         if "compass" in observation_space.spaces:
             assert (
-                observation_space.spaces["compass"].shape[
-                    0
-                ]
-                == 1
+                observation_space.spaces["compass"].shape[0] == 1
             ), "Expected compass with 2D rotation."
             input_compass_dim = 2  # cos and sin of the angle
             self.compass_embedding = nn.Linear(input_compass_dim, 32)
@@ -131,9 +117,7 @@ class PointNavResNetNet(Net):
         if not self.visual_encoder.is_blind:
             self.visual_fc = nn.Sequential(
                 Flatten(),
-                nn.Linear(
-                    np.prod(self.visual_encoder.output_shape), hidden_size
-                ),
+                nn.Linear(np.prod(self.visual_encoder.output_shape), hidden_size),
                 nn.ReLU(True),
             )
 
@@ -187,14 +171,10 @@ class PointNavResNetNet(Net):
                 ],
                 -1,
             )
-            x.append(
-                self.compass_embedding(compass_observations.squeeze(dim=1))
-            )
+            x.append(self.compass_embedding(compass_observations.squeeze(dim=1)))
 
         if "gps" in observations:
-            x.append(
-                self.gps_embedding(observations["gps"])
-            )
+            x.append(self.gps_embedding(observations["gps"]))
 
         prev_actions = self.prev_action_embedding(
             ((prev_actions.float() + 1) * masks).long().squeeze(dim=-1)
@@ -202,12 +182,9 @@ class PointNavResNetNet(Net):
         x.append(prev_actions)
 
         out = torch.cat(x, dim=1)
-        out, rnn_hidden_states = self.state_encoder(
-            out, rnn_hidden_states, masks
-        )
+        out, rnn_hidden_states = self.state_encoder(out, rnn_hidden_states, masks)
 
         return out, rnn_hidden_states
-
 
 
 class ResNetPolicy(nn.Module):
@@ -217,7 +194,7 @@ class ResNetPolicy(nn.Module):
         action_space,
         model_config,
         goal_sensor_uuid=None,
-        additional_sensors=["gps", "compass"]
+        additional_sensors=["gps", "compass"],
     ):
         super().__init__()
         self.net = PointNavResNetNet(
@@ -231,11 +208,9 @@ class ResNetPolicy(nn.Module):
             normalize_visual_inputs=model_config.normalize_visual_inputs,
             force_blind_policy=model_config.force_blind_policy,
         )
-        self.action_distribution = CategoricalNet(
-            self.net.output_size, action_space.n
-        )
+        self.action_distribution = CategoricalNet(self.net.output_size, action_space.n)
         self.train()
-    
+
     def forward(
         self, observations, rnn_hidden_states, prev_actions, masks
     ) -> CustomFixedCategorical:

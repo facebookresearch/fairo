@@ -43,18 +43,12 @@ class Flatten(nn.Module):
 
 
 class CustomFixedCategorical(torch.distributions.Categorical):  # type: ignore
-    def sample(
-        self, sample_shape: Size = torch.Size()  # noqa: B008
-    ) -> Tensor:
+    def sample(self, sample_shape: Size = torch.Size()) -> Tensor:  # noqa: B008
         return super().sample(sample_shape).unsqueeze(-1)
 
     def log_probs(self, actions: Tensor) -> Tensor:
         return (
-            super()
-            .log_prob(actions.squeeze(-1))
-            .view(actions.size(0), -1)
-            .sum(-1)
-            .unsqueeze(-1)
+            super().log_prob(actions.squeeze(-1)).view(actions.size(0), -1).sum(-1).unsqueeze(-1)
         )
 
     def mode(self):
@@ -147,9 +141,7 @@ def get_checkpoint_id(ckpt_path: str) -> Optional[int]:
     return None
 
 
-def poll_checkpoint_folder(
-    checkpoint_folder: str, previous_ckpt_ind: int
-) -> Optional[str]:
+def poll_checkpoint_folder(checkpoint_folder: str, previous_ckpt_ind: int) -> Optional[str]:
     r"""Return (previous_ckpt_ind + 1)th checkpoint in checkpoint folder
     (sorted by time of last modification).
 
@@ -164,9 +156,7 @@ def poll_checkpoint_folder(
     assert os.path.isdir(checkpoint_folder), (
         f"invalid checkpoint folder " f"path {checkpoint_folder}"
     )
-    models_paths = list(
-        filter(os.path.isfile, glob.glob(checkpoint_folder + "/*"))
-    )
+    models_paths = list(filter(os.path.isfile, glob.glob(checkpoint_folder + "/*")))
     models_paths.sort(key=os.path.getmtime)
     ind = previous_ckpt_ind + 1
     if ind < len(models_paths):
@@ -234,9 +224,7 @@ def tensor_to_depth_images(tensor: Union[torch.Tensor, List]) -> np.ndarray:
     return images
 
 
-def tensor_to_bgr_images(
-    tensor: Union[torch.Tensor, Iterable[torch.Tensor]]
-) -> List[np.ndarray]:
+def tensor_to_bgr_images(tensor: Union[torch.Tensor, Iterable[torch.Tensor]]) -> List[np.ndarray]:
     r"""Converts tensor of n image tensors to list of n BGR images.
     Args:
         tensor: tensor containing n image tensors
@@ -288,9 +276,9 @@ def image_resize_shortest_edge(
     scale = size / min(h, w)
     h = int(h * scale)
     w = int(w * scale)
-    img = torch.nn.functional.interpolate(
-        img.float(), size=(h, w), mode="area"
-    ).to(dtype=img.dtype)
+    img = torch.nn.functional.interpolate(img.float(), size=(h, w), mode="area").to(
+        dtype=img.dtype
+    )
     if channels_last:
         if len(img.shape) == 4:
             # NCHW -> NHWC
