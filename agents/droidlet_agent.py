@@ -378,6 +378,7 @@ class DroidletAgent(BaseAgent):
 
         # add postprocessed chat here
         memid, _ = self.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}')
+        # import ipdb;ipdb.set_trace()
         chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
             self.memory, memid[0], preprocessed_chat
         )

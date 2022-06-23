@@ -838,6 +838,38 @@ class AgentNode(PlayerNode):
     TABLE_COLUMNS = ["uuid", "eid", "name", "x", "y", "z", "pitch", "yaw", "ref_type"]
     NODE_TYPE = "Agent"
 
+    @classmethod
+    def create(cls, memory, player_struct=None, memid=None) -> str:
+        """Creates a new entry into the ReferenceObjects table
+
+        Returns:
+            string: memid of the entry
+
+        """
+        memid = memid or cls.new(memory)
+        if player_struct is None:
+            eid, name, x, y, z, pitch, yaw = None, None, None, None, None, None, None
+        else:
+            eid, name = player_struct.entityId, player_struct.name
+            x, y, z = player_struct.pos
+            yaw, pitch = player_struct.look
+        cmd = "INSERT INTO ReferenceObjects(uuid, eid, name, x, y, z, pitch, yaw, ref_type) VALUES (?,?,?,?,?,?,?,?,?)"
+        memory.db_write(cmd, memid, eid, name, x, y, z, pitch, yaw, "agent")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "AGENT")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "SELF")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_player")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_physical_object")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_animate")
+        # this is a hack until memory_filters does "not"
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_not_location")
+
+        if name is not None:
+            memory.nodes[TripleNode.NODE_TYPE].create(
+                memory, subj=memid, pred_text="has_name", obj_text=player_struct.name
+            )
+        return memid
+
+
 
 # locations should always be archives?
 class LocationNode(ReferenceObjectNode):

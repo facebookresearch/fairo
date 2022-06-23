@@ -3,8 +3,11 @@ import time
 
 from agents.swarm_utils import get_memory_handlers_dict, get_safe_single_object_attr_dict, get_swarm_interpreter, safe_object
 from agents.swarm_worker_wrapper_process import SwarmWorkerProcessWrapper
+from agents.craftassist.craftassist_agent import Player
+from droidlet.base_util import Look, Pos
 from droidlet.dialog.swarm_dialogue_manager import SwarmDialogueManager
-from droidlet.memory.memory_nodes import TaskNode
+from droidlet.memory.memory_nodes import PlayerNode, TaskNode
+from droidlet.shared_data_struct.craftassist_shared_utils import Item
 
 
 class SwarmMasterWrapper():
@@ -86,7 +89,7 @@ class SwarmMasterWrapper():
                 continue # this shouldn't happen
             eid = worker_eids[i]
             if "pos" in tmp_perceptions[i].keys():
-                mem = self.agent.memory.get_player_by_eid(eid)
+                mem = self.agent.memory.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self.agent.memory, eid)#self.agent.memory.get_player_by_eid(eid)
                 memid = mem.memid
                 cmd = (
                     "UPDATE ReferenceObjects SET eid=?, x=?, y=?, z=? WHERE uuid=?"
@@ -129,6 +132,7 @@ class SwarmMasterWrapper():
         for i in range(self.num_workers):
             task_list = self.get_new_tasks(tag="worker_bot_{}".format(i+1))
             for new_task in task_list:
+                # import ipdb;ipdb.set_trace()
                 self.swarm_workers[i].input_task_queue.put(new_task)
     
             
@@ -158,10 +162,13 @@ class SwarmMasterWrapper():
                     self.init_status[i] = True
                 elif name == "memid":
                     # the master receives each worker's memid and stores them
-                    (memid, player) = obj
+                    (memid, player_info_dict) = obj
+                    # import ipdb; ipdb.set_trace()
                     self.swarm_workers_memid[i] = memid
+                    player = Player(player_info_dict["entityId"], player_info_dict["name"], Pos(player_info_dict["x"], player_info_dict["y"], player_info_dict["z"]), Look(player_info_dict["yaw"], player_info_dict["pitch"]), Item(player_info_dict["id"], player_info_dict["meta"]))
+        
                     from droidlet.memory.memory_nodes import AgentNode
-                    AgentNode.create(self.agent.memory, player, memid=memid)
+                    AgentNode.update(self.agent.memory, player, memid=memid)
                 
     def handle_worker_memory_queries(self):
         """

@@ -5,6 +5,7 @@ from collections import namedtuple
 
 from agents.swarm_utils import get_default_task_info
 from agents.craftassist.craftassist_agent import CraftAssistAgent, Player, Item
+from droidlet.base_util import Pos
 
 from droidlet.memory.swarm_worker_memory import ForkedPdb, SwarmWorkerMemory
 from droidlet.perception.craftassist.swarm_worker_perception import SwarmLowLevelMCPerception
@@ -80,7 +81,8 @@ class SwarmWorkerProcessWrapper(Process):
         agent.memory = SwarmWorkerMemory(memory_send_queue=self.memory_query_from_worker,
                                          memory_receive_queue=self.memory_query_answer_from_master,
                                          memory_tag="worker_bot_{}".format(agent.agent_index),
-                                         mark_agent=True)
+                                         mark_agent=True,
+                                         agent_tag="alpha")
         # controller
         agent.disable_chat = True
 
@@ -261,8 +263,21 @@ class SwarmWorkerProcessWrapper(Process):
         self.query_or_updates_from_worker.put(("initialization", True))
         # ForkedPdb().set_trace()
         agent_player_struct = agent.get_player()
-        updated_player_struct = Player(agent_player_struct.entityId, agent_player_struct.name, agent_player_struct.pos, agent_player_struct.look, Item(0, 0))
-        x = (agent.memory.self_memid, updated_player_struct)
+        # pos = 
+        # pos = Pos(agent_player_struct.pos.x, agent_player_struct.pos.y, agent_player_struct.pos.z)
+        send_dict = {
+            "entityId": agent_player_struct.entityId, 
+            "name": agent_player_struct.name, 
+            "x": agent_player_struct.pos.x, 
+            "y": agent_player_struct.pos.y, 
+            "z": agent_player_struct.pos.z, 
+            "yaw": agent_player_struct.look.yaw, 
+            "pitch": agent_player_struct.look.pitch, 
+            "id": 0, 
+            "meta": 0
+            }
+        # updated_player_struct = Player(agent_player_struct.entityId, agent_player_struct.name, Pos(0.0, 64.0, 0.0), agent_player_struct.look, Item(0, 0))
+        x = (agent.memory.self_memid, send_dict)
         self.query_or_updates_from_worker.put(("memid", x))
         while True:
             self.perceive(agent)

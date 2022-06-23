@@ -90,6 +90,7 @@ class AgentMemory:
         on_delete_callback=None,
         place_field_pixels_per_unit=DEFAULT_PIXELS_PER_UNIT,
         mark_agent=False,
+        agent_tag=None
     ):
         if db_log_path:
             self._db_log_file = gzip.open(db_log_path + ".gz", "w")
@@ -101,7 +102,7 @@ class AgentMemory:
         self._safe_pickle_saved_attrs = {}
         self.mark_agent = mark_agent
         self.on_delete_callback = on_delete_callback
-
+        self.self_memid = None
         self.init_time_interface(agent_time)
 
         # FIXME agent : should this be here?  where to put?
@@ -127,7 +128,7 @@ class AgentMemory:
                 if node in possible_child.__mro__:
                     self.node_children[node.NODE_TYPE].append(possible_child.NODE_TYPE)
 
-        self.make_self_mem()
+        self.make_self_mem(agent_tag=agent_tag)
 
         self.searcher = MemorySearcher()
         if place_field_pixels_per_unit > 0:
@@ -140,8 +141,9 @@ class AgentMemory:
         if getattr(self, "_db_log_file", None):
             self._db_log_file.close()
 
-    def make_self_mem(self):
+    def make_self_mem(self, agent_tag=None, agent_type="SELF"):#, self_memid=None):
         # create a "self" memory to reference in Triples
+        
         self.self_memid = "0" * len(uuid.uuid4().hex)
         node_type = "Self"
         if self.mark_agent:
@@ -165,8 +167,10 @@ class AgentMemory:
         self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_animate")
         self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_not_location")
         self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "AGENT")
-        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "SELF")
-        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "beta")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, agent_type)
+        if agent_tag:
+            # beta for main, alpha for children
+            self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, agent_tag)
 
     def init_time_interface(self, agent_time=None):
         """Initialiaze the current time in memory

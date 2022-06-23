@@ -100,8 +100,11 @@ class CraftAssistAgent(DroidletAgent):
         }
         self.backend = opts.backend
         self.mark_agent = False
+        self.agent_tag=None
         if opts.mark_agent:
             self.mark_agent = opts.mark_agent
+        if opts.agent_tag:
+            self.agent_tag = opts.agent_tag
         self.mark_airtouching_blocks = opts.mark_airtouching_blocks
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
@@ -213,7 +216,8 @@ class CraftAssistAgent(DroidletAgent):
             db_log_path="agent_memory.{}.log".format(self.name),
             agent_time=MCTime(self.get_world_time),
             agent_low_level_data=low_level_data,
-            mark_agent=self.mark_agent
+            mark_agent=self.mark_agent,
+            agent_tag=self.agent_tag
         )
         # Add all dances to memory
         dance.add_default_dances(self.memory)

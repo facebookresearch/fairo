@@ -1,11 +1,14 @@
 import pdb, sys
 from droidlet.memory.memory_nodes import (
+    AgentNode,
     ChatNode,
     MemoryNode,
     PlayerNode,
     ProgramNode,
     ReferenceObjectNode,
+    SelfNode,
     TimeNode,
+    NODELIST
 )
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 from typing import Optional, List, Tuple, Sequence, Union
@@ -52,21 +55,34 @@ class ForkedPdb(pdb.Pdb):
 class SwarmWorkerMemory:
     """Represents the memory for the agent in Minecraft"""
 
-    def __init__(self, memory_send_queue, memory_receive_queue, memory_tag, mark_agent=False):
+    def __init__(self, memory_send_queue, memory_receive_queue, memory_tag, mark_agent=False, agent_tag=None, nodelist=NODELIST, agent_time=None):
+        
         self.send_queue = memory_send_queue
         self.receive_queue = memory_receive_queue
         self.memory_tag = memory_tag
         self.mark_agent = mark_agent
         self.receive_dict = {}
-        self._safe_pickle_saved_attrs = {}
+        self.init_time_interface(agent_time)
+
         mem_id_len = len(uuid.uuid4().hex)
+        self._safe_pickle_saved_attrs = {}
+        self.nodes = {}
+        for node in nodelist:
+            self.nodes[node.NODE_TYPE] = node
+        # self.node_children = {}
+        # for node in nodelist:
+        #     self.node_children[node.NODE_TYPE] = []
+        #     for possible_child in nodelist:
+        #         if node in possible_child.__mro__:
+        #             self.node_children[node.NODE_TYPE].append(possible_child.NODE_TYPE)
+        
+        # ForkedPdb().set_trace()
         self.self_memid = (
             "0" * (mem_id_len // 2) + uuid.uuid4().hex[: mem_id_len - mem_id_len // 2]
         )
-        node_type = "Player"
+        node_type = "Self"
         if self.mark_agent:
             node_type = "Agent"
-        # FIXME: insert player for locobot?
         self.db_write(
             "INSERT INTO Memories VALUES (?,?,?,?,?,?)",
             self.self_memid,
@@ -76,13 +92,26 @@ class SwarmWorkerMemory:
             -1,
             False,
         )
-        self.tag(self.self_memid, "_physical_object")
-        self.tag(self.self_memid, "_animate")
-        # this is a hack until memory_filters does "not"
-        self.tag(self.self_memid, "_not_location")
-        self.tag(self.self_memid, "AGENT")
-        self.tag(self.self_memid, "WORKER")
-        self.tag(self.self_memid, "alpha")
+        # NOTE: we weren't creating this: #153-157 before.
+        player_struct = None
+        if node_type == "Self":
+            SelfNode.create(self, player_struct, memid=self.self_memid)
+        elif node_type == "Agent":
+            AgentNode.create(self, player_struct, memid=self.self_memid)
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_physical_object")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_animate")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_not_location")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "AGENT")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "WORKER")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, agent_tag)
+
+        # self.make_self_mem(agent_tag=agent_tag, agent_type="WORKER")#, self_memid=self.self_memid)
+
+        # self.searcher = MemorySearcher()
+        # if place_field_pixels_per_unit > 0:
+        #     self.place_field = PlaceField(self, pixels_per_unit=place_field_pixels_per_unit)
+        # else:
+        #     self.place_field = EmptyPlaceField()
 
     def _db_command(self, command_name, *args):
         query_id = uuid.uuid4().hex
@@ -98,17 +127,11 @@ class SwarmWorkerMemory:
         del self.receive_dict[query_id]
         return to_return
 
-    def maybe_remove_inst_seg(self, xyz: XYZ):
-        # return default
-        return self._db_command("maybe_remove_inst_seg", xyz)
+    # def make_self_mem(self, agent_tag=None, agent_type="SELF"):#, self_memid=None):
+    #     return self._db_command("make_self_mem", agent_tag, agent_type)#, self_memid)
 
-    def maybe_add_block_to_memory(self, interesting, player_placed, agent_placed, xyz, idm):
-        return self._db_command(
-            "maybe_add_block_to_memory", interesting, player_placed, agent_placed, xyz, idm
-        )
-
-    def maybe_remove_block_from_memory(self, xyz, idm, areas_to_perceive):
-        return self._db_command("maybe_remove_block_from_memory", xyz, idm, areas_to_perceive)
+    def init_time_interface(self, agent_time=None):
+        return self._db_command("init_time_interface", agent_time)
 
     def get_time(self):
         return self._db_command("get_time")
@@ -152,89 +175,7 @@ class SwarmWorkerMemory:
     def basic_search(self, query):
         return self._db_command("basic_search", query)
 
-    def add_triple(
-        self,
-        subj: str = None,  # this is a memid if given
-        obj: str = None,  # this is a memid if given
-        subj_text: str = None,
-        pred_text: str = "has_tag",
-        obj_text: str = None,
-        confidence: float = 1.0,
-    ):
-        return self._db_command(
-            "add_triple", subj, obj, subj_text, pred_text, obj_text, confidence
-        )
-
-    def tag(self, subj_memid: str, tag_text: str):
-        return self._db_command("tag", subj_memid, tag_text)
-
-    def untag(self, subj_memid: str, tag_text: str):
-        return self._db_command("untag", subj_memid, tag_text)
-
-    def get_memids_by_tag(self, tag: str) -> List[str]:
-        return self._db_command("get_memids_by_tag", tag)
-
-    def get_tags_by_memid(self, subj_memid: str, return_text: bool = True) -> List[str]:
-        return self._db_command("get_tags_by_memid", subj_memid, return_text)
-
-    def get_triples(
-        self,
-        subj: str = None,
-        obj: str = None,
-        subj_text: str = None,
-        pred_text: str = None,
-        obj_text: str = None,
-        return_obj_text: str = "if_exists",
-    ) -> List[Tuple[str, str, str]]:
-        return self._db_command(
-            "get_triples", subj, obj, subj_text, pred_text, obj_text, return_obj_text
-        )
-
-    def add_chat(self, speaker_memid: str, chat: str) -> str:
-        return self._db_command("add_chat", speaker_memid, chat)
-
-    def get_chat_by_id(self, memid: str) -> "ChatNode":
-        return self._db_command("get_chat_by_id", memid)
-
-    def get_chat_id(self, speaker_id: str, chat: str) -> str:
-        return self._db_command("get_chat_id", speaker_id, chat)
-
-    def get_recent_chats(self, n=1) -> List["ChatNode"]:
-        return self._db_command("get_recent_chats", n)
-
-    def get_most_recent_incoming_chat(self, after=-1) -> Optional["ChatNode"]:
-        return self._db_command("get_most_recent_incoming_chat", after)
-
-    def add_logical_form(self, logical_form: dict):
-        return self._db_command("add_logical_form", logical_form)
-
-    def get_logical_form_by_id(self, memid: str) -> "ProgramNode":
-        return self._db_command("get_logical_form_by_id", memid)
-
-    def get_player_by_eid(self, eid) -> Optional["PlayerNode"]:
-        return self._db_command("get_player_by_eid", eid)
-
-    def get_player_by_name(self, name) -> Optional["PlayerNode"]:
-        return self._db_command("get_player_by_name", name)
-
-    def get_players_tagged(self, *tags) -> List["PlayerNode"]:
-        return self._db_command("get_players_tagged", *tags)
-
-    def get_player_by_id(self, memid) -> "PlayerNode":
-        return self._db_command("get_player_by_id", memid)
-
-    def add_location(self, xyz: XYZ) -> str:
-        return self._db_command("add_location", xyz)
-
-    def get_location_by_id(self, memid: str) -> "LocationNode":
-        return self._db_command("get_location_by_id", memid)
-
-    def add_time(self, t: int) -> str:
-        return self._db_command("add_time", t)
-
-    def get_time_by_id(self, memid: str) -> "TimeNode":
-        return self._db_command("get_time_by_id", memid)
-
+    
     def task_stack_push(
         self, task, parent_memid: str = None, chat_effect: bool = False
     ) -> "TaskNode":
@@ -281,7 +222,7 @@ class SwarmWorkerMemory:
             == "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, run_count, created) VALUES (?,?,?,?,?,?,?)"
         ):
             memid = args[0]
-            self.tag(memid, self.memory_tag)
+            self.nodes[TripleNode.NODE_TYPE].tag(self, memid, self.memory_tag)
         to_return = self._db_command("_db_write", query, *args)
         return to_return
 
@@ -338,62 +279,35 @@ class SwarmWorkerMemory:
 
     # ------------ minecraft agent memory commands ------------
 
+    def update(self, perception_output=None, areas_to_perceive = []):
+        return self._db_command("update", perception_output, areas_to_perceive)
+
+    # def maybe_add_block_to_memory(self, interesting, player_placed, agent_placed, xyz, idm):
+    #     return self._db_command("maybe_add_block_to_memory", interesting, player_placed, agent_placed, xyz, idm)
+
+    # def maybe_remove_block_from_memory(self, xyz: XYZ, idm: IDM, areas_to_perceive):
+    #     return self._db_command("maybe_remove_block_from_memory", xyz, idm, areas_to_perceive)
+
+    # def maybe_remove_inst_seg(self, xyz: XYZ):
+    #     return self._db_command("maybe_remove_inst_seg", xyz)
+
+    # def add_holes_to_mem(self, holes):
+    #     return self._db_command("add_holes_to_mem", holes)
+    
     def get_entity_by_eid(self, eid) -> Optional["ReferenceObjectNode"]:
         return self._db_command("get_entity_by_eid", eid)
-
-    def _update_voxel_count(self, memid, dn):
-        return self._db_command("_update_voxel_count", memid, dn)
-
-    def _update_voxel_mean(self, memid, count, loc):
-        return self._db_command("_update_voxel_mean", memid, count, loc)
-
-    def remove_voxel(self, x, y, z, ref_type):
-        return self._db_command("remove_voxel", self, x, y, z, ref_type)
-
-    def upsert_block(
-        self,
-        block: Block,
-        memid: str,
-        ref_type: str,
-        player_placed: bool = False,
-        agent_placed: bool = False,
-        update: bool = True,  # if update is set to False, forces a write
-    ):
-        return self._db_command(
-            "upsert_block", block, memid, ref_type, player_placed, agent_placed, update
-        )
-
-    def get_object_by_id(self, memid: str, table="BlockObjects") -> "VoxelObjectNode":
-        return self._db_command("get_object_by_id", memid, table)
 
     def get_object_info_by_xyz(self, xyz: XYZ, ref_type: str, just_memid=True):
         return self._db_command("get_object_info_by_xyz", xyz, ref_type, just_memid)
 
-    def get_block_object_ids_by_xyz(self, xyz: XYZ) -> List[str]:
-        return self._db_command("get_block_object_ids_by_xyz", xyz)
-
     def get_block_object_by_xyz(self, xyz: XYZ) -> Optional["VoxelObjectNode"]:
         return self._db_command("get_block_object_by_xyz", xyz)
-
-    def get_block_object_by_id(self, memid: str) -> "VoxelObjectNode":
-        return self._db_command("get_block_object_by_id", memid)
-
-    def tag_block_object_from_schematic(self, block_object_memid: str, schematic_memid: str):
-        return self._db_command(
-            "tag_block_object_from_schematic", block_object_memid, schematic_memid
-        )
 
     def get_instseg_object_ids_by_xyz(self, xyz: XYZ) -> List[str]:
         return self._db_command("get_instseg_object_ids_by_xyz", xyz)
 
-    def get_schematic_by_name(self, name: str) -> Optional["SchematicNode"]:
-        return self._db_command("get_schematic_by_name", name)
-
-    def convert_block_object_to_schematic(self, block_object_memid: str) -> "SchematicNode":
-        return self._db_command("convert_block_object_to_schematic", block_object_memid)
-
-    def set_mob_position(self, mob) -> "MobNode":
-        return self._db_command("set_mob_position", mob)
+    # def _load_mob_types(self, mobs, mob_property_data, load_mob_types=True):
+    #     return self._db_command("_load_mob_types", mobs, mob_property_data, load_mob_types)
 
     def update_item_stack_eid(self, memid, eid) -> "ItemStackNode":
         return self._db_command("update_item_stack_eid", memid, eid)
@@ -406,11 +320,11 @@ class SwarmWorkerMemory:
 
     # ------------ locobot agent memory commands ------------
 
-    def update_other_players(self, player_list: List):
-        return self._db_command("update_other_players", player_list)
+    # def update_other_players(self, player_list: List):
+    #     return self._db_command("update_other_players", player_list)
 
-    def get_detected_objects_tagged(self, *tags) -> List["DetectedObjectNode"]:
-        return self._db_command("get_detected_objects_tagged", *tags)
+    # def get_detected_objects_tagged(self, *tags) -> List["DetectedObjectNode"]:
+    #     return self._db_command("get_detected_objects_tagged", *tags)
 
-    def add_dance(self, dance_fn, name=None, tags=[]):
-        return self._db_command("add_dance", dance_fn, name, tags)
+    # def add_dance(self, dance_fn, name=None, tags=[]):
+    #     return self._db_command("add_dance", dance_fn, name, tags)

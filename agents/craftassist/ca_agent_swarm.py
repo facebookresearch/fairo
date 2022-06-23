@@ -34,6 +34,7 @@ def make_swarm_minecraft():
     set_start_method("spawn", force=True)
     opts.name = "swarm_master_bot"
     opts.mark_agent = True
+    opts.agent_tag = "beta"
     swarm_master_agent = CraftAssistAgent(opts) 
     # Init the wrapper around the master agent with above agent, opts and 
     master = SwarmMasterWrapper(agent=swarm_master_agent, worker_agents=[None] * num_workers, opts=opts)

@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from droidlet.memory.swarm_worker_memory import ForkedPdb
 from droidlet.task.task import ControlBlock, Task
-from droidlet.memory.memory_nodes import TaskNode
+from droidlet.memory.memory_nodes import TaskNode, TripleNode
 from droidlet.interpreter.craftassist import tasks
 
 # single agent task reference
@@ -65,12 +65,15 @@ class BaseSwarmTask(Task):
         if worker_idx == 0:
             # master agent, create and tag task
             t = TASK_MAP[task_name](self.agent, task_data)
-            self.agent.memory.tag(t.memid, self.agent.name)
+            self.agent.memory.nodes[TripleNode.NODE_TYPE].tag(self.agent.memory, t.memid, self.agent.name)
+            # self.agent.memory.tag(t.memid, self.agent.name)
         else:
             # tag children's tasks with them
             tmp_task = TASK_MAP[task_name](self.agent, task_data)
             # add special triple here: "_task_owner" -> agent_name
-            self.agent.memory.tag(tmp_task.memid, self.memory_tag.format(worker_idx))
+            self.agent.memory.nodes[TripleNode.NODE_TYPE].tag(self.agent.memory, tmp_task.memid, self.memory_tag.format(worker_idx))
+            
+            # self.agent.memory.tag(tmp_task.memid, self.memory_tag.format(worker_idx))
 
 
 class SwarmMove(BaseSwarmTask):

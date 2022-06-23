@@ -150,18 +150,18 @@ class SwarmWorkerMemory:
     def forget(self, memid):
         return self._db_command("forget", memid)
 
-    def add_triple(
-        self,
-        subj: str = None,  # this is a memid if given
-        obj: str = None,  # this is a memid if given
-        subj_text: str = None,
-        pred_text: str = "has_tag",
-        obj_text: str = None,
-        confidence: float = 1.0,
-    ):
-        return self._db_command(
-            "add_triple", self, subj, obj, subj_text, pred_text, obj_text, confidence
-        )
+    # def add_triple(
+    #     self,
+    #     subj: str = None,  # this is a memid if given
+    #     obj: str = None,  # this is a memid if given
+    #     subj_text: str = None,
+    #     pred_text: str = "has_tag",
+    #     obj_text: str = None,
+    #     confidence: float = 1.0,
+    # ):
+    #     return self._db_command(
+    #         "add_triple", self, subj, obj, subj_text, pred_text, obj_text, confidence
+    #     )
 
     def get_triples(
         self,
