@@ -1,42 +1,48 @@
 import React, {useState, useContext, useEffect, useCallback} from 'react';
 import Button from '@mui/material/Button';
 import {SocketContext} from '../context/socket';
+import { List, ListSubheader, ListItem, ListItemText } from '@mui/material';
 
 const Main = () => {
     const socket = useContext(SocketContext);
-    console.log(socket);
-    socket.on("connect", () => {
-        console.log(socket.connected); // true
-      });
-
-    const getJobList = () => {
-        socket.emit("my message", "hello");
-        // setJobList(['j1', 'j2', 'j3'])
-      }
     
     const [jobList, setJobList] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     const handleReceived = useCallback((data) => {
+        console.log("11111")
         console.log(data)
         setJobList(data)
+        setLoading(false)
     }, []);
 
+    const getJobList = () => {
+        socket.emit("get_job_list");
+        setLoading(true);
+    } 
+
     useEffect(() => {
-        socket.on("my message", (data) => handleReceived(data));
+        socket.on("get_job_list", (data) => handleReceived(data));
     }, [socket, handleReceived]);
 
     return (
         <div>
             <Button variant="contained" onClick={getJobList}>List Jobs</Button>
             <Button variant="contained" onClick={() => {console.log(socket)}}>console log</Button>
-            <div>
-            Job List
-            <div>
+            <List       
+                sx={{ width: '100%', maxWidth: 360, border: 'solid gray'}}
+                subheader={
+                    <ListSubheader>
+                        Job List
+                    </ListSubheader>
+            }>  
                 {
-                jobList.length !== 0 && jobList.map(job => (<div>{job}</div>))
+                    loading && <div>loading</div>
                 }
-            </div>
-            </div>
+                {
+                    jobList.length !== 0 && jobList.map(job => (<ListItem><ListItemText>{job}</ListItemText></ListItem>))
+                }
+            </List>
         </div>
         );
     
