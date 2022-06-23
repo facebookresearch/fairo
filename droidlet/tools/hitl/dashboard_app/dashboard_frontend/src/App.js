@@ -1,5 +1,5 @@
 import './App.css';
-import React, {useState} from 'react';
+import React from 'react';
 import {SocketContext, socket} from './context/socket';
 import Main from './component/main';
 
@@ -8,7 +8,7 @@ function App() {
     <SocketContext.Provider value={socket}>
       <div className="App">
         <h1>
-          Dashboard 111
+          Dashboard
         </h1>
         <Main />
       </div>
