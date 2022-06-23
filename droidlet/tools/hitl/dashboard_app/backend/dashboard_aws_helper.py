@@ -85,6 +85,7 @@ def _read_file(fname: str):
     return content
 
 
+
 def get_job_list():
     """
     helper method for preparing get_job_list api's response

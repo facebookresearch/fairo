@@ -113,5 +113,6 @@ def get_interaction_session_log(id_info_json):
     emit(DASHBOARD_EVENT.GET_INTERACTION_SESSION_LOG.value, log)
 
 
+
 if __name__ == "__main__":
     socketio.run(app)
