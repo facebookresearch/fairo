@@ -38,7 +38,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         gui: bool,
         use_grav_comp: bool = True,
         gravity: float = 9.81,
-        extract_config_from_rdf = True,
+        extract_config_from_rdf=True,
     ):
         self.robot_model_cfg = robot_model_cfg
         self.robot_description_path = get_full_path_to_urdf(
@@ -88,30 +88,32 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         if extract_config_from_rdf:
             print()
             print("************ CONFIG INFO ************")
-            num_joints = self.sim.getNumJoints(self.robot_id) 
+            num_joints = self.sim.getNumJoints(self.robot_id)
             # controlled joints
             # print("Num Joints:", num_joints)
             # num dofs
             for i in range(num_joints):
-                (jointIdx,
-                jointName,
-                jointType,
-                qIndex,
-                uIndex,
-                flags,
-                jointDamping,
-                jointFriction,
-                jointLowerLimit,
-                jointUpperLimit,
-                jointMaxForce,
-                jointMaxVelocity,
-                linkName,
-                jointAxis,
-                parentFramePos,
-                parentFrameOrn,
-                parentIdx) = self.sim.getJointInfo(self.robot_id, i)
+                (
+                    jointIdx,
+                    jointName,
+                    jointType,
+                    qIndex,
+                    uIndex,
+                    flags,
+                    jointDamping,
+                    jointFriction,
+                    jointLowerLimit,
+                    jointUpperLimit,
+                    jointMaxForce,
+                    jointMaxVelocity,
+                    linkName,
+                    jointAxis,
+                    parentFramePos,
+                    parentFrameOrn,
+                    parentIdx,
+                ) = self.sim.getJointInfo(self.robot_id, i)
 
-                print("Joint", jointName.decode('utf-8'))
+                print("Joint", jointName.decode("utf-8"))
                 # rest pose
                 # joint limit low
                 print("\tLimit low :", jointLowerLimit)
