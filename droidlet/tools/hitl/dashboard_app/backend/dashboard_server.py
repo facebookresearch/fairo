@@ -68,5 +68,6 @@ def get_info(batch_id):
     emit(DASHBOARD_EVENT.GET_RUN_INFO.value, run_info)
 
 
+
 if __name__ == "__main__":
     socketio.run(app)
