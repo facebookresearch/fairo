@@ -229,7 +229,7 @@ class EndToEndSemanticScout:
         print("Step", self.step_count)
 
         pose = mover.bot.get_base_state()
-        gps = np.array(pose[:2], dtype=np.float32)
+        gps = np.array([pose[0], -pose[1]], dtype=np.float32)
         compass = np.array(pose[2], dtype=np.float32)
 
         def preprocess_depth(depth, min_depth=0.5, max_depth=5.0):
@@ -265,18 +265,17 @@ class EndToEndSemanticScout:
         #     "depth": np.zeros((480, 640, 1), dtype=np.float32),
         # }
         obs = {
-            "objectgoal": self.object_goal_cat,
-            "gps": gps,
-            "compass": compass,
-            "rgb": rgb,
-            "depth": depth,
+            "objectgoal": self.object_goal_cat,  # looks good
+            "gps": gps,                          # looks good
+            "compass": compass,                  # looks good
+            "rgb": rgb,                          # looks good
+            "depth": depth,                      # looks good
         }
 
         t0 = time.time()
         action = self.agent.act(obs)
         t1 = time.time()
 
-        # TODO Compute relative (x, y, yaw) from action
         forward_dist = 0.25
         turn_angle = 30
 
@@ -292,6 +291,11 @@ class EndToEndSemanticScout:
             print("Action: left")
             x, y = 0, 0
             yaw = np.radians(turn_angle)
+        elif action == HabitatSimActions.STOP:
+            print("Action: stop")
+            self.finished = True
+        else:
+            print("Action not implemented yet!")
 
         print(f"Time {t1 - t0:.2f}")
         print()
