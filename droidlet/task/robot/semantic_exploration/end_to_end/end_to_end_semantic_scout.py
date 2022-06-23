@@ -257,6 +257,12 @@ class EndToEndSemanticScout:
         #  try without - 79 HFOV instead of 90
         #  done- 0.88 camera height instead of 0.6 (is it 0.6?)
 
+        # TODO
+        #  1. Visualize semantic prediction
+        #  2. Check if policy works in Habitat with (640, 480) obs reshaped
+        #  3. Get end-to-end pipeline running on robot
+        #  4. Preprocess robot depth frame to make it close to Habitat
+
         # obs = {
         #     "objectgoal": 0,
         #     "gps": np.zeros(2, dtype=np.float32),
@@ -300,7 +306,8 @@ class EndToEndSemanticScout:
         print(f"Time {t1 - t0:.2f}")
         print()
 
-        mover.bot.go_to_relative((x, y, yaw), wait=True)
+        if not self.finished:
+            mover.bot.go_to_relative((x, y, yaw), wait=True)
 
         # TODO Can we use localization to enforce deterministic actions
         #  with the same effect as in simulation (exactly 25cm forward and
