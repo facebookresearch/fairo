@@ -266,10 +266,10 @@ class EndToEndSemanticScout:
         # }
         obs = {
             "objectgoal": self.object_goal_cat,  # looks good
-            "gps": gps,                          # looks good
-            "compass": compass,                  # looks good
-            "rgb": rgb,                          # looks good
-            "depth": depth,                      # looks good
+            "gps": gps,  # looks good
+            "compass": compass,  # looks good
+            "rgb": rgb,  # looks good
+            "depth": depth,  # looks good
         }
 
         t0 = time.time()
