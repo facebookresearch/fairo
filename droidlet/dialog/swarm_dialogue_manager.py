@@ -19,7 +19,7 @@ class SwarmDialogueManager(DialogueManager):
         # fetch last m chats from memory
         all_chats = self.memory.nodes[ChatNode.NODE_TYPE].get_recent_chats(self.memory, n=m)
         chat_list_text = []
-        
+
         for chat in all_chats:
             # import ipdb;ipdb.set_trace()
             # does not need to interpret chats from swarm workers
@@ -35,7 +35,7 @@ class SwarmDialogueManager(DialogueManager):
             processed_status = self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
                 self.memory, subj=chat_memid, pred_text="has_tag", obj_text="uninterpreted"
             )
-            
+
             if logical_form_triples:
                 logical_form_memid = logical_form_triples[0][2]
 

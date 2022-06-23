@@ -870,7 +870,6 @@ class AgentNode(PlayerNode):
         return memid
 
 
-
 # locations should always be archives?
 class LocationNode(ReferenceObjectNode):
     """This is a ReferenceObjectNode representing a raw location

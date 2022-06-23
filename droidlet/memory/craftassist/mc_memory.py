@@ -80,7 +80,7 @@ class MCAgentMemory(AgentMemory):
             coordinate_transforms=coordinate_transforms,
             place_field_pixels_per_unit=place_field_pixels_per_unit,
             mark_agent=mark_agent,
-            agent_tag=agent_tag
+            agent_tag=agent_tag,
         )
         self.low_level_block_data = agent_low_level_data.get("block_data", {})
         self.banned_default_behaviors = []  # FIXME: move into triple store?
@@ -215,10 +215,14 @@ class MCAgentMemory(AgentMemory):
                 #         memid = PlayerNode.create(self, player)
                 # else:
                 #     memid = mem.memid
-                if "bot" in player.name and not self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self, player.entityId):
+                if "bot" in player.name and not self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(
+                    self, player.entityId
+                ):
                     # self.get_player_by_eid(player.entityId):
                     continue
-                mem = self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self, player.entityId)#self.get_player_by_eid(player.entityId)
+                mem = self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(
+                    self, player.entityId
+                )  # self.get_player_by_eid(player.entityId)
                 if mem is None:
                     memid = PlayerNode.create(self, player)
                 else:

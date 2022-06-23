@@ -90,7 +90,7 @@ class AgentMemory:
         on_delete_callback=None,
         place_field_pixels_per_unit=DEFAULT_PIXELS_PER_UNIT,
         mark_agent=False,
-        agent_tag=None
+        agent_tag=None,
     ):
         if db_log_path:
             self._db_log_file = gzip.open(db_log_path + ".gz", "w")
@@ -141,9 +141,9 @@ class AgentMemory:
         if getattr(self, "_db_log_file", None):
             self._db_log_file.close()
 
-    def make_self_mem(self, agent_tag=None, agent_type="SELF"):#, self_memid=None):
+    def make_self_mem(self, agent_tag=None, agent_type="SELF"):  # , self_memid=None):
         # create a "self" memory to reference in Triples
-        
+
         self.self_memid = "0" * len(uuid.uuid4().hex)
         node_type = "Self"
         if self.mark_agent:

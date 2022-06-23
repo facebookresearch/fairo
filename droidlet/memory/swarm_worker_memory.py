@@ -8,7 +8,7 @@ from droidlet.memory.memory_nodes import (
     ReferenceObjectNode,
     SelfNode,
     TimeNode,
-    NODELIST
+    NODELIST,
 )
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 from typing import Optional, List, Tuple, Sequence, Union
@@ -55,8 +55,17 @@ class ForkedPdb(pdb.Pdb):
 class SwarmWorkerMemory:
     """Represents the memory for the agent in Minecraft"""
 
-    def __init__(self, memory_send_queue, memory_receive_queue, memory_tag, mark_agent=False, agent_tag=None, nodelist=NODELIST, agent_time=None):
-        
+    def __init__(
+        self,
+        memory_send_queue,
+        memory_receive_queue,
+        memory_tag,
+        mark_agent=False,
+        agent_tag=None,
+        nodelist=NODELIST,
+        agent_time=None,
+    ):
+
         self.send_queue = memory_send_queue
         self.receive_queue = memory_receive_queue
         self.memory_tag = memory_tag
@@ -75,7 +84,7 @@ class SwarmWorkerMemory:
         #     for possible_child in nodelist:
         #         if node in possible_child.__mro__:
         #             self.node_children[node.NODE_TYPE].append(possible_child.NODE_TYPE)
-        
+
         # ForkedPdb().set_trace()
         self.self_memid = (
             "0" * (mem_id_len // 2) + uuid.uuid4().hex[: mem_id_len - mem_id_len // 2]
@@ -175,7 +184,6 @@ class SwarmWorkerMemory:
     def basic_search(self, query):
         return self._db_command("basic_search", query)
 
-    
     def task_stack_push(
         self, task, parent_memid: str = None, chat_effect: bool = False
     ) -> "TaskNode":
@@ -279,7 +287,7 @@ class SwarmWorkerMemory:
 
     # ------------ minecraft agent memory commands ------------
 
-    def update(self, perception_output=None, areas_to_perceive = []):
+    def update(self, perception_output=None, areas_to_perceive=[]):
         return self._db_command("update", perception_output, areas_to_perceive)
 
     # def maybe_add_block_to_memory(self, interesting, player_placed, agent_placed, xyz, idm):
@@ -293,7 +301,7 @@ class SwarmWorkerMemory:
 
     # def add_holes_to_mem(self, holes):
     #     return self._db_command("add_holes_to_mem", holes)
-    
+
     def get_entity_by_eid(self, eid) -> Optional["ReferenceObjectNode"]:
         return self._db_command("get_entity_by_eid", eid)
 
