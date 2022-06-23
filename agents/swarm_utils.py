@@ -154,9 +154,9 @@ def get_memory_handlers_dict(agent):
             "get_object_info_by_xyz": agent.memory.get_object_info_by_xyz,
             "get_block_object_by_xyz": agent.memory.get_block_object_by_xyz,
             "get_instseg_object_ids_by_xyz": agent.memory.get_instseg_object_ids_by_xyz,
-            "update_item_stack_eid": agent.memory.update_item_stack_eid,
-            "set_item_stack_position": agent.memory.set_item_stack_position,
-            "get_all_item_stacks": agent.memory.get_all_item_stacks
+            # "update_item_stack_eid": agent.memory.update_item_stack_eid,
+            # "set_item_stack_position": agent.memory.set_item_stack_position,
+            # "get_all_item_stacks": agent.memory.get_all_item_stacks
         
             # "_update_voxel_count": agent.memory._update_voxel_count,
             # "_update_voxel_mean": agent.memory._update_voxel_mean,
