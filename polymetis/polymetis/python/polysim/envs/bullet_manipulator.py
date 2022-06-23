@@ -86,9 +86,9 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             raise Exception(f"Unknown robot definition extension {ext}!")
 
         if extract_config_from_rdf:
-            print()
-            print("************ CONFIG INFO ************")
-            num_joints = self.sim.getNumJoints(self.robot_id)
+            log.info()
+            log.info("************ CONFIG INFO ************")
+            num_joints = self.sim.getNumJoints(self.robot_id) 
             for i in range(num_joints):
                 (
                     jointIdx,
@@ -110,11 +110,11 @@ class BulletManipulatorEnv(AbstractControlledEnv):
                     parentIdx,
                 ) = self.sim.getJointInfo(self.robot_id, i)
 
-                print("Joint", jointName.decode("utf-8"))
-                print("\tLimit low :", jointLowerLimit)
-                print("\tLimit High:", jointUpperLimit)
-                print("\tJoint Damping:", jointDamping)
-        print("*************************************")
+                log.info("Joint", jointName.decode('utf-8'))
+                log.info("\tLimit low :", jointLowerLimit)
+                log.info("\tLimit High:", jointUpperLimit)
+                log.info("\tJoint Damping:", jointDamping)
+            log.info("*************************************")
 
         # Enable torque control
         self.sim.setJointMotorControlArray(
