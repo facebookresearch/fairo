@@ -19,23 +19,15 @@ from droidlet.perception.robot.semantic_mapper.constants import coco_categories
 class RLSegFTAgent(Agent):
     def __init__(self, config: Config):
         if not config.MODEL_PATH:
-            raise Exception(
-                "Model checkpoint wasn't provided, quitting."
-            )
+            raise Exception("Model checkpoint wasn't provided, quitting.")
         if config.TORCH_GPU_ID >= 0:
             self.device = torch.device("cuda:{}".format(config.TORCH_GPU_ID))
         else:
             self.device = torch.device("cpu")
 
         ckpt_dict = torch.load(config.MODEL_PATH, map_location=self.device)["state_dict"]
-        ckpt_dict = {
-            k.replace("actor_critic.", ""): v
-            for k, v in ckpt_dict.items()
-        }
-        ckpt_dict = {
-            k.replace("module.", ""): v
-            for k, v in ckpt_dict.items()
-        }
+        ckpt_dict = {k.replace("actor_critic.", ""): v for k, v in ckpt_dict.items()}
+        ckpt_dict = {k.replace("module.", ""): v for k, v in ckpt_dict.items()}
 
         # Config
         self.config = config
@@ -47,22 +39,26 @@ class RLSegFTAgent(Agent):
         # Load spaces (manually)
         spaces = {
             "objectgoal": Box(
-                low=0, high=20,  # From matterport dataset
-                shape=(1,),
-                dtype=np.int64
+                low=0, high=20, shape=(1,), dtype=np.int64  # From matterport dataset
             ),
             "depth": Box(
                 low=0,
                 high=1,
-                shape=(config.TASK_CONFIG.SIMULATOR.DEPTH_SENSOR.HEIGHT,
-                        config.TASK_CONFIG.SIMULATOR.DEPTH_SENSOR.WIDTH, 1),
+                shape=(
+                    config.TASK_CONFIG.SIMULATOR.DEPTH_SENSOR.HEIGHT,
+                    config.TASK_CONFIG.SIMULATOR.DEPTH_SENSOR.WIDTH,
+                    1,
+                ),
                 dtype=np.float32,
             ),
             "rgb": Box(
                 low=0,
                 high=255,
-                shape=(config.TASK_CONFIG.SIMULATOR.RGB_SENSOR.HEIGHT,
-                        config.TASK_CONFIG.SIMULATOR.RGB_SENSOR.WIDTH, 3),
+                shape=(
+                    config.TASK_CONFIG.SIMULATOR.RGB_SENSOR.HEIGHT,
+                    config.TASK_CONFIG.SIMULATOR.RGB_SENSOR.WIDTH,
+                    3,
+                ),
                 dtype=np.uint8,
             ),
             "gps": Box(
@@ -71,12 +67,12 @@ class RLSegFTAgent(Agent):
                 shape=(2,),  # Spoof for model to be shaped correctly
                 dtype=np.float32,
             ),
-            "compass": Box(low=-np.pi, high=np.pi, shape=(1,), dtype=np.float)
+            "compass": Box(low=-np.pi, high=np.pi, shape=(1,), dtype=np.float),
         }
 
         observation_spaces = SpaceDict(spaces)
-        if 'action_distribution.linear.bias' in ckpt_dict:
-            num_acts = ckpt_dict['action_distribution.linear.bias'].size(0)
+        if "action_distribution.linear.bias" in ckpt_dict:
+            num_acts = ckpt_dict["action_distribution.linear.bias"].size(0)
         action_spaces = Discrete(num_acts)
 
         is_objectnav = "ObjectNav" in task_cfg.TYPE
@@ -105,7 +101,7 @@ class RLSegFTAgent(Agent):
                 self.device,
                 ckpt=self.model_cfg.SEMANTIC_ENCODER.rednet_ckpt,
                 resize=True,  # Since we train on half-vision
-                num_classes=self.model_cfg.SEMANTIC_ENCODER.num_classes
+                num_classes=self.model_cfg.SEMANTIC_ENCODER.num_classes,
             )
             self.semantic_predictor.eval()
 
@@ -117,9 +113,7 @@ class RLSegFTAgent(Agent):
             device=self.device,
         )
         self.not_done_masks = torch.zeros(1, 1, device=self.device, dtype=torch.bool)
-        self.prev_actions = torch.zeros(
-            1, 1, dtype=torch.long, device=self.device
-        )
+        self.prev_actions = torch.zeros(1, 1, dtype=torch.long, device=self.device)
 
         self.ep = 0
 
@@ -189,10 +183,7 @@ class EndToEndSemanticScout:
         python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
     """
 
-    def __init__(self,
-                 mover,
-                 object_goal: str,
-                 max_steps=400):
+    def __init__(self, mover, object_goal: str, max_steps=400):
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
@@ -209,11 +200,15 @@ class EndToEndSemanticScout:
         challenge_config_file = this_dir + "/configs/challenge_objectnav2022.local.rgbd.yaml"
         agent_config_file = this_dir + "/configs/rl_objectnav_sem_seg_hm3d.yaml"
         model_path = this_dir + "/ckpt/model.pth"
-        config = get_config(agent_config_file, ['BASE_TASK_CONFIG_PATH', challenge_config_file])
+        config = get_config(agent_config_file, ["BASE_TASK_CONFIG_PATH", challenge_config_file])
         config.defrost()
         config.MODEL_PATH = model_path
-        config.MODEL.SEMANTIC_ENCODER.rednet_ckpt = this_dir + "/" + config.MODEL.SEMANTIC_ENCODER.rednet_ckpt
-        config.MODEL.DEPTH_ENCODER.ddppo_checkpoint = this_dir + "/" + config.MODEL.DEPTH_ENCODER.ddppo_checkpoint
+        config.MODEL.SEMANTIC_ENCODER.rednet_ckpt = (
+            this_dir + "/" + config.MODEL.SEMANTIC_ENCODER.rednet_ckpt
+        )
+        config.MODEL.DEPTH_ENCODER.ddppo_checkpoint = (
+            this_dir + "/" + config.MODEL.DEPTH_ENCODER.ddppo_checkpoint
+        )
         config.TORCH_GPU_ID = -1
         config.freeze()
 
