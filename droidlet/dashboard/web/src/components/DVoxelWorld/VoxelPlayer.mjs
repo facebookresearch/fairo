@@ -26,10 +26,12 @@ class VoxelPlayer {
         this.cameraSpherical = new world.THREE.Spherical();
         this.highlightRay = new world.THREE.Raycaster();
         this.highlighter = new world.THREE.Mesh(
-            new world.THREE.CircleGeometry( 25, 32 ),
+            new world.THREE.CircleGeometry( 10, 32 ),
             new world.THREE.MeshBasicMaterial({ color: 0xffff00, side: world.THREE.DoubleSide })
         );
+        this.highlighter.visible = false;
         this.world.scene.add(this.highlighter);
+        this.tempVec = new world.THREE.Vector3();
     };
 
     move(x, y, z) {
@@ -169,12 +171,15 @@ class VoxelPlayer {
         );
         const intersects = this.highlightRay.intersectObjects( this.world.sceneItems, false );
         if ( intersects.length > 0 ) {
+            // There's a collision, show the highlighter at the point of collision
             this.highlighter.visible = true;
             this.highlighter.position.copy(intersects[0].point);
-            let tempVec = new this.world.THREE.Vector3( 0, 0, 1 );
-            tempVec.cross(intersects[0].face.normal);
-            this.highlighter.rotation.setFromVector3(tempVec.multiplyScalar(Math.PI/2));
-            // consider adding an offset for visibility
+
+            // Rotate to be parallel to the collision face and offset for visibility
+            this.tempVec.set( 0, 0, 1 );
+            this.tempVec.cross(intersects[0].face.normal);
+            this.highlighter.rotation.setFromVector3(this.tempVec.multiplyScalar(Math.PI/2));
+            this.highlighter.position.add(intersects[0].face.normal);
         } else {
             this.highlighter.visible = false;
         }

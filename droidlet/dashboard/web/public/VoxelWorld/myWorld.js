@@ -3359,11 +3359,13 @@ class VoxelPlayer {
     this.cameraLook = new world.THREE.Vector3();
     this.cameraSpherical = new world.THREE.Spherical();
     this.highlightRay = new world.THREE.Raycaster();
-    this.highlighter = new world.THREE.Mesh(new world.THREE.CircleGeometry(25, 32), new world.THREE.MeshBasicMaterial({
+    this.highlighter = new world.THREE.Mesh(new world.THREE.CircleGeometry(10, 32), new world.THREE.MeshBasicMaterial({
       color: 0xffff00,
       side: world.THREE.DoubleSide
     }));
+    this.highlighter.visible = false;
     this.world.scene.add(this.highlighter);
+    this.tempVec = new world.THREE.Vector3();
   }
 
   move(x, y, z) {
@@ -3497,11 +3499,14 @@ class VoxelPlayer {
     const intersects = this.highlightRay.intersectObjects(this.world.sceneItems, false);
 
     if (intersects.length > 0) {
+      // There's a collision, show the highlighter at the point of collision
       this.highlighter.visible = true;
-      this.highlighter.position.copy(intersects[0].point);
-      let tempVec = new this.world.THREE.Vector3(0, 0, 1);
-      tempVec.cross(intersects[0].face.normal);
-      this.highlighter.rotation.setFromVector3(tempVec.multiplyScalar(Math.PI / 2)); // console.log(this.highlighter.rotation);
+      this.highlighter.position.copy(intersects[0].point); // Rotate to be parallel to the collision face and offset for visibility
+
+      this.tempVec.set(0, 0, 1);
+      this.tempVec.cross(intersects[0].face.normal);
+      this.highlighter.rotation.setFromVector3(this.tempVec.multiplyScalar(Math.PI / 2));
+      this.highlighter.position.add(intersects[0].face.normal);
     } else {
       this.highlighter.visible = false;
     }
@@ -3656,13 +3661,12 @@ for (let ix = 0; ix < SL; ix++) {
 
 const MoveStep = 0.5; // normalized -- block length is 1 here
 
-let controlled_player;
-let agent_player;
+let controlled_player, agent_player;
 const AGENT_NAME = "craftassist_agent";
 const PLAYER_NAME = "dashboard_player";
 let mobs = {};
 let itemStacks = {};
-let cursorX, cursorY;
+let direction_vec = new THREE.Vector3();
 
 function pos2Name(x, y, z, box = false) {
   if (box) {
@@ -3670,59 +3674,50 @@ function pos2Name(x, y, z, box = false) {
   }
 
   return x + ',' + y + ',' + z;
-}
+} // function walkabout(obj, dist, world) {
+//     let dir = Math.floor(3 * Math.random());
+//     let choices = [-1, 1];
+//     let move = choices[Math.floor(choices.length * Math.random())] * dist;
+//     switch (dir) {
+//         case 0:
+//             if (obj.mesh.position.x < 500 && obj.mesh.position.x > -500){
+//                 obj.move(move, 0, 0);
+//             } else {
+//                 obj.moveTo(0,0,0);
+//             }
+//             break;
+//         case 1:
+//             // obj.move(0, move, 0);
+//             break;
+//         case 2:
+//             if (obj.mesh.position.z < 500 && obj.mesh.position.z > -500){
+//                 obj.move(0, 0, move);
+//             } else {
+//                 obj.moveTo(0,0,0);
+//             }
+//             break;
+//     }
+//     render();
+// }
 
-function walkabout(obj, dist, world) {
-  let dir = Math.floor(3 * Math.random());
-  let choices = [-1, 1];
-  let move = choices[Math.floor(choices.length * Math.random())] * dist;
-
-  switch (dir) {
-    case 0:
-      if (obj.mesh.position.x < 500 && obj.mesh.position.x > -500) {
-        obj.move(move, 0, 0);
-      } else {
-        obj.moveTo(0, 0, 0);
-      }
-
-      break;
-
-    case 1:
-      // obj.move(0, move, 0);
-      break;
-
-    case 2:
-      if (obj.mesh.position.z < 500 && obj.mesh.position.z > -500) {
-        obj.move(0, 0, move);
-      } else {
-        obj.moveTo(0, 0, 0);
-      }
-
-      break;
-  }
-
-  render();
-}
 
 function handleKeypress(e, player) {
-  let camera_vec, direction_vec, control_pos;
+  let camera_vec, control_pos;
   console.log(e.key);
 
   switch (e.key) {
     case "ArrowLeft":
-      player.rotate(0.1, 0);
+      player.rotate(0.1);
       break;
 
     case "ArrowRight":
-      player.rotate(-0.1, 0);
-      break;
+      player.rotate(-0.1);
+      break; // case "ArrowUp":
+      //     player.rotate(0, 0.1);
+      //     break;
+      // case "ArrowDown":
+      //     player.rotate(0, -0.1);
 
-    case "ArrowUp":
-      player.rotate(0, 0.1);
-      break;
-
-    case "ArrowDown":
-      player.rotate(0, -0.1);
       break;
 
     case "t":
@@ -3735,7 +3730,7 @@ function handleKeypress(e, player) {
 
     case "w":
       camera_vec = cameraVector();
-      direction_vec = new THREE.Vector3(camera_vec[0], 0, camera_vec[2]);
+      direction_vec.set(camera_vec[0], 0, camera_vec[2]);
       direction_vec.normalize();
       direction_vec.multiplyScalar(MoveStep * blockScale);
       control_pos = player.mesh.position;
@@ -3745,7 +3740,7 @@ function handleKeypress(e, player) {
 
     case "s":
       camera_vec = cameraVector();
-      direction_vec = new THREE.Vector3(-camera_vec[0], 0, -camera_vec[2]);
+      direction_vec.set(-camera_vec[0], 0, -camera_vec[2]);
       direction_vec.normalize();
       direction_vec.multiplyScalar(MoveStep * blockScale);
       control_pos = player.mesh.position;
@@ -3755,7 +3750,7 @@ function handleKeypress(e, player) {
 
     case "a":
       camera_vec = cameraVector();
-      direction_vec = new THREE.Vector3(camera_vec[2], 0, camera_vec[0]);
+      direction_vec.set(camera_vec[2], 0, -camera_vec[0]);
       direction_vec.normalize();
       direction_vec.multiplyScalar(MoveStep * blockScale);
       control_pos = player.mesh.position;
@@ -3765,7 +3760,7 @@ function handleKeypress(e, player) {
 
     case "d":
       camera_vec = cameraVector();
-      direction_vec = new THREE.Vector3(-camera_vec[2], 0, -camera_vec[0]);
+      direction_vec.set(-camera_vec[2], 0, camera_vec[0]);
       direction_vec.normalize();
       direction_vec.multiplyScalar(MoveStep * blockScale);
       control_pos = player.mesh.position;
@@ -4096,7 +4091,9 @@ class DVoxelEngine {
       const pos = key['pos'];
       const name = key['name'];
 
-      if (entityId in mobs) {// console.log("mob already exists, updating states")
+      if (entityId in mobs) {
+        // console.log("mob already exists, updating states")
+        mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
       } else {
         const mobOpts = {
           GLTFLoader: _GLTFLoader.GLTFLoader,
@@ -4105,12 +4102,8 @@ class DVoxelEngine {
         };
 
         _VoxelMob.VoxelMob.build(world, mobOpts).then(function (newMob) {
-          mobs[entityId] = newMob;
+          mobs[entityId] = newMob; // sceneItems.push(newMob);
         });
-      }
-
-      if (entityId in mobs) {
-        mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
       }
 
       mobsInWorld.add(entityId);
@@ -4132,7 +4125,9 @@ class DVoxelEngine {
       const pos = key['pos'];
       const name = key['name'];
 
-      if (entityId in itemStacks) {// console.log("item already exists, updating states")
+      if (entityId in itemStacks) {
+        // console.log("item already exists, updating states")
+        itemStacks[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
       } else {
         const itemStackOpts = {
           GLTFLoader: _GLTFLoader.GLTFLoader,
@@ -4141,12 +4136,8 @@ class DVoxelEngine {
         };
 
         _VoxelItem.VoxelItem.build(world, itemStackOpts).then(function (newItemStack) {
-          itemStacks[entityId] = newItemStack;
+          itemStacks[entityId] = newItemStack; // sceneItems.push(newItemStack);
         });
-      }
-
-      if (entityId in itemStacks) {
-        itemStacks[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
       }
 
       itemStacksInWorld.add(entityId);

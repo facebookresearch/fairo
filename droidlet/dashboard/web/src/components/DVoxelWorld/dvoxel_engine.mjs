@@ -75,16 +75,15 @@ for (let ix = 0; ix < SL; ix++) {
 
 const MoveStep = 0.5 // normalized -- block length is 1 here
 
-let controlled_player;
-let agent_player;
+let controlled_player, agent_player;
 const AGENT_NAME = "craftassist_agent";
 const PLAYER_NAME = "dashboard_player";
 
 let mobs = {}
 let itemStacks = {}
 
+let direction_vec = new THREE.Vector3();
 
-let cursorX, cursorY
 
 function pos2Name(x, y, z, box=false) {
     if (box) {
@@ -95,46 +94,46 @@ function pos2Name(x, y, z, box=false) {
 
 
 
-function walkabout(obj, dist, world) {
-    let dir = Math.floor(3 * Math.random());
-    let choices = [-1, 1];
-    let move = choices[Math.floor(choices.length * Math.random())] * dist;
-    switch (dir) {
-        case 0:
-            if (obj.mesh.position.x < 500 && obj.mesh.position.x > -500){
-                obj.move(move, 0, 0);
-            } else {
-                obj.moveTo(0,0,0);
-            }
-            break;
-        case 1:
-            // obj.move(0, move, 0);
-            break;
-        case 2:
-            if (obj.mesh.position.z < 500 && obj.mesh.position.z > -500){
-                obj.move(0, 0, move);
-            } else {
-                obj.moveTo(0,0,0);
-            }
-            break;
-    }
-    render();
-}
+// function walkabout(obj, dist, world) {
+//     let dir = Math.floor(3 * Math.random());
+//     let choices = [-1, 1];
+//     let move = choices[Math.floor(choices.length * Math.random())] * dist;
+//     switch (dir) {
+//         case 0:
+//             if (obj.mesh.position.x < 500 && obj.mesh.position.x > -500){
+//                 obj.move(move, 0, 0);
+//             } else {
+//                 obj.moveTo(0,0,0);
+//             }
+//             break;
+//         case 1:
+//             // obj.move(0, move, 0);
+//             break;
+//         case 2:
+//             if (obj.mesh.position.z < 500 && obj.mesh.position.z > -500){
+//                 obj.move(0, 0, move);
+//             } else {
+//                 obj.moveTo(0,0,0);
+//             }
+//             break;
+//     }
+//     render();
+// }
 function handleKeypress(e, player) {
-    let camera_vec, direction_vec, control_pos
+    let camera_vec, control_pos
     console.log(e.key)
     switch (e.key) {
         case "ArrowLeft":
-            player.rotate(0.1, 0);
+            player.rotate(0.1);
             break;
         case "ArrowRight":
-            player.rotate(-0.1, 0);
+            player.rotate(-0.1);
             break;
-        case "ArrowUp":
-            player.rotate(0, 0.1);
-            break;
-        case "ArrowDown":
-            player.rotate(0, -0.1);
+        // case "ArrowUp":
+        //     player.rotate(0, 0.1);
+        //     break;
+        // case "ArrowDown":
+        //     player.rotate(0, -0.1);
             break;
         case "t":
             player.toggle();
@@ -144,7 +143,7 @@ function handleKeypress(e, player) {
             break;
         case "w":
             camera_vec = cameraVector();
-            direction_vec = new THREE.Vector3(camera_vec[0], 0, camera_vec[2])
+            direction_vec.set(camera_vec[0], 0, camera_vec[2])
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
             control_pos = player.mesh.position;
@@ -153,7 +152,7 @@ function handleKeypress(e, player) {
             break;
         case "s":
             camera_vec = cameraVector();
-            direction_vec = new THREE.Vector3(-camera_vec[0], 0, -camera_vec[2])
+            direction_vec.set(-camera_vec[0], 0, -camera_vec[2])
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
             control_pos = player.mesh.position;
@@ -162,7 +161,7 @@ function handleKeypress(e, player) {
             break;
         case "a":
             camera_vec = cameraVector();
-            direction_vec = new THREE.Vector3(camera_vec[2], 0, camera_vec[0])
+            direction_vec.set(camera_vec[2], 0, -camera_vec[0])
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
             control_pos = player.mesh.position;
@@ -171,7 +170,7 @@ function handleKeypress(e, player) {
             break;   
         case "d":
             camera_vec = cameraVector();
-            direction_vec = new THREE.Vector3(-camera_vec[2], 0, -camera_vec[0])
+            direction_vec.set(-camera_vec[2], 0, camera_vec[0])
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
             control_pos = player.mesh.position;
@@ -511,6 +510,7 @@ class DVoxelEngine {
             const name = key['name']
             if (entityId in mobs) {
                 // console.log("mob already exists, updating states")
+                mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
             } else {
                 const mobOpts = {
                     GLTFLoader: GLTFLoader,
@@ -520,14 +520,12 @@ class DVoxelEngine {
                 VoxelMob.build(world, mobOpts).then(
                     function (newMob) {
                         mobs[entityId] = newMob;
+                        // sceneItems.push(newMob);
                     }
                 );
             }
-            if (entityId in mobs) {
-                mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale)
-            }
             
-            mobsInWorld.add(entityId)
+            mobsInWorld.add(entityId);
         })
     }
 
@@ -547,6 +545,7 @@ class DVoxelEngine {
             const name = key['name']
             if (entityId in itemStacks) {
                 // console.log("item already exists, updating states")
+                itemStacks[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
             } else {
                 const itemStackOpts = {
                     GLTFLoader: GLTFLoader,
@@ -556,14 +555,12 @@ class DVoxelEngine {
                 VoxelItem.build(world, itemStackOpts).then(
                     function (newItemStack) {
                         itemStacks[entityId] = newItemStack;
+                        // sceneItems.push(newItemStack);
                     }
                 );
             }
-            if (entityId in itemStacks) {
-                itemStacks[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale)
-            }
             
-            itemStacksInWorld.add(entityId)
+            itemStacksInWorld.add(entityId);
         })
     }
 
