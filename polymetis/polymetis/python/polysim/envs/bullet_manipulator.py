@@ -109,7 +109,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
                     parentIdx,
                 ) = self.sim.getJointInfo(self.robot_id, i)
 
-                log.info("Joint {}".format(jointName.decode('utf-8')))
+                log.info("Joint {}".format(jointName.decode("utf-8")))
                 log.info("\tLimit low : {}".format(jointLowerLimit))
                 log.info("\tLimit High: {}".format(jointUpperLimit))
                 log.info("\tJoint Damping: {}".format(jointDamping))
