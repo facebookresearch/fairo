@@ -12,9 +12,7 @@ from torch.nn.modules.container import Sequential
 from torch.nn.modules.conv import Conv2d
 
 
-def conv3x3(
-    in_planes: int, out_planes: int, stride: int = 1, groups: int = 1
-) -> Conv2d:
+def conv3x3(in_planes: int, out_planes: int, stride: int = 1, groups: int = 1) -> Conv2d:
     """3x3 convolution with padding"""
     return nn.Conv2d(
         in_planes,
@@ -29,9 +27,7 @@ def conv3x3(
 
 def conv1x1(in_planes: int, out_planes: int, stride: int = 1) -> Conv2d:
     """1x1 convolution"""
-    return nn.Conv2d(
-        in_planes, out_planes, kernel_size=1, stride=stride, bias=False
-    )
+    return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
 
 
 class BasicBlock(nn.Module):
@@ -162,9 +158,7 @@ class SEBottleneck(Bottleneck):
         downsample=None,
         cardinality=1,
     ):
-        super().__init__(
-            inplanes, planes, ngroups, stride, downsample, cardinality
-        )
+        super().__init__(inplanes, planes, ngroups, stride, downsample, cardinality)
 
         self.se = _build_se_branch(planes * self.expansion)
 
@@ -224,18 +218,14 @@ class ResNet(nn.Module):
             base_planes *= 2
 
         self.layer1 = self._make_layer(block, ngroups, base_planes, layers[0])
-        self.layer2 = self._make_layer(
-            block, ngroups, base_planes * 2, layers[1], stride=2
-        )
-        self.layer3 = self._make_layer(
-            block, ngroups, base_planes * 2 * 2, layers[2], stride=2
-        )
+        self.layer2 = self._make_layer(block, ngroups, base_planes * 2, layers[1], stride=2)
+        self.layer3 = self._make_layer(block, ngroups, base_planes * 2 * 2, layers[2], stride=2)
         self.layer4 = self._make_layer(
             block, ngroups, base_planes * 2 * 2 * 2, layers[3], stride=2
         )
 
         self.final_channels = self.inplanes
-        self.final_spatial_compress = 1.0 / (2 ** 5)
+        self.final_spatial_compress = 1.0 / (2**5)
 
     def _make_layer(
         self,
@@ -307,9 +297,7 @@ def resneXt50(in_channels, base_planes, ngroups):
 
 
 def se_resnet50(in_channels, base_planes, ngroups):
-    model = ResNet(
-        in_channels, base_planes, ngroups, SEBottleneck, [3, 4, 6, 3]
-    )
+    model = ResNet(in_channels, base_planes, ngroups, SEBottleneck, [3, 4, 6, 3])
 
     return model
 

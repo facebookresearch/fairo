@@ -62,6 +62,8 @@ mapping_mpcat40_to_goal21 = {
 
 
 SEMANTIC_EMBEDDING_SIZE = 4
+
+
 class SemSegSeqNet(Net):
     r"""A baseline sequence to sequence network that concatenates instruction,
     RGB, and depth encodings before decoding an action distribution with an RNN.
@@ -79,7 +81,7 @@ class SemSegSeqNet(Net):
         num_actions,
         device,
         goal_sensor_uuid=None,
-        additional_sensors=["gps", "compass"]
+        additional_sensors=["gps", "compass"],
     ):
         super().__init__()
         self.model_config = model_config
@@ -153,7 +155,7 @@ class SemSegSeqNet(Net):
                 output_size=model_config.SEMANTIC_ENCODER.output_size,
                 backbone=model_config.SEMANTIC_ENCODER.backbone,
                 trainable=model_config.SEMANTIC_ENCODER.train_encoder,
-                semantic_embedding_size=sem_embedding_size
+                semantic_embedding_size=sem_embedding_size,
             )
             sem_seg_output_size = model_config.SEMANTIC_ENCODER.output_size
             logger.info("Setting up Sem Seg model")
@@ -169,19 +171,14 @@ class SemSegSeqNet(Net):
         self.additional_sensors = additional_sensors
 
         if "gps" in additional_sensors:
-            input_gps_dim = observation_space.spaces[
-                "gps"
-            ].shape[0]
+            input_gps_dim = observation_space.spaces["gps"].shape[0]
             self.gps_embedding = nn.Linear(input_gps_dim, 32)
             rnn_input_size += 32
             logger.info("\n\nSetting up GPS sensor")
-        
+
         if "compass" in observation_space.spaces:
             assert (
-                observation_space.spaces["compass"].shape[
-                    0
-                ]
-                == 1
+                observation_space.spaces["compass"].shape[0] == 1
             ), "Expected compass with 2D rotation."
             input_compass_dim = 2  # cos and sin of the angle
             self.compass_embedding_dim = 32
@@ -191,17 +188,12 @@ class SemSegSeqNet(Net):
 
         if self.goal_sensor_uuid is not None and self.goal_sensor_uuid != "no_sensor":
             self._n_object_categories = (
-                int(
-                    observation_space.spaces[self.goal_sensor_uuid].high[0]
-                )
-                + 1
+                int(observation_space.spaces[self.goal_sensor_uuid].high[0]) + 1
             )
 
             if self.is_thda:
                 self._n_object_categories += 7
-            self.obj_categories_embedding = nn.Embedding(
-                self._n_object_categories, 32
-            )
+            self.obj_categories_embedding = nn.Embedding(self._n_object_categories, 32)
             rnn_input_size += 32
             logger.info("\n\nSetting up Object Goal sensor")
 
@@ -222,7 +214,9 @@ class SemSegSeqNet(Net):
 
             for key, value in mapping_mpcat40_to_goal21.items():
                 self.mapping_mpcat40_to_goal[key] = value
-            self.mapping_mpcat40_to_goal = torch.tensor(self.mapping_mpcat40_to_goal, device=device)
+            self.mapping_mpcat40_to_goal = torch.tensor(
+                self.mapping_mpcat40_to_goal, device=device
+            )
             rnn_input_size += 1
 
         self.state_encoder = RNNStateEncoder(
@@ -248,23 +242,25 @@ class SemSegSeqNet(Net):
 
     def get_semantic_observations(self, observations_batch):
         with torch.no_grad():
-            semantic_observations = self.semantic_predictor(observations_batch["rgb"], observations_batch["depth"])
+            semantic_observations = self.semantic_predictor(
+                observations_batch["rgb"], observations_batch["depth"]
+            )
             return semantic_observations
 
     def _extract_sge(self, observations):
         # recalculating to keep this self-contained instead of depending on training infra
         if "semantic" in observations and "objectgoal" in observations:
             obj_semantic = observations["semantic"].flatten(start_dim=1)
-            idx = self.task_cat2mpcat40[
-                observations["objectgoal"].long()
-            ]
+            idx = self.task_cat2mpcat40[observations["objectgoal"].long()]
             if self.is_thda:
                 # logger.info("idx: {}".format(idx.shape))
                 idx = self.mapping_mpcat40_to_goal[idx].long()
                 # logger.info("idx: {}".format(idx.shape))
             idx = idx.to(obj_semantic.device)
 
-            goal_visible_pixels = (obj_semantic == idx.squeeze(0)).sum(dim=1) # Sum over all since we're not batched
+            goal_visible_pixels = (obj_semantic == idx.squeeze(0)).sum(
+                dim=1
+            )  # Sum over all since we're not batched
             goal_visible_area = torch.true_divide(goal_visible_pixels, obj_semantic.size(-1))
 
             return goal_visible_area.unsqueeze(-1)
@@ -283,7 +279,7 @@ class SemSegSeqNet(Net):
             observations["rgb"] = rgb_obs.contiguous().view(
                 -1, rgb_obs.size(2), rgb_obs.size(3), rgb_obs.size(4)
             )
-        
+
         if len(depth_obs.size()) == 5:
             observations["depth"] = depth_obs.contiguous().view(
                 -1, depth_obs.size(2), depth_obs.size(3), depth_obs.size(4)
@@ -306,7 +302,7 @@ class SemSegSeqNet(Net):
             if len(obs_gps.size()) == 3:
                 obs_gps = obs_gps.contiguous().view(-1, obs_gps.size(2))
             x.append(self.gps_embedding(obs_gps))
-        
+
         if "compass" in self.additional_sensors:
             obs_compass = observations["compass"]
             if len(obs_compass.size()) == 3:
@@ -325,7 +321,7 @@ class SemSegSeqNet(Net):
             object_goal = observations["objectgoal"].long()
             if len(object_goal.size()) == 3:
                 object_goal = object_goal.contiguous().view(-1, object_goal.size(2))
-            
+
             x.append(self.obj_categories_embedding(object_goal).squeeze(dim=1))
 
         if self.model_config.SEQ2SEQ.use_prev_action:
@@ -348,7 +344,7 @@ class SemSegSeqHM3DModel(nn.Module):
         model_config: Config,
         device,
         goal_sensor_uuid=None,
-        additional_sensors=["gps", "compass"]
+        additional_sensors=["gps", "compass"],
     ):
         super().__init__()
         self.net = SemSegSeqNet(
@@ -357,13 +353,11 @@ class SemSegSeqHM3DModel(nn.Module):
             num_actions=action_space.n,
             device=device,
             goal_sensor_uuid=goal_sensor_uuid,
-            additional_sensors=additional_sensors
+            additional_sensors=additional_sensors,
         )
-        self.action_distribution = CategoricalNet(
-            self.net.output_size, action_space.n
-        )
+        self.action_distribution = CategoricalNet(self.net.output_size, action_space.n)
         self.train()
-    
+
     def forward(
         self, observations, rnn_hidden_states, prev_actions, masks
     ) -> CustomFixedCategorical:

@@ -39,15 +39,14 @@ from .models.common import (
     overwrite_gym_box_shape,
 )
 
+
 class ObservationTransformer(nn.Module, metaclass=abc.ABCMeta):
     """This is the base ObservationTransformer class that all other observation
     Transformers should extend. from_config must be implemented by the transformer.
     transform_observation_space is only needed if the observation_space ie.
     (resolution, range, or num of channels change)."""
 
-    def transform_observation_space(
-        self, observation_space: spaces.Dict, **kwargs
-    ):
+    def transform_observation_space(self, observation_space: spaces.Dict, **kwargs):
         return observation_space
 
     @classmethod
@@ -55,9 +54,7 @@ class ObservationTransformer(nn.Module, metaclass=abc.ABCMeta):
     def from_config(cls, config: Config):
         pass
 
-    def forward(
-        self, observations: Dict[str, torch.Tensor]
-    ) -> Dict[str, torch.Tensor]:
+    def forward(self, observations: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         return observations
 
 
@@ -80,10 +77,10 @@ class ResizeShortestEdge(ObservationTransformer):
         self._size: int = size
         self.channels_last: bool = channels_last
         self.trans_keys: Tuple[str] = trans_keys
-        self._mode_map = { # Map according to dtype typed in keys for clarity
-            'semantic': 'nearest',
-            'rgb': 'nearest', # rgb is a long
-            'depth': 'area'
+        self._mode_map = {  # Map according to dtype typed in keys for clarity
+            "semantic": "nearest",
+            "rgb": "nearest",  # rgb is a long
+            "depth": "area",
         }
 
     def transform_observation_space(
@@ -97,12 +94,10 @@ class ResizeShortestEdge(ObservationTransformer):
                 if key in self.trans_keys:
                     # In the observation space dict, the channels are always last
                     obs_shape = observation_space.spaces[key]
-                    if key == 'semantic': # Doesn't come with a channel
+                    if key == "semantic":  # Doesn't come with a channel
                         h, w = obs_shape.shape
                     else:
-                        h, w = get_image_height_width(
-                            obs_shape, channels_last=True
-                        )
+                        h, w = get_image_height_width(obs_shape, channels_last=True)
                     if size == min(h, w):
                         continue
                     scale = size / min(h, w)
@@ -119,22 +114,22 @@ class ResizeShortestEdge(ObservationTransformer):
                     )
         return observation_space
 
-    def _transform_obs(self, obs: torch.Tensor, mode: str='area') -> torch.Tensor:
+    def _transform_obs(self, obs: torch.Tensor, mode: str = "area") -> torch.Tensor:
         return image_resize_shortest_edge(
             obs, self._size, channels_last=self.channels_last, mode=mode
         )
 
     @torch.no_grad()
-    def forward(
-        self, observations: Dict[str, torch.Tensor]
-    ) -> Dict[str, torch.Tensor]:
+    def forward(self, observations: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         if self._size is not None:
+
             def transform_sensor(key):
                 raw = observations[key]
-                if key == 'semantic':
+                if key == "semantic":
                     raw = raw.unsqueeze(-1)
                 changed = self._transform_obs(raw, mode=self._mode_map[key])
-                return changed.squeeze(-1) if key == 'semantic' else changed
+                return changed.squeeze(-1) if key == "semantic" else changed
+
             observations.update(
                 {
                     sensor: transform_sensor(sensor)
@@ -180,10 +175,7 @@ class CenterCropper(ObservationTransformer):
         observation_space = copy.deepcopy(observation_space)
         if size:
             for key in observation_space.spaces:
-                if (
-                    key in self.trans_keys
-                    and observation_space.spaces[key].shape[-3:-1] != size
-                ):
+                if key in self.trans_keys and observation_space.spaces[key].shape[-3:-1] != size:
                     h, w = get_image_height_width(
                         observation_space.spaces[key], channels_last=True
                     )
@@ -206,9 +198,7 @@ class CenterCropper(ObservationTransformer):
         )
 
     @torch.no_grad()
-    def forward(
-        self, observations: Dict[str, torch.Tensor]
-    ) -> Dict[str, torch.Tensor]:
+    def forward(self, observations: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         if self._size is not None:
             observations.update(
                 {
@@ -267,9 +257,7 @@ class CameraProjection(metaclass=abc.ABCMeta):
             self.R = None
 
     @abc.abstractmethod
-    def projection(
-        self, world_pts: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def projection(self, world_pts: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """Project points in world coord onto image planes.
         Args:
             world_pts: 3D points in world coord
@@ -279,9 +267,7 @@ class CameraProjection(metaclass=abc.ABCMeta):
         """
 
     @abc.abstractmethod
-    def unprojection(
-        self, with_rotation: bool = True
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def unprojection(self, with_rotation: bool = True) -> Tuple[torch.Tensor, torch.Tensor]:
         """Unproject 2D image points onto unit sphere.
         Args:
             with_rotation: If True, unprojected points is in world coord.
@@ -357,17 +343,13 @@ class PerspectiveProjection(CameraProjection):
         f: (float) the focal length of camera
         R: (torch.Tensor) 3x3 rotation matrix of camera
         """
-        super(PerspectiveProjection, self).__init__(
-            img_h, img_w, R, _DepthFrom.Z_VAL
-        )
+        super(PerspectiveProjection, self).__init__(img_h, img_w, R, _DepthFrom.Z_VAL)
         if f is None:
             self.f = max(img_h, img_w) / 2
         else:
             self.f = f
 
-    def projection(
-        self, world_pts: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def projection(self, world_pts: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         # Rotate world points according to camera rotation
         world_pts = self.worldcoord2camcoord(world_pts)
 
@@ -388,12 +370,8 @@ class PerspectiveProjection(CameraProjection):
         valid_mask *= img_pts[..., 2] > 0
         return proj_pts, valid_mask
 
-    def unprojection(
-        self, with_rotation: bool = True
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        v, u = torch.meshgrid(
-            torch.arange(self.img_h), torch.arange(self.img_w)
-        )
+    def unprojection(self, with_rotation: bool = True) -> Tuple[torch.Tensor, torch.Tensor]:
+        v, u = torch.meshgrid(torch.arange(self.img_h), torch.arange(self.img_w))
         x = (u + 0.5) - self.img_w / 2
         y = (v + 0.5) - self.img_h / 2
         z = torch.full_like(x, self.f, dtype=torch.float)
@@ -413,9 +391,7 @@ class PerspectiveProjection(CameraProjection):
 class EquirectProjection(CameraProjection):
     """This is the equirectanglar camera projection class."""
 
-    def __init__(
-        self, img_h: int, img_w: int, R: Optional[torch.Tensor] = None
-    ):
+    def __init__(self, img_h: int, img_w: int, R: Optional[torch.Tensor] = None):
         """Args:
         img_h: (int) the height of equirectanglar camera image
         img_w: (int) the width of equirectanglar camera image
@@ -423,9 +399,7 @@ class EquirectProjection(CameraProjection):
         """
         super(EquirectProjection, self).__init__(img_h, img_w, R)
 
-    def projection(
-        self, world_pts: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def projection(self, world_pts: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         # Rotate world points according to camera rotation
         world_pts = self.worldcoord2camcoord(world_pts)
 
@@ -444,9 +418,7 @@ class EquirectProjection(CameraProjection):
         valid_mask = torch.full(proj_pts.shape[:2], True, dtype=torch.bool)
         return proj_pts, valid_mask
 
-    def unprojection(
-        self, with_rotation: bool = True
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def unprojection(self, with_rotation: bool = True) -> Tuple[torch.Tensor, torch.Tensor]:
         theta_map, phi_map = self.get_theta_phi_map(self.img_h, self.img_w)
         unproj_pts = self.angle2sphere(theta_map, phi_map)
         # All points in image are valid
@@ -456,9 +428,7 @@ class EquirectProjection(CameraProjection):
             unproj_pts = self.camcoord2worldcoord(unproj_pts)
         return unproj_pts, valid_mask
 
-    def get_theta_phi_map(
-        self, img_h: int, img_w: int
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_theta_phi_map(self, img_h: int, img_w: int) -> Tuple[torch.Tensor, torch.Tensor]:
         """Get theta and phi map for equirectangular image.
         PI < theta_map < PI,  PI/2 < phi_map < PI/2
         """
@@ -467,17 +437,13 @@ class EquirectProjection(CameraProjection):
         phi_map = (phi + 0.5) * np.pi / img_h - np.pi / 2
         return theta_map, phi_map
 
-    def angle2sphere(
-        self, theta_map: torch.Tensor, phi_map: torch.Tensor
-    ) -> torch.Tensor:
+    def angle2sphere(self, theta_map: torch.Tensor, phi_map: torch.Tensor) -> torch.Tensor:
         """Project points on unit sphere based on theta and phi map."""
         sin_theta = torch.sin(theta_map)
         cos_theta = torch.cos(theta_map)
         sin_phi = torch.sin(phi_map)
         cos_phi = torch.cos(phi_map)
-        return torch.stack(
-            [cos_phi * sin_theta, sin_phi, cos_phi * cos_theta], dim=-1
-        )
+        return torch.stack([cos_phi * sin_theta, sin_phi, cos_phi * cos_theta], dim=-1)
 
 
 class FisheyeProjection(CameraProjection):
@@ -515,9 +481,7 @@ class FisheyeProjection(CameraProjection):
         self.fov_cos = np.cos(fov_rad / 2)
         self.fish_param = [cx, cy, fx, fy, xi, alpha]
 
-    def projection(
-        self, world_pts: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def projection(self, world_pts: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         # Rotate world points according to camera rotation
         world_pts = self.worldcoord2camcoord(world_pts)
 
@@ -559,22 +523,16 @@ class FisheyeProjection(CameraProjection):
 
         return proj_pts, valid_mask
 
-    def unprojection(
-        self, with_rotation: bool = True
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def unprojection(self, with_rotation: bool = True) -> Tuple[torch.Tensor, torch.Tensor]:
         # Unpack parameters
         cx, cy, fx, fy, xi, alpha = self.fish_param
 
         # Calculate unprojection
-        v, u = torch.meshgrid(
-            [torch.arange(self.img_h), torch.arange(self.img_w)]
-        )
+        v, u = torch.meshgrid([torch.arange(self.img_h), torch.arange(self.img_w)])
         mx = (u - cx) / fx
         my = (v - cy) / fy
         r2 = mx * mx + my * my
-        mz = (1 - alpha * alpha * r2) / (
-            alpha * torch.sqrt(1 - (2 * alpha - 1) * r2) + 1 - alpha
-        )
+        mz = (1 - alpha * alpha * r2) / (alpha * torch.sqrt(1 - (2 * alpha - 1) * r2) + 1 - alpha)
         mz2 = mz * mz
 
         k1 = mz * xi + torch.sqrt(mz2 + (1 - xi * xi) * r2)
@@ -627,32 +585,24 @@ class ProjectionConverter(nn.Module):
         # Check image size
         input_size = self.input_models[0].size()
         for it in self.input_models:
-            assert (
-                input_size == it.size()
-            ), "All input models must have the same image size"
+            assert input_size == it.size(), "All input models must have the same image size"
 
         output_size = self.output_models[0].size()
         for it in self.output_models:
-            assert (
-                output_size == it.size()
-            ), "All output models must have the same image size"
+            assert output_size == it.size(), "All output models must have the same image size"
 
         # Check if depth conversion is required
         # If depth is in z value in input, conversion is required
         self.input_zfactor = self.calculate_zfactor(self.input_models)
         # If depth is in z value in output, inverse conversion is required
-        self.output_zfactor = self.calculate_zfactor(
-            self.output_models, inverse=True
-        )
+        self.output_zfactor = self.calculate_zfactor(self.output_models, inverse=True)
 
         # grids shape: (output_len, input_len, output_img_h, output_img_w, 2)
         self.grids = self.generate_grid()
         # _grids_cache shape: (batch_size*output_len*input_len, output_img_h, output_img_w, 2)
         self._grids_cache = None
 
-    def _generate_grid_one_output(
-        self, output_model: CameraProjection
-    ) -> torch.Tensor:
+    def _generate_grid_one_output(self, output_model: CameraProjection) -> torch.Tensor:
         # Obtain points on unit sphere
         world_pts, not_assigned_mask = output_model.unprojection()
         # Generate grid
@@ -729,14 +679,11 @@ class ProjectionConverter(nn.Module):
         )
 
         # Cache the repeated grids for subsequent batches
-        if (
-            self._grids_cache is None
-            or self._grids_cache.size()[0] != multi_out_batch.size()[0]
-        ):
+        if self._grids_cache is None or self._grids_cache.size()[0] != multi_out_batch.size()[0]:
             # batch size is more than one
-            self._grids_cache = self.grids.repeat(
-                num_input_set, 1, 1, 1, 1
-            ).view(batch_size * self.output_len, out_h, out_w, 2)
+            self._grids_cache = self.grids.repeat(num_input_set, 1, 1, 1, 1).view(
+                batch_size * self.output_len, out_h, out_w, 2
+            )
         self._grids_cache = self._grids_cache.to(batch.device)
 
         return self._convert(multi_out_batch)
@@ -764,9 +711,7 @@ class ProjectionConverter(nn.Module):
                 zval_to_optcenter = 1 / pts_on_sphere[..., 2]
                 z_factors.append(zval_to_optcenter.unsqueeze(0))
             else:
-                all_one = torch.full(
-                    (1, cam.img_h, cam.img_w), 1.0, dtype=torch.float
-                )
+                all_one = torch.full((1, cam.img_h, cam.img_w), 1.0, dtype=torch.float)
                 z_factors.append(all_one)
         z_factors = torch.stack(z_factors)
 
@@ -781,9 +726,7 @@ class ProjectionConverter(nn.Module):
                 # for output_models
                 return 1 / z_factors
 
-    def forward(
-        self, batch: torch.Tensor, is_depth: bool = False
-    ) -> torch.Tensor:
+    def forward(self, batch: torch.Tensor, is_depth: bool = False) -> torch.Tensor:
 
         # Depth conversion for input tensors
         if is_depth and self.input_zfactor is not None:
@@ -803,9 +746,7 @@ class ProjectionConverter(nn.Module):
         return out
 
 
-def get_cubemap_projections(
-    img_h: int = 256, img_w: int = 256
-) -> List[CameraProjection]:
+def get_cubemap_projections(img_h: int = 256, img_w: int = 256) -> List[CameraProjection]:
     """Get cubemap camera projections that consist of six PerspectiveCameras.
     The orders are 'BACK', 'DOWN', 'FRONT', 'LEFT', 'RIGHT', 'UP'.
     Args:
@@ -855,9 +796,7 @@ class Cube2Equirect(ProjectionConverter):
 
         # Equirectangular output
         output_projection = EquirectProjection(equ_h, equ_w)
-        super(Cube2Equirect, self).__init__(
-            input_projections, output_projection
-        )
+        super(Cube2Equirect, self).__init__(input_projections, output_projection)
 
 
 class ProjectionTransformer(ObservationTransformer):
@@ -911,9 +850,7 @@ class ProjectionTransformer(ObservationTransformer):
             assert (
                 key in observation_space.spaces
             ), f"{key} not found in observation space: {observation_space.spaces}"
-            h, w = get_image_height_width(
-                observation_space.spaces[key], channels_last=True
-            )
+            h, w = get_image_height_width(observation_space.spaces[key], channels_last=True)
             in_len = self.converter.input_len
             # print(
             # # logger.info(
@@ -927,9 +864,7 @@ class ProjectionTransformer(ObservationTransformer):
         return observation_space
 
     @torch.no_grad()
-    def forward(
-        self, observations: Dict[str, torch.Tensor]
-    ) -> Dict[str, torch.Tensor]:
+    def forward(self, observations: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
 
         for i, target_sensor_uuid in enumerate(self.target_uuids):
             # number of input and input sensor uuids
@@ -1046,12 +981,8 @@ class Cube2Fisheye(ProjectionConverter):
         input_projections = get_cubemap_projections()
 
         # Fisheye output
-        output_projection = FisheyeProjection(
-            fish_h, fish_w, fish_fov, cx, cy, fx, fy, xi, alpha
-        )
-        super(Cube2Fisheye, self).__init__(
-            input_projections, output_projection
-        )
+        output_projection = FisheyeProjection(fish_h, fish_w, fish_fov, cx, cy, fx, fy, xi, alpha)
+        super(Cube2Fisheye, self).__init__(input_projections, output_projection)
 
 
 class CubeMap2Fisheye(ProjectionTransformer):
@@ -1084,9 +1015,7 @@ class CubeMap2Fisheye(ProjectionTransformer):
         :param depth_key: If sensor_uuids has depth_key substring, they are processed as depth
         """
 
-        assert (
-            len(fish_params) == 3
-        ), "fish_params must have three parameters (f, xi, alpha)"
+        assert len(fish_params) == 3, "fish_params must have three parameters (f, xi, alpha)"
         # fisheye camera parameters
         fx = fish_params[0] * min(fish_shape)
         fy = fx
@@ -1142,9 +1071,7 @@ class Equirect2Cube(ProjectionConverter):
 
         #  Cubemap output
         output_projections = get_cubemap_projections(img_h, img_w)
-        super(Equirect2Cube, self).__init__(
-            input_projection, output_projections
-        )
+        super(Equirect2Cube, self).__init__(input_projection, output_projections)
 
 
 class Equirect2CubeMap(ProjectionTransformer):
@@ -1201,16 +1128,12 @@ class Equirect2CubeMap(ProjectionTransformer):
 def get_active_obs_transforms(config: Config) -> List[ObservationTransformer]:
     active_obs_transforms = []
     if hasattr(config.RL.POLICY, "OBS_TRANSFORMS"):
-        obs_transform_names = (
-            config.RL.POLICY.OBS_TRANSFORMS.ENABLED_TRANSFORMS
-        )
+        obs_transform_names = config.RL.POLICY.OBS_TRANSFORMS.ENABLED_TRANSFORMS
         for obs_transform_name in obs_transform_names:
             # obs_trans_cls = baseline_registry.get_obs_transformer(
             #     obs_transform_name
             # )
-            obs_trans_cls = SIMPLE_REGISTRY[
-                obs_transform_name
-            ]
+            obs_trans_cls = SIMPLE_REGISTRY[obs_transform_name]
             obs_transform = obs_trans_cls.from_config(config)
             active_obs_transforms.append(obs_transform)
     return active_obs_transforms
@@ -1232,7 +1155,8 @@ def apply_obs_transforms_obs_space(
         obs_space = obs_transform.transform_observation_space(obs_space)
     return obs_space
 
+
 SIMPLE_REGISTRY = {
-    'ResizeShortestEdge': ResizeShortestEdge,
-    'CenterCropper': CenterCropper,
+    "ResizeShortestEdge": ResizeShortestEdge,
+    "CenterCropper": CenterCropper,
 }
