@@ -30,7 +30,6 @@ s3 = boto3.resource(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
 
-
 class TestAWSHelper(unittest.TestCase):
     def setUp(self):
         self._info_fname = f"job_management_records/{VALID_ID}.json"
@@ -44,12 +43,10 @@ class TestAWSHelper(unittest.TestCase):
     def test_get_job_list(self):
         res = get_job_list()
         self.assertGreater(len(res), 0)
-
     def test_get_traceback_by_id_valid(self):
         res = get_traceback_by_id(VALID_ID)
         self.assertIsNotNone(res)
         self.assertNotEqual(res, f"cannot find traceback with id {VALID_ID}")
-
     def test_get_traceback_by_id_invalid(self):
         res = get_traceback_by_id(INVALID_ID)
         self.assertEqual(res, f"cannot find traceback with id {INVALID_ID}")
@@ -70,12 +67,10 @@ class TestAWSHelper(unittest.TestCase):
         # remove from local temp directory as well
         local_info_fname = os.path.join(HITL_TMP_DIR, self._info_fname)
         local_traceback_fname = os.path.join(HITL_TMP_DIR, self._traceback_fname)
-
         if os.path.exists(local_info_fname):
             os.remove(local_info_fname)
         if os.path.exists(local_traceback_fname):
             os.remove(local_traceback_fname)
-
 
 if __name__ == "__main__":
     unittest.main()
