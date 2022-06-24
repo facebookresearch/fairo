@@ -121,14 +121,12 @@
 
 <div class="viewcode-block" id="NSPBertModel"><a class="viewcode-back" href="../../../../../controller.html#droidlet.perception.semantic_parsing.nsp_transformer_model.query_model.NSPBertModel">[docs]</a><span class="k">class</span> <span class="nc">NSPBertModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;NSPBertModel model class that loads a pretrained model and runs inference in the agent.</span>
-
 <span class="sd">    Attributes:</span>
 <span class="sd">        tokenizer (str): Pretrained tokenizer used to tokenize input. Runs end-to-end</span>
 <span class="sd">            tokenization, eg. split punctuation, BPE.</span>
 <span class="sd">        dataset (CAIPDataset): CAIP (CraftAssist Instruction Parsing) Dataset. Note that</span>
 <span class="sd">            this is empty during inference.</span>
 <span class="sd">        encoder_decoder (EncoderDecoderWithLoss): Transformer model class. See</span>
-
 <span class="sd">    Args:</span>
 <span class="sd">        model_dir (str): Path to directory containing all files necessary to</span>
 <span class="sd">            load and run the model, including args, tree mappings and the checkpointed model.</span>
@@ -154,13 +152,10 @@
 <div class="viewcode-block" id="NSPBertModel.parse"><a class="viewcode-back" href="../../../../../controller.html#droidlet.perception.semantic_parsing.nsp_transformer_model.query_model.NSPBertModel.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chat</span><span class="p">,</span> <span class="n">noop_thres</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">beam_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">well_formed_pen</span><span class="o">=</span><span class="mf">1e2</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Given an incoming chat, query the parser and return a logical form.</span>
 <span class="sd">        Uses beam search decoding, see `beam_search`</span>
-
 <span class="sd">        Args:</span>
 <span class="sd">            chat (str): Preprocessed chat command from a player. Used as text input to parser.</span>
-
 <span class="sd">        Returns:</span>
 <span class="sd">            dict: Logical form.</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">btr</span> <span class="o">=</span> <span class="n">beam_search</span><span class="p">(</span>
             <span class="n">chat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder_decoder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">beam_size</span><span class="p">,</span> <span class="n">well_formed_pen</span>
