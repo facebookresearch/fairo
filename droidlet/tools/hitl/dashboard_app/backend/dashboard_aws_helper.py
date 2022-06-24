@@ -28,7 +28,6 @@ s3 = boto3.resource(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
 
-
 def _download_file(fname: str):
     """
     download file from s3 if it does not exists in local tmp storage
@@ -76,6 +75,9 @@ def _dowload_file(fname: str):
 
 
 def _read_file(fname: str):
+    """
+    read file into a string
+    """
     f = open(fname, "r")
     content = f.read()
     f.close()
@@ -100,10 +102,13 @@ def get_job_list():
     return job_list
 
 
-def get_traceback_by_id(job_id: int):
-    local_fname = _dowload_file(f"{job_id}/log_traceback.csv")
+def get_traceback_by_id(batch_id: int):
+    """
+    helper method for preparing get_traceback_by_id api's response
+    """
+    local_fname = _download_file(f"{batch_id}/log_traceback.csv")
     if local_fname is None:
-        return f"cannot find traceback with id {job_id}"
+        return f"cannot find traceback with id {batch_id}"
     return _read_file(local_fname)
 
 def get_traceback_by_id(batch_id: int):

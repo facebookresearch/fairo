@@ -55,7 +55,6 @@ class TestAWSHelper(unittest.TestCase):
         res = get_run_info_by_id(VALID_ID)
         self.assertIsNotNone(res)
         self.assertNotEqual(res, f"cannot find run info with id {VALID_ID}")
-
     def test_get_run_info_by_id_inalid(self):
         res = get_run_info_by_id(INVALID_ID)
         self.assertEqual(res, f"cannot find run info with id {INVALID_ID}")
