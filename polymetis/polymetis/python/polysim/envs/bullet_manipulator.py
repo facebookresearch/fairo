@@ -89,6 +89,8 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             log.info("************ CONFIG INFO ************")
             num_joints = self.sim.getNumJoints(self.robot_id)
             for i in range(num_joints):
+                # joint_info tuple structure described in PyBullet docs:
+                # https://docs.google.com/document/d/10sXEhzFRSnvFcl3XxNGhnD4N2SedqwdAvK3dsihxVUA/edit#heading=h.la294ocbo43o
                 joint_info = self.sim.getJointInfo(self.robot_id, i)
                 log.info("Joint {}".format(joint_info[1].decode("utf-8")))  # jointName
                 log.info("\tLimit low : {}".format(joint_info[8]))  # jointLowerLimit
