@@ -241,6 +241,7 @@ class EndToEndSemanticScout:
         vis = vis.convert("RGB")
         vis = np.array(vis)
         vis = np.where(vis != 255, vis, rgb)
+        vis = vis[:, :, [2, 1, 0]]
         return vis
 
     def step(self, mover):
