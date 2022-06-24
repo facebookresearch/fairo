@@ -147,9 +147,11 @@ class RLSegFTAgent(Agent):
 
         with torch.no_grad():
             if self.semantic_predictor is not None:
+                # TODO Replace this with detectron2 predictions
                 semantic = self.semantic_predictor(batch["rgb"], batch["depth"])
                 if self.config.MODEL.SEMANTIC_ENCODER.is_thda:
                     semantic = semantic - 1
+
                 batch["semantic"] = semantic
 
             logits, self.test_recurrent_hidden_states = self.model(
@@ -233,14 +235,12 @@ class EndToEndSemanticScout:
 
         # Convert category IDs expected by the policy to Coco
         # category IDs for visualization
-        print("before", np.unique(semantics))
         semantics = np.array(
             [
                 expected_categories_to_coco_categories.get(idx, coco_categories["no-category"])
                 for idx in semantics.flatten()
             ]
         ).astype(np.uint8)
-        print("after", np.unique(semantics))
 
         vis.putdata(semantics.flatten().astype(np.uint8))
         vis = vis.convert("RGB")
