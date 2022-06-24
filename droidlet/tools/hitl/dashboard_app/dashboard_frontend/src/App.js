@@ -1,3 +1,6 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
 import './App.css';
 import React from 'react';
 import {SocketContext, socket} from './context/socket';

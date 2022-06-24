@@ -1,5 +1,8 @@
 import React, {useState, useContext, useEffect, useCallback} from 'react';
 import Button from '@mui/material/Button';
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
 import {SocketContext} from '../context/socket';
 import { List, ListSubheader, ListItem, ListItemText, Divider } from '@mui/material';
 
@@ -26,7 +29,7 @@ const Main = () => {
     }, []);
 
     const getJobTraceback = () => {
-        // hard coded id for checking backend api connection
+        // hardcoded id for checking backend api connection
         socket.emit("get_traceback_by_id", 20220519194922);
     }
 
@@ -35,7 +38,7 @@ const Main = () => {
     }, []);
 
     const getJobInfo = () => {
-        // hard coded id for checking backend api connection
+        // hardcoded id for checking backend api connection
         socket.emit("get_run_info_by_id", 20220519194922);
     }
 
