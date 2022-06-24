@@ -16,11 +16,13 @@ from .src import POLICY_CLASSES
 from .src.default import get_config
 from .src.models.common import batch_obs
 from .src.models.rednet import load_rednet
-from droidlet.perception.robot.semantic_mapper.constants import (
+from .constants import (
     coco_categories,
+    coco_id_to_goal_id,
+    expected_categories_to_coco_categories,
     frame_color_palette,
 )
-from .constants import coco_id_to_goal_id, expected_categories_to_coco_categories
+from .segmentation.semantic_prediction import SemanticPredMaskRCNN
 
 
 class RLSegFTAgent(Agent):
@@ -31,6 +33,8 @@ class RLSegFTAgent(Agent):
             self.device = torch.device("cuda:{}".format(config.TORCH_GPU_ID))
         else:
             self.device = torch.device("cpu")
+
+        self.color_palette = [int(x * 255.0) for x in frame_color_palette]
 
         ckpt_dict = torch.load(config.MODEL_PATH, map_location=self.device)["state_dict"]
         ckpt_dict = {k.replace("actor_critic.", ""): v for k, v in ckpt_dict.items()}
@@ -100,17 +104,19 @@ class RLSegFTAgent(Agent):
         self.model.load_state_dict(ckpt_dict, strict=True)
         self.model.eval()
 
-        self.semantic_predictor = None
-
-        if self.model_cfg.USE_SEMANTICS:
-            logger.info("setting up sem seg predictor")
-            self.semantic_predictor = load_rednet(
-                self.device,
-                ckpt=self.model_cfg.SEMANTIC_ENCODER.rednet_ckpt,
-                resize=True,  # Since we train on half-vision
-                num_classes=self.model_cfg.SEMANTIC_ENCODER.num_classes,
-            )
-            self.semantic_predictor.eval()
+        # self.semantic_predictor = None
+        # if self.model_cfg.USE_SEMANTICS:
+        #     logger.info("setting up sem seg predictor")
+        #     self.semantic_predictor = load_rednet(
+        #         self.device,
+        #         ckpt=self.model_cfg.SEMANTIC_ENCODER.rednet_ckpt,
+        #         resize=True,  # Since we train on half-vision
+        #         num_classes=self.model_cfg.SEMANTIC_ENCODER.num_classes,
+        #     )
+        #     self.semantic_predictor.eval()
+        self.semantic_predictor = SemanticPredMaskRCNN(
+            sem_pred_prob_thr=0.9, sem_gpu_id=config.TORCH_GPU_ID, visualize=True
+        )
 
         # Load other items
         self.test_recurrent_hidden_states = torch.zeros(
@@ -140,6 +146,28 @@ class RLSegFTAgent(Agent):
         self.ep += 1
         logger.info("Episode done: {}".format(self.ep))
 
+    def get_semantic_frame_vis(self, rgb, semantics):
+        """Visualize first-person semantic segmentation frame."""
+        width, height = semantics.shape
+        vis = Image.new("P", (height, width))
+        vis.putpalette(self.color_palette)
+
+        # Convert category IDs expected by the policy to Coco
+        # category IDs for visualization
+        semantics = np.array(
+            [
+                expected_categories_to_coco_categories.get(idx, coco_categories["no-category"])
+                for idx in semantics.flatten()
+            ]
+        ).astype(np.uint8)
+
+        vis.putdata(semantics.flatten().astype(np.uint8))
+        vis = vis.convert("RGB")
+        vis = np.array(vis)
+        vis = np.where(vis != 255, vis, rgb)
+        vis = vis[:, :, [2, 1, 0]]
+        return vis
+
     @torch.no_grad()
     def act(self, observations):
 
@@ -147,10 +175,23 @@ class RLSegFTAgent(Agent):
 
         with torch.no_grad():
             if self.semantic_predictor is not None:
-                # TODO Replace this with detectron2 predictions
-                semantic = self.semantic_predictor(batch["rgb"], batch["depth"])
-                if self.config.MODEL.SEMANTIC_ENCODER.is_thda:
-                    semantic = semantic - 1
+                # Replace predictions of segmentation model trained in simulation used
+                # to train the policy with detectron2 Mask-RCNN that works much better
+                # in the real world (we use only the object goal categories for now)
+
+                # semantic = self.semantic_predictor(batch["rgb"], batch["depth"])
+                # if self.config.MODEL.SEMANTIC_ENCODER.is_thda:
+                #     semantic = semantic - 1
+                # semantic_vis = self.get_semantic_frame_vis(
+                #     batch["rgb"][0].cpu().numpy(),
+                #     semantic[0].cpu().numpy()
+                # )
+
+                rgb = batch["rgb"][0].cpu().numpy()
+                depth = batch["depth"][0].cpu().numpy()
+                semantic, semantic_vis = self.semantic_predictor.get_prediction(rgb, depth)
+                # semantic_vis = self.get_semantic_frame_vis(rgb, semantic)
+                semantic = torch.from_numpy(semantic).unsqueeze(0).to(batch["rgb"].device)
 
                 batch["semantic"] = semantic
 
@@ -166,7 +207,7 @@ class RLSegFTAgent(Agent):
 
         # Reset called externally, we're not done until then
         self.not_done_masks = torch.ones(1, 1, device=self.device, dtype=torch.bool)
-        return actions[0].item(), semantic[0].cpu().numpy()
+        return actions[0].item(), semantic_vis
 
 
 class EndToEndSemanticScout:
@@ -202,7 +243,6 @@ class EndToEndSemanticScout:
         self.max_steps = max_steps
         self.object_goal = object_goal
         self.object_goal_cat = coco_id_to_goal_id[coco_categories[object_goal]]
-        self.color_palette = [int(x * 255.0) for x in frame_color_palette]
 
         this_dir = os.path.dirname(os.path.abspath(__file__))
         challenge_config_file = this_dir + "/configs/challenge_objectnav2022.local.rgbd.yaml"
@@ -226,28 +266,6 @@ class EndToEndSemanticScout:
         self.finished = False
         self.last_semantic_frame = None
         self.agent.reset()
-
-    def get_semantic_frame_vis(self, rgb, semantics):
-        """Visualize first-person semantic segmentation frame."""
-        width, height = semantics.shape
-        vis = Image.new("P", (height, width))
-        vis.putpalette(self.color_palette)
-
-        # Convert category IDs expected by the policy to Coco
-        # category IDs for visualization
-        semantics = np.array(
-            [
-                expected_categories_to_coco_categories.get(idx, coco_categories["no-category"])
-                for idx in semantics.flatten()
-            ]
-        ).astype(np.uint8)
-
-        vis.putdata(semantics.flatten().astype(np.uint8))
-        vis = vis.convert("RGB")
-        vis = np.array(vis)
-        vis = np.where(vis != 255, vis, rgb)
-        vis = vis[:, :, [2, 1, 0]]
-        return vis
 
     def step(self, mover):
         self.step_count += 1
@@ -291,10 +309,8 @@ class EndToEndSemanticScout:
         }
 
         t0 = time.time()
-        action, semantic = self.agent.act(obs)
+        action, self.last_semantic_frame = self.agent.act(obs)
         t1 = time.time()
-
-        self.last_semantic_frame = self.get_semantic_frame_vis(rgb, semantic)
 
         forward_dist = 0.25
         turn_angle = 30
