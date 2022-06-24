@@ -229,7 +229,7 @@ class EndToEndSemanticScout:
         """Visualize first-person semantic segmentation frame."""
         width, height = semantics.shape
         vis = Image.new("P", (height, width))
-        vis.putpalette([int(x * 255.0) for x in self.color_palette])
+        vis.putpalette(self.color_palette)
 
         # Convert category IDs expected by the policy to Coco
         # category IDs for visualization
