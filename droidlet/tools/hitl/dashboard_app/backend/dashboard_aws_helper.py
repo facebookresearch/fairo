@@ -96,7 +96,7 @@ def _dowload_file(fname: str):
         try:    
             s3.meta.client.download_file(S3_BUCKET_NAME, fname, local_file_name)
         except botocore.exceptions.ClientError as e:
-            print("file not exists")
+            print(f"file not exists {fname}")
 
     return local_file_name if os.path.exists(local_file_name) else None
 
