@@ -158,6 +158,7 @@ class JobManagementUtil:
     Each hitl pipeline run corresponds to a JobManagementUtil instance.
     A stat_update_interal (in seconds) can be specificed for the minimal time to be wait for a repeatly update of the same statistic.
     """
+
     def __init__(self, stat_update_interval=DEFAULT_STAT_UPDATE_INTERVAL):
         # prepare dict for recording the data
         rec_dict = {}
