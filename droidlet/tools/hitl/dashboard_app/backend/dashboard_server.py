@@ -17,7 +17,7 @@ from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
-socketio = SocketIO(app, cors_allowed_origins="*") # allow cors
+socketio = SocketIO(app, cors_allowed_origins="*")  # allow cors
 
 
 class DASHBOARD_EVENT(Enum):
@@ -33,7 +33,7 @@ class DASHBOARD_EVENT(Enum):
 @socketio.on(DASHBOARD_EVENT.GET_JOBS.value)
 def get_jobs():
     """
-    get a list of jobs stored on AWS that has been run in the past. 
+    get a list of jobs stored on AWS that has been run in the past.
     - input: no parameter input.
     - output: a list of batch ids of the jobs.
     """
@@ -59,7 +59,7 @@ def get_traceback(batch_id):
 def get_info(batch_id):
     """
     get run info by id, run info could be:
-        meta data like name of the run, batch id, start time/end time, stastics for each HIT jobs in this run, etc. 
+        meta data like name of the run, batch id, start time/end time, stastics for each HIT jobs in this run, etc.
     - input: a batch id.
     - output: if the run info can be found, return the run info in a json format, otherwise, return an error message sugesting not found.
     """
