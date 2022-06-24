@@ -5,7 +5,7 @@ use_grav_comp: true
 use_real_time: false
 
 default_Kq: [20, 30, 25, 25, 15, 10, 10]
- default_Kqd: [1.0, 1.5, 1.0, 1.0, 0.5, 0.5, 0.5]
+default_Kqd: [1.0, 1.5, 1.0, 1.0, 0.5, 0.5, 0.5]
 default_Kx: [100, 100, 100, 40, 40, 40]
 default_Kxd: [1, 1, 1, 0.2, 0.2, 0.2]
 
