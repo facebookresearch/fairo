@@ -506,7 +506,7 @@ title="Print to PDF"
 <section id="run-both-server-client-on-your-machine">
 <h3>Run both server &amp; client <strong>on your machine</strong>:<a class="headerlink" href="#run-both-server-client-on-your-machine" title="Permalink to this headline">#</a></h3>
 <p>To run the server and robot client for Franka:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launch_robot.py <span class="nv">robot_client</span><span class="o">=</span>franka_sim <span class="nv">use_real_time</span><span class="o">=</span><span class="nb">false</span> <span class="nv">gui</span><span class="o">=[</span>true<span class="p">|</span>false<span class="o">]</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launch_robot.py <span class="nv">robot_client</span><span class="o">=</span>bullet_sim <span class="nv">use_real_time</span><span class="o">=</span><span class="nb">false</span> <span class="nv">gui</span><span class="o">=[</span>true<span class="p">|</span>false<span class="o">]</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">launch_robot.py</span></code> is an executable script which starts both a controller manager server and a robot client which connects to it, and is installed as a script with the conda package by default in <code class="docutils literal notranslate"><span class="pre">$CONDA_PREFIX/bin</span></code>. It utilizes <a class="reference external" href="https://hydra.cc/">Hydra</a> configurations to easily swap between simulation and hardware.</p>
