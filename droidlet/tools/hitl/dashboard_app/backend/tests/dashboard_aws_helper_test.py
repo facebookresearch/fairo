@@ -30,6 +30,7 @@ s3 = boto3.resource(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
 
+
 class TestAWSHelper(unittest.TestCase):
     def setUp(self):
         self._info_fname = f"job_management_records/{VALID_ID}.json"
@@ -70,6 +71,7 @@ class TestAWSHelper(unittest.TestCase):
             os.remove(local_info_fname)
         if os.path.exists(local_traceback_fname):
             os.remove(local_traceback_fname)
+
 
 if __name__ == "__main__":
     unittest.main()
