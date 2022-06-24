@@ -10,6 +10,8 @@ import functools
 import logging
 import os
 from tqdm import tqdm
+import random
+import time
 
 import torch
 from torch.utils.data import DataLoader, SequentialSampler
@@ -28,25 +30,23 @@ from droidlet.perception.semantic_parsing.utils.nsp_logger import NSPLogger
 
 
 GT_QUERY_ACTIONS = get_ground_truth(
-    False, 
+    False,
     os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), 
-        "../../",
-        "droidlet/artifacts/datasets/ground_truth/"
-    )
+        os.path.dirname(os.path.abspath(__file__)),
+        "../../../../",
+        "droidlet/artifacts/datasets/ground_truth/",
+    ),
 )
 
 
 class ModelEvaluator:
     """Wrapper Class around evaluating model"""
+
     def __init__(self, args):
         self.args = args
         self.evaluate_results_logger = NSPLogger(
             "evaluation_results.csv",
-            [
-                "accuracy",
-                "text_span_accuracy",
-            ],
+            ["accuracy", "text_span_accuracy", "inference_speed"],
         )
 
     def evaluate(self, model, dataset, tokenizer):
@@ -63,7 +63,10 @@ class ModelEvaluator:
             caip_collate, tokenizer=tokenizer, tree_to_text=self.args.tree_to_text
         )
         dataloader = DataLoader(
-            dataset, sampler=train_sampler, batch_size=self.args.batch_size, collate_fn=model_collate_fn
+            dataset,
+            sampler=train_sampler,
+            batch_size=self.args.batch_size,
+            collate_fn=model_collate_fn,
         )
         epoch_iterator = tqdm(dataloader, desc="Iteration", disable=True)
 
@@ -74,6 +77,7 @@ class ModelEvaluator:
         tot_span_acc = 0.0
         tot_accu = 0.0
         text_span_tot_acc = 0.0
+        tot_time_cost = 0.0
         # disable autograd to reduce memory usage
         with torch.no_grad():
             for step, batch in enumerate(epoch_iterator):
@@ -82,9 +86,9 @@ class ModelEvaluator:
                     for t in batch[:4]
                 ]
                 x, x_mask, y, y_mask = batch_tensors
+                time_s = time.time()
                 outputs = model(x, x_mask, y, y_mask, None, True)
-                loss = outputs["loss"]
-                text_span_loss = outputs["text_span_loss"]
+                time_e = time.time()
                 # compute accuracy and add hard examples
                 lm_acc, sp_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
                 # book-keeping
@@ -96,6 +100,8 @@ class ModelEvaluator:
                     sp_acc.sum().item() / sp_acc.shape[0]
                 )  # weighted_accuracy / batch_size
                 tot_accu += full_acc.sum().item() / full_acc.shape[0]
+                # time cost
+                tot_time_cost += (time_e - time_s) / full_acc.shape[0]
                 tot_steps += 1
                 # text span stats
                 text_span_tot_acc += (
@@ -106,14 +112,16 @@ class ModelEvaluator:
                     show_examples(self.args, model, dataset, tokenizer)
 
         self.evaluate_results_logger.log_dialogue_outputs(
-            [tot_accu / tot_steps, text_span_tot_acc / tot_steps]
-        ) 
+            [tot_accu / tot_steps, text_span_tot_acc / tot_steps, tot_steps / tot_time_cost]
+        )
 
         logging.info("Accuracy: {:.3f}".format(tot_accu / tot_steps))
         logging.info("Text span accuracy: {:.3f}".format(text_span_tot_acc / tot_steps))
+        logging.info("Inference speed (fps): {:.1f}".format(tot_steps / tot_time_cost))
         print("Evaluation done!")
         print("Accuracy: {:.3f}".format(tot_accu / tot_steps))
         print("Text span accuracy: {:.3f}".format(text_span_tot_acc / tot_steps))
+        print(("Inference speed (fps): {:.1f}".format(tot_steps / tot_time_cost)))
 
 
 def build_grammar(args):
@@ -132,19 +140,23 @@ def build_grammar(args):
 
 
 def show_examples(args, model, dataset, tokenizer, n=10):
-    model.eval()
     with torch.no_grad():
-        for cid in range(n):
+        for _ in range(n):
+            cid = random.randint(0, len(dataset) - 1)
             chat = dataset[cid][2][1]
-            btr = beam_search(chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen)
-            if btr[0][0].get("dialogue_type", "NONE") == "NOOP" and math.exp(btr[0][1]) < args.noop_thres:
+            btr = beam_search(
+                chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen
+            )
+            if (
+                btr[0][0].get("dialogue_type", "NONE") == "NOOP"
+                and math.exp(btr[0][1]) < args.noop_thres
+            ):
                 tree = btr[1][0]
             else:
                 tree = btr[0][0]
             print(chat)
             print(tree)
             print("*********************************")
-    model.train()
 
 
 def argument_parse(input_arg):
@@ -212,7 +224,7 @@ def argument_parse(input_arg):
         "--model_dir",
         default="droidlet/artifacts/models/nlu/ttad_bert_updated/",
         type=str,
-        help="Directory to pretrained NLU model"
+        help="Directory to pretrained NLU model",
     )
     # optimization arugments
     parser.add_argument("--batch_size", default=28, type=int, help="Batch size")
@@ -248,7 +260,10 @@ def argument_parse(input_arg):
     )
     # debug arguments
     parser.add_argument(
-        "--vis_step_size", default=10, type=int, help="The number of iterations to visualize chat and parsed tree"
+        "--vis_step_size",
+        default=10,
+        type=int,
+        help="The number of iterations to visualize chat and parsed tree",
     )
     parser.add_argument(
         "--noop_thres", default=0.95, type=float, help="The threshold of NOOP action"
@@ -260,7 +275,9 @@ def argument_parse(input_arg):
         "--well_formed_pen", default=1e2, type=float, help="Penalization for poorly formed trees"
     )
     parser.add_argument(
-        "--load_ground_truth", action="store_false", help="Load ground truth for querying input chat"
+        "--load_ground_truth",
+        action="store_false",
+        help="Load ground truth for querying input chat",
     )
 
     if input_arg:
@@ -283,10 +300,10 @@ def argument_parse(input_arg):
 
     return args
 
+
 def model_configure(args):
     """
     Configurate NLU model based on input arguments
-    
     Args:
         args: input arguments of model and dataset configuration
     Returns:
@@ -307,6 +324,7 @@ def model_configure(args):
 
     return encoder_decoder, tokenizer
 
+
 def dataset_configure(args, tokenizer):
     """
     Configurate CAIP dataset based on input arguments
@@ -314,16 +332,16 @@ def dataset_configure(args, tokenizer):
         args: input arguments of model and dataset configuration
         tokenizer: pretrained tokenizer
     Returns:
-        dataset: 
+        dataset:
     """
     with open(args.tree_voc_file) as fd:
         full_tree, tree_i2w = json.load(fd)
     full_tree_voc = (full_tree, tree_i2w)
 
     dataset = CAIPDataset(
-        tokenizer, 
-        args, 
-        prefix="test", 
+        tokenizer,
+        args,
+        prefix="test",
         full_tree_voc=full_tree_voc,
         dtype="annotated",
     )
@@ -333,7 +351,7 @@ def dataset_configure(args, tokenizer):
 
 def query_model(chat, args, model, tokenizer, dataset):
     """
-    Query mode for NLU model, which takes a sentence of natural language as input 
+    Query mode for NLU model, which takes a sentence of natural language as input
     and outputs its logical form
     Args:
         chat (str): chat input
@@ -349,7 +367,10 @@ def query_model(chat, args, model, tokenizer, dataset):
     else:
         btr = beam_search(chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen)
 
-        if btr[0][0].get("dialogue_type", "NONE") == "NOOP" and math.exp(btr[0][1]) < args.noop_thres:
+        if (
+            btr[0][0].get("dialogue_type", "NONE") == "NOOP"
+            and math.exp(btr[0][1]) < args.noop_thres
+        ):
             tree = btr[1][0]
         else:
             tree = btr[0][0]
@@ -366,18 +387,14 @@ def eval_model(args, model, tokenizer, dataset):
         tokenizer: pretrained tokenizer
         dataset: caip dataset
     Returns:
-        
     """
     model_evaluator = ModelEvaluator(args)
-    model_evaluator.evaluate(
-        model, dataset, tokenizer
-    )
-
+    model_evaluator.evaluate(model, dataset, tokenizer)
 
 
 if __name__ == "__main__":
     args = argument_parse("")
-    # TODO: print model hash 
+    # TODO: print model hash
     print("loading model")
     model, tokenizer = model_configure(args)
     # TODO: print data hash
@@ -386,4 +403,3 @@ if __name__ == "__main__":
 
     def get_parse(chat):
         return query_model(chat, args, model, tokenizer, dataset)
-    

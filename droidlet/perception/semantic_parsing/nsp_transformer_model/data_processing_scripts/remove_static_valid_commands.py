@@ -6,7 +6,8 @@ import argparse
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data_source", default="droidlet/dialog/ttad/nsp_templated_data_generation/templated_pre.txt"
+        "--data_source",
+        default="droidlet/dialog/ttad/nsp_templated_data_generation/templated_pre.txt",
     )
     parser.add_argument(
         "--commands_to_remove",
