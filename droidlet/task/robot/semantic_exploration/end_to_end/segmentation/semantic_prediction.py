@@ -16,7 +16,7 @@ from detectron2.utils.visualizer import ColorMode, Visualizer
 import detectron2.data.transforms as T
 
 from droidlet.task.robot.semantic_exploration.end_to_end.constants import (
-    detectron_categories_to_expected_categories
+    detectron_categories_to_expected_categories,
 )
 
 
