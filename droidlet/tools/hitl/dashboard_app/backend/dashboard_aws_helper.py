@@ -29,6 +29,7 @@ s3 = boto3.resource(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
 
+
 def _download_file(fname: str):
     """
     download file from s3 if it does not exists in local tmp storage
