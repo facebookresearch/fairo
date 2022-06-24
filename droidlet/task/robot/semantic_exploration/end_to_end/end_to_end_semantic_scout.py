@@ -11,16 +11,15 @@ from habitat.config import Config
 from habitat.core.logging import logger
 from habitat.core.agent import Agent
 from habitat.sims.habitat_simulator.actions import HabitatSimActions
-from habitat_sim.utils.common import d3_40_colors_rgb
 
 from .src import POLICY_CLASSES
 from .src.default import get_config
 from .src.models.common import batch_obs
 from .src.models.rednet import load_rednet
 from droidlet.perception.robot.semantic_mapper.constants import (
-    coco_categories,
-    frame_color_palette,
+    coco_categories, frame_color_palette,
 )
+from .constants import coco_id_to_goal_id, expected_categories_to_coco_categories
 
 
 class RLSegFTAgent(Agent):
@@ -199,15 +198,8 @@ class EndToEndSemanticScout:
 
         self.max_steps = max_steps
         self.object_goal = object_goal
-        coco_id_to_habitat_id = {
-            0: 0,  # chair
-            1: 5,  # couch
-            2: 2,  # potted plant
-            3: 1,  # bed
-            4: 3,  # toilet
-            5: 4,  # tv
-        }
-        self.object_goal_cat = coco_id_to_habitat_id[coco_categories[object_goal]]
+        self.object_goal_cat = coco_id_to_goal_id[coco_categories[object_goal]]
+        self.color_palette = [int(x * 255.) for x in frame_color_palette]
 
         this_dir = os.path.dirname(os.path.abspath(__file__))
         challenge_config_file = this_dir + "/configs/challenge_objectnav2022.local.rgbd.yaml"
@@ -236,14 +228,18 @@ class EndToEndSemanticScout:
         """Visualize first-person semantic segmentation frame."""
         width, height = semantics.shape
         vis = Image.new("P", (height, width))
-        vis.putpalette([255, 255, 255] + list(d3_40_colors_rgb.flatten()))
+        vis.putpalette([int(x * 255.) for x in self.color_palette])
 
-        (unique, counts) = np.unique(semantics, return_counts=True)
-        frequencies = np.asarray((unique, counts)).T
-        print(frequencies)
+        # Convert category IDs expected by the policy to Coco
+        # category IDs for visualization
+        semantics = np.array([
+            expected_categories_to_coco_categories.get(
+                idx, coco_categories["no-category"]
+            )
+            for idx in semantics.flatten()
+        ]).astype(np.uint8)
 
         vis.putdata(semantics.flatten().astype(np.uint8))
-
         vis = vis.convert("RGB")
         vis = np.array(vis)
         vis = np.where(vis != 255, vis, rgb)
