@@ -237,7 +237,13 @@ class EndToEndSemanticScout:
         width, height = semantics.shape
         vis = Image.new("P", (height, width))
         vis.putpalette([255, 255, 255] + list(d3_40_colors_rgb.flatten()))
+
+        (unique, counts) = np.unique(semantics, return_counts=True)
+        frequencies = np.asarray((unique, counts)).T
+        print(frequencies)
+
         vis.putdata(semantics.flatten().astype(np.uint8))
+
         vis = vis.convert("RGB")
         vis = np.array(vis)
         vis = np.where(vis != 255, vis, rgb)
