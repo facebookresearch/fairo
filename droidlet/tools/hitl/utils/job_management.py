@@ -178,7 +178,7 @@ class JobManagementUtil:
         time_format = "%Y%m-%d_%H:%M:%S.%f"
         tmp_fname = f"job_management_{datetime.datetime.now().strftime(time_format)}.json"
 
-        folder_path = os.path.join(HITL_TMP_DIR, "tmp", JOB_MNG_PATH_PREFIX)
+        folder_path = os.path.join(HITL_TMP_DIR, JOB_MNG_PATH_PREFIX)
         os.makedirs(folder_path, exist_ok=True)
         self._local_path = os.path.join(folder_path, tmp_fname)
 
@@ -260,12 +260,21 @@ class JobManagementUtil:
             self._save_tmp()
 
     def set_job_start(self, job_type: Job):
+        """
+        record the start of a job with the job_type of input
+        """
         self._set_time(JobStat.START_TIME, job_type)
 
     def set_job_end(self, job_type: Job):
+        """
+        record the end of a job with the job_type of input
+        """
         self._set_time(JobStat.END_TIME, job_type)
 
     def save_to_s3(self):
+        """
+        save local job management record to remote s3 bucket
+        """
         batch_id = self._record_dict[MetaData.BATCH_ID._name_]
         # check batch_id for saving to s3
         if batch_id is None:
