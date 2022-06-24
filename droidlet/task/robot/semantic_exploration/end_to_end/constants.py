@@ -39,12 +39,29 @@ expected_categories_to_coco_categories = {
 # To replace the segmentation model trained on simulation data
 # with a segmentation model trained on real-world data
 detectron_categories_to_expected_categories = {
-    56: 1,  # chair
-    57: 6,  # couch
-    58: 9,  # potted plant
-    59: 7,  # bed
-    61: 11,  # toilet
-    62: 14,  # tv
+    # Goal categories: most important
+    56: 1,  # chair (MP3D 3)
+    57: 6,  # couch (MP3D 10)
+    58: 9,  # plant (MP3D 14)
+    59: 7,  # bed (MP3D 11)
+    61: 11,  # toilet (MP3D 18)
+    62: 14,  # tv (MP3D 22)
+    # Other categories
+    60: 2,  # dining table (MP3D 5)
+    # ??: 3,  # picture (MP3D 6)
+    # ??: 4,  # cabinet (MP3D 7)
+    # ??: 5,  # cushion (MP3D 8)
+    # ??: 8,  # chest_of_drawers (MP3D 13)
+    71: 10,  # sink (MP3D 15)
+    # ??: 12,  # stool (MP3D 19)
+    # ??: 13,  # towel (MP3D 20)
+    # ??: 15,  # shower (MP3D 23)
+    # ??: 16,  # bathtub (MP3D 25)
+    # ??: 17,  # counter (MP3D 26)
+    # ??: 18,  # fireplace (MP3D 27)
+    # ??: 19,  # gym_equipment (MP3D 33)
+    # ??: 20,  # seating (MP3D 34)
+    # ??: 21,  # clothes (MP3D 38)
 }
 
 coco_categories_color_palette = [
