@@ -5,7 +5,7 @@ This is a Dashboard app prototype for the HITL system.
 
 ## Included 
 - Backend: a backend based on flask and socket. Run on localhost:5000 by default.
-- Frontend: a react based frontend - currently only have button for user interaction. Defult run on localhost:3000.
+- Frontend: a react based frontend - currently only have button for user interaction. Default run on localhost:3000.
 Please note this dashboard app is currently only in development build and is not optimized.
 
 ## How to run
