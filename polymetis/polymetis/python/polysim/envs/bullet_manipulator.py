@@ -89,30 +89,11 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             log.info("************ CONFIG INFO ************")
             num_joints = self.sim.getNumJoints(self.robot_id)
             for i in range(num_joints):
-                (
-                    jointIdx,
-                    jointName,
-                    jointType,
-                    qIndex,
-                    uIndex,
-                    flags,
-                    jointDamping,
-                    jointFriction,
-                    jointLowerLimit,
-                    jointUpperLimit,
-                    jointMaxForce,
-                    jointMaxVelocity,
-                    linkName,
-                    jointAxis,
-                    parentFramePos,
-                    parentFrameOrn,
-                    parentIdx,
-                ) = self.sim.getJointInfo(self.robot_id, i)
-
-                log.info("Joint {}".format(jointName.decode("utf-8")))
-                log.info("\tLimit low : {}".format(jointLowerLimit))
-                log.info("\tLimit High: {}".format(jointUpperLimit))
-                log.info("\tJoint Damping: {}".format(jointDamping))
+                joint_info = self.sim.getJointInfo(self.robot_id, i)
+                log.info("Joint {}".format(joint_info[1].decode("utf-8")))  # jointName
+                log.info("\tLimit low : {}".format(joint_info[8]))  # jointLowerLimit
+                log.info("\tLimit High: {}".format(joint_info[9]))  # jointUpperLimit
+                log.info("\tJoint Damping: {}".format(joint_info[6]))  # jointDamping
             log.info("*************************************")
 
         # Enable torque control
