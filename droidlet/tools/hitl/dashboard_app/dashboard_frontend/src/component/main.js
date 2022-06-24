@@ -12,8 +12,8 @@ const Main = () => {
     const [jobTraceback, setJobTraceback] = useState('');
 
     const handleReceivedJobList = useCallback((data) => {
-        setJobList(data)
-        setLoading(false)
+        setJobList(data);
+        setLoading(false);
     }, []);
 
     const getJobList = () => {
@@ -22,22 +22,20 @@ const Main = () => {
     } 
 
     const handleReciveTraceback = useCallback((data) => {
-        console.log(data)
-        setJobTraceback(data)
+        setJobTraceback(data);
     }, []);
 
     const getJobTraceback = () => {
-        // hard coded id
+        // hard coded id for checking backend api connection
         socket.emit("get_traceback_by_id", 20220519194922);
     }
 
     const handleReciveInfo = useCallback((data) => {
-        console.log(data)
-        setJobInfo(data)
+        setJobInfo(JSON.stringify(data));
     }, []);
 
     const getJobInfo = () => {
-        // hard coded id
+        // hard coded id for checking backend api connection
         socket.emit("get_run_info_by_id", 20220519194922);
     }
 
