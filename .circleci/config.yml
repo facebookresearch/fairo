@@ -148,7 +148,7 @@ jobs:
   minecraft:
     machine:
       image: ubuntu-2004:202104-01
-    resource_class: gpu.nvidia.small
+    resource_class: gpu.nvidia.medium
     steps:
       - run:
           name: Install dependencies
