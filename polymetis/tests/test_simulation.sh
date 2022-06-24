@@ -17,7 +17,7 @@ PROJECT_ROOT_DIR=$(git rev-parse --show-toplevel)
 ######################
 # Start server & robot client
 echo "========= Starting server and franka simulation... ========="
-launch_robot.py robot_client=franka_sim gui=false use_real_time=false &
+launch_robot.py robot_client=bullet_sim gui=false use_real_time=false &
 server_pid=$!
 echo "========= Server PID: $server_pid ========="
 
