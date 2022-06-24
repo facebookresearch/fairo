@@ -29,7 +29,6 @@ s3 = boto3.resource(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
 
-
 def _download_file(fname: str):
     """
     download file from s3 if it does not exists in local tmp storage
@@ -58,7 +57,6 @@ def _read_file(fname: str):
     f.close()
     return content
 
-
 def _dowload_file(fname: str):
     # check if exists on local tmp directory
     local_file_name = os.path.join(HITL_TMP_DIR, fname)
@@ -85,30 +83,6 @@ def _read_file(fname: str):
     return content
 
 
-
-def _dowload_file(fname: str):
-    # check if exists on local tmp directory
-    local_file_name = os.path.join(HITL_TMP_DIR, fname)
-
-    if not os.path.exists(local_file_name):
-        # reterive from s3
-        local_folder_name = local_file_name[: local_file_name.rindex("/")]
-        os.makedirs(local_folder_name, exist_ok=True)
-        try:
-            s3.meta.client.download_file(S3_BUCKET_NAME, fname, local_file_name)
-        except botocore.exceptions.ClientError as e:
-            print(f"file not exists {fname}")
-
-    return local_file_name if os.path.exists(local_file_name) else None
-
-
-def _read_file(fname: str):
-    f = open(fname, "r")
-    content = f.read()
-    f.close()
-    return content
-
-
 def get_job_list():
     """
     helper method for preparing get_job_list api's response
@@ -127,15 +101,21 @@ def get_job_list():
     return job_list
 
 
-def get_traceback_by_id(job_id: int):
-    local_fname = _dowload_file(f"{job_id}/log_traceback.csv")
+def get_traceback_by_id(batch_id: int):
+    """
+    helper method for preparing get_traceback_by_id api's response
+    """
+    local_fname = _download_file(f"{batch_id}/log_traceback.csv")
     if local_fname is None:
-        return f"cannot find traceback with id {job_id}"
+        return f"cannot find traceback with id {batch_id}"
     return _read_file(local_fname)
 
 
-def get_run_info_by_id(job_id: int):
-    local_fname = _dowload_file(f"job_management_records/{job_id}.json")
+def get_run_info_by_id(batch_id: int):
+    """
+    helper method for preparing get_run_info_by_id api's response
+    """
+    local_fname = _download_file(f"job_management_records/{batch_id}.json")
     if local_fname is None:
         return f"cannot find traceback with id {batch_id}", 404
     return _read_file(local_fname), None

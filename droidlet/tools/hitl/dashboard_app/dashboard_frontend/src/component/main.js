@@ -29,7 +29,7 @@ const Main = () => {
     }, []);
 
     const getJobTraceback = () => {
-        // hard coded id for checking backend api connection
+        // hardcoded id for checking backend api connection
         socket.emit("get_traceback_by_id", 20220519194922);
     }
 
@@ -38,7 +38,7 @@ const Main = () => {
     }, []);
 
     const getJobInfo = () => {
-        // hard coded id for checking backend api connection
+        // hardcoded id for checking backend api connection
         socket.emit("get_run_info_by_id", 20220519194922);
     }
 
