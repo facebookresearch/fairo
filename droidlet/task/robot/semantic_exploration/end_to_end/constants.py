@@ -40,18 +40,18 @@ mp3d_categories_id2name = {
     38: "clothes",
     39: "objects",
     40: "misc",
-    41: "unlabeled"
+    41: "unlabeled",
 }
 
 detectron_categories_to_mp3d_categories = {
     # Most important: goal categories
-    56: 3,   # chair
+    56: 3,  # chair
     57: 10,  # couch
     58: 14,  # potted plant
     59: 11,  # bed
     61: 18,  # toilet
     62: 22,  # tv
     # Other: add more as needed
-    60: 5,   # dining table
+    60: 5,  # dining table
     71: 15,  # sink
 }
