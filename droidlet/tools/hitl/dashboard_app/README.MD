@@ -46,3 +46,4 @@ APIs are based on socket event, the following APIs are supported currently:
     - output: if the run info can be found, return the run info in a json format, otherwise, return an error message sugesting not found.
 
 ## Demo
+![backend_api_demo](https://user-images.githubusercontent.com/51009396/175696481-532cec55-5b2e-4bae-bceb-9e7d3f2aa7b7.gif)
