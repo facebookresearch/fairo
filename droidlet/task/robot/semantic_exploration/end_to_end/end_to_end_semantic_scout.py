@@ -184,8 +184,7 @@ class RLSegFTAgent(Agent):
                 if self.config.MODEL.SEMANTIC_ENCODER.is_thda:
                     semantic = semantic - 1
                 semantic_vis = self.get_semantic_frame_vis(
-                    batch["rgb"][0].cpu().numpy(),
-                    semantic[0].cpu().numpy()
+                    batch["rgb"][0].cpu().numpy(), semantic[0].cpu().numpy()
                 )
 
                 # rgb = batch["rgb"][0].cpu().numpy()
