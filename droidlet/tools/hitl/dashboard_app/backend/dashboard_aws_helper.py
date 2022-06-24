@@ -1,3 +1,11 @@
+"""
+Copyright (c) Facebook, Inc. and its affiliates.
+
+This file is a helper for dashboard server,
+it provides helper method to interact with aws s3 
+and preparing proper response for APIs the server provides.
+"""
+
 import json
 import boto3
 import botocore
@@ -20,10 +28,10 @@ s3 = boto3.resource(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )
 
-bucket = s3.Bucket(S3_BUCKET_NAME)
-
-
-def _dowload_file(fname: str):
+def _download_file(fname: str):
+    """
+    download file from s3 if it does not exists in local tmp storage
+    """
     # check if exists on local tmp directory
     local_file_name = os.path.join(HITL_TMP_DIR, fname)
 
@@ -40,6 +48,9 @@ def _dowload_file(fname: str):
 
 
 def _read_file(fname: str):
+    """
+    read file into a string
+    """
     f = open(fname, "r")
     content = f.read()
     f.close()
@@ -47,10 +58,15 @@ def _read_file(fname: str):
 
 
 def get_job_list():
+    """
+    helper method for preparing get_job_list api's response
+    """
     job_list = []
-    res = bucket.meta.client.get_paginator("list_objects").paginate(
+    # list object from s3 bucket
+    res = s3.meta.client.get_paginator("list_objects").paginate(
         Bucket=S3_BUCKET_NAME, Delimiter="/"
     )
+    # pattern of YYYYMMDDHHMMSS (batch id pattern)
     pattern = r"([0-9]{4})(0[1-9]|1[0-2])(0[1-9]|[1-2][0-9]|3[0-1])(2[0-3]|[01][0-9])([0-5][0-9])([0-5][0-9])"
 
     for prefix in res.search("CommonPrefixes"):
@@ -59,17 +75,23 @@ def get_job_list():
     return job_list
 
 
-def get_traceback_by_id(job_id: int):
-    local_fname = _dowload_file(f"{job_id}/log_traceback.csv")
+def get_traceback_by_id(batch_id: int):
+    """
+    helper method for preparing get_traceback_by_id api's response
+    """
+    local_fname = _download_file(f"{batch_id}/log_traceback.csv")
     if local_fname is None:
-        return f"cannot find traceback with id {job_id}"
+        return f"cannot find traceback with id {batch_id}"
     return _read_file(local_fname)
 
 
-def get_run_info_by_id(job_id: int):
-    local_fname = _dowload_file(f"job_management_records/{job_id}.json")
+def get_run_info_by_id(batch_id: int):
+    """
+    helper method for preparing get_run_info_by_id api's response
+    """
+    local_fname = _download_file(f"job_management_records/{batch_id}.json")
     if local_fname is None:
-        return f"cannot find run info with id {job_id}"
+        return f"cannot find run info with id {batch_id}"
     f = open(local_fname)
     json_data = json.load(f)
     f.close()
