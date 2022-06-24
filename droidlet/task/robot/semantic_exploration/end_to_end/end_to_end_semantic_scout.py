@@ -232,12 +232,14 @@ class EndToEndSemanticScout:
 
         # Convert category IDs expected by the policy to Coco
         # category IDs for visualization
+        print("before", np.unique(semantics))
         semantics = np.array([
             expected_categories_to_coco_categories.get(
                 idx, coco_categories["no-category"]
             )
             for idx in semantics.flatten()
         ]).astype(np.uint8)
+        print("after", np.unique(semantics))
 
         vis.putdata(semantics.flatten().astype(np.uint8))
         vis = vis.convert("RGB")
