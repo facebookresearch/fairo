@@ -235,6 +235,8 @@ if __name__ == "__main__":
         mover.bot.set_pan(0.0)
         # mover.bot.set_tilt(-1.05)
 
+    # print(mover.bot.get_habitat_configs())
+
     while True:
         counter += 1
         iter_time = time.time_ns() - start_time
@@ -254,8 +256,6 @@ if __name__ == "__main__":
         sio.emit("image_settings", log_settings)
         resolution = log_settings["image_resolution"]
         quality = log_settings["image_quality"]
-
-        # print(mover.bot.get_habitat_configs())
 
         # this goes from 21ms to 120ms
         rgb_depth = mover.get_rgb_depth()

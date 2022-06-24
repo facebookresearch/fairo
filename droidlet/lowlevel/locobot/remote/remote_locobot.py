@@ -66,6 +66,10 @@ class RemoteLocobot(object):
 
     def get_habitat_configs(self):
         return self._robot.configs
+        # return [
+        #     x.__dict__
+        #     for x in self._robot.simulator.sim.config.agents[0].sensor_specifications
+        # ]
 
     def restart_habitat(self):
         if hasattr(self, "_robot"):
