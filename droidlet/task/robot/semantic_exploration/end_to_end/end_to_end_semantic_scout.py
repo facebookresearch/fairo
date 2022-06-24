@@ -17,7 +17,8 @@ from .src.default import get_config
 from .src.models.common import batch_obs
 from .src.models.rednet import load_rednet
 from droidlet.perception.robot.semantic_mapper.constants import (
-    coco_categories, frame_color_palette,
+    coco_categories,
+    frame_color_palette,
 )
 from .constants import coco_id_to_goal_id, expected_categories_to_coco_categories
 
@@ -199,7 +200,7 @@ class EndToEndSemanticScout:
         self.max_steps = max_steps
         self.object_goal = object_goal
         self.object_goal_cat = coco_id_to_goal_id[coco_categories[object_goal]]
-        self.color_palette = [int(x * 255.) for x in frame_color_palette]
+        self.color_palette = [int(x * 255.0) for x in frame_color_palette]
 
         this_dir = os.path.dirname(os.path.abspath(__file__))
         challenge_config_file = this_dir + "/configs/challenge_objectnav2022.local.rgbd.yaml"
@@ -228,7 +229,7 @@ class EndToEndSemanticScout:
         """Visualize first-person semantic segmentation frame."""
         width, height = semantics.shape
         vis = Image.new("P", (height, width))
-        vis.putpalette([int(x * 255.) for x in self.color_palette])
+        vis.putpalette([int(x * 255.0) for x in self.color_palette])
 
         # Convert category IDs expected by the policy to Coco
         # category IDs for visualization
