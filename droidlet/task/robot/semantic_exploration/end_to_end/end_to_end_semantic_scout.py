@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import os
 import time
+from PIL import Image
 
 from gym.spaces import Box
 from gym.spaces import Dict as SpaceDict
@@ -10,12 +11,16 @@ from habitat.config import Config
 from habitat.core.logging import logger
 from habitat.core.agent import Agent
 from habitat.sims.habitat_simulator.actions import HabitatSimActions
+from habitat_sim.utils.common import d3_40_colors_rgb
 
 from .src import POLICY_CLASSES
 from .src.default import get_config
 from .src.models.common import batch_obs
 from .src.models.rednet import load_rednet
-from droidlet.perception.robot.semantic_mapper.constants import coco_categories
+from droidlet.perception.robot.semantic_mapper.constants import (
+    coco_categories,
+    frame_color_palette,
+)
 
 
 class RLSegFTAgent(Agent):
@@ -142,9 +147,11 @@ class RLSegFTAgent(Agent):
 
         with torch.no_grad():
             if self.semantic_predictor is not None:
-                batch["semantic"] = self.semantic_predictor(batch["rgb"], batch["depth"])
+                semantic = self.semantic_predictor(batch["rgb"], batch["depth"])
                 if self.config.MODEL.SEMANTIC_ENCODER.is_thda:
-                    batch["semantic"] = batch["semantic"] - 1
+                    semantic = semantic - 1
+                batch["semantic"] = semantic
+
             logits, self.test_recurrent_hidden_states = self.model(
                 batch,
                 self.test_recurrent_hidden_states,
@@ -157,7 +164,7 @@ class RLSegFTAgent(Agent):
 
         # Reset called externally, we're not done until then
         self.not_done_masks = torch.ones(1, 1, device=self.device, dtype=torch.bool)
-        return actions[0].item()
+        return actions[0].item(), semantic[0].cpu().numpy()
 
 
 class EndToEndSemanticScout:
@@ -215,14 +222,26 @@ class EndToEndSemanticScout:
         config.MODEL.DEPTH_ENCODER.ddppo_checkpoint = (
             this_dir + "/" + config.MODEL.DEPTH_ENCODER.ddppo_checkpoint
         )
-        config.TORCH_GPU_ID = 1
+        config.TORCH_GPU_ID = -1
         config.freeze()
 
         self.agent = RLSegFTAgent(config)
 
         self.step_count = 0
         self.finished = False
+        self.last_semantic_frame = None
         self.agent.reset()
+
+    def get_semantic_frame_vis(self, rgb, semantics):
+        """Visualize first-person semantic segmentation frame."""
+        width, height = semantics.shape
+        vis = Image.new("P", (height, width))
+        vis.putpalette([255, 255, 255] + list(d3_40_colors_rgb.flatten()))
+        vis.putdata(semantics.flatten().astype(np.uint8))
+        vis = vis.convert("RGB")
+        vis = np.array(vis)
+        vis = np.where(vis != 255, vis, rgb)
+        return vis
 
     def step(self, mover):
         self.step_count += 1
@@ -242,26 +261,13 @@ class EndToEndSemanticScout:
         rgb = rgb_depth.rgb
         depth = rgb_depth.depth
 
-        print("objectgoal", self.object_goal_cat)
-        print("gps", gps)
-        print("compass", compass)
+        # print("objectgoal", self.object_goal_cat)
+        # print("gps", gps)
+        # print("compass", compass)
 
-        print("before: depth.min(), depth.max()", (depth.min(), depth.max()))
+        # print("before: depth.min(), depth.max()", (depth.min(), depth.max()))
         depth = preprocess_depth(depth)
-        print("after: depth.min(), depth.max()", (depth.min(), depth.max()))
-
-        # TODO Set Habitat camera parameters to Habitat Challenge to gain confidence
-        #  in policy:
-        #  done - (480, 640) instead of (512, 512)
-        #  hacky done - [0.5, 5.0] depth range instead of [0.0, 10.0]
-        #  try without - 79 HFOV instead of 90
-        #  done- 0.88 camera height instead of 0.6 (is it 0.6?)
-
-        # TODO
-        #  1. Visualize semantic prediction
-        #  2. Check if policy works in Habitat with (640, 480) obs reshaped
-        #  3. Get end-to-end pipeline running on robot
-        #  4. Preprocess robot depth frame to make it close to Habitat
+        # print("after: depth.min(), depth.max()", (depth.min(), depth.max()))
 
         # obs = {
         #     "objectgoal": 0,
@@ -279,8 +285,10 @@ class EndToEndSemanticScout:
         }
 
         t0 = time.time()
-        action = self.agent.act(obs)
+        action, semantic = self.agent.act(obs)
         t1 = time.time()
+
+        self.last_semantic_frame = self.get_semantic_frame_vis(rgb, semantic)
 
         forward_dist = 0.25
         turn_angle = 30

@@ -305,7 +305,6 @@ class SemSegSeqNet(Net):
         depth_embedding: [batch_size x DEPTH_ENCODER.output_size]
         rgb_embedding: [batch_size x RGB_ENCODER.output_size]
         """
-
         rgb_obs = observations["rgb"]
         depth_obs = observations["depth"]
 

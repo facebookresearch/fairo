@@ -166,6 +166,7 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             )
             while not scout.finished:
                 scout.step(mover)
+                scout_vis = scout.last_semantic_frame
         elif command == "LOOK_AT":
             xyz = value.split(",")
             xyz = [float(p) for p in xyz]
