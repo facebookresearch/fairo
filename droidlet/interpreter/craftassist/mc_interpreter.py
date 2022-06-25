@@ -496,9 +496,9 @@ class MCInterpreter(Interpreter):
 
     def handle_get(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """
-        handles give, get bring, drop. 
-        arranges all pickups first, and then all dropoffs. 
-        
+        handles give, get bring, drop.
+        arranges all pickups first, and then all dropoffs.
+
         Args:
             speaker: speaker_id or name.
             d: the complete action dictionary
