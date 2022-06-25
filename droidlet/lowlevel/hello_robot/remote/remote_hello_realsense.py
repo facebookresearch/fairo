@@ -174,6 +174,46 @@ class RemoteHelloRealsense(object):
 
         return color_image, depth_image
 
+    def get_rgb_depth_optimized_for_habitat_transfer(self, rotate=True, compressed=False):
+        tm = time.time()
+        frames = None
+        while not frames:
+            frames = self.realsense.wait_for_frames()
+
+            # post-processing goes here
+            decimated = self.decimate.process(frames).as_frameset()
+            thresholded = self.threshold.process(decimated).as_frameset()
+            disparity = self.depth2disparity.process(thresholded).as_frameset()
+            spatial = self.spatial.process(disparity).as_frameset()
+            # temporal = self.temporal.process(spatial).as_frameset() # TODO: re-enable
+            postprocessed = self.disparity2depth.process(spatial).as_frameset()
+
+            aligned_frames = self.align.process(postprocessed)
+            # aligned_frames = self.align.process(frames)
+
+            # Get aligned frames
+            aligned_depth_frame = (
+                aligned_frames.get_depth_frame()
+            )  # aligned_depth_frame is a 640x480 depth image
+            color_frame = aligned_frames.get_color_frame()
+
+            # Validate that both frames are valid
+            if not aligned_depth_frame or not color_frame:
+                continue
+
+            depth_image = np.asanyarray(aligned_depth_frame.get_data())
+            color_image = np.asanyarray(color_frame.get_data())
+
+            if not compressed:
+                depth_image = depth_image / 1000  # convert to meters
+
+            # rotate
+            if rotate:
+                depth_image = np.rot90(depth_image, k=1, axes=(1, 0))
+                color_image = np.rot90(color_image, k=1, axes=(1, 0))
+
+        return color_image, depth_image
+
     def get_semantics(self, rgb, depth):
         """Get semantic segmentation."""
         semantics, semantics_vis = self.segmentation_model.get_prediction(rgb, depth)

@@ -306,6 +306,9 @@ class HelloRobotMover(MoverInterface):
         """Gets the current point cloud"""
         return self.cam.get_current_pcd()
 
+    def get_rgb_depth_optimized_for_habitat_transfer(self):
+        return self.cam.get_rgb_depth_optimized_for_habitat_transfer()
+
     def get_rgb_depth(self):
         """Fetches rgb, depth and pointcloud in pyrobot world coordinates.
 
