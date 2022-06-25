@@ -96,6 +96,66 @@ class Navigation(object):
             goal=abs_goal, distance_threshold=distance_threshold, angle_threshold=angle_threshold
         )
 
+    def execute_low_level_command(self, action, forward_dist, turn_angle):
+        """
+        This function only works on the robot, we write it here because we want to use
+        the trackback logic and we'll throw away this code.
+        """
+        def obstacle_fn():
+            result = False
+            while True:
+                try:
+                    result = self.robot.cam.is_obstacle_in_front()
+                    break
+                except:
+                    print("obstacle exception")
+            return result
+
+        if action == 1:
+            # forward
+            is_obstacle = obstacle_fn()
+            if is_obstacle:
+                print("Found obstacle before translating. Aborting")
+                # TODO trackback
+                return
+            self.robot.translate_by(forward_dist)
+            self.robot.push_command()
+            time.sleep(2)
+            self.robot.pull_status()
+            is_moving = True
+            while is_moving:
+                is_obstacle = obstacle_fn()
+                if is_obstacle:
+                    print("Found obstacle while translating. Aborting")
+                    self.robot.stop()
+                    # TODO trackback
+                    return
+                time.sleep(0.1)
+                self.robot.pull_status()
+                is_moving = self.robot.is_base_moving()
+
+        elif action == 2:
+            # left
+            self.robot.rotate_by(turn_angle)
+            self.robot.push_command()
+            time.sleep(1)
+            is_moving = True
+            while is_moving:
+                time.sleep(0.1)
+                self.robot.pull_status()
+                is_moving = self.robot.is_base_moving()
+
+        elif action == 3:
+            # right
+            self.robot.rotate_by(-turn_angle)
+            self.robot.push_command()
+            time.sleep(1)
+            is_moving = True
+            while is_moving:
+                time.sleep(0.1)
+                self.robot.pull_status()
+                is_moving = self.robot.is_base_moving()
+
     def go_to_absolute(
         self,
         goal=None,
