@@ -101,6 +101,7 @@ class Navigation(object):
         This function only works on the robot, we write it here because we want to use
         the trackback logic and we'll throw away this code.
         """
+
         def obstacle_fn():
             result = False
             while True:
