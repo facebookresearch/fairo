@@ -182,13 +182,13 @@ class RemoteHelloRealsense(object):
 
             # post-processing goes here
             decimated = self.decimate.process(frames).as_frameset()
-            thresholded = self.threshold.process(decimated).as_frameset()
-            disparity = self.depth2disparity.process(thresholded).as_frameset()
-            spatial = self.spatial.process(disparity).as_frameset()
+            # thresholded = self.threshold.process(decimated).as_frameset()
+            # disparity = self.depth2disparity.process(thresholded).as_frameset()
+            # spatial = self.spatial.process(disparity).as_frameset()
             # temporal = self.temporal.process(spatial).as_frameset() # TODO: re-enable
-            postprocessed = self.disparity2depth.process(spatial).as_frameset()
+            # postprocessed = self.disparity2depth.process(spatial).as_frameset()
 
-            aligned_frames = self.align.process(postprocessed)
+            aligned_frames = self.align.process(decimated)
             # aligned_frames = self.align.process(frames)
 
             # Get aligned frames
