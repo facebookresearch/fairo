@@ -21,6 +21,7 @@ from droidlet.lowlevel.hello_robot.remote.obstacle_utils import get_points_in_fr
 import time
 import math
 
+
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
     # or else, those @sio.on calls become no-ops
@@ -41,6 +42,7 @@ from droidlet.interpreter.robot import (
 )
 from droidlet.dialog.robot import LocoBotCapabilities
 from droidlet.event import sio
+from agents.locobot.end_to_end_semantic_scout import EndToEndSemanticScout
 
 faulthandler.register(signal.SIGUSR1)
 
@@ -54,13 +56,16 @@ logging.getLogger().handlers.clear()
 
 mover = None
 
+# TODO Cleaner way to get scout object state (semantic map + goal) in dashboard
+scout_vis = None
+
+
 @sio.on("sendCommandToAgent")
 def get_command(sid, command):
-    arguments = command.split()
-    command = arguments[0]
-    value = " ".join(arguments[1:])
-    print(command)
-    print(value)
+    tokens = command.split()
+    command, value = tokens[0], " ".join(tokens[1:])
+    if len(value) == 0:
+        value = None
     test_command(sid, [command], value=value)
 
 @sio.on("logData")
@@ -81,7 +86,10 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
     move_dist = float(data['move'])
     yaw = float(data['yaw'])
     velocity = float(data['velocity'])
+
     global mover
+    global scout_vis
+
     if mover == None:
         return
     if value is not None:
@@ -143,13 +151,26 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             print("action: MOVE_ABSOLUTE", xyyaw_f)
             mover.move_absolute(xyyaw_f, blocking=False)
             sync()
-        elif command == "MOVE_TO_OBJECT":
-            object_goal, exploration_method = value.split("_")
-            object_goal = object_goal.strip()
-            exploration_method = exploration_method.strip()
-            print(f"action: MOVE_TO_OBJECT {object_goal} with {exploration_method} exploration")
-            mover.move_to_object(object_goal, exploration_method=exploration_method, blocking=False)
+
+        # Commands we introduce
+        elif command == "SEARCH_OBJECT_MODULAR_LEARNED":
+            object_goal = value.strip()
+            print("action: SEARCH_OBJECT_MODULAR_LEARNED", object_goal)
+            mover.move_to_object(object_goal, exploration_method="learned", blocking=False)
             sync()
+        elif command == "SEARCH_OBJECT_MODULAR_HEURISTIC":
+            object_goal = value.strip()
+            print("action: SEARCH_OBJECT_MODULAR_HEURISTIC", object_goal)
+            mover.move_to_object(object_goal, exploration_method="frontier", blocking=False)
+            sync()
+        elif command == "SEARCH_OBJECT_END_TO_END":
+            object_goal = value.strip()
+            print("action: SEARCH_OBJECT_END_TO_END", object_goal)
+            scout = EndToEndSemanticScout(mover, object_goal=object_goal)
+            while not scout.finished:
+                scout.step(mover)
+                scout_vis = scout.last_semantic_frame
+
         elif command == "LOOK_AT":
             xyz = value.split(',')
             xyz = [float(p) for p in xyz]
@@ -229,7 +250,7 @@ if __name__ == "__main__":
         counter += 1
         iter_time = time.time_ns() - start_time
         if float(iter_time) / 1e9 > fps_freq :
-            print("FPS: ", round(counter / (float(iter_time) / 1e9), 1), "  ", int(iter_time / 1e6 / counter), "ms")
+            # print("FPS: ", round(counter / (float(iter_time) / 1e9), 1), "  ", int(iter_time / 1e6 / counter), "ms")
             counter = 0
             start_time = time.time_ns()
 
@@ -246,9 +267,12 @@ if __name__ == "__main__":
         colors = colors / 255.
 
         # TODO Temporary hack to get semantic map in dashboard
-        semantic_map_vis = mover.nav.get_last_semantic_map_vis()
-        semantic_map_vis.wait()
-        rgb_depth.rgb = semantic_map_vis.value[:, :, [2, 1, 0]]
+        if scout_vis is not None:
+            rgb_depth.rgb = scout_vis[:, :, [2, 1, 0]]
+        else:
+            semantic_map_vis = mover.nav.get_last_semantic_map_vis()
+            semantic_map_vis.wait()
+            rgb_depth.rgb = semantic_map_vis.value[:, :, [2, 1, 0]]
 
         # this takes about 1.5 to 2 fps
         serialized_image = rgb_depth.to_struct(resolution, quality)

@@ -52,7 +52,9 @@ class LoCoBotCamera(object):
         :return: the intrinsic matrix (shape: :math:`[3, 3]`)
         :rtype: np.ndarray
         """
-        fx, fy, cx, cy = 256, 256, 256, 256
+        height, width = self.configs.COMMON.SIMULATOR.AGENT.SENSORS.RESOLUTIONS[0]
+        # resolution * tan (fov / 2) / 2 with fov = 90 degrees by default
+        fx, fy, cx, cy = width / 2, height / 2, width / 2, height / 2
         Itc = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
         return Itc
 

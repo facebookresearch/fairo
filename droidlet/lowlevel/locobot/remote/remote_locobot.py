@@ -122,7 +122,7 @@ class RemoteLocobot(object):
 
     def get_img_resolution(self):
         """return height and width"""
-        return (512, 512)
+        return self._robot.configs.COMMON.SIMULATOR.AGENT.SENSORS.RESOLUTIONS[0]
 
     def get_pcd_data(self):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
