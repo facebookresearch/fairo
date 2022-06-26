@@ -202,7 +202,7 @@ class RemoteHelloRealsense(object):
                 continue
 
             depth_image = np.asanyarray(aligned_depth_frame.get_data())
-            color_image = np.asanyarray(color_frame.get_data())
+            color_image = np.asanyarray(color_frame.get_data())[:, :, [2, 1, 0]]
 
             if not compressed:
                 depth_image = depth_image / 1000  # convert to meters
