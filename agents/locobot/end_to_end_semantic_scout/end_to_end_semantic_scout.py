@@ -107,18 +107,20 @@ class RLSegFTAgent(Agent):
         self.model.eval()
 
         self.semantic_predictor = None
-        # if self.model_cfg.USE_SEMANTICS:
-        #     logger.info("setting up sem seg predictor")
-        #     self.semantic_predictor = load_rednet(
-        #         self.device,
-        #         ckpt=self.model_cfg.SEMANTIC_ENCODER.rednet_ckpt,
-        #         resize=True,  # Since we train on half-vision
-        #         num_classes=self.model_cfg.SEMANTIC_ENCODER.num_classes,
-        #     )
-        #     self.semantic_predictor.eval()
-        self.semantic_predictor = SemanticPredMaskRCNN(
-            sem_pred_prob_thr=0.9, sem_gpu_id=config.TORCH_GPU_ID, visualize=True
-        )
+        if config.SEGMENTATION == "mp3d":
+            if self.model_cfg.USE_SEMANTICS:
+                logger.info("setting up sem seg predictor")
+                self.semantic_predictor = load_rednet(
+                    self.device,
+                    ckpt=self.model_cfg.SEMANTIC_ENCODER.rednet_ckpt,
+                    resize=True,  # Since we train on half-vision
+                    num_classes=self.model_cfg.SEMANTIC_ENCODER.num_classes,
+                )
+                self.semantic_predictor.eval()
+        else:
+            self.semantic_predictor = SemanticPredMaskRCNN(
+                sem_pred_prob_thr=0.9, sem_gpu_id=config.TORCH_GPU_ID, visualize=True
+            )
 
         # Load other items
         self.test_recurrent_hidden_states = torch.zeros(
@@ -181,18 +183,20 @@ class RLSegFTAgent(Agent):
                 # to train the policy with detectron2 Mask-RCNN that works much better
                 # in the real world (we use only the object goal categories for now)
 
-                # semantic = self.semantic_predictor(batch["rgb"], batch["depth"])
-                # if self.config.MODEL.SEMANTIC_ENCODER.is_thda:
-                #     semantic = semantic - 1
-                # semantic_vis = self.get_semantic_frame_vis(
-                #     batch["rgb"][0].cpu().numpy(), semantic[0].cpu().numpy()
-                # )
+                if isinstance(self.semantic_predictor, SemanticPredMaskRCNN):
+                    rgb = batch["rgb"][0].cpu().numpy()
+                    depth = batch["depth"][0].cpu().numpy()
+                    semantic, semantic_vis = self.semantic_predictor.get_prediction(rgb, depth)
+                    # semantic_vis = self.get_semantic_frame_vis(rgb, semantic)
+                    semantic = torch.from_numpy(semantic).unsqueeze(0).to(batch["rgb"].device)
 
-                rgb = batch["rgb"][0].cpu().numpy()
-                depth = batch["depth"][0].cpu().numpy()
-                semantic, semantic_vis = self.semantic_predictor.get_prediction(rgb, depth)
-                # semantic_vis = self.get_semantic_frame_vis(rgb, semantic)
-                semantic = torch.from_numpy(semantic).unsqueeze(0).to(batch["rgb"].device)
+                else:
+                    semantic = self.semantic_predictor(batch["rgb"], batch["depth"])
+                    if self.config.MODEL.SEMANTIC_ENCODER.is_thda:
+                        semantic = semantic - 1
+                    semantic_vis = self.get_semantic_frame_vis(
+                        batch["rgb"][0].cpu().numpy(), semantic[0].cpu().numpy()
+                    )
 
                 batch["semantic"] = semantic
 
@@ -236,7 +240,7 @@ class EndToEndSemanticScout:
         python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
     """
 
-    def __init__(self, mover, object_goal: str, max_steps=400):
+    def __init__(self, mover, object_goal: str, max_steps=400, segmentation="mp3d"):
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
@@ -264,6 +268,8 @@ class EndToEndSemanticScout:
             config.TORCH_GPU_ID = 0
         else:
             config.TORCH_GPU_ID = -1
+        assert segmentation in ["mp3d", "coco"]
+        config.SEGMENTATION = segmentation
         config.freeze()
 
         self.agent = RLSegFTAgent(config)
