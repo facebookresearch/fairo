@@ -186,11 +186,13 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             mover.bot.set_pan(0.)
         elif command == "TAKE_PHOTO":
             filename = value.strip()
-            rgb_depth = mover.get_rgb_depth()
-            plt.imsave(f"pictures/{filename}_rgb.png", rgb_depth.rgb)
-            plt.imsave(f"pictures/{filename}_depth.png", rgb_depth.depth)
-            np.save(f"pictures/{filename}_rgb.npy", rgb_depth.rgb)
-            np.save(f"pictures/{filename}_depth.npy", rgb_depth.depth)
+            # rgb_depth = mover.get_rgb_depth()
+            # rgb, depth = rgb_depth.rgb, rgb_depth.depth
+            rgb, depth = mover.get_rgb_depth_optimized_for_habitat_transfer()
+            plt.imsave(f"pictures/{filename}_rgb.png", rgb)
+            plt.imsave(f"pictures/{filename}_depth.png", depth)
+            np.save(f"pictures/{filename}_rgb.npy", rgb)
+            np.save(f"pictures/{filename}_depth.npy", depth)
 
         print(command, movement)
 
