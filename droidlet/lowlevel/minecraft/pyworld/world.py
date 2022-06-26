@@ -129,6 +129,11 @@ class World:
         for eid, p in self.players.items():
             if hasattr(p, "step"):
                 p.step()
+
+        for eid, item in self.items.items():
+            if self.players.get(self.holder_entityId):
+                item.update_position(*self.players[self.holder_entityId].pos)
+
         self.count += 1
 
         if self.is_server:
@@ -237,14 +242,12 @@ class World:
     def get_item_stacks(self):
         item_stacks = []
         for item in self.get_items():
-            # only return items not in any agent's inventory in this method, matching cuberite
-            if item["holder_entityId"] < 0:
-                pos = Pos(item["x"], item["y"], item["z"])
-                item_stacks.append(
-                    ItemStack(
-                        Slot(item["id"], item["meta"], 1), pos, item["entityId"], item["typeName"]
-                    )
+            pos = Pos(item["x"], item["y"], item["z"])
+            item_stacks.append(
+                ItemStack(
+                    Slot(item["id"], item["meta"], 1), pos, item["entityId"], item["typeName"]
                 )
+            )
         return item_stacks
 
     def get_player_info(self, eid):

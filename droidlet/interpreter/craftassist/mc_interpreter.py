@@ -525,7 +525,10 @@ class MCInterpreter(Interpreter):
         if ref_pickup:
             objs = self.subinterpret["reference_objects"](self, speaker, ref_pickup)
             objs = [obj for obj in objs if isinstance(obj, ItemStackNode)]
-
+            if not objs:
+                raise ErrorWithResponse(
+                    "I think you want me to get or put something, but I don't understand what"
+                )
             # no selector, just pick the nearest object to agent from the list.  if agent is carrying one it should be nearest
             # FIXME: do this properly, add a nearest to agent selector
             if ref_pickup.get("filters", {}).get("selector") is None:

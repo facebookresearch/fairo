@@ -965,7 +965,7 @@ class Get(Task):
         self.eid = task_data["eid"]
         self.obj_memid = task_data["obj_memid"]
         self.approx = 1
-        self.attempts = 10
+        self.attempts = 20
         self.type_name = agent.memory.get_mem_by_id(self.obj_memid).type_name
         if getattr(agent, "backend", "cuberite") == "cuberite":
             self.idm = agent.low_level_data["block_data"]["name_to_bid"].get(self.type_name)
@@ -1039,7 +1039,6 @@ class Drop(Task):
         self.target = task_data["target"]
         self.obj_memid = task_data["obj_memid"]
         self.eid = task_data["eid"]
-        print(self.eid)
         self.approx = 2
         self.type_name = agent.memory.get_mem_by_id(self.obj_memid).type_name
         if getattr(agent, "backend", "cuberite") == "cuberite":

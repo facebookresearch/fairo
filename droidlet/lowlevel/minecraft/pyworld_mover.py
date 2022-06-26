@@ -161,9 +161,16 @@ class PyWorldMover:
             if item["holder_entityId"] == holder_entityId or get_all:
                 pos = Pos(item["x"], item["y"], item["z"])
                 item_stacks.append(
-                    ItemStack(
-                        Slot(item["id"], item["meta"], 1), pos, item["entityId"], item["typeName"]
-                    )
+                    [
+                        ItemStack(
+                            Slot(item["id"], item["meta"], 1),
+                            pos,
+                            item["entityId"],
+                            item["typeName"],
+                        ),
+                        item["holder_entityId"],
+                        item["properties"],
+                    ]
                 )
         return item_stacks
 

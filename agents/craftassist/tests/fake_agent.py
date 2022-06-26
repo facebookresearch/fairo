@@ -78,6 +78,7 @@ class FakeAgent(DroidletAgent):
         use_place_field=True,
         prebuilt_db=None,
     ):
+        self.backend = "pyworld"
         self.prebuilt_db = prebuilt_db
         self.use_place_field = use_place_field
         self.mark_airtouching_blocks = do_heuristic_perception
@@ -338,7 +339,9 @@ class FakeAgent(DroidletAgent):
         abs_xyz = tuple(np.array(xyzbms[0][0]) + origin)
         memid = self.memory.get_object_info_by_xyz(abs_xyz, "BlockObjects")[0]
         for pred, obj in relations.items():
-            self.memory.nodes[TripleNode.NODE_TYPE].create(self.memory, subj=memid, pred_text=pred, obj_text=obj)
+            self.memory.nodes[TripleNode.NODE_TYPE].create(
+                self.memory, subj=memid, pred_text=pred, obj_text=obj
+            )
             # sooooorrry  FIXME? when we handle triples better in interpreter_helper
             if "has_" in pred:
                 self.memory.nodes[TripleNode.NODE_TYPE].tag(self.memory, memid, obj)
