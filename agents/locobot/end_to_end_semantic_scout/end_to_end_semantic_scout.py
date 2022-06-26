@@ -330,20 +330,20 @@ class EndToEndSemanticScout:
         depth = preprocess_depth(depth)
         # print("post-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
 
-        # obs = {
-        #     "objectgoal": 0,
-        #     "gps": np.zeros(2, dtype=np.float32),
-        #     "compass": np.zeros(1, dtype=np.float32),
-        #     "rgb": np.zeros((480, 640, 3), dtype=np.uint8),
-        #     "depth": np.zeros((480, 640, 1), dtype=np.float32),
-        # }
         obs = {
-            "objectgoal": self.object_goal_cat,
-            "gps": gps,
-            "compass": compass,
-            "rgb": rgb,
-            "depth": depth,
+            "objectgoal": 0,
+            "gps": np.zeros(2, dtype=np.float32),
+            "compass": np.zeros(1, dtype=np.float32),
+            "rgb": np.zeros((480, 640, 3), dtype=np.uint8),
+            "depth": np.zeros((480, 640, 1), dtype=np.float32),
         }
+        # obs = {
+        #     "objectgoal": self.object_goal_cat,
+        #     "gps": gps,
+        #     "compass": compass,
+        #     "rgb": rgb,
+        #     "depth": depth,
+        # }
 
         t0 = time.time()
         action, self.last_semantic_frame = self.agent.act(obs)
