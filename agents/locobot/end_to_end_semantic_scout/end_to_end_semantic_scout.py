@@ -24,6 +24,7 @@ from .constants import (
     frame_color_palette,
 )
 from .segmentation.semantic_prediction import SemanticPredMaskRCNN
+from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 
 
 class RLSegFTAgent(Agent):
@@ -244,6 +245,8 @@ class EndToEndSemanticScout:
         self.object_goal = object_goal
         self.object_goal_cat = coco_id_to_goal_id[coco_categories[object_goal]]
 
+        self.in_habitat = isinstance(mover, LoCoBotMover)
+
         this_dir = os.path.dirname(os.path.abspath(__file__))
         challenge_config_file = this_dir + "/configs/challenge_objectnav2022.local.rgbd.yaml"
         agent_config_file = this_dir + "/configs/rl_objectnav_sem_seg_hm3d.yaml"
@@ -274,7 +277,11 @@ class EndToEndSemanticScout:
         self.step_count += 1
         print("Step", self.step_count)
 
-        pose = mover.bot.get_base_state().value
+        if self.in_habitat:
+            pose = mover.bot.get_base_state()
+        else:
+            pose = mover.bot.get_base_state().value
+
         gps = np.array([pose[0], -pose[1]], dtype=np.float32)
         compass = np.array(pose[2], dtype=np.float32)
 
@@ -289,16 +296,8 @@ class EndToEndSemanticScout:
             depth = np.expand_dims(depth, -1).astype(np.float32)
             return depth
 
-        # Habitat
-        # rgb_depth = mover.get_rgb_depth()
-        # rgb = rgb_depth.rgb
-        # depth = rgb_depth.depth
-
-        # Robot
-        rgb, depth = mover.get_rgb_depth_optimized_for_habitat_transfer()
-
-        # Temporary reshape while working with policy trained on (480, 640) frames
         def reshape(rgb, depth):
+            # Temporary reshape while working with policy trained on (480, 640) frames
             # (640, 480) -> (360, 480)
             # rgb = rgb[140:500, :]
             # depth = depth[140:500, :]
@@ -309,12 +308,21 @@ class EndToEndSemanticScout:
             depth = cv2.resize(depth, (640, 480), interpolation=cv2.INTER_NEAREST)
             return rgb, depth
 
+        if self.in_habitat:
+            # Habitat
+            rgb_depth = mover.get_rgb_depth()
+            rgb = rgb_depth.rgb
+            depth = rgb_depth.depth
+        else:
+            # Robot
+            rgb, depth = mover.get_rgb_depth_optimized_for_habitat_transfer()
+
         if rgb.shape[0] == 640 and rgb.shape[1] == 480:
             rgb, depth = reshape(rgb, depth)
 
-        print("pre-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
+        # print("pre-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
         depth = preprocess_depth(depth)
-        print("post-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
+        # print("post-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
 
         # obs = {
         #     "objectgoal": 0,
@@ -338,40 +346,42 @@ class EndToEndSemanticScout:
         forward_dist = 0.25
         turn_angle = 30
 
-        # Low-level action in Habitat
-        # if action == HabitatSimActions.MOVE_FORWARD:
-        #     print("Action: forward")
-        #     mover.bot.go_to_relative((forward_dist, 0, 0), wait=True)
-        # elif action == HabitatSimActions.TURN_RIGHT:
-        #     print("Action: right")
-        #     mover.bot.go_to_relative((0, 0, np.radians(-turn_angle)), wait=True)
-        # elif action == HabitatSimActions.TURN_LEFT:
-        #     print("Action: left")
-        #     mover.bot.go_to_relative((0, 0, np.radians(turn_angle)), wait=True)
-        # elif action == HabitatSimActions.STOP:
-        #     print("Action: stop")
-        #     self.finished = True
-        # else:
-        #     print("Action not implemented yet!")
-
-        # Low-level action on robot
-        if action in [
-            HabitatSimActions.MOVE_FORWARD,
-            HabitatSimActions.TURN_RIGHT,
-            HabitatSimActions.TURN_LEFT
-        ]:
+        # Low-level actions
+        if self.in_habitat:
+            # Habitat
             if action == HabitatSimActions.MOVE_FORWARD:
                 print("Action: forward")
+                mover.bot.go_to_relative((forward_dist, 0, 0), wait=True)
             elif action == HabitatSimActions.TURN_RIGHT:
                 print("Action: right")
+                mover.bot.go_to_relative((0, 0, np.radians(-turn_angle)), wait=True)
             elif action == HabitatSimActions.TURN_LEFT:
                 print("Action: left")
-            mover.nav.execute_low_level_command(action, forward_dist, np.radians(turn_angle))
-        elif action == HabitatSimActions.STOP:
-            print("Action: stop")
-            self.finished = True
+                mover.bot.go_to_relative((0, 0, np.radians(turn_angle)), wait=True)
+            elif action == HabitatSimActions.STOP:
+                print("Action: stop")
+                self.finished = True
+            else:
+                print("Action not implemented yet!")
         else:
-            print("Action not implemented yet!")
+            # Robot
+            if action in [
+                HabitatSimActions.MOVE_FORWARD,
+                HabitatSimActions.TURN_RIGHT,
+                HabitatSimActions.TURN_LEFT
+            ]:
+                if action == HabitatSimActions.MOVE_FORWARD:
+                    print("Action: forward")
+                elif action == HabitatSimActions.TURN_RIGHT:
+                    print("Action: right")
+                elif action == HabitatSimActions.TURN_LEFT:
+                    print("Action: left")
+                mover.nav.execute_low_level_command(action, forward_dist, np.radians(turn_angle))
+            elif action == HabitatSimActions.STOP:
+                print("Action: stop")
+                self.finished = True
+            else:
+                print("Action not implemented yet!")
 
         print(f"Time {t1 - t0:.2f}")
         print()

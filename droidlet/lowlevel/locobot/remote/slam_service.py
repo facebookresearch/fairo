@@ -70,9 +70,13 @@ class SLAM(object):
         self.prev_bot_state = (0.0, 0.0, 0.0)
 
         self.last_semantic_frame = None
+        self.update_semantic_map = True
 
         self.update_map()
         assert self.traversable is not None
+
+    def disable_semantic_map_update(self):
+        self.update_semantic_map = False
 
     def get_map_sizes(self):
         return self.map_size, self.local_map_size
@@ -128,17 +132,19 @@ class SLAM(object):
         pcd, rgb, depth = self.robot.get_current_pcd()
         pose = self.robot.get_base_state()
 
-        t0 = time.time()
-        semantics, self.last_semantic_frame = self.robot.get_semantics(rgb, depth)
-        t1 = time.time()
-        print("get_semantics()", t1 - t0)
+        if self.update_semantic_map:
+            t0 = time.time()
+            semantics, self.last_semantic_frame = self.robot.get_semantics(rgb, depth)
+            t1 = time.time()
+            print("get_semantics()", t1 - t0)
 
         self.map_builder.update_map(pcd)
 
-        t0 = time.time()
-        self.map_builder.update_semantic_map(pcd, semantics, pose)
-        t1 = time.time()
-        print("update_semantic_map()", t1 - t0)
+        if self.update_semantic_map:
+            t0 = time.time()
+            self.map_builder.update_semantic_map(pcd, semantics, pose)
+            t1 = time.time()
+            print("update_semantic_map()", t1 - t0)
 
         # explore the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= self.obs_threshold

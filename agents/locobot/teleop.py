@@ -57,7 +57,8 @@ logging.getLogger().handlers.clear()
 mover = None
 
 # TODO Cleaner way to get scout object state (semantic map + goal) in dashboard
-scout_vis = None
+end_to_end_vis = None
+modular_vis = None
 
 
 @sio.on("sendCommandToAgent")
@@ -88,7 +89,8 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
     velocity = float(data['velocity'])
 
     global mover
-    global scout_vis
+    global end_to_end_vis
+    global modular_vis
 
     if mover == None:
         return
@@ -157,19 +159,22 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             object_goal = value.strip()
             print("action: SEARCH_OBJECT_MODULAR_LEARNED", object_goal)
             mover.move_to_object(object_goal, exploration_method="learned", blocking=False)
+            modular_vis = True
             sync()
         elif command == "SEARCH_OBJECT_MODULAR_HEURISTIC":
             object_goal = value.strip()
             print("action: SEARCH_OBJECT_MODULAR_HEURISTIC", object_goal)
             mover.move_to_object(object_goal, exploration_method="frontier", blocking=False)
+            modular_vis = True
             sync()
         elif command == "SEARCH_OBJECT_END_TO_END":
             object_goal = value.strip()
             print("action: SEARCH_OBJECT_END_TO_END", object_goal)
+            mover.slam.disable_semantic_map_update()
             scout = EndToEndSemanticScout(mover, object_goal=object_goal)
             while not scout.finished:
                 scout.step(mover)
-                scout_vis = scout.last_semantic_frame
+                end_to_end_vis = scout.last_semantic_frame
 
         elif command == "LOOK_AT":
             xyz = value.split(',')
@@ -267,9 +272,9 @@ if __name__ == "__main__":
         colors = colors / 255.
 
         # TODO Temporary hack to get semantic map in dashboard
-        if scout_vis is not None:
-            rgb_depth.rgb = scout_vis[:, :, [2, 1, 0]]
-        else:
+        if end_to_end_vis is not None:
+            rgb_depth.rgb = end_to_end_vis[:, :, [2, 1, 0]]
+        elif modular_vis is not None:
             semantic_map_vis = mover.nav.get_last_semantic_map_vis()
             semantic_map_vis.wait()
             rgb_depth.rgb = semantic_map_vis.value[:, :, [2, 1, 0]]
