@@ -5,6 +5,7 @@ import time
 from PIL import Image
 import cv2
 import skimage.morphology
+import matplotlib.pyplot as plt
 
 from gym.spaces import Box
 from gym.spaces import Dict as SpaceDict

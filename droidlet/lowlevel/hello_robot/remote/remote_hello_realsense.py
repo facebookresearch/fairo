@@ -118,6 +118,7 @@ class RemoteHelloRealsense(object):
         self.spatial = rs.spatial_filter(0.5, 20.0, 2.0, 0.0)
         self.temporal = rs.temporal_filter(0.0, 100.0, 3)
         self.disparity2depth = rs.disparity_transform(False)
+        self.hole_filling = rs.hole_filling_filter(2)  # Fill with neighboring pixel nearest to sensor
 
         print("connected to realsense")
 
@@ -181,15 +182,15 @@ class RemoteHelloRealsense(object):
             frames = self.realsense.wait_for_frames()
 
             # post-processing goes here
-            decimated = self.decimate.process(frames).as_frameset()
+            frames = self.decimate.process(frames).as_frameset()
             # thresholded = self.threshold.process(decimated).as_frameset()
-            # disparity = self.depth2disparity.process(thresholded).as_frameset()
-            # spatial = self.spatial.process(disparity).as_frameset()
+            frames = self.depth2disparity.process(frames).as_frameset()
+            frames = self.spatial.process(frames).as_frameset()
             # temporal = self.temporal.process(spatial).as_frameset() # TODO: re-enable
-            # postprocessed = self.disparity2depth.process(spatial).as_frameset()
+            frames = self.disparity2depth.process(frames).as_frameset()
+            frames = self.hole_filling.process(frames).as_frameset()
 
-            aligned_frames = self.align.process(decimated)
-            # aligned_frames = self.align.process(frames)
+            aligned_frames = self.align.process(frames)
 
             # Get aligned frames
             aligned_depth_frame = (
