@@ -118,7 +118,9 @@ class RemoteHelloRealsense(object):
         self.spatial = rs.spatial_filter(0.5, 20.0, 2.0, 0.0)
         self.temporal = rs.temporal_filter(0.0, 100.0, 3)
         self.disparity2depth = rs.disparity_transform(False)
-        self.hole_filling = rs.hole_filling_filter(2)  # Fill with neighboring pixel nearest to sensor
+        self.hole_filling = rs.hole_filling_filter(
+            2
+        )  # Fill with neighboring pixel nearest to sensor
 
         print("connected to realsense")
 
