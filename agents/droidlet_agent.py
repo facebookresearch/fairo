@@ -42,6 +42,7 @@ class DroidletAgent(BaseAgent):
         
         # self.name = name or default_agent_name()
         self.opts = opts
+        self.task_step_filters = None
         self.dialogue_manager = None
         self.init_physical_interfaces()
         super(DroidletAgent, self).__init__(opts, name=self.name)
@@ -313,7 +314,7 @@ class DroidletAgent(BaseAgent):
         - check whether task_filters is true for any memory here.
         """
         # handle task on fiters.
-        if task_filter is None:
+        if task_filter is None and self.task_step_filters:
             task_filter = self.task_step_filters
         if task_filter is None:
             # This task hasn't explicitly been tagged yet and available, step through

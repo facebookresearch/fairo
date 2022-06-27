@@ -74,6 +74,7 @@ class MCInterpreter(Interpreter):
     def __init__(self, speaker, logical_form_memid, agent_memory, memid=None, low_level_data=None):
         super().__init__(speaker, logical_form_memid, agent_memory, memid=memid)
         self.default_frame = "SPEAKER"
+        self.task_objects = MCInterpreter.task_objects
         # These are coming from agent's low level
         self.block_data = low_level_data["block_data"]
         self.get_locs_from_entity = low_level_data["get_locs_from_entity"]
