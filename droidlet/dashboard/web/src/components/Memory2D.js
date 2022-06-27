@@ -636,7 +636,11 @@ class Memory2D extends React.Component {
               table_data
             )}
           >
-            <MemoryMapTable rows={rows} onTableDone={onTableDone} />
+            <MemoryMapTable
+              rows={rows}
+              data={table_data}
+              onTableDone={onTableDone}
+            />
           </div>
         )}
       </div>
