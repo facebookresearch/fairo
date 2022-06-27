@@ -40,7 +40,7 @@ class InteractApp extends Component {
       isSaveFeedback: false,
       clarify: false,
       followup: false,
-      current_conversation: "",
+      // current_conversation: "",
       conversation_turn: 0,
     };
 
@@ -134,8 +134,8 @@ class InteractApp extends Component {
     });
 
     // Add the response to the current conversation
-    const { current_conversation } = this.state;
-    let new_conversation = current_conversation + " Agent: " + msg;
+    // const { current_conversation } = this.state;
+    // let new_conversation = current_conversation + " Agent: " + msg;
 
     const { agent_replies } = this.state;
     let new_agent_replies = disablePreviousAnswer
@@ -154,7 +154,7 @@ class InteractApp extends Component {
     this.setState( prevState => {
       return {
         agent_replies: new_agent_replies,
-        current_conversation: new_conversation,
+        // current_conversation: new_conversation,
         conversation_turn: prevState.conversation_turn + 1,
         // Enable follow up responses to the second conversational turn:
         disableInput: prevState.conversation_turn === 1 ? false : true,
@@ -272,10 +272,10 @@ class InteractApp extends Component {
       if (this.state.clarify) {
         // if we're in active clarification, keep the conversation going
         // Should only get here if we're sending a follow up command
-        chatmsg = this.state.current_conversation + " User: " + chatmsg;
+        // chatmsg = this.state.current_conversation + " User: " + chatmsg;
         this.setState ( prevState => {
           return {
-            current_conversation: chatmsg,
+            // current_conversation: chatmsg,
             conversation_turn: prevState.conversation_turn + 1,
             followup: true,
           }
@@ -284,7 +284,7 @@ class InteractApp extends Component {
         // Otherwise, start a new conversation
         this.setState({ 
           last_command: chatmsg,
-          current_conversation: "User: " + chatmsg,
+          // current_conversation: "User: " + chatmsg,
           conversation_turn: 1,
         });
       }
@@ -965,16 +965,16 @@ class InteractApp extends Component {
     this.updateChat({ msg: chatmsg, timestamp: Date.now() });
 
     // Send entire current conversation to the NSP
-    const { current_conversation } = this.state
-    let new_conversation = current_conversation + " User: " + chatmsg;
+    // const { current_conversation } = this.state
+    // let new_conversation = current_conversation + " User: " + chatmsg;
     this.setState( prevState => {
       return { 
         followup: false,
-        current_conversation: new_conversation,
+        // current_conversation: new_conversation,
         conversation_turn: prevState.conversation_turn + 1,
       }
     });
-    this.props.stateManager.socket.emit("sendCommandToAgent", new_conversation);
+    this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
 
     this.removeButtonsFromLastQuestion();
   }

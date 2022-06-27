@@ -135,9 +135,9 @@ class DroidletAgent(BaseAgent):
                 return back a socket emit with parse of command and success status
             """
             logging.debug("in send_text_command_to_agent, got the command: %r" % (command))
-
+            
             agent_chat = (
-                "<dashboard> " + command
+                "<dashboard> " + "User: " + command
             )  # the chat is coming from a player called "dashboard"
             self.dashboard_chat = agent_chat
             status = "Sent successfully"

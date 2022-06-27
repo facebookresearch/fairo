@@ -6,10 +6,16 @@ querying the dialogue manager"""
 from spacy.lang.en import English
 from typing import List
 
-tokenizer = English().Defaults.create_tokenizer()
+
+def create_tokenizer():
+    tokenizer = English().Defaults.create_tokenizer()
+    tokenizer.add_special_case("User:", [{"ORTH": "User:"}])
+    tokenizer.add_special_case("Agent:", [{"ORTH": "Agent:"}])
+    return tokenizer
 
 
 def word_tokenize(st) -> str:
+    tokenizer = create_tokenizer()
     chat_with_spaces = insert_spaces(st)
     return " ".join([str(x) for x in tokenizer(chat_with_spaces)])
 

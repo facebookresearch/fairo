@@ -428,7 +428,7 @@ class CraftAssistAgent(DroidletAgent):
 
         logging.info("Sending chat: {}".format(chat_text))
         chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
-            self.memory, self.memory.self_memid, chat_text
+            self.memory, self.memory.self_memid, f"Agent: {chat_text}"
         )
 
         if chat_json:
@@ -441,7 +441,7 @@ class CraftAssistAgent(DroidletAgent):
         else:
             sio.emit(
                 "showAssistantReply",
-                {"agent_reply": "Agent: {}".format(chat_text)},
+                {"agent_reply": "{}".format(chat_text)},
             )
 
         return self.cagent.send_chat(chat_text)

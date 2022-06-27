@@ -14,6 +14,7 @@ from droidlet.event import sio
 from .utils.nsp_logger import NSPLogger
 from .utils.validate_json import JSONValidator
 from droidlet.base_util import hash_user
+from droidlet.memory.memory_nodes import ChatNode
 
 
 class NSPQuerier(object):
@@ -117,7 +118,12 @@ class NSPQuerier(object):
             # For now just process the first incoming chat, where chat -> [speaker, chat]
             speaker, chat = incoming_chats[0]
             received_chats_flag = True
-            preprocessed_chat, chat_parse = self.get_parse(chat)
+
+            # The entire conversational history (up to n chats) is passed to the parser
+            recent_chats = self.agent.memory.nodes[ChatNode.NODE_TYPE].get_recent_chats(self.agent.memory, n=10)
+            conv_history = " ".join([chat.chat_text for chat in recent_chats])
+
+            preprocessed_chat, chat_parse = self.get_parse(chat, conv_history)
 
         return force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse
 
@@ -128,7 +134,7 @@ class NSPQuerier(object):
         preprocessed_chat = preprocess.preprocess_chat(chat)
         return preprocessed_chat
 
-    def get_parse(self, chatstr: str) -> Tuple[str, Dict]:
+    def get_parse(self, chatstr: str, conv_history: str = "") -> Tuple[str, Dict]:
         """This is the function that is called from the perceive() of the agent.
         This function takes in a chat and returns logical form.
         The order is:
@@ -146,7 +152,7 @@ class NSPQuerier(object):
         chat = self.preprocess_chat(chatstr)
 
         # 2. Get logical form from either ground truth or query the parsing model
-        logical_form = self.get_logical_form(chat=chat, parsing_model=self.parsing_model)
+        logical_form = self.get_logical_form(chat=chat, parsing_model=self.parsing_model, conv_history=conv_history)
         return chat, logical_form
 
     def validate_parse_tree(self, parse_tree: Dict, debug: bool = True) -> bool:
@@ -167,7 +173,7 @@ class NSPQuerier(object):
         is_valid_json = json_validator.validate_instance(parse_tree, debug)
         return is_valid_json
 
-    def get_logical_form(self, chat: str, parsing_model) -> Dict:
+    def get_logical_form(self, chat: str, parsing_model, conv_history: str = "") -> Dict:
         # TODO: split this into two steps: gt vs model
         """Get logical form output for a given chat command.
         First check the ground truth file for the chat string. If not
@@ -204,7 +210,9 @@ class NSPQuerier(object):
             # log the current UTC time
             time_now = time.time()
         elif self.parsing_model:
-            logical_form = parsing_model.query_for_logical_form(chat)
+            full_conversation = conv_history + " " + chat
+            logging.info(f"Querying parser with conversation: {full_conversation}")
+            logical_form = parsing_model.query_for_logical_form(full_conversation)
             time_now = time.time()
             logical_form_source = "NLU_model"
         else:

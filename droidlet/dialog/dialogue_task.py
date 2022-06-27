@@ -228,7 +228,10 @@ def map_yes_last_chat(task: Task):
         task.agent.memory, after=task.step_time + 1
     )
 
-    chat = chat_mem.chat_text
+    chat = "stop"
+    if chat_mem:
+        chat = chat_mem.chat_text
+
     if "User" in chat:
         # Pull out just the last thing from the whole conversation
         chat = chat.split(":")[-1].strip()
