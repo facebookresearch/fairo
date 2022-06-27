@@ -16,8 +16,6 @@ const NavBar = (props) => {
         navigate(`../${evt.key}`, {replace: true});
     }
 
-    console.log(location)
-
     return <Menu onClick={onClick} selectedKeys={location.pathname} mode="horizontal" items={menuItems} />;    
 }
 
