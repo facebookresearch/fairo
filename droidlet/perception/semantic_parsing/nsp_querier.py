@@ -120,7 +120,9 @@ class NSPQuerier(object):
             received_chats_flag = True
 
             # The entire conversational history (up to n chats) is passed to the parser
-            recent_chats = self.agent.memory.nodes[ChatNode.NODE_TYPE].get_recent_chats(self.agent.memory, n=10)
+            recent_chats = self.agent.memory.nodes[ChatNode.NODE_TYPE].get_recent_chats(
+                self.agent.memory, n=10
+            )
             conv_history = " ".join([chat.chat_text for chat in recent_chats])
 
             preprocessed_chat, chat_parse = self.get_parse(chat, conv_history)
@@ -152,7 +154,9 @@ class NSPQuerier(object):
         chat = self.preprocess_chat(chatstr)
 
         # 2. Get logical form from either ground truth or query the parsing model
-        logical_form = self.get_logical_form(chat=chat, parsing_model=self.parsing_model, conv_history=conv_history)
+        logical_form = self.get_logical_form(
+            chat=chat, parsing_model=self.parsing_model, conv_history=conv_history
+        )
         return chat, logical_form
 
     def validate_parse_tree(self, parse_tree: Dict, debug: bool = True) -> bool:
