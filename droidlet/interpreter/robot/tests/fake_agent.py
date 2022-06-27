@@ -399,9 +399,9 @@ class FakeAgent(DroidletAgent):
         self.chat_count = 0
         if not opts:
             opts = Opt()
-            self.name = None
-            self.mark_agent = False
-            self.agent_tag = None
+            opts.name = None
+            opts.mark_agent = False
+            opts.agent_tag = None
             opts.nsp_models_dir = ""
             opts.nsp_data_dir = ""
             opts.model_base_path = ""
