@@ -332,17 +332,6 @@ class EndToEndSemanticScout:
         depth = preprocess_depth(depth)
         # print("post-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
 
-        # Attempt to replicate zero depth at object boundaries like on the robot
-        if self.in_habitat:
-            def object_boundaries(rgb):
-                edges = cv2.Canny(image=rgb, threshold1=100, threshold2=200)
-                edges = cv2.dilate(edges, skimage.morphology.disk(10))
-                edges = edges - cv2.dilate(edges, skimage.morphology.disk(1))
-                edges = cv2.dilate(edges, skimage.morphology.disk(10))
-                return edges
-            edges = object_boundaries(rgb)
-            depth[edges == 1] = 0
-
         # obs = {
         #     "objectgoal": 0,
         #     "gps": np.zeros(2, dtype=np.float32),
