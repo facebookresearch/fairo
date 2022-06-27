@@ -126,13 +126,14 @@ class World:
     def step(self):
         for m in self.mobs:
             m.step()
+
         for eid, p in self.players.items():
-            if hasattr(p, "step"):
+            if hasattr(p, "step") and not getattr(p, "no_step_from_world", False):
                 p.step()
 
         for eid, item in self.items.items():
-            if self.players.get(self.holder_entityId):
-                item.update_position(*self.players[self.holder_entityId].pos)
+            if self.players.get(item.holder_entityId):
+                item.update_position(*self.players[item.holder_entityId].pos)
 
         self.count += 1
 
@@ -358,6 +359,25 @@ class World:
                 return {"player": player_info}
         return None
 
+    def player_pick_drop_items(self, player_eid, data, action="pick"):
+        """
+        data should be a list of entityIds
+        """
+        count = 0
+        for eid in data:
+            item = self.items.get(eid)
+            if item is not None:
+                # TODO inform caller if eid doesn't exist?
+                if action == "pick":
+                    # TODO check it isn't already attached?
+                    item.attach_to_entity(player_eid)
+                    count += 1
+                else:
+                    if item.holder_entityId == player_eid:
+                        item.attach_to_entity(-1)
+                        count += 1
+        return count
+
     def setup_server(self, port=25565):
         import socketio
         import eventlet
@@ -551,15 +571,7 @@ class World:
             data should be a list of entityId
             """
             player_eid = self.connected_sids[sid]
-            count = 0
-            for eid in data:
-                item = self.items.get(eid)
-                if item is not None:
-                    # TODO check it isn't already attached?
-                    item.attach_to_entity(player_eid)
-                    count += 1
-                # TODO inform caller if eid doesn't exist?
-            return count
+            return self.player_pick_drop_items(player_eid, data, action="pick")
 
         @server.on("drop_items")
         def drop_items(sid, data):
@@ -567,15 +579,7 @@ class World:
             data should be a list of entityId
             """
             player_eid = self.connected_sids[sid]
-            count = 0
-            for eid in data:
-                item = self.items.get(eid)
-                if item is not None:
-                    if item.in_inventory == player_eid:
-                        item.attach_to_entity(-1)
-                        count += 1
-                        # TODO inform caller if eid doesn't exist?
-            return count
+            return self.player_pick_drop_items(player_eid, data, action="drop")
 
         @server.on("get_changed_blocks")
         def changed_blocks(sid):
