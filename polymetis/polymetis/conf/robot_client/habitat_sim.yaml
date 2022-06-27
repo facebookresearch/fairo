@@ -3,7 +3,7 @@ hz: 240
 gui: true
 use_grav_comp: true
 use_real_time: true
-habitat_dir: "../../../../habitat-sim/"
+habitat_dir: "../../../../third_party/habitat-sim/"
 habitat_scene_path: "data/test_assets/scenes/simple_room.glb"
 
 robot_client:
