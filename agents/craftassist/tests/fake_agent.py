@@ -83,8 +83,8 @@ class FakeAgent(DroidletAgent):
         self.use_place_field = use_place_field
         self.mark_airtouching_blocks = do_heuristic_perception
         self.head_height = HEAD_HEIGHT
-        self.mainHand = Item(0, 0)
-        self.look = Look(270, 0)
+        self.mainHand = getattr(self, "mainHand", Item(0, 0))
+        self.look = getattr(self, "look", Look(270, 0))
         self.add_to_world(world)
         # do not allow the world to step this agent; this agent steps the world.
         self.no_step_from_world = True
@@ -97,12 +97,11 @@ class FakeAgent(DroidletAgent):
         if low_level_data is None:
             low_level_data = default_low_level_data()
         self.low_level_data = low_level_data
-        super(FakeAgent, self).__init__(opts)
+        super(FakeAgent, self).__init__(opts, name=getattr(self, "name", None))
         self.do_heuristic_perception = do_heuristic_perception
         self.no_default_behavior = True
         self.last_task_memid = None
         self.logical_form = None
-        self.world_interaction_occurred = False
         self.world_interaction_occurred = False
         self._held_item: IDM = (0, 0)
         self._look_vec = (1, 0, 0)
@@ -112,12 +111,12 @@ class FakeAgent(DroidletAgent):
 
     def add_to_world(self, world):
         self.world = world
-        self.entityId = world.new_eid()
+        self.entityId = getattr(self, "entityId", world.new_eid())
 
         pos = (0, 63, 0)
         if hasattr(self.world, "agent_data"):
             pos = self.world.agent_data["pos"]
-        self.pos = np.array(pos, dtype="int")
+        self.pos = getattr(self, "pos", np.array(pos, dtype="int"))
         self.world.players[self.entityId] = self
 
     def set_look_vec(self, x, y, z):
