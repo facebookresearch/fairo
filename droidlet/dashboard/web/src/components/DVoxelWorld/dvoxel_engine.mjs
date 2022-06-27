@@ -489,7 +489,7 @@ class DVoxelEngine {
                 agent_player.moveTo(x * blockScale, y * blockScale, z * blockScale)
             } else if (name === PLAYER_NAME && controlled_player != null) {
                 // console.log("player move: " + x + " " + y + " " + z);
-                // controlled_player.moveTo(x * blockScale, y * blockScale, z * blockScale)
+                controlled_player.moveTo(x * blockScale, y * blockScale, z * blockScale)
             }
         })
     }

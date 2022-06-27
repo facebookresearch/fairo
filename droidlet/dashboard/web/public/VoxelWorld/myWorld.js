@@ -3379,11 +3379,10 @@ class VoxelPlayer {
 
   moveTo(x, y, z) {
     let xyz = applyOffset([x, y, z], this.position_offset);
-    let newPosVec = new this.world.THREE.Vector3(xyz[0], xyz[1], xyz[2]); // console.log(newPosVec);
-    // console.log(this.mesh.position);
+    let newPosVec = new this.world.THREE.Vector3(xyz[0], xyz[1], xyz[2]);
 
     if (!newPosVec.equals(this.mesh.position)) {
-      console.log("moveTo");
+      console.log("moveTo: x=" + xyz[0] + " y=" + xyz[1] + " z=" + xyz[2]);
       this.mesh.position.copy(newPosVec);
       if (this.possessed) this.updateCamera();
     }
@@ -4070,8 +4069,9 @@ class DVoxelEngine {
 
       if (name === AGENT_NAME && agent_player != null) {
         agent_player.moveTo(x * blockScale, y * blockScale, z * blockScale);
-      } else if (name === PLAYER_NAME && controlled_player != null) {// console.log("player move: " + x + " " + y + " " + z);
-        // controlled_player.moveTo(x * blockScale, y * blockScale, z * blockScale)
+      } else if (name === PLAYER_NAME && controlled_player != null) {
+        // console.log("player move: " + x + " " + y + " " + z);
+        controlled_player.moveTo(x * blockScale, y * blockScale, z * blockScale);
       }
     });
   }

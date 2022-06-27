@@ -46,10 +46,8 @@ class VoxelPlayer {
     moveTo(x, y, z) {
         let xyz = applyOffset([x,y,z], this.position_offset);
         let newPosVec = new this.world.THREE.Vector3(xyz[0], xyz[1], xyz[2]);
-        // console.log(newPosVec);
-        // console.log(this.mesh.position);
         if (!newPosVec.equals(this.mesh.position)) {
-            console.log("moveTo");
+            console.log("moveTo: x=" + xyz[0] + " y=" + xyz[1] + " z=" + xyz[2]);
             this.mesh.position.copy(newPosVec);
             if (this.possessed) this.updateCamera();
         }
