@@ -194,7 +194,19 @@ def interpret_reference_object(
             # No filter by sublocation etc if a mem matches the text_span exactly...
             return mems
 
+        # How many reference objects are we looking for?
+        # TODO This needs a lot of work to handle plurals, NOT, etc.
+        num_refs = 1  # default
+        if filters_d.get("where_clause"):
+            if filters_d["where_clause"].get("OR"):
+                num_refs = len(filters_d["where_clause"].get("OR"))
+        elif filters_d.get("selector", {}).get("ordinal", "").isdigit():
+            num_refs = int(filters_d["selector"]["ordinal"])
+        elif filters_d.get("selector", {}).get("return_quantity", "") == "ALL":
+            allow_clarification = False
+
         # Add extra tags to the filters
+
         if any(extra_tags):
             extra_clauses = []
             for tag in extra_tags:
