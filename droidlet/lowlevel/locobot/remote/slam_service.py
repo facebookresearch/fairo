@@ -69,7 +69,7 @@ class SLAM(object):
         self.init_state = (0.0, 0.0, 0.0)
         self.prev_bot_state = (0.0, 0.0, 0.0)
 
-        self.last_semantic_frame = None
+        self.last_position_vis_info = None
         self.update_semantic_map = True
 
         self.update_map()
@@ -132,19 +132,28 @@ class SLAM(object):
         pcd, rgb, depth = self.robot.get_current_pcd()
         pose = self.robot.get_base_state()
 
-        if self.update_semantic_map:
-            t0 = time.time()
-            semantics, self.last_semantic_frame = self.robot.get_semantics(rgb, depth)
-            t1 = time.time()
-            print("get_semantics()", t1 - t0)
-
         self.map_builder.update_map(pcd)
 
         if self.update_semantic_map:
             t0 = time.time()
-            self.map_builder.update_semantic_map(pcd, semantics, pose)
+            semantics, last_semantic_frame = self.robot.get_semantics(rgb, depth)
             t1 = time.time()
-            print("update_semantic_map()", t1 - t0)
+            print("get_semantics()", t1 - t0)
+
+            self.map_builder.update_semantic_map(pcd, semantics, pose)
+            t2 = time.time()
+            print("update_semantic_map()", t2 - t1)
+
+            self.last_position_vis_info = {
+                # Frame
+                "rgb": rgb,
+                "depth": depth,
+                "semantic_frame": last_semantic_frame,
+                # Semantic map after update with frame
+                "semantic_map": self.get_global_semantic_map(),
+                # Sensor pose of frame
+                "pose": pose,
+            }
 
         # explore the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= self.obs_threshold
@@ -166,8 +175,8 @@ class SLAM(object):
         ]
         return real_world_locations
 
-    def get_last_semantic_frame(self):
-        return self.last_semantic_frame
+    def get_last_position_vis_info(self):
+        return self.last_position_vis_info
 
     def get_global_semantic_map(self):
         return self.map_builder.semantic_map

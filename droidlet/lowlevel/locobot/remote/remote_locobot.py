@@ -202,7 +202,8 @@ class RemoteLocobot(object):
             self._robot.base.go_to_absolute(xyt_position, wait=wait)
             self._done = True
         status = self.get_base_status()
-        return status
+        action = "don't track action"
+        return status, action
 
     def go_to_relative(
         self,

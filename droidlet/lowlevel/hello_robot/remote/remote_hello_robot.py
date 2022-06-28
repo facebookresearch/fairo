@@ -226,7 +226,8 @@ class RemoteHelloRobot(object):
             else:
                 status = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
-        return status
+        action = "don't track action"
+        return status, action
 
     def go_to_relative(self, xyt_position):
         """Moves the robot base to the given goal state relative to its current

@@ -181,9 +181,7 @@ class Navigation(object):
                 robot_loc,
                 goal=goal,
                 goal_map=goal_map,
-                vis_path=os.path.join(
-                    self.vis.path, f"planner_snapshot_{self.vis.snapshot_idx}.png"
-                ),
+                vis_path=f"{self.vis.path}/planner/step{self.vis.snapshot_idx}.png"
             )
             if stg == False:
                 # no path to end-goal
@@ -195,7 +193,7 @@ class Navigation(object):
                 path_found = False
                 break
             robot_loc = self.robot.get_base_state()
-            status = safe_call(self.robot.go_to_absolute, stg)
+            status, action = self.robot.go_to_absolute(stg)
             robot_loc = self.robot.get_base_state()
 
             print("[navigation] Finished a go_to_absolute")
@@ -248,8 +246,11 @@ class Navigation(object):
             steps = steps - 1
 
             if visualize:
-                self.vis.update_semantic_frame(self.slam.get_last_semantic_frame())
-                self.vis.update_semantic_map(self.slam.get_global_semantic_map())
+                self.vis.set_action_and_collision({
+                    "action": action,
+                    "collision": status != "SUCCEEDED"
+                })
+                self.vis.update_last_position_vis_info(self.slam.get_last_position_vis_info())
                 self.vis.snapshot()
 
         self._busy = False
@@ -258,6 +259,7 @@ class Navigation(object):
     def go_to_object(
         self,
         object_goal: str,
+        episode_id: str,
         exploration_method="learned",
         debug=False,
         visualize=True,
@@ -275,9 +277,9 @@ class Navigation(object):
         if visualize:
             try:
                 # if in Habitat scene
-                vis_path = f"images/{self.robot.get_scene_name()}/{object_goal}"
+                vis_path = f"images/{exploration_method}/{self.robot.get_scene_name()}/{episode_id}"
             except:
-                vis_path = f"images/real_world/{object_goal}"
+                vis_path = f"images/{exploration_method}/{episode_id}"
             self.vis = ObjectGoalNavigationVisualization(object_goal, path=vis_path)
 
         object_goal_cat = coco_categories[object_goal]
@@ -302,7 +304,7 @@ class Navigation(object):
                 )
                 goal_map = cat_sem_map == 1
                 if visualize:
-                    self.vis.add_location_goal(goal_map)
+                    self.vis.set_location_goal(goal_map)
                 _, goal_reached = self.go_to_absolute(
                     goal_map=goal_map,
                     distance_threshold=0.5,
@@ -351,7 +353,7 @@ class Navigation(object):
                     if visualize:
                         goal_map = np.zeros((self.map_size, self.map_size))
                         goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
-                        self.vis.add_location_goal(goal_map)
+                        self.vis.set_location_goal(goal_map)
 
                 else:
                     low_level_steps_with_goal_remaining -= 1
@@ -398,7 +400,7 @@ class Navigation(object):
                 )
 
                 if visualize:
-                    self.vis.add_location_goal(goal_map)
+                    self.vis.set_location_goal(goal_map)
 
                 self.go_to_absolute(
                     goal_map=goal_map,
@@ -407,6 +409,10 @@ class Navigation(object):
                     steps=1,
                     visualize=visualize,
                 )
+
+        self.vis.record_aggregate_metrics(
+            last_pose=self.robot.get_base_state()
+        )
 
         print(f"[navigation] Finished a go_to_object {object_goal}")
         print(f"goal reached: {goal_reached}")

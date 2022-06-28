@@ -156,19 +156,38 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
 
         # Commands we introduce
         elif command == "SEARCH_OBJECT_MODULAR_LEARNED":
-            object_goal = value.strip()
+            if "_" in value.strip():
+                object_goal, episode_id = [x.strip() for x in value.split("_")]
+            else:
+                object_goal = episode_id = value.strip()
             print("action: SEARCH_OBJECT_MODULAR_LEARNED", object_goal)
-            mover.move_to_object(object_goal, exploration_method="learned", blocking=False)
+            mover.move_to_object(
+                object_goal,
+                episode_id=episode_id,
+                exploration_method="learned",
+                blocking=False
+            )
             modular_vis = True
             sync()
         elif command == "SEARCH_OBJECT_MODULAR_HEURISTIC":
-            object_goal = value.strip()
+            if "_" in value.strip():
+                object_goal, episode_id = [x.strip() for x in value.split("_")]
+            else:
+                object_goal = episode_id = value.strip()
             print("action: SEARCH_OBJECT_MODULAR_HEURISTIC", object_goal)
-            mover.move_to_object(object_goal, exploration_method="frontier", blocking=False)
+            mover.move_to_object(
+                object_goal,
+                episode_id=episode_id,
+                exploration_method="frontier",
+                blocking=False
+            )
             modular_vis = True
             sync()
         elif command == "SEARCH_OBJECT_END_TO_END":
-            object_goal = value.strip()
+            if "_" in value.strip():
+                object_goal, episode_id = [x.strip() for x in value.split("_")]
+            else:
+                object_goal = episode_id = value.strip()
             print("action: SEARCH_OBJECT_END_TO_END", object_goal)
             mover.slam.disable_semantic_map_update()
             scout = EndToEndSemanticScout(mover, object_goal=object_goal, segmentation="mp3d")

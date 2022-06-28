@@ -261,6 +261,7 @@ def goto(
 
     if rot > turn_angle:
         # Right
+        action = "right"
         if not dryrun:
             robot.rotate_by(turn_angle)
             robot.push_command()
@@ -270,10 +271,10 @@ def goto(
                 time.sleep(0.1)
                 robot.pull_status()
                 is_moving = robot.is_base_moving()
-        return status
 
     elif rot < -turn_angle:
         # Left
+        action = "left"
         if not dryrun:
             robot.rotate_by(-turn_angle)
             robot.push_command()
@@ -283,10 +284,10 @@ def goto(
                 time.sleep(0.1)
                 robot.pull_status()
                 is_moving = robot.is_base_moving()
-        return status
 
     else:
         # Forward
+        action = "forward"
         if obstacle_fn is not None:
             is_obstacle = obstacle_fn()
         else:
@@ -312,4 +313,5 @@ def goto(
             time.sleep(0.1)
             robot.pull_status()
             is_moving = robot.is_base_moving()
-        return status
+
+    return status, action

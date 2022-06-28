@@ -268,7 +268,11 @@ class HelloRobotMover(MoverInterface):
                 self.nav_result.wait()
         return "finished"
 
-    def move_to_object(self, object_goal: str, exploration_method: str, blocking=True):
+    def move_to_object(self,
+                       object_goal: str,
+                       episode_id: str,
+                       exploration_method: str,
+                       blocking=True):
         """Command to execute a move to an object category.
 
         Args:
@@ -277,7 +281,7 @@ class HelloRobotMover(MoverInterface):
         """
         if self.nav_result.ready:
             self.nav_result.wait()
-            self.nav_result = self.nav.go_to_object(object_goal, exploration_method)
+            self.nav_result = self.nav.go_to_object(object_goal, episode_id, exploration_method)
             if blocking:
                 self.nav_result.wait()
         else:

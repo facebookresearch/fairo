@@ -185,6 +185,7 @@ class RemoteHelloRobot(object):
                              in the world (map) frame.
         """
         status = "SUCCEEDED"
+        action = None
         print("entering done", self._done)
         if self._done:
             self.initialize_cam()
@@ -210,15 +211,16 @@ class RemoteHelloRobot(object):
                     status = goto_trackback(
                         self, list(base_xyt), dryrun=False, optimize_distance=True
                     )
+                    action = "trackback"
                 else:
-                    status = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
+                    status, action = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
                 self._done = True
             except Exception as e:
                 print(e)
                 print(traceback.format_exc())
                 self._done = True
                 raise e
-        return status
+        return status, action
 
     def go_to_relative(self, xyt_position):
         """Moves the robot base to the given goal state relative to its current
