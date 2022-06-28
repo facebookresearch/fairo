@@ -118,7 +118,7 @@ class Navigation(object):
             # if is_obstacle:
             #     print("Found obstacle before translating. Aborting")
             #     # TODO trackback
-            #     return
+            #     return "FAILED"
             self.robot.translate_by(forward_dist)
             self.robot.push_command()
             time.sleep(2)
@@ -130,7 +130,7 @@ class Navigation(object):
                 #     print("Found obstacle while translating. Aborting")
                 #     self.robot.stop()
                 #     # TODO trackback
-                #     return
+                #     return "FAILED"
                 time.sleep(0.1)
                 self.robot.pull_status()
                 is_moving = self.robot.is_base_moving()
@@ -156,6 +156,8 @@ class Navigation(object):
                 time.sleep(0.1)
                 self.robot.pull_status()
                 is_moving = self.robot.is_base_moving()
+
+        return "SUCCEEDED"
 
     def go_to_absolute(
         self,

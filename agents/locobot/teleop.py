@@ -190,10 +190,15 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
                 object_goal = episode_id = value.strip()
             print("action: SEARCH_OBJECT_END_TO_END", object_goal)
             mover.slam.disable_semantic_map_update()
-            scout = EndToEndSemanticScout(mover, object_goal=object_goal, segmentation="mp3d")
+            scout = EndToEndSemanticScout(
+                mover,
+                episode_id=episode_id,
+                object_goal=object_goal,
+                segmentation="mp3d"
+            )
             while not scout.finished:
                 scout.step(mover)
-                end_to_end_vis = scout.last_semantic_frame
+                end_to_end_vis = scout.semantic_frame
 
         elif command == "LOOK_AT":
             xyz = value.split(',')

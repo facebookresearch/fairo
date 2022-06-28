@@ -6,6 +6,8 @@ from PIL import Image
 import cv2
 import skimage.morphology
 import matplotlib.pyplot as plt
+import shutil
+import json
 
 from gym.spaces import Box
 from gym.spaces import Dict as SpaceDict
@@ -242,16 +244,28 @@ class EndToEndSemanticScout:
         python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
     """
 
-    def __init__(self, mover, object_goal: str, max_steps=400, segmentation="mp3d"):
+    def __init__(self, mover, object_goal: str, episode_id: str, max_steps=400, segmentation="mp3d"):
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
+
+        self.path = f"images/end_to_end/{episode_id}"
+        shutil.rmtree(self.path, ignore_errors=True)
+        os.makedirs(self.path)
+        os.makedirs(f"{self.path}/trajectory")
 
         self.max_steps = max_steps
         self.object_goal = object_goal
         self.object_goal_cat = coco_id_to_goal_id[coco_categories[object_goal]]
 
         self.in_habitat = isinstance(mover, LoCoBotMover)
+
+        self.actions = {
+            HabitatSimActions.MOVE_FORWARD: "forward",
+            HabitatSimActions.TURN_RIGHT: "right",
+            HabitatSimActions.TURN_LEFT: "left",
+            HabitatSimActions.STOP: "stop"
+        }
 
         this_dir = os.path.dirname(os.path.abspath(__file__))
         challenge_config_file = this_dir + "/configs/challenge_objectnav2022.local.rgbd.yaml"
@@ -278,8 +292,16 @@ class EndToEndSemanticScout:
 
         self.step_count = 0
         self.finished = False
-        self.last_semantic_frame = None
         self.agent.reset()
+        self.start_time = time.time()
+
+        self.semantic_frame = None
+        self.pose = None
+        self.all_poses = []
+        self.action = None
+        self.all_actions = []
+        self.collision = None
+        self.num_collisions = 0
 
     def step(self, mover):
         self.step_count += 1
@@ -348,29 +370,28 @@ class EndToEndSemanticScout:
         }
 
         t0 = time.time()
-        action, self.last_semantic_frame = self.agent.act(obs)
+        action, semantic_frame = self.agent.act(obs)
         t1 = time.time()
 
         forward_dist = 0.25
         turn_angle = 30
 
         # Low-level actions
+        print(f"Action: {self.actions.get(action)}")
         if self.in_habitat:
             # Habitat
             if action == HabitatSimActions.MOVE_FORWARD:
-                print("Action: forward")
-                mover.bot.go_to_relative((forward_dist, 0, 0), wait=True)
+                status = mover.bot.go_to_relative((forward_dist, 0, 0), wait=True)
             elif action == HabitatSimActions.TURN_RIGHT:
-                print("Action: right")
-                mover.bot.go_to_relative((0, 0, np.radians(-turn_angle)), wait=True)
+                status = mover.bot.go_to_relative((0, 0, np.radians(-turn_angle)), wait=True)
             elif action == HabitatSimActions.TURN_LEFT:
-                print("Action: left")
-                mover.bot.go_to_relative((0, 0, np.radians(turn_angle)), wait=True)
+                status = mover.bot.go_to_relative((0, 0, np.radians(turn_angle)), wait=True)
             elif action == HabitatSimActions.STOP:
-                print("Action: stop")
                 self.finished = True
+                status = "SUCCEEDED"
             else:
                 print("Action not implemented yet!")
+                status = "SUCCEEDED"
         else:
             # Robot
             if action in [
@@ -378,18 +399,13 @@ class EndToEndSemanticScout:
                 HabitatSimActions.TURN_RIGHT,
                 HabitatSimActions.TURN_LEFT
             ]:
-                if action == HabitatSimActions.MOVE_FORWARD:
-                    print("Action: forward")
-                elif action == HabitatSimActions.TURN_RIGHT:
-                    print("Action: right")
-                elif action == HabitatSimActions.TURN_LEFT:
-                    print("Action: left")
-                mover.nav.execute_low_level_command(action, forward_dist, np.radians(turn_angle))
+                status = mover.nav.execute_low_level_command(action, forward_dist, np.radians(turn_angle))
             elif action == HabitatSimActions.STOP:
-                print("Action: stop")
                 self.finished = True
+                status = "SUCCEEDED"
             else:
                 print("Action not implemented yet!")
+                status = "SUCCEEDED"
 
         print(f"Time {t1 - t0:.2f}")
         print()
@@ -398,5 +414,65 @@ class EndToEndSemanticScout:
         #  with the same effect as in simulation (exactly 25cm forward and
         #  exactly 30 degree turns)?
 
-        if self.step_count > self.max_steps:
+        # Visualization
+        self.snapshot(rgb, depth, semantic_frame,
+                      pose, self.actions.get(action), status != "SUCCEEDED")
+
+        if self.step_count > self.max_steps - 1:
             self.finished = True
+
+        if self.finished:
+            if self.in_habitat:
+                pose = mover.bot.get_base_state()
+            else:
+                pose = mover.bot.get_base_state().value
+            self.record_aggregate_metrics(pose)
+
+    def snapshot(self,
+                 rgb_frame, depth_frame, semantic_frame,
+                 start_pose, action, collision):
+        self.semantic_frame = semantic_frame
+        self.all_poses.append(start_pose)
+        self.all_actions.append(action)
+        if collision:
+            self.num_collisions += 1
+
+        snapshot_path = f"{self.path}/trajectory/step{self.step_count}"
+        os.makedirs(snapshot_path)
+        os.makedirs(f"{snapshot_path}/frames")
+
+        # Frames
+        cv2.imwrite(f"{snapshot_path}/frames/rgb.png", rgb_frame[:, :, ::-1])
+        cv2.imwrite(f"{snapshot_path}/frames/depth.png",
+                    ((depth_frame / depth_frame.max()) * 255).astype(np.uint8))
+        np.save(f"{snapshot_path}/frames/depth.npy", depth_frame)
+        cv2.imwrite(f"{snapshot_path}/frames/semantic.png", semantic_frame)
+
+        # Metrics
+        json.dump(
+            {
+                "timestamp": time.time() - self.start_time,
+                "start_pose": start_pose,
+                "action": action,
+                "collision": collision,
+            },
+            open(f"{snapshot_path}/logs.json", "w")
+        )
+
+    def record_aggregate_metrics(self, last_pose):
+        self.all_poses.append(last_pose)
+        path_length = sum([
+            np.linalg.norm(np.abs(np.array(end[:2]) - np.array(start[:2])))
+            for start, end in zip(self.all_poses[:-1], self.all_poses[1:])
+        ])
+        json.dump(
+            {
+                "time": time.time() - self.start_time,
+                "path_length": path_length,
+                "num_steps": len(self.all_actions),
+                "num_collisions": self.num_collisions,
+                "poses": self.all_poses,
+                "actions": self.all_actions,
+            },
+            open(f"{self.path}/aggregate_logs.json", "w")
+        )
