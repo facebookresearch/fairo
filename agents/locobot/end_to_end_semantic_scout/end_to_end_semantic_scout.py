@@ -244,7 +244,7 @@ class EndToEndSemanticScout:
         python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
     """
 
-    def __init__(self, mover, object_goal: str, episode_id: str, max_steps=3, segmentation="mp3d"):
+    def __init__(self, mover, object_goal: str, episode_id: str, max_steps=400, segmentation="mp3d"):
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
@@ -318,13 +318,14 @@ class EndToEndSemanticScout:
         def preprocess_depth(depth, min_depth=0.5, max_depth=5.0):
             # These should be the min_depth and max_depth used to train the policy
             # in simulation
-            depth = np.where(
+            clipped_depth = np.where(
                 depth > 0,
-                (np.clip(depth, min_depth, max_depth) - min_depth) / (max_depth - min_depth),
+                np.clip(depth, min_depth, max_depth),
                 depth
             )
-            depth = np.expand_dims(depth, -1).astype(np.float32)
-            return depth
+            rescaled_depth = (clipped_depth - min_depth) / (max_depth - min_depth)
+            rescaled_depth = np.expand_dims(rescaled_depth, -1).astype(np.float32)
+            return rescaled_depth, clipped_depth
 
         def reshape(rgb, depth):
             # Temporary reshape while working with policy trained on (480, 640) frames
@@ -351,7 +352,7 @@ class EndToEndSemanticScout:
             rgb, depth = reshape(rgb, depth)
 
         # print("pre-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
-        depth = preprocess_depth(depth)
+        depth, clipped_depth = preprocess_depth(depth)
         # print("post-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
 
         # obs = {
@@ -420,7 +421,7 @@ class EndToEndSemanticScout:
 
         # Visualization
         collision = status != "SUCCEEDED"
-        self.snapshot(rgb, depth, semantic_frame,
+        self.snapshot(rgb, clipped_depth, semantic_frame,
                       pose, self.actions.get(action), collision)
 
         if self.step_count > self.max_steps - 1:
