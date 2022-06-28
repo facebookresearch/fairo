@@ -159,7 +159,7 @@ class ObjectGoalNavigationVisualization:
             self.num_collisions += 1
 
     def update_last_position_vis_info(self, vis_info):
-        self.rgb_frame = vis_info["rgb"][:, :, ::-1]
+        self.rgb_frame = vis_info["rgb"]
         self.depth_frame = vis_info["depth"]
         self.update_semantic_frame(vis_info["semantic_frame"])
         self.update_semantic_map(vis_info["semantic_map"])
