@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import sys
 import os
+import skimage.morphology
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../"))
 from slam_pkg.utils.depth_util import transform_pose, bin_points, splat_feat_nd
@@ -173,12 +174,29 @@ class MapBuilder(object):
         self.semantic_map[2, :, :].fill(0.0)
         curr_x, curr_y, _ = pose
         curr_c, curr_r = self.real2map((curr_x, curr_y))
+        curr_c, curr_r = int(curr_c), int(curr_r)
         steps = 10
         for i in range(steps):
             c = int(np.rint(self.prev_c + (curr_c - self.prev_c) * i / steps))
             r = int(np.rint(self.prev_r + (curr_r - self.prev_r) * i / steps))
             self.semantic_map[2:4, r - 2 : r + 3, c - 2 : c + 3].fill(1.0)
         self.prev_c, self.prev_r = curr_c, curr_r
+
+        # Set a disk around the robot to explored
+        # TODO Check that the explored disk fits in the map
+        try:
+            radius = 10
+            explored_disk = skimage.morphology.disk(radius)
+            print("self.semantic_map.shape", self.semantic_map.shape)
+            print("self.semantic_map[1].sum()", self.semantic_map[1].sum())
+            self.semantic_map[
+                1,
+                curr_c - radius : curr_c + radius + 1,
+                curr_r - radius : curr_r + radius + 1
+            ][explored_disk == 1] = 1
+            print("self.semantic_map[1].sum()", self.semantic_map[1].sum())
+        except IndexError:
+            pass
 
         return np.copy(self.semantic_map)
 
