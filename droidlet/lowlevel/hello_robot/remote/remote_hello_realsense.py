@@ -219,9 +219,9 @@ class RemoteHelloRealsense(object):
 
     def get_semantics(self, rgb, depth):
         """Get semantic segmentation."""
-        cv2.imwrite("rgb.png", rgb)
+        cv2.imwrite("rgb.png", rgb[:, :, ::-1])
         semantics, semantics_vis = self.segmentation_model.get_prediction(
-            np.expand_dims(rgb, 0), np.expand_dims(depth, 0)
+            np.expand_dims(rgb[:, :, ::-1], 0), np.expand_dims(depth, 0)
         )
         semantics, semantics_vis = semantics[0], semantics_vis[0]
 
