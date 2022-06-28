@@ -160,11 +160,9 @@ class LoCoBotMover:
             )
         return "finished"
 
-    def move_to_object(self,
-                       object_goal: str,
-                       episode_id: str,
-                       exploration_method: str,
-                       blocking=True):
+    def move_to_object(
+        self, object_goal: str, episode_id: str, exploration_method: str, blocking=True
+    ):
         """Command to execute a move to an object category.
 
         Args:

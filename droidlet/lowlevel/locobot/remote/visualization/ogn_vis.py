@@ -90,8 +90,10 @@ class ObjectGoalNavigationVisualization:
 
         # Frames
         cv2.imwrite(f"{snapshot_path}/frames/rgb.png", self.rgb_frame)
-        cv2.imwrite(f"{snapshot_path}/frames/depth.png",
-                    ((self.depth_frame / self.depth_frame.max()) * 255).astype(np.uint8))
+        cv2.imwrite(
+            f"{snapshot_path}/frames/depth.png",
+            ((self.depth_frame / self.depth_frame.max()) * 255).astype(np.uint8),
+        )
         np.save(f"{snapshot_path}/frames/depth.npy", self.depth_frame)
         cv2.imwrite(f"{snapshot_path}/frames/semantic.png", self.semantic_frame)
 
@@ -108,17 +110,19 @@ class ObjectGoalNavigationVisualization:
                 "action": self.action,
                 "collision": self.collision,
             },
-            open(f"{snapshot_path}/logs.json", "w")
+            open(f"{snapshot_path}/logs.json", "w"),
         )
 
         self.snapshot_idx += 1
 
     def record_aggregate_metrics(self, last_pose):
         self.all_poses.append(last_pose)
-        path_length = sum([
-            np.linalg.norm(np.abs(np.array(end[:2]) - np.array(start[:2])))
-            for start, end in zip(self.all_poses[:-1], self.all_poses[1:])
-        ])
+        path_length = sum(
+            [
+                np.linalg.norm(np.abs(np.array(end[:2]) - np.array(start[:2])))
+                for start, end in zip(self.all_poses[:-1], self.all_poses[1:])
+            ]
+        )
         json.dump(
             {
                 "time": time.time() - self.start_time,
@@ -128,7 +132,7 @@ class ObjectGoalNavigationVisualization:
                 "poses": self.all_poses,
                 "actions": self.all_actions,
             },
-            open(f"{self.path}/aggregate_logs.json", "w")
+            open(f"{self.path}/aggregate_logs.json", "w"),
         )
 
     # def record_video(self):

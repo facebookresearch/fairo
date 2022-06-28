@@ -183,7 +183,7 @@ class Navigation(object):
                 robot_loc,
                 goal=goal,
                 goal_map=goal_map,
-                vis_path=f"{self.vis.path}/planner/step{self.vis.snapshot_idx}.png"
+                vis_path=f"{self.vis.path}/planner/step{self.vis.snapshot_idx}.png",
             )
             if stg == False:
                 # no path to end-goal
@@ -248,10 +248,9 @@ class Navigation(object):
             steps = steps - 1
 
             if visualize:
-                self.vis.set_action_and_collision({
-                    "action": action,
-                    "collision": status != "SUCCEEDED"
-                })
+                self.vis.set_action_and_collision(
+                    {"action": action, "collision": status != "SUCCEEDED"}
+                )
                 self.vis.update_last_position_vis_info(self.slam.get_last_position_vis_info())
                 self.vis.snapshot()
 
@@ -279,7 +278,9 @@ class Navigation(object):
         if visualize:
             try:
                 # if in Habitat scene
-                vis_path = f"images/{exploration_method}/{self.robot.get_scene_name()}/{episode_id}"
+                vis_path = (
+                    f"images/{exploration_method}/{self.robot.get_scene_name()}/{episode_id}"
+                )
             except:
                 vis_path = f"images/{exploration_method}/{episode_id}"
             self.vis = ObjectGoalNavigationVisualization(object_goal, path=vis_path)
@@ -412,9 +413,7 @@ class Navigation(object):
                     visualize=visualize,
                 )
 
-        self.vis.record_aggregate_metrics(
-            last_pose=self.robot.get_base_state()
-        )
+        self.vis.record_aggregate_metrics(last_pose=self.robot.get_base_state())
 
         print(f"[navigation] Finished a go_to_object {object_goal}")
         print(f"goal reached: {goal_reached}")
