@@ -20,7 +20,6 @@ def main(cfg):
 
     else:
         # Run client
-        print(cfg.gripper)
         gripper_client = hydra.utils.instantiate(cfg.gripper)
         gripper_client.run()
 
