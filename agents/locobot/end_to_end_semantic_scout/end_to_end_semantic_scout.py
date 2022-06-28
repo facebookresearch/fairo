@@ -244,7 +244,7 @@ class EndToEndSemanticScout:
         python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
     """
 
-    def __init__(self, mover, object_goal: str, episode_id: str, max_steps=400, segmentation="mp3d"):
+    def __init__(self, mover, object_goal: str, episode_id: str, max_steps=3, segmentation="mp3d"):
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
@@ -399,7 +399,11 @@ class EndToEndSemanticScout:
                 HabitatSimActions.TURN_RIGHT,
                 HabitatSimActions.TURN_LEFT
             ]:
-                status = mover.nav.execute_low_level_command(action, forward_dist, np.radians(turn_angle))
+                # TODO Figure out how to record collisions
+                #  mover.nav.execute_low_level_command(action, forward_dist, np.radians(turn_angle)).value
+                #  returns None
+                mover.nav.execute_low_level_command(action, forward_dist, np.radians(turn_angle))
+                status = "SUCCEEDED"
             elif action == HabitatSimActions.STOP:
                 self.finished = True
                 status = "SUCCEEDED"
@@ -415,8 +419,9 @@ class EndToEndSemanticScout:
         #  exactly 30 degree turns)?
 
         # Visualization
+        collision = status != "SUCCEEDED"
         self.snapshot(rgb, depth, semantic_frame,
-                      pose, self.actions.get(action), status != "SUCCEEDED")
+                      pose, self.actions.get(action), collision)
 
         if self.step_count > self.max_steps - 1:
             self.finished = True
