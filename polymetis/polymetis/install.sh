@@ -29,7 +29,6 @@ if [ -z "$BUILD_FRANKA" ]; then
 fi
 
 if [ "$BUILD_FRANKA" == "ON" ]; then
-    if [ -d "$BUILD_PATH" ]; then rm -r $BUILD_PATH; fi
     mkdir -p $BUILD_PATH && cd $BUILD_PATH
     cmake -DCMAKE_BUILD_TYPE=$CFG -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=ON \
         -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=$PREFIX/lib \
