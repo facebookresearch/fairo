@@ -168,7 +168,6 @@ class ObjectGoalNavigationVisualization:
 
     def update_semantic_frame(self, vis):
         """Visualize first-person semantic segmentation frame."""
-        vis = vis[:, :, [2, 1, 0]]  # TODO Vis should already be RGB
         self.semantic_frame = vis
         vis = cv2.resize(vis, (480, 480), interpolation=cv2.INTER_NEAREST)
         self.vis_image[50:530, 15:495] = vis

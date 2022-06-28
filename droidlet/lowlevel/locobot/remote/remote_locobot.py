@@ -462,7 +462,10 @@ class RemoteLocobot(object):
             semantics = self.one_hot_encoding[semantic_segmentation]
             semantics_vis = self.get_semantic_frame_vis(rgb, semantics)
         else:
-            semantics, semantics_vis = self.segmentation_model.get_prediction(rgb, depth)
+            semantics, semantics_vis = self.segmentation_model.get_prediction(
+                np.expand_dims(rgb, 0), np.expand_dims(depth, 0)
+            )
+            semantics, semantics_vis = semantics[0], semantics_vis[0]
 
         # apply the same depth filter to semantics as we applied to the point cloud
         semantics = semantics.reshape(-1, self.num_sem_categories)
