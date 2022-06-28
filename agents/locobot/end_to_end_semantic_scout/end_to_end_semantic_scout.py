@@ -27,7 +27,7 @@ from .constants import (
     expected_categories_to_coco_categories,
     frame_color_palette,
 )
-from .segmentation.semantic_prediction import SemanticPredMaskRCNN
+from .segmentation.semantic_prediction import COCOSegmentationModel
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 
 
@@ -122,7 +122,7 @@ class RLSegFTAgent(Agent):
                 )
                 self.semantic_predictor.eval()
         else:
-            self.semantic_predictor = SemanticPredMaskRCNN(
+            self.semantic_predictor = COCOSegmentationModel(
                 sem_pred_prob_thr=0.9, sem_gpu_id=config.TORCH_GPU_ID, visualize=True
             )
 
@@ -187,12 +187,13 @@ class RLSegFTAgent(Agent):
                 # to train the policy with detectron2 Mask-RCNN that works much better
                 # in the real world (we use only the object goal categories for now)
 
-                if isinstance(self.semantic_predictor, SemanticPredMaskRCNN):
-                    rgb = batch["rgb"][0].cpu().numpy()
-                    depth = batch["depth"][0].cpu().numpy()
-                    semantic, semantic_vis = self.semantic_predictor.get_prediction(rgb, depth)
-                    # semantic_vis = self.get_semantic_frame_vis(rgb, semantic)
-                    semantic = torch.from_numpy(semantic).unsqueeze(0).to(batch["rgb"].device)
+                if isinstance(self.semantic_predictor, COCOSegmentationModel):
+                    semantic, semantic_vis = self.semantic_predictor.get_prediction(
+                        batch["rgb"].cpu().numpy(),
+                        batch["depth"].cpu().numpy()
+                    )
+                    semantic = torch.from_numpy(semantic).to(batch["rgb"].device)
+                    semantic_vis = semantic_vis[0]
 
                 else:
                     semantic = self.semantic_predictor(batch["rgb"], batch["depth"])

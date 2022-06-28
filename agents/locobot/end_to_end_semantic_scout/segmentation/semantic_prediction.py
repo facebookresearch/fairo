@@ -2,6 +2,7 @@
 # https://github.com/facebookresearch/detectron2/blob/master/demo/demo.py and
 # https://github.com/facebookresearch/detectron2/blob/master/demo/predictor.py
 
+from typing import Optional, List, Tuple
 import argparse
 import torch
 import numpy as np
@@ -12,39 +13,58 @@ from detectron2.utils.logger import setup_logger
 from detectron2.data.catalog import MetadataCatalog
 from detectron2.modeling import build_model
 from detectron2.checkpoint import DetectionCheckpointer
-from detectron2.utils.visualizer import ColorMode, Visualizer
-import detectron2.data.transforms as T
+from detectron2.utils.visualizer import ColorMode, Visualizer, VisImage
 
 from agents.locobot.end_to_end_semantic_scout.constants import detectron_categories_to_expected_categories
 
 
-class SemanticPredMaskRCNN:
+class COCOSegmentationModel:
     def __init__(self, sem_pred_prob_thr: float, sem_gpu_id: int, visualize: bool):
+        """
+        Arguments:
+            sem_pred_prob_thr: prediction threshold
+            sem_gpu_id: prediction GPU id (-1 for CPU)
+            visualize: if True, visualize predictions
+        """
         self.segmentation_model = ImageSegmentation(sem_pred_prob_thr, sem_gpu_id)
         self.visualize = visualize
         self.num_sem_categories = len(detectron_categories_to_expected_categories)
 
-    def get_prediction(self, img, depth=None):
-        image_list = []
-        img = img[:, :, ::-1]
-        image_list.append(img)
-        seg_predictions, vis_output = self.segmentation_model.get_predictions(
-            image_list, visualize=self.visualize
-        )
+    def get_prediction(self,
+                       images: np.ndarray,
+                       depths: Optional[np.ndarray] = None
+                       ) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Arguments:
+            images: images of shape (batch_size, H, W, 3) (in BGR order)
+            depths: depth frames of shape (batch_size, H, W) - currently not used
+        Returns:
+            prediction_masks: segmentation predictions of shape (batch_size, H, W)
+            visualizations: prediction visualization images of
+             shape (batch_size, H, W, 3) if self.visualize=True, else
+             original images
+        """
+        batch_size, height, width, _ = images.shape
 
-        semantic_pred = np.zeros(img.shape[:2])
+        predictions, visualizations = self.segmentation_model.get_predictions(
+            images, visualize=self.visualize)
 
-        for j, class_idx in enumerate(seg_predictions[0]["instances"].pred_classes.cpu().numpy()):
-            if class_idx in list(detectron_categories_to_expected_categories.keys()):
-                idx = detectron_categories_to_expected_categories[class_idx]
-                obj_mask = seg_predictions[0]["instances"].pred_masks[j]
-                obj_mask = obj_mask.cpu().numpy()
-                semantic_pred[obj_mask] = idx
+        prediction_masks = np.zeros((batch_size, height, width))
+
+        for i in range(batch_size):
+            for j, class_idx in enumerate(predictions[i]["instances"].pred_classes.cpu().numpy()):
+                if class_idx in list(detectron_categories_to_expected_categories.keys()):
+                    idx = detectron_categories_to_expected_categories[class_idx]
+                    obj_mask = predictions[i]["instances"].pred_masks[j].cpu().numpy()
+                    prediction_masks[i, obj_mask] = idx
 
         if self.visualize:
-            img = vis_output.get_image()
+            visualizations = np.stack([vis.get_image() for vis in visualizations])
+        else:
+            # Convert BGR to RGB for visualization
+            visualizations = images[:, :, :, ::-1]
 
-        return semantic_pred, img
+        return prediction_masks, visualizations
 
 
 class ImageSegmentation:
@@ -72,8 +92,8 @@ class ImageSegmentation:
         cfg = setup_cfg(args)
         self.demo = VisualizationDemo(cfg)
 
-    def get_predictions(self, img, visualize=False):
-        return self.demo.run_on_image(img, visualize=visualize)
+    def get_predictions(self, images, visualize=False):
+        return self.demo.run_on_images(images, visualize=visualize)
 
 
 def setup_cfg(args):
@@ -120,13 +140,9 @@ def get_seg_parser():
     return parser
 
 
-class VisualizationDemo(object):
+class VisualizationDemo:
+
     def __init__(self, cfg, instance_mode=ColorMode.IMAGE):
-        """
-        Args:
-            cfg (CfgNode):
-            instance_mode (ColorMode):
-        """
         self.metadata = MetadataCatalog.get(
             cfg.DATASETS.TEST[0] if len(cfg.DATASETS.TEST) else "__unused"
         )
@@ -135,58 +151,54 @@ class VisualizationDemo(object):
 
         self.predictor = BatchPredictor(cfg)
 
-    def run_on_image(self, image_list, visualize=0):
+    def run_on_images(self,
+                      images: np.ndarray,
+                      visualize=False
+                      ) -> Tuple[List[dict], List[VisImage]]:
         """
-        Args:
-            image (np.ndarray): an image of shape (H, W, C) (in BGR order).
-                This is the format used by OpenCV.
+        Arguments:
+            images: images of shape (batch_size, H, W, 3) (in BGR order)
+            visualize: if True, return prediction visualization
         Returns:
-            predictions (dict): the output of the model.
-            vis_output (VisImage): the visualized image output.
+            predictions: a list of predictions for all images
+            visualizations: a list of prediction visualizations for all images
         """
-        vis_output = None
-        all_predictions = self.predictor(image_list)
-        # Convert image from OpenCV BGR format to Matplotlib RGB format.
+        predictions = self.predictor(images)
+        batch_size = len(predictions)
+        visualizations = []
+
+        # Convert BGR to RGB for visualization
+        images = images[:, :, :, ::-1]
 
         if visualize:
-            predictions = all_predictions[0]
-            image = image_list[0]
-            visualizer = Visualizer(image, self.metadata, instance_mode=self.instance_mode)
-            if "panoptic_seg" in predictions:
-                panoptic_seg, segments_info = predictions["panoptic_seg"]
-                vis_output = visualizer.draw_panoptic_seg_predictions(
-                    panoptic_seg.to(self.cpu_device), segments_info
-                )
-            else:
-                if "sem_seg" in predictions:
-                    vis_output = visualizer.draw_sem_seg(
-                        predictions["sem_seg"].argmax(dim=0).to(self.cpu_device)
+            for i in range(batch_size):
+                pred = predictions[i]
+                image = images[i]
+                visualizer = Visualizer(
+                    image, self.metadata, instance_mode=self.instance_mode)
+                if "panoptic_seg" in pred:
+                    panoptic_seg, segments_info = pred["panoptic_seg"]
+                    vis = visualizer.draw_panoptic_seg_predictions(
+                        panoptic_seg.to(self.cpu_device), segments_info
                     )
-                if "instances" in predictions:
-                    instances = predictions["instances"].to(self.cpu_device)
-                    vis_output = visualizer.draw_instance_predictions(predictions=instances)
+                else:
+                    if "sem_seg" in pred:
+                        vis = visualizer.draw_sem_seg(
+                            pred["sem_seg"].argmax(dim=0).to(self.cpu_device)
+                        )
+                    if "instances" in pred:
+                        instances = pred["instances"].to(self.cpu_device)
+                        vis = visualizer.draw_instance_predictions(
+                            predictions=instances)
+                visualizations.append(vis)
 
-        return all_predictions, vis_output
+        return predictions, visualizations
 
 
 class BatchPredictor:
-    """
-    Create a simple end-to-end predictor with the given config that runs on
-    single device for a list of input images.
-    Compared to using the model directly, this class does the following
-    additions:
-    1. Load checkpoint from `cfg.MODEL.WEIGHTS`.
-    2. Always take BGR image as the input and apply conversion defined by
-         `cfg.INPUT.FORMAT`.
-    3. Apply resizing defined by `cfg.INPUT.{MIN,MAX}_SIZE_TEST`.
-    4. Take a list of input images
-    Attributes:
-        metadata (Metadata): the metadata of the underlying dataset, obtained
-            from cfg.DATASETS.TEST.
-    """
 
     def __init__(self, cfg):
-        self.cfg = cfg.clone()  # cfg can be modified by model
+        self.cfg = cfg.clone()
         self.model = build_model(self.cfg)
         self.model.eval()
         self.metadata = MetadataCatalog.get(cfg.DATASETS.TEST[0])
@@ -197,29 +209,21 @@ class BatchPredictor:
         self.input_format = cfg.INPUT.FORMAT
         assert self.input_format in ["RGB", "BGR"], self.input_format
 
-    def __call__(self, image_list):
+    def __call__(self, images: np.ndarray) -> List[dict]:
         """
-        Args:
-            image_list (list of np.ndarray): a list of images of
-                                             shape (H, W, C) (in BGR order).
+        Arguments:
+            images: images of shape (batch_size, H, W, 3) (in BGR order)
         Returns:
-            predictions (dict):
-                the output of the model for all images.
-                See :doc:`/tutorials/models` for details about the format.
+            predictions: a list of predictions for all images
         """
         inputs = []
-        for original_image in image_list:
-            # https://github.com/sphinx-doc/sphinx/issues/4258
-            # Apply pre-processing to image.
+        for original_image in images:
             if self.input_format == "RGB":
-                # whether the model expects BGR inputs or RGB
                 original_image = original_image[:, :, ::-1]
             height, width = original_image.shape[:2]
             image = original_image
             image = torch.as_tensor(image.astype("float32").transpose(2, 0, 1))
-
             instance = {"image": image, "height": height, "width": width}
-
             inputs.append(instance)
 
         with torch.no_grad():

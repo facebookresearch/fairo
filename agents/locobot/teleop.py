@@ -194,7 +194,7 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
                 mover,
                 episode_id=episode_id,
                 object_goal=object_goal,
-                segmentation="mp3d"
+                segmentation="coco"
             )
             while not scout.finished:
                 scout.step(mover)
