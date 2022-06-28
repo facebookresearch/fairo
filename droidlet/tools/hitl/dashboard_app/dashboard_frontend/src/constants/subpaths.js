@@ -1,3 +1,4 @@
+// subpaths used for the dashboard app
 export const SUBPATHS = {
     HOME:
     {
