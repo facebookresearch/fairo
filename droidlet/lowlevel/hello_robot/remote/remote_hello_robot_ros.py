@@ -224,7 +224,7 @@ class RemoteHelloRobot(object):
                 raise e
         return status, action
 
-    def obstacle_fn(self):
+    def is_obstacle_in_front(self):
         result = False
         while True:
             try:
