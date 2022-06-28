@@ -224,6 +224,16 @@ class RemoteHelloRobot(object):
                 raise e
         return status, action
 
+    def obstacle_fn(self):
+        result = False
+        while True:
+            try:
+                result = self.cam.is_obstacle_in_front()
+                break
+            except:
+                print("obstacle exception")
+        return result
+
     def go_to_relative(self, xyt_position):
         """Moves the robot base to the given goal state relative to its current
         pose.

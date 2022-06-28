@@ -111,7 +111,7 @@ class Navigation(object):
             #     except:
             #         print("obstacle exception")
             # return result
-            return self.robot.cam.is_obstacle_in_front()
+            return self.robot.is_obstacle_in_front()
 
         if action == 1:
             # forward
