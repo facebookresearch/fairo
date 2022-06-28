@@ -1,10 +1,7 @@
 import argparse
 from random import choice
-# from datetime import datetime
-# from copy import deepcopy
-# import os
 import random
-# import json
+import re
 
 SEED = 123
 
@@ -36,15 +33,17 @@ def main(opts):
     with open(opts.anno_data, "r") as f:
         anno_data = [l.strip() for l in f.readlines()]
 
-    # Generate a map of commands to LFs
-    command_map = {}
+    # Generate a map of commands to LFs, and old command lengths
+    command_lf_map = {}
+    command_len_map = {}
     for cmd in anno_data:
         cmd = cmd.split("|")
-        command_map[cmd[1]] = cmd[2]
+        command_lf_map[cmd[1]] = cmd[2]
+        command_len_map[cmd[1]] = len(cmd[1].split(' '))
 
     # Store a list of commands and agent responses, if applicable, with the tokens prepended
     turn_list = []
-    for k, v in command_map.items():
+    for k, v in command_lf_map.items():
         turn = "User: " + k
         for reply_key in AGENT_REPLIES.keys():
             if reply_key in v:
@@ -54,19 +53,33 @@ def main(opts):
 
     # Each command should be annotated once, with a variable amount of conversational history
     training_data = []
-    for k,v in command_map.items():
+    for k,v in command_lf_map.items():
         num_turns = random.randint(0, opts.max_turns)
         i = 0
-        data_row = ""
+        old_convsersation = ""
         while i < num_turns:
-            data_row += choice(turn_list) + " "
+            old_convsersation += choice(turn_list) + " "
             i += 1
 
-        data_row += "User: " + k + "|" + v + "\n"
+        # Reindex the logical form to reference the correct position in the new string
+        full_conversation = old_convsersation + "User: " + k
+        index_adjustment = len(full_conversation.split(' ')) - command_len_map[k]
+        reindexed_lf = replace_spans(v, index_adjustment)
+
+        data_row = full_conversation + "|" + reindexed_lf + "\n"
         training_data.append(data_row)
 
     with open(opts.save_path, "w") as f:
         f.writelines(training_data)
+
+
+def replace_spans(lf: str, adjustment: int):
+    old_indices = re.findall('\d{1,2}[,][ ]\d{1,2}', lf)
+    for index in old_indices:
+        new_pair = [int(x.strip()) + adjustment for x in index.split(',')]
+        search_str = "[" + index + "]"
+        lf = lf.replace(search_str, str(new_pair))
+    return lf
 
 
 if __name__ == "__main__":
