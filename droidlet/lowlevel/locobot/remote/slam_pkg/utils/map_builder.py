@@ -188,7 +188,7 @@ class MapBuilder(object):
             radius = 10
             explored_disk = skimage.morphology.disk(radius)
             self.semantic_map[
-                1, curr_c - radius : curr_c + radius + 1, curr_r - radius : curr_r + radius + 1
+                1, curr_r - radius : curr_r + radius + 1, curr_c - radius : curr_c + radius + 1
             ][explored_disk == 1] = 1
         except IndexError:
             pass
