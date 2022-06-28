@@ -187,12 +187,9 @@ class MapBuilder(object):
         try:
             radius = 10
             explored_disk = skimage.morphology.disk(radius)
-            print("self.semantic_map.shape", self.semantic_map.shape)
-            print("self.semantic_map[1].sum()", self.semantic_map[1].sum())
             self.semantic_map[
                 1, curr_c - radius : curr_c + radius + 1, curr_r - radius : curr_r + radius + 1
             ][explored_disk == 1] = 1
-            print("self.semantic_map[1].sum()", self.semantic_map[1].sum())
         except IndexError:
             pass
 
