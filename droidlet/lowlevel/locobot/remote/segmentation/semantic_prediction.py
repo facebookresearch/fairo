@@ -30,10 +30,9 @@ class SemanticPredMaskRCNN:
         self.visualize = visualize
         self.num_sem_categories = len(coco_categories)
 
-    def get_prediction(self,
-                       images: np.ndarray,
-                       depths: Optional[np.ndarray] = None
-                       ) -> Tuple[np.ndarray, np.ndarray]:
+    def get_prediction(
+        self, images: np.ndarray, depths: Optional[np.ndarray] = None
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Arguments:
             images: images of shape (batch_size, H, W, 3) (in BGR order)
@@ -49,9 +48,9 @@ class SemanticPredMaskRCNN:
         batch_size, height, width, _ = images.shape
 
         predictions, visualizations = self.segmentation_model.get_predictions(
-            images, visualize=self.visualize)
-        one_hot_predictions = np.zeros(
-            (batch_size, height, width, self.num_sem_categories))
+            images, visualize=self.visualize
+        )
+        one_hot_predictions = np.zeros((batch_size, height, width, self.num_sem_categories))
 
         # t0 = time.time()
 
@@ -82,9 +81,7 @@ class SemanticPredMaskRCNN:
         # print(f"[Obs preprocessing] Segmentation depth filtering time: {t1 - t0:.2f}")
 
         if self.visualize:
-            visualizations = np.stack([
-                vis.get_image() for vis in visualizations
-            ])
+            visualizations = np.stack([vis.get_image() for vis in visualizations])
         else:
             # Convert BGR to RGB for visualization
             visualizations = images[:, :, :, ::-1]
@@ -165,7 +162,6 @@ def get_seg_parser():
 
 
 class VisualizationDemo:
-
     def __init__(self, cfg, instance_mode=ColorMode.IMAGE):
         self.metadata = MetadataCatalog.get(
             cfg.DATASETS.TEST[0] if len(cfg.DATASETS.TEST) else "__unused"
@@ -175,10 +171,9 @@ class VisualizationDemo:
 
         self.predictor = BatchPredictor(cfg)
 
-    def run_on_images(self,
-                      images: np.ndarray,
-                      visualize=False
-                      ) -> Tuple[List[dict], List[VisImage]]:
+    def run_on_images(
+        self, images: np.ndarray, visualize=False
+    ) -> Tuple[List[dict], List[VisImage]]:
         """
         Arguments:
             images: images of shape (batch_size, H, W, 3) (in BGR order)
@@ -204,8 +199,7 @@ class VisualizationDemo:
             for i in range(batch_size):
                 pred = predictions[i]
                 image = images[i]
-                visualizer = Visualizer(
-                    image, self.metadata, instance_mode=self.instance_mode)
+                visualizer = Visualizer(image, self.metadata, instance_mode=self.instance_mode)
                 if "panoptic_seg" in pred:
                     panoptic_seg, segments_info = pred["panoptic_seg"]
                     vis = visualizer.draw_panoptic_seg_predictions(
@@ -218,8 +212,7 @@ class VisualizationDemo:
                         )
                     if "instances" in pred:
                         instances = pred["instances"].to(self.cpu_device)
-                        vis = visualizer.draw_instance_predictions(
-                            predictions=instances)
+                        vis = visualizer.draw_instance_predictions(predictions=instances)
                 visualizations.append(vis)
 
         # t2 = time.time()
@@ -229,7 +222,6 @@ class VisualizationDemo:
 
 
 class BatchPredictor:
-
     def __init__(self, cfg):
         self.cfg = cfg.clone()
         self.model = build_model(self.cfg)
