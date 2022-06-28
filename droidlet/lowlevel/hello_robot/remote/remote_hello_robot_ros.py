@@ -213,7 +213,9 @@ class RemoteHelloRobot(object):
                     )
                     action = "trackback"
                 else:
-                    status, action = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
+                    status, action = goto(
+                        self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn
+                    )
                 self._done = True
             except Exception as e:
                 print(e)
