@@ -103,14 +103,15 @@ class Navigation(object):
         """
 
         def obstacle_fn():
-            result = False
-            while True:
-                try:
-                    result = self.robot.cam.is_obstacle_in_front()
-                    break
-                except:
-                    print("obstacle exception")
-            return result
+            # result = False
+            # while True:
+            #     try:
+            #         result = self.robot.cam.is_obstacle_in_front()
+            #         break
+            #     except:
+            #         print("obstacle exception")
+            # return result
+            return self.robot.cam.is_obstacle_in_front()
 
         if action == 1:
             # forward
