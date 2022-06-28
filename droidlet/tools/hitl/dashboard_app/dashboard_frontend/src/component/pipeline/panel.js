@@ -1,6 +1,6 @@
 import { Breadcrumb, Layout, Tabs } from 'antd';
-import React, { useState } from 'react';
-import { Link, Navigate, NavLink, useLocation, useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { TAB_ITEMS } from '../../constants/pipelineConstants';
 import { SUBPATHS } from '../../constants/subpaths';
 import InfoBlock from './metaInfo/infoBlock';
@@ -15,18 +15,24 @@ const PipelinePanel = (props) => {
     const pipelineType = props.pipelineType;
     // get batch id from location - only used for detail page
     let { batch_id } = useParams();
-    // get state label & key - only used when navigating back from detail page
+
     const location = useLocation();
+    // get state label - only used when navigating back from detail page & set current label to intro if not navigating back from detail page
     const stateLabel = location.state ? location.state.label : null;
-    const stateKey = location.state ? location.state.key : null;
-    // set current label to intro if not navigating back from detail page
-    const [currentLabel, setCurrentLabel] = useState(stateLabel ? stateLabel : TAB_ITEMS.INTRO.label);
+    const [currentLabel, setCurrentLabel] = useState(TAB_ITEMS.INTRO.label);
+    
+    // get state key if there is any and set defult selected key
+    const defaultKey = location.state ? location.state.key : TAB_ITEMS.INTRO.key;
 
     // for nav between tabs
     const handleTabOnclick = (key) => {
         const label = menuItems.find((item) => (item.key === key)).label;
         setCurrentLabel(label);
     }
+
+    useEffect(() => {
+        setCurrentLabel(stateLabel ? stateLabel: TAB_ITEMS.INTRO.label);
+    }, [stateLabel]);
 
     return (
         <Layout>
@@ -77,7 +83,7 @@ const PipelinePanel = (props) => {
                             (<div>detail of {batch_id} </div>)
                             :
                             (<Tabs
-                                defaultActiveKey={TAB_ITEMS.INTRO.key}
+                                defaultActiveKey={defaultKey}
                                 tabPosition="left"
                                 onTabClick={(evt) => { handleTabOnclick(evt) }}
                             >
