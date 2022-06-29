@@ -338,10 +338,14 @@ class World:
             if player_info.name == data.get("name"):
                 print("reconnecting eid {} (sid {})".format(player_eid, sid))
                 return
-                
+
         # FIXME add height map
         x, y, z, pitch, yaw = make_pose(
-            self.sl, self.sl, loc=data.get("loc"), pitchyaw=data.get("pitchyaw"), height_map=self.get_height_map()
+            self.sl,
+            self.sl,
+            loc=data.get("loc"),
+            pitchyaw=data.get("pitchyaw"),
+            height_map=self.get_height_map(),
         )
         entityId = self.new_eid(entityId=data.get("entityId"))
         # FIXME
