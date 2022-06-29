@@ -102,13 +102,22 @@ class Navigation(object):
         the trackback logic and we'll throw away this code.
         """
 
+        def trackback():
+            robot_loc = self.robot.get_base_state()
+            trackback_loc = self.trackback.get_loc(robot_loc)
+            if trackback_loc is not None:
+                print(f"Tracking back to {trackback_loc}")
+                trackback_status = self.robot.go_to_absolute(trackback_loc, trackback=True)
+                print(f"Trackback status: {trackback_status}")
+            else:
+                print("Could not find a trackback location. Staying in place")
+
         if action == 1:
             # forward
             is_obstacle = self.robot.is_obstacle_in_front()
-            print("is_obstacle", is_obstacle)
             if is_obstacle:
                 print("Found obstacle before translating. Aborting")
-                # TODO trackback
+                trackback()
                 return "FAILED"
             self.robot.translate_by(forward_dist)
             self.robot.push_command()
@@ -117,15 +126,18 @@ class Navigation(object):
             is_moving = True
             while is_moving:
                 is_obstacle = self.robot.is_obstacle_in_front()
-                print("is_obstacle", is_obstacle)
                 if is_obstacle:
                     print("Found obstacle while translating. Aborting")
                     self.robot.stop()
-                    # TODO trackback
+                    trackback()
                     return "FAILED"
                 time.sleep(0.1)
                 self.robot.pull_status()
                 is_moving = self.robot.is_base_moving()
+
+            # Successful forward action => add new trackback loc
+            robot_loc = self.robot.get_base_state()
+            self.trackback.update(robot_loc)
 
         elif action == 2:
             # left
