@@ -6,7 +6,7 @@ const InfoBlock = (props) => {
 
     return (
         <div>
-            {infoType} : {pipelineType}
+            {infoType} : {pipelineType.label}
         </div> 
     );
 }
