@@ -23,6 +23,14 @@ import torchcontrol as toco
 Habitat simulation setup helper functions. Based on the URDF prototype branch:
 https://github.com/facebookresearch/habitat-sim/blob/f6267cbfe0ad6c8f86d79edc917a49fb26ddbb73/examples/tutorials/URDF_robotics_tutorial.py
 """
+def get_habitat_dir():
+    """
+
+    """
+    # Parsing assumes the following paths to this file and to the habitat-sim directory respectively:
+    # polymetis > polymetis > python > polysim > env > habitat_manipulator.py
+    # polymetis > third_party > habitat-sim
+    
 
 
 def make_configuration(
@@ -45,6 +53,15 @@ def make_configuration(
         habitat_sim.SimulatorConfiguration object with reasonable values and
             loaded with glb scene.
     """
+    # Assumes habitat dir is located at:
+    #   polymetis > third_party > habitat-sim
+    # Assumes current file at:
+    #   polymetis > polymetis > python > polysim > env > habitat_manipulator.py
+    habitat_dir = os.path.abspath(__file__)
+    for _ in range(5):
+        habitat_dir = os.path.dirname(habitat_dir)
+    habitat_dir = os.path.join(habitat_dir, "third_party/habitat-sim")
+    
     if not os.path.isabs(glb_path):
         glb_path = os.path.join(habitat_dir, glb_path)
 
