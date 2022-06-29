@@ -32,22 +32,27 @@ class VoxelPlayer {
         this.highlighter.visible = false;
         this.world.scene.add(this.highlighter);
         this.tempVec = new world.THREE.Vector3();
+        this.lockout = Date.now();
     };
 
     move(x, y, z) {
-        // console.log(x + ","+y+","+z)
+        // console.log("player move: " + x + ","+y+","+z)
+        this.lockout = Date.now();
         this.mesh.position.x += x;
         this.mesh.position.y += y;
         this.mesh.position.z += z;
-        // console.log(this.mesh.position)
         if (this.possessed) this.updateCamera();
     };
 
     moveTo(x, y, z) {
+        if ((Date.now() - this.lockout) < 1000) {
+            // Don't jitter
+            return
+        }
         let xyz = applyOffset([x,y,z], this.position_offset);
         let newPosVec = new this.world.THREE.Vector3(xyz[0], xyz[1], xyz[2]);
         if (!newPosVec.equals(this.mesh.position)) {
-            console.log("moveTo: x=" + xyz[0] + " y=" + xyz[1] + " z=" + xyz[2]);
+            // console.log("moveTo: x=" + xyz[0] + " y=" + xyz[1] + " z=" + xyz[2]);
             this.mesh.position.copy(newPosVec);
             if (this.possessed) this.updateCamera();
         }
@@ -72,29 +77,30 @@ class VoxelPlayer {
     }
 
     getPitchYaw() {
-        let pitch = MathUtils.radToDeg(this.mesh.rotation.x);
-        let yaw = MathUtils.radToDeg(this.mesh.rotation.y);
+        let pitch = MathUtils.radToDeg(this.mesh.rotation.x - this.rotation_offset[0]);
+        let yaw = MathUtils.radToDeg(this.mesh.rotation.y - this.rotation_offset[1]);
         return [pitch, yaw]
     }
-
-    // *** We could simplify the PitchYaw getters by just reading the class value, but maybe better straight from the source?
 
     getLookPitchYaw() {
         this.world.camera.getWorldDirection(this.cameraLook);
         this.cameraSpherical.setFromVector3(this.cameraLook);
-        
-        // 0 phi is the +y axis and down is pos, set 0 pitch to be at the horizon and flip
-        // 0 theta is the +z axis...direction is unspecified in the documentation
-        // TODO this is a third coordinate convention, check to make sure it's OK
 
+        // 0 phi is the +y axis and down is pos, set 0 pitch to be at the horizon and flip
         let pitch = (-1) * MathUtils.radToDeg(this.cameraSpherical.phi - (Math.PI/2));
+        // 0 theta is the +z axis, +yaw is right handed (CCW) - same as agent, no change
         let yaw = MathUtils.radToDeg(this.cameraSpherical.theta);
 
         return [pitch, yaw]
     }
 
     getPosition() {
-        return this.mesh.position;
+        let offset_vec = new this.world.THREE.Vector3(
+            this.position_offset[0],
+            this.position_offset[1],
+            this.position_offset[2],
+        )
+        return this.mesh.position.sub(offset_vec);
     }
 
     updatePov(type) {

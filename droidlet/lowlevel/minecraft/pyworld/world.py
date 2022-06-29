@@ -333,9 +333,15 @@ class World:
         if self.connected_sids.get(sid) is not None:
             print("reconnecting eid {} (sid {})".format(self.connected_sids["sid"], sid))
             return
+        for player_eid in self.connected_sids.values():
+            player_info = self.get_player_info(player_eid)
+            if player_info.name == data.get("name"):
+                print("reconnecting eid {} (sid {})".format(player_eid, sid))
+                return
+                
         # FIXME add height map
         x, y, z, pitch, yaw = make_pose(
-            self.sl, self.sl, loc=data.get("loc"), pitchyaw=data.get("pitchyaw")
+            self.sl, self.sl, loc=data.get("loc"), pitchyaw=data.get("pitchyaw"), height_map=self.get_height_map()
         )
         entityId = self.new_eid(entityId=data.get("entityId"))
         # FIXME
@@ -474,6 +480,15 @@ class World:
         def move_agent_abs(sid, data):
             eid = self.connected_sids.get(sid)
             player_struct = self.get_player_info(eid)
+            # FIXME sid lost on page refresh, hacky workaround
+            if not player_struct:
+                for player_eid in self.connected_sids.values():
+                    player_info = self.get_player_info(player_eid)
+                    if player_info.name == "dashboard_player":
+                        player_struct = self.get_player_info(player_eid)
+                        eid = player_eid
+                        break
+
             x, y, z = player_struct.pos
             x = data.get("x", 0)
             y = data.get("y", 0)

@@ -146,7 +146,7 @@ def make_pose(SL, H, loc=None, pitchyaw=None, height_map=None):
     """
     ENTITY_HEIGHT = 2
     if loc is None:
-        x, y, z = np.random.randint((SL, H, SL))
+        x, y, z = np.random.randint((SL-1, H-1, SL-1))
     else:
         x, y, z = loc
     if pitchyaw is None:

@@ -3366,23 +3366,29 @@ class VoxelPlayer {
     this.highlighter.visible = false;
     this.world.scene.add(this.highlighter);
     this.tempVec = new world.THREE.Vector3();
+    this.lockout = Date.now();
   }
 
   move(x, y, z) {
-    // console.log(x + ","+y+","+z)
+    // console.log("player move: " + x + ","+y+","+z)
+    this.lockout = Date.now();
     this.mesh.position.x += x;
     this.mesh.position.y += y;
-    this.mesh.position.z += z; // console.log(this.mesh.position)
-
+    this.mesh.position.z += z;
     if (this.possessed) this.updateCamera();
   }
 
   moveTo(x, y, z) {
+    if (Date.now() - this.lockout < 1000) {
+      // Don't jitter
+      return;
+    }
+
     let xyz = applyOffset([x, y, z], this.position_offset);
     let newPosVec = new this.world.THREE.Vector3(xyz[0], xyz[1], xyz[2]);
 
     if (!newPosVec.equals(this.mesh.position)) {
-      console.log("moveTo: x=" + xyz[0] + " y=" + xyz[1] + " z=" + xyz[2]);
+      // console.log("moveTo: x=" + xyz[0] + " y=" + xyz[1] + " z=" + xyz[2]);
       this.mesh.position.copy(newPosVec);
       if (this.possessed) this.updateCamera();
     }
@@ -3407,21 +3413,19 @@ class VoxelPlayer {
   }
 
   getPitchYaw() {
-    let pitch = _threeModule.MathUtils.radToDeg(this.mesh.rotation.x);
+    let pitch = _threeModule.MathUtils.radToDeg(this.mesh.rotation.x - this.rotation_offset[0]);
 
-    let yaw = _threeModule.MathUtils.radToDeg(this.mesh.rotation.y);
+    let yaw = _threeModule.MathUtils.radToDeg(this.mesh.rotation.y - this.rotation_offset[1]);
 
     return [pitch, yaw];
-  } // *** We could simplify the PitchYaw getters by just reading the class value, but maybe better straight from the source?
-
+  }
 
   getLookPitchYaw() {
     this.world.camera.getWorldDirection(this.cameraLook);
     this.cameraSpherical.setFromVector3(this.cameraLook); // 0 phi is the +y axis and down is pos, set 0 pitch to be at the horizon and flip
-    // 0 theta is the +z axis...direction is unspecified in the documentation
-    // TODO this is a third coordinate convention, check to make sure it's OK
 
-    let pitch = -1 * _threeModule.MathUtils.radToDeg(this.cameraSpherical.phi - Math.PI / 2);
+    let pitch = -1 * _threeModule.MathUtils.radToDeg(this.cameraSpherical.phi - Math.PI / 2); // 0 theta is the +z axis, +yaw is right handed (CCW) - same as agent, no change
+
 
     let yaw = _threeModule.MathUtils.radToDeg(this.cameraSpherical.theta);
 
@@ -3429,7 +3433,8 @@ class VoxelPlayer {
   }
 
   getPosition() {
-    return this.mesh.position;
+    let offset_vec = new this.world.THREE.Vector3(this.position_offset[0], this.position_offset[1], this.position_offset[2]);
+    return this.mesh.position.sub(offset_vec);
   }
 
   updatePov(type) {
@@ -3636,8 +3641,6 @@ const bid2Name = {
   60: 'red wool',
   61: 'black wool'
 };
-const minCameraPitch = 0.5 * Math.PI / 4;
-const maxCameraPitch = 2.0 * Math.PI / 4;
 const TEXTURE_PATH = "https://cdn.jsdelivr.net/gh/snyxan/assets@main/block_textures/";
 const SL = 16;
 exports.SL = SL;
@@ -3673,35 +3676,10 @@ function pos2Name(x, y, z, box = false) {
   }
 
   return x + ',' + y + ',' + z;
-} // function walkabout(obj, dist, world) {
-//     let dir = Math.floor(3 * Math.random());
-//     let choices = [-1, 1];
-//     let move = choices[Math.floor(choices.length * Math.random())] * dist;
-//     switch (dir) {
-//         case 0:
-//             if (obj.mesh.position.x < 500 && obj.mesh.position.x > -500){
-//                 obj.move(move, 0, 0);
-//             } else {
-//                 obj.moveTo(0,0,0);
-//             }
-//             break;
-//         case 1:
-//             // obj.move(0, move, 0);
-//             break;
-//         case 2:
-//             if (obj.mesh.position.z < 500 && obj.mesh.position.z > -500){
-//                 obj.move(0, 0, move);
-//             } else {
-//                 obj.moveTo(0,0,0);
-//             }
-//             break;
-//     }
-//     render();
-// }
-
+}
 
 function handleKeypress(e, player) {
-  let camera_vec, control_pos;
+  let camera_vec;
   console.log(e.key);
 
   switch (e.key) {
@@ -3711,12 +3689,6 @@ function handleKeypress(e, player) {
 
     case "ArrowRight":
       player.rotate(-0.1);
-      break; // case "ArrowUp":
-      //     player.rotate(0, 0.1);
-      //     break;
-      // case "ArrowDown":
-      //     player.rotate(0, -0.1);
-
       break;
 
     case "t":
@@ -3732,7 +3704,6 @@ function handleKeypress(e, player) {
       direction_vec.set(camera_vec[0], 0, camera_vec[2]);
       direction_vec.normalize();
       direction_vec.multiplyScalar(MoveStep * blockScale);
-      control_pos = player.mesh.position;
       player.move(direction_vec.x, direction_vec.y, direction_vec.z);
       updatePlayerPosition(player);
       break;
@@ -3742,7 +3713,6 @@ function handleKeypress(e, player) {
       direction_vec.set(-camera_vec[0], 0, -camera_vec[2]);
       direction_vec.normalize();
       direction_vec.multiplyScalar(MoveStep * blockScale);
-      control_pos = player.mesh.position;
       player.move(direction_vec.x, direction_vec.y, direction_vec.z);
       updatePlayerPosition(player);
       break;
@@ -3752,7 +3722,6 @@ function handleKeypress(e, player) {
       direction_vec.set(camera_vec[2], 0, -camera_vec[0]);
       direction_vec.normalize();
       direction_vec.multiplyScalar(MoveStep * blockScale);
-      control_pos = player.mesh.position;
       player.move(direction_vec.x, direction_vec.y, direction_vec.z);
       updatePlayerPosition(player);
       break;
@@ -3762,7 +3731,6 @@ function handleKeypress(e, player) {
       direction_vec.set(-camera_vec[2], 0, camera_vec[0]);
       direction_vec.normalize();
       direction_vec.multiplyScalar(MoveStep * blockScale);
-      control_pos = player.mesh.position;
       player.move(direction_vec.x, direction_vec.y, direction_vec.z);
       updatePlayerPosition(player);
       break;
@@ -3779,7 +3747,7 @@ function handleKeypress(e, player) {
   }
 }
 
-function cameraTest(player) {
+function applyCameraToPlayer(player) {
   player.possess();
   window.addEventListener("keydown", function (e) {
     handleKeypress(e, player);
@@ -3798,7 +3766,7 @@ function cameraTest(player) {
 ;
 
 function updatePlayerLook(player) {
-  let pitchYaw = player.getPitchYaw();
+  let pitchYaw = player.getLookPitchYaw();
   let pitch = pitchYaw[0];
   let yaw = pitchYaw[1];
   let payload = {
@@ -3811,16 +3779,18 @@ function updatePlayerLook(player) {
 
 function updatePlayerPosition(player) {
   let pos = player.getPosition();
-  let x = pos.x / blockScale;
-  let y = pos.y / blockScale;
-  let z = pos.z / blockScale;
+  let xyz = convertCoordinateSystems(pos.x / blockScale, pos.y / blockScale, pos.z / blockScale);
   let payload = {
     "status": "abs_move",
-    "x": x,
-    "y": y,
-    "z": z
+    "x": xyz[0],
+    "y": xyz[1],
+    "z": xyz[2]
   };
   window.postMessage(payload, "*");
+}
+
+function convertCoordinateSystems(x, y, z) {
+  return [-x, y, z];
 }
 
 class DVoxelEngine {
@@ -3864,7 +3834,9 @@ class DVoxelEngine {
     });
     renderer = this.renderer;
     this.renderer.setPixelRatio(window.devicePixelRatio);
-    this.renderer.setSize(window.innerWidth, window.innerHeight); // loader and preloaded materials -- to improve performance
+    this.renderer.setSize(window.innerWidth, window.innerHeight); //Axis helper for debugging
+
+    this.scene.add(new THREE.AxesHelper(10000)); // loader and preloaded materials -- to improve performance
 
     loader = new THREE.TextureLoader();
     preLoadBlockMaterials = new Map();
@@ -3916,10 +3888,9 @@ class DVoxelEngine {
         };
 
         _VoxelPlayer.VoxelPlayer.build(world, opts).then(function (player) {
-          // window.setInterval(walkabout, 1000, player, 50, world);
           if (player.avatarType === "player") {
             controlled_player = player;
-            cameraTest(player);
+            applyCameraToPlayer(player);
           }
 
           if (player.avatarType === "agent") {
@@ -3929,43 +3900,7 @@ class DVoxelEngine {
       }
     }
 
-    ; // const TEST_ITEMS = ['pink wool', 'white wool', 'blue wool', 'brown wool', 'grass']
-    // TEST_ITEMS.forEach(function(key, index) {
-    //     console.log(key)
-    //     let max = 5, min = -5
-    //     let ix = Math.floor(Math.random() * (max - min + 1) + min)
-    //     let iz = Math.floor(Math.random() * (max - min + 1) + min)
-    //     const itemOpts = {
-    //         GLTFLoader: GLTFLoader,
-    //         name: key,
-    //         position: [ix * blockScale, 5 * blockScale, iz * blockScale]
-    //     };
-    //     VoxelItem.build(world, itemOpts).then(
-    //         function (item) {
-    //             // window.setInterval(walkabout, 1000, item, 50);
-    //         }
-    //     );
-    //     }
-    // ) 
-    // const TEST_MOBS = ['cow', 'chicken']
-    // TEST_MOBS.forEach(function(key, index) {
-    //     console.log(key)
-    //     let max = 5, min = -5
-    //     let ix = Math.floor(Math.random() * (max - min + 1) + min)
-    //     let iz = Math.floor(Math.random() * (max - min + 1) + min)
-    //     const mobOpts = {
-    //         GLTFLoader: GLTFLoader,
-    //         name: key,
-    //         position: [ix * blockScale, 5 * blockScale, iz * blockScale]
-    //     };
-    //     VoxelMob.build(world, mobOpts).then(
-    //         function (mob) {
-    //             window.setInterval(walkabout, 1000, mob, 50);
-    //         }
-    //     );
-    //     }
-    // ) 
-
+    ;
     window.setInterval(render, renderInterval);
   }
 
@@ -3975,7 +3910,7 @@ class DVoxelEngine {
   }
 
   setVoxel(pos, bid) {
-    if (bid == 0) {
+    if (bid === 0) {
       let obj = scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2]));
       console.log('deleting');
       console.log(obj);
@@ -3987,8 +3922,6 @@ class DVoxelEngine {
     const blockName = bid2Name[bid];
     const geometry = new THREE.BoxGeometry(blockScale, blockScale, blockScale);
     let block_data = _model_luts.VW_ITEM_MAP[blockName];
-    console.log(blockName);
-    console.log(block_data);
     let blockMaterials;
 
     if (preLoadBlockMaterials.has(blockName)) {
@@ -4033,7 +3966,7 @@ class DVoxelEngine {
     const box = new THREE.BoxHelper(cube, 0x000000);
     box.name = pos2Name(pos[0], pos[1], pos[2], true);
     this.scene.add(box);
-    setBlock2(pos[0], pos[1], pos[2], bid);
+    setBlock2(-pos[0], pos[1], pos[2], bid);
   }
 
   raycastVoxels(v) {
@@ -4059,19 +3992,16 @@ class DVoxelEngine {
 
   updateAgents(agentsInfo) {
     // console.log("DVoxel Engine update agents")
-    // console.log(agentsInfo)
-    let that = this;
+    // console.log(agentsInfo);
     agentsInfo.forEach(function (key, index) {
       let name = key["name"];
-      let x = key["x"];
-      let y = key["y"];
-      let z = key["z"]; // console.log("name: " + name + "x: " + x + ", y" + y + ", z" + z)
+      let xyz = convertCoordinateSystems(key["x"], key["y"], key["z"]); // console.log("name: " + name + "x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2])
 
       if (name === AGENT_NAME && agent_player != null) {
-        agent_player.moveTo(x * blockScale, y * blockScale, z * blockScale);
+        agent_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale);
       } else if (name === PLAYER_NAME && controlled_player != null) {
-        // console.log("player move: " + x + " " + y + " " + z);
-        controlled_player.moveTo(x * blockScale, y * blockScale, z * blockScale);
+        // console.log("player moveTo: x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2]);
+        controlled_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale);
       }
     });
   }
@@ -4085,10 +4015,9 @@ class DVoxelEngine {
       render: render,
       camera: camera
     };
-    let mobsInWorld = new Set();
     mobsInfo.forEach(function (key, index) {
       const entityId = key['entityId'].toString();
-      const pos = key['pos'];
+      const pos = convertCoordinateSystems(key['pos'][0], key['pos'][1], key['pos'][2]);
       const name = key['name'];
 
       if (entityId in mobs) {
@@ -4105,8 +4034,6 @@ class DVoxelEngine {
           mobs[entityId] = newMob; // sceneItems.push(newMob);
         });
       }
-
-      mobsInWorld.add(entityId);
     });
   }
 
@@ -4119,10 +4046,9 @@ class DVoxelEngine {
       render: render,
       camera: camera
     };
-    let itemStacksInWorld = new Set();
     itemStacksInfo.forEach(function (key, index) {
       const entityId = key['entityId'].toString();
-      const pos = key['pos'];
+      const pos = convertCoordinateSystems(key['pos'][0], key['pos'][1], key['pos'][2]);
       const name = key['name'];
 
       if (entityId in itemStacks) {
@@ -4139,8 +4065,6 @@ class DVoxelEngine {
           itemStacks[entityId] = newItemStack; // sceneItems.push(newItemStack);
         });
       }
-
-      itemStacksInWorld.add(entityId);
     });
   }
 
@@ -4149,7 +4073,7 @@ class DVoxelEngine {
     // console.log(blocksInfo)
     let that = this;
     blocksInfo.forEach(function (key, index) {
-      let xyz = key[0];
+      let xyz = convertCoordinateSystems(key[0][0], key[0][1], key[0][2]);
       let idm = key[1];
 
       let bid = _model_luts.MINECRAFT_BLOCK_MAP[idm[0].toString() + "," + idm[1].toString()]; // console.log("xyz: " + xyz + "  bid: " + bid)
@@ -4162,7 +4086,8 @@ class DVoxelEngine {
   setBlock(x, y, z, idm) {// console.log("DVoxel Engine set block")
   }
 
-  flashBlocks(bbox) {// console.log("DVoxel Engine flash bbox")
+  flashBlocks(bbox) {// !Need to convert coordinates when this is implemented
+    // console.log("DVoxel Engine flash bbox")
   }
 
 }
@@ -4994,70 +4919,70 @@ const VW_MOB_MAP = {
     "model_folder": "low_poly_bat/",
     "model_file": "scene.gltf",
     "default_scale": 60,
-    "rotation_offset": [0, -Math.PI / 2, 0],
+    "rotation_offset": [0, 0, 0],
     "position_offset": [22, 0, 23]
   },
   "cat": {
     "model_folder": "low_poly_cat/",
     "model_file": "scene.gltf",
     "default_scale": 0.15,
-    "rotation_offset": [0, 0, 0],
+    "rotation_offset": [0, Math.PI / 2, 0],
     "position_offset": [25, 0, 25]
   },
   "chicken": {
     "model_folder": "low_poly_chicken/",
     "model_file": "chicken.gltf",
     "default_scale": 70.0,
-    "rotation_offset": [0, 0, 0],
+    "rotation_offset": [0, Math.PI / 2, 0],
     "position_offset": [17, 0, 23]
   },
   "cow": {
     "model_folder": "low_poly_cow/",
     "model_file": "scene.gltf",
     "default_scale": 0.075,
-    "rotation_offset": [0, -Math.PI / 2, 0],
+    "rotation_offset": [0, 0, 0],
     "position_offset": [22, 20, 23]
   },
   "horse": {
     "model_folder": "low_poly_horse/",
     "model_file": "scene.gltf",
     "default_scale": 25.0,
-    "rotation_offset": [0, Math.PI - 0.3, 0],
+    "rotation_offset": [0, -Math.PI / 2 - 0.3, 0],
     "position_offset": [30, 35, 25]
   },
   "parrot": {
     "model_folder": "low_poly_parrot/",
     "model_file": "scene.gltf",
     "default_scale": 8.0,
-    "rotation_offset": [0, 0, 0],
+    "rotation_offset": [0, Math.PI / 2, 0],
     "position_offset": [30, 35, 25]
   },
   "pig": {
     "model_folder": "low_poly_pig/",
     "model_file": "scene.gltf",
     "default_scale": 5.0,
-    "rotation_offset": [0, Math.PI, 0],
+    "rotation_offset": [0, -Math.PI / 2, 0],
     "position_offset": [20, 5, 25]
   },
   "rabbit": {
     "model_folder": "low_poly_rabbit/",
     "model_file": "scene.gltf",
     "default_scale": 15.0,
-    "rotation_offset": [0, -Math.PI / 2, 0],
+    "rotation_offset": [0, 0, 0],
     "position_offset": [28, 0, 25]
   },
   "sheep": {
     "model_folder": "low_poly_sheep/",
     "model_file": "scene.gltf",
     "default_scale": 40.0,
-    "rotation_offset": [0, 0, 0],
+    "rotation_offset": [0, Math.PI / 2, 0],
     "position_offset": [28, -18, 70]
   },
   "wolf": {
     "model_folder": "low_poly_wolf/",
     "model_file": "scene.gltf",
     "default_scale": 0.08,
-    "rotation_offset": [0, Math.PI / 2, 0],
+    "rotation_offset": [0, Math.PI, 0],
     "position_offset": [5, 28, 25]
   }
 };
@@ -5074,7 +4999,7 @@ const VW_AVATAR_MAP = {
     "model_folder": "robot/",
     "model_file": "scene.gltf",
     "default_scale": 1.7,
-    "rotation_offset": [0, Math.PI / 2, 0],
+    "rotation_offset": [0, Math.PI, 0],
     "position_offset": [25, 0, 25]
   }
 };
