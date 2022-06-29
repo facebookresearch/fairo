@@ -1,3 +1,8 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+Navigation bar for the dashboard app. 
+*/
 import React, { useState } from "react";
 import 'antd/dist/antd.css';
 import '../index.css';

@@ -1,3 +1,12 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+List view of all runs for the specified pipeline. 
+Pipeline type needs to be specifed by adding the pipelineType props by the caller. 
+
+To use this component:
+<RunList pipelineType={pipelineType} />
+*/
 import { Badge, Skeleton, Table, Typography } from 'antd';
 import React, { useContext, useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
@@ -16,7 +25,7 @@ const timeStrComp = (one, other) => {
     }
 }
 
-const jobListCols = [
+const runListCols = [
     {
         title: 'Name',
         dataIndex: 'name',
@@ -28,6 +37,16 @@ const jobListCols = [
     }, {
         title: 'Status',
         key: 'status',
+        filters: [
+            {
+                text: 'Finished',
+                value: 'done',
+            }, {
+                text: 'Running',
+                value: 'running',
+            }
+        ],
+        onFilter: (val, row) => (row.status === val), 
         render: (_, row) => (
             <span>
                 {row.status === 'done' ?
@@ -72,16 +91,16 @@ const jobListCols = [
     }
 ]
 
-const JobList = (props) => {
+const RunList = (props) => {
     const socket = useContext(SocketContext);
 
-    const pipelineType = props.pipelineType; // to do get jobs by pipelineType
+    const pipelineType = props.pipelineType; // to do get runs by pipelineType
 
-    const [jobListData, setJobListData] = useState([]);
+    const [runListData, setRunListData] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    const handleReceivedJobList = useCallback((data) => {
-        setJobListData(data.map((o) => (
+    const handleReceivedRunList = useCallback((data) => {
+        setRunListData(data.map((o) => (
             // TODO: update backend api for get job list, 
             // right now using fake name, descrioption infomation, and status
             {
@@ -96,32 +115,32 @@ const JobList = (props) => {
         setLoading(false);
     }, []);
 
-    const getJobList = () => {
+    const getRunList = () => {
         socket.emit("get_job_list");
         setLoading(true);
     }
 
-    useEffect(() => getJobList(), []); // load job list when init the component (didMount)
+    useEffect(() => getRunList(), []); // load job list when init the component (didMount)
 
     useEffect(() => {
-        socket.on("get_job_list", (data) => handleReceivedJobList(data));
-    }, [socket, handleReceivedJobList]);
+        socket.on("get_job_list", (data) => handleReceivedRunList(data));
+    }, [socket, handleReceivedRunList]);
 
     return (
         <>
             <div style={{ "text-align": "left" }}>
                 <Title level={5}>
-                    View All {pipelineType.label} Jobs
+                    View All {pipelineType.label} Runs
                 </Title>
                 {loading ?
                     <Skeleton active={true} title={false} paragraph={{ rows: 1, width: 200 }} />
                     :
-                    <p>Showing {jobListData.length} past runs.</p>}
+                    <p>Showing {runListData.length} past runs.</p>}
             </div>
             <div style={{ "margin-right": "24px" }}>
                 <Table
-                    columns={jobListCols}
-                    dataSource={jobListData}
+                    columns={runListCols}
+                    dataSource={runListData}
                     scroll={{ y: '80vh' }}
                     loading={loading}
                 />
@@ -130,4 +149,4 @@ const JobList = (props) => {
     );
 }
 
-export default JobList;
+export default RunList;

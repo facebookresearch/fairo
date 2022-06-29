@@ -1,5 +1,9 @@
 /*
 Copyright (c) Facebook, Inc. and its affiliates.
+
+Dashboard App root.
+
+App top level shared componets and Routers are specified in this file. 
 */
 import './App.css';
 import 'antd/dist/antd.css';

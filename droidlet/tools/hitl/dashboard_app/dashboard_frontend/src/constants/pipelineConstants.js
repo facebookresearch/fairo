@@ -1,4 +1,8 @@
-// Constants for pipeline panel  
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+constants used for the pipeline panel & detail. 
+*/
 export const TAB_ITEMS = {
     INTRO:
     {
@@ -15,9 +19,9 @@ export const TAB_ITEMS = {
         label: 'Architecture',
         key: 'architecture'
     },
-    JOBS:
+    RUNS:
     {
-        label: 'View Jobs',
-        key: 'jobs'
+        label: 'View Runs',
+        key: 'runs'
     }
 }
