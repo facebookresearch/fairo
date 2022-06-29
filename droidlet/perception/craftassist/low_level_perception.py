@@ -90,7 +90,8 @@ class LowLevelMCPerception:
             else:
                 # [struct, holder entityId, properties]
                 pickable_items = {
-                    i[0].entityId: [i[0], i[1], i[2]] for i in self.agent.get_item_stacks()
+                    i[0].entityId: [i[0], i[1], i[2]]
+                    for i in self.agent.get_item_stacks(get_all=True)
                 }
 
             perceive_info["agent_pickable_items"] = pickable_items
