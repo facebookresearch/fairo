@@ -1,10 +1,20 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+The panel for managing runs & single run of a specified pipeline. 
+
+Pipeline type needs to be specified by the caller. 
+
+Usage:
+<PipelinePanel pipelineType={pipelineType} />
+*/
 import { Breadcrumb, Layout, Tabs } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { TAB_ITEMS } from '../../constants/pipelineConstants';
-import { SUBPATHS } from '../../constants/subpaths';
+import DetailPage from './detail/detailPage';
 import InfoBlock from './metaInfo/infoBlock';
-import JobList from './metaInfo/jobList';
+import RunList from './metaInfo/runList';
 
 const menuItems = Object.values(TAB_ITEMS);
 const { TabPane } = Tabs;
@@ -60,9 +70,9 @@ const PipelinePanel = (props) => {
                                 <Breadcrumb.Item>
                                     <Link
                                         to={pipelineType.key}
-                                        state={{ label: TAB_ITEMS.JOBS.label, key: TAB_ITEMS.JOBS.key }}
+                                        state={{ label: TAB_ITEMS.RUNS.label, key: TAB_ITEMS.RUNS.key }}
                                         replace={true}>
-                                        {TAB_ITEMS.JOBS.label}
+                                        {TAB_ITEMS.RUNS.label}
                                     </Link>
                                 </Breadcrumb.Item>
                                 <Breadcrumb.Item>{batch_id}</Breadcrumb.Item>
@@ -83,7 +93,7 @@ const PipelinePanel = (props) => {
                     {
                         // display detail page if has batch id
                         batch_id ?
-                            (<div>detail of {batch_id} </div>)
+                            <DetailPage batchId={batch_id} pipelineType={pipelineType}/>
                             :
                             (<Tabs
                                 activeKey={activeKey}
@@ -96,8 +106,8 @@ const PipelinePanel = (props) => {
                                         <TabPane tab={item.label} key={item.key}>
                                             {
                                                 // render job list if key is jobs, otherwise render info block
-                                                item.key === TAB_ITEMS.JOBS.key ?
-                                                    <JobList pipelineType={pipelineType} /> :
+                                                item.key === TAB_ITEMS.RUNS.key ?
+                                                    <RunList pipelineType={pipelineType} /> :
                                                     <InfoBlock infoType={item.key} pipelineType={pipelineType} />
                                             }
                                         </TabPane>
