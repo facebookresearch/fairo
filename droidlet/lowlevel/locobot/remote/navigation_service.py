@@ -102,20 +102,10 @@ class Navigation(object):
         the trackback logic and we'll throw away this code.
         """
 
-        def obstacle_fn():
-            # result = False
-            # while True:
-            #     try:
-            #         result = self.robot.cam.is_obstacle_in_front()
-            #         break
-            #     except:
-            #         print("obstacle exception")
-            # return result
-            return self.robot.is_obstacle_in_front()
-
         if action == 1:
             # forward
-            is_obstacle = obstacle_fn()
+            is_obstacle = self.robot.is_obstacle_in_front()
+            print("is_obstacle", is_obstacle)
             if is_obstacle:
                 print("Found obstacle before translating. Aborting")
                 # TODO trackback
@@ -126,7 +116,8 @@ class Navigation(object):
             self.robot.pull_status()
             is_moving = True
             while is_moving:
-                # is_obstacle = obstacle_fn()
+                is_obstacle = self.robot.is_obstacle_in_front()
+                print("is_obstacle", is_obstacle)
                 if is_obstacle:
                     print("Found obstacle while translating. Aborting")
                     self.robot.stop()
