@@ -22,7 +22,7 @@ import torchcontrol as toco
 """
 Habitat simulation setup helper functions. Based on the URDF prototype branch:
 https://github.com/facebookresearch/habitat-sim/blob/f6267cbfe0ad6c8f86d79edc917a49fb26ddbb73/examples/tutorials/URDF_robotics_tutorial.py
-""" 
+"""
 
 
 def make_configuration(
@@ -48,7 +48,7 @@ def make_configuration(
     for _ in range(5):
         habitat_dir = os.path.dirname(habitat_dir)
     habitat_dir = os.path.join(habitat_dir, "third_party/habitat-sim")
-    
+
     if not os.path.isabs(glb_path):
         glb_path = os.path.join(habitat_dir, glb_path)
 
