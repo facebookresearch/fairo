@@ -5,21 +5,29 @@ import { SocketContext } from '../../../context/socket';
 
 const { Title } = Typography;
 
+const timeStrComp = (one, other) => {
+    // compare two time (format in string)
+    const one_dt = Date.parse(one);
+    const other_dt = Date.parse(other);
+    if (one_dt === other_dt) {
+        return 0;
+    } else {
+        return one_dt < other_dt ? -1: 1;
+    }
+}
+
 const jobListCols = [
     {
         title: 'Name',
         dataIndex: 'name',
         sorter: (one, other) => (one.name.localeCompare(other.name)),
-        width: '15%'
     }, {
         title: 'Batch ID',
         dataIndex: 'batch_id',
         sorter: (one, other) => (one.batch_id === other.batch_id ? 0 : (one.batch_id < other.batch_id ? -1 : 1)),
-        width: '10%'
     }, {
         title: 'Status',
         key: 'status',
-        width: '10%',
         render: (_, row) => (
             <span>
                 {row.status === 'done' ?
@@ -36,6 +44,14 @@ const jobListCols = [
             </span>
         ), 
         sorter: (one, other) => (one.status.localeCompare(other.status)),  
+    }, { 
+        title: 'Start Time',
+        dataIndex: 'start_time',
+        sorter: (one, other) => (timeStrComp(one.start_time, other.start_time)),
+    }, {
+        title: 'End Time',
+        dataIndex: 'end_time',
+        sorter: (one, other) => (timeStrComp(one.end_time, other.end_time)),
     }, {
         title: 'Description',
         dataIndex: 'description',
@@ -50,7 +66,6 @@ const jobListCols = [
     }, {
         title: 'Action',
         key: 'action',
-        width: '10%',
         render: (_, row) => (
             <Link to={`${row.batch_id}`}>View Detail</Link>
         )
@@ -74,6 +89,8 @@ const JobList = (props) => {
                 batch_id: o,
                 description: 'some description here',
                 status: o % 2 === 0 ? 'done': 'running',
+                start_time: `${o.toString().substring(0, 4)}-${o.toString().substring(4, 6)}-${o.toString().substring(6, 8)} 12:00:${o.toString().substring(12)}`,
+                end_time: `${o.toString().substring(0, 4)}-${o.toString().substring(4, 6)}-${o.toString().substring(6, 8)} 18:30:${o.toString().substring(12)}`
             }
         )));
         setLoading(false);
