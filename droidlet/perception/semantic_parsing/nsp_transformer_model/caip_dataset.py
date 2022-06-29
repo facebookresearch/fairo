@@ -136,9 +136,7 @@ class CAIPDataset(Dataset):
                     else fixed_span_val
                 ),
             ]
-            for w, text_span_start, text_span_end, fixed_span_val in [
-                ("<S>", -1, -1, -1)
-            ]
+            for w, text_span_start, text_span_end, fixed_span_val in [("<S>", -1, -1, -1)]
             + tree
             + [("</S>", -1, -1, -1)]
         ]
