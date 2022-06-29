@@ -172,6 +172,7 @@ class Navigation(object):
         steps=100000000,
         visualize=True,
     ):
+        print("[navigation] Starting a go_to_absolute")
         # specify exactly one of goal or goal_map
         assert (goal is not None and goal_map is None) or (goal is None and goal_map is not None)
 

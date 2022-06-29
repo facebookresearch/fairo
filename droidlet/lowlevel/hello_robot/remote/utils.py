@@ -294,7 +294,7 @@ def goto(
             is_obstacle = False
         if is_obstacle:
             print("Found obstacle before translating. Aborting")
-            return "FAILED"
+            return "FAILED", action
         robot.translate_by(forward_dist)
         robot.push_command()
         time.sleep(2)
@@ -309,7 +309,7 @@ def goto(
                 # stop motion
                 print("Found obstacle while translating. Aborting")
                 robot.stop()
-                return "FAILED"
+                return "FAILED", action
             time.sleep(0.1)
             robot.pull_status()
             is_moving = robot.is_base_moving()
