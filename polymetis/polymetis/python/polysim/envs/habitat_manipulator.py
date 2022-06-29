@@ -22,29 +22,16 @@ import torchcontrol as toco
 """
 Habitat simulation setup helper functions. Based on the URDF prototype branch:
 https://github.com/facebookresearch/habitat-sim/blob/f6267cbfe0ad6c8f86d79edc917a49fb26ddbb73/examples/tutorials/URDF_robotics_tutorial.py
-"""
-def get_habitat_dir():
-    """
-
-    """
-    # Parsing assumes the following paths to this file and to the habitat-sim directory respectively:
-    # polymetis > polymetis > python > polysim > env > habitat_manipulator.py
-    # polymetis > third_party > habitat-sim
-    
+""" 
 
 
 def make_configuration(
-    habitat_dir: str,
     glb_path: str,
 ) -> habitat_sim.SimulatorConfiguration:
     """Create a habitat_sim.SimulatorConfiguration object, and populate it
     with the scene from the glb_path.
 
     Args:
-
-        habitat_dir: the directory containing habitat-sim. Mainly used as root
-            of glb_path (if it's not an absolute path) and the physics config
-            file (typically `data/default.physics_config.json`).
 
         glb_path: path to the .glb file. If a relative path, assumed to be
             relative to `habitat_dir`.
@@ -146,7 +133,6 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
     def __init__(
         self,
         robot_model_cfg: DictConfig,
-        habitat_dir: str,
         hz: int = 240,
         joint_damping: float = 0.1,
         grav_comp: bool = True,
@@ -197,7 +183,7 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         )
 
         # Start Habitat simulator
-        self.habitat_cfg = make_configuration(habitat_dir, glb_path=habitat_scene_path)
+        self.habitat_cfg = make_configuration(glb_path=habitat_scene_path)
         self.sim = habitat_sim.Simulator(self.habitat_cfg)
         place_agent(self.sim, agent_pos=agent_pos, agent_orient=agent_orient)
 

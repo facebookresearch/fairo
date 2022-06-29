@@ -3,7 +3,6 @@ hz: 240
 gui: true
 use_grav_comp: true
 use_real_time: true
-habitat_dir: "../../../../third_party/habitat-sim/"
 habitat_scene_path: "data/test_assets/scenes/simple_room.glb"
 
 robot_client:
@@ -13,7 +12,6 @@ robot_client:
     robot_model_cfg: ${robot_model}
     hz: ${hz}
     gui: ${gui}
-    habitat_dir: ${habitat_dir}
     habitat_scene_path: ${habitat_scene_path}
   metadata_cfg:
     _target_: polymetis.robot_client.metadata.RobotClientMetadata

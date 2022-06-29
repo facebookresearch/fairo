@@ -194,9 +194,6 @@ kuka_gripper_sdf = OmegaConf.create(
             HabitatManipulatorEnv,
             {
                 "robot_model_cfg": franka_panda,
-                "habitat_dir": os.path.join(
-                    os.path.dirname(__file__), "../../data/habitat-sim"
-                ),
             },
         ),
     ],
