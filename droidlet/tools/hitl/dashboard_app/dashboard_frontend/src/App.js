@@ -28,7 +28,7 @@ function App() {
             <Layout>
               <Routes>
                 <Route path={SUBPATHS.HOME.key} element={<Main />} />
-                <Route path={SUBPATHS.NLU.key} element={<PipelinePanel pipelineType={SUBPATHS.NLU.label}/>}>
+                <Route path={SUBPATHS.NLU.key} element={<PipelinePanel pipelineType={SUBPATHS.NLU} />}>
                   <Route path=":batch_id" element={<PipelinePanel pipelineType={SUBPATHS.NLU.label}/>}/>
                 </Route>
                 <Route path={SUBPATHS.OTHER.key} element={<div>Something else here</div>} />

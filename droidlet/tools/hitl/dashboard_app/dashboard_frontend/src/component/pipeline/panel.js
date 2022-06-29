@@ -18,21 +18,24 @@ const PipelinePanel = (props) => {
 
     const location = useLocation();
     // get state label - only used when navigating back from detail page & set current label to intro if not navigating back from detail page
-    const stateLabel = location.state ? location.state.label : null;
-    const [currentLabel, setCurrentLabel] = useState(TAB_ITEMS.INTRO.label);
-    
+    const stateLabel = location.state ? location.state.label :  TAB_ITEMS.INTRO.label;
+    const [currentLabel, setCurrentLabel] = useState(stateLabel);
+
     // get state key if there is any and set defult selected key
-    const defaultKey = location.state ? location.state.key : TAB_ITEMS.INTRO.key;
+    const stateKey = location.state ? location.state.key :  TAB_ITEMS.INTRO.key;
+    const [activeKey, setActiveKey] = useState(stateKey);
 
     // for nav between tabs
     const handleTabOnclick = (key) => {
         const label = menuItems.find((item) => (item.key === key)).label;
+        setActiveKey(key);
         setCurrentLabel(label);
     }
 
     useEffect(() => {
-        setCurrentLabel(stateLabel ? stateLabel: TAB_ITEMS.INTRO.label);
-    }, [stateLabel]);
+        setCurrentLabel(stateLabel);
+        setActiveKey(stateKey)
+    }, [stateLabel, stateKey]);
 
     return (
         <Layout>
@@ -48,7 +51,7 @@ const PipelinePanel = (props) => {
                     }}
                 >
                     <Breadcrumb.Item>HITL</Breadcrumb.Item>
-                    <Breadcrumb.Item>{pipelineType}</Breadcrumb.Item>
+                    <Breadcrumb.Item>{pipelineType.label}</Breadcrumb.Item>
                     {
                         /* if has batch id, show view jobs label & batch id number, 
                         otherwise show current label */
@@ -56,7 +59,7 @@ const PipelinePanel = (props) => {
                             (<>
                                 <Breadcrumb.Item>
                                     <Link
-                                        to={SUBPATHS.NLU.key}
+                                        to={pipelineType.key}
                                         state={{ label: TAB_ITEMS.JOBS.label, key: TAB_ITEMS.JOBS.key }}
                                         replace={true}>
                                         {TAB_ITEMS.JOBS.label}
@@ -83,7 +86,8 @@ const PipelinePanel = (props) => {
                             (<div>detail of {batch_id} </div>)
                             :
                             (<Tabs
-                                defaultActiveKey={defaultKey}
+                                activeKey={activeKey}
+                                defaultActiveKey={activeKey}
                                 tabPosition="left"
                                 onTabClick={(evt) => { handleTabOnclick(evt) }}
                             >
