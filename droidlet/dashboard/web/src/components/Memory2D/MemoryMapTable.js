@@ -11,8 +11,10 @@ import Paper from "@material-ui/core/Paper";
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
+import RefreshIcon from "@material-ui/icons/Refresh";
 import ClearIcon from "@material-ui/icons/Clear";
 import AddIcon from "@material-ui/icons/Add";
+import Tooltip from "@material-ui/core/Tooltip";
 
 import TextField from "@material-ui/core/TextField";
 
@@ -49,49 +51,47 @@ const StyledTextField = withStyles((theme) => ({
     overflow: "hidden",
     borderRadius: 4,
     backgroundColor: "#0a0a01",
+    "& .Mui-error": {
+      backgroundColor: "red",
+    },
   },
 }))(TextField);
 
-const useStyles = makeStyles((theme) => ({
-  table: {
-    maxWidth: 400,
-  },
-  cell: {
-    root: {
-      fontSize: 14,
-      fontFamily: "Segoe UI",
-      maxWidth: MAX_TABLE_CELL_WIDTH,
-      overflow: "hidden",
-    },
-    head: {
-      backgroundColor: theme.palette.common.white,
-      color: theme.palette.common.white,
-    },
-    body: {
-      color: theme.palette.common.black,
-    },
-  },
-}));
-
 function MyTextField(props) {
   const [value, setValue] = useState(props.value);
+  const [errorCond, setErrorCond] = useState(false);
 
   return (
     <StyledTextField
       defaultValue={props.value}
       margin="normal"
-      error={!value}
+      size="small"
+      error={errorCond}
       onChange={(e) => {
         setValue(e.target.value);
-      }}
-      onFocus={(e) => {
-        console.log("focused");
+        if (!e.target.value) {
+          setErrorCond(true);
+          return;
+        } else {
+          setErrorCond(false);
+        }
+        try {
+          JSON.parse(e.target.value);
+        } catch {
+          setErrorCond(true);
+        }
       }}
       onBlur={(e) => {
         if (value !== props.value) {
-          console.log("changed");
+          props.updateStatus("changed");
         } else {
-          console.log("same");
+          props.updateStatus("same");
+        }
+        try {
+          JSON.parse(value);
+          props.updateValue(JSON.parse(value));
+        } catch {
+          props.updateStatus("error");
         }
       }}
       InputProps={{
@@ -116,25 +116,31 @@ function MyTextField(props) {
  *                            onTableDone: event handler for after user is finished with table.
  */
 export default function MemoryMapTable(props) {
-  const classes = useStyles();
-
   /*
   The editManager handles the state of the table in the form of a dictionary of the rows.
   Keys are row attributes.
-  Value is array [
-    <value>,
-    "orig" or "new",
-    "keep" or "delete"
+  Value is object [
+    value: <value>,
+    newRow: true or false,
+    toDelete: true or false,
+    valueType: <value_type>,
+    status: "same" or "changed" or "error",
   ] 
   */
   const [editManager, setEditManager] = useState({});
 
-  // clicking on new object updates component state
   useEffect(() => {
     if (props.data) {
       let em = {};
       Object.keys(props.data).forEach(
-        (attr) => (em[attr] = [props.data[attr], "orig", "keep"])
+        (attr) =>
+          (em[attr] = {
+            value: props.data[attr],
+            newRow: false,
+            toDelete: false,
+            valueType: typeof props.data[attr],
+            status: "same",
+          })
       );
       setEditManager(em);
     }
@@ -165,35 +171,59 @@ export default function MemoryMapTable(props) {
         <TableBody key={props.data["memid"]}>
           {Object.keys(
             Object.keys(editManager).reduce((toDisplay, attr) => {
-              // mutable fields
-              if (editManager[attr][2] === "keep")
+              if (!editManager[attr].toDelete)
                 toDisplay[attr] = editManager[attr];
               return toDisplay;
             }, {})
           ).map((attr) => (
             <StyledTableRow key={attr}>
-              <StyledTableCell>
-                {" "}
-                {shortenLongTableEntries(attr)}{" "}
+              <StyledTableCell desc="attribute cell">
+                {shortenLongTableEntries(attr)}
               </StyledTableCell>
-              <StyledTableCell>
+              <StyledTableCell desc="value cell">
                 {immutableFields.includes(attr) ? (
-                  shortenLongTableEntries(editManager[attr][0])
+                  shortenLongTableEntries(editManager[attr].value)
                 ) : (
-                  <MyTextField attr={attr} value={editManager[attr][0]} />
+                  <MyTextField
+                    attr={attr}
+                    key={[editManager[attr].value, editManager[attr].status]}
+                    value={JSON.stringify(editManager[attr].value)}
+                    updateValue={(newValue) => {
+                      setEditManager((prevEM) => ({
+                        ...prevEM,
+                        [attr]: {
+                          ...prevEM[attr],
+                          value: newValue,
+                        },
+                      }));
+                    }}
+                    updateStatus={(newStatus) => {
+                      setEditManager((prevEM) => ({
+                        ...prevEM,
+                        [attr]: {
+                          ...prevEM[attr],
+                          status: newStatus,
+                        },
+                      }));
+                    }}
+                  />
                 )}
               </StyledTableCell>
-              <StyledTableCell>
+              <StyledTableCell desc="refresh for mutable fields">
                 {!immutableFields.includes(attr) && (
                   <IconButton
                     onClick={(e) => {
                       setEditManager((prevEM) => ({
                         ...prevEM,
-                        [attr]: prevEM[attr].slice(0, 2).concat(["delete"]),
+                        [attr]: {
+                          ...prevEM[attr],
+                          value: props.data[attr],
+                          status: "same",
+                        },
                       }));
                     }}
                   >
-                    <DeleteIcon />
+                    <RefreshIcon fontSize="small" />
                   </IconButton>
                 )}
               </StyledTableCell>
@@ -224,7 +254,11 @@ export default function MemoryMapTable(props) {
 
 function shortenLongTableEntries(e) {
   if (e.length > 16) {
-    return e.substring(0, 6) + "..." + e.substring(e.length - 6);
+    return (
+      <Tooltip title={e} placement="right-start" interactive leaveDelay={500}>
+        <p>{e.substring(0, 6) + "..." + e.substring(e.length - 6)}</p>
+      </Tooltip>
+    );
   }
   return e;
 }
