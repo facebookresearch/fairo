@@ -74,7 +74,6 @@ class ModelEvaluator:
         tot_steps = 0
         # Accuracy of LM predictions/internal nodes
         tot_int_acc = 0.0
-        tot_span_acc = 0.0
         tot_accu = 0.0
         text_span_tot_acc = 0.0
         tot_time_cost = 0.0
@@ -90,15 +89,12 @@ class ModelEvaluator:
                 outputs = model(x, x_mask, y, y_mask, None, True)
                 time_e = time.time()
                 # compute accuracy and add hard examples
-                lm_acc, sp_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
+                lm_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
                 # book-keeping
                 # shapes of accuracies are [B]
                 tot_int_acc += (
                     lm_acc.sum().item() / lm_acc.shape[0]
                 )  # internal_nodes_accuracy / batch_size
-                tot_span_acc += (
-                    sp_acc.sum().item() / sp_acc.shape[0]
-                )  # weighted_accuracy / batch_size
                 tot_accu += full_acc.sum().item() / full_acc.shape[0]
                 # time cost
                 tot_time_cost += (time_e - time_s) / full_acc.shape[0]
