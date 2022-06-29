@@ -94,7 +94,7 @@ const JobList = (props) => {
         <>
             <div style={{ "text-align": "left" }}>
                 <Title level={5}>
-                    View All {pipelineType} Jobs
+                    View All {pipelineType.label} Jobs
                 </Title>
                 {loading ?
                     <Skeleton active={true} title={false} paragraph={{ rows: 1, width: 200 }} />
