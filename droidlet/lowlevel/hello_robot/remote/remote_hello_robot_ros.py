@@ -225,6 +225,7 @@ class RemoteHelloRobot(object):
         return status, action
 
     def is_obstacle_in_front(self):
+        self.initialize_cam()
         result = self.cam.is_obstacle_in_front()
         print("self.cam.is_obstacle_in_front()", result)
         return result
