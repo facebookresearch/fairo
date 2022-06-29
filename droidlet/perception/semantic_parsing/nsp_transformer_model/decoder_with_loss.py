@@ -49,7 +49,6 @@ class DecoderWithLoss(nn.Module):
         text_span_start_head: text span head predicting start
         text_span_end_head: text span head predicting end
         span_ce_loss: Cross Entropy loss for spans
-        span_loss_lb: Label smoothing loss for spans
         text_span_loss: Cross Entropy loss for text spans
 
     """
@@ -61,12 +60,12 @@ class DecoderWithLoss(nn.Module):
         self.bert = BertModel(config)
         self.lm_head = BertOnlyMLMHead(config)
         self.fixed_span_head = nn.Linear(config.hidden_size, len(fixed_span_values_voc))
-        self.span_b_proj = nn.ModuleList(
-            [HighwayLayer(config.hidden_size) for _ in range(args.num_highway)]
-        )
-        self.span_e_proj = nn.ModuleList(
-            [HighwayLayer(config.hidden_size) for _ in range(args.num_highway)]
-        )
+        # self.span_b_proj = nn.ModuleList(
+        #     [HighwayLayer(config.hidden_size) for _ in range(args.num_highway)]
+        # )
+        # self.span_e_proj = nn.ModuleList(
+        #     [HighwayLayer(config.hidden_size) for _ in range(args.num_highway)]
+        # )
         # predict text span beginning and end
         self.text_span_start_head = nn.Linear(config.hidden_size, config.hidden_size)
         self.text_span_end_head = nn.Linear(config.hidden_size, config.hidden_size)
@@ -80,7 +79,6 @@ class DecoderWithLoss(nn.Module):
                 ignore_index=tokenizer.pad_token_id, reduction="none"
             )
         self.span_ce_loss = torch.nn.CrossEntropyLoss(ignore_index=-1, reduction="none")
-        self.span_loss_lb = args.lambda_span_loss
         self.text_span_loss = torch.nn.CrossEntropyLoss(ignore_index=-1, reduction="none")
         self.fixed_span_loss = torch.nn.CrossEntropyLoss(ignore_index=-1, reduction="none")
         self.tree_to_text = args.tree_to_text
@@ -109,20 +107,21 @@ class DecoderWithLoss(nn.Module):
         )[0]
         y_mask_target = y_mask
         lm_scores = self.lm_head(y_rep)
-        y_span_pre_b = y_rep
-        for hw in self.span_b_proj:
-            y_span_pre_b = hw(y_span_pre_b)
-        span_b_scores = (x_reps[:, None, :, :] * y_span_pre_b[:, :, None, :]).sum(dim=-1)
-        span_b_scores = (
-            span_b_scores + (1 - y_mask_target.type_as(span_b_scores))[:, :, None] * 1e9
-        )
-        y_span_pre_e = y_rep
-        for hw in self.span_e_proj:
-            y_span_pre_e = hw(y_span_pre_e)
-        span_e_scores = (x_reps[:, None, :, :] * y_span_pre_e[:, :, None, :]).sum(dim=-1)
-        span_e_scores = (
-            span_e_scores + (1 - y_mask_target.type_as(span_e_scores))[:, :, None] * 1e9
-        )
+        # y_span_pre_b = y_rep
+        # for hw in self.span_b_proj:
+        #     y_span_pre_b = hw(y_span_pre_b)
+        # span_b_scores = (x_reps[:, None, :, :] * y_span_pre_b[:, :, None, :]).sum(dim=-1)
+        # span_b_scores = (
+        #     span_b_scores + (1 - y_mask_target.type_as(span_b_scores))[:, :, None] * 1e9
+        # )
+        # y_span_pre_e = y_rep
+        # for hw in self.span_e_proj:
+        #     y_span_pre_e = hw(y_span_pre_e)
+        # span_e_scores = (x_reps[:, None, :, :] * y_span_pre_e[:, :, None, :]).sum(dim=-1)
+        # span_e_scores = (
+        #     span_e_scores + (1 - y_mask_target.type_as(span_e_scores))[:, :, None] * 1e9
+        # )
+
         # text span prediction
         # detach head
         text_span_start_hidden_z = y_rep.detach()
@@ -148,8 +147,8 @@ class DecoderWithLoss(nn.Module):
         fixed_value_scores = self.fixed_span_head(y_rep)
         res = {
             "lm_scores": torch.log_softmax(lm_scores, dim=-1).detach(),
-            "span_b_scores": torch.log_softmax(span_b_scores, dim=-1).detach(),
-            "span_e_scores": torch.log_softmax(span_e_scores, dim=-1).detach(),
+            # "span_b_scores": torch.log_softmax(span_b_scores, dim=-1).detach(),
+            # "span_e_scores": torch.log_softmax(span_e_scores, dim=-1).detach(),
             "text_span_start_scores": torch.log_softmax(text_span_start_scores, dim=-1).detach(),
             "text_span_end_scores": torch.log_softmax(text_span_end_scores, dim=-1).detach(),
             "fixed_value_scores": torch.log_softmax(fixed_value_scores, dim=-1).detach(),
@@ -210,40 +209,42 @@ class DecoderWithLoss(nn.Module):
             self.fixed_span_hidden_z.retain_grad()
             fixed_span_scores = self.fixed_span_head(self.fixed_span_hidden_z)
             fixed_span_lin_scores = fixed_span_scores.view(-1, fixed_span_scores.shape[-1])
-            fixed_span_lin_targets = y[:, 1:, 5].contiguous().view(-1)
+            fixed_span_lin_targets = y[:, 1:, -1].contiguous().view(-1)
             fixed_span_lin_loss = self.fixed_span_loss(
                 fixed_span_lin_scores, fixed_span_lin_targets
             )
-            fixed_span_loss = fixed_span_lin_loss.sum() / (y[:, :, 5] >= 0).sum()
+            fixed_span_loss = fixed_span_lin_loss.sum() / (y[:, :, -1] >= 0).sum()
             # span prediction
             ## beginning of spans
-            y_span_pre_b = y_rep
-            for hw in self.span_b_proj:
-                y_span_pre_b = hw(y_span_pre_b)
-            span_b_scores = (x_reps[:, None, :, :] * y_span_pre_b[:, :, None, :]).sum(dim=-1)
-            span_b_scores = (
-                span_b_scores + (1 - y_mask_target.type_as(span_b_scores))[:, :, None] * 1e9
-            )
-            span_b_lin_scores = span_b_scores.view(-1, x_reps.shape[1])
-            span_b_lin_targets = y[:, 1:, 1].contiguous().view(-1)
-            span_b_lin_loss = self.span_ce_loss(span_b_lin_scores, span_b_lin_targets)
-            ## end of spans
-            y_span_pre_e = y_rep
-            for hw in self.span_e_proj:
-                y_span_pre_e = hw(y_span_pre_e)
-            span_e_scores = (x_reps[:, None, :, :] * y_span_pre_e[:, :, None, :]).sum(dim=-1)
-            span_e_scores = (
-                span_e_scores + (1 - y_mask_target.type_as(span_e_scores))[:, :, None] * 1e9
-            )
-            span_e_lin_scores = span_e_scores.view(-1, span_e_scores.shape[-1])
-            span_e_lin_targets = y[:, 1:, 2].contiguous().view(-1)
-            span_e_lin_loss = self.span_ce_loss(span_e_lin_scores, span_e_lin_targets)
-            ## joint span prediction
-            # TODO: predict full spans, enforce order
-            # combine
-            span_lin_loss = span_b_lin_loss + span_e_lin_loss
-            span_loss = span_lin_loss.sum() / (y[:, :, 1] >= 0).sum()
-            tot_loss = (1 - self.span_loss_lb) * lm_loss + self.span_loss_lb * span_loss
+            # y_span_pre_b = y_rep
+            # for hw in self.span_b_proj:
+            #     y_span_pre_b = hw(y_span_pre_b)
+            # span_b_scores = (x_reps[:, None, :, :] * y_span_pre_b[:, :, None, :]).sum(dim=-1)
+            # span_b_scores = (
+            #     span_b_scores + (1 - y_mask_target.type_as(span_b_scores))[:, :, None] * 1e9
+            # )
+            # span_b_lin_scores = span_b_scores.view(-1, x_reps.shape[1])
+            # span_b_lin_targets = y[:, 1:, 1].contiguous().view(-1)
+            # span_b_lin_loss = self.span_ce_loss(span_b_lin_scores, span_b_lin_targets)
+            # ## end of spans
+            # y_span_pre_e = y_rep
+            # for hw in self.span_e_proj:
+            #     y_span_pre_e = hw(y_span_pre_e)
+            # span_e_scores = (x_reps[:, None, :, :] * y_span_pre_e[:, :, None, :]).sum(dim=-1)
+            # span_e_scores = (
+            #     span_e_scores + (1 - y_mask_target.type_as(span_e_scores))[:, :, None] * 1e9
+            # )
+            # span_e_lin_scores = span_e_scores.view(-1, span_e_scores.shape[-1])
+            # span_e_lin_targets = y[:, 1:, 2].contiguous().view(-1)
+            # span_e_lin_loss = self.span_ce_loss(span_e_lin_scores, span_e_lin_targets)
+            # ## joint span prediction
+            # # TODO: predict full spans, enforce order
+            # # combine
+            # span_lin_loss = span_b_lin_loss + span_e_lin_loss
+            # span_loss = span_lin_loss.sum() / (y[:, :, 1] >= 0).sum()
+            # tot_loss = (1 - self.span_loss_lb) * lm_loss + self.span_loss_lb * span_loss
+
+            tot_loss = lm_loss
             # text span prediction
             # detach head
             if not is_eval:
@@ -262,11 +263,11 @@ class DecoderWithLoss(nn.Module):
             text_span_start_lin_scores = text_span_start_scores.view(
                 -1, text_span_start_scores.shape[-1]
             )
-            text_span_start_targets = y[:, 1:, 3].contiguous().view(-1)
+            text_span_start_targets = y[:, 1:, 1].contiguous().view(-1)
             text_span_start_lin_loss = self.text_span_loss(
                 text_span_start_lin_scores, text_span_start_targets
             )
-            text_span_start_loss = text_span_start_lin_loss.sum() / (y[:, :, 3] >= 0).sum()
+            text_span_start_loss = text_span_start_lin_loss.sum() / (y[:, :, 1] >= 0).sum()
             # text span end prediction
             text_span_end_out = self.text_span_end_head(self.text_span_end_hidden_z)
             text_span_end_scores = (x_reps[:, None, :, :] * text_span_end_out[:, :, None, :]).sum(
@@ -275,17 +276,17 @@ class DecoderWithLoss(nn.Module):
             text_span_end_lin_scores = text_span_end_scores.view(
                 -1, text_span_end_scores.shape[-1]
             )
-            text_span_end_targets = y[:, 1:, 4].contiguous().view(-1)
+            text_span_end_targets = y[:, 1:, 2].contiguous().view(-1)
             text_span_end_lin_loss = self.text_span_loss(
                 text_span_end_lin_scores, text_span_end_targets
             )
-            text_span_end_loss = text_span_end_lin_loss.sum() / (y[:, :, 4] >= 0).sum()
+            text_span_end_loss = text_span_end_lin_loss.sum() / (y[:, :, 2] >= 0).sum()
             text_span_lin_loss = text_span_start_loss + text_span_end_loss
-            text_span_loss = text_span_lin_loss.sum() / (y[:, :, 3] >= 0).sum()
+            text_span_loss = text_span_lin_loss.sum() / (y[:, :, 1] >= 0).sum()
             res = {
                 "lm_scores": lm_scores,
-                "span_b_scores": span_b_scores,
-                "span_e_scores": span_e_scores,
+                # "span_b_scores": span_b_scores,
+                # "span_e_scores": span_e_scores,
                 "loss": tot_loss,
                 "text_span_start_scores": text_span_start_scores,
                 "text_span_end_scores": text_span_end_scores,

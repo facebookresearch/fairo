@@ -30,11 +30,11 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
             idx_rev_map[a] = (line_id, pre_id)
             idx_rev_map[b] = (line_id, pre_id)
     idx_rev_map[-1] = idx_rev_map[-2]
-    tree = [("<S>", -1, -1, -1, -1, -1)]
+    tree = [("<S>", -1, -1, -1)]
     text_idx_ls = dataset.tokenizer.convert_tokens_to_ids(text.split())
     tree_idx_ls = [
-        [dataset.tree_idxs[w], bi, ei, text_span_bi, text_span_ei, fixed_val]
-        for w, bi, ei, text_span_bi, text_span_ei, fixed_val in tree
+        [dataset.tree_idxs[w], text_span_bi, text_span_ei, fixed_val]
+        for w, text_span_bi, text_span_ei, fixed_val in tree
     ]
     pre_batch = [(text_idx_ls, tree_idx_ls, (text, txt, {}))]
     batch = caip_collate(pre_batch, tokenizer)
@@ -49,7 +49,7 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
     )  # B x 1
     beam_scores = torch.Tensor([-1e9 for _ in range(beam_size)]).to(model_device)  # B
     beam_scores[0] = 0
-    beam_seqs = [[("<S>", -1, -1, -1, -1, -1)] for _ in range(beam_size)]
+    beam_seqs = [[("<S>", -1, -1, -1)] for _ in range(beam_size)]
     finished = [False for _ in range(beam_size)]
     fixed_value_vocab_size = len(fixed_span_values_voc)
     pad_scores = torch.Tensor([-1e9] * (len(dataset.tree_voc) - fixed_value_vocab_size)).to(
@@ -83,24 +83,6 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
         finished = [p or n for p, n in zip(pre_finished, new_finished)]
         n_mask = 1 - torch.Tensor(finished).type_as(y_mask)
         y_mask = torch.cat([y_mask[n_beam_ids], n_mask[:, None]], dim=1)
-        # predicted span
-        span_b_scores = outputs["span_b_scores"][:, -1, :][n_beam_ids]  # B x T
-        span_e_scores = outputs["span_e_scores"][:, -1, :][n_beam_ids]  # B x T
-        span_be_scores = span_b_scores[:, :, None] + span_e_scores[:, None, :]
-        # scores are invalid if beginning > end
-        # Create triangular matrix with negative infinity for invalid combos
-        invalid_scores = torch.tril(torch.ones(span_be_scores.shape), diagonal=-1) * -1e9
-        # Make invalid scores very small
-        span_be_scores += invalid_scores.type_as(span_be_scores)
-        # Create linearized view
-        span_be_lin = span_be_scores.view(span_be_scores.shape[0], -1)
-        # Sort linearized scores by descending order
-        _, s_sbe_ids = span_be_lin.sort(dim=-1, descending=True)
-        # Grab token IDs for top scores
-        s_sb_ids = s_sbe_ids[:, 0] // span_b_scores.shape[-1]
-        s_se_ids = s_sbe_ids[:, 0] % span_b_scores.shape[-1]
-        beam_b_ids = [bb_id.item() for bb_id in s_sb_ids]
-        beam_e_ids = [be_id.item() for be_id in s_se_ids]
 
         # predict text spans
         text_span_start_scores = outputs["text_span_start_scores"][:, -1, :][n_beam_ids]  # B x T
@@ -140,8 +122,6 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
             + [
                 (
                     n_words[i],
-                    beam_b_ids[i],
-                    beam_e_ids[i],
                     text_span_beam_start_ids[i],
                     text_span_beam_end_ids[i],
                     fixed_value_words[i],
@@ -161,20 +141,20 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
     # only keep span predictions for span nodes, then map back to tree
     beam_seqs = [
         [
-            (w, b, e, -1, -1, -1)
+            (w, text_span_start, text_span_end, -1)
             if w.startswith("BE:")
-            else (w, -1, -1, text_span_start, text_span_end, fixed_val)
-            for w, b, e, text_span_start, text_span_end, fixed_val in res
+            else (w, text_span_start, text_span_end, fixed_val)
+            for w, text_span_start, text_span_end, fixed_val in res
             if w != "[PAD]"
         ]
         for res in beam_seqs
     ]
     beam_seqs = [
         [
-            (w, -1, -1, text_span_start, text_span_end, -1)
+            (w, text_span_start, text_span_end, -1)
             if w.startswith("TBE:")
-            else (w, b, e, -1, -1, fixed_val)
-            for w, b, e, text_span_start, text_span_end, fixed_val in res
+            else (w, text_span_start, text_span_end, fixed_val)
+            for w, text_span_start, text_span_end, fixed_val in res
             if w != "[PAD]"
         ]
         for res in beam_seqs
@@ -220,33 +200,20 @@ def compute_accuracy(outputs, y):
     lm_acc = ((lm_preds == lm_targets) * (lm_targets > 6)).sum(dim=1) == (lm_targets > 6).sum(
         dim=1
     )
-    if "span_b_scores" in outputs:
-        sb_targets = y[:, 1:, 1]
-        sb_preds = outputs["span_b_scores"].max(dim=-1)[1]
-        sb_acc = ((sb_preds == sb_targets) * (sb_targets >= 0)).sum(dim=1) == (
-            sb_targets >= 0
-        ).sum(dim=1)
-        se_targets = y[:, 1:, 2]
-        se_preds = outputs["span_e_scores"].max(dim=-1)[1]
-        se_acc = ((se_preds == se_targets) * (se_targets >= 0)).sum(dim=1) == (
-            se_targets >= 0
-        ).sum(dim=1)
-        sp_acc = sb_acc * se_acc
-        full_acc = lm_acc * sp_acc
-        if "text_span_start_scores" in outputs:
-            text_span_b_targets = y[:, 1:, 3]
-            text_span_e_targets = y[:, 1:, 4]
-            text_span_b_pred = outputs["text_span_start_scores"].max(dim=-1)[1]
-            text_span_e_pred = outputs["text_span_end_scores"].max(dim=-1)[1]
-            text_span_b_acc = (
-                (text_span_b_pred == text_span_b_targets) * (text_span_b_targets >= 0)
-            ).sum(dim=1) == (text_span_b_targets >= 0).sum(dim=1)
-            text_span_e_acc = (
-                (text_span_e_pred == text_span_e_targets) * (text_span_e_targets >= 0)
-            ).sum(dim=1) == (text_span_e_targets >= 0).sum(dim=1)
-            text_span_acc = text_span_b_acc * text_span_e_acc
-            return (lm_acc, sp_acc, text_span_acc, full_acc)
-        else:
-            return (lm_acc, sp_acc, full_acc)
+    full_acc = lm_acc
+
+    if "text_span_start_scores" in outputs:
+        text_span_b_targets = y[:, 1:, 1]
+        text_span_e_targets = y[:, 1:, 2]
+        text_span_b_pred = outputs["text_span_start_scores"].max(dim=-1)[1]
+        text_span_e_pred = outputs["text_span_end_scores"].max(dim=-1)[1]
+        text_span_b_acc = (
+            (text_span_b_pred == text_span_b_targets) * (text_span_b_targets >= 0)
+        ).sum(dim=1) == (text_span_b_targets >= 0).sum(dim=1)
+        text_span_e_acc = (
+            (text_span_e_pred == text_span_e_targets) * (text_span_e_targets >= 0)
+        ).sum(dim=1) == (text_span_e_targets >= 0).sum(dim=1)
+        text_span_acc = text_span_b_acc * text_span_e_acc
+        return (lm_acc, text_span_acc, full_acc)
     else:
-        return lm_acc
+        return (lm_acc, full_acc)

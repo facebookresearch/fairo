@@ -118,7 +118,6 @@ class NLUModelTrainer:
         ep_steps = 0
         ep_loss = 0.0
         ep_int_acc = 0.0
-        ep_span_acc = 0.0
         ep_full_acc = 0.0
         ep_text_span_accuracy = 0.0
         ep_text_span_loss = 0.0
@@ -126,7 +125,6 @@ class NLUModelTrainer:
         loc_steps = 0
         loc_loss = 0.0
         loc_int_acc = 0.0
-        loc_span_acc = 0.0
         loc_full_acc = 0.0
         loc_text_span_accuracy = 0.0
         loc_text_span_loss = 0.0
@@ -188,7 +186,7 @@ class NLUModelTrainer:
                 # hacky
                 lm_acc = full_acc
             else:
-                lm_acc, sp_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
+                lm_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
 
             # add hard examples into the training dataset
             if phase == "train" and self.args.hard:
@@ -212,9 +210,6 @@ class NLUModelTrainer:
             ep_full_acc += full_acc.sum().item() / full_acc.shape[0]
             # text_span_accuracy / batch_size
             loc_text_span_accuracy += text_span_acc.sum().item() / text_span_acc.shape[0]
-            if not self.args.tree_to_text:
-                loc_span_acc += sp_acc.sum().item() / sp_acc.shape[0]
-                ep_span_acc += sp_acc.sum().item() / sp_acc.shape[0]
 
             # total loss
             loc_loss += loss.item()
@@ -277,7 +272,6 @@ class NLUModelTrainer:
                 loc_steps = 0
                 loc_loss = 0.0
                 loc_int_acc = 0.0
-                loc_span_acc = 0.0
                 loc_full_acc = 0.0
                 loc_text_span_accuracy = 0.0
                 loc_text_span_loss = 0.0
@@ -288,7 +282,6 @@ class NLUModelTrainer:
             return (
                 ep_loss / ep_steps,
                 ep_int_acc / ep_steps,
-                ep_span_acc / ep_steps,
                 ep_full_acc / ep_steps,
                 ep_text_span_accuracy / ep_steps,
                 ep_text_span_loss / ep_steps,
@@ -339,7 +332,7 @@ class NLUModelTrainer:
 
         print(len(val_dataloader))
 
-        loss, _, _, acc, text_span_acc, text_span_loss = self.run_epoch(
+        loss, _, acc, text_span_acc, text_span_loss = self.run_epoch(
             "val", epoch, dataset, val_dataloader
         )
         logging.info(
@@ -547,12 +540,6 @@ if __name__ == "__main__":
         "--decoder_learning_rate", default=1e-5, type=float, help="Learning rate for the decoder"
     )
     parser.add_argument(
-        "--lambda_span_loss",
-        default=0.5,
-        type=float,
-        help="Weighting between node and span prediction losses",
-    )
-    parser.add_argument(
         "--node_label_smoothing",
         default=0.0,
         type=float,
@@ -689,8 +676,6 @@ if __name__ == "__main__":
             full_tree_voc=full_tree_voc,
         )
         val_datasets[dtype] = val_dataset
-
-    print(val_datasets)
 
     logging.info("====== Initializing NLU Model Trainer ======")
     encoder_decoder = encoder_decoder.cuda()
