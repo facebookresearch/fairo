@@ -165,6 +165,9 @@ class MCAgentMemory(AgentMemory):
                 else:
                     memid = node.memid
                 TripleNode.untag(self, memid, "_possibly_stale_location")
+                # TODO: remove stale triples?
+                for pred_text, obj_text in tags:
+                    TripleNode.create(self, subj=memid, pred_text=pred_text, obj_text=obj_text)
 
         # cuberite/mc does not return item_stacks in agent's or others inventory.
         # we do the best we can with these, FIXME
