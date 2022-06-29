@@ -107,7 +107,7 @@ class Navigation(object):
             trackback_loc = self.trackback.get_loc(robot_loc)
             if trackback_loc is not None:
                 print(f"Tracking back to {trackback_loc}")
-                trackback_status = self.robot.go_to_absolute(trackback_loc, trackback=True)
+                trackback_status, _ = self.robot.go_to_absolute(trackback_loc, trackback=True)
                 print(f"Trackback status: {trackback_status}")
             else:
                 print("Could not find a trackback location. Staying in place")

@@ -401,11 +401,7 @@ class EndToEndSemanticScout:
                 HabitatSimActions.TURN_RIGHT,
                 HabitatSimActions.TURN_LEFT
             ]:
-                # TODO Figure out how to record collisions
-                #  mover.nav.execute_low_level_command(action, forward_dist, np.radians(turn_angle)).value
-                #  returns None
-                mover.nav.execute_low_level_command(action, forward_dist, np.radians(turn_angle))
-                status = "SUCCEEDED"
+                status = mover.nav.execute_low_level_command(action, forward_dist, np.radians(turn_angle)).value
             elif action == HabitatSimActions.STOP:
                 self.finished = True
                 status = "SUCCEEDED"
