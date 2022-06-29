@@ -275,6 +275,7 @@ class Memory2D extends React.Component {
             fill={color}
             onClick={(e) => {
               this.handleObjClick("obstacle_map", x, y, {
+                memid: "don't edit",
                 x: obj[0],
                 y: obj[1],
               });
@@ -571,6 +572,7 @@ class Memory2D extends React.Component {
     // table props
     const onTableDone = (e) => {
       this.setState({ table_visible: false });
+      console.log("table done");
     };
     const rows = [];
     if (table_visible) {
