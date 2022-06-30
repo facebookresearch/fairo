@@ -77,8 +77,8 @@ commands:
       - run:
           name: Build habitat
           command: |
-            sudo apt update
-            sudo apt install -y git python3 python3-pip apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-local
             cd polymetis/third_party/habitat-sim
             pip install -r requirements.txt
             export PYTHONPATH=${pwd}/src_python
