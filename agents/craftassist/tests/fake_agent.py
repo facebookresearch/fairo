@@ -10,7 +10,7 @@ from typing import List, Tuple
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, Block
 from droidlet.memory.memory_nodes import ChatNode
 from droidlet.base_util import Look, Pos
-from droidlet.shared_data_struct.craftassist_shared_utils import Item, Player
+from droidlet.shared_data_struct.craftassist_shared_utils import Item, Slot, Player, ItemStack
 from agents.droidlet_agent import DroidletAgent
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
 from droidlet.memory.craftassist.mc_memory_nodes import TripleNode, VoxelObjectNode
@@ -78,11 +78,16 @@ class FakeAgent(DroidletAgent):
         use_place_field=True,
         prebuilt_db=None,
     ):
+        self.backend = "pyworld"
         self.prebuilt_db = prebuilt_db
         self.use_place_field = use_place_field
         self.mark_airtouching_blocks = do_heuristic_perception
         self.head_height = HEAD_HEIGHT
-        self.world = world
+        self.mainHand = getattr(self, "mainHand", Item(0, 0))
+        self.look = getattr(self, "look", Look(270, 0))
+        self.add_to_world(world)
+        # do not allow the world to step this agent; this agent steps the world.
+        self.no_step_from_world = True
         self.chat_count = 0
         # use these to not have to re-init models if running many tests:
         self.prebuilt_perception = prebuilt_perception
@@ -92,22 +97,27 @@ class FakeAgent(DroidletAgent):
         if low_level_data is None:
             low_level_data = default_low_level_data()
         self.low_level_data = low_level_data
-        super(FakeAgent, self).__init__(opts)
+        super(FakeAgent, self).__init__(opts, name=getattr(self, "name", None))
         self.do_heuristic_perception = do_heuristic_perception
         self.no_default_behavior = True
         self.last_task_memid = None
-        pos = (0, 63, 0)
-        if hasattr(self.world, "agent_data"):
-            pos = self.world.agent_data["pos"]
-        self.pos = np.array(pos, dtype="int")
         self.logical_form = None
-        self.world_interaction_occurred = False
         self.world_interaction_occurred = False
         self._held_item: IDM = (0, 0)
         self._look_vec = (1, 0, 0)
         self._changed_blocks: List[Block] = []
         self._outgoing_chats: List[str] = []
         CraftAssistAgent.add_self_memory_node(self)
+
+    def add_to_world(self, world):
+        self.world = world
+        self.entityId = getattr(self, "entityId", world.new_eid())
+
+        pos = (0, 63, 0)
+        if hasattr(self.world, "agent_data"):
+            pos = self.world.agent_data["pos"]
+        self.pos = getattr(self, "pos", np.array(pos, dtype="int"))
+        self.world.players[self.entityId] = self
 
     def set_look_vec(self, x, y, z):
         l = np.array((x, y, z))
@@ -243,6 +253,15 @@ class FakeAgent(DroidletAgent):
     def get_blocks(self, xa, xb, ya, yb, za, zb):
         return self.world.get_blocks(xa, xb, ya, yb, za, zb)
 
+    def get_info(self):
+        return Player(
+            self.entityId,
+            self.name,
+            Pos(self.pos[0], self.pos[1], self.pos[2]),
+            self.look,
+            self.mainHand,
+        )
+
     def get_local_blocks(self, r):
         x, y, z = self.pos
         return self.get_blocks(x - r, x + r, y - r, y + r, z - r, z + r)
@@ -253,16 +272,46 @@ class FakeAgent(DroidletAgent):
         return self.world.chat_log[c:].copy()
 
     def get_player(self):
-        return Player(1, "fake_agent", Pos(*self.pos), self.get_look(), Item(*self._held_item))
+        return Player(
+            self.entityId, "fake_agent", Pos(*self.pos), self.get_look(), Item(*self._held_item)
+        )
 
     def get_mobs(self):
         return self.world.get_mobs()
 
-    def get_item_stacks(self):
+    # FIXME! use pyworld_mover !!!!
+    def get_item_stacks(self, holder_entityId=-1, get_all=False):
+        """
+        by default
+        only return items not in any agent's inventory, matching cuberite
+        returns a list of [ItemStack, holder_id] pairs
+        """
+        items = self.world.get_items()
+        # TODO "stacks" with count, like MC?
+        # right now make a separate "item_stack" for each one
+        item_stacks = []
+        for item in items:
+            if item["holder_entityId"] == holder_entityId or get_all:
+                pos = Pos(item["x"], item["y"], item["z"])
+                item_stacks.append(
+                    [
+                        ItemStack(
+                            Slot(item["id"], item["meta"], 1),
+                            pos,
+                            item["entityId"],
+                            item["typeName"],
+                        ),
+                        item["holder_entityId"],
+                        item["properties"],
+                    ]
+                )
+        return item_stacks
+
         return self.world.get_item_stacks()
 
     def get_other_players(self):
-        return self.world.get_players()
+        all_players = self.world.get_players()
+        return [p for p in all_players if p.entityId != self.entityId]
 
     def get_other_player_by_name(self):
         raise NotImplementedError()
@@ -338,7 +387,9 @@ class FakeAgent(DroidletAgent):
         abs_xyz = tuple(np.array(xyzbms[0][0]) + origin)
         memid = self.memory.get_object_info_by_xyz(abs_xyz, "BlockObjects")[0]
         for pred, obj in relations.items():
-            self.memory.nodes[TripleNode.NODE_TYPE].create(self.memory, subj=memid, pred_text=pred, obj_text=obj)
+            self.memory.nodes[TripleNode.NODE_TYPE].create(
+                self.memory, subj=memid, pred_text=pred, obj_text=obj
+            )
             # sooooorrry  FIXME? when we handle triples better in interpreter_helper
             if "has_" in pred:
                 self.memory.nodes[TripleNode.NODE_TYPE].tag(self.memory, memid, obj)
@@ -439,8 +490,25 @@ class FakePlayer(FakeAgent):
     ):
         class NubWorld:
             def __init__(self):
+                self.is_nubworld = True
                 self.count = 0
 
+        if struct:
+            self.entityId = struct.entityId
+            self.name = struct.name
+            self.look = struct.look
+            self.mainHand = struct.mainHand
+            self.pos = np.array((struct.pos.x, struct.pos.y, struct.pos.z))
+        else:
+            self.entityId = int(np.random.randint(0, 10000000))
+            # FIXME
+            self.name = str(self.entityId)
+            self.look = Look(270, 0)
+            self.mainHand = Item(0, 0)
+            self.pos = None
+        if name:
+            self.name = name
+        self.get_world_pos = get_world_pos
         super().__init__(
             NubWorld(),
             opts=opts,
@@ -451,21 +519,8 @@ class FakePlayer(FakeAgent):
         )
         # if active is set to false, the fake player's step is passed.
         self.active = active
-        self.get_world_pos = get_world_pos
-        if struct:
-            self.entityId = struct.entityId
-            self.name = struct.name
-            self.look = struct.look
-            self.mainHand = struct.mainHand
-            self.pos = np.array((struct.pos.x, struct.pos.y, struct.pos.z))
-        else:
-            self.entityId = np.random.randint(0, 10000000)
-            # FIXME
-            self.name = str(self.entityId)
-            self.look = Look(270, 0)
-            self.mainHand = Item(0, 0)
-        if name:
-            self.name = name
+        # the world steps this agent
+        self.no_step_from_world = False
         self.lf_list = []
         self.look_towards_move = True
 
@@ -483,15 +538,6 @@ class FakePlayer(FakeAgent):
         if self.active:
             DroidletAgent.step(self)
 
-    def get_info(self):
-        return Player(
-            self.entityId,
-            self.name,
-            Pos(self.pos[0], self.pos[1], self.pos[2]),
-            self.look,
-            self.mainHand,
-        )
-
     # fake player does not respond to chats, etc.
     # fixme for clarifications?
     def get_incoming_chats(self):
@@ -502,6 +548,8 @@ class FakePlayer(FakeAgent):
 
     def add_to_world(self, world):
         self.world = world
+        if getattr(world, "is_nubworld", False):
+            return
         if self.pos is None or self.get_world_pos:
             xz = np.random.randint(0, world.sl, (2,))
             slice = self.world.blocks[xz[0], :, xz[1], 0]
