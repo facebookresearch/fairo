@@ -8,7 +8,6 @@ import { VoxelItem} from './VoxelItem.mjs';
 import { VoxelMob} from './VoxelMob.mjs';
 import { GLTFLoader } from './GLTFLoader.mjs';
 import { VW_ITEM_MAP, VW_MOB_MAP, VW_AVATAR_MAP, MINECRAFT_BLOCK_MAP } from './model_luts.mjs'
-import { OrbitControls } from './OrbitControls.mjs';
 import {traceRay} from './dvoxel_raycast.mjs'
 
 const defaultCameraWidth = 512
@@ -17,9 +16,9 @@ const defaultCameraAspectRatio = defaultCameraWidth / defaultCameraHeight
 const defaultCameraFOV = 45
 const defaultCameraNearPlane = 1
 const defaultCameraFarPlane = 10000
-const fps = 20
+const fps = 2
 const renderInterval = 1000 / fps
-let controls, camera, scene, renderer, loader, preLoadBlockMaterials
+let camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
 const followPointerScale = 150;
 
 const preLoadMaterialNames = ['grass', 'dirt']//, 'white wool', 'orange wool', 'magenta wool'];
@@ -52,9 +51,6 @@ const bid2Name = {
     61: 'black wool'
 }
 
-const minCameraPitch = (0.5 * Math.PI) / 4;
-const maxCameraPitch = (2.0 * Math.PI) / 4;
-
 const TEXTURE_PATH = "https://cdn.jsdelivr.net/gh/snyxan/assets@main/block_textures/";
 
 
@@ -76,16 +72,15 @@ for (let ix = 0; ix < SL; ix++) {
 
 const MoveStep = 0.5 // normalized -- block length is 1 here
 
-let controlled_player;
-let agent_player;
+let controlled_player, agent_player;
 const AGENT_NAME = "craftassist_agent";
 const PLAYER_NAME = "dashboard_player";
 
 let mobs = {}
 let itemStacks = {}
 
+let direction_vec = new THREE.Vector3();
 
-let cursorX, cursorY
 
 function pos2Name(x, y, z, box=false) {
     if (box) {
@@ -95,47 +90,15 @@ function pos2Name(x, y, z, box=false) {
 }
 
 
-
-function walkabout(obj, dist, world) {
-    let dir = Math.floor(3 * Math.random());
-    let choices = [-1, 1];
-    let move = choices[Math.floor(choices.length * Math.random())] * dist;
-    switch (dir) {
-        case 0:
-            if (obj.mesh.position.x < 500 && obj.mesh.position.x > -500){
-                obj.move(move, 0, 0);
-            } else {
-                obj.moveTo(0,0,0);
-            }
-            break;
-        case 1:
-            // obj.move(0, move, 0);
-            break;
-        case 2:
-            if (obj.mesh.position.z < 500 && obj.mesh.position.z > -500){
-                obj.move(0, 0, move);
-            } else {
-                obj.moveTo(0,0,0);
-            }
-            break;
-    }
-    render();
-}
 function handleKeypress(e, player) {
-    let camera_vec, direction_vec, control_pos
+    let camera_vec;
     console.log(e.key)
     switch (e.key) {
         case "ArrowLeft":
-            player.rotate(0.1, 0);
+            player.rotate(0.1);
             break;
         case "ArrowRight":
-            player.rotate(-0.1, 0);
-            break;
-        case "ArrowUp":
-            player.rotate(0, 0.1);
-            break;
-        case "ArrowDown":
-            player.rotate(0, -0.1);
+            player.rotate(-0.1);
             break;
         case "t":
             player.toggle();
@@ -145,37 +108,33 @@ function handleKeypress(e, player) {
             break;
         case "w":
             camera_vec = cameraVector();
-            direction_vec = new THREE.Vector3(camera_vec[0], 0, camera_vec[2])
+            direction_vec.set(camera_vec[0], 0, camera_vec[2])
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
-            control_pos = player.mesh.position;
             player.move(direction_vec.x, direction_vec.y, direction_vec.z);
             updatePlayerPosition(player);
             break;
         case "s":
             camera_vec = cameraVector();
-            direction_vec = new THREE.Vector3(-camera_vec[0], 0, -camera_vec[2])
+            direction_vec.set(-camera_vec[0], 0, -camera_vec[2])
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
-            control_pos = player.mesh.position;
             player.move(direction_vec.x, direction_vec.y, direction_vec.z);
             updatePlayerPosition(player);
             break;
         case "a":
             camera_vec = cameraVector();
-            direction_vec = new THREE.Vector3(camera_vec[2], 0, camera_vec[0])
+            direction_vec.set(camera_vec[2], 0, -camera_vec[0])
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
-            control_pos = player.mesh.position;
             player.move(direction_vec.x, direction_vec.y, direction_vec.z);
             updatePlayerPosition(player);
             break;   
         case "d":
             camera_vec = cameraVector();
-            direction_vec = new THREE.Vector3(-camera_vec[2], 0, -camera_vec[0])
+            direction_vec.set(-camera_vec[2], 0, camera_vec[0])
             direction_vec.normalize()
             direction_vec.multiplyScalar(MoveStep * blockScale)
-            control_pos = player.mesh.position;
             player.move(direction_vec.x, direction_vec.y, direction_vec.z);
             updatePlayerPosition(player);
             break;    
@@ -191,8 +150,7 @@ function handleKeypress(e, player) {
 }
 
 
-function cameraTest(player) {
-    controls.enabled = false;
+function applyCameraToPlayer(player) {
     player.possess();
     window.addEventListener("keydown", function (e) {
         handleKeypress(e, player);
@@ -210,7 +168,7 @@ function cameraTest(player) {
 };
 
 function updatePlayerLook(player) {
-    let pitchYaw = player.getPitchYaw();
+    let pitchYaw = player.getLookPitchYaw();
     let pitch = pitchYaw[0];
     let yaw = pitchYaw[1]
     let payload = {
@@ -223,16 +181,22 @@ function updatePlayerLook(player) {
 
 function updatePlayerPosition(player) {
     let pos = player.getPosition();
-    let x = pos.x / blockScale;
-    let y = pos.y / blockScale;
-    let z = pos.z / blockScale;
+    let xyz = convertCoordinateSystems(
+        pos.x / blockScale,
+        pos.y / blockScale,
+        pos.z / blockScale
+    )
     let payload = {
         "status": "abs_move",
-        "x": x,
-        "y": y,
-        "z": z
+        "x": xyz[0],
+        "y": xyz[1],
+        "z": xyz[2]
     }
     window.postMessage(payload, "*");
+}
+
+function convertCoordinateSystems(x, y, z) {
+    return [-x, y, z]
 }
 
 
@@ -246,6 +210,8 @@ class DVoxelEngine {
         scene = this.scene
         this.scene.background = new THREE.Color( 0xf0f0f0 );
 
+        this.sceneItems = [];
+        sceneItems = this.sceneItems;
 
         this.cameraWidth = opts.cameraWidth || defaultCameraWidth;
         this.cameraHeight = opts.cameraHeight || defaultCameraHeight;
@@ -255,17 +221,25 @@ class DVoxelEngine {
         this.cameraFarPlane = opts.cameraFarPlane || defaultCameraFarPlane;
 
         this.camera = new THREE.PerspectiveCamera( this.cameraFOV, this.cameraWidth / this.cameraHeight, this.cameraNearPlane, this.cameraFarPlane);
-        camera = this.camera
         this.camera.position.set( 500, 800, 1300 );
-        this.camera.position.set( 1000, 1600, 2600 );
         this.camera.lookAt( 0, 0, 0 );
+        camera = this.camera;
 
-        const gridHelper = new THREE.GridHelper( 1000, 20 );
-        this.scene.add( gridHelper );
-        const geometry = new THREE.PlaneGeometry( 1000, 1000 );
-        geometry.rotateX( - Math.PI / 2 );
-        let plane = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false } ) );
-        this.scene.add( plane );
+        const reticleMaterial = new THREE.LineBasicMaterial({
+            color: 0xff0000,
+            linecap: "square"
+        });
+        
+        let points = [
+            new THREE.Vector3( -3, -3, 0 ),
+            new THREE.Vector3( 0, 0, 0 ),
+            new THREE.Vector3( 3, -3, 0 )
+        ];
+        const reticleGeo = new THREE.BufferGeometry().setFromPoints( points );
+        reticle = new THREE.Line( reticleGeo, reticleMaterial );
+        reticle.position.copy( camera.position );
+        reticle.rotation.copy( camera.rotation );
+        scene.add(reticle);
 
         const ambientLight = new THREE.AmbientLight( 0x606060 );
         this.scene.add( ambientLight );
@@ -278,15 +252,8 @@ class DVoxelEngine {
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( window.innerWidth, window.innerHeight );
 
-        controls = new OrbitControls( this.camera, this.renderer.domElement );
-        controls.listenToKeyEvents( window );
-        controls.addEventListener( 'change', render );
-
-        controls.enableZoom = true;
-        controls.zoomSpeed = 0.5;
-        controls.minPolarAngle = minCameraPitch;
-        controls.maxPolarAngle = maxCameraPitch;
-
+        //Axis helper for debugging
+        // this.scene.add( new THREE.AxesHelper( 10000 ) );
 
         // loader and preloaded materials -- to improve performance
         loader = new THREE.TextureLoader();
@@ -298,40 +265,22 @@ class DVoxelEngine {
                     [
                         new THREE.MeshBasicMaterial({ 
                             map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                            color: block_data["color"],
-                            opacity: block_data["opacity"],
-                            transparent: true,
-                            side: THREE.DoubleSide }), //right side
+                            color: block_data["color"]}), //right side
                         new THREE.MeshBasicMaterial({ 
                             map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                            color: block_data["color"], 
-                            opacity: block_data["opacity"], 
-                            transparent: true, 
-                            side: THREE.DoubleSide }), //left side
+                            color: block_data["color"]}), //left side
                         new THREE.MeshBasicMaterial({ 
                             map: loader.load(TEXTURE_PATH+block_data["top"]), 
-                            color: block_data["color"], 
-                            opacity: block_data["opacity"], 
-                            transparent: true, 
-                            side: THREE.DoubleSide }), //top side
+                            color: block_data["color"]}), //top side
                         new THREE.MeshBasicMaterial({ 
                             map: loader.load(TEXTURE_PATH+block_data["bottom"]), 
-                            color: block_data["color"], 
-                            opacity: block_data["opacity"], 
-                            transparent: true, 
-                            side: THREE.DoubleSide }), //bottom side
+                            color: block_data["color"]}), //bottom side
                         new THREE.MeshBasicMaterial({ 
                             map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                            color: block_data["color"], 
-                            opacity: block_data["opacity"], 
-                            transparent: true, 
-                            side: THREE.DoubleSide }), //front side
+                            color: block_data["color"]}), //front side
                         new THREE.MeshBasicMaterial({ 
                             map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                            color: block_data["color"], 
-                            opacity: block_data["opacity"], 
-                            transparent: true, 
-                            side: THREE.DoubleSide }), //back side
+                            color: block_data["color"]}), //back side
                     ]);
             }
         );
@@ -344,6 +293,8 @@ class DVoxelEngine {
             scene: scene,
             render: render,
             camera: camera,
+            reticle: reticle,
+            sceneItems: sceneItems,
         };
 
         for (const key in VW_AVATAR_MAP) {
@@ -355,10 +306,9 @@ class DVoxelEngine {
                 };
                 VoxelPlayer.build(world, opts).then(
                     function (player) {
-                        // window.setInterval(walkabout, 1000, player, 50, world);
                         if (player.avatarType === "player") {
                             controlled_player = player;
-                            cameraTest(player);
+                            applyCameraToPlayer(player);
                         }
                         if (player.avatarType === "agent") {
                             agent_player = player;
@@ -368,56 +318,17 @@ class DVoxelEngine {
             }
         };
         
-        // const TEST_ITEMS = ['pink wool', 'white wool', 'blue wool', 'brown wool', 'grass']
-        // TEST_ITEMS.forEach(function(key, index) {
-        //     console.log(key)
-        //     let max = 5, min = -5
-        //     let ix = Math.floor(Math.random() * (max - min + 1) + min)
-        //     let iz = Math.floor(Math.random() * (max - min + 1) + min)
-        //     const itemOpts = {
-        //         GLTFLoader: GLTFLoader,
-        //         name: key,
-        //         position: [ix * blockScale, 5 * blockScale, iz * blockScale]
-        //     };
-        //     VoxelItem.build(world, itemOpts).then(
-        //         function (item) {
-        //             // window.setInterval(walkabout, 1000, item, 50);
-        //         }
-        //     );
-        //     }
-        // ) 
-
-        // const TEST_MOBS = ['cow', 'chicken']
-        // TEST_MOBS.forEach(function(key, index) {
-        //     console.log(key)
-        //     let max = 5, min = -5
-        //     let ix = Math.floor(Math.random() * (max - min + 1) + min)
-        //     let iz = Math.floor(Math.random() * (max - min + 1) + min)
-        //     const mobOpts = {
-        //         GLTFLoader: GLTFLoader,
-        //         name: key,
-        //         position: [ix * blockScale, 5 * blockScale, iz * blockScale]
-        //     };
-        //     VoxelMob.build(world, mobOpts).then(
-        //         function (mob) {
-        //             window.setInterval(walkabout, 1000, mob, 50);
-        //         }
-        //     );
-        //     }
-        // ) 
-        
-        
         window.setInterval(render, renderInterval);
     }
 
     appendTo(element) {
-        console.log(element)
+        // console.log(element)
         element.appendChild(this.renderer.domElement)
     }
 
 
     setVoxel(pos, bid) {
-        if (bid == 0) {
+        if (bid === 0) {
             let obj = scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2]))
             console.log('deleting')
             console.log(obj)
@@ -436,56 +347,40 @@ class DVoxelEngine {
             blockMaterials = [
                 new THREE.MeshBasicMaterial({ 
                     map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                    color: block_data["color"],
-                    opacity: block_data["opacity"],
-                    transparent: true,
-                    side: THREE.DoubleSide }), //right side
+                    color: block_data["color"]}), //right side
                 new THREE.MeshBasicMaterial({ 
                     map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                    color: block_data["color"], 
-                    opacity: block_data["opacity"], 
-                    transparent: true, 
-                    side: THREE.DoubleSide }), //left side
+                    color: block_data["color"]}), //left side
                 new THREE.MeshBasicMaterial({ 
                     map: loader.load(TEXTURE_PATH+block_data["top"]), 
-                    color: block_data["color"], 
-                    opacity: block_data["opacity"], 
-                    transparent: true, 
-                    side: THREE.DoubleSide }), //top side
+                    color: block_data["color"]}), //top side
                 new THREE.MeshBasicMaterial({ 
                     map: loader.load(TEXTURE_PATH+block_data["bottom"]), 
-                    color: block_data["color"], 
-                    opacity: block_data["opacity"], 
-                    transparent: true, 
-                    side: THREE.DoubleSide }), //bottom side
+                    color: block_data["color"]}), //bottom side
                 new THREE.MeshBasicMaterial({ 
                     map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                    color: block_data["color"], 
-                    opacity: block_data["opacity"], 
-                    transparent: true, 
-                    side: THREE.DoubleSide }), //front side
+                    color: block_data["color"]}), //front side
                 new THREE.MeshBasicMaterial({ 
                     map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                    color: block_data["color"], 
-                    opacity: block_data["opacity"], 
-                    transparent: true, 
-                    side: THREE.DoubleSide }), //back side
+                    color: block_data["color"]}), //back side
             ];
         }
         
-        // const material = new THREE.MeshBasicMaterial( {color: colorCode} );
-        // const cube = new THREE.Mesh( geometry, material );
-        const cube = new THREE.Mesh( geometry, blockMaterials );
-        cube.position.set(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale)
-        // const cubeAABB = cube.geometry.computeBoundingBox();
-        cube.name = pos2Name(pos[0], pos[1], pos[2])
+        const cube = new THREE.Mesh(geometry, blockMaterials);
+        cube.matrixAutoUpdate = false;
+        cube.position.set(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
+        cube.updateMatrix();
+        cube.name = pos2Name(pos[0], pos[1], pos[2]);
         // console.log("Adding voxel with name: " + cube.name)
-        this.scene.add( cube );
+        this.scene.add(cube);
+        this.sceneItems.push(cube);
+        
         const box = new THREE.BoxHelper(cube, 0x000000);
-        box.name = pos2Name(pos[0], pos[1], pos[2], true)
+        box.name = pos2Name(pos[0], pos[1], pos[2], true);
         this.scene.add(box);
 
-        setBlock2(pos[0], pos[1], pos[2], bid);
+        const bidx = convertCoordinateSystems(pos[0], pos[1], pos[2]);
+        setBlock2(bidx[0], bidx[1], bidx[2], bid);
     }
 
     raycastVoxels(v) {
@@ -509,40 +404,46 @@ class DVoxelEngine {
     }
 
     updateAgents(agentsInfo) {
-        console.log("DVoxel Engine update agents")
-        console.log(agentsInfo)
+        // console.log("DVoxel Engine update agents")
+        // console.log(agentsInfo);
 
-        let that = this
         agentsInfo.forEach(function(key, index) {
             let name = key["name"]
-            let x = key["x"]
-            let y = key["y"]
-            let z = key["z"]
-            console.log("name: " + name + "x: " + x + ", y" + y + ", z" + z)
-            if (name == AGENT_NAME && agent_player != null) {
-                agent_player.moveTo(x * blockScale, y * blockScale, z * blockScale)
-            } else if (name == PLAYER_NAME && controlled_player != null) {
-                controlled_player.moveTo(x * blockScale, y * blockScale, z * blockScale)
+            let xyz = convertCoordinateSystems(
+                key["x"],
+                key["y"],
+                key["z"]
+            )
+            // console.log("name: " + name + "x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2])
+            if (name === AGENT_NAME && agent_player != null) {
+                agent_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale)
+            } else if (name === PLAYER_NAME && controlled_player != null) {
+                // console.log("player moveTo: x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2]);
+                controlled_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale)
             }
         })
     }
 
     updateMobs(mobsInfo) {
-        console.log("DVoxel Engine update mobs")
-        console.log(mobsInfo)
+        // console.log("DVoxel Engine update mobs")
+        // console.log(mobsInfo)
         let world = {
             THREE: THREE,
             scene: scene,
             render: render,
             camera: camera,
         };
-        let mobsInWorld = new Set()
         mobsInfo.forEach(function(key, index) {
             const entityId = key['entityId'].toString()
-            const pos = key['pos']
+            const pos = convertCoordinateSystems(
+                key['pos'][0],
+                key['pos'][1],
+                key['pos'][2]
+            )
             const name = key['name']
             if (entityId in mobs) {
-                console.log("mob already exists, updating states")
+                // console.log("mob already exists, updating states")
+                mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
             } else {
                 const mobOpts = {
                     GLTFLoader: GLTFLoader,
@@ -552,33 +453,33 @@ class DVoxelEngine {
                 VoxelMob.build(world, mobOpts).then(
                     function (newMob) {
                         mobs[entityId] = newMob;
+                        // sceneItems.push(newMob);
                     }
                 );
-            }
-            if (entityId in mobs) {
-                mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale)
-            }
-            
-            mobsInWorld.add(entityId)
+            }            
         })
     }
 
     updateItemStacks(itemStacksInfo) {
-        console.log("DVoxel Engine update item stacks")
-        console.log(itemStacksInfo)
+        // console.log("DVoxel Engine update item stacks")
+        // console.log(itemStacksInfo)
         let world = {
             THREE: THREE,
             scene: scene,
             render: render,
             camera: camera,
         };
-        let itemStacksInWorld = new Set()
         itemStacksInfo.forEach(function(key, index) {
             const entityId = key['entityId'].toString()
-            const pos = key['pos']
+            const pos = convertCoordinateSystems(
+                key['pos'][0],
+                key['pos'][1],
+                key['pos'][2]
+            )
             const name = key['name']
             if (entityId in itemStacks) {
-                console.log("item already exists, updating states")
+                // console.log("item already exists, updating states")
+                itemStacks[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
             } else {
                 const itemStackOpts = {
                     GLTFLoader: GLTFLoader,
@@ -588,14 +489,10 @@ class DVoxelEngine {
                 VoxelItem.build(world, itemStackOpts).then(
                     function (newItemStack) {
                         itemStacks[entityId] = newItemStack;
+                        // sceneItems.push(newItemStack);
                     }
                 );
-            }
-            if (entityId in itemStacks) {
-                itemStacks[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale)
-            }
-            
-            itemStacksInWorld.add(entityId)
+            }            
         })
     }
 
@@ -604,21 +501,26 @@ class DVoxelEngine {
         // console.log(blocksInfo)
         let that = this
         blocksInfo.forEach(function(key, index) {
-            let xyz = key[0]
+            let xyz = convertCoordinateSystems(
+                key[0][0],
+                key[0][1],
+                key[0][2]
+            )
             let idm = key[1]
             let bid = MINECRAFT_BLOCK_MAP[idm[0].toString() + "," + idm[1].toString()]
             // console.log("xyz: " + xyz + "  bid: " + bid)
             that.setVoxel([xyz[0],xyz[1],xyz[2]], bid);
         });
-        console.log("DVoxel Engine update blocks")
+        // console.log("DVoxel Engine update blocks")
     }
 
     setBlock(x, y, z, idm) {
-        console.log("DVoxel Engine set block")
+        // console.log("DVoxel Engine set block")
     }
 
     flashBlocks(bbox) {
-        console.log("DVoxel Engine flash bbox")
+        // !Need to convert coordinates when this is implemented
+        // console.log("DVoxel Engine flash bbox")
     }
 
 }
@@ -635,12 +537,10 @@ function getBlock2(x, y, z) {
 }
 
 function cameraVector() {
-    let temporaryVector = new THREE.Vector3;
-    temporaryVector.multiplyScalar(0)
-    temporaryVector.z = -1
-    temporaryVector.transformDirection( camera.matrixWorld )
+    let temporaryVector = new THREE.Vector3();
+    camera.getWorldDirection(temporaryVector);
     return [temporaryVector.x, temporaryVector.y, temporaryVector.z];
-}
+  }
 
 function cameraPosition() {
     let temporaryPosition = new THREE.Vector3;
