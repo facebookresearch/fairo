@@ -77,6 +77,8 @@ commands:
       - run:
           name: Build habitat
           command: |
+            pwd
+            ls
             cd ./third_party/habitat-sim
             pip install -r requirements.txt
             export PYTHONPATH=${pwd}/src_python
