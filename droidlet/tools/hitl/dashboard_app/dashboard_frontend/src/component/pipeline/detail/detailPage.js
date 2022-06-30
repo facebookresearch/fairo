@@ -16,15 +16,16 @@ import {
     LoadingOutlined,
     CaretRightOutlined
 } from '@ant-design/icons';
+import { Link, Outlet, useParams } from "react-router-dom";
+import { toFirstCapital } from "../../../utils/textUtils";
+import { TAB_ITEMS } from "../../../constants/pipelineConstants";
 
 const { Title } = Typography;
-const {Panel} = Collapse;
+const { Panel } = Collapse;
 
 const DetailPage = (props) => {
-    const batchId = props.batchId;
     const pipelineType = props.pipelineType;
-    const [doneList, setDoneList] = useState([]);
-    const [pending, setPending] = useState();
+    const batch_id = useParams().batch_id;
 
     const fakeRunInfo = JSON.parse(`{"BATCH_ID": 20220621142744, 
     "NAME": "cw_test_jm_1", 
@@ -40,6 +41,7 @@ const DetailPage = (props) => {
     );
 
     const jobs = getJobs(fakeRunInfo);
+    const [selectedJob, setSelectedJob] = useState(jobs[0][0]);
 
     const getIconForStatus = (jobStatus) => {
         if (!jobStatus) {
@@ -54,24 +56,25 @@ const DetailPage = (props) => {
     };
 
     const getJobButton = (job) => {
-        let jobName = job[0];
-        jobName = `${jobName.substring(0, 1)}${jobName.toLowerCase().substring(1)} Jobs`
+        const jobKey = job[0];
+        const jobName = `${toFirstCapital(jobKey)} Jobs`
+
         if (job[1].STATUS) {
             // running or finished
-            return <Button type="link">{jobName}</Button>;
+            return <Button type="link" value={jobName}><Link to={jobKey.toLocaleLowerCase()}>{jobName}</Link></Button>;
         } else {
             return <p>{jobName}</p>;
         }
     }
 
-    return <div style={{'paddingLeft': '28px'}}>
+    return <div style={{ 'padding': '0 24px 0 24px' }}>
         <Collapse
             bordered={false}
             expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}
             defaultActiveKey={['overview']}
         >
-            <Panel 
-                header={<Title level={5}>Overview</Title>}
+            <Panel
+                header={<Title level={4}>{`Overview of Run ${batch_id}`}</Title>}
                 key='overview'
             >
                 some meta info goes here
@@ -79,8 +82,8 @@ const DetailPage = (props) => {
         </Collapse>
 
         <Divider />
-        <div style={{'display': 'flex'}}>
-            <div style={{'width': '160px' }}>
+        <div style={{ 'display': 'flex' }}>
+            <div style={{ 'width': '160px' }}>
                 <Timeline>
                     {
                         jobs.map((job) =>
@@ -91,13 +94,13 @@ const DetailPage = (props) => {
                     }
                 </Timeline>
             </div>
-            <Card>
-                Some job related info goes here
-            </Card>
+            <Outlet context={{ metaInfo: fakeRunInfo }} />
         </div>
-
-
-
+        <Button type="primary">
+            <Link to="../" state={{ label: TAB_ITEMS.RUNS.label, key: TAB_ITEMS.RUNS.key }}>
+                Back to View All
+            </Link>
+        </Button>
     </div>;
 
 }
