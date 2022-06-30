@@ -4022,7 +4022,7 @@ class DVoxelEngine {
     if (pos_xyz[0] / blockScale > SL || pos_xyz[0] / blockScale < 0 || pos_xyz[1] / blockScale > SL || pos_xyz[1] / blockScale < 0 || pos_xyz[2] / blockScale > SL || pos_xyz[2] / blockScale < 0) {
       console.log("safety fail, running away"); // TODO check collisions and move somewhere else
 
-      let safe_xyz = convertCoordinateSystems(1, 15, 1);
+      let safe_xyz = convertCoordinateSystems(1, SL - 2, 1);
       player.moveTo(safe_xyz[0] * blockScale, safe_xyz[1] * blockScale, safe_xyz[2] * blockScale);
       updatePlayerPosition(player);
     }

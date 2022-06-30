@@ -471,6 +471,15 @@ class World:
         def set_agent_look(sid, data):
             eid = self.connected_sids.get(sid)
             player_struct = self.get_player_info(eid)
+            if not player_struct:
+                # FIXME only works for dashboard reconnect
+                for player_eid in self.connected_sids.values():
+                    player_info = self.get_player_info(player_eid)
+                    if player_info.name == "dashboard_player":
+                        player_struct = self.get_player_info(player_eid)
+                        eid = player_eid
+                        break
+
             new_look = Look(data["yaw"], data["pitch"])
             self.players[eid] = self.players[eid]._replace(look=new_look)
 
