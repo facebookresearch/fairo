@@ -186,20 +186,18 @@
 
             <span class="c1"># FIXME!  add a step to perceive items picked and/or items in inventory</span>
             <span class="c1"># Find items that can be picked by the agent, and in perception range</span>
-            <span class="n">all_items</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-            <span class="n">in_perception_items</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">item_stack</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_item_stacks</span><span class="p">():</span>
-                <span class="n">all_items</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">item_stack</span><span class="o">.</span><span class="n">entityId</span><span class="p">)</span>
-                <span class="k">if</span> <span class="p">(</span>
-                    <span class="n">euclid_dist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">pos_to_np</span><span class="p">(</span><span class="n">item_stack</span><span class="o">.</span><span class="n">pos</span><span class="p">))</span>
-                    <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">perception_range</span>
-                <span class="p">):</span>
-                    <span class="n">in_perception_items</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item_stack</span><span class="p">)</span>
-            <span class="n">perceive_info</span><span class="p">[</span><span class="s2">&quot;agent_pickable_items&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">perceive_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;agent_pickable_items&quot;</span><span class="p">,</span> <span class="p">{})</span>
-            <span class="n">perceive_info</span><span class="p">[</span><span class="s2">&quot;agent_pickable_items&quot;</span><span class="p">][</span><span class="s2">&quot;in_perception_items&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">in_perception_items</span> <span class="k">if</span> <span class="n">in_perception_items</span> <span class="k">else</span> <span class="kc">None</span>
-            <span class="p">)</span>
-            <span class="n">perceive_info</span><span class="p">[</span><span class="s2">&quot;agent_pickable_items&quot;</span><span class="p">][</span><span class="s2">&quot;all_items&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">all_items</span> <span class="k">if</span> <span class="n">all_items</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">pickable_items</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;cuberite&quot;</span><span class="p">:</span>
+                <span class="c1"># struct; only returns items on ground</span>
+                <span class="n">pickable_items</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="o">.</span><span class="n">entityId</span><span class="p">:</span> <span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">[]]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_item_stacks</span><span class="p">()}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># [struct, holder entityId, properties]</span>
+                <span class="n">pickable_items</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">entityId</span><span class="p">:</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_item_stacks</span><span class="p">(</span><span class="n">get_all</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="p">}</span>
+
+            <span class="n">perceive_info</span><span class="p">[</span><span class="s2">&quot;agent_pickable_items&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pickable_items</span>
 
         <span class="c1"># note: no &quot;force&quot;; these run on every perceive call.  assumed to be fast</span>
         <span class="n">perceive_info</span><span class="p">[</span><span class="s2">&quot;agent_attributes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_agent_player</span><span class="p">()</span>  <span class="c1"># Get Agent attributes</span>
