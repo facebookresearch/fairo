@@ -77,6 +77,7 @@ const AGENT_NAME = "craftassist_agent";
 const PLAYER_NAME = "dashboard_player";
 
 let mobs = {}
+let mobList = []
 let itemStacks = {}
 
 let direction_vec = new THREE.Vector3();
@@ -206,6 +207,8 @@ class DVoxelEngine {
     }
     constructor (opts) {
 
+        this.initTime = Date.now();
+
         this.scene = new THREE.Scene();
         scene = this.scene
         this.scene.background = new THREE.Color( 0xf0f0f0 );
@@ -252,7 +255,7 @@ class DVoxelEngine {
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( window.innerWidth, window.innerHeight );
 
-        //Axis helper for debugging
+        // Axis helper for debugging
         // this.scene.add( new THREE.AxesHelper( 10000 ) );
 
         // loader and preloaded materials -- to improve performance
@@ -284,9 +287,6 @@ class DVoxelEngine {
                     ]);
             }
         );
-        // for (const key in preLoadMaterialNames) {
-            
-        // }
 
         let world = {
             THREE: THREE,
@@ -407,6 +407,7 @@ class DVoxelEngine {
         // console.log("DVoxel Engine update agents")
         // console.log(agentsInfo);
 
+        let that = this;
         agentsInfo.forEach(function(key, index) {
             let name = key["name"]
             let xyz = convertCoordinateSystems(
@@ -417,11 +418,34 @@ class DVoxelEngine {
             // console.log("name: " + name + "x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2])
             if (name === AGENT_NAME && agent_player != null) {
                 agent_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale)
+                that.playerPostionSafetyCheck(agent_player);
             } else if (name === PLAYER_NAME && controlled_player != null) {
                 // console.log("player moveTo: x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2]);
                 controlled_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale)
+                that.playerPostionSafetyCheck(controlled_player);
             }
         })
+    }
+
+    playerPostionSafetyCheck(player) {
+        if ((Date.now() - this.initTime) < 5000) {
+            // Give everything time to load before panicking
+            return
+        }
+        let pos = player.getPosition();
+        let pos_xyz = convertCoordinateSystems(pos.x, pos.y, pos.z);
+        if (((pos_xyz[0] / blockScale) > SL) ||
+            ((pos_xyz[0] / blockScale) < 0) ||
+            ((pos_xyz[1] / blockScale) > SL) ||
+            ((pos_xyz[1] / blockScale) < 0) ||
+            ((pos_xyz[2] / blockScale) > SL) ||
+            ((pos_xyz[2] / blockScale) < 0) ) {
+                console.log("safety fail, running away");
+                // TODO check collisions and move somewhere else
+                let safe_xyz = convertCoordinateSystems(1, 15, 1);
+                player.moveTo(safe_xyz[0] * blockScale, safe_xyz[1] * blockScale, safe_xyz[2] * blockScale);
+                updatePlayerPosition(player);
+        }
     }
 
     updateMobs(mobsInfo) {
@@ -444,7 +468,11 @@ class DVoxelEngine {
             if (entityId in mobs) {
                 // console.log("mob already exists, updating states")
                 mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
+            } else if (mobList.includes(entityId)) {
+                // Mob still being built, ignore
             } else {
+                console.log("building mob with ID: " + entityId);
+                mobList.push(entityId);
                 const mobOpts = {
                     GLTFLoader: GLTFLoader,
                     name: name,
@@ -453,10 +481,10 @@ class DVoxelEngine {
                 VoxelMob.build(world, mobOpts).then(
                     function (newMob) {
                         mobs[entityId] = newMob;
-                        // sceneItems.push(newMob);
+                        sceneItems.push(newMob.mesh);
                     }
                 );
-            }            
+            }       
         })
     }
 
@@ -489,7 +517,7 @@ class DVoxelEngine {
                 VoxelItem.build(world, itemStackOpts).then(
                     function (newItemStack) {
                         itemStacks[entityId] = newItemStack;
-                        // sceneItems.push(newItemStack);
+                        sceneItems.push(newItemStack.mesh);
                     }
                 );
             }            

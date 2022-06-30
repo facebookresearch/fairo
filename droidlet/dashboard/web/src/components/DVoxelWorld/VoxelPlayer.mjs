@@ -95,12 +95,12 @@ class VoxelPlayer {
     }
 
     getPosition() {
-        let offset_vec = new this.world.THREE.Vector3(
-            this.position_offset[0],
-            this.position_offset[1],
-            this.position_offset[2],
+        let offset_pos = new this.world.THREE.Vector3(
+            this.mesh.position.x - this.position_offset[0],
+            this.mesh.position.y - this.position_offset[1],
+            this.mesh.position.z - this.position_offset[2],
         )
-        return this.mesh.position.sub(offset_vec);
+        return offset_pos;
     }
 
     updatePov(type) {
@@ -173,7 +173,7 @@ class VoxelPlayer {
             this.world.camera.position,
             this.cameraLook
         );
-        const intersects = this.highlightRay.intersectObjects( this.world.sceneItems, false );
+        const intersects = this.highlightRay.intersectObjects( this.world.sceneItems, true );
         if ( intersects.length > 0 ) {
             // There's a collision, show the highlighter at the point of collision
             this.highlighter.visible = true;
