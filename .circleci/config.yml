@@ -74,6 +74,13 @@ commands:
 
             export BUILD_DOCS="ON"
             ./install.sh
+      - run:
+          name: Build habitat
+          command: |
+            cd ./third_party/habitat-sim
+            pip install -r requirements.txt
+            export PYTHONPATH=${pwd}/src_python
+            ./build.sh
       - polymetis_tests
       - run:
           name: Generate documentation
