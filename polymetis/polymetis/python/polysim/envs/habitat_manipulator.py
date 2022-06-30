@@ -152,8 +152,6 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
             robot_model_cfg: a typical configuration for a robot model (e.g. see
                 `franka_panda.yaml`).
 
-            habitat_dir: directory containing habitat-sim.
-
             hz: the rate at which to update the simulation.
 
             joint_damping: velocity gains damping joint movement towards 0 velocity.
