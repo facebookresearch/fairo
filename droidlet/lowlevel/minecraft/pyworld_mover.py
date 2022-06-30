@@ -52,33 +52,41 @@ class PyWorldMover:
     def set_look(self, yaw, pitch):
         self.sio.emit("set_look", {"yaw": float(yaw), "pitch": float(pitch)})
 
+    # FIXME: make a "cuberite" style pick mode, and an explicit pick mode
     def step_pos_x(self):
         self.sio.emit("rel_move", {"x": 1})
-        self.pick_nearby_items()
+
+    #        self.pick_nearby_items()
 
     def step_neg_x(self):
         self.sio.emit("rel_move", {"x": -1})
-        self.pick_nearby_items()
+
+    #       self.pick_nearby_items()
 
     def step_pos_y(self):
         self.sio.emit("rel_move", {"y": 1})
-        self.pick_nearby_items()
+
+    #       self.pick_nearby_items()
 
     def step_neg_y(self):
         self.sio.emit("rel_move", {"y": -1})
-        self.pick_nearby_items()
+
+    #        self.pick_nearby_items()
 
     def step_pos_z(self):
         self.sio.emit("rel_move", {"z": 1})
-        self.pick_nearby_items()
+
+    #        self.pick_nearby_items()
 
     def step_neg_z(self):
         self.sio.emit("rel_move", {"z": -1})
-        self.pick_nearby_items()
+
+    #        self.pick_nearby_items()
 
     def step_forward(self):
         self.sio.emit("rel_move", {"forward": 1})
-        self.pick_nearby_items()
+
+    #        self.pick_nearby_items()
 
     def set_held_item(self, idm):
         idm = (int(idm[0]), int(idm[1]))
@@ -161,9 +169,16 @@ class PyWorldMover:
             if item["holder_entityId"] == holder_entityId or get_all:
                 pos = Pos(item["x"], item["y"], item["z"])
                 item_stacks.append(
-                    ItemStack(
-                        Slot(item["id"], item["meta"], 1), pos, item["entityId"], item["typeName"]
-                    )
+                    [
+                        ItemStack(
+                            Slot(item["id"], item["meta"], 1),
+                            pos,
+                            item["entityId"],
+                            item["typeName"],
+                        ),
+                        item["holder_entityId"],
+                        item["properties"],
+                    ]
                 )
         return item_stacks
 
