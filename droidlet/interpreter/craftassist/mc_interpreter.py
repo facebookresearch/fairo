@@ -83,7 +83,6 @@ class MCInterpreter(Interpreter):
         self.action_handlers["MODIFY"] = self.handle_modify
         ### FIXME generalize these
         self.action_handlers["GET"] = self.handle_get
-        self.action_handlers["DROP"] = self.handle_drop
 
         self.task_objects = {
             "move": tasks.Move,
@@ -496,63 +495,89 @@ class MCInterpreter(Interpreter):
         return new_tasks
 
     def handle_get(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
-        """This function reads the dictionary, resolves the missing details using memory
-        and perception and handles a 'get' command by either pushing a dialogue object
-        or pushing a Get task to the task stack.
+        """
+        handles give, get bring, drop.
+        arranges all pickups first, and then all dropoffs.
 
         Args:
             speaker: speaker_id or name.
             d: the complete action dictionary
+
+        approach: find all reference objects given by d.get("reference_object")
+        for each object, if it is not in agent's inventory,  set a task to pick it up
+        then set a task to drop each of the reference objects.
         """
-        ref_d = d.get("reference_object", None)
-        if not ref_d:
-            raise ErrorWithResponse("I don't understand what you want me to get.")
+        # TODO: in grammar differentiate between
+        # "get the ball you don't have and bring it to where you are now"
+        # and
+        # "drop the ball you have where you are now"
+        # e.g. use an "in_my_inventory" fixed value
 
-        objs = self.subinterpret["reference_objects"](
-            self, speaker, ref_d, extra_tags=["_on_ground"]
-        )
-
-        objs = [obj for obj in objs if isinstance(obj, ItemStackNode)]
-
-        if len(objs) == 0:
-            raise ErrorWithResponse("I don't understand what you want me to get.")
+        ref_pickup = d.get("reference_object", None)
+        d_receiver = d.get("receiver", None)
 
         tasks = []
-        for obj in objs:
-            item_stack = agent.get_item_stack(obj.eid)
-            idm = (item_stack.item.id, item_stack.item.meta)
-            task_data = {"idm": idm, "pos": obj.pos, "eid": obj.eid, "obj_memid": obj.memid}
-            tasks.append(self.task_objects["get"](agent, task_data))
+        if ref_pickup is None and d_receiver is None:
+            raise ErrorWithResponse(
+                "I think you want me to get or put something, but I don't understand what"
+            )
 
-        return maybe_bundle_task_list(agent, tasks)
+        if ref_pickup:
+            objs = self.subinterpret["reference_objects"](self, speaker, ref_pickup)
+            objs = [obj for obj in objs if isinstance(obj, ItemStackNode)]
+            if not objs:
+                raise ErrorWithResponse(
+                    "I think you want me to get or put something, but I don't understand what"
+                )
+            # no selector, just pick the nearest object to agent from the list.  if agent is carrying one it should be nearest
+            # FIXME: do this properly, add a nearest to agent selector
+            if ref_pickup.get("filters", {}).get("selector") is None:
+                min_dist_obj = None
+                min_dist = 10000000
+                for obj in objs:
+                    dist = np.linalg.norm(np.array(obj.pos) - np.array(agent.pos))
+                    if dist <= min_dist:
+                        min_dist_obj = obj
+                        min_dist = dist
+                objs = [obj]
 
-    def handle_drop(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
-        """This function reads the dictionary, resolves the missing details using memory
-        and perception and handles a 'drop' command by either pushing a dialogue object
-        or pushing a Drop task to the task stack.
+            for obj in objs:
+                # some or all of the objects to deliver/drop may already be in inventory...
+                # only pick up objects already on the ground.
+                if "_on_ground" in obj.get_tags():
+                    task_data = {
+                        "pos": obj.pos,
+                        "eid": obj.eid,
+                        "obj_memid": obj.memid,
+                    }
+                    tasks.append(self.task_objects["get"](agent, task_data))
 
-        Args:
-            speaker: speaker_id or name.
-            d: the complete action dictionary
-        """
-        ref_d = d.get("reference_object", None)
-        if not ref_d:
-            raise ErrorWithResponse("I don't understand what you want me to drop.")
+        if d_receiver:
+            if len(objs) == 0:
+                raise ErrorWithResponse("I don't understand what you want me to get or place.")
+            try:
+                if d_receiver.get("reference_object"):
+                    # this is bring to an entity; but for now will just drop it at entities location
+                    mems = self.subinterpret["reference_locations"](self, speaker, d_receiver)
+                else:  # d_receiver.get("location"):
+                    assert d_receiver.get("location") is not None
+                    mems = self.subinterpret["reference_locations"](
+                        self, speaker, d_receiver["location"]
+                    )
+            except NextDialogueStep:
+                # TODO allow for clarification
+                raise ErrorWithResponse("I don't understand where you want me to bring the thing.")
+            # FIXME this should go in the ref_location subinterpret:
+            steps, reldir = interpret_relative_direction(self, d_receiver)
+            pos, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)
+            # TODO: can this actually happen?
+            if pos is None:
+                raise ErrorWithResponse(
+                    "I don't understand the location to which I am supposed to bring the thing."
+                )
 
-        objs = self.subinterpret["reference_objects"](
-            self, speaker, ref_d, extra_tags=["_in_inventory"]
-        )
+            for obj in objs:
+                task_data = {"target": pos, "eid": obj.eid, "obj_memid": obj.memid}
+                tasks.append(self.task_objects["drop"](agent, task_data))
 
-        objs = [obj for obj in objs if isinstance(obj, ItemStackNode)]
-
-        if len(objs) == 0:
-            raise ErrorWithResponse("I don't understand what you want me to drop.")
-
-        tasks = []
-        for obj in objs:
-            item_stack = agent.get_item_stack(obj.eid)
-            idm = (item_stack.item.id, item_stack.item.meta)
-            task_data = {"eid": obj.eid, "idm": idm, "obj_memid": obj.memid}
-            tasks.append(self.task_objects["drop"](agent, task_data))
-
-        return maybe_bundle_task_list(agent, tasks)
+            return maybe_bundle_task_list(agent, tasks)

@@ -18,10 +18,13 @@ class GettableItem:
         # properties is a list of tuples of the form (predicate_text, object_text)
         self.properties = properties
 
+    def update_position(self, x, y, z):
+        self.pos = Pos(x, y, z)
+
     def add_to_world(self, world):
         self.entityId = world.new_eid(entityId=self.entityId)
         x, y, z, _, _ = make_pose(world.sl, world.sl, height_map=world.get_height_map())
-        self.pos = Pos(x, y, z)
+        self.update_position(x, y, z)
         world.items[self.entityId] = self
 
     def get_info(self):
