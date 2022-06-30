@@ -566,18 +566,18 @@ class MCInterpreter(Interpreter):
                     )
             except NextDialogueStep:
                 # TODO allow for clarification
-                raise ErrorWithResponse("I don't understand where you want me to move.")
+                raise ErrorWithResponse("I don't understand where you want me to bring the thing.")
             # FIXME this should go in the ref_location subinterpret:
             steps, reldir = interpret_relative_direction(self, d_receiver)
             pos, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)
             # TODO: can this actually happen?
             if pos is None:
-                raise ErrorWithResponse("I don't understand where you want me to move.")
+                raise ErrorWithResponse(
+                    "I don't understand the location to which I am supposed to bring the thing."
+                )
 
             for obj in objs:
                 task_data = {"target": pos, "eid": obj.eid, "obj_memid": obj.memid}
                 tasks.append(self.task_objects["drop"](agent, task_data))
-
-            print(tasks)
 
             return maybe_bundle_task_list(agent, tasks)
