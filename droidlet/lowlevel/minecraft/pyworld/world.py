@@ -339,7 +339,6 @@ class World:
                 print("reconnecting eid {} (sid {})".format(player_eid, sid))
                 return
 
-        # FIXME add height map
         x, y, z, pitch, yaw = make_pose(
             self.sl,
             self.sl,

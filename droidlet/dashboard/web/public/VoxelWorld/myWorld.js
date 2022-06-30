@@ -3835,8 +3835,8 @@ class DVoxelEngine {
     renderer = this.renderer;
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight); //Axis helper for debugging
-
-    this.scene.add(new THREE.AxesHelper(10000)); // loader and preloaded materials -- to improve performance
+    // this.scene.add( new THREE.AxesHelper( 10000 ) );
+    // loader and preloaded materials -- to improve performance
 
     loader = new THREE.TextureLoader();
     preLoadBlockMaterials = new Map();
@@ -3966,7 +3966,8 @@ class DVoxelEngine {
     const box = new THREE.BoxHelper(cube, 0x000000);
     box.name = pos2Name(pos[0], pos[1], pos[2], true);
     this.scene.add(box);
-    setBlock2(-pos[0], pos[1], pos[2], bid);
+    const bidx = convertCoordinateSystems(pos[0], pos[1], pos[2]);
+    setBlock2(bidx[0], bidx[1], bidx[2], bid);
   }
 
   raycastVoxels(v) {
