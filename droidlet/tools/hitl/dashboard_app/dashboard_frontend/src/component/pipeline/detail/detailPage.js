@@ -19,6 +19,7 @@ import {
 import { Link, Outlet, useParams } from "react-router-dom";
 import { toFirstCapital } from "../../../utils/textUtils";
 import { TAB_ITEMS } from "../../../constants/pipelineConstants";
+import MetaInfoDescription from "./metaInfoDescription";
 
 const { Title } = Typography;
 const { Panel } = Collapse;
@@ -77,7 +78,7 @@ const DetailPage = (props) => {
                 header={<Title level={4}>{`Overview of Run ${batch_id}`}</Title>}
                 key='overview'
             >
-                some meta info goes here
+                <MetaInfoDescription metaInfo={fakeRunInfo}/>
             </Panel>
         </Collapse>
 

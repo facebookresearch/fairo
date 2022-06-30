@@ -1,7 +1,9 @@
 import React from "react";
 
-const MetaInfoDescription = (metaInfo) => {
-    return <div>{metaInfo}</div>
+const MetaInfoDescription = (props) => {
+    const metaInfo = props.metaInfo;
+    console.log(metaInfo);
+    return <div>{}</div>;
 }
 
 export default MetaInfoDescription;
