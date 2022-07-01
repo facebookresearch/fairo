@@ -51,6 +51,8 @@ class ResNetEncoder(nn.Module):
             spatial_size = (120, 108)
         elif self._frame_size == (480, 640):
             spatial_size = (120, 108)
+        elif self._frame_size == (640, 480):
+            spatial_size = (108, 120)
 
         if normalize_visual_inputs:
             self.running_mean_and_var: nn.Module = RunningMeanAndVar(
@@ -140,6 +142,8 @@ class ResNetEncoder(nn.Module):
             x = F.avg_pool2d(x, (2, 3), padding=(0, 1))  # 240 x 324 -> 120 x 108
         elif self._frame_size == (480, 640):
             x = F.avg_pool2d(x, (4, 5))
+        elif self._frame_size == (640, 480):
+            x = F.avg_pool2d(x, (5, 4))
 
         x = self.running_mean_and_var(x)
         x = self.backbone(x)
