@@ -272,8 +272,8 @@ class EndToEndSemanticScout:
         challenge_config_file = this_dir + "/configs/challenge_objectnav2022.local.rgbd.yaml"
         agent_config_file = this_dir + "/configs/rl_objectnav_sem_seg_hm3d.yaml"
 
-        model_path = this_dir + "/ckpt/model.pth"
-        # model_path = this_dir + "/ckpt/il_ckpt13.pth"
+        # model_path = this_dir + "/ckpt/model.pth"
+        model_path = this_dir + "/ckpt/il_ckpt13.pth"
 
         config = get_config(agent_config_file, ["BASE_TASK_CONFIG_PATH", challenge_config_file])
         config.defrost()
@@ -340,11 +340,8 @@ class EndToEndSemanticScout:
             # Robot
             rgb, depth = mover.get_rgb_depth_optimized_for_habitat_transfer()
 
-        def reshape(rgb, depth):
-            # Temporary reshape while working with policy trained on (480, 640) frames
+        def reshape_640x480_to_480x640(rgb, depth):
             # (640, 480) -> (360, 480)
-            # rgb = rgb[140:500, :]
-            # depth = depth[140:500, :]
             rgb = rgb[280:, :]
             depth = depth[280:, :]
             # (360, 480) -> (480, 640)
@@ -352,9 +349,20 @@ class EndToEndSemanticScout:
             depth = cv2.resize(depth, (640, 480), interpolation=cv2.INTER_NEAREST)
             return rgb, depth
 
+        def reshape_512x512_to_640x480(rgb, depth):
+            # (512, 512) -> (512, 384)
+            rgb = rgb[:, 64:448]
+            depth = depth[280:, 64:448]
+            # (512, 384) -> (640, 480)
+            rgb = cv2.resize(rgb, (480, 640), interpolation=cv2.INTER_LINEAR)
+            depth = cv2.resize(depth, (480, 640), interpolation=cv2.INTER_NEAREST)
+            return rgb, depth
+
         print("pre-processing: frame shape", rgb.shape)
-        if rgb.shape[0] == 640 and rgb.shape[1] == 480:
-            rgb, depth = reshape(rgb, depth)
+        # if rgb.shape[0] == 640 and rgb.shape[1] == 480:
+        #     rgb, depth = reshape_640x480_to_480x640(rgb, depth)
+        if rgb.shape[0] == 512 and rgb.shape[1] == 512:
+            rgb, depth = reshape_512x512_to_640x480(rgb, depth)
         print("post-processing: frame shape", rgb.shape)
 
         print("pre-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
