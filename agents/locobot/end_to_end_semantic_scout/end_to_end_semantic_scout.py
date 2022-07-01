@@ -271,7 +271,10 @@ class EndToEndSemanticScout:
         this_dir = os.path.dirname(os.path.abspath(__file__))
         challenge_config_file = this_dir + "/configs/challenge_objectnav2022.local.rgbd.yaml"
         agent_config_file = this_dir + "/configs/rl_objectnav_sem_seg_hm3d.yaml"
+
         model_path = this_dir + "/ckpt/model.pth"
+        # model_path = this_dir + "/ckpt/il_ckpt13.pth"
+
         config = get_config(agent_config_file, ["BASE_TASK_CONFIG_PATH", challenge_config_file])
         config.defrost()
         config.MODEL_PATH = model_path
@@ -328,6 +331,15 @@ class EndToEndSemanticScout:
             rescaled_depth = np.expand_dims(rescaled_depth, -1).astype(np.float32)
             return rescaled_depth, clipped_depth
 
+        if self.in_habitat:
+            # Habitat
+            rgb_depth = mover.get_rgb_depth()
+            rgb = rgb_depth.rgb
+            depth = rgb_depth.depth
+        else:
+            # Robot
+            rgb, depth = mover.get_rgb_depth_optimized_for_habitat_transfer()
+
         def reshape(rgb, depth):
             # Temporary reshape while working with policy trained on (480, 640) frames
             # (640, 480) -> (360, 480)
@@ -340,21 +352,14 @@ class EndToEndSemanticScout:
             depth = cv2.resize(depth, (640, 480), interpolation=cv2.INTER_NEAREST)
             return rgb, depth
 
-        if self.in_habitat:
-            # Habitat
-            rgb_depth = mover.get_rgb_depth()
-            rgb = rgb_depth.rgb
-            depth = rgb_depth.depth
-        else:
-            # Robot
-            rgb, depth = mover.get_rgb_depth_optimized_for_habitat_transfer()
-
+        print("pre-processing: frame shape", rgb.shape)
         if rgb.shape[0] == 640 and rgb.shape[1] == 480:
             rgb, depth = reshape(rgb, depth)
+        print("post-processing: frame shape", rgb.shape)
 
-        # print("pre-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
+        print("pre-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
         depth, clipped_depth = preprocess_depth(depth)
-        # print("post-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
+        print("post-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
 
         # obs = {
         #     "objectgoal": 0,
