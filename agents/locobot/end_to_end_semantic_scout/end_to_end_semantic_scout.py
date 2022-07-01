@@ -269,8 +269,10 @@ class EndToEndSemanticScout:
         }
 
         this_dir = os.path.dirname(os.path.abspath(__file__))
-        challenge_config_file = this_dir + "/configs/challenge_objectnav2022.local.rgbd.yaml"
         agent_config_file = this_dir + "/configs/rl_objectnav_sem_seg_hm3d.yaml"
+
+        # challenge_config_file = this_dir + "/configs/challenge_objectnav2022.local.rgbd.yaml"
+        challenge_config_file = this_dir + "/configs/robot_config.yaml"
 
         # model_path = this_dir + "/ckpt/model.pth"
         model_path = this_dir + "/ckpt/il_ckpt13.pth"
@@ -319,7 +321,7 @@ class EndToEndSemanticScout:
         gps = np.array([pose[0], -pose[1]], dtype=np.float32)
         compass = np.array(pose[2], dtype=np.float32)
 
-        def preprocess_depth(depth, min_depth=0.5, max_depth=5.0):
+        def preprocess_depth(depth, min_depth=0.5, max_depth=4.0):
             # These should be the min_depth and max_depth used to train the policy
             # in simulation
             clipped_depth = np.where(
