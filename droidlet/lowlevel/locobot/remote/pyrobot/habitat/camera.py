@@ -57,10 +57,10 @@ class LoCoBotCamera(object):
         hfov = self.configs.COMMON.SIMULATOR.AGENT.SENSORS.HFOVS[0]
 
         # Works with hfov=90 and (width/height)=1
-        fx = width * math.tan(math.radians(hfov) / 2) / 2
-        fy = height * math.tan(math.radians(hfov) / 2) / 2
-        cx = width / 2
-        cy = height / 2
+        fy = width * math.tan(math.radians(hfov) / 2) / 2
+        fx = height * math.tan(math.radians(hfov) / 2) / 2
+        cy = width / 2
+        cx = height / 2
         Itc = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
 
         # https://aihabitat.org/docs/habitat-lab/view-transform-warp.html
