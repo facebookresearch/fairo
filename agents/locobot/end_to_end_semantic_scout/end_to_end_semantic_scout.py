@@ -278,7 +278,7 @@ class EndToEndSemanticScout:
         challenge_config_file = this_dir + "/configs/robot_config.yaml"
 
         # model_path = this_dir + "/ckpt/model.pth"
-        model_path = this_dir + "/ckpt/il_ckpt13.pth"
+        model_path = this_dir + "/ckpt/il_ckpt18.pth"
 
         config = get_config(agent_config_file, ["BASE_TASK_CONFIG_PATH", challenge_config_file])
         config.defrost()
