@@ -42,7 +42,7 @@ class RLSegFTAgent(Agent):
 
         self.color_palette = [int(x * 255.0) for x in frame_color_palette]
 
-        ckpt_dict = torch.load(config.MODEL_PATH, map_location=self.device)["state_dict"]
+        ckpt_dict = torch.load(config.MODEL_PATH, map_location=self.device, strict=False)["state_dict"]
         ckpt_dict = {k.replace("actor_critic.", ""): v for k, v in ckpt_dict.items()}
         ckpt_dict = {k.replace("module.", ""): v for k, v in ckpt_dict.items()}
         ckpt_dict = {k.replace("model.", ""): v for k, v in ckpt_dict.items()}
