@@ -61,7 +61,8 @@ class LoCoBotCamera(object):
         # Itc = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
 
         # https://aihabitat.org/docs/habitat-lab/view-transform-warp.html
-        x = 1 / np.tan(math.radians(hfov) * height / width / 2.)
+        # https://github.com/facebookresearch/habitat-lab/issues/474
+        x = 1 / np.tan(math.radians(hfov) / 2.) * (width / height)
         Itc = np.array([[x, 0, 0], [0, x, 0], [0, 0, 1]])
 
         # fx = cx = width * math.tan(math.radians(hfov) / 2) / 2
