@@ -45,6 +45,7 @@ class RLSegFTAgent(Agent):
         ckpt_dict = torch.load(config.MODEL_PATH, map_location=self.device)["state_dict"]
         ckpt_dict = {k.replace("actor_critic.", ""): v for k, v in ckpt_dict.items()}
         ckpt_dict = {k.replace("module.", ""): v for k, v in ckpt_dict.items()}
+        ckpt_dict = {k.replace("model.", ""): v for k, v in ckpt_dict.items()}
         print("ckpt_dict.keys()", ckpt_dict.keys())
 
         # Config
