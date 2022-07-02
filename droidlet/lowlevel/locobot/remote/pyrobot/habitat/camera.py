@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import math
 import numpy as np
 import pyrobot.utils.util as prutil
 
@@ -53,8 +54,12 @@ class LoCoBotCamera(object):
         :rtype: np.ndarray
         """
         height, width = self.configs.COMMON.SIMULATOR.AGENT.SENSORS.RESOLUTIONS[0]
+        hfov = self.configs.COMMON.SIMULATOR.AGENT.SENSORS.HFOVS[0]
         # resolution * tan (fov / 2) / 2 with fov = 90 degrees by default
-        fx, fy, cx, cy = width / 2, height / 2, width / 2, height / 2
+        # fx, fy, cx, cy = width / 2, height / 2, width / 2, height / 2
+        fx = cx = width * math.tan(math.radians(hfov) / 2) / 2
+        fy = cy = height * math.tan(math.radians(hfov) / 2) / 2
+
         Itc = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
         return Itc
 
