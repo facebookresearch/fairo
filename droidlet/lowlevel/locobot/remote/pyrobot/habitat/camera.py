@@ -59,7 +59,7 @@ class LoCoBotCamera(object):
         # fy = cy = height / 2
         # Itc = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
 
-        x = 1 / np.tan(hfov * height/width / 2.)
+        x = 1 / np.tan(hfov * height / width / 2.0)
         Itc = np.array([[x, 0, 0], [0, x, 0], [0, 0, 1]])
 
         return Itc
