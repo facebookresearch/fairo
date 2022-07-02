@@ -55,12 +55,14 @@ class LoCoBotCamera(object):
         """
         height, width = self.configs.COMMON.SIMULATOR.AGENT.SENSORS.RESOLUTIONS[0]
         hfov = self.configs.COMMON.SIMULATOR.AGENT.SENSORS.HFOVS[0]
-        # resolution * tan (fov / 2) / 2 with fov = 90 degrees by default
-        # fx, fy, cx, cy = width / 2, height / 2, width / 2, height / 2
-        fx = cx = width * math.tan(math.radians(hfov) / 2) / 2
-        fy = cy = height * math.tan(math.radians(hfov) / 2) / 2
 
+        fx = cx = width / 2
+        fy = cy = height / 2
         Itc = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
+
+        # fx = cx = width * math.tan(math.radians(hfov) / 2) / 2
+        # fy = cy = height * math.tan(math.radians(hfov) / 2) / 2
+
         return Itc
 
     def _rot_matrix(self, habitat_quat):
