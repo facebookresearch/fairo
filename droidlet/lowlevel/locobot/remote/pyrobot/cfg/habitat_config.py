@@ -89,5 +89,6 @@ _SIMULATORC.AGENT.SENSORS.RESOLUTIONS = [[512, 512], [512, 512], [512, 512]]
 # Horizontal field of views in degrees
 _SIMULATORC.AGENT.SENSORS.HFOVS = [90, 90, 90]
 
+
 def get_cfg():
     return _C.clone()
