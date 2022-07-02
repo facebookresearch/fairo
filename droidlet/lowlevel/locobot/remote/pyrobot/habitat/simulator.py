@@ -27,8 +27,7 @@ class HabitatSim(object):
             self.sim_config.PHYSICS_CONFIG_FILE = physics_config
             self.sim_config.PHYSICS = True
         self.sim_config.noisy = noisy
-        self.habitat_sim_config = make_cfg(self.sim_config)
-        self.sim = habitat_sim.Simulator(self.habitat_sim_config)
+        self.sim = habitat_sim.Simulator(make_cfg(self.sim_config))
         self.set_seed(seed)  # TODO: Not working!! Check with abhishek
         print(self.sim_config)
 

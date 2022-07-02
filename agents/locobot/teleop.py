@@ -277,9 +277,6 @@ if __name__ == "__main__":
         mover.bot.set_pan(0.0)
         # mover.bot.set_tilt(-1.05)
 
-    if backend == 'habitat':
-        print(mover.bot.get_sim_config())
-
     while True:
         counter += 1
         iter_time = time.time_ns() - start_time

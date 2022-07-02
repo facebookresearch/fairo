@@ -99,9 +99,6 @@ class RemoteLocobot(object):
                 sem_pred_prob_thr=0.9, sem_gpu_id=-1, visualize=True
             )
 
-    def get_sim_config(self):
-        return self._robot.simulator.habitat_sim_config
-
     def get_habitat_state(self):
         """Returns the habitat position and rotation of the agent as lists"""
         sim = self._robot.base.sim

@@ -81,11 +81,13 @@ _SIMULATORC.AGENT.SENSORS.POSES = [
     [0.0, 0.88, 0.0, 0.0, 0.0, 0.0],
 ]
 
-# Height and Widhth in Pixels
+# Height and Width in Pixels
 _SIMULATORC.AGENT.SENSORS.RESOLUTIONS = [[512, 512], [512, 512], [512, 512]]
 # _SIMULATORC.AGENT.SENSORS.RESOLUTIONS = [[480, 640], [480, 640], [480, 640]]
 # _SIMULATORC.AGENT.SENSORS.RESOLUTIONS = [[640, 480], [640, 480], [640, 480]] => This doesn't work for some reason
 
+# Horizontal field of views in degrees
+_SIMULATORC.AGENT.SENSORS.HFOVS = [90, 90, 90]
 
 def get_cfg():
     return _C.clone()
