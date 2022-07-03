@@ -92,8 +92,8 @@ _SIMULATORC.AGENT.SENSORS.POSES = [
 _SIMULATORC.AGENT.SENSORS.RESOLUTIONS = [[640, 480], [640, 480], [640, 480]]  # does not work even with default hfov
 
 # Horizontal field of views in degrees
-# _SIMULATORC.AGENT.SENSORS.HFOVS = [90, 90, 90]
-_SIMULATORC.AGENT.SENSORS.HFOVS = [56, 56, 56]  # 1.33 * 42
+_SIMULATORC.AGENT.SENSORS.HFOVS = [90, 90, 90]
+# _SIMULATORC.AGENT.SENSORS.HFOVS = [56, 56, 56]  # 1.33 * 42
 
 
 def get_cfg():
