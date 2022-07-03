@@ -56,6 +56,7 @@ class LoCoBotCamera(object):
         height, width = self.configs.COMMON.SIMULATOR.AGENT.SENSORS.RESOLUTIONS[0]
         hfov = self.configs.COMMON.SIMULATOR.AGENT.SENSORS.HFOVS[0]
 
+        # https://github.com/facebookresearch/habitat-lab/issues/656
         # Works with hfov = 90 and (width, height) = (512, 512) or (480, 640)
         # TODO Doesn't work with hfov != 90 or (width, height) = (640, 480)
         fx = width / math.tan(math.radians(hfov) / 2) / 2
