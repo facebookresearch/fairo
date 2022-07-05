@@ -60,8 +60,6 @@ class LoCoBotCamera(object):
         # https://github.com/facebookresearch/habitat-lab/issues/656
         # https://github.com/facebookresearch/habitat-lab/issues/474
         # https://github.com/facebookresearch/habitat-lab/issues/499
-        # Works with (width, height) = (512, 512) or (480, 640) and any hfov
-        # TODO Doesn't work with (width, height) = (640, 480) and any hfov
         fx = width / math.tan(hfov / 2) / 2
         fy = height / math.tan(vfov / 2) / 2
         cx = width / 2
