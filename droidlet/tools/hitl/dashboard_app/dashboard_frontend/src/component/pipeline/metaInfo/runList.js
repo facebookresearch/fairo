@@ -7,16 +7,16 @@ Pipeline type needs to be specifed by adding the pipelineType props by the calle
 To use this component:
 <RunList pipelineType={pipelineType} />
 */
-import { Badge, Button, DatePicker, Input, Select, Skeleton, Table, Typography } from 'antd';
+import { Badge, DatePicker, Input, Select, Skeleton, Table, Typography } from 'antd';
 import React, { useContext, useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { SocketContext } from '../../../context/socket';
-import { FilterOutlined } from '@ant-design/icons';
+import moment from 'moment';
 
 const { Title } = Typography;
 const { Search } = Input;
-const { RangePicker } = DatePicker;
-const { Option } = Select;
+const {Option} = Select;
+const {RangePicker} = DatePicker;
 
 const timeStrComp = (one, other) => {
     // compare two time (format in string)
@@ -103,6 +103,8 @@ const RunList = (props) => {
     const [runListData, setRunListData] = useState([]);
     const [displayData, setDisplayData] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [rangeValue, setRangeValue] = useState([]);
+    const [filterType, setFilterType] = useState("start");
 
     const handleReceivedRunList = useCallback((data) => {
         data = data.map((o) => (
@@ -134,6 +136,7 @@ const RunList = (props) => {
     }, [socket, handleReceivedRunList]);
 
     const onSearch = (value) => {
+        setRangeValue([]); // reset filter value
         if (value) {
             setDisplayData(runListData.filter((o) =>
             (o.name.includes(value)
@@ -145,9 +148,28 @@ const RunList = (props) => {
         }
     }
 
-    const onOk = (value) => {
-        console.log('onOk: ', value);
+    const filterOnTime = (value) => {
+        // filter on start/end time
+        setRangeValue(value);
+        if (value) {
+            const filteredList = runListData.filter((row) => {
+                let time = filterType === "start" ? row.start_time : row.end_time;
+                time = moment(time, "YYYY-MM-DD HH:mm:ss");
+                return time >= value[0] && time <= value[1];
+            });
+            setDisplayData(filteredList);
+        } else {
+            // clear filter
+            setDisplayData(runListData);
+        }
     };
+
+    const onSelectFilterType = (value) => {
+        // change filter time type (start/end)
+        setFilterType(value);
+        setRangeValue([]); // reset RangePicker value
+        setDisplayData(runListData);
+    } 
 
     return (
         <>
@@ -160,21 +182,17 @@ const RunList = (props) => {
                     {/* filter & search component */}
                     <Search placeholder="Search by Name /Batch id/Description" allowClear onSearch={onSearch} enterButton />
                     <Input.Group compact>
-                        <Select defaultValue="1">
-                            <Option value="1">Filter Start Time</Option>
-                            <Option value="2">Filter End Time</Option>
+                        <Select defaultValue="start" onSelect={onSelectFilterType}>
+                            <Option value="start">Filter Start Time</Option>
+                            <Option value="end">Filter End Time</Option>
                         </Select>
                         <RangePicker
                             showTime={{
-                                format: 'HH:mm',
+                                format: 'HH:mm:ss',
                             }}
-                            format="YYYY-MM-DD HH:mm"
-                            onOk={onOk}
-                        />
-                        <Button 
-                            type="primary" 
-                            onClick={(o) => console.log(111)} 
-                            icon={<FilterOutlined />}
+                            format="YYYY-MM-DD HH:mm:ss"
+                            onChange={filterOnTime}
+                            value={rangeValue}
                         />
                     </Input.Group>
                 </div>
