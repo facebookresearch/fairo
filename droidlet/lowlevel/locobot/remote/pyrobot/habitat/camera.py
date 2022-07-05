@@ -54,16 +54,16 @@ class LoCoBotCamera(object):
         :rtype: np.ndarray
         """
         height, width = self.configs.COMMON.SIMULATOR.AGENT.SENSORS.RESOLUTIONS[0]
-        hfov = np.deg2rad(self.configs.COMMON.SIMULATOR.AGENT.SENSORS.HFOVS[0])
-        vfov = 2 * np.atan(np.tan(hfov / 2) * height / width)
+        hfov = math.radians(self.configs.COMMON.SIMULATOR.AGENT.SENSORS.HFOVS[0])
+        vfov = 2 * math.atan(math.tan(hfov / 2) * height / width)
 
         # https://github.com/facebookresearch/habitat-lab/issues/656
         # https://github.com/facebookresearch/habitat-lab/issues/474
         # https://github.com/facebookresearch/habitat-lab/issues/499
         # Works with (width, height) = (512, 512) or (480, 640) and any hfov
         # TODO Doesn't work with (width, height) = (640, 480) and any hfov
-        fx = width / np.tan(hfov / 2) / 2
-        fy = height / np.tan(vfov / 2) / 2
+        fx = width / math.tan(hfov / 2) / 2
+        fy = height / math.tan(vfov / 2) / 2
         cx = width / 2
         cy = height / 2
         Itc = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
