@@ -295,6 +295,7 @@ class SemSegSeqNet(Net):
             goal_visible_pixels = (obj_semantic == idx.squeeze(0)).sum(
                 dim=1
             )  # Sum over all since we're not batched
+            print(f"{goal_visible_pixels.cpu().item()} goal pixels visible")
             goal_visible_area = torch.true_divide(goal_visible_pixels, obj_semantic.size(-1))
 
             return goal_visible_area.unsqueeze(-1)

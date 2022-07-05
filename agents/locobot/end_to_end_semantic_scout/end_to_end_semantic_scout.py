@@ -29,6 +29,7 @@ from .constants import (
 )
 from .segmentation.semantic_prediction import COCOSegmentationModel
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
+from droidlet.lowlevel.pyro_utils import safe_call
 
 
 class RLSegFTAgent(Agent):
@@ -274,12 +275,12 @@ class EndToEndSemanticScout:
         this_dir = os.path.dirname(os.path.abspath(__file__))
         agent_config_file = this_dir + "/configs/rl_objectnav_sem_seg_hm3d.yaml"
 
-        challenge_config_file = this_dir + "/configs/original_settings.yaml"
-        # challenge_config_file = this_dir + "/configs/robot_settings.yaml"
+        # challenge_config_file = this_dir + "/configs/original_settings.yaml"
+        challenge_config_file = this_dir + "/configs/robot_settings.yaml"
 
         # model_path = this_dir + "/ckpt/original_settings_best_ckpt.pth"
-        # model_path = this_dir + "/ckpt/robot_settings_ckpt20.pth"
-        model_path = this_dir + "/ckpt/original_camera_new_segmentation_ckpt22.pth"
+        model_path = this_dir + "/ckpt/robot_settings_ckpt20.pth"
+        # model_path = this_dir + "/ckpt/original_camera_new_segmentation_ckpt22.pth"
 
         config = get_config(agent_config_file, ["BASE_TASK_CONFIG_PATH", challenge_config_file])
         config.defrost()
@@ -297,6 +298,7 @@ class EndToEndSemanticScout:
         assert segmentation in ["mp3d", "coco"]
         config.SEGMENTATION = segmentation
         config.freeze()
+        self.config = config
 
         self.agent = RLSegFTAgent(config)
 
@@ -325,15 +327,19 @@ class EndToEndSemanticScout:
         gps = np.array([pose[0], -pose[1]], dtype=np.float32)
         compass = np.array(pose[2], dtype=np.float32)
 
-        def preprocess_depth(depth, min_depth=0.5, max_depth=5.0):
-            # These should be the min_depth and max_depth used to train the policy
-            # in simulation
+        def preprocess_depth(depth):
+            min_depth = self.config.TASK_CONFIG.SIMULATOR.DEPTH_SENSOR.MIN_DEPTH
+            max_depth = self.config.TASK_CONFIG.SIMULATOR.DEPTH_SENSOR.MAX_DEPTH
             clipped_depth = np.where(
                 depth > 0,
                 np.clip(depth, min_depth, max_depth),
                 depth
             )
-            rescaled_depth = (clipped_depth - min_depth) / (max_depth - min_depth)
+            rescaled_depth = np.where(
+                clipped_depth > 0,
+                (clipped_depth - min_depth) / (max_depth - min_depth),
+                clipped_depth
+            )
             rescaled_depth = np.expand_dims(rescaled_depth, -1).astype(np.float32)
             return rescaled_depth, clipped_depth
 
@@ -421,7 +427,8 @@ class EndToEndSemanticScout:
                 HabitatSimActions.TURN_RIGHT,
                 HabitatSimActions.TURN_LEFT
             ]:
-                status = mover.nav.execute_low_level_command(action, forward_dist, np.radians(turn_angle)).value
+                result = safe_call(mover.nav.execute_low_level_command, action, forward_dist, np.radians(turn_angle))
+                status = result.value
             elif action == HabitatSimActions.STOP:
                 self.finished = True
                 status = "SUCCEEDED"
