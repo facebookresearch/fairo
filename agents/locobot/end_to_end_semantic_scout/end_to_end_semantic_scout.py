@@ -363,12 +363,13 @@ class EndToEndSemanticScout:
             depth = cv2.resize(depth, (480, 640), interpolation=cv2.INTER_NEAREST)
             return rgb, depth
 
-        print("pre-processing: frame shape", rgb.shape)
+        # print("pre-processing: frame shape", rgb.shape)
         # if rgb.shape[0] == 640 and rgb.shape[1] == 480:
         #     rgb, depth = reshape_640x480_to_480x640(rgb, depth)
-        if rgb.shape[0] == 512 and rgb.shape[1] == 512:
-            rgb, depth = reshape_512x512_to_640x480(rgb, depth)
-        print("post-processing: frame shape", rgb.shape)
+        # if rgb.shape[0] == 512 and rgb.shape[1] == 512:
+        #     rgb, depth = reshape_512x512_to_640x480(rgb, depth)
+        # print("post-processing: frame shape", rgb.shape)
+        print("frame shape", rgb.shape)
 
         print("pre-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
         depth, clipped_depth = preprocess_depth(depth)
