@@ -1,11 +1,14 @@
 # Dashboard App for HITL
-Updated Jun 24 by Chuxi.
+Updated July 5 by Chuxi.
 
 This is a Dashboard app prototype for the HITL system.
 
+## Update Notes
+- July 5: added search & filter for the NLU run list. 
+
 ## Included 
 - Backend: a backend based on flask and socket. Run on localhost:5000 by default.
-- Frontend: a react based frontend - currently only have button for user interaction. Default run on localhost:3000.
+- Frontend: a react based frontend - including navigation and NLU pipeline overview page. Default run on localhost:3000.
 Please note this dashboard app is currently only in development build and is not optimized.
 
 ## How to run
