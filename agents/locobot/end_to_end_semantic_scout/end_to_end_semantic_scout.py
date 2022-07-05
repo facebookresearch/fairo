@@ -290,7 +290,7 @@ class EndToEndSemanticScout:
             this_dir + "/" + config.MODEL.DEPTH_ENCODER.ddppo_checkpoint
         )
         if torch.cuda.is_available():
-            config.TORCH_GPU_ID = 0
+            config.TORCH_GPU_ID = 1
         else:
             config.TORCH_GPU_ID = -1
         assert segmentation in ["mp3d", "coco"]
