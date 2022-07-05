@@ -274,11 +274,12 @@ class EndToEndSemanticScout:
         this_dir = os.path.dirname(os.path.abspath(__file__))
         agent_config_file = this_dir + "/configs/rl_objectnav_sem_seg_hm3d.yaml"
 
-        # challenge_config_file = this_dir + "/configs/challenge_objectnav2022.local.rgbd.yaml"
-        challenge_config_file = this_dir + "/configs/robot_config.yaml"
+        # challenge_config_file = this_dir + "/configs/original_settings.yaml"
+        challenge_config_file = this_dir + "/configs/robot_settings.yaml"
 
-        # model_path = this_dir + "/ckpt/model.pth"
-        model_path = this_dir + "/ckpt/il_ckpt18.pth"
+        # model_path = this_dir + "/ckpt/original_settings_best_ckpt.pth"
+        model_path = this_dir + "/ckpt/robot_settings_ckpt20.pth"
+        # model_path = this_dir + "/ckpt/original_camera_new_segmentation_ckpt22.pth"
 
         config = get_config(agent_config_file, ["BASE_TASK_CONFIG_PATH", challenge_config_file])
         config.defrost()
