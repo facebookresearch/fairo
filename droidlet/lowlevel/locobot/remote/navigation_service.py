@@ -300,6 +300,7 @@ class Navigation(object):
 
         while not goal_reached and low_level_step < max_steps:
             low_level_step += 1
+
             sem_map = self.slam.get_global_semantic_map()
             cat_sem_map = sem_map[object_goal_cat + 4, :, :]
 

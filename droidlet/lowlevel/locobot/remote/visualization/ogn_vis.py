@@ -70,8 +70,10 @@ class ObjectGoalNavigationVisualization:
         self.semantic_map_vis = None
         self.goal_map = np.zeros((480, 480))
         self.semantic_frame = None
+        self.semantic_frame_vis = None
         self.rgb_frame = None
         self.depth_frame = None
+        self.pcd = None
         self.pose = None
         self.all_poses = []
         self.action = None
@@ -94,8 +96,10 @@ class ObjectGoalNavigationVisualization:
             f"{snapshot_path}/frames/depth.png",
             ((self.depth_frame / self.depth_frame.max()) * 255).astype(np.uint8),
         )
-        np.save(f"{snapshot_path}/frames/depth.npy", self.depth_frame)
-        cv2.imwrite(f"{snapshot_path}/frames/semantic.png", self.semantic_frame)
+        np.save(f"{snapshot_path}/frames/depth.npy", self.depth_frame.astype(np.float32))
+        np.save(f"{snapshot_path}/frames/pcd.npy", self.pcd.astype(np.float32))
+        cv2.imwrite(f"{snapshot_path}/frames/semantic.png", self.semantic_frame_vis)
+        np.save(f"{snapshot_path}/frames/semantic.npy", self.semantic_frame.astype(np.bool))
 
         # Maps
         cv2.imwrite(f"{snapshot_path}/maps/semantic_and_goal_map.png", self.semantic_map_vis)
@@ -161,14 +165,16 @@ class ObjectGoalNavigationVisualization:
     def update_last_position_vis_info(self, vis_info):
         self.rgb_frame = vis_info["rgb"]
         self.depth_frame = vis_info["depth"]
-        self.update_semantic_frame(vis_info["semantic_frame"])
+        self.pcd = vis_info["pcd"]
+        self.semantic_frame = vis_info["semantic_frame"]
+        self.update_semantic_frame(vis_info["semantic_frame_vis"])
         self.update_semantic_map(vis_info["semantic_map"])
         self.pose = vis_info["pose"]
         self.all_poses.append(self.pose)
 
     def update_semantic_frame(self, vis):
         """Visualize first-person semantic segmentation frame."""
-        self.semantic_frame = vis
+        self.semantic_frame_vis = vis
         vis = cv2.resize(vis, (480, 480), interpolation=cv2.INTER_NEAREST)
         self.vis_image[50:530, 15:495] = vis
 
