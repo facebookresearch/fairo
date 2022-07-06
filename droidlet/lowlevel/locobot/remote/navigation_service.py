@@ -380,7 +380,7 @@ class Navigation(object):
 
                 print("agent_angle", np.rad2deg(agent_angle))
                 print("frame_angle", np.rad2deg(frame_angle))
-                print("angle",  np.rad2deg(angle))
+                print("angle", np.rad2deg(angle))
 
                 end_y = start_y + line_length * math.sin(angle)
                 end_x = start_x + line_length * math.cos(angle)
