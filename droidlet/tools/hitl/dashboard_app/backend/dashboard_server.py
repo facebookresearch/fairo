@@ -53,6 +53,8 @@ def get_traceback(batch_id):
     """
     print(f"Request received: {DASHBOARD_EVENT.GET_TRACEBACK.value}")
     log_content, error_code = get_traceback_by_id(int(batch_id))
+    if error_code:
+        emit(DASHBOARD_EVENT.GET_TRACEBACK.value, error_code)
     emit(DASHBOARD_EVENT.GET_TRACEBACK.value, log_content)
 
 
@@ -67,7 +69,7 @@ def get_info(batch_id):
     print(f"Request received: {DASHBOARD_EVENT.GET_RUN_INFO.value}")
     run_info, error_code = get_run_info_by_id(int(batch_id))
     if error_code:
-        abort(error_code, description=run_info)
+        emit(DASHBOARD_EVENT.GET_RUN_INFO.value, error_code)
     emit(DASHBOARD_EVENT.GET_RUN_INFO.value, run_info)
 
 

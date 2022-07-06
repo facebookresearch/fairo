@@ -18,6 +18,7 @@ import { Layout } from 'antd';
 import PipelinePanel from './component/pipeline/panel';
 import DetailPage from './component/pipeline/detail/detailPage';
 import JobInfoCard from './component/pipeline/detail/job/jobInfoCard';
+import NotFoundPage from './component/notfound';
 
 const { Header, Footer } = Layout;
 
@@ -40,6 +41,7 @@ function App() {
                   </Route>
                 </Route>
                 <Route path={SUBPATHS.OTHER.key} element={<div>Something else here</div>} />
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Layout>
             <Footer
