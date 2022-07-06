@@ -41,7 +41,7 @@ APIs are based on socket event, the following APIs are supported currently:
     - output: if the traceback record can be found, return the traceback in csv format, otherwise, output an error message suggesting not found.
 - get_run_info_by_id:
     - get run info by id, run info could be:
-        meta data like name of the run, batch id, start time/end time, stastics for each HIT jobs in this run, etc. 
+        meta data like name of the run, batch id, start time/end time, statistics for each HIT jobs in this run, etc. 
     - input: a batch id.
     - output: if the run info can be found, return the run info in a json format, otherwise, return an error message sugesting not found.
 
