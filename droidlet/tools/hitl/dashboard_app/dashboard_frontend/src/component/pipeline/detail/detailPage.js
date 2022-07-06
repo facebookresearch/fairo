@@ -55,7 +55,7 @@ const DetailPage = (props) => {
         socket.on("get_run_info_by_id", (data) => handleReceivedRunInfo(data));
     }, [socket, handleReceivedRunInfo]);
 
-    useEffect(() => { }, [runInfo]);
+    useEffect(() => {}, [runInfo]);
 
     const getJobs = (runInfo) => {
         const jobs = Object

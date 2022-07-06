@@ -116,26 +116,6 @@ def get_traceback_by_id(batch_id: int):
     local_fname = _download_file(f"{batch_id}/log_traceback.csv")
     if local_fname is None:
         return f"cannot find traceback with id {batch_id}", 404
-    return _read_file(local_fname), None
-
-
-def get_run_info_by_id(batch_id: int):
-    """
-    helper method for preparing get_run_info_by_id api's response
-    """
-    local_fname = _download_file(f"job_management_records/{batch_id}.json")
-    if local_fname is None:
-        return f"cannot find traceback with id {batch_id}", 404
-    return _read_file(local_fname), None
-
-
-def get_traceback_by_id(batch_id: int):
-    """
-    helper method for preparing get_traceback_by_id api's response
-    """
-    local_fname = _download_file(f"{batch_id}/log_traceback.csv")
-    if local_fname is None:
-        return f"cannot find traceback with id {batch_id}"
     return _read_file(local_fname)
 
 
