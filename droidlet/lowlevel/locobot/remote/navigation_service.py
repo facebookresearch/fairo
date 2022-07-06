@@ -317,10 +317,14 @@ class Navigation(object):
             cat_sem_map = sem_map[object_goal_cat + 4, :, :]
             cat_frame = sem_frame[:, :, object_goal_cat]
 
+            print()
+            print()
             print("object_goal_cat", object_goal_cat)
             print("cat_frame.sum()", cat_frame.sum())
             for i in range(16):
                 print(f"sem_frame {i}", sem_frame[:, :, i].sum())
+            print()
+            print()
 
             if (cat_sem_map == 1).sum() > 0:
                 # If the object goal category is present in the local map, go to it
