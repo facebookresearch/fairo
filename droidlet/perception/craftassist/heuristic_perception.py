@@ -347,6 +347,7 @@ def get_nearby_airtouching_blocks(
     all_components = []
     all_tags = []
     for c in components:
+        tags = []
         for loc in c:
             idm = tuple(xyzb[loc[0], loc[1], loc[2], :])
             for coord in range(3):
@@ -359,7 +360,7 @@ def get_nearby_airtouching_blocks(
                             try:
                                 blocktypes.append(idm)
                                 type_name = block_data["bid_to_name"][idm]
-                                tags = [type_name]
+                                tags.append(type_name)
                                 colours = deepcopy(color_data["name_to_colors"].get(type_name, []))
                                 colours.extend([c for c in color_list if c in type_name])
                                 if colours:

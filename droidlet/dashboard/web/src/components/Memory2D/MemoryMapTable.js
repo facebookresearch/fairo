@@ -58,7 +58,7 @@ const StyledTextField = withStyles((theme) => ({
   },
 }))(TextField);
 
-function MyTextField(props) {
+function MapTextField(props) {
   const [value, setValue] = useState(props.value);
   const [errorCond, setErrorCond] = useState(false);
 
@@ -152,7 +152,7 @@ export default function MemoryMapTable(props) {
 
   // console.log(editManager);
   return (
-    <TableContainer component={Paper}>
+    <TableContainer component={Paper} square>
       <Table size="small">
         <TableHead>
           <TableRow>
@@ -189,7 +189,7 @@ export default function MemoryMapTable(props) {
                 {immutableFields.includes(attr) ? (
                   shortenLongTableEntries(editManager[attr].value)
                 ) : (
-                  <MyTextField
+                  <MapTextField
                     attr={attr}
                     key={[editManager[attr].value, editManager[attr].status]}
                     value={JSON.stringify(editManager[attr].value)}

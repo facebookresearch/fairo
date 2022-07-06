@@ -1093,7 +1093,6 @@ class StateManager {
   }
 
   processMap(res) {
-    console.log(JSON.stringify(res));
     this.refs.forEach((ref) => {
       if (ref instanceof Memory2D) {
         ref.setState({
