@@ -12,7 +12,7 @@ from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
     get_run_info_by_id,
     get_traceback_by_id,
 )
-from flask import Flask
+from flask import Flask, abort
 from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
@@ -52,7 +52,7 @@ def get_traceback(batch_id):
     - output: if the traceback record can be found, return the traceback in csv format, otherwise, output an error message suggesting not found.
     """
     print(f"Request received: {DASHBOARD_EVENT.GET_TRACEBACK.value}")
-    log_content = get_traceback_by_id(int(batch_id))
+    log_content, error_code = get_traceback_by_id(int(batch_id))
     emit(DASHBOARD_EVENT.GET_TRACEBACK.value, log_content)
 
 
@@ -65,7 +65,9 @@ def get_info(batch_id):
     - output: if the run info can be found, return the run info in a json format, otherwise, return an error message sugesting not found.
     """
     print(f"Request received: {DASHBOARD_EVENT.GET_RUN_INFO.value}")
-    run_info = get_run_info_by_id(int(batch_id))
+    run_info, error_code = get_run_info_by_id(int(batch_id))
+    if error_code:
+        abort(error_code, description=run_info)
     emit(DASHBOARD_EVENT.GET_RUN_INFO.value, run_info)
 
 

@@ -1,12 +1,15 @@
-import { Button, Card, Descriptions } from "antd";
-import React from "react";
+import { Button, Card, Descriptions, List, Spin, Typography } from "antd";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import { JOB_STATUS_CONSTANTS, JOB_STATUS_ORDER } from "../../../../constants/runContants";
+import { SocketContext } from "../../../../context/socket";
 import { toFirstCapital } from "../../../../utils/textUtils";
 
 const JobInfoCard = (props) => {
     const batchId = useParams().batch_id;
     const job = useParams().job;
+    const [sessionList, setSessionList] = useState([]);
+    const socket = useContext(SocketContext);
 
     let jobInfo = Object.entries(useOutletContext().metaInfo)
         .filter((o) =>
@@ -14,6 +17,14 @@ const JobInfoCard = (props) => {
     jobInfo = Object.entries(jobInfo)
         .sort((one, another) =>
             (JOB_STATUS_ORDER.indexOf(one[0]) - JOB_STATUS_ORDER.indexOf(another[0])));
+
+    const handleRecievedSessionist = useCallback((data) => {
+        setSessionList(data);
+    }, []);
+
+    useEffect(() => {
+        socket.on("get_interaction_sessions_by_id", (data) => handleRecievedSessionist(data));
+    }, [socket, handleRecievedSessionist])
 
     const getDesciptionText = (o) => {
         if (!o[1]) {
@@ -25,11 +36,19 @@ const JobInfoCard = (props) => {
             return o[1].substring(idx + "sha256.".length);
         } else if (o[0].includes("_TIME")) {
             // time: need to remove after ss
-            const t_idx = o[0] === "START_TIME" ? 0: o[1].length - 1;
+            const t_idx = o[0] === "START_TIME" ? 0 : o[1].length - 1;
             const idx = o[1][t_idx].indexOf(".");
             return o[1][t_idx].substring(0, idx);
-        } 
-        return typeof(o[1]) === "string" ? toFirstCapital(o[1]): o[1];
+        } else if (typeof (o[1]) === "boolean") {
+            // boolean fields
+            return o[1] ? "Yes" : "No";
+        }
+        // get session log if has the session log 
+        if (o[0] === "NUM_SESSION_LOG") {
+            socket.emit("get_interaction_sessions_by_id", batchId);
+        }
+
+        return typeof (o[1]) === "string" ? toFirstCapital(o[1]) : o[1];
     }
 
     return <div style={{ 'paddingLeft': '12px' }}>
@@ -46,7 +65,30 @@ const JobInfoCard = (props) => {
                     )
                 )}
             </Descriptions>
-
+            {
+                sessionList.length ?
+                    <div
+                        style={{
+                            paddingTop: "12px",
+                            overflow: "auto",
+                            textAlign: "left",
+                            height: 600,
+                        }}
+                    >
+                        <List
+                            header={<Typography.Text strong>Sessions</Typography.Text>}
+                            size="small"
+                            bordered
+                            dataSource={sessionList}
+                            renderItem={item => (
+                                <List.Item>
+                                    <Typography.Text>{item}</Typography.Text>
+                                </List.Item>
+                            )}
+                        />
+                    </div>
+                    : <Spin />
+            }
         </Card>
     </div>;
 }

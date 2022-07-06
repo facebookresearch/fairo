@@ -82,7 +82,7 @@ def get_traceback_by_id(batch_id: int):
     """
     local_fname = _download_file(f"{batch_id}/log_traceback.csv")
     if local_fname is None:
-        return f"cannot find traceback with id {batch_id}"
+        return f"cannot find traceback with id {batch_id}", 404
     return _read_file(local_fname)
 
 
@@ -92,7 +92,7 @@ def get_run_info_by_id(batch_id: int):
     """
     local_fname = _download_file(f"job_management_records/{batch_id}.json")
     if local_fname is None:
-        return f"cannot find run info with id {batch_id}"
+        return f"cannot find run info with id {batch_id}", 404
     f = open(local_fname)
     json_data = json.load(f)
     f.close()
