@@ -33,6 +33,7 @@ class DASHBOARD_EVENT(Enum):
     """
     server supported event types, i.e. API types
     """
+
     GET_RUNS = "get_job_list"
     GET_TRACEBACK = "get_traceback_by_id"
     GET_RUN_INFO = "get_run_info_by_id"
@@ -48,6 +49,7 @@ class DASHBOARD_EVENT(Enum):
 
 # constants for model related apis
 KEY_COMPLETE = "complete_model"
+
 
 
 @socketio.on(DASHBOARD_EVENT.GET_RUNS.value)
@@ -90,6 +92,7 @@ def get_info(batch_id):
     if error_code:
         emit(DASHBOARD_EVENT.GET_RUN_INFO.value, error_code)
     emit(DASHBOARD_EVENT.GET_RUN_INFO.value, run_info)
+
 
 @socketio.on(DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value)
 def get_interaction_sessions(batch_id):
