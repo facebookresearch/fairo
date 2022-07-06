@@ -8,7 +8,6 @@ const JobInfoCard = (props) => {
     const batchId = useParams().batch_id;
     const job = useParams().job;
 
-    console.log(job);
     let jobInfo = Object.entries(useOutletContext().metaInfo)
         .filter((o) =>
             o[0].toLowerCase() === job)[0][1];

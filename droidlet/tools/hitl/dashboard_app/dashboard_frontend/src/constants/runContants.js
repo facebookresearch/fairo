@@ -12,6 +12,12 @@ export const METADATA_ORDER = [
     "START_TIME", "END_TIME",
 ]
 
+export const JOB_TYPES = {
+    "INTERACTION": "Interaction",
+    "ANNOTATION": "Annotation",
+    "RETRAIN": "Retrain"
+}
+
 export const JOB_STATUS_CONSTANTS = {
     "STATUS": { label: "Status", span: 2},
     "START_TIME": { label: "Start Time", span: 2},

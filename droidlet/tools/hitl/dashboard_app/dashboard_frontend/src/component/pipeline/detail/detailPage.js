@@ -21,24 +21,21 @@ import { toFirstCapital } from "../../../utils/textUtils";
 import { TAB_ITEMS } from "../../../constants/pipelineConstants";
 import MetaInfoDescription from "./metaInfoDescription";
 import { SocketContext } from '../../../context/socket';
-import { JOB_STATUS_CONSTANTS } from "../../../constants/runContants";
+import { JOB_TYPES } from "../../../constants/runContants";
 
 const { Title } = Typography;
 const { Panel } = Collapse;
 
 const DetailPage = (props) => {
     const socket = useContext(SocketContext);
-
     const pipelineType = props.pipelineType;
     const batch_id = useParams().batch_id;
-    console.log(batch_id);
     const [runInfo, setRunInfo] = useState(null);
     const [jobs, setJobs] = useState(null);
 
     const handleReceivedRunInfo = useCallback((data) => {
-        console.log(data);
-        setRunInfo(JSON.stringify(data));
-        setJobs(getJobs(JSON.stringify(data)));
+        setRunInfo(data);
+        setJobs(getJobs(data));
     }, []);
 
     const getRunInfo = () => {
@@ -56,7 +53,7 @@ const DetailPage = (props) => {
     const getJobs = (runInfo) => {
         const jobs = Object
             .entries(runInfo)
-            .filter((obj) => (obj[0] in JOB_STATUS_CONSTANTS));
+            .filter((obj) => (obj[0] in JOB_TYPES));
         return jobs;
     };
 
