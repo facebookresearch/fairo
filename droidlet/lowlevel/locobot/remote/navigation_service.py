@@ -28,7 +28,7 @@ def draw_line(start, end, mat, steps=25, w=1):
     for i in range(steps + 1):
         x = int(np.rint(start[0] + (end[0] - start[0]) * i / steps))
         y = int(np.rint(start[1] + (end[1] - start[1]) * i / steps))
-        mat[x - w:x + w, y - w:y + w] = 1
+        mat[x - w : x + w, y - w : y + w] = 1
     return mat
 
 
@@ -371,12 +371,7 @@ class Navigation(object):
                 end_y = start_y + line_length * math.sin(angle)
                 end_x = start_x + line_length * math.cos(angle)
                 direction_map = np.zeros((map_size, map_size))
-                draw_line(
-                    (start_x, start_y),
-                    (end_x, end_y),
-                    direction_map,
-                    steps=line_length
-                )
+                draw_line((start_x, start_y), (end_x, end_y), direction_map, steps=line_length)
                 direction_frontier_map = frontier_map * direction_map
                 goal_map = direction_frontier_map
 
