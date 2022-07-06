@@ -378,7 +378,10 @@ class Navigation(object):
                 frame_angle = np.deg2rad(-(median_col / frame_width * hfov - hfov / 2))
                 angle = agent_angle + frame_angle
 
+                print(f"step {low_level_step}")
                 print("median_col", median_col)
+                print("min_col", np.nonzero(cat_frame)[1].min())
+                print("max_col", np.nonzero(cat_frame)[1].max())
                 print("agent_angle", np.rad2deg(agent_angle))
                 print("frame_angle", np.rad2deg(frame_angle))
                 print("angle", np.rad2deg(angle))
@@ -391,9 +394,9 @@ class Navigation(object):
                 goal_map = direction_frontier_map
 
                 import cv2
-                cv2.imwrite(f"debug/direction_map_{high_level_step}.png", (direction_map * 255).astype(np.uint8))
-                cv2.imwrite(f"debug/frontier_map_{high_level_step}.png", (frontier_map * 255).astype(np.uint8))
-                cv2.imwrite(f"debug/direction_frontier_map_{high_level_step}.png", (direction_frontier_map * 255).astype(np.uint8))
+                cv2.imwrite(f"debug/direction_map_{low_level_step}.png", (direction_map * 255).astype(np.uint8))
+                cv2.imwrite(f"debug/frontier_map_{low_level_step}.png", (frontier_map * 255).astype(np.uint8))
+                cv2.imwrite(f"debug/direction_frontier_map_{low_level_step}.png", (direction_frontier_map * 255).astype(np.uint8))
 
                 if visualize:
                     self.vis.set_location_goal(goal_map)
