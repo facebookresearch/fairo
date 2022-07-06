@@ -129,7 +129,7 @@ const DetailPage = (props) => {
                         <Link to="../" state={{ label: TAB_ITEMS.RUNS.label, key: TAB_ITEMS.RUNS.key }}>
                             Back to View All
                         </Link>
-                    </Button>
+                    </Button> 
                 </div>
             </div> :
             <Spin />
