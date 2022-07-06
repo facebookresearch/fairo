@@ -98,6 +98,7 @@ def get_run_info_by_id(batch_id: int):
     f.close()
     return json_data
 
+
 def get_interaction_sessions_by_id(batch_id: int):
     session_list = []
     s3_bucket = s3.Bucket(S3_BUCKET_NAME)
@@ -107,5 +108,5 @@ def get_interaction_sessions_by_id(batch_id: int):
         session_name = obj.key
         left_idx = session_name.index(prefix) + len(prefix)
         right_idx = session_name.index("/logs.tar.gz")
-        session_list.append(session_name[left_idx: right_idx])
+        session_list.append(session_name[left_idx:right_idx])
     return session_list
