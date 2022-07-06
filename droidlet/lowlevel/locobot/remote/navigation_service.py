@@ -407,15 +407,15 @@ class Navigation(object):
                 )
                 cv2.imwrite(
                     f"debug/direction_map_{low_level_step}.png",
-                    (direction_map * 255).astype(np.uint8),
+                    (direction_map.T * 255).astype(np.uint8),
                 )
                 cv2.imwrite(
                     f"debug/frontier_map_{low_level_step}.png",
-                    (frontier_map * 255).astype(np.uint8),
+                    (frontier_map.T * 255).astype(np.uint8),
                 )
                 cv2.imwrite(
                     f"debug/direction_frontier_map_{low_level_step}.png",
-                    (direction_frontier_map * 255).astype(np.uint8),
+                    (direction_frontier_map.T * 255).astype(np.uint8),
                 )
 
                 if visualize:
