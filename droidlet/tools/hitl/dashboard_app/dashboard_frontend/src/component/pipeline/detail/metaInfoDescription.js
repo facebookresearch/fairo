@@ -1,3 +1,8 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+Desciption component that shows details of meta infomation of a specific run. 
+*/
 import { Descriptions } from "antd";
 import DescriptionsItem from "antd/lib/descriptions/Item";
 import React from "react";
