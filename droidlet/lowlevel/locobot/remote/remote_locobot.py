@@ -468,11 +468,12 @@ class RemoteLocobot(object):
             semantics, semantics_vis = semantics[0], semantics_vis[0]
 
         # apply the same depth filter to semantics as we applied to the point cloud
+        unfiltered_semantics = semantics
         semantics = semantics.reshape(-1, self.num_sem_categories)
         valid = (depth > 0).flatten()
         semantics = semantics[valid]
 
-        return semantics, semantics_vis
+        return semantics, unfiltered_semantics, semantics_vis
 
     def get_semantic_frame_vis(self, rgb, semantics):
         """Visualize first-person semantic segmentation frame."""

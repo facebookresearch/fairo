@@ -24,6 +24,14 @@ Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
 
 
+def draw_line(start, end, mat, steps=25, w=1):
+    for i in range(steps + 1):
+        x = int(np.rint(start[0] + (end[0] - start[0]) * i / steps))
+        y = int(np.rint(start[1] + (end[1] - start[1]) * i / steps))
+        mat[x - w:x + w, y - w:y + w] = 1
+    return mat
+
+
 class Trackback(object):
     def __init__(self, planner):
         self.locs = set()
@@ -301,8 +309,15 @@ class Navigation(object):
         while not goal_reached and low_level_step < max_steps:
             low_level_step += 1
 
-            sem_map = self.slam.get_global_semantic_map()
+            info = self.slam.get_last_position_vis_info()
+            sem_map = info["semantic_map"]
+            sem_frame = info["unfiltered_semantic_frame"]
+            pose = info["pose"]
+
             cat_sem_map = sem_map[object_goal_cat + 4, :, :]
+            cat_frame = sem_frame[:, :, object_goal_cat]
+
+            print("cat_frame.sum()", cat_frame.sum())
 
             if (cat_sem_map == 1).sum() > 0:
                 # If the object goal category is present in the local map, go to it
@@ -319,6 +334,60 @@ class Navigation(object):
                     distance_threshold=0.5,
                     angle_threshold=30,
                     steps=50,
+                    visualize=visualize,
+                )
+
+            elif (cat_frame == 1).sum() > 0:
+                # Else if an instance of the object goal category is detected in
+                # the frame, go in its direction
+                high_level_step += 1
+                low_level_steps_with_goal_remaining = 10
+                print(
+                    f"[navigation] High-level step {high_level_step}: Found a {object_goal} in the frame, "
+                    "starting go_to_absolute in its direction"
+                )
+
+                # Select unexplored area
+                frontier_map = sem_map[1, :, :] == 0
+
+                # Dilate explored area
+                frontier_map = 1 - skimage.morphology.binary_dilation(
+                    1 - frontier_map, skimage.morphology.disk(10)
+                ).astype(int)
+
+                # Select the frontier
+                frontier_map = (
+                    skimage.morphology.binary_dilation(
+                        frontier_map, skimage.morphology.disk(1)
+                    ).astype(int)
+                    - frontier_map
+                )
+
+                # Select the intersection between the frontier and the
+                # direction of the object beyond the maximum depth
+                map_size = 480  # TODO Make this adaptive
+                start_x, start_y, angle = *self.slam.robot2map(pose[:2]), pose[2]
+                line_length = map_size
+                end_y = start_y + line_length * math.sin(angle)
+                end_x = start_x + line_length * math.cos(angle)
+                direction_map = np.zeros((map_size, map_size))
+                draw_line(
+                    (start_x, start_y),
+                    (end_x, end_y),
+                    direction_map,
+                    steps=line_length
+                )
+                direction_frontier_map = frontier_map * direction_map
+                goal_map = direction_frontier_map
+
+                if visualize:
+                    self.vis.set_location_goal(goal_map)
+
+                self.go_to_absolute(
+                    goal_map=goal_map,
+                    distance_threshold=0.5,
+                    angle_threshold=30,
+                    steps=1,
                     visualize=visualize,
                 )
 
@@ -377,31 +446,36 @@ class Navigation(object):
 
             elif exploration_method == "frontier":
                 # ... or frontier exploration (goal = unexplored area)
-                high_level_step += 1
+                if low_level_steps_with_goal_remaining == 0:
+                    high_level_step += 1
+                    low_level_steps_with_goal_remaining = 0
 
-                print(
-                    f"[navigation] High-level step {high_level_step}: No {object_goal} in the semantic map, "
-                    f"starting a go_to_absolute decided by frontier exploration to find one"
-                )
+                    print(
+                        f"[navigation] High-level step {high_level_step}: No {object_goal} in the semantic map, "
+                        f"starting a go_to_absolute decided by frontier exploration to find one"
+                    )
 
-                # Select unexplored area
-                goal_map = sem_map[1, :, :] == 0
+                    # Select unexplored area
+                    goal_map = sem_map[1, :, :] == 0
 
-                # Dilate explored area
-                goal_map = 1 - skimage.morphology.binary_dilation(
-                    1 - goal_map, skimage.morphology.disk(10)
-                ).astype(int)
-
-                # Select the frontier
-                goal_map = (
-                    skimage.morphology.binary_dilation(
-                        goal_map, skimage.morphology.disk(1)
+                    # Dilate explored area
+                    goal_map = 1 - skimage.morphology.binary_dilation(
+                        1 - goal_map, skimage.morphology.disk(10)
                     ).astype(int)
-                    - goal_map
-                )
 
-                if visualize:
-                    self.vis.set_location_goal(goal_map)
+                    # Select the frontier
+                    goal_map = (
+                        skimage.morphology.binary_dilation(
+                            goal_map, skimage.morphology.disk(1)
+                        ).astype(int)
+                        - goal_map
+                    )
+
+                    if visualize:
+                        self.vis.set_location_goal(goal_map)
+
+                else:
+                    low_level_steps_with_goal_remaining -= 1
 
                 self.go_to_absolute(
                     goal_map=goal_map,
