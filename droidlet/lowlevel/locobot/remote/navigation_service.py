@@ -391,9 +391,19 @@ class Navigation(object):
                 goal_map = direction_frontier_map
 
                 import cv2
-                cv2.imwrite(f"debug/direction_map_{high_level_step}.png", (direction_map * 255).astype(np.uint8))
-                cv2.imwrite(f"debug/frontier_map_{high_level_step}.png", (frontier_map * 255).astype(np.uint8))
-                cv2.imwrite(f"debug/direction_frontier_map_{high_level_step}.png", (direction_frontier_map * 255).astype(np.uint8))
+
+                cv2.imwrite(
+                    f"debug/direction_map_{high_level_step}.png",
+                    (direction_map * 255).astype(np.uint8),
+                )
+                cv2.imwrite(
+                    f"debug/frontier_map_{high_level_step}.png",
+                    (frontier_map * 255).astype(np.uint8),
+                )
+                cv2.imwrite(
+                    f"debug/direction_frontier_map_{high_level_step}.png",
+                    (direction_frontier_map * 255).astype(np.uint8),
+                )
 
                 if visualize:
                     self.vis.set_location_goal(goal_map)
