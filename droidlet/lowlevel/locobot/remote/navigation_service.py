@@ -317,15 +317,6 @@ class Navigation(object):
             cat_sem_map = sem_map[object_goal_cat + 4, :, :]
             cat_frame = sem_frame[:, :, object_goal_cat]
 
-            print()
-            print()
-            print("object_goal_cat", object_goal_cat)
-            print("cat_frame.sum()", cat_frame.sum())
-            for i in range(16):
-                print(f"sem_frame {i}", sem_frame[:, :, i].sum())
-            print()
-            print()
-
             if (cat_sem_map == 1).sum() > 0:
                 # If the object goal category is present in the local map, go to it
                 high_level_step += 1
@@ -372,9 +363,22 @@ class Navigation(object):
 
                 # Select the intersection between the frontier and the
                 # direction of the object beyond the maximum depth
-                map_size = 480  # TODO Make this adaptive
-                start_x, start_y, angle = *self.slam.robot2map(pose[:2]), pose[2]
+
+                # TODO Make this adaptive
+                map_size = 480
+                hfov = 42
+                frame_width = 480
+
+                start_x, start_y, agent_angle = *self.slam.robot2map(pose[:2]), pose[2]
                 line_length = map_size
+                median_col = np.median(np.nonzero(cat_frame)[1])
+                frame_angle = np.deg2rad(-(median_col / frame_width * hfov - hfov / 2))
+                angle = agent_angle + frame_angle
+
+                print("agent_angle", agent_angle)
+                print("frame_angle", frame_angle)
+                print("angle", angle)
+
                 end_y = start_y + line_length * math.sin(angle)
                 end_x = start_x + line_length * math.cos(angle)
                 direction_map = np.zeros((map_size, map_size))
