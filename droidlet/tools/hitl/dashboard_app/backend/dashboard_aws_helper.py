@@ -97,3 +97,15 @@ def get_run_info_by_id(batch_id: int):
     json_data = json.load(f)
     f.close()
     return json_data
+
+def get_interaction_sessions_by_id(batch_id: int):
+    session_list = []
+    s3_bucket = s3.Bucket(S3_BUCKET_NAME)
+    prefix = f"{batch_id}/interaction/"
+
+    for obj in s3_bucket.objects.filter(Prefix=prefix):
+        session_name = obj.key
+        left_idx = session_name.index(prefix) + len(prefix)
+        right_idx = session_name.index("/logs.tar.gz")
+        session_list.append(session_name[left_idx: right_idx])
+    return session_list

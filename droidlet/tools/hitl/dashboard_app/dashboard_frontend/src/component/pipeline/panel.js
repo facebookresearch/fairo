@@ -12,7 +12,6 @@ import { Breadcrumb, Layout, Tabs } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useParams } from 'react-router-dom';
 import { TAB_ITEMS } from '../../constants/pipelineConstants';
-import DetailPage from './detail/detailPage';
 import InfoBlock from './metaInfo/infoBlock';
 import RunList from './metaInfo/runList';
 
