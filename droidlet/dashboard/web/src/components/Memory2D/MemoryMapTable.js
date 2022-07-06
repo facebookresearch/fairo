@@ -7,6 +7,7 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
+import Box from "@material-ui/core/Box";
 
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
@@ -64,21 +65,23 @@ function MyTextField(props) {
   return (
     <StyledTextField
       defaultValue={props.value}
-      margin="normal"
       size="small"
       error={errorCond}
       onChange={(e) => {
         setValue(e.target.value);
         if (!e.target.value) {
           setErrorCond(true);
+          props.updateDisableSubmit(true);
           return;
         } else {
           setErrorCond(false);
+          props.updateDisableSubmit(false);
         }
         try {
           JSON.parse(e.target.value);
         } catch {
           setErrorCond(true);
+          props.updateDisableSubmit(true);
         }
       }}
       onBlur={(e) => {
@@ -121,13 +124,13 @@ export default function MemoryMapTable(props) {
   Keys are row attributes.
   Value is object [
     value: <value>,
-    newRow: true or false,
-    toDelete: true or false,
     valueType: <value_type>,
-    status: "same" or "changed" or "error",
+    status: "same" or "changed" or "error" [or "new" or "deleted"] [for future],
   ] 
   */
   const [editManager, setEditManager] = useState({});
+  const [refresher, setRefresher] = useState(0);
+  const [disableSubmit, setDisableSubmit] = useState(true);
 
   useEffect(() => {
     if (props.data) {
@@ -136,17 +139,16 @@ export default function MemoryMapTable(props) {
         (attr) =>
           (em[attr] = {
             value: props.data[attr],
-            newRow: false,
-            toDelete: false,
             valueType: typeof props.data[attr],
             status: "same",
           })
       );
       setEditManager(em);
+      setDisableSubmit(true);
     }
-  }, [props.data]);
+  }, [props.data, refresher]);
 
-  let immutableFields = ["memid"];
+  let immutableFields = ["memid", "eid", "node_type", "obj_id"];
 
   // console.log(editManager);
   return (
@@ -155,23 +157,26 @@ export default function MemoryMapTable(props) {
         <TableHead>
           <TableRow>
             <StyledTableCell>Attribute</StyledTableCell>
-            <StyledTableCell>Value</StyledTableCell>
             <StyledTableCell>
-              <IconButton
-                onClick={(e) => {
-                  props.onTableDone(e);
-                }}
-                color="secondary"
-              >
-                <ClearIcon />
-              </IconButton>
+              <Box display="flex" justifyContent="space-between">
+                Value
+                <IconButton
+                  onClick={(e) => {
+                    props.onTableClose(e);
+                  }}
+                  color="secondary"
+                  size="small"
+                >
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </Box>
             </StyledTableCell>
           </TableRow>
         </TableHead>
         <TableBody key={props.data["memid"]}>
           {Object.keys(
             Object.keys(editManager).reduce((toDisplay, attr) => {
-              if (!editManager[attr].toDelete)
+              if (editManager[attr].status !== "deleted")
                 toDisplay[attr] = editManager[attr];
               return toDisplay;
             }, {})
@@ -206,44 +211,47 @@ export default function MemoryMapTable(props) {
                         },
                       }));
                     }}
-                  />
-                )}
-              </StyledTableCell>
-              <StyledTableCell desc="refresh for mutable fields">
-                {!immutableFields.includes(attr) && (
-                  <IconButton
-                    onClick={(e) => {
-                      setEditManager((prevEM) => ({
-                        ...prevEM,
-                        [attr]: {
-                          ...prevEM[attr],
-                          value: props.data[attr],
-                          status: "same",
-                        },
-                      }));
+                    updateDisableSubmit={(error) => {
+                      error
+                        ? setDisableSubmit((prev) => true)
+                        : setDisableSubmit((prev) => false);
                     }}
-                  >
-                    <RefreshIcon fontSize="small" />
-                  </IconButton>
+                  />
                 )}
               </StyledTableCell>
             </StyledTableRow>
           ))}
-          <StyledTableRow key={"onTableDone"}>
+          <StyledTableRow>
             <StyledTableCell colSpan={2} align="center">
-              <Button
-                variant="contained"
-                onClick={(e) => {
-                  props.onTableDone(e);
-                }}
-              >
-                Submit
-              </Button>
-            </StyledTableCell>
-            <StyledTableCell>
-              <IconButton>
-                <AddIcon />
-              </IconButton>
+              <Box display="flex" justifyContent="space-around">
+                <Button
+                  variant="contained"
+                  onClick={(e) => {
+                    props.onTableSubmit(
+                      Object.keys(editManager).reduce((toSend, attr) => {
+                        // only send immutable, changed fields
+                        if (
+                          immutableFields.includes(attr) ||
+                          editManager[attr].status === "changed"
+                        )
+                          toSend[attr] = editManager[attr];
+                        return toSend;
+                      }, {})
+                    );
+                  }}
+                  disabled={disableSubmit}
+                >
+                  Submit
+                </Button>
+                <IconButton
+                  onClick={(e) => {
+                    setRefresher((count) => count + 1);
+                  }}
+                  size="small"
+                >
+                  <RefreshIcon fontSize="small" />
+                </IconButton>
+              </Box>
             </StyledTableCell>
           </StyledTableRow>
         </TableBody>

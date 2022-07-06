@@ -103,6 +103,8 @@ class StateManager {
     this.processHumans = this.processHumans.bind(this);
 
     this.processMap = this.processMap.bind(this);
+    this.handleMapToggle = this.handleMapToggle.bind(this);
+    this.sendManualEdits = this.sendManualEdits.bind(this);
 
     this.returnTimelineEvent = this.returnTimelineEvent.bind(this);
 
@@ -1128,6 +1130,10 @@ class StateManager {
   handleMapToggle() {
     this.dash_enable_map = !this.dash_enable_map;
     this.socket.emit("toggle_map", { dash_enable_map: this.dash_enable_map });
+  }
+
+  sendManualEdits(edits) {
+    this.socket.emit("manual_edits", edits);
   }
 
   connect(o) {
