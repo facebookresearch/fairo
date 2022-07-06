@@ -374,19 +374,19 @@ class Navigation(object):
 
                 start_x, start_y, agent_angle = *self.slam.robot2map(pose[:2]), pose[2]
                 line_length = map_size
-                median_col = np.median(np.nonzero(cat_frame)[0])
+                median_col = np.median(np.nonzero(cat_frame)[1])
                 frame_angle = np.deg2rad(-(median_col / frame_width * hfov - hfov / 2))
                 angle = agent_angle + frame_angle
 
                 print()
                 print(f"step {low_level_step}")
                 print("cat_frame.shape", cat_frame.shape)
-                print("median_row", np.median(np.nonzero(cat_frame)[1]))
-                print("min_row", np.nonzero(cat_frame)[1].min())
-                print("max_row", np.nonzero(cat_frame)[1].max())
-                print("median_col", np.median(np.nonzero(cat_frame)[0]))
-                print("min_col", np.nonzero(cat_frame)[0].min())
-                print("max_col", np.nonzero(cat_frame)[0].max())
+                print("median_row", np.median(np.nonzero(cat_frame)[0]))
+                print("min_row", np.nonzero(cat_frame)[0].min())
+                print("max_row", np.nonzero(cat_frame)[0].max())
+                print("median_col", np.median(np.nonzero(cat_frame)[1]))
+                print("min_col", np.nonzero(cat_frame)[1].min())
+                print("max_col", np.nonzero(cat_frame)[1].max())
                 print("agent_angle", np.rad2deg(agent_angle))
                 print("frame_angle", np.rad2deg(frame_angle))
                 print("angle", np.rad2deg(angle))

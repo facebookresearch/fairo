@@ -223,6 +223,7 @@ class RemoteHelloRealsense(object):
             np.expand_dims(rgb[:, :, ::-1], 0), np.expand_dims(depth, 0)
         )
         semantics, semantics_vis = semantics[0], semantics_vis[0]
+        unfiltered_semantics = semantics
 
         # given RGB and depth are rotated after the point cloud creation,
         # we rotate them back here to align to the point cloud
@@ -230,7 +231,6 @@ class RemoteHelloRealsense(object):
         semantics = np.rot90(semantics, k=1, axes=(0, 1))
 
         # apply the same depth filter to semantics as we applied to the point cloud
-        unfiltered_semantics = semantics
         semantics = semantics.reshape(-1, self.num_sem_categories)
         valid = (depth > 0).flatten()
         semantics = semantics[valid]
