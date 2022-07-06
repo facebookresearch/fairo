@@ -459,7 +459,10 @@ class Build(Task):
             interesting, player_placed, agent_placed = agent.perception_modules[
                 "low_level"
             ].mark_blocks_with_env_change(
-                target, (0, 0), agent.low_level_data["boring_blocks"], agent_placed=True,
+                target,
+                (0, 0),
+                agent.low_level_data["boring_blocks"],
+                agent_placed=True,
             )
             agent.memory.maybe_add_block_to_memory(
                 interesting, player_placed, agent_placed, target, (0, 0)
@@ -514,7 +517,10 @@ class Build(Task):
         interesting, player_placed, agent_placed = agent.perception_modules[
             "low_level"
         ].mark_blocks_with_env_change(
-            target, tuple(idm), agent.low_level_data["boring_blocks"], agent_placed=True,
+            target,
+            tuple(idm),
+            agent.low_level_data["boring_blocks"],
+            agent_placed=True,
         )
         agent.memory.maybe_add_block_to_memory(
             interesting, player_placed, agent_placed, target, tuple(idm)
