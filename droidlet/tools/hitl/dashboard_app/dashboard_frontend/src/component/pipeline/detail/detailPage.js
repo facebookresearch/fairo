@@ -80,7 +80,7 @@ const DetailPage = (props) => {
 
         if (job[1].STATUS) {
             // running or finished
-            return <Button type="link" value={jobName}><Typography.Text><Link to={jobKey.toLocaleLowerCase()}>{jobName}</Link></Typography.Text></Button>;
+            return <Button type="primary" value={jobName}><Link to={jobKey.toLocaleLowerCase()}>{jobName}</Link></Button>;
         } else {
             return <Typography.Text>{jobName}</Typography.Text>;
         }
@@ -122,7 +122,7 @@ const DetailPage = (props) => {
                         <Link to="../" state={{ label: TAB_ITEMS.RUNS.label, key: TAB_ITEMS.RUNS.key }}>
                             Back to View All
                         </Link>
-                    </Button>
+                    </Button> 
                 </div>
             </div> :
             <Spin />

@@ -1,3 +1,8 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+Detail info of a job. 
+*/
 import { Button, Card, Descriptions, List, Spin, Typography } from "antd";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";

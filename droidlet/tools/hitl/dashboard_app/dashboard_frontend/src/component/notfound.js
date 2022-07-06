@@ -1,3 +1,8 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+Not found page.
+*/
 import { FrownTwoTone } from "@ant-design/icons";
 import { Card, Layout, Typography } from "antd";
 import { Content } from "antd/lib/layout/layout";

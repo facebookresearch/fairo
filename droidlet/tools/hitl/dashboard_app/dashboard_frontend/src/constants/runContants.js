@@ -1,3 +1,8 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+Constants used for the run detial components.
+*/
 export const METADATA_CONSTANTS = {
     "BATCH_ID": { label: "Batch ID", span: 1},
     "NAME": { label: "Name", span: 1},
