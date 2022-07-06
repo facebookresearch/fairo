@@ -1,10 +1,10 @@
 # Dashboard App for HITL
-Updated July 5 by Chuxi.
+Updated July 6 by Chuxi.
 
 This is a Dashboard app prototype for the HITL system.
 
 ## Update Note
-- July 5: 
+- July 6: 
     - Added detail page to show detail infomation of a pipeline run (specified by the batch_id)
     - Added a get all sessions related to a batch id backend API. 
 - Demo:
