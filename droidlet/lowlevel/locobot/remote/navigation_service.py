@@ -325,8 +325,10 @@ class Navigation(object):
                     "starting go_to_absolute to reach it"
                 )
                 goal_map = cat_sem_map == 1
+
                 if visualize:
                     self.vis.set_location_goal(goal_map)
+
                 _, goal_reached = self.go_to_absolute(
                     goal_map=goal_map,
                     distance_threshold=0.5,
@@ -334,6 +336,7 @@ class Navigation(object):
                     steps=50,
                     visualize=visualize,
                 )
+                break
 
             elif (cat_frame == 1).sum() > 0:
                 # Else if an instance of the object goal category is detected in
@@ -375,9 +378,9 @@ class Navigation(object):
                 frame_angle = np.deg2rad(-(median_col / frame_width * hfov - hfov / 2))
                 angle = agent_angle + frame_angle
 
-                print("agent_angle", agent_angle)
-                print("frame_angle", frame_angle)
-                print("angle", angle)
+                print("agent_angle", np.rad2deg(agent_angle))
+                print("frame_angle", np.rad2deg(frame_angle))
+                print("angle",  np.rad2deg(angle))
 
                 end_y = start_y + line_length * math.sin(angle)
                 end_x = start_x + line_length * math.cos(angle)
@@ -388,14 +391,6 @@ class Navigation(object):
 
                 if visualize:
                     self.vis.set_location_goal(goal_map)
-
-                self.go_to_absolute(
-                    goal_map=goal_map,
-                    distance_threshold=0.5,
-                    angle_threshold=30,
-                    steps=1,
-                    visualize=visualize,
-                )
 
             elif exploration_method == "learned":
                 # Else if the object goal category is not present in the local map,
@@ -421,6 +416,8 @@ class Navigation(object):
                     )
                     goal_in_global_map = np.clip(goal_in_global_map, 0, self.map_size - 1)
                     goal_in_world = self.slam.map2robot(goal_in_global_map)
+                    goal_map = np.zeros((self.map_size, self.map_size))
+                    goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
 
                     if debug:
                         print("goal_action:       ", goal_action)
@@ -431,24 +428,14 @@ class Navigation(object):
 
                     print(
                         f"[navigation] High-level step {high_level_step}: No {object_goal} in the semantic map, "
-                        f"starting a go_to_absolute {(*goal_in_world, 0)} predicted by the learned policy "
-                        "to find one"
+                        f"starting a go_to_absolute predicted by the learned policy to find one"
                     )
+
                     if visualize:
-                        goal_map = np.zeros((self.map_size, self.map_size))
-                        goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
                         self.vis.set_location_goal(goal_map)
 
                 else:
                     low_level_steps_with_goal_remaining -= 1
-
-                self.go_to_absolute(
-                    goal=(*goal_in_world, 0),
-                    distance_threshold=0.5,
-                    angle_threshold=30,
-                    steps=1,
-                    visualize=visualize,
-                )
 
             elif exploration_method == "frontier":
                 # ... or frontier exploration (goal = unexplored area)
@@ -483,13 +470,13 @@ class Navigation(object):
                 else:
                     low_level_steps_with_goal_remaining -= 1
 
-                self.go_to_absolute(
-                    goal_map=goal_map,
-                    distance_threshold=0.5,
-                    angle_threshold=30,
-                    steps=1,
-                    visualize=visualize,
-                )
+            self.go_to_absolute(
+                goal_map=goal_map,
+                distance_threshold=0.5,
+                angle_threshold=30,
+                steps=1,
+                visualize=visualize,
+            )
 
         self.vis.record_aggregate_metrics(last_pose=self.robot.get_base_state())
 
