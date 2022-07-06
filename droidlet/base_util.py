@@ -18,8 +18,8 @@ Hole = Tuple[List[XYZ], IDM]
 T = TypeVar("T")  # generic type
 
 """FIXME!!!!!!  make all these dicts all through code"""
-Pos = namedtuple("pos", "x, y, z", defaults=(None,) * 3)
-Look = namedtuple("look", "yaw, pitch")
+Pos = namedtuple("Pos", "x, y, z", defaults=(None,) * 3)
+Look = namedtuple("Look", "yaw, pitch")
 Player = namedtuple("Player", "entityId, name, pos, look")
 
 
@@ -77,10 +77,10 @@ def shasum_file(path):
     """Return shasum of the file at a given path"""
     sha = hashlib.sha1()
     with open(path, "rb") as f:
-        block = f.read(2**16)
+        block = f.read(2 ** 16)
         while len(block) != 0:
             sha.update(block)
-            block = f.read(2**16)
+            block = f.read(2 ** 16)
     return binascii.hexlify(sha.digest())
 
 
