@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 
+
 class ManualEditsPerception:
     """Perceive the world at a given frequency and send updates back to the agent
 
@@ -17,7 +18,7 @@ class ManualEditsPerception:
         self.agent = agent
         self.memory = agent.memory  # NOTE: remove this once done
         self.perceive_freq = perceive_freq
-        self.edits = {} # dictionary with (memid: <dictionary_of_edits>) k-v pairs
+        self.edits = {}  # dictionary with (memid: <dictionary_of_edits>) k-v pairs
 
     def perceive(self, force=False):
         """
@@ -28,28 +29,28 @@ class ManualEditsPerception:
             force (boolean): set to True to run all perceptual heuristics right now,
                 as opposed to waiting for perceive_freq steps (default: False)
         """
-        
+
         if self.edits:
             for memid in self.edits.keys():
-                toEdit = {attr: val for attr, val in self.edits[memid].items() if attr not in ("location", "pos")}
+                toEdit = {
+                    attr: val
+                    for attr, val in self.edits[memid].items()
+                    if attr not in ("location", "pos")
+                }
                 if toEdit:
-                    cmd = "UPDATE ReferenceObjects SET " + "=?, ".join(toEdit.keys()) + "=? WHERE uuid=?"
-                    self.memory.db_write(
-                        cmd, 
-                        *toEdit.values(), 
-                        memid
+                    cmd = (
+                        "UPDATE ReferenceObjects SET "
+                        + "=?, ".join(toEdit.keys())
+                        + "=? WHERE uuid=?"
                     )
+                    self.memory.db_write(cmd, *toEdit.values(), memid)
 
                 if "pos" in self.edits[memid].keys():
                     # spatial data is iterable, needs to be handled differently
                     newPos = self.edits[memid]["pos"]
                     assert len(newPos) == 3
                     cmd = "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?"
-                    self.memory.db_write(
-                        cmd,
-                        newPos[0], newPos[1], newPos[2],
-                        memid
-                    )
+                    self.memory.db_write(cmd, newPos[0], newPos[1], newPos[2], memid)
 
         return
 
