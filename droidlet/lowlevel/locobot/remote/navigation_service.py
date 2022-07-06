@@ -10,6 +10,7 @@ import Pyro4
 from rich import print
 from droidlet.lowlevel.pyro_utils import safe_call
 import skimage.morphology
+import cv2
 
 from slam_pkg.utils import depth_util as du
 from visualization.ogn_vis import ObjectGoalNavigationVisualization
@@ -372,30 +373,11 @@ class Navigation(object):
                 hfov = 42
                 frame_width = 480
 
-                # TODO The angle is inverted - is it just frame_angle or both frame_angle and agent_angle?
-                # with
-                # agent_angle = pose[2]
-                # frame_angle = np.deg2rad(-(median_col / frame_width * hfov - hfov / 2))
-
                 start_x, start_y, agent_angle = *self.slam.robot2map(pose[:2]), -pose[2]
                 line_length = map_size
                 median_col = np.median(np.nonzero(cat_frame)[1])
                 frame_angle = np.deg2rad(median_col / frame_width * hfov - hfov / 2)
                 angle = agent_angle + frame_angle
-
-                print()
-                print(f"step {low_level_step}")
-                print("cat_frame.shape", cat_frame.shape)
-                print("median_row", np.median(np.nonzero(cat_frame)[0]))
-                print("min_row", np.nonzero(cat_frame)[0].min())
-                print("max_row", np.nonzero(cat_frame)[0].max())
-                print("median_col", np.median(np.nonzero(cat_frame)[1]))
-                print("min_col", np.nonzero(cat_frame)[1].min())
-                print("max_col", np.nonzero(cat_frame)[1].max())
-                print("agent_angle", np.rad2deg(agent_angle))
-                print("frame_angle", np.rad2deg(frame_angle))
-                print("angle", np.rad2deg(angle))
-                print()
 
                 end_y = start_y + line_length * math.sin(angle)
                 end_x = start_x + line_length * math.cos(angle)
@@ -404,24 +386,29 @@ class Navigation(object):
                 direction_frontier_map = frontier_map * direction_map
                 goal_map = direction_frontier_map
 
-                import cv2
-
-                cv2.imwrite(
-                    f"debug/cat_frame_{low_level_step}.png",
-                    (cat_frame * 255).astype(np.uint8),
-                )
-                cv2.imwrite(
-                    f"debug/direction_map_{low_level_step}.png",
-                    (direction_map.T * 255).astype(np.uint8),
-                )
-                cv2.imwrite(
-                    f"debug/frontier_map_{low_level_step}.png",
-                    (frontier_map.T * 255).astype(np.uint8),
-                )
-                cv2.imwrite(
-                    f"debug/direction_frontier_map_{low_level_step}.png",
-                    (direction_frontier_map.T * 255).astype(np.uint8),
-                )
+                if debug:
+                    print()
+                    print(f"Step {low_level_step}")
+                    print("agent_angle", np.rad2deg(agent_angle))
+                    print("frame_angle", np.rad2deg(frame_angle))
+                    print("angle", np.rad2deg(angle))
+                    print()
+                    cv2.imwrite(
+                        f"debug/cat_frame_{low_level_step}.png",
+                        (cat_frame * 255).astype(np.uint8),
+                    )
+                    cv2.imwrite(
+                        f"debug/direction_map_{low_level_step}.png",
+                        (direction_map.T * 255).astype(np.uint8),
+                    )
+                    cv2.imwrite(
+                        f"debug/frontier_map_{low_level_step}.png",
+                        (frontier_map.T * 255).astype(np.uint8),
+                    )
+                    cv2.imwrite(
+                        f"debug/direction_frontier_map_{low_level_step}.png",
+                        (direction_frontier_map.T * 255).astype(np.uint8),
+                    )
 
                 if visualize:
                     self.vis.set_location_goal(goal_map)
