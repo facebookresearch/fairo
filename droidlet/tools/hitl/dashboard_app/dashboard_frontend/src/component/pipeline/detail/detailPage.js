@@ -16,7 +16,7 @@ import {
     LoadingOutlined,
     CaretRightOutlined
 } from '@ant-design/icons';
-import { Link, Outlet, useParams } from "react-router-dom";
+import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
 import { toFirstCapital } from "../../../utils/textUtils";
 import { TAB_ITEMS } from "../../../constants/pipelineConstants";
 import MetaInfoDescription from "./metaInfoDescription";
@@ -32,9 +32,13 @@ const DetailPage = (props) => {
     const batch_id = useParams().batch_id;
     const [runInfo, setRunInfo] = useState(null);
     const [jobs, setJobs] = useState(null);
+    const navigate = useNavigate();
 
     const handleReceivedRunInfo = useCallback((data) => {
-        console.log(data);
+        if (data === 404) {
+            // received error code
+            navigate("/notfound");
+        }
         setRunInfo(data);
         setJobs(getJobs(data));
     }, []);
