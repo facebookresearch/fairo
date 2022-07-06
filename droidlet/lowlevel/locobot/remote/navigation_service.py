@@ -402,6 +402,10 @@ class Navigation(object):
                 import cv2
 
                 cv2.imwrite(
+                    f"debug/cat_frame_{low_level_step}.png",
+                    (cat_frame * 255).astype(np.uint8),
+                )
+                cv2.imwrite(
                     f"debug/direction_map_{low_level_step}.png",
                     (direction_map * 255).astype(np.uint8),
                 )
