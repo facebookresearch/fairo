@@ -18,10 +18,11 @@ const { Search } = Input;
 const {Option} = Select;
 const {RangePicker} = DatePicker;
 
-const timeStrComp = (one, other) => {
-    // compare two time (format in string)
+const timeComp = (one, other) => {
+    // get datetime object
     const one_dt = Date.parse(one);
     const other_dt = Date.parse(other);
+    // compare time
     if (one_dt === other_dt) {
         return 0;
     } else {
@@ -70,11 +71,11 @@ const runListCols = [
     }, {
         title: 'Start Time',
         dataIndex: 'start_time',
-        sorter: (one, other) => (timeStrComp(one.start_time, other.start_time)),
+        sorter: (one, other) => (timeComp(one.start_time, other.start_time)),
     }, {
         title: 'End Time',
         dataIndex: 'end_time',
-        sorter: (one, other) => (timeStrComp(one.end_time, other.end_time)),
+        sorter: (one, other) => (timeComp(one.end_time, other.end_time)),
     }, {
         title: 'Description',
         dataIndex: 'description',
