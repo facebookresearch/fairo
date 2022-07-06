@@ -26,7 +26,6 @@ class DASHBOARD_EVENT(Enum):
     """
     server supported event types, i.e. API types
     """
-
     GET_RUNS = "get_job_list"
     GET_TRACEBACK = "get_traceback_by_id"
     GET_RUN_INFO = "get_run_info_by_id"
@@ -75,6 +74,16 @@ def get_info(batch_id):
         emit(DASHBOARD_EVENT.GET_RUN_INFO.value, error_code)
     emit(DASHBOARD_EVENT.GET_RUN_INFO.value, run_info)
 
+@socketio.on(DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value)
+def get_interaction_sessions(batch_id):
+    """
+    get interaction job sessions list
+    - input: a batch id.
+    - output: if the sessions can be found, return a list of session name, otherwise, return an error message sugesting not found.
+    """
+    print(f"Request received: {DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value}")
+    sessions = get_interaction_sessions_by_id(int(batch_id))
+    emit(DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value, sessions)
 
 @socketio.on(DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value)
 def get_interaction_sessions(batch_id):
