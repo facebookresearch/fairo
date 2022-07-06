@@ -35,15 +35,7 @@ This is a Dashboard app prototype for the HITL system.
         - ![search_demo](https://user-images.githubusercontent.com/51009396/177654353-cf34635d-9571-4666-83c3-b9b33afde9a8.gif)
     - Filter demo:
         - ![filter_demo](https://user-images.githubusercontent.com/51009396/177654387-a660f9ae-c519-4e21-8c4c-07af9aa6cf76.gif)
-- July 5: 
-    - Added detail page to show detail infomation of a pipeline run (specified by the batch_id)
-    - Added a get all sessions related to a batch id backend API. 
-- Demo:
-    - For a batch_id that is associate with detail info, the user will see the following detail page:
-        - ![detail_valid_batch_id](https://user-images.githubusercontent.com/51009396/177655919-693870cc-595c-416e-ac25-651e3cccbeca.gif)
-    - For a batch_id that has no detail info, will redirect to not found page.
-        - ![detail_not_vaild_batch_id](https://user-images.githubusercontent.com/51009396/177655956-c398f669-90af-4a13-bdff-736057ca68cb.gif)
-
+        
 ## Included 
 - Backend: a backend based on flask and socket. Run on localhost:5000 by default.
 - Frontend: a react based frontend - including navigation and NLU pipeline overview page. Default run on localhost:3000.
