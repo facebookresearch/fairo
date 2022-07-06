@@ -65,9 +65,9 @@ class SemanticPredMaskRCNN:
                         depth = depths[i]
                         md = np.median(depth[obj_mask == 1])
                         if md == 0:
-                            # Keep detections further than maximum depth
-                            # filter_mask = np.ones_like(obj_mask, dtype=bool)
-                            filter_mask = np.zeros_like(obj_mask, dtype=bool)
+                            # Restrict detections further than maximum depth
+                            # to only points further than maximum depth
+                            filter_mask = depth != 0
                         else:
                             # Restrict objects to 2m depth
                             filter_mask = (depth >= md + 1.0) | (depth <= md - 1.0)
