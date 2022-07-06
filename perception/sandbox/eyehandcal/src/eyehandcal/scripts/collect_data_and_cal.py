@@ -182,7 +182,8 @@ def main(argv):
 
     corner_data = detect_corners(data, target_idx=args.marker_id)
 
-    num_of_camera=len(corner_data[0]['intrinsics'])
+    intrinsics = corner_data[0]['intrinsics']
+    num_of_camera=len(intrinsics)
     CalibrationResult = namedtuple('CalibrationResult',
                                     field_names=['num_marker_seen', 'stage2_retry', 'pixel_error', 'param', 'proj_func'],
                                     defaults=[None]*5)
