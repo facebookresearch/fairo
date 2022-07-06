@@ -8,7 +8,7 @@ Batach ID and pipeline type needs to be specified by the caller.
 Usage:
 <DetailPage batchId={batchId} pipelineType={pipelineType} />
 */
-import { Button, Collapse, Divider, Timeline, Typography } from "antd";
+import { Button, Collapse, Divider, Spin, Timeline, Typography } from "antd";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
     ClockCircleOutlined,
@@ -34,6 +34,7 @@ const DetailPage = (props) => {
     const [jobs, setJobs] = useState(null);
 
     const handleReceivedRunInfo = useCallback((data) => {
+        console.log(data);
         setRunInfo(data);
         setJobs(getJobs(data));
     }, []);
@@ -48,7 +49,7 @@ const DetailPage = (props) => {
         socket.on("get_run_info_by_id", (data) => handleReceivedRunInfo(data));
     }, [socket, handleReceivedRunInfo]);
 
-    useEffect(() => {console.log(runInfo)}, [runInfo]);
+    useEffect(() => {}, [runInfo]);
 
     const getJobs = (runInfo) => {
         const jobs = Object
@@ -75,9 +76,9 @@ const DetailPage = (props) => {
 
         if (job[1].STATUS) {
             // running or finished
-            return <Button type="link" value={jobName}><Link to={jobKey.toLocaleLowerCase()}>{jobName}</Link></Button>;
+            return <Button type="link" value={jobName}><Typography.Text><Link to={jobKey.toLocaleLowerCase()}>{jobName}</Link></Typography.Text></Button>;
         } else {
-            return <p>{jobName}</p>;
+            return <Typography.Text>{jobName}</Typography.Text>;
         }
     }
 
@@ -98,7 +99,7 @@ const DetailPage = (props) => {
                 </Collapse>
 
                 <Divider />
-                <div style={{ 'display': 'flex' }}>
+                <div style={{ 'display': 'flex', "padding": "0 32px 0 32px" }}>
                     <div style={{ 'width': '160px' }}>
                         <Timeline>
                             {
@@ -120,7 +121,7 @@ const DetailPage = (props) => {
                     </Button>
                 </div>
             </div> :
-            <div>loading</div>
+            <Spin />
         }
     </div>;
 
