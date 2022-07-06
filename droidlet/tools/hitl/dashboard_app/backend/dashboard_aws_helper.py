@@ -100,7 +100,6 @@ def get_run_info_by_id(batch_id: int):
     return json_data, None
 
 
-
 def get_interaction_sessions_by_id(batch_id: int):
     session_list = []
     s3_bucket = s3.Bucket(S3_BUCKET_NAME)
