@@ -186,8 +186,8 @@ class MapBuilder(object):
         # TODO Check that the explored disk fits in the map
         try:
             # radius = 10 => ideal for Habitat
-            # TODO Check that radius=40 works in Fremont apartment
-            #  If it does, decide radius depending on whether we're in Habitat or on robot
+            # radius = 40 => ideal on robot
+            # TODO Make this adaptive
             radius = 40
             explored_disk = skimage.morphology.disk(radius)
             self.semantic_map[
