@@ -57,10 +57,19 @@ service PolymetisControllerServer {
 }
 
 service GripperServer {
+    rpc InitRobotClient(GripperMetadata) returns(Empty) {}
+    rpc GetRobotClientMetadata(Empty) returns(GripperMetadata) {}
+
     rpc GetState(Empty) returns(GripperState) {}
     rpc Goto(GripperCommand) returns(Empty) {}
 
     rpc ControlUpdate(GripperState) returns(GripperCommand) {}
+}
+
+message GripperMetadata {
+  string polymetis_version = 1;
+  int32 hz = 2;
+  string aux_metadata = 3;
 }
 
 message GripperCommand {
@@ -91,18 +100,11 @@ message ControllerChunk {
 }
 
 message RobotClientMetadata {
-  string urdf_file = 1;
+  string polymetis_version = 1;
   int32 hz = 2;
-  repeated float default_Kq = 3;
-  repeated float default_Kqd = 4;
-  bytes default_controller = 5;
-  int32 dof = 6;
-  string ee_link_name = 7;
-  int32 ee_link_idx = 8;
-  repeated float rest_pose = 9;
-  string polymetis_version = 10;
-  repeated float default_Kx = 11;
-  repeated float default_Kxd = 12;
+  int32 dof = 3;
+  bytes default_controller = 4;
+  string aux_metadata = 5;
 }
 
 message RobotState {

@@ -9,6 +9,7 @@ import tempfile
 import threading
 import atexit
 import logging
+import json
 
 import grpc  # This requires `conda install grpcio protobuf`
 import torch
@@ -73,7 +74,9 @@ class BaseRobotInterface:
         self.grpc_connection = PolymetisControllerServerStub(self.channel)
 
         # Get metadata
-        self.metadata = self.grpc_connection.GetRobotClientMetadata(EMPTY)
+        metadata_msg = self.grpc_connection.GetRobotClientMetadata(EMPTY)
+        self.metadata = json.loads(metadata_msg.aux_metadata)
+        self.metadata.hz = metadata_msg.hz
 
         # Check version
         if enforce_version:
@@ -86,6 +89,9 @@ class BaseRobotInterface:
     def __del__(self):
         # Close connection in destructor
         self.channel.close()
+
+    def _parse_metadata(self, metadata):
+        metadata_dict = json.loads(metadata.json_metadata)
 
     @staticmethod
     def _get_msg_generator(scripted_module) -> Generator:

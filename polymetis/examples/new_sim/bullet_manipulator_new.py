@@ -138,21 +138,17 @@ def main(cfg):
     sim = BulletManipulator(cfg.robot_model, gui=cfg.gui)
 
     # Connect to Polymetis sim interface
-    cfg.robot_client.metadata_cfg.robot_model_cfg.robot_description_path = (
-        cfg.robot_model.metadata_urdf_path
-    )  # HACK
-    ps_interface = polysim.SimInterface(cfg.robot_client.metadata_cfg, cfg.hz)
-    ps_interface.register_control_callback(
-        server_ip=cfg.arm.ip,
-        server_port=cfg.arm.port,
-        server_type=polysim.ControlType.ARM,
+    ps_interface = polysim.SimInterface(cfg.hz)
+    ps_interface.register_arm_control(
+        server_address=f"{cfg.arm.ip}:{cfg.arm.port}",
         state_callback=sim.get_arm_state,
         action_callback=sim.apply_arm_control,
+        default_Kq=cfg.robot_client.metadata_cfg.default_Kq,
+        default_Kqd=cfg.robot_client.metadata_cfg.default_Kqd,
+        dof=7,
     )
-    ps_interface.register_control_callback(
-        server_ip=cfg.gripper.ip,
-        server_port=cfg.gripper.port,
-        server_type=polysim.ControlType.GRIPPER,
+    ps_interface.register_gripper_control(
+        server_address=f"{cfg.gripper.ip}:{cfg.gripper.port}",
         state_callback=sim.get_gripper_state,
         action_callback=sim.apply_gripper_control,
     )
