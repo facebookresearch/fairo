@@ -5,6 +5,7 @@
 
 import numpy as np
 import hydra
+from omegaconf import OmegaConf
 from omegaconf.dictconfig import DictConfig
 import pybullet
 from pybullet_utils.bullet_client import BulletClient
@@ -138,6 +139,7 @@ def main(cfg):
     sim = BulletManipulator(cfg.robot_model, gui=cfg.gui)
 
     # Connect to Polymetis sim interface
+    metadata_cfg = OmegaConf.to_container(cfg.robot_client.metadata_cfg)
     ps_interface = polysim.SimInterface(cfg.hz)
     ps_interface.register_arm_control(
         server_address=f"{cfg.arm.ip}:{cfg.arm.port}",
@@ -146,6 +148,7 @@ def main(cfg):
         default_Kq=cfg.robot_client.metadata_cfg.default_Kq,
         default_Kqd=cfg.robot_client.metadata_cfg.default_Kqd,
         dof=7,
+        aux_metadata=metadata_cfg,
     )
     ps_interface.register_gripper_control(
         server_address=f"{cfg.gripper.ip}:{cfg.gripper.port}",

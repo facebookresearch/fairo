@@ -128,7 +128,6 @@ class SimInterface:
         # Connect to service
         channel = grpc.insecure_channel(server_address)
         connection = polymetis_pb2_grpc.GripperServerStub(channel)
-        print(metadata)
         connection.InitRobotClient(metadata)
 
         # Register callbakcs
