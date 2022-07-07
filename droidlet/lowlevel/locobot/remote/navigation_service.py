@@ -279,6 +279,7 @@ class Navigation(object):
         debug=False,
         visualize=True,
         max_steps=400,
+        start_with_panorama=True
     ):
         assert exploration_method in ["learned", "frontier"]
         assert (
@@ -306,6 +307,11 @@ class Navigation(object):
         high_level_step = 0
         low_level_step = 0
         low_level_steps_with_goal_remaining = 0
+        if start_with_panorama:
+            panorama_steps_remaining = 6
+            panorama_yaws = np.arange(1, panorama_steps_remaining + 1)[::-1]
+        else:
+            panorama_steps_remaining = 0
 
         while not goal_reached and low_level_step < max_steps:
             low_level_step += 1
@@ -321,6 +327,7 @@ class Navigation(object):
             if (cat_sem_map == 1).sum() > 0:
                 # If the object goal category is present in the local map, go to it
                 high_level_step += 1
+                panorama_steps_remaining = 0
                 print(
                     f"[navigation] High-level step {high_level_step}: Found a {object_goal} in the local map, "
                     "starting go_to_absolute to reach it"
@@ -344,6 +351,7 @@ class Navigation(object):
                 # the frame, go in its direction
                 high_level_step += 1
                 low_level_steps_with_goal_remaining = 10
+                panorama_steps_remaining = 0
                 print(
                     f"[navigation] High-level step {high_level_step}: Found a {object_goal} in the frame, "
                     "starting go_to_absolute in its direction"
@@ -412,6 +420,19 @@ class Navigation(object):
 
                 if visualize:
                     self.vis.set_location_goal(goal_map)
+
+            elif panorama_steps_remaining > 0:
+                # Else if we're starting with a panorama and it's not done yet, take
+                # the next step
+                # TODO In Habitat, the agent turns too fast to update the semantic map
+                panorama_steps_remaining -= 1
+                yaw = panorama_yaws[panorama_steps_remaining]
+                print()
+                print("panorama_steps_remaining", panorama_steps_remaining)
+                print("yaw", yaw)
+                print()
+                self.go_to_absolute(goal=(0, 0, yaw), distance_threshold=0.5, angle_threshold=30)
+                continue
 
             elif exploration_method == "learned":
                 # Else if the object goal category is not present in the local map,

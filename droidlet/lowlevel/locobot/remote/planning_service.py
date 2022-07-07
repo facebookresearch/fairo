@@ -72,10 +72,15 @@ class Planner(object):
         # against robot initial state (if it wasn't zeros)
         stg_real = self.slam.map2robot(stg)
 
-        rotation_angle = np.arctan2(
-            stg_real[1] - robot_location[1], stg_real[0] - robot_location[0]
-        )
-        target_goal = (stg_real[0], stg_real[1], rotation_angle)
+        if goal_map is not None:
+            rotation_angle = np.arctan2(
+                stg_real[1] - robot_location[1], stg_real[0] - robot_location[0]
+            )
+            target_goal = (stg_real[0], stg_real[1], rotation_angle)
+        else:
+            # Hack to get panorama start working - this is probably not the right thing
+            # to do in general
+            target_goal = (stg_real[0], stg_real[1], goal[2])
 
         return target_goal
 
@@ -116,6 +121,7 @@ class Planner(object):
         if len(robot_location) == 3 and len(goal) == 3:
             angle = robot_location[2] - goal[2]
             abs_angle = math.fabs(math.degrees(angle)) % 360
+            abs_angle = min(abs_angle, 360 - abs_angle)
 
             within_threshold = (
                 diff[0] < distance_threshold
