@@ -279,7 +279,7 @@ class Navigation(object):
         debug=False,
         visualize=True,
         max_steps=400,
-        start_with_panorama=True
+        start_with_panorama=True,
     ):
         assert exploration_method in ["learned", "frontier"]
         assert (
