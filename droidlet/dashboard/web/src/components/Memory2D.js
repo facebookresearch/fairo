@@ -43,6 +43,7 @@ class Memory2D extends React.Component {
       table_data: null,
       table_visible: false,
       table_coords: [0, 0],
+      map_update_count: 0,
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -234,10 +235,6 @@ class Memory2D extends React.Component {
     let { objects } = memory;
     let { xmin, xmax, ymin, ymax } = this.state;
 
-    let bot_x = bot_data.pos[2];
-    let bot_y = -bot_data.pos[0];
-    let bot_yaw = bot_data.yaw;
-
     if (height === 0 && width === 0) {
       // return early for performance
       return (
@@ -251,87 +248,70 @@ class Memory2D extends React.Component {
       return <p>Map Disabled</p>;
     }
 
-    bot_x = parseInt(((bot_x - xmin) / (xmax - xmin)) * width);
-    bot_y = parseInt(((bot_y - ymin) / (ymax - ymin)) * height);
-    bot_y = height - bot_y;
-
     let renderedObjects = [];
     let mapBoundary = [];
     let j = 0;
 
-    // Visualize map
+    let objectPosPool = {};
+
+    // Pool obstacles by position
     if (obstacle_map) {
       obstacle_map.forEach((obj) => {
         let color = "#827f7f";
         let x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
         let y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
-        renderedObjects.push(
-          // FIXME: may need to also add mobile support? by using onTap/onTouchEnd
-          <Circle
-            key={j++}
-            radius={2}
-            x={x}
-            y={y}
-            fill={color}
-            onClick={(e) => {
-              this.handleObjClick("obstacle_map", x, y, {
-                memid: "don't edit",
-                x: obj[0],
-                y: obj[1],
-              });
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.setRadius(5);
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.setRadius(2);
-            }}
-          />
-        );
+        let map_pos = "" + x + "," + y;
+        let poolData = {
+          type: "obstacle_map",
+          radius: 2,
+          radiusFocused: 5,
+          color: color,
+          data: {
+            memid: "don't edit",
+            x: obj[0],
+            y: obj[1],
+          },
+        };
+        if (!(map_pos in objectPosPool)) {
+          objectPosPool[map_pos] = [poolData];
+        } else {
+          objectPosPool[map_pos].push(poolData);
+        }
       });
     }
 
-    // Put detected objects from memory on map
+    // Pool detected objects from memory by position
     detections_from_memory.forEach((obj) => {
-      let obj_id = obj.obj_id;
       let xyz = obj.pos;
       let color = "#0000FF";
-      let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
-      let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
-      y = height - y;
-      renderedObjects.push(
-        <Circle
-          key={obj.memid}
-          radius={3}
-          x={x}
-          y={y}
-          fill={color}
-          onClick={(e) => {
-            this.handleObjClick("detection_from_memory", x, y, obj);
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.setRadius(6);
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.setRadius(3);
-          }}
-        />
-      );
+      let [map_x, map_y] = this.convertCoordinate(xyz);
+      let map_pos = "" + map_x + "," + map_y;
+      let poolData = {
+        type: "detection_from_memory",
+        radius: 6,
+        radiusFocused: 9,
+        color: color,
+        data: obj,
+      };
+      if (!(map_pos in objectPosPool)) {
+        objectPosPool[map_pos] = [poolData];
+      } else {
+        objectPosPool[map_pos].push(poolData);
+      }
     });
 
+    // Put objects from undefined memory on map?
     if (objects !== undefined && objects.forEach !== undefined) {
       objects.forEach((obj, key, map) => {
         let color = colorScheme[Math.abs(hashCode(obj.label)) % 10];
         let xyz = obj.xyz;
-        let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
-        let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
-        y = height - y;
+        let [map_x, map_y] = this.convertCoordinate(xyz);
         renderedObjects.push(
           <Circle
             key={j++}
             radius={3}
-            x={x}
-            y={y}
+            x={map_x}
+            y={map_y}
             fill={color}
             onMouseOver={(e) => {
               e.currentTarget.setRadius(6);
@@ -341,14 +321,88 @@ class Memory2D extends React.Component {
             }}
           />
         );
-        // renderedObjects.push(<Text key={j++} text={obj.label} x={x} y={y} fill={color} fontSize={10} />);
+        renderedObjects.push(
+          <Text
+            key={j++}
+            text={obj.label}
+            x={x}
+            y={y}
+            fill={color}
+            fontSize={10}
+          />
+        );
       });
     }
+
+    // Use pooling to plot points/groups on map
+    Object.entries(objectPosPool).forEach((entry) => {
+      let [map_pos, objs_at_pos] = entry;
+      let [map_x, map_y] = map_pos.split(",");
+      map_x = parseInt(map_x);
+      map_y = parseInt(map_y);
+      console.log(map_x, map_y, objs_at_pos);
+      if (objs_at_pos.length === 1) {
+        // only one object at map position
+        let obj = objs_at_pos[0];
+        renderedObjects.push(
+          <Circle
+            key={obj.data.memid}
+            radius={obj.radius}
+            x={map_x}
+            y={map_y}
+            fill={obj.color}
+            onClick={(e) => {
+              this.handleObjClick(obj.type, map_x, map_y, obj.data);
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.setRadius(obj.radiusFocused);
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.setRadius(obj.radius);
+            }}
+          />
+        );
+      } else {
+        // several objects overlayed at map position
+        let overlayedObjects = [];
+        objs_at_pos.forEach((obj) => {
+          overlayedObjects.push(
+            <Circle
+              key={obj.data.memid}
+              radius={obj.radius}
+              fill={obj.color}
+              onClick={(e) => {
+                this.handleObjClick(obj.type, map_x, map_y, obj.data);
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.setRadius(obj.radiusFocused);
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.setRadius(obj.radius);
+              }}
+            />
+          );
+        });
+        renderedObjects.push(
+          <Group key={map_pos} x={map_x} y={map_y}>
+            {overlayedObjects}
+            <Text
+              text={objs_at_pos.length}
+              fontFamily="Segoe UI"
+              fontSize={12}
+              align="center"
+            />
+          </Group>
+        );
+      }
+    });
 
     /* bot marker
       a circle to show position and
       a line to show orientation
     */
+    let [bot_x, bot_y] = this.convertCoordinate(bot_data.pos);
+    let bot_yaw = bot_data.yaw;
     renderedObjects.push(
       <Group
         key={bot_data.memid}
@@ -587,6 +641,13 @@ class Memory2D extends React.Component {
       <div
         ref={this.outer_div}
         style={{ height: "100%", width: "100%", position: "relative" }}
+        onKeyDown={(e) => {
+          console.log(e.key, "down");
+        }}
+        onKeyUp={(e) => {
+          console.log(e.key, "up");
+        }}
+        tabIndex="0"
       >
         <div style={{ position: "absolute" }}>
           <Stage
@@ -612,7 +673,12 @@ class Memory2D extends React.Component {
             <Layer className="gridLayer">{gridLayer}</Layer>
             <Layer className="coordinateAxesLayer">{coordinateAxesLayer}</Layer>
             <Layer className="mapBoundary">{mapBoundary}</Layer>
-            <Layer className="renderedObjects">{renderedObjects}</Layer>
+            <Layer
+              className="renderedObjects"
+              key={this.state.map_update_count}
+            >
+              {renderedObjects}
+            </Layer>
             <Layer>
               <Text
                 text={tooltip}

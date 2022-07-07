@@ -1102,6 +1102,7 @@ class StateManager {
           bot_xyz: [res.x, res.y, res.yaw],
           bot_data: res.bot_data,
           obstacle_map: res.map,
+          map_update_count: ref.state.map_update_count + 1,
         });
       }
     });
