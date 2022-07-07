@@ -425,12 +425,13 @@ class Navigation(object):
                 # Else if we're starting with a panorama and it's not done yet, take
                 # the next step
                 # TODO In Habitat, the agent turns too fast to update the semantic map
+                high_level_step += 1
+                print(
+                    f"[navigation] High-level step {high_level_step}: "
+                    f"{panorama_steps_remaining} panorama steps remaining"
+                )
                 panorama_steps_remaining -= 1
                 yaw = panorama_yaws[panorama_steps_remaining]
-                print()
-                print("panorama_steps_remaining", panorama_steps_remaining)
-                print("yaw", yaw)
-                print()
                 self.go_to_absolute(goal=(0, 0, yaw), distance_threshold=0.5, angle_threshold=30)
                 continue
 
