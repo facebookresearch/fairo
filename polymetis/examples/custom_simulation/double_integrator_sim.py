@@ -32,7 +32,7 @@ class DoubleIntegratorSim:
 
     def step(self):
         acc = self.f_buffer / self.m
-        self.x += self.v * self.dt + 0.5 * acc * self.dt ** 2
+        self.x += self.v * self.dt + 0.5 * acc * self.dt**2
         self.v += acc * self.dt
 
 
