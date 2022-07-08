@@ -9,6 +9,7 @@ import { Link, useOutletContext, useParams } from "react-router-dom";
 import { JOB_STATUS_CONSTANTS, JOB_STATUS_ORDER } from "../../../../constants/runContants";
 import { SocketContext } from "../../../../context/socket";
 import { toFirstCapital } from "../../../../utils/textUtils";
+import LogDisplayCmp from "../../../common/logDisplay";
 
 const JobInfoCard = (props) => {
     const batchId = useParams().batch_id;
@@ -39,8 +40,6 @@ const JobInfoCard = (props) => {
         socket.on("get_interaction_sessions_by_id", (data) => handleRecievedSessionist(data));
         socket.on("get_interaction_session_log", (data) => handleRecivedSessionLog(data));
     }, [socket, handleRecievedSessionist, handleRecivedSessionLog])
-
-
 
     const getDesciptionText = (o) => {
         if (!o[1]) {
@@ -149,7 +148,7 @@ const JobInfoCard = (props) => {
                     height: "50vh",
                 }}
             >
-                {sessionLog ? sessionLog : <Spin />}
+                {sessionLog ? <LogDisplayCmp log={sessionLog}/> : <Spin />}
             </div>
         </Modal>
         {/* session modal ends */}
