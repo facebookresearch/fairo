@@ -142,7 +142,7 @@ class Memory2D extends React.Component {
     let ret = { position: "absolute" };
     let final_coords = [tc[0] + dc[0], Math.min(h, w) - (tc[1] + dc[1])];
     let final_pos = ["left", "bottom"];
-    let table_dims = [200, 61 * Object.keys(td).length + 100];
+    let table_dims = [226, 42 * (Object.keys(td).length - 2) + 157];
     if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
       final_coords[1] = Math.min(h, w) - final_coords[1];
       final_pos[1] = "top";
@@ -275,6 +275,7 @@ class Memory2D extends React.Component {
             fill={color}
             onClick={(e) => {
               this.handleObjClick("obstacle_map", x, y, {
+                memid: "don't edit",
                 x: obj[0],
                 y: obj[1],
               });
@@ -569,20 +570,17 @@ class Memory2D extends React.Component {
     coordinateAxesLayer.push(axesX, axesZ, notches);
 
     // table props
-    const onTableDone = (e) => {
+    const onTableClose = (e) => {
       this.setState({ table_visible: false });
     };
-    const rows = [];
-    if (table_visible) {
-      console.assert(table_data !== null, "table_data should be initialized");
-      let data = Object.entries(table_data);
-      data.forEach((entry) =>
-        rows.push({
-          attribute: entry[0].toString(),
-          value: entry[1].toString(),
-        })
-      );
-    }
+    const onTableSubmit = (em) => {
+      let numChanged = Object.keys(em).reduce((numChanged, attr) => {
+        if (em[attr].status === "changed") numChanged += 1;
+        return numChanged;
+      }, 0);
+      if (numChanged > 0) this.props.stateManager.sendManualEdits(em);
+      this.setState({ table_visible: false });
+    };
 
     // final render
     return (
@@ -636,7 +634,11 @@ class Memory2D extends React.Component {
               table_data
             )}
           >
-            <MemoryMapTable rows={rows} onTableDone={onTableDone} />
+            <MemoryMapTable
+              data={table_data}
+              onTableClose={onTableClose}
+              onTableSubmit={onTableSubmit}
+            />
           </div>
         )}
       </div>
