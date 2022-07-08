@@ -8,7 +8,7 @@ This file include a flask server that is the backend of the HITL dashboard app.
 from enum import Enum
 import json
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
-    get_interaction_session_log,
+    get_interaction_session_log_by_id,
     get_interaction_sessions_by_id,
     get_job_list,
     get_run_info_by_id,
@@ -101,7 +101,11 @@ def get_interaction_session_log(id_info_json):
     """
     print(f"Request received: {DASHBOARD_EVENT.GET_INTERACTION_SESSION_LOG.value}")
     id_info_obj = json.loads(id_info_json)
-    log, error_code = get_interaction_session_log(
+    batch_id = id_info_obj["batch_id"]
+    session_id = id_info_obj["session_id"]
+    print(f"batch id: {batch_id}, session id: {session_id}")
+
+    log, error_code = get_interaction_session_log_by_id(
         int(id_info_obj["batch_id"]), id_info_obj["session_id"]
     )
     if error_code:

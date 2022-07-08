@@ -113,7 +113,7 @@ def get_interaction_sessions_by_id(batch_id: int):
     return session_list
 
 
-def get_interaction_session_log(batch_id: int, session_id: str):
+def get_interaction_session_log_by_id(batch_id: int, session_id: str):
     """
     helper method to reterive session log
     """
