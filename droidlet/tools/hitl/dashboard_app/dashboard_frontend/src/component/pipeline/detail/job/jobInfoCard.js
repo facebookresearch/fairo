@@ -49,7 +49,7 @@ const JobInfoCard = (props) => {
             return o[1] ? "Yes" : "No";
         }
         // get session log if has the session log 
-        if (o[0] === "NUM_SESSION_LOG") {
+        if (o[0] === "NUM_SESSION_LOG" && sessionList.length === 0) {            
             socket.emit("get_interaction_sessions_by_id", batchId);
         }
 
