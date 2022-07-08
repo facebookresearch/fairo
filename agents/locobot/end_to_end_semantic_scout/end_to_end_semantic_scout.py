@@ -115,7 +115,7 @@ class RLSegFTAgent(Agent):
         self.model.eval()
 
         self.semantic_predictor = None
-        if config.SEGMENTATION == "mp3d":
+        if config.POLICY == "original_camera_settings_and_mp3d_detector":
             if self.model_cfg.USE_SEMANTICS:
                 logger.info("setting up sem seg predictor")
                 self.semantic_predictor = load_rednet(
@@ -125,7 +125,7 @@ class RLSegFTAgent(Agent):
                     num_classes=self.model_cfg.SEMANTIC_ENCODER.num_classes,
                 )
                 self.semantic_predictor.eval()
-        else:
+        elif config.POLICY == "robot_camera_settings_and_coco_detector":
             self.semantic_predictor = COCOSegmentationModel(
                 sem_pred_prob_thr=0.9, sem_gpu_id=config.TORCH_GPU_ID, visualize=True
             )
@@ -249,7 +249,8 @@ class EndToEndSemanticScout:
         python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
     """
 
-    def __init__(self, mover, object_goal: str, episode_id: str, max_steps=400, segmentation="mp3d"):
+    def __init__(self, mover, object_goal: str, episode_id: str, max_steps=400,
+                 policy="original_camera_settings_and_mp3d_detector"):
         assert (
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
@@ -275,12 +276,20 @@ class EndToEndSemanticScout:
         this_dir = os.path.dirname(os.path.abspath(__file__))
         agent_config_file = this_dir + "/configs/rl_objectnav_sem_seg_hm3d.yaml"
 
-        # challenge_config_file = this_dir + "/configs/original_settings.yaml"
-        challenge_config_file = this_dir + "/configs/robot_settings.yaml"
-
-        # model_path = this_dir + "/ckpt/original_settings_best_ckpt.pth"
-        model_path = this_dir + "/ckpt/robot_settings_ckpt20.pth"
-        # model_path = this_dir + "/ckpt/original_camera_new_segmentation_ckpt22.pth"
+        assert policy in [
+            "original_camera_settings_and_mp3d_detector", 
+            "robot_camera_settings_and_coco_detector"
+        ]
+        if policy == "original_camera_settings_and_mp3d_detector":
+            # Original camera settings + MP3D segmentation
+            # TODO Add best checkpoint fine-tuned with RL
+            challenge_config_file = this_dir + "/configs/original_camera_settings.yaml"
+            model_path = this_dir + "/ckpt/original_camera_settings_and_mp3d_detector_il_ckpt28.pth"
+        elif policy == "robot_camera_settings_and_coco_detector":
+            # Robot camera settings + COCO segmentation
+            # TODO Add best checkpoint fine-tuned with RL
+            challenge_config_file = this_dir + "/configs/robot_camera_settings.yaml"
+            model_path = this_dir + "/ckpt/robot_camera_settings_and_coco_detector_il_ckpt16.pth"
 
         config = get_config(agent_config_file, ["BASE_TASK_CONFIG_PATH", challenge_config_file])
         config.defrost()
@@ -295,8 +304,7 @@ class EndToEndSemanticScout:
             config.TORCH_GPU_ID = 0
         else:
             config.TORCH_GPU_ID = -1
-        assert segmentation in ["mp3d", "coco"]
-        config.SEGMENTATION = segmentation
+        config.POLICY = policy
         config.freeze()
         self.config = config
 
@@ -328,6 +336,7 @@ class EndToEndSemanticScout:
         compass = np.array(pose[2], dtype=np.float32)
 
         def preprocess_depth(depth):
+            print("pre-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
             min_depth = self.config.TASK_CONFIG.SIMULATOR.DEPTH_SENSOR.MIN_DEPTH
             max_depth = self.config.TASK_CONFIG.SIMULATOR.DEPTH_SENSOR.MAX_DEPTH
             clipped_depth = np.where(
@@ -341,6 +350,7 @@ class EndToEndSemanticScout:
                 clipped_depth
             )
             rescaled_depth = np.expand_dims(rescaled_depth, -1).astype(np.float32)
+            print(f"post-processing: depth.min(), depth.max()", (clipped_depth.min(), clipped_depth.max()))
             return rescaled_depth, clipped_depth
 
         if self.in_habitat:
@@ -353,12 +363,14 @@ class EndToEndSemanticScout:
             rgb, depth = mover.get_rgb_depth_optimized_for_habitat_transfer()
 
         def reshape_640x480_to_480x640(rgb, depth):
+            print("pre-processing: frame shape", rgb.shape)
             # (640, 480) -> (360, 480)
             rgb = rgb[280:, :]
             depth = depth[280:, :]
             # (360, 480) -> (480, 640)
             rgb = cv2.resize(rgb, (640, 480), interpolation=cv2.INTER_LINEAR)
             depth = cv2.resize(depth, (640, 480), interpolation=cv2.INTER_LINEAR)
+            print("post-processing: frame shape", rgb.shape)
             return rgb, depth
 
         def reshape_512x512_to_640x480(rgb, depth):
@@ -376,11 +388,11 @@ class EndToEndSemanticScout:
         # if rgb.shape[0] == 512 and rgb.shape[1] == 512:
         #     rgb, depth = reshape_512x512_to_640x480(rgb, depth)
         # print("post-processing: frame shape", rgb.shape)
-        print("frame shape", rgb.shape)
+        if (self.config.POLICY == "original_camera_settings_and_mp3d_detector" and 
+                (rgb.shape[0] == 640 and rgb.shape[1] == 480)):
+            rgb, depth = reshape_640x480_to_480x640(rgb, depth)
 
-        print("pre-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
         depth, clipped_depth = preprocess_depth(depth)
-        print("post-processing: depth.min(), depth.max()", (depth.min(), depth.max()))
 
         # obs = {
         #     "objectgoal": 0,

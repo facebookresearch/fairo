@@ -6,7 +6,7 @@ TRAINER_NAME: "objectnav-behavior-cloning"
 ENV_NAME: NavRLEnv
 SIMULATOR_GPU_ID: 0
 TORCH_GPU_ID: 0
-SEGMENTATION: mp3d
+POLICY: original_camera_settings_and_mp3d_detector
 VIDEO_OPTION: ["disk"]
 TENSORBOARD_DIR: "tb/objectnav/sem_resnet18_challenge/seed_1/"
 VIDEO_DIR: "video_dir/objectnav/sem_resnet18_challenge/seed_1/eval"
