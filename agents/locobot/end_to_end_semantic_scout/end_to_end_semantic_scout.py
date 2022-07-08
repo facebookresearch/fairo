@@ -358,7 +358,7 @@ class EndToEndSemanticScout:
             depth = depth[280:, :]
             # (360, 480) -> (480, 640)
             rgb = cv2.resize(rgb, (640, 480), interpolation=cv2.INTER_LINEAR)
-            depth = cv2.resize(depth, (640, 480), interpolation=cv2.INTER_NEAREST)
+            depth = cv2.resize(depth, (640, 480), interpolation=cv2.INTER_LINEAR)
             return rgb, depth
 
         def reshape_512x512_to_640x480(rgb, depth):
@@ -367,7 +367,7 @@ class EndToEndSemanticScout:
             depth = depth[280:, 64:448]
             # (512, 384) -> (640, 480)
             rgb = cv2.resize(rgb, (480, 640), interpolation=cv2.INTER_LINEAR)
-            depth = cv2.resize(depth, (480, 640), interpolation=cv2.INTER_NEAREST)
+            depth = cv2.resize(depth, (480, 640), interpolation=cv2.INTER_LINEAR)
             return rgb, depth
 
         # print("pre-processing: frame shape", rgb.shape)

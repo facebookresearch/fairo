@@ -113,7 +113,7 @@ class RemoteHelloRealsense(object):
         self.align = rs.align(align_to)
 
         self.decimate = rs.decimation_filter(2.0)
-        self.threshold = rs.threshold_filter(0.1, 5.0)
+        self.threshold = rs.threshold_filter(0.1, 4.0)
         self.depth2disparity = rs.disparity_transform()
         self.spatial = rs.spatial_filter(0.5, 20.0, 2.0, 0.0)
         self.temporal = rs.temporal_filter(0.0, 100.0, 3)
