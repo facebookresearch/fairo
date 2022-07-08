@@ -58,6 +58,14 @@ class ParamDictContainer(torch.nn.Module):
         return self.param_dict
 
 
+class MetadataContainer:
+    def __init__(self, input_dict):
+        self.data = input_dict
+
+    def __getattr__(self, key):
+        return self.data[key]
+
+
 class BaseRobotInterface:
     """Base robot interface class to initialize a connection to a gRPC controller manager server.
 
@@ -75,8 +83,11 @@ class BaseRobotInterface:
 
         # Get metadata
         metadata_msg = self.grpc_connection.GetRobotClientMetadata(EMPTY)
-        self.metadata = json.loads(metadata_msg.aux_metadata)
-        self.metadata.hz = metadata_msg.hz
+        metadata_dict = json.loads(metadata_msg.aux_metadata)
+        metadata_dict["hz"] = metadata_msg.hz
+        metadata_dict["polymetis_version"] = metadata_msg.polymetis_version
+
+        self.metadata = MetadataContainer(metadata_dict)
 
         # Check version
         if enforce_version:

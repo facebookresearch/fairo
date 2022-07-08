@@ -5,6 +5,7 @@
 from typing import List
 from dataclasses import dataclass
 import io
+import json
 
 import torch
 
@@ -101,11 +102,11 @@ class RobotClientMetadata:
         if "ee_link_idx" in robot_model_cfg:
             aux_metadata["ee_link_idx"] = robot_model_cfg.ee_link_idx
 
-        aux_metadata["default_Kq"] = default_Kq
-        aux_metadata["default_Kqd"] = default_Kqd
-        aux_metadata["default_Kx"] = default_Kx
-        aux_metadata["default_Kxd"] = default_Kxd
-        aux_metadata["rest_pose"] = robot_model_cfg.rest_pose
+        aux_metadata["default_Kq"] = list(default_Kq)
+        aux_metadata["default_Kqd"] = list(default_Kqd)
+        aux_metadata["default_Kx"] = list(default_Kx)
+        aux_metadata["default_Kxd"] = list(default_Kxd)
+        aux_metadata["rest_pose"] = list(robot_model_cfg.rest_pose)
 
         full_urdf_path = get_full_path_to_urdf(robot_model_cfg.robot_description_path)
         with open(full_urdf_path, "r") as file:
