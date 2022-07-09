@@ -9,7 +9,6 @@ import tempfile
 import threading
 import atexit
 import logging
-import json
 
 import grpc  # This requires `conda install grpcio protobuf`
 import torch
@@ -58,14 +57,6 @@ class ParamDictContainer(torch.nn.Module):
         return self.param_dict
 
 
-class MetadataContainer:
-    def __init__(self, input_dict):
-        self.data = input_dict
-
-    def __getattr__(self, key):
-        return self.data[key]
-
-
 class BaseRobotInterface:
     """Base robot interface class to initialize a connection to a gRPC controller manager server.
 
@@ -82,12 +73,7 @@ class BaseRobotInterface:
         self.grpc_connection = PolymetisControllerServerStub(self.channel)
 
         # Get metadata
-        metadata_msg = self.grpc_connection.GetRobotClientMetadata(EMPTY)
-        metadata_dict = json.loads(metadata_msg.aux_metadata)
-        metadata_dict["hz"] = metadata_msg.hz
-        metadata_dict["polymetis_version"] = metadata_msg.polymetis_version
-
-        self.metadata = MetadataContainer(metadata_dict)
+        self.metadata = self.grpc_connection.GetRobotClientMetadata(EMPTY)
 
         # Check version
         if enforce_version:
@@ -100,9 +86,6 @@ class BaseRobotInterface:
     def __del__(self):
         # Close connection in destructor
         self.channel.close()
-
-    def _parse_metadata(self, metadata):
-        metadata_dict = json.loads(metadata.json_metadata)
 
     @staticmethod
     def _get_msg_generator(scripted_module) -> Generator:

@@ -69,7 +69,7 @@ service GripperServer {
 message GripperMetadata {
   string polymetis_version = 1;
   int32 hz = 2;
-  string aux_metadata = 3;
+  float max_width = 3;
 }
 
 message GripperCommand {
@@ -83,9 +83,8 @@ message GripperCommand {
 message GripperState {
     google.protobuf.Timestamp timestamp = 1;
     float width = 2;
-    float max_width = 3;
-    bool is_grasped = 4;
-    bool is_moving = 5;
+    bool is_grasped = 3;
+    bool is_moving = 4;
 }
 
 message LogInterval {
@@ -100,11 +99,18 @@ message ControllerChunk {
 }
 
 message RobotClientMetadata {
-  string polymetis_version = 1;
+  string urdf_file = 1;
   int32 hz = 2;
-  int32 dof = 3;
-  bytes default_controller = 4;
-  string aux_metadata = 5;
+  repeated float default_Kq = 3;
+  repeated float default_Kqd = 4;
+  bytes default_controller = 5;
+  int32 dof = 6;
+  string ee_link_name = 7;
+  int32 ee_link_idx = 8;
+  repeated float rest_pose = 9;
+  string polymetis_version = 10;
+  repeated float default_Kx = 11;
+  repeated float default_Kxd = 12;
 }
 
 message RobotState {

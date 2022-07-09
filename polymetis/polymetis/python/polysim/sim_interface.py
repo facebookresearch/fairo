@@ -27,6 +27,7 @@ from polymetis.utils import Spinner
 from polymetis.robot_client.abstract_robot_client import (
     AbstractRobotClient,
 )
+from polymetis.robot_client.metadata import RobotModelConfig, RobotClientMetadata
 
 
 class ControlType(Enum):
@@ -61,12 +62,12 @@ class SimInterface:
         buffer.seek(0)
         return buffer.read()
 
-    def _construct_metadata(self, metadata_type, **kwargs):
+    def _construct_metadata(self, metadata_type, aux_metadata):
         metadata = metadata_type()
         metadata.polymetis_version = polymetis.__version__
         metadata.hz = self.hz
 
-        for key, item in kwargs.items():
+        for key, item in aux_metadata.items():
             assert hasattr(metadata, key)
             setattr(metadata, key, item)
 
@@ -77,11 +78,14 @@ class SimInterface:
         server_address: str,
         state_callback: Callable,
         action_callback: Callable,
-        dof: int,
-        default_Kq: torch.Tensor,
-        default_Kqd: torch.Tensor,
-        aux_metadata: Optional[Dict] = None,
+        default_Kq: List[float],
+        default_Kqd: List[float],
+        dof: Optional[int] = None,
+        robot_model_cfg: Optional[RobotModelConfig] = None,
     ):
+        """
+        Note: Defaults to Franka Panda metadata if not specified
+        """
         # Load default controller
         default_Kq = torch.Tensor(default_Kq)
         default_Kqd = torch.Tensor(default_Kqd)
@@ -96,12 +100,13 @@ class SimInterface:
         default_controller_jitted = self._serialize_controller(default_controller)
 
         # Construct metadata
-        metadata = self._construct_metadata(
-            polymetis_pb2.RobotClientMetadata,
-            dof=dof,
-            default_controller=default_controller_jitted,
-            aux_metadata=json.dumps(aux_metadata or {}),
+        metadata_obj = RobotClientMetadata(
+            default_Kq=default_Kq,
+            default_Kqd=default_Kqd,
+            hz=self.hz,
+            robot_model=robot_model_cfg,
         )
+        metadata = metadata_obj.get_proto()
 
         # Connect to service
         channel = grpc.insecure_channel(server_address)
@@ -118,12 +123,14 @@ class SimInterface:
         server_address: str,
         state_callback: Callable,
         action_callback: Callable,
-        aux_metadata: Optional[Dict] = None,
+        max_width: float,
     ):
         # Construct metadata
-        metadata = self._construct_metadata(
-            polymetis_pb2.GripperMetadata, aux_metadata=json.dumps(aux_metadata or {})
-        )
+        metadata = polymetis_pb2.GripperMetadata()
+        metadata.polymetis_version = polymetis.__version__
+        metadata.hz = self.hz
+
+        metadata.max_width = max_width
 
         # Connect to service
         channel = grpc.insecure_channel(server_address)
