@@ -14,7 +14,8 @@ Runs grasps generated from grasp server.
 # top open: tensor([-2.7492,  1.7202,  1.0310, -1.1538, -1.3008,  2.1873, -2.8715])
 # bottom open: tensor([-2.4589,  1.7582,  0.5844, -0.9734, -1.1897,  2.4049, -2.8648])
 
-
+top_rack_ar_tag = [26, 27]
+bottom_rack_ar_tag = [23,29]
 
 import time
 import os
@@ -40,17 +41,15 @@ from polygrasp.serdes import load_bw_img
 
 import fairotag
 
+# top_rack_open_ar_tag = [-0.05914402, -0.60028556, -0.38374834]
+
 top_closed_1 = torch.tensor([-2.8709,  1.7132,  1.3774, -1.8681, -1.4531,  1.9806,  0.4803])
 top_closed_2 = torch.tensor([-2.5949,  1.7388,  1.0075, -1.6537, -1.4691,  2.3417,  0.4605])
 top_open = torch.tensor([-2.8362,  1.7326,  1.0338, -1.2461, -1.4473,  2.2300, -0.0111])
 bottom_closed_1 = torch.tensor([-2.7429,  1.7291,  1.0249, -1.3325, -1.0166,  2.1604, -0.1720])
-bottom_closed_2 = torch.tensor([-2.1674,  1.6435,  0.5143, -1.2161, -0.9969,  2.5138,  0.2471])
-#torch.tensor([-2.2719,  1.675,  0.6623, -1.1511, -0.6550,  2.4067, -0.1707])
-bottom_open = torch.tensor([-2.4781,  1.7273,  0.5201, -0.9822, -0.9824,  2.4964, -0.0416])
-# torch.tensor([-2.2077,  1.65,  0.2767, -0.7902, -0.6421,  2.5545, -0.2362])
+bottom_closed_2 = torch.tensor([-2.2719,  1.675,  0.6623, -1.1511, -0.6550,  2.4067, -0.1707])
+bottom_open = torch.tensor([-2.2077,  1.65,  0.2767, -0.7902, -0.6421,  2.5545, -0.2362])
 high_position_close = torch.tensor([-2.8740,  1.3173,  1.5164, -1.2091, -1.1478,  1.4974, -0.1642])
-sink_pose = torch.tensor([-0.2135, -0.0278,  0.5381, -2.1573,  0.0384,  2.1235, -0.6401])
-# torch.tensor([-1.1165,  0.7988,  1.5438, -2.3060, -1.0097,  2.0797, -0.5347])
 
 def move_to_joint_pos(robot, pos, time_to_go=5.0):
     state_log = []
@@ -91,10 +90,6 @@ def view_pcd(pcd):
     o3d.visualization.draw_geometries([pcd])
     return
   
-def save_depth_images(rgbd):
-    depth_img = rgbd[:,:,-1]
-    
-    
   
 def get_object_detect_dict(obj_pcds):
     data = {}
@@ -215,7 +210,7 @@ def execute_grasp(robot, chosen_grasp, hori_offset, time_to_go):
     print(f"Grasp success: {success}")
     breakpoint()
     if success:
-        ## place in sink
+        print("Placing object in hand to desired pose...")
         curr_pose, curr_ori = robot.get_ee_pose()
         print("Moving up")
         traj += robot.move_until_success(
@@ -223,31 +218,19 @@ def execute_grasp(robot, chosen_grasp, hori_offset, time_to_go):
             orientation=curr_ori,
             time_to_go=time_to_go,
         )
+        print("Moving horizontally")
+        traj += robot.move_until_success(
+            position=torch.Tensor([-0.09, -0.61, 0.2]),
+            orientation=[1,0,0,0],
+            time_to_go=time_to_go,
+        )
         curr_pose, curr_ori = robot.get_ee_pose()
-        print("Moving to sink pose")
-        traj += move_to_joint_pos(robot, sink_pose)
-        ## place in drawer
-        # print("Placing object in hand to desired pose...")
-        # curr_pose, curr_ori = robot.get_ee_pose()
-        # print("Moving up")
-        # traj += robot.move_until_success(
-        #     position=curr_pose + torch.Tensor([0, 0, 0.3]),
-        #     orientation=curr_ori,
-        #     time_to_go=time_to_go,
-        # )
-        # print("Moving horizontally")
-        # traj += robot.move_until_success(
-        #     position=torch.Tensor([-0.09, -0.61, 0.2]),
-        #     orientation=[1,0,0,0],
-        #     time_to_go=time_to_go,
-        # )
-        # curr_pose, curr_ori = robot.get_ee_pose()
-        # print("Moving down")
-        # traj += robot.move_until_success(
-        #     position=curr_pose + torch.Tensor([0, 0.0, -0.20]),
-        #     orientation=[1,0,0,0],
-        #     time_to_go=time_to_go,
-        # )
+        print("Moving down")
+        traj += robot.move_until_success(
+            position=curr_pose + torch.Tensor([0, 0.0, -0.20]),
+            orientation=[1,0,0,0],
+            time_to_go=time_to_go,
+        )
 
     print("Opening gripper")
     robot.gripper_open()
@@ -317,8 +300,6 @@ def pickplace(
                     id_to_pose[marker.id] = xyz
 
             scene_pcd = cameras.get_pcd(rgbd)
-            breakpoint()
-            
             save_rgbd_masked(rgbd, rgbd_masked)
 
             print("Segmenting image...")
@@ -393,9 +374,28 @@ def pickplace(
 
             print("Going home")
             robot.go_home()
+            
+def get_marker_corners(cameras, frt_cams, root_working_dir, name):
+    rgbd = cameras.get_rgbd()
+    rgbd_masked = rgbd
+    save_rgbd_masked(rgbd, rgbd_masked)
+    uint_rgbs = rgbd[:,:,:,:3].astype(np.uint8)
+    drawer_markers = frt_cams[-1].detect_markers(uint_rgbs[-1])
+    print(drawer_markers)
+    data = {
+        name : [{
+            "id": int(m.id), 
+            "corner": m.corner.astype(np.int32).tolist()  
+        } for m in drawer_markers]
+    }
+    breakpoint()
+    with open(Path(root_working_dir, 'data', name + '.json').as_posix(), 'w') as f:
+        json.dump(data, f, indent=2)
+    return 
 
 @hydra.main(config_path="../conf", config_name="run_grasp")
 def main(cfg):
+    root_working_dir = hydra.utils.get_original_cwd()  # os.getcwd()
     print(f"Config:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")
     print(f"Current working directory: {os.getcwd()}")
 
@@ -409,7 +409,6 @@ def main(cfg):
     cfg.cam.extrinsics_file = hydra.utils.to_absolute_path(cfg.cam.extrinsics_file)
     cameras = hydra.utils.instantiate(cfg.cam)
 
-    breakpoint()
     print("Loading camera workspace masks")
     # import pdb; pdb.set_trace()
     masks_1 = np.array(
@@ -433,82 +432,36 @@ def main(cfg):
     frt_cams = [fairotag.CameraModule() for _ in range(cameras.n_cams)]
     for frt, intrinsics in zip(frt_cams, cameras.intrinsics):
         frt.set_intrinsics(intrinsics)
-    # MARKER_LENGTH = 0.04
-    # MARKER_ID = [18]
-    # for i in MARKER_ID:
-    #     for frt in frt_cams:
-    #         frt.register_marker_size(i, MARKER_LENGTH)
-
-    top_category_order = [
-        'dark_blue_plate',
-        'light_blue_bowl', 
-    ]
-    bottom_category_order = [
-        'yellow_cup', 
-        'red_bowl',
-    ]
-    # pickplace_partial = partial(pickplace, cfg,
-    #         masks_1,
-    #         masks_2,
-    #         root_working_dir,
-    #         cameras,
-    #         frt_cams,
-    #         segmentation_client,
-    #         grasp_client)
+    MARKER_LENGTH = 0.04
+    MARKER_ID = [27, 26, 23, 29]
+    for i in MARKER_ID:
+        for frt in frt_cams:
+            frt.register_marker_size(i, MARKER_LENGTH)
     
-    root_working_dir = os.getcwd()
-    # place all in sink
-    done = False
-    while not done:
-        done = pickplace(
-            robot,
-            top_category_order + bottom_category_order,
-            cfg,
-            masks_1,
-            masks_2,
-            root_working_dir,
-            cameras,
-            frt_cams,
-            segmentation_client,
-            grasp_client
-        )
-    # open_top_drawer(robot)
-    # robot.go_home()
-    # done = 0
-    # while not done:
-    #     done = pickplace(
-    #         robot,
-    #         top_category_order,
-    #         cfg,
-    #         masks_1,
-    #         masks_2,
-    #         root_working_dir,
-    #         cameras,
-    #         frt_cams,
-    #         segmentation_client,
-    #         grasp_client
-    #     )
-    # close_top_drawer(robot)
-    # open_bottom_drawer(robot)
-    # robot.go_home()
-    # done = 0
-    # while not done:
-    #     done = pickplace(
-    #     robot,
-    #     bottom_category_order,
-    #     cfg,
-    #     masks_1,
-    #     masks_2,
-    #     root_working_dir,
-    #     cameras,
-    #     frt_cams,
-    #     segmentation_client,
-    #     grasp_client
-    # )
+    get_marker_corners(cameras, frt_cams, root_working_dir, name='all_closed')
+    breakpoint()
+
+    open_top_drawer(robot)
+    robot.go_home()
+    get_marker_corners(cameras, frt_cams, root_working_dir, name='open_top_drawer')
+    
+    close_top_drawer(robot)
+    open_bottom_drawer(robot)
+    robot.go_home()
+    
+    get_marker_corners(cameras, frt_cams, root_working_dir, name='open_bottom_drawer')
+    
+    open_top_drawer(robot)
+    
     # close_bottom_drawer(robot)
-    # robot.go_home()
+    robot.go_home()
         
+    get_marker_corners(cameras, frt_cams, root_working_dir, name='all_open')
 
-
+    close_top_drawer(robot)
+    close_bottom_drawer(robot)
+    robot.go_home()
+    
+    
 if __name__ == "__main__":
     main()

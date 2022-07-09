@@ -1,0 +1,2 @@
+_target_: temporal_task_planner.policy.expert_policy.ExpertInteractPickPlacePreferencePolicy
+env: ${envs}

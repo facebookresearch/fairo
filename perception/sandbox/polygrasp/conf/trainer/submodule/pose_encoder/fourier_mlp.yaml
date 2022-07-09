@@ -1,0 +1,4 @@
+_target_: temporal_task_planner.trainer.submodule.pose_encoder.PoseEncoderFourierMLP
+P_embed: 3
+d_model: ${pose_embed_size}
+n_input_dim: ${n_input_dim}

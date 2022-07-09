@@ -1,0 +1,22 @@
+_target_: temporal_task_planner.trainer.transformer.single_model.TransformerTaskPlannerSingleModel
+
+config:
+  _target_: temporal_task_planner.trainer.transformer.configs.TransformerTaskPlannerConfig
+  num_instances: 60 
+  d_model: ${d_model}
+  nhead: 2
+  d_hid: ${d_hid}
+  num_encoder_layers: ${num_encoder_layers}
+  dropout: 0.
+  batch_first: True
+  num_pref: ${num_pref}
+  num_slots: ${num_slots}
+  slot_iters: ${slot_iters}
+  category_embed_size: ${category_embed_size}
+  pose_embed_size: ${pose_embed_size}
+  temporal_embed_size: ${temporal_embed_size}
+  marker_embed_size: ${marker_embed_size}
+category_encoder: ${category_encoder}
+pose_encoder: ${pose_encoder}
+temporal_encoder: ${temporal_encoder}
+reality_marker_encoder: ${reality_marker_encoder}

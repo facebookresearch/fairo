@@ -1,0 +1,5 @@
+_target_: temporal_task_planner.trainer.module_wrapper.ModuleWrapper
+method_name: 'ExponentialLR'
+# optimizer: ${optimizer}
+gamma: 0.995
+last_epoch: -1

@@ -1,0 +1,42 @@
+# @package _global_
+defaults:
+  - robot: robot_hw
+  - cam: cam_realsense
+  - trainer/padding_partial@padding: dual_model  # input_pad_fn  # pad_fn #  prompt_pad_fn
+  # logging
+  - trainer/logger_partial@logger_partial: dual_model
+  # model
+  - trainer/transformer_model@model: dual_model
+  - trainer/submodule/category_encoder@category_encoder: mlp 
+  - trainer/submodule/pose_encoder@pose_encoder: fourier_mlp 
+  - trainer/submodule/temporal_encoder@temporal_encoder: embed
+  - trainer/submodule/reality_marker_encoder@reality_marker_encoder: embed
+
+# model arch
+category_embed_size: 64
+C_embed: 16  # category_embed_size // 4
+pose_embed_size: 128
+temporal_embed_size: 32 
+marker_embed_size: 32
+d_model: 256
+d_hid: 512
+num_encoder_layers: 2
+num_decoder_layers: 2
+n_input_dim: 3
+num_slots: 50
+slot_iters: 3
+
+masks_1:
+  - conf/masks/bin1/1.png
+  - conf/masks/bin1/2.png
+  - conf/masks/bin1/3.png
+masks_2:
+  - conf/masks/bin2/1.png
+  - conf/masks/bin2/2.png
+  - conf/masks/bin2/3.png
+
+view_json_path: conf/o3d_view.json
+min_mask_size: 2500
+
+num_bin_shifts: 1
+num_grasps_per_bin_shift: 1

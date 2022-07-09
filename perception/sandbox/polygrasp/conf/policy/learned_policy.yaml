@@ -1,0 +1,6 @@
+_target_: temporal_task_planner.policy.learned_policy.LearnedPolicy
+chkpt_path: ${chkpt_path}
+model: ${model}
+context_history: ${context_history}
+device: ${device}
+pick_only: ${pick_only}

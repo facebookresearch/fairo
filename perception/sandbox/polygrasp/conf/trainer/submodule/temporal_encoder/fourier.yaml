@@ -1,0 +1,3 @@
+_target_: temporal_task_planner.trainer.submodule.temporal_encoder.TemporalEncoderFourierMLP
+T_embed: 5
+d_model: ${temporal_embed_size}

@@ -39,6 +39,9 @@ from polygrasp.grasp_rpc import GraspClient
 from polygrasp.serdes import load_bw_img
 
 import fairotag
+from temporal_task_planner.policy.learned_policy import PromptSituationLearnedPolicy  as PromptSituationPolicy
+from temporal_task_planner.trainer.transformer.dual_model import TransformerTaskPlannerDualModel as PromptSituationModel
+
 
 top_closed_1 = torch.tensor([-2.8709,  1.7132,  1.3774, -1.8681, -1.4531,  1.9806,  0.4803])
 top_closed_2 = torch.tensor([-2.5949,  1.7388,  1.0075, -1.6537, -1.4691,  2.3417,  0.4605])
@@ -394,8 +397,13 @@ def pickplace(
             print("Going home")
             robot.go_home()
 
-@hydra.main(config_path="../conf", config_name="run_grasp")
+@hydra.main(config_path="../conf", config_name="run_ttp")
 def main(cfg):
+    breakpoint()
+    model = hydra.utils.instantiate(cfg.model, _recursive_=True)
+    model.load_state_dict(torch.load('~/temporal_task_planner/checkpoints/two_pref_policy.pt')['model_state_dict'])
+    policy = PromptSituationPolicy(model, pick_only=False)
+    breakpoint()
     print(f"Config:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")
     print(f"Current working directory: {os.getcwd()}")
 

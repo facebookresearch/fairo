@@ -1,0 +1,3 @@
+_target_: temporal_task_planner.trainer.submodule.temporal_encoder.TemporalEncoderEmbedding
+T_embed: 50
+d_model: ${temporal_embed_size}

@@ -1,0 +1,3 @@
+_target_: temporal_task_planner.trainer.module_wrapper.ModuleWrapper
+method_name: 'SessionPreferenceDataset'
+pick_only: ${pick_only}

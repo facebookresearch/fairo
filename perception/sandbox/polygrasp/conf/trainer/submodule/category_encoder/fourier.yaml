@@ -1,0 +1,3 @@
+_target_: temporal_task_planner.trainer.submodule.category_encoder.CategoryEncoderFourier
+h_dim: ${category_embed_size}
+C_embed: ${C_embed}

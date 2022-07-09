@@ -44,13 +44,9 @@ top_closed_1 = torch.tensor([-2.8709,  1.7132,  1.3774, -1.8681, -1.4531,  1.980
 top_closed_2 = torch.tensor([-2.5949,  1.7388,  1.0075, -1.6537, -1.4691,  2.3417,  0.4605])
 top_open = torch.tensor([-2.8362,  1.7326,  1.0338, -1.2461, -1.4473,  2.2300, -0.0111])
 bottom_closed_1 = torch.tensor([-2.7429,  1.7291,  1.0249, -1.3325, -1.0166,  2.1604, -0.1720])
-bottom_closed_2 = torch.tensor([-2.1674,  1.6435,  0.5143, -1.2161, -0.9969,  2.5138,  0.2471])
-#torch.tensor([-2.2719,  1.675,  0.6623, -1.1511, -0.6550,  2.4067, -0.1707])
-bottom_open = torch.tensor([-2.4781,  1.7273,  0.5201, -0.9822, -0.9824,  2.4964, -0.0416])
-# torch.tensor([-2.2077,  1.65,  0.2767, -0.7902, -0.6421,  2.5545, -0.2362])
+bottom_closed_2 = torch.tensor([-2.2719,  1.675,  0.6623, -1.1511, -0.6550,  2.4067, -0.1707])
+bottom_open = torch.tensor([-2.2077,  1.65,  0.2767, -0.7902, -0.6421,  2.5545, -0.2362])
 high_position_close = torch.tensor([-2.8740,  1.3173,  1.5164, -1.2091, -1.1478,  1.4974, -0.1642])
-sink_pose = torch.tensor([-0.2135, -0.0278,  0.5381, -2.1573,  0.0384,  2.1235, -0.6401])
-# torch.tensor([-1.1165,  0.7988,  1.5438, -2.3060, -1.0097,  2.0797, -0.5347])
 
 def move_to_joint_pos(robot, pos, time_to_go=5.0):
     state_log = []
@@ -91,10 +87,6 @@ def view_pcd(pcd):
     o3d.visualization.draw_geometries([pcd])
     return
   
-def save_depth_images(rgbd):
-    depth_img = rgbd[:,:,-1]
-    
-    
   
 def get_object_detect_dict(obj_pcds):
     data = {}
@@ -209,13 +201,13 @@ def merge_pcds(pcds, eps=0.1, min_samples=2):
 
 
 def execute_grasp(robot, chosen_grasp, hori_offset, time_to_go):
-    traj, success = robot.grasp(
+    traj, s = robot.grasp(
         chosen_grasp, time_to_go=time_to_go, gripper_width_success_threshold=0.001
     )
-    print(f"Grasp success: {success}")
+    print(f"Grasp success: {s}")
     breakpoint()
-    if success:
-        ## place in sink
+    if s:
+        print("Placing object in hand to desired pose...")
         curr_pose, curr_ori = robot.get_ee_pose()
         print("Moving up")
         traj += robot.move_until_success(
@@ -223,31 +215,19 @@ def execute_grasp(robot, chosen_grasp, hori_offset, time_to_go):
             orientation=curr_ori,
             time_to_go=time_to_go,
         )
+        print("Moving horizontally")
+        traj += robot.move_until_success(
+            position=torch.Tensor([-0.09, -0.61, 0.2]),
+            orientation=[1,0,0,0],
+            time_to_go=time_to_go,
+        )
         curr_pose, curr_ori = robot.get_ee_pose()
-        print("Moving to sink pose")
-        traj += move_to_joint_pos(robot, sink_pose)
-        ## place in drawer
-        # print("Placing object in hand to desired pose...")
-        # curr_pose, curr_ori = robot.get_ee_pose()
-        # print("Moving up")
-        # traj += robot.move_until_success(
-        #     position=curr_pose + torch.Tensor([0, 0, 0.3]),
-        #     orientation=curr_ori,
-        #     time_to_go=time_to_go,
-        # )
-        # print("Moving horizontally")
-        # traj += robot.move_until_success(
-        #     position=torch.Tensor([-0.09, -0.61, 0.2]),
-        #     orientation=[1,0,0,0],
-        #     time_to_go=time_to_go,
-        # )
-        # curr_pose, curr_ori = robot.get_ee_pose()
-        # print("Moving down")
-        # traj += robot.move_until_success(
-        #     position=curr_pose + torch.Tensor([0, 0.0, -0.20]),
-        #     orientation=[1,0,0,0],
-        #     time_to_go=time_to_go,
-        # )
+        print("Moving down")
+        traj += robot.move_until_success(
+            position=curr_pose + torch.Tensor([0, 0.0, -0.20]),
+            orientation=[1,0,0,0],
+            time_to_go=time_to_go,
+        )
 
     print("Opening gripper")
     robot.gripper_open()
@@ -317,8 +297,6 @@ def pickplace(
                     id_to_pose[marker.id] = xyz
 
             scene_pcd = cameras.get_pcd(rgbd)
-            breakpoint()
-            
             save_rgbd_masked(rgbd, rgbd_masked)
 
             print("Segmenting image...")
@@ -399,17 +377,12 @@ def main(cfg):
     print(f"Config:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")
     print(f"Current working directory: {os.getcwd()}")
 
-    print("Initialize robot & gripper")
-    robot = hydra.utils.instantiate(cfg.robot)
-    robot.gripper_open()
-    robot.go_home()
-
     print("Initializing cameras")
     cfg.cam.intrinsics_file = hydra.utils.to_absolute_path(cfg.cam.intrinsics_file)
     cfg.cam.extrinsics_file = hydra.utils.to_absolute_path(cfg.cam.extrinsics_file)
     cameras = hydra.utils.instantiate(cfg.cam)
 
-    breakpoint()
+    # breakpoint()
     print("Loading camera workspace masks")
     # import pdb; pdb.set_trace()
     masks_1 = np.array(
@@ -425,14 +398,19 @@ def main(cfg):
 
     print("Connect to grasp candidate selection and pointcloud processor")
     segmentation_client = SegmentationClient()
-    grasp_client = GraspClient(
-        view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path)
-    )
+    rgbd = cameras.get_rgbd()
+    scene_pcd = cameras.get_pcd(rgbd)
+    breakpoint()
+    # save_rgbd_masked(rgbd)
+    
+    # grasp_client = GraspClient(
+    #     view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path)
+    # )
 
-    print("Loading ARTag modules")
-    frt_cams = [fairotag.CameraModule() for _ in range(cameras.n_cams)]
-    for frt, intrinsics in zip(frt_cams, cameras.intrinsics):
-        frt.set_intrinsics(intrinsics)
+    # print("Loading ARTag modules")
+    # frt_cams = [fairotag.CameraModule() for _ in range(cameras.n_cams)]
+    # for frt, intrinsics in zip(frt_cams, cameras.intrinsics):
+    #     frt.set_intrinsics(intrinsics)
     # MARKER_LENGTH = 0.04
     # MARKER_ID = [18]
     # for i in MARKER_ID:
@@ -440,74 +418,40 @@ def main(cfg):
     #         frt.register_marker_size(i, MARKER_LENGTH)
 
     top_category_order = [
-        'dark_blue_plate',
-        'light_blue_bowl', 
+        'dark_blue_plate', 
+        'yellow_cup', 
     ]
     bottom_category_order = [
-        'yellow_cup', 
+        'light_blue_bowl',
         'red_bowl',
     ]
-    # pickplace_partial = partial(pickplace, cfg,
-    #         masks_1,
-    #         masks_2,
-    #         root_working_dir,
-    #         cameras,
-    #         frt_cams,
-    #         segmentation_client,
-    #         grasp_client)
-    
-    root_working_dir = os.getcwd()
-    # place all in sink
-    done = False
-    while not done:
-        done = pickplace(
-            robot,
-            top_category_order + bottom_category_order,
-            cfg,
-            masks_1,
-            masks_2,
-            root_working_dir,
-            cameras,
-            frt_cams,
-            segmentation_client,
-            grasp_client
+    unmerged_obj_pcds = []
+    for i in range(cameras.n_cams):
+        obj_masked_rgbds, obj_masks = segmentation_client.segment_img(
+            rgbd[i], min_mask_size=cfg.min_mask_size
         )
-    # open_top_drawer(robot)
-    # robot.go_home()
-    # done = 0
-    # while not done:
-    #     done = pickplace(
-    #         robot,
-    #         top_category_order,
-    #         cfg,
-    #         masks_1,
-    #         masks_2,
-    #         root_working_dir,
-    #         cameras,
-    #         frt_cams,
-    #         segmentation_client,
-    #         grasp_client
-    #     )
-    # close_top_drawer(robot)
-    # open_bottom_drawer(robot)
-    # robot.go_home()
-    # done = 0
-    # while not done:
-    #     done = pickplace(
-    #     robot,
-    #     bottom_category_order,
-    #     cfg,
-    #     masks_1,
-    #     masks_2,
-    #     root_working_dir,
-    #     cameras,
-    #     frt_cams,
-    #     segmentation_client,
-    #     grasp_client
-    # )
-    # close_bottom_drawer(robot)
-    # robot.go_home()
+        unmerged_obj_pcds += [
+            cameras.get_pcd_i(obj_masked_rgbd, i)
+            for obj_masked_rgbd in obj_masked_rgbds
+        ]
         
+    obj_pcds = merge_pcds(unmerged_obj_pcds)
+    cur_data = get_object_detect_dict(obj_pcds)
+    ref_data = read_object_detect_dict(pathname=Path(
+        hydra.utils.get_original_cwd(),
+        'data', 
+        'category_to_rgb_map.json'
+    ).as_posix())
+                                    
+    category_to_pcd_map = get_category_to_pcd_map(obj_pcds, cur_data, ref_data)
+    # saving pcd
+    # for name, pcd in category_to_pcd_map.items():
+    #     o3d.io.write_point_cloud(name, pcd, compressed=True)
+    
+    hw_points = {name: pcd.compute_convex_hull().get_center().tolist() for name, pcd in category_to_pcd_map.items()}
+    
+    with open(hydra.utils.get_original_cwd() + '/data/hw_points_convex_hull_centers.json', 'w') as f:
+        json.dump(hw_points, f, indent=4)
 
 
 if __name__ == "__main__":

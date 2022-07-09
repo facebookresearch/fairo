@@ -1,0 +1,4 @@
+_target_: temporal_task_planner.trainer.GNN.GNN_policy.GCNPolicySoftmax
+
+input_dim: ${input_dim}
+hidden_dim: ${hidden_dim}

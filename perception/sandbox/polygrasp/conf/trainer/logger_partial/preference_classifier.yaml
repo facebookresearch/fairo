@@ -1,0 +1,9 @@
+_target_: temporal_task_planner.trainer.module_wrapper.ModuleWrapper
+method_name: 'SessionPreferenceClassifierLogger'
+env: ${envs}
+config: ${learner.config}
+model: ${model}
+criterion: ${criterion}
+pick_only: ${pick_only}
+max_evals: 10
+savefolder: "rollouts"

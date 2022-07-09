@@ -1,0 +1,2 @@
+_target_: temporal_task_planner.trainer.criterion.PlaceLoss
+device: ${device}

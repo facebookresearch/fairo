@@ -1,0 +1,2 @@
+_target_: temporal_task_planner.trainer.submodule.category_encoder.CategoryEncoderMLP
+h_dim: ${category_embed_size}

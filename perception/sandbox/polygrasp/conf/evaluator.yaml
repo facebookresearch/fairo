@@ -1,0 +1,137 @@
+
+defaults:
+# rollout
+- envs: partial_visible_env # full_visible_env
+# - policy: learned_policy # expert_pick_only_policy
+- preference: p1
+#dataset
+- trainer/dataset_partial@dataset_partial: dual_model
+- trainer/padding_partial@padding: dual_model  # input_pad_fn  # pad_fn #  prompt_pad_fn
+# logging
+- trainer/logger_partial@logger_partial: dual_model
+# model
+- trainer/transformer_model@model: dual_model
+- trainer/submodule/category_encoder@category_encoder: mlp 
+- trainer/submodule/pose_encoder@pose_encoder: fourier_mlp 
+- trainer/submodule/temporal_encoder@temporal_encoder: embed
+- trainer/submodule/reality_marker_encoder@reality_marker_encoder: embed
+# optimization
+- trainer/optimizer_partial@optimizer_partial: sgd
+- trainer/scheduler_partial@scheduler_partial: exponential_lr
+- trainer/criterion@criterion: dual_model
+- _self_
+
+rollout_savefolder: ''
+to_train: true
+model_name: dual_model
+session_split_filepath: "session_split_filepaths/num_obj/num_pref-7_num_obj-3_num_demo-1000000"
+test_split_filepath: ""
+log_per_session_metrics: true
+id: ''
+pick_only: true
+batch_size: 128
+num_targets_per_step: 64
+# init params assigned to sub-files here!
+# data
+# data_name: demo-pref 
+# data_version: 0
+# context_history: 0
+# pref: "pref_0123_456-top_first-True_back-center"
+# pref: "pref_${preference.category_order_numbers_top_rack}_${preference.category_order_numbers_bottom_rack}-top_first-${preference.load_top_rack_first}_${preference.place_close_to}"
+max_objects_in_rack: 3
+# dataset_path: "artifacts/${data_name}:v${data_version}/${pref}/${num_objects_per_rack}"
+num_workers: 4
+
+# model arch
+category_embed_size: 64
+C_embed: 16  # category_embed_size // 4
+pose_embed_size: 128
+temporal_embed_size: 32 
+marker_embed_size: 32
+d_model: 256
+d_hid: 512
+num_encoder_layers: 2
+num_decoder_layers: 2
+n_input_dim: 3
+num_slots: 100
+slot_iters: 1
+
+# optim
+lr: 0.01
+patience: 1000000000
+gamma: 0.9995 # 0.99
+
+# logging
+logging_interval: 100 # 100
+rollout_interval: 10000000
+max_train_evals: 2 #1
+max_val_evals: 2 #1
+max_test_evals: 500 #1
+
+# misc
+# num_pref: 12
+seed: 42
+device: 'cpu'
+pkg_root: ''
+
+learner: # keep the name same for backreferences in submodules
+  _target_: temporal_task_planner.trainer.evaluator.Evaluator
+  config: 
+      seed: ${seed}
+      to_train: ${to_train}
+      # context_history: ${context_history}
+      # max_epochs: 100
+      max_steps: 10000000
+      num_targets_per_step: ${num_targets_per_step}
+      max_session_data_limit: 1000000
+      batch_size: ${batch_size}
+      patience: ${patience}
+      load_chkpt: true
+      logging_interval: ${logging_interval}
+      rollout_interval: ${rollout_interval}
+      pick_only: ${pick_only}
+      device: ${device}
+      chkpt_name: best_pickplace_TP # best_pickplace_TP_good_chkpt
+      # dataset_path: ${dataset_path} # "artifacts/${data_name}:v${data_version}"
+      # data: 
+      #   name: ${data_name} # full 
+      #   version: ${data_version}  # 4
+      pkg_root: ${pkg_root}
+      max_train_evals: ${max_train_evals}
+      max_val_evals: ${max_val_evals}
+      max_test_evals: ${max_test_evals}
+      padding: ${padding}
+      session_split_filepath: ${session_split_filepath}
+      test_split_filepath: ${test_split_filepath}
+      log_per_session_metrics: ${log_per_session_metrics}
+      num_workers: ${num_workers}
+  dataset_partial: ${dataset_partial}
+  model: ${model}
+  criterion: ${criterion}
+  optimizer_partial: ${optimizer_partial}
+  scheduler_partial: ${scheduler_partial}
+  logger_partial: ${logger_partial}
+
+wandb:
+  project: "num_obj" 
+  entity: 'dishwasher_arrange'
+  run: ''
+
+hydra:
+  run:
+    dir: output/${wandb.project}/${hydra.job.override_dirname}/
+  sweep:
+    dir: multirun/${wandb.project}
+    # subdir: "${session_split_filepath}/seed-${seed}"
+    subdir: ${session_split_filepath}/seed-${seed}
+  job:
+    config:
+      override_dirname:
+        exclude_keys:
+          - id
+          - seed
+          - wandb.project
+          - logging_interval
+          - saving_interval
+          - rollout_interval
+          - test_split_filepath

@@ -1,0 +1,7 @@
+_target_: temporal_task_planner.trainer.module_wrapper.ModuleWrapper
+method_name: 'SGD'
+# params: model.parameters()
+lr: ${lr}
+momentum: 0.9
+# weight_decay: 0.0001
+# dampening: 0.1

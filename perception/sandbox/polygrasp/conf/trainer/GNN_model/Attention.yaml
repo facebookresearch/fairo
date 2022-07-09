@@ -1,0 +1,5 @@
+_target_: temporal_task_planner.trainer.GNN.GNN_policy.GATConvPolicySoftmax
+
+input_dim: ${input_dim}
+hidden_dim: ${hidden_dim}
+heads: 2

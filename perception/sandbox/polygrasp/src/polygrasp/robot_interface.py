@@ -141,7 +141,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         self.gripper.goto(0, 1, 1)
 
     def move_until_success(
-        self, position, orientation, time_to_go, max_attempts=5, success_dist=0.05
+        self, position, orientation, time_to_go, max_attempts=2, success_dist=0.05
     ):
         states = []
         for _ in range(max_attempts):
@@ -217,7 +217,8 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             time_to_go=time_to_go,
         )
 
-        grip_ee_pos = torch.Tensor(grasp_point + grasp_approach_delta * self.k_grasp)
+        grip_ee_pos = torch.Tensor(grasp_point + grasp_approach_delta * self.k_grasp) - torch.Tensor([0, 0, 0.02])
+
 
         states += self.move_until_success(
             position=grip_ee_pos,

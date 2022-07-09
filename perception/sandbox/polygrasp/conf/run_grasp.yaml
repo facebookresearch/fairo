@@ -14,5 +14,5 @@ masks_2:
 view_json_path: conf/o3d_view.json
 min_mask_size: 2500
 
-num_bin_shifts: 10
-num_grasps_per_bin_shift: 10
+num_bin_shifts: 1
+num_grasps_per_bin_shift: 1
