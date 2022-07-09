@@ -20,9 +20,9 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ip", default="100.96.135.68", help="robot ip address")
-    parser.add_argument("--marker-id", type=int, default=9, help="ARTag marker id")
-    parser.add_argument("--marker-length", type=float, default=0.05, help="ARTag length in meters")
+    parser.add_argument("--ip", default="100.97.47.79", help="robot ip address")
+    parser.add_argument("--marker-id", type=int, default=7, help="ARTag marker id")
+    parser.add_argument("--marker-length", type=float, default=0.04, help="ARTag length in meters")
     args = parser.parse_args()
     print(f"Config: {args}")
 
