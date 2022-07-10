@@ -55,8 +55,6 @@ class NLUModelTrainer:
                 "iteration",
                 "loss",
                 "accuracy",
-                "text_span_loss",
-                "text_span_accuracy",
                 "time",
             ],
         )
@@ -67,8 +65,6 @@ class NLUModelTrainer:
                 "data_type",
                 "loss",
                 "accuracy",
-                "text_span_loss",
-                "text_span_accuracy",
                 "time",
             ],
         )
@@ -82,18 +78,8 @@ class NLUModelTrainer:
         self.model = model
         self.tokenizer = tokenizer
 
-        # Initialize different optimizers for text span and fixed span heads
+        # Initialize optimizer
         self.optimizer = OptimWarmupEncoderDecoder(model, self.args)
-        self.text_span_optimizer = Adam(
-            [
-                {"params": model.decoder.text_span_start_head.parameters()},
-                {"params": model.decoder.text_span_end_head.parameters()},
-            ],
-            lr=0.001,
-        )
-        self.fixed_span_optimizer = Adam(
-            [{"params": model.decoder.fixed_span_head.parameters()}], lr=0.001
-        )
 
     def run_epoch(self, phase, epoch, dataset, dataloader):
         """
@@ -119,15 +105,11 @@ class NLUModelTrainer:
         ep_loss = 0.0
         ep_int_acc = 0.0
         ep_full_acc = 0.0
-        ep_text_span_accuracy = 0.0
-        ep_text_span_loss = 0.0
 
         loc_steps = 0
         loc_loss = 0.0
         loc_int_acc = 0.0
         loc_full_acc = 0.0
-        loc_text_span_accuracy = 0.0
-        loc_text_span_loss = 0.0
         st_time = time()
         for step, batch in enumerate(epoch_iterator):
             batch_examples = batch[-1]
@@ -143,8 +125,6 @@ class NLUModelTrainer:
                 outputs = model(x, x_mask, y, y_mask)
 
             loss = outputs["loss"]
-            text_span_loss = outputs["text_span_loss"]
-            fixed_span_loss = outputs["fixed_span_loss"]
 
             # parameter update for training phase only
             if phase == "train":
@@ -152,30 +132,8 @@ class NLUModelTrainer:
                 model.zero_grad()
 
                 # backprop
-                # Use separate optimizers for text span and fixed span heads
-                text_span_loss.backward(retain_graph=True)
-                self.text_span_optimizer.step()
-                fixed_span_loss.backward(retain_graph=True)
-                self.fixed_span_optimizer.step()
                 loss.backward()
 
-                # Add text span loss gradients
-                model.decoder.bert_final_layer_out.grad = (
-                    model.decoder.bert_final_layer_out.grad.add(
-                        self.text_span_loss_attenuation_factor
-                        * (
-                            model.decoder.text_span_start_hidden_z.grad
-                            + model.decoder.text_span_end_hidden_z.grad
-                        )
-                    )
-                )
-                # Add fixed value loss gradients
-                model.decoder.bert_final_layer_out.grad = (
-                    model.decoder.bert_final_layer_out.grad.add(
-                        self.fixed_value_loss_attenuation_factor
-                        * (model.decoder.fixed_span_hidden_z.grad)
-                    )
-                )
                 if step % self.args.param_update_freq == 0:
                     torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
                     self.optimizer.step()
@@ -186,7 +144,7 @@ class NLUModelTrainer:
                 # hacky
                 lm_acc = full_acc
             else:
-                lm_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
+                lm_acc, full_acc = compute_accuracy(outputs, y)
 
             # add hard examples into the training dataset
             if phase == "train" and self.args.hard:
@@ -208,8 +166,6 @@ class NLUModelTrainer:
             # weighted_accuracy / batch_size
             loc_full_acc += full_acc.sum().item() / full_acc.shape[0]
             ep_full_acc += full_acc.sum().item() / full_acc.shape[0]
-            # text_span_accuracy / batch_size
-            loc_text_span_accuracy += text_span_acc.sum().item() / text_span_acc.shape[0]
 
             # total loss
             loc_loss += loss.item()
@@ -217,9 +173,6 @@ class NLUModelTrainer:
             # number of iterations
             loc_steps += 1
             ep_steps += 1
-            # test span loss
-            loc_text_span_loss += text_span_loss.item()
-            ep_text_span_loss += text_span_loss.item()
 
             if phase == "train" and step % self.args.log_iter == 0:
                 if self.args.show_samples:
@@ -253,8 +206,6 @@ class NLUModelTrainer:
                         time() - st_time,
                     )
                 )
-                logging.info("text span acc: {:.3f}".format(loc_text_span_accuracy / loc_steps))
-                logging.info("text span loss: {:.3f}".format(loc_text_span_loss / loc_steps))
                 # Log training outputs to CSV
                 self.train_outputs_logger.log_dialogue_outputs(
                     [
@@ -263,8 +214,6 @@ class NLUModelTrainer:
                         # loss averaged over number of steps between gradient updates
                         loc_loss / loc_steps,
                         loc_full_acc / loc_steps,
-                        loc_text_span_accuracy / loc_steps,
-                        loc_text_span_loss / loc_steps,
                         time() - st_time,
                     ]
                 )
@@ -273,8 +222,6 @@ class NLUModelTrainer:
                 loc_loss = 0.0
                 loc_int_acc = 0.0
                 loc_full_acc = 0.0
-                loc_text_span_accuracy = 0.0
-                loc_text_span_loss = 0.0
 
         if phase == "train":
             return (ep_loss, ep_full_acc, ep_steps, dataset)
@@ -283,8 +230,6 @@ class NLUModelTrainer:
                 ep_loss / ep_steps,
                 ep_int_acc / ep_steps,
                 ep_full_acc / ep_steps,
-                ep_text_span_accuracy / ep_steps,
-                ep_text_span_loss / ep_steps,
             )
 
     def train(self, epoch, dataset):
@@ -330,16 +275,11 @@ class NLUModelTrainer:
             collate_fn=model_collate_fn,
         )
 
-        print(len(val_dataloader))
-
-        loss, _, acc, text_span_acc, text_span_loss = self.run_epoch(
+        loss, _, acc = self.run_epoch(
             "val", epoch, dataset, val_dataloader
         )
-        logging.info(
-            "text span Loss: {:.4f} \t Accuracy: {:.4f}".format(text_span_loss, text_span_acc)
-        )
         self.valid_outputs_logger.log_dialogue_outputs(
-            [epoch, dtype, loss, acc, text_span_acc, text_span_loss, time()]
+            [epoch, dtype, loss, acc, time()]
         )
 
         logging.info(

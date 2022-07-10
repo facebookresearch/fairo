@@ -49,7 +49,6 @@ class DecoderWithLoss(nn.Module):
         span_e_proj: span head predicting span end
         text_span_start_head: text span head predicting start
         text_span_end_head: text span head predicting end
-        span_ce_loss: Cross Entropy loss for spans
         text_span_loss: Cross Entropy loss for text spans
 
     """
@@ -59,11 +58,8 @@ class DecoderWithLoss(nn.Module):
         # model components
         logging.debug("initializing decoder with params {}".format(args))
         self.bert = BertModel(config)
+        # language modeling head
         self.lm_head = BertOnlyMLMHead(config)
-        self.fixed_span_head = nn.Linear(config.hidden_size, len(fixed_span_values_voc))
-        # predict text span beginning and end
-        self.text_span_start_head = nn.Linear(config.hidden_size, config.hidden_size)
-        self.text_span_end_head = nn.Linear(config.hidden_size, config.hidden_size)
         # loss functions
         if args.node_label_smoothing > 0:
             self.lm_ce_loss = LabelSmoothingLoss(
@@ -73,9 +69,6 @@ class DecoderWithLoss(nn.Module):
             self.lm_ce_loss = torch.nn.CrossEntropyLoss(
                 ignore_index=tokenizer.pad_token_id, reduction="none"
             )
-        self.span_ce_loss = torch.nn.CrossEntropyLoss(ignore_index=-1, reduction="none")
-        self.text_span_loss = torch.nn.CrossEntropyLoss(ignore_index=-1, reduction="none")
-        self.fixed_span_loss = torch.nn.CrossEntropyLoss(ignore_index=-1, reduction="none")
         self.tree_to_text = args.tree_to_text
 
     def step(self, y, y_mask, x_reps, x_mask):
@@ -100,37 +93,10 @@ class DecoderWithLoss(nn.Module):
             encoder_hidden_states=x_reps,
             encoder_attention_mask=x_mask,
         )[0]
-        y_mask_target = y_mask
         lm_scores = self.lm_head(y_rep)
 
-        # text span prediction
-        # detach head
-        text_span_start_hidden_z = y_rep.detach()
-        text_span_end_hidden_z = y_rep.detach()
-        # get predicted values
-        text_span_start_out = self.text_span_start_head(text_span_start_hidden_z)
-        text_span_start_scores = (x_reps[:, None, :, :] * text_span_start_out[:, :, None, :]).sum(
-            dim=-1
-        )
-        text_span_start_scores = (
-            text_span_start_scores
-            + (1 - y_mask_target.type_as(text_span_start_scores))[:, :, None] * 1e9
-        )
-        # text span end prediction
-        text_span_end_out = self.text_span_end_head(text_span_end_hidden_z)
-        text_span_end_scores = (x_reps[:, None, :, :] * text_span_end_out[:, :, None, :]).sum(
-            dim=-1
-        )
-        text_span_end_scores = (
-            text_span_end_scores
-            + (1 - y_mask_target.type_as(text_span_end_scores))[:, :, None] * 1e9
-        )
-        fixed_value_scores = self.fixed_span_head(y_rep)
         res = {
             "lm_scores": torch.log_softmax(lm_scores, dim=-1).detach(),
-            "text_span_start_scores": torch.log_softmax(text_span_start_scores, dim=-1).detach(),
-            "text_span_end_scores": torch.log_softmax(text_span_end_scores, dim=-1).detach(),
-            "fixed_value_scores": torch.log_softmax(fixed_value_scores, dim=-1).detach(),
         }
         return res
 
@@ -165,7 +131,7 @@ class DecoderWithLoss(nn.Module):
         else:
             model_out = self.bert(
                 labels=y,
-                input_ids=y[:, :-1, 0],
+                input_ids=y[:, :-1],
                 attention_mask=y_mask[:, :-1],
                 encoder_hidden_states=x_reps,
                 encoder_attention_mask=x_mask,
@@ -178,67 +144,14 @@ class DecoderWithLoss(nn.Module):
             # language modeling
             lm_scores = self.lm_head(y_rep)
             lm_lin_scores = lm_scores.view(-1, lm_scores.shape[-1])
-            lm_lin_targets = y[:, 1:, 0].contiguous().view(-1)
+            lm_lin_targets = y[:, 1:].contiguous().view(-1)
             lm_lin_loss = self.lm_ce_loss(lm_lin_scores, lm_lin_targets)
             lm_lin_mask = y_mask_target.view(-1)
             lm_loss = lm_lin_loss.sum() / lm_lin_mask.sum()
-            # fixed span value output head
-            self.fixed_span_hidden_z = y_rep.detach()
-            self.fixed_span_hidden_z.requires_grad = True
-            self.fixed_span_hidden_z.retain_grad()
-            fixed_span_scores = self.fixed_span_head(self.fixed_span_hidden_z)
-            fixed_span_lin_scores = fixed_span_scores.view(-1, fixed_span_scores.shape[-1])
-            fixed_span_lin_targets = y[:, 1:, -1].contiguous().view(-1)
-            fixed_span_lin_loss = self.fixed_span_loss(
-                fixed_span_lin_scores, fixed_span_lin_targets
-            )
-            fixed_span_loss = fixed_span_lin_loss.sum() / (y[:, :, -1] >= 0).sum()
             tot_loss = lm_loss
 
-            # text span prediction
-            # detach head
-            if not is_eval:
-                y_rep.retain_grad()
-            self.text_span_start_hidden_z = y_rep.detach()
-            self.text_span_end_hidden_z = y_rep.detach()
-            self.text_span_start_hidden_z.requires_grad = True
-            self.text_span_end_hidden_z.requires_grad = True
-            self.text_span_start_hidden_z.retain_grad()
-            self.text_span_end_hidden_z.retain_grad()
-            # get predicted values
-            self.text_span_start_out = self.text_span_start_head(self.text_span_start_hidden_z)
-            text_span_start_scores = (
-                x_reps[:, None, :, :] * self.text_span_start_out[:, :, None, :]
-            ).sum(dim=-1)
-            text_span_start_lin_scores = text_span_start_scores.view(
-                -1, text_span_start_scores.shape[-1]
-            )
-            text_span_start_targets = y[:, 1:, 1].contiguous().view(-1)
-            text_span_start_lin_loss = self.text_span_loss(
-                text_span_start_lin_scores, text_span_start_targets
-            )
-            text_span_start_loss = text_span_start_lin_loss.sum() / (y[:, :, 1] >= 0).sum()
-            # text span end prediction
-            text_span_end_out = self.text_span_end_head(self.text_span_end_hidden_z)
-            text_span_end_scores = (x_reps[:, None, :, :] * text_span_end_out[:, :, None, :]).sum(
-                dim=-1
-            )
-            text_span_end_lin_scores = text_span_end_scores.view(
-                -1, text_span_end_scores.shape[-1]
-            )
-            text_span_end_targets = y[:, 1:, 2].contiguous().view(-1)
-            text_span_end_lin_loss = self.text_span_loss(
-                text_span_end_lin_scores, text_span_end_targets
-            )
-            text_span_end_loss = text_span_end_lin_loss.sum() / (y[:, :, 2] >= 0).sum()
-            text_span_lin_loss = text_span_start_loss + text_span_end_loss
-            text_span_loss = text_span_lin_loss.sum() / (y[:, :, 1] >= 0).sum()
             res = {
                 "lm_scores": lm_scores,
                 "loss": tot_loss,
-                "text_span_start_scores": text_span_start_scores,
-                "text_span_end_scores": text_span_end_scores,
-                "text_span_loss": text_span_loss,
-                "fixed_span_loss": fixed_span_loss,
             }
         return res

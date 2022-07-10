@@ -63,6 +63,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Whether use GPU with 32g memory for training",
     )
+    parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
     opts = parser.parse_args()
 
     ###############################################
@@ -175,6 +176,8 @@ if __name__ == "__main__":
         + opts.pretrained_encoder_name
         + " --decoder_config_name "
         + opts.decoder_config_name
+        + " --param_update_freq "
+        + str(opts.param_update_freq)
     )
 
     errpaths = []

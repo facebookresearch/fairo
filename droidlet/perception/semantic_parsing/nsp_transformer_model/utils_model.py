@@ -1,5 +1,7 @@
 import os
 import torch
+import pickle
+import json
 from droidlet.perception.semantic_parsing.nsp_transformer_model.decoder_with_loss import (
     DecoderWithLoss,
 )
@@ -17,9 +19,6 @@ def build_model(args, tree_i2w):
     bert_config.add_cross_attention = True
     if args.tree_to_text:
         tokenizer.add_tokens(tree_i2w)
-    else:
-        # FIXME "8"
-        bert_config.vocab_size = len(tree_i2w) + 8
     dec_with_loss = DecoderWithLoss(bert_config, args, tokenizer)
     encoder_decoder = EncoderDecoderWithLoss(enc_model, dec_with_loss, args)
     return dec_with_loss, encoder_decoder, tokenizer

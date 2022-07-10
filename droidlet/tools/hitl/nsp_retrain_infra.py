@@ -36,7 +36,7 @@ sh.setFormatter(log_formatter)
 logger.addHandler(sh)
 
 LISTENER_SLEEP_TIME = 10  # Seconds to wait before listener looks for new data
-NSP_RETRAIN_TIMEOUT = 18000  # Wait a max of 5h for the NSP retraining script to finish
+NSP_RETRAIN_TIMEOUT = 72000  # Wait a max of 5h for the NSP retraining script to finish
 MODEL_OUTPUT_POLL_TIME = 60  # Seconds to wait between looking for model output logs
 NUM_MODEL_OUTPUT_POLLS = 500  # Number of times to poll model output files before assuming finished
 
@@ -343,10 +343,12 @@ class NSPRetrainingJob(DataGenerator):
             + opts.pretrained_encoder_name
             + " --decoder_config_name "
             + opts.decoder_config_name
+            + " --param_update_freq "
+            + str(opts.param_update_freq)
         )
         # Require 32g GPU for training
         if opts.use_32g_gpu:
-            sweep_args += "--use_32g_gpu "
+            sweep_args += " --use_32g_gpu "
 
         # Initialize the training run
         try:
@@ -602,6 +604,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-encoder_learning_rate", type=float, nargs="+", help="Learning rate for the decoder"
     )
+    parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
     opts = parser.parse_args()
 
     # build up sweep config folder if it doesn't exist
