@@ -1,9 +1,16 @@
 import torch
 import torch.nn as nn
 import logging
-from droidlet.perception.semantic_parsing.nsp_transformer_model.modeling_bert import BertModel, BertOnlyMLMHead
-from droidlet.perception.semantic_parsing.nsp_transformer_model.tokenization_utils import fixed_span_values_voc
-from droidlet.perception.semantic_parsing.nsp_transformer_model.label_smoothing_loss import LabelSmoothingLoss
+from droidlet.perception.semantic_parsing.nsp_transformer_model.modeling_bert import (
+    BertModel,
+    BertOnlyMLMHead,
+)
+from droidlet.perception.semantic_parsing.nsp_transformer_model.tokenization_utils import (
+    fixed_span_values_voc,
+)
+from droidlet.perception.semantic_parsing.nsp_transformer_model.label_smoothing_loss import (
+    LabelSmoothingLoss,
+)
 
 
 def my_xavier_init(m, gain=1):
