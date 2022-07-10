@@ -120,10 +120,8 @@ class CAIPDataset(Dataset):
             p_text, p_tree = t
         except ValueError as e:
             print(e)
-        
-        text, tree = tokenize_text_tree(
-            p_text, p_tree, self.tokenizer, self.word_noise
-        )
+
+        text, tree = tokenize_text_tree(p_text, p_tree, self.tokenizer, self.word_noise)
 
         text_idx_ls = self.tokenizer.convert_tokens_to_ids(text.split())
         tree_idx_ls = self.tokenizer.convert_tokens_to_ids(tree.split())

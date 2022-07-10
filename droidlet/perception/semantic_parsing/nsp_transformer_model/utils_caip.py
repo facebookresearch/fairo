@@ -113,7 +113,10 @@ def process_txt_data(filepath: str):
     samples = open(filepath, "r").readlines()
     split_lines = [line.split("|") for line in samples]
     # Format of each sample is [text, action_dict]
-    formatted_data = [[text, tree_span_node_replace(text, json.loads(action_dict))] for text, action_dict in split_lines]
+    formatted_data = [
+        [text, tree_span_node_replace(text, json.loads(action_dict))]
+        for text, action_dict in split_lines
+    ]
     return formatted_data
 
 
@@ -126,7 +129,7 @@ def tree_span_node_replace(text, tree):
             f_key.split("_")[0]
         else:
             f_key = key
-        
+
         if key == "fixed_value":
             out_tree[f_key] = tree[key]
         elif is_cat(tree[key]):
@@ -138,7 +141,7 @@ def tree_span_node_replace(text, tree):
                 # change index to text itself
                 _, (b, c) = tree[key]
                 split_text = text.split()
-                out_tree[f_key] = " ".join([split_text[idx] for idx in range(b, c+1)])
+                out_tree[f_key] = " ".join([split_text[idx] for idx in range(b, c + 1)])
         elif is_int(tree[key]):
             out_tree[f_key] = tree_span_node_replace(text, tree[key])
         elif is_int_list(tree[key]):
@@ -149,8 +152,9 @@ def tree_span_node_replace(text, tree):
         else:
             print(tree)
             print(key)
-    
+
     return out_tree
+
 
 def tree_to_seq(full_tree, tree, idx_map=None):
     """Linearize and de-linearize trees.
@@ -201,7 +205,7 @@ def tree_to_seq(full_tree, tree, idx_map=None):
     except IndexError as e:
         raise e
     return res
-    
+
 
 def select_spans(seq):
     """Selects sub-tree in (span in the output sequence) so we can apply recursively seq_to_tree"""
@@ -239,6 +243,7 @@ def select_spans(seq):
         if e_idx > 0:
             span_dict[s_idx] = e_idx
     return (span_dict, well_formed)
+
 
 def seq_to_tree(full_tree, seq, idx_rev_map=None, span_dct=None, start_id=0):
     """Transforms sequence back into tree of nested dictionaries
@@ -424,6 +429,7 @@ def tokenize_text_tree(text, tree, tokenzier, word_noise=0.0):
 
     return (tokenized_text, tokenized_tree)
 
+
 def caip_collate(batch, tokenizer, tree_to_text=False):
     """Applies padding and makes batch tensors
 
@@ -453,7 +459,8 @@ def caip_collate(batch, tokenizer, tree_to_text=False):
     else:
         batch_y_pad_ls = [
             # y + [[0, -1, -1, -1]] * (y_len - len(y)) for y in batch_y_ls
-            y + [tokenizer.pad_token_id] * (y_len - len(y)) for y in batch_y_ls
+            y + [tokenizer.pad_token_id] * (y_len - len(y))
+            for y in batch_y_ls
         ]  # 0 as padding idx
     # tensorize
     x = torch.tensor(batch_x_pad_ls)

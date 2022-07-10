@@ -275,12 +275,8 @@ class NLUModelTrainer:
             collate_fn=model_collate_fn,
         )
 
-        loss, _, acc = self.run_epoch(
-            "val", epoch, dataset, val_dataloader
-        )
-        self.valid_outputs_logger.log_dialogue_outputs(
-            [epoch, dtype, loss, acc, time()]
-        )
+        loss, _, acc = self.run_epoch("val", epoch, dataset, val_dataloader)
+        self.valid_outputs_logger.log_dialogue_outputs([epoch, dtype, loss, acc, time()])
 
         logging.info(
             "evaluating on {} valid: \t Loss: {:.4f} \t Accuracy: {:.4f} at epoch {}".format(

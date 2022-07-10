@@ -170,6 +170,7 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
     res = sorted(pre_res, key=lambda x: x[1], reverse=True)
     return res
 
+
 def beam_search_simp(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2):
     """
     Beam search decoding with only language modelling head.
@@ -206,16 +207,16 @@ def beam_search_simp(txt, model, tokenizer, dataset, beam_size=5, well_formed_pe
     x_mask = x_mask.expand(beam_size, -1)
     x_reps = x_reps.expand(beam_size, -1, -1)
     # start decoding
-    y = torch.LongTensor([[dataset.tokenizer.convert_tokens_to_ids("[CLS]")] for _ in range(beam_size)]).to(
+    y = torch.LongTensor(
+        [[dataset.tokenizer.convert_tokens_to_ids("[CLS]")] for _ in range(beam_size)]
+    ).to(
         model_device
     )  # B x 1
     beam_scores = torch.Tensor([-1e9 for _ in range(beam_size)]).to(model_device)  # B
     beam_scores[0] = 0
     beam_seqs = [["[CLS]"] for _ in range(beam_size)]
     finished = [False for _ in range(beam_size)]
-    pad_scores = torch.Tensor([-1e9] * dataset.tokenizer.vocab_size).to(
-        model_device
-    )
+    pad_scores = torch.Tensor([-1e9] * dataset.tokenizer.vocab_size).to(model_device)
     pad_scores[dataset.tokenizer.convert_tokens_to_ids("[PAD]")] = 0
     for i in range(512):
         outputs = model.decoder.step(y, y_mask, x_reps, x_mask)
@@ -240,17 +241,15 @@ def beam_search_simp(txt, model, tokenizer, dataset, beam_size=5, well_formed_pe
         y = torch.cat([y[n_beam_ids], n_word_ids[:, None]], dim=1)
         # find out which of the beams are finished
         pre_finished = [finished[b_id.item()] for b_id in n_beam_ids]
-        new_finished = [w_id.item() == dataset.tokenizer.convert_tokens_to_ids("[SEP]") for w_id in n_word_ids]
+        new_finished = [
+            w_id.item() == dataset.tokenizer.convert_tokens_to_ids("[SEP]") for w_id in n_word_ids
+        ]
         finished = [p or n for p, n in zip(pre_finished, new_finished)]
         n_mask = 1 - torch.Tensor(finished).type_as(y_mask)
         y_mask = torch.cat([y_mask[n_beam_ids], n_mask[:, None]], dim=1)
 
         # update beam_seq
-        beam_seqs = [
-            beam_seqs[n_beam_ids[i].item()]
-            + [n_words[i]]
-            for i in range(beam_size)
-        ]
+        beam_seqs = [beam_seqs[n_beam_ids[i].item()] + [n_words[i]] for i in range(beam_size)]
         # penalize poorly formed trees
         for i, seq in enumerate(beam_seqs):
             if seq[-1] == "[SEP]":
@@ -271,6 +270,7 @@ def beam_search_simp(txt, model, tokenizer, dataset, beam_size=5, well_formed_pe
     res = sorted(pre_res, key=lambda x: x[1], reverse=True)
     return res
 
+
 def check_tree_well_formed(tok_tree):
     """
     Check if the predicted tokens of tree is well formed via pairing
@@ -280,7 +280,7 @@ def check_tree_well_formed(tok_tree):
         tok_tree: predicted tree tokens
 
     Returns:
-        well_formed: boolean, whether all left brackets are paired to 
+        well_formed: boolean, whether all left brackets are paired to
         right brackets
     """
     queue = []
@@ -295,6 +295,7 @@ def check_tree_well_formed(tok_tree):
 
     return len(queue) == 0
 
+
 def detokenize_tree(seq, tokenizer):
     """
     Transform tokenized sequence of tree back to tree
@@ -302,14 +303,14 @@ def detokenize_tree(seq, tokenizer):
     Args:
         seq: list of tokens
         tokenizer: pretrained tokenizer
-    
+
     Returns:
         tree: dictionaru
     """
     tok_tree = tokenizer.convert_tokens_to_string(seq)
     tok_tree = tok_tree.split()
-    
-    special_tokens = ["[", "]", "{", "}", ":", ",", "_", "\""]
+
+    special_tokens = ["[", "]", "{", "}", ":", ",", "_", '"']
     tree = ""
     prev_token = None
     for token in tok_tree:
@@ -320,8 +321,9 @@ def detokenize_tree(seq, tokenizer):
                 tree += " "
             tree += token
             prev_token = token
-    
+
     return json.loads(tree)
+
 
 def compute_accuracy(outputs, y):
     """Util function for validation.
