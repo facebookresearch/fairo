@@ -10,7 +10,9 @@ import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
 import MemoryMapTable, {
   positionMemoryMapTable,
 } from "./Memory2D/MemoryMapTable";
-import MemoryPopup, { positionMemoryPopup } from "./Memory2D/MemoryPopup";
+import OverlayedObjsPopup, {
+  positionOverlayedObjsPopup,
+} from "./Memory2D/OverlayedObjsPopup";
 
 var hashCode = function (s) {
   return s.split("").reduce(function (a, b) {
@@ -732,7 +734,7 @@ class Memory2D extends React.Component {
         </div>
         {popup_visible && (
           <div
-            style={positionMemoryPopup(
+            style={positionOverlayedObjsPopup(
               this.state.height,
               this.state.width,
               popup_coords,
@@ -740,7 +742,7 @@ class Memory2D extends React.Component {
               popup_data
             )}
           >
-            <MemoryPopup
+            <OverlayedObjsPopup
               data={popup_data}
               map_pos={popup_coords}
               onPopupClose={onPopupClose}

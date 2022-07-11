@@ -51,7 +51,7 @@ const StyledTableRow = withStyles((theme) => ({
  *                            rows: pairs of memory attributes and value
  *                            onTableDone: event handler for after user is finished with table.
  */
-export default function MemoryPopup(props) {
+export default function OverlayedObjsPopup(props) {
   const [focusedObj, setFocusedObj] = useState(null);
 
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function MemoryPopup(props) {
   );
 }
 
-export function positionMemoryPopup(h, w, tc, dc, data) {
+export function positionOverlayedObjsPopup(h, w, tc, dc, data) {
   // this takes all these parameters so table will properly update position on change
   let ret = { position: "absolute" };
   let final_coords = [w - (tc[0] + dc[0]), Math.min(h, w) - (tc[1] + dc[1])];
