@@ -117,6 +117,7 @@ class SLAM(object):
         """
         if not in_map:
             location = self.real2map(location)
+        print(f"Adding obstacle at {location}!")
         self.map_builder.add_obstacle(location)
 
     def add_obstacles(self, locations, in_map=False):

@@ -26,10 +26,13 @@ Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
 
 
 def draw_line(start, end, mat, steps=25, w=1):
+    max_r, max_c = mat.shape
+    start = (np.clip(start[0], 0, max_r), np.clip(start[1], 0, max_c))
+    end = (np.clip(end[0], 0, max_r), np.clip(end[1], 0, max_c))
     for i in range(steps + 1):
-        x = int(np.rint(start[0] + (end[0] - start[0]) * i / steps))
-        y = int(np.rint(start[1] + (end[1] - start[1]) * i / steps))
-        mat[x - w : x + w, y - w : y + w] = 1
+        r = int(np.rint(start[0] + (end[0] - start[0]) * i / steps))
+        c = int(np.rint(start[1] + (end[1] - start[1]) * i / steps))
+        mat[r - w : r + w, c - w : c + w] = 1
     return mat
 
 
@@ -341,16 +344,16 @@ class Navigation(object):
                     goal_map=goal_map,
                     distance_threshold=0.5,
                     angle_threshold=30,
-                    steps=50,
+                    steps=1,
                     visualize=visualize,
                 )
-                break
+                continue
 
             elif (cat_frame == 1).sum() > 0:
                 # Else if an instance of the object goal category is detected in
                 # the frame, go in its direction
                 high_level_step += 1
-                low_level_steps_with_goal_remaining = 10
+                low_level_steps_with_goal_remaining = 20
                 panorama_steps_remaining = 0
                 print(
                     f"[navigation] High-level step {high_level_step}: Found a {object_goal} in the frame, "
@@ -397,10 +400,13 @@ class Navigation(object):
                 if debug:
                     print()
                     print(f"Step {low_level_step}")
+                    print("start_x, start_y", (start_x, start_y))
+                    print("end_x, end_y", (end_x, end_y))
                     print("agent_angle", np.rad2deg(agent_angle))
                     print("frame_angle", np.rad2deg(frame_angle))
                     print("angle", np.rad2deg(angle))
                     print()
+                    os.makedirs("debug", exist_ok=True)
                     cv2.imwrite(
                         f"debug/cat_frame_{low_level_step}.png",
                         (cat_frame * 255).astype(np.uint8),
