@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { withStyles, makeStyles } from "@material-ui/core/styles";
+import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -11,10 +11,8 @@ import Box from "@material-ui/core/Box";
 
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
-import DeleteIcon from "@material-ui/icons/Delete";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import ClearIcon from "@material-ui/icons/Clear";
-import AddIcon from "@material-ui/icons/Add";
 import Tooltip from "@material-ui/core/Tooltip";
 
 import TextField from "@material-ui/core/TextField";
@@ -35,6 +33,7 @@ const StyledTableCell = withStyles((theme) => ({
   },
   body: {
     color: theme.palette.common.black,
+    borderBottomColor: theme.palette.common.black,
   },
 }))(TableCell);
 
@@ -114,9 +113,10 @@ function MapTextField(props) {
 /**
  * Creates simple table of memory values for an object on the map.
  *
- * @param {rows, onTableDone} props
- *                            rows: pairs of memory attributes and value
- *                            onTableDone: event handler for after user is finished with table.
+ * @param {data, onTableClose, onTableSubmit} props
+ *                            data: dictionary of attribute: value pairs for object
+ *                            onTableClose: event handler to close the table
+ *                            onTableSubmit: event handler to send changed values to memory and close table
  */
 export default function MemoryMapTable(props) {
   /*
@@ -161,8 +161,8 @@ export default function MemoryMapTable(props) {
               <Box display="flex" justifyContent="space-between">
                 Value
                 <IconButton
-                  onClick={(e) => {
-                    props.onTableClose(e);
+                  onClick={() => {
+                    props.onTableClose();
                   }}
                   color="secondary"
                   size="small"
@@ -263,9 +263,16 @@ export default function MemoryMapTable(props) {
 function shortenLongTableEntries(e) {
   if (e.length > 16) {
     return (
-      <Tooltip title={e} placement="right-start" interactive leaveDelay={500}>
-        <p>{e.substring(0, 6) + "..." + e.substring(e.length - 6)}</p>
-      </Tooltip>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        maxHeight={20}
+      >
+        <Tooltip title={e} placement="right-start" interactive leaveDelay={500}>
+          <p>{e.substring(0, 6) + "..." + e.substring(e.length - 6)}</p>
+        </Tooltip>
+      </Box>
     );
   }
   return e;

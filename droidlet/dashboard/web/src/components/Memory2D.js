@@ -8,6 +8,7 @@ import React from "react";
 import { Stage, Layer, Circle, Line, Text, Group } from "react-konva";
 import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
 import MemoryMapTable from "./Memory2D/MemoryMapTable";
+import MemoryPopup from "./Memory2D/MemoryPopup";
 
 var hashCode = function (s) {
   return s.split("").reduce(function (a, b) {
@@ -43,12 +44,15 @@ class Memory2D extends React.Component {
       table_data: null,
       table_visible: false,
       table_coords: [0, 0],
+      popup_data: null,
+      popup_visible: false,
+      popup_coords: [0, 0],
       map_update_count: 0,
+      grouping_mode: false,
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
     this.resizeHandler = this.resizeHandler.bind(this);
-    this.handleObjClick = this.handleObjClick.bind(this);
   }
   handleDrag = (className, drag_coordinates) => {
     this.setState({ memory2d_className: className });
@@ -130,20 +134,45 @@ class Memory2D extends React.Component {
     console.log("will plot table at: [", (x + drag_coordinates[0]), ", ", (Math.min(height, width) - y - drag_coordinates[1]), "]");
     */
 
-    console.log(obj_type + " clicked");
+    // console.log(obj_type + " clicked");
+
+    let { table_coords, popup_coords } = this.state;
 
     this.setState({
       table_visible: true,
       table_coords: [x, y],
       table_data: data,
     });
+
+    if (
+      table_coords[0] !== popup_coords[0] ||
+      table_coords[1] !== popup_coords[1]
+    ) {
+      this.setState({ popup_visible: false });
+    }
+  };
+  handlePopupClick = (x, y, data) => {
+    let { table_coords, popup_coords } = this.state;
+
+    this.setState({
+      popup_visible: true,
+      popup_coords: [x, y],
+      popup_data: data,
+    });
+
+    if (
+      table_coords[0] !== popup_coords[0] ||
+      table_coords[1] !== popup_coords[1]
+    ) {
+      this.setState({ table_visible: false });
+    }
   };
   positionTable = (h, w, tc, dc, td) => {
     // this takes all these parameters so table will properly update position on change
     let ret = { position: "absolute" };
     let final_coords = [tc[0] + dc[0], Math.min(h, w) - (tc[1] + dc[1])];
     let final_pos = ["left", "bottom"];
-    let table_dims = [226, 42 * (Object.keys(td).length - 2) + 157];
+    let table_dims = [226, 42 * (Object.keys(td).length - 3) + 179];
     if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
       final_coords[1] = Math.min(h, w) - final_coords[1];
       final_pos[1] = "top";
@@ -152,6 +181,21 @@ class Memory2D extends React.Component {
     ret[final_pos[1]] = final_coords[1];
     return ret;
   };
+  positionPopup = (h, w, tc, dc, td) => {
+    // this takes all these parameters so table will properly update position on change
+    let ret = { position: "absolute" };
+    let final_coords = [tc[0] + dc[0], Math.min(h, w) - (tc[1] + dc[1])];
+    let final_pos = ["left", "bottom"];
+    let table_dims = [226, 61 * td.length + 39];
+    if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
+      final_coords[1] = Math.min(h, w) - final_coords[1];
+      final_pos[1] = "top";
+    }
+    ret[final_pos[0]] = final_coords[0];
+    ret[final_pos[1]] = final_coords[1];
+    return ret;
+  };
+
   resizeHandler() {
     if (this.props.isMobile) {
       let dimensions = this.props.dimensions;
@@ -229,6 +273,9 @@ class Memory2D extends React.Component {
       table_data,
       table_visible,
       table_coords,
+      popup_data,
+      popup_visible,
+      popup_coords,
     } = this.state;
     width = Math.min(width, height);
     height = width;
@@ -267,9 +314,10 @@ class Memory2D extends React.Component {
           radiusFocused: 5,
           color: color,
           data: {
-            memid: "don't edit",
+            memid: "don't edit" + j++,
             x: obj[0],
             y: obj[1],
+            pos: "[" + obj[0] + ",0," + obj[1] + "]",
           },
         };
         if (!(map_pos in objectPosPool)) {
@@ -340,7 +388,6 @@ class Memory2D extends React.Component {
       let [map_x, map_y] = map_pos.split(",");
       map_x = parseInt(map_x);
       map_y = parseInt(map_y);
-      console.log(map_x, map_y, objs_at_pos);
       if (objs_at_pos.length === 1) {
         // only one object at map position
         let obj = objs_at_pos[0];
@@ -351,7 +398,7 @@ class Memory2D extends React.Component {
             x={map_x}
             y={map_y}
             fill={obj.color}
-            onClick={(e) => {
+            onClick={() => {
               this.handleObjClick(obj.type, map_x, map_y, obj.data);
             }}
             onMouseOver={(e) => {
@@ -364,33 +411,67 @@ class Memory2D extends React.Component {
         );
       } else {
         // several objects overlayed at map position
+        let numObjs = objs_at_pos.length;
         let overlayedObjects = [];
+        let [groupColor, groupRadius] = ["#0000FF", 6];
         objs_at_pos.forEach((obj) => {
           overlayedObjects.push(
-            <Circle
-              key={obj.data.memid}
-              radius={obj.radius}
-              fill={obj.color}
-              onClick={(e) => {
-                this.handleObjClick(obj.type, map_x, map_y, obj.data);
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.setRadius(obj.radiusFocused);
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.setRadius(obj.radius);
-              }}
-            />
+            // <Circle
+            //   x={0}
+            //   y={0}
+            //   key={obj.data.memid}
+            //   radius={obj.radius}
+            //   fill={obj.color}
+            //   stroke="black"
+            //   strokeWidth={1}
+            //   onClick={() => {
+            //     this.handleObjClick(obj.type, map_x, map_y, obj.data);
+            //   }}
+            //   onMouseOver={(e) => {
+            //     e.currentTarget.setRadius(obj.radiusFocused);
+            //   }}
+            //   onMouseOut={(e) => {
+            //     e.currentTarget.setRadius(obj.radius);
+            //   }}
+            // />
+            obj
           );
         });
         renderedObjects.push(
-          <Group key={map_pos} x={map_x} y={map_y}>
-            {overlayedObjects}
+          <Group
+            key={map_pos}
+            x={map_x}
+            y={map_y}
+            onClick={() => {
+              this.handlePopupClick(map_x, map_y, overlayedObjects);
+            }}
+          >
+            {/* {overlayedObjects} */}
+            <Circle
+              x={0}
+              y={0}
+              radius={groupRadius}
+              fill={groupColor}
+              stroke="black"
+              strokeWidth={1}
+              onMouseOver={(e) => {
+                e.currentTarget.setRadius(groupRadius * 1.5);
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.setRadius(groupRadius);
+              }}
+            />
             <Text
-              text={objs_at_pos.length}
+              x={numObjs > 9 ? -5 : -3}
+              y={numObjs > 9 ? -5 : -3}
+              width={numObjs > 9 ? 10 : 6}
+              height={numObjs > 9 ? 10 : 6}
+              text={numObjs > 9 ? "9+" : numObjs}
+              fontSize={numObjs > 9 ? 8 : 10}
               fontFamily="Segoe UI"
-              fontSize={12}
+              fill="white"
               align="center"
+              verticalAlign="middle"
             />
           </Group>
         );
@@ -408,7 +489,7 @@ class Memory2D extends React.Component {
         key={bot_data.memid}
         x={bot_x}
         y={bot_y}
-        onClick={(e) => {
+        onClick={() => {
           this.handleObjClick("bot", bot_x, bot_y, bot_data);
         }}
         onMouseOver={(e) => {
@@ -624,7 +705,7 @@ class Memory2D extends React.Component {
     coordinateAxesLayer.push(axesX, axesZ, notches);
 
     // table props
-    const onTableClose = (e) => {
+    const onTableClose = () => {
       this.setState({ table_visible: false });
     };
     const onTableSubmit = (em) => {
@@ -635,6 +716,9 @@ class Memory2D extends React.Component {
       if (numChanged > 0) this.props.stateManager.sendManualEdits(em);
       this.setState({ table_visible: false });
     };
+    const onPopupClose = () => {
+      this.setState({ popup_visible: false });
+    };
 
     // final render
     return (
@@ -642,10 +726,14 @@ class Memory2D extends React.Component {
         ref={this.outer_div}
         style={{ height: "100%", width: "100%", position: "relative" }}
         onKeyDown={(e) => {
-          console.log(e.key, "down");
+          // console.log(e.key, "down");
+          let selectionKeys = ["Meta", "Command", "Ctrl"];
+          if (selectionKeys.includes(e.key)) {
+            this.setState({ grouping_mode: true });
+          }
         }}
         onKeyUp={(e) => {
-          console.log(e.key, "up");
+          this.setState({ grouping_mode: false });
         }}
         tabIndex="0"
       >
@@ -690,6 +778,22 @@ class Memory2D extends React.Component {
             </Layer>
           </Stage>
         </div>
+        {popup_visible && (
+          <div
+            style={this.positionPopup(
+              height,
+              width,
+              popup_coords,
+              drag_coordinates,
+              popup_data
+            )}
+          >
+            <MemoryPopup
+              data={this.state.popup_data}
+              onPopupClose={onPopupClose}
+            />
+          </div>
+        )}
         {table_visible && (
           <div
             style={this.positionTable(
