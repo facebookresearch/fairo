@@ -260,6 +260,21 @@ export default function MemoryMapTable(props) {
   );
 }
 
+export function positionMemoryMapTable(h, w, tc, dc, data) {
+  // this takes all these parameters so table will properly update position on change
+  let ret = { position: "absolute" };
+  let final_coords = [tc[0] + dc[0], Math.min(h, w) - (tc[1] + dc[1])];
+  let final_pos = ["left", "bottom"];
+  let table_dims = [200, 42 * (Object.keys(data).length - 3) + 32 * 4 + 51];
+  if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
+    final_coords[1] = Math.min(h, w) - final_coords[1];
+    final_pos[1] = "top";
+  }
+  ret[final_pos[0]] = final_coords[0];
+  ret[final_pos[1]] = final_coords[1];
+  return ret;
+}
+
 function shortenLongTableEntries(e) {
   if (e.length > 16) {
     return (

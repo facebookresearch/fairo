@@ -7,8 +7,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import React from "react";
 import { Stage, Layer, Circle, Line, Text, Group } from "react-konva";
 import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
-import MemoryMapTable from "./Memory2D/MemoryMapTable";
-import MemoryPopup from "./Memory2D/MemoryPopup";
+import MemoryMapTable, {
+  positionMemoryMapTable,
+} from "./Memory2D/MemoryMapTable";
+import MemoryPopup, { positionMemoryPopup } from "./Memory2D/MemoryPopup";
 
 var hashCode = function (s) {
   return s.split("").reduce(function (a, b) {
@@ -49,6 +51,7 @@ class Memory2D extends React.Component {
       popup_coords: [0, 0],
       map_update_count: 0,
       grouping_mode: false,
+      grouped_objects: [],
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -109,7 +112,7 @@ class Memory2D extends React.Component {
         -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
     });
   };
-  handleObjClick = (obj_type, x, y, data) => {
+  handleObjClick = (obj_type, map_pos, data) => {
     /* 
      * Potentially useful code to debug table positioning when zooming in *
      *
@@ -134,68 +137,37 @@ class Memory2D extends React.Component {
     console.log("will plot table at: [", (x + drag_coordinates[0]), ", ", (Math.min(height, width) - y - drag_coordinates[1]), "]");
     */
 
-    // console.log(obj_type + " clicked");
+    let { grouping_mode, grouped_objects, popup_coords } = this.state;
 
-    let { table_coords, popup_coords } = this.state;
+    if (!grouping_mode) {
+      console.log(obj_type + " clicked reg");
+      this.setState({
+        table_visible: true,
+        table_coords: map_pos,
+        table_data: data,
+      });
 
-    this.setState({
-      table_visible: true,
-      table_coords: [x, y],
-      table_data: data,
-    });
-
-    if (
-      table_coords[0] !== popup_coords[0] ||
-      table_coords[1] !== popup_coords[1]
-    ) {
-      this.setState({ popup_visible: false });
+      if (map_pos[0] !== popup_coords[0] || map_pos[1] !== popup_coords[1]) {
+        this.setState({ popup_visible: false });
+      }
+    } else {
+      console.log(obj_type + " clicked group");
+      this.setState({ grouped_objects: [...grouped_objects, data] });
     }
   };
-  handlePopupClick = (x, y, data) => {
-    let { table_coords, popup_coords } = this.state;
+  handlePopupClick = (map_pos, data) => {
+    let { table_coords } = this.state;
 
     this.setState({
       popup_visible: true,
-      popup_coords: [x, y],
+      popup_coords: map_pos,
       popup_data: data,
     });
 
-    if (
-      table_coords[0] !== popup_coords[0] ||
-      table_coords[1] !== popup_coords[1]
-    ) {
+    if (map_pos[0] !== table_coords[0] || map_pos[1] !== table_coords[1]) {
       this.setState({ table_visible: false });
     }
   };
-  positionTable = (h, w, tc, dc, td) => {
-    // this takes all these parameters so table will properly update position on change
-    let ret = { position: "absolute" };
-    let final_coords = [tc[0] + dc[0], Math.min(h, w) - (tc[1] + dc[1])];
-    let final_pos = ["left", "bottom"];
-    let table_dims = [226, 42 * (Object.keys(td).length - 3) + 179];
-    if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
-      final_coords[1] = Math.min(h, w) - final_coords[1];
-      final_pos[1] = "top";
-    }
-    ret[final_pos[0]] = final_coords[0];
-    ret[final_pos[1]] = final_coords[1];
-    return ret;
-  };
-  positionPopup = (h, w, tc, dc, td) => {
-    // this takes all these parameters so table will properly update position on change
-    let ret = { position: "absolute" };
-    let final_coords = [tc[0] + dc[0], Math.min(h, w) - (tc[1] + dc[1])];
-    let final_pos = ["left", "bottom"];
-    let table_dims = [226, 61 * td.length + 39];
-    if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
-      final_coords[1] = Math.min(h, w) - final_coords[1];
-      final_pos[1] = "top";
-    }
-    ret[final_pos[0]] = final_coords[0];
-    ret[final_pos[1]] = final_coords[1];
-    return ret;
-  };
-
   resizeHandler() {
     if (this.props.isMobile) {
       let dimensions = this.props.dimensions;
@@ -399,7 +371,7 @@ class Memory2D extends React.Component {
             y={map_y}
             fill={obj.color}
             onClick={() => {
-              this.handleObjClick(obj.type, map_x, map_y, obj.data);
+              this.handleObjClick(obj.type, [map_x, map_y], obj.data);
             }}
             onMouseOver={(e) => {
               e.currentTarget.setRadius(obj.radiusFocused);
@@ -415,27 +387,7 @@ class Memory2D extends React.Component {
         let overlayedObjects = [];
         let [groupColor, groupRadius] = ["#0000FF", 6];
         objs_at_pos.forEach((obj) => {
-          overlayedObjects.push(
-            // <Circle
-            //   x={0}
-            //   y={0}
-            //   key={obj.data.memid}
-            //   radius={obj.radius}
-            //   fill={obj.color}
-            //   stroke="black"
-            //   strokeWidth={1}
-            //   onClick={() => {
-            //     this.handleObjClick(obj.type, map_x, map_y, obj.data);
-            //   }}
-            //   onMouseOver={(e) => {
-            //     e.currentTarget.setRadius(obj.radiusFocused);
-            //   }}
-            //   onMouseOut={(e) => {
-            //     e.currentTarget.setRadius(obj.radius);
-            //   }}
-            // />
-            obj
-          );
+          overlayedObjects.push(obj);
         });
         renderedObjects.push(
           <Group
@@ -443,7 +395,7 @@ class Memory2D extends React.Component {
             x={map_x}
             y={map_y}
             onClick={() => {
-              this.handlePopupClick(map_x, map_y, overlayedObjects);
+              this.handlePopupClick([map_x, map_y], overlayedObjects);
             }}
           >
             {/* {overlayedObjects} */}
@@ -490,7 +442,7 @@ class Memory2D extends React.Component {
         x={bot_x}
         y={bot_y}
         onClick={() => {
-          this.handleObjClick("bot", bot_x, bot_y, bot_data);
+          this.handleObjClick("bot", [bot_x, bot_y], bot_data);
         }}
         onMouseOver={(e) => {
           this.setState({ enlarge_bot_marker: true });
@@ -717,7 +669,7 @@ class Memory2D extends React.Component {
       this.setState({ table_visible: false });
     };
     const onPopupClose = () => {
-      this.setState({ popup_visible: false });
+      this.setState({ popup_visible: false, table_visible: false });
     };
 
     // final render
@@ -732,7 +684,7 @@ class Memory2D extends React.Component {
             this.setState({ grouping_mode: true });
           }
         }}
-        onKeyUp={(e) => {
+        onKeyUp={() => {
           this.setState({ grouping_mode: false });
         }}
         tabIndex="0"
@@ -780,25 +732,27 @@ class Memory2D extends React.Component {
         </div>
         {popup_visible && (
           <div
-            style={this.positionPopup(
-              height,
-              width,
+            style={positionMemoryPopup(
+              this.state.height,
+              this.state.width,
               popup_coords,
               drag_coordinates,
               popup_data
             )}
           >
             <MemoryPopup
-              data={this.state.popup_data}
+              data={popup_data}
+              map_pos={popup_coords}
               onPopupClose={onPopupClose}
+              handleObjClick={this.handleObjClick}
             />
           </div>
         )}
         {table_visible && (
           <div
-            style={this.positionTable(
-              height,
-              width,
+            style={positionMemoryMapTable(
+              this.state.height,
+              this.state.width,
               table_coords,
               drag_coordinates,
               table_data

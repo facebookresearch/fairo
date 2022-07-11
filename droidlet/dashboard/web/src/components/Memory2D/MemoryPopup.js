@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { withStyles, makeStyles } from "@material-ui/core/styles";
+import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -9,9 +9,7 @@ import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
 import Box from "@material-ui/core/Box";
 
-import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
-import RefreshIcon from "@material-ui/icons/Refresh";
 import ClearIcon from "@material-ui/icons/Clear";
 import Tooltip from "@material-ui/core/Tooltip";
 
@@ -40,6 +38,9 @@ const StyledTableRow = withStyles((theme) => ({
     "&:nth-of-type(odd)": {
       backgroundColor: theme.palette.action.hover,
     },
+    "&:hover": {
+      backgroundColor: "green",
+    },
   },
 }))(TableRow);
 
@@ -51,23 +52,12 @@ const StyledTableRow = withStyles((theme) => ({
  *                            onTableDone: event handler for after user is finished with table.
  */
 export default function MemoryPopup(props) {
-  /*
-  The editManager handles the state of the table in the form of a dictionary of the rows.
-  Keys are row attributes.
-  Value is object [
-    value: <value>,
-    valueType: <value_type>,
-    status: "same" or "changed" or "error" [or "new" or "deleted"] [for future],
-  ] 
-  */
-  const [rows, setRows] = useState({});
+  const [focusedObj, setFocusedObj] = useState(null);
 
   useEffect(() => {
-    if (props.data) {
-    }
-  }, [props.data]);
+    setFocusedObj(null);
+  }, []);
 
-  // console.log(editManager);
   return (
     <TableContainer component={Paper} square>
       <Table size="small">
@@ -76,7 +66,7 @@ export default function MemoryPopup(props) {
             <StyledTableCell>Memid</StyledTableCell>
             <StyledTableCell>
               <Box display="flex" justifyContent="space-between">
-                Position
+                Pos
                 <IconButton
                   onClick={(e) => {
                     props.onPopupClose(e);
@@ -91,19 +81,33 @@ export default function MemoryPopup(props) {
           </TableRow>
         </TableHead>
 
-        <TableBody
-          key={
-            // props.map_pos
-            "temp"
-          }
-        >
+        <TableBody key={props.map_pos}>
           {props.data.map((poolData) => (
-            <StyledTableRow>
+            <StyledTableRow
+              key={poolData.data.memid}
+              onClick={() => {
+                props.handleObjClick(
+                  poolData.type,
+                  [props.map_pos[0], props.map_pos[1]],
+                  poolData.data
+                );
+                setFocusedObj(poolData.data.memid);
+              }}
+              style={
+                poolData.data.memid === focusedObj
+                  ? {
+                      backgroundColor: "green",
+                    }
+                  : {}
+              }
+            >
               <StyledTableCell>
-                {shortenLongTableEntries(poolData.data.memid)}
+                {" "}
+                {shortenLongTableEntries(poolData.data.memid)}{" "}
               </StyledTableCell>
               <StyledTableCell>
-                {JSON.stringify(poolData.data.pos)}
+                {" "}
+                {JSON.stringify(poolData.data.pos)}{" "}
               </StyledTableCell>
             </StyledTableRow>
           ))}
@@ -111,6 +115,21 @@ export default function MemoryPopup(props) {
       </Table>
     </TableContainer>
   );
+}
+
+export function positionMemoryPopup(h, w, tc, dc, data) {
+  // this takes all these parameters so table will properly update position on change
+  let ret = { position: "absolute" };
+  let final_coords = [w - (tc[0] + dc[0]), Math.min(h, w) - (tc[1] + dc[1])];
+  let final_pos = ["right", "bottom"];
+  let table_dims = [200, 32 * data.length + 32];
+  if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
+    final_coords[1] = Math.min(h, w) - final_coords[1];
+    final_pos[1] = "top";
+  }
+  ret[final_pos[0]] = final_coords[0];
+  ret[final_pos[1]] = final_coords[1];
+  return ret;
 }
 
 function shortenLongTableEntries(e) {
