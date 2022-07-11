@@ -143,7 +143,14 @@ class World:
     def broadcast_updates(self):
         # broadcast updates
         players = [
-            {"name": player.name, "x": player.pos.x, "y": player.pos.y, "z": player.pos.z}
+            {
+                "name": player.name,
+                "x": player.pos.x,
+                "y": player.pos.y,
+                "z": player.pos.z,
+                "yaw": player.look.yaw,
+                "pitch": player.look.pitch
+            }
             for player in self.get_players()
             if player.name in ["craftassist_agent", "dashboard_player"]
         ]
@@ -163,13 +170,14 @@ class World:
         payload = {
             "status": "updateVoxelWorldState",
             "world_state": {"agent": players, "mob": mobs, "item_stack": items},
+            "backend": "pyworld"
         }
         # print(f"Server stepping, payload: {payload}")
         self.server.emit("updateVoxelWorldState", payload)
 
     def broadcast_block_update(self, loc, idm):
         blocks = [((int(loc[0]), int(loc[1]), int(loc[2])), (int(idm[0]), int(idm[1])))]
-        payload = {"status": "updateVoxelWorldState", "world_state": {"block": blocks}}
+        payload = {"status": "updateVoxelWorldState", "world_state": {"block": blocks, "backend": "pyworld"}}
         self.server.emit("updateVoxelWorldState", payload)
 
     def get_height_map(self):
@@ -422,7 +430,7 @@ class World:
                 for xyz, idm in blocks.items()
             ]
 
-            payload = {"status": "updateVoxelWorldState", "world_state": {"block": blocks}}
+            payload = {"status": "updateVoxelWorldState", "world_state": {"block": blocks}, "backend": "pyworld"}
             # print(f"Initial payload: {payload}")
             server.emit("updateVoxelWorldState", payload)
 

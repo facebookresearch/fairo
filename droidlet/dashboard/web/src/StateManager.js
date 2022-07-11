@@ -78,6 +78,7 @@ class StateManager {
     last_reply: "",
     dash_enable_map: false,
     agent_enable_map: false,
+    backend: null,
   };
   session_id = null;
 
@@ -409,6 +410,9 @@ class StateManager {
   }
 
   updateVoxelWorld(res) {
+    if (res.backend) {
+      this.memory.backend = res.backend;
+    }
     this.refs.forEach((ref) => {
       if (ref instanceof VoxelWorld) {
         ref.setState({
@@ -436,8 +440,17 @@ class StateManager {
     let chat, response_options, isQuestion, questionType;
     try {
       if (res.content_type === "point") {
+        if (this.memory.backend === "pyworld") {
+          chat = content.filter((entry) => entry["id"] === "text")[0]["content"];
+          this.refs.forEach((ref) => {
+            if (ref instanceof VoxelWorld) {
+              ref.flashVoxelWorldBlocks( chat.slice(7,) );
+            }
+          });
+        }
+        // Otherwise let the minecraft client handle point
         return;
-      } // Let the minecraft client handle point
+      } 
       let content = res.content;
       chat = content.filter((entry) => entry["id"] === "text")[0]["content"];
       if (res.content_type === "chat_and_text_options") {

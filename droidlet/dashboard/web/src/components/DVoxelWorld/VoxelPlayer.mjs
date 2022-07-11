@@ -33,6 +33,7 @@ class VoxelPlayer {
         this.world.scene.add(this.highlighter);
         this.tempVec = new world.THREE.Vector3();
         this.lockout = Date.now();
+        this.worldY = new world.THREE.Vector3(0, 1, 0);
     };
 
     move(x, y, z) {
@@ -59,7 +60,7 @@ class VoxelPlayer {
     };
 
     rotate(d_yaw) {
-        this.mesh.rotateY(d_yaw);
+        this.mesh.rotateOnWorldAxis(this.worldY, d_yaw);
         this.rotation.yaw += d_yaw;
         if (this.possessed) this.updateCamera();
     };
@@ -67,10 +68,10 @@ class VoxelPlayer {
     rotateTo(yaw, pitch) {
         if (this.rotation.yaw != yaw && this.rotation.pitch != pitch) {
             this.mesh.rotation.set(this.opts.rotation_offset[0], this.opts.rotation_offset[1], this.opts.rotation_offset[2])
-            this.mesh.rotateY(yaw)
+            this.mesh.rotateOnWorldAxis(this.worldY, yaw);
             this.rotation.yaw = yaw;
-            this.cam_pitch = 0
-            this.cameraPitch(pitch)
+            this.cam_pitch = 0;
+            this.cameraPitch(pitch);
             this.rotation.pitch = pitch;
             if (this.possessed) this.updateCamera();
         }

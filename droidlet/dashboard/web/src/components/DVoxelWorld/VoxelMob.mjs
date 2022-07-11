@@ -13,7 +13,11 @@ class VoxelMob {
         this.mobType = opts.name;
         this.mesh = model;
         this.position_offset = opts.position_offset;
+        this.rotation_offset = opts.rotation_offset;
         this.visible = true;
+        this.rotation = {"pitch": 0, "yaw": 0};
+        this.worldX = new world.THREE.Vector3(1, 0, 0);
+        this.worldY = new world.THREE.Vector3(0, 1, 0);
     }
 
     move(x, y, z) {
@@ -25,6 +29,16 @@ class VoxelMob {
     moveTo(x, y, z) {
         let xyz = applyOffset([x,y,z], this.position_offset);
         this.mesh.position.set(xyz[0], xyz[1], xyz[2]);
+    }
+
+    rotateTo(yaw, pitch) {
+        if (this.rotation.yaw != yaw && this.rotation.pitch != pitch) {
+            this.mesh.rotation.set(this.rotation_offset[0], this.rotation_offset[1], this.rotation_offset[2]);
+            this.mesh.rotateOnWorldAxis(this.worldX, pitch);
+            this.mesh.rotateOnWorldAxis(this.worldY, yaw);
+            this.rotation.yaw = yaw;
+            this.rotation.pitch = pitch;
+        }
     }
 
     remove() {
@@ -49,6 +63,7 @@ class VoxelMob {
         opts.rotation = applyOffset(opts.rotation, mob_data.rotation_offset)
         opts.position = opts.position || [0, 0, 0];
         opts.position = applyOffset(opts.position, mob_data.position_offset)
+        opts.rotation_offset = mob_data.rotation_offset;
         opts.position_offset = mob_data.position_offset;
 
         const path = MOB_PATH + mob_data.model_folder;

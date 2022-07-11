@@ -79,6 +79,7 @@ const PLAYER_NAME = "dashboard_player";
 let mobs = {}
 let mobList = []
 let itemStacks = {}
+let itemList = []
 
 let direction_vec = new THREE.Vector3();
 
@@ -414,14 +415,19 @@ class DVoxelEngine {
                 key["x"],
                 key["y"],
                 key["z"]
-            )
+            );
+            let look = [key["yaw"], key["pitch"]];
+
             // console.log("name: " + name + "x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2])
             if (name === AGENT_NAME && agent_player != null) {
-                agent_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale)
+                agent_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale);
+                agent_player.rotateTo(degToRad(look[0]), degToRad(look[1]));
                 that.playerPostionSafetyCheck(agent_player);
             } else if (name === PLAYER_NAME && controlled_player != null) {
                 // console.log("player moveTo: x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2]);
-                controlled_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale)
+                controlled_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale);
+                // controlled_player.rotateTo(degToRad(look[0]), degToRad(look[1]));
+                // ^this is unstable, probably best to let the player object own look direction always
                 that.playerPostionSafetyCheck(controlled_player);
             }
         })
@@ -468,7 +474,9 @@ class DVoxelEngine {
             if (entityId in mobs) {
                 // console.log("mob already exists, updating states")
                 mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
+                mobs[entityId].rotateTo(key['look'][0], key['look'][1]);
             } else if (mobList.includes(entityId)) {
+                console.log("mob build race condition");
                 // Mob still being built, ignore
             } else {
                 console.log("building mob with ID: " + entityId);
@@ -504,11 +512,16 @@ class DVoxelEngine {
                 key['pos'][1],
                 key['pos'][2]
             )
-            const name = key['name']
+            const name = key['typeName'];
             if (entityId in itemStacks) {
                 // console.log("item already exists, updating states")
                 itemStacks[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
+            } else if (itemList.includes(entityId)) {
+                console.log("item build race condition");
+                // Item still being built, ignore
             } else {
+                console.log("building item with ID: " + entityId);
+                itemList.push(entityId);
                 const itemStackOpts = {
                     GLTFLoader: GLTFLoader,
                     name: name,
@@ -547,10 +560,43 @@ class DVoxelEngine {
     }
 
     flashBlocks(bbox) {
-        // !Need to convert coordinates when this is implemented
-        // console.log("DVoxel Engine flash bbox")
+        console.log("DVoxel Engine flash bbox")
+
+        const coords = bbox.split(' ');
+        const lowCorner = convertCoordinateSystems(parseInt(coords[0]), parseInt(coords[1]), parseInt(coords[2]));
+        const highCorner = convertCoordinateSystems(parseInt(coords[3]), parseInt(coords[4]), parseInt(coords[5]));
+        const geometry = new THREE.BoxGeometry(
+            Math.abs((highCorner[0] - lowCorner[0]) * blockScale + 2),
+            Math.abs((highCorner[1] - lowCorner[1]) * blockScale + 2),
+            Math.abs((highCorner[2] - lowCorner[2]) * blockScale + 2),
+        );
+        const highlighterMaterial = new THREE.MeshBasicMaterial({color: 0x049ef4})
+        const highlightCube = new THREE.Mesh(geometry, highlighterMaterial);
+        highlightCube.position.x += (((highCorner[0] - lowCorner[0]) / 2) + lowCorner[0]) * blockScale;
+        highlightCube.position.y += (((highCorner[1] - lowCorner[1]) / 2) + lowCorner[1]) * blockScale;
+        highlightCube.position.z += (((highCorner[2] - lowCorner[2]) / 2) + lowCorner[2]) * blockScale;
+        scene.add(highlightCube);
+
+        let flashInterval = window.setInterval(function () {
+            if (highlightCube.visible) {
+                highlightCube.visible = false;
+            } else {
+                highlightCube.visible = true;
+            }
+            render();
+        }, 500);
+
+        window.setTimeout(function () {
+            window.clearInterval(flashInterval);
+            scene.remove(highlightCube);
+        }, 5100);
+
     }
 
+}
+
+function degToRad(deg) {
+    return (deg / 360) * Math.PI * 2
 }
 
 function setBlock2(x, y, z, id) {

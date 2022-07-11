@@ -3077,8 +3077,10 @@ class VoxelItem {
   }
 
   moveTo(x, y, z) {
-    let xyz = applyOffset([x, y, z], [25 * this.scale, 25 * this.scale, 25 * this.scale]);
-    this.mesh.position.set(xyz[0], xyz[1], xyz[2]);
+    if (x != this.mesh.position.x || z != this.mesh.position.z) {
+      // only update if x or z positions have changed, otherwise it breaks float
+      this.mesh.position.set(x, y, z);
+    }
   }
 
   drop() {
@@ -3144,45 +3146,27 @@ class VoxelItem {
       loader = new world.THREE.TextureLoader();
       const itemMaterials = [new world.THREE.MeshBasicMaterial({
         map: loader.load('./block_textures/' + item_data["sides"]),
-        color: item_data["color"],
-        opacity: item_data["opacity"],
-        transparent: true,
-        side: world.THREE.DoubleSide
+        color: item_data["color"]
       }), //right side
       new world.THREE.MeshBasicMaterial({
         map: loader.load('./block_textures/' + item_data["sides"]),
-        color: item_data["color"],
-        opacity: item_data["opacity"],
-        transparent: true,
-        side: world.THREE.DoubleSide
+        color: item_data["color"]
       }), //left side
       new world.THREE.MeshBasicMaterial({
         map: loader.load('./block_textures/' + item_data["top"]),
-        color: item_data["color"],
-        opacity: item_data["opacity"],
-        transparent: true,
-        side: world.THREE.DoubleSide
+        color: item_data["color"]
       }), //top side
       new world.THREE.MeshBasicMaterial({
         map: loader.load('./block_textures/' + item_data["bottom"]),
-        color: item_data["color"],
-        opacity: item_data["opacity"],
-        transparent: true,
-        side: world.THREE.DoubleSide
+        color: item_data["color"]
       }), //bottom side
       new world.THREE.MeshBasicMaterial({
         map: loader.load('./block_textures/' + item_data["sides"]),
-        color: item_data["color"],
-        opacity: item_data["opacity"],
-        transparent: true,
-        side: world.THREE.DoubleSide
+        color: item_data["color"]
       }), //front side
       new world.THREE.MeshBasicMaterial({
         map: loader.load('./block_textures/' + item_data["sides"]),
-        color: item_data["color"],
-        opacity: item_data["opacity"],
-        transparent: true,
-        side: world.THREE.DoubleSide
+        color: item_data["color"]
       }) //back side
       ];
       const geo = new world.THREE.BoxGeometry(20 * opts.scale, 20 * opts.scale, 20 * opts.scale);
@@ -3204,7 +3188,6 @@ exports.VoxelItem = VoxelItem;
 ;
 
 function hover(obj) {
-  // This can't possibly be the right way to do this...
   let vel;
   let rel_pos = obj.mesh.position.y % (50 * obj.scale);
 
@@ -3214,6 +3197,7 @@ function hover(obj) {
     vel = Math.abs(rel_pos - 46 * obj.scale) / 2;
   }
 
+  vel += 0.1;
   obj.mesh.position.y += vel * obj.hoverDirection * obj.scale;
   obj.mesh.rotation.y += 0.05;
   rel_pos += vel * obj.hoverDirection * obj.scale;
@@ -3256,7 +3240,14 @@ class VoxelMob {
     this.mobType = opts.name;
     this.mesh = model;
     this.position_offset = opts.position_offset;
+    this.rotation_offset = opts.rotation_offset;
     this.visible = true;
+    this.rotation = {
+      "pitch": 0,
+      "yaw": 0
+    };
+    this.worldX = new world.THREE.Vector3(1, 0, 0);
+    this.worldY = new world.THREE.Vector3(0, 1, 0);
   }
 
   move(x, y, z) {
@@ -3268,6 +3259,16 @@ class VoxelMob {
   moveTo(x, y, z) {
     let xyz = applyOffset([x, y, z], this.position_offset);
     this.mesh.position.set(xyz[0], xyz[1], xyz[2]);
+  }
+
+  rotateTo(yaw, pitch) {
+    if (this.rotation.yaw != yaw && this.rotation.pitch != pitch) {
+      this.mesh.rotation.set(this.rotation_offset[0], this.rotation_offset[1], this.rotation_offset[2]);
+      this.mesh.rotateOnWorldAxis(this.worldX, pitch);
+      this.mesh.rotateOnWorldAxis(this.worldY, yaw);
+      this.rotation.yaw = yaw;
+      this.rotation.pitch = pitch;
+    }
   }
 
   remove() {
@@ -3292,6 +3293,7 @@ class VoxelMob {
     opts.rotation = applyOffset(opts.rotation, mob_data.rotation_offset);
     opts.position = opts.position || [0, 0, 0];
     opts.position = applyOffset(opts.position, mob_data.position_offset);
+    opts.rotation_offset = mob_data.rotation_offset;
     opts.position_offset = mob_data.position_offset;
     const path = MOB_PATH + mob_data.model_folder;
     const loader = new opts.GLTFLoader();
@@ -3367,6 +3369,7 @@ class VoxelPlayer {
     this.world.scene.add(this.highlighter);
     this.tempVec = new world.THREE.Vector3();
     this.lockout = Date.now();
+    this.worldY = new world.THREE.Vector3(0, 1, 0);
   }
 
   move(x, y, z) {
@@ -3395,7 +3398,7 @@ class VoxelPlayer {
   }
 
   rotate(d_yaw) {
-    this.mesh.rotateY(d_yaw);
+    this.mesh.rotateOnWorldAxis(this.worldY, d_yaw);
     this.rotation.yaw += d_yaw;
     if (this.possessed) this.updateCamera();
   }
@@ -3403,7 +3406,7 @@ class VoxelPlayer {
   rotateTo(yaw, pitch) {
     if (this.rotation.yaw != yaw && this.rotation.pitch != pitch) {
       this.mesh.rotation.set(this.opts.rotation_offset[0], this.opts.rotation_offset[1], this.opts.rotation_offset[2]);
-      this.mesh.rotateY(yaw);
+      this.mesh.rotateOnWorldAxis(this.worldY, yaw);
       this.rotation.yaw = yaw;
       this.cam_pitch = 0;
       this.cameraPitch(pitch);
@@ -3669,6 +3672,7 @@ const PLAYER_NAME = "dashboard_player";
 let mobs = {};
 let mobList = [];
 let itemStacks = {};
+let itemList = [];
 let direction_vec = new THREE.Vector3();
 
 function pos2Name(x, y, z, box = false) {
@@ -3997,14 +4001,18 @@ class DVoxelEngine {
     let that = this;
     agentsInfo.forEach(function (key, index) {
       let name = key["name"];
-      let xyz = convertCoordinateSystems(key["x"], key["y"], key["z"]); // console.log("name: " + name + "x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2])
+      let xyz = convertCoordinateSystems(key["x"], key["y"], key["z"]);
+      let look = [key["yaw"], key["pitch"]]; // console.log("name: " + name + "x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2])
 
       if (name === AGENT_NAME && agent_player != null) {
         agent_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale);
+        agent_player.rotateTo(degToRad(look[0]), degToRad(look[1]));
         that.playerPostionSafetyCheck(agent_player);
       } else if (name === PLAYER_NAME && controlled_player != null) {
         // console.log("player moveTo: x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2]);
-        controlled_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale);
+        controlled_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale); // controlled_player.rotateTo(degToRad(look[0]), degToRad(look[1]));
+        // ^this is unstable, probably best to let the player object own look direction always
+
         that.playerPostionSafetyCheck(controlled_player);
       }
     });
@@ -4045,7 +4053,9 @@ class DVoxelEngine {
       if (entityId in mobs) {
         // console.log("mob already exists, updating states")
         mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
-      } else if (mobList.includes(entityId)) {// Mob still being built, ignore
+        mobs[entityId].rotateTo(key['look'][0], key['look'][1]);
+      } else if (mobList.includes(entityId)) {
+        console.log("mob build race condition"); // Mob still being built, ignore
       } else {
         console.log("building mob with ID: " + entityId);
         mobList.push(entityId);
@@ -4075,12 +4085,16 @@ class DVoxelEngine {
     itemStacksInfo.forEach(function (key, index) {
       const entityId = key['entityId'].toString();
       const pos = convertCoordinateSystems(key['pos'][0], key['pos'][1], key['pos'][2]);
-      const name = key['name'];
+      const name = key['typeName'];
 
       if (entityId in itemStacks) {
         // console.log("item already exists, updating states")
         itemStacks[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
+      } else if (itemList.includes(entityId)) {
+        console.log("item build race condition"); // Item still being built, ignore
       } else {
+        console.log("building item with ID: " + entityId);
+        itemList.push(entityId);
         const itemStackOpts = {
           GLTFLoader: _GLTFLoader.GLTFLoader,
           name: name,
@@ -4113,13 +4127,42 @@ class DVoxelEngine {
   setBlock(x, y, z, idm) {// console.log("DVoxel Engine set block")
   }
 
-  flashBlocks(bbox) {// !Need to convert coordinates when this is implemented
-    // console.log("DVoxel Engine flash bbox")
+  flashBlocks(bbox) {
+    console.log("DVoxel Engine flash bbox");
+    const coords = bbox.split(' ');
+    const lowCorner = convertCoordinateSystems(parseInt(coords[0]), parseInt(coords[1]), parseInt(coords[2]));
+    const highCorner = convertCoordinateSystems(parseInt(coords[3]), parseInt(coords[4]), parseInt(coords[5]));
+    const geometry = new THREE.BoxGeometry(Math.abs((highCorner[0] - lowCorner[0]) * blockScale + 2), Math.abs((highCorner[1] - lowCorner[1]) * blockScale + 2), Math.abs((highCorner[2] - lowCorner[2]) * blockScale + 2));
+    const highlighterMaterial = new THREE.MeshBasicMaterial({
+      color: 0x049ef4
+    });
+    const highlightCube = new THREE.Mesh(geometry, highlighterMaterial);
+    highlightCube.position.x += ((highCorner[0] - lowCorner[0]) / 2 + lowCorner[0]) * blockScale;
+    highlightCube.position.y += ((highCorner[1] - lowCorner[1]) / 2 + lowCorner[1]) * blockScale;
+    highlightCube.position.z += ((highCorner[2] - lowCorner[2]) / 2 + lowCorner[2]) * blockScale;
+    scene.add(highlightCube);
+    let flashInterval = window.setInterval(function () {
+      if (highlightCube.visible) {
+        highlightCube.visible = false;
+      } else {
+        highlightCube.visible = true;
+      }
+
+      render();
+    }, 500);
+    window.setTimeout(function () {
+      window.clearInterval(flashInterval);
+      scene.remove(highlightCube);
+    }, 5100);
   }
 
 }
 
 exports.DVoxelEngine = DVoxelEngine;
+
+function degToRad(deg) {
+  return deg / 360 * Math.PI * 2;
+}
 
 function setBlock2(x, y, z, id) {
   voxels[x + voxelOffset[0]][y + voxelOffset[1]][z + voxelOffset[2]] = id;
