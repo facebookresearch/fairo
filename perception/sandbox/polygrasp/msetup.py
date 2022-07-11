@@ -52,16 +52,16 @@ mrp.process(
     ),
 )
 
-mrp.process(
-    name="gripper_server",
-    runtime=mrp.Conda(
-        shared_env=polygrasp_shared_env,
-        run_command=[
-            "launch_gripper.py",
-            "gripper=robotiq_2f",
-            "gripper.comport=/dev/ttyUSB1",
-        ],
-    ),
-)
+# mrp.process(
+#     name="gripper_server",
+#     runtime=mrp.Conda(
+#         shared_env=polygrasp_shared_env,
+#         run_command=[
+#             "launch_gripper.py",
+#             "gripper=robotiq_2f",
+#             "gripper.comport=/dev/ttyUSB1",
+#         ],
+#     ),
+# )
 
 mrp.main()
