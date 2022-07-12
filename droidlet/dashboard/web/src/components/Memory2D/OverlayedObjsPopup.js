@@ -14,6 +14,7 @@ import ClearIcon from "@material-ui/icons/Clear";
 import Tooltip from "@material-ui/core/Tooltip";
 
 const MAX_TABLE_CELL_WIDTH = 100;
+const MAX_TABLE_CONTAINER_HEIGHT = 220;
 
 const StyledTableCell = withStyles((theme) => ({
   root: {
@@ -39,7 +40,7 @@ const StyledTableRow = withStyles((theme) => ({
       backgroundColor: theme.palette.action.hover,
     },
     "&:hover": {
-      backgroundColor: "green",
+      backgroundColor: "orange",
     },
   },
 }))(TableRow);
@@ -47,9 +48,12 @@ const StyledTableRow = withStyles((theme) => ({
 /**
  * Creates simple table of memory values for an object on the map.
  *
- * @param {rows, onTableDone} props
- *                            rows: pairs of memory attributes and value
- *                            onTableDone: event handler for after user is finished with table.
+ * @param {data, map_pos, onPopupClose, handleObjClick} props
+ *                            data: array of poolData objects
+ *                            map_pos: where popup should be positioned on map
+ *                            onPopupClose: handler for after user is finished with popup
+ *                            handleObjClick: handler for clicking on a row (representing an object)
+ *                             grouped_objects: dict of objects that were grouped by user
  */
 export default function OverlayedObjsPopup(props) {
   const [focusedObj, setFocusedObj] = useState(null);
@@ -59,8 +63,12 @@ export default function OverlayedObjsPopup(props) {
   }, []);
 
   return (
-    <TableContainer component={Paper} square>
-      <Table size="small">
+    <TableContainer
+      component={Paper}
+      square
+      style={{ maxHeight: MAX_TABLE_CONTAINER_HEIGHT }}
+    >
+      <Table stickyHeader size="small">
         <TableHead>
           <TableRow>
             <StyledTableCell>Memid</StyledTableCell>
@@ -95,9 +103,9 @@ export default function OverlayedObjsPopup(props) {
               }}
               style={
                 poolData.data.memid === focusedObj
-                  ? {
-                      backgroundColor: "green",
-                    }
+                  ? { backgroundColor: "orange" }
+                  : poolData.data.memid in props.grouped_objects
+                  ? { backgroundColor: "green" }
                   : {}
               }
             >
@@ -122,7 +130,10 @@ export function positionOverlayedObjsPopup(h, w, tc, dc, data) {
   let ret = { position: "absolute" };
   let final_coords = [w - (tc[0] + dc[0]), Math.min(h, w) - (tc[1] + dc[1])];
   let final_pos = ["right", "bottom"];
-  let table_dims = [200, 32 * data.length + 32];
+  let table_dims = [
+    200,
+    Math.min(MAX_TABLE_CONTAINER_HEIGHT - 10, 32 * data.length + 28),
+  ];
   if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
     final_coords[1] = Math.min(h, w) - final_coords[1];
     final_pos[1] = "top";

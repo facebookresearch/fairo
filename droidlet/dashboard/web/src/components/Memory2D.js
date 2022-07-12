@@ -5,7 +5,16 @@ Copyright (c) Facebook, Inc. and its affiliates.
 // src/components/Memory2D.js
 
 import React from "react";
-import { Stage, Layer, Circle, Line, Text, Group } from "react-konva";
+import {
+  Stage,
+  Layer,
+  Circle,
+  Line,
+  Text,
+  Group,
+  Image,
+  Shape,
+} from "react-konva";
 import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
 import MemoryMapTable, {
   positionMemoryMapTable,
@@ -13,6 +22,7 @@ import MemoryMapTable, {
 import OverlayedObjsPopup, {
   positionOverlayedObjsPopup,
 } from "./Memory2D/OverlayedObjsPopup";
+import Button from "@material-ui/core/Button";
 
 var hashCode = function (s) {
   return s.split("").reduce(function (a, b) {
@@ -45,15 +55,18 @@ class Memory2D extends React.Component {
       memory2d_className: "memory2d",
       drag_coordinates: [0, 0],
       enlarge_bot_marker: false,
+      focused_point_coords: [null, null],
       table_data: null,
       table_visible: false,
-      table_coords: [0, 0],
       popup_data: null,
       popup_visible: false,
-      popup_coords: [0, 0],
       map_update_count: 0,
       grouping_mode: false,
-      grouped_objects: [],
+      drawing_mode: false,
+      draw_pos_curr: null,
+      draw_pos_start: null,
+      draw_pos_end: null,
+      grouped_objects: {},
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -115,58 +128,53 @@ class Memory2D extends React.Component {
     });
   };
   handleObjClick = (obj_type, map_pos, data) => {
-    /* 
-     * Potentially useful code to debug table positioning when zooming in *
-     *
-     * 
-    let {
-      table_coords,
-      drag_coordinates,
-      stageX,
-      stageY,
-      stageScale,
-      height,
-      width,
-    } = this.state;
-    width = Math.min(width, height);
-    height = width;
-
-    console.log("x:", x, "y:", y);
-    console.log("drag_coordinates:", drag_coordinates[0], ", ", drag_coordinates[1]);
-    console.log("stage_coords:", stageX, ", ", stageY);
-    console.log("stageScale:", stageScale);
-    console.log("width:", width, "height:", height);
-    console.log("will plot table at: [", (x + drag_coordinates[0]), ", ", (Math.min(height, width) - y - drag_coordinates[1]), "]");
-    */
-
-    let { grouping_mode, grouped_objects, popup_coords } = this.state;
+    let { grouping_mode, grouped_objects, focused_point_coords } = this.state;
 
     if (!grouping_mode) {
-      console.log(obj_type + " clicked reg");
+      // if not in grouping mode, open MemoryMapTable
       this.setState({
         table_visible: true,
-        table_coords: map_pos,
         table_data: data,
+        focused_point_coords: map_pos,
       });
-
-      if (map_pos[0] !== popup_coords[0] || map_pos[1] !== popup_coords[1]) {
-        this.setState({ popup_visible: false });
-      }
     } else {
-      console.log(obj_type + " clicked group");
-      this.setState({ grouped_objects: [...grouped_objects, data] });
+      // otherwise if in grouping_mode..
+      if (data.memid in grouped_objects) {
+        // ..deselect object
+        let { [data.memid]: _, ...rest } = grouped_objects;
+        this.setState({ grouped_objects: rest });
+      } else {
+        // ..select object
+        this.setState({
+          grouped_objects: {
+            ...grouped_objects,
+            [data.memid]: data,
+          },
+        });
+      }
+    }
+
+    // close other tabular elements when switching to new map_pos
+    if (
+      map_pos[0] !== focused_point_coords[0] ||
+      map_pos[1] !== focused_point_coords[1]
+    ) {
+      this.setState({ popup_visible: false });
     }
   };
   handlePopupClick = (map_pos, data) => {
-    let { table_coords } = this.state;
+    let { focused_point_coords } = this.state;
 
     this.setState({
       popup_visible: true,
-      popup_coords: map_pos,
       popup_data: data,
+      focused_point_coords: map_pos,
     });
 
-    if (map_pos[0] !== table_coords[0] || map_pos[1] !== table_coords[1]) {
+    if (
+      map_pos[0] !== focused_point_coords[0] ||
+      map_pos[1] !== focused_point_coords[1]
+    ) {
       this.setState({ table_visible: false });
     }
   };
@@ -246,10 +254,14 @@ class Memory2D extends React.Component {
       enlarge_bot_marker,
       table_data,
       table_visible,
-      table_coords,
       popup_data,
       popup_visible,
-      popup_coords,
+      focused_point_coords,
+      map_update_count,
+      grouped_objects,
+      draw_pos_start,
+      draw_pos_curr,
+      drawing_mode,
     } = this.state;
     width = Math.min(width, height);
     height = width;
@@ -270,7 +282,6 @@ class Memory2D extends React.Component {
     }
 
     let renderedObjects = [];
-    let mapBoundary = [];
     let j = 0;
 
     let objectPosPool = {};
@@ -368,18 +379,18 @@ class Memory2D extends React.Component {
         renderedObjects.push(
           <Circle
             key={obj.data.memid}
-            radius={obj.radius}
             x={map_x}
             y={map_y}
-            fill={obj.color}
-            onClick={() => {
-              this.handleObjClick(obj.type, [map_x, map_y], obj.data);
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.setRadius(obj.radiusFocused);
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.setRadius(obj.radius);
+            radius={
+              map_x === focused_point_coords[0] &&
+              map_y === focused_point_coords[1]
+                ? obj.radiusFocused
+                : obj.radius
+            }
+            fill={obj.data.memid in grouped_objects ? "green" : obj.color}
+            onClick={(e) => {
+              if (e.evt.which === 1)
+                this.handleObjClick(obj.type, [map_x, map_y], obj.data);
             }}
           />
         );
@@ -387,7 +398,7 @@ class Memory2D extends React.Component {
         // several objects overlayed at map position
         let numObjs = objs_at_pos.length;
         let overlayedObjects = [];
-        let [groupColor, groupRadius] = ["#0000FF", 6];
+        let [groupColor, groupRadius, groupRadiusFocused] = ["#0000FF", 6, 9];
         objs_at_pos.forEach((obj) => {
           overlayedObjects.push(obj);
         });
@@ -396,24 +407,24 @@ class Memory2D extends React.Component {
             key={map_pos}
             x={map_x}
             y={map_y}
-            onClick={() => {
-              this.handlePopupClick([map_x, map_y], overlayedObjects);
+            onClick={(e) => {
+              if (e.evt.which === 1)
+                this.handlePopupClick([map_x, map_y], overlayedObjects);
             }}
           >
             {/* {overlayedObjects} */}
             <Circle
               x={0}
               y={0}
-              radius={groupRadius}
+              radius={
+                map_x === focused_point_coords[0] &&
+                map_y === focused_point_coords[1]
+                  ? groupRadiusFocused
+                  : groupRadius
+              }
               fill={groupColor}
               stroke="black"
               strokeWidth={1}
-              onMouseOver={(e) => {
-                e.currentTarget.setRadius(groupRadius * 1.5);
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.setRadius(groupRadius);
-              }}
             />
             <Text
               x={numObjs > 9 ? -5 : -3}
@@ -443,8 +454,9 @@ class Memory2D extends React.Component {
         key={bot_data.memid}
         x={bot_x}
         y={bot_y}
-        onClick={() => {
-          this.handleObjClick("bot", [bot_x, bot_y], bot_data);
+        onClick={(e) => {
+          if (e.evt.which === 1)
+            this.handleObjClick("bot", [bot_x, bot_y], bot_data);
         }}
         onMouseOver={(e) => {
           this.setState({ enlarge_bot_marker: true });
@@ -660,7 +672,10 @@ class Memory2D extends React.Component {
 
     // table props
     const onTableClose = () => {
-      this.setState({ table_visible: false });
+      this.setState({
+        table_visible: false,
+        focused_point_coords: [null, null],
+      });
     };
     const onTableSubmit = (em) => {
       let numChanged = Object.keys(em).reduce((numChanged, attr) => {
@@ -671,7 +686,11 @@ class Memory2D extends React.Component {
       this.setState({ table_visible: false });
     };
     const onPopupClose = () => {
-      this.setState({ popup_visible: false, table_visible: false });
+      this.setState({
+        popup_visible: false,
+        table_visible: false,
+        focused_point_coords: [null, null],
+      });
     };
 
     // final render
@@ -691,15 +710,20 @@ class Memory2D extends React.Component {
         }}
         tabIndex="0"
       >
-        <div style={{ position: "absolute" }}>
+        <div
+          style={{
+            position: "absolute",
+            ...(this.state.drawing_mode && { cursor: "crosshair" }),
+          }}
+        >
           <Stage
             draggable
             className={this.state.memory2d_className}
             width={width}
             height={height}
             onWheel={this.handleWheel}
-            scaleX={this.state.stageScale}
-            scaleY={this.state.stageScale}
+            scaleX={stageScale}
+            scaleY={stageScale}
             x={this.state.stageX}
             y={this.state.stageY}
             onDragMove={(e) =>
@@ -711,14 +735,34 @@ class Memory2D extends React.Component {
             onDragEnd={(e) =>
               this.handleDrag("memory2d", [e.target.attrs.x, e.target.attrs.y])
             }
+            onContextMenu={(e) => {
+              e.evt.preventDefault();
+              // close non-stage components
+              onTableClose();
+              onPopupClose();
+              if (!drawing_mode) {
+                // start drawing
+                this.setState({
+                  draw_pos_start: e.target.getStage().getPointerPosition(),
+                });
+              } else {
+                // end drawing
+                this.setState({
+                  draw_pos_end: e.target.getStage().getPointerPosition(),
+                });
+              }
+              this.setState({ drawing_mode: !drawing_mode });
+            }}
+            onMouseMove={(e) => {
+              this.setState({
+                draw_pos_curr: e.target.getStage().getPointerPosition(),
+              });
+              console.log(e.target.getStage().getPointerPosition());
+            }}
           >
             <Layer className="gridLayer">{gridLayer}</Layer>
             <Layer className="coordinateAxesLayer">{coordinateAxesLayer}</Layer>
-            <Layer className="mapBoundary">{mapBoundary}</Layer>
-            <Layer
-              className="renderedObjects"
-              key={this.state.map_update_count}
-            >
+            <Layer className="renderedObjects" key={map_update_count}>
               {renderedObjects}
             </Layer>
             <Layer>
@@ -730,6 +774,39 @@ class Memory2D extends React.Component {
                 shadowEnabled={true}
               />
             </Layer>
+            <Layer className="dragToGroup">
+              <Shape
+                sceneFunc={(ctx, shape) => {
+                  if (drawing_mode) {
+                    let mouseX = parseInt(
+                      draw_pos_curr.x - drag_coordinates[0]
+                    );
+                    let mouseY = parseInt(
+                      draw_pos_curr.y - drag_coordinates[1]
+                    );
+                    let startX = parseInt(
+                      draw_pos_start.x - drag_coordinates[0]
+                    );
+                    let startY = parseInt(
+                      draw_pos_start.y - drag_coordinates[1]
+                    );
+
+                    ctx.clearRect(0, 0, shape.width, shape.height);
+                    ctx.beginPath();
+                    ctx.rect(
+                      startX / stageScale,
+                      startY / stageScale,
+                      (mouseX - startX) / stageScale,
+                      (mouseY - startY) / stageScale
+                    );
+                    ctx.fillStrokeShape(shape);
+                  }
+                }}
+                fill="transparent"
+                stroke="black"
+                strokeWidth={4 / stageScale}
+              />
+            </Layer>
           </Stage>
         </div>
         {popup_visible && (
@@ -737,16 +814,17 @@ class Memory2D extends React.Component {
             style={positionOverlayedObjsPopup(
               this.state.height,
               this.state.width,
-              popup_coords,
+              focused_point_coords,
               drag_coordinates,
               popup_data
             )}
           >
             <OverlayedObjsPopup
               data={popup_data}
-              map_pos={popup_coords}
+              map_pos={focused_point_coords}
               onPopupClose={onPopupClose}
               handleObjClick={this.handleObjClick}
+              grouped_objects={grouped_objects}
             />
           </div>
         )}
@@ -755,7 +833,7 @@ class Memory2D extends React.Component {
             style={positionMemoryMapTable(
               this.state.height,
               this.state.width,
-              table_coords,
+              focused_point_coords,
               drag_coordinates,
               table_data
             )}
@@ -767,6 +845,16 @@ class Memory2D extends React.Component {
             />
           </div>
         )}
+        <Button
+          variant="contained"
+          disabled={Object.keys(grouped_objects).length <= 1}
+          onClick={() => {
+            console.log(grouped_objects);
+            this.setState({ grouped_objects: {} });
+          }}
+        >
+          Group
+        </Button>
       </div>
     );
   }
