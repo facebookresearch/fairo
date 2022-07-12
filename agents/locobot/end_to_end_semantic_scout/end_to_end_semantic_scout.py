@@ -115,9 +115,8 @@ class RLSegFTAgent(Agent):
         self.model.eval()
 
         self.semantic_predictor = None
-        if config.POLICY == "original_camera_settings_and_mp3d_detector":
+        if "mp3d_detector" in config.POLICY:
             if self.model_cfg.USE_SEMANTICS:
-                logger.info("setting up sem seg predictor")
                 self.semantic_predictor = load_rednet(
                     self.device,
                     ckpt=self.model_cfg.SEMANTIC_ENCODER.rednet_ckpt,
@@ -125,7 +124,7 @@ class RLSegFTAgent(Agent):
                     num_classes=self.model_cfg.SEMANTIC_ENCODER.num_classes,
                 )
                 self.semantic_predictor.eval()
-        elif config.POLICY == "robot_camera_settings_and_coco_detector":
+        elif "coco_detector" in config.POLICY:
             self.semantic_predictor = COCOSegmentationModel(
                 sem_pred_prob_thr=0.9, sem_gpu_id=config.TORCH_GPU_ID, visualize=True
             )
@@ -277,19 +276,28 @@ class EndToEndSemanticScout:
         agent_config_file = this_dir + "/configs/rl_objectnav_sem_seg_hm3d.yaml"
 
         assert policy in [
-            "original_camera_settings_and_mp3d_detector", 
-            "robot_camera_settings_and_coco_detector"
+            "original_camera_settings_and_mp3d_detector_il", 
+            "robot_camera_settings_and_coco_detector_il",
+            "original_camera_settings_and_mp3d_detector_rl", 
+            "robot_camera_settings_and_coco_detector_rl",
         ]
-        if policy == "original_camera_settings_and_mp3d_detector":
-            # Original camera settings + MP3D segmentation
-            # TODO Add best checkpoint fine-tuned with RL
+        if policy == "original_camera_settings_and_mp3d_detector_il":
+            # Original camera settings + MP3D segmentation with IL training only
             challenge_config_file = this_dir + "/configs/original_camera_settings.yaml"
             model_path = this_dir + "/ckpt/original_camera_settings_and_mp3d_detector_il_ckpt28.pth"
-        elif policy == "robot_camera_settings_and_coco_detector":
-            # Robot camera settings + COCO segmentation
-            # TODO Add best checkpoint fine-tuned with RL
+        elif policy == "original_camera_settings_and_mp3d_detector_rl":
+            # Original camera settings + MP3D segmentation with RL fine-tuning
+            challenge_config_file = this_dir + "/configs/original_camera_settings.yaml"
+            model_path = this_dir + "/ckpt/original_camera_settings_and_mp3d_detector_rl_ckpt32.pth"
+        elif policy == "robot_camera_settings_and_coco_detector_il":
+            # Robot camera settings + COCO segmentation with IL training only
             challenge_config_file = this_dir + "/configs/robot_camera_settings.yaml"
             model_path = this_dir + "/ckpt/robot_camera_settings_and_coco_detector_il_ckpt16.pth"
+        elif policy == "robot_camera_settings_and_coco_detector_rl":
+            # Robot camera settings + COCO segmentation with RL fine-tuning
+            challenge_config_file = this_dir + "/configs/robot_camera_settings.yaml"
+            model_path = this_dir + "/ckpt/robot_camera_settings_and_coco_detector_rl_ckpt14.pth"
+
 
         config = get_config(agent_config_file, ["BASE_TASK_CONFIG_PATH", challenge_config_file])
         config.defrost()
@@ -382,7 +390,7 @@ class EndToEndSemanticScout:
             depth = cv2.resize(depth, (480, 640), interpolation=cv2.INTER_LINEAR)
             return rgb, depth
 
-        if (self.config.POLICY == "original_camera_settings_and_mp3d_detector" and 
+        if ("original_camera_settings" in self.config.POLICY and 
                 (rgb.shape[0] == 640 and rgb.shape[1] == 480)):
             rgb, depth = reshape_640x480_to_480x640(rgb, depth)
 
