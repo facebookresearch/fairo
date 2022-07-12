@@ -107,6 +107,9 @@ class RobotClientMetadata:
         with open(full_urdf_path, "r") as file:
             robot_client_metadata.urdf_file = file.read()
 
+        # Set version
+        robot_client_metadata.polymetis_version = polymetis.__version__
+
         self.metadata_proto = robot_client_metadata
 
     def __repr__(self):
