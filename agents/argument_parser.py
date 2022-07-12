@@ -83,6 +83,11 @@ class ArgumentParser:
             default=False,
             help="Run the agent without automatic model/dataset downloads. Useful for testing models locally.",
         )
+        nsp_parser.add_argument(
+            "--conv_length",
+            default=1,
+            help="Number of conversational turns to feed the NSP with each command"
+        )
 
     def add_mc_parser(self):
         mc_parser = self.parser.add_argument_group("Minecraft Agent Args")
