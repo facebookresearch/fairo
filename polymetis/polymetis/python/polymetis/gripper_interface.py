@@ -2,6 +2,7 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
+import logging
 import threading
 import queue
 
@@ -10,6 +11,8 @@ import grpc
 import polymetis_pb2
 import polymetis_pb2_grpc
 
+
+log = logging.getLogger(__name__)
 
 EMPTY = polymetis_pb2.Empty()
 
@@ -28,7 +31,10 @@ class GripperInterface:
         self.grpc_connection = polymetis_pb2_grpc.GripperServerStub(self.channel)
 
         # Get metadata
-        self.metadata = self.grpc_connection.GetRobotClientMetadata(EMPTY)
+        try:
+            self.metadata = self.grpc_connection.GetRobotClientMetadata(EMPTY)
+        except grpc.RpcError:
+            log.warning("Metadata unavailable from server.")
 
         # Execute commands from cache in separate thread
         self._command_thr = threading.Thread(
