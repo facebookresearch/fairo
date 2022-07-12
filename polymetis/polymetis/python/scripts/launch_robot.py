@@ -16,16 +16,11 @@ import signal
 
 import hydra
 
+from polymetis.utils.grpc_utils import check_server_exists
 from polymetis.utils.data_dir import PKG_ROOT_DIR, which
 
 
 log = logging.getLogger(__name__)
-
-
-def check_server_exists(ip, port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        server_exists = s.connect_ex((ip, port)) == 0
-    return server_exists
 
 
 @hydra.main(config_name="launch_robot")
