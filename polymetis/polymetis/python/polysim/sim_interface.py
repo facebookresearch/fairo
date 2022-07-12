@@ -87,7 +87,7 @@ class SimInterface:
         default_Kq: List[float],
         default_Kqd: List[float],
         dof: int,
-        urdf_path: str,
+        urdf_path: Optional[str] = None,
     ):
         # Construct metadata from default metadata config
         metadata_cfg = OmegaConf.load(DEFAULT_METADATA_CFG_PATH)
@@ -96,7 +96,8 @@ class SimInterface:
         metadata_cfg.default_Kq = default_Kq
         metadata_cfg.default_Kqd = default_Kqd
         metadata_cfg.robot_model_cfg.num_dofs = dof
-        metadata_cfg.robot_model_cfg.robot_description_path = urdf_path
+        if urdf_path is not None:
+            metadata_cfg.robot_model_cfg.robot_description_path = urdf_path
 
         metadata = hydra.utils.instantiate(metadata_cfg).get_proto()
 
