@@ -19,6 +19,19 @@ def build_model(args, tree_i2w):
     bert_config.add_cross_attention = True
     if args.tree_to_text:
         tokenizer.add_tokens(tree_i2w)
+    tree_keys = ['relative_direction', 'location_type', 'contains_coreference', 
+                 'relative_yaw', 'return_quantity', 'action_type', 
+                 'dialogue_target', 'location', 'condition_span', 
+                 'has_measure', 'has_name', 'polarity', 
+                 'target_action_type', 'reward_value', 'condition_type', 
+                 'memory_type', 'coordinates_span', 'reference_object', 
+                 'same', 'special_reference', 'selector', 
+                 'fixed_value', 'ordinal', 'steps', 
+                 'attribute', 'dialogue_type', 'yaw', 
+                 'relative_pitch', 'obj_text', 'comparison_type', 
+                 'output', 'text_span', 'angle', 
+                 'input_right', 'block_type', 'pred_text'
+    ]
     dec_with_loss = DecoderWithLoss(bert_config, args, tokenizer)
     encoder_decoder = EncoderDecoderWithLoss(enc_model, dec_with_loss, args)
     return dec_with_loss, encoder_decoder, tokenizer

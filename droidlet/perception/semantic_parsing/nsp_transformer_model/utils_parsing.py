@@ -1,6 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+from black import NothingChanged
 import torch
 import json
 from .utils_caip import select_spans, seq_to_tree, tokenize_mapidx, caip_collate
@@ -317,9 +318,12 @@ def detokenize_tree(seq, tokenizer):
         if token in ["[CLS]", "[SEP]", "[PAD]"]:
             continue
         else:
-            if token not in special_tokens and prev_token not in special_tokens:
-                tree += " "
-            tree += token
+            # deal with - symbol
+            if token == "-":
+                tree += token
+            # add space between texts of span node
+            elif token not in special_tokens and prev_token not in special_tokens:
+                tree += " " + token
             prev_token = token
 
     return json.loads(tree)

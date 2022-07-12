@@ -126,7 +126,7 @@ def tree_span_node_replace(text, tree):
         # update certain key name
         f_key = ""
         if key == "coordinates_span" or key == "condition_span":
-            f_key.split("_")[0]
+            f_key = key.split("_")[0]
         else:
             f_key = key
 
@@ -135,6 +135,9 @@ def tree_span_node_replace(text, tree):
         elif is_cat(tree[key]):
             out_tree[f_key] = tree[key]
         elif is_span(tree[key]):
+            # _, (b, c) = tree[key]
+            # split_text = text.split()
+            # out_tree[f_key] = " ".join([split_text[idx] for idx in range(b, c + 1)])
             if key == "text_span":
                 continue
             else:

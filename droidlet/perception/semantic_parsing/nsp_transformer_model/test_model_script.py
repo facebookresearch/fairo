@@ -78,7 +78,6 @@ class ModelEvaluator:
         tot_accu = 0.0
         tot_time_cost = 0.0
         # disable autograd to reduce memory usage
-
         with torch.no_grad():
             for step, batch in enumerate(epoch_iterator):
                 batch_tensors = [
@@ -87,7 +86,7 @@ class ModelEvaluator:
                 ]
                 x, x_mask, y, y_mask = batch_tensors
                 time_s = time.time()
-                outputs = model(x, x_mask, y, y_mask, None, True)
+                outputs = model(x, x_mask, y, y_mask, None, True)                
                 time_e = time.time()
                 # compute accuracy and add hard examples
                 lm_acc, full_acc = compute_accuracy(outputs, y)
@@ -357,9 +356,7 @@ def query_model(chat, args, model, tokenizer, dataset):
     if args.load_ground_truth and chat in GT_QUERY_ACTIONS:
         tree = GT_QUERY_ACTIONS[chat]
     else:
-        btr = beam_search_simp(
-            chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen
-        )
+        btr = beam_search_simp(chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen)
         print(btr[0][0])
         if (
             btr[0][0].get("dialogue_type", "NONE") == "NOOP"
