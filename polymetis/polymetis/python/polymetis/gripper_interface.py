@@ -23,8 +23,12 @@ class GripperInterface:
     """
 
     def __init__(self, ip_address: str = "localhost", port: int = 50052):
+        # Connect to server
         self.channel = grpc.insecure_channel(f"{ip_address}:{port}")
         self.grpc_connection = polymetis_pb2_grpc.GripperServerStub(self.channel)
+
+        # Get metadata
+        self.metadata = self.grpc_connection.GetRobotClientMetadata(EMPTY)
 
         # Execute commands from cache in separate thread
         self._command_thr = threading.Thread(
