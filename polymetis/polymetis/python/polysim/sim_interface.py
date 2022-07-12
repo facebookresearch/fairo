@@ -5,7 +5,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Dict, Callable, Optional
+import os
+from typing import List, Dict, Callable, Optional
 from enum import Enum
 from dataclasses import dataclass
 import time
@@ -16,6 +17,7 @@ import grpc
 import numpy as np
 import torch
 import hydra
+from omegaconf import OmegaConf
 from omegaconf.dictconfig import DictConfig
 
 import torchcontrol as toco
@@ -27,7 +29,11 @@ from polymetis.utils import Spinner
 from polymetis.robot_client.abstract_robot_client import (
     AbstractRobotClient,
 )
-from polymetis.robot_client.metadata import RobotModelConfig, RobotClientMetadata
+
+
+DEFAULT_METADATA_CFG_PATH = os.path.join(
+    polymetis.__path__[0], "conf/default_metadata.yaml"
+)
 
 
 class ControlType(Enum):
@@ -80,33 +86,19 @@ class SimInterface:
         action_callback: Callable,
         default_Kq: List[float],
         default_Kqd: List[float],
-        dof: Optional[int] = None,
-        robot_model_cfg: Optional[RobotModelConfig] = None,
+        dof: int,
+        urdf_path: str,
     ):
-        """
-        Note: Defaults to Franka Panda metadata if not specified
-        """
-        # Load default controller
-        default_Kq = torch.Tensor(default_Kq)
-        default_Kqd = torch.Tensor(default_Kqd)
-        assert default_Kq.shape == torch.Size([dof]) or default_Kq.shape == torch.Size(
-            [dof, dof]
-        )
-        assert default_Kqd.shape == torch.Size(
-            [dof]
-        ) or default_Kqd.shape == torch.Size([dof, dof])
+        # Construct metadata from default metadata config
+        metadata_cfg = OmegaConf.load(DEFAULT_METADATA_CFG_PATH)
 
-        default_controller = DefaultController(Kq=default_Kq, Kqd=default_Kqd)
-        default_controller_jitted = self._serialize_controller(default_controller)
+        metadata_cfg.hz = self.hz
+        metadata_cfg.default_Kq = default_Kq
+        metadata_cfg.default_Kqd = default_Kqd
+        metadata_cfg.robot_model_cfg.num_dofs = dof
+        metadata_cfg.robot_model_cfg.robot_description_path = urdf_path
 
-        # Construct metadata
-        metadata_obj = RobotClientMetadata(
-            default_Kq=default_Kq,
-            default_Kqd=default_Kqd,
-            hz=self.hz,
-            robot_model=robot_model_cfg,
-        )
-        metadata = metadata_obj.get_proto()
+        metadata = hydra.utils.instantiate(metadata_cfg).get_proto()
 
         # Connect to service
         channel = grpc.insecure_channel(server_address)

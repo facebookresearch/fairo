@@ -78,7 +78,6 @@ class BulletManipulator:
         self.gripper_state.width = float(
             joint_cur_states[0][0] + joint_cur_states[1][0]
         )
-        self.gripper_state.max_width = self.cfg.gripper.max_width
         self.gripper_state.is_grasped = False  # TODO
         self.gripper_state.is_moving = np.all(
             [
@@ -139,7 +138,6 @@ def main(cfg):
     sim = BulletManipulator(cfg.robot_model, gui=cfg.gui)
 
     # Connect to Polymetis sim interface
-    metadata_cfg = OmegaConf.to_container(cfg.robot_client.metadata_cfg)
     ps_interface = polysim.SimInterface(cfg.hz)
     ps_interface.register_arm_control(
         server_address=f"{cfg.arm.ip}:{cfg.arm.port}",
@@ -148,12 +146,13 @@ def main(cfg):
         default_Kq=cfg.robot_client.metadata_cfg.default_Kq,
         default_Kqd=cfg.robot_client.metadata_cfg.default_Kqd,
         dof=7,
-        aux_metadata=metadata_cfg,
+        urdf_path=get_full_path_to_urdf("franka_panda/panda_arm.urdf"),
     )
     ps_interface.register_gripper_control(
         server_address=f"{cfg.gripper.ip}:{cfg.gripper.port}",
         state_callback=sim.get_gripper_state,
         action_callback=sim.apply_gripper_control,
+        max_width=cfg.robot_model.gripper.max_width,
     )
     ps_interface.register_step_callback(sim.step)
 
