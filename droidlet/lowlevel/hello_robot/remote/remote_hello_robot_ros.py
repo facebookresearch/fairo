@@ -226,7 +226,13 @@ class RemoteHelloRobot(object):
 
     def is_obstacle_in_front(self):
         self.initialize_cam()
-        result = self.cam.is_obstacle_in_front()
+        result = False
+        while True:
+            try:
+                result = self.cam.is_obstacle_in_front()
+                break
+            except:
+                print("obstacle exception")
         return result
 
     def go_to_relative(self, xyt_position):

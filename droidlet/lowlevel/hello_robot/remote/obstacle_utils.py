@@ -67,19 +67,21 @@ def is_obstacle(
     fastmath=False,
     return_viz=False,
 ):
+    print("[is_obstacle] starting obstacle check")
     # print("num points", np.asarray(pcd.points).shape)
     rest = None
     crop, bbox = get_points_in_front(pcd, base_pos, min_dist, max_dist, robot_width, height)
     # print("num cropped", np.asarray(crop.points).shape)
     num_cropped_points = np.asarray(crop.points).shape[0]
     obstacle = False
+    print("[is_obstacle] checking if vision obstacle")
     if num_cropped_points < pix_threshold:
         warnings.warn(
             "[is_obstacle] for obstacle check, not able to see directly in front of robot, tilt the camera further down"
         )
-    if fastmath:
-        # TODO: make this based on not detecting ground plane, but directly cropping bounding box in front, at a certain height
-        raise RuntimeError("Not Implemented")
+    # if fastmath:
+    #     # TODO: make this based on not detecting ground plane, but directly cropping bounding box in front, at a certain height
+    #     raise RuntimeError("Not Implemented")
     elif num_cropped_points >= pix_threshold:
         rest = get_ground_plane(crop, return_ground=False)
         if np.asarray(rest.points).shape[0] > 100:
@@ -87,10 +89,12 @@ def is_obstacle(
             obstacle = True
 
     if lidar_scan is not None:
+        print("[is_obstacle] checking if lidar obstacle")
         if is_lidar_obstacle(lidar_scan):
             print("[is_obstacle] lidar obstacle detected")
             obstacle = True
 
+    print("[is_obstacle] finished obstacle check")
     if return_viz:
         return obstacle, pcd, crop, bbox, rest
     else:

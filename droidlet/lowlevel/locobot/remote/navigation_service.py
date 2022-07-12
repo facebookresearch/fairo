@@ -125,10 +125,10 @@ class Navigation(object):
                 print("Could not find a trackback location. Staying in place")
 
         if action == 1:
-            # forward
+            print("Starting forward action")
             is_obstacle = self.robot.is_obstacle_in_front()
             if is_obstacle:
-                print("Found obstacle before translating. Aborting")
+                print("Found obstacle before translating. Aborting and tracking back")
                 trackback()
                 return "FAILED"
             self.robot.translate_by(forward_dist)
@@ -139,20 +139,22 @@ class Navigation(object):
             while is_moving:
                 is_obstacle = self.robot.is_obstacle_in_front()
                 if is_obstacle:
-                    print("Found obstacle while translating. Aborting")
+                    print("Found obstacle while translating. Aborting and tracking back")
                     self.robot.stop()
                     trackback()
                     return "FAILED"
                 time.sleep(0.1)
                 self.robot.pull_status()
                 is_moving = self.robot.is_base_moving()
+            print("Successful forward action")
 
             # Successful forward action => add new trackback loc
             robot_loc = self.robot.get_base_state()
             self.trackback.update(robot_loc)
+            print("Added new trackback loc")
 
         elif action == 2:
-            # left
+            print("Starting left action")
             self.robot.rotate_by(turn_angle)
             self.robot.push_command()
             time.sleep(1)
@@ -161,9 +163,10 @@ class Navigation(object):
                 time.sleep(0.1)
                 self.robot.pull_status()
                 is_moving = self.robot.is_base_moving()
+            print("Successful left action")
 
         elif action == 3:
-            # right
+            print("Starting right action")
             self.robot.rotate_by(-turn_angle)
             self.robot.push_command()
             time.sleep(1)
@@ -172,6 +175,7 @@ class Navigation(object):
                 time.sleep(0.1)
                 self.robot.pull_status()
                 is_moving = self.robot.is_base_moving()
+            print("Successful right action")
 
         return "SUCCEEDED"
 
