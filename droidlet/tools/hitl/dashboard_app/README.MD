@@ -6,12 +6,12 @@ This is a Dashboard app prototype for the HITL system.
 ## Update Note
 - July 13:
     - Added dataset visualization component including:
-        - View newly added data points indecies on the run detail page
+        - View newly added data points indices on the run detail page
         - View a spefic version of dataset on dataset detail page
     - Demo:
-        - For job with retrain job, the user will be able to see the indecies of newly added data
+        - For job with retrain job, the user will be able to see the indices of newly added data
             - ![demo_dataset_has_retrain](https://user-images.githubusercontent.com/51009396/178807612-89f8d3cb-3555-45be-9bc1-20349129eb11.gif)- 
-        - For job without retrain job, the indecies field will be NA
+        - For job without retrain job, the indices field will be NA
             - ![demo_dataset_no_retrain](https://user-images.githubusercontent.com/51009396/178807684-4bc5544e-c8a8-4322-a46c-ed5cdc3345ac.gif)
         - Viewing different version of the dataset (use dropdown menu to select, able to serach in dropdown menu)
             -  ![demo_change_dataset_ver](https://user-images.githubusercontent.com/51009396/178807722-62baf30a-9c0f-4935-8061-098a5f90ab4f.gif)
@@ -106,7 +106,7 @@ APIs are based on socket event, the following APIs are supported currently:
     - input: the name of the dataset.
     - output: if the dataset can be found, return the dataset content, otherwise return an error code
 - get_dataset_idx_by_id
-    - get run specific dataset indecies: as for each of the run, more data point can be added to the dataset, the indecies specified the start index and the end index of the data points added to the dataset in a given run
+    - get run specific dataset indices: as for each of the run, more data point can be added to the dataset, the indices specified the start index and the end index of the data points added to the dataset in a given run
     - input: the batch id of the run.
     - output: [start_index, end_index] of the data added to the dataset with the specified run or error code if cannot find the meta.txt
     

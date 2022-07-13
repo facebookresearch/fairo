@@ -9,7 +9,7 @@ from enum import Enum
 import json
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
     get_dataset_by_name,
-    get_dataset_indecies_by_id,
+    get_dataset_indices_by_id,
     get_dataset_version_list_by_pipeline,
     get_interaction_session_log_by_id,
     get_interaction_sessions_by_id,
@@ -146,20 +146,20 @@ def get_dataset(dataset_name):
 
 
 @socketio.on(DASHBOARD_EVENT.GET_DATASET_INDECIES.value)
-def get_dataset_indecies(batch_id):
+def get_dataset_indices(batch_id):
     """
-    get run specific dataset indecies
+    get run specific dataset indices
     as for each of the run, more data point can be added to the dataset
-    the indecies specified the start index and the end index of the data points added to the dataset in a given run
+    the indices specified the start index and the end index of the data points added to the dataset in a given run
     - input: the batch id of the run.
     - output: [start_index, end_index] of the data added to the dataset with the specified run or error code if cannot find the meta.txt
     """
     print(f"Request received: {DASHBOARD_EVENT.GET_DATASET_INDECIES.value}")
-    indecies, error_code = get_dataset_indecies_by_id(batch_id)
+    indices, error_code = get_dataset_indices_by_id(batch_id)
     if error_code:
         emit(DASHBOARD_EVENT.GET_DATASET_INDECIES.value, error_code)
     else:
-        emit(DASHBOARD_EVENT.GET_DATASET_INDECIES.value, indecies)
+        emit(DASHBOARD_EVENT.GET_DATASET_INDECIES.value, indices)
 
 
 if __name__ == "__main__":

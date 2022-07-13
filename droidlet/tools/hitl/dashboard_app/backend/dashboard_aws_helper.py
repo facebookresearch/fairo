@@ -180,7 +180,8 @@ def get_interaction_session_log_by_id(batch_id: int, session_id: str):
     log_file = open(log_fname, "r")
     log = log_file.readlines()
     return log, None
-def get_dataset_indecies_by_id(batch_id: int):
+
+def get_dataset_indices_by_id(batch_id: int):
     """
     For a run specied by the batch id,
     get the newly added dataset data points' start index and end index from meta.txt
