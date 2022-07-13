@@ -117,7 +117,7 @@ def get_interaction_sessions_by_id(batch_id: int):
     return session_list
 
 
-def get_dataset_indecies_by_id(batch_id: int):
+def get_dataset_indices_by_id(batch_id: int):
     """
     For a run specied by the batch id,
     get the newly added dataset data points' start index and end index from meta.txt

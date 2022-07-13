@@ -20,18 +20,18 @@ const DatasetCard = (props) => {
     const batchId = props.batchId;
     const pipelineType = props.pipelineType;
     const [loading, setLoading] = useState(true);
-    const [datasetIndecies, setDatasetIndecies] = useState([]);
+    const [datasetIndicies, setDatasetIndicies] = useState([]);
     const [datasetList, setDatasetList] = useState([]);
 
-    const handleRecievedDatasetIndecies = useCallback((data) => {
+    const handleRecievedDatasetIndicies = useCallback((data) => {
         if (data === 404) {
-            // received error code, set indecies to NA
-            setDatasetIndecies(["NA"]);
+            // received error code, set indices to NA
+            setDatasetIndicies(["NA"]);
         }
-        setDatasetIndecies(data);
+        setDatasetIndicies(data);
     }, []);
 
-    const getDatasetIndecies = () => {
+    const getDatasetIndicies = () => {
         socket.emit("get_dataset_idx_by_id", batchId);
     }
 
@@ -44,27 +44,27 @@ const DatasetCard = (props) => {
     }
 
     useEffect(() => {
-        socket.on("get_dataset_idx_by_id", (data) => handleRecievedDatasetIndecies(data));
+        socket.on("get_dataset_idx_by_id", (data) => handleRecievedDatasetIndicies(data));
         socket.on("get_dataset_list_by_pipeleine", (data) => handleReceivedDatasetList(data));
-    }, [socket, handleRecievedDatasetIndecies, handleReceivedDatasetList]);
+    }, [socket, handleRecievedDatasetIndicies, handleReceivedDatasetList]);
 
 
     useEffect(() => {
-        getDatasetIndecies();
+        getDatasetIndicies();
         getDatasetList();
     }, []); // component did mount
 
     useEffect(() => {
-        setLoading(datasetList.length === 0 || datasetIndecies.length === 0);
-    }, [datasetIndecies, datasetList]); // update comp
+        setLoading(datasetList.length === 0 || datasetIndicies.length === 0);
+    }, [datasetIndicies, datasetList]); // update comp
 
     return (
         <div style={{ paddingRight: '16px', width: '50%' }}>
             <Card title="Dataset" loading={loading}>
                 <Meta />
                 <Descriptions bordered>
-                    <Descriptions.Item label="Data Indecies" span={3}>
-                        {datasetIndecies.length === 2 ? `${datasetIndecies[0]} - ${datasetIndecies[1]}` : "NA"}
+                    <Descriptions.Item label="Data Indicies" span={3}>
+                        {datasetIndicies.length === 2 ? `${datasetIndicies[0]} - ${datasetIndicies[1]}` : "NA"}
                     </Descriptions.Item>
                     <Descriptions.Item label="Dataset" span={3}>
                         <Tooltip title="View Dataset">
