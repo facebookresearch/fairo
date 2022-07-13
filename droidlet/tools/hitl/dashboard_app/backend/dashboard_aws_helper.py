@@ -34,7 +34,7 @@ s3 = boto3.resource(
     region_name=AWS_DEFAULT_REGION,
     aws_access_key_id=AWS_ACCESS_KEY_ID,
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-)get_dataset_indecies_by_id
+)
 
 
 def _download_file(fname: str):
@@ -175,6 +175,7 @@ def get_dataset_indices_by_id(batch_id: int):
     meta_txt_splitted = meta_txt_content.split("\n")
     return [int(meta_txt_splitted[0]), int(meta_txt_splitted[-1])], None
 
+
 def get_dataset_version_list_by_pipeline(pipeline: str):
     """
     Get dataset's version list
@@ -190,6 +191,7 @@ def get_dataset_version_list_by_pipeline(pipeline: str):
         if re.match(pattern, obj.key):
             dataset_list.append(obj.key)
     return dataset_list
+
 
 def get_dataset_by_name(dataset_name: str):
     """
