@@ -59,7 +59,6 @@ class Memory2D extends React.Component {
       draw_pos_start: null,
       grouped_objects: {},
       grouping_count: 0,
-      grouped_overlays: new Set(),
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
