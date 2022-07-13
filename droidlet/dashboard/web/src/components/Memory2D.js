@@ -7,7 +7,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import React from "react";
 import { Stage, Layer, Circle, Line, Text, Group } from "react-konva";
 import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
-import MemoryMapTable from "./Memory2D/MemoryMapTable";
+import MemoryMapTable, {
+  positionMemoryMapTable,
+} from "./Memory2D/MemoryMapTable";
+import OverlayedObjsPopup, {
+  positionOverlayedObjsPopup,
+} from "./Memory2D/OverlayedObjsPopup";
 
 var hashCode = function (s) {
   return s.split("").reduce(function (a, b) {
@@ -43,11 +48,14 @@ class Memory2D extends React.Component {
       table_data: null,
       table_visible: false,
       table_coords: [0, 0],
+      popup_data: null,
+      popup_visible: false,
+      popup_coords: [0, 0],
+      map_update_count: 0,
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
     this.resizeHandler = this.resizeHandler.bind(this);
-    this.handleObjClick = this.handleObjClick.bind(this);
   }
   handleDrag = (className, drag_coordinates) => {
     this.setState({ memory2d_className: className });
@@ -71,8 +79,8 @@ class Memory2D extends React.Component {
     let { width, height } = this.state;
     width = Math.min(width, height);
     height = width;
-    let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
-    let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
+    let x = parseInt(((Math.round(xyz[2]) - xmin) / (xmax - xmin)) * width);
+    let y = parseInt(((Math.round(-xyz[0]) - ymin) / (ymax - ymin)) * height);
     y = height - y;
     return [x, y];
   };
@@ -104,52 +112,33 @@ class Memory2D extends React.Component {
         -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
     });
   };
-  handleObjClick = (obj_type, x, y, data) => {
-    /* 
-     * Potentially useful code to debug table positioning when zooming in *
-     *
-     * 
-    let {
-      table_coords,
-      drag_coordinates,
-      stageX,
-      stageY,
-      stageScale,
-      height,
-      width,
-    } = this.state;
-    width = Math.min(width, height);
-    height = width;
-
-    console.log("x:", x, "y:", y);
-    console.log("drag_coordinates:", drag_coordinates[0], ", ", drag_coordinates[1]);
-    console.log("stage_coords:", stageX, ", ", stageY);
-    console.log("stageScale:", stageScale);
-    console.log("width:", width, "height:", height);
-    console.log("will plot table at: [", (x + drag_coordinates[0]), ", ", (Math.min(height, width) - y - drag_coordinates[1]), "]");
-    */
-
-    console.log(obj_type + " clicked");
+  handleObjClick = (obj_type, map_pos, data) => {
+    let { popup_coords } = this.state;
 
     this.setState({
       table_visible: true,
-      table_coords: [x, y],
+      table_coords: map_pos,
       table_data: data,
     });
-  };
-  positionTable = (h, w, tc, dc, td) => {
-    // this takes all these parameters so table will properly update position on change
-    let ret = { position: "absolute" };
-    let final_coords = [tc[0] + dc[0], Math.min(h, w) - (tc[1] + dc[1])];
-    let final_pos = ["left", "bottom"];
-    let table_dims = [226, 42 * (Object.keys(td).length - 2) + 157];
-    if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
-      final_coords[1] = Math.min(h, w) - final_coords[1];
-      final_pos[1] = "top";
+
+    // close other tabular elements when switching to new map_pos
+    if (map_pos[0] !== popup_coords[0] || map_pos[1] !== popup_coords[1]) {
+      this.setState({ popup_visible: false });
     }
-    ret[final_pos[0]] = final_coords[0];
-    ret[final_pos[1]] = final_coords[1];
-    return ret;
+  };
+  handlePopupClick = (map_pos, data) => {
+    let { table_coords } = this.state;
+
+    this.setState({
+      popup_visible: true,
+      popup_coords: map_pos,
+      popup_data: data,
+    });
+
+    // close other tabular elements when switching to new map_pos
+    if (map_pos[0] !== table_coords[0] || map_pos[1] !== table_coords[1]) {
+      this.setState({ table_visible: false });
+    }
   };
   resizeHandler() {
     if (this.props.isMobile) {
@@ -228,15 +217,14 @@ class Memory2D extends React.Component {
       table_data,
       table_visible,
       table_coords,
+      popup_data,
+      popup_visible,
+      popup_coords,
     } = this.state;
     width = Math.min(width, height);
     height = width;
     let { objects } = memory;
     let { xmin, xmax, ymin, ymax } = this.state;
-
-    let bot_x = bot_data.pos[2];
-    let bot_y = -bot_data.pos[0];
-    let bot_yaw = bot_data.yaw;
 
     if (height === 0 && width === 0) {
       // return early for performance
@@ -251,87 +239,70 @@ class Memory2D extends React.Component {
       return <p>Map Disabled</p>;
     }
 
-    bot_x = parseInt(((bot_x - xmin) / (xmax - xmin)) * width);
-    bot_y = parseInt(((bot_y - ymin) / (ymax - ymin)) * height);
-    bot_y = height - bot_y;
-
     let renderedObjects = [];
-    let mapBoundary = [];
     let j = 0;
 
-    // Visualize map
+    let objectPosPool = {};
+
+    // Pool map obstacles by position
     if (obstacle_map) {
       obstacle_map.forEach((obj) => {
         let color = "#827f7f";
-        let x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
-        let y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
-        renderedObjects.push(
-          // FIXME: may need to also add mobile support? by using onTap/onTouchEnd
-          <Circle
-            key={j++}
-            radius={2}
-            x={x}
-            y={y}
-            fill={color}
-            onClick={(e) => {
-              this.handleObjClick("obstacle_map", x, y, {
-                memid: "don't edit",
-                x: obj[0],
-                y: obj[1],
-              });
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.setRadius(5);
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.setRadius(2);
-            }}
-          />
-        );
+        let map_x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
+        let map_y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
+        let map_pos = "" + map_x + "," + map_y;
+        let poolData = {
+          type: "obstacle_map",
+          radius: 2,
+          radiusFocused: 5,
+          color: color,
+          data: {
+            memid: "don't edit" + j++,
+            x: obj[0],
+            y: obj[1],
+            pos: "[" + obj[0] + ",0," + obj[1] + "]",
+          },
+        };
+        if (!(map_pos in objectPosPool)) {
+          objectPosPool[map_pos] = [poolData];
+        } else {
+          objectPosPool[map_pos].push(poolData);
+        }
       });
     }
 
-    // Put detected objects from memory on map
+    // Pool detected objects from memory by position
     detections_from_memory.forEach((obj) => {
-      let obj_id = obj.obj_id;
       let xyz = obj.pos;
       let color = "#0000FF";
-      let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
-      let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
-      y = height - y;
-      renderedObjects.push(
-        <Circle
-          key={obj.memid}
-          radius={3}
-          x={x}
-          y={y}
-          fill={color}
-          onClick={(e) => {
-            this.handleObjClick("detection_from_memory", x, y, obj);
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.setRadius(6);
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.setRadius(3);
-          }}
-        />
-      );
+      let [map_x, map_y] = this.convertCoordinate(xyz);
+      let map_pos = "" + map_x + "," + map_y;
+      let poolData = {
+        type: "detection_from_memory",
+        radius: 6,
+        radiusFocused: 9,
+        color: color,
+        data: obj,
+      };
+      if (!(map_pos in objectPosPool)) {
+        objectPosPool[map_pos] = [poolData];
+      } else {
+        objectPosPool[map_pos].push(poolData);
+      }
     });
 
+    // Put objects from undefined memory on map?
     if (objects !== undefined && objects.forEach !== undefined) {
       objects.forEach((obj, key, map) => {
         let color = colorScheme[Math.abs(hashCode(obj.label)) % 10];
         let xyz = obj.xyz;
-        let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
-        let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
-        y = height - y;
+        let [map_x, map_y] = this.convertCoordinate(xyz);
         renderedObjects.push(
           <Circle
             key={j++}
             radius={3}
-            x={x}
-            y={y}
+            x={map_x}
+            y={map_y}
             fill={color}
             onMouseOver={(e) => {
               e.currentTarget.setRadius(6);
@@ -341,21 +312,108 @@ class Memory2D extends React.Component {
             }}
           />
         );
-        // renderedObjects.push(<Text key={j++} text={obj.label} x={x} y={y} fill={color} fontSize={10} />);
+        renderedObjects.push(
+          <Text
+            key={j++}
+            text={obj.label}
+            x={x}
+            y={y}
+            fill={color}
+            fontSize={10}
+          />
+        );
       });
     }
+
+    // Use pooling to plot points/groups on map
+    Object.entries(objectPosPool).forEach((entry) => {
+      let [map_pos, objs_at_pos] = entry;
+      let [map_x, map_y] = map_pos.split(",");
+      map_x = parseInt(map_x);
+      map_y = parseInt(map_y);
+      if (objs_at_pos.length === 1) {
+        // only one object at map position
+        let obj = objs_at_pos[0];
+        renderedObjects.push(
+          <Circle
+            key={obj.data.memid}
+            radius={obj.radius}
+            x={map_x}
+            y={map_y}
+            fill={obj.color}
+            onClick={() => {
+              this.handleObjClick(obj.type, [map_x, map_y], obj.data);
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.setRadius(obj.radiusFocused);
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.setRadius(obj.radius);
+            }}
+          />
+        );
+      } else {
+        // several objects overlayed at map position
+        let numObjs = objs_at_pos.length;
+        let overlayedObjects = [];
+        let [groupColor, groupRadius] = ["#0000FF", 6];
+        objs_at_pos.forEach((obj) => {
+          overlayedObjects.push(obj);
+        });
+        renderedObjects.push(
+          <Group
+            key={map_pos}
+            x={map_x}
+            y={map_y}
+            onClick={() => {
+              this.handlePopupClick([map_x, map_y], overlayedObjects);
+            }}
+          >
+            {/* {overlayedObjects} */}
+            <Circle
+              x={0}
+              y={0}
+              radius={groupRadius}
+              fill={groupColor}
+              stroke="black"
+              strokeWidth={1}
+              onMouseOver={(e) => {
+                e.currentTarget.setRadius(groupRadius * 1.5);
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.setRadius(groupRadius);
+              }}
+            />
+            <Text
+              x={numObjs > 9 ? -5 : -3}
+              y={numObjs > 9 ? -5 : -3}
+              width={numObjs > 9 ? 10 : 6}
+              height={numObjs > 9 ? 10 : 6}
+              text={numObjs > 9 ? "9+" : numObjs}
+              fontSize={numObjs > 9 ? 8 : 10}
+              fontFamily="Segoe UI"
+              fill="white"
+              align="center"
+              verticalAlign="middle"
+            />
+          </Group>
+        );
+      }
+    });
 
     /* bot marker
       a circle to show position and
       a line to show orientation
     */
+    let [bot_x, bot_y] = this.convertCoordinate(bot_data.pos);
+    let bot_yaw = bot_data.yaw;
     renderedObjects.push(
       <Group
         key={bot_data.memid}
         x={bot_x}
         y={bot_y}
-        onClick={(e) => {
-          this.handleObjClick("bot", bot_x, bot_y, bot_data);
+        onClick={() => {
+          this.handleObjClick("bot", [bot_x, bot_y], bot_data);
         }}
         onMouseOver={(e) => {
           this.setState({ enlarge_bot_marker: true });
@@ -570,7 +628,7 @@ class Memory2D extends React.Component {
     coordinateAxesLayer.push(axesX, axesZ, notches);
 
     // table props
-    const onTableClose = (e) => {
+    const onTableClose = () => {
       this.setState({ table_visible: false });
     };
     const onTableSubmit = (em) => {
@@ -580,6 +638,9 @@ class Memory2D extends React.Component {
       }, 0);
       if (numChanged > 0) this.props.stateManager.sendManualEdits(em);
       this.setState({ table_visible: false });
+    };
+    const onPopupClose = () => {
+      this.setState({ popup_visible: false, table_visible: false });
     };
 
     // final render
@@ -611,8 +672,12 @@ class Memory2D extends React.Component {
           >
             <Layer className="gridLayer">{gridLayer}</Layer>
             <Layer className="coordinateAxesLayer">{coordinateAxesLayer}</Layer>
-            <Layer className="mapBoundary">{mapBoundary}</Layer>
-            <Layer className="renderedObjects">{renderedObjects}</Layer>
+            <Layer
+              className="renderedObjects"
+              key={this.state.map_update_count}
+            >
+              {renderedObjects}
+            </Layer>
             <Layer>
               <Text
                 text={tooltip}
@@ -624,11 +689,29 @@ class Memory2D extends React.Component {
             </Layer>
           </Stage>
         </div>
+        {popup_visible && (
+          <div
+            style={positionOverlayedObjsPopup(
+              this.state.height,
+              this.state.width,
+              popup_coords,
+              drag_coordinates,
+              popup_data
+            )}
+          >
+            <OverlayedObjsPopup
+              data={popup_data}
+              map_pos={popup_coords}
+              onPopupClose={onPopupClose}
+              handleObjClick={this.handleObjClick}
+            />
+          </div>
+        )}
         {table_visible && (
           <div
-            style={this.positionTable(
-              height,
-              width,
+            style={positionMemoryMapTable(
+              this.state.height,
+              this.state.width,
               table_coords,
               drag_coordinates,
               table_data
