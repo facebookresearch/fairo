@@ -18,9 +18,8 @@ const { Option } = Select;
 const DatasetDetailPage = (props) => {
     const socket = useContext(SocketContext);
     const location = useLocation();
-
     const pipelineType = useParams().pipeline;
-    const [datasetList, setDatasetList] = useState(location.state.datasetList ? location.state.datasetList : []);
+    const [datasetList, setDatasetList] = useState((location.state && location.state.datasetList) ? location.state.datasetList : []);
     const [datasetContent, setDatasetContent] = useState(null);
     const [selectedDatasetVer, setSelectedDatasetVer] = useState(null);
     const onSelectDatasetVer = (value) => {
@@ -50,7 +49,7 @@ const DatasetDetailPage = (props) => {
 
     useEffect(() => {
         // set default dataset version when dataset list is reterived
-        setSelectedDatasetVer(datasetList[0]);
+        datasetList.length && setSelectedDatasetVer(datasetList[0]);
     }, [datasetList]);
 
     useEffect(() => {
