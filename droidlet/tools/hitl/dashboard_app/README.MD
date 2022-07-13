@@ -87,6 +87,7 @@ APIs are based on socket event, the following APIs are supported currently:
     - get interaction job sessions list
     - input: a batch id.
     - output: if the sessions can be found, return a list of session name, otherwise, return an error code sugesting not found.
+<<<<<<< HEAD
 - get_interaction_session_log
     - get interaction job session log specified by the id info
     - input: infomation about id in a json format:
@@ -97,6 +98,8 @@ APIs are based on socket event, the following APIs are supported currently:
         }
         ```
     - output: if the session log can be found, return the content of session log, otherwise return an error code
+=======
+>>>>>>> 7bdbae32a (updated readme)
 - get_dataset_list_by_pipeleine
     - get pipeline specific dataset list
     - input: the pipeline name.
@@ -106,7 +109,11 @@ APIs are based on socket event, the following APIs are supported currently:
     - input: the name of the dataset.
     - output: if the dataset can be found, return the dataset content, otherwise return an error code
 - get_dataset_idx_by_id
+<<<<<<< HEAD
     - get run specific dataset indices: as for each of the run, more data point can be added to the dataset, the indices specified the start index and the end index of the data points added to the dataset in a given run
+=======
+    - get run specific dataset indecies: as for each of the run, more data point can be added to the dataset, the indecies specified the start index and the end index of the data points added to the dataset in a given run
+>>>>>>> 7bdbae32a (updated readme)
     - input: the batch id of the run.
     - output: [start_index, end_index] of the data added to the dataset with the specified run or error code if cannot find the meta.txt
     
