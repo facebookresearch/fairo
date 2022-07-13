@@ -1,16 +1,19 @@
 import torch
 
+
 def load_model(model_fpath: str):
     """
     generates a model instance from the model file
     """
     return torch.load(model_fpath)
 
+
 def get_keys(model):
     """
     helper method to get all keys for the model
     """
     return list(model.keys())
+
 
 
 def get_value_by_key(model, key):
