@@ -90,8 +90,8 @@ class Memory2D extends React.Component {
     let { width, height } = this.state;
     width = Math.min(width, height);
     height = width;
-    let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
-    let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
+    let x = parseInt(((Math.round(xyz[2]) - xmin) / (xmax - xmin)) * width);
+    let y = parseInt(((Math.round(-xyz[0]) - ymin) / (ymax - ymin)) * height);
     y = height - y;
     return [x, y];
   };
@@ -448,7 +448,7 @@ class Memory2D extends React.Component {
 
     let objectPosPool = {};
 
-    // Pool obstacles by position
+    // Pool map obstacles by position
     if (obstacle_map) {
       obstacle_map.forEach((obj) => {
         let color = "#827f7f";
@@ -529,13 +529,12 @@ class Memory2D extends React.Component {
       });
     }
 
+    // Use pooling to plot points/groups on map
     Object.entries(objectPosPool).forEach((entry) => {
       let [map_pos, objs_at_pos] = entry;
       let [map_x, map_y] = map_pos.split(",");
       map_x = parseInt(map_x);
       map_y = parseInt(map_y);
-
-      // Use pooling to plot points + group objects on map
       if (objs_at_pos.length === 1) {
         // only one object at map position
         let obj = objs_at_pos[0];
@@ -558,17 +557,6 @@ class Memory2D extends React.Component {
             }}
           />
         );
-
-        // if (this.inDrawnBounds([map_x, map_y])) {
-        //   if (!(obj.data.memid in grouped_objects)) {
-        //     this.setState({
-        //       grouped_objects: {
-        //         ...grouped_objects,
-        //         [obj.data.memid]: obj.data,
-        //       },
-        //     });
-        //   }
-        // }
       } else {
         // several objects overlayed at map position
         let numObjs = objs_at_pos.length;
