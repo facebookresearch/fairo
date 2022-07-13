@@ -10,9 +10,9 @@ import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
 import MemoryMapTable, {
   positionMemoryMapTable,
 } from "./Memory2D/MemoryMapTable";
-import OverlayedObjsPopup, {
-  positionOverlayedObjsPopup,
-} from "./Memory2D/OverlayedObjsPopup";
+import ClusteredObjsPopup, {
+  positionClusteredObjsPopup,
+} from "./Memory2D/ClusteredObjsPopup";
 import Button from "@material-ui/core/Button";
 
 var hashCode = function (s) {
@@ -47,10 +47,8 @@ class Memory2D extends React.Component {
       drag_coordinates: [0, 0],
       enlarge_bot_marker: false,
       focused_point_coords: [null, null],
-      table_coords: [null, null],
       table_data: null,
       table_visible: false,
-      popup_coords: [null, null],
       popup_data: null,
       popup_visible: false,
       dynamic_positioning: false,
@@ -123,20 +121,26 @@ class Memory2D extends React.Component {
     });
   };
   handleObjClick = (obj_type, map_pos, data) => {
-    let { grouping_mode, grouped_objects, popup_coords } = this.state;
+    let { grouping_mode, grouped_objects, focused_point_coords } = this.state;
 
     if (!grouping_mode) {
       // if not in grouping mode, open MemoryMapTable
       this.setState({
-        table_coords: map_pos,
         table_data: data,
         table_visible: true,
         focused_point_coords: map_pos,
       });
+      // close other tabular elements when switching to new obj/cluster
+      if (
+        map_pos[0] !== focused_point_coords[0] ||
+        map_pos[1] !== focused_point_coords[1]
+      ) {
+        this.setState({ popup_visible: false });
+      }
     } else {
       // otherwise if in grouping_mode..
       if (data.memid in grouped_objects) {
-        // ..deselect object
+        // ..unselect object
         let { [data.memid]: _, ...rest } = grouped_objects;
         this.setState({ grouped_objects: rest });
       } else {
@@ -149,31 +153,32 @@ class Memory2D extends React.Component {
         });
       }
     }
-
-    // close other tabular elements when switching to new map_pos
-    if (map_pos[0] !== popup_coords[0] || map_pos[1] !== popup_coords[1]) {
-      this.setState({ popup_visible: false });
-    }
   };
   handlePopupClick = (map_pos, data) => {
-    let { table_coords } = this.state;
+    let { focused_point_coords } = this.state;
+
+    // TODO: select/unselect all objects in cluster when using Cmd + Click
 
     this.setState({
-      popup_coords: map_pos,
       popup_data: data,
       popup_visible: true,
       focused_point_coords: map_pos,
     });
-
     // close other tabular elements when switching to new map_pos
-    if (map_pos[0] !== table_coords[0] || map_pos[1] !== table_coords[1]) {
+    if (
+      map_pos[0] !== focused_point_coords[0] ||
+      map_pos[1] !== focused_point_coords[1]
+    ) {
       this.setState({ table_visible: false });
     }
   };
   onTableClose = () => {
-    this.setState({
-      table_visible: false,
-      focused_point_coords: [null, null],
+    // make table invisible; unfocus point if popup not open
+    this.setState((prevState) => {
+      return {
+        table_visible: false,
+        ...(!prevState.popup_visible && { focused_point_coords: [null, null] }),
+      };
     });
   };
   onTableSubmit = (em) => {
@@ -182,14 +187,14 @@ class Memory2D extends React.Component {
       return numChanged;
     }, 0);
     if (numChanged > 0) this.props.stateManager.sendManualEdits(em);
-    this.setState({ table_visible: false });
+    this.onTableClose();
   };
   onPopupClose = () => {
     this.setState({
       popup_visible: false,
-      table_visible: false,
       focused_point_coords: [null, null],
     });
+    this.onTableClose();
   };
   handleRightClick = (e) => {
     let { drag_coordinates, stageScale, drawing_mode } = this.state;
@@ -209,16 +214,14 @@ class Memory2D extends React.Component {
     };
     if (!drawing_mode) {
       // start drawing
-      this.setState({
-        draw_pos_start: draw_pos,
-      });
+      this.setState({ draw_pos_start: draw_pos });
     } else {
       // end drawing
       this.handleDrawEnd(draw_pos);
     }
     this.setState({ drawing_mode: !drawing_mode });
   };
-  inDrawnBounds = (map_pos, whileDrawing = false, end_pos = null) => {
+  inDrawnBounds = (map_pos, whileDrawing = true, end_pos = null) => {
     let { drawing_mode, draw_pos_curr, draw_pos_start } = this.state;
     let [map_x, map_y] = map_pos;
 
@@ -258,7 +261,7 @@ class Memory2D extends React.Component {
     let toSelect = {};
     let toUnselectFrom = grouped_objects;
 
-    // Pool obstacles by position
+    // Select/unselect map obstacles
     if (obstacle_map) {
       obstacle_map.forEach((obj) => {
         let map_x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
@@ -282,7 +285,7 @@ class Memory2D extends React.Component {
       });
     }
 
-    // Pool detected objects from memory by position
+    // Select/unselect detected objects from memory
     detections_from_memory.forEach((obj) => {
       let xyz = obj.pos;
       let [map_x, map_y] = this.convertCoordinate(xyz);
@@ -395,10 +398,8 @@ class Memory2D extends React.Component {
       drag_coordinates,
       stageScale,
       enlarge_bot_marker,
-      table_coords,
       table_data,
       table_visible,
-      popup_coords,
       popup_data,
       popup_visible,
       dynamic_positioning,
@@ -519,7 +520,7 @@ class Memory2D extends React.Component {
       map_x = parseInt(map_x);
       map_y = parseInt(map_y);
       let isFocused =
-        this.inDrawnBounds([map_x, map_y], true) ||
+        this.inDrawnBounds([map_x, map_y]) ||
         (map_x === focused_point_coords[0] &&
           map_y === focused_point_coords[1]);
       if (objs_at_pos.length === 1) {
@@ -539,14 +540,14 @@ class Memory2D extends React.Component {
           />
         );
       } else {
-        // several objects overlayed at map position
+        // several objects clustered at map position
         let numObjs = objs_at_pos.length;
-        let overlayedObjects = [];
-        let [groupColor, groupRadius] = ["#0000FF", 6];
-        let allObjsGrouped = true;
+        let clusteredObjects = [];
+        let [clusterColor, clusterRadius] = ["#0000FF", 6];
+        let allObjsSelected = true;
         objs_at_pos.forEach((obj) => {
-          overlayedObjects.push(obj);
-          if (!(obj.data.memid in grouped_objects)) allObjsGrouped = false;
+          clusteredObjects.push(obj);
+          if (!(obj.data.memid in grouped_objects)) allObjsSelected = false;
         });
         renderedObjects.push(
           <Group
@@ -555,14 +556,14 @@ class Memory2D extends React.Component {
             y={map_y}
             onClick={(e) => {
               if (e.evt.which === 1)
-                this.handlePopupClick([map_x, map_y], overlayedObjects);
+                this.handlePopupClick([map_x, map_y], clusteredObjects);
             }}
           >
             <Circle
               x={0}
               y={0}
-              radius={isFocused ? groupRadius * 1.5 : groupRadius}
-              fill={allObjsGrouped ? "green" : groupColor}
+              radius={isFocused ? clusterRadius * 1.5 : clusterRadius}
+              fill={allObjsSelected ? "green" : clusterColor}
               stroke="black"
               strokeWidth={1}
             />
@@ -609,7 +610,7 @@ class Memory2D extends React.Component {
           key={j++}
           radius={
             enlarge_bot_marker ||
-            this.inDrawnBounds([bot_x, bot_y], true) ||
+            this.inDrawnBounds([bot_x, bot_y]) ||
             (bot_x === focused_point_coords[0] &&
               bot_y === focused_point_coords[1])
               ? 15
@@ -621,7 +622,7 @@ class Memory2D extends React.Component {
           key={j++}
           points={
             enlarge_bot_marker ||
-            this.inDrawnBounds([bot_x, bot_y], true) ||
+            this.inDrawnBounds([bot_x, bot_y]) ||
             (bot_x === focused_point_coords[0] &&
               bot_y === focused_point_coords[1])
               ? [0, 0, 18, 0]
@@ -631,7 +632,7 @@ class Memory2D extends React.Component {
           stroke="black"
           strokeWidth={
             enlarge_bot_marker ||
-            this.inDrawnBounds([bot_x, bot_y], true) ||
+            this.inDrawnBounds([bot_x, bot_y]) ||
             (bot_x === focused_point_coords[0] &&
               bot_y === focused_point_coords[1])
               ? 1.5
@@ -931,18 +932,18 @@ class Memory2D extends React.Component {
         </div>
         {popup_visible && (
           <div
-            style={positionOverlayedObjsPopup(
+            style={positionClusteredObjsPopup(
               this.state.height,
               this.state.width,
-              popup_coords,
+              focused_point_coords,
               drag_coordinates,
               dynamic_positioning,
               dynamic_positioning && popup_data
             )}
           >
-            <OverlayedObjsPopup
+            <ClusteredObjsPopup
               data={popup_data}
-              map_pos={popup_coords}
+              map_pos={focused_point_coords}
               onPopupClose={this.onPopupClose}
               handleObjClick={this.handleObjClick}
               table_visible={table_visible}
@@ -956,7 +957,7 @@ class Memory2D extends React.Component {
             style={positionMemoryMapTable(
               this.state.height,
               this.state.width,
-              table_coords,
+              focused_point_coords,
               drag_coordinates,
               dynamic_positioning,
               dynamic_positioning && table_data

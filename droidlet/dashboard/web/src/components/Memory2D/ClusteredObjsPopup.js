@@ -55,7 +55,7 @@ const StyledTableRow = withStyles((theme) => ({
  *                            handleObjClick: handler for clicking on a row (representing an object)
  *                             grouped_objects: dict of objects that were grouped by user
  */
-export default function OverlayedObjsPopup(props) {
+export default function ClusteredObjsPopup(props) {
   const [focusedObj, setFocusedObj] = useState(null);
 
   useEffect(() => {
@@ -125,7 +125,7 @@ export default function OverlayedObjsPopup(props) {
   );
 }
 
-export function positionOverlayedObjsPopup(
+export function positionClusteredObjsPopup(
   h,
   w,
   tc,
