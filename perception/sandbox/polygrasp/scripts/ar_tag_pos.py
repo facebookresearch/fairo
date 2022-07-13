@@ -13,7 +13,7 @@ Runs grasps generated from grasp server.
 # bottom closed2: tensor([-2.3284,  1.7304,  0.6423, -1.2444, -1.4370,  2.5559, -2.7209])
 # top open: tensor([-2.7492,  1.7202,  1.0310, -1.1538, -1.3008,  2.1873, -2.8715])
 # bottom open: tensor([-2.4589,  1.7582,  0.5844, -0.9734, -1.1897,  2.4049, -2.8648])
-
+drawer_camera_index = 1
 top_rack_ar_tag = [26, 27]
 bottom_rack_ar_tag = [23,29]
 
@@ -380,7 +380,7 @@ def get_marker_corners(cameras, frt_cams, root_working_dir, name):
     rgbd_masked = rgbd
     save_rgbd_masked(rgbd, rgbd_masked)
     uint_rgbs = rgbd[:,:,:,:3].astype(np.uint8)
-    drawer_markers = frt_cams[-1].detect_markers(uint_rgbs[-1])
+    drawer_markers = frt_cams[-1].detect_markers(uint_rgbs[drawer_camera_index])
     print(drawer_markers)
     data = {
         name : [{
@@ -403,6 +403,7 @@ def main(cfg):
     robot = hydra.utils.instantiate(cfg.robot)
     robot.gripper_open()
     robot.go_home()
+    # robot.move_until_success(position=torch.tensor([ 0.70, -0.07,  0.0101]), orientation=robot.get_ee_pose()[1], time_to_go=10)
 
     print("Initializing cameras")
     cfg.cam.intrinsics_file = hydra.utils.to_absolute_path(cfg.cam.intrinsics_file)
@@ -448,20 +449,17 @@ def main(cfg):
     close_top_drawer(robot)
     open_bottom_drawer(robot)
     robot.go_home()
-    
     get_marker_corners(cameras, frt_cams, root_working_dir, name='open_bottom_drawer')
     
     open_top_drawer(robot)
     
     # close_bottom_drawer(robot)
-    robot.go_home()
-        
+    robot.go_home()    
     get_marker_corners(cameras, frt_cams, root_working_dir, name='all_open')
 
     close_top_drawer(robot)
     close_bottom_drawer(robot)
     robot.go_home()
-    
-    
+    get_marker_corners(cameras, frt_cams, root_working_dir, name='all_closed')
 if __name__ == "__main__":
     main()

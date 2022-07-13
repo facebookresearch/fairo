@@ -15,9 +15,11 @@ Runs grasps generated from grasp server.
 # bottom open: tensor([-2.4589,  1.7582,  0.5844, -0.9734, -1.1897,  2.4049, -2.8648])
 
 
+drawer_camera_index = 1
 
 import time
 import os
+from unicodedata import category
 
 import numpy as np
 import sklearn
@@ -39,9 +41,36 @@ from polygrasp.grasp_rpc import GraspClient
 from polygrasp.serdes import load_bw_img
 
 import fairotag
+from temporal_task_planner.utils.data_structure_utils import construct_rigid_instance
+from temporal_task_planner.constants.lookup import bounding_box_dict, category_vocab, special_instance_vocab
+from temporal_task_planner.data_structures.instance import Instance, RigidInstance
+from temporal_task_planner.transform_hardware_to_sim import * # process_hw_pose_for_sim_axes
+from temporal_task_planner.utils.datasetpytorch_utils import get_temporal_context
 from temporal_task_planner.policy.learned_policy import PromptSituationLearnedPolicy  as PromptSituationPolicy
-from temporal_task_planner.trainer.transformer.dual_model import TransformerTaskPlannerDualModel as PromptSituationModel
+from temporal_task_planner.trainer.transformer.dual_model import TransformerTaskPlannerDualModel 
+from temporal_task_planner.trainer.transformer.configs import TransformerTaskPlannerConfig as PromptSituationConfig
+# from temporal_task_planner.trainer.submodule.category_encoder import CategoryEncoderMLP as CategoryEncoder
+# from temporal_task_planner.trainer.submodule.pose_encoder import PoseEncoderFourierMLP as PoseEncoder
+# from temporal_task_planner.trainer.submodule.temporal_encoder import TemporalEncoderEmbedding as TemporalEncoder
 
+
+def load_json(pathname):
+    with open(pathname, 'r') as f:
+        data = json.load(f)
+    return data
+
+map_cat_hw_to_sim = {
+    'dark_blue_plate': "frl_apartment_plate_01_small_",
+    'yellow_cup': "frl_apartment_kitchen_utensil_06_",
+    'light_blue_bowl' : "frl_apartment_bowl_03_",
+    'red_bowl': "frl_apartment_bowl_07_small_"
+}
+X = np.load(os.path.expanduser('~') + '/temporal_task_planner/hw_transforms/pick_counter.npy')
+
+artag_all_closed = load_json('data/all_closed.json')
+artag_all_open = load_json('data/all_open.json')
+artag_open_top_drawer = load_json('data/open_top_drawer.json')
+artag_open_bottom_drawer = load_json('data/open_bottom_drawer.json')
 
 top_closed_1 = torch.tensor([-2.8709,  1.7132,  1.3774, -1.8681, -1.4531,  1.9806,  0.4803])
 top_closed_2 = torch.tensor([-2.5949,  1.7388,  1.0075, -1.6537, -1.4691,  2.3417,  0.4605])
@@ -113,11 +142,6 @@ def save_object_detect_dict(obj_pcds):
         json.dump(data, f, indent=4)
     return 
 
-
-def read_object_detect_dict(pathname):
-    with open(pathname, 'r') as f:
-        data = json.load(f)
-    return data
 
 def  is_shadow(val, epsilon=5e-2):
     err_01 = abs(val[0] - val[1]) 
@@ -261,7 +285,6 @@ def execute_grasp(robot, chosen_grasp, hori_offset, time_to_go):
         orientation=curr_ori,
         time_to_go=time_to_go,
     )
-
     return traj
 
 def pickplace(
@@ -356,7 +379,7 @@ def pickplace(
             #         id_to_pcd[id] = obj_pcds[argmin]
             # print(f"Found object pointclouds corresponding to ARTag ids {list(id_to_pcd.keys())}")
             cur_data = get_object_detect_dict(obj_pcds)
-            ref_data = read_object_detect_dict(pathname=Path(
+            ref_data = load_json(pathname=Path(
                 hydra.utils.get_original_cwd(),
                 'data', 
                 'category_to_rgb_map.json'
@@ -397,13 +420,153 @@ def pickplace(
             print("Going home")
             robot.go_home()
 
+def transform_hw_to_sim_pose(pcd):
+    """converts the 3d coordinates in hw robot frame to 
+    sim's default world frame
+    1. load the transform
+    2. convert hw coordinates in correct format for multiply 
+    """
+    # xyz_hw_in_sim_axes
+    xyz_A = process_hw_pose_for_sim_axes(pcd.get_center())
+    b = get_simulation_coordinates(xyz_A=xyz_A, X=X)
+    return b + [1.0,0.0,0.0,0.0] # default quaternion
+    
+# def transform_hw_to_sim_category(category_to_pcd_map):
+
+#     category_name=[map_cat_hw_to_sim[key] for key in category_to_pcd_map]
+#     category_bb = [map_cat_tok_to_bb[cat] for cat in category_name]
+#     return {
+#         'category_name': category_name,
+#         'category': category_bb
+#     }
+    
+def get_hardware_cuntertop_objects(category_to_pcd_map):
+    rigid_instances = []
+    for i, (colorbasedname, pcd) in enumerate(category_to_pcd_map.items()):
+        category_name = map_cat_hw_to_sim[colorbasedname]
+        name = "{}:{:04d}".format(category, i)
+        pose = transform_hw_to_sim_pose(pcd)
+        entry = construct_rigid_instance(name, pose, category, relative_timestep=1) 
+        # RigidInstance(
+        #     timestep=1,
+        #     category=bounding_box_dict[category_name],
+        #     pose=pose,
+        #     action_masks=False,
+        #     is_real=True,
+        #     category_token_name=category_name,  # record utensil type
+        #     category_token=category_vocab.word2index(category_name),
+        #     instance_token=special_instance_vocab.word2index(name),
+        #     category_name=category_name,
+        #     instance_name=name,
+        # )
+        rigid_instances.append(entry)
+    return rigid_instances
+    
+        
+def get_objects_on_counter(cfg, cameras, segmentation_client):
+    rgbd = cameras.get_rgbd()
+    scene_pcd = cameras.get_pcd(rgbd)
+    print("Segmenting image...")
+    unmerged_obj_pcds = []
+    for i in range(cameras.n_cams):
+        obj_masked_rgbds, obj_masks = segmentation_client.segment_img(
+            rgbd[i], min_mask_size=cfg.min_mask_size
+        )
+        unmerged_obj_pcds += [
+            cameras.get_pcd_i(obj_masked_rgbd, i)
+            for obj_masked_rgbd in obj_masked_rgbds
+        ]
+    obj_pcds = merge_pcds(unmerged_obj_pcds)
+    cur_data = get_object_detect_dict(obj_pcds)
+    ref_data = load_json(pathname=Path(
+        hydra.utils.get_original_cwd(),
+        'data', 
+        'category_to_rgb_map.json'
+    ).as_posix())                                    
+    # breakpoint()
+    category_to_pcd_map = get_category_to_pcd_map(obj_pcds, cur_data, ref_data)
+    rigid_instances = get_hardware_rigid_instance(category_to_pcd_map)
+    # # instance_name_list = # count instance name
+    # category_dict = transform_hw_to_sim_category(category_to_pcd_map)
+    # pose_list = transform_hw_to_sim_pose(category_to_pcd_map)
+    # timestep_list = [1.]*len(pose_list)
+    # is_real_list = [1.]*len(pose_list)
+    # State()
+    breakpoint()
+    
+    situation = {
+        'timestep': torch.tensor([timestep_list])
+    }
+    # transform_position_counter_hw2sim = np.load(os.path.expanduser('~') + '/temporal_task_planner/hw_transforms/pick_counter.npy')
+    # transform_category_hw2sim = 
+    # # return category_to_pcd_map
+
+def get_marker_corners(cameras, frt_cams):
+    rgbd = cameras.get_rgbd()
+    rgbd_masked = rgbd
+    save_rgbd_masked(rgbd, rgbd_masked)
+    uint_rgbs = rgbd[:,:,:,:3].astype(np.uint8)
+    drawer_markers = frt_cams[-1].detect_markers(uint_rgbs[drawer_camera_index])
+    # print(drawer_markers)
+    data = [{
+            "id": int(m.id), 
+            "corner": m.corner.astype(np.int32).tolist()  
+        } for m in drawer_markers]
+    return data
+
+def get_drawer_status(cameras, frt_cams):
+    # measure similarity to the 4 scenarios of artags 
+    # and set the drawer poses in sim
+    
+    
+    
+    
 @hydra.main(config_path="../conf", config_name="run_ttp")
 def main(cfg):
     breakpoint()
-    model = hydra.utils.instantiate(cfg.model, _recursive_=True)
-    model.load_state_dict(torch.load('~/temporal_task_planner/checkpoints/two_pref_policy.pt')['model_state_dict'])
-    policy = PromptSituationPolicy(model, pick_only=False)
+    # config = hydra.utils.instantiate(cfg.config)
+    config = PromptSituationConfig(
+        num_instances=60,
+        d_model=cfg.d_model,
+        nhead=2,
+        d_hid=cfg.d_hid,
+        num_slots=cfg.num_slots,
+        slot_iters=cfg.slot_iters,
+        num_encoder_layers=cfg.num_encoder_layers,
+        num_decoder_layers=cfg.num_decoder_layers,
+        dropout=0.,
+        batch_first=True,
+        category_embed_size=cfg.category_embed_size,
+        pose_embed_size=cfg.pose_embed_size,
+        temporal_embed_size=cfg.temporal_embed_size,
+        marker_embed_size=cfg.marker_embed_size,
+    )
+    category_encoder = hydra.utils.instantiate(cfg.category_encoder)
+    temporal_encoder = hydra.utils.instantiate(cfg.temporal_encoder)
+    pose_encoder = hydra.utils.instantiate(cfg.pose_encoder)
+    reality_marker_encoder = hydra.utils.instantiate(cfg.reality_marker_encoder)
+    model = TransformerTaskPlannerDualModel(
+        config, 
+        category_encoder=category_encoder,
+        temporal_encoder=temporal_encoder,
+        pose_encoder=pose_encoder,
+        reality_marker_encoder=reality_marker_encoder,
+    )
+    model.load_state_dict(torch.load(cfg.checkpoint_path)['model_state_dict'])
+    policy = PromptSituationPolicy(model, pick_only=False, device='cpu')
     breakpoint()
+    prompt_temporal_context = get_temporal_context(cfg.prompt_session_path)
+    prompt_temporal_context.pick_only = True
+    prompt = prompt_temporal_context.process_states()
+    for key, val in prompt.items():
+        prompt[key] = torch.tensor(val).unsqueeze(0)
+    prompt_input_len = len(prompt["timestep"][0])
+    prompt["src_key_padding_mask"] = (
+        torch.zeros(prompt_input_len).bool().unsqueeze(0)
+    )
+    policy.reset(prompt)
+    breakpoint()
+
     print(f"Config:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")
     print(f"Current working directory: {os.getcwd()}")
 
@@ -441,12 +604,15 @@ def main(cfg):
     frt_cams = [fairotag.CameraModule() for _ in range(cameras.n_cams)]
     for frt, intrinsics in zip(frt_cams, cameras.intrinsics):
         frt.set_intrinsics(intrinsics)
-    # MARKER_LENGTH = 0.04
-    # MARKER_ID = [18]
-    # for i in MARKER_ID:
-    #     for frt in frt_cams:
-    #         frt.register_marker_size(i, MARKER_LENGTH)
-
+    MARKER_LENGTH = 0.04
+    MARKER_ID = [27, 26, 23, 29] #[18]
+    for i in MARKER_ID:
+        for frt in frt_cams:
+            frt.register_marker_size(i, MARKER_LENGTH)
+    dw_parts = get_drawer_status()
+    dishes = get_hardware_cuntertop_objects()
+    rigid_instances = dw_parts + dishes
+    situation = State(rigid_instances)
     top_category_order = [
         'dark_blue_plate',
         'light_blue_bowl', 

@@ -1,3 +1,4 @@
+# @package _global_
 _target_: temporal_task_planner.trainer.transformer.dual_model.TransformerTaskPlannerDualModel
 
 config:
