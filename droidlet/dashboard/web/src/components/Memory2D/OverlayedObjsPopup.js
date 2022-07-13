@@ -99,7 +99,7 @@ export default function OverlayedObjsPopup(props) {
                   [props.map_pos[0], props.map_pos[1]],
                   poolData.data
                 );
-                setFocusedObj(poolData.data.memid);
+                if (!props.grouping_mode) setFocusedObj(poolData.data.memid);
               }}
               style={
                 poolData.data.memid === focusedObj

@@ -56,8 +56,10 @@ class Memory2D extends React.Component {
       drag_coordinates: [0, 0],
       enlarge_bot_marker: false,
       focused_point_coords: [null, null],
+      table_coords: [null, null],
       table_data: null,
       table_visible: false,
+      popup_coords: [null, null],
       popup_data: null,
       popup_visible: false,
       dynamic_positioning: false,
@@ -68,6 +70,7 @@ class Memory2D extends React.Component {
       draw_pos_start: null,
       draw_pos_end: null,
       grouped_objects: {},
+      grouping_count: 0,
       grouped_overlays: new Set(),
     };
     this.state = this.initialState;
@@ -130,13 +133,14 @@ class Memory2D extends React.Component {
     });
   };
   handleObjClick = (obj_type, map_pos, data) => {
-    let { grouping_mode, grouped_objects, focused_point_coords } = this.state;
+    let { grouping_mode, grouped_objects, popup_coords } = this.state;
 
     if (!grouping_mode) {
       // if not in grouping mode, open MemoryMapTable
       this.setState({
         table_visible: true,
         table_data: data,
+        table_coords: map_pos,
         focused_point_coords: map_pos,
       });
     } else {
@@ -157,26 +161,22 @@ class Memory2D extends React.Component {
     }
 
     // close other tabular elements when switching to new map_pos
-    if (
-      map_pos[0] !== focused_point_coords[0] ||
-      map_pos[1] !== focused_point_coords[1]
-    ) {
+    if (map_pos[0] !== popup_coords[0] || map_pos[1] !== popup_coords[1]) {
       this.setState({ popup_visible: false });
     }
   };
   handlePopupClick = (map_pos, data) => {
-    let { focused_point_coords } = this.state;
+    let { table_coords } = this.state;
 
     this.setState({
       popup_visible: true,
       popup_data: data,
+      popup_coords: map_pos,
       focused_point_coords: map_pos,
     });
 
-    if (
-      map_pos[0] !== focused_point_coords[0] ||
-      map_pos[1] !== focused_point_coords[1]
-    ) {
+    // close other tabular elements when switching to new map_pos
+    if (map_pos[0] !== table_coords[0] || map_pos[1] !== table_coords[1]) {
       this.setState({ table_visible: false });
     }
   };
@@ -228,16 +228,21 @@ class Memory2D extends React.Component {
       this.setState({
         draw_pos_end: draw_pos,
       });
+      this.handleDrawEnd(draw_pos);
     }
     this.setState({ drawing_mode: !drawing_mode });
   };
-  inDrawnBounds = (map_pos, whileDrawing = false) => {
+  inDrawnBounds = (map_pos, whileDrawing = false, end_pos = null) => {
     let { drawing_mode, draw_pos_curr, draw_pos_start, draw_pos_end } =
       this.state;
     let [map_x, map_y] = map_pos;
 
     let startRect = draw_pos_start;
-    let endRect = whileDrawing ? draw_pos_curr : draw_pos_end;
+    let endRect = end_pos
+      ? end_pos
+      : whileDrawing
+      ? draw_pos_curr
+      : draw_pos_end;
 
     if (!(endRect && startRect)) return false;
     let start = {
@@ -248,6 +253,7 @@ class Memory2D extends React.Component {
       x: Math.max(startRect.x, endRect.x),
       y: Math.max(startRect.y, endRect.y),
     };
+    if (end_pos) console.log(whileDrawing == drawing_mode);
     return (
       whileDrawing == drawing_mode &&
       map_x > start.x &&
@@ -255,6 +261,74 @@ class Memory2D extends React.Component {
       map_x < end.x &&
       map_y < end.y
     );
+  };
+  handleDrawEnd = (end_pos) => {
+    let {
+      obstacle_map,
+      detections_from_memory,
+      xmin,
+      xmax,
+      ymin,
+      ymax,
+      width,
+      height,
+      grouped_objects,
+    } = this.state;
+
+    let toAdd = {};
+    let toRemoveFrom = grouped_objects;
+
+    // Pool obstacles by position
+    if (obstacle_map) {
+      obstacle_map.forEach((obj) => {
+        let map_x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
+        let map_y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
+        let map_pos = "" + map_x + "," + map_y;
+        let data = {
+          memid: "don't edit " + map_pos,
+          x: obj[0],
+          y: obj[1],
+          pos: "[" + obj[0] + ",0," + obj[1] + "]",
+        };
+
+        if (this.inDrawnBounds([map_x, map_y], true, end_pos)) {
+          if (!(data.memid in grouped_objects)) {
+            toAdd[data.memid] = data;
+          } else {
+            let { [data.memid]: _, ...rest } = toRemoveFrom;
+            toRemoveFrom = rest;
+          }
+        }
+      });
+    }
+
+    // Pool detected objects from memory by position
+    detections_from_memory.forEach((obj) => {
+      let xyz = obj.pos;
+      let [map_x, map_y] = this.convertCoordinate(xyz);
+
+      if (this.inDrawnBounds([map_x, map_y], true, end_pos)) {
+        console.log("in bounds");
+        if (!(obj.memid in grouped_objects)) {
+          toAdd[obj.memid] = obj;
+        } else {
+          let { [obj.memid]: _, ...rest } = toRemoveFrom;
+          toRemoveFrom = rest;
+        }
+      }
+    });
+
+    console.log(toAdd);
+    console.log(toRemoveFrom);
+
+    this.setState({
+      grouped_objects: {
+        ...toRemoveFrom,
+        ...toAdd,
+      },
+    });
+
+    this.setState({ grouping_count: this.state.grouping_count + 1 });
   };
   handleMouseMove = (e) => {
     let { drag_coordinates, stageScale, drawing_mode } = this.state;
@@ -346,8 +420,10 @@ class Memory2D extends React.Component {
       drag_coordinates,
       stageScale,
       enlarge_bot_marker,
+      table_coords,
       table_data,
       table_visible,
+      popup_coords,
       popup_data,
       popup_visible,
       dynamic_positioning,
@@ -385,16 +461,16 @@ class Memory2D extends React.Component {
     if (obstacle_map) {
       obstacle_map.forEach((obj) => {
         let color = "#827f7f";
-        let x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
-        let y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
-        let map_pos = "" + x + "," + y;
+        let map_x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
+        let map_y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
+        let map_pos = "" + map_x + "," + map_y;
         let poolData = {
           type: "obstacle_map",
           radius: 2,
           radiusFocused: 5,
           color: color,
           data: {
-            memid: "don't edit" + j++,
+            memid: "don't edit " + map_pos,
             x: obj[0],
             y: obj[1],
             pos: "[" + obj[0] + ",0," + obj[1] + "]",
@@ -492,23 +568,25 @@ class Memory2D extends React.Component {
           />
         );
 
-        if (this.inDrawnBounds([map_x, map_y])) {
-          if (!(obj.data.memid in grouped_objects)) {
-            this.setState({
-              grouped_objects: {
-                ...grouped_objects,
-                [obj.data.memid]: obj.data,
-              },
-            });
-          }
-        }
+        // if (this.inDrawnBounds([map_x, map_y])) {
+        //   if (!(obj.data.memid in grouped_objects)) {
+        //     this.setState({
+        //       grouped_objects: {
+        //         ...grouped_objects,
+        //         [obj.data.memid]: obj.data,
+        //       },
+        //     });
+        //   }
+        // }
       } else {
         // several objects overlayed at map position
         let numObjs = objs_at_pos.length;
         let overlayedObjects = [];
         let [groupColor, groupRadius, groupRadiusFocused] = ["#0000FF", 6, 9];
+        let allObjsGrouped = true;
         objs_at_pos.forEach((obj) => {
           overlayedObjects.push(obj);
+          if (!(obj.data.memid in grouped_objects)) allObjsGrouped = false;
         });
         renderedObjects.push(
           <Group
@@ -531,7 +609,7 @@ class Memory2D extends React.Component {
                   ? groupRadiusFocused
                   : groupRadius
               }
-              fill={groupColor}
+              fill={allObjsGrouped ? "green" : groupColor}
               stroke="black"
               strokeWidth={1}
             />
@@ -598,7 +676,14 @@ class Memory2D extends React.Component {
           }
           rotation={(-bot_yaw * 180) / Math.PI}
           stroke="black"
-          strokeWidth={enlarge_bot_marker ? 1.5 : 1}
+          strokeWidth={
+            enlarge_bot_marker ||
+            this.inDrawnBounds([bot_x, bot_y], true) ||
+            (bot_x === focused_point_coords[0] &&
+              bot_y === focused_point_coords[1])
+              ? 1.5
+              : 1
+          }
         />
       </Group>
     );
@@ -899,7 +984,7 @@ class Memory2D extends React.Component {
             style={positionOverlayedObjsPopup(
               this.state.height,
               this.state.width,
-              focused_point_coords,
+              popup_coords,
               drag_coordinates,
               dynamic_positioning,
               dynamic_positioning && popup_data
@@ -907,9 +992,10 @@ class Memory2D extends React.Component {
           >
             <OverlayedObjsPopup
               data={popup_data}
-              map_pos={focused_point_coords}
+              map_pos={popup_coords}
               onPopupClose={this.onPopupClose}
               handleObjClick={this.handleObjClick}
+              grouping_mode={this.state.grouping_mode}
               grouped_objects={grouped_objects}
             />
           </div>
@@ -919,7 +1005,7 @@ class Memory2D extends React.Component {
             style={positionMemoryMapTable(
               this.state.height,
               this.state.width,
-              focused_point_coords,
+              table_coords,
               drag_coordinates,
               dynamic_positioning,
               dynamic_positioning && table_data
