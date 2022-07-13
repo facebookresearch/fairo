@@ -62,7 +62,7 @@ class PointCloudSubscriber(CameraSubscriber):
 
     def get_pcd_i(self, rgbd: np.ndarray, cam_i: int, mask: np.ndarray = None):
         if mask is None:
-            mask = np.ones([self.height, self.width])
+            mask = np.ones_like(rgbd[:, :, 0])
 
         intrinsic = self.o3_intrinsics[cam_i]
         transform = self.extrinsic_transforms[cam_i]

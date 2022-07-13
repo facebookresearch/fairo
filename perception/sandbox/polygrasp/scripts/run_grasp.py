@@ -24,6 +24,8 @@ import graspnetAPI
 import open3d as o3d
 from typing import List
 
+import cv2
+
 
 def save_rgbd_masked(rgbd: np.ndarray, rgbd_masked: np.ndarray):
     num_cams = rgbd.shape[0]
@@ -189,14 +191,18 @@ def main(cfg):
 
             rgbd_masked = rgbd * masks[:, :, :, None]
             scene_pcd = cameras.get_pcd(rgbd)
+
+            result = []
+            for i in range(len(rgbd_masked)):
+                result.append(cv2.resize(rgbd_masked[i], [320, 240]))
+            rgbd_masked = np.array(result).astype(np.uint16)
+
             save_rgbd_masked(rgbd, rgbd_masked)
 
             print("Segmenting image...")
             unmerged_obj_pcds = []
             for i in range(cameras.n_cams):
-                obj_masked_rgbds, obj_masks = segmentation_client.segment_img(
-                    rgbd_masked[i], min_mask_size=cfg.min_mask_size
-                )
+                obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd_masked[i], min_mask_size=cfg.min_mask_size)
                 unmerged_obj_pcds += [
                     cameras.get_pcd_i(obj_masked_rgbd, i)
                     for obj_masked_rgbd in obj_masked_rgbds
@@ -205,12 +211,14 @@ def main(cfg):
                 f"Merging {len(unmerged_obj_pcds)} object pcds by clustering their centroids"
             )
             obj_pcds = merge_pcds(unmerged_obj_pcds)
+            obj_pcds [x for x in obj_pcds if len(x.points) > 0]
             if len(obj_pcds) == 0:
                 print(
                     f"Failed to find any objects with mask size > {cfg.min_mask_size}!"
                 )
                 break
 
+            breakpoint()
             print("Getting grasps per object...")
             obj_i, filtered_grasp_group = grasp_client.get_obj_grasps(
                 obj_pcds, scene_pcd
@@ -227,6 +235,7 @@ def main(cfg):
                 obj_pcds[obj_i], final_filtered_grasps, name="obj"
             )
 
+            breakpoint()
             traj = execute_grasp(robot, chosen_grasp, hori_offset, time_to_go)
 
             print("Going home")
