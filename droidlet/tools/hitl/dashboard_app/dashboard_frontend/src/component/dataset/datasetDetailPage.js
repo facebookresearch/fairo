@@ -1,4 +1,14 @@
-import { Card, Divider, Select, Skeleton, Spin, Typography } from "antd";
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+The detail page for viewing a dataset.
+Takes optional state parameter from react-router-dom navigation (navigate, link, navlink ... etc), the optopnal states are:
+- datasetList: a list of dataset of current pipeline
+
+Usage:
+<DatasetDetailPage />
+*/
+import { Card, Select, Spin, Typography } from "antd";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { SocketContext } from "../../context/socket";
@@ -12,7 +22,7 @@ const DatasetDetailPage = (props) => {
     const pipelineType = useParams().pipeline;
     const [datasetList, setDatasetList] = useState(location.state.datasetList ? location.state.datasetList : []);
     const [datasetContent, setDatasetContent] = useState(null);
-    const [selectedDatasetVer, setSelectedDatasetVer] = useState(location.state.datasetName);
+    const [selectedDatasetVer, setSelectedDatasetVer] = useState(null);
     const onSelectDatasetVer = (value) => {
         setSelectedDatasetVer(value);
     }

@@ -1,3 +1,13 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+The card showing dataset infomation of a run. 
+Takes batchid and pipelineType as input. 
+
+Usage:
+<DatasetCard batchId = {batchId} pipelineType = {pipelineType} />
+*/
+
 import { Card, Descriptions, Tooltip, Typography } from "antd";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Link } from 'react-router-dom';
@@ -61,7 +71,7 @@ const DatasetCard = (props) => {
                             <Typography.Link >
                                 <Link
                                     to={`/dataset/${pipelineType}`}
-                                    state={{ datasetName: datasetList[0], datasetList: datasetList }}
+                                    state={{ datasetList: datasetList }}
                                     replace={true}
                                 >
                                     {datasetList[0]}
