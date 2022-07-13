@@ -60,6 +60,7 @@ class Memory2D extends React.Component {
       table_visible: false,
       popup_data: null,
       popup_visible: false,
+      dynamic_positioning: false,
       map_update_count: 0,
       grouping_mode: false,
       drawing_mode: false,
@@ -67,6 +68,7 @@ class Memory2D extends React.Component {
       draw_pos_start: null,
       draw_pos_end: null,
       grouped_objects: {},
+      grouped_overlays: new Set(),
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -178,6 +180,98 @@ class Memory2D extends React.Component {
       this.setState({ table_visible: false });
     }
   };
+  onTableClose = () => {
+    this.setState({
+      table_visible: false,
+      focused_point_coords: [null, null],
+    });
+  };
+  onTableSubmit = (em) => {
+    let numChanged = Object.keys(em).reduce((numChanged, attr) => {
+      if (em[attr].status === "changed") numChanged += 1;
+      return numChanged;
+    }, 0);
+    if (numChanged > 0) this.props.stateManager.sendManualEdits(em);
+    this.setState({ table_visible: false });
+  };
+  onPopupClose = () => {
+    this.setState({
+      popup_visible: false,
+      table_visible: false,
+      focused_point_coords: [null, null],
+    });
+  };
+  handleRightClick = (e) => {
+    let { drag_coordinates, stageScale, drawing_mode } = this.state;
+
+    e.evt.preventDefault();
+    // close non-stage components
+    this.onTableClose();
+    this.onPopupClose();
+
+    let draw_pos = {
+      x:
+        (e.target.getStage().getPointerPosition().x - drag_coordinates[0]) /
+        stageScale,
+      y:
+        (e.target.getStage().getPointerPosition().y - drag_coordinates[1]) /
+        stageScale,
+    };
+    if (!drawing_mode) {
+      // start drawing
+      this.setState({
+        draw_pos_start: draw_pos,
+        draw_pos_end: null,
+      });
+    } else {
+      // end drawing
+      this.setState({
+        draw_pos_end: draw_pos,
+      });
+    }
+    this.setState({ drawing_mode: !drawing_mode });
+  };
+  inDrawnBounds = (map_pos, whileDrawing = false) => {
+    let { drawing_mode, draw_pos_curr, draw_pos_start, draw_pos_end } =
+      this.state;
+    let [map_x, map_y] = map_pos;
+
+    let startRect = draw_pos_start;
+    let endRect = whileDrawing ? draw_pos_curr : draw_pos_end;
+
+    if (!(endRect && startRect)) return false;
+    let start = {
+      x: Math.min(startRect.x, endRect.x),
+      y: Math.min(startRect.y, endRect.y),
+    };
+    let end = {
+      x: Math.max(startRect.x, endRect.x),
+      y: Math.max(startRect.y, endRect.y),
+    };
+    return (
+      whileDrawing == drawing_mode &&
+      map_x > start.x &&
+      map_y > start.y &&
+      map_x < end.x &&
+      map_y < end.y
+    );
+  };
+  handleMouseMove = (e) => {
+    let { drag_coordinates, stageScale, drawing_mode } = this.state;
+
+    let draw_pos = {
+      x:
+        (e.target.getStage().getPointerPosition().x - drag_coordinates[0]) /
+        stageScale,
+      y:
+        (e.target.getStage().getPointerPosition().y - drag_coordinates[1]) /
+        stageScale,
+    };
+    this.setState({
+      draw_pos_curr: draw_pos,
+    });
+    // console.log(e.target.getStage().getPointerPosition());
+  };
   resizeHandler() {
     if (this.props.isMobile) {
       let dimensions = this.props.dimensions;
@@ -208,7 +302,7 @@ class Memory2D extends React.Component {
     }
   }
   componentDidUpdate(prevProps, prevState) {
-    const { bot_xyz, bot_data } = this.state;
+    const { bot_xyz } = this.state;
     let { xmin, xmax, ymin, ymax } = this.state;
     let bot_x = bot_xyz[0],
       bot_y = bot_xyz[1];
@@ -256,6 +350,7 @@ class Memory2D extends React.Component {
       table_visible,
       popup_data,
       popup_visible,
+      dynamic_positioning,
       focused_point_coords,
       map_update_count,
       grouped_objects,
@@ -367,12 +462,13 @@ class Memory2D extends React.Component {
       });
     }
 
-    // Use pooling to plot points/groups on map
     Object.entries(objectPosPool).forEach((entry) => {
       let [map_pos, objs_at_pos] = entry;
       let [map_x, map_y] = map_pos.split(",");
       map_x = parseInt(map_x);
       map_y = parseInt(map_y);
+
+      // Use pooling to plot points + group objects on map
       if (objs_at_pos.length === 1) {
         // only one object at map position
         let obj = objs_at_pos[0];
@@ -382,8 +478,9 @@ class Memory2D extends React.Component {
             x={map_x}
             y={map_y}
             radius={
-              map_x === focused_point_coords[0] &&
-              map_y === focused_point_coords[1]
+              this.inDrawnBounds([map_x, map_y], true) ||
+              (map_x === focused_point_coords[0] &&
+                map_y === focused_point_coords[1])
                 ? obj.radiusFocused
                 : obj.radius
             }
@@ -394,6 +491,17 @@ class Memory2D extends React.Component {
             }}
           />
         );
+
+        if (this.inDrawnBounds([map_x, map_y])) {
+          if (!(obj.data.memid in grouped_objects)) {
+            this.setState({
+              grouped_objects: {
+                ...grouped_objects,
+                [obj.data.memid]: obj.data,
+              },
+            });
+          }
+        }
       } else {
         // several objects overlayed at map position
         let numObjs = objs_at_pos.length;
@@ -417,8 +525,9 @@ class Memory2D extends React.Component {
               x={0}
               y={0}
               radius={
-                map_x === focused_point_coords[0] &&
-                map_y === focused_point_coords[1]
+                this.inDrawnBounds([map_x, map_y], true) ||
+                (map_x === focused_point_coords[0] &&
+                  map_y === focused_point_coords[1])
                   ? groupRadiusFocused
                   : groupRadius
               }
@@ -465,10 +574,28 @@ class Memory2D extends React.Component {
           this.setState({ enlarge_bot_marker: false });
         }}
       >
-        <Circle key={j++} radius={enlarge_bot_marker ? 15 : 10} fill="red" />
+        <Circle
+          key={j++}
+          radius={
+            enlarge_bot_marker ||
+            this.inDrawnBounds([bot_x, bot_y], true) ||
+            (bot_x === focused_point_coords[0] &&
+              bot_y === focused_point_coords[1])
+              ? 15
+              : 10
+          }
+          fill="red"
+        />
         <Line
           key={j++}
-          points={enlarge_bot_marker ? [0, 0, 18, 0] : [0, 0, 12, 0]}
+          points={
+            enlarge_bot_marker ||
+            this.inDrawnBounds([bot_x, bot_y], true) ||
+            (bot_x === focused_point_coords[0] &&
+              bot_y === focused_point_coords[1])
+              ? [0, 0, 18, 0]
+              : [0, 0, 12, 0]
+          }
           rotation={(-bot_yaw * 180) / Math.PI}
           stroke="black"
           strokeWidth={enlarge_bot_marker ? 1.5 : 1}
@@ -670,29 +797,6 @@ class Memory2D extends React.Component {
     );
     coordinateAxesLayer.push(axesX, axesZ, notches);
 
-    // table props
-    const onTableClose = () => {
-      this.setState({
-        table_visible: false,
-        focused_point_coords: [null, null],
-      });
-    };
-    const onTableSubmit = (em) => {
-      let numChanged = Object.keys(em).reduce((numChanged, attr) => {
-        if (em[attr].status === "changed") numChanged += 1;
-        return numChanged;
-      }, 0);
-      if (numChanged > 0) this.props.stateManager.sendManualEdits(em);
-      this.setState({ table_visible: false });
-    };
-    const onPopupClose = () => {
-      this.setState({
-        popup_visible: false,
-        table_visible: false,
-        focused_point_coords: [null, null],
-      });
-    };
-
     // final render
     return (
       <div
@@ -703,6 +807,18 @@ class Memory2D extends React.Component {
           let selectionKeys = ["Meta", "Command", "Ctrl"];
           if (selectionKeys.includes(e.key)) {
             this.setState({ grouping_mode: true });
+          }
+
+          let escapeKeys = ["Escape", "Esc"];
+          if (escapeKeys.includes(e.key)) {
+            this.setState({
+              grouping_mode: false,
+              drawing_mode: false,
+              draw_pos_start: null,
+              draw_pos_end: null,
+            });
+            this.onTableClose();
+            this.onPopupClose();
           }
         }}
         onKeyUp={() => {
@@ -736,28 +852,10 @@ class Memory2D extends React.Component {
               this.handleDrag("memory2d", [e.target.attrs.x, e.target.attrs.y])
             }
             onContextMenu={(e) => {
-              e.evt.preventDefault();
-              // close non-stage components
-              onTableClose();
-              onPopupClose();
-              if (!drawing_mode) {
-                // start drawing
-                this.setState({
-                  draw_pos_start: e.target.getStage().getPointerPosition(),
-                });
-              } else {
-                // end drawing
-                this.setState({
-                  draw_pos_end: e.target.getStage().getPointerPosition(),
-                });
-              }
-              this.setState({ drawing_mode: !drawing_mode });
+              this.handleRightClick(e);
             }}
             onMouseMove={(e) => {
-              this.setState({
-                draw_pos_curr: e.target.getStage().getPointerPosition(),
-              });
-              console.log(e.target.getStage().getPointerPosition());
+              this.handleMouseMove(e);
             }}
           >
             <Layer className="gridLayer">{gridLayer}</Layer>
@@ -778,27 +876,14 @@ class Memory2D extends React.Component {
               <Shape
                 sceneFunc={(ctx, shape) => {
                   if (drawing_mode) {
-                    let mouseX = parseInt(
-                      draw_pos_curr.x - drag_coordinates[0]
-                    );
-                    let mouseY = parseInt(
-                      draw_pos_curr.y - drag_coordinates[1]
-                    );
-                    let startX = parseInt(
-                      draw_pos_start.x - drag_coordinates[0]
-                    );
-                    let startY = parseInt(
-                      draw_pos_start.y - drag_coordinates[1]
-                    );
+                    let mouseX = parseInt(draw_pos_curr.x);
+                    let mouseY = parseInt(draw_pos_curr.y);
+                    let startX = parseInt(draw_pos_start.x);
+                    let startY = parseInt(draw_pos_start.y);
 
                     ctx.clearRect(0, 0, shape.width, shape.height);
                     ctx.beginPath();
-                    ctx.rect(
-                      startX / stageScale,
-                      startY / stageScale,
-                      (mouseX - startX) / stageScale,
-                      (mouseY - startY) / stageScale
-                    );
+                    ctx.rect(startX, startY, mouseX - startX, mouseY - startY);
                     ctx.fillStrokeShape(shape);
                   }
                 }}
@@ -816,13 +901,14 @@ class Memory2D extends React.Component {
               this.state.width,
               focused_point_coords,
               drag_coordinates,
-              popup_data
+              dynamic_positioning,
+              dynamic_positioning && popup_data
             )}
           >
             <OverlayedObjsPopup
               data={popup_data}
               map_pos={focused_point_coords}
-              onPopupClose={onPopupClose}
+              onPopupClose={this.onPopupClose}
               handleObjClick={this.handleObjClick}
               grouped_objects={grouped_objects}
             />
@@ -835,13 +921,14 @@ class Memory2D extends React.Component {
               this.state.width,
               focused_point_coords,
               drag_coordinates,
-              table_data
+              dynamic_positioning,
+              dynamic_positioning && table_data
             )}
           >
             <MemoryMapTable
               data={table_data}
-              onTableClose={onTableClose}
-              onTableSubmit={onTableSubmit}
+              onTableClose={this.onTableClose}
+              onTableSubmit={this.onTableSubmit}
             />
           </div>
         )}

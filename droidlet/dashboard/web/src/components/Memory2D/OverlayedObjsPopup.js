@@ -125,18 +125,27 @@ export default function OverlayedObjsPopup(props) {
   );
 }
 
-export function positionOverlayedObjsPopup(h, w, tc, dc, data) {
+export function positionOverlayedObjsPopup(
+  h,
+  w,
+  tc,
+  dc,
+  makeDynamic = false,
+  data = null
+) {
   // this takes all these parameters so table will properly update position on change
   let ret = { position: "absolute" };
-  let final_coords = [w - (tc[0] + dc[0]), Math.min(h, w) - (tc[1] + dc[1])];
-  let final_pos = ["right", "bottom"];
-  let table_dims = [
-    200,
-    Math.min(MAX_TABLE_CONTAINER_HEIGHT - 10, 32 * data.length + 28),
-  ];
-  if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
-    final_coords[1] = Math.min(h, w) - final_coords[1];
-    final_pos[1] = "top";
+  let final_coords = [w - (tc[0] + dc[0]), tc[1] + dc[1]];
+  let final_pos = ["right", "top"];
+  if (makeDynamic) {
+    let table_dims = [
+      200,
+      Math.min(MAX_TABLE_CONTAINER_HEIGHT - 10, 32 * data.length + 28),
+    ];
+    if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
+      final_coords[1] = Math.min(h, w) - final_coords[1];
+      final_pos[1] = "bottom";
+    }
   }
   ret[final_pos[0]] = final_coords[0];
   ret[final_pos[1]] = final_coords[1];
