@@ -52,8 +52,6 @@ class Memory2D extends React.Component {
       popup_visible: false,
       popup_coords: [0, 0],
       map_update_count: 0,
-      grouping_mode: false,
-      grouped_objects: [],
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -115,46 +113,17 @@ class Memory2D extends React.Component {
     });
   };
   handleObjClick = (obj_type, map_pos, data) => {
-    /* 
-     * Potentially useful code to debug table positioning when zooming in *
-     *
-     * 
-    let {
-      table_coords,
-      drag_coordinates,
-      stageX,
-      stageY,
-      stageScale,
-      height,
-      width,
-    } = this.state;
-    width = Math.min(width, height);
-    height = width;
+    let { popup_coords } = this.state;
 
-    console.log("x:", x, "y:", y);
-    console.log("drag_coordinates:", drag_coordinates[0], ", ", drag_coordinates[1]);
-    console.log("stage_coords:", stageX, ", ", stageY);
-    console.log("stageScale:", stageScale);
-    console.log("width:", width, "height:", height);
-    console.log("will plot table at: [", (x + drag_coordinates[0]), ", ", (Math.min(height, width) - y - drag_coordinates[1]), "]");
-    */
+    this.setState({
+      table_visible: true,
+      table_coords: map_pos,
+      table_data: data,
+    });
 
-    let { grouping_mode, grouped_objects, popup_coords } = this.state;
-
-    if (!grouping_mode) {
-      console.log(obj_type + " clicked reg");
-      this.setState({
-        table_visible: true,
-        table_coords: map_pos,
-        table_data: data,
-      });
-
-      if (map_pos[0] !== popup_coords[0] || map_pos[1] !== popup_coords[1]) {
-        this.setState({ popup_visible: false });
-      }
-    } else {
-      console.log(obj_type + " clicked group");
-      this.setState({ grouped_objects: [...grouped_objects, data] });
+    // close other tabular elements when switching to new map_pos
+    if (map_pos[0] !== popup_coords[0] || map_pos[1] !== popup_coords[1]) {
+      this.setState({ popup_visible: false });
     }
   };
   handlePopupClick = (map_pos, data) => {
@@ -166,6 +135,7 @@ class Memory2D extends React.Component {
       popup_data: data,
     });
 
+    // close other tabular elements when switching to new map_pos
     if (map_pos[0] !== table_coords[0] || map_pos[1] !== table_coords[1]) {
       this.setState({ table_visible: false });
     }
@@ -270,18 +240,17 @@ class Memory2D extends React.Component {
     }
 
     let renderedObjects = [];
-    let mapBoundary = [];
     let j = 0;
 
     let objectPosPool = {};
 
-    // Pool obstacles by position
+    // Pool map obstacles by position
     if (obstacle_map) {
       obstacle_map.forEach((obj) => {
         let color = "#827f7f";
-        let x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
-        let y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
-        let map_pos = "" + x + "," + y;
+        let map_x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
+        let map_y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
+        let map_pos = "" + map_x + "," + map_y;
         let poolData = {
           type: "obstacle_map",
           radius: 2,
@@ -679,17 +648,6 @@ class Memory2D extends React.Component {
       <div
         ref={this.outer_div}
         style={{ height: "100%", width: "100%", position: "relative" }}
-        onKeyDown={(e) => {
-          // console.log(e.key, "down");
-          let selectionKeys = ["Meta", "Command", "Ctrl"];
-          if (selectionKeys.includes(e.key)) {
-            this.setState({ grouping_mode: true });
-          }
-        }}
-        onKeyUp={() => {
-          this.setState({ grouping_mode: false });
-        }}
-        tabIndex="0"
       >
         <div style={{ position: "absolute" }}>
           <Stage
@@ -714,7 +672,6 @@ class Memory2D extends React.Component {
           >
             <Layer className="gridLayer">{gridLayer}</Layer>
             <Layer className="coordinateAxesLayer">{coordinateAxesLayer}</Layer>
-            <Layer className="mapBoundary">{mapBoundary}</Layer>
             <Layer
               className="renderedObjects"
               key={this.state.map_update_count}
