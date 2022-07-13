@@ -58,7 +58,6 @@ class Memory2D extends React.Component {
       draw_pos_curr: null,
       draw_pos_start: null,
       grouped_objects: {},
-      grouping_count: 0,
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
