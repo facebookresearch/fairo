@@ -10,6 +10,14 @@ This is a Dashboard app prototype for the HITL system.
         - ![search_demo](https://user-images.githubusercontent.com/51009396/177654353-cf34635d-9571-4666-83c3-b9b33afde9a8.gif)
     - Filter demo:
         - ![filter_demo](https://user-images.githubusercontent.com/51009396/177654387-a660f9ae-c519-4e21-8c4c-07af9aa6cf76.gif)
+- July 5: 
+    - Added detail page to show detail infomation of a pipeline run (specified by the batch_id)
+    - Added a get all sessions related to a batch id backend API. 
+- Demo:
+    - For a batch_id that is associate with detail info, the user will see the following detail page:
+        - ![detail_valid_batch_id](https://user-images.githubusercontent.com/51009396/177655919-693870cc-595c-416e-ac25-651e3cccbeca.gif)
+    - For a batch_id that has no detail info, will redirect to not found page.
+        - ![detail_not_vaild_batch_id](https://user-images.githubusercontent.com/51009396/177655956-c398f669-90af-4a13-bdff-736057ca68cb.gif)
 
 ## Included 
 - Backend: a backend based on flask and socket. Run on localhost:5000 by default.
@@ -52,6 +60,10 @@ APIs are based on socket event, the following APIs are supported currently:
         meta data like name of the run, batch id, start time/end time, statistics for each HIT jobs in this run, etc. 
     - input: a batch id.
     - output: if the run info can be found, return the run info in a json format, otherwise, return an error message sugesting not found.
+- get_interaction_sessions_by_id
+    - get interaction job sessions list
+    - input: a batch id.
+    - output: if the sessions can be found, return a list of session name, otherwise, return an error code sugesting not found.
 
 ## Demo
 ![backend_api_demo](https://user-images.githubusercontent.com/51009396/175696481-532cec55-5b2e-4bae-bceb-9e7d3f2aa7b7.gif)
