@@ -175,3 +175,11 @@ def get_dataset_by_name(dataset_name: str):
     if local_fname is None:
         return f"cannot find {dataset_name}", 404
     return _read_file(local_fname), None
+
+def get_model_by_id(batch_id: int):
+    """
+    Download best model from aws, return the model if the model file exists
+    """
+    local_fname = _download_file(f"{batch_id}/best_model/best_model.pth")
+    if local_fname is None:
+        return f"cannot find best_model file related to {batch_id}", 404
