@@ -7,7 +7,6 @@ and preparing proper response for APIs the server provides.
 """
 
 import json
-from nis import match
 import boto3
 import botocore
 import os
