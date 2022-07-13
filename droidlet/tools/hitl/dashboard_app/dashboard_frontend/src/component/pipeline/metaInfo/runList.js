@@ -136,27 +136,27 @@ const RunList = (props) => {
         socket.on("get_job_list", (data) => handleReceivedRunList(data));
     }, [socket, handleReceivedRunList]);
 
-    const onSearch = (value) => {
+    const onSearch = (searchBoxValue) => {
         setRangeValue([]); // reset filter value
-        if (value) {
+        if (searchBoxValue) {
             setDisplayData(runListData.filter((o) =>
-            (o.name.includes(value)
-                || o.batch_id === value
-                || o.description.includes(value)
+            (o.name.includes(searchBoxValue)
+                || o.batch_id === searchBoxValue
+                || o.description.includes(searchBoxValue)
             )));
         } else {
             setDisplayData(runListData);
         }
     }
 
-    const filterOnTime = (value) => {
+    const filterOnTime = (timeRangeValue) => {
         // filter on start/end time
-        setRangeValue(value);
-        if (value) {
+        setRangeValue(timeRangeValue);
+        if (timeRangeValue) {
             const filteredList = runListData.filter((row) => {
                 let time = filterType === "start" ? row.start_time : row.end_time;
                 time = moment(time, "YYYY-MM-DD HH:mm:ss");
-                return time >= value[0] && time <= value[1];
+                return time >= timeRangeValue[0] && time <= timeRangeValue[1];
             });
             setDisplayData(filteredList);
         } else {
@@ -165,9 +165,9 @@ const RunList = (props) => {
         }
     };
 
-    const onSelectFilterType = (value) => {
+    const onSelectFilterType = (filterTypeValue) => {
         // change filter time type (start/end)
-        setFilterType(value);
+        setFilterType(filterTypeValue);
         setRangeValue([]); // reset RangePicker value
         setDisplayData(runListData);
     } 
