@@ -59,7 +59,6 @@ class Memory2D extends React.Component {
       drawing_mode: false,
       draw_pos_curr: null,
       draw_pos_start: null,
-      draw_pos_end: null,
       grouped_objects: {},
       grouping_count: 0,
       grouped_overlays: new Set(),
@@ -129,9 +128,9 @@ class Memory2D extends React.Component {
     if (!grouping_mode) {
       // if not in grouping mode, open MemoryMapTable
       this.setState({
-        table_visible: true,
-        table_data: data,
         table_coords: map_pos,
+        table_data: data,
+        table_visible: true,
         focused_point_coords: map_pos,
       });
     } else {
@@ -160,9 +159,9 @@ class Memory2D extends React.Component {
     let { table_coords } = this.state;
 
     this.setState({
-      popup_visible: true,
-      popup_data: data,
       popup_coords: map_pos,
+      popup_data: data,
+      popup_visible: true,
       focused_point_coords: map_pos,
     });
 
@@ -212,28 +211,19 @@ class Memory2D extends React.Component {
       // start drawing
       this.setState({
         draw_pos_start: draw_pos,
-        draw_pos_end: null,
       });
     } else {
       // end drawing
-      this.setState({
-        draw_pos_end: draw_pos,
-      });
       this.handleDrawEnd(draw_pos);
     }
     this.setState({ drawing_mode: !drawing_mode });
   };
   inDrawnBounds = (map_pos, whileDrawing = false, end_pos = null) => {
-    let { drawing_mode, draw_pos_curr, draw_pos_start, draw_pos_end } =
-      this.state;
+    let { drawing_mode, draw_pos_curr, draw_pos_start } = this.state;
     let [map_x, map_y] = map_pos;
 
     let startRect = draw_pos_start;
-    let endRect = end_pos
-      ? end_pos
-      : whileDrawing
-      ? draw_pos_curr
-      : draw_pos_end;
+    let endRect = end_pos ? end_pos : draw_pos_curr;
 
     if (!(endRect && startRect)) return false;
     let start = {
@@ -244,7 +234,6 @@ class Memory2D extends React.Component {
       x: Math.max(startRect.x, endRect.x),
       y: Math.max(startRect.y, endRect.y),
     };
-    if (end_pos) console.log(whileDrawing == drawing_mode);
     return (
       whileDrawing == drawing_mode &&
       map_x > start.x &&
@@ -266,8 +255,8 @@ class Memory2D extends React.Component {
       grouped_objects,
     } = this.state;
 
-    let toAdd = {};
-    let toRemoveFrom = grouped_objects;
+    let toSelect = {};
+    let toUnselectFrom = grouped_objects;
 
     // Pool obstacles by position
     if (obstacle_map) {
@@ -284,10 +273,10 @@ class Memory2D extends React.Component {
 
         if (this.inDrawnBounds([map_x, map_y], true, end_pos)) {
           if (!(data.memid in grouped_objects)) {
-            toAdd[data.memid] = data;
+            toSelect[data.memid] = data;
           } else {
-            let { [data.memid]: _, ...rest } = toRemoveFrom;
-            toRemoveFrom = rest;
+            let { [data.memid]: _, ...rest } = toUnselectFrom;
+            toUnselectFrom = rest;
           }
         }
       });
@@ -299,23 +288,19 @@ class Memory2D extends React.Component {
       let [map_x, map_y] = this.convertCoordinate(xyz);
 
       if (this.inDrawnBounds([map_x, map_y], true, end_pos)) {
-        console.log("in bounds");
         if (!(obj.memid in grouped_objects)) {
-          toAdd[obj.memid] = obj;
+          toSelect[obj.memid] = obj;
         } else {
-          let { [obj.memid]: _, ...rest } = toRemoveFrom;
-          toRemoveFrom = rest;
+          let { [obj.memid]: _, ...rest } = toUnselectFrom;
+          toUnselectFrom = rest;
         }
       }
     });
 
-    console.log(toAdd);
-    console.log(toRemoveFrom);
-
     this.setState({
       grouped_objects: {
-        ...toRemoveFrom,
-        ...toAdd,
+        ...toUnselectFrom,
+        ...toSelect,
       },
     });
 
@@ -335,7 +320,6 @@ class Memory2D extends React.Component {
     this.setState({
       draw_pos_curr: draw_pos,
     });
-    // console.log(e.target.getStage().getPointerPosition());
   };
   resizeHandler() {
     if (this.props.isMobile) {
@@ -484,7 +468,6 @@ class Memory2D extends React.Component {
       let poolData = {
         type: "detection_from_memory",
         radius: 6,
-        radiusFocused: 9,
         color: color,
         data: obj,
       };
@@ -535,6 +518,10 @@ class Memory2D extends React.Component {
       let [map_x, map_y] = map_pos.split(",");
       map_x = parseInt(map_x);
       map_y = parseInt(map_y);
+      let isFocused =
+        this.inDrawnBounds([map_x, map_y], true) ||
+        (map_x === focused_point_coords[0] &&
+          map_y === focused_point_coords[1]);
       if (objs_at_pos.length === 1) {
         // only one object at map position
         let obj = objs_at_pos[0];
@@ -543,13 +530,7 @@ class Memory2D extends React.Component {
             key={obj.data.memid}
             x={map_x}
             y={map_y}
-            radius={
-              this.inDrawnBounds([map_x, map_y], true) ||
-              (map_x === focused_point_coords[0] &&
-                map_y === focused_point_coords[1])
-                ? obj.radiusFocused
-                : obj.radius
-            }
+            radius={isFocused ? obj.radius * 1.5 : obj.radius}
             fill={obj.data.memid in grouped_objects ? "green" : obj.color}
             onClick={(e) => {
               if (e.evt.which === 1)
@@ -561,7 +542,7 @@ class Memory2D extends React.Component {
         // several objects overlayed at map position
         let numObjs = objs_at_pos.length;
         let overlayedObjects = [];
-        let [groupColor, groupRadius, groupRadiusFocused] = ["#0000FF", 6, 9];
+        let [groupColor, groupRadius] = ["#0000FF", 6];
         let allObjsGrouped = true;
         objs_at_pos.forEach((obj) => {
           overlayedObjects.push(obj);
@@ -577,17 +558,10 @@ class Memory2D extends React.Component {
                 this.handlePopupClick([map_x, map_y], overlayedObjects);
             }}
           >
-            {/* {overlayedObjects} */}
             <Circle
               x={0}
               y={0}
-              radius={
-                this.inDrawnBounds([map_x, map_y], true) ||
-                (map_x === focused_point_coords[0] &&
-                  map_y === focused_point_coords[1])
-                  ? groupRadiusFocused
-                  : groupRadius
-              }
+              radius={isFocused ? groupRadius * 1.5 : groupRadius}
               fill={allObjsGrouped ? "green" : groupColor}
               stroke="black"
               strokeWidth={1}
@@ -867,19 +841,16 @@ class Memory2D extends React.Component {
         ref={this.outer_div}
         style={{ height: "100%", width: "100%", position: "relative" }}
         onKeyDown={(e) => {
-          // console.log(e.key, "down");
           let selectionKeys = ["Meta", "Command", "Ctrl"];
           if (selectionKeys.includes(e.key)) {
             this.setState({ grouping_mode: true });
           }
-
           let escapeKeys = ["Escape", "Esc"];
           if (escapeKeys.includes(e.key)) {
             this.setState({
               grouping_mode: false,
               drawing_mode: false,
               draw_pos_start: null,
-              draw_pos_end: null,
             });
             this.onTableClose();
             this.onPopupClose();
