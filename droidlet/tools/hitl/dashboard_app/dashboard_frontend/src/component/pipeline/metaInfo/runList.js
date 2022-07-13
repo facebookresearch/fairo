@@ -7,21 +7,26 @@ Pipeline type needs to be specifed by adding the pipelineType props by the calle
 To use this component:
 <RunList pipelineType={pipelineType} />
 */
-import { Badge, Skeleton, Table, Typography } from 'antd';
+import { Badge, DatePicker, Input, Select, Skeleton, Table, Typography } from 'antd';
 import React, { useContext, useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { SocketContext } from '../../../context/socket';
+import moment from 'moment';
 
 const { Title } = Typography;
+const { Search } = Input;
+const {Option} = Select;
+const {RangePicker} = DatePicker;
 
-const timeStrComp = (one, other) => {
-    // compare two time (format in string)
+const timeComp = (one, other) => {
+    // get datetime object
     const one_dt = Date.parse(one);
     const other_dt = Date.parse(other);
+    // compare time
     if (one_dt === other_dt) {
         return 0;
     } else {
-        return one_dt < other_dt ? -1: 1;
+        return one_dt < other_dt ? -1 : 1;
     }
 }
 
@@ -46,31 +51,31 @@ const runListCols = [
                 value: 'running',
             }
         ],
-        onFilter: (val, row) => (row.status === val), 
+        onFilter: (val, row) => (row.status === val),
         render: (_, row) => (
             <span>
                 {row.status === 'done' ?
-                    <>                    
+                    <>
                         <Badge color='green' />
                         Finished
                     </> :
-                    <>                    
+                    <>
                         <Badge color='yellow' />
                         Running
                     </>
                 }
 
             </span>
-        ), 
-        sorter: (one, other) => (one.status.localeCompare(other.status)),  
-    }, { 
+        ),
+        sorter: (one, other) => (one.status.localeCompare(other.status)),
+    }, {
         title: 'Start Time',
         dataIndex: 'start_time',
-        sorter: (one, other) => (timeStrComp(one.start_time, other.start_time)),
+        sorter: (one, other) => (timeComp(one.start_time, other.start_time)),
     }, {
         title: 'End Time',
         dataIndex: 'end_time',
-        sorter: (one, other) => (timeStrComp(one.end_time, other.end_time)),
+        sorter: (one, other) => (timeComp(one.end_time, other.end_time)),
     }, {
         title: 'Description',
         dataIndex: 'description',
@@ -97,21 +102,26 @@ const RunList = (props) => {
     const pipelineType = props.pipelineType; // to do get runs by pipelineType
 
     const [runListData, setRunListData] = useState([]);
+    const [displayData, setDisplayData] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [rangeValue, setRangeValue] = useState([]);
+    const [filterType, setFilterType] = useState("start");
 
     const handleReceivedRunList = useCallback((data) => {
-        setRunListData(data.map((o) => (
+        data = data.map((o) => (
             // TODO: update backend api for get job list, 
             // right now using fake name, descrioption infomation, and status
             {
                 name: `name${o}`,
                 batch_id: o,
                 description: 'some description here',
-                status: o % 2 === 0 ? 'done': 'running',
+                status: o % 2 === 0 ? 'done' : 'running',
                 start_time: `${o.toString().substring(0, 4)}-${o.toString().substring(4, 6)}-${o.toString().substring(6, 8)} 12:00:${o.toString().substring(12)}`,
                 end_time: `${o.toString().substring(0, 4)}-${o.toString().substring(4, 6)}-${o.toString().substring(6, 8)} 18:30:${o.toString().substring(12)}`
             }
-        )));
+        ));
+        setRunListData(data);
+        setDisplayData(data);
         setLoading(false);
     }, []);
 
@@ -126,24 +136,81 @@ const RunList = (props) => {
         socket.on("get_job_list", (data) => handleReceivedRunList(data));
     }, [socket, handleReceivedRunList]);
 
+    const onSearch = (searchBoxValue) => {
+        setRangeValue([]); // reset filter value
+        if (searchBoxValue) {
+            setDisplayData(runListData.filter((o) =>
+            (o.name.includes(searchBoxValue)
+                || o.batch_id === searchBoxValue
+                || o.description.includes(searchBoxValue)
+            )));
+        } else {
+            setDisplayData(runListData);
+        }
+    }
+
+    const filterOnTime = (timeRangeValue) => {
+        // filter on start/end time
+        setRangeValue(timeRangeValue);
+        if (timeRangeValue) {
+            const filteredList = runListData.filter((row) => {
+                let time = filterType === "start" ? row.start_time : row.end_time;
+                time = moment(time, "YYYY-MM-DD HH:mm:ss");
+                return time >= timeRangeValue[0] && time <= timeRangeValue[1];
+            });
+            setDisplayData(filteredList);
+        } else {
+            // clear filter
+            setDisplayData(runListData);
+        }
+    };
+
+    const onSelectFilterType = (filterTypeValue) => {
+        // change filter time type (start/end)
+        setFilterType(filterTypeValue);
+        setRangeValue([]); // reset RangePicker value
+        setDisplayData(runListData);
+    } 
+
     return (
         <>
             <div style={{ "text-align": "left" }}>
                 <Title level={5}>
                     View All {pipelineType.label} Runs
                 </Title>
+
+                <div style={{ 'display': 'flex', 'padding': '6px 0 12px 0' }}>
+                    {/* filter & search component */}
+                    <Search placeholder="Search by Name /Batch id/Description" allowClear onSearch={onSearch} enterButton />
+                    <Input.Group compact>
+                        <Select defaultValue="start" onSelect={onSelectFilterType}>
+                            <Option value="start">Filter Start Time</Option>
+                            <Option value="end">Filter End Time</Option>
+                        </Select>
+                        <RangePicker
+                            showTime={{
+                                format: 'HH:mm:ss',
+                            }}
+                            format="YYYY-MM-DD HH:mm:ss"
+                            onChange={filterOnTime}
+                            value={rangeValue}
+                        />
+                    </Input.Group>
+                </div>
+
                 {loading ?
                     <Skeleton active={true} title={false} paragraph={{ rows: 1, width: 200 }} />
                     :
-                    <p>Showing {runListData.length} past runs.</p>}
+                    <p>Showing {displayData.length} past runs.</p>}
             </div>
             <div style={{ "margin-right": "24px" }}>
                 <Table
                     columns={runListCols}
-                    dataSource={runListData}
+                    dataSource={displayData}
                     scroll={{ y: '80vh' }}
                     loading={loading}
                 />
+
             </div>
         </>
     );
