@@ -269,7 +269,9 @@ class EndToEndSemanticScout:
             HabitatSimActions.MOVE_FORWARD: "forward",
             HabitatSimActions.TURN_RIGHT: "right",
             HabitatSimActions.TURN_LEFT: "left",
-            HabitatSimActions.STOP: "stop"
+            HabitatSimActions.LOOK_UP: "up",
+            HabitatSimActions.LOOK_DOWN: "down",
+            HabitatSimActions.STOP: "stop",
         }
 
         this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -417,6 +419,7 @@ class EndToEndSemanticScout:
 
         forward_dist = 0.25
         turn_angle = 30
+        tilt_angle = 30
 
         # Low-level actions
         print(f"Action: {self.actions.get(action)}")
@@ -439,9 +442,17 @@ class EndToEndSemanticScout:
             if action in [
                 HabitatSimActions.MOVE_FORWARD,
                 HabitatSimActions.TURN_RIGHT,
-                HabitatSimActions.TURN_LEFT
+                HabitatSimActions.TURN_LEFT,
+                HabitatSimActions.LOOK_UP,
+                HabitatSimActions.LOOK_DOWN
             ]:
-                result = safe_call(mover.nav.execute_low_level_command, action, forward_dist, np.radians(turn_angle))
+                result = safe_call(
+                    mover.nav.execute_low_level_command, 
+                    action, 
+                    forward_dist, 
+                    np.radians(turn_angle),
+                    np.radians(tilt_angle)
+                )
                 status = result.value
             elif action == HabitatSimActions.STOP:
                 self.finished = True
