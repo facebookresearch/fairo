@@ -108,7 +108,7 @@ class Navigation(object):
             goal=abs_goal, distance_threshold=distance_threshold, angle_threshold=angle_threshold
         )
 
-    def execute_low_level_command(self, action, forward_dist, turn_angle):
+    def execute_low_level_command(self, action, forward_dist, turn_angle, tilt_angle):
         """
         This function only works on the robot, we write it here because we want to use
         the trackback logic and we'll throw away this code.
@@ -176,6 +176,16 @@ class Navigation(object):
                 self.robot.pull_status()
                 is_moving = self.robot.is_base_moving()
             print("Successful right action")
+        
+        elif action == 4:
+            print("Starting look up action")
+            current_tilt = self.robot.get_tilt().value
+            self.robot.set_tilt(current_tilt + tilt_angle)
+        
+        elif action == 5:
+            print("Starting look down action")
+            current_tilt = self.robot.get_tilt().value
+            self.robot.set_tilt(current_tilt - tilt_angle)
 
         return "SUCCEEDED"
 
