@@ -1,5 +1,13 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+Dataset selector used for selecting a specific pipeline and navigate to the pipeline's dataset detail page.
+
+Usage:
+<DatasetSelector />
+*/
 import { Select, Typography } from "antd";
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import PIPELINE_TYPES from "../../constants/datasetContants";
 
