@@ -19,6 +19,8 @@ import PipelinePanel from './component/pipeline/panel';
 import DetailPage from './component/pipeline/detail/detailPage';
 import JobInfoCard from './component/pipeline/detail/job/jobInfoCard';
 import NotFoundPage from './component/notfound';
+import DatasetPageContainer from './component/dataset/datasetPageContainer';
+import DatasetDetailPage from './component/dataset/datasetDetailPage';
 
 const { Header, Footer } = Layout;
 
@@ -40,7 +42,9 @@ function App() {
                     <Route path=":job" element={<JobInfoCard />} />
                   </Route>
                 </Route>
-                <Route path={SUBPATHS.OTHER.key} element={<div>Something else here</div>} />
+                <Route path="dataset" element={<DatasetPageContainer />}> 
+                  <Route path=":pipeline" element={<DatasetDetailPage />} />
+                </Route>
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
               <BackTop />

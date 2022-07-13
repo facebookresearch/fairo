@@ -12,6 +12,11 @@ import botocore
 import os
 import re
 
+
+PIPELINE_DATASET_MAPPING = {
+    "NLU": "nsp_data",
+}
+
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
 HITL_TMP_DIR = (
@@ -110,3 +115,44 @@ def get_interaction_sessions_by_id(batch_id: int):
         right_idx = session_name.index("/logs.tar.gz")
         session_list.append(session_name[left_idx:right_idx])
     return session_list
+
+
+def get_dataset_indices_by_id(batch_id: int):
+    """
+    For a run specied by the batch id,
+    get the newly added dataset data points' start index and end index from meta.txt
+    """
+    local_fname = _download_file(f"{batch_id}/meta.txt")
+    if local_fname is None:
+        return f"cannot find meta.txt with id {batch_id}", 404
+    meta_txt_content = _read_file(local_fname)
+    meta_txt_splitted = meta_txt_content.split("\n")
+    return [int(meta_txt_splitted[0]), int(meta_txt_splitted[-1])], None
+
+
+def get_dataset_version_list_by_pipeline(pipeline: str):
+    """
+    Get dataset's version list
+    """
+    # get dataset name prefix and search pattern
+    dataset_prefix = PIPELINE_DATASET_MAPPING[pipeline]
+    pattern_str = f"{dataset_prefix}_v[0-9]" + "{1,}.txt"
+    pattern = re.compile(pattern_str)
+
+    dataset_list = []
+
+    # list object from s3 bucket
+    for obj in s3.Bucket(S3_BUCKET_NAME).objects.all():
+        if re.match(pattern, obj.key):
+            dataset_list.append(obj.key)
+    return dataset_list
+
+
+def get_dataset_by_name(dataset_name: str):
+    """
+    Reterive a specified dataset's content
+    """
+    local_fname = _download_file(dataset_name)
+    if local_fname is None:
+        return f"cannot find {dataset_name}", 404
+    return _read_file(local_fname), None
