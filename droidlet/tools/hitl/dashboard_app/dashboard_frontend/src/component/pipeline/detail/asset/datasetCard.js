@@ -26,7 +26,7 @@ const DatasetCard = (props) => {
     const handleRecievedDatasetIndecies = useCallback((data) => {
         if (data === 404) {
             // received error code, set indecies to NA
-            setDatasetIndecies(["NA", "NA"]);
+            setDatasetIndecies(["NA"]);
         }
         setDatasetIndecies(data);
     }, []);
@@ -64,7 +64,7 @@ const DatasetCard = (props) => {
                 <Meta />
                 <Descriptions bordered>
                     <Descriptions.Item label="Data Indecies" span={3}>
-                        {datasetIndecies[0]} - {datasetIndecies[1]}
+                        {datasetIndecies.length === 2 ? `${datasetIndecies[0]} - ${datasetIndecies[1]}` : "NA"}
                     </Descriptions.Item>
                     <Descriptions.Item label="Dataset" span={3}>
                         <Tooltip title="View Dataset">

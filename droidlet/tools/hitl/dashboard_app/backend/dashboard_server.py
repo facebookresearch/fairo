@@ -169,7 +169,8 @@ def get_dataset_indecies(batch_id):
     indecies, error_code = get_dataset_indecies_by_id(batch_id)
     if error_code:
         emit(DASHBOARD_EVENT.GET_DATASET_INDECIES.value, error_code)
-    emit(DASHBOARD_EVENT.GET_DATASET_INDECIES.value, indecies)
+    else:
+        emit(DASHBOARD_EVENT.GET_DATASET_INDECIES.value, indecies)
 
 
 if __name__ == "__main__":
