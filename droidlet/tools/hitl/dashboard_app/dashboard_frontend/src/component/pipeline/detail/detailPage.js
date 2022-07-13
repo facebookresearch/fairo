@@ -55,7 +55,7 @@ const DetailPage = (props) => {
         socket.on("get_run_info_by_id", (data) => handleReceivedRunInfo(data));
     }, [socket, handleReceivedRunInfo]);
 
-    useEffect(() => {}, [runInfo]);
+    useEffect(() => { }, [runInfo]);
 
     const getJobs = (runInfo) => {
         const jobs = Object
@@ -129,7 +129,7 @@ const DetailPage = (props) => {
                         <Link to="../" state={{ label: TAB_ITEMS.RUNS.label, key: TAB_ITEMS.RUNS.key }}>
                             Back to View All
                         </Link>
-                    </Button> 
+                    </Button>
                 </div>
             </div> :
             <Spin />
