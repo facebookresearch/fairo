@@ -1,3 +1,12 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+The card showing Model infomation of a run. 
+**Note: this is just a placeholder for the model card. TODO: add real content of the model card**
+
+Usage:
+<ModelCard />
+*/
 import { Card } from "antd";
 import React from "react";
 

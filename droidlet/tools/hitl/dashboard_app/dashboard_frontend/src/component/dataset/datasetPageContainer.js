@@ -1,3 +1,14 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+The container for dataset detail page. 
+Renders either the datasetDetailPage or a selector for navigate to the detail page:
+ - Renders the dataset path is dataset/:pipelineType format.
+ - Renders a selector to allow redirect to specific dataset detail page when no piplineType specified.
+
+Usage:
+<DatasetPageContainer />
+*/
 import Layout, { Content } from "antd/lib/layout/layout";
 import React from "react";
 import { Outlet, useParams } from "react-router-dom";
