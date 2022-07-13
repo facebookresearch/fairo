@@ -1095,14 +1095,16 @@ class StateManager {
   processMap(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof Memory2D) {
-        ref.setState({
-          isLoaded: true,
-          detections_from_memory: res.detections_from_memory,
-          memory: this.memory,
-          bot_xyz: [res.x, res.y, res.yaw],
-          bot_data: res.bot_data,
-          obstacle_map: res.map,
-          map_update_count: ref.state.map_update_count + 1,
+        ref.setState((prevState) => {
+          return {
+            isLoaded: true,
+            detections_from_memory: res.detections_from_memory,
+            memory: this.memory,
+            bot_xyz: [res.x, res.y, res.yaw],
+            bot_data: res.bot_data,
+            obstacle_map: res.map,
+            map_update_count: prevState.map_update_count + 1,
+          };
         });
       }
     });

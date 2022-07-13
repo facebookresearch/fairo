@@ -79,8 +79,8 @@ class Memory2D extends React.Component {
     let { width, height } = this.state;
     width = Math.min(width, height);
     height = width;
-    let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
-    let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
+    let x = parseInt(((Math.round(xyz[2]) - xmin) / (xmax - xmin)) * width);
+    let y = parseInt(((Math.round(-xyz[0]) - ymin) / (ymax - ymin)) * height);
     y = height - y;
     return [x, y];
   };
