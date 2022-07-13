@@ -380,7 +380,7 @@ def get_marker_corners(cameras, frt_cams, root_working_dir, name):
     rgbd_masked = rgbd
     save_rgbd_masked(rgbd, rgbd_masked)
     uint_rgbs = rgbd[:,:,:,:3].astype(np.uint8)
-    drawer_markers = frt_cams[-1].detect_markers(uint_rgbs[drawer_camera_index])
+    drawer_markers = frt_cams[drawer_camera_index].detect_markers(uint_rgbs[drawer_camera_index])
     print(drawer_markers)
     data = {
         name : [{
@@ -446,18 +446,14 @@ def main(cfg):
     robot.go_home()
     get_marker_corners(cameras, frt_cams, root_working_dir, name='open_top_drawer')
     
-    close_top_drawer(robot)
     open_bottom_drawer(robot)
-    robot.go_home()
-    get_marker_corners(cameras, frt_cams, root_working_dir, name='open_bottom_drawer')
-    
-    open_top_drawer(robot)
-    
-    # close_bottom_drawer(robot)
     robot.go_home()    
     get_marker_corners(cameras, frt_cams, root_working_dir, name='all_open')
 
     close_top_drawer(robot)
+    robot.go_home()
+    get_marker_corners(cameras, frt_cams, root_working_dir, name='open_bottom_drawer')
+    
     close_bottom_drawer(robot)
     robot.go_home()
     get_marker_corners(cameras, frt_cams, root_working_dir, name='all_closed')
