@@ -133,13 +133,14 @@ def get_interaction_session_log(id_info_json):
 @socketio.on(DASHBOARD_EVENT.GET_DATASET_LIST.value)
 def get_dataset_list(pipeline):
     """
-    get pipeline specific dataset list 
+    get pipeline specific dataset list
     - input: the pipeline name.
     - output: the list of dataset used in the specified pipeline
     """
     print(f"Request received: {DASHBOARD_EVENT.GET_DATASET_LIST.value}")
     sessions = get_dataset_version_list_by_pipeline(pipeline)
     emit(DASHBOARD_EVENT.GET_DATASET_LIST.value, sessions)
+
 
 @socketio.on(DASHBOARD_EVENT.GET_DATASET.value)
 def get_dataset(dataset_name):
@@ -169,6 +170,7 @@ def get_dataset_indecies(batch_id):
     if error_code:
         emit(DASHBOARD_EVENT.GET_DATASET_INDECIES.value, error_code)
     emit(DASHBOARD_EVENT.GET_DATASET_INDECIES.value, indecies)
+
 
 if __name__ == "__main__":
     socketio.run(app)
