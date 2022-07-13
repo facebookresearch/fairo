@@ -1,5 +1,5 @@
 # Dashboard App for HITL
-Updated Jun 24 by Chuxi.
+Updated July 5 by Chuxi.
 
 This is a Dashboard app prototype for the HITL system.
 
