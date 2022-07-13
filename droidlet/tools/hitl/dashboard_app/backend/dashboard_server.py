@@ -7,6 +7,9 @@ This file include a flask server that is the backend of the HITL dashboard app.
 
 from enum import Enum
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
+    get_dataset_by_name,
+    get_dataset_indecies_by_id,
+    get_dataset_version_list_by_pipeline,
     get_interaction_sessions_by_id,
     get_job_list,
     get_run_info_by_id,
@@ -29,6 +32,9 @@ class DASHBOARD_EVENT(Enum):
     GET_TRACEBACK = "get_traceback_by_id"
     GET_RUN_INFO = "get_run_info_by_id"
     GET_INTERACTION_SESSIONS = "get_interaction_sessions_by_id"
+    GET_DATASET_LIST = "get_dataset_list_by_pipeleine"
+    GET_DATASET_INDECIES = "get_dataset_idx_by_id"
+    GET_DATASET = "get_dataset_by_name"
 
 
 @socketio.on(DASHBOARD_EVENT.GET_RUNS.value)
@@ -84,6 +90,46 @@ def get_interaction_sessions(batch_id):
     sessions = get_interaction_sessions_by_id(int(batch_id))
     emit(DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value, sessions)
 
+
+@socketio.on(DASHBOARD_EVENT.GET_DATASET_LIST.value)
+def get_dataset_list(pipeline):
+    """
+    get pipeline specific dataset list 
+    - input: the pipeline name.
+    - output: the list of dataset used in the specified pipeline
+    """
+    print(f"Request received: {DASHBOARD_EVENT.GET_DATASET_LIST.value}")
+    sessions = get_dataset_version_list_by_pipeline(pipeline)
+    emit(DASHBOARD_EVENT.GET_DATASET_LIST.value, sessions)
+
+@socketio.on(DASHBOARD_EVENT.GET_DATASET.value)
+def get_dataset(dataset_name):
+    """
+    get specific version of dataset
+    - input: the name of the dataset.
+    - output: if the dataset can be found, return the dataset content, otherwise return an error code
+    """
+    print(f"Request received: {DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value}")
+    dataset_content, error_code = get_dataset_by_name(dataset_name)
+    if error_code:
+        emit(DASHBOARD_EVENT.GET_DATASET.value, error_code)
+    emit(DASHBOARD_EVENT.GET_DATASET.value, dataset_content)
+
+
+@socketio.on(DASHBOARD_EVENT.GET_DATASET_INDECIES.value)
+def get_dataset_indecies(batch_id):
+    """
+    get run specific dataset indecies
+    as for each of the run, more data point can be added to the dataset
+    the indecies specified the start index and the end index of the data points added to the dataset in a given run
+    - input: the batch id of the run.
+    - output: [start_index, end_index] of the data added to the dataset with the specified run or error code if cannot find the meta.txt
+    """
+    print(f"Request received: {DASHBOARD_EVENT.GET_DATASET_INDECIES.value}")
+    indecies, error_code = get_dataset_indecies_by_id(batch_id)
+    if error_code:
+        emit(DASHBOARD_EVENT.GET_DATASET_INDECIES.value, error_code)
+    emit(DASHBOARD_EVENT.GET_DATASET_INDECIES.value, indecies)
 
 if __name__ == "__main__":
     socketio.run(app)

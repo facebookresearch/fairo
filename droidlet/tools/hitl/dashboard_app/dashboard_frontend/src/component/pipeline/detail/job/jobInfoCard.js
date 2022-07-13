@@ -49,7 +49,7 @@ const JobInfoCard = (props) => {
             return o[1] ? "Yes" : "No";
         }
         // get session log if has the session log 
-        if (o[0] === "NUM_SESSION_LOG" && sessionList.length === 0) {            
+        if (o[0] === "NUM_SESSION_LOG" && sessionList.length === 0) {
             socket.emit("get_interaction_sessions_by_id", batchId);
         }
 
@@ -70,8 +70,8 @@ const JobInfoCard = (props) => {
                     )
                 )}
             </Descriptions>
-            {
-                sessionList.length ?
+            {job === "interaction" &&
+                (sessionList.length ?
                     <div
                         style={{
                             paddingTop: "12px",
@@ -92,7 +92,7 @@ const JobInfoCard = (props) => {
                             )}
                         />
                     </div>
-                    : <Spin />
+                    : <Spin />)
             }
         </Card>
     </div>;
