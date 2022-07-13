@@ -7,7 +7,7 @@ This is a Dashboard app prototype for the HITL system.
 - July 13:
     - Added dataset visualization component including:
         - View newly added data points indices on the run detail page
-        - View a spefic version of dataset on dataset detail page
+        - View a specific version of dataset on dataset detail page
     - Demo:
         - For job with retrain job, the user will be able to see the indices of newly added data
             - ![demo_dataset_has_retrain](https://user-images.githubusercontent.com/51009396/178807612-89f8d3cb-3555-45be-9bc1-20349129eb11.gif)- 
