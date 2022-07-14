@@ -1,14 +1,22 @@
 # Dashboard App for HITL
-Updated July 7 by Chuxi.
+Updated July 13 by Chuxi.
 
 This is a Dashboard app prototype for the HITL system.
 
-## Update Notes
+## Update Note
+- July 13:
+    - Added dataset visualization component including:
+        - View newly added data points indecies on the run detail page
+        - View a spefic version of dataset on dataset detail page
+    - Demo:
+        - For job with retrain job, the user will be able to see the indecies of newly added data
+        - For job without retrain job, the indecies field will be NA
+        - Viewing different version of the dataset (use dropdown menu to select, able to serach in dropdown menu)
+        - Flow for using the navigation tab to view a dataset
 - July 7:
     - Added view session Log feature.
     - Demo:
         - ![demo_view_sesion_log](https://user-images.githubusercontent.com/51009396/178044751-8d099829-cc2f-4353-8bfd-e81e9a23b63e.gif)
-
 - July 6: 
     - Added detail page to show detail infomation of a pipeline run (specified by the batch_id)
     - Added a get all sessions related to a batch id backend API. 
@@ -79,6 +87,20 @@ APIs are based on socket event, the following APIs are supported currently:
         }
         ```
     - output: if the session log can be found, return the content of session log, otherwise return an error code
+- get_dataset_list_by_pipeleine
+    - get pipeline specific dataset list
+    - input: the pipeline name.
+    - output: the list of dataset used in the specified pipeline
+- get_dataset_by_name
+    - get specific version of dataset
+    - input: the name of the dataset.
+    - output: if the dataset can be found, return the dataset content, otherwise return an error code
+- get_dataset_idx_by_id
+    - get run specific dataset indecies: as for each of the run, more data point can be added to the dataset, the indecies specified the start index and the end index of the data points added to the dataset in a given run
+    - input: the batch id of the run.
+    - output: [start_index, end_index] of the data added to the dataset with the specified run or error code if cannot find the meta.txt
+    
+    
 
 ## Demo
 ![backend_api_demo](https://user-images.githubusercontent.com/51009396/175696481-532cec55-5b2e-4bae-bceb-9e7d3f2aa7b7.gif)
