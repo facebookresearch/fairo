@@ -69,6 +69,7 @@ APIs are based on socket event, the following APIs are supported currently:
     - get interaction job sessions list
     - input: a batch id.
     - output: if the sessions can be found, return a list of session name, otherwise, return an error code sugesting not found.
+<<<<<<< HEAD
 - get_interaction_session_log
     - get interaction job session log specified by the id info
     - input: infomation about id in a json format:
@@ -79,6 +80,8 @@ APIs are based on socket event, the following APIs are supported currently:
         }
         ```
     - output: if the session log can be found, return the content of session log, otherwise return an error code
+=======
+>>>>>>> 4bf038dc0 (Update README.MD)
 
 ## Demo
 ![backend_api_demo](https://user-images.githubusercontent.com/51009396/175696481-532cec55-5b2e-4bae-bceb-9e7d3f2aa7b7.gif)
