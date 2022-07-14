@@ -14,7 +14,7 @@ import Main from './component/main';
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import NavBar from './component/navbar';
 import { SUBPATHS } from './constants/subpaths';
-import { BackTop, Layout } from 'antd';
+import { BackTop, Layout, Typography } from 'antd';
 import PipelinePanel from './component/pipeline/panel';
 import DetailPage from './component/pipeline/detail/detailPage';
 import JobInfoCard from './component/pipeline/detail/job/jobInfoCard';
@@ -36,7 +36,7 @@ function App() {
             {/* Routes for different pipeline */}
             <Layout>
               <Routes>
-                <Route path={SUBPATHS.HOME.key} element={<Main />} />
+                <Route path={SUBPATHS.HOME.key} element={<div><Typography.Title>Welcome to Droidlet HiTL Dashboard</Typography.Title></div>} />
                 <Route path={SUBPATHS.NLU.key} element={<PipelinePanel pipelineType={SUBPATHS.NLU} />}>
                   <Route path=":batch_id" element={<DetailPage pipelineType={SUBPATHS.NLU.label} />}>
                     <Route path=":job" element={<JobInfoCard />} />
