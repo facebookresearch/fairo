@@ -12,7 +12,7 @@ def get_keys(model):
     """
     helper method to get all keys for the model
     """
-    return model.keys()
+    return list(model.keys())
 
 
 def get_value_by_key(model, key):
