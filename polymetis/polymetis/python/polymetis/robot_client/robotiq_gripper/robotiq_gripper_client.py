@@ -8,6 +8,7 @@ from concurrent import futures
 import grpc
 from google.protobuf import timestamp_pb2
 
+import polymetis
 import polymetis_pb2
 import polymetis_pb2_grpc
 
@@ -56,13 +57,20 @@ class RobotiqGripperClient:
         self.channel = grpc.insecure_channel(f"{server_ip}:{server_port}")
         self.connection = polymetis_pb2_grpc.GripperServerStub(self.channel)
 
+        # Initialize connection to server
+        metadata = polymetis_pb2.GripperMetadata()
+        metadata.polymetis_version = polymetis.__version__
+        metadata.hz = self.hz
+        metadata.max_width = self.gripper.stroke
+
+        self.connection.InitRobotClient(metadata)
+
     def get_gripper_state(self):
         self.gripper.getStatus()
 
         state = polymetis_pb2.GripperState()
         state.timestamp.GetCurrentTime()
         state.width = self.gripper.get_pos()
-        state.max_width = self.gripper.stroke
         state.is_grasped = self.gripper.object_detected()
         state.is_moving = self.gripper.is_moving()
 
