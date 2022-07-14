@@ -59,11 +59,7 @@ const JobInfoCard = (props) => {
             return o[1] ? "Yes" : "No";
         }
         // get session log if has the session log 
-<<<<<<< HEAD
-        if (o[0] === "NUM_SESSION_LOG" && sessionList.length === 0) {            
-=======
         if (o[0] === "NUM_SESSION_LOG" && sessionList.length === 0) {
->>>>>>> 09d78ef0b (add component and api for showing session log)
             socket.emit("get_interaction_sessions_by_id", batchId);
         }
 
@@ -106,8 +102,8 @@ const JobInfoCard = (props) => {
                 )}
             </Descriptions>
             {
-                // view session list if there is a session list
-                sessionList.length ?
+                // view session list if there is a session list and the job is interaction
+                job === "interaction" && (sessionList.length ?
                     <div
                         style={{
                             paddingTop: "12px",
@@ -129,7 +125,7 @@ const JobInfoCard = (props) => {
                             )}
                         />
                     </div>
-                    : <Spin />
+                    : <Spin />)
             }
         </Card>
         {/* session modal starts */}
