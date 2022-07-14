@@ -14,19 +14,20 @@ from polymetis.robot_servers import GripperServerLauncher
 
 @hydra.main(config_name="launch_gripper")
 def main(cfg):
-    if os.fork() > 0:
+    if cfg.gripper:
+        pid = os.fork()
+    else:
+        pid = os.getpid()  # doesn't fork so only the server gets launched
+
+    if pid > 0:
         # Run server
         gripper_server = GripperServerLauncher(cfg.ip, cfg.port)
         gripper_server.run()
 
     else:
-        # Run client
-        if cfg.gripper:
-            gripper_client = hydra.utils.instantiate(cfg.gripper)
-            gripper_client.run()
-
-        else:
-            signal.pause()
+        # Run client (does not run if gripper=none)
+        gripper_client = hydra.utils.instantiate(cfg.gripper)
+        gripper_client.run()
 
 
 if __name__ == "__main__":
