@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 Navigation bar for the dashboard app. 
 */
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import 'antd/dist/antd.css';
 import '../index.css';
 import { Menu, Typography } from 'antd';
