@@ -7,7 +7,7 @@ The card showing Model infomation of a run.
 Usage:
 <ModelCard />
 */
-import { Card } from "antd";
+import { Card, Descriptions } from "antd";
 import React, { useContext, useEffect, useState } from "react";
 import { SocketContext } from "../../../../context/socket";
 
@@ -23,9 +23,11 @@ const ModelCard = (props) => {
 
     const handleReceivedModelArgs = (data) => {
         setLoading(false);
-        console.log(data)
+        console.log(typeof (JSON.parse(data)));
+        console.log(Object.keys(JSON.parse(data)))
+
         if (data !== 404) {
-            setModelArgs(data);
+            setModelArgs(JSON.parse(data));
         }
     }
 
@@ -41,11 +43,26 @@ const ModelCard = (props) => {
         getModelArgs();
     }, []); // component did mount
 
+    const processModelArg = (arg) => {
+        if (typeof(arg) === "object") {
+            return Object.keys(arg).map((key) => (`${key}: ${arg[key]}`));
+        } else if (!arg || (typeof(arg) === "string" && arg.length === 0)){ 
+            return "NA";
+        } else{
+            return arg;
+        } 
+    }
+
     return (
         <div style={{ width: '70%' }}>
             <Card title="Model" loading={loading}>
                 <Meta />
-                {modelArgs}
+                <Descriptions title="Model Args" bordered column={2}>
+                    {modelArgs && Object.keys(modelArgs).map((key) =>
+                        <Descriptions.Item label={key}>{processModelArg(modelArgs[key])}</Descriptions.Item>
+                    )}
+                </Descriptions>
+
             </Card>
         </div>);
 }
