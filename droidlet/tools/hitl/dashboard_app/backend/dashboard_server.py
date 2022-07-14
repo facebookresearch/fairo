@@ -5,6 +5,7 @@ This file include a flask server that is the backend of the HITL dashboard app.
 """
 
 
+import argparse
 from enum import Enum
 import json
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
@@ -19,6 +20,7 @@ from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
     get_traceback_by_id,
 )
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_model_utils import (
+    get_complete_model,
     get_keys,
     get_value_by_key,
 )
@@ -216,13 +218,10 @@ def get_model_value(batch_id, key):
     if error_code or (key not in get_keys(model) and key != KEY_COMPLETE):
         emit(DASHBOARD_EVENT.GET_MODEL_VALUE.value, error_code)
     elif key == KEY_COMPLETE:
-        emit(DASHBOARD_EVENT.GET_MODEL_VALUE.value, json.dumps(model.__dict__))
+        emit(DASHBOARD_EVENT.GET_MODEL_VALUE.value, get_complete_model(model))
     else:
         # get a specific value
-        emit(
-            DASHBOARD_EVENT.GET_MODEL_VALUE.value,
-            json.dumps(get_value_by_key(model, key).__dict__),
-        )
+        emit(DASHBOARD_EVENT.GET_MODEL_VALUE.value, [key, get_value_by_key(model, key)])
 
 
 if __name__ == "__main__":
