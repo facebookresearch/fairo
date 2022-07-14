@@ -14,7 +14,7 @@ from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
     get_run_info_by_id,
     get_traceback_by_id,
 )
-from flask import Flask
+from flask import Flask, abort
 from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
@@ -27,9 +27,11 @@ class DASHBOARD_EVENT(Enum):
     server supported event types, i.e. API types
     """
 
-    GET_JOBS = "get_job_list"
+    GET_RUNS = "get_job_list"
     GET_TRACEBACK = "get_traceback_by_id"
     GET_RUN_INFO = "get_run_info_by_id"
+    GET_INTERACTION_SESSIONS = "get_interaction_sessions_by_id"
+    GET_INTERACTION_SESSION_LOG = "get_interaction_session_log"
 
 class DASHBOARD_EVENT(Enum):
     """
@@ -131,7 +133,9 @@ def get_traceback(batch_id):
     - output: if the traceback record can be found, return the traceback in csv format, otherwise, output an error message suggesting not found.
     """
     print(f"Request received: {DASHBOARD_EVENT.GET_TRACEBACK.value}")
-    log_content = get_traceback_by_id(int(batch_id))
+    log_content, error_code = get_traceback_by_id(int(batch_id))
+    if error_code:
+        emit(DASHBOARD_EVENT.GET_TRACEBACK.value, error_code)
     emit(DASHBOARD_EVENT.GET_TRACEBACK.value, log_content)
 
 
@@ -144,8 +148,47 @@ def get_info(batch_id):
     - output: if the run info can be found, return the run info in a json format, otherwise, return an error message sugesting not found.
     """
     print(f"Request received: {DASHBOARD_EVENT.GET_RUN_INFO.value}")
-    run_info = get_run_info_by_id(int(batch_id))
+    run_info, error_code = get_run_info_by_id(int(batch_id))
+    if error_code:
+        emit(DASHBOARD_EVENT.GET_RUN_INFO.value, error_code)
     emit(DASHBOARD_EVENT.GET_RUN_INFO.value, run_info)
+
+
+@socketio.on(DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value)
+def get_interaction_sessions(batch_id):
+    """
+    get interaction job sessions list
+    - input: a batch id.
+    - output: if the sessions can be found, return a list of session name, otherwise, return an error message sugesting not found.
+    """
+    print(f"Request received: {DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value}")
+    sessions = get_interaction_sessions_by_id(int(batch_id))
+    emit(DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value, sessions)
+
+
+@socketio.on(DASHBOARD_EVENT.GET_INTERACTION_SESSION_LOG.value)
+def get_interaction_session_log(id_info_json):
+    """
+    get interaction job session log specified by the id info
+    - input: infomation about id in a json format:
+        {
+            "batch_id": <batch id>,
+            "session_id": <session id>
+        }
+    - output: if the session log can be found, return the content of session log, otherwise return an error code
+    """
+    print(f"Request received: {DASHBOARD_EVENT.GET_INTERACTION_SESSION_LOG.value}")
+    id_info_obj = json.loads(id_info_json)
+    batch_id = id_info_obj["batch_id"]
+    session_id = id_info_obj["session_id"]
+    print(f"batch id: {batch_id}, session id: {session_id}")
+
+    log, error_code = get_interaction_session_log_by_id(
+        int(id_info_obj["batch_id"]), id_info_obj["session_id"]
+    )
+    if error_code:
+        emit(DASHBOARD_EVENT.GET_INTERACTION_SESSION_LOG.value, error_code)
+    emit(DASHBOARD_EVENT.GET_INTERACTION_SESSION_LOG.value, log)
 
 
 if __name__ == "__main__":
