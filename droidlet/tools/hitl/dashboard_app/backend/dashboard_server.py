@@ -11,6 +11,7 @@ from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
     get_dataset_by_name,
     get_dataset_indices_by_id,
     get_dataset_version_list_by_pipeline,
+    get_interaction_session_log_by_id,
     get_interaction_sessions_by_id,
     get_job_list,
     get_model_by_id,
