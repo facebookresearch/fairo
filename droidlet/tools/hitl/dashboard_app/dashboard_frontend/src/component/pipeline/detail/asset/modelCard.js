@@ -2,10 +2,9 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 
 The card showing Model infomation of a run. 
-**Note: this is just a placeholder for the model card. TODO: add real content of the model card**
 
 Usage:
-<ModelCard />
+<ModelCard batchId = {batchId} pipelineType={pipelineType}/>
 */
 import { Button, Card, Descriptions, Divider, Tooltip } from "antd";
 import React, { useCallback, useContext, useEffect, useState } from "react";
@@ -28,7 +27,7 @@ const ModelCard = (props) => {
 
     const handleReceivedModelArgs = useCallback((data) => {
         setLoadingArgs(false);
-        console.log(data)
+        // data other than args are rendered in the ModelAttributeDetailModal component
         if (data !== 404 && data[0] === "args") {
             setModelArgs(JSON.parse(data[1]));
         }
@@ -42,6 +41,7 @@ const ModelCard = (props) => {
     });
 
     const getModelArgs = () => {
+        // get args for the model
         socket.emit("get_model_value_by_id_n_key", batchId, "args");
     }
 
@@ -70,7 +70,6 @@ const ModelCard = (props) => {
     }
 
     const handleOnClickViewModelAttibute = (modelKey) => {
-        console.log(modelKey);
         setCurrentModelKey(modelKey);
         setModalOpen(true);
     }
@@ -107,7 +106,7 @@ const ModelCard = (props) => {
                             <div>NA</div>
                     )
                 }
-                {/* modal showing a specific model attribute's field*/}
+                {/* modal showing a specific model attribute's field (anything other than args) */}
                 {currentModelKey
                     &&
                     <ModelAtrributeModal

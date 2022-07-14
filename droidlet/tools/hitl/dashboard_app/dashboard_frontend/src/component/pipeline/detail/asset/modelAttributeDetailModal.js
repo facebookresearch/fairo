@@ -1,3 +1,20 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+The modal showing a model's value of an attribute (modelKey). 
+Used by the ModalCard component.
+
+Usage:
+<ModelAtrributeModal 
+    batchId={batchId} 
+    modelKey={modelKey}
+    setModelKey={setModelKey}
+    modalOpen={modalOpen}
+    setModalOpen={setModalOpen}
+/>
+Note that modelKey and modalOpen must be state varible from the ModalCard component, 
+otherwise the modal cannot be destoyed properly.
+*/
 import { Modal, Spin } from "antd";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { SocketContext } from "../../../../context/socket";
@@ -5,9 +22,9 @@ import { SocketContext } from "../../../../context/socket";
 const ModelAtrributeModal = (props) => {
     const socket = useContext(SocketContext);
     const batchId = props.batchId;
-    const modelKey = props.modelKey;
+    const modelKey = props.modelKey; // must be state from parent
     const setModelKey = props.setModelKey;
-    const modalOpen = props.modalOpen;
+    const modalOpen = props.modalOpen; // must be state from parent
     const setModalOpen = props.setModalOpen;
 
     // for displaying detail of the model attributes
@@ -15,15 +32,14 @@ const ModelAtrributeModal = (props) => {
     const [loading, setLoading] = useState(true);
 
     const handleRecievedModelVal = useCallback((data) => {
-        console.log(data[1]);
         setLoading(false);
+        // args are rendered on parent component
         if (data !== 404 && data[0] !== "args") {
             setModelValue(data[1]);
         }
     });
 
     useEffect(() => {
-        console.log(modelKey);
         socket.emit("get_model_value_by_id_n_key", batchId, modelKey);
     }, []); // component did mount
 
