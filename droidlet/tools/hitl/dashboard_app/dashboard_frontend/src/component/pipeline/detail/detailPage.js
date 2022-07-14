@@ -104,7 +104,7 @@ const DetailPage = (props) => {
                         <Divider />
                         <div style={{ 'display': 'flex'}}>
                             <DatasetCard batchId={batch_id} pipelineType={pipelineType} />
-                            <ModelCard />
+                            <ModelCard batchId={batch_id} pipelineType={pipelineType} />
                         </div>
                     </Panel>
                 </Collapse>
