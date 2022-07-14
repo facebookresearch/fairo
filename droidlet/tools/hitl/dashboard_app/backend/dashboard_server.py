@@ -107,6 +107,7 @@ def get_interaction_sessions(batch_id):
     sessions = get_interaction_sessions_by_id(int(batch_id))
     emit(DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value, sessions)
 
+
 @socketio.on(DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value)
 def get_interaction_sessions(batch_id):
     """

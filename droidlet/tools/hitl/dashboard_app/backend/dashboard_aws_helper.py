@@ -138,6 +138,7 @@ def get_interaction_session_log_by_id(batch_id: int, session_id: str):
     log = log_file.readlines()
     return log, None
 
+
 def get_dataset_indices_by_id(batch_id: int):
     """
     For a run specied by the batch id,
