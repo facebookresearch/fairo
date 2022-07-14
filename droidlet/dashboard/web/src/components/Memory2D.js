@@ -14,6 +14,8 @@ import ClusteredObjsPopup, {
   positionClusteredObjsPopup,
 } from "./Memory2D/ClusteredObjsPopup";
 import Button from "@material-ui/core/Button";
+import IconButton from "@material-ui/core/IconButton";
+import MenuIcon from "@material-ui/icons/Menu";
 
 var hashCode = function (s) {
   return s.split("").reduce(function (a, b) {
@@ -53,11 +55,11 @@ class Memory2D extends React.Component {
       popup_visible: false,
       dynamic_positioning: false,
       map_update_count: 0,
-      grouping_mode: false,
+      selection_mode: false,
       drawing_mode: false,
       draw_pos_curr: null,
       draw_pos_start: null,
-      grouped_objects: {},
+      selected_objects: {},
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -119,9 +121,9 @@ class Memory2D extends React.Component {
     });
   };
   handleObjClick = (obj_type, map_pos, data) => {
-    let { grouping_mode, grouped_objects, focused_point_coords } = this.state;
+    let { selection_mode, selected_objects, focused_point_coords } = this.state;
 
-    if (!grouping_mode) {
+    if (!selection_mode) {
       // if not in grouping mode, open MemoryMapTable
       this.setState({
         table_data: data,
@@ -136,16 +138,16 @@ class Memory2D extends React.Component {
         this.setState({ popup_visible: false });
       }
     } else {
-      // otherwise if in grouping_mode..
-      if (data.memid in grouped_objects) {
+      // otherwise if in selection_mode..
+      if (data.memid in selected_objects) {
         // ..unselect object
-        let { [data.memid]: _, ...rest } = grouped_objects;
-        this.setState({ grouped_objects: rest });
+        let { [data.memid]: _, ...rest } = selected_objects;
+        this.setState({ selected_objects: rest });
       } else {
         // ..select object
         this.setState({
-          grouped_objects: {
-            ...grouped_objects,
+          selected_objects: {
+            ...selected_objects,
             [data.memid]: data,
           },
         });
@@ -253,11 +255,11 @@ class Memory2D extends React.Component {
       ymax,
       width,
       height,
-      grouped_objects,
+      selected_objects,
     } = this.state;
 
     let toSelect = {};
-    let toUnselectFrom = grouped_objects;
+    let toUnselectFrom = selected_objects;
 
     // Select/unselect map obstacles
     if (obstacle_map) {
@@ -273,7 +275,7 @@ class Memory2D extends React.Component {
         };
 
         if (this.inDrawnBounds([map_x, map_y], true, end_pos)) {
-          if (!(data.memid in grouped_objects)) {
+          if (!(data.memid in selected_objects)) {
             toSelect[data.memid] = data;
           } else {
             let { [data.memid]: _, ...rest } = toUnselectFrom;
@@ -289,7 +291,7 @@ class Memory2D extends React.Component {
       let [map_x, map_y] = this.convertCoordinate(xyz);
 
       if (this.inDrawnBounds([map_x, map_y], true, end_pos)) {
-        if (!(obj.memid in grouped_objects)) {
+        if (!(obj.memid in selected_objects)) {
           toSelect[obj.memid] = obj;
         } else {
           let { [obj.memid]: _, ...rest } = toUnselectFrom;
@@ -299,7 +301,7 @@ class Memory2D extends React.Component {
     });
 
     this.setState({
-      grouped_objects: {
+      selected_objects: {
         ...toUnselectFrom,
         ...toSelect,
       },
@@ -403,7 +405,7 @@ class Memory2D extends React.Component {
       dynamic_positioning,
       focused_point_coords,
       map_update_count,
-      grouped_objects,
+      selected_objects,
       draw_pos_start,
       draw_pos_curr,
       drawing_mode,
@@ -530,7 +532,7 @@ class Memory2D extends React.Component {
             x={map_x}
             y={map_y}
             radius={isFocused ? obj.radius * 1.5 : obj.radius}
-            fill={obj.data.memid in grouped_objects ? "green" : obj.color}
+            fill={obj.data.memid in selected_objects ? "green" : obj.color}
             onClick={(e) => {
               if (e.evt.which === 1)
                 this.handleObjClick(obj.type, [map_x, map_y], obj.data);
@@ -545,7 +547,7 @@ class Memory2D extends React.Component {
         let allObjsSelected = true;
         objs_at_pos.forEach((obj) => {
           clusteredObjects.push(obj);
-          if (!(obj.data.memid in grouped_objects)) allObjsSelected = false;
+          if (!(obj.data.memid in selected_objects)) allObjsSelected = false;
         });
         renderedObjects.push(
           <Group
@@ -842,12 +844,12 @@ class Memory2D extends React.Component {
         onKeyDown={(e) => {
           let selectionKeys = ["Meta", "Command", "Ctrl"];
           if (selectionKeys.includes(e.key)) {
-            this.setState({ grouping_mode: true });
+            this.setState({ selection_mode: true });
           }
           let escapeKeys = ["Escape", "Esc"];
           if (escapeKeys.includes(e.key)) {
             this.setState({
-              grouping_mode: false,
+              selection_mode: false,
               drawing_mode: false,
               draw_pos_start: null,
             });
@@ -856,7 +858,7 @@ class Memory2D extends React.Component {
           }
         }}
         onKeyUp={() => {
-          this.setState({ grouping_mode: false });
+          this.setState({ selection_mode: false });
         }}
         tabIndex="0"
       >
@@ -945,8 +947,8 @@ class Memory2D extends React.Component {
               onPopupClose={this.onPopupClose}
               handleObjClick={this.handleObjClick}
               table_visible={table_visible}
-              grouping_mode={this.state.grouping_mode}
-              grouped_objects={grouped_objects}
+              selection_mode={this.state.selection_mode}
+              selected_objects={selected_objects}
             />
           </div>
         )}
@@ -977,10 +979,10 @@ class Memory2D extends React.Component {
         >
           <Button
             variant="contained"
-            disabled={Object.keys(grouped_objects).length <= 1}
+            disabled={Object.keys(selected_objects).length <= 1}
             onClick={() => {
-              console.log(grouped_objects);
-              this.setState({ grouped_objects: {} });
+              console.log(selected_objects);
+              this.setState({ selected_objects: {} });
             }}
           >
             Group

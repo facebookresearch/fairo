@@ -48,14 +48,14 @@ const StyledTableRow = withStyles((theme) => ({
 /**
  * Creates simple table of memory values for an object on the map.
  *
- * @param {data, map_pos, onPopupClose, handleObjClick, table_visible, grouping_mode, grouped_objects} props
+ * @param {data, map_pos, onPopupClose, handleObjClick, table_visible, selection_mode, selected_objects} props
  *                            data: array of poolData objects
  *                            map_pos: where popup should be positioned on map
  *                            onPopupClose: handler for after user is finished with popup
  *                            handleObjClick: handler for clicking on a row (representing an object)
  *                            table_visible: used for hack to know when object is focused
- *                            grouping_mode: prop to let component know when user has selectionKey pressed
- *                            grouped_objects: dict of objects that were grouped by user
+ *                            selection_mode: prop to let component know when user has selectionKey pressed
+ *                            selected_objects: dict of objects that were grouped by user
  */
 export default function ClusteredObjsPopup(props) {
   const [focusedObj, setFocusedObj] = useState(null);
@@ -101,12 +101,12 @@ export default function ClusteredObjsPopup(props) {
                   [props.map_pos[0], props.map_pos[1]],
                   poolData.data
                 );
-                if (!props.grouping_mode) setFocusedObj(poolData.data.memid);
+                if (!props.selection_mode) setFocusedObj(poolData.data.memid);
               }}
               style={
                 poolData.data.memid === focusedObj
                   ? { backgroundColor: "orange" }
-                  : poolData.data.memid in props.grouped_objects
+                  : poolData.data.memid in props.selected_objects
                   ? { backgroundColor: "green" }
                   : {}
               }
