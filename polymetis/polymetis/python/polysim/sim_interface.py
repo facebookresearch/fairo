@@ -6,39 +6,24 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-from typing import List, Dict, Callable, Optional
-from enum import Enum
+from typing import List, Callable, Optional
 from dataclasses import dataclass
-import time
 import io
-import json
 
 import grpc
-import numpy as np
 import torch
 import hydra
 from omegaconf import OmegaConf
-from omegaconf.dictconfig import DictConfig
 
-import torchcontrol as toco
-from torchcontrol.policies.default_controller import DefaultController
 import polymetis_pb2
 import polymetis_pb2_grpc
 import polymetis
 from polymetis.utils import Spinner
-from polymetis.robot_client.abstract_robot_client import (
-    AbstractRobotClient,
-)
 
 
 DEFAULT_METADATA_CFG_PATH = os.path.join(
     polymetis.__path__[0], "conf/default_metadata.yaml"
 )
-
-
-class ControlType(Enum):
-    ARM = 0
-    GRIPPER = 1
 
 
 @dataclass
@@ -67,17 +52,6 @@ class SimInterface:
         torch.jit.save(torch.jit.script(controller), buffer)
         buffer.seek(0)
         return buffer.read()
-
-    def _construct_metadata(self, metadata_type, aux_metadata):
-        metadata = metadata_type()
-        metadata.polymetis_version = polymetis.__version__
-        metadata.hz = self.hz
-
-        for key, item in aux_metadata.items():
-            assert hasattr(metadata, key)
-            setattr(metadata, key, item)
-
-        return metadata
 
     def register_arm_control(
         self,

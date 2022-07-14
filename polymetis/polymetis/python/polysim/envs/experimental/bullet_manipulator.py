@@ -23,6 +23,7 @@ class BulletManipulator:
         gravity: float = 9.81,
     ):
         self.cfg = cfg
+        self.dt = 1.0 / self.cfg.hz
 
         # Initialize PyBullet simulation
         if gui:
@@ -58,9 +59,11 @@ class BulletManipulator:
 
         self.gripper_state = polymetis_pb2.GripperState()
 
+        self.t = 0
+
     def get_arm_state(self) -> polymetis_pb2.RobotState:
         # Timestamp
-        self.arm_state.timestamp.GetCurrentTime()
+        self.arm_state.timestamp.FromSeconds(self.t)
 
         # Joint pos & vel
         joint_cur_states = self.sim.getJointStates(
@@ -72,6 +75,10 @@ class BulletManipulator:
         return self.arm_state
 
     def get_gripper_state(self) -> polymetis_pb2.GripperState:
+        # Timestamp
+        self.gripper_state.timestamp.FromSeconds(self.t)
+
+        # Gripper states
         joint_cur_states = self.sim.getJointStates(
             self.robot_id, self.cfg.gripper.controlled_joints
         )
@@ -118,7 +125,6 @@ class BulletManipulator:
         self.arm_state.motor_torques_external[:] = np.zeros_like(applied_torques)
 
         self.arm_state.prev_command_successful = True
-        self.arm_state.error_code = 0
 
     def apply_gripper_control(self, cmd: polymetis_pb2.GripperCommand):
         self.sim.setJointMotorControlArray(
@@ -130,6 +136,7 @@ class BulletManipulator:
 
     def step(self):
         self.sim.stepSimulation()
+        self.t += self.dt
 
 
 @hydra.main(config_path=".", config_name="config")
