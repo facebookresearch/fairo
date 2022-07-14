@@ -47,13 +47,6 @@ class DASHBOARD_EVENT(Enum):
     GET_MODEL_VALUE = "get_model_value_by_id_n_key"
 
 
-<<<<<<< HEAD
-# constants for model related apis
-KEY_COMPLETE = "complete_model"
-
-
-=======
->>>>>>> d7efd5439 (Automatic style fix for droidlet)
 # constants for model related apis
 KEY_COMPLETE = "complete_model"
 
@@ -110,6 +103,7 @@ def get_interaction_sessions(batch_id):
     print(f"Request received: {DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value}")
     sessions = get_interaction_sessions_by_id(int(batch_id))
     emit(DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value, sessions)
+
 
 @socketio.on(DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value)
 def get_interaction_sessions(batch_id):
