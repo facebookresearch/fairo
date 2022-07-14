@@ -10,9 +10,8 @@ Usage:
 */
 import { Breadcrumb, Layout, Tabs } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, Outlet, useLocation, useParams } from 'react-router-dom';
 import { TAB_ITEMS } from '../../constants/pipelineConstants';
-import DetailPage from './detail/detailPage';
 import InfoBlock from './metaInfo/infoBlock';
 import RunList from './metaInfo/runList';
 
@@ -93,7 +92,7 @@ const PipelinePanel = (props) => {
                     {
                         // display detail page if has batch id
                         batch_id ?
-                            <DetailPage batchId={batch_id} pipelineType={pipelineType}/>
+                            <Outlet /> // outlet defined at the router - will render detail page
                             :
                             (<Tabs
                                 activeKey={activeKey}
