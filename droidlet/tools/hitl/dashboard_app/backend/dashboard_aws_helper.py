@@ -12,6 +12,8 @@ import botocore
 import os
 import re
 
+from droidlet.tools.hitl.dashboard_app.backend.dashboard_model_utils import load_model
+
 
 PIPELINE_DATASET_MAPPING = {
     "NLU": "nsp_data",
@@ -164,3 +166,5 @@ def get_model_by_id(batch_id: int):
     local_fname = _download_file(f"{batch_id}/best_model/best_model.pth")
     if local_fname is None:
         return f"cannot find best_model file related to {batch_id}", 404
+    else:
+        return load_model(local_fname), None

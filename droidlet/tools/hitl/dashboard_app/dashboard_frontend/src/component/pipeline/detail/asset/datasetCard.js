@@ -59,7 +59,7 @@ const DatasetCard = (props) => {
     }, [datasetIndicies, datasetList]); // update comp
 
     return (
-        <div style={{ paddingRight: '16px', width: '50%' }}>
+        <div style={{ paddingRight: '16px', width: '30%' }}>
             <Card title="Dataset" loading={loading}>
                 <Meta />
                 <Descriptions bordered>
