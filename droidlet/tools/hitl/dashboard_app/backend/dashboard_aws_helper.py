@@ -7,6 +7,7 @@ and preparing proper response for APIs the server provides.
 """
 
 import json
+import tarfile
 import boto3
 import botocore
 import os
@@ -110,3 +111,22 @@ def get_interaction_sessions_by_id(batch_id: int):
         right_idx = session_name.index("/logs.tar.gz")
         session_list.append(session_name[left_idx:right_idx])
     return session_list
+
+
+def get_interaction_session_log_by_id(batch_id: int, session_id: str):
+    """
+    helper method to reterive session log
+    """
+    local_fname = _download_file(f"{batch_id}/interaction/{session_id}/logs.tar.gz")
+    if local_fname is None:
+        return f"cannot find log with batch_id {batch_id}, session_id {session_id}", 404
+    folder_path = local_fname[: local_fname.rindex("/")]
+    file = tarfile.open(local_fname)
+    file.extractall(folder_path)
+    file.close()
+
+    # read agent log
+    log_fname = f"{folder_path}/agent.log"
+    log_file = open(log_fname, "r")
+    log = log_file.readlines()
+    return log, None

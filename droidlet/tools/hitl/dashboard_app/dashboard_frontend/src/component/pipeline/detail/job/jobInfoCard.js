@@ -3,17 +3,22 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 Detail info of a job. 
 */
-import { Button, Card, Descriptions, List, Spin, Typography } from "antd";
+import { Button, Card, Descriptions, List, Modal, Spin, Typography } from "antd";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import { JOB_STATUS_CONSTANTS, JOB_STATUS_ORDER } from "../../../../constants/runContants";
 import { SocketContext } from "../../../../context/socket";
 import { toFirstCapital } from "../../../../utils/textUtils";
+import LogDisplayCmp from "../../../common/logDisplay";
 
 const JobInfoCard = (props) => {
     const batchId = useParams().batch_id;
     const job = useParams().job;
     const [sessionList, setSessionList] = useState([]);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [currentSession, setCurrentSession] = useState(null);
+    const [sessionLog, setSessionLog] = useState(null);
+
     const socket = useContext(SocketContext);
 
     let jobInfo = Object.entries(useOutletContext().metaInfo)
@@ -27,9 +32,14 @@ const JobInfoCard = (props) => {
         setSessionList(data);
     }, []);
 
+    const handleRecivedSessionLog = useCallback((data) => {
+        setSessionLog(data);
+    }, []);
+
     useEffect(() => {
         socket.on("get_interaction_sessions_by_id", (data) => handleRecievedSessionist(data));
-    }, [socket, handleRecievedSessionist])
+        socket.on("get_interaction_session_log", (data) => handleRecivedSessionLog(data));
+    }, [socket, handleRecievedSessionist, handleRecivedSessionLog])
 
     const getDesciptionText = (o) => {
         if (!o[1]) {
@@ -49,11 +59,36 @@ const JobInfoCard = (props) => {
             return o[1] ? "Yes" : "No";
         }
         // get session log if has the session log 
+<<<<<<< HEAD
         if (o[0] === "NUM_SESSION_LOG" && sessionList.length === 0) {            
+=======
+        if (o[0] === "NUM_SESSION_LOG" && sessionList.length === 0) {
+>>>>>>> 09d78ef0b (add component and api for showing session log)
             socket.emit("get_interaction_sessions_by_id", batchId);
         }
 
         return typeof (o[1]) === "string" ? toFirstCapital(o[1]) : o[1];
+    }
+
+    useEffect(() => {
+        if (currentSession) {
+            const id_info_obj = {
+                "batch_id": batchId,
+                "session_id": currentSession
+            }
+            socket.emit("get_interaction_session_log", JSON.stringify(id_info_obj));
+        }
+    }, [currentSession]);
+
+    const handleViewSession = (session) => {
+        setModalOpen(true);
+        setCurrentSession(session);
+    }
+
+    const handleCloseSessionModal = () => {
+        setModalOpen(false);
+        setCurrentSession(null);
+        setSessionLog(null);
     }
 
     return <div style={{ 'paddingLeft': '12px' }}>
@@ -71,6 +106,7 @@ const JobInfoCard = (props) => {
                 )}
             </Descriptions>
             {
+                // view session list if there is a session list
                 sessionList.length ?
                     <div
                         style={{
@@ -88,6 +124,7 @@ const JobInfoCard = (props) => {
                             renderItem={item => (
                                 <List.Item>
                                     <Typography.Text>{item}</Typography.Text>
+                                    <Button type="link" onClick={() => handleViewSession(item)}>View Session Log</Button>
                                 </List.Item>
                             )}
                         />
@@ -95,6 +132,26 @@ const JobInfoCard = (props) => {
                     : <Spin />
             }
         </Card>
+        {/* session modal starts */}
+        <Modal
+            title={`Session Log of ${currentSession}`}
+            visible={modalOpen}
+            footer={null}
+            destroyOnClose={true}
+            centered
+            width={1200}
+            onCancel={() => handleCloseSessionModal()}
+        >
+            <div
+                style={{
+                    overflow: "auto",
+                    height: "50vh",
+                }}
+            >
+                {sessionLog ? <LogDisplayCmp log={sessionLog}/> : <Spin />}
+            </div>
+        </Modal>
+        {/* session modal ends */}
     </div>;
 }
 export default JobInfoCard;
