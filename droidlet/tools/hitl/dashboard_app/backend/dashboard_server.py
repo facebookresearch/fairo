@@ -17,7 +17,10 @@ from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
     get_run_info_by_id,
     get_traceback_by_id,
 )
-from droidlet.tools.hitl.dashboard_app.backend.dashboard_model_utils import get_keys, get_value_by_key
+from droidlet.tools.hitl.dashboard_app.backend.dashboard_model_utils import (
+    get_keys,
+    get_value_by_key,
+)
 from flask import Flask, abort
 from flask_socketio import SocketIO, emit
 
@@ -41,8 +44,10 @@ class DASHBOARD_EVENT(Enum):
     GET_MODEL_KEYS = "get_model_keys_by_id"
     GET_MODEL_VALUE = "get_model_value_by_id_n_key"
 
+
 # constants for model related apis
 KEY_COMPLETE = "complete_model"
+
 
 @socketio.on(DASHBOARD_EVENT.GET_RUNS.value)
 def get_jobs():
@@ -140,6 +145,7 @@ def get_dataset_indices(batch_id):
     else:
         emit(DASHBOARD_EVENT.GET_DATASET_INDECIES.value, indices)
 
+
 @socketio.on(DASHBOARD_EVENT.GET_MODEL_KEYS.value)
 def get_model_keys(batch_id):
     """
@@ -159,7 +165,7 @@ def get_model_keys(batch_id):
 def get_model_value(batch_id, key):
     """
     get a value for a model related to a run (specified by the batch_id) and the input key
-    - input: 
+    - input:
         - the batch id of the run.
         - the key for the model, could be any key from the model, or "COMPLETE", indicating getting the complete model dict
     - output: the value for the model if the model exists and key is valid, otherwise error code
