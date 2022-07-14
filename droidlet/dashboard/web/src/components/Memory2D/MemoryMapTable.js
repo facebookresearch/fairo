@@ -18,6 +18,7 @@ import Tooltip from "@material-ui/core/Tooltip";
 import TextField from "@material-ui/core/TextField";
 
 const MAX_TABLE_CELL_WIDTH = 100;
+const MAX_TABLE_CONTAINER_HEIGHT = 220;
 
 const StyledTableCell = withStyles((theme) => ({
   root: {
@@ -152,8 +153,12 @@ export default function MemoryMapTable(props) {
 
   // console.log(editManager);
   return (
-    <TableContainer component={Paper} square>
-      <Table size="small">
+    <TableContainer
+      component={Paper}
+      square
+      style={{ maxHeight: MAX_TABLE_CONTAINER_HEIGHT }}
+    >
+      <Table stickyHeader size="small">
         <TableHead>
           <TableRow>
             <StyledTableCell>Attribute</StyledTableCell>
@@ -260,15 +265,30 @@ export default function MemoryMapTable(props) {
   );
 }
 
-export function positionMemoryMapTable(h, w, tc, dc, data) {
+export function positionMemoryMapTable(
+  h,
+  w,
+  tc,
+  dc,
+  makeDynamic = false,
+  data = null
+) {
   // this takes all these parameters so table will properly update position on change
   let ret = { position: "absolute" };
-  let final_coords = [tc[0] + dc[0], Math.min(h, w) - (tc[1] + dc[1])];
-  let final_pos = ["left", "bottom"];
-  let table_dims = [200, 42 * (Object.keys(data).length - 3) + 32 * 4 + 51];
-  if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
-    final_coords[1] = Math.min(h, w) - final_coords[1];
-    final_pos[1] = "top";
+  let final_coords = [tc[0] + dc[0], tc[1] + dc[1]];
+  let final_pos = ["left", "top"];
+  if (makeDynamic) {
+    let table_dims = [
+      200,
+      Math.min(
+        MAX_TABLE_CONTAINER_HEIGHT - 10,
+        42 * (Object.keys(data).length - 3) + 32 * 4 + 51
+      ),
+    ];
+    if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
+      final_coords[1] = Math.min(h, w) - final_coords[1];
+      final_pos[1] = "bottom";
+    }
   }
   ret[final_pos[0]] = final_coords[0];
   ret[final_pos[1]] = final_coords[1];
