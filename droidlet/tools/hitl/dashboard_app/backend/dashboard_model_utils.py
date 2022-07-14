@@ -15,7 +15,6 @@ def get_keys(model):
     return list(model.keys())
 
 
-
 def get_value_by_key(model, key):
     """
     helper method for getting a value in the model dict
