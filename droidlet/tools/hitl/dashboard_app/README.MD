@@ -10,14 +10,18 @@ This is a Dashboard app prototype for the HITL system.
         - View a spefic version of dataset on dataset detail page
     - Demo:
         - For job with retrain job, the user will be able to see the indecies of newly added data
+            - ![demo_dataset_has_retrain](https://user-images.githubusercontent.com/51009396/178807612-89f8d3cb-3555-45be-9bc1-20349129eb11.gif)- 
         - For job without retrain job, the indecies field will be NA
+            - ![demo_dataset_no_retrain](https://user-images.githubusercontent.com/51009396/178807684-4bc5544e-c8a8-4322-a46c-ed5cdc3345ac.gif)
         - Viewing different version of the dataset (use dropdown menu to select, able to serach in dropdown menu)
+            -  ![demo_change_dataset_ver](https://user-images.githubusercontent.com/51009396/178807722-62baf30a-9c0f-4935-8061-098a5f90ab4f.gif)
         - Flow for using the navigation tab to view a dataset
+            - ![demo_navigate_from_tab](https://user-images.githubusercontent.com/51009396/178807807-68425eaa-418a-4128-bc9c-076d8aef3fd5.gif)
 - July 7:
     - Added view session Log feature.
     - Demo:
         - ![demo_view_sesion_log](https://user-images.githubusercontent.com/51009396/178044751-8d099829-cc2f-4353-8bfd-e81e9a23b63e.gif)
-- July 6: 
+- July 6: ![demo_change_dataset_ver](https://user-images.githubusercontent.com/51009396/178807740-b90ada63-573d-47ba-845e-8ab84033d184.gif)
     - Added detail page to show detail infomation of a pipeline run (specified by the batch_id)
     - Added a get all sessions related to a batch id backend API. 
     - Demo:
