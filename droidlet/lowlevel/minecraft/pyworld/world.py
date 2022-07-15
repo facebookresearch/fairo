@@ -634,6 +634,7 @@ class World:
                 self.changed_blocks_store[sid] = {}
             except:
                 import ipdb
+
                 ipdb.set_trace(context=7)
                 raise
             return blocks
