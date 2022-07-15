@@ -21,16 +21,10 @@ const renderInterval = 1000 / fps
 let camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
 const followPointerScale = 150;
 
-const preLoadMaterialNames = ['grass', 'dirt']//, 'white wool', 'orange wool', 'magenta wool'];
+const preLoadMaterialNames = ['grass', 'dirt', 'wood']//, 'white wool', 'orange wool', 'magenta wool'];
 const blockScale = 50;
-const bid2Color = {
-    1: 0x808080,
-    2: 0xff0000,
-    3: 0xffff00,
-    4: 0x800000,
-    5: 0x0000ff
-}
 const bid2Name = {
+    5: 'wood',
     8: 'grass',
     9: 'dirt',
     46: 'white wool',

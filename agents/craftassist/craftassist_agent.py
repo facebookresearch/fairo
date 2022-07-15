@@ -151,8 +151,12 @@ class CraftAssistAgent(DroidletAgent):
                 newPlayer = Player(
                     12345678, "dashboard", Pos(0.0, 64.0, 0.0), Look(0.0, 0.0), Item(0, 0)
                 )
-                updated_players.append(newPlayer)
-            # assume pyworld can add its own players?
+            elif self.backend == "pyworld":
+                # FIXME this won't be updated with actual player position until/unless the player moves (abs_move)
+                newPlayer = Player(
+                    12345678, "dashboard", Pos(0.0, 5.0, 0.0), Look(0.0, 0.0), Item(0, 0)
+                )
+            updated_players.append(newPlayer)
         return updated_players
 
     def get_all_player_line_of_sight(self, player_struct):

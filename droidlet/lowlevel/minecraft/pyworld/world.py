@@ -240,7 +240,7 @@ class World:
         """Return the ground truth block state"""
         d = {}
         for (x, y, z) in xyzs:
-            B = self.get_blocks(x, x, y, y, z, z)
+            B, _ = self.get_blocks(x, x, y, y, z, z)
             d[(x, y, z)] = tuple(B[0, 0, 0, :])
         return d
 
@@ -290,9 +290,9 @@ class World:
         xs, ys, zs = [0, 0, 0]
         xS, yS, zS = szs
         if xb < 0 or yb < 0 or zb < 0:
-            return B
+            return B, (xa, xb, ya, yb, za, zb)
         if xa > self.sl - 1 or ya > self.sl - 1 or za > self.sl - 1:
-            return B
+            return B, (xa, xb, ya, yb, za, zb)
         if xb > self.sl - 1:
             xS = self.sl - xa
             xb = self.sl - 1
@@ -315,9 +315,9 @@ class World:
         # pre_B = self.blocks[ya : yb + 1, za : zb + 1, xa : xb + 1, :]
         B[ys:yS, zs:zS, xs:xS, :] = pre_B.transpose(1, 2, 0, 3)
         if transpose:
-            return B
+            return B, (xa, xb, ya, yb, za, zb)
         else:
-            return pre_B
+            return pre_B, (xa, xb, ya, yb, za, zb)
 
     def get_line_of_sight(self, pos, yaw, pitch):
         # it is assumed lv is unit normalized
@@ -524,6 +524,8 @@ class World:
                 ):
                     new_pos = Pos(x, y, z)
                     self.players[eid] = self.players[eid]._replace(pos=new_pos)
+                else:
+                    print(f"{player_struct.name} tried to move somewhere impossible")
 
         @server.on("abs_move")
         def move_agent_abs(sid, data):
@@ -624,17 +626,23 @@ class World:
 
         @server.on("get_changed_blocks")
         def changed_blocks(sid):
-            eid = self.connected_sids.get(sid)
-            blocks = self.changed_blocks_store[sid]
-            # can't send dicts with tuples for keys :(
-            blocks = {str(k): v for k, v in blocks.items()}
-            self.changed_blocks_store[sid] = {}
+            try:
+                eid = self.connected_sids.get(sid)
+                blocks = self.changed_blocks_store[sid]
+                # can't send dicts with tuples for keys :(
+                blocks = {str(k): v for k, v in blocks.items()}
+                self.changed_blocks_store[sid] = {}
+            except:
+                import ipdb
+                ipdb.set_trace(context=7)
+                raise
             return blocks
 
         @server.on("get_blocks")
         def get_blocks_dict(sid, data):
             x, X, y, Y, z, Z = data["bounds"]
-            npy = self.get_blocks(x, X, y, Y, z, Z, transpose=False)
+            npy, truncated_bounds = self.get_blocks(x, X, y, Y, z, Z, transpose=False)
+            x, X, y, Y, z, Z = truncated_bounds
             nz_locs = list(zip(*np.nonzero(npy[:, :, :, 0])))
             nz_idm_locs = [
                 (int(l[0]) + int(x), int(l[1]) + int(y), int(l[2]) + int(z)) for l in nz_locs
