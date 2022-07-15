@@ -19,7 +19,10 @@ import torch.utils.tensorboard
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.optim import Adam
 
-from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_model import build_model, load_model
+from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_model import (
+    build_model,
+    load_model,
+)
 from droidlet.perception.semantic_parsing.utils.nsp_logger import NSPLogger
 from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_parsing import (
     compute_accuracy,
@@ -306,9 +309,13 @@ class NLUModelTrainer:
         print("saving model to PATH::{} at epoch {}".format(path, epoch))
         torch.save(M, path)
 
-        if not os.path.isdir(os.path.join(self.args.output_dir, self.model_identifier, "tokenizer")):
+        if not os.path.isdir(
+            os.path.join(self.args.output_dir, self.model_identifier, "tokenizer")
+        ):
             os.makedirs(os.path.join(self.args.output_dir, self.model_identifier, "tokenizer"))
-        self.tokenizer.save_pretrained(os.path.join(self.args.output_dir, self.model_identifier, "tokenizer"))
+        self.tokenizer.save_pretrained(
+            os.path.join(self.args.output_dir, self.model_identifier, "tokenizer")
+        )
 
     def show_examples(self, dataset):
         self.model.eval()

@@ -317,7 +317,7 @@ def detokenize_tree(seq, tokenizer):
     tok_tree = tokenizer.convert_tokens_to_string(seq)
     tok_tree = tok_tree.split()
 
-    special_tokens = ["[", "]", "{", "}", ":", ",", "_", "\"", "\",", ".", "/"]
+    special_tokens = ["[", "]", "{", "}", ":", ",", "_", '"', '",', ".", "/"]
     tree = ""
     prev_token = None
     for token in tok_tree:

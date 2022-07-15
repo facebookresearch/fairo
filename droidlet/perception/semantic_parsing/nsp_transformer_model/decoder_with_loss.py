@@ -65,7 +65,7 @@ class DecoderWithLoss(nn.Module):
         # model components
         logging.debug("initializing decoder with params {}".format(args))
         self.bert = BertModel(config)
-        self.bert.resize_token_embeddings(len(tokenizer)) 
+        self.bert.resize_token_embeddings(len(tokenizer))
         # language modeling head
         self.lm_head = BertOnlyMLMHead(config)
         # loss functions
