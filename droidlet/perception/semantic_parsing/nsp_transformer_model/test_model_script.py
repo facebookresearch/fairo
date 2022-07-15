@@ -86,7 +86,7 @@ class ModelEvaluator:
                 ]
                 x, x_mask, y, y_mask = batch_tensors
                 time_s = time.time()
-                outputs = model(x, x_mask, y, y_mask, None, True)                
+                outputs = model(x, x_mask, y, y_mask, None, True) 
                 time_e = time.time()
                 # compute accuracy and add hard examples
                 lm_acc, full_acc = compute_accuracy(outputs, y)
@@ -103,7 +103,7 @@ class ModelEvaluator:
 
                 if step % self.args.vis_step_size == 0 and self.args.show_samples:
                     show_examples(self.args, model, dataset, tokenizer)
-
+        
         self.evaluate_results_logger.log_dialogue_outputs(
             [tot_accu / tot_steps, tot_steps / tot_time_cost]
         )

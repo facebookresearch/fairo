@@ -135,16 +135,10 @@ def tree_span_node_replace(text, tree):
         elif is_cat(tree[key]):
             out_tree[f_key] = tree[key]
         elif is_span(tree[key]):
-            # _, (b, c) = tree[key]
-            # split_text = text.split()
-            # out_tree[f_key] = " ".join([split_text[idx] for idx in range(b, c + 1)])
-            if key == "text_span":
-                continue
-            else:
-                # change index to text itself
-                _, (b, c) = tree[key]
-                split_text = text.split()
-                out_tree[f_key] = " ".join([split_text[idx] for idx in range(b, c + 1)])
+            # keep text span
+            _, (b, c) = tree[key]
+            split_text = text.split()
+            out_tree[f_key] = " ".join([split_text[idx] for idx in range(b, c + 1)])
         elif is_int(tree[key]):
             out_tree[f_key] = tree_span_node_replace(text, tree[key])
         elif is_int_list(tree[key]):

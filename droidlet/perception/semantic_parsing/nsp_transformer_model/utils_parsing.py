@@ -254,7 +254,6 @@ def beam_search_simp(txt, model, tokenizer, dataset, beam_size=5, well_formed_pe
         # penalize poorly formed trees
         for i, seq in enumerate(beam_seqs):
             if seq[-1] == "[SEP]":
-                print("form check")
                 well_formed = check_tree_well_formed(seq)
                 if not well_formed:
                     beam_scores[i] -= well_formed_pen
@@ -274,8 +273,8 @@ def beam_search_simp(txt, model, tokenizer, dataset, beam_size=5, well_formed_pe
 
 def check_tree_well_formed(tok_tree):
     """
-    Check if the predicted tokens of tree is well formed via pairing
-    left and right brackets
+    Check if the syntactic context of tree is well predicted via pairing
+    left and right curly and square brackets
 
     Args:
         tok_tree: predicted tree tokens
@@ -289,10 +288,17 @@ def check_tree_well_formed(tok_tree):
         if tok == "{":
             queue.append(tok)
         elif tok == "}":
-            if not len(queue):
-                return False
-            else:
+            if queue and queue[-1] == "{":
                 queue.pop()
+            else:
+                return False
+        elif tok == "[":
+            queue.append(tok)
+        elif tok == "]":
+            if queue and queue[-1] == "[":
+                queue.pop()
+            else:
+                return False
 
     return len(queue) == 0
 
@@ -311,7 +317,7 @@ def detokenize_tree(seq, tokenizer):
     tok_tree = tokenizer.convert_tokens_to_string(seq)
     tok_tree = tok_tree.split()
 
-    special_tokens = ["[", "]", "{", "}", ":", ",", "_", '"']
+    special_tokens = ["[", "]", "{", "}", ":", ",", "_", "\"", "\",", ".", "/"]
     tree = ""
     prev_token = None
     for token in tok_tree:
@@ -320,10 +326,17 @@ def detokenize_tree(seq, tokenizer):
         else:
             # deal with - symbol
             if token == "-":
+                if prev_token in special_tokens:
+                    tree += token
+                else:
+                    tree += " " + token
+            elif token not in special_tokens and prev_token == "-":
                 tree += token
             # add space between texts of span node
             elif token not in special_tokens and prev_token not in special_tokens:
                 tree += " " + token
+            else:
+                tree += token
             prev_token = token
 
     return json.loads(tree)
@@ -360,7 +373,6 @@ def compute_accuracy(outputs, y):
     lm_acc = ((lm_preds == lm_targets) * (lm_targets > 101)).sum(dim=1) == (lm_targets > 101).sum(
         dim=1
     )
-    # lm_acc = torch.all(lm_preds == lm_targets, dim=1)
     full_acc = lm_acc
 
     if "text_span_start_scores" in outputs:
