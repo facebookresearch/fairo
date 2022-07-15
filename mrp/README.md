@@ -1,4 +1,6 @@
-# Meta Robotics Platform
+<div align="center">
+<img src="./logo/Full%20Color%20Horizontal.svg" />
+</div>
 
 Deploy, launch, manage, and orchestrate heterogeneous robots with ease!
 
@@ -20,8 +22,6 @@ Starts all defined processes, or a given subset.
 mrp up
 # To bring up myproc:
 mrp up myproc
-# Add -v for verbose building print-outs:
-mrp up -v myproc
 ```
 
 ### down
