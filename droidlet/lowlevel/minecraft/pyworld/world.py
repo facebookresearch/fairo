@@ -240,7 +240,7 @@ class World:
         """Return the ground truth block state"""
         d = {}
         for (x, y, z) in xyzs:
-            B, _ = self.get_blocks(x, x, y, y, z, z)
+            B = self.get_blocks(x, x, y, y, z, z)
             d[(x, y, z)] = tuple(B[0, 0, 0, :])
         return d
 
@@ -285,22 +285,22 @@ class World:
         M = np.array((xb, yb, zb))
         m = np.array((xa, ya, za))
         szs = M - m + 1
-        B = np.zeros((szs[1], szs[2], szs[0], 2), dtype="uint8")
+        B = np.zeros((szs[0], szs[1], szs[2], 2), dtype="uint8")
         B[:, :, :, 0] = 0
         xs, ys, zs = [0, 0, 0]
         xS, yS, zS = szs
         if xb < 0 or yb < 0 or zb < 0:
-            return B, (xa, xb, ya, yb, za, zb)
+            return B
         if xa > self.sl - 1 or ya > self.sl - 1 or za > self.sl - 1:
-            return B, (xa, xb, ya, yb, za, zb)
+            return B
         if xb > self.sl - 1:
-            xS = self.sl - xa
+            xS -= xb - (self.sl - 1)
             xb = self.sl - 1
         if yb > self.sl - 1:
-            yS = self.sl - ya
+            yS -= yb - (self.sl - 1)
             yb = self.sl - 1
         if zb > self.sl - 1:
-            zS = self.sl - za
+            zS -= zb - (self.sl - 1)
             zb = self.sl - 1
         if xa < 0:
             xs = -xa
@@ -311,13 +311,11 @@ class World:
         if za < 0:
             zs = -za
             za = 0
-        pre_B = self.blocks[xa : xb + 1, ya : yb + 1, za : zb + 1, :]
-        # pre_B = self.blocks[ya : yb + 1, za : zb + 1, xa : xb + 1, :]
-        B[ys:yS, zs:zS, xs:xS, :] = pre_B.transpose(1, 2, 0, 3)
+
+        B[xs:xS, ys:yS, zs:zS, :] = self.blocks[xa : xb + 1, ya : yb + 1, za : zb + 1, :]            
         if transpose:
-            return B, (xa, xb, ya, yb, za, zb)
-        else:
-            return pre_B, (xa, xb, ya, yb, za, zb)
+            B = B.transpose(1, 2, 0, 3)
+        return B
 
     def get_line_of_sight(self, pos, yaw, pitch):
         # it is assumed lv is unit normalized
@@ -561,6 +559,8 @@ class World:
                 ):
                     new_pos = Pos(x, y, z)
                     self.players[eid] = self.players[eid]._replace(pos=new_pos)
+                else:
+                    print(f"{player_struct.name} tried to move somewhere impossible")
 
         @server.on("set_held_item")
         def set_agent_mainhand(sid, data):
@@ -642,8 +642,7 @@ class World:
         @server.on("get_blocks")
         def get_blocks_dict(sid, data):
             x, X, y, Y, z, Z = data["bounds"]
-            npy, truncated_bounds = self.get_blocks(x, X, y, Y, z, Z, transpose=False)
-            x, X, y, Y, z, Z = truncated_bounds
+            npy = self.get_blocks(x, X, y, Y, z, Z, transpose=False)
             nz_locs = list(zip(*np.nonzero(npy[:, :, :, 0])))
             nz_idm_locs = [
                 (int(l[0]) + int(x), int(l[1]) + int(y), int(l[2]) + int(z)) for l in nz_locs

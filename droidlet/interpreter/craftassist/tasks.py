@@ -245,7 +245,6 @@ class Move(BaseMovementTask):
         assert tuple(agent.pos) == self.path.pop()
         step = tuple(self.path[-1] - agent.pos)
         step_fn = getattr(agent, self.STEP_FNS[step])
-        logging.debug("taking a step on the path")
         step_fn()
 
         self.last_stepped_time = agent.memory.get_time()
