@@ -7,6 +7,6 @@ To launch:
 mrp up
 ```
 
-No need to down mrp. Closing the UI is enough.
+No need to `mrp down`. Closing the UI is enough.
 
 Check out the Habitat github page for examples and tutorials https://github.com/facebookresearch/habitat-sim
