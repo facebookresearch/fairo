@@ -8,8 +8,10 @@ This is a Dashboard app prototype for the HITL system.
     - Added model visualization component, user can see text info about a model:
     - Demo:
         - View a model for a run with retrain jobs:
-        
+            - ![demo_view_model_with_retrain](https://user-images.githubusercontent.com/51009396/179124247-e1521123-aeaa-4ea9-a47a-d05323a37d3a.gif)
         - Model showing NA for a run without retrain jobs:
+            - ![demo_view_model_no_retrain](https://user-images.githubusercontent.com/51009396/179124182-9840f1ff-ccbe-4709-9452-025fb5be5c8a.gif) 
+
 - July 13:
     - Added dataset visualization component including:
         - View newly added data points indices on the run detail page
