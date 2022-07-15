@@ -636,7 +636,9 @@ class World:
             x, X, y, Y, z, Z = data["bounds"]
             npy = self.get_blocks(x, X, y, Y, z, Z, transpose=False)
             nz_locs = list(zip(*np.nonzero(npy[:, :, :, 0])))
-            nz_idm_locs = [(int(l[0]) + int(x), int(l[1]) + int(y), int(l[2]) + int(z)) for l in nz_locs]
+            nz_idm_locs = [
+                (int(l[0]) + int(x), int(l[1]) + int(y), int(l[2]) + int(z)) for l in nz_locs
+            ]
             nz_idms = [tuple(int(i) for i in self.blocks[l]) for l in nz_idm_locs]
             nz_locs = [(int(x), int(y), int(z)) for x, y, z in nz_locs]
             flattened_blocks = [nz_locs[i] + nz_idms[i] for i in range(len(nz_locs))]
