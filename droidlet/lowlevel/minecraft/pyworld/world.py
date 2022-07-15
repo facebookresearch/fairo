@@ -312,7 +312,7 @@ class World:
             zs = -za
             za = 0
 
-        B[xs:xS, ys:yS, zs:zS, :] = self.blocks[xa : xb + 1, ya : yb + 1, za : zb + 1, :]            
+        B[xs:xS, ys:yS, zs:zS, :] = self.blocks[xa : xb + 1, ya : yb + 1, za : zb + 1, :]
         if transpose:
             B = B.transpose(1, 2, 0, 3)
         return B
