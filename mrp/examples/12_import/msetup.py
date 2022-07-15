@@ -1,6 +1,6 @@
 import mrp
 
-import bob.msetup
+import bob.msetup  # noqa: F401
 
 # Importing bob chains an import of alice.
 
