@@ -4,6 +4,12 @@ Updated July 13 by Chuxi.
 This is a Dashboard app prototype for the HITL system.
 
 ## Update Note
+- July 14:
+    - Added model visualization component, user can see text info about a model:
+    - Demo:
+        - View a model for a run with retrain jobs:
+        
+        - Model showing NA for a run without retrain jobs:
 - July 13:
     - Added dataset visualization component including:
         - View newly added data points indices on the run detail page
@@ -109,8 +115,14 @@ APIs are based on socket event, the following APIs are supported currently:
     - get run specific dataset indices: as for each of the run, more data point can be added to the dataset, the indices specified the start index and the end index of the data points added to the dataset in a given run
     - input: the batch id of the run.
     - output: [start_index, end_index] of the data added to the dataset with the specified run or error code if cannot find the meta.txt
+- get all keys for a model related to a run (specified by the batch_id)
+    - input: the batch id of the run.
+    - output: the keys for the model if the model exists, otherwise error code
+ - get a value for a model related to a run (specified by the batch_id) and the input key
+    - input:
+        - the batch id of the run.
+        - the key for the model, could be any key from the model, or "COMPLETE", indicating getting the complete model dict
+    - output: the key and the value specific to the key for the model if the model exists and key is valid, otherwise error code
     
-    
-
 ## Demo
 ![backend_api_demo](https://user-images.githubusercontent.com/51009396/175696481-532cec55-5b2e-4bae-bceb-9e7d3f2aa7b7.gif)
