@@ -124,9 +124,9 @@ const VW_ITEM_MAP = {
     "wood": {
         "color": 0xffffff,
         "opacity": 1.0,
-        "sides": 'dirt.png',
-        "bottom": 'dirt.png',
-        "top": 'dirt.png',
+        "sides": 'wood.png',
+        "bottom": 'wood.png',
+        "top": 'wood.png',
     },
 
     "white wool": {

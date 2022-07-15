@@ -3618,9 +3618,9 @@ const preLoadMaterialNames = ['grass', 'dirt', 'wood']; //, 'white wool', 'orang
 
 const blockScale = 50;
 const bid2Name = {
-  5: 'wood',
   8: 'grass',
   9: 'dirt',
+  13: 'wood',
   46: 'white wool',
   47: 'orange wool',
   48: 'magenta wool',
@@ -3835,8 +3835,8 @@ class DVoxelEngine {
     renderer = this.renderer;
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight); // Axis helper for debugging
-    // this.scene.add( new THREE.AxesHelper( 10000 ) );
-    // loader and preloaded materials -- to improve performance
+
+    this.scene.add(new THREE.AxesHelper(10000)); // loader and preloaded materials -- to improve performance
 
     loader = new THREE.TextureLoader();
     preLoadBlockMaterials = new Map();
@@ -4794,9 +4794,9 @@ const VW_ITEM_MAP = {
   "wood": {
     "color": 0xffffff,
     "opacity": 1.0,
-    "sides": 'dirt.png',
-    "bottom": 'dirt.png',
-    "top": 'dirt.png'
+    "sides": 'wood.png',
+    "bottom": 'wood.png',
+    "top": 'wood.png'
   },
   "white wool": {
     "color": 0xffffff,

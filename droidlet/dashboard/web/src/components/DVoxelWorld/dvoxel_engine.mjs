@@ -24,9 +24,9 @@ const followPointerScale = 150;
 const preLoadMaterialNames = ['grass', 'dirt', 'wood']//, 'white wool', 'orange wool', 'magenta wool'];
 const blockScale = 50;
 const bid2Name = {
-    5: 'wood',
     8: 'grass',
     9: 'dirt',
+    13: 'wood',
     46: 'white wool',
     47: 'orange wool',
     48: 'magenta wool',
@@ -251,7 +251,7 @@ class DVoxelEngine {
         this.renderer.setSize( window.innerWidth, window.innerHeight );
 
         // Axis helper for debugging
-        // this.scene.add( new THREE.AxesHelper( 10000 ) );
+        this.scene.add( new THREE.AxesHelper( 10000 ) );
 
         // loader and preloaded materials -- to improve performance
         loader = new THREE.TextureLoader();
