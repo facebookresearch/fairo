@@ -74,7 +74,7 @@ const MoveStep = 0.5 // normalized -- block length is 1 here
 
 let controlled_player, agent_player;
 const AGENT_NAME = "craftassist_agent";
-const PLAYER_NAME = "dashboard_player";
+const PLAYER_NAME = "dashboard";
 
 let mobs = {}
 let mobList = []

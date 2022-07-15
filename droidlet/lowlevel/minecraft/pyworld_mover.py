@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import time
 import socketio
+import sys
 from droidlet.base_util import XYZ, Pos, Look
 from droidlet.shared_data_struct.craftassist_shared_utils import Player, Slot, Item, ItemStack, Mob
 from droidlet.lowlevel.minecraft.pyworld.utils import build_coord_shifts, BEDROCK
@@ -243,8 +244,9 @@ class PyWorldMover:
         )
         flattened_blocks = wait_for_data(D)
         npy_blocks = np.zeros((Y - y + 1, Z - z + 1, X - x + 1, 2), dtype="int32")
-        for b in flattened_blocks:
-            npy_blocks[b[1], b[2], b[0]] = [b[3], b[4]]
+        if flattened_blocks:
+            for b in flattened_blocks:
+                npy_blocks[b[1], b[2], b[0]] = [b[3], b[4]]
         return npy_blocks
 
     def send_chat(self, chat_text):
@@ -267,9 +269,14 @@ class PyWorldMover:
         return out
 
     def get_incoming_chats(self):
-        D = DataCallback()
-        self.sio.emit("get_incoming_chats", callback=D)
-        chats = wait_for_data(D)
+        try:
+            D = DataCallback()
+            self.sio.emit("get_incoming_chats", callback=D)
+            chats = wait_for_data(D)
+        except socketio.exceptions.BadNamespaceError:
+            print("Exiting on bad SIO namespace")
+            sys.exit()
+
         if chats is not None:
             chats = chats["chats"]
         else:

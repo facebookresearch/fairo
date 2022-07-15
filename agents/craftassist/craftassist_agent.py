@@ -144,7 +144,7 @@ class CraftAssistAgent(DroidletAgent):
         updated_players = all_players
         player_exists = False
         for player in all_players:
-            if player.name == "dashboard" or player.name == "dashboard_player":
+            if player.name == "dashboard":
                 player_exists = True
         if not player_exists:
             if self.backend == "cuberite":
@@ -152,14 +152,15 @@ class CraftAssistAgent(DroidletAgent):
                     12345678, "dashboard", Pos(0.0, 64.0, 0.0), Look(0.0, 0.0), Item(0, 0)
                 )
                 updated_players.append(newPlayer)
-            # TODO assume pyworld can add its own players?
+            # assume pyworld can add its own players?
         return updated_players
 
     def get_all_player_line_of_sight(self, player_struct):
         """return a fixed value for "dashboard" player"""
         # FIXME, this is too dangerous.
         if player_struct.name == "dashboard":
-            return Pos(-1, 63, 14)
+            if self.backend == "cuberite":
+                return Pos(-1, 63, 14)
         return self.mover.get_player_line_of_sight(player_struct)
 
     def init_event_handlers(self):

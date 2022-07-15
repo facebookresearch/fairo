@@ -3,7 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import time
 import numpy as np
-from threading import Thread
 from typing import Sequence, Dict
 from droidlet.base_util import Pos, Look
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM
@@ -152,7 +151,7 @@ class World:
                 "pitch": player.look.pitch,
             }
             for player in self.get_players()
-            if player.name in ["craftassist_agent", "dashboard_player"]
+            if player.name in ["craftassist_agent", "dashboard"]
         ]
         mobs = [
             {
@@ -287,7 +286,7 @@ class World:
         m = np.array((xa, ya, za))
         szs = M - m + 1
         B = np.zeros((szs[1], szs[2], szs[0], 2), dtype="uint8")
-        B[:, :, :, 0] = 7
+        B[:, :, :, 0] = 0
         xs, ys, zs = [0, 0, 0]
         xS, yS, zS = szs
         if xb < 0 or yb < 0 or zb < 0:
@@ -490,7 +489,7 @@ class World:
                 # FIXME only works for dashboard reconnect
                 for player_eid in self.connected_sids.values():
                     player_info = self.get_player_info(player_eid)
-                    if player_info.name == "dashboard_player":
+                    if player_info.name == "dashboard":
                         player_struct = self.get_player_info(player_eid)
                         eid = player_eid
                         break
@@ -534,7 +533,7 @@ class World:
             if not player_struct:
                 for player_eid in self.connected_sids.values():
                     player_info = self.get_player_info(player_eid)
-                    if player_info.name == "dashboard_player":
+                    if player_info.name == "dashboard":
                         player_struct = self.get_player_info(player_eid)
                         eid = player_eid
                         break
@@ -637,7 +636,8 @@ class World:
             x, X, y, Y, z, Z = data["bounds"]
             npy = self.get_blocks(x, X, y, Y, z, Z, transpose=False)
             nz_locs = list(zip(*np.nonzero(npy[:, :, :, 0])))
-            nz_idms = [tuple(int(i) for i in self.blocks[l]) for l in nz_locs]
+            nz_idm_locs = [(int(l[0]) + int(x), int(l[1]) + int(y), int(l[2]) + int(z)) for l in nz_locs]
+            nz_idms = [tuple(int(i) for i in self.blocks[l]) for l in nz_idm_locs]
             nz_locs = [(int(x), int(y), int(z)) for x, y, z in nz_locs]
             flattened_blocks = [nz_locs[i] + nz_idms[i] for i in range(len(nz_locs))]
             return flattened_blocks

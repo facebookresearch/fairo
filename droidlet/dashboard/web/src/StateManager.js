@@ -293,7 +293,7 @@ class StateManager {
     wSocket.on("connect", (msg) => {
       this.worldSocket.emit("init_player", {
         player_type: "player",
-        name: "dashboard_player",
+        name: "dashboard",
       });
     });
     wSocket.on("updateVoxelWorldState", this.updateVoxelWorld);
