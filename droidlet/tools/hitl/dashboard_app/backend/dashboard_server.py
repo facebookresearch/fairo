@@ -210,7 +210,7 @@ def get_model_value(batch_id, key):
     - input:
         - the batch id of the run.
         - the key for the model, could be any key from the model, or "COMPLETE", indicating getting the complete model dict
-    - output: the value for the model if the model exists and key is valid, otherwise error code
+    - output: the key and the value specific to the key for the model if the model exists and key is valid, otherwise error code
     """
     print(
         f"Request received: {DASHBOARD_EVENT.GET_MODEL_VALUE.value}, batch_id = {batch_id}, key = {key}"
