@@ -341,7 +341,7 @@ class MCAgentMemory(AgentMemory):
             self.make_manual_edits(perception_output.dashboard_edits)
         if perception_output.dashboard_groups:
             self.make_dashboard_groups(perception_output.dashboard_groups)
-        
+
         output["areas_to_perceive"] = updated_areas_to_perceive
         return output
 
@@ -537,15 +537,11 @@ class MCAgentMemory(AgentMemory):
     def make_manual_edits(self, edits):
         for memid in edits.keys():
             toEdit = {
-                attr: val
-                for attr, val in edits[memid].items()
-                if attr not in ("location", "pos")
+                attr: val for attr, val in edits[memid].items() if attr not in ("location", "pos")
             }
             if toEdit:
                 cmd = (
-                    "UPDATE ReferenceObjects SET "
-                    + "=?, ".join(toEdit.keys())
-                    + "=? WHERE uuid=?"
+                    "UPDATE ReferenceObjects SET " + "=?, ".join(toEdit.keys()) + "=? WHERE uuid=?"
                 )
                 self.db_write(cmd, *toEdit.values(), memid)
 

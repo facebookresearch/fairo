@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
 
+
 class ManualChangesPerception:
     """Perceive the world at a given frequency and send updates back to the agent
 
@@ -98,16 +99,14 @@ class ManualChangesPerception:
         """Restores any manual edits to an object"""
         self.edits.pop(memid, None)
 
-    def make_group(self, group_name: str, objects_to_group = {}):
-        """
-        
-        """
-        print("#"*100)
+    def make_group(self, group_name: str, objects_to_group={}):
+        """ """
+        print("#" * 100)
         print(group_name)
         print(list(objects_to_group.keys()))
         # print(dir(self.memory))
         self.tags[group_name] = list(objects_to_group.keys())
         # for memid in objects_to_tag:
-            # self.memory.tag(memid, tag)
-            # self.memory.add_triple(subj=memid, pred_text="has_tag", obj_text=tag)
+        # self.memory.tag(memid, tag)
+        # self.memory.add_triple(subj=memid, pred_text="has_tag", obj_text=tag)
         print("group made")
