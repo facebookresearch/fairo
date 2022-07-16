@@ -13,9 +13,18 @@ import MemoryMapTable, {
 import ClusteredObjsPopup, {
   positionClusteredObjsPopup,
 } from "./Memory2D/ClusteredObjsPopup";
+import Memory2DMenu from "./Memory2D/Memory2DMenu";
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
+import CloseIcon from "@material-ui/icons/Close";
+import Drawer from "@material-ui/core/Drawer";
+import Divider from "@material-ui/core/Divider";
+import TextField from "@material-ui/core/TextField";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@material-ui/core/Switch";
+
+import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 
 var hashCode = function (s) {
   return s.split("").reduce(function (a, b) {
@@ -34,6 +43,7 @@ class Memory2D extends React.Component {
       width: 600,
       isLoaded: false,
       memory: null,
+      triples: null,
       detections_from_memory: [],
       xmin: -10,
       xmax: 10,
@@ -60,6 +70,9 @@ class Memory2D extends React.Component {
       draw_pos_curr: null,
       draw_pos_start: null,
       selected_objects: {},
+      grouping_count: 0,
+      showMenu: false,
+      group_name: "",
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -139,6 +152,8 @@ class Memory2D extends React.Component {
       }
     } else {
       // otherwise if in selection_mode..
+      // ..do not interact with currently bugged objects
+      if (!["bot", "detection_from_memory"].includes(obj_type)) return;
       if (data.memid in selected_objects) {
         // ..unselect object
         let { [data.memid]: _, ...rest } = selected_objects;
@@ -186,7 +201,18 @@ class Memory2D extends React.Component {
       if (em[attr].status === "changed") numChanged += 1;
       return numChanged;
     }, 0);
-    if (numChanged > 0) this.props.stateManager.sendManualEdits(em);
+    if (numChanged > 0)
+      this.props.stateManager.sendManualChange({
+        type: "edit",
+        data: em,
+      });
+    this.onTableClose();
+  };
+  onTableRestore = (memid) => {
+    this.props.stateManager.sendManualChange({
+      type: "restore",
+      data: memid,
+    });
     this.onTableClose();
   };
   onPopupClose = () => {
@@ -196,7 +222,7 @@ class Memory2D extends React.Component {
     });
     this.onTableClose();
   };
-  handleRightClick = (e) => {
+  handleToggleDraw = (e) => {
     let { drag_coordinates, stageScale, drawing_mode } = this.state;
 
     e.evt.preventDefault();
@@ -238,7 +264,7 @@ class Memory2D extends React.Component {
       y: Math.max(startRect.y, endRect.y),
     };
     return (
-      whileDrawing == drawing_mode &&
+      whileDrawing === drawing_mode &&
       map_x > start.x &&
       map_y > start.y &&
       map_x < end.x &&
@@ -247,6 +273,7 @@ class Memory2D extends React.Component {
   };
   handleDrawEnd = (end_pos) => {
     let {
+      bot_data,
       obstacle_map,
       detections_from_memory,
       xmin,
@@ -262,7 +289,10 @@ class Memory2D extends React.Component {
     let toUnselectFrom = selected_objects;
 
     // Select/unselect map obstacles
-    if (obstacle_map) {
+    // FIXME: map obstacles do not currently have memid from agent,
+    //        disabling grouping for now
+    let enableObstacleMapGrouping = false;
+    if (enableObstacleMapGrouping && obstacle_map) {
       obstacle_map.forEach((obj) => {
         let map_x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
         let map_y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
@@ -283,6 +313,18 @@ class Memory2D extends React.Component {
           }
         }
       });
+    }
+
+    // Select/unselect bot
+    if (
+      this.inDrawnBounds(this.convertCoordinate(bot_data.pos), true, end_pos)
+    ) {
+      if (!(bot_data.memid in selected_objects)) {
+        toSelect[bot_data.memid] = bot_data;
+      } else {
+        let { [bot_data.memid]: _, ...rest } = toUnselectFrom;
+        toUnselectFrom = rest;
+      }
     }
 
     // Select/unselect detected objects from memory
@@ -306,11 +348,9 @@ class Memory2D extends React.Component {
         ...toSelect,
       },
     });
-
-    this.setState({ grouping_count: this.state.grouping_count + 1 });
   };
   handleMouseMove = (e) => {
-    let { drag_coordinates, stageScale, drawing_mode } = this.state;
+    let { drag_coordinates, stageScale } = this.state;
 
     let draw_pos = {
       x:
@@ -323,6 +363,14 @@ class Memory2D extends React.Component {
     this.setState({
       draw_pos_curr: draw_pos,
     });
+  };
+  onGroupSubmit = (data) => {
+    this.props.stateManager.sendManualChange({
+      type: "group",
+      data: data,
+    });
+    // flush previously selected objects
+    this.setState({ selected_objects: {} });
   };
   resizeHandler() {
     if (this.props.isMobile) {
@@ -384,6 +432,13 @@ class Memory2D extends React.Component {
   componentWillUnmount() {
     if (this.props.stateManager) this.props.stateManager.disconnect(this);
   }
+
+  onMenuOpen = () => {
+    this.setState({ showMenu: true });
+    // close all non-stage components when opening side menu
+    this.onPopupClose();
+    this.onTableClose();
+  };
 
   render() {
     if (!this.state.isLoaded) return <p>Loading</p>;
@@ -479,7 +534,6 @@ class Memory2D extends React.Component {
       }
     });
 
-    // Put objects from undefined memory on map?
     if (objects !== undefined && objects.forEach !== undefined) {
       objects.forEach((obj, key, map) => {
         let color = colorScheme[Math.abs(hashCode(obj.label)) % 10];
@@ -534,7 +588,7 @@ class Memory2D extends React.Component {
             radius={isFocused ? obj.radius * 1.5 : obj.radius}
             fill={obj.data.memid in selected_objects ? "green" : obj.color}
             onClick={(e) => {
-              if (e.evt.which === 1)
+              if (e.evt.button === 0)
                 this.handleObjClick(obj.type, [map_x, map_y], obj.data);
             }}
           />
@@ -544,18 +598,19 @@ class Memory2D extends React.Component {
         let numObjs = objs_at_pos.length;
         let clusteredObjects = [];
         let [clusterColor, clusterRadius] = ["#0000FF", 6];
-        let allObjsSelected = true;
         objs_at_pos.forEach((obj) => {
           clusteredObjects.push(obj);
-          if (!(obj.data.memid in selected_objects)) allObjsSelected = false;
         });
+        let someObjSelected = objs_at_pos.some(
+          (obj) => obj.data.memid in selected_objects
+        );
         renderedObjects.push(
           <Group
             key={map_pos}
             x={map_x}
             y={map_y}
             onClick={(e) => {
-              if (e.evt.which === 1)
+              if (e.evt.button === 0)
                 this.handlePopupClick([map_x, map_y], clusteredObjects);
             }}
           >
@@ -563,7 +618,7 @@ class Memory2D extends React.Component {
               x={0}
               y={0}
               radius={isFocused ? clusterRadius * 1.5 : clusterRadius}
-              fill={allObjsSelected ? "green" : clusterColor}
+              fill={someObjSelected ? "green" : clusterColor}
               stroke="black"
               strokeWidth={1}
             />
@@ -596,7 +651,7 @@ class Memory2D extends React.Component {
         x={bot_x}
         y={bot_y}
         onClick={(e) => {
-          if (e.evt.which === 1)
+          if (e.evt.button === 0)
             this.handleObjClick("bot", [bot_x, bot_y], bot_data);
         }}
         onMouseOver={(e) => {
@@ -616,7 +671,7 @@ class Memory2D extends React.Component {
               ? 15
               : 10
           }
-          fill="red"
+          fill={bot_data.memid in selected_objects ? "green" : "red"}
         />
         <Line
           key={j++}
@@ -836,6 +891,12 @@ class Memory2D extends React.Component {
     );
     coordinateAxesLayer.push(axesX, axesZ, notches);
 
+    const menuTheme = createMuiTheme({
+      palette: {
+        type: "dark",
+      },
+    });
+
     // final render
     return (
       <div
@@ -861,6 +922,16 @@ class Memory2D extends React.Component {
           this.setState({ selection_mode: false });
         }}
         tabIndex="0"
+        onMouseDown={(e) => {
+          // quick open/close menu with middle button click
+          if (e.button === 1) {
+            this.setState((prev) => {
+              return {
+                showMenu: !prev.showMenu,
+              };
+            });
+          }
+        }}
       >
         <div
           style={{
@@ -888,7 +959,8 @@ class Memory2D extends React.Component {
               this.handleDrag("memory2d", [e.target.attrs.x, e.target.attrs.y])
             }
             onContextMenu={(e) => {
-              this.handleRightClick(e);
+              // toggle draw selection rectangle with right click
+              this.handleToggleDraw(e);
             }}
             onMouseMove={(e) => {
               this.handleMouseMove(e);
@@ -967,6 +1039,7 @@ class Memory2D extends React.Component {
               data={table_data}
               onTableClose={this.onTableClose}
               onTableSubmit={this.onTableSubmit}
+              onTableRestore={this.onTableRestore}
             />
           </div>
         )}
@@ -974,20 +1047,28 @@ class Memory2D extends React.Component {
           style={{
             position: "absolute",
             right: this.state.width - width,
-            top: 10,
+            top: "0.3%",
           }}
         >
-          <Button
-            variant="contained"
-            disabled={Object.keys(selected_objects).length <= 1}
-            onClick={() => {
-              console.log(selected_objects);
-              this.setState({ selected_objects: {} });
-            }}
-          >
-            Group
-          </Button>
+          <IconButton size="small" disableRipple onClick={this.onMenuOpen}>
+            <MenuIcon />
+          </IconButton>
         </div>
+        <Memory2DMenu
+          showMenu={this.state.showMenu}
+          onMenuClose={() => {
+            this.setState({ showMenu: false });
+          }}
+          selected_objects={selected_objects}
+          onGroupSubmit={this.onGroupSubmit}
+          toggleDynamicPositioning={() => {
+            this.setState((prev) => {
+              return {
+                dynamic_positioning: !prev.dynamic_positioning,
+              };
+            });
+          }}
+        />
       </div>
     );
   }

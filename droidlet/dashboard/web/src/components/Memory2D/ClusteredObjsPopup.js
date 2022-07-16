@@ -10,7 +10,7 @@ import Paper from "@material-ui/core/Paper";
 import Box from "@material-ui/core/Box";
 
 import IconButton from "@material-ui/core/IconButton";
-import ClearIcon from "@material-ui/icons/Clear";
+import CloseIcon from "@material-ui/icons/Close";
 import Tooltip from "@material-ui/core/Tooltip";
 
 const MAX_TABLE_CELL_WIDTH = 100;
@@ -84,7 +84,7 @@ export default function ClusteredObjsPopup(props) {
                   color="secondary"
                   size="small"
                 >
-                  <ClearIcon fontSize="small" />
+                  <CloseIcon fontSize="small" />
                 </IconButton>
               </Box>
             </StyledTableCell>

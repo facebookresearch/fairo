@@ -104,7 +104,7 @@ class StateManager {
 
     this.processMap = this.processMap.bind(this);
     this.handleMapToggle = this.handleMapToggle.bind(this);
-    this.sendManualEdits = this.sendManualEdits.bind(this);
+    this.sendManualChange = this.sendManualChange.bind(this);
 
     this.returnTimelineEvent = this.returnTimelineEvent.bind(this);
 
@@ -1100,12 +1100,14 @@ class StateManager {
             isLoaded: true,
             detections_from_memory: res.detections_from_memory,
             memory: this.memory,
+            triples: res.triples,
             bot_xyz: [res.x, res.y, res.yaw],
             bot_data: res.bot_data,
             obstacle_map: res.map,
             map_update_count: prevState.map_update_count + 1,
           };
         });
+        console.log(res.triples);
       }
     });
 
@@ -1134,8 +1136,14 @@ class StateManager {
     this.socket.emit("toggle_map", { dash_enable_map: this.dash_enable_map });
   }
 
-  sendManualEdits(edits) {
-    this.socket.emit("manual_edits", edits);
+  sendManualChange(change) {
+    /**
+     * change = {
+     *    type: "edit" or "restore" or "group"
+     *    data: <data>
+     * }
+     */
+    this.socket.emit("manual_change", change);
   }
 
   connect(o) {

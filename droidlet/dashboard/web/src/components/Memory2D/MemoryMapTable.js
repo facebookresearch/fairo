@@ -12,7 +12,8 @@ import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
 import RefreshIcon from "@material-ui/icons/Refresh";
-import ClearIcon from "@material-ui/icons/Clear";
+import RestoreIcon from "@material-ui/icons/Restore";
+import CloseIcon from "@material-ui/icons/Close";
 import Tooltip from "@material-ui/core/Tooltip";
 
 import TextField from "@material-ui/core/TextField";
@@ -166,13 +167,11 @@ export default function MemoryMapTable(props) {
               <Box display="flex" justifyContent="space-between">
                 Value
                 <IconButton
-                  onClick={() => {
-                    props.onTableClose();
-                  }}
+                  onClick={props.onTableClose}
                   color="secondary"
                   size="small"
                 >
-                  <ClearIcon fontSize="small" />
+                  <CloseIcon fontSize="small" />
                 </IconButton>
               </Box>
             </StyledTableCell>
@@ -229,9 +228,23 @@ export default function MemoryMapTable(props) {
           <StyledTableRow>
             <StyledTableCell colSpan={2} align="center">
               <Box display="flex" justifyContent="space-around">
+                <Tooltip
+                  title="restores values to what they were before any manual edits"
+                  placement="bottom"
+                >
+                  <IconButton
+                    onClick={() => {
+                      console.log("should restore");
+                      props.onTableRestore(props.data["memid"]);
+                    }}
+                    size="small"
+                  >
+                    <RestoreIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
                 <Button
                   variant="contained"
-                  onClick={(e) => {
+                  onClick={() => {
                     props.onTableSubmit(
                       Object.keys(editManager).reduce((toSend, attr) => {
                         // only send immutable, changed fields
@@ -248,14 +261,19 @@ export default function MemoryMapTable(props) {
                 >
                   Submit
                 </Button>
-                <IconButton
-                  onClick={(e) => {
-                    setRefresher((count) => count + 1);
-                  }}
-                  size="small"
+                <Tooltip
+                  title="refreshes values to what they were when table was opened"
+                  placement="bottom"
                 >
-                  <RefreshIcon fontSize="small" />
-                </IconButton>
+                  <IconButton
+                    onClick={() => {
+                      setRefresher((count) => count + 1);
+                    }}
+                    size="small"
+                  >
+                    <RefreshIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </Box>
             </StyledTableCell>
           </StyledTableRow>
