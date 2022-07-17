@@ -115,10 +115,12 @@ function MapTextField(props) {
 /**
  * Creates simple table of memory values for an object on the map.
  *
- * @param {data, onTableClose, onTableSubmit} props
+ * @param {data, onTableClose, onTableSubmit, onTableRestore, allTriples} props
  *                            data: dictionary of attribute: value pairs for object
  *                            onTableClose: event handler to close the table
  *                            onTableSubmit: event handler to send changed values to memory and close table
+ *                            onTableRestore: event handler to restore table values to what they were without manual edits
+ *                            allTriples: if show_triples toggled in menu, reference to all triples sent from agent memory
  */
 export default function MemoryMapTable(props) {
   /*
@@ -130,9 +132,11 @@ export default function MemoryMapTable(props) {
     status: "same" or "changed" or "error" [or "new" or "deleted"] [for future],
   ] 
   */
+  const [memid, setMemid] = useState(null);
   const [editManager, setEditManager] = useState({});
   const [refresher, setRefresher] = useState(0);
   const [disableSubmit, setDisableSubmit] = useState(true);
+  const [triples, setTriples] = useState([]);
 
   useEffect(() => {
     if (props.data) {
@@ -145,10 +149,21 @@ export default function MemoryMapTable(props) {
             status: "same",
           })
       );
+      setMemid(props.data["memid"]);
       setEditManager(em);
       setDisableSubmit(true);
     }
   }, [props.data, refresher]);
+
+  useEffect(() => {
+    if (props.allTriples) {
+      let relevantTriples = [];
+      props.allTriples.forEach((triple) => {
+        if (triple[1] === memid) relevantTriples.push(triple);
+      });
+      setTriples(relevantTriples);
+    }
+  }, [props.allTriples, memid]);
 
   let immutableFields = ["memid", "eid", "node_type", "obj_id"];
 
@@ -177,7 +192,7 @@ export default function MemoryMapTable(props) {
             </StyledTableCell>
           </TableRow>
         </TableHead>
-        <TableBody key={props.data["memid"]}>
+        <TableBody key={memid}>
           {Object.keys(
             Object.keys(editManager).reduce((toDisplay, attr) => {
               if (editManager[attr].status !== "deleted")
@@ -278,6 +293,39 @@ export default function MemoryMapTable(props) {
             </StyledTableCell>
           </StyledTableRow>
         </TableBody>
+        {props.allTriples && triples.length > 0 && (
+          <>
+            <TableHead>
+              <TableRow>
+                <StyledTableCell>Predicate</StyledTableCell>
+                <StyledTableCell>
+                  <Box display="flex" justifyContent="space-between">
+                    Value
+                    <IconButton
+                      onClick={props.onTableClose}
+                      color="secondary"
+                      size="small"
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </StyledTableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {triples.map((triple) => (
+                <StyledTableRow key={triple[0]}>
+                  <StyledTableCell desc="predicate">
+                    {shortenLongTableEntries(triple[4])}
+                  </StyledTableCell>
+                  <StyledTableCell desc="value">
+                    {shortenLongTableEntries(triple[6])}
+                  </StyledTableCell>
+                </StyledTableRow>
+              ))}
+            </TableBody>
+          </>
+        )}
       </Table>
     </TableContainer>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
@@ -19,10 +19,16 @@ const menuTheme = createMuiTheme({
 /**
  * Creates simple table of memory values for an object on the map.
  *
- * @param {data, onTableClose, onTableSubmit} props
- *                            data: dictionary of attribute: value pairs for object
- *                            onTableClose: event handler to close the table
- *                            onTableSubmit: event handler to send changed values to memory and close table
+ * @param {showMenu, onMenuClose, selected_objects, onGroupSubmit, dynamicPositioning, toggleDynamicPositioning, showTriples, toggleShowTriples} props
+ *                            showMenu: bool for if menu should be open/close
+ *                            onMenuClose: handler to close menu
+ *                            selected_objects: dict of all objects selected and their data
+ *                            onGroupSubmit: handler to submit grouping
+ *                            dynamicPositioning: bool for if map tabular elements should dynamically
+ *                                                position themselves based on window position
+ *                            toggleDynamicPositioning: handler to toggle DP
+ *                            showTriples: bool for if MemoryMapTable should show triples assoc with object
+ *                            toggleShowTriples: handler to toggle showTriples
  */
 export default function Memory2DMenu(props) {
   const [groupName, setGroupName] = React.useState("");
@@ -64,9 +70,24 @@ export default function Memory2DMenu(props) {
           </Button>
           <FormControlLabel
             control={
-              <Switch size="small" onChange={props.toggleDynamicPositioning} />
+              <Switch
+                size="small"
+                checked={props.dynamicPositioning}
+                onChange={props.toggleDynamicPositioning}
+              />
             }
             label="Dynamic Positioning: "
+            labelPlacement="end"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={props.showTriples}
+                onChange={props.toggleShowTriples}
+              />
+            }
+            label="Show triples: "
             labelPlacement="end"
           />
         </div>

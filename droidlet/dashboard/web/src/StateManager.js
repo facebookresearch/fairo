@@ -1107,7 +1107,6 @@ class StateManager {
             map_update_count: prevState.map_update_count + 1,
           };
         });
-        console.log(res.triples);
       }
     });
 

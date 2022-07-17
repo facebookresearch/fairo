@@ -14,17 +14,8 @@ import ClusteredObjsPopup, {
   positionClusteredObjsPopup,
 } from "./Memory2D/ClusteredObjsPopup";
 import Memory2DMenu from "./Memory2D/Memory2DMenu";
-import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
-import CloseIcon from "@material-ui/icons/Close";
-import Drawer from "@material-ui/core/Drawer";
-import Divider from "@material-ui/core/Divider";
-import TextField from "@material-ui/core/TextField";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Switch from "@material-ui/core/Switch";
-
-import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 
 var hashCode = function (s) {
   return s.split("").reduce(function (a, b) {
@@ -63,16 +54,17 @@ class Memory2D extends React.Component {
       table_visible: false,
       popup_data: null,
       popup_visible: false,
-      dynamic_positioning: false,
       map_update_count: 0,
       selection_mode: false,
       drawing_mode: false,
       draw_pos_curr: null,
       draw_pos_start: null,
       selected_objects: {},
+      group_name: "",
       grouping_count: 0,
       showMenu: false,
-      group_name: "",
+      dynamicPositioning: false,
+      showTriples: false,
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -435,9 +427,6 @@ class Memory2D extends React.Component {
 
   onMenuOpen = () => {
     this.setState({ showMenu: true });
-    // close all non-stage components when opening side menu
-    this.onPopupClose();
-    this.onTableClose();
   };
 
   render() {
@@ -457,7 +446,8 @@ class Memory2D extends React.Component {
       table_visible,
       popup_data,
       popup_visible,
-      dynamic_positioning,
+      dynamicPositioning,
+      showTriples,
       focused_point_coords,
       map_update_count,
       selected_objects,
@@ -891,12 +881,6 @@ class Memory2D extends React.Component {
     );
     coordinateAxesLayer.push(axesX, axesZ, notches);
 
-    const menuTheme = createMuiTheme({
-      palette: {
-        type: "dark",
-      },
-    });
-
     // final render
     return (
       <div
@@ -1009,8 +993,8 @@ class Memory2D extends React.Component {
               this.state.width,
               focused_point_coords,
               drag_coordinates,
-              dynamic_positioning,
-              dynamic_positioning && popup_data
+              dynamicPositioning,
+              dynamicPositioning && popup_data
             )}
           >
             <ClusteredObjsPopup
@@ -1031,8 +1015,8 @@ class Memory2D extends React.Component {
               this.state.width,
               focused_point_coords,
               drag_coordinates,
-              dynamic_positioning,
-              dynamic_positioning && table_data
+              dynamicPositioning,
+              dynamicPositioning && table_data
             )}
           >
             <MemoryMapTable
@@ -1040,6 +1024,7 @@ class Memory2D extends React.Component {
               onTableClose={this.onTableClose}
               onTableSubmit={this.onTableSubmit}
               onTableRestore={this.onTableRestore}
+              allTriples={showTriples && this.state.triples}
             />
           </div>
         )}
@@ -1061,10 +1046,19 @@ class Memory2D extends React.Component {
           }}
           selected_objects={selected_objects}
           onGroupSubmit={this.onGroupSubmit}
+          dynamicPositioning={dynamicPositioning}
           toggleDynamicPositioning={() => {
             this.setState((prev) => {
               return {
-                dynamic_positioning: !prev.dynamic_positioning,
+                dynamicPositioning: !prev.dynamicPositioning,
+              };
+            });
+          }}
+          showTriples={showTriples}
+          toggleShowTriples={() => {
+            this.setState((prev) => {
+              return {
+                showTriples: !prev.showTriples,
               };
             });
           }}
