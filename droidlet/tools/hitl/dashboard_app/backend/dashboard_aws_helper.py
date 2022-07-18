@@ -145,7 +145,10 @@ def get_dataset_version_list_by_pipeline(pipeline: str):
     json_data = json.load(f)
     f.close()
 
-    return [json_data[f"{dataset_prefix}_data_latest"]] + json_data[f"{dataset_prefix}_data_versions"]
+    return [json_data[f"{dataset_prefix}_data_latest"]] + json_data[
+        f"{dataset_prefix}_data_versions"
+    ]
+
 
 def get_dataset_by_name(dataset_name: str):
     """
