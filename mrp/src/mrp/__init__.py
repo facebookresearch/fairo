@@ -26,12 +26,13 @@ def main(*args):
 
 def import_msetup(path):
     # TODO(lshamis): Maybe add args to filter imported processes.
-    if not path.endswith("msetup.py"):
-        path = os.path.join(path, "msetup.py")
-
     caller_path = inspect.stack()[1].filename
     caller_dir = os.path.dirname(caller_path)
     target_path = os.path.join(caller_dir, path)
+
+    if os.path.isdir(target_path):
+        target_path = os.path.join(target_path, "msetup.py")
+
     SourceFileLoader("msetup", target_path).load_module()
 
 
