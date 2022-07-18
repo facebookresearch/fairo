@@ -138,6 +138,7 @@ export default function MemoryMapTable(props) {
   const [disableSubmit, setDisableSubmit] = useState(true);
   const [triples, setTriples] = useState([]);
 
+  // update table values on data change/refresh
   useEffect(() => {
     if (props.data) {
       let em = {};
@@ -155,6 +156,7 @@ export default function MemoryMapTable(props) {
     }
   }, [props.data, refresher]);
 
+  // filter relevant triples to object
   useEffect(() => {
     if (props.allTriples) {
       let relevantTriples = [];
@@ -167,7 +169,6 @@ export default function MemoryMapTable(props) {
 
   let immutableFields = ["memid", "eid", "node_type", "obj_id"];
 
-  // console.log(editManager);
   return (
     <TableContainer
       component={Paper}

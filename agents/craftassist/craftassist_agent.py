@@ -442,11 +442,7 @@ class CraftAssistAgent(DroidletAgent):
             x, _, z = from_minecraft_xyz_to_droidlet(mc_xyz)
             yaw, _ = from_minecraft_look_to_droidlet(mc_look)
             xyyaw = (x, z, yaw)
-
         triples = self.memory._db_read("SELECT * FROM Triples")
-        # triples = self.memory.basic_search("SELECT * FROM Triples")
-        # self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
-
         sio.emit(
             "map",
             {
