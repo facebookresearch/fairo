@@ -3614,19 +3614,13 @@ const fps = 2;
 const renderInterval = 1000 / fps;
 let camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
 const followPointerScale = 150;
-const preLoadMaterialNames = ['grass', 'dirt']; //, 'white wool', 'orange wool', 'magenta wool'];
+const preLoadMaterialNames = ['grass', 'dirt', 'wood']; //, 'white wool', 'orange wool', 'magenta wool'];
 
 const blockScale = 50;
-const bid2Color = {
-  1: 0x808080,
-  2: 0xff0000,
-  3: 0xffff00,
-  4: 0x800000,
-  5: 0x0000ff
-};
 const bid2Name = {
   8: 'grass',
   9: 'dirt',
+  13: 'wood',
   46: 'white wool',
   47: 'orange wool',
   48: 'magenta wool',
@@ -3668,7 +3662,7 @@ const MoveStep = 0.5; // normalized -- block length is 1 here
 
 let controlled_player, agent_player;
 const AGENT_NAME = "craftassist_agent";
-const PLAYER_NAME = "dashboard_player";
+const PLAYER_NAME = "dashboard";
 let mobs = {};
 let mobList = [];
 let itemStacks = {};
@@ -3841,8 +3835,8 @@ class DVoxelEngine {
     renderer = this.renderer;
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight); // Axis helper for debugging
-    // this.scene.add( new THREE.AxesHelper( 10000 ) );
-    // loader and preloaded materials -- to improve performance
+
+    this.scene.add(new THREE.AxesHelper(10000)); // loader and preloaded materials -- to improve performance
 
     loader = new THREE.TextureLoader();
     preLoadBlockMaterials = new Map();
@@ -4796,6 +4790,13 @@ const VW_ITEM_MAP = {
     "sides": 'dirt.png',
     "bottom": 'dirt.png',
     "top": 'dirt.png'
+  },
+  "wood": {
+    "color": 0xffffff,
+    "opacity": 1.0,
+    "sides": 'wood.png',
+    "bottom": 'wood.png',
+    "top": 'wood.png'
   },
   "white wool": {
     "color": 0xffffff,
