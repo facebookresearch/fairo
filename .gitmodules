@@ -26,3 +26,6 @@
 [submodule "perception/sandbox/polygrasp/third_party/graspnet-baseline"]
 	path = perception/sandbox/polygrasp/third_party/graspnet-baseline
 	url = git@github.com:1heart/graspnet-baseline.git
+[submodule "polymetis/third_party/habitat-lab"]
+	path = polymetis/third_party/habitat-lab
+	url = git@github.com:facebookresearch/habitat-lab.git
