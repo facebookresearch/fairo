@@ -199,9 +199,6 @@ class Move(BaseMovementTask):
         self.path = None
         self.replace = set()
         self.last_stepped_time = agent.memory.get_time()
-
-        logging.info(f"move task data {task_data}")
-
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def target_to_memory(self, target):
@@ -302,8 +299,6 @@ class Build(Task):
         self.old_origin = None
         self.PLACE_REACH = task_data.get("PLACE_REACH", 3)
 
-        logging.info(f"build task data {self.task_data}")
-
         # negative schematic related
         self.is_destroy_schm = task_data.get("is_destroy_schm", False)
         self.dig_message = task_data.get("dig_message", False)
@@ -355,7 +350,6 @@ class Build(Task):
     @Task.step_wrapper
     def step(self):
         super().step()
-        logging.info("build task step")
         agent = self.agent
         if self.finished:
             return

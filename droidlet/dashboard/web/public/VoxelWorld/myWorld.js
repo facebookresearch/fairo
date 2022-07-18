@@ -3835,8 +3835,8 @@ class DVoxelEngine {
     renderer = this.renderer;
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight); // Axis helper for debugging
-
-    this.scene.add(new THREE.AxesHelper(10000)); // loader and preloaded materials -- to improve performance
+    // this.scene.add( new THREE.AxesHelper( 10000 ) );
+    // loader and preloaded materials -- to improve performance
 
     loader = new THREE.TextureLoader();
     preLoadBlockMaterials = new Map();

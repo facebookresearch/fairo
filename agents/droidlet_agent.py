@@ -346,11 +346,6 @@ class DroidletAgent(BaseAgent):
 
         # add postprocessed chat here
         memid, _ = self.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}')
-        if len(memid) == 0 and self.perception_modules["low_level"]:
-            # Probably haven't perceived speaker yet, try
-            # low_level_perception_output = self.perception_modules["low_level"].perceive(force=True)
-            import ipdb
-            ipdb.set_trace(context=7)
         chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
             self.memory, memid[0], preprocessed_chat
         )
