@@ -80,7 +80,7 @@ class SimInterface:
         connection = polymetis_pb2_grpc.PolymetisControllerServerStub(channel)
         connection.InitRobotClient(metadata)
 
-        # Register callbakcs
+        # Register callbacks
         self.control_items.append(
             ServiceInfo(connection, channel, state_callback, action_callback)
         )
