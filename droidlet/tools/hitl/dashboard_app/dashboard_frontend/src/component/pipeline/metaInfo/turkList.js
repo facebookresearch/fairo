@@ -78,11 +78,11 @@ const TurkList = (props) => {
             columns={[{
                 title: 'Id',
                 dataIndex: 'id',
-                sorter: (one, other) => (one === other ? 0 : (one < other ? -1 : 1)),
+                sorter: (one, other) => (one.id === other.id ? 0 : (one.id < other.id ? -1 : 1)),
             }, {
                 title: 'Blocked',
                 dataIndex: 'blocked',
-                sorter: (one, other) => (one === other ? 0 : (one < other ? -1 : 1)),
+                sorter: (one, other) => (one.blocked === other.blocked ? 0 : (one.blocked < other.blocked ? -1 : 1)),
                 render: (blocked, row) =>
                     <Checkbox onChange={(e) => handleOnClickCheckbox(e.target.checked, row.id)}
                         disabled={!editable}
