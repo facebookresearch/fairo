@@ -8,9 +8,9 @@ In this example we split off the traditional `msetup.py` into two files: `msetup
 
 To run them in order,
 ```sh
-mrp -v up && \
+mrp up && \
 mrp wait && \
-mrp -f frun.py -v up
+mrp -f frun.py up
 ```
 
 To see the rosmsg in use:

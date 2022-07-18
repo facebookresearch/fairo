@@ -125,17 +125,17 @@ class Memory2D extends React.Component {
         -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
     });
   };
-  handleObjClick = (obj_type, map_pos, data) => {
+  handleObjClick = (obj_type, map_pos, obj_data) => {
     let { selection_mode, selected_objects, focused_point_coords } = this.state;
 
     if (!selection_mode) {
       // if not in grouping mode, open MemoryMapTable
       this.setState({
-        table_data: data,
+        table_data: obj_data,
         table_visible: true,
         focused_point_coords: map_pos,
       });
-      // close other tabular elements when switching to new obj/cluster
+      // make other tabular elements invisible when switching to new obj/cluster
       if (
         map_pos[0] !== focused_point_coords[0] ||
         map_pos[1] !== focused_point_coords[1]
@@ -146,37 +146,59 @@ class Memory2D extends React.Component {
       // otherwise if in selection_mode..
       // ..do not interact with currently bugged objects
       if (!["bot", "detection_from_memory"].includes(obj_type)) return;
-      if (data.memid in selected_objects) {
-        // ..unselect object
-        let { [data.memid]: _, ...rest } = selected_objects;
-        this.setState({ selected_objects: rest });
-      } else {
+      if (!(obj_data.memid in selected_objects)) {
         // ..select object
         this.setState({
           selected_objects: {
             ...selected_objects,
-            [data.memid]: data,
+            [obj_data.memid]: obj_data,
           },
         });
+      } else {
+        // ..unselect object
+        let { [obj_data.memid]: _, ...rest } = selected_objects;
+        this.setState({ selected_objects: rest });
       }
     }
   };
-  handlePopupClick = (map_pos, data) => {
-    let { focused_point_coords } = this.state;
+  handlePopupClick = (map_pos, clusteredObjects) => {
+    let { selection_mode, selected_objects, focused_point_coords } = this.state;
 
-    // TODO: select/unselect all objects in cluster when using Cmd + Click
-
-    this.setState({
-      popup_data: data,
-      popup_visible: true,
-      focused_point_coords: map_pos,
-    });
-    // close other tabular elements when switching to new map_pos
-    if (
-      map_pos[0] !== focused_point_coords[0] ||
-      map_pos[1] !== focused_point_coords[1]
-    ) {
-      this.setState({ table_visible: false });
+    if (!selection_mode) {
+      // if not in selection_mode, open ClusteredObjsPopup
+      this.setState({
+        popup_data: clusteredObjects,
+        popup_visible: true,
+        focused_point_coords: map_pos,
+      });
+      // make other tabular elements invisible when switching to new focus point
+      if (
+        map_pos[0] !== focused_point_coords[0] ||
+        map_pos[1] !== focused_point_coords[1]
+      ) {
+        this.setState({ table_visible: false });
+      }
+    } else {
+      // otherwise if in selection_mode..
+      let toSelect = {};
+      let toUnselectFrom = selected_objects;
+      clusteredObjects.forEach((obj) => {
+        let obj_data = obj.data;
+        if (!(obj_data.memid in selected_objects)) {
+          // ..select object
+          toSelect[obj_data.memid] = obj_data;
+        } else {
+          // ..unselect object
+          let { [obj_data.memid]: _, ...rest } = toUnselectFrom;
+          toUnselectFrom = rest;
+        }
+      });
+      this.setState({
+        selected_objects: {
+          ...toUnselectFrom,
+          ...toSelect,
+        },
+      });
     }
   };
   onTableClose = () => {
