@@ -70,7 +70,7 @@ def get_info(batch_id):
     get run info by id, run info could be:
         meta data like name of the run, batch id, start time/end time, stastics for each HIT jobs in this run, etc.
     - input: a batch id.
-    - output: if the run info can be found, return the run info in a json format, otherwise, return an error message sugesting not found.
+    - output: if the run info can be found, return the run info in a json format, otherwise, return an error message suggesting not found.
     """
     print(f"Request received: {DASHBOARD_EVENT.GET_RUN_INFO.value}")
     run_info, error_code = get_run_info_by_id(int(batch_id))
@@ -84,7 +84,7 @@ def get_interaction_sessions(batch_id):
     """
     get interaction job sessions list
     - input: a batch id.
-    - output: if the sessions can be found, return a list of session name, otherwise, return an error message sugesting not found.
+    - output: if the sessions can be found, return a list of session name, otherwise, return an error message suggesting not found.
     """
     print(f"Request received: {DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value}")
     sessions = get_interaction_sessions_by_id(int(batch_id))
