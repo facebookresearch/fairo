@@ -8,7 +8,7 @@ This is a Dashboard app prototype for the HITL system.
     - Add frontend for viewing & editing turk list
     - The turk list supports sort, and search by turk id; when editing the list, user need to unlock first
     - Demo:
-        - 
+        - ![demo_turk_list_manage](https://user-images.githubusercontent.com/51009396/179618044-f253777b-1486-410a-ba04-29d187c62f1a.gif)
 - July 14:
     - Added model visualization component, user can see text info about a model:
     - Demo:
