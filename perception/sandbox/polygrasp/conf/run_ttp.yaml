@@ -3,17 +3,13 @@ defaults:
   - robot: robot_hw
   - cam: cam_realsense
   - trainer/padding_partial@padding: dual_model  # input_pad_fn  # pad_fn #  prompt_pad_fn
-  # logging
-  - trainer/logger_partial@logger_partial: dual_model
   # model
-  - trainer/transformer_model@model: dual_model
-  - trainer/transformer_model@config: config
   - trainer/submodule/category_encoder@category_encoder: mlp 
   - trainer/submodule/pose_encoder@pose_encoder: fourier_mlp 
   - trainer/submodule/temporal_encoder@temporal_encoder: embed
   - trainer/submodule/reality_marker_encoder@reality_marker_encoder: embed
 
-checkpoint_path: '/home/yixinlin/temporal_task_planner/checkpoints/two_pref_policy.pt'
+checkpoint_path: '/home/yixinlin/temporal_task_planner/checkpoints/full_visible_two_pref.pt'
 prompt_session_path: '/home/yixinlin/temporal_task_planner/artifacts/full_visible_env/pref_0123_456-top_first-True_back-center/2/sess_0.json'
 
 # model arch

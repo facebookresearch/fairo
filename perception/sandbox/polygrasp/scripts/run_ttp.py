@@ -41,9 +41,9 @@ from polygrasp.grasp_rpc import GraspClient
 from polygrasp.serdes import load_bw_img
 
 import fairotag
-from temporal_task_planner.utils.data_structure_utils import construct_rigid_instance
-from temporal_task_planner.constants.lookup import bounding_box_dict, category_vocab, special_instance_vocab
-from temporal_task_planner.data_structures.instance import Instance, RigidInstance
+from temporal_task_planner.utils.data_structure_utils import construct_rigid_instance, construct_act_instance
+from temporal_task_planner.constants.gen_sess_config.lookup import dishwasher_part_poses, link_id_names, bounding_box_dict, category_vocab, special_instance_vocab
+from temporal_task_planner.data_structures.state import State # Instance, RigidInstance
 from temporal_task_planner.transform_hardware_to_sim import * # process_hw_pose_for_sim_axes
 from temporal_task_planner.utils.datasetpytorch_utils import get_temporal_context
 from temporal_task_planner.policy.learned_policy import PromptSituationLearnedPolicy  as PromptSituationPolicy
@@ -52,7 +52,7 @@ from temporal_task_planner.trainer.transformer.configs import TransformerTaskPla
 # from temporal_task_planner.trainer.submodule.category_encoder import CategoryEncoderMLP as CategoryEncoder
 # from temporal_task_planner.trainer.submodule.pose_encoder import PoseEncoderFourierMLP as PoseEncoder
 # from temporal_task_planner.trainer.submodule.temporal_encoder import TemporalEncoderEmbedding as TemporalEncoder
-
+time_to_go = 5
 
 def load_json(pathname):
     with open(pathname, 'r') as f:
@@ -63,14 +63,20 @@ map_cat_hw_to_sim = {
     'dark_blue_plate': "frl_apartment_plate_01_small_",
     'yellow_cup': "frl_apartment_kitchen_utensil_06_",
     'light_blue_bowl' : "frl_apartment_bowl_03_",
-    'red_bowl': "frl_apartment_bowl_07_small_"
+    # 'peach_big_bowl': "frl_apartment_bowl_03_",
+    # 'red_bowl': "frl_apartment_bowl_07_small_",  
+    'pink_small_bowl': "frl_apartment_bowl_07_small_",  
+    "bottom": "ktc_dishwasher_:0000_joint_1",
+    "top": "ktc_dishwasher_:0000_joint_3",
 }
+map_cat_sim_to_hw = {v: k for k, v in map_cat_hw_to_sim.items()}
 X = np.load(os.path.expanduser('~') + '/temporal_task_planner/hw_transforms/pick_counter.npy')
 
-artag_all_closed = load_json('data/all_closed.json')
-artag_all_open = load_json('data/all_open.json')
-artag_open_top_drawer = load_json('data/open_top_drawer.json')
-artag_open_bottom_drawer = load_json('data/open_bottom_drawer.json')
+artag_lib = {}
+artag_lib.update(load_json('data/all_closed.json'))
+artag_lib.update(load_json('data/all_open.json'))
+artag_lib.update(load_json('data/open_top_drawer.json'))
+artag_lib.update(load_json('data/open_bottom_drawer.json'))
 
 top_closed_1 = torch.tensor([-2.8709,  1.7132,  1.3774, -1.8681, -1.4531,  1.9806,  0.4803])
 top_closed_2 = torch.tensor([-2.5949,  1.7388,  1.0075, -1.6537, -1.4691,  2.3417,  0.4605])
@@ -84,7 +90,9 @@ high_position_close = torch.tensor([-2.8740,  1.3173,  1.5164, -1.2091, -1.1478,
 sink_pose = torch.tensor([-0.2135, -0.0278,  0.5381, -2.1573,  0.0384,  2.1235, -0.6401])
 # torch.tensor([-1.1165,  0.7988,  1.5438, -2.3060, -1.0097,  2.0797, -0.5347])
 
-def move_to_joint_pos(robot, pos, time_to_go=5.0):
+act_instance = construct_act_instance(is_action_available=False, is_action_to_be_predicted=True, relative_timestep=1)
+
+def move_to_joint_pos(robot, pos, time_to_go=10.0):
     state_log = []
     while len(state_log) < time_to_go*100:
         state_log = robot.move_to_joint_positions(pos, time_to_go)
@@ -92,32 +100,32 @@ def move_to_joint_pos(robot, pos, time_to_go=5.0):
     
 
 def open_bottom_drawer(robot):
-    traj = move_to_joint_pos(robot, high_position_close)
-    traj = move_to_joint_pos(robot, bottom_closed_1)
-    traj = move_to_joint_pos(robot, bottom_closed_2)
-    traj = move_to_joint_pos(robot, bottom_open)
-    traj = move_to_joint_pos(robot, high_position_close)
+    traj = robot.move_to_joint_positions(high_position_close)
+    traj = robot.move_to_joint_positions(bottom_closed_1)
+    traj = robot.move_to_joint_positions(bottom_closed_2)
+    traj = robot.move_to_joint_positions(bottom_open)
+    traj = robot.move_to_joint_positions(high_position_close)
 
 def open_top_drawer(robot):
-    traj = move_to_joint_pos(robot, high_position_close)
-    traj = move_to_joint_pos(robot, top_closed_1)
-    traj = move_to_joint_pos(robot, top_closed_2)
-    traj = move_to_joint_pos(robot, top_open)
-    traj = move_to_joint_pos(robot, high_position_close)
+    traj = robot.move_to_joint_positions(high_position_close)
+    traj = robot.move_to_joint_positions(top_closed_1)
+    traj = robot.move_to_joint_positions(top_closed_2)
+    traj = robot.move_to_joint_positions(top_open)
+    traj = robot.move_to_joint_positions(high_position_close)
     
 def close_top_drawer(robot):
-    traj = move_to_joint_pos(robot, high_position_close)
-    traj = move_to_joint_pos(robot, top_open)
-    traj = move_to_joint_pos(robot, top_closed_2)
-    traj = move_to_joint_pos(robot, top_closed_1)
-    traj = move_to_joint_pos(robot, high_position_close)
+    traj = robot.move_to_joint_positions(high_position_close)
+    traj = robot.move_to_joint_positions(top_open)
+    traj = robot.move_to_joint_positions(top_closed_2)
+    traj = robot.move_to_joint_positions(top_closed_1)
+    traj = robot.move_to_joint_positions(high_position_close)
 
 def close_bottom_drawer(robot):
-    traj = move_to_joint_pos(robot, high_position_close)
-    traj = move_to_joint_pos(robot, bottom_open)
-    traj = move_to_joint_pos(robot, bottom_closed_2)
-    traj = move_to_joint_pos(robot, bottom_closed_1)
-    traj = move_to_joint_pos(robot, high_position_close)
+    traj = robot.move_to_joint_positions(high_position_close)
+    traj = robot.move_to_joint_positions(bottom_open)
+    traj = robot.move_to_joint_positions(bottom_closed_2)
+    traj = robot.move_to_joint_positions(bottom_closed_1)
+    traj = robot.move_to_joint_positions(high_position_close)
 
 def view_pcd(pcd):
     o3d.visualization.draw_geometries([pcd])
@@ -143,7 +151,7 @@ def save_object_detect_dict(obj_pcds):
     return 
 
 
-def  is_shadow(val, epsilon=5e-2):
+def  is_shadow(val, epsilon=5e-3):
     err_01 = abs(val[0] - val[1]) 
     err_21 = abs(val[2] - val[1])
     err_02 = abs(val[2] - val[0])
@@ -151,23 +159,44 @@ def  is_shadow(val, epsilon=5e-2):
         return True
     return False
          
+def is_not_on_counter(xyz):
+    if xyz[-1] > 0:
+        return False
+    return True
 
 def get_category_to_pcd_map(obj_pcds, cur_data, ref_data):
-    category_to_pcd_map = {}
+    category_to_pcd_map = {cat: [] for cat in ref_data}
     for idx, val in cur_data.items():
-        min_err = 1000
+        min_err = 10000
         min_err_category = 'ignore'  # default
-        if is_shadow(val[0]):
+        if is_shadow(val[0]) or is_not_on_counter(obj_pcds[idx].get_center()):
             continue
         for category, rgb_value in ref_data.items():
             err = np.linalg.norm(np.array(val) - np.array(rgb_value))
             if min_err > err:
                 min_err = err 
                 min_err_category = category 
-        category_to_pcd_map[min_err_category] = obj_pcds[idx]
+        if min_err_category.startswith('ignore_'):
+            continue
+        category_to_pcd_map[min_err_category].append(obj_pcds[idx])
     return category_to_pcd_map
 
 
+def save_rgbd(rgbd):
+    num_cams = rgbd.shape[0]
+    f, axarr = plt.subplots(2, num_cams)
+
+    for i in range(num_cams):
+        if num_cams > 1:
+            ax1, ax2 = axarr[0, i], axarr[1, i]
+        else:
+            ax1, ax2 = axarr
+        ax1.imshow(rgbd[i, :, :, :3].astype(np.uint8))
+        ax2.matshow(rgbd[i, :, :, 3:])
+
+    f.savefig("rgbd.png")
+    plt.close(f)
+    
 def save_rgbd_masked(rgbd, rgbd_masked):
     num_cams = rgbd.shape[0]
     f, axarr = plt.subplots(2, num_cams)
@@ -235,7 +264,7 @@ def merge_pcds(pcds, eps=0.1, min_samples=2):
     return list(cluster_to_pcd.values()) + final_pcds
 
 
-def execute_grasp(robot, chosen_grasp, hori_offset, time_to_go):
+def execute_grasp(robot, chosen_grasp, time_to_go, place_in_drawer=False):
     traj, success = robot.grasp(
         chosen_grasp, time_to_go=time_to_go, gripper_width_success_threshold=0.001
     )
@@ -251,31 +280,26 @@ def execute_grasp(robot, chosen_grasp, hori_offset, time_to_go):
             time_to_go=time_to_go,
         )
         curr_pose, curr_ori = robot.get_ee_pose()
-        print("Moving to sink pose")
-        traj += move_to_joint_pos(robot, sink_pose)
-        ## place in drawer
-        # print("Placing object in hand to desired pose...")
-        # curr_pose, curr_ori = robot.get_ee_pose()
-        # print("Moving up")
-        # traj += robot.move_until_success(
-        #     position=curr_pose + torch.Tensor([0, 0, 0.3]),
-        #     orientation=curr_ori,
-        #     time_to_go=time_to_go,
-        # )
-        # print("Moving horizontally")
-        # traj += robot.move_until_success(
-        #     position=torch.Tensor([-0.09, -0.61, 0.2]),
-        #     orientation=[1,0,0,0],
-        #     time_to_go=time_to_go,
-        # )
-        # curr_pose, curr_ori = robot.get_ee_pose()
-        # print("Moving down")
-        # traj += robot.move_until_success(
-        #     position=curr_pose + torch.Tensor([0, 0.0, -0.20]),
-        #     orientation=[1,0,0,0],
-        #     time_to_go=time_to_go,
-        # )
 
+        if place_in_drawer:
+            print("Placing object in hand in drawer...")
+            print("Moving horizontally")
+            traj += robot.move_until_success(
+                position=torch.Tensor([-0.09, -0.61, 0.2]),
+                orientation=[1,0,0,0],
+                time_to_go=time_to_go,
+            )
+            curr_pose, curr_ori = robot.get_ee_pose()
+            print("Moving down")
+            traj += robot.move_until_success(
+                position=curr_pose + torch.Tensor([0, 0.0, -0.20]),
+                orientation=[1,0,0,0],
+                time_to_go=time_to_go,
+            )
+        else:
+            print("Moving to sink pose")
+            traj += move_to_joint_pos(robot, sink_pose)
+            
     print("Opening gripper")
     robot.gripper_open()
     curr_pose, curr_ori = robot.get_ee_pose()
@@ -285,6 +309,7 @@ def execute_grasp(robot, chosen_grasp, hori_offset, time_to_go):
         orientation=curr_ori,
         time_to_go=time_to_go,
     )
+    robot.go_home()
     return traj
 
 def pickplace(
@@ -303,13 +328,13 @@ def pickplace(
         cam_i = outer_i % 2
         print(f"=== Starting bin shift with cam {cam_i} ===")
 
-        # Define some parameters for each workspace.
-        if cam_i == 0:
-            masks = masks_1
-            hori_offset = torch.Tensor([0, -0.4, 0])
-        else:
-            masks = masks_2
-            hori_offset = torch.Tensor([0, 0.4, 0])
+        # # # Define some parameters for each workspace.
+        # if cam_i == 0:
+        #     masks = masks_1
+        #     hori_offset = torch.Tensor([0, -0.4, 0])
+        # else:
+        #     masks = masks_2
+        #     hori_offset = torch.Tensor([0, 0.4, 0])
         time_to_go = 5
 
         for i in range(cfg.num_grasps_per_bin_shift):
@@ -343,9 +368,9 @@ def pickplace(
                     id_to_pose[marker.id] = xyz
 
             scene_pcd = cameras.get_pcd(rgbd)
-            breakpoint()
             
-            save_rgbd_masked(rgbd, rgbd_masked)
+            
+            save_rgbd(rgbd)
 
             print("Segmenting image...")
             unmerged_obj_pcds = []
@@ -359,7 +384,7 @@ def pickplace(
                 ]
                 
             obj_pcds = merge_pcds(unmerged_obj_pcds)
-            # breakpoint()
+            # 
             
             
             if len(obj_pcds) == 0:
@@ -385,8 +410,9 @@ def pickplace(
                 'category_to_rgb_map.json'
             ).as_posix())
                                             
-            # breakpoint()
+            # 
             category_to_pcd_map = get_category_to_pcd_map(obj_pcds, cur_data, ref_data)
+            
             for _cat in category_order:
                 if _cat not in category_to_pcd_map.keys():
                     continue
@@ -400,7 +426,7 @@ def pickplace(
             # replace obj_pcds with id_to_pcd[id] for grasping selected id
             # for _cat, _pcd in category_to_pcd_map.items():
             print(f'Grasping {_cat}')
-            breakpoint()
+            
             # print("Getting grasps per object...")
             obj_i, filtered_grasp_group = get_obj_grasps(
                 grasp_client, [_pcd], scene_pcd
@@ -415,7 +441,7 @@ def pickplace(
                 _pcd, final_filtered_grasps, name=_cat
             )
 
-            traj = execute_grasp(robot, chosen_grasp, hori_offset, time_to_go)
+            traj = execute_grasp(robot, chosen_grasp, time_to_go)
 
             print("Going home")
             robot.go_home()
@@ -440,30 +466,31 @@ def transform_hw_to_sim_pose(pcd):
 #         'category': category_bb
 #     }
     
-def get_hardware_cuntertop_objects(category_to_pcd_map):
+def get_hardware_countertop_objects(category_to_pcd_map):
     rigid_instances = []
-    for i, (colorbasedname, pcd) in enumerate(category_to_pcd_map.items()):
-        category_name = map_cat_hw_to_sim[colorbasedname]
-        name = "{}:{:04d}".format(category, i)
-        pose = transform_hw_to_sim_pose(pcd)
-        entry = construct_rigid_instance(name, pose, category, relative_timestep=1) 
-        # RigidInstance(
-        #     timestep=1,
-        #     category=bounding_box_dict[category_name],
-        #     pose=pose,
-        #     action_masks=False,
-        #     is_real=True,
-        #     category_token_name=category_name,  # record utensil type
-        #     category_token=category_vocab.word2index(category_name),
-        #     instance_token=special_instance_vocab.word2index(name),
-        #     category_name=category_name,
-        #     instance_name=name,
-        # )
-        rigid_instances.append(entry)
+    for colorbasedname, pcd_list in category_to_pcd_map.items():
+        for i, pcd in enumerate(pcd_list):
+            category_name = map_cat_hw_to_sim[colorbasedname]
+            name = "{}:{:04d}".format(category_name, i)
+            pose = transform_hw_to_sim_pose(pcd)
+            entry = construct_rigid_instance(name, pose, category_name, relative_timestep=1) 
+            # RigidInstance(
+            #     timestep=1,
+            #     category=bounding_box_dict[category_name],
+            #     pose=pose,
+            #     action_masks=False,
+            #     is_real=True,
+            #     category_token_name=category_name,  # record utensil type
+            #     category_token=category_vocab.word2index(category_name),
+            #     instance_token=special_instance_vocab.word2index(name),
+            #     category_name=category_name,
+            #     instance_name=name,
+            # )
+            rigid_instances.append(entry)
     return rigid_instances
     
         
-def get_objects_on_counter(cfg, cameras, segmentation_client):
+def get_category_pcd_on_counter(cfg, cameras, segmentation_client):
     rgbd = cameras.get_rgbd()
     scene_pcd = cameras.get_pcd(rgbd)
     print("Segmenting image...")
@@ -483,30 +510,31 @@ def get_objects_on_counter(cfg, cameras, segmentation_client):
         'data', 
         'category_to_rgb_map.json'
     ).as_posix())                                    
-    # breakpoint()
+    # 
     category_to_pcd_map = get_category_to_pcd_map(obj_pcds, cur_data, ref_data)
-    rigid_instances = get_hardware_rigid_instance(category_to_pcd_map)
-    # # instance_name_list = # count instance name
-    # category_dict = transform_hw_to_sim_category(category_to_pcd_map)
-    # pose_list = transform_hw_to_sim_pose(category_to_pcd_map)
-    # timestep_list = [1.]*len(pose_list)
-    # is_real_list = [1.]*len(pose_list)
-    # State()
-    breakpoint()
+    # rigid_instances = get_hardware_rigid_instance(category_to_pcd_map)
+    # # # instance_name_list = # count instance name
+    # # category_dict = transform_hw_to_sim_category(category_to_pcd_map)
+    # # pose_list = transform_hw_to_sim_pose(category_to_pcd_map)
+    # # timestep_list = [1.]*len(pose_list)
+    # # is_real_list = [1.]*len(pose_list)
+    # # State()
+    # 
     
-    situation = {
-        'timestep': torch.tensor([timestep_list])
-    }
-    # transform_position_counter_hw2sim = np.load(os.path.expanduser('~') + '/temporal_task_planner/hw_transforms/pick_counter.npy')
-    # transform_category_hw2sim = 
-    # # return category_to_pcd_map
+    # situation = {
+    #     'timestep': torch.tensor([timestep_list])
+    # }
+    # # transform_position_counter_hw2sim = np.load(os.path.expanduser('~') + '/temporal_task_planner/hw_transforms/pick_counter.npy')
+    # # transform_category_hw2sim = 
+    # # # return category_to_pcd_map
+    return category_to_pcd_map
 
 def get_marker_corners(cameras, frt_cams):
     rgbd = cameras.get_rgbd()
     rgbd_masked = rgbd
-    save_rgbd_masked(rgbd, rgbd_masked)
+    save_rgbd(rgbd)
     uint_rgbs = rgbd[:,:,:,:3].astype(np.uint8)
-    drawer_markers = frt_cams[-1].detect_markers(uint_rgbs[drawer_camera_index])
+    drawer_markers = frt_cams[drawer_camera_index].detect_markers(uint_rgbs[drawer_camera_index])
     # print(drawer_markers)
     data = [{
             "id": int(m.id), 
@@ -514,15 +542,71 @@ def get_marker_corners(cameras, frt_cams):
         } for m in drawer_markers]
     return data
 
-def get_drawer_status(cameras, frt_cams):
+def get_drawer_as_dishwasher_instances(cameras, frt_cams, drawer_status):
     # measure similarity to the 4 scenarios of artags 
     # and set the drawer poses in sim
-    
-    
-    
-    
+    data = get_marker_corners(cameras, frt_cams)
+    # # check the position of marker tags corners and take the most similar
+    # most_likely_status = 'all_closed' 
+    # min_err = 10000000
+    # for key, markers in artag_lib.items():
+    #     for ref_marker_info in markers:
+    #         for cur_marker_info in data:
+    #             if cur_marker_info['id'] == ref_marker_info['id']:
+    #                 # compare the norm of the difference in corner matrices
+    #                 flag_match = True
+    #             else:
+    #                 flag_match = False
+    #     if flag_match:
+    #         err = np.linalg.norm(cur_marker_info['corner'] - ref_marker_info['corner'])
+    #         if min_err > err:
+    #             min_err = err
+    #             most_likely_status = key
+    door = construct_rigid_instance(
+        name=link_id_names["door"],
+        pose=dishwasher_part_poses['door']['open'],
+        category_name=link_id_names["door"],
+        relative_timestep=1
+    )
+                                
+    # if status == 'all_closed':
+    # default
+    bottom_rack = construct_rigid_instance(
+        name=link_id_names['bottom'],
+        pose=dishwasher_part_poses['bottom']['close'],
+        category_name=link_id_names['bottom'],
+        relative_timestep=1
+    )
+    top_rack = construct_rigid_instance(
+        name=link_id_names["top"],
+        pose=dishwasher_part_poses['top']['close'],
+        category_name=link_id_names["top"],
+        relative_timestep=1
+    )
+    if drawer_status['top'] == 'open':
+        top_rack = construct_rigid_instance(
+            name=link_id_names["top"],
+            pose=dishwasher_part_poses['top']['open'],
+            category_name=link_id_names["top"],
+            relative_timestep=1
+        )
+    elif drawer_status['bottom'] == 'open':
+        bottom_rack = construct_rigid_instance(
+            name=link_id_names['bottom'],
+            pose=dishwasher_part_poses['bottom']['open'],
+            category_name=link_id_names['bottom'],
+            relative_timestep=1
+        )
+    return [door, bottom_rack, top_rack]
+
 @hydra.main(config_path="../conf", config_name="run_ttp")
 def main(cfg):
+    drawer_status = {
+        'top': 'close',
+        'bottom': 'close'
+    }
+    print('drawer_status: ', drawer_status)
+    print('Do you want to modify drawer_status ???')
     breakpoint()
     # config = hydra.utils.instantiate(cfg.config)
     config = PromptSituationConfig(
@@ -552,9 +636,9 @@ def main(cfg):
         pose_encoder=pose_encoder,
         reality_marker_encoder=reality_marker_encoder,
     )
-    model.load_state_dict(torch.load(cfg.checkpoint_path)['model_state_dict'])
+    model.load_state_dict(torch.load(cfg.checkpoint_path)['model_state_dict']) #, map_location='cpu')
     policy = PromptSituationPolicy(model, pick_only=False, device='cpu')
-    breakpoint()
+    
     prompt_temporal_context = get_temporal_context(cfg.prompt_session_path)
     prompt_temporal_context.pick_only = True
     prompt = prompt_temporal_context.process_states()
@@ -565,8 +649,7 @@ def main(cfg):
         torch.zeros(prompt_input_len).bool().unsqueeze(0)
     )
     policy.reset(prompt)
-    breakpoint()
-
+    
     print(f"Config:\n{omegaconf.OmegaConf.to_yaml(cfg, resolve=True)}")
     print(f"Current working directory: {os.getcwd()}")
 
@@ -580,19 +663,29 @@ def main(cfg):
     cfg.cam.extrinsics_file = hydra.utils.to_absolute_path(cfg.cam.extrinsics_file)
     cameras = hydra.utils.instantiate(cfg.cam)
 
-    breakpoint()
+    
     print("Loading camera workspace masks")
-    # import pdb; pdb.set_trace()
+    # # import pdb; pdb.set_trace()
     masks_1 = np.array(
         [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_1],
         dtype=np.float64,
     )
-    masks_1[-1,:,:] *=0
+    masks_1[1,:,:] *=0
     masks_2 = np.array(
         [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_2],
         dtype=np.float64,
     )
-    masks_1[:2,:,:] *=0
+    # masks_1[:2,:,:] *=0
+    masks_1[0,:,:] *=0
+    masks_1[2,:,:] *=0
+
+    # if cam_i == 0:
+    #     masks = masks_1
+    #     hori_offset = torch.Tensor([0, -0.4, 0])
+    # else:
+    #     masks = masks_2
+    #     hori_offset = torch.Tensor([0, 0.4, 0])
+    hori_offset = torch.Tensor([0.,0.,0.])
 
     print("Connect to grasp candidate selection and pointcloud processor")
     segmentation_client = SegmentationClient()
@@ -605,82 +698,87 @@ def main(cfg):
     for frt, intrinsics in zip(frt_cams, cameras.intrinsics):
         frt.set_intrinsics(intrinsics)
     MARKER_LENGTH = 0.04
-    MARKER_ID = [27, 26, 23, 29] #[18]
+    MARKER_ID = [22, 27, 26, 23, 29] #[18]
     for i in MARKER_ID:
         for frt in frt_cams:
             frt.register_marker_size(i, MARKER_LENGTH)
-    dw_parts = get_drawer_status()
-    dishes = get_hardware_cuntertop_objects()
-    rigid_instances = dw_parts + dishes
-    situation = State(rigid_instances)
-    top_category_order = [
-        'dark_blue_plate',
-        'light_blue_bowl', 
-    ]
-    bottom_category_order = [
-        'yellow_cup', 
-        'red_bowl',
-    ]
-    # pickplace_partial = partial(pickplace, cfg,
-    #         masks_1,
-    #         masks_2,
-    #         root_working_dir,
-    #         cameras,
-    #         frt_cams,
-    #         segmentation_client,
-    #         grasp_client)
-    
-    root_working_dir = os.getcwd()
-    # place all in sink
-    done = False
-    while not done:
-        done = pickplace(
-            robot,
-            top_category_order + bottom_category_order,
-            cfg,
-            masks_1,
-            masks_2,
-            root_working_dir,
-            cameras,
-            frt_cams,
-            segmentation_client,
-            grasp_client
-        )
-    # open_top_drawer(robot)
-    # robot.go_home()
-    # done = 0
-    # while not done:
-    #     done = pickplace(
-    #         robot,
-    #         top_category_order,
-    #         cfg,
-    #         masks_1,
-    #         masks_2,
-    #         root_working_dir,
-    #         cameras,
-    #         frt_cams,
-    #         segmentation_client,
-    #         grasp_client
-    #     )
-    # close_top_drawer(robot)
-    # open_bottom_drawer(robot)
-    # robot.go_home()
-    # done = 0
-    # while not done:
-    #     done = pickplace(
-    #     robot,
-    #     bottom_category_order,
-    #     cfg,
-    #     masks_1,
-    #     masks_2,
-    #     root_working_dir,
-    #     cameras,
-    #     frt_cams,
-    #     segmentation_client,
-    #     grasp_client
-    # )
-    # close_bottom_drawer(robot)
-    # robot.go_home()
+    step = -1
+
+    while True:
+        step += 1    
+        rgbd = cameras.get_rgbd()
+        scene_pcd = cameras.get_pcd(rgbd)
+        
+        category_to_pcd_map = get_category_pcd_on_counter(cfg, cameras, segmentation_client)
+        # save categories seen with their point clouds.
+        objdetect_on_counter = []
+        for cat, pcd_list in category_to_pcd_map.items():
+            if len(pcd_list):
+                objdetect_on_counter.append(cat)
+                for i, pcd in enumerate(pcd_list):
+                    o3d.io.write_point_cloud(f'step-{step}_{cat}-{i}.pcd', pcd) 
+                
+        dw_parts = get_drawer_as_dishwasher_instances(cameras, frt_cams, drawer_status)
+        dishes = get_hardware_countertop_objects(category_to_pcd_map)
+        rigid_instances = dw_parts + dishes
+
+        current_state = State(rigid_instances=rigid_instances, act_instances=act_instance)
+        print(current_state)
+        action = policy.get_action(current_state)
+        breakpoint()
+        print(map_cat_sim_to_hw.get(action.pick_instance.category_name, None)) 
+        if action.pick_instance.category_name == link_id_names["door"]:  # "ktc_dishwasher_:0000_joint_2":
+            break
+        elif action.pick_instance.category_name == link_id_names["bottom"]: #  "ktc_dishwasher_:0000_joint_1":
+            if abs(action.get_place_position()[2] - 0.95) < 1e-3:
+                if drawer_status['top'] == 'open':
+                    break
+                open_bottom_drawer(robot)
+                drawer_status['bottom'] = "open"
+            else:
+                if drawer_status['top'] == 'open':
+                    break
+                close_bottom_drawer(robot)
+                drawer_status['bottom'] = "close"
+        elif action.pick_instance.category_name == link_id_names["top"]:  # "ktc_dishwasher_:0000_joint_3":
+            if abs(action.get_place_position()[2] - 0.95) < 1e-3:
+                open_top_drawer(robot)
+                drawer_status['top'] = "open"
+            else:
+                close_top_drawer(robot)
+                drawer_status['top'] = "close"
+        elif action.pick_instance.category_name in map_cat_sim_to_hw:
+            _cat = map_cat_sim_to_hw[ action.pick_instance.category_name]
+            _pcd = category_to_pcd_map[_cat][0]
+            if _pcd is None:
+                # break #point()
+                return 2
+            # replace obj_pcds with id_to_pcd[id] for grasping selected id
+            # for _cat, _pcd in category_to_pcd_map.items():
+            # print(f'Grasping {_cat}')
+            
+            # print("Getting grasps per object...")
+            obj_i, filtered_grasp_group = get_obj_grasps(
+                grasp_client, [_pcd], scene_pcd
+            )
+
+            # print("Choosing a grasp for the object")
+            chosen_grasp, final_filtered_grasps = robot.select_grasp(
+                filtered_grasp_group
+            )
+            grasp_client.visualize_grasp(scene_pcd, final_filtered_grasps)
+            grasp_client.visualize_grasp(
+                _pcd, final_filtered_grasps, name=_cat
+            )
+            if abs(action.get_place_position()[1] - 0.9599) < 1e-3:
+                place_in_drawer = False 
+            else:
+                place_in_drawer = True 
+            traj = execute_grasp(robot, chosen_grasp, time_to_go, place_in_drawer)
+
+            print("Going home")
+            robot.go_home()
+  
         
 
 

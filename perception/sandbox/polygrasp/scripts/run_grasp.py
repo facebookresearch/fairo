@@ -40,6 +40,18 @@ from polygrasp.serdes import load_bw_img
 
 import fairotag
 
+# top_closed_1 = torch.tensor([-2.8709,  1.7132,  1.3774, -1.8681, -1.4531,  1.9806,  0.4803])
+# top_closed_2 = torch.tensor([-2.5949,  1.7388,  1.0075, -1.6537, -1.4691,  2.3417,  0.4605])
+# top_open = torch.tensor([-2.8362,  1.7326,  1.0338, -1.2461, -1.4473,  2.2300, -0.0111])
+# bottom_closed_1 = torch.tensor([-2.7429,  1.7291,  1.0249, -1.3325, -1.0166,  2.1604, -0.1720])
+# bottom_closed_2 = torch.tensor([-2.1674,  1.6435,  0.5143, -1.2161, -0.9969,  2.5138,  0.2471])
+# #torch.tensor([-2.2719,  1.675,  0.6623, -1.1511, -0.6550,  2.4067, -0.1707])
+# bottom_open = torch.tensor([-2.4781,  1.7273,  0.5201, -0.9822, -0.9824,  2.4964, -0.0416])
+# # torch.tensor([-2.2077,  1.65,  0.2767, -0.7902, -0.6421,  2.5545, -0.2362])
+# high_position_close = torch.tensor([-2.8740,  1.3173,  1.5164, -1.2091, -1.1478,  1.4974, -0.1642])
+# sink_pose = torch.tensor([-0.2135, -0.0278,  0.5381, -2.1573,  0.0384,  2.1235, -0.6401])
+# # torch.tensor([-1.1165,  0.7988,  1.5438, -2.3060, -1.0097,  2.0797, -0.5347])
+
 top_closed_1 = torch.tensor([-2.8709,  1.7132,  1.3774, -1.8681, -1.4531,  1.9806,  0.4803])
 top_closed_2 = torch.tensor([-2.5949,  1.7388,  1.0075, -1.6537, -1.4691,  2.3417,  0.4605])
 top_open = torch.tensor([-2.8362,  1.7326,  1.0338, -1.2461, -1.4473,  2.2300, -0.0111])
@@ -54,38 +66,39 @@ sink_pose = torch.tensor([-0.2135, -0.0278,  0.5381, -2.1573,  0.0384,  2.1235, 
 
 def move_to_joint_pos(robot, pos, time_to_go=5.0):
     state_log = []
-    while len(state_log) < time_to_go*100:
+    while len(state_log) < time_to_go*700:
         state_log = robot.move_to_joint_positions(pos, time_to_go)
+    print("length of state log", len(state_log))
     return state_log
     
 
 def open_bottom_drawer(robot):
-    traj = move_to_joint_pos(robot, high_position_close)
-    traj = move_to_joint_pos(robot, bottom_closed_1)
-    traj = move_to_joint_pos(robot, bottom_closed_2)
-    traj = move_to_joint_pos(robot, bottom_open)
-    traj = move_to_joint_pos(robot, high_position_close)
+    traj = robot.move_to_joint_positions(high_position_close)
+    traj = robot.move_to_joint_positions(bottom_closed_1)
+    traj = robot.move_to_joint_positions(bottom_closed_2)
+    traj = robot.move_to_joint_positions(bottom_open)
+    traj = robot.move_to_joint_positions(high_position_close)
 
 def open_top_drawer(robot):
-    traj = move_to_joint_pos(robot, high_position_close)
-    traj = move_to_joint_pos(robot, top_closed_1)
-    traj = move_to_joint_pos(robot, top_closed_2)
-    traj = move_to_joint_pos(robot, top_open)
-    traj = move_to_joint_pos(robot, high_position_close)
+    traj = robot.move_to_joint_positions(high_position_close)
+    traj = robot.move_to_joint_positions(top_closed_1)
+    traj = robot.move_to_joint_positions(top_closed_2)
+    traj = robot.move_to_joint_positions(top_open)
+    traj = robot.move_to_joint_positions(high_position_close)
     
 def close_top_drawer(robot):
-    traj = move_to_joint_pos(robot, high_position_close)
-    traj = move_to_joint_pos(robot, top_open)
-    traj = move_to_joint_pos(robot, top_closed_2)
-    traj = move_to_joint_pos(robot, top_closed_1)
-    traj = move_to_joint_pos(robot, high_position_close)
+    traj = robot.move_to_joint_positions(high_position_close)
+    traj = robot.move_to_joint_positions(top_open)
+    traj = robot.move_to_joint_positions(top_closed_2)
+    traj = robot.move_to_joint_positions(top_closed_1)
+    traj = robot.move_to_joint_positions(high_position_close)
 
 def close_bottom_drawer(robot):
-    traj = move_to_joint_pos(robot, high_position_close)
-    traj = move_to_joint_pos(robot, bottom_open)
-    traj = move_to_joint_pos(robot, bottom_closed_2)
-    traj = move_to_joint_pos(robot, bottom_closed_1)
-    traj = move_to_joint_pos(robot, high_position_close)
+    traj = robot.move_to_joint_positions(high_position_close)
+    traj = robot.move_to_joint_positions(bottom_open)
+    traj = robot.move_to_joint_positions(bottom_closed_2)
+    traj = robot.move_to_joint_positions(bottom_closed_1)
+    traj = robot.move_to_joint_positions(high_position_close)
 
 def view_pcd(pcd):
     o3d.visualization.draw_geometries([pcd])
@@ -176,7 +189,7 @@ def get_obj_grasps(grasp_client, obj_pcds, scene_pcd):
     )
 
 
-def merge_pcds(pcds, eps=0.1, min_samples=2):
+def merge_pcds(pcds, eps=0.05, min_samples=50):
     """Cluster object pointclouds from different cameras based on centroid using DBSCAN; merge when within eps"""
     xys = np.array([pcd.get_center()[:2] for pcd in pcds])
     cluster_labels = (
@@ -208,7 +221,7 @@ def merge_pcds(pcds, eps=0.1, min_samples=2):
     return list(cluster_to_pcd.values()) + final_pcds
 
 
-def execute_grasp(robot, chosen_grasp, hori_offset, time_to_go):
+def execute_grasp(robot, chosen_grasp, time_to_go, place_in_drawer=True):
     traj, success = robot.grasp(
         chosen_grasp, time_to_go=time_to_go, gripper_width_success_threshold=0.001
     )
@@ -224,31 +237,31 @@ def execute_grasp(robot, chosen_grasp, hori_offset, time_to_go):
             time_to_go=time_to_go,
         )
         curr_pose, curr_ori = robot.get_ee_pose()
-        print("Moving to sink pose")
-        traj += move_to_joint_pos(robot, sink_pose)
-        ## place in drawer
-        # print("Placing object in hand to desired pose...")
-        # curr_pose, curr_ori = robot.get_ee_pose()
-        # print("Moving up")
-        # traj += robot.move_until_success(
-        #     position=curr_pose + torch.Tensor([0, 0, 0.3]),
-        #     orientation=curr_ori,
-        #     time_to_go=time_to_go,
-        # )
-        # print("Moving horizontally")
-        # traj += robot.move_until_success(
-        #     position=torch.Tensor([-0.09, -0.61, 0.2]),
-        #     orientation=[1,0,0,0],
-        #     time_to_go=time_to_go,
-        # )
-        # curr_pose, curr_ori = robot.get_ee_pose()
-        # print("Moving down")
-        # traj += robot.move_until_success(
-        #     position=curr_pose + torch.Tensor([0, 0.0, -0.20]),
-        #     orientation=[1,0,0,0],
-        #     time_to_go=time_to_go,
-        # )
 
+        if place_in_drawer:
+            print("Placing object in hand to desired pose...")
+            traj += robot.move_until_success(
+                position=curr_pose + torch.Tensor([-curr_pose[0], 0, 0.2]),
+                orientation=curr_ori,
+                time_to_go=time_to_go,
+            ) 
+            print("Moving horizontally")
+            traj += robot.move_until_success(
+                position=torch.Tensor([-0.09, -0.61, 0.2]),
+                orientation=[1,0,0,0],
+                time_to_go=time_to_go,
+            )
+            curr_pose, curr_ori = robot.get_ee_pose()
+            print("Moving down")
+            traj += robot.move_until_success(
+                position=curr_pose + torch.Tensor([0, 0.0, -0.20]),
+                orientation=[1,0,0,0],
+                time_to_go=time_to_go,
+            )
+        else:
+            print("Moving to sink pose")
+            traj += move_to_joint_pos(robot, sink_pose)
+            
     print("Opening gripper")
     robot.gripper_open()
     curr_pose, curr_ori = robot.get_ee_pose()
@@ -258,7 +271,7 @@ def execute_grasp(robot, chosen_grasp, hori_offset, time_to_go):
         orientation=curr_ori,
         time_to_go=time_to_go,
     )
-
+    robot.go_home()
     return traj
 
 def pickplace(
@@ -317,7 +330,7 @@ def pickplace(
                     id_to_pose[marker.id] = xyz
 
             scene_pcd = cameras.get_pcd(rgbd)
-            breakpoint()
+  
             
             save_rgbd_masked(rgbd, rgbd_masked)
 
@@ -374,7 +387,7 @@ def pickplace(
             # replace obj_pcds with id_to_pcd[id] for grasping selected id
             # for _cat, _pcd in category_to_pcd_map.items():
             print(f'Grasping {_cat}')
-            breakpoint()
+
             # print("Getting grasps per object...")
             obj_i, filtered_grasp_group = get_obj_grasps(
                 grasp_client, [_pcd], scene_pcd
@@ -389,7 +402,7 @@ def pickplace(
                 _pcd, final_filtered_grasps, name=_cat
             )
 
-            traj = execute_grasp(robot, chosen_grasp, hori_offset, time_to_go)
+            traj = execute_grasp(robot, chosen_grasp, time_to_go, place_in_drawer=True)
 
             print("Going home")
             robot.go_home()
@@ -408,20 +421,19 @@ def main(cfg):
     cfg.cam.intrinsics_file = hydra.utils.to_absolute_path(cfg.cam.intrinsics_file)
     cfg.cam.extrinsics_file = hydra.utils.to_absolute_path(cfg.cam.extrinsics_file)
     cameras = hydra.utils.instantiate(cfg.cam)
-
     breakpoint()
-    print("Loading camera workspace masks")
-    # import pdb; pdb.set_trace()
+    # print("Loading camera workspace masks")
+    # # import pdb; pdb.set_trace()
     masks_1 = np.array(
         [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_1],
         dtype=np.float64,
     )
-    masks_1[-1,:,:] *=0
+    # masks_1[-1,:,:] *=0
     masks_2 = np.array(
         [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_2],
         dtype=np.float64,
     )
-    masks_1[:2,:,:] *=0
+    # masks_1[:2,:,:] *=0
 
     print("Connect to grasp candidate selection and pointcloud processor")
     segmentation_client = SegmentationClient()
@@ -441,11 +453,12 @@ def main(cfg):
 
     top_category_order = [
         'dark_blue_plate',
-        'light_blue_bowl', 
+        'pink_bowl'
     ]
     bottom_category_order = [
         'yellow_cup', 
-        'red_bowl',
+        # 'red_bowl',
+        'light_blue_bowl', 
     ]
     # pickplace_partial = partial(pickplace, cfg,
     #         masks_1,
@@ -457,28 +470,12 @@ def main(cfg):
     #         grasp_client)
     
     root_working_dir = os.getcwd()
-    # place all in sink
-    done = False
-    while not done:
-        done = pickplace(
-            robot,
-            top_category_order + bottom_category_order,
-            cfg,
-            masks_1,
-            masks_2,
-            root_working_dir,
-            cameras,
-            frt_cams,
-            segmentation_client,
-            grasp_client
-        )
-    # open_top_drawer(robot)
-    # robot.go_home()
-    # done = 0
+    # # place all in sink
+    # done = False
     # while not done:
     #     done = pickplace(
     #         robot,
-    #         top_category_order,
+    #         top_category_order + bottom_category_order,
     #         cfg,
     #         masks_1,
     #         masks_2,
@@ -488,25 +485,43 @@ def main(cfg):
     #         segmentation_client,
     #         grasp_client
     #     )
-    # close_top_drawer(robot)
-    # open_bottom_drawer(robot)
-    # robot.go_home()
-    # done = 0
-    # while not done:
-    #     done = pickplace(
-    #     robot,
-    #     bottom_category_order,
-    #     cfg,
-    #     masks_1,
-    #     masks_2,
-    #     root_working_dir,
-    #     cameras,
-    #     frt_cams,
-    #     segmentation_client,
-    #     grasp_client
-    # )
-    # close_bottom_drawer(robot)
-    # robot.go_home()
+    open_top_drawer(robot)
+    robot.go_home()
+    robot.go_home()
+    
+    done = 0
+    while not done:
+        done = pickplace(
+            robot,
+            top_category_order,
+            cfg,
+            masks_1,
+            masks_2,
+            root_working_dir,
+            cameras,
+            frt_cams,
+            segmentation_client,
+            grasp_client
+        )
+    close_top_drawer(robot)
+    open_bottom_drawer(robot)
+    robot.go_home()
+    done = 0
+    while not done:
+        done = pickplace(
+        robot,
+        bottom_category_order,
+        cfg,
+        masks_1,
+        masks_2,
+        root_working_dir,
+        cameras,
+        frt_cams,
+        segmentation_client,
+        grasp_client
+    )
+    close_bottom_drawer(robot)
+    robot.go_home()
         
 
 

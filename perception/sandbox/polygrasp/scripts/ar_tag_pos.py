@@ -14,7 +14,7 @@ Runs grasps generated from grasp server.
 # top open: tensor([-2.7492,  1.7202,  1.0310, -1.1538, -1.3008,  2.1873, -2.8715])
 # bottom open: tensor([-2.4589,  1.7582,  0.5844, -0.9734, -1.1897,  2.4049, -2.8648])
 drawer_camera_index = 1
-top_rack_ar_tag = [26, 27]
+top_rack_ar_tag = [26, 22, 27]
 bottom_rack_ar_tag = [23,29]
 
 import time
@@ -355,7 +355,7 @@ def pickplace(
             # replace obj_pcds with id_to_pcd[id] for grasping selected id
             # for _cat, _pcd in category_to_pcd_map.items():
             print(f'Grasping {_cat}')
-            breakpoint()
+            
             # print("Getting grasps per object...")
             obj_i, filtered_grasp_group = get_obj_grasps(
                 grasp_client, [_pcd], scene_pcd
@@ -388,7 +388,6 @@ def get_marker_corners(cameras, frt_cams, root_working_dir, name):
             "corner": m.corner.astype(np.int32).tolist()  
         } for m in drawer_markers]
     }
-    breakpoint()
     with open(Path(root_working_dir, 'data', name + '.json').as_posix(), 'w') as f:
         json.dump(data, f, indent=2)
     return 
@@ -410,18 +409,18 @@ def main(cfg):
     cfg.cam.extrinsics_file = hydra.utils.to_absolute_path(cfg.cam.extrinsics_file)
     cameras = hydra.utils.instantiate(cfg.cam)
 
-    print("Loading camera workspace masks")
-    # import pdb; pdb.set_trace()
-    masks_1 = np.array(
-        [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_1],
-        dtype=np.float64,
-    )
-    masks_1[-1,:,:] *=0
-    masks_2 = np.array(
-        [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_2],
-        dtype=np.float64,
-    )
-    masks_1[:2,:,:] *=0
+    # print("Loading camera workspace masks")
+    # # import pdb; pdb.set_trace()
+    # masks_1 = np.array(
+    #     [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_1],
+    #     dtype=np.float64,
+    # )
+    # masks_1[-1,:,:] *=0
+    # masks_2 = np.array(
+    #     [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_2],
+    #     dtype=np.float64,
+    # )
+    # masks_1[:2,:,:] *=0
 
     print("Connect to grasp candidate selection and pointcloud processor")
     segmentation_client = SegmentationClient()
@@ -442,20 +441,27 @@ def main(cfg):
     get_marker_corners(cameras, frt_cams, root_working_dir, name='all_closed')
     breakpoint()
 
+    open_bottom_drawer(robot)
+    robot.go_home()
+    breakpoint()
+    
+    get_marker_corners(cameras, frt_cams, root_working_dir, name='open_bottom_drawer')
+    
     open_top_drawer(robot)
     robot.go_home()
-    get_marker_corners(cameras, frt_cams, root_working_dir, name='open_top_drawer')
-    
-    open_bottom_drawer(robot)
-    robot.go_home()    
+    breakpoint()    
     get_marker_corners(cameras, frt_cams, root_working_dir, name='all_open')
 
     close_top_drawer(robot)
+    close_bottom_drawer(robot)
+    open_top_drawer(robot)
     robot.go_home()
-    get_marker_corners(cameras, frt_cams, root_working_dir, name='open_bottom_drawer')
+    breakpoint()
+    get_marker_corners(cameras, frt_cams, root_working_dir, name='open_top_drawer')
     
     close_bottom_drawer(robot)
     robot.go_home()
+    breakpoint()
     get_marker_corners(cameras, frt_cams, root_working_dir, name='all_closed')
 if __name__ == "__main__":
     main()

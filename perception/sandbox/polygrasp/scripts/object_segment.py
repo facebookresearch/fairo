@@ -383,18 +383,18 @@ def main(cfg):
     cameras = hydra.utils.instantiate(cfg.cam)
 
     # breakpoint()
-    print("Loading camera workspace masks")
+    # print("Loading camera workspace masks")
     # import pdb; pdb.set_trace()
-    masks_1 = np.array(
-        [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_1],
-        dtype=np.float64,
-    )
-    masks_1[-1,:,:] *=0
-    masks_2 = np.array(
-        [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_2],
-        dtype=np.float64,
-    )
-    masks_1[:2,:,:] *=0
+    # masks_1 = np.array(
+    #     [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_1],
+    #     dtype=np.float64,
+    # )
+    # masks_1[-1,:,:] *=0
+    # masks_2 = np.array(
+    #     [load_bw_img(hydra.utils.to_absolute_path(x)) for x in cfg.masks_2],
+    #     dtype=np.float64,
+    # )
+    # masks_1[:2,:,:] *=0
 
     print("Connect to grasp candidate selection and pointcloud processor")
     segmentation_client = SegmentationClient()
@@ -417,16 +417,9 @@ def main(cfg):
     #     for frt in frt_cams:
     #         frt.register_marker_size(i, MARKER_LENGTH)
 
-    top_category_order = [
-        'dark_blue_plate', 
-        'yellow_cup', 
-    ]
-    bottom_category_order = [
-        'light_blue_bowl',
-        'red_bowl',
-    ]
     unmerged_obj_pcds = []
     for i in range(cameras.n_cams):
+        
         obj_masked_rgbds, obj_masks = segmentation_client.segment_img(
             rgbd[i], min_mask_size=cfg.min_mask_size
         )
