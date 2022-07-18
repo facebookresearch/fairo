@@ -1,3 +1,11 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+Turk list used for viewing & setting turks to block or not blocked.
+
+Usage:
+<TurkList pipelineType={pipelineType} />
+*/
 import { Button, Checkbox, Input, Table, Typography } from "antd";
 import React, { useEffect, useState } from "react";
 import { LockOutlined, UnlockOutlined } from '@ant-design/icons';
@@ -31,6 +39,7 @@ const fakeTurkList = [
 ]
 
 const TurkList = (props) => {
+    const pipelineType = props.pipelineType;
     const [listData, setListData] = useState(fakeTurkList); // TODO: use turk list from backend
     const [searchKey, setSearchKey] = useState(null);
     const [displayData, setDisplayData] = useState(fakeTurkList);
