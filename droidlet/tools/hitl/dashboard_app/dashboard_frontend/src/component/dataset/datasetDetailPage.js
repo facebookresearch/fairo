@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 
 The detail page for viewing a dataset.
-Takes optional state parameter from react-router-dom navigation (navigate, link, navlink ... etc), the optopnal states are:
+Takes optional state parameter from react-router-dom navigation (navigate, link, navlink ... etc), the optipnal states are:
 - datasetList: a list of dataset of current pipeline
 
 Usage:
