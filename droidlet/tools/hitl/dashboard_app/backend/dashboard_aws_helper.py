@@ -14,7 +14,7 @@ import re
 
 
 PIPELINE_DATASET_MAPPING = {
-    "NLU": "nsp_data",
+    "NLU": "nsp",
 }
 
 S3_BUCKET_NAME = "droidlet-hitl"
@@ -136,17 +136,16 @@ def get_dataset_version_list_by_pipeline(pipeline: str):
     """
     # get dataset name prefix and search pattern
     dataset_prefix = PIPELINE_DATASET_MAPPING[pipeline]
-    pattern_str = f"{dataset_prefix}_v[0-9]" + "{1,}.txt"
-    pattern = re.compile(pattern_str)
+    meta_data_name = f"{dataset_prefix}_retrain_meta.json"
 
-    dataset_list = []
+    # download retrain meta data file
+    local_fname = _download_file(meta_data_name)
 
-    # list object from s3 bucket
-    for obj in s3.Bucket(S3_BUCKET_NAME).objects.all():
-        if re.match(pattern, obj.key):
-            dataset_list.append(obj.key)
-    return dataset_list
+    f = open(local_fname)
+    json_data = json.load(f)
+    f.close()
 
+    return [json_data[f"{dataset_prefix}_data_latest"]] + json_data[f"{dataset_prefix}_data_versions"]
 
 def get_dataset_by_name(dataset_name: str):
     """
