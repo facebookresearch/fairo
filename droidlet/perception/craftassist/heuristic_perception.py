@@ -12,7 +12,7 @@ import logging
 from droidlet.base_util import depth_first_search, to_block_pos, manhat_dist, euclid_dist
 from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
 
-GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 79, 80]
+GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 35, 79, 80]
 MAX_RADIUS = 20
 
 

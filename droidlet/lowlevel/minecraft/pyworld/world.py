@@ -286,7 +286,7 @@ class World:
         m = np.array((xa, ya, za))
         szs = M - m + 1
         B = np.zeros((szs[0], szs[1], szs[2], 2), dtype="uint8")
-        B[:, :, :, 0] = 0
+        B[:, :, :, 0] = 7
         xs, ys, zs = [0, 0, 0]
         xS, yS, zS = szs
         if xb < 0 or yb < 0 or zb < 0:
@@ -647,7 +647,12 @@ class World:
             nz_idm_locs = [
                 (int(l[0]) + int(x), int(l[1]) + int(y), int(l[2]) + int(z)) for l in nz_locs
             ]
-            nz_idms = [tuple(int(i) for i in self.blocks[l]) for l in nz_idm_locs]
+            nz_idms = []
+            for l in nz_idm_locs:
+                if l[0] >= 0 and l[0] < self.sl and l[1] >= 0 and l[1] < self.sl and l[2] >= 0 and l[2] < self.sl:
+                    nz_idms.append(tuple(int(i) for i in self.blocks[l]))
+                else:
+                    nz_idms.append((7, 0))
             nz_locs = [(int(x), int(y), int(z)) for x, y, z in nz_locs]
             flattened_blocks = [nz_locs[i] + nz_idms[i] for i in range(len(nz_locs))]
             return flattened_blocks
