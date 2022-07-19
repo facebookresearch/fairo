@@ -1,0 +1,92 @@
+hz: 1000
+use_real_time: true
+exec: franka_panda_client
+
+robot_client:
+  _target_: polymetis.robot_client.executable_robot_client.ExecutableRobotClient
+  use_real_time: ${use_real_time}
+  metadata_cfg:
+    _target_: polymetis.robot_client.metadata.RobotClientMetadata
+    default_Kq: [80, 120, 100, 100, 70, 50, 20]
+    default_Kqd: [10, 10, 10, 10, 5, 5, 5]
+    default_Kx: [150, 150, 150, 10, 10, 10]
+    default_Kxd: [25, 25, 25, 7, 7, 7]
+    hz: ${hz}
+    robot_model_cfg: ${robot_model}
+  executable_cfg:
+    robot_ip: "172.16.0.2"
+    control_ip: ${ip}
+    control_port: ${port}
+    readonly: false
+    mock: false
+    use_real_time: ${use_real_time}
+    hz: ${hz}
+    num_dofs: ${robot_model.num_dofs}
+    exec: ${exec}
+    robot_client_metadata_path: ???
+
+    limit_rate: true
+    lpf_cutoff_frequency: 100
+
+    limits: 
+      # bounding box of the workspace
+      cartesian_pos_upper:
+        - 1.0
+        - 0.8
+        - 1.0
+      cartesian_pos_lower:
+        - -0.5
+        - -0.8
+        - -0.5
+
+      # the remaining limits are set to the original franka limits minus a margin
+      joint_pos_upper: #margin: 0.1 rad
+        - 3.1
+        - 3.1
+        - 3.1
+        - 1.5
+        - 3.1
+        - 3.65
+        - 3.1
+      joint_pos_lower: #margin: 0.1 rad
+        - -3.1
+        - -3.1
+        - -3.1
+        - -3.1
+        - -3.1
+        - -3.1
+        - -3.1
+      joint_vel: #margin: 0.1 rad/s
+        - 1.5
+        - 1.5
+        - 1.5
+        - 1.5
+        - 2.51
+        - 2.51
+        - 2.51
+      elbow_vel: 1.075      #margin: 0.1 rad/s
+      joint_torques:  #margin: 1N for first 4 joints, 0.5N for last 3 joints
+        - 86.0
+        - 86.0
+        - 86.0
+        - 86.0
+        - 11.5
+        - 11.5
+        - 11.5
+
+    collision_behavior:
+      lower_torque: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
+      upper_torque: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
+      lower_force: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
+      upper_force: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
+
+    safety_controller:
+      is_active: true
+      margins: # margin from hard safety limits at which safety controllers start to kick in
+        cartesian_pos: 0.05
+        joint_pos: 0.2
+        joint_vel: 0.5
+      stiffness:
+        cartesian_pos: 200.0
+        joint_pos: 50.0
+        joint_vel: 20.0
