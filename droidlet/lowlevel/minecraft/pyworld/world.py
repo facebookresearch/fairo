@@ -289,9 +289,9 @@ class World:
         B[:, :, :, 0] = 7
         xs, ys, zs = [0, 0, 0]
         xS, yS, zS = szs
-        if xb < 0 or yb < 0 or zb < 0:
-            return B
-        if xa > self.sl - 1 or ya > self.sl - 1 or za > self.sl - 1:
+        if xb < 0 or yb < 0 or zb < 0 or xa > self.sl - 1 or ya > self.sl - 1 or za > self.sl - 1:
+            if transpose:
+                B = B.transpose(1, 2, 0, 3)
             return B
         if xb > self.sl - 1:
             xS -= xb - (self.sl - 1)

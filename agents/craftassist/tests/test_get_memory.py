@@ -18,7 +18,7 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
         cube_triples = {"has_name": "cube", "has_shape": "cube"}
         self.cube = self.add_object(
             droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)),
-            (1, 63, -2),
+            (2, 63, 2),
             relations=cube_triples,
         )
         sphere_triples = {"has_name": "sphere", "has_shape": "sphere"}
