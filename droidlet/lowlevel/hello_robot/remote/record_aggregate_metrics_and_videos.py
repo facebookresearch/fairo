@@ -19,20 +19,19 @@ def record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path):
         record_video(
             natsorted(glob.glob(f"{trajectory_root_path}/trajectory/step*/frames/{frame}.png")),
             timestamps,
-            f"{video_root_path}/{frame}_frame.mp4"
+            f"{video_root_path}/{frame}_frame.mp4",
         )
     print(f"Recording map video")
     record_video(
-        natsorted(glob.glob(f"{trajectory_root_path}/trajectory/step*/maps/semantic_and_goal_map.png")),
+        natsorted(
+            glob.glob(f"{trajectory_root_path}/trajectory/step*/maps/semantic_and_goal_map.png")
+        ),
         timestamps,
-        f"{video_root_path}/semantic_and_goal_map.mp4"
+        f"{video_root_path}/semantic_and_goal_map.mp4",
     )
     if not os.path.exists(f"{trajectory_root_path}/aggregate_logs.json"):
-        record_aggregate_metrics(
-            step_log_filenames,
-            f"{trajectory_root_path}/aggregate_logs.json"
-        )
-    
+        record_aggregate_metrics(step_log_filenames, f"{trajectory_root_path}/aggregate_logs.json")
+
 
 def record_aggregate_metrics(step_log_filenames, aggregate_log_filename):
     all_poses = []
@@ -71,7 +70,7 @@ def record_video(image_filenames, image_timestamps, video_filename, fps=30):
         height, width, _ = image.shape
         size = (width, height)
         images.append(image)
-    out = cv2.VideoWriter(video_filename, cv2.VideoWriter_fourcc(*'mp4v'), fps, size)
+    out = cv2.VideoWriter(video_filename, cv2.VideoWriter_fourcc(*"mp4v"), fps, size)
     prev_timestamp = 0
     for (timestamp, image) in zip(image_timestamps, images):
         frame_repeats = round((timestamp - prev_timestamp) * fps)
