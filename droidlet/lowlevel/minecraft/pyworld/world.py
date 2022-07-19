@@ -649,7 +649,14 @@ class World:
             ]
             nz_idms = []
             for l in nz_idm_locs:
-                if l[0] >= 0 and l[0] < self.sl and l[1] >= 0 and l[1] < self.sl and l[2] >= 0 and l[2] < self.sl:
+                if (
+                    l[0] >= 0
+                    and l[0] < self.sl
+                    and l[1] >= 0
+                    and l[1] < self.sl
+                    and l[2] >= 0
+                    and l[2] < self.sl
+                ):
                     nz_idms.append(tuple(int(i) for i in self.blocks[l]))
                 else:
                     nz_idms.append((7, 0))
