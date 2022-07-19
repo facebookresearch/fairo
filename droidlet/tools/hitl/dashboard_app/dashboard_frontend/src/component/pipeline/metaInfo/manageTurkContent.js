@@ -1,7 +1,10 @@
-import { Spin, Typography } from "antd";
+import { Spin, Tabs, Typography } from "antd";
 import React, { useContext, useEffect, useState } from "react";
 import { SocketContext } from "../../../context/socket";
+import { snakecaseToWhitespaceSep, toFirstCapital } from "../../../utils/textUtils";
 import TurkList from "./turkList";
+
+const { TabPane } = Tabs;
 
 const ManageTurkContent = (props) => {
     const pipelineType = props.pipelineType;
@@ -38,8 +41,13 @@ const ManageTurkContent = (props) => {
         <Typography.Title level={5}>Manage Turk List</Typography.Title>
         {
             turkData ?
-                <div style={{paddingRight: '16px'}}>
-                    {Object.entries(turkData).map(([name, data]) => <TurkList turkListName={name} turkListData={data} />)}
+                <div style={{ paddingRight: '16px' }}>
+                    <Tabs defaultActiveKey={Object.keys(turkData)[0]}>
+                        {Object.entries(turkData).map(([name, data]) =>
+                            <TabPane tab={snakecaseToWhitespaceSep(name)} key={name}>
+                                <TurkList turkListName={name} turkListData={data} />
+                            </TabPane>)}
+                    </Tabs>
                 </div>
                 :
                 <Spin />
