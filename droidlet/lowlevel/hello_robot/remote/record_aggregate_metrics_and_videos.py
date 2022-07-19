@@ -33,9 +33,7 @@ def record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path):
     # )
     print(f"Recording quick summary video")
     record_video(
-        natsorted(
-            glob.glob(f"{trajectory_root_path}/trajectory/step*/summary.png")
-        ),
+        natsorted(glob.glob(f"{trajectory_root_path}/trajectory/step*/summary.png")),
         timestamps,
         f"{video_root_path}/summary.mp4",
         realtime=False
@@ -98,7 +96,7 @@ def record_video(image_filenames, image_timestamps, video_filename, fps=30, real
 if __name__ == "__main__":
     trajectory_root_paths = [
         *glob.glob("trajectories/*/modular_learned"),
-        *glob.glob("trajectories/*/modular_heuristic")
+        *glob.glob("trajectories/*/modular_heuristic"),
     ]
     for trajectory_root_path in trajectory_root_paths:
         video_root_path = trajectory_root_path.replace("trajectories", "videos")
