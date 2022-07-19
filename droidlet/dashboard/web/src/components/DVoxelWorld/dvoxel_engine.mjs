@@ -21,12 +21,13 @@ const renderInterval = 1000 / fps
 let camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
 const followPointerScale = 150;
 
-const preLoadMaterialNames = ['grass', 'dirt', 'wood']//, 'white wool', 'orange wool', 'magenta wool'];
+const preLoadMaterialNames = ['grass', 'dirt', 'wood', 'iron', 'white wool'];
 const blockScale = 50;
 const bid2Name = {
     8: 'grass',
     9: 'dirt',
     13: 'wood',
+    25: 'bedrock',
     46: 'white wool',
     47: 'orange wool',
     48: 'magenta wool',
@@ -42,7 +43,8 @@ const bid2Name = {
     58: 'brown wool',
     59: 'green wool',
     60: 'red wool',
-    61: 'black wool'
+    61: 'black wool',
+    67: 'iron'
 }
 
 const TEXTURE_PATH = "https://cdn.jsdelivr.net/gh/snyxan/assets@main/block_textures/";
@@ -329,6 +331,7 @@ class DVoxelEngine {
             console.log(obj)
             this.scene.remove(scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2])))
             this.scene.remove(scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2], true)))
+            sceneItems = sceneItems.filter(item => item !== obj);
             return;
         }
         const blockName = bid2Name[bid];
@@ -366,16 +369,19 @@ class DVoxelEngine {
         cube.position.set(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
         cube.updateMatrix();
         cube.name = pos2Name(pos[0], pos[1], pos[2]);
-        // console.log("Adding voxel with name: " + cube.name)
-        this.scene.add(cube);
-        this.sceneItems.push(cube);
         
-        const box = new THREE.BoxHelper(cube, 0x000000);
-        box.name = pos2Name(pos[0], pos[1], pos[2], true);
-        this.scene.add(box);
+        if (!scene.getObjectByName(cube.name)) {
+            // console.log("Adding voxel with name: " + cube.name)
+            this.scene.add(cube);
+            this.sceneItems.push(cube);
+        
+            const box = new THREE.BoxHelper(cube, 0x000000);
+            box.name = pos2Name(pos[0], pos[1], pos[2], true);
+            this.scene.add(box);
 
-        const bidx = convertCoordinateSystems(pos[0], pos[1], pos[2]);
-        setBlock2(bidx[0], bidx[1], bidx[2], bid);
+            const bidx = convertCoordinateSystems(pos[0], pos[1], pos[2]);
+            setBlock2(bidx[0], bidx[1], bidx[2], bid);
+        }
     }
 
     raycastVoxels(v) {

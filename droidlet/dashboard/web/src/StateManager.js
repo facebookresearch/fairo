@@ -239,6 +239,10 @@ class StateManager {
       this.socket.emit("get_memory_objects");
       this.socket.emit("get_agent_type");
       this.socket.emit("does_agent_want_map");
+      const wsocket = this.worldSocket;
+      window.setTimeout(function () {
+        wsocket.emit("getVoxelWorldInitialState");
+      }, 3000);
     });
 
     socket.on("reconnect", (msg) => {
@@ -247,6 +251,10 @@ class StateManager {
       this.socket.emit("get_memory_objects");
       this.socket.emit("get_agent_type");
       this.socket.emit("does_agent_want_map");
+      const wsocket = this.worldSocket;
+      window.setTimeout(function () {
+        wsocket.emit("getVoxelWorldInitialState");
+      }, 3000);
     });
 
     socket.on("disconnect", (msg) => {
