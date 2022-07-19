@@ -66,6 +66,7 @@ class Memory2D extends React.Component {
       dynamicPositioning: false,
       showTriples: false,
       mapView: "ZX",
+      squareMap: true,
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -116,9 +117,11 @@ class Memory2D extends React.Component {
   ###############################*/
   convertGridCoordinate = (xy) => {
     const { xmax, xmin, ymax, ymin } = this.state;
-    let { width, height } = this.state;
-    width = Math.min(width, height);
-    height = width;
+    let { width, height, squareMap } = this.state;
+    if (squareMap) {
+      width = Math.min(width, height);
+      height = width;
+    }
     return [
       (xy[1] * (ymax - ymin)) / height + ymin,
       0,
@@ -127,9 +130,11 @@ class Memory2D extends React.Component {
   };
   convertCoordinate = (xyz, exactInZX = false) => {
     const { xmax, xmin, ymax, ymin } = this.state;
-    let { width, height, mapView } = this.state;
-    width = Math.min(width, height);
-    height = width;
+    let { width, height, squareMap, mapView } = this.state;
+    if (squareMap) {
+      width = Math.min(width, height);
+      height = width;
+    }
     let horz, vert;
     if (exactInZX) {
       [horz, vert] = [xyz[2], -xyz[0]];
@@ -434,9 +439,11 @@ class Memory2D extends React.Component {
     this.setState({ selected_objects: {} });
   };
   centerToBot = () => {
-    let { height, width, bot_data } = this.state;
-    width = Math.min(width, height);
-    height = width;
+    let { height, width, bot_data, squareMap } = this.state;
+    if (squareMap) {
+      width = Math.min(width, height);
+      height = width;
+    }
     let [bot_horz, bot_vert] = this.convertCoordinate(bot_data.pos);
     this.setState(
       {
@@ -542,9 +549,12 @@ class Memory2D extends React.Component {
       draw_pos_curr,
       drawing_mode,
       mapView,
+      squareMap,
     } = this.state;
-    width = Math.min(width, height);
-    height = width;
+    if (squareMap) {
+      width = Math.min(width, height);
+      height = width;
+    }
     let { objects } = memory;
     let { xmin, xmax, ymin, ymax } = this.state;
 
@@ -1183,6 +1193,14 @@ class Memory2D extends React.Component {
             });
           }}
           centerToBot={this.centerToBot}
+          squareMap={squareMap}
+          toggleSquareMap={() => {
+            this.setState((prev) => {
+              return {
+                squareMap: !prev.squareMap,
+              };
+            });
+          }}
         />
       </div>
     );

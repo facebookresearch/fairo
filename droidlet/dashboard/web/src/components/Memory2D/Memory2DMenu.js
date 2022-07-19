@@ -28,6 +28,9 @@ const groupingHelpText =
 const dynamicPosHelpText =
   "Enabling this makes it so any tabular component on the map automatically repositions itself to remain on screen when dragging. May reduce performance.";
 
+const squareMapHelpText =
+  "Distortion in object positioning sometimes occurs when not in 1:1 aspect ratio. See https://github.com/facebookresearch/fairo/pull/1074 for more details";
+
 /**
  * Creates simple table of memory values for an object on the map.
  *
@@ -44,6 +47,8 @@ const dynamicPosHelpText =
  *                            mapView: the plane which the map is currently displaying
  *                            toggleMapView: handler to change mapView in Memory2D
  *                            centerToBot: handler that centers the stage to the bot
+ *                            squareMap: whether the map should fill up the whole pane or limited to square
+ *                            toggleSquareMap: handler to change squareMap
  */
 export default function Memory2DMenu(props) {
   const [groupName, setGroupName] = React.useState("");
@@ -119,7 +124,7 @@ export default function Memory2DMenu(props) {
                           interactive
                           leaveDelay={500}
                         >
-                          <HelpIcon fontSize="small" />
+                          <HelpIcon />
                         </Tooltip>
                       </Grid>
                     </Grid>
@@ -148,7 +153,7 @@ export default function Memory2DMenu(props) {
                       interactive
                       leaveDelay={500}
                     >
-                      <HelpIcon />
+                      <HelpIcon fontSize="small" />
                     </Tooltip>
                   </Grid>
                 </Grid>
@@ -164,6 +169,31 @@ export default function Memory2DMenu(props) {
                     label="Show triples"
                     labelPlacement="end"
                   />
+                </Grid>
+                <Grid item container alignItems="center">
+                  <Grid item>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          size="small"
+                          checked={props.squareMap}
+                          onChange={props.toggleSquareMap}
+                        />
+                      }
+                      label="Square Map"
+                      labelPlacement="end"
+                    />
+                  </Grid>
+                  <Grid item>
+                    <Tooltip
+                      title={squareMapHelpText}
+                      placement="top"
+                      interactive
+                      leaveDelay={500}
+                    >
+                      <HelpIcon fontSize="small" />
+                    </Tooltip>
+                  </Grid>
                 </Grid>
                 <Grid item>
                   {"View:   "}
