@@ -116,7 +116,7 @@ class Memory2D extends React.Component {
   ###############################*/
   convertGridCoordinate = (xy) => {
     const { xmax, xmin, ymax, ymin } = this.state;
-    let { width, height, mapView } = this.state;
+    let { width, height } = this.state;
     width = Math.min(width, height);
     height = width;
     return [
@@ -137,15 +137,12 @@ class Memory2D extends React.Component {
       switch (mapView) {
         case "ZX":
           [horz, vert] = [xyz[2], -xyz[0]];
-          // console.log("XZ");
           break;
         case "XY":
           [horz, vert] = [xyz[0], -xyz[1]];
-          // console.log("XY");
           break;
         case "YZ":
           [horz, vert] = [xyz[1], -xyz[2]];
-          // console.log("YZ");
           break;
         default:
           console.log("invalid view");
@@ -514,6 +511,10 @@ class Memory2D extends React.Component {
   componentWillUnmount() {
     if (this.props.stateManager) this.props.stateManager.disconnect(this);
   }
+
+  onMenuOpen = () => {
+    this.setState({ showMenu: true });
+  };
 
   render() {
     if (!this.state.isLoaded) return <p>Loading</p>;

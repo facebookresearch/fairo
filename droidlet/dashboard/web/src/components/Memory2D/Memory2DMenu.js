@@ -25,6 +25,9 @@ const menuTheme = createMuiTheme({
 const groupingHelpText =
   "Group selected objects and store as 'is_a' predicate triple in memory. To select objects, use Cmd+Click or right click to start describing a selection window";
 
+const dynamicPosHelpText =
+  "Enabling this makes it so any tabular component on the map automatically repositions itself to remain on screen when dragging. May reduce performance.";
+
 /**
  * Creates simple table of memory values for an object on the map.
  *
@@ -116,7 +119,7 @@ export default function Memory2DMenu(props) {
                           interactive
                           leaveDelay={500}
                         >
-                          <HelpIcon />
+                          <HelpIcon fontSize="small" />
                         </Tooltip>
                       </Grid>
                     </Grid>
@@ -124,18 +127,30 @@ export default function Memory2DMenu(props) {
                 </Card>
               </Grid>
               <Grid item container direction="column" alignItems="flex-start">
-                <Grid item>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        size="small"
-                        checked={props.dynamicPositioning}
-                        onChange={props.toggleDynamicPositioning}
-                      />
-                    }
-                    label="Dynamic Positioning"
-                    labelPlacement="end"
-                  />
+                <Grid item container alignItems="center">
+                  <Grid item>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          size="small"
+                          checked={props.dynamicPositioning}
+                          onChange={props.toggleDynamicPositioning}
+                        />
+                      }
+                      label="Dynamic Positioning"
+                      labelPlacement="end"
+                    />
+                  </Grid>
+                  <Grid item>
+                    <Tooltip
+                      title={dynamicPosHelpText}
+                      placement="top"
+                      interactive
+                      leaveDelay={500}
+                    >
+                      <HelpIcon />
+                    </Tooltip>
+                  </Grid>
                 </Grid>
                 <Grid item>
                   <FormControlLabel

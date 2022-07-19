@@ -252,7 +252,6 @@ export default function MemoryMapTable(props) {
                 >
                   <IconButton
                     onClick={() => {
-                      console.log("should restore");
                       props.onTableRestore(props.data["memid"]);
                     }}
                     size="small"
