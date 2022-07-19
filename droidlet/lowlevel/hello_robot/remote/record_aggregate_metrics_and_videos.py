@@ -36,7 +36,7 @@ def record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path):
         natsorted(glob.glob(f"{trajectory_root_path}/trajectory/step*/summary.png")),
         timestamps,
         f"{video_root_path}/summary.mp4",
-        realtime=False
+        realtime=False,
     )
     if not os.path.exists(f"{trajectory_root_path}/aggregate_logs.json"):
         record_aggregate_metrics(step_log_filenames, f"{trajectory_root_path}/aggregate_logs.json")
