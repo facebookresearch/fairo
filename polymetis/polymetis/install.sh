@@ -53,6 +53,8 @@ cd ..
 
 # Install habitat package
 cd ../third_party/habitat-lab/
+echo "********************* INSTALLING HABITAT ****************"
+pwd
 $PYTHON -m pip install -vvv .
 cd -
 
