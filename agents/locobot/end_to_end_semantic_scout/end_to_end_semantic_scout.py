@@ -254,7 +254,7 @@ class EndToEndSemanticScout:
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
 
-        self.path = f"images/{episode_id}/end_to_end"
+        self.path = f"trajectories/{episode_id}/end_to_end"
         shutil.rmtree(self.path, ignore_errors=True)
         os.makedirs(self.path)
         os.makedirs(f"{self.path}/trajectory")
@@ -280,8 +280,10 @@ class EndToEndSemanticScout:
         assert policy in [
             "original_camera_settings_and_mp3d_detector_il", 
             "robot_camera_settings_and_coco_detector_il",
+            "robot_camera_settings_without_noise_and_coco_detector_il",
             "original_camera_settings_and_mp3d_detector_rl", 
             "robot_camera_settings_and_coco_detector_rl",
+            "robot_camera_settings_without_noise_and_coco_detector_rl",
         ]
         if policy == "original_camera_settings_and_mp3d_detector_il":
             # Original camera settings + MP3D segmentation with IL training only
