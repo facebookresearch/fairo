@@ -86,3 +86,8 @@ if __name__ == "__main__":
         video_root_path = trajectory_root_path.replace("trajectories", "videos")
         print(f"Processing {trajectory_root_path}")
         record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path)
+
+    for trajectory_root_path in glob.glob("trajectories/*/modular_heuristic"):
+        video_root_path = trajectory_root_path.replace("trajectories", "videos")
+        print(f"Processing {trajectory_root_path}")
+        record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path)
