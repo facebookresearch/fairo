@@ -30,8 +30,10 @@ CraftAssistPerceptionData = namedtuple(
         "in_perceive_area",
         "near_agent",
         "labeled_blocks",
+        "dashboard_edits",
+        "dashboard_groups",
     ],
-    defaults=[None, [], {}, None, [], {}, {}, {}, {}],
+    defaults=[None, [], {}, None, [], {}, {}, {}, {}, {}, {}],
 )
 
 MOBS_BY_ID = {

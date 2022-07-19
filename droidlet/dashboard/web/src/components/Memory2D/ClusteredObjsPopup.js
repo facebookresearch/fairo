@@ -10,7 +10,7 @@ import Paper from "@material-ui/core/Paper";
 import Box from "@material-ui/core/Box";
 
 import IconButton from "@material-ui/core/IconButton";
-import ClearIcon from "@material-ui/icons/Clear";
+import CloseIcon from "@material-ui/icons/Close";
 import Tooltip from "@material-ui/core/Tooltip";
 
 const MAX_TABLE_CELL_WIDTH = 100;
@@ -48,14 +48,14 @@ const StyledTableRow = withStyles((theme) => ({
 /**
  * Creates simple table of memory values for an object on the map.
  *
- * @param {data, map_pos, onPopupClose, handleObjClick, table_visible, grouping_mode, grouped_objects} props
+ * @param {data, map_pos, onPopupClose, handleObjClick, table_visible, selection_mode, selected_objects} props
  *                            data: array of poolData objects
  *                            map_pos: where popup should be positioned on map
  *                            onPopupClose: handler for after user is finished with popup
  *                            handleObjClick: handler for clicking on a row (representing an object)
  *                            table_visible: used for hack to know when object is focused
- *                            grouping_mode: prop to let component know when user has selectionKey pressed
- *                            grouped_objects: dict of objects that were grouped by user
+ *                            selection_mode: prop to let component know when user has selectionKey pressed
+ *                            selected_objects: dict of objects that were grouped by user
  */
 export default function ClusteredObjsPopup(props) {
   const [focusedObj, setFocusedObj] = useState(null);
@@ -84,7 +84,7 @@ export default function ClusteredObjsPopup(props) {
                   color="secondary"
                   size="small"
                 >
-                  <ClearIcon fontSize="small" />
+                  <CloseIcon fontSize="small" />
                 </IconButton>
               </Box>
             </StyledTableCell>
@@ -101,12 +101,12 @@ export default function ClusteredObjsPopup(props) {
                   [props.map_pos[0], props.map_pos[1]],
                   poolData.data
                 );
-                if (!props.grouping_mode) setFocusedObj(poolData.data.memid);
+                if (!props.selection_mode) setFocusedObj(poolData.data.memid);
               }}
               style={
                 poolData.data.memid === focusedObj
                   ? { backgroundColor: "orange" }
-                  : poolData.data.memid in props.grouped_objects
+                  : poolData.data.memid in props.selected_objects
                   ? { backgroundColor: "green" }
                   : {}
               }

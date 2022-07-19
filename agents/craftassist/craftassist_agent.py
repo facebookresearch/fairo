@@ -46,7 +46,7 @@ from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
-from droidlet.perception.craftassist.manual_edits_perception import ManualEditsPerception
+from droidlet.perception.craftassist.manual_edits_perception import ManualChangesPerception
 from droidlet.lowlevel.minecraft.mc_util import (
     cluster_areas,
     MCTime,
@@ -237,10 +237,10 @@ class CraftAssistAgent(DroidletAgent):
                 self, self.opts.semseg_model_path, low_level_data=self.low_level_data
             )
         # manual edits from dashboard
-        self.perception_modules["manual_edits"] = ManualEditsPerception(self)
-        @sio.on("manual_edits")
-        def add_manual_edits(sid, edit_data):
-            self.perception_modules["manual_edits"].add_edit(edit_data)
+        self.perception_modules["dashboard"] = ManualChangesPerception(self)
+        @sio.on("manual_change")
+        def make_manual_change(sid, change):
+            self.perception_modules["dashboard"].process_change(change)
 
 
     def init_controller(self):
@@ -294,7 +294,8 @@ class CraftAssistAgent(DroidletAgent):
             self.memory.update(sem_seg_perception_output)
         self.areas_to_perceive = []
         # 5. perceive any manual edits made from frontend
-        self.perception_modules["manual_edits"].perceive()
+        dashboard_perception_output = self.perception_modules["dashboard"].perceive()
+        self.memory.update(dashboard_perception_output)
         # 6. update dashboard world and map
         self.update_dashboard_world()
 
@@ -441,7 +442,7 @@ class CraftAssistAgent(DroidletAgent):
             x, _, z = from_minecraft_xyz_to_droidlet(mc_xyz)
             yaw, _ = from_minecraft_look_to_droidlet(mc_look)
             xyyaw = (x, z, yaw)
-
+        triples = self.memory._db_read("SELECT * FROM Triples")
         sio.emit(
             "map",
             {
@@ -451,6 +452,7 @@ class CraftAssistAgent(DroidletAgent):
                 "map": obstacles,
                 "bot_data": detections_for_map[0],
                 "detections_from_memory": detections_for_map[1:],
+                "triples": triples,
             },
         )
 
