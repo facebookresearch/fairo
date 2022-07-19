@@ -176,12 +176,12 @@ class Navigation(object):
                 self.robot.pull_status()
                 is_moving = self.robot.is_base_moving()
             print("Successful right action")
-        
+
         elif action == 4:
             print("Starting look up action")
             current_tilt = self.robot.get_tilt().value
             self.robot.set_tilt(current_tilt + tilt_angle)
-        
+
         elif action == 5:
             print("Starting look down action")
             current_tilt = self.robot.get_tilt().value
