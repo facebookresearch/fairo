@@ -515,6 +515,10 @@ class Memory2D extends React.Component {
     if (this.props.stateManager) this.props.stateManager.disconnect(this);
   }
 
+  onMenuOpen = () => {
+    this.setState({ showMenu: true });
+  };
+
   render() {
     if (!this.state.isLoaded) return <p>Loading</p>;
     let {
