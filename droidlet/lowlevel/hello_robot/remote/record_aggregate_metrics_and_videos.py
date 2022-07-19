@@ -14,20 +14,28 @@ def record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path):
         timestamps.append(logs["timestamp"])
     if not os.path.exists(video_root_path):
         os.makedirs(video_root_path)
-    for frame in ["rgb", "depth", "semantic"]:
-        print(f"Recording {frame} video")
-        record_video(
-            natsorted(glob.glob(f"{trajectory_root_path}/trajectory/step*/frames/{frame}.png")),
-            timestamps,
-            f"{video_root_path}/{frame}_frame.mp4",
-        )
-    print(f"Recording map video")
+    # for frame in ["rgb", "depth", "semantic"]:
+    #     print(f"Recording {frame} video matching real time")
+    #     record_video(
+    #         natsorted(glob.glob(f"{trajectory_root_path}/trajectory/step*/frames/{frame}.png")),
+    #         timestamps,
+    #         f"{video_root_path}/{frame}_frame.mp4",
+    #     )
+    # print(f"Recording map video matching real time")
+    # record_video(
+    #     natsorted(
+    #         glob.glob(f"{trajectory_root_path}/trajectory/step*/maps/semantic_and_goal_map.png")
+    #     ),
+    #     timestamps,
+    #     f"{video_root_path}/semantic_and_goal_map.mp4",
+    # )
+    print(f"Recording quick summary video")
     record_video(
         natsorted(
-            glob.glob(f"{trajectory_root_path}/trajectory/step*/maps/semantic_and_goal_map.png")
+            glob.glob(f"{trajectory_root_path}/trajectory/step*/summary.png")
         ),
         timestamps,
-        f"{video_root_path}/semantic_and_goal_map.mp4",
+        f"{video_root_path}/summary.mp4",
     )
     if not os.path.exists(f"{trajectory_root_path}/aggregate_logs.json"):
         record_aggregate_metrics(step_log_filenames, f"{trajectory_root_path}/aggregate_logs.json")
@@ -63,7 +71,7 @@ def record_aggregate_metrics(step_log_filenames, aggregate_log_filename):
     )
 
 
-def record_video(image_filenames, image_timestamps, video_filename, fps=30):
+def record_video(image_filenames, image_timestamps, video_filename, fps=30, realtime=True):
     images = []
     for filename in image_filenames:
         image = cv2.imread(filename)
@@ -71,22 +79,25 @@ def record_video(image_filenames, image_timestamps, video_filename, fps=30):
         size = (width, height)
         images.append(image)
     out = cv2.VideoWriter(video_filename, cv2.VideoWriter_fourcc(*"mp4v"), fps, size)
-    prev_timestamp = 0
-    for (timestamp, image) in zip(image_timestamps, images):
-        frame_repeats = round((timestamp - prev_timestamp) * fps)
-        for _ in range(frame_repeats):
+    if realtime:
+        prev_timestamp = 0
+        for (timestamp, image) in zip(image_timestamps, images):
+            frame_repeats = round((timestamp - prev_timestamp) * fps)
+            for _ in range(frame_repeats):
+                out.write(image)
+            prev_timestamp = timestamp
+    else:
+        for image in images:
             out.write(image)
-        prev_timestamp = timestamp
     out.release()
 
 
 if __name__ == "__main__":
-    for trajectory_root_path in glob.glob("trajectories/*/modular_learned"):
-        video_root_path = trajectory_root_path.replace("trajectories", "videos")
-        print(f"Processing {trajectory_root_path}")
-        record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path)
-
-    for trajectory_root_path in glob.glob("trajectories/*/modular_heuristic"):
+    trajectory_root_paths = [
+        *glob.glob("trajectories/*/modular_learned"),
+        *glob.glob("trajectories/*/modular_heuristic")
+    ]
+    for trajectory_root_path in trajectory_root_paths:
         video_root_path = trajectory_root_path.replace("trajectories", "videos")
         print(f"Processing {trajectory_root_path}")
         record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path)
