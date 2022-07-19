@@ -12,7 +12,8 @@ import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
 import RefreshIcon from "@material-ui/icons/Refresh";
-import ClearIcon from "@material-ui/icons/Clear";
+import RestoreIcon from "@material-ui/icons/Restore";
+import CloseIcon from "@material-ui/icons/Close";
 import Tooltip from "@material-ui/core/Tooltip";
 
 import TextField from "@material-ui/core/TextField";
@@ -114,10 +115,12 @@ function MapTextField(props) {
 /**
  * Creates simple table of memory values for an object on the map.
  *
- * @param {data, onTableClose, onTableSubmit} props
+ * @param {data, onTableClose, onTableSubmit, onTableRestore, allTriples} props
  *                            data: dictionary of attribute: value pairs for object
  *                            onTableClose: event handler to close the table
  *                            onTableSubmit: event handler to send changed values to memory and close table
+ *                            onTableRestore: event handler to restore table values to what they were without manual edits
+ *                            allTriples: if show_triples toggled in menu, reference to all triples sent from agent memory
  */
 export default function MemoryMapTable(props) {
   /*
@@ -129,10 +132,13 @@ export default function MemoryMapTable(props) {
     status: "same" or "changed" or "error" [or "new" or "deleted"] [for future],
   ] 
   */
+  const [memid, setMemid] = useState(null);
   const [editManager, setEditManager] = useState({});
   const [refresher, setRefresher] = useState(0);
   const [disableSubmit, setDisableSubmit] = useState(true);
+  const [triples, setTriples] = useState([]);
 
+  // update table values on data change/refresh
   useEffect(() => {
     if (props.data) {
       let em = {};
@@ -144,14 +150,25 @@ export default function MemoryMapTable(props) {
             status: "same",
           })
       );
+      setMemid(props.data["memid"]);
       setEditManager(em);
       setDisableSubmit(true);
     }
   }, [props.data, refresher]);
 
+  // filter relevant triples to object
+  useEffect(() => {
+    if (props.allTriples) {
+      let relevantTriples = [];
+      props.allTriples.forEach((triple) => {
+        if (triple[1] === memid) relevantTriples.push(triple);
+      });
+      setTriples(relevantTriples);
+    }
+  }, [props.allTriples, memid]);
+
   let immutableFields = ["memid", "eid", "node_type", "obj_id"];
 
-  // console.log(editManager);
   return (
     <TableContainer
       component={Paper}
@@ -166,19 +183,17 @@ export default function MemoryMapTable(props) {
               <Box display="flex" justifyContent="space-between">
                 Value
                 <IconButton
-                  onClick={() => {
-                    props.onTableClose();
-                  }}
+                  onClick={props.onTableClose}
                   color="secondary"
                   size="small"
                 >
-                  <ClearIcon fontSize="small" />
+                  <CloseIcon fontSize="small" />
                 </IconButton>
               </Box>
             </StyledTableCell>
           </TableRow>
         </TableHead>
-        <TableBody key={props.data["memid"]}>
+        <TableBody key={memid}>
           {Object.keys(
             Object.keys(editManager).reduce((toDisplay, attr) => {
               if (editManager[attr].status !== "deleted")
@@ -229,9 +244,23 @@ export default function MemoryMapTable(props) {
           <StyledTableRow>
             <StyledTableCell colSpan={2} align="center">
               <Box display="flex" justifyContent="space-around">
+                <Tooltip
+                  title="restores values to what they were before any manual edits"
+                  placement="bottom"
+                >
+                  <IconButton
+                    onClick={() => {
+                      console.log("should restore");
+                      props.onTableRestore(props.data["memid"]);
+                    }}
+                    size="small"
+                  >
+                    <RestoreIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
                 <Button
                   variant="contained"
-                  onClick={(e) => {
+                  onClick={() => {
                     props.onTableSubmit(
                       Object.keys(editManager).reduce((toSend, attr) => {
                         // only send immutable, changed fields
@@ -248,18 +277,56 @@ export default function MemoryMapTable(props) {
                 >
                   Submit
                 </Button>
-                <IconButton
-                  onClick={(e) => {
-                    setRefresher((count) => count + 1);
-                  }}
-                  size="small"
+                <Tooltip
+                  title="refreshes values to what they were when table was opened"
+                  placement="bottom"
                 >
-                  <RefreshIcon fontSize="small" />
-                </IconButton>
+                  <IconButton
+                    onClick={() => {
+                      setRefresher((count) => count + 1);
+                    }}
+                    size="small"
+                  >
+                    <RefreshIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </Box>
             </StyledTableCell>
           </StyledTableRow>
         </TableBody>
+        {props.allTriples && triples.length > 0 && (
+          <>
+            <TableHead>
+              <TableRow>
+                <StyledTableCell>Predicate</StyledTableCell>
+                <StyledTableCell>
+                  <Box display="flex" justifyContent="space-between">
+                    Value
+                    <IconButton
+                      onClick={props.onTableClose}
+                      color="secondary"
+                      size="small"
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </StyledTableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {triples.map((triple) => (
+                <StyledTableRow key={triple[0]}>
+                  <StyledTableCell desc="predicate">
+                    {shortenLongTableEntries(triple[4])}
+                  </StyledTableCell>
+                  <StyledTableCell desc="value">
+                    {shortenLongTableEntries(triple[6])}
+                  </StyledTableCell>
+                </StyledTableRow>
+              ))}
+            </TableBody>
+          </>
+        )}
       </Table>
     </TableContainer>
   );
