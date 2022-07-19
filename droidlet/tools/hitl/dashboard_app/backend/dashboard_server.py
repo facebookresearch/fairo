@@ -18,6 +18,7 @@ from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
     get_model_by_id,
     get_run_info_by_id,
     get_traceback_by_id,
+    get_turk_list_by_pipeline,
 )
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_model_utils import (
     get_complete_model,
@@ -36,19 +37,26 @@ class DASHBOARD_EVENT(Enum):
     """
     server supported event types, i.e. API types
     """
-
     GET_RUNS = "get_job_list"
     GET_TRACEBACK = "get_traceback_by_id"
     GET_RUN_INFO = "get_run_info_by_id"
+
+    # apis for interaction sessions
     GET_INTERACTION_SESSIONS = "get_interaction_sessions_by_id"
     GET_INTERACTION_SESSION_LOG = "get_interaction_session_log"
 
+    # apis for dataset
     GET_DATASET_LIST = "get_dataset_list_by_pipeleine"
     GET_DATASET_INDECIES = "get_dataset_idx_by_id"
     GET_DATASET = "get_dataset_by_name"
+
+    # apis for model
     GET_MODEL_KEYS = "get_model_keys_by_id"
     GET_MODEL_VALUE = "get_model_value_by_id_n_key"
 
+    # apis for turk 
+    GET_TURK_LIST = "get_turk_list_by_pipeline"
+    UPDATE_TURK = "update_turk_by_tid"
 
 # constants for model related apis
 KEY_COMPLETE = "complete_model"
@@ -224,6 +232,24 @@ def get_model_value(batch_id, key):
         # get a specific value
         emit(DASHBOARD_EVENT.GET_MODEL_VALUE.value, [key, get_value_by_key(model, key)])
 
+@socketio.on(DASHBOARD_EVENT.GET_TURK_LIST.value)
+def get_turk_list(pipeline: str):
+    """
+    get turk list for the corresponding pipeline
+    - input: 
+        - pipeline type 
+    - output:
+        - a dict containing the turk allowlist, blocklist & softblock list
+    """
+    print(
+        f"Request received: {DASHBOARD_EVENT.GET_TURK_LIST.value}, pipeline = {pipeline}"
+    )
+    out_dict = get_turk_list_by_pipeline(pipeline)
+    emit(DASHBOARD_EVENT.GET_TURK_LIST.value, out_dict)
+
+@socketio.on(DASHBOARD_EVENT.UPDATE_TURK.value)
+def update_turk(pipeline, turk_id):
+    pass
 
 if __name__ == "__main__":
     socketio.run(app)

@@ -22,18 +22,18 @@ from mephisto.data_model.worker import Worker
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 
-from droidlet_static_html_task.pilot_config import (
+from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import (
     PILOT_ALLOWLIST_QUAL_NAME as interaction_whitelist,
 )
-from droidlet_static_html_task.pilot_config import PILOT_BLOCK_QUAL_NAME as interaction_blacklist
-from droidlet_static_html_task.pilot_config import SOFTBLOCK_QUAL_NAME as interaction_softblock
-from vision_annotation_task.pilot_config import (
+from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import PILOT_BLOCK_QUAL_NAME as interaction_blacklist
+from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import SOFTBLOCK_QUAL_NAME as interaction_softblock
+from droidlet.tools.crowdsourcing.vision_annotation_task.pilot_config import (
     PILOT_ALLOWLIST_QUAL_NAME as vision_annotation_whitelist,
 )
-from vision_annotation_task.pilot_config import (
+from droidlet.tools.crowdsourcing.vision_annotation_task.pilot_config import (
     PILOT_BLOCK_QUAL_NAME as vision_annotation_blacklist,
 )
-from vision_annotation_task.pilot_config import SOFTBLOCK_QUAL_NAME as vision_softblock
+from droidlet.tools.crowdsourcing.vision_annotation_task.pilot_config import SOFTBLOCK_QUAL_NAME as vision_softblock
 
 qual_dict = {
     "interaction": {
