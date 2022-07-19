@@ -33,10 +33,10 @@ class FMMPlanner(object):
         dd = ma.filled(dd, np.max(dd) + 1)
         self.fmm_dist = dd
 
-        if vis_path is not None:
-            goal_map = np.zeros_like(self.traversable)
-            goal_map[goal_y - 3 : goal_y + 4, goal_x - 3 : goal_x + 4] = 1
-            self._visualize(goal_map, vis_path)
+        # if vis_path is not None:
+        #     goal_map = np.zeros_like(self.traversable)
+        #     goal_map[goal_y - 3 : goal_y + 4, goal_x - 3 : goal_x + 4] = 1
+        #     self._visualize(goal_map, vis_path)
 
     def set_multi_goal(self, goal_map, vis_path=None):
         """Set multiple possible target goals - this is useful for object goal navigation.
@@ -51,8 +51,8 @@ class FMMPlanner(object):
         dd = ma.filled(dd, np.max(dd) + 1)
         self.fmm_dist = dd
 
-        if vis_path is not None:
-            self._visualize(goal_map, vis_path)
+        # if vis_path is not None:
+        #     self._visualize(goal_map, vis_path)
 
     def _visualize(self, goal_map, vis_path):
         r, c = self.traversable.shape

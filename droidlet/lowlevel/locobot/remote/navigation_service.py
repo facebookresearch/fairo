@@ -308,13 +308,8 @@ class Navigation(object):
         )
 
         if visualize:
-            try:
-                # if in Habitat scene
-                vis_path = (
-                    f"images/{exploration_method}/{self.robot.get_scene_name()}/{episode_id}"
-                )
-            except:
-                vis_path = f"images/{exploration_method}/{episode_id}"
+            subpath = "modular_learned" if exploration_method == "learned" else "modular_frontier"
+            vis_path = f"images/{episode_id}/{subpath}"
             self.vis = ObjectGoalNavigationVisualization(object_goal, path=vis_path)
 
         object_goal_cat = coco_categories[object_goal]
@@ -325,7 +320,7 @@ class Navigation(object):
         low_level_step = 0
         low_level_steps_with_goal_remaining = 0
         if start_with_panorama:
-            panorama_steps_remaining = 6
+            panorama_steps_remaining = 12
             panorama_yaws = np.arange(1, panorama_steps_remaining + 1)[::-1]
         else:
             panorama_steps_remaining = 0
