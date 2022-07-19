@@ -254,7 +254,7 @@ class EndToEndSemanticScout:
             object_goal in coco_categories
         ), f"Object goal must be in {list(coco_categories.keys())}"
 
-        self.path = f"images/end_to_end/{episode_id}"
+        self.path = f"images/{episode_id}/end_to_end"
         shutil.rmtree(self.path, ignore_errors=True)
         os.makedirs(self.path)
         os.makedirs(f"{self.path}/trajectory")
