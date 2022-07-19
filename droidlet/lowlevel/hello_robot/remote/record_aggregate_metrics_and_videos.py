@@ -20,6 +20,7 @@ def record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path):
     #         natsorted(glob.glob(f"{trajectory_root_path}/trajectory/step*/frames/{frame}.png")),
     #         timestamps,
     #         f"{video_root_path}/{frame}_frame.mp4",
+    #         realtime=True
     #     )
     # print(f"Recording map video matching real time")
     # record_video(
@@ -28,6 +29,7 @@ def record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path):
     #     ),
     #     timestamps,
     #     f"{video_root_path}/semantic_and_goal_map.mp4",
+    #     realtime=True
     # )
     print(f"Recording quick summary video")
     record_video(
@@ -36,6 +38,7 @@ def record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path):
         ),
         timestamps,
         f"{video_root_path}/summary.mp4",
+        realtime=False
     )
     if not os.path.exists(f"{trajectory_root_path}/aggregate_logs.json"):
         record_aggregate_metrics(step_log_filenames, f"{trajectory_root_path}/aggregate_logs.json")
