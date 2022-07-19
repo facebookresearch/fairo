@@ -11,18 +11,16 @@ from setuptools import find_namespace_packages
 script_dir = "python/scripts"
 scripts = [os.path.join(script_dir, file) for file in os.listdir(script_dir)]
 
-packages = find_packages(
-                where="python"
-            ) + find_namespace_packages(
-                include=["hydra_plugins.*"], where="python"
-            )
+packages = find_packages(where="python") + find_namespace_packages(
+    include=["hydra_plugins.*"], where="python"
+)
 
 setup(
     name="polymetis",
     version="0.2",
     packages=packages,
     package_dir={
-        "" : "python",
+        "": "python",
     },
     include_package_data=True,
     scripts=scripts,
