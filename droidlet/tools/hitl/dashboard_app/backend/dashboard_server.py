@@ -110,7 +110,7 @@ def get_dataset(dataset_name):
     - input: the name of the dataset.
     - output: if the dataset can be found, return the dataset content, otherwise return an error code
     """
-    print(f"Request received: {DASHBOARD_EVENT.GET_INTERACTION_SESSIONS.value}")
+    print(f"Request received: {DASHBOARD_EVENT.GET_DATASET.value}")
     dataset_content, error_code = get_dataset_by_name(dataset_name)
     if error_code:
         emit(DASHBOARD_EVENT.GET_DATASET.value, error_code)
