@@ -39,6 +39,7 @@
 
 1. Install Python package in editable mode:
     ```bash
+    pip install -e ./third_party/habitat-lab
     pip install -e ./polymetis
     ```
 
