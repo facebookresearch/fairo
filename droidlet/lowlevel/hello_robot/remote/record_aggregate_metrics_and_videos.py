@@ -14,23 +14,23 @@ def record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path):
         timestamps.append(logs["timestamp"])
     if not os.path.exists(video_root_path):
         os.makedirs(video_root_path)
-    # for frame in ["rgb", "depth", "semantic"]:
-    #     print(f"Recording {frame} video matching real time")
-    #     record_video(
-    #         natsorted(glob.glob(f"{trajectory_root_path}/trajectory/step*/frames/{frame}.png")),
-    #         timestamps,
-    #         f"{video_root_path}/{frame}_frame.mp4",
-    #         realtime=True
-    #     )
-    # print(f"Recording map video matching real time")
-    # record_video(
-    #     natsorted(
-    #         glob.glob(f"{trajectory_root_path}/trajectory/step*/maps/semantic_and_goal_map.png")
-    #     ),
-    #     timestamps,
-    #     f"{video_root_path}/semantic_and_goal_map.mp4",
-    #     realtime=True
-    # )
+    for frame in ["rgb", "depth", "semantic"]:
+        print(f"Recording {frame} video matching real time")
+        record_video(
+            natsorted(glob.glob(f"{trajectory_root_path}/trajectory/step*/frames/{frame}.png")),
+            timestamps,
+            f"{video_root_path}/{frame}_frame.mp4",
+            realtime=True
+        )
+    print(f"Recording map video matching real time")
+    record_video(
+        natsorted(
+            glob.glob(f"{trajectory_root_path}/trajectory/step*/maps/semantic_and_goal_map.png")
+        ),
+        timestamps,
+        f"{video_root_path}/semantic_and_goal_map.mp4",
+        realtime=True
+    )
     print(f"Recording quick summary video")
     record_video(
         natsorted(glob.glob(f"{trajectory_root_path}/trajectory/step*/summary.png")),
