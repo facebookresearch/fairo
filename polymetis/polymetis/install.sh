@@ -51,6 +51,11 @@ cmake --build .
 
 cd ..
 
+# Install habitat package
+cd ../third_party/habitat-lab/
+$PYTHON -m pip install -vvv .
+cd -
+
 # Install python package
 if [ "$DEV_PYTHON" == "ON" ]; then
     $PYTHON -m pip install -vvv -e .

@@ -10,6 +10,7 @@ import numpy as np
 from omegaconf import OmegaConf
 from polysim.envs import BulletManipulatorEnv
 from polysim.envs import HabitatManipulatorEnv
+import habitat
 
 import pybullet_data
 
