@@ -25,15 +25,21 @@ from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import (
     PILOT_ALLOWLIST_QUAL_NAME as interaction_whitelist,
 )
-from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import PILOT_BLOCK_QUAL_NAME as interaction_blacklist
-from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import SOFTBLOCK_QUAL_NAME as interaction_softblock
+from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import (
+    PILOT_BLOCK_QUAL_NAME as interaction_blacklist,
+)
+from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import (
+    SOFTBLOCK_QUAL_NAME as interaction_softblock,
+)
 from droidlet.tools.crowdsourcing.vision_annotation_task.pilot_config import (
     PILOT_ALLOWLIST_QUAL_NAME as vision_annotation_whitelist,
 )
 from droidlet.tools.crowdsourcing.vision_annotation_task.pilot_config import (
     PILOT_BLOCK_QUAL_NAME as vision_annotation_blacklist,
 )
-from droidlet.tools.crowdsourcing.vision_annotation_task.pilot_config import SOFTBLOCK_QUAL_NAME as vision_softblock
+from droidlet.tools.crowdsourcing.vision_annotation_task.pilot_config import (
+    SOFTBLOCK_QUAL_NAME as vision_softblock,
+)
 
 qual_dict = {
     "interaction": {
