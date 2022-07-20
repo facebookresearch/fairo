@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 Turk list used for viewing & setting turks to block or not blocked.
 
 Usage:
-<TurkList pipelineType={pipelineType} />
+<TurkList turkListName={turkListName} turkListData={turkListData} />
 */
 import { Button, Checkbox, Collapse, Input, Radio, Table, Typography } from "antd";
 import React, { useEffect, useState } from "react";
