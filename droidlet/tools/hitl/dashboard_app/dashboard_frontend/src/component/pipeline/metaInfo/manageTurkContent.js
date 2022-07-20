@@ -12,16 +12,34 @@ const ManageTurkContent = (props) => {
     const socket = useContext(SocketContext);
     const [turkData, setTurkData] = useState(null);
 
+
+
     const handleRecivedTurkList = (data) => {
         const processedData = {};
 
         for (let idx = 0; idx < Object.keys(data).length; idx++) {
             const k = Object.keys(data)[idx];
-            const allowList = data[k]["allow"].map((o) => ({ 'id': o, 'blocked': false }));
-            const blockList = data[k]["block"].map((o) => ({ 'id': o, 'blocked': true }));
-            const softblockList = data[k]["softblock"];
-            processedData[k] = allowList.concat(blockList);
+
+            const allowList = Array.from(new Set(data[k]["allow"])); // used set for dedup
+            const blockSet = new Set(data[k]["block"]);
+
+            const softblockSet = new Set(data[k]["softblock"]);
+
+            processedData[k] = allowList.map((tid) => (
+                {
+                    "id": tid,
+                    "status":
+                        blockSet.has(tid) ?
+                            "block" :
+                            (
+                                softblockSet.has(tid) ?
+                                    "softblock" :
+                                    "allow"
+                            )
+                }
+            ));
         }
+
         setTurkData(processedData);
     }
 
@@ -29,7 +47,7 @@ const ManageTurkContent = (props) => {
         socket.emit("get_turk_list_by_pipeline", pipelineType.label);
     }
 
-    useEffect(() => getTurkList(), []); // component did mount
+    useEffect(() => { !turkData && getTurkList() }, []); // component did mount
 
     useEffect(() => {
         socket.on("get_turk_list_by_pipeline", (data) => handleRecivedTurkList(data));
@@ -37,11 +55,11 @@ const ManageTurkContent = (props) => {
 
     useEffect(() => { }, turkData); // update on state change
 
-    return <div style={{ textAlign: 'left' }}>
+    return <div style={{ textAlign: "left" }}>
         <Typography.Title level={5}>Manage Turk List</Typography.Title>
         {
             turkData ?
-                <div style={{ paddingRight: '16px' }}>
+                <div style={{ paddingRight: "16px" }}>
                     <Tabs defaultActiveKey={Object.keys(turkData)[0]}>
                         {Object.entries(turkData).map(([name, data]) =>
                             <TabPane tab={snakecaseToWhitespaceSep(name)} key={name}>
