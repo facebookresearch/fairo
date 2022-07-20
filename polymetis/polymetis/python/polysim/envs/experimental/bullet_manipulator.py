@@ -150,10 +150,14 @@ def main(cfg):
         server_address=f"{cfg.arm.ip}:{cfg.arm.port}",
         state_callback=sim.get_arm_state,
         action_callback=sim.apply_arm_control,
-        default_Kq=cfg.robot_client.metadata_cfg.default_Kq,
-        default_Kqd=cfg.robot_client.metadata_cfg.default_Kqd,
         dof=7,
-        urdf_path=get_full_path_to_urdf("franka_panda/panda_arm.urdf"),
+        kp_joint=cfg.robot_client.metadata_cfg.default_Kq,
+        kd_joint=cfg.robot_client.metadata_cfg.default_Kqd,
+        kp_ee=cfg.robot_client.metadata_cfg.default_Kx,
+        kd_ee=cfg.robot_client.metadata_cfg.default_Kxd,
+        urdf_path="franka_panda/panda_arm.urdf",
+        rest_pose=cfg.robot_model.rest_pose,
+        ee_link_name=cfg.robot_model.ee_link_name,
     )
     ps_interface.register_gripper_control(
         server_address=f"{cfg.gripper.ip}:{cfg.gripper.port}",

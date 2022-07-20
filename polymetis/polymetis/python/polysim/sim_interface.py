@@ -19,6 +19,7 @@ import polymetis_pb2
 import polymetis_pb2_grpc
 import polymetis
 from polymetis.utils import Spinner
+from torchcontrol.policies.default_controller import DefaultController
 
 
 DEFAULT_METADATA_CFG_PATH = os.path.join(
@@ -58,22 +59,41 @@ class SimInterface:
         server_address: str,
         state_callback: Callable,
         action_callback: Callable,
-        default_Kq: List[float],
-        default_Kqd: List[float],
         dof: int,
+        kp_joint: Optional[List[float]] = None,
+        kd_joint: Optional[List[float]] = None,
+        kp_ee: Optional[List[float]] = None,
+        kd_ee: Optional[List[float]] = None,
+        rest_pose: Optional[List[float]] = None,
         urdf_path: Optional[str] = None,
+        ee_link_name: Optional[str] = "",
     ):
-        # Construct metadata from default metadata config
-        metadata_cfg = OmegaConf.load(DEFAULT_METADATA_CFG_PATH)
+        # Construct metadata
+        metadata = polymetis_pb2.RobotClientMetadata()
 
-        metadata_cfg.hz = self.hz
-        metadata_cfg.default_Kq = default_Kq
-        metadata_cfg.default_Kqd = default_Kqd
-        metadata_cfg.robot_model_cfg.num_dofs = dof
+        metadata.polymetis_version = polymetis.__version__
+        metadata.hz = self.hz
+        metadata.dof = dof
+
+        metadata.default_Kq[:] = [0.0] * dof if kp_joint is None else kp_joint
+        metadata.default_Kqd[:] = [0.0] * dof if kd_joint is None else kd_joint
+        metadata.default_Kxd[:] = [0.0] * dof if kp_ee is None else kp_ee
+        metadata.default_Kxd[:] = [0.0] * dof if kd_ee is None else kd_ee
+        metadata.rest_pose[:] = [0.0] * dof if kp_joint is None else kp_joint
+
         if urdf_path is not None:
-            metadata_cfg.robot_model_cfg.robot_description_path = urdf_path
+            full_urdf_path = get_full_path_to_urdf(
+                robot_model_cfg.robot_description_path
+            )
+            with open(full_urdf_path, "r") as file:
+                metadata.urdf_file = file.read()
 
-        metadata = hydra.utils.instantiate(metadata_cfg).get_proto()
+        metadata.ee_link_name = ee_link_name
+
+        default_controller = DefaultController(
+            Kq=list(metadata.default_Kq), Kqd=list(metadata.default_Kqd)
+        )
+        metadata.default_controller = self._serialize_controller(default_controller)
 
         # Connect to service
         channel = grpc.insecure_channel(server_address)
@@ -90,7 +110,7 @@ class SimInterface:
         server_address: str,
         state_callback: Callable,
         action_callback: Callable,
-        max_width: float,
+        max_width: Optional[float] = 0.0,
     ):
         # Construct metadata
         metadata = polymetis_pb2.GripperMetadata()

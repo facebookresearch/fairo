@@ -10,45 +10,48 @@ import polysim
 
 
 class DoubleIntegratorSim:
-    def __init__(self, hz, m=1.0):
+    def __init__(self, dof, hz, m=1.0):
+        self.dof = dof
         self.dt = 1.0 / hz
         self.m = m
 
         # Sim states
-        self.x = 0.0
-        self.v = 0.0
-        self.f_buffer = 0.0
+        self.x = np.zeros(dof)
+        self.v = np.zeros(dof)
+        self.f_buffer = np.zeros(dof)
 
     def get_state(self) -> polymetis_pb2.RobotState:
         state = polymetis_pb2.RobotState()
         state.timestamp.GetCurrentTime()
-        state.joint_positions[:] = [self.x]
-        state.joint_velocities[:] = [self.v]
+        state.joint_positions[:] = self.x
+        state.joint_velocities[:] = self.v
 
         return state
 
     def apply_control(self, cmd: polymetis_pb2.TorqueCommand):
-        self.f_buffer = cmd.joint_torques[0]
+        assert len(cmd.joint_torques) == self.dof
+        self.f_buffer = np.array(cmd.joint_torques)
 
     def step(self):
         acc = self.f_buffer / self.m
-        self.x += self.v * self.dt + 0.5 * acc * self.dt**2
+        self.x += self.v * self.dt + 0.5 * acc * self.dt ** 2
         self.v += acc * self.dt
 
 
 if __name__ == "__main__":
+    dof = 2
     hz = 60
     mass = 1
 
-    sim = DoubleIntegratorSim(hz, mass)
+    sim = DoubleIntegratorSim(dof, hz, mass)
 
     polymetis_client = polysim.SimInterface(hz=hz)
     polymetis_client.register_arm_control(
         server_address="localhost:50051",
         state_callback=sim.get_state,
         action_callback=sim.apply_control,
-        default_Kq=[1.0],
-        default_Kqd=[0.1],
+        kp_joint=[25.0, 25.0],
+        kd_joint=[5.0, 5.0],
         dof=1,
     )
     polymetis_client.register_step_callback(sim.step)
