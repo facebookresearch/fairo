@@ -309,7 +309,7 @@ class Navigation(object):
 
         if visualize:
             subpath = "modular_learned" if exploration_method == "learned" else "modular_frontier"
-            vis_path = f"images/{episode_id}/{subpath}"
+            vis_path = f"trajectories/{episode_id}/{subpath}"
             self.vis = ObjectGoalNavigationVisualization(object_goal, path=vis_path)
 
         object_goal_cat = coco_categories[object_goal]
