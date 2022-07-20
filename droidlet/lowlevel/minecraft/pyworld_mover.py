@@ -143,7 +143,7 @@ class PyWorldMover:
         pos = player_struct.pos
         look = player_struct.look
         pose_data = {
-            "pos": (float(pos.x), float(pos.y), float(pos.z)),
+            "pos": (float(pos.x), float(pos.y) + 1, float(pos.z)),
             "yaw": float(look.yaw),
             "pitch": float(look.pitch),
         }

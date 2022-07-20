@@ -5,17 +5,28 @@ import numpy as np
 from typing import Tuple, List
 from droidlet.base_util import to_block_pos, XYZ, IDM, pos_to_np, euclid_dist
 from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
+from droidlet.lowlevel.minecraft.pyworld.world_config import opts
 
 
-def capped_line_of_sight(agent, player_struct, cap=3):
+def capped_line_of_sight(agent, player_struct, cap=20):
     """Return the block directly in the entity's line of sight, or a point in the distance"""
+
     xsect = agent.get_player_line_of_sight(player_struct)
     if xsect is not None and euclid_dist(pos_to_np(xsect), pos_to_np(player_struct.pos)) <= cap:
         return pos_to_np(xsect)
 
     # default to cap blocks in front of entity
-    vec = agent.coordinate_transforms.look_vec(player_struct.look.yaw, player_struct.look.pitch)
-    return cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
+    if agent.backend == "pyworld":
+        vec = agent.coordinate_transforms.look_vec(np.radians(player_struct.look.yaw), np.radians(player_struct.look.pitch))
+        target = cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
+        while (target[0] >= opts.SL or target[0] < 0 or target[1] >= opts.H or target[1] < 0 or target[2] >= opts.SL or target[2] < 0):
+            # Don't produce a point off the map
+            cap /= 2
+            target = cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
+        return target
+    else:
+        vec = agent.coordinate_transforms.look_vec(player_struct.look.yaw, player_struct.look.pitch)
+        return cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
 
 
 class LowLevelMCPerception:

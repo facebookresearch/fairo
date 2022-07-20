@@ -317,16 +317,16 @@ class World:
             B = B.transpose(1, 2, 0, 3)
         return B
 
-    def get_line_of_sight(self, pos, yaw, pitch):
+    def get_line_of_sight(self, pos, yaw, pitch, loose=0):
         # it is assumed lv is unit normalized
         pos = tuple(self.to_npy_coords(pos))
-        lv = look_vec(yaw, pitch)
+        lv = look_vec(np.radians(yaw), np.radians(pitch))
         dt = 1.0
         for n in range(2 * self.sl):
             p = tuple(np.round(np.add(pos, n * dt * lv)).astype("int32"))
-            for i in range(-1, 2):
-                for j in range(-1, 2):
-                    for k in range(-1, 2):
+            for i in range(-loose, loose+1):
+                for j in range(-loose, loose+1):
+                    for k in range(-loose, loose+1):
                         sp = tuple(np.add(p, (i, j, k)))
                         if all([x >= 0 for x in sp]) and all([x < self.sl for x in sp]):
                             if tuple(self.blocks[sp]) != AIR:

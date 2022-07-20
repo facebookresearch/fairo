@@ -2,11 +2,10 @@ from math import radians
 from threading import Thread
 
 from droidlet.lowlevel.minecraft.pyworld.world import World
-from droidlet.lowlevel.minecraft.iglu_util import IGLU_BLOCK_MAP
-from droidlet.lowlevel.minecraft.pyworld.item import GettableItem
 from droidlet.lowlevel.minecraft.pyworld.fake_mobs import SimpleMob, make_mob_opts
 from droidlet.lowlevel.minecraft.pyworld.ticker import Ticker
 from droidlet.lowlevel.minecraft.small_scenes_with_shapes import build_shape_scene
+from droidlet.lowlevel.minecraft.pyworld.world_config import opts
 
 
 class Opt:
@@ -56,24 +55,7 @@ def instantiate_world_from_spec(opts):
 
 
 if __name__ == "__main__":
-    opts = Opt()
-    opts.SL = 16
-    opts.H = 16
-    opts.GROUND_DEPTH = 5
-    opts.mob_config = "num_mobs:4"
-    # FIXME make these consts
-    opts.MAX_NUM_SHAPES = 3
-    opts.MAX_NUM_GROUND_HOLES = 3
-    opts.fence = False
-    opts.extra_simple = False
-    # TODO?
-    opts.cuberite_x_offset = 0
-    opts.cuberite_y_offset = 0
-    opts.cuberite_z_offset = 0
-    opts.iglu_scenes = ""
-    # FIXME! put in the scene spec generator
-    opts.gettable_items = [GettableItem("ball")]
-
+    
     ticker = Ticker(tick_rate=0.01, step_rate=0.2, ip="localhost", port=6002)
     ticker_thread = Thread(target=ticker.start, args=())
     ticker_thread.start()

@@ -216,7 +216,9 @@ def collect_scene(blocks, inst_segs, args, mobs=[]):
             pitchyaw = (p, yaw)
         else:
             loc = None
-            pitchyaw = None
+            # For mobs we want random yaw, but 0 pitch
+            yaw = np.random.uniform(-180, 180)
+            pitchyaw = (0, yaw)
         mob["pose"] = make_pose(args, loc=loc, pitchyaw=pitchyaw, height_map=height_map)
         J["mobs"].append(mob)
     # FIXME not using the avatar and agent position in cuberite...
