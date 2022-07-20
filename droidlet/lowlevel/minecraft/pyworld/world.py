@@ -324,9 +324,9 @@ class World:
         dt = 1.0
         for n in range(2 * self.sl):
             p = tuple(np.round(np.add(pos, n * dt * lv)).astype("int32"))
-            for i in range(-loose, loose+1):
-                for j in range(-loose, loose+1):
-                    for k in range(-loose, loose+1):
+            for i in range(-loose, loose + 1):
+                for j in range(-loose, loose + 1):
+                    for k in range(-loose, loose + 1):
                         sp = tuple(np.add(p, (i, j, k)))
                         if all([x >= 0 for x in sp]) and all([x < self.sl for x in sp]):
                             if tuple(self.blocks[sp]) != AIR:

@@ -142,7 +142,9 @@ class ConfirmTask(Task):
         task_data["blocking"] = True
         super().__init__(agent, task_data=task_data)
         # chat text that will be sent to user
-        self.question = build_question_json(task_data.get("question"), text_response_options=['yes', 'no'])
+        self.question = build_question_json(
+            task_data.get("question"), text_response_options=["yes", "no"]
+        )
         self.task_memids = task_data.get(
             "task_memids"
         )  # list of Task objects, will be pushed in order

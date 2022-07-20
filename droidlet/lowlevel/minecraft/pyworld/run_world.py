@@ -55,7 +55,7 @@ def instantiate_world_from_spec(opts):
 
 
 if __name__ == "__main__":
-    
+
     ticker = Ticker(tick_rate=0.01, step_rate=0.2, ip="localhost", port=6002)
     ticker_thread = Thread(target=ticker.start, args=())
     ticker_thread.start()

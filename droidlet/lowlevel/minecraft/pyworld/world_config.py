@@ -1,5 +1,6 @@
 from droidlet.lowlevel.minecraft.pyworld.item import GettableItem
 
+
 class Opt:
     def __init__(self):
         self.SL = 16
@@ -19,6 +20,5 @@ class Opt:
         # FIXME! put in the scene spec generator
         self.gettable_items = [GettableItem("ball")]
 
+
 opts = Opt()
-
-

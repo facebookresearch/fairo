@@ -96,7 +96,7 @@ class SimpleMob:
     def new_direction(self):
         new_direction = np.random.randn(2)
         self.direction = new_direction / np.linalg.norm(new_direction)
-        yaw = np.arctan2(new_direction[0], new_direction[1]) * 360/(2 * np.pi)
+        yaw = np.arctan2(new_direction[0], new_direction[1]) * 360 / (2 * np.pi)
         self.look = (yaw, 0.0)
 
     def step(self):

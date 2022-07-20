@@ -17,15 +17,26 @@ def capped_line_of_sight(agent, player_struct, cap=20):
 
     # default to cap blocks in front of entity
     if agent.backend == "pyworld":
-        vec = agent.coordinate_transforms.look_vec(np.radians(player_struct.look.yaw), np.radians(player_struct.look.pitch))
+        vec = agent.coordinate_transforms.look_vec(
+            np.radians(player_struct.look.yaw), np.radians(player_struct.look.pitch)
+        )
         target = cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
-        while (target[0] >= opts.SL or target[0] < 0 or target[1] >= opts.H or target[1] < 0 or target[2] >= opts.SL or target[2] < 0):
+        while (
+            target[0] >= opts.SL
+            or target[0] < 0
+            or target[1] >= opts.H
+            or target[1] < 0
+            or target[2] >= opts.SL
+            or target[2] < 0
+        ):
             # Don't produce a point off the map
             cap /= 2
             target = cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
         return target
     else:
-        vec = agent.coordinate_transforms.look_vec(player_struct.look.yaw, player_struct.look.pitch)
+        vec = agent.coordinate_transforms.look_vec(
+            player_struct.look.yaw, player_struct.look.pitch
+        )
         return cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
 
 
