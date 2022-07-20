@@ -320,8 +320,8 @@ class Navigation(object):
         low_level_step = 0
         low_level_steps_with_goal_remaining = 0
         if start_with_panorama:
-            panorama_steps_remaining = 12
-            panorama_yaws = np.arange(1, panorama_steps_remaining + 1)[::-1]
+            panorama_yaws = np.arange(0.5, 6.5, 0.5)[::-1]
+            panorama_steps_remaining = len(panorama_yaws)
         else:
             panorama_steps_remaining = 0
 
