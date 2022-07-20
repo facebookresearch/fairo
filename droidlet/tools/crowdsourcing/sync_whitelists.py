@@ -88,7 +88,7 @@ def import_s3_lists(bucket: str):
 
 def add_workers_to_quals(add_list: list, qual: str):
     """
-    Add workers to quals 
+    Add workers to quals
         - return a status of if adding successfully
         - if success, return true, else return false
     """
@@ -118,6 +118,7 @@ def add_workers_to_quals(add_list: list, qual: str):
             logging.info(f"Worker {worker.worker_name} added to list {qual}")
             return True
 
+
 def revoke_worker_qual(turker: str, qual: str):
     """
     revoke worker qualification,
@@ -128,7 +129,7 @@ def revoke_worker_qual(turker: str, qual: str):
         worker = Worker.get(db, db_id)
     except:
         worker = db.find_workers(turker, "mturk")[0]
-    
+
     try:
         db.make_qualification(qual)
     except:
