@@ -1,3 +1,11 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+Wrapper for turk list, reterive turk list data and render the TurkList component.
+
+Usage:
+<ManageTurkContent pipelineType={pipelineType} />
+*/
 import { Spin, Tabs, Typography } from "antd";
 import React, { useContext, useEffect, useState } from "react";
 import { SocketContext } from "../../../context/socket";
@@ -8,11 +16,8 @@ const { TabPane } = Tabs;
 
 const ManageTurkContent = (props) => {
     const pipelineType = props.pipelineType;
-
     const socket = useContext(SocketContext);
     const [turkData, setTurkData] = useState(null);
-
-
 
     const handleRecivedTurkList = (data) => {
         const processedData = {};
