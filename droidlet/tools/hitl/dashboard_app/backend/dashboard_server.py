@@ -18,13 +18,13 @@ from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
     get_model_by_id,
     get_run_info_by_id,
     get_traceback_by_id,
-    get_turk_list_by_pipeline,
 )
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_model_utils import (
     get_complete_model,
     get_keys,
     get_value_by_key,
 )
+from droidlet.tools.hitl.dashboard_app.backend.dashboard_turk_utils import get_turk_list_by_pipeline, update_turk_qual_by_tid
 from flask import Flask, abort
 from flask_socketio import SocketIO, emit
 
@@ -57,7 +57,7 @@ class DASHBOARD_EVENT(Enum):
 
     # apis for turk
     GET_TURK_LIST = "get_turk_list_by_pipeline"
-    UPDATE_TURK = "update_turk_by_tid"
+    UPDATE_TURK = "update_turk_qual_by_tid"
 
 
 # constants for model related apis
@@ -238,7 +238,7 @@ def get_model_value(batch_id, key):
 @socketio.on(DASHBOARD_EVENT.GET_TURK_LIST.value)
 def get_turk_list(pipeline: str):
     """
-    get turk list for the corresponding pipeline
+    get turk list for the corresponding pipeline from the local mephisto db
     - input:
         - pipeline type
     - output:
@@ -250,10 +250,25 @@ def get_turk_list(pipeline: str):
 
 
 @socketio.on(DASHBOARD_EVENT.UPDATE_TURK.value)
-def update_turk(pipeline, turk_id):
-    # TODO: update turk list
-    pass
+def update_turk(turk_id: str, task_type: str, new_list_type: str, prev_list_type: str):
+    """
+    update turk list to the corresponding qual in the local mephisto db
+    - input:
+        - turk id
+        - qualification type (string)
+    - output:
+        - a status code indicating if update succeeds
+    """
+    print(f"Request received: {DASHBOARD_EVENT.UPDATE_TURK.value}, \
+        turk_id = {turk_id}, task_type = {task_type}, \
+        to list = {new_list_type}, prev = {prev_list_type}")
 
+    msg, error_code = update_turk_qual_by_tid(turk_id, task_type, new_list_type, prev_list_type)
+    print(msg)
+    if error_code:
+        emit(DASHBOARD_EVENT.UPDATE_TURK.value, error_code)
+    else:
+        emit(DASHBOARD_EVENT.UPDATE_TURK.value, 200)
 
 if __name__ == "__main__":
     socketio.run(app)

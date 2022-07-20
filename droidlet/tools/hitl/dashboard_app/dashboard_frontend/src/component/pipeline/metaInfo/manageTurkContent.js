@@ -6,10 +6,11 @@ Wrapper for turk list, reterive turk list data and render the TurkList component
 Usage:
 <ManageTurkContent pipelineType={pipelineType} />
 */
-import { Spin, Tabs, Typography } from "antd";
+import { CloudSyncOutlined } from "@ant-design/icons";
+import { Button, Spin, Tabs, Typography } from "antd";
 import React, { useContext, useEffect, useState } from "react";
 import { SocketContext } from "../../../context/socket";
-import { snakecaseToWhitespaceSep, toFirstCapital } from "../../../utils/textUtils";
+import { snakecaseToWhitespaceSep } from "../../../utils/textUtils";
 import TurkList from "./turkList";
 
 const { TabPane } = Tabs;
@@ -27,18 +28,17 @@ const ManageTurkContent = (props) => {
 
             const allowList = Array.from(new Set(data[k]["allow"])); // used set for dedup
             const blockSet = new Set(data[k]["block"]);
-
             const softblockSet = new Set(data[k]["softblock"]);
 
             processedData[k] = allowList.map((tid) => (
                 {
                     "id": tid,
                     "status":
-                        blockSet.has(tid) ?
-                            "block" :
+                        softblockSet.has(tid) ?
+                            "softblock" :
                             (
-                                softblockSet.has(tid) ?
-                                    "softblock" :
+                                blockSet.has(tid) ?
+                                    "block" :
                                     "allow"
                             )
                 }
@@ -52,6 +52,10 @@ const ManageTurkContent = (props) => {
         socket.emit("get_turk_list_by_pipeline", pipelineType.label);
     }
 
+    const handleSync = () => {
+        console.log("sync");
+    }
+
     useEffect(() => { !turkData && getTurkList() }, []); // component did mount
 
     useEffect(() => {
@@ -62,13 +66,17 @@ const ManageTurkContent = (props) => {
 
     return <div style={{ textAlign: "left" }}>
         <Typography.Title level={5}>Manage Turk List</Typography.Title>
+        <div>
+            Showing mephisto local data. 
+            <Button onClick={handleSync}icon={<CloudSyncOutlined />} type="primary" size="small" style={{marginLeft: '12px'}}>Sync with S3</Button>
+        </div>
         {
             turkData ?
                 <div style={{ paddingRight: "16px" }}>
                     <Tabs defaultActiveKey={Object.keys(turkData)[0]}>
                         {Object.entries(turkData).map(([name, data]) =>
                             <TabPane tab={snakecaseToWhitespaceSep(name)} key={name}>
-                                <TurkList turkListName={name} turkListData={data} />
+                                <TurkList taskType={name} turkListData={data} />
                             </TabPane>)}
                     </Tabs>
                 </div>

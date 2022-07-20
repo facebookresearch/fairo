@@ -12,22 +12,15 @@ import boto3
 import botocore
 import os
 import re
-from droidlet.tools.crowdsourcing.sync_whitelists import import_s3_lists
 
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_model_utils import load_model
-
 
 PIPELINE_DATASET_MAPPING = {
     "NLU": "nsp_data",
 }
 
-PIPELINE_QUAL_MAPPPING = {
-    "NLU": ["interaction"],
-}
-
 S3_BUCKET_NAME_HITL = "droidlet-hitl"
 S3_ROOT_HITL = "s3://droidlet-hitl"
-S3_BUCKET_NAME_INTERNAL = "droidlet-internal"
 
 HITL_TMP_DIR = (
     os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
@@ -196,18 +189,3 @@ def get_model_by_id(batch_id: int):
         return f"cannot find best_model file related to {batch_id}", 404
     else:
         return load_model(local_fname), None
-
-
-def get_turk_list_by_pipeline(pipeline):
-    """
-    Download turk allow/block/softblock list from aws,
-    return lists corresponding the the input pipeline
-    """
-    output_dict_raw = import_s3_lists(S3_BUCKET_NAME_INTERNAL)
-    qual_types = PIPELINE_QUAL_MAPPPING[pipeline]
-
-    output_dict = {}
-
-    for qual_type in qual_types:
-        output_dict[qual_type] = output_dict_raw[qual_type]
-    return output_dict

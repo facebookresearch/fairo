@@ -4,34 +4,58 @@ Copyright (c) Facebook, Inc. and its affiliates.
 Turk list used for viewing & setting turks to block or not blocked.
 
 Usage:
-<TurkList turkListName={turkListName} turkListData={turkListData} />
+<TurkList taskType={taskType} turkListData={turkListData} />
 */
-import { Button, Input, Radio, Table } from "antd";
-import React, { useEffect, useState } from "react";
+import { Alert, Button, Input, Radio, Spin, Table } from "antd";
+import React, { useContext, useEffect, useState } from "react";
 import { LockOutlined, UnlockOutlined } from "@ant-design/icons";
-import { toFirstCapital } from "../../../utils/textUtils";
+import { reteriveLabelByValue, toFirstCapital } from "../../../utils/textUtils";
+import { socket, SocketContext } from "../../../context/socket";
 
 const { Search } = Input;
 const STATUS_TYPES = [
-    {"label": "Allow", "value": "allow"},
-    {"label": "Block", "value": "block"},
-    {"label": "Softblock", "value": "softblock"},
+    { "label": "Allow", "value": "allow" },
+    { "label": "Pilotblock", "value": "block" },
+    { "label": "Block", "value": "softblock" },
 ]
 
 const TurkList = (props) => {
-    const turkListName = props.turkListName;
+    const socekt = useContext(SocketContext);
+    const taskType = props.taskType;
     const [listData, setListData] = useState(props.turkListData);
     const [displayData, setDisplayData] = useState(props.turkListData);
-
+    const [tmpData, setTmpData] = useState(props.turkListData);
+    const [idInUpdating, setIdInUpdating] = useState(null);
     const [searchKey, setSearchKey] = useState(null);
     const [editable, setEditable] = useState(false);
 
-    const handleRadioSel = (value, id) => {
-        // TODO: end request to backend, update only when backend returns success
-        const newDataList = listData.map((o) => (o.id === id ? { "id": o.id, "status": value } : { "id": o.id, "status": o.status }));
-        setListData(newDataList);
-        setDisplayData(searchKey ? newDataList.filter((o) => (String(o.id).includes(searchKey))) : newDataList);
+    const [showFailure, setShowFailure] = useState(false);
+
+    const handleRecievedTurkUpdateRes = (data) => {
+        if (data === 200) {
+            // update success
+            setListData(tmpData);
+            setShowFailure(false);
+            setIdInUpdating(null);
+            setDisplayData(searchKey ? tmpData.filter((o) => (String(o.id).includes(searchKey))) : tmpData);
+        } else {
+            // failed to update
+            setShowFailure(true);
+            setDisplayData(searchKey ? listData.filter((o) => (String(o.id).includes(searchKey))) : listData);
+        }
     }
+
+    const handleRadioSel = (value, id, previousStatus) => {
+        setIdInUpdating(id);
+        socket.emit("update_turk_qual_by_tid", id, taskType, value, previousStatus);
+        // save a temp data
+        const newDataList = listData.map((o) => (o.id === id ? { "id": o.id, "status": value } : { "id": o.id, "status": o.status }));
+        setTmpData(newDataList);
+    }
+
+    useEffect(() => {
+        socket.on("update_turk_qual_by_tid", (data) => handleRecievedTurkUpdateRes(data));
+    }, [socket, handleRecievedTurkUpdateRes]);
 
     const onSearch = (searchBoxValue) => {
         if (searchBoxValue) {
@@ -43,7 +67,12 @@ const TurkList = (props) => {
         }
     }
 
-    useEffect(() => { }, [displayData]);
+    useEffect(() => { }, [displayData, idInUpdating]);
+
+    const handleCloseAlert = () => {
+        setIdInUpdating(null);
+        setShowFailure(false);
+    }
 
     return <div>
         <div style={{ extAlign: "left", paddingBottom: "12px" }}>
@@ -71,21 +100,31 @@ const TurkList = (props) => {
             }, {
                 title: editable ? "Edit tatus" : "Status",
                 dataIndex: "status",
-                filters: STATUS_TYPES.map((t) => ({"text": t.label, "value": t.value})),
+                filters: STATUS_TYPES.map((t) => ({ "text": t.label, "value": t.value })),
                 onFilter: (val, row) => (row.status === val),
                 sorter: (one, other) => (one.status.localeCompare(other.status)),
                 render: (status, row) =>
-                    editable ?
-                        <Radio.Group onChange={(e) => handleRadioSel(e.target.value, row.id)} value={status}>
-                            {
-                                STATUS_TYPES.map((t) => 
-                                    <Radio value={t.value}>{t.label}</Radio>
-                                )
-                            }
-                        </Radio.Group> :
-                        <div>
-                            {toFirstCapital(status)}
-                        </div>
+                    row.id === idInUpdating ?
+                        (showFailure ? 
+                        <Alert 
+                            description="Update failed, please try again later."
+                            type="error"
+                            closable
+                            onClose={handleCloseAlert}
+                        />
+                        :
+                        <div><Spin style={{ marginRight: '12px' }} />Updating Status</div>) :
+                        (editable ?
+                            <Radio.Group onChange={(e) => handleRadioSel(e.target.value, row.id, status)} value={status}>
+                                {
+                                    STATUS_TYPES.map((t) =>
+                                        <Radio value={t.value}>{t.label}</Radio>
+                                    )
+                                }
+                            </Radio.Group> :
+                            <div>
+                                {reteriveLabelByValue(status, STATUS_TYPES)}
+                            </div>)
 
             }]}
             dataSource={displayData}

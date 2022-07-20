@@ -12,3 +12,8 @@ export const snakecaseToWhitespaceSep = (word) => {
     splittedWords = splittedWords.map((w) => toFirstCapital(w));
     return splittedWords.join(" ")
 };
+
+export const reteriveLabelByValue = (value, labelValMappingLs) => {
+    // labelValMappingLs must be 1 to 1 
+    return labelValMappingLs.find((o) => o.value === value).label;
+}
