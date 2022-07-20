@@ -3519,6 +3519,11 @@ class VoxelPlayer {
     }
   }
 
+  updateWorld(newWorld) {
+    // If the world changes externally (eg. dig), update property
+    this.world = newWorld;
+  }
+
   possess() {
     if (!this.possessed) {
       this.possessed = true;
@@ -3612,7 +3617,7 @@ const defaultCameraNearPlane = 1;
 const defaultCameraFarPlane = 10000;
 const fps = 2;
 const renderInterval = 1000 / fps;
-let camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
+let world, camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
 const followPointerScale = 150;
 const preLoadMaterialNames = ['grass', 'dirt', 'wood', 'iron', 'white wool'];
 const blockScale = 50;
@@ -3869,14 +3874,6 @@ class DVoxelEngine {
       }) //back side
       ]);
     });
-    let world = {
-      THREE: THREE,
-      scene: scene,
-      render: render,
-      camera: camera,
-      reticle: reticle,
-      sceneItems: sceneItems
-    };
 
     for (const key in _model_luts.VW_AVATAR_MAP) {
       if (typeof key === "string" && _model_luts.VW_AVATAR_MAP[key] !== null) {
@@ -3885,6 +3882,7 @@ class DVoxelEngine {
           name: key,
           position: [100, 500, -500]
         };
+        updateWorld();
 
         _VoxelPlayer.VoxelPlayer.build(world, opts).then(function (player) {
           if (player.avatarType === "player") {
@@ -3910,12 +3908,13 @@ class DVoxelEngine {
 
   setVoxel(pos, bid) {
     if (bid === 0) {
-      let obj = scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2]));
-      console.log('deleting');
-      console.log(obj);
+      let obj = scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2])); // console.log('deleting')
+      // console.log(obj)
+
       this.scene.remove(scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2])));
       this.scene.remove(scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2], true)));
       sceneItems = sceneItems.filter(item => item !== obj);
+      updateWorld();
       return;
     }
 
@@ -3970,6 +3969,7 @@ class DVoxelEngine {
       this.scene.add(box);
       const bidx = convertCoordinateSystems(pos[0], pos[1], pos[2]);
       setBlock2(bidx[0], bidx[1], bidx[2], bid);
+      updateWorld();
     }
   }
 
@@ -4038,12 +4038,6 @@ class DVoxelEngine {
   updateMobs(mobsInfo) {
     // console.log("DVoxel Engine update mobs")
     // console.log(mobsInfo)
-    let world = {
-      THREE: THREE,
-      scene: scene,
-      render: render,
-      camera: camera
-    };
     mobsInfo.forEach(function (key, index) {
       const entityId = key['entityId'].toString();
       const pos = convertCoordinateSystems(key['pos'][0], key['pos'][1], key['pos'][2]);
@@ -4063,6 +4057,7 @@ class DVoxelEngine {
           name: name,
           position: [pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale]
         };
+        updateWorld();
 
         _VoxelMob.VoxelMob.build(world, mobOpts).then(function (newMob) {
           mobs[entityId] = newMob;
@@ -4075,12 +4070,6 @@ class DVoxelEngine {
   updateItemStacks(itemStacksInfo) {
     // console.log("DVoxel Engine update item stacks")
     // console.log(itemStacksInfo)
-    let world = {
-      THREE: THREE,
-      scene: scene,
-      render: render,
-      camera: camera
-    };
     itemStacksInfo.forEach(function (key, index) {
       const entityId = key['entityId'].toString();
       const pos = convertCoordinateSystems(key['pos'][0], key['pos'][1], key['pos'][2]);
@@ -4099,6 +4088,7 @@ class DVoxelEngine {
           name: name,
           position: [pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale]
         };
+        updateWorld();
 
         _VoxelItem.VoxelItem.build(world, itemStackOpts).then(function (newItemStack) {
           itemStacks[entityId] = newItemStack;
@@ -4186,6 +4176,22 @@ function cameraPosition() {
   temporaryPosition.multiplyScalar(0);
   temporaryPosition.applyMatrix4(camera.matrixWorld);
   return [temporaryPosition.x / blockScale, temporaryPosition.y / blockScale, temporaryPosition.z / blockScale];
+}
+
+function updateWorld() {
+  // Keep the world variable updated with the most recent contents
+  world = {
+    THREE: THREE,
+    scene: scene,
+    render: render,
+    camera: camera,
+    reticle: reticle,
+    sceneItems: sceneItems
+  };
+
+  if (controlled_player) {
+    controlled_player.updateWorld(world);
+  }
 }
 
 function render() {

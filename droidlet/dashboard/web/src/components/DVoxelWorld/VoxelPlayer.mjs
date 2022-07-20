@@ -190,6 +190,11 @@ class VoxelPlayer {
         }
     }
 
+    updateWorld(newWorld) {
+        // If the world changes externally (eg. dig), update property
+        this.world = newWorld;
+    }
+
     possess() {
         if (!this.possessed) {
             this.possessed = true;
