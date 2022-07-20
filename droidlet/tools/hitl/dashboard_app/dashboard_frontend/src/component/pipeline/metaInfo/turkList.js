@@ -30,13 +30,13 @@ const TurkList = (props) => {
         // TODO: end request to backend, update only when backend returns success
         const newDataList = listData.map((o) => (o.id === id ? { "id": o.id, "status": value } : { "id": o.id, "status": o.status }));
         setListData(newDataList);
-        setDisplayData(searchKey ? newDataList((o) => (String(o.id).includes(searchKey))) : newDataList);
+        setDisplayData(searchKey ? newDataList.filter((o) => (String(o.id).includes(searchKey))) : newDataList);
     }
 
     const onSearch = (searchBoxValue) => {
         if (searchBoxValue) {
             setDisplayData(listData.filter((o) => (String(o.id).includes(searchBoxValue.toUpperCase()))));
-            setSearchKey(searchBoxValue);
+            setSearchKey(searchBoxValue.toUpperCase());
         } else {
             setDisplayData(listData);
             setSearchKey(null);
