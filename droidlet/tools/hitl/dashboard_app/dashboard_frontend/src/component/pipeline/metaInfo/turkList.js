@@ -6,9 +6,10 @@ Turk list used for viewing & setting turks to block or not blocked.
 Usage:
 <TurkList pipelineType={pipelineType} />
 */
-import { Button, Checkbox, Collapse, Input, Table, Typography } from "antd";
+import { Button, Checkbox, Collapse, Input, Radio, Table, Typography } from "antd";
 import React, { useEffect, useState } from "react";
 import { LockOutlined, UnlockOutlined } from '@ant-design/icons';
+import { toFirstCapital } from "../../../utils/textUtils";
 
 const { Search } = Input;
 
@@ -20,9 +21,9 @@ const TurkList = (props) => {
     const [searchKey, setSearchKey] = useState(null);
     const [editable, setEditable] = useState(false);
 
-    const handleOnClickCheckbox = (checked, id) => {
+    const handleRadioSel = (value, id) => {
         // TODO: end request to backend, update only when backend returns success
-        const newDataList = listData.map((o) => (o.id === id ? { 'id': o.id, 'blocked': checked } : { 'id': o.id, 'blocked': o.blocked }));
+        const newDataList = listData.map((o) => (o.id === id ? { 'id': o.id, 'status': value } : { 'id': o.id, 'status': o.status }));
         setListData(newDataList);
         setDisplayData(searchKey ? newDataList.filter((o) => (String(o.id).includes(searchKey))) : newDataList);
     }
@@ -63,13 +64,20 @@ const TurkList = (props) => {
                 dataIndex: 'id',
                 sorter: (one, other) => (one.id === other.id ? 0 : (one.id < other.id ? -1 : 1)),
             }, {
-                title: 'Blocked',
-                dataIndex: 'blocked',
-                sorter: (one, other) => (one.blocked === other.blocked ? 0 : (one.blocked < other.blocked ? -1 : 1)),
-                render: (blocked, row) =>
-                    <Checkbox onChange={(e) => handleOnClickCheckbox(e.target.checked, row.id)}
-                        disabled={!editable}
-                        checked={blocked} />
+                title: editable ? 'Edit tatus' : 'Status',
+                dataIndex: 'status',
+                sorter: (one, other) => (one.status.localeCompare(other.status)),
+                render: (status, row) =>
+                    editable ?
+                        <Radio.Group onChange={(e) => handleRadioSel(e.target.value, row.id)} value={status}>
+                            <Radio value={"allow"}>Allow</Radio>
+                            <Radio value={"block"}>Block</Radio>
+                            <Radio value={"softblock"}>Softblock</Radio>
+                        </Radio.Group> :
+                        <div>
+                            {toFirstCapital(status)}
+                        </div>
+
             }]}
             dataSource={displayData}
         />
