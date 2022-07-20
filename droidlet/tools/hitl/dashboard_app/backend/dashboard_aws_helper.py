@@ -200,7 +200,7 @@ def get_model_by_id(batch_id: int):
 
 def get_turk_list_by_pipeline(pipeline):
     """
-    Download turk allow/block/softblock list from aws, 
+    Download turk allow/block/softblock list from aws,
     return lists corresponding the the input pipeline
     """
     output_dict_raw = import_s3_lists(S3_BUCKET_NAME_INTERNAL)
