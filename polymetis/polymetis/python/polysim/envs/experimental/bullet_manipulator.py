@@ -18,12 +18,13 @@ from polymetis.utils.data_dir import get_full_path_to_urdf
 class BulletManipulator:
     def __init__(
         self,
+        hz: int,
         cfg: DictConfig,
         gui: bool,
         gravity: float = 9.81,
     ):
         self.cfg = cfg
-        self.dt = 1.0 / self.cfg.hz
+        self.dt = 1.0 / hz
 
         # Initialize PyBullet simulation
         if gui:
@@ -63,7 +64,7 @@ class BulletManipulator:
 
     def get_arm_state(self) -> polymetis_pb2.RobotState:
         # Timestamp
-        self.arm_state.timestamp.FromSeconds(self.t)
+        self.arm_state.timestamp.FromNanoseconds(int(1e9 * self.t))
 
         # Joint pos & vel
         joint_cur_states = self.sim.getJointStates(
@@ -76,7 +77,7 @@ class BulletManipulator:
 
     def get_gripper_state(self) -> polymetis_pb2.GripperState:
         # Timestamp
-        self.gripper_state.timestamp.FromSeconds(self.t)
+        self.gripper_state.timestamp.FromNanoseconds(int(1e9 * self.t))
 
         # Gripper states
         joint_cur_states = self.sim.getJointStates(
@@ -142,7 +143,7 @@ class BulletManipulator:
 @hydra.main(config_path=".", config_name="config")
 def main(cfg):
     # Create sim
-    sim = BulletManipulator(cfg.robot_model, gui=cfg.gui)
+    sim = BulletManipulator(cfg.hz, cfg.robot_model, gui=cfg.gui)
 
     # Connect to Polymetis sim interface
     ps_interface = polysim.SimInterface(cfg.hz)

@@ -19,6 +19,7 @@ import polymetis_pb2
 import polymetis_pb2_grpc
 import polymetis
 from polymetis.utils import Spinner
+from polymetis.utils.data_dir import get_full_path_to_urdf
 from torchcontrol.policies.default_controller import DefaultController
 
 
@@ -82,9 +83,7 @@ class SimInterface:
         metadata.rest_pose[:] = [0.0] * dof if kp_joint is None else kp_joint
 
         if urdf_path is not None:
-            full_urdf_path = get_full_path_to_urdf(
-                robot_model_cfg.robot_description_path
-            )
+            full_urdf_path = get_full_path_to_urdf(urdf_path)
             with open(full_urdf_path, "r") as file:
                 metadata.urdf_file = file.read()
 

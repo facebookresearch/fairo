@@ -19,12 +19,20 @@ class DoubleIntegratorSim:
         self.x = np.zeros(dof)
         self.v = np.zeros(dof)
         self.f_buffer = np.zeros(dof)
+        self.t = 0
 
     def get_state(self) -> polymetis_pb2.RobotState:
         state = polymetis_pb2.RobotState()
-        state.timestamp.GetCurrentTime()
+        state.timestamp.FromNanoseconds(int(1e9 * self.t))
         state.joint_positions[:] = self.x
         state.joint_velocities[:] = self.v
+
+        state.joint_torques_computed[:] = [0.0] * self.dof
+        state.prev_joint_torques_computed[:] = [0.0] * self.dof
+        state.prev_joint_torques_computed_safened[:] = [0.0] * self.dof
+        state.motor_torques_measured[:] = [0.0] * self.dof
+        state.motor_torques_external[:] = [0.0] * self.dof
+        state.motor_torques_desired[:] = [0.0] * self.dof
 
         return state
 
@@ -36,6 +44,8 @@ class DoubleIntegratorSim:
         acc = self.f_buffer / self.m
         self.x += self.v * self.dt + 0.5 * acc * self.dt ** 2
         self.v += acc * self.dt
+
+        self.t += self.dt
 
 
 if __name__ == "__main__":
