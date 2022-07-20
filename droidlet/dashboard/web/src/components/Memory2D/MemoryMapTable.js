@@ -247,10 +247,11 @@ export default function MemoryMapTable(props) {
                 <Tooltip
                   title="restores values to what they were before any manual edits"
                   placement="bottom"
+                  interactive
+                  leaveDelay={500}
                 >
                   <IconButton
                     onClick={() => {
-                      console.log("should restore");
                       props.onTableRestore(props.data["memid"]);
                     }}
                     size="small"
@@ -280,6 +281,8 @@ export default function MemoryMapTable(props) {
                 <Tooltip
                   title="refreshes values to what they were when table was opened"
                   placement="bottom"
+                  interactive
+                  leaveDelay={500}
                 >
                   <IconButton
                     onClick={() => {
