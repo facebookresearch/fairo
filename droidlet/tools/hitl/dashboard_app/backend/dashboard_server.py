@@ -251,6 +251,7 @@ def get_turk_list(pipeline: str):
 
 @socketio.on(DASHBOARD_EVENT.UPDATE_TURK.value)
 def update_turk(pipeline, turk_id):
+    # TODO: update turk list
     pass
 
 

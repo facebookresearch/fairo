@@ -8,10 +8,15 @@ Usage:
 */
 import { Button, Input, Radio, Table } from "antd";
 import React, { useEffect, useState } from "react";
-import { LockOutlined, UnlockOutlined } from '@ant-design/icons';
+import { LockOutlined, UnlockOutlined } from "@ant-design/icons";
 import { toFirstCapital } from "../../../utils/textUtils";
 
 const { Search } = Input;
+const STATUS_TYPES = [
+    {"label": "Allow", "value": "allow"},
+    {"label": "Block", "value": "block"},
+    {"label": "Softblock", "value": "softblock"},
+]
 
 const TurkList = (props) => {
     const turkListName = props.turkListName;
@@ -23,14 +28,14 @@ const TurkList = (props) => {
 
     const handleRadioSel = (value, id) => {
         // TODO: end request to backend, update only when backend returns success
-        const newDataList = listData.map((o) => (o.id === id ? { 'id': o.id, 'status': value } : { 'id': o.id, 'status': o.status }));
+        const newDataList = listData.map((o) => (o.id === id ? { "id": o.id, "status": value } : { "id": o.id, "status": o.status }));
         setListData(newDataList);
-        setDisplayData(searchKey ? newDataList.filter((o) => (String(o.id).includes(searchKey))) : newDataList);
+        setDisplayData(searchKey ? newDataList((o) => (String(o.id).includes(searchKey))) : newDataList);
     }
 
     const onSearch = (searchBoxValue) => {
         if (searchBoxValue) {
-            setDisplayData(listData.filter((o) => (String(o.id).includes(searchBoxValue))));
+            setDisplayData(listData.filter((o) => (String(o.id).includes(searchBoxValue.toUpperCase()))));
             setSearchKey(searchBoxValue);
         } else {
             setDisplayData(listData);
@@ -41,14 +46,14 @@ const TurkList = (props) => {
     useEffect(() => { }, [displayData]);
 
     return <div>
-        <div style={{ extAlign: 'left', paddingBottom: '12px' }}>
+        <div style={{ extAlign: "left", paddingBottom: "12px" }}>
             <Search
                 placeholder="Search by Id"
-                style={{ width: '30%' }}
+                style={{ width: "30%" }}
                 allowClear
                 onSearch={onSearch}
                 enterButton />
-            <div style={{ float: 'right', paddingRight: '18px', display: 'inline-block' }}>
+            <div style={{ float: "right", paddingRight: "18px", display: "inline-block" }}>
                 <Button
                     type="primary"
                     icon={editable ? <UnlockOutlined /> : <LockOutlined />}
@@ -58,21 +63,25 @@ const TurkList = (props) => {
             </div>
         </div>
         <Table
-            style={{ paddingRight: '24px' }}
+            style={{ paddingRight: "24px" }}
             columns={[{
-                title: 'Id',
-                dataIndex: 'id',
+                title: "Id",
+                dataIndex: "id",
                 sorter: (one, other) => (one.id === other.id ? 0 : (one.id < other.id ? -1 : 1)),
             }, {
-                title: editable ? 'Edit tatus' : 'Status',
-                dataIndex: 'status',
+                title: editable ? "Edit tatus" : "Status",
+                dataIndex: "status",
+                filters: STATUS_TYPES.map((t) => ({"text": t.label, "value": t.value})),
+                onFilter: (val, row) => (row.status === val),
                 sorter: (one, other) => (one.status.localeCompare(other.status)),
                 render: (status, row) =>
                     editable ?
                         <Radio.Group onChange={(e) => handleRadioSel(e.target.value, row.id)} value={status}>
-                            <Radio value={"allow"}>Allow</Radio>
-                            <Radio value={"block"}>Block</Radio>
-                            <Radio value={"softblock"}>Softblock</Radio>
+                            {
+                                STATUS_TYPES.map((t) => 
+                                    <Radio value={t.value}>{t.label}</Radio>
+                                )
+                            }
                         </Radio.Group> :
                         <div>
                             {toFirstCapital(status)}
