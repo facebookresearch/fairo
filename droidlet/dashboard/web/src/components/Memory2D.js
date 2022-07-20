@@ -65,37 +65,23 @@ class Memory2D extends React.Component {
       showMenu: false,
       dynamicPositioning: false,
       showTriples: false,
+      mapView: "ZX",
+      squareMap: true,
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
+    this.stage_ref = React.createRef();
     this.resizeHandler = this.resizeHandler.bind(this);
   }
+
+  /*########################
+  ####  Stage Handlers  ####
+  ########################*/
   handleDrag = (className, drag_coordinates) => {
     this.setState({ memory2d_className: className });
     if (drag_coordinates) {
       this.setState({ drag_coordinates });
     }
-  };
-  convertGridCoordinate = (xy) => {
-    const { xmax, xmin, ymax, ymin } = this.state;
-    let { width, height } = this.state;
-    width = Math.min(width, height);
-    height = width;
-    return [
-      (xy[1] * (ymax - ymin)) / height + ymin,
-      0,
-      (xy[0] * (xmax - xmin)) / width + xmin,
-    ];
-  };
-  convertCoordinate = (xyz) => {
-    const { xmax, xmin, ymax, ymin } = this.state;
-    let { width, height } = this.state;
-    width = Math.min(width, height);
-    height = width;
-    let x = parseInt(((Math.round(xyz[2]) - xmin) / (xmax - xmin)) * width);
-    let y = parseInt(((Math.round(-xyz[0]) - ymin) / (ymax - ymin)) * height);
-    y = height - y;
-    return [x, y];
   };
   /* zoom-in, zoom-out function
      the maximum zoom-out is 100% (stageScale = 1), the maximum zoom-in is unlimited 
@@ -125,6 +111,60 @@ class Memory2D extends React.Component {
         -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
     });
   };
+
+  /*###############################
+  ####  Coordinate Conversion  ####
+  ###############################*/
+  convertGridCoordinate = (xy) => {
+    const { xmax, xmin, ymax, ymin } = this.state;
+    let { width, height, squareMap } = this.state;
+    if (squareMap) {
+      width = Math.min(width, height);
+      height = width;
+    }
+    return [
+      (xy[1] * (ymax - ymin)) / height + ymin,
+      0,
+      (xy[0] * (xmax - xmin)) / width + xmin,
+    ];
+  };
+  convertCoordinate = (xyz, exactInZX = false) => {
+    const { xmax, xmin, ymax, ymin } = this.state;
+    let { width, height, squareMap, mapView } = this.state;
+    if (squareMap) {
+      width = Math.min(width, height);
+      height = width;
+    }
+    let horz, vert;
+    if (exactInZX) {
+      [horz, vert] = [xyz[2], -xyz[0]];
+    } else {
+      switch (mapView) {
+        case "ZX":
+          [horz, vert] = [xyz[2], -xyz[0]];
+          break;
+        case "XY":
+          [horz, vert] = [xyz[0], -xyz[1]];
+          break;
+        case "YZ":
+          [horz, vert] = [xyz[1], -xyz[2]];
+          break;
+        default:
+          console.log("invalid view");
+          return [0, 0];
+      }
+      horz = Math.round(horz);
+      vert = Math.round(vert);
+    }
+    let x = parseInt(((horz - xmin) / (xmax - xmin)) * width);
+    let y = parseInt(((vert - ymin) / (ymax - ymin)) * height);
+    y = height - y;
+    return [x, y];
+  };
+
+  /*####################################
+  ####  Tabular Component Handlers  ####
+  ####################################*/
   handleObjClick = (obj_type, map_pos, obj_data) => {
     let { selection_mode, selected_objects, focused_point_coords } = this.state;
 
@@ -236,6 +276,10 @@ class Memory2D extends React.Component {
     });
     this.onTableClose();
   };
+
+  /*##########################
+  ####  Drawing Handlers  ####
+  ##########################*/
   handleToggleDraw = (e) => {
     let { drag_coordinates, stageScale, drawing_mode } = this.state;
 
@@ -378,6 +422,14 @@ class Memory2D extends React.Component {
       draw_pos_curr: draw_pos,
     });
   };
+
+  /*#######################
+  ####  Menu Handlers  ####
+  #######################*/
+  onMenuOpen = () => {
+    this.setState({ showMenu: true });
+  };
+
   onGroupSubmit = (data) => {
     this.props.stateManager.sendManualChange({
       type: "group",
@@ -385,6 +437,26 @@ class Memory2D extends React.Component {
     });
     // flush previously selected objects
     this.setState({ selected_objects: {} });
+  };
+  centerToBot = () => {
+    let { height, width, bot_data, squareMap } = this.state;
+    if (squareMap) {
+      width = Math.min(width, height);
+      height = width;
+    }
+    let [bot_horz, bot_vert] = this.convertCoordinate(bot_data.pos);
+    this.setState(
+      {
+        drag_coordinates: [width / 2 - bot_horz, height / 2 - bot_vert],
+        stageScale: 1,
+      },
+      () => {
+        this.stage_ref.current.setAttrs({
+          x: width / 2 - bot_horz,
+          y: height / 2 - bot_vert,
+        });
+      }
+    );
   };
   resizeHandler() {
     if (this.props.isMobile) {
@@ -476,9 +548,13 @@ class Memory2D extends React.Component {
       draw_pos_start,
       draw_pos_curr,
       drawing_mode,
+      mapView,
+      squareMap,
     } = this.state;
-    width = Math.min(width, height);
-    height = width;
+    if (squareMap) {
+      width = Math.min(width, height);
+      height = width;
+    }
     let { objects } = memory;
     let { xmin, xmax, ymin, ymax } = this.state;
 
@@ -500,6 +576,9 @@ class Memory2D extends React.Component {
 
     let objectPosPool = {};
 
+    /*#################
+    ####  Pooling  ####
+    #################*/
     // Pool map obstacles by position
     if (obstacle_map) {
       obstacle_map.forEach((obj) => {
@@ -564,21 +643,26 @@ class Memory2D extends React.Component {
             onMouseOut={(e) => {
               e.currentTarget.setRadius(3);
             }}
+            perfectDrawEnabled={false}
           />
         );
         renderedObjects.push(
           <Text
             key={j++}
             text={obj.label}
-            x={x}
-            y={y}
+            x={map_x}
+            y={map_y}
             fill={color}
             fontSize={10}
+            perfectDrawEnabled={false}
           />
         );
       });
     }
 
+    /*#########################
+    ####  Plotting Points  ####
+    #########################*/
     // Use pooling to plot points/groups on map
     Object.entries(objectPosPool).forEach((entry) => {
       let [map_pos, objs_at_pos] = entry;
@@ -603,6 +687,7 @@ class Memory2D extends React.Component {
               if (e.evt.button === 0)
                 this.handleObjClick(obj.type, [map_x, map_y], obj.data);
             }}
+            perfectDrawEnabled={false}
           />
         );
       } else {
@@ -633,6 +718,7 @@ class Memory2D extends React.Component {
               fill={someObjSelected ? "green" : clusterColor}
               stroke="black"
               strokeWidth={1}
+              perfectDrawEnabled={false}
             />
             <Text
               x={numObjs > 9 ? -5 : -3}
@@ -645,16 +731,20 @@ class Memory2D extends React.Component {
               fill="white"
               align="center"
               verticalAlign="middle"
+              perfectDrawEnabled={false}
             />
           </Group>
         );
       }
     });
 
-    /* bot marker
-      a circle to show position and
-      a line to show orientation
-    */
+    /*####################
+    ####  Bot Marker  ####
+    ####################*/
+    /*
+        a circle to show position and
+        a line to show orientation
+      */
     let [bot_x, bot_y] = this.convertCoordinate(bot_data.pos);
     let bot_yaw = bot_data.yaw;
     renderedObjects.push(
@@ -684,6 +774,7 @@ class Memory2D extends React.Component {
               : 10
           }
           fill={bot_data.memid in selected_objects ? "green" : "red"}
+          perfectDrawEnabled={false}
         />
         <Line
           key={j++}
@@ -705,13 +796,18 @@ class Memory2D extends React.Component {
               ? 1.5
               : 1
           }
+          perfectDrawEnabled={false}
         />
       </Group>
     );
 
+    /*##############
+    ####  Grid  ####
+    ##############*/
     var gridLayer = [];
     var padding = 10;
     var gridKey = 12344;
+
     for (var i = 0; i < width / padding; i++) {
       // Vertical Lines
       let startX = drag_coordinates[0] % (padding * stageScale);
@@ -734,7 +830,6 @@ class Memory2D extends React.Component {
       );
     }
 
-    //gridLayer.push(<Line key={gridKey + i++} points={[0, 0, 10, 10]} />); // this draws a diagonal line at the top left of the grid?
     for (j = 0; j < height / padding; j++) {
       // Horizontal Lines
       let startY = drag_coordinates[1] % (padding * stageScale);
@@ -755,106 +850,115 @@ class Memory2D extends React.Component {
       );
     }
 
+    /*##############
+    ####  Axes  ####
+    ##############*/
     let coordinateAxesLayer = [];
-    let rootPointDefault = [9, 0, -9];
-    let coordinateRootPoint = this.convertCoordinate(rootPointDefault);
+    // let rootPointDefault = [9, 0, -9];
+    // let coordinateRootPoint = this.convertCoordinate(rootPointDefault, true);
 
-    let x = (coordinateRootPoint[0] - drag_coordinates[0]) / stageScale;
-    let y = (coordinateRootPoint[1] - drag_coordinates[1]) / stageScale;
+    // Origin of axis fixed at (40, 25) pixels from bottom, left
+    let coordinateRootPoint = [40, height - 25];
 
-    let rootPoint = this.convertGridCoordinate([x, y]);
-    let strokeWidth = 0.5 / stageScale;
+    let rootHorz = (coordinateRootPoint[0] - drag_coordinates[0]) / stageScale;
+    let rootVert = (coordinateRootPoint[1] - drag_coordinates[1]) / stageScale;
+    let rootPoint = this.convertGridCoordinate([rootHorz, rootVert]);
 
-    let axesZ = (
+    let axisStrokeWidth = 0.5 / stageScale;
+
+    let axesHorz = (
       <Line
-        key="axesZ"
-        points={[0, 0, width, 0]}
-        x={x}
-        y={y}
+        key="axesHorz"
+        points={[0, 0, (width - coordinateRootPoint[0] - 20) / stageScale, 0]}
+        x={rootHorz}
+        y={rootVert}
         stroke="#AAAAAA"
-        strokeWidth={strokeWidth}
+        strokeWidth={axisStrokeWidth}
       />
     );
 
-    let axesX = (
+    let axesVert = (
       <Line
-        key="axesX"
-        points={[0, -height, 0, 0]}
-        x={x}
-        y={y}
+        key="axesVert"
+        points={[0, (20 - coordinateRootPoint[1]) / stageScale, 0, 0]}
+        x={rootHorz}
+        y={rootVert}
         stroke="#AAAAAA"
-        strokeWidth={strokeWidth}
+        strokeWidth={axisStrokeWidth}
       />
     );
+
+    /*#################
+    ####  Notches  ####
+    #################*/
     /* add notches and coordinate point value to coordinate axes
        the number of notches axes is unchanged when zoom-in, zoom-out 
        the coordinate point values is shown rounded 2 decimal digits 
        (e.g: 5.123 = 5.12; 5.129 = 5.13) 
     */
     let notches = [];
-    let endPointXZ = [
-      coordinateRootPoint[0] + width,
-      coordinateRootPoint[1] - height,
-    ];
-    let tmpPointX = coordinateRootPoint[0];
-    let tmpPointY = coordinateRootPoint[1];
+    let tmpPointHorz = coordinateRootPoint[0];
+    let tmpPointVert = coordinateRootPoint[1];
 
-    while (tmpPointX < endPointXZ[0]) {
-      tmpPointX += 30;
+    // Notches for horizontal axis
+    while (tmpPointHorz < width - 50) {
+      tmpPointHorz += 30;
       let coordinate = this.convertGridCoordinate([
-        (tmpPointX - drag_coordinates[0]) / stageScale,
+        (tmpPointHorz - drag_coordinates[0]) / stageScale,
         0,
       ]);
       notches.push(
         <Text
-          key={"textCoordinateX-" + tmpPointX}
+          key={"textCoordinateX-" + tmpPointHorz}
           text={coordinate[2].toFixed(2)}
           fontSize={10 / stageScale}
-          x={(tmpPointX - 10 - drag_coordinates[0]) / stageScale}
+          x={(tmpPointHorz - 10 - drag_coordinates[0]) / stageScale}
           y={(coordinateRootPoint[1] - 15 - drag_coordinates[1]) / stageScale}
           fill="#AAAAAA"
         />
       );
       notches.push(
         <Line
-          key={"coordinateX-" + tmpPointX}
+          key={"coordinateX-" + tmpPointHorz}
           points={[0, -3 / stageScale, 0, 3 / stageScale]}
-          x={(tmpPointX - drag_coordinates[0]) / stageScale}
-          y={y}
+          x={(tmpPointHorz - drag_coordinates[0]) / stageScale}
+          y={rootVert}
           stroke="#AAAAAA"
-          strokeWidth={strokeWidth}
+          strokeWidth={axisStrokeWidth}
         />
       );
     }
 
-    while (tmpPointY > endPointXZ[1]) {
-      tmpPointY = tmpPointY - 20;
+    // Notches for vertical axis
+    while (tmpPointVert > height - coordinateRootPoint[1] + 25) {
+      tmpPointVert = tmpPointVert - 25;
       let coordinate = this.convertGridCoordinate([
         0,
-        (tmpPointY - drag_coordinates[1]) / stageScale,
+        (tmpPointVert - drag_coordinates[1]) / stageScale,
       ]);
       notches.push(
         <Text
-          key={"textCoordinateY-" + tmpPointY}
+          key={"textCoordinateY-" + tmpPointVert}
           text={coordinate[0].toFixed(2)}
           fontSize={10 / stageScale}
           x={(coordinateRootPoint[0] - 35 - drag_coordinates[0]) / stageScale}
-          y={(tmpPointY - 5 - drag_coordinates[1]) / stageScale}
+          y={(tmpPointVert - 5 - drag_coordinates[1]) / stageScale}
           fill="#AAAAAA"
         />
       );
       notches.push(
         <Line
-          key={"coordinateY-" + tmpPointY}
+          key={"coordinateY-" + tmpPointVert}
           points={[-3 / stageScale, 0, 3 / stageScale, 0]}
-          x={x}
-          y={(tmpPointY - drag_coordinates[1]) / stageScale}
+          x={rootHorz}
+          y={(tmpPointVert - drag_coordinates[1]) / stageScale}
           stroke="#AAAAAA"
-          strokeWidth={strokeWidth}
+          strokeWidth={axisStrokeWidth}
         />
       );
     }
 
+    // Root Text
     let rootTextCoordinate = [
       (coordinateRootPoint[0] - 25 - drag_coordinates[0]) / stageScale,
       (coordinateRootPoint[1] + 10 - drag_coordinates[1]) / stageScale,
@@ -869,41 +973,37 @@ class Memory2D extends React.Component {
         y={rootTextCoordinate[1]}
       />
     );
-    notches.push(
-      <Text
-        key="x-text"
-        fill="#AAAAAA"
-        text="x"
-        fontSize={12 / stageScale}
-        x={
-          (this.convertCoordinate([-9, 0, -8.8])[0] - drag_coordinates[0]) /
-          stageScale
-        }
-        y={
-          (this.convertCoordinate([-9, 0, -8.8])[1] - drag_coordinates[1]) /
-          stageScale
-        }
-      />
-    );
-    notches.push(
-      <Text
-        key="z-text"
-        fill="#AAAAAA"
-        text="z"
-        fontSize={12 / stageScale}
-        x={
-          (this.convertCoordinate([9.1, 0, 9])[0] - drag_coordinates[0]) /
-          stageScale
-        }
-        y={
-          (this.convertCoordinate([9.1, 0, 9])[1] - drag_coordinates[1]) /
-          stageScale
-        }
-      />
-    );
-    coordinateAxesLayer.push(axesX, axesZ, notches);
 
-    // final render
+    // Axis Labels
+    let vertLabelWindowPos = [35, 2];
+    notches.push(
+      <Text
+        key="vert-axis-text"
+        fill="#AAAAAA"
+        text={mapView === "ZX" ? "x" : mapView === "XY" ? "y" : "z"}
+        fontSize={18 / stageScale}
+        x={(vertLabelWindowPos[0] - drag_coordinates[0]) / stageScale}
+        y={(vertLabelWindowPos[1] - drag_coordinates[1]) / stageScale}
+      />
+    );
+
+    let horzLabelWindowPos = [width - 15, height - 35];
+    notches.push(
+      <Text
+        key="horz-axis-text"
+        fill="#AAAAAA"
+        text={mapView === "ZX" ? "z" : mapView === "XY" ? "x" : "y"}
+        fontSize={18 / stageScale}
+        x={(horzLabelWindowPos[0] - drag_coordinates[0]) / stageScale}
+        y={(horzLabelWindowPos[1] - drag_coordinates[1]) / stageScale}
+      />
+    );
+
+    coordinateAxesLayer.push(axesVert, axesHorz, notches);
+
+    /*######################
+    ####  Final Render  ####
+    ######################*/
     return (
       <div
         ref={this.outer_div}
@@ -948,6 +1048,7 @@ class Memory2D extends React.Component {
           <Stage
             draggable
             className={this.state.memory2d_className}
+            ref={this.stage_ref}
             width={width}
             height={height}
             onWheel={this.handleWheel}
@@ -1004,6 +1105,7 @@ class Memory2D extends React.Component {
                 fill="transparent"
                 stroke="black"
                 strokeWidth={4 / stageScale}
+                perfectDrawEnabled={false}
               />
             </Layer>
           </Stage>
@@ -1054,7 +1156,7 @@ class Memory2D extends React.Component {
           style={{
             position: "absolute",
             right: this.state.width - width,
-            top: "0.3%",
+            top: "-0.1%",
           }}
         >
           <IconButton size="small" disableRipple onClick={this.onMenuOpen}>
@@ -1081,6 +1183,21 @@ class Memory2D extends React.Component {
             this.setState((prev) => {
               return {
                 showTriples: !prev.showTriples,
+              };
+            });
+          }}
+          mapView={this.state.mapView}
+          toggleMapView={(view) => {
+            this.setState({ mapView: view }, () => {
+              this.centerToBot();
+            });
+          }}
+          centerToBot={this.centerToBot}
+          squareMap={squareMap}
+          toggleSquareMap={() => {
+            this.setState((prev) => {
+              return {
+                squareMap: !prev.squareMap,
               };
             });
           }}
