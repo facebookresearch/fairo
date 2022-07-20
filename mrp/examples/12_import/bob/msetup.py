@@ -1,17 +1,11 @@
 import mrp
 
-mrp.process(
-    name="alice",
-    runtime=mrp.Conda(
-        yaml="env.yml",
-        run_command=["python3", "alice.py"],
-    ),
-)
+mrp.import_msetup("../alice")
 
 mrp.process(
     name="bob",
     runtime=mrp.Conda(
-        yaml="env.yml",
+        dependencies=["python>=3.7"],
         run_command=["python3", "bob.py"],
     ),
 )
