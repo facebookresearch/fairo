@@ -11,7 +11,13 @@ This is a Dashboard app prototype for the HITL system.
         - searchbox supports case insensitive
     - Added backend apis for accessing/managing turk list
     - Demo:
-        - 
+        - Updating block/allow status
+            - ![demo_turk_list_update_block_status](https://user-images.githubusercontent.com/51009396/180107199-5cab0c0f-9617-4e90-afad-b091d468af23.gif)
+        - Syncing local and s3 turk lists
+            - ![demo_turk_list_sync_local_with_s3](https://user-images.githubusercontent.com/51009396/180107176-71d19c7e-304e-431a-b926-de69cbbe569d.gif)
+        - Update failed vs succeded behavior 
+            -  ![demo_turk_list_update_success_n_fails](https://user-images.githubusercontent.com/51009396/180107211-1dff8ee1-81ef-4e53-bd56-f095f7a4ef39.gif)
+
 - July 18:
     - Add frontend for viewing & editing turk list
     - The turk list supports sort, and search by turk id; when editing the list, user need to unlock first
