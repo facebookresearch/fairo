@@ -561,6 +561,7 @@ class World:
                     self.players[eid] = self.players[eid]._replace(pos=new_pos)
                 else:
                     print(f"{player_struct.name} tried to move somewhere impossible")
+                    print(player_struct.pos)
 
         @server.on("set_held_item")
         def set_agent_mainhand(sid, data):

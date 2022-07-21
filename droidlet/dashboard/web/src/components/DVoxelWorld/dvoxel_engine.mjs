@@ -21,7 +21,7 @@ const renderInterval = 1000 / fps
 let world, camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
 const followPointerScale = 150;
 
-const preLoadMaterialNames = ['grass', 'dirt', 'wood', 'iron', 'white wool'];
+const preLoadMaterialNames = ['grass', 'dirt', 'wood', 'iron', 'bedrock'];
 const blockScale = 50;
 const bid2Name = {
     8: 'grass',
@@ -44,6 +44,7 @@ const bid2Name = {
     59: 'green wool',
     60: 'red wool',
     61: 'black wool',
+    66: 'gold',
     67: 'iron'
 }
 

@@ -69,8 +69,9 @@ const MINECRAFT_BLOCK_MAP = {
     "38,0": 63, // Poppy
     "39,0": 64, // Brown Mushroom
     "40,0": 65, // Red Mushroom
-    "42,0": 67,
-    "95,4": 66, // Yellow Stained Glass
+    "41,0": 66, // Gold
+    "42,0": 67, // Iron
+    "95,4": 68, // Yellow Stained Glass
   };
 
 const VW_ITEM_MAP = {
@@ -142,6 +143,13 @@ const VW_ITEM_MAP = {
         "sides": 'bedrock.png',
         "bottom": 'bedrock.png',
         "top": 'bedrock.png',
+    },
+    "gold": {
+        "color": 0xffffff,
+        "opacity": 1.0,
+        "sides": 'gold.png',
+        "bottom": 'gold.png',
+        "top": 'gold.png',
     },
 
     "white wool": {

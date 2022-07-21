@@ -3619,7 +3619,7 @@ const fps = 2;
 const renderInterval = 1000 / fps;
 let world, camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
 const followPointerScale = 150;
-const preLoadMaterialNames = ['grass', 'dirt', 'wood', 'iron', 'white wool'];
+const preLoadMaterialNames = ['grass', 'dirt', 'wood', 'iron', 'bedrock'];
 const blockScale = 50;
 const bid2Name = {
   8: 'grass',
@@ -3642,6 +3642,7 @@ const bid2Name = {
   59: 'green wool',
   60: 'red wool',
   61: 'black wool',
+  66: 'gold',
   67: 'iron'
 };
 const TEXTURE_PATH = "https://cdn.jsdelivr.net/gh/snyxan/assets@main/block_textures/";
@@ -4752,8 +4753,11 @@ const MINECRAFT_BLOCK_MAP = {
   // Brown Mushroom
   "40,0": 65,
   // Red Mushroom
+  "41,0": 66,
+  // Gold
   "42,0": 67,
-  "95,4": 66 // Yellow Stained Glass
+  // Iron
+  "95,4": 68 // Yellow Stained Glass
 
 };
 exports.MINECRAFT_BLOCK_MAP = MINECRAFT_BLOCK_MAP;
@@ -4823,6 +4827,13 @@ const VW_ITEM_MAP = {
     "sides": 'bedrock.png',
     "bottom": 'bedrock.png',
     "top": 'bedrock.png'
+  },
+  "gold": {
+    "color": 0xffffff,
+    "opacity": 1.0,
+    "sides": 'gold.png',
+    "bottom": 'gold.png',
+    "top": 'gold.png'
   },
   "white wool": {
     "color": 0xffffff,
