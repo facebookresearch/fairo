@@ -1,9 +1,17 @@
 # Dashboard App for HITL
-Updated July 18 by Chuxi.
+Updated July 20 by Chuxi.
 
 This is a Dashboard app prototype for the HITL system.
 
 ## Update Note
+- July 20:
+    - Update frontend ui for editing turk list
+        - now there is a tab shows different turk list with different qualification name
+        - a sync button for syncing local and s3 turk list
+        - searchbox supports case insensitive
+    - Added backend apis for accessing/managing turk list
+    - Demo:
+        - 
 - July 18:
     - Add frontend for viewing & editing turk list
     - The turk list supports sort, and search by turk id; when editing the list, user need to unlock first
@@ -123,6 +131,23 @@ APIs are based on socket event, the following APIs are supported currently:
         - the batch id of the run.
         - the key for the model, could be any key from the model, or "COMPLETE", indicating getting the complete model dict
     - output: the key and the value specific to the key for the model if the model exists and key is valid, otherwise error code
-    
+-  get_turk_list_by_pipeline
+    - get turk list for the corresponding pipeline from the local mephisto db
+    - input:
+        - pipeline type
+    - output:
+        - a dict containing the turk allowlist, blocklist & softblock list
+- update_turk_qual_by_tid
+    - update turk list to the corresponding qual in the local mephisto db
+        - input:
+            - turk id
+            - qualification type (string)
+        - output:
+            - a status code indicating if update succeeds
+- update_local_turk_ls_to_sync
+    -  update turk list to be sync on both local methisto db and s3
+        - output:
+            - 200 code to indicate update success
+        
 ## Demo
 ![backend_api_demo](https://user-images.githubusercontent.com/51009396/175696481-532cec55-5b2e-4bae-bceb-9e7d3f2aa7b7.gif)
