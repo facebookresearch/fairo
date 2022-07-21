@@ -9,8 +9,8 @@ Usage:
 import { Alert, Button, Input, Radio, Spin, Table } from "antd";
 import React, { useContext, useEffect, useState } from "react";
 import { LockOutlined, UnlockOutlined } from "@ant-design/icons";
-import { reteriveLabelByValue, toFirstCapital } from "../../../utils/textUtils";
-import { socket, SocketContext } from "../../../context/socket";
+import { reteriveLabelByValue } from "../../../utils/textUtils";
+import { SocketContext } from "../../../context/socket";
 
 const { Search } = Input;
 const STATUS_TYPES = [
@@ -20,7 +20,7 @@ const STATUS_TYPES = [
 ]
 
 const TurkList = (props) => {
-    const socekt = useContext(SocketContext);
+    const socket = useContext(SocketContext);
     const taskType = props.taskType;
     const [listData, setListData] = useState(props.turkListData);
     const [displayData, setDisplayData] = useState(props.turkListData);

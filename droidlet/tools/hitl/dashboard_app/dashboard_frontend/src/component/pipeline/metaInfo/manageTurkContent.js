@@ -8,7 +8,7 @@ Usage:
 */
 import { CloudSyncOutlined, SyncOutlined } from "@ant-design/icons";
 import { Button, Spin, Tabs, Typography } from "antd";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { SocketContext } from "../../../context/socket";
 import { snakecaseToWhitespaceSep } from "../../../utils/textUtils";
 import TurkList from "./turkList";

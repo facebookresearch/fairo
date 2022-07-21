@@ -1,3 +1,9 @@
+"""
+Copyright (c) Facebook, Inc. and its affiliates.
+
+Utils for accessing / updating local and remote turk list.
+"""
+
 from droidlet.tools.crowdsourcing.sync_whitelists import (
     add_workers_to_quals,
     compare_qual_lists,
