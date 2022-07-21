@@ -27,7 +27,9 @@ def record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path, m
         print(f"Recording map video matching real time")
         record_video(
             natsorted(
-                glob.glob(f"{trajectory_root_path}/trajectory/step*/maps/semantic_and_goal_map.png")
+                glob.glob(
+                    f"{trajectory_root_path}/trajectory/step*/maps/semantic_and_goal_map.png"
+                )
             ),
             timestamps,
             f"{video_root_path}/semantic_and_goal_map.mp4",
