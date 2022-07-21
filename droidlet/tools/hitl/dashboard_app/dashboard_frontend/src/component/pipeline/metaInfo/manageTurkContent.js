@@ -21,7 +21,7 @@ const ManageTurkContent = (props) => {
     const [turkData, setTurkData] = useState(null);
     const [syncing, setSyncing] = useState(false);
 
-    const handleRecivedTurkList = useCallback((data) => {
+    const handleRecivedTurkList = (data) => {
         const processedData = {};
 
         for (let idx = 0; idx < Object.keys(data).length; idx++) {
@@ -47,27 +47,28 @@ const ManageTurkContent = (props) => {
         }
 
         setTurkData(processedData);
-    });
+    };
 
     const getTurkList = () => {
         socket.emit("get_turk_list_by_pipeline", pipelineType.label);
-    }
+    };
 
-    const handleRecivedSyncedData = useCallback((data) => {
+    const handleRecivedSyncedData = (data) => {
         if (data === 200) {
             setSyncing(false);
+            getTurkList();
         } else {
             setSyncing(false);
             alert("Update failed");
+            getTurkList();
         }
-        socket.emit("get_turk_list_by_pipeline", pipelineType.label);
-    })
+    };
 
     const handleSync = () => {
         socket.emit("update_local_turk_ls_to_sync");
         setTurkData(null);
         setSyncing(true);
-    }
+    };
 
     useEffect(() => { 
         getTurkList();
