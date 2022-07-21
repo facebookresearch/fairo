@@ -7,7 +7,7 @@ import json
 import sys
 
 
-def record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path):
+def record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path, method):
     step_log_filenames = natsorted(glob.glob(f"{trajectory_root_path}/trajectory/step*/logs.json"))
     timestamps = []
     for filename in step_log_filenames:
@@ -23,22 +23,31 @@ def record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path):
             f"{video_root_path}/{frame}_frame.mp4",
             realtime=True,
         )
-    print(f"Recording map video matching real time")
-    record_video(
-        natsorted(
-            glob.glob(f"{trajectory_root_path}/trajectory/step*/maps/semantic_and_goal_map.png")
-        ),
-        timestamps,
-        f"{video_root_path}/semantic_and_goal_map.mp4",
-        realtime=True,
-    )
-    print(f"Recording quick summary video")
-    record_video(
-        natsorted(glob.glob(f"{trajectory_root_path}/trajectory/step*/summary.png")),
-        timestamps,
-        f"{video_root_path}/summary.mp4",
-        realtime=False,
-    )
+    if method == "modular":
+        print(f"Recording map video matching real time")
+        record_video(
+            natsorted(
+                glob.glob(f"{trajectory_root_path}/trajectory/step*/maps/semantic_and_goal_map.png")
+            ),
+            timestamps,
+            f"{video_root_path}/semantic_and_goal_map.mp4",
+            realtime=True,
+        )
+        print(f"Recording quick summary video")
+        record_video(
+            natsorted(glob.glob(f"{trajectory_root_path}/trajectory/step*/summary.png")),
+            timestamps,
+            f"{video_root_path}/summary.mp4",
+            realtime=False,
+        )
+    elif method == "end_to_end":
+        print(f"Recording quick semantic frame summary video")
+        record_video(
+            natsorted(glob.glob(f"{trajectory_root_path}/trajectory/step*/frames/semantic.png")),
+            timestamps,
+            f"{video_root_path}/summary.mp4",
+            realtime=False,
+        )
     if not os.path.exists(f"{trajectory_root_path}/aggregate_logs.json"):
         record_aggregate_metrics(step_log_filenames, f"{trajectory_root_path}/aggregate_logs.json")
 
@@ -111,7 +120,7 @@ if __name__ == "__main__":
     for trajectory_root_path in trajectory_root_paths:
         video_root_path = trajectory_root_path.replace("trajectories", "videos")
         print(f"Processing {trajectory_root_path}")
-        record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path)
+        record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path, method)
 
     if method == "modular":
         aggregate_log_root_paths = [
