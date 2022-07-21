@@ -226,6 +226,7 @@ def get_model_value(batch_id, key):
         # get a specific value
         emit(DASHBOARD_EVENT.GET_MODEL_VALUE.value, [key, get_value_by_key(model, key)])
 
+
 @socketio.on(DASHBOARD_EVENT.GET_BEST_MODEL_LOSS_ACC.value)
 def get_best_model_loss_acc(batch_id: int):
     """
@@ -235,7 +236,7 @@ def get_best_model_loss_acc(batch_id: int):
         - batch id of a specific run
     - output:
         - a dictionary containing:
-            - epoch loss and accuracy 
+            - epoch loss and accuracy
             - text_span loss and accuracy
         - or an error code indicating the best model log cannot be find
     """
@@ -247,6 +248,7 @@ def get_best_model_loss_acc(batch_id: int):
         emit(DASHBOARD_EVENT.GET_BEST_MODEL_LOSS_ACC.value, error_code)
     else:
         emit(DASHBOARD_EVENT.GET_BEST_MODEL_LOSS_ACC.value, loss_acc_dict)
+
 
 if __name__ == "__main__":
     socketio.run(app)

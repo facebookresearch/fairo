@@ -194,6 +194,7 @@ def get_model_by_id(batch_id: int):
     else:
         return load_model(local_fname), None
 
+
 def get_best_model_loss_acc_by_id(batch_id: int):
     """
     Get best model loss and accuracy from model log file,
@@ -201,6 +202,7 @@ def get_best_model_loss_acc_by_id(batch_id: int):
         - a dict including epoch & text span loss and accuracy, and no error code if can find the best model log
         - an error message with error code 404 if cannot find the best model log
     """
+
     def get_best_model_name(batch_id: int):
         # download and read best_model.txt file
         best_model_fname = ""
@@ -213,18 +215,18 @@ def get_best_model_loss_acc_by_id(batch_id: int):
                 best_model_name = f.readline()
                 f.close()
 
-                best_model_name = obj.key[ : (obj.key.rindex("/") + 1)] + best_model_name.split("|")[0] + "|.log"
+                best_model_name = (
+                    obj.key[: (obj.key.rindex("/") + 1)] + best_model_name.split("|")[0] + "|.log"
+                )
                 return best_model_name
-        return None # cannot find
+        return None  # cannot find
 
-    best_model_log_fname = get_best_model_name(batch_id) 
+    best_model_log_fname = get_best_model_name(batch_id)
     best_model_log_fname = _download_file(best_model_log_fname)
 
     if best_model_log_fname is None:
         return f"Cannot find best model log file with batch_id = {batch_id}", 404
-    
+
     # read best model log file
     epoch_ls, text_span_ls = read_model_log_to_list(best_model_log_fname)
     return {"epoch": epoch_ls, "text_span": text_span_ls}, None
-
-

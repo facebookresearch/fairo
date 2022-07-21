@@ -3,6 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 Utils for processing model log.
 """
+
+
 def read_model_log_to_list(fname: str):
     """
     Read model log and export to a dictionary including:
@@ -14,7 +16,7 @@ def read_model_log_to_list(fname: str):
     f.close()
 
     lines = content.split("\n")
-    
+
     def get_loss_acc(line: str):
         words = line.split(" ")
         loss, acc = None, None
@@ -25,7 +27,6 @@ def read_model_log_to_list(fname: str):
                 acc = float(words[i])
         return loss, acc
 
-    
     epoch_loss_acc_list = []
     text_span_loss_acc_list = []
     for line in lines:
@@ -37,4 +38,3 @@ def read_model_log_to_list(fname: str):
             text_span_loss_acc_list.append({"loss": loss, "acc": acc})
 
     return epoch_loss_acc_list, text_span_loss_acc_list
-    
