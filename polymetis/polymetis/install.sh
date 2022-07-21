@@ -52,10 +52,10 @@ cmake --build .
 cd ..
 
 # Install habitat package
+echo "********************* INSTALLING pytest ****************"
+$PYTHON -m pip install pytest-runner
 cd ../third_party/habitat-lab/
 echo "********************* INSTALLING HABITAT ****************"
-pwd
-$PYTHON -m pip install pytest-runner
 $PYTHON -m pip install -vvv -e .
 cd -
 
