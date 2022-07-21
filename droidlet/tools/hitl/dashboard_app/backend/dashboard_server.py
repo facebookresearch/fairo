@@ -260,9 +260,11 @@ def update_turk(turk_id: str, task_type: str, new_list_type: str, prev_list_type
     - output:
         - a status code indicating if update succeeds
     """
-    print(f"Request received: {DASHBOARD_EVENT.UPDATE_TURK.value}, \
+    print(
+        f"Request received: {DASHBOARD_EVENT.UPDATE_TURK.value}, \
         turk_id = {turk_id}, task_type = {task_type}, \
-        to list = {new_list_type}, prev = {prev_list_type}")
+        to list = {new_list_type}, prev = {prev_list_type}"
+    )
 
     msg, error_code = update_turk_qual_by_tid(turk_id, task_type, new_list_type, prev_list_type)
     print(msg)
