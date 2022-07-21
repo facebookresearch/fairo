@@ -24,6 +24,11 @@ from droidlet.tools.hitl.dashboard_app.backend.dashboard_model_utils import (
     get_keys,
     get_value_by_key,
 )
+from droidlet.tools.hitl.dashboard_app.backend.dashboard_turk_utils import (
+    get_turk_list_by_pipeline,
+    update_turk_list_to_sync,
+    update_turk_qual_by_tid,
+)
 from flask import Flask, abort
 from flask_socketio import SocketIO, emit
 
@@ -40,14 +45,24 @@ class DASHBOARD_EVENT(Enum):
     GET_RUNS = "get_job_list"
     GET_TRACEBACK = "get_traceback_by_id"
     GET_RUN_INFO = "get_run_info_by_id"
+
+    # apis for interaction sessions
     GET_INTERACTION_SESSIONS = "get_interaction_sessions_by_id"
     GET_INTERACTION_SESSION_LOG = "get_interaction_session_log"
 
+    # apis for dataset
     GET_DATASET_LIST = "get_dataset_list_by_pipeleine"
     GET_DATASET_INDECIES = "get_dataset_idx_by_id"
     GET_DATASET = "get_dataset_by_name"
+
+    # apis for model
     GET_MODEL_KEYS = "get_model_keys_by_id"
     GET_MODEL_VALUE = "get_model_value_by_id_n_key"
+
+    # apis for turk
+    GET_TURK_LIST = "get_turk_list_by_pipeline"
+    UPDATE_TURK = "update_turk_qual_by_tid"
+    UPDATE_TURK_LIST_TO_SYNC = "update_local_turk_ls_to_sync"
 
 
 # constants for model related apis
@@ -223,6 +238,56 @@ def get_model_value(batch_id, key):
     else:
         # get a specific value
         emit(DASHBOARD_EVENT.GET_MODEL_VALUE.value, [key, get_value_by_key(model, key)])
+
+
+@socketio.on(DASHBOARD_EVENT.GET_TURK_LIST.value)
+def get_turk_list(pipeline: str):
+    """
+    get turk list for the corresponding pipeline from the local mephisto db
+    - input:
+        - pipeline type
+    - output:
+        - a dict containing the turk allowlist, blocklist & softblock list
+    """
+    print(f"Request received: {DASHBOARD_EVENT.GET_TURK_LIST.value}, pipeline = {pipeline}")
+    out_dict = get_turk_list_by_pipeline(pipeline)
+    emit(DASHBOARD_EVENT.GET_TURK_LIST.value, out_dict)
+
+
+@socketio.on(DASHBOARD_EVENT.UPDATE_TURK.value)
+def update_turk(turk_id: str, task_type: str, new_list_type: str, prev_list_type: str):
+    """
+    update turk list to the corresponding qual in the local mephisto db
+    - input:
+        - turk id
+        - qualification type (string)
+    - output:
+        - a status code indicating if update succeeds
+    """
+    print(
+        f"Request received: {DASHBOARD_EVENT.UPDATE_TURK.value}, \
+        turk_id = {turk_id}, task_type = {task_type}, \
+        to list = {new_list_type}, prev = {prev_list_type}"
+    )
+
+    msg, error_code = update_turk_qual_by_tid(turk_id, task_type, new_list_type, prev_list_type)
+    print(msg)
+    if error_code:
+        emit(DASHBOARD_EVENT.UPDATE_TURK.value, error_code)
+    else:
+        emit(DASHBOARD_EVENT.UPDATE_TURK.value, 200)
+
+
+@socketio.on(DASHBOARD_EVENT.UPDATE_TURK_LIST_TO_SYNC.value)
+def update_turk_list():
+    """
+    update turk list to be sync on both local methisto db and s3
+    - return:
+        - 200 code to indicate update success
+    """
+    print(f"Request received: {DASHBOARD_EVENT.UPDATE_TURK_LIST_TO_SYNC.value}")
+    update_turk_list_to_sync()
+    emit(DASHBOARD_EVENT.UPDATE_TURK_LIST_TO_SYNC.value, 200)
 
 
 if __name__ == "__main__":

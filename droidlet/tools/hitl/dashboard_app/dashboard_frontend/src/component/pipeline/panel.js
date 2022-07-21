@@ -13,8 +13,8 @@ import React, { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useParams } from 'react-router-dom';
 import { TAB_ITEMS } from '../../constants/pipelineConstants';
 import InfoBlock from './metaInfo/infoBlock';
+import ManageTurkContent from './metaInfo/manageTurkContent';
 import RunList from './metaInfo/runList';
-import TurkList from './metaInfo/turkList';
 
 const menuItems = Object.values(TAB_ITEMS);
 const { TabPane } = Tabs;
@@ -109,7 +109,7 @@ const PipelinePanel = (props) => {
                                                 item.key === TAB_ITEMS.RUNS.key ?
                                                     <RunList pipelineType={pipelineType} /> :
                                                 item.key === TAB_ITEMS.TURK.key ? 
-                                                    <TurkList pipelineType={pipelineType} /> :
+                                                    <ManageTurkContent pipelineType={pipelineType} /> :
                                                     <InfoBlock infoType={item.key} pipelineType={pipelineType} />
                                             }
                                         </TabPane>

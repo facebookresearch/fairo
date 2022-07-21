@@ -15,13 +15,13 @@ import re
 
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_model_utils import load_model
 
-
 PIPELINE_DATASET_MAPPING = {
     "NLU": "nsp_data",
 }
 
-S3_BUCKET_NAME = "droidlet-hitl"
-S3_ROOT = "s3://droidlet-hitl"
+S3_BUCKET_NAME_HITL = "droidlet-hitl"
+S3_ROOT_HITL = "s3://droidlet-hitl"
+
 HITL_TMP_DIR = (
     os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
 )
@@ -49,7 +49,7 @@ def _download_file(fname: str):
         local_folder_name = local_file_name[: local_file_name.rindex("/")]
         os.makedirs(local_folder_name, exist_ok=True)
         try:
-            s3.meta.client.download_file(S3_BUCKET_NAME, fname, local_file_name)
+            s3.meta.client.download_file(S3_BUCKET_NAME_HITL, fname, local_file_name)
         except botocore.exceptions.ClientError as e:
             print(f"file not exists {fname}")
 
@@ -73,7 +73,7 @@ def get_job_list():
     job_list = []
     # list object from s3 bucket
     res = s3.meta.client.get_paginator("list_objects").paginate(
-        Bucket=S3_BUCKET_NAME, Delimiter="/"
+        Bucket=S3_BUCKET_NAME_HITL, Delimiter="/"
     )
     # pattern of YYYYMMDDHHMMSS (batch id pattern)
     pattern = r"([0-9]{4})(0[1-9]|1[0-2])(0[1-9]|[1-2][0-9]|3[0-1])(2[0-3]|[01][0-9])([0-5][0-9])([0-5][0-9])"
@@ -109,7 +109,7 @@ def get_run_info_by_id(batch_id: int):
 
 def get_interaction_sessions_by_id(batch_id: int):
     session_list = []
-    s3_bucket = s3.Bucket(S3_BUCKET_NAME)
+    s3_bucket = s3.Bucket(S3_BUCKET_NAME_HITL)
     prefix = f"{batch_id}/interaction/"
 
     for obj in s3_bucket.objects.filter(Prefix=prefix):
@@ -164,7 +164,7 @@ def get_dataset_version_list_by_pipeline(pipeline: str):
     dataset_list = []
 
     # list object from s3 bucket
-    for obj in s3.Bucket(S3_BUCKET_NAME).objects.all():
+    for obj in s3.Bucket(S3_BUCKET_NAME_HITL).objects.all():
         if re.match(pattern, obj.key):
             dataset_list.append(obj.key)
     return dataset_list

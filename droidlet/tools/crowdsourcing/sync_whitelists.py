@@ -22,18 +22,24 @@ from mephisto.data_model.worker import Worker
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
 
-from droidlet_static_html_task.pilot_config import (
+from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import (
     PILOT_ALLOWLIST_QUAL_NAME as interaction_whitelist,
 )
-from droidlet_static_html_task.pilot_config import PILOT_BLOCK_QUAL_NAME as interaction_blacklist
-from droidlet_static_html_task.pilot_config import SOFTBLOCK_QUAL_NAME as interaction_softblock
-from vision_annotation_task.pilot_config import (
+from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import (
+    PILOT_BLOCK_QUAL_NAME as interaction_blacklist,
+)
+from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import (
+    SOFTBLOCK_QUAL_NAME as interaction_softblock,
+)
+from droidlet.tools.crowdsourcing.vision_annotation_task.pilot_config import (
     PILOT_ALLOWLIST_QUAL_NAME as vision_annotation_whitelist,
 )
-from vision_annotation_task.pilot_config import (
+from droidlet.tools.crowdsourcing.vision_annotation_task.pilot_config import (
     PILOT_BLOCK_QUAL_NAME as vision_annotation_blacklist,
 )
-from vision_annotation_task.pilot_config import SOFTBLOCK_QUAL_NAME as vision_softblock
+from droidlet.tools.crowdsourcing.vision_annotation_task.pilot_config import (
+    SOFTBLOCK_QUAL_NAME as vision_softblock,
+)
 
 qual_dict = {
     "interaction": {
@@ -81,7 +87,12 @@ def import_s3_lists(bucket: str):
 
 
 def add_workers_to_quals(add_list: list, qual: str):
-
+    """
+    Add workers to quals
+        - return a status of if adding successfully
+        - if success, return true, else return false
+    """
+    add_all_success = True
     for turker in add_list:
         # First add the worker to the database, or retrieve them if they already exist
         try:
@@ -102,8 +113,37 @@ def add_workers_to_quals(add_list: list, qual: str):
         # Check to make sure the qualification was added successfully
         if not worker.is_qualified(qual):
             logging.info(f"!!! {worker} not successfully qualified, debug")
+            add_all_success = False
         else:
             logging.info(f"Worker {worker.worker_name} added to list {qual}")
+    return add_all_success
+
+
+def revoke_worker_qual(turker: str, qual: str):
+    """
+    revoke worker qualification,
+    return if revoke succedded
+    """
+    try:
+        db_id = db.new_worker(turker, "mturk")
+        worker = Worker.get(db, db_id)
+    except:
+        worker = db.find_workers(turker, "mturk")[0]
+
+    try:
+        db.make_qualification(qual)
+    except:
+        pass
+    else:
+        logging.debug(f"{qual} qualification not exists, so create one")
+    worker.revoke_qualification(qual)
+
+    if worker.is_qualified(qual):
+        logging.info(f"!!! Qualification of {worker} not successfully revoked, debug")
+        return False
+    else:
+        logging.info(f"Worker {worker.worker_name} revoked from list {qual}")
+        return True
 
 
 def pull_local_lists():
