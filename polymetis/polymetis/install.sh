@@ -53,7 +53,7 @@ cd ..
 
 # Install habitat package
 echo "********************* INSTALLING pytest ****************"
-$PYTHON -m pip install pytest-runner
+pip3 install pytest-runner
 cd ../third_party/habitat-lab/
 echo "********************* INSTALLING HABITAT ****************"
 $PYTHON -m pip install -vvv -e .
