@@ -27,21 +27,18 @@ const ManageTurkContent = (props) => {
         for (let idx = 0; idx < Object.keys(data).length; idx++) {
             const k = Object.keys(data)[idx];
 
-            const allowList = Array.from(new Set(data[k]["allow"])); // used set for dedup
-            const blockSet = new Set(data[k]["block"]);
+            // get blocklist (passed pilot test)
+            // anyone must be on allowlist too if on block list, so only checking block list & softblocklist
+            const blockList = Array.from(new Set(data[k]["block"])); // used set for dedup
             const softblockSet = new Set(data[k]["softblock"]);
 
-            processedData[k] = allowList.map((tid) => (
+            processedData[k] = blockList.map((tid) => (
                 {
                     "id": tid,
                     "status":
                         softblockSet.has(tid) ?
                             "softblock" :
-                            (
-                                blockSet.has(tid) ?
-                                    "block" :
-                                    "allow"
-                            )
+                            "block"
                 }
             ));
         }

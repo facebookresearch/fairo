@@ -113,9 +113,9 @@ def add_workers_to_quals(add_list: list, qual: str):
         # Check to make sure the qualification was added successfully
         if not worker.is_qualified(qual):
             logging.info(f"!!! {worker} not successfully qualified, debug")
+            add_all_success = False
         else:
             logging.info(f"Worker {worker.worker_name} added to list {qual}")
-            add_all_success = False
     return add_all_success
 
 

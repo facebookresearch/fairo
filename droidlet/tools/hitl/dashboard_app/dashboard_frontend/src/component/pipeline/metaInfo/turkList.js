@@ -14,9 +14,8 @@ import { SocketContext } from "../../../context/socket";
 
 const { Search } = Input;
 const STATUS_TYPES = [
-    { "label": "Allow", "value": "allow" },
-    { "label": "Pilotblock", "value": "block" },
-    { "label": "Block", "value": "softblock" },
+    { "label": "Allow", "value": "block" }, // pilot block shows allow
+    { "label": "Block", "value": "softblock" }, // softblock shows block
 ]
 
 const TurkList = (props) => {
