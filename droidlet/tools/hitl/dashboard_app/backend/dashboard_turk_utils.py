@@ -52,7 +52,6 @@ def update_turk_qual_by_tid(tid, task_type, new_list_type, prev_list_type):
         success = True
 
     if success:
-        print(pull_local_lists())
         return "ok", None
     else:
         return f"Cannot update the worker: {tid} to {new_list_type} from {prev_list_type} of qual: {task_type} ", 400
@@ -63,7 +62,5 @@ def update_turk_list_to_sync():
     """
     s3_list_dict = import_s3_lists(S3_BUCKET_NAME_INTERNAL)
     local_list_dict = pull_local_lists()
-
-    diff_dict = compare_qual_lists((s3_list_dict, local_list_dict))
-
+    diff_dict = compare_qual_lists(s3_list_dict, local_list_dict)
     update_lists(S3_BUCKET_NAME_INTERNAL, diff_dict)

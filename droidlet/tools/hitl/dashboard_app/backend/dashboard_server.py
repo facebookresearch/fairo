@@ -24,7 +24,7 @@ from droidlet.tools.hitl.dashboard_app.backend.dashboard_model_utils import (
     get_keys,
     get_value_by_key,
 )
-from droidlet.tools.hitl.dashboard_app.backend.dashboard_turk_utils import get_turk_list_by_pipeline, update_turk_qual_by_tid
+from droidlet.tools.hitl.dashboard_app.backend.dashboard_turk_utils import get_turk_list_by_pipeline, update_turk_list_to_sync, update_turk_qual_by_tid
 from flask import Flask, abort
 from flask_socketio import SocketIO, emit
 
@@ -58,6 +58,7 @@ class DASHBOARD_EVENT(Enum):
     # apis for turk
     GET_TURK_LIST = "get_turk_list_by_pipeline"
     UPDATE_TURK = "update_turk_qual_by_tid"
+    UPDATE_TURK_LIST_TO_SYNC = "update_local_turk_ls_to_sync"
 
 
 # constants for model related apis
@@ -269,6 +270,17 @@ def update_turk(turk_id: str, task_type: str, new_list_type: str, prev_list_type
         emit(DASHBOARD_EVENT.UPDATE_TURK.value, error_code)
     else:
         emit(DASHBOARD_EVENT.UPDATE_TURK.value, 200)
+
+@socketio.on(DASHBOARD_EVENT.UPDATE_TURK_LIST_TO_SYNC.value)
+def update_turk_list():
+    """
+    update turk list to be sync on both local methisto db and s3
+    - return:
+        - 200 code to indicate update success
+    """
+    print(f"Request received: {DASHBOARD_EVENT.UPDATE_TURK_LIST_TO_SYNC.value}")
+    update_turk_list_to_sync()
+    emit(DASHBOARD_EVENT.UPDATE_TURK_LIST_TO_SYNC.value, 200)
 
 if __name__ == "__main__":
     socketio.run(app)
