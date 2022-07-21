@@ -106,8 +106,10 @@ def red():
 def white():
     return (35, 0)
 
+
 def dirt():
     return (3, 0)
+
 
 def grass():
     return (2, 0)
@@ -155,7 +157,7 @@ def build_base_world(sl, h, g, fence=False):
             for k in range(sl):
                 if (i == 0 or i == sl - 1 or k == 0 or k == sl - 1) and j == g - 1 and fence:
                     idm = red()
-                elif (j == (g-1)):
+                elif j == (g - 1):
                     idm = grass()
                 else:
                     idm = dirt()

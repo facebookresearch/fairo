@@ -229,7 +229,9 @@ def build_question_json(
 
 
 def map_yes_last_chat(task: Task):
-    chat_mem = task.agent.memory.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(task.agent.memory, after=task.step_time + 1)
+    chat_mem = task.agent.memory.nodes[ChatNode.NODE_TYPE].get_most_recent_incoming_chat(
+        task.agent.memory, after=task.step_time + 1
+    )
     response = "no"
     if chat_mem:
         # FIXME...
