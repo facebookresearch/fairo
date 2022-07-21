@@ -55,6 +55,7 @@ cd ..
 cd ../third_party/habitat-lab/
 echo "********************* INSTALLING HABITAT ****************"
 pwd
+$PYTHON -m pip install pytest-runner
 $PYTHON -m pip install -vvv -e .
 cd -
 
