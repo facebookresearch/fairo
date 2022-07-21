@@ -92,7 +92,7 @@ def add_workers_to_quals(add_list: list, qual: str):
         - return a status of if adding successfully
         - if success, return true, else return false
     """
-
+    add_all_success = True
     for turker in add_list:
         # First add the worker to the database, or retrieve them if they already exist
         try:
@@ -113,10 +113,10 @@ def add_workers_to_quals(add_list: list, qual: str):
         # Check to make sure the qualification was added successfully
         if not worker.is_qualified(qual):
             logging.info(f"!!! {worker} not successfully qualified, debug")
-            return False
         else:
             logging.info(f"Worker {worker.worker_name} added to list {qual}")
-            return True
+            add_all_success = False
+    return add_all_success
 
 
 def revoke_worker_qual(turker: str, qual: str):
