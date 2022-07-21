@@ -96,9 +96,22 @@ def record_video(image_filenames, image_timestamps, video_filename, fps=30, real
 if __name__ == "__main__":
     trajectory_root_paths = [
         *glob.glob("trajectories/*/modular_learned"),
-        *glob.glob("trajectories/*/modular_heuristic"),
+        *glob.glob("trajectories/*/modular_frontier"),
     ]
     for trajectory_root_path in trajectory_root_paths:
         video_root_path = trajectory_root_path.replace("trajectories", "videos")
         print(f"Processing {trajectory_root_path}")
         record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path)
+
+    aggregate_log_root_paths = [
+        *glob.glob("trajectories/*/modular_learned/*.json"),
+        *glob.glob("trajectories/*/modular_frontier/*.json"),
+    ]
+    for f in aggregate_log_root_paths:
+        stats = json.load(open(f, "rb"))
+        print(f)
+        print(stats["path_length"])
+        print(stats["time"])
+        print(stats["num_steps"])
+        print(stats["num_collisions"])
+        print()
