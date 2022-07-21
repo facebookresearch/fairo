@@ -116,7 +116,7 @@ if __name__ == "__main__":
         trajectory_root_paths = glob.glob(
             "../../../../../fairo/agents/locobot/trajectories/*/end_to_end"
         )
-    
+
     for trajectory_root_path in trajectory_root_paths:
         video_root_path = trajectory_root_path.replace("trajectories", "videos")
         print(f"Processing {trajectory_root_path}")
