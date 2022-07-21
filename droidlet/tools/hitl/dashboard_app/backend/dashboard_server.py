@@ -9,6 +9,7 @@ import argparse
 from enum import Enum
 import json
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
+    get_best_model_loss_acc_by_id,
     get_dataset_by_name,
     get_dataset_indices_by_id,
     get_dataset_version_list_by_pipeline,
@@ -48,6 +49,7 @@ class DASHBOARD_EVENT(Enum):
     GET_DATASET = "get_dataset_by_name"
     GET_MODEL_KEYS = "get_model_keys_by_id"
     GET_MODEL_VALUE = "get_model_value_by_id_n_key"
+    GET_BEST_MODEL_LOSS_ACC = "get_best_model_loss_acc_by_id"
 
 
 # constants for model related apis
@@ -224,6 +226,27 @@ def get_model_value(batch_id, key):
         # get a specific value
         emit(DASHBOARD_EVENT.GET_MODEL_VALUE.value, [key, get_value_by_key(model, key)])
 
+@socketio.on(DASHBOARD_EVENT.GET_BEST_MODEL_LOSS_ACC.value)
+def get_best_model_loss_acc(batch_id: int):
+    """
+    get loss and accuracy from a model log for a specific run's best model,
+    the loss and accuracy infomation is reterived by crawling the best model's log file
+    - input:
+        - batch id of a specific run
+    - output:
+        - a dictionary containing:
+            - epoch loss and accuracy 
+            - text_span loss and accuracy
+        - or an error code indicating the best model log cannot be find
+    """
+    print(
+        f"Request received: {DASHBOARD_EVENT.GET_BEST_MODEL_LOSS_ACC.value}, batch_id = {batch_id}"
+    )
+    loss_acc_dict, error_code = get_best_model_loss_acc_by_id(int(batch_id))
+    if error_code:
+        emit(DASHBOARD_EVENT.GET_BEST_MODEL_LOSS_ACC.value, error_code)
+    else:
+        emit(DASHBOARD_EVENT.GET_BEST_MODEL_LOSS_ACC.value, loss_acc_dict)
 
 if __name__ == "__main__":
     socketio.run(app)

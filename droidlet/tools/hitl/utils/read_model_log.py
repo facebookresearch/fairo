@@ -1,6 +1,14 @@
-import pandas as pd
+"""
+Copyright (c) Facebook, Inc. and its affiliates.
 
-def log_to_df(fname: str):
+Utils for processing model log.
+"""
+def read_model_log_to_list(fname: str):
+    """
+    Read model log and export to a dictionary including:
+        - Epoch loss and accuracy
+        - Text span loss and accuracy
+    """
     f = open(fname)
     content = f.read()
     f.close()
@@ -28,5 +36,5 @@ def log_to_df(fname: str):
             loss, acc = get_loss_acc(line)
             text_span_loss_acc_list.append({"loss": loss, "acc": acc})
 
-    return pd.DataFrame(epoch_loss_acc_list), pd.DataFrame(text_span_loss_acc_list)
+    return epoch_loss_acc_list, text_span_loss_acc_list
     
