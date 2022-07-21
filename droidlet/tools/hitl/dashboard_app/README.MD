@@ -1,9 +1,13 @@
 # Dashboard App for HITL
-Updated July 13 by Chuxi.
+Updated July 21 by Chuxi.
 
 This is a Dashboard app prototype for the HITL system.
 
 ## Update Note
+- July 21:
+    - Updated backend api for reteriving loss and accuracy for a model.
+    - Demo:
+        - 
 - July 14:
     - Added model visualization component, user can see text info about a model:
     - Demo:
@@ -119,6 +123,16 @@ APIs are based on socket event, the following APIs are supported currently:
         - the batch id of the run.
         - the key for the model, could be any key from the model, or "COMPLETE", indicating getting the complete model dict
     - output: the key and the value specific to the key for the model if the model exists and key is valid, otherwise error code
-    
+- get_best_model_loss_acc_by_id
+    - get loss and accuracy from a model log for a specific run's best model, 
+    the loss and accuracy infomation is reterived by crawling the best model's log file
+    - input:
+        - batch id of a specific run
+    - output:
+        - a dictionary containing:
+            - epoch loss and accuracy
+            - text_span loss and accuracy
+        - or an error code indicating the best model log cannot be find
+ 
 ## Demo
 ![backend_api_demo](https://user-images.githubusercontent.com/51009396/175696481-532cec55-5b2e-4bae-bceb-9e7d3f2aa7b7.gif)
