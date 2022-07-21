@@ -4,6 +4,7 @@ import cv2
 from natsort import natsorted
 import numpy as np
 import json
+import sys
 
 
 def record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path):
@@ -94,19 +95,34 @@ def record_video(image_filenames, image_timestamps, video_filename, fps=30, real
 
 
 if __name__ == "__main__":
-    trajectory_root_paths = [
-        *glob.glob("trajectories/*/modular_learned"),
-        *glob.glob("trajectories/*/modular_frontier"),
-    ]
+    method = sys.argv[1]
+    assert method in ["modular", "end_to_end"]
+
+    if method == "modular":
+        trajectory_root_paths = [
+            *glob.glob("trajectories/*/modular_learned"),
+            *glob.glob("trajectories/*/modular_frontier"),
+        ]
+    else:
+        trajectory_root_paths = glob.glob(
+            "../../../../../fairo/agents/locobot/trajectories/*/end_to_end"
+        )
+    
     for trajectory_root_path in trajectory_root_paths:
         video_root_path = trajectory_root_path.replace("trajectories", "videos")
         print(f"Processing {trajectory_root_path}")
         record_aggregate_metrics_and_videos(trajectory_root_path, video_root_path)
 
-    aggregate_log_root_paths = [
-        *glob.glob("trajectories/*/modular_learned/*.json"),
-        *glob.glob("trajectories/*/modular_frontier/*.json"),
-    ]
+    if method == "modular":
+        aggregate_log_root_paths = [
+            *glob.glob("trajectories/*/modular_learned/*.json"),
+            *glob.glob("trajectories/*/modular_frontier/*.json"),
+        ]
+    else:
+        aggregate_log_root_paths = glob.glob(
+            "../../../../../fairo/agents/locobot/trajectories/*/end_to_end/*.json"
+        )
+
     for f in aggregate_log_root_paths:
         stats = json.load(open(f, "rb"))
         print(f)
