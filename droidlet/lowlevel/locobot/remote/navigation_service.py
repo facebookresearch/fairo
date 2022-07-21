@@ -393,7 +393,7 @@ class Navigation(object):
                 hfov = 42
                 frame_width = 480
 
-                start_x, start_y, agent_angle = *self.slam.robot2map(pose[:2]), -pose[2]
+                start_y, start_x, agent_angle = *self.slam.robot2map(pose[:2]), -pose[2]
                 line_length = map_size
                 median_col = np.median(np.nonzero(cat_frame)[1])
                 frame_angle = np.deg2rad(median_col / frame_width * hfov - hfov / 2)
