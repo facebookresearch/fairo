@@ -1,9 +1,12 @@
 # Dashboard App for HITL
-Updated July 20 by Chuxi.
+Updated July 21 by Chuxi.
 
 This is a Dashboard app prototype for the HITL system.
 
 ## Update Note
+- July 21: 
+    - Changed turk list - "status/update status" column to only show "allow" and "block" status
+        - <img width="741" alt="allow_or_block" src="https://user-images.githubusercontent.com/51009396/180295591-19d98361-09f3-48c7-8e5c-9f1ebb7d1153.png">
 - July 20:
     - Update frontend ui for editing turk list
         - now there is a tab shows different turk list with different qualification name
@@ -12,11 +15,12 @@ This is a Dashboard app prototype for the HITL system.
     - Added backend apis for accessing/managing turk list
     - Demo:
         - Updating block/allow status
-            - ![demo_turk_list_update_block_status](https://user-images.githubusercontent.com/51009396/180107199-5cab0c0f-9617-4e90-afad-b091d468af23.gif)
+            - ![demo_turk_list_update_block_status](https://user-images.githubusercontent.com/51009396/180295354-1d12ce30-2a31-44ce-a047-65262938ae87.gif)
+
         - Syncing local and s3 turk lists
-            - ![demo_turk_list_sync_local_with_s3](https://user-images.githubusercontent.com/51009396/180107176-71d19c7e-304e-431a-b926-de69cbbe569d.gif)
+            - ![demo_turk_list_sync_local_with_s3](https://user-images.githubusercontent.com/51009396/180295390-63917992-329e-4a2a-b3fa-305591047431.gif)
         - Update failed vs succeded behavior 
-            -  ![demo_turk_list_update_success_n_fails](https://user-images.githubusercontent.com/51009396/180107211-1dff8ee1-81ef-4e53-bd56-f095f7a4ef39.gif)
+            -  ![demo_turk_list_update_success_n_fails](https://user-images.githubusercontent.com/51009396/180295382-c462e70b-92b9-437d-b587-7d638ce21121.gif)
 
 - July 18:
     - Add frontend for viewing & editing turk list
