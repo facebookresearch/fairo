@@ -443,24 +443,24 @@ class StateManager {
   }
 
   showAssistantReply(res) {
-    // TODO handle content types besides plain text
+    // TODO support more content types
 
     let chat, response_options, isQuestion, questionType;
     try {
+      let content = res.content;
+      chat = content.filter((entry) => entry["id"] === "text")[0]["content"];
+
       if (res.content_type === "point") {
         if (this.memory.backend === "pyworld") {
-          chat = content.filter((entry) => entry["id"] === "text")[0]["content"];
           this.refs.forEach((ref) => {
             if (ref instanceof VoxelWorld) {
               ref.flashVoxelWorldBlocks( chat.slice(7,) );
             }
           });
         }
-        // Otherwise let the minecraft client handle point
+        // Otherwise let cuberite handle point
         return;
       } 
-      let content = res.content;
-      chat = content.filter((entry) => entry["id"] === "text")[0]["content"];
       if (res.content_type === "chat_and_text_options") {
         response_options = content
           .filter((entry) => entry["id"] === "response_option")

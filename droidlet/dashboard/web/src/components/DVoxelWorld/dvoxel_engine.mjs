@@ -547,21 +547,22 @@ class DVoxelEngine {
     }
 
     flashBlocks(bbox) {
-        console.log("DVoxel Engine flash bbox")
+        console.log("DVoxel Engine flash bbox: " + bbox)
 
         const coords = bbox.split(' ');
+        const pixOverlap = 6; // How many pixels bigger than the obj being flashed
         const lowCorner = convertCoordinateSystems(parseInt(coords[0]), parseInt(coords[1]), parseInt(coords[2]));
         const highCorner = convertCoordinateSystems(parseInt(coords[3]), parseInt(coords[4]), parseInt(coords[5]));
         const geometry = new THREE.BoxGeometry(
-            Math.abs((highCorner[0] - lowCorner[0]) * blockScale + 2),
-            Math.abs((highCorner[1] - lowCorner[1]) * blockScale + 2),
-            Math.abs((highCorner[2] - lowCorner[2]) * blockScale + 2),
+            ((Math.abs((highCorner[0] - lowCorner[0])) + 1) * blockScale) + pixOverlap,
+            ((Math.abs((highCorner[1] - lowCorner[1])) + 1) * blockScale) + pixOverlap,
+            ((Math.abs((highCorner[2] - lowCorner[2])) + 1) * blockScale) + pixOverlap,
         );
         const highlighterMaterial = new THREE.MeshBasicMaterial({color: 0x049ef4})
         const highlightCube = new THREE.Mesh(geometry, highlighterMaterial);
-        highlightCube.position.x += (((highCorner[0] - lowCorner[0]) / 2) + lowCorner[0]) * blockScale;
-        highlightCube.position.y += (((highCorner[1] - lowCorner[1]) / 2) + lowCorner[1]) * blockScale;
-        highlightCube.position.z += (((highCorner[2] - lowCorner[2]) / 2) + lowCorner[2]) * blockScale;
+        highlightCube.position.x += ((((highCorner[0] - lowCorner[0]) / 2) + lowCorner[0]) * blockScale);
+        highlightCube.position.y += ((((highCorner[1] - lowCorner[1]) / 2) + lowCorner[1]) * blockScale);
+        highlightCube.position.z += ((((highCorner[2] - lowCorner[2]) / 2) + lowCorner[2]) * blockScale);
         scene.add(highlightCube);
 
         let flashInterval = window.setInterval(function () {
@@ -570,13 +571,12 @@ class DVoxelEngine {
             } else {
                 highlightCube.visible = true;
             }
-            render();
         }, 500);
 
         window.setTimeout(function () {
             window.clearInterval(flashInterval);
             scene.remove(highlightCube);
-        }, 5100);
+        }, 4100);
 
     }
 

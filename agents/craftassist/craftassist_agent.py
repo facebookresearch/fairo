@@ -355,7 +355,7 @@ class CraftAssistAgent(DroidletAgent):
             safe_blocks = blocks
         return safe_blocks
 
-    def point_at(self, target, sleep=None):
+    def point_at(self, target, sleep=0):
         """Bot pointing.
 
         Args:
@@ -368,8 +368,9 @@ class CraftAssistAgent(DroidletAgent):
         self.point_targets.append((target, time.time()))
 
         # TODO: put this in mover
-        # flip x to move from droidlet coords to  cuberite coords
-        target = [-target[3], target[1], target[2], -target[0], target[4], target[5]]
+        if self.backend == "cuberite":
+            # flip x to move from droidlet coords to  cuberite coords
+            target = [-target[3], target[1], target[2], -target[0], target[4], target[5]]
 
         point_json = build_question_json("/point {} {} {} {} {} {}".format(*target))
         self.send_chat(point_json)
@@ -377,8 +378,7 @@ class CraftAssistAgent(DroidletAgent):
         # sleep before the bot can take any actions
         # otherwise there might be bugs since the object is flashing
         # deal with this in the task...
-        if sleep:
-            time.sleep(sleep)
+        time.sleep(sleep)
 
     ###FIXME!!
     #    self.get_incoming_chats = self.get_chats

@@ -308,13 +308,13 @@ class ClarifyNoMatch(Task):
                 else:
                     # Found it! Add the approriate tag to current candidate and mark it as the output
                     self.agent.memory.nodes[TripleNode.NODE_TYPE].create(
-                        self.memory,
+                        self.agent.memory,
                         subj=self.current_candidate,
                         pred_text="has_tag",
                         obj_text=self.ref_obj_span,
                     )
                     self.agent.memory.nodes[TripleNode.NODE_TYPE].create(
-                        self.memory,
+                        self.agent.memory,
                         subj=self.memid,
                         pred_text="dialogue_clarification_output",
                         obj_text=self.current_candidate,
@@ -334,6 +334,7 @@ class ClarifyNoMatch(Task):
     def point_at(self, target):
         if hasattr(target, "get_point_at_target"):
             bounds = target.get_point_at_target()
+            print(f"pointing at {target}")
         else:
             # FIXME is there a more graceful way to handle this?
             logging.error(

@@ -21,6 +21,7 @@ def capped_line_of_sight(agent, player_struct, cap=20):
             np.radians(player_struct.look.yaw), np.radians(player_struct.look.pitch)
         )
         target = cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
+        shortened_cap = cap
         while (
             target[0] >= opts.SL
             or target[0] < 0
@@ -29,9 +30,15 @@ def capped_line_of_sight(agent, player_struct, cap=20):
             or target[2] >= opts.SL
             or target[2] < 0
         ):
+            if shortened_cap < 1:
+                # If the player is off the map too (mostly unit testing),
+                # default to the old method to avoid an infinite loop
+                target = cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
+                return target
+
             # Don't produce a point off the map
-            cap /= 2
-            target = cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
+            shortened_cap /= 2
+            target = shortened_cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
         return target
     else:
         vec = agent.coordinate_transforms.look_vec(
