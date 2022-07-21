@@ -7,7 +7,7 @@ This is a Dashboard app prototype for the HITL system.
 - July 21:
     - Updated backend api for reteriving loss and accuracy for a model.
     - Demo:
-        - 
+        - ![demo_model_loss_acc_backend](https://user-images.githubusercontent.com/51009396/180333355-1927feec-8f01-4985-bc51-f3f08eb4c5b8.gif)
 - July 14:
     - Added model visualization component, user can see text info about a model:
     - Demo:
