@@ -16,7 +16,7 @@ from .interpret_location import ReferenceLocationInterpreter, interpret_relative
 from .interpret_filters import FilterInterpreter
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 from droidlet.task.task import task_to_generator, ControlBlock
-from droidlet.memory.memory_nodes import ChatNode, TripleNode, InterpreterNode, TaskNode
+from droidlet.memory.memory_nodes import ChatNode, TripleNode, InterpreterNode
 from droidlet.dialog.dialogue_task import ConfirmTask, Say
 
 
@@ -219,14 +219,7 @@ class Interpreter(InterpreterBase):
             "task_memids": [u.memid for u in undo_tasks],
             "question": 'Do you want me to undo the command: "{}" ?'.format(undo_command),
         }
-        task_egg = {"class": ConfirmTask, "task_data": confirm_data}
-        cmemid = TaskNode.create(self.memory, task_egg)
-        self.memory.nodes[TripleNode.NODE_TYPE].create(
-            self.memory,
-            subj=cmemid,
-            pred_text="dlf_clarification",
-            obj=self.memid,
-        )
+        ConfirmTask(agent, confirm_data)
         self.finished = True
         return None
 

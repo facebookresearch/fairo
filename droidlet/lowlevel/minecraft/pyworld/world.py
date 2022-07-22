@@ -627,17 +627,11 @@ class World:
 
         @server.on("get_changed_blocks")
         def changed_blocks(sid):
-            try:
-                eid = self.connected_sids.get(sid)
-                blocks = self.changed_blocks_store[sid]
-                # can't send dicts with tuples for keys :(
-                blocks = {str(k): v for k, v in blocks.items()}
-                self.changed_blocks_store[sid] = {}
-            except:
-                import ipdb
-
-                ipdb.set_trace(context=7)
-                raise
+            eid = self.connected_sids.get(sid)
+            blocks = self.changed_blocks_store[sid]
+            # can't send dicts with tuples for keys :(
+            blocks = {str(k): v for k, v in blocks.items()}
+            self.changed_blocks_store[sid] = {}
             return blocks
 
         @server.on("get_blocks")

@@ -27,7 +27,7 @@ class BaseCraftassistTestCase(unittest.TestCase):
         if not players:
             players = [
                 FakePlayer(
-                    Player(42, "SPEAKER", Pos(5, 63, 5), Look(270, 0), Item(0, 0)),
+                    Player(42, "SPEAKER", Pos(15, 63, 15), Look(270, 0), Item(0, 0)),
                     active=False,
                     opts=agent_opts,
                 )

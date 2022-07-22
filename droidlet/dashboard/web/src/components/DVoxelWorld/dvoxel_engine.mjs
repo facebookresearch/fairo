@@ -502,6 +502,12 @@ class DVoxelEngine {
             if (entityId in itemStacks) {
                 // console.log("item already exists, updating states")
                 itemStacks[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
+
+                if (key['holder_entityId'] == -1) {
+                    itemStacks[entityId].drop()
+                } else {
+                    itemStacks[entityId].pick()
+                }
             } else if (itemList.includes(entityId)) {
                 console.log("item build race condition");
                 // Item still being built, ignore

@@ -137,19 +137,16 @@ class ConfirmTask(Task):
 
     """
 
-    def __init__(self, agent, memid, task_data={}):
-        self.memid = memid
+    def __init__(self, agent, task_data={}):
         task_data["blocking"] = True
         super().__init__(agent, task_data=task_data)
-        # chat text that will be sent to user
         self.question = build_question_json(
             task_data.get("question"), text_response_options=["yes", "no"]
-        )
+        ) # chat text that will be sent to user
         self.task_memids = task_data.get(
             "task_memids"
         )  # list of Task objects, will be pushed in order
         self.asked = False
-        logging.info("ConfirmTask hatched")
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
@@ -170,15 +167,13 @@ class ConfirmTask(Task):
         # FIXME: change this to sqly when syntax for obj searches is settled:
         # search for a response to the confirmation question, which will be a triple
         # (self.memid, "dialogue_task_reponse", chat_memid)
-        # t = self.agent.memory.nodes[TripleNode.NODE_TYPE].get_triples(
-        #     self.agent.memory, subj=self.memid, pred_text="dialogue_task_response"
-        # )
-        # if not t:
-        #     return
-        # chat_mems = [self.agent.memory.get_mem_by_id(triples[2]) for triples in t]
-        # if any([c.chat_text in MAP_YES for c in chat_mems]):
-        response = map_yes_last_chat(self)
-        if response == "yes":
+        t = self.agent.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+            self.agent.memory, subj=self.memid, pred_text="dialogue_task_response"
+        )
+        if not t:
+            return
+        chat_mems = [self.agent.memory.get_mem_by_id(triples[2]) for triples in t]
+        if any([c.chat_text in MAP_YES for c in chat_mems]):
             for m in self.task_memids:
                 # activate
                 TaskNode(self.agent.memory, m).get_update_status({"prio": 1, "paused": 0})
