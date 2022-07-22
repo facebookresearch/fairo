@@ -263,7 +263,7 @@ def update_model_checksum(model_name, agent):
             - nlu
             - perception locobot
             - perception craftassist
-    - output: an sucess code if update success
+    - output: an success code if update success
     """
     print(
         f"Request received: {DASHBOARD_EVENT.UPDATE_MODEL_CHECKSUM.value}, model = {model_name}, agent = {agent}"
