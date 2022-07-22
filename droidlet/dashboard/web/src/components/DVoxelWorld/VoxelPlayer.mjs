@@ -15,50 +15,92 @@ class VoxelPlayer {
         this.mesh = model;
         this.position_offset = opts.position_offset;
         this.rotation_offset = opts.rotation_offset;
+        this.rotation = {"pitch": 0, "yaw": 0};
         this.possessed = false;
         this.pov = 3;
         this.matrix = new world.THREE.Matrix4();
         this.cam_vector = new world.THREE.Vector3();
         this.cam_pitch = 0;
         this.visible = true;
+        this.cameraLook = new world.THREE.Vector3();
+        this.cameraSpherical = new world.THREE.Spherical();
+        this.highlightRay = new world.THREE.Raycaster();
+        this.highlighter = new world.THREE.Mesh(
+            new world.THREE.CircleGeometry( 10, 32 ),
+            new world.THREE.MeshBasicMaterial({ color: 0xffff00, side: world.THREE.DoubleSide })
+        );
+        this.highlighter.visible = false;
+        this.world.scene.add(this.highlighter);
+        this.tempVec = new world.THREE.Vector3();
+        this.lockout = Date.now();
     };
 
     move(x, y, z) {
-        console.log(x + ","+y+","+z)
+        // console.log("player move: " + x + ","+y+","+z)
+        this.lockout = Date.now();
         this.mesh.position.x += x;
         this.mesh.position.y += y;
         this.mesh.position.z += z;
-        console.log(this.mesh.position)
         if (this.possessed) this.updateCamera();
     };
 
     moveTo(x, y, z) {
+        if ((Date.now() - this.lockout) < 1000) {
+            // Don't jitter
+            return
+        }
         let xyz = applyOffset([x,y,z], this.position_offset);
-        this.mesh.position.set(xyz[0], xyz[1], xyz[2]);
-        if (this.possessed) this.updateCamera();
+        let newPosVec = new this.world.THREE.Vector3(xyz[0], xyz[1], xyz[2]);
+        if (!newPosVec.equals(this.mesh.position)) {
+            // console.log("moveTo: x=" + xyz[0] + " y=" + xyz[1] + " z=" + xyz[2]);
+            this.mesh.position.copy(newPosVec);
+            if (this.possessed) this.updateCamera();
+        }
     };
 
     rotate(d_yaw) {
         this.mesh.rotateY(d_yaw);
+        this.rotation.yaw += d_yaw;
         if (this.possessed) this.updateCamera();
     };
 
     rotateTo(yaw, pitch) {
-        this.mesh.rotation.set(this.opts.rotation_offset[0], this.opts.rotation_offset[1], this.opts.rotation_offset[2])
-        this.mesh.rotateY(yaw)
-        this.cam_pitch = 0
-        this.cameraPitch(pitch)
-        if (this.possessed) this.updateCamera();
+        if (this.rotation.yaw != yaw && this.rotation.pitch != pitch) {
+            this.mesh.rotation.set(this.opts.rotation_offset[0], this.opts.rotation_offset[1], this.opts.rotation_offset[2])
+            this.mesh.rotateY(yaw)
+            this.rotation.yaw = yaw;
+            this.cam_pitch = 0
+            this.cameraPitch(pitch)
+            this.rotation.pitch = pitch;
+            if (this.possessed) this.updateCamera();
+        }
     }
 
     getPitchYaw() {
-        let pitch = MathUtils.radToDeg(this.mesh.rotation.x);
-        let yaw = MathUtils.radToDeg(this.mesh.rotation.y);
+        let pitch = MathUtils.radToDeg(this.mesh.rotation.x - this.rotation_offset[0]);
+        let yaw = MathUtils.radToDeg(this.mesh.rotation.y - this.rotation_offset[1]);
+        return [pitch, yaw]
+    }
+
+    getLookPitchYaw() {
+        this.world.camera.getWorldDirection(this.cameraLook);
+        this.cameraSpherical.setFromVector3(this.cameraLook);
+
+        // 0 phi is the +y axis and down is pos, set 0 pitch to be at the horizon and flip
+        let pitch = (-1) * MathUtils.radToDeg(this.cameraSpherical.phi - (Math.PI/2));
+        // 0 theta is the +z axis, +yaw is right handed (CCW) - same as agent, no change
+        let yaw = MathUtils.radToDeg(this.cameraSpherical.theta);
+
         return [pitch, yaw]
     }
 
     getPosition() {
-        return this.mesh.position;
+        let offset_pos = new this.world.THREE.Vector3(
+            this.mesh.position.x - this.position_offset[0],
+            this.mesh.position.y - this.position_offset[1],
+            this.mesh.position.z - this.position_offset[2],
+        )
+        return offset_pos;
     }
 
     updatePov(type) {
@@ -116,9 +158,36 @@ class VoxelPlayer {
             this.world.camera.rotateX(this.cam_pitch);
         }
 
+        this.world.reticle.position.copy( this.world.camera.position );
+        this.world.reticle.rotation.copy( this.world.camera.rotation );
+        this.world.reticle.translateZ( -150 );
+
+        this.highlightObjects();
+
         this.world.render();
     };
 
+    highlightObjects() {
+        this.world.camera.getWorldDirection(this.cameraLook);
+        this.highlightRay.set(
+            this.world.camera.position,
+            this.cameraLook
+        );
+        const intersects = this.highlightRay.intersectObjects( this.world.sceneItems, true );
+        if ( intersects.length > 0 ) {
+            // There's a collision, show the highlighter at the point of collision
+            this.highlighter.visible = true;
+            this.highlighter.position.copy(intersects[0].point);
+
+            // Rotate to be parallel to the collision face and offset for visibility
+            this.tempVec.set( 0, 0, 1 );
+            this.tempVec.cross(intersects[0].face.normal);
+            this.highlighter.rotation.setFromVector3(this.tempVec.multiplyScalar(Math.PI/2));
+            this.highlighter.position.add(intersects[0].face.normal);
+        } else {
+            this.highlighter.visible = false;
+        }
+    }
 
     possess() {
         if (!this.possessed) {
