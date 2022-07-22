@@ -135,15 +135,15 @@ APIs are based on socket event, the following APIs are supported currently:
             - perception craftassist
     - output: the checksum if model and agent combination are valid, and if checksum has been computed; otherwise error code
 - update_model_checksum_by_name_n_agent
-    - get the checksum for a specific model and agent
+    - update the checksum for a specific model and agent
     - input:
         - model name
-        - agent name 
+        - agent name
         - the valid combinations for model name and agent are:
             - nlu
             - perception locobot
             - perception craftassist
-    - output: the checksum if model and agent combination are valid, and if checksum has been computed; otherwise error code
+    - output: an sucess code if update success
 
 ## Demo
 ![backend_api_demo](https://user-images.githubusercontent.com/51009396/175696481-532cec55-5b2e-4bae-bceb-9e7d3f2aa7b7.gif)
