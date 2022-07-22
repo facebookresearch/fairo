@@ -18,7 +18,7 @@ UPDATE_HZ = 60
 
 
 def generate_trajectory(center_pose, radius, hz, time_to_go):
-    """ Draw 3d Meta logo in free space """
+    """Draw 3d Meta logo in free space"""
     num_steps = int(time_to_go * hz)
     ee_pose_traj = torch.empty([num_steps, 7])
 
