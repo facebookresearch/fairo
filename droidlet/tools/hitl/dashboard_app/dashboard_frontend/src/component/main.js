@@ -143,6 +143,8 @@ const Main = () => {
                         justifyContent: "center"
                     }}>
                     </div>
+
+                    {/* quick view block TODO */}
                     <Divider>
                         <Typography.Title level={5}>
                             <SearchOutlined style={{ paddingRight: "4px" }} />
@@ -150,6 +152,7 @@ const Main = () => {
                         </Typography.Title>
                     </Divider>
 
+                    {/* tool block */}
                     <Divider>
                         <Typography.Title level={5}>
                             <ToolOutlined style={{ paddingRight: "4px" }} />
