@@ -1,5 +1,7 @@
 /*
 Copyright (c) Facebook, Inc. and its affiliates.
+
+Main page of the HiTL dashboard app.
 */
 import React, { useContext, useEffect, useState } from "react";
 import { Layout, Typography, Card, Divider, Button, Descriptions, Spin } from "antd";
@@ -35,6 +37,10 @@ const MODEL_CHECKSUM_TABS = [
 ]
 
 const ChecksumDescItem = (props) => {
+    /**
+     * Checksum Description Item Content
+     * Used for each of modelName - agent pair
+     */
     const modelName = props.modelName;
     const agent = props.agent.key;
     const socket = useContext(SocketContext);
@@ -49,6 +55,15 @@ const ChecksumDescItem = (props) => {
         }
     }
 
+    const handleUpdateRes = (data) => {
+        if (data !== 200) {
+            // failed, show alert
+            alert("Update checksum failed, please try again later");
+        } 
+        // reterive new checksum
+        !checksumData && socket.emit("get_model_checksum_by_name_n_agent", modelName, agent);
+    }
+
     useEffect(() => {
         setChecksumData(null);
         socket.emit("get_model_checksum_by_name_n_agent", modelName, agent);
@@ -56,21 +71,26 @@ const ChecksumDescItem = (props) => {
 
     useEffect(() => {
         socket.on("get_model_checksum_by_name_n_agent", (data) => handleReceivedChecksum(data));
-    }, [handleReceivedChecksum]);
+        socket.on("update_model_checksum_by_name_n_agent", (data) => handleUpdateRes(data));
+    }, [handleReceivedChecksum, handleUpdateRes]);
 
-    const handleOnClick = (agent) => {
-        console.log(agent);
+    const handleOnClick = () => {
+        setChecksumData(null);
+        socket.emit("update_model_checksum_by_name_n_agent", modelName, agent);
     }
 
     return <div style={{ display: "flex" }}>
         <div>{checksumData ? checksumData: <Spin />}</div>
-        <Button type="primary" size="small" style={{ marginLeft: "12px" }} onClick={() => handleOnClick(agent)}>
+        <Button type="primary" size="small" style={{ marginLeft: "12px" }} onClick={() => handleOnClick()}>
             Compute Checksum
         </Button>
     </div>;
 }
 
 const ChecksumCardConetent = (props) => {
+    /**
+     * Content of the compute checksum card
+     */
     const modelName = props.activeKey;
     const agents = MODEL_CHECKSUM_TABS.find((tab) => (tab.key === props.activeKey)).agents;
 
@@ -90,6 +110,9 @@ const ChecksumCardConetent = (props) => {
 }
 
 const ComputeModelChecksumCard = () => {
+    /**
+     * Compute Model Checksum Card in the tool block
+     */
     const [activeTabKey, setActiveKey] = useState(MODEL_CHECKSUM_TABS[0].key);
 
     const onTabChange = (key) => {

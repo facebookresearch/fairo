@@ -5,9 +5,9 @@ This file include a flask server that is the backend of the HITL dashboard app.
 """
 
 
-import argparse
 from enum import Enum
 import json
+from droidlet.tools.artifact_scripts.compute_checksum import compute_checksum_for_directory
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
     get_dataset_by_name,
     get_dataset_indices_by_id,
@@ -249,6 +249,25 @@ def get_model_checksum(model_name, agent):
         emit(DASHBOARD_EVENT.GET_MODEL_CHECKSUM.value, [model_name, agent, error_code])
     else:
         emit(DASHBOARD_EVENT.GET_MODEL_CHECKSUM.value, [model_name, agent, checksum])
+
+@socketio.on(DASHBOARD_EVENT.UPDATE_MODEL_CHECKSUM.value)
+def update_model_checksum(model_name, agent):
+    """
+    update the checksum for a specific model and agent
+    - input:
+        - model name
+        - agent name 
+        - the valid combinations for model name and agent are:
+            - nlu
+            - perception locobot
+            - perception craftassist
+    - output: an sucess code if update success
+    """
+    print(
+        f"Request received: {DASHBOARD_EVENT.UPDATE_MODEL_CHECKSUM.value}, model = {model_name}, agent = {agent}"
+    )
+    compute_checksum_for_directory(agent, "models", model_name)
+    emit(DASHBOARD_EVENT.UPDATE_MODEL_CHECKSUM.value, 200)
 
 if __name__ == "__main__":
     socketio.run(app)
