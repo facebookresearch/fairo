@@ -22,6 +22,7 @@ from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_model_utils import (
     get_complete_model,
     get_keys,
+    get_model_checksum_by_name_n_agent,
     get_value_by_key,
 )
 from flask import Flask, abort
@@ -48,6 +49,9 @@ class DASHBOARD_EVENT(Enum):
     GET_DATASET = "get_dataset_by_name"
     GET_MODEL_KEYS = "get_model_keys_by_id"
     GET_MODEL_VALUE = "get_model_value_by_id_n_key"
+
+    GET_MODEL_CHECKSUM = "get_model_checksum_by_name_n_agent"
+    UPDATE_MODEL_CHECKSUM = "update_model_checksum_by_name_n_agent"
 
 
 # constants for model related apis
@@ -224,6 +228,27 @@ def get_model_value(batch_id, key):
         # get a specific value
         emit(DASHBOARD_EVENT.GET_MODEL_VALUE.value, [key, get_value_by_key(model, key)])
 
+@socketio.on(DASHBOARD_EVENT.GET_MODEL_CHECKSUM.value)
+def get_model_checksum(model_name, agent):
+    """
+    get the checksum for a specific model and agent
+    - input:
+        - model name
+        - agent name 
+        - the valid combinations for model name and agent are:
+            - nlu
+            - perception locobot
+            - perception craftassist
+    - output: the checksum if model and agent combination are valid, and if checksum has been computed; otherwise error code
+    """
+    print(
+        f"Request received: {DASHBOARD_EVENT.GET_MODEL_CHECKSUM.value}, model = {model_name}, agent = {agent}"
+    )
+    checksum, error_code = get_model_checksum_by_name_n_agent(model_name, agent)
+    if error_code:
+        emit(DASHBOARD_EVENT.GET_MODEL_CHECKSUM.value, [model_name, agent, error_code])
+    else:
+        emit(DASHBOARD_EVENT.GET_MODEL_CHECKSUM.value, [model_name, agent, checksum])
 
 if __name__ == "__main__":
     socketio.run(app)

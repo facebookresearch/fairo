@@ -1,10 +1,11 @@
 /*
 Copyright (c) Facebook, Inc. and its affiliates.
 */
-import React, { useState } from "react";
-import { Layout, Typography, Card, Divider, Button, Descriptions } from "antd";
+import React, { useContext, useEffect, useState } from "react";
+import { Layout, Typography, Card, Divider, Button, Descriptions, Spin } from "antd";
 import { SearchOutlined, ToolOutlined } from "@ant-design/icons";
 import { Content } from "antd/lib/layout/layout";
+import { SocketContext } from "../context/socket";
 
 const MODEL_CHECKSUM_TABS = [
     {
@@ -33,13 +34,45 @@ const MODEL_CHECKSUM_TABS = [
     },
 ]
 
-const ChecksumCardConetent = (props) => {
-    const modelName = props.activeKey;
-    const agents = MODEL_CHECKSUM_TABS.find((tab) => (tab.key === props.activeKey)).agents;
+const ChecksumDescItem = (props) => {
+    const modelName = props.modelName;
+    const agent = props.agent.key;
+    const socket = useContext(SocketContext);
+    const [checksumData, setChecksumData] = useState(null);
+
+    const handleReceivedChecksum = (data) => {
+        if (data[2] === 404) {
+            // received error code
+            setChecksumData("NA");
+        } else if (data[0] === modelName && data[1] === agent) {
+            setChecksumData(data[2]);
+        }
+    }
+
+    useEffect(() => {
+        setChecksumData(null);
+        socket.emit("get_model_checksum_by_name_n_agent", modelName, agent);
+    }, [modelName, agent]);
+
+    useEffect(() => {
+        socket.on("get_model_checksum_by_name_n_agent", (data) => handleReceivedChecksum(data));
+    }, [handleReceivedChecksum]);
 
     const handleOnClick = (agent) => {
         console.log(agent);
     }
+
+    return <div style={{ display: "flex" }}>
+        <div>{checksumData ? checksumData: <Spin />}</div>
+        <Button type="primary" size="small" style={{ marginLeft: "12px" }} onClick={() => handleOnClick(agent)}>
+            Compute Checksum
+        </Button>
+    </div>;
+}
+
+const ChecksumCardConetent = (props) => {
+    const modelName = props.activeKey;
+    const agents = MODEL_CHECKSUM_TABS.find((tab) => (tab.key === props.activeKey)).agents;
 
     return <div>
         {
@@ -47,12 +80,7 @@ const ChecksumCardConetent = (props) => {
                 {
                     agents.map((agent) =>
                         <Descriptions.Item label={`${agent.label} Checksum`}>
-                            <div style={{display: "flex"}}>
-                                <div>NA</div>
-                                <Button type="primary" size="small" style={{marginLeft: "12px"}} onClick={() => handleOnClick(agent)}>
-                                    Compute Checksum
-                                </Button>
-                            </div>
+                            <ChecksumDescItem modelName={modelName} agent={agent} />
                         </Descriptions.Item>
                     )
                 }
