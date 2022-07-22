@@ -18,7 +18,9 @@ def capped_line_of_sight(agent, player_struct, cap=10):
     vec = agent.coordinate_transforms.look_vec(player_struct.look.yaw, player_struct.look.pitch)
     # default to cap blocks in front of entity
     if agent.backend == "pyworld":
-        if abs(player_struct.look.yaw) > (np.pi * 2) or abs(player_struct.look.pitch) > (np.pi * 2):
+        if abs(player_struct.look.yaw) > (np.pi * 2) or abs(player_struct.look.pitch) > (
+            np.pi * 2
+        ):
             # FIXME Temporary hack, we should just make pyworld live in radians
             vec = agent.coordinate_transforms.look_vec(
                 np.radians(player_struct.look.yaw), np.radians(player_struct.look.pitch)
