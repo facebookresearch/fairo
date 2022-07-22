@@ -57,7 +57,7 @@ conda install -y pytest-runner
 cd ../third_party/habitat-lab/
 echo "********************* INSTALLING HABITAT ****************"
 $PYTHON -m pip install -vvv -e .
-conda install habitat-sim withbullet headless -c conda-forge -c aihabitat
+conda install -y habitat-sim withbullet headless -c conda-forge -c aihabitat
 cd -
 
 # Install python package
