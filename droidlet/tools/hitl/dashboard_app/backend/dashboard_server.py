@@ -228,13 +228,14 @@ def get_model_value(batch_id, key):
         # get a specific value
         emit(DASHBOARD_EVENT.GET_MODEL_VALUE.value, [key, get_value_by_key(model, key)])
 
+
 @socketio.on(DASHBOARD_EVENT.GET_MODEL_CHECKSUM.value)
 def get_model_checksum(model_name, agent):
     """
     get the checksum for a specific model and agent
     - input:
         - model name
-        - agent name 
+        - agent name
         - the valid combinations for model name and agent are:
             - nlu
             - perception locobot
@@ -250,13 +251,14 @@ def get_model_checksum(model_name, agent):
     else:
         emit(DASHBOARD_EVENT.GET_MODEL_CHECKSUM.value, [model_name, agent, checksum])
 
+
 @socketio.on(DASHBOARD_EVENT.UPDATE_MODEL_CHECKSUM.value)
 def update_model_checksum(model_name, agent):
     """
     update the checksum for a specific model and agent
     - input:
         - model name
-        - agent name 
+        - agent name
         - the valid combinations for model name and agent are:
             - nlu
             - perception locobot
@@ -268,6 +270,7 @@ def update_model_checksum(model_name, agent):
     )
     compute_checksum_for_directory(agent, "models", model_name)
     emit(DASHBOARD_EVENT.UPDATE_MODEL_CHECKSUM.value, 200)
+
 
 if __name__ == "__main__":
     socketio.run(app)
