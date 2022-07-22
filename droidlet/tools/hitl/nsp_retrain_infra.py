@@ -341,7 +341,12 @@ class NSPRetrainingJob(DataGenerator):
             + full_data_dir
             + " --pretrained_encoder_name "
             + opts.pretrained_encoder_name
+            + " --decoder_config_name "
+            + opts.decoder_config_name
         )
+        # Require 32g GPU for training
+        if opts.use_32g_gpu:
+            sweep_args += "--use_32g_gpu "
 
         # Initialize the training run
         try:
@@ -560,6 +565,13 @@ if __name__ == "__main__":
         help="Pretrained text encoder."
         "See full list at https://huggingface.co/transformers/pretrained_models.html",
     )
+    parser.add_argument(
+        "--decoder_config_name",
+        default="bert-base-uncased",
+        type=str,
+        help="Name of Huggingface config used to initialize decoder architecture"
+        "See full list at https://huggingface.co/transformers/pretrained_models.html",
+    )
     # Training hyperparameter
     parser.add_argument(
         "--batch_size",
@@ -578,6 +590,11 @@ if __name__ == "__main__":
         default="annotated:1.0",
         type=str,
         help="Sampling probabilities for handling different data types",
+    )
+    parser.add_argument(
+        "--use_32g_gpu",
+        action="store_true",
+        help="Whether use GPU with 32g memory for training",
     )
     parser.add_argument(
         "-decoder_learning_rate", type=float, nargs="+", help="Learning rate for the decoder"

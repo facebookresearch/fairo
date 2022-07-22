@@ -50,42 +50,51 @@ class PyWorldMover:
         self.entityId = player_struct.entityId
 
     def set_look(self, yaw, pitch):
-        self.sio.emit("set_look", {"yaw": yaw, "pitch": pitch})
+        self.sio.emit("set_look", {"yaw": float(yaw), "pitch": float(pitch)})
 
+    # FIXME: make a "cuberite" style pick mode, and an explicit pick mode
     def step_pos_x(self):
         self.sio.emit("rel_move", {"x": 1})
-        self.pick_nearby_items()
+
+    #        self.pick_nearby_items()
 
     def step_neg_x(self):
         self.sio.emit("rel_move", {"x": -1})
-        self.pick_nearby_items()
+
+    #       self.pick_nearby_items()
 
     def step_pos_y(self):
         self.sio.emit("rel_move", {"y": 1})
-        self.pick_nearby_items()
+
+    #       self.pick_nearby_items()
 
     def step_neg_y(self):
         self.sio.emit("rel_move", {"y": -1})
-        self.pick_nearby_items()
+
+    #        self.pick_nearby_items()
 
     def step_pos_z(self):
         self.sio.emit("rel_move", {"z": 1})
-        self.pick_nearby_items()
+
+    #        self.pick_nearby_items()
 
     def step_neg_z(self):
         self.sio.emit("rel_move", {"z": -1})
-        self.pick_nearby_items()
+
+    #        self.pick_nearby_items()
 
     def step_forward(self):
         self.sio.emit("rel_move", {"forward": 1})
-        self.pick_nearby_items()
+
+    #        self.pick_nearby_items()
 
     def set_held_item(self, idm):
+        idm = (int(idm[0]), int(idm[1]))
         self.sio.emit("set_held_item", {"idm": idm})
 
     def dig(self, x, y, z):
         D = DataCallback()
-        self.sio.emit("dig", {"loc": [x, y, z]}, callback=D)
+        self.sio.emit("dig", {"loc": [int(x), int(y), int(z)]}, callback=D)
         # return True if the world says the block was dug, False otherwise
         placed = wait_for_data(D)
         # this is sketchy: if world doesn't respond in time, block placement will
@@ -97,7 +106,7 @@ class PyWorldMover:
     def place_block(self, x, y, z):
         """place the block in mainhand.  does nothing if mainhand empty"""
         D = DataCallback()
-        self.sio.emit("place_block", {"loc": [x, y, z]}, callback=D)
+        self.sio.emit("place_block", {"loc": [int(x), int(y), int(z)]}, callback=D)
         # return True if the world says the block was placed, False otherwise
         placed = wait_for_data(D)
         # this is sketchy: if world doesn't respond in time, block placement will
@@ -132,7 +141,11 @@ class PyWorldMover:
         D = DataCallback()
         pos = player_struct.pos
         look = player_struct.look
-        pose_data = {"pos": (pos.x, pos.y, pos.z), "yaw": look.yaw, "pitch": look.pitch}
+        pose_data = {
+            "pos": (float(pos.x), float(pos.y), float(pos.z)),
+            "yaw": float(look.yaw),
+            "pitch": float(look.pitch),
+        }
         self.sio.emit("line_of_sight", pose_data, callback=D)
         pos = wait_for_data(D)["pos"]
         if pos == "":
@@ -156,9 +169,16 @@ class PyWorldMover:
             if item["holder_entityId"] == holder_entityId or get_all:
                 pos = Pos(item["x"], item["y"], item["z"])
                 item_stacks.append(
-                    ItemStack(
-                        Slot(item["id"], item["meta"], 1), pos, item["entityId"], item["name"]
-                    )
+                    [
+                        ItemStack(
+                            Slot(item["id"], item["meta"], 1),
+                            pos,
+                            item["entityId"],
+                            item["typeName"],
+                        ),
+                        item["holder_entityId"],
+                        item["properties"],
+                    ]
                 )
         return item_stacks
 
@@ -178,7 +198,7 @@ class PyWorldMover:
         item_stacks = self.get_item_stacks()
         for item_stack in item_stacks:
             if np.linalg.norm(np.array(item_stack.pos) - pos) < pick_range:
-                count = self.sio.emit("pick_items", [item_stack.entityId])
+                count = self.sio.emit("pick_items", [int(item_stack.entityId)])
 
     def drop_inventory_item_stack(self, bid=None, meta=None, count=1, entityId=-1):
         dropped = 0
@@ -189,7 +209,7 @@ class PyWorldMover:
                 item_stack.item.id == bid[0] and item_stack.item.meta == bid[1]
             )
             if item_stack.entityId == entityId or correct_idm:
-                sio.emit("drop_items", [item_stack.entityId])
+                sio.emit("drop_items", [int(item_stack.entityId)])
                 dropped = dropped + 1
                 if dropped > count:
                     return

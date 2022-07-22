@@ -19,7 +19,7 @@ from .third_party.robotiq_2finger_grippers.robotiq_2f_gripper import (
 
 
 class RobotiqGripperClient:
-    """gRPC server that exposes a Robotiq gripper controls to the client
+    """gRPC client that exposes controls of a Robotiq gripper to a PolymetisGripperServer
     Communicates with the gripper through modbus
     """
 

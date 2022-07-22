@@ -19,7 +19,7 @@ def main():
 
     # Run the entrypoint file.
     sys.path.append(os.path.dirname(msetup_path))
-    SourceFileLoader("msetup", msetup_path).load_module()
+    SourceFileLoader("__main__", msetup_path).load_module()
 
 
 if __name__ == "__main__":
