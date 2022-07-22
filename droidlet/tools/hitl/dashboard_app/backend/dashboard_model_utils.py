@@ -8,8 +8,9 @@ import collections
 import os
 import torch
 import json
-    
+
 ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../../../")
+
 
 def load_model(model_fpath: str):
     """
@@ -50,6 +51,7 @@ def get_complete_model(model):
         model_dict[key] = get_value_by_key(model, key)
     return json.dumps(model_dict)
 
+
 def get_model_checksum_by_name_n_agent(model_name, agent=None):
     """
     helper method to get model checksum
@@ -62,7 +64,7 @@ def get_model_checksum_by_name_n_agent(model_name, agent=None):
             checksum_name = "locobot_perception.txt"
         elif agent == "craftassist":
             checksum_name = "craftassist_perception.txt"
-    
+
     checksum_path = os.path.join(
         ROOTDIR, "droidlet/tools/artifact_scripts/tracked_checksums/" + checksum_name
     )
