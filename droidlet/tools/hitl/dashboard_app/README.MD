@@ -8,7 +8,7 @@ This is a Dashboard app prototype for the HITL system.
     - Added backend api and frontend components for viewing current model checksum and updating checksum.
     - Demo:
         - View and update checksum:
-            - 
+            - ![demo_view_n_update_model_checksum](https://user-images.githubusercontent.com/51009396/180574655-2ffac43a-7e50-473b-a4aa-5379753b04cd.gif)
 - July 14:
     - Added model visualization component, user can see text info about a model:
     - Demo:
