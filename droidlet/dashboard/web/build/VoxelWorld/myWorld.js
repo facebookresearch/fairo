@@ -3262,7 +3262,7 @@ class VoxelMob {
   }
 
   rotateTo(yaw, pitch) {
-    if (this.rotation.yaw != yaw && this.rotation.pitch != pitch) {
+    if (this.rotation.yaw != yaw || this.rotation.pitch != pitch) {
       this.mesh.rotation.set(this.rotation_offset[0], this.rotation_offset[1], this.rotation_offset[2]);
       this.mesh.rotateOnWorldAxis(this.worldX, pitch);
       this.mesh.rotateOnWorldAxis(this.worldY, yaw);
@@ -3519,6 +3519,11 @@ class VoxelPlayer {
     }
   }
 
+  updateWorld(newWorld) {
+    // If the world changes externally (eg. dig), update property
+    this.world = newWorld;
+  }
+
   possess() {
     if (!this.possessed) {
       this.possessed = true;
@@ -3612,15 +3617,15 @@ const defaultCameraNearPlane = 1;
 const defaultCameraFarPlane = 10000;
 const fps = 2;
 const renderInterval = 1000 / fps;
-let camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
+let world, camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
 const followPointerScale = 150;
-const preLoadMaterialNames = ['grass', 'dirt', 'wood']; //, 'white wool', 'orange wool', 'magenta wool'];
-
+const preLoadMaterialNames = ['grass', 'dirt', 'wood', 'iron', 'bedrock'];
 const blockScale = 50;
 const bid2Name = {
   8: 'grass',
   9: 'dirt',
   13: 'wood',
+  25: 'bedrock',
   46: 'white wool',
   47: 'orange wool',
   48: 'magenta wool',
@@ -3636,7 +3641,9 @@ const bid2Name = {
   58: 'brown wool',
   59: 'green wool',
   60: 'red wool',
-  61: 'black wool'
+  61: 'black wool',
+  66: 'gold',
+  67: 'iron'
 };
 const TEXTURE_PATH = "https://cdn.jsdelivr.net/gh/snyxan/assets@main/block_textures/";
 const SL = 16;
@@ -3868,14 +3875,6 @@ class DVoxelEngine {
       }) //back side
       ]);
     });
-    let world = {
-      THREE: THREE,
-      scene: scene,
-      render: render,
-      camera: camera,
-      reticle: reticle,
-      sceneItems: sceneItems
-    };
 
     for (const key in _model_luts.VW_AVATAR_MAP) {
       if (typeof key === "string" && _model_luts.VW_AVATAR_MAP[key] !== null) {
@@ -3884,6 +3883,7 @@ class DVoxelEngine {
           name: key,
           position: [100, 500, -500]
         };
+        updateWorld();
 
         _VoxelPlayer.VoxelPlayer.build(world, opts).then(function (player) {
           if (player.avatarType === "player") {
@@ -3909,11 +3909,13 @@ class DVoxelEngine {
 
   setVoxel(pos, bid) {
     if (bid === 0) {
-      let obj = scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2]));
-      console.log('deleting');
-      console.log(obj);
+      let obj = scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2])); // console.log('deleting')
+      // console.log(obj)
+
       this.scene.remove(scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2])));
       this.scene.remove(scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2], true)));
+      sceneItems = sceneItems.filter(item => item !== obj);
+      updateWorld();
       return;
     }
 
@@ -3957,15 +3959,19 @@ class DVoxelEngine {
     cube.matrixAutoUpdate = false;
     cube.position.set(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
     cube.updateMatrix();
-    cube.name = pos2Name(pos[0], pos[1], pos[2]); // console.log("Adding voxel with name: " + cube.name)
+    cube.name = pos2Name(pos[0], pos[1], pos[2]);
 
-    this.scene.add(cube);
-    this.sceneItems.push(cube);
-    const box = new THREE.BoxHelper(cube, 0x000000);
-    box.name = pos2Name(pos[0], pos[1], pos[2], true);
-    this.scene.add(box);
-    const bidx = convertCoordinateSystems(pos[0], pos[1], pos[2]);
-    setBlock2(bidx[0], bidx[1], bidx[2], bid);
+    if (!scene.getObjectByName(cube.name)) {
+      // console.log("Adding voxel with name: " + cube.name)
+      this.scene.add(cube);
+      this.sceneItems.push(cube);
+      const box = new THREE.BoxHelper(cube, 0x000000);
+      box.name = pos2Name(pos[0], pos[1], pos[2], true);
+      this.scene.add(box);
+      const bidx = convertCoordinateSystems(pos[0], pos[1], pos[2]);
+      setBlock2(bidx[0], bidx[1], bidx[2], bid);
+      updateWorld();
+    }
   }
 
   raycastVoxels(v) {
@@ -4033,12 +4039,6 @@ class DVoxelEngine {
   updateMobs(mobsInfo) {
     // console.log("DVoxel Engine update mobs")
     // console.log(mobsInfo)
-    let world = {
-      THREE: THREE,
-      scene: scene,
-      render: render,
-      camera: camera
-    };
     mobsInfo.forEach(function (key, index) {
       const entityId = key['entityId'].toString();
       const pos = convertCoordinateSystems(key['pos'][0], key['pos'][1], key['pos'][2]);
@@ -4058,6 +4058,7 @@ class DVoxelEngine {
           name: name,
           position: [pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale]
         };
+        updateWorld();
 
         _VoxelMob.VoxelMob.build(world, mobOpts).then(function (newMob) {
           mobs[entityId] = newMob;
@@ -4070,12 +4071,6 @@ class DVoxelEngine {
   updateItemStacks(itemStacksInfo) {
     // console.log("DVoxel Engine update item stacks")
     // console.log(itemStacksInfo)
-    let world = {
-      THREE: THREE,
-      scene: scene,
-      render: render,
-      camera: camera
-    };
     itemStacksInfo.forEach(function (key, index) {
       const entityId = key['entityId'].toString();
       const pos = convertCoordinateSystems(key['pos'][0], key['pos'][1], key['pos'][2]);
@@ -4084,6 +4079,12 @@ class DVoxelEngine {
       if (entityId in itemStacks) {
         // console.log("item already exists, updating states")
         itemStacks[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
+
+        if (key['holder_entityId'] == -1) {
+          itemStacks[entityId].drop();
+        } else {
+          itemStacks[entityId].pick();
+        }
       } else if (itemList.includes(entityId)) {
         console.log("item build race condition"); // Item still being built, ignore
       } else {
@@ -4094,6 +4095,7 @@ class DVoxelEngine {
           name: name,
           position: [pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale]
         };
+        updateWorld();
 
         _VoxelItem.VoxelItem.build(world, itemStackOpts).then(function (newItemStack) {
           itemStacks[entityId] = newItemStack;
@@ -4122,11 +4124,13 @@ class DVoxelEngine {
   }
 
   flashBlocks(bbox) {
-    console.log("DVoxel Engine flash bbox");
+    console.log("DVoxel Engine flash bbox: " + bbox);
     const coords = bbox.split(' ');
+    const pixOverlap = 6; // How many pixels bigger than the obj being flashed
+
     const lowCorner = convertCoordinateSystems(parseInt(coords[0]), parseInt(coords[1]), parseInt(coords[2]));
     const highCorner = convertCoordinateSystems(parseInt(coords[3]), parseInt(coords[4]), parseInt(coords[5]));
-    const geometry = new THREE.BoxGeometry(Math.abs((highCorner[0] - lowCorner[0]) * blockScale + 2), Math.abs((highCorner[1] - lowCorner[1]) * blockScale + 2), Math.abs((highCorner[2] - lowCorner[2]) * blockScale + 2));
+    const geometry = new THREE.BoxGeometry((Math.abs(highCorner[0] - lowCorner[0]) + 1) * blockScale + pixOverlap, (Math.abs(highCorner[1] - lowCorner[1]) + 1) * blockScale + pixOverlap, (Math.abs(highCorner[2] - lowCorner[2]) + 1) * blockScale + pixOverlap);
     const highlighterMaterial = new THREE.MeshBasicMaterial({
       color: 0x049ef4
     });
@@ -4141,13 +4145,11 @@ class DVoxelEngine {
       } else {
         highlightCube.visible = true;
       }
-
-      render();
     }, 500);
     window.setTimeout(function () {
       window.clearInterval(flashInterval);
       scene.remove(highlightCube);
-    }, 5100);
+    }, 4100);
   }
 
 }
@@ -4181,6 +4183,22 @@ function cameraPosition() {
   temporaryPosition.multiplyScalar(0);
   temporaryPosition.applyMatrix4(camera.matrixWorld);
   return [temporaryPosition.x / blockScale, temporaryPosition.y / blockScale, temporaryPosition.z / blockScale];
+}
+
+function updateWorld() {
+  // Keep the world variable updated with the most recent contents
+  world = {
+    THREE: THREE,
+    scene: scene,
+    render: render,
+    camera: camera,
+    reticle: reticle,
+    sceneItems: sceneItems
+  };
+
+  if (controlled_player) {
+    controlled_player.updateWorld(world);
+  }
 }
 
 function render() {
@@ -4741,7 +4759,11 @@ const MINECRAFT_BLOCK_MAP = {
   // Brown Mushroom
   "40,0": 65,
   // Red Mushroom
-  "95,4": 66 // Yellow Stained Glass
+  "41,0": 66,
+  // Gold
+  "42,0": 67,
+  // Iron
+  "95,4": 68 // Yellow Stained Glass
 
 };
 exports.MINECRAFT_BLOCK_MAP = MINECRAFT_BLOCK_MAP;
@@ -4797,6 +4819,27 @@ const VW_ITEM_MAP = {
     "sides": 'wood.png',
     "bottom": 'wood.png',
     "top": 'wood.png'
+  },
+  "iron": {
+    "color": 0xffffff,
+    "opacity": 1.0,
+    "sides": 'iron.png',
+    "bottom": 'iron.png',
+    "top": 'iron.png'
+  },
+  "bedrock": {
+    "color": 0xffffff,
+    "opacity": 1.0,
+    "sides": 'bedrock.png',
+    "bottom": 'bedrock.png',
+    "top": 'bedrock.png'
+  },
+  "gold": {
+    "color": 0xffffff,
+    "opacity": 1.0,
+    "sides": 'gold.png',
+    "bottom": 'gold.png',
+    "top": 'gold.png'
   },
   "white wool": {
     "color": 0xffffff,

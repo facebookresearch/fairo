@@ -8,7 +8,7 @@ from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerc
 from droidlet.lowlevel.minecraft.pyworld.world_config import opts
 
 
-def capped_line_of_sight(agent, player_struct, cap=20):
+def capped_line_of_sight(agent, player_struct, cap=15):
     """Return the block directly in the entity's line of sight, or a point in the distance"""
 
     xsect = agent.get_player_line_of_sight(player_struct)
