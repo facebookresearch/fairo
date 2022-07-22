@@ -16,8 +16,8 @@ MOB_COLORS = {
     "sheep": (0.6, 0.6, 0.6),
 }
 MOB_META = {101: "rabbit", 92: "cow", 90: "pig", 93: "chicken", 91: "sheep"}
-MOB_SPEED = {"rabbit": 1, "cow": 0.3, "pig": 0.5, "chicken": 1, "sheep": 0.3}
-MOB_LOITER_PROB = {"rabbit": 0.3, "cow": 0.5, "pig": 0.3, "chicken": 0.1, "sheep": 0.5}
+MOB_SPEED = {"rabbit": 0.2, "cow": 0.06, "pig": 0.1, "chicken": 0.1, "sheep": 0.06}
+MOB_LOITER_PROB = {"rabbit": 0.4, "cow": 0.6, "pig": 0.4, "chicken": 0.3, "sheep": 0.6}
 MOB_LOITER_TIME = {"rabbit": 2, "cow": 2, "pig": 2, "chicken": 1, "sheep": 2}
 MOB_STEP_HEIGHT = {"rabbit": 1, "cow": 1, "pig": 1, "chicken": 2, "sheep": 2}
 MOB_DIRECTION_CHANGE_PROB = {"rabbit": 0.1, "cow": 0.1, "pig": 0.2, "chicken": 0.3, "sheep": 0.2}

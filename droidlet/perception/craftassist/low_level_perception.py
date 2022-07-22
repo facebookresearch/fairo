@@ -8,18 +8,21 @@ from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerc
 from droidlet.lowlevel.minecraft.pyworld.world_config import opts
 
 
-def capped_line_of_sight(agent, player_struct, cap=20):
+def capped_line_of_sight(agent, player_struct, cap=10):
     """Return the block directly in the entity's line of sight, or a point in the distance"""
 
     xsect = agent.get_player_line_of_sight(player_struct)
     if xsect is not None and euclid_dist(pos_to_np(xsect), pos_to_np(player_struct.pos)) <= cap:
         return pos_to_np(xsect)
 
+    vec = agent.coordinate_transforms.look_vec(player_struct.look.yaw, player_struct.look.pitch)
     # default to cap blocks in front of entity
     if agent.backend == "pyworld":
-        vec = agent.coordinate_transforms.look_vec(
-            np.radians(player_struct.look.yaw), np.radians(player_struct.look.pitch)
-        )
+        if abs(player_struct.look.yaw) > (np.pi * 2) or abs(player_struct.look.pitch) > (np.pi * 2):
+            # FIXME Temporary hack, we should just make pyworld live in radians
+            vec = agent.coordinate_transforms.look_vec(
+                np.radians(player_struct.look.yaw), np.radians(player_struct.look.pitch)
+            )
         target = cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
         shortened_cap = cap
         while (
@@ -33,17 +36,13 @@ def capped_line_of_sight(agent, player_struct, cap=20):
             if shortened_cap < 1:
                 # If the player is off the map too (mostly unit testing),
                 # default to the old method to avoid an infinite loop
-                target = cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
-                return target
+                return cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
 
             # Don't produce a point off the map
             shortened_cap /= 2
             target = shortened_cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
         return target
     else:
-        vec = agent.coordinate_transforms.look_vec(
-            player_struct.look.yaw, player_struct.look.pitch
-        )
         return cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
 
 

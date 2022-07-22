@@ -3262,7 +3262,7 @@ class VoxelMob {
   }
 
   rotateTo(yaw, pitch) {
-    if (this.rotation.yaw != yaw && this.rotation.pitch != pitch) {
+    if (this.rotation.yaw != yaw || this.rotation.pitch != pitch) {
       this.mesh.rotation.set(this.rotation_offset[0], this.rotation_offset[1], this.rotation_offset[2]);
       this.mesh.rotateOnWorldAxis(this.worldX, pitch);
       this.mesh.rotateOnWorldAxis(this.worldY, yaw);
