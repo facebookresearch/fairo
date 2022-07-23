@@ -166,15 +166,6 @@ const ModelCard = (props) => {
                                     <>
                                         <Divider />
                                         <Typography.Title level={5} style={{ paddingBottom: '18px' }}>Model Loss And Accuracy</Typography.Title>
-                                        {/* {LOSS_ACC_TYPES.map((o) => (
-                                                <Descriptions.Item>
-                                                    <Tooltip title={`View ${o.label}`}>
-                                                        <Button type="link" onClick={() => handleViewModelLossAndAcc(o.value)}>
-                                                            {o.label}
-                                                        </Button>
-                                                    </Tooltip>
-                                                </Descriptions.Item>
-                                            ))} */}
                                         <ViewLossAccCard data={lossAccData} />
                                     </>
                                 }
