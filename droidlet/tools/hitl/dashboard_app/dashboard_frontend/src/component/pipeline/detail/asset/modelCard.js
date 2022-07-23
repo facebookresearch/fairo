@@ -20,7 +20,7 @@ const ModelLossAccGraph = (props) => {
 
     return <div style={{ width: "100%", height: "100%" }}>
         <LineChart
-            width={600}
+            width={750}
             height={400}
             data={data}
             margin={{
@@ -35,8 +35,8 @@ const ModelLossAccGraph = (props) => {
             <YAxis />
             <Legend />
             <ChartTooltip />
-            <Line type="monotone" dataKey="Loss" stroke="#ad2102" activeDot={{ r: 8 }} />
-            <Line type="monotone" dataKey="Accuracy" stroke="#1890ff" />
+            <Line type="monotone" dataKey="Loss" stroke="#ad2102" />
+            <Line type="monotone" dataKey="Accuracy" stroke="#1890ff" activeDot={{ r: 8 }} dot={{strokeWidth: 2}} strokeWidth={2} />
         </LineChart>
     </div>
 }
