@@ -7,7 +7,7 @@ This is a Dashboard app prototype for the HITL system.
 - July 22:
     - Updated frontend component to show the model line graph of loss and accuracy vs epoch.
     - Demo:
-        - 
+        - ![demo_model_loss_acc_viz](https://user-images.githubusercontent.com/51009396/180589471-d925642b-df70-4b13-a5c9-ccec4efa6dd8.gif)
 - July 21:
     - Updated backend api for reteriving loss and accuracy for a model.
     - Demo:
