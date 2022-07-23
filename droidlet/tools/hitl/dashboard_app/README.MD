@@ -1,9 +1,13 @@
 # Dashboard App for HITL
-Updated July 21 by Chuxi.
+Updated July 22 by Chuxi.
 
 This is a Dashboard app prototype for the HITL system.
 
 ## Update Note
+- July 22:
+    - Updated frontend component to show the model line graph of loss and accuracy vs epoch.
+    - Demo:
+        - 
 - July 21:
     - Updated backend api for reteriving loss and accuracy for a model.
     - Demo:
