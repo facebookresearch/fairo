@@ -6,13 +6,53 @@ The card showing Model infomation of a run.
 Usage:
 <ModelCard batchId = {batchId} pipelineType={pipelineType}/>
 */
-import { Button, Card, Descriptions, Divider, Tooltip } from "antd";
+import { Button, Card, Descriptions, Divider, Tooltip, Typography } from "antd";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { SocketContext } from "../../../../context/socket";
 import ModelAtrributeModal from "./modelAttributeDetailModal";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip as ChartTooltip } from 'recharts';
 
 const { Meta } = Card;
 const LOSS_ACC_TYPES = [{ "label": "Epoch", "value": "epoch" }, { "label": "Text Span", "value": "text_span" }]
+
+const ModelLossAccGraph = (props) => {
+    const data = props.data.map((o, idx) => ({ Loss: o.loss, Accuracy: o.acc, Epoch: idx }));
+
+    return <div style={{ width: "100%", height: "100%" }}>
+        <LineChart
+            width={750}
+            height={400}
+            data={data}
+            margin={{
+                top: 5,
+                right: 30,
+                left: 20,
+                bottom: 5,
+              }}
+        >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis type="number" dataKey="Epoch" label={{offset: 0, value: "Epoch", position: "insideBottom" }}/>
+            <YAxis />
+            <Legend />
+            <ChartTooltip />
+            <Line type="monotone" dataKey="Loss" stroke="#ad2102" />
+            <Line type="monotone" dataKey="Accuracy" stroke="#1890ff" activeDot={{ r: 8 }} dot={{strokeWidth: 2}} strokeWidth={2} />
+        </LineChart>
+    </div>
+}
+
+const ViewLossAccCard = (props) => {
+    const lossAccData = props.data;
+    const [activeTabKey, setActiveTabKey] = useState(LOSS_ACC_TYPES[0]["value"]);
+
+    return <Card
+        tabList={LOSS_ACC_TYPES.map((o) => ({ tab: o["label"], key: o["value"] }))}
+        activeTabKey={activeTabKey}
+        onTabChange={(key) => setActiveTabKey(key)}
+    >
+        <ModelLossAccGraph data={lossAccData[activeTabKey]} />
+    </Card>
+}
 
 const ModelCard = (props) => {
     const batchId = props.batchId;
@@ -45,7 +85,6 @@ const ModelCard = (props) => {
 
     const handleReceivedLossAcc = useCallback((data) => {
         setLoadingLossAcc(false);
-        console.log(data);
         if (data !== 404) {
             setLossAccData(data);
         }
@@ -126,17 +165,8 @@ const ModelCard = (props) => {
                                     lossAccData &&
                                     <>
                                         <Divider />
-                                        <Descriptions title="Model Loss and Accuracy" bordered column={2}>
-                                            {LOSS_ACC_TYPES.map((o) => (
-                                                <Descriptions.Item>
-                                                    <Tooltip title={`View ${o.label}`}>
-                                                        <Button type="link" onClick={() => handleViewModelLossAndAcc(o.value)}>
-                                                            {o.label}
-                                                        </Button>
-                                                    </Tooltip>
-                                                </Descriptions.Item>
-                                            ))}
-                                        </Descriptions>
+                                        <Typography.Title level={5} style={{ paddingBottom: '18px' }}>Model Loss And Accuracy</Typography.Title>
+                                        <ViewLossAccCard data={lossAccData} />
                                     </>
                                 }
                             </div>
