@@ -28,6 +28,7 @@ ecr = boto3.client(
     region_name=AWS_ECR_REGION,
 )
 
+
 def get_dashboard_version(image_tag: str):
     """
     get sha256 value of the input image_tag
@@ -43,12 +44,12 @@ def get_dashboard_version(image_tag: str):
     return response["images"][0]["imageId"]["imageDigest"]
 
 
-
 def get_s3_link(batch_id: int):
     """
     get s3 link for the batch with batch_id input
     """
     return f"https://s3.console.aws.amazon.com/s3/buckets/droidlet-hitl?region={AWS_DEFAULT_REGION}&prefix={batch_id}"
+
 
 if __name__ == "__main__":
     sha256 = get_dashboard_version("cw_test1")
