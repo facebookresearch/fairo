@@ -188,7 +188,7 @@ class Recorder:
     def set_meta_data(self, meta_data: MetaData, val):
         """
         set metadata to the value provided in the input parameter
-        """    
+        """
         self._record_dict[meta_data._name_] = val
         self._save_tmp()
 
