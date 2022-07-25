@@ -103,6 +103,8 @@ class StateManager {
     this.processHumans = this.processHumans.bind(this);
 
     this.processMap = this.processMap.bind(this);
+    this.handleMapToggle = this.handleMapToggle.bind(this);
+    this.sendManualChange = this.sendManualChange.bind(this);
 
     this.returnTimelineEvent = this.returnTimelineEvent.bind(this);
 
@@ -1091,16 +1093,19 @@ class StateManager {
   }
 
   processMap(res) {
-    console.log(JSON.stringify(res));
     this.refs.forEach((ref) => {
       if (ref instanceof Memory2D) {
-        ref.setState({
-          isLoaded: true,
-          detections_from_memory: res.detections_from_memory,
-          memory: this.memory,
-          bot_xyz: [res.x, res.y, res.yaw],
-          bot_data: res.bot_data,
-          obstacle_map: res.map,
+        ref.setState((prevState) => {
+          return {
+            isLoaded: true,
+            detections_from_memory: res.detections_from_memory,
+            memory: this.memory,
+            triples: res.triples,
+            bot_xyz: [res.x, res.y, res.yaw],
+            bot_data: res.bot_data,
+            obstacle_map: res.map,
+            map_update_count: prevState.map_update_count + 1,
+          };
         });
       }
     });
@@ -1128,6 +1133,16 @@ class StateManager {
   handleMapToggle() {
     this.dash_enable_map = !this.dash_enable_map;
     this.socket.emit("toggle_map", { dash_enable_map: this.dash_enable_map });
+  }
+
+  sendManualChange(change) {
+    /**
+     * change = {
+     *    type: "edit" or "restore" or "group"
+     *    data: <data>
+     * }
+     */
+    this.socket.emit("manual_change", change);
   }
 
   connect(o) {

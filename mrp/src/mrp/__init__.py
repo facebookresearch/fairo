@@ -5,6 +5,7 @@ from mrp.runtime.host import Host
 from mrp.util import NoEscape
 from importlib.machinery import SourceFileLoader
 import click
+import inspect
 import os
 import sys
 
@@ -21,6 +22,18 @@ def main(*args):
         click.echo(ex, err=True)
         sys.exit(1)
     sys.exit(0)
+
+
+def import_msetup(path):
+    # TODO(lshamis): Maybe add args to filter imported processes.
+    caller_path = inspect.stack()[1].filename
+    caller_dir = os.path.dirname(caller_path)
+    target_path = os.path.join(caller_dir, path)
+
+    if os.path.isdir(target_path):
+        target_path = os.path.join(target_path, "msetup.py")
+
+    SourceFileLoader("msetup", target_path).load_module()
 
 
 class cmd:

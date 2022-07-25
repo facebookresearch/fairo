@@ -4,6 +4,7 @@ FROM shaomai/craftassist:1 as base
 ARG current_branch
 ARG AWS_ACCESS_KEY_ID
 ARG AWS_SECRET_ACCESS_KEY
+ARG AWS_DEFAULT_REGION
 
 # Clone/make repo
 RUN time git clone --recurse-submodules="./droidlet" --shallow-submodules --depth 1 --branch ${current_branch} --jobs 5 https://github.com/facebookresearch/fairo
@@ -45,6 +46,10 @@ RUN mkdir workdir
 WORKDIR workdir
 
 ENV MCDASHBOARD_PORT 80
+
+ENV AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+ENV AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+ENV AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
 
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
