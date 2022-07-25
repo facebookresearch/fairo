@@ -124,21 +124,8 @@ class Recorder:
 
     def __init__(self, stat_update_interval=DEFAULT_STAT_UPDATE_INTERVAL):
         # prepare dict for recording the data
-        rec_dict = {}
-
-        for meta_data in MetaData:
-            rec_dict[meta_data._name_] = None
-
-        for job in Job:
-            rec_dict[job._name_] = {}
-            for stat in STAT_FOR_ALL:
-                rec_dict[job._name_][stat._name_] = None
-
-            if job in STAT_JOB_PAIR.keys():
-                for stat in STAT_JOB_PAIR[job]:
-                    rec_dict[job._name_][stat._name_] = None
-
-        self._record_dict = rec_dict
+        self._record_dict = {}
+        # preoare tmp local file to store job infomation
         time_format = "%Y%m-%d_%H:%M:%S.%f"
         tmp_fname = f"job_management_{datetime.datetime.now().strftime(time_format)}.json"
 
@@ -181,6 +168,10 @@ class Recorder:
         """
         json.dump(self._record_dict, open(self._local_path, "w"))
 
+    def _check_n_init_job(self, job_type: Job):
+        if job_type._name_ not in self._record_dict:
+            self._record_dict[job_type._name_] = {}
+
     def set_meta_start(self):
         """
         record start time of the entire run
@@ -196,7 +187,7 @@ class Recorder:
     def set_meta_data(self, meta_data: MetaData, val):
         """
         set metadata to the value provided in the input parameter
-        """
+        """    
         self._record_dict[meta_data._name_] = val
         self._save_tmp()
 
@@ -205,6 +196,8 @@ class Recorder:
         set job statistic for the input job type to the value provided in the input parameter.
         you can do a force update regardless of the stat_update_interal with the force_update set to True
         """
+        self._check_n_init_job(job_type)
+
         jname = job_type._name_
         sname = job_stat._name_
         curr_timestamp = datetime.datetime.now()
@@ -227,12 +220,14 @@ class Recorder:
         """
         record the start of a job with the job_type of input
         """
+        self._check_n_init_job(job_type)
         self._set_time(JobStat.START_TIME, job_type)
 
     def set_job_end(self, job_type: Job):
         """
         record the end of a job with the job_type of input
         """
+        self._check_n_init_job(job_type)
         self._set_time(JobStat.END_TIME, job_type)
 
     def save_to_s3(self):
