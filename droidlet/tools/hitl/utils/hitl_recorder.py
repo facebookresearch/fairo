@@ -114,6 +114,7 @@ STAT_JOB_PAIR = {
 # update job stat interval in seconds
 DEFAULT_STAT_UPDATE_INTERVAL = 60
 
+
 class Recorder:
     """
     Job Management Util.
