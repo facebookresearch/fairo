@@ -42,11 +42,13 @@ requirements:
     - doxygen
     - grpc-cpp ==1.41.1
     - grpcio ==1.46.0
+    - gym
     - habitat-sim=0.2.2=py3.8_bullet_linux_011191f65f37587f5a5452a93d840b5684593a00
     - hydra-core ==1.0.6
     - importlib-resources ==5.7.1
     - myst-parser
     - numpy
+    - opencv=4.5.1
     - openmpi ==2.1.2
     - pandas
     - pinocchio ==2.5.2
@@ -61,13 +63,14 @@ requirements:
     - pytest-benchmark
     - python ==3.8
     - pytorch ==1.10.0
+    - quaternion
     - scipy
     - spdlog
     - sphinx
     - sphinx-book-theme
     - tqdm
     - withbullet
-    - opencv=4.5.1 # needed for rendering in habitat_manipulator
+    - yacs
 
 about:
   home:

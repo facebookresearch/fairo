@@ -34,12 +34,14 @@ dependencies:
     - breathe
     - dash
     - grpcio ==1.46.0
+    - gym
     - habitat-sim=0.2.2=py3.8_bullet_linux_011191f65f37587f5a5452a93d840b5684593a00
     - hydra-core ==1.0.6
     - importlib-resources ==5.7.1
     - myst-parser
     - numpy
     - pandas
+    - opencv=4.5.1
     - plotly
     - pip
     - protobuf
@@ -55,4 +57,4 @@ dependencies:
     - sphinx-book-theme
     - tqdm
     - withbullet
-    - opencv=4.5.1 # needed for rendering in habitat_manipulator
+    - yacs
