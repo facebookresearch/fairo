@@ -29,13 +29,6 @@ AWS_DEFAULT_REGION = os.environ["AWS_DEFAULT_REGION"]
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
 
-# for ecr
-AWS_ECR_ACCESS_KEY_ID = os.environ["AWS_ECR_ACCESS_KEY_ID"]
-AWS_ECR_SECRET_ACCESS_KEY = os.environ["AWS_ECR_SECRET_ACCESS_KEY"]
-AWS_ECR_REGION = os.environ["AWS_ECR_REGION"] if os.getenv("AWS_ECR_REGION") else "us-west-1"
-AWS_ECR_REGISTRY_ID = "492338101900"
-AWS_ECR_REPO_NAME = "craftassist"
-
 # local tmp directory
 HITL_TMP_DIR = (
     os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
@@ -43,13 +36,6 @@ HITL_TMP_DIR = (
 
 # job management record path prefix
 JOB_MNG_PATH_PREFIX = "job_management_records"
-
-ecr = boto3.client(
-    "ecr",
-    aws_access_key_id=AWS_ECR_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_ECR_SECRET_ACCESS_KEY,
-    region_name=AWS_ECR_REGION,
-)
 
 s3 = boto3.resource(
     "s3",
@@ -128,30 +114,7 @@ STAT_JOB_PAIR = {
 # update job stat interval in seconds
 DEFAULT_STAT_UPDATE_INTERVAL = 60
 
-
-def get_dashboard_version(image_tag: str):
-    """
-    get sha256 value of the input image_tag
-    """
-    response = ecr.batch_get_image(
-        registryId=AWS_ECR_REGISTRY_ID,
-        repositoryName=AWS_ECR_REPO_NAME,
-        imageIds=[
-            {"imageTag": image_tag},
-        ],
-    )
-    assert len(response["images"]) == 1
-    return response["images"][0]["imageId"]["imageDigest"]
-
-
-def get_s3_link(batch_id: int):
-    """
-    get s3 link for the batch with batch_id input
-    """
-    return f"https://s3.console.aws.amazon.com/s3/buckets/droidlet-hitl?region={AWS_DEFAULT_REGION}&prefix={batch_id}"
-
-
-class JobManagementUtil:
+class Recorder:
     """
     Job Management Util.
 
@@ -289,8 +252,3 @@ class JobManagementUtil:
             resp = s3.meta.client.upload_file(self._local_path, S3_BUCKET_NAME, remote_file_path)
         except botocore.exceptions.ClientError as e:
             logging.info(f"[Job Management Util] Not able to save file {self._local_path} to s3.")
-
-
-if __name__ == "__main__":
-    sha256 = get_dashboard_version("cw_test1")
-    print(sha256)

@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import argparse
 import logging
-from droidlet.tools.hitl.utils.job_management import MetaData
+from droidlet.tools.hitl.utils.hitl_recorder import MetaData
 
 from interaction_jobs import InteractionJob, InteractionLogListener
 from droidlet.tools.hitl.task_runner import TaskRunner

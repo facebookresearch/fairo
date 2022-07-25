@@ -23,7 +23,7 @@ from droidlet.tools.artifact_scripts.upload_artifacts_to_aws import (
     tar_and_upload,
     compute_checksum_tar_and_upload,
 )
-from droidlet.tools.hitl.utils.job_management import Job, JobManagementUtil, JobStat
+from droidlet.tools.hitl.utils.hitl_recorder import Job, Recorder, JobStat
 
 
 log_formatter = logging.Formatter(
@@ -49,7 +49,7 @@ MODEL_INFO_NAME = "best_model_info.txt"
 
 
 class NSPRetrainingJob(DataGenerator):
-    def __init__(self, job_mng_util: JobManagementUtil, batch_id, opts):
+    def __init__(self, job_mng_util: Recorder, batch_id, opts):
         super(NSPRetrainingJob, self).__init__()
         self._job_mng_util = job_mng_util
         self.batch_id = batch_id

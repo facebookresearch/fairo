@@ -13,7 +13,7 @@ import boto3
 
 from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.task_runner import TaskRunner
-from droidlet.tools.hitl.utils.job_management import Job, JobManagementUtil, JobStat
+from droidlet.tools.hitl.utils.hitl_recorder import Job, Recorder, JobStat
 
 HITL_TMP_DIR = (
     os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
@@ -51,7 +51,7 @@ class AnnotationJob(DataGenerator):
 
     def __init__(
         self,
-        job_mng_util: JobManagementUtil,
+        job_mng_util: Recorder,
         batch_id: int,
         command: str,
         cmd_id: int,

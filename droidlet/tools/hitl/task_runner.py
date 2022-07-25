@@ -9,7 +9,7 @@ from typing import List
 
 from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.job_listener import JobListener
-from droidlet.tools.hitl.utils.job_management import Job, JobManagementUtil, JobStat, MetaData
+from droidlet.tools.hitl.utils.hitl_recorder import Job, Recorder, JobStat, MetaData
 
 RUN_POLL_TIME = 5
 
@@ -34,7 +34,7 @@ class TaskRunner:
         self._data_generators = []
         self._job_listeners = []
         self._finished = False
-        self._job_manage_util = JobManagementUtil()
+        self._job_manage_util = Recorder()
         self._job_manage_util.set_meta_start()
 
     def register_data_generators(self, data_generators: List[DataGenerator]) -> None:

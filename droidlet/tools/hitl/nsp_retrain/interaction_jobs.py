@@ -18,18 +18,17 @@ import botocore
 
 from annotation_jobs import AnnotationJob
 from droidlet.tools.hitl.utils.allocate_instances import allocate_instances, free_ecs_instances
+from droidlet.tools.hitl.utils.hitl_recorder_utils import get_dashboard_version, get_s3_link
 from droidlet.tools.hitl.utils.hitl_utils import (
     generate_batch_id,
     deregister_dashboard_subdomain,
     dedup_commands,
 )
-from droidlet.tools.hitl.utils.job_management import (
+from droidlet.tools.hitl.utils.hitl_recorder import (
     Job,
-    JobManagementUtil,
+    Recorder,
     JobStat,
     MetaData,
-    get_dashboard_version,
-    get_s3_link,
 )
 from droidlet.tools.hitl.utils.process_s3_logs import read_s3_bucket, read_turk_logs
 
@@ -87,7 +86,7 @@ class InteractionJob(DataGenerator):
 
     def __init__(
         self,
-        job_mng_util: JobManagementUtil,
+        job_mng_util: Recorder,
         instance_num: int,
         image_tag: str,
         task_name: str,
