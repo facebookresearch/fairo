@@ -1,4 +1,3 @@
-from math import radians
 from threading import Thread
 
 from droidlet.lowlevel.minecraft.pyworld.world import World
@@ -37,7 +36,7 @@ def instantiate_world_from_spec(opts):
         mob_opt = make_mob_opts(mob_spec["mobtype"])
         x, y, z, pitch, yaw = mob_spec["pose"]
         mobs.append(
-            SimpleMob(mob_opt, start_pos=(x, y, z), start_look=(radians(yaw), radians(pitch)))
+            SimpleMob(mob_opt, start_pos=(x, y, z), start_look=(yaw, pitch))
         )
     # FIXME get this from the scene generator
     items = getattr(opts, "gettable_items", [])

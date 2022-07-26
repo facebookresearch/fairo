@@ -24,7 +24,6 @@ from droidlet.lowlevel.minecraft.craftassist_mover import (
     CraftassistMover,
     from_minecraft_look_to_droidlet,
     from_minecraft_xyz_to_droidlet,
-    Look,
 )
 
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
@@ -383,12 +382,11 @@ class CraftAssistAgent(DroidletAgent):
     ###FIXME!!
     #    self.get_incoming_chats = self.get_chats
 
-    # WARNING!! this is in degrees.  agent's memory stores looks in radians.
     # FIXME: normalize, switch in DSL to radians.
     def relative_head_pitch(self, angle):
         """Converts assistant's current pitch and yaw
         into a pitch and yaw relative to the angle."""
-        new_pitch = np.rad2deg(self.get_player().look.pitch) - angle
+        new_pitch = self.get_player().look.pitch - angle
         self.set_look(self.get_player().look.yaw, new_pitch)
 
     def send_chat(self, chat: str):

@@ -320,7 +320,7 @@ class World:
     def get_line_of_sight(self, pos, yaw, pitch, loose=0):
         # it is assumed lv is unit normalized
         pos = tuple(self.to_npy_coords(pos))
-        lv = look_vec(np.radians(yaw), np.radians(pitch))
+        lv = look_vec(yaw, pitch)
         dt = 1.0
         for n in range(2 * self.sl):
             p = tuple(np.round(np.add(pos, n * dt * lv)).astype("int32"))
@@ -394,6 +394,24 @@ class World:
                         item.attach_to_entity(-1)
                         count += 1
         return count
+
+    def check_in_bounds(self, player, pos):
+        if player.name == "dashboard":
+            lowerb = (self.sl / 3, 0, self.sl / 3)
+            upperb = (2 * self.sl / 3, self.sl / 3 - 1, 2 * self.sl / 3)
+        else:
+            lowerb = (0, 0, 0)
+            upperb = (self.sl, self.sl - 1, self.sl)
+        if (pos[0] >= lowerb[0]
+            and pos[1] >= lowerb[1]
+            and pos[2] >= lowerb[2]
+            and pos[0] < upperb[0]
+            and pos[1] < upperb[1]
+            and pos[2] < upperb[2]):
+            return True
+        else:
+            return False
+
 
     def setup_server(self, port=25565):
         import socketio
@@ -507,15 +525,7 @@ class World:
                 y += data.get("y", 0)
                 z += data.get("z", 0)
             nx, ny, nz = self.to_npy_coords((x, y, z))
-            # agent is 2 blocks high
-            if (
-                nx >= 0
-                and ny >= 0
-                and nz >= 0
-                and nx < self.sl
-                and ny < self.sl - 1
-                and nz < self.sl
-            ):
+            if self.check_in_bounds(player_struct, (nx, ny, nz)):
                 if (
                     self.blocks[nx, ny, nz, 0] in PASSABLE_BLOCKS
                     and self.blocks[nx, ny + 1, nz, 0] in PASSABLE_BLOCKS
@@ -524,6 +534,8 @@ class World:
                     self.players[eid] = self.players[eid]._replace(pos=new_pos)
                 else:
                     print(f"{player_struct.name} tried to move somewhere impossible")
+            else:
+                print(f"{player_struct.name} tried to move somewhere impossible")
 
         @server.on("abs_move")
         def move_agent_abs(sid, data):
@@ -544,15 +556,7 @@ class World:
             z = data.get("z", 0)
 
             nx, ny, nz = self.to_npy_coords((x, y, z))
-            # agent is 2 blocks high
-            if (
-                nx >= 0
-                and ny >= 0
-                and nz >= 0
-                and nx < self.sl
-                and ny < self.sl - 1
-                and nz < self.sl
-            ):
+            if self.check_in_bounds(player_struct, (nx, ny, nz)):
                 if (
                     self.blocks[int(nx), int(ny), int(nz), 0] in PASSABLE_BLOCKS
                     and self.blocks[int(nx), int(ny) + 1, int(nz), 0] in PASSABLE_BLOCKS
@@ -562,6 +566,9 @@ class World:
                 else:
                     print(f"{player_struct.name} tried to move somewhere impossible")
                     print(player_struct.pos)
+            else:
+                print(f"{player_struct.name} tried to move somewhere impossible")
+                print(player_struct.pos)
 
         @server.on("set_held_item")
         def set_agent_mainhand(sid, data):
@@ -679,7 +686,7 @@ if __name__ == "__main__":
 
     spec = {"players": [], "mobs": [], "items": [], "coord_shift": (0, 0, 0), "agent": {}}
     world_opts = Opt()
-    world_opts.sl = 16
+    world_opts.sl = 16*3
     world_opts.world_server = True
     world_opts.port = 6002
     world = World(world_opts, spec)

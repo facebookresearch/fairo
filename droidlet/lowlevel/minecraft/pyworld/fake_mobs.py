@@ -44,8 +44,8 @@ def make_mob_opts(mobname):
     return opts
 
 
-def check_bounds(p, sl):
-    if p >= sl or p < 0:
+def check_bounds(p, lower, upper):
+    if p >= upper or p < lower:
         return -1
     return 1
 
@@ -70,7 +70,7 @@ class SimpleMob:
     def add_to_world(self, world):
         self.world = world
         if self.pos is None:
-            xz = np.random.randint(0, world.sl, (2,))
+            xz = np.random.randint(0, world.sl/3, (2,))
             slice = self.world.blocks[xz[0], :, xz[1], 0]
             nz = np.flatnonzero(slice)
             if len(nz) == 0:
@@ -96,7 +96,7 @@ class SimpleMob:
     def new_direction(self):
         new_direction = np.random.randn(2)
         self.direction = new_direction / np.linalg.norm(new_direction)
-        yaw = np.arctan2(new_direction[0], new_direction[1]) * 360 / (2 * np.pi)
+        yaw = np.arctan2(new_direction[0], new_direction[1])
         self.look = (yaw, 0.0)
 
     def step(self):
@@ -109,7 +109,6 @@ class SimpleMob:
             if self.world.blocks[rx, fy - 1, rz, 0] == 0:
                 self.pos = (self.pos[0], self.pos[1] - FALL_SPEED, self.pos[2])
                 return
-        # TODO when look implemented: change looks when loitering
         if self.loitering >= 0:
             self.loitering += 1
             if self.loitering > self.loiter_time:
@@ -121,8 +120,8 @@ class SimpleMob:
         if np.random.rand() < self.direction_change_prob:
             self.new_direction()
         step = self.direction * self.speed
-        bx = check_bounds(int(np.round(x + step[0])), self.world.sl)
-        bz = check_bounds(int(np.round(z + step[1])), self.world.sl)
+        bx = check_bounds(int(np.round(x + step[0])), self.world.sl/3, 2*self.world.sl/3)
+        bz = check_bounds(int(np.round(z + step[1])), self.world.sl/3, 2*self.world.sl/3)
         # if hitting boundary, reverse...
         self.direction[0] = bx * self.direction[0]
         self.direction[1] = bz * self.direction[1]
@@ -131,7 +130,7 @@ class SimpleMob:
         new_z = step[1] + z
         # is there a block in new location? if no go there, if yes go up
         for i in range(self.step_height):
-            if fy + i >= self.world.sl:
+            if fy + i >= self.world.sl/3:
                 self.new_direction()
                 return
             if self.world.blocks[int(np.round(new_x)), fy + i, int(np.round(new_z)), 0] == 0:

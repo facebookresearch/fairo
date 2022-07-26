@@ -72,6 +72,7 @@ const MINECRAFT_BLOCK_MAP = {
     "41,0": 66, // Gold
     "42,0": 67, // Iron
     "95,4": 68, // Yellow Stained Glass
+    "10,0": 69, // Lava
   };
 
 const VW_ITEM_MAP = {
@@ -150,6 +151,13 @@ const VW_ITEM_MAP = {
         "sides": 'gold.png',
         "bottom": 'gold.png',
         "top": 'gold.png',
+    },
+    "lava": {
+        "color": 0xffffff,
+        "opacity": 1.0,
+        "sides": 'lava.png',
+        "bottom": 'lava.png',
+        "top": 'lava.png',
     },
 
     "white wool": {

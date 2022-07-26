@@ -21,7 +21,7 @@ const renderInterval = 1000 / fps
 let world, camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
 const followPointerScale = 150;
 
-const preLoadMaterialNames = ['grass', 'dirt', 'wood', 'iron', 'bedrock'];
+const preLoadMaterialNames = ['grass', 'dirt', 'wood', 'iron', 'bedrock', 'red wool'];
 const blockScale = 50;
 const bid2Name = {
     8: 'grass',
@@ -45,13 +45,14 @@ const bid2Name = {
     60: 'red wool',
     61: 'black wool',
     66: 'gold',
-    67: 'iron'
+    67: 'iron',
+    69: 'lava',
 }
 
 const TEXTURE_PATH = "https://cdn.jsdelivr.net/gh/snyxan/assets@main/block_textures/";
 
 
-const SL = 16
+const SL = 15*3
 const voxelOffset = [0, 0, 0]//[SL/2, SL/2, SL/2]
 
 // voxel related constants
@@ -93,18 +94,6 @@ function handleKeypress(e, player) {
     let camera_vec;
     console.log(e.key)
     switch (e.key) {
-        case "ArrowLeft":
-            player.rotate(0.1);
-            break;
-        case "ArrowRight":
-            player.rotate(-0.1);
-            break;
-        case "t":
-            player.toggle();
-            break;
-        case "r":
-            player.rotateTo(0,0);
-            break;
         case "w":
             camera_vec = cameraVector();
             direction_vec.set(camera_vec[0], 0, camera_vec[2])
@@ -416,13 +405,10 @@ class DVoxelEngine {
             // console.log("name: " + name + "x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2])
             if (name === AGENT_NAME && agent_player != null) {
                 agent_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale);
-                agent_player.rotateTo(degToRad(look[0]), degToRad(look[1]));
-                that.playerPostionSafetyCheck(agent_player);
+                agent_player.rotateTo(look[0], look[1]);
             } else if (name === PLAYER_NAME && controlled_player != null) {
-                // console.log("player moveTo: x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2]);
                 controlled_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale);
-                // controlled_player.rotateTo(degToRad(look[0]), degToRad(look[1]));
-                // ^this is unstable, probably best to let the player object own look direction always
+                // let the player object own look direction always
                 that.playerPostionSafetyCheck(controlled_player);
             }
         })
@@ -435,15 +421,15 @@ class DVoxelEngine {
         }
         let pos = player.getPosition();
         let pos_xyz = convertCoordinateSystems(pos.x, pos.y, pos.z);
-        if (((pos_xyz[0] / blockScale) > SL) ||
-            ((pos_xyz[0] / blockScale) < 0) ||
-            ((pos_xyz[1] / blockScale) > SL) ||
+        if (((pos_xyz[0] / blockScale) > (2 * SL / 3)) ||
+            ((pos_xyz[0] / blockScale) < (SL / 3)) ||
+            ((pos_xyz[1] / blockScale) > (SL / 3)) ||
             ((pos_xyz[1] / blockScale) < 0) ||
-            ((pos_xyz[2] / blockScale) > SL) ||
-            ((pos_xyz[2] / blockScale) < 0) ) {
+            ((pos_xyz[2] / blockScale) > (2 * SL / 3)) ||
+            ((pos_xyz[2] / blockScale) < (SL / 3)) ) {
                 console.log("safety fail, running away");
                 // TODO check collisions and move somewhere else
-                let safe_xyz = convertCoordinateSystems(1, SL-2, 1);
+                let safe_xyz = convertCoordinateSystems(Math.floor(SL/2), 5, Math.floor(SL/2));
                 player.moveTo(safe_xyz[0] * blockScale, safe_xyz[1] * blockScale, safe_xyz[2] * blockScale);
                 updatePlayerPosition(player);
         }
@@ -588,9 +574,10 @@ class DVoxelEngine {
 
 }
 
-function degToRad(deg) {
-    return (deg / 360) * Math.PI * 2
-}
+// *** Everything should be in radians ***
+// function degToRad(deg) {
+//     return (deg / 360) * Math.PI * 2
+// }
 
 function setBlock2(x, y, z, id) {
     voxels[x + voxelOffset[0]][y + voxelOffset[1]][z + voxelOffset[2]] = id

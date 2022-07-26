@@ -3353,7 +3353,7 @@ class VoxelPlayer {
       "yaw": 0
     };
     this.possessed = false;
-    this.pov = 3;
+    this.pov = 1;
     this.matrix = new world.THREE.Matrix4();
     this.cam_vector = new world.THREE.Vector3();
     this.cam_pitch = 0;
@@ -3416,10 +3416,8 @@ class VoxelPlayer {
   }
 
   getPitchYaw() {
-    let pitch = _threeModule.MathUtils.radToDeg(this.mesh.rotation.x - this.rotation_offset[0]);
-
-    let yaw = _threeModule.MathUtils.radToDeg(this.mesh.rotation.y - this.rotation_offset[1]);
-
+    let pitch = this.mesh.rotation.x - this.rotation_offset[0];
+    let yaw = this.mesh.rotation.y - this.rotation_offset[1];
     return [pitch, yaw];
   }
 
@@ -3427,11 +3425,9 @@ class VoxelPlayer {
     this.world.camera.getWorldDirection(this.cameraLook);
     this.cameraSpherical.setFromVector3(this.cameraLook); // 0 phi is the +y axis and down is pos, set 0 pitch to be at the horizon and flip
 
-    let pitch = -1 * _threeModule.MathUtils.radToDeg(this.cameraSpherical.phi - Math.PI / 2); // 0 theta is the +z axis, +yaw is right handed (CCW) - same as agent, no change
+    let pitch = -1 * (this.cameraSpherical.phi - Math.PI / 2); // 0 theta is the +z axis, +yaw is right handed (CCW) - same as agent, no change
 
-
-    let yaw = _threeModule.MathUtils.radToDeg(this.cameraSpherical.theta);
-
+    let yaw = this.cameraSpherical.theta;
     return [pitch, yaw];
   }
 
@@ -3619,7 +3615,7 @@ const fps = 2;
 const renderInterval = 1000 / fps;
 let world, camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
 const followPointerScale = 150;
-const preLoadMaterialNames = ['grass', 'dirt', 'wood', 'iron', 'bedrock'];
+const preLoadMaterialNames = ['grass', 'dirt', 'wood', 'iron', 'bedrock', 'red wool'];
 const blockScale = 50;
 const bid2Name = {
   8: 'grass',
@@ -3643,10 +3639,11 @@ const bid2Name = {
   60: 'red wool',
   61: 'black wool',
   66: 'gold',
-  67: 'iron'
+  67: 'iron',
+  69: 'lava'
 };
 const TEXTURE_PATH = "https://cdn.jsdelivr.net/gh/snyxan/assets@main/block_textures/";
-const SL = 16;
+const SL = 15 * 3;
 exports.SL = SL;
 const voxelOffset = [0, 0, 0]; //[SL/2, SL/2, SL/2]
 // voxel related constants
@@ -3689,22 +3686,6 @@ function handleKeypress(e, player) {
   console.log(e.key);
 
   switch (e.key) {
-    case "ArrowLeft":
-      player.rotate(0.1);
-      break;
-
-    case "ArrowRight":
-      player.rotate(-0.1);
-      break;
-
-    case "t":
-      player.toggle();
-      break;
-
-    case "r":
-      player.rotateTo(0, 0);
-      break;
-
     case "w":
       camera_vec = cameraVector();
       direction_vec.set(camera_vec[0], 0, camera_vec[2]);
@@ -4006,12 +3987,9 @@ class DVoxelEngine {
 
       if (name === AGENT_NAME && agent_player != null) {
         agent_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale);
-        agent_player.rotateTo(degToRad(look[0]), degToRad(look[1]));
-        that.playerPostionSafetyCheck(agent_player);
+        agent_player.rotateTo(look[0], look[1]);
       } else if (name === PLAYER_NAME && controlled_player != null) {
-        // console.log("player moveTo: x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2]);
-        controlled_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale); // controlled_player.rotateTo(degToRad(look[0]), degToRad(look[1]));
-        // ^this is unstable, probably best to let the player object own look direction always
+        controlled_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale); // let the player object own look direction always
 
         that.playerPostionSafetyCheck(controlled_player);
       }
@@ -4027,10 +4005,10 @@ class DVoxelEngine {
     let pos = player.getPosition();
     let pos_xyz = convertCoordinateSystems(pos.x, pos.y, pos.z);
 
-    if (pos_xyz[0] / blockScale > SL || pos_xyz[0] / blockScale < 0 || pos_xyz[1] / blockScale > SL || pos_xyz[1] / blockScale < 0 || pos_xyz[2] / blockScale > SL || pos_xyz[2] / blockScale < 0) {
+    if (pos_xyz[0] / blockScale > 2 * SL / 3 || pos_xyz[0] / blockScale < SL / 3 || pos_xyz[1] / blockScale > SL / 3 || pos_xyz[1] / blockScale < 0 || pos_xyz[2] / blockScale > 2 * SL / 3 || pos_xyz[2] / blockScale < SL / 3) {
       console.log("safety fail, running away"); // TODO check collisions and move somewhere else
 
-      let safe_xyz = convertCoordinateSystems(1, SL - 2, 1);
+      let safe_xyz = convertCoordinateSystems(Math.floor(SL / 2), 5, Math.floor(SL / 2));
       player.moveTo(safe_xyz[0] * blockScale, safe_xyz[1] * blockScale, safe_xyz[2] * blockScale);
       updatePlayerPosition(player);
     }
@@ -4152,13 +4130,13 @@ class DVoxelEngine {
     }, 4100);
   }
 
-}
+} // *** Everything should be in radians ***
+// function degToRad(deg) {
+//     return (deg / 360) * Math.PI * 2
+// }
+
 
 exports.DVoxelEngine = DVoxelEngine;
-
-function degToRad(deg) {
-  return deg / 360 * Math.PI * 2;
-}
 
 function setBlock2(x, y, z, id) {
   voxels[x + voxelOffset[0]][y + voxelOffset[1]][z + voxelOffset[2]] = id;
@@ -4763,7 +4741,9 @@ const MINECRAFT_BLOCK_MAP = {
   // Gold
   "42,0": 67,
   // Iron
-  "95,4": 68 // Yellow Stained Glass
+  "95,4": 68,
+  // Yellow Stained Glass
+  "10,0": 69 // Lava
 
 };
 exports.MINECRAFT_BLOCK_MAP = MINECRAFT_BLOCK_MAP;
@@ -4840,6 +4820,13 @@ const VW_ITEM_MAP = {
     "sides": 'gold.png',
     "bottom": 'gold.png',
     "top": 'gold.png'
+  },
+  "lava": {
+    "color": 0xffffff,
+    "opacity": 1.0,
+    "sides": 'lava.png',
+    "bottom": 'lava.png',
+    "top": 'lava.png'
   },
   "white wool": {
     "color": 0xffffff,

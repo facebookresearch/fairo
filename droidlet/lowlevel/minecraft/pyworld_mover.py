@@ -16,7 +16,7 @@ class DataCallback:
         self.data = data
 
 
-def wait_for_data(data_callback, step=0.001, max_steps=100):
+def wait_for_data(data_callback, step=0.002, max_steps=100):
     data = None
     count = 0
     while not data:

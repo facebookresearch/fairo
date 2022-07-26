@@ -5,7 +5,6 @@ import numpy as np
 from typing import Tuple, List
 from droidlet.base_util import to_block_pos, XYZ, IDM, pos_to_np, euclid_dist
 from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
-from droidlet.lowlevel.minecraft.pyworld.world_config import opts
 
 
 def capped_line_of_sight(agent, player_struct, cap=15):
@@ -16,36 +15,7 @@ def capped_line_of_sight(agent, player_struct, cap=15):
         return pos_to_np(xsect)
 
     vec = agent.coordinate_transforms.look_vec(player_struct.look.yaw, player_struct.look.pitch)
-    # default to cap blocks in front of entity
-    if agent.backend == "pyworld":
-        if abs(player_struct.look.yaw) > (np.pi * 2) or abs(player_struct.look.pitch) > (
-            np.pi * 2
-        ):
-            # FIXME Temporary hack, we should just make pyworld live in radians
-            vec = agent.coordinate_transforms.look_vec(
-                np.radians(player_struct.look.yaw), np.radians(player_struct.look.pitch)
-            )
-        target = cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
-        shortened_cap = cap
-        while (
-            target[0] >= opts.SL
-            or target[0] < 0
-            or target[1] >= opts.H
-            or target[1] < 0
-            or target[2] >= opts.SL
-            or target[2] < 0
-        ):
-            if shortened_cap < 1:
-                # If the player is off the map too (mostly unit testing),
-                # default to the old method to avoid an infinite loop
-                return cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
-
-            # Don't produce a point off the map
-            shortened_cap /= 2
-            target = shortened_cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
-        return target
-    else:
-        return cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
+    return cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
 
 
 class LowLevelMCPerception:

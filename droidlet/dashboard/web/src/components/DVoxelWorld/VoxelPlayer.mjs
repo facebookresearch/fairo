@@ -17,7 +17,7 @@ class VoxelPlayer {
         this.rotation_offset = opts.rotation_offset;
         this.rotation = {"pitch": 0, "yaw": 0};
         this.possessed = false;
-        this.pov = 3;
+        this.pov = 1;
         this.matrix = new world.THREE.Matrix4();
         this.cam_vector = new world.THREE.Vector3();
         this.cam_pitch = 0;
@@ -78,8 +78,8 @@ class VoxelPlayer {
     }
 
     getPitchYaw() {
-        let pitch = MathUtils.radToDeg(this.mesh.rotation.x - this.rotation_offset[0]);
-        let yaw = MathUtils.radToDeg(this.mesh.rotation.y - this.rotation_offset[1]);
+        let pitch = this.mesh.rotation.x - this.rotation_offset[0];
+        let yaw = this.mesh.rotation.y - this.rotation_offset[1];
         return [pitch, yaw]
     }
 
@@ -88,9 +88,9 @@ class VoxelPlayer {
         this.cameraSpherical.setFromVector3(this.cameraLook);
 
         // 0 phi is the +y axis and down is pos, set 0 pitch to be at the horizon and flip
-        let pitch = (-1) * MathUtils.radToDeg(this.cameraSpherical.phi - (Math.PI/2));
+        let pitch = (-1) * (this.cameraSpherical.phi - (Math.PI/2));
         // 0 theta is the +z axis, +yaw is right handed (CCW) - same as agent, no change
-        let yaw = MathUtils.radToDeg(this.cameraSpherical.theta);
+        let yaw = this.cameraSpherical.theta;
 
         return [pitch, yaw]
     }
