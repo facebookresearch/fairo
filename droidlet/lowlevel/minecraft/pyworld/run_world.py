@@ -35,9 +35,7 @@ def instantiate_world_from_spec(opts):
         assert mob_spec["mobtype"] in ["rabbit", "cow", "pig", "chicken", "sheep"]
         mob_opt = make_mob_opts(mob_spec["mobtype"])
         x, y, z, pitch, yaw = mob_spec["pose"]
-        mobs.append(
-            SimpleMob(mob_opt, start_pos=(x, y, z), start_look=(yaw, pitch))
-        )
+        mobs.append(SimpleMob(mob_opt, start_pos=(x, y, z), start_look=(yaw, pitch)))
     # FIXME get this from the scene generator
     items = getattr(opts, "gettable_items", [])
     world = World(

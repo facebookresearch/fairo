@@ -126,11 +126,11 @@ def make_pose(args, loc=None, pitchyaw=None, height_map=None):
     """
     ENTITY_HEIGHT = 2
     if loc is None:
-        x, y, z = np.random.randint((args.SL/3, args.H/3, args.SL/3)) + args.SL/3
+        x, y, z = np.random.randint((args.SL / 3, args.H / 3, args.SL / 3)) + args.SL / 3
     else:
         x, y, z = loc
     if pitchyaw is None:
-        pitch = np.random.uniform(-np.pi/2, np.pi/2)
+        pitch = np.random.uniform(-np.pi / 2, np.pi / 2)
         yaw = np.random.uniform(-np.pi, np.pi)
     else:
         pitch, yaw = pitchyaw
@@ -155,7 +155,11 @@ def build_base_world(sl, h, g, fence=False):
     for i in range(sl):
         for j in range(g):
             for k in range(sl):
-                if (i < sl/3 or i >= 2*sl/3 or k < sl/3 or k >= 2*sl/3) and j == g - 1 and fence:
+                if (
+                    (i < sl / 3 or i >= 2 * sl / 3 or k < sl / 3 or k >= 2 * sl / 3)
+                    and j == g - 1
+                    and fence
+                ):
                     idm = red()
                 elif j == (g - 1):
                     idm = grass()

@@ -402,16 +402,17 @@ class World:
         else:
             lowerb = (0, 0, 0)
             upperb = (self.sl, self.sl - 1, self.sl)
-        if (pos[0] >= lowerb[0]
+        if (
+            pos[0] >= lowerb[0]
             and pos[1] >= lowerb[1]
             and pos[2] >= lowerb[2]
             and pos[0] < upperb[0]
             and pos[1] < upperb[1]
-            and pos[2] < upperb[2]):
+            and pos[2] < upperb[2]
+        ):
             return True
         else:
             return False
-
 
     def setup_server(self, port=25565):
         import socketio
@@ -686,7 +687,7 @@ if __name__ == "__main__":
 
     spec = {"players": [], "mobs": [], "items": [], "coord_shift": (0, 0, 0), "agent": {}}
     world_opts = Opt()
-    world_opts.sl = 16*3
+    world_opts.sl = 16 * 3
     world_opts.world_server = True
     world_opts.port = 6002
     world = World(world_opts, spec)
