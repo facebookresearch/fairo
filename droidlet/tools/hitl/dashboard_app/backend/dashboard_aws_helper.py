@@ -70,6 +70,16 @@ def _read_file(fname: str):
     return content
 
 
+def _read_file(fname: str):
+    """
+    read file into a string
+    """
+    f = open(fname, "r")
+    content = f.read()
+    f.close()
+    return content
+
+
 def get_job_list():
     """
     helper method for preparing get_job_list api's response

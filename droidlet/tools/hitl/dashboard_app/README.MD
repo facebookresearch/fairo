@@ -37,7 +37,8 @@ This is a Dashboard app prototype for the HITL system.
     - Added view session Log feature.
     - Demo:
         - ![demo_view_sesion_log](https://user-images.githubusercontent.com/51009396/178044751-8d099829-cc2f-4353-8bfd-e81e9a23b63e.gif)
-- July 6: ![demo_change_dataset_ver](https://user-images.githubusercontent.com/51009396/178807740-b90ada63-573d-47ba-845e-8ab84033d184.gif)
+
+- July 6: 
     - Added detail page to show detail infomation of a pipeline run (specified by the batch_id)
     - Added a get all sessions related to a batch id backend API. 
     - Demo:
