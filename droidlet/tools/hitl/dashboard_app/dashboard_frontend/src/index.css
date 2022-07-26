@@ -11,3 +11,16 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.logo {
+  float: left;
+  width: 180px;
+  height: 31px;
+  margin: 16px 54px 16px 0px;
+  padding-left: 15px;
+}
+
+.ant-row-rtl .logo {
+  float: right;
+  margin: 16px 0 16px 24px;
+}

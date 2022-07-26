@@ -55,12 +55,12 @@ class TestAWSHelper(unittest.TestCase):
         self.assertEqual(res, f"cannot find traceback with id {INVALID_ID}")
 
     def test_get_run_info_by_id_valid(self):
-        res = get_run_info_by_id(VALID_ID)
+        res, _ = get_run_info_by_id(VALID_ID)
         self.assertIsNotNone(res)
         self.assertNotEqual(res, f"cannot find run info with id {VALID_ID}")
 
     def test_get_run_info_by_id_inalid(self):
-        res = get_run_info_by_id(INVALID_ID)
+        res, _ = get_run_info_by_id(INVALID_ID)
         self.assertEqual(res, f"cannot find run info with id {INVALID_ID}")
 
     def tearDown(self):
@@ -70,7 +70,6 @@ class TestAWSHelper(unittest.TestCase):
         # remove from local temp directory as well
         local_info_fname = os.path.join(HITL_TMP_DIR, self._info_fname)
         local_traceback_fname = os.path.join(HITL_TMP_DIR, self._traceback_fname)
-
         if os.path.exists(local_info_fname):
             os.remove(local_info_fname)
         if os.path.exists(local_traceback_fname):

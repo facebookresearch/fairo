@@ -39,7 +39,7 @@ const Main = () => {
 
     const getJobInfo = () => {
         // hardcoded id for checking backend api connection
-        socket.emit("get_run_info_by_id", 20220519194922);
+        socket.emit("get_run_info_by_id", 20211209154235);
     }
 
     useEffect(() => {
