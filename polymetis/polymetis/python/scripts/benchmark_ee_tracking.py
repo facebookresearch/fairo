@@ -8,7 +8,9 @@
 import numpy as np
 import torch
 
-from torchcontrol import Rotation as R
+import torchcontrol as toco
+from torchcontrol.transform import Rotation as R
+from torchcontrol.transform import Transformation as T
 from polymetis import RobotInterface
 from polysim.grpc_sim_client import Spinner
 
@@ -43,13 +45,21 @@ def compare_traj(traj, ref_traj, experiment_name=""):
 
     pos_err = torch.zeros(traj.shape[0])
     ori_err = torch.zeros(traj.shape[0])
-    for i in range(shape[0]):
+    for i in range(traj.shape[0]):
         pos_diff = traj[i, :3] - ref_traj[i, :3]
         ori_diff = R.from_quat(traj[i, 3:]).inv() * R.from_quat(traj[i, 3:])
-        pos_err[i] = torch.linalg.norm(pos_err)
-        ori_err[i] = torch.linalg.norm(ori_err.as_rotvec())
+        pos_err[i] = torch.linalg.norm(pos_diff)
+        ori_err[i] = torch.linalg.norm(ori_diff.as_rotvec())
 
-    # Print stats TODO
+    # Compute & print stats
+    pos_err_mean = torch.mean(pos_err)
+    pos_err_std = torch.std(pos_err)
+    ori_err_mean = torch.mean(ori_err)
+    ori_err_std = torch.std(ori_err)
+
+    print(f"=== {experiment_name} EE tracking results ===")
+    print(f"\tPos error: mean={pos_err_mean}, std={pos_err_std}")
+    print(f"\tOri error: mean={ori_err_mean}, std={ori_err_std}")
 
 
 if __name__ == "__main__":
@@ -59,15 +69,39 @@ if __name__ == "__main__":
     pose_traj_offline = generate_trajectory(
         META_CENTER_POSE, META_RADIUS, robot.metadata.hz, 12
     )
-    robot.move_to_ee_pose(pose_traj[0, :3], pose_traj[0, 3:])
+    num_steps = pose_traj_offline.shape[0]
+    robot.move_to_ee_pose(pose_traj_offline[0, :3], pose_traj_offline[0, 3:])
 
-    state_log = None  # TODO
+    ee_pose_traj = []
+    for i in num_steps:
+        ee_pose = T.from_rot_xyz(
+            rotation=R.from_quat(pose_traj_offline[i, 3:]),
+            translation=pose_traj_offline[i, :3],
+        )
+        ee_pose_traj.append(ee_pose)
 
-    compare_traj(state_log, pose_traj_offline, "offline")
+    ee_twist_traj = []
+    for i in num_steps:
+        pose0 = ee_pose_traj[max(i - 1, 0)]
+        pose1 = ee_pose_traj[min(i + 1, num_steps - 1)]
+        ee_twist = (pose1 * pose0.inv()).as_rotvec() * robot.metadata.hz
+        ee_twist_traj.append(ee_twist)
+
+    policy = toco.policies.EndEffectorTrajectoryExecutor(
+        ee_pose_trajectory=ee_pose_traj,
+        ee_twist_trajectory=ee_twist_traj,
+        Kp=robot.Kx_default,
+        Kd=robot.Kxd_default,
+        robot_model=robot.robot_model,
+        ignore_gravity=True,
+    )
+
+    state_log = robot.send_torch_policy(policy)
+    compare_traj(state_log, pose_traj_offline, "Offline")
 
     # Online tracking: Send trajectory updates to impedance controller
     pose_traj_online = generate_trajectory(META_CENTER_POSE, META_RADIUS, UPDATE_HZ, 12)
-    robot.move_to_ee_pose(pose_traj[0, :3], pose_traj[0, 3:])
+    robot.move_to_ee_pose(pose_traj_online[0, :3], pose_traj_online[0, 3:])
 
     robot.start_cartesian_impedance()
     spinner = Spinner(UPDATE_HZ)
@@ -75,6 +109,6 @@ if __name__ == "__main__":
         robot.update_desired_ee_pose(pose[:3], pose[3:])
         spinner.spin()
 
-    state_log = robot.terminate_current_policy()
 
-    compare_traj(state_log, pose_traj_offline, "online")
+    state_log = robot.terminate_current_policy()
+    compare_traj(state_log, pose_traj_offline, "Online")
