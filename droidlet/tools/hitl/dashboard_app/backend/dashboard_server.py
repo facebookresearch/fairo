@@ -26,21 +26,11 @@ class DASHBOARD_EVENT(Enum):
     """
     server supported event types, i.e. API types
     """
-
     GET_RUNS = "get_job_list"
     GET_TRACEBACK = "get_traceback_by_id"
     GET_RUN_INFO = "get_run_info_by_id"
     GET_INTERACTION_SESSIONS = "get_interaction_sessions_by_id"
     GET_INTERACTION_SESSION_LOG = "get_interaction_session_log"
-
-class DASHBOARD_EVENT(Enum):
-    """
-    server supported event types, i.e. API types
-    """
-
-    GET_JOBS = "get_job_list"
-    GET_TRACEBACK = "get_traceback_by_id"
-    GET_RUN_INFO = "get_run_info_by_id"
 
 
 @socketio.on(DASHBOARD_EVENT.GET_RUNS.value)
