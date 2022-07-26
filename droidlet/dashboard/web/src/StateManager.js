@@ -51,7 +51,7 @@ class StateManager {
   refs = [];
   socket = null;
   worldSocket = null;
-  default_url = "http://localhost:5000";
+  default_url = "http://localhost:8000";
   connected = false;
   initialMemoryState = {
     objects: new Map(),
