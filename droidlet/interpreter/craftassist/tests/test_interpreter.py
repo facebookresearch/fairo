@@ -3,12 +3,14 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
 from typing import List
+import numpy as np
 
 import droidlet.base_util
 import droidlet.perception.craftassist.heuristic_perception as heuristic_perception
 import droidlet.lowlevel.minecraft.shape_util
 import droidlet.lowlevel.minecraft.shapes
 import droidlet.lowlevel.minecraft.shapes as shapes
+from droidlet.lowlevel.minecraft.pyworld.item import GettableItem
 from droidlet.shared_data_structs import NextDialogueStep, ErrorWithResponse
 from droidlet.lowlevel.minecraft.mc_util import Block, strip_idmeta, euclid_dist
 from droidlet.interpreter.tests.all_test_commands import *
@@ -162,6 +164,42 @@ class TwoCubesInterpreterTest(BaseCraftassistTestCase):
 
         # check that the cube_right is rebuilt and an additional block is built
         self.assertEqual(len(changes), len(self.cube_right) + 1)
+
+
+class GetTest(BaseCraftassistTestCase):
+    def setUp(self):
+        stone = GettableItem("stone", idm=(1, 0))
+        obsidian = GettableItem("obsidian", idm=(49, 0))
+        super().setUp(items=[stone, obsidian])
+        self.set_looking_at((0, 63, 0))
+
+    def test_gets(self):
+        d = GIVE_GET_BRING_COMMANDS["get the stone"]
+        changes = self.handle_logical_form(d)
+        items = self.world.get_items()
+        for i in items:
+            if i["typeName"] == "stone":
+                assert i["holder_entityId"] == self.agent.entityId
+            if i["typeName"] == "obsidian":
+                assert i["holder_entityId"] == -1
+        d = GIVE_GET_BRING_COMMANDS["drop the stone"]
+        changes = self.handle_logical_form(d)
+        items = self.world.get_items()
+        for i in items:
+            if i["typeName"] == "stone":
+                assert i["holder_entityId"] == -1
+            if i["typeName"] == "obsidian":
+                assert i["holder_entityId"] == -1
+        d = GIVE_GET_BRING_COMMANDS["bring me the stone"]
+        changes = self.handle_logical_form(d)
+        items = self.world.get_items()
+        for i in items:
+            if i["typeName"] == "stone":
+                assert i["holder_entityId"] == -1
+                speaker_pos = self.agent.get_other_players()[0].pos
+                assert np.linalg.norm(np.array(i["pos"]) - np.array(speaker_pos)) < 3
+            if i["typeName"] == "obsidian":
+                assert i["holder_entityId"] == -1
 
 
 class DigTest(BaseCraftassistTestCase):

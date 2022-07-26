@@ -961,35 +961,52 @@ class Get(Task):
 
     Examples::
 
-        >>> task_data = {"idm": (319, 0), "pos": (1, 0, 1), "eid": 11, "memid": 99}
+        >>> task_data = {"pos": (1, 0, 1), "eid": 11, "memid": 99}
         >>> dance = Dance(agent, task_data)
     """
 
     def __init__(self, agent, task_data):
         super().__init__(agent)
-        self.idm = task_data.get("idm")
         self.pos = task_data["pos"]
         self.eid = task_data["eid"]
         self.obj_memid = task_data["obj_memid"]
         self.approx = 1
-        self.attempts = 10
-        if self.idm is not None:
+        self.attempts = 20
+        self.type_name = agent.memory.get_mem_by_id(self.obj_memid).type_name
+        if getattr(agent, "backend", "cuberite") == "cuberite":
+            self.idm = agent.low_level_data["block_data"]["name_to_bid"].get(self.type_name)
+            if self.idm is None:
+                raise Exception(
+                    "I don't know how to pick that up: type_name={}".format(self.type_name)
+                )
             self.item_count_before_get = agent.get_inventory_item_count(self.idm[0], self.idm[1])
         TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    def add_move_to_item(self, agent):
+        target = (self.pos[0] + randint(-1, 1), self.pos[1], self.pos[2] + randint(-1, 1))
+        move_task = Move(agent, {"target": target, "approx": self.approx})
+        self.add_child_task(move_task)
 
     @Task.step_wrapper
     def step(self):
         super().step()
         agent = self.agent
         delta = 0
-        if self.idm is not None:
+        close_to_item = np.linalg.norm(np.array(agent.pos) - np.array(self.pos)) < self.approx
+        if getattr(agent, "backend", "cuberite") == "cuberite":
             delta = (
                 agent.get_inventory_item_count(self.idm[0], self.idm[1])
                 - self.item_count_before_get
             )
+            if delta < 1:
+                # in cuberite, just keep trying to walk around item, even if close
+                self.add_move_to_item(agent)
         else:
+            if not close_to_item:
+                self.add_move_to_item(agent)
+                return
             delta = agent.pick_entityId(self.eid)
-
+        self.attempts -= 1
         if delta > 0:
             ItemStackNode.add_to_inventory(
                 agent.memory, agent.memory.get_mem_by_id(self.obj_memid)
@@ -1003,12 +1020,6 @@ class Get(Task):
             self.finished = True
             return
 
-        self.attempts -= 1
-
-        # walk through the area
-        target = (self.pos[0] + randint(-1, 1), self.pos[1], self.pos[2] + randint(-1, 1))
-        move_task = Move(agent, {"target": target, "approx": self.approx})
-        self.add_child_task(move_task)
         return
 
 
@@ -1030,30 +1041,34 @@ class Drop(Task):
 
     def __init__(self, agent, task_data):
         super().__init__(agent)
-        self.eid = task_data["eid"]
-        self.idm = task_data["idm"]
+        self.tries = 10
+        self.target = task_data["target"]
         self.obj_memid = task_data["obj_memid"]
+        self.eid = task_data["eid"]
+        self.approx = 2
+        self.type_name = agent.memory.get_mem_by_id(self.obj_memid).type_name
+        if getattr(agent, "backend", "cuberite") == "cuberite":
+            self.idm = agent.low_level_data["block_data"]["name_to_bid"].get(self.type_name)
+            if self.idm is None:
+                raise Exception(
+                    "I don't know how to drop that: type_name={}".format(self.type_name)
+                )
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def get_memids_by_eid(self, memory, eid):
-        cmd = "SELECT MEMORY FROM ReferenceObjects WHERE eid={}".format(eid)
+        cmd = "SELECT MEMORY FROM ReferenceObject WHERE eid={}".format(eid)
         memids, _ = memory.basic_search(cmd)
         return memids
 
     def find_nearby_new_item_stack(self, agent, id, meta):
         mindist = 3
         near_new_item_stack = None
-        x, y, z = agent.get_player().pos
         for item_stack in agent.get_item_stacks():
             if item_stack.item.id == id and item_stack.item.meta == meta:
-                dist = manhat_dist(
-                    (item_stack.pos.x, item_stack.pos.y, item_stack.pos.z), (x, y, z)
-                )
+                dist = np.linalg.norm(np.array(agent.get_player().pos) - np.array(item_stack.pos))
                 if dist < mindist:
-                    memids = self.get_memids_by_eid(agent.memory, item_stack.entityId)
-                    if not memids:
-                        mindist = dist
-                        near_new_item_stack = item_stack
+                    mindist = dist
+                    near_new_item_stack = item_stack
 
         return mindist, near_new_item_stack
 
@@ -1067,25 +1082,35 @@ class Drop(Task):
             agent.send_chat("I can't find it in my inventory!")
             self.finished = False
             return
+        dist_to_target = np.linalg.norm(np.array(agent.pos) - np.array(self.target))
+        close_to_target = dist_to_target <= self.approx
+        if not close_to_target:
+            move_task = Move(agent, {"target": self.target, "approx": self.approx})
+            self.add_child_task(move_task)
+            self.tries = self.tries - 1
+            return
+
         node = agent.memory.get_mem_by_id(self.obj_memid)
         count = node.count
-        id, m = self.idm
-        agent.drop_inventory_item_stack(id, m, count)
-        ItemStackNode.remove_from_inventory(agent.memory, node)
-
-        mindist, dropped_item_stack = self.get_nearby_new_item_stack(agent, id, m)
+        if getattr(agent, "backend", "cuberite") == "cuberite":
+            id, m = self.idm
+            dropped_item_stack = agent.drop_inventory_item_stack(id, m, count)
+            time.sleep(0.05)
+            mindist, dropped_item_stack = self.find_nearby_new_item_stack(agent, id, m)
+        else:
+            dropped_item_stack = agent.drop(self.eid)
         if dropped_item_stack:
-            ItemStackNode.update_item_stack_eid(
-                agent.memory, self.obj_memid, dropped_item_stack.entityId
-            )
-            ItemStackNode.maybe_update_item_stack_position(agent.memory, dropped_item_stack)
+            ItemStackNode.remove_from_inventory(agent.memory, node)
+            if getattr(agent, "backend", "cuberite") == "cuberite":
+                new_eid = dropped_item_stack.entityId
+                if new_eid != self.eid:
+                    ItemStackNode.update_item_stack_eid(agent.memory, self.obj_memid, new_eid)
+                ItemStackNode.maybe_update_item_stack_position(agent.memory, dropped_item_stack)
             agent.memory.nodes[TripleNode.NODE_TYPE].tag(
                 agent.memory, self.obj_memid, "_on_ground"
             )
-
-        x, y, z = agent.get_player().pos
-        target = (x, y + 2, z)
-        move_task = Move(agent, {"target": target, "approx": 1})
-        self.add_child_task(move_task)
+            agent.send_chat("here it is".format(node.type_name))
+        else:
+            agent.send_chat("I tried to drop the {}, but I can't".format(node.type_name))
 
         self.finished = True

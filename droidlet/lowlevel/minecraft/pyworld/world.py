@@ -126,9 +126,15 @@ class World:
     def step(self):
         for m in self.mobs:
             m.step()
+
         for eid, p in self.players.items():
-            if hasattr(p, "step"):
+            if hasattr(p, "step") and not getattr(p, "no_step_from_world", False):
                 p.step()
+
+        for eid, item in self.items.items():
+            if self.players.get(item.holder_entityId):
+                item.update_position(*self.players[item.holder_entityId].pos)
+
         self.count += 1
 
         if self.is_server:
@@ -237,14 +243,12 @@ class World:
     def get_item_stacks(self):
         item_stacks = []
         for item in self.get_items():
-            # only return items not in any agent's inventory in this method, matching cuberite
-            if item["holder_entityId"] < 0:
-                pos = Pos(item["x"], item["y"], item["z"])
-                item_stacks.append(
-                    ItemStack(
-                        Slot(item["id"], item["meta"], 1), pos, item["entityId"], item["typeName"]
-                    )
+            pos = Pos(item["x"], item["y"], item["z"])
+            item_stacks.append(
+                ItemStack(
+                    Slot(item["id"], item["meta"], 1), pos, item["entityId"], item["typeName"]
                 )
+            )
         return item_stacks
 
     def get_player_info(self, eid):
@@ -333,9 +337,18 @@ class World:
         if self.connected_sids.get(sid) is not None:
             print("reconnecting eid {} (sid {})".format(self.connected_sids["sid"], sid))
             return
-        # FIXME add height map
+        for player_eid in self.connected_sids.values():
+            player_info = self.get_player_info(player_eid)
+            if player_info.name == data.get("name"):
+                print("reconnecting eid {} (sid {})".format(player_eid, sid))
+                return
+
         x, y, z, pitch, yaw = make_pose(
-            self.sl, self.sl, loc=data.get("loc"), pitchyaw=data.get("pitchyaw")
+            self.sl,
+            self.sl,
+            loc=data.get("loc"),
+            pitchyaw=data.get("pitchyaw"),
+            height_map=self.get_height_map(),
         )
         entityId = self.new_eid(entityId=data.get("entityId"))
         # FIXME
@@ -354,6 +367,25 @@ class World:
             if player_info.name == player_name:
                 return {"player": player_info}
         return None
+
+    def player_pick_drop_items(self, player_eid, data, action="pick"):
+        """
+        data should be a list of entityIds
+        """
+        count = 0
+        for eid in data:
+            item = self.items.get(eid)
+            if item is not None:
+                # TODO inform caller if eid doesn't exist?
+                if action == "pick":
+                    # TODO check it isn't already attached?
+                    item.attach_to_entity(player_eid)
+                    count += 1
+                else:
+                    if item.holder_entityId == player_eid:
+                        item.attach_to_entity(-1)
+                        count += 1
+        return count
 
     def setup_server(self, port=25565):
         import socketio
@@ -439,6 +471,15 @@ class World:
         def set_agent_look(sid, data):
             eid = self.connected_sids.get(sid)
             player_struct = self.get_player_info(eid)
+            if not player_struct:
+                # FIXME only works for dashboard reconnect
+                for player_eid in self.connected_sids.values():
+                    player_info = self.get_player_info(player_eid)
+                    if player_info.name == "dashboard_player":
+                        player_struct = self.get_player_info(player_eid)
+                        eid = player_eid
+                        break
+
             new_look = Look(data["yaw"], data["pitch"])
             self.players[eid] = self.players[eid]._replace(look=new_look)
 
@@ -474,6 +515,15 @@ class World:
         def move_agent_abs(sid, data):
             eid = self.connected_sids.get(sid)
             player_struct = self.get_player_info(eid)
+            # FIXME sid lost on page refresh, hacky workaround
+            if not player_struct:
+                for player_eid in self.connected_sids.values():
+                    player_info = self.get_player_info(player_eid)
+                    if player_info.name == "dashboard_player":
+                        player_struct = self.get_player_info(player_eid)
+                        eid = player_eid
+                        break
+
             x, y, z = player_struct.pos
             x = data.get("x", 0)
             y = data.get("y", 0)
@@ -548,15 +598,7 @@ class World:
             data should be a list of entityId
             """
             player_eid = self.connected_sids[sid]
-            count = 0
-            for eid in data:
-                item = self.items.get(eid)
-                if item is not None:
-                    # TODO check it isn't already attached?
-                    item.attach_to_entity(player_eid)
-                    count += 1
-                # TODO inform caller if eid doesn't exist?
-            return count
+            return self.player_pick_drop_items(player_eid, data, action="pick")
 
         @server.on("drop_items")
         def drop_items(sid, data):
@@ -564,15 +606,7 @@ class World:
             data should be a list of entityId
             """
             player_eid = self.connected_sids[sid]
-            count = 0
-            for eid in data:
-                item = self.items.get(eid)
-                if item is not None:
-                    if item.in_inventory == player_eid:
-                        item.attach_to_entity(-1)
-                        count += 1
-                        # TODO inform caller if eid doesn't exist?
-            return count
+            return self.player_pick_drop_items(player_eid, data, action="drop")
 
         @server.on("get_changed_blocks")
         def changed_blocks(sid):

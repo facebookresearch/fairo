@@ -46,6 +46,7 @@ from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
+from droidlet.perception.craftassist.manual_edits_perception import ManualChangesPerception
 from droidlet.lowlevel.minecraft.mc_util import (
     cluster_areas,
     MCTime,
@@ -235,6 +236,12 @@ class CraftAssistAgent(DroidletAgent):
             self.perception_modules["semseg"] = SubcomponentClassifierWrapper(
                 self, self.opts.semseg_model_path, low_level_data=self.low_level_data
             )
+        # manual edits from dashboard
+        self.perception_modules["dashboard"] = ManualChangesPerception(self)
+        @sio.on("manual_change")
+        def make_manual_change(sid, change):
+            self.perception_modules["dashboard"].process_change(change)
+
 
     def init_controller(self):
         """Initialize all controllers"""
@@ -286,7 +293,10 @@ class CraftAssistAgent(DroidletAgent):
             sem_seg_perception_output = self.perception_modules["semseg"].perceive()
             self.memory.update(sem_seg_perception_output)
         self.areas_to_perceive = []
-        # 5. update dashboard world and map
+        # 5. perceive any manual edits made from frontend
+        dashboard_perception_output = self.perception_modules["dashboard"].perceive()
+        self.memory.update(dashboard_perception_output)
+        # 6. update dashboard world and map
         self.update_dashboard_world()
 
         @sio.on("toggle_map")
@@ -403,9 +413,9 @@ class CraftAssistAgent(DroidletAgent):
 
     def get_detected_objects_for_map(self):
         search_res = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
-        memids, mems = [], []
+        mems = []
         if search_res is not None:
-            memids, mems = search_res
+            _, mems = search_res
         detections_for_map = []
         for mem in mems:
             if hasattr(mem, "pos"):
@@ -432,7 +442,7 @@ class CraftAssistAgent(DroidletAgent):
             x, _, z = from_minecraft_xyz_to_droidlet(mc_xyz)
             yaw, _ = from_minecraft_look_to_droidlet(mc_look)
             xyyaw = (x, z, yaw)
-
+        triples = self.memory._db_read("SELECT * FROM Triples")
         sio.emit(
             "map",
             {
@@ -442,6 +452,7 @@ class CraftAssistAgent(DroidletAgent):
                 "map": obstacles,
                 "bot_data": detections_for_map[0],
                 "detections_from_memory": detections_for_map[1:],
+                "triples": triples,
             },
         )
 

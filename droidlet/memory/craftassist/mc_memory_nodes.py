@@ -558,13 +558,15 @@ class ItemStackNode(ReferenceObjectNode):
 
     def __init__(self, agent_memory, memid: str):
         super().__init__(agent_memory, memid)
-        eid, x, y, z, count = self.agent_memory._db_read_one(
-            "SELECT eid, x, y, z, voxel_count FROM ReferenceObjects WHERE uuid=?", self.memid
+        eid, x, y, z, count, type_name = self.agent_memory._db_read_one(
+            "SELECT eid, x, y, z, voxel_count, type_name FROM ReferenceObjects WHERE uuid=?",
+            self.memid,
         )
         self.memid = memid
         self.eid = eid
         self.pos = (x, y, z)
         self.count = count
+        self.type_name = type_name
 
     @classmethod
     def create(cls, memory, item_stack, block_data_info) -> str:
