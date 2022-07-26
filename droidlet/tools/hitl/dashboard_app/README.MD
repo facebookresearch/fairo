@@ -57,6 +57,12 @@ This is a Dashboard app prototype for the HITL system.
 - Frontend: a react based frontend - including navigation and NLU pipeline overview page. Default run on localhost:3000.
 Please note this dashboard app is currently only in development build and is not optimized.
 
+## Dependency
+- Dependency required for backend server (in addition to the droidelet setting, please make sure you have the updated version as below):
+Flask==2.1.2
+Flask-SocketIO==5.2.0
+- Dependency for frontend is specified in the `fairo/droidlet/tools/hitl/dashboard_app/dashboard_frontend/package.json` file.
+
 ## How to run
 - Set up environment variables
 ```
