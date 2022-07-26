@@ -59,7 +59,6 @@ def _read_file(fname: str):
     return content
 
 
-
 def _dowload_file(fname: str):
     # check if exists on local tmp directory
     local_file_name = os.path.join(HITL_TMP_DIR, fname)
@@ -112,6 +111,7 @@ def get_traceback_by_id(batch_id: int):
     if local_fname is None:
         return f"cannot find traceback with id {batch_id}", 404
     return _read_file(local_fname), None
+
 
 def get_traceback_by_id(batch_id: int):
     """

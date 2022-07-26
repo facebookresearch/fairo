@@ -26,6 +26,7 @@ class DASHBOARD_EVENT(Enum):
     """
     server supported event types, i.e. API types
     """
+
     GET_RUNS = "get_job_list"
     GET_TRACEBACK = "get_traceback_by_id"
     GET_RUN_INFO = "get_run_info_by_id"
