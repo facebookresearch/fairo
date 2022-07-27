@@ -44,7 +44,9 @@ function App() {
                     </Route>
                   </Route>
                 )}
-                <Route path={SUBPATHS.OTHER.key} element={<div>Something else here</div>} />
+                <Route path="dataset" element={<DatasetPageContainer />}>
+                  <Route path=":pipeline" element={<DatasetDetailPage />} />
+                </Route>               
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
               <BackTop />

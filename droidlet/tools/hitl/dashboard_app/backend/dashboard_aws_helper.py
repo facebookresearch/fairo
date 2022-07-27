@@ -69,23 +69,12 @@ def _read_file(fname: str):
     f.close()
     return content
 
-
-def _read_file(fname: str):
-    """
-    read file into a string
-    """
-    f = open(fname, "r")
-    content = f.read()
-    f.close()
-    return content
-
-
 def get_run_list(pipeline: str):
     """
     helper method for preparing get_run_list api's response
     """
     # download run list file
-    local_fname = _dowload_file(f"{pipeline}_run_list")
+    local_fname = _download_file(f"{pipeline}_run_list")
     if local_fname is None:
         return f"cannot find run list for pipeline {pipeline}", 404
     
