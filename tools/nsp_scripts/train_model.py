@@ -533,6 +533,7 @@ def generate_model_name(args, optional_identifier=""):
         "templated_clarification": "tc",
         "templated_filters": "tf",
         "annotated": "a",
+        "annotated_conversations": "ac",
     }
     for k, v in vars(args).items():
         if k in args_keys:
@@ -694,7 +695,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--dtype_samples",
-        default="templated_clarification:.06;annotated:.94",
+        default="templated_clarification:.06;annotated_conversations:.94",
         type=str,
         help="Sampling probabilities for handling different data types",
     )

@@ -63,3 +63,7 @@ annotation_data/model/model_999.pth
 .circleci/habitat_docker/conda.txt
 .circleci/habitat_docker/requirements.txt
 .circleci/habitat_docker/Replica-Dataset
+tools/nsp_scripts/gradients.csv
+tools/nsp_scripts/training_outputs.csv
+tools/nsp_scripts/valid_outputs.csv
+tools/nsp_scripts/weights.csv
