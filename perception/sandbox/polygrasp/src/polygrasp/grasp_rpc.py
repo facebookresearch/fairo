@@ -102,7 +102,6 @@ class GraspClient:
         request = polygrasp_msgs.CollisionRequest()
         request.pcd = self.downsample_pcd(scene_pcd)
         request.grasps = serdes.grasp_group_to_bytes(grasps)
-
         bits = request.to_bytes()
         result_bits = self.collision_client.send_blocking(bits).payload
 

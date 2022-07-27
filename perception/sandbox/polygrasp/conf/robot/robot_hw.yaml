@@ -2,9 +2,9 @@ robot:
   _target_: polygrasp.robot_interface.GraspingRobotInterface
   enforce_version: false
   # ip_address: "ipv6:[2620:10d:c0b9:4b05::11f3]"
-  ip_address: 100.97.47.79
+  ip_address: 100.97.47.82
   k_approach: 0.9
   k_grasp: 0.55
-  gripper_max_width: 0.085
+  gripper_max_width: 0.05
   gripper:
     _target_: polymetis.GripperInterface

@@ -21,6 +21,7 @@ import time
 import os
 
 import numpy as np
+from perception.sandbox.polygrasp.scripts.run_grasp import drop_object_in_drawer
 import sklearn
 import matplotlib.pyplot as plt
 
@@ -218,19 +219,21 @@ def execute_grasp(robot, chosen_grasp, hori_offset, time_to_go):
             orientation=curr_ori,
             time_to_go=time_to_go,
         )
-        print("Moving horizontally")
-        traj += robot.move_until_success(
-            position=torch.Tensor([-0.09, -0.61, 0.2]),
-            orientation=[1,0,0,0],
-            time_to_go=time_to_go,
-        )
-        curr_pose, curr_ori = robot.get_ee_pose()
-        print("Moving down")
-        traj += robot.move_until_success(
-            position=curr_pose + torch.Tensor([0, 0.0, -0.20]),
-            orientation=[1,0,0,0],
-            time_to_go=time_to_go,
-        )
+        print('Move towards drawer to release')
+        drop_object_in_drawer(robot)
+        # print("Moving horizontally")
+        # traj += robot.move_until_success(
+        #     position=torch.Tensor([-0.09, -0.61, 0.2]),
+        #     orientation=[1,0,0,0],
+        #     time_to_go=time_to_go,
+        # )
+        # curr_pose, curr_ori = robot.get_ee_pose()
+        # print("Moving down")
+        # traj += robot.move_until_success(
+        #     position=curr_pose + torch.Tensor([0, 0.0, -0.20]),
+        #     orientation=[1,0,0,0],
+        #     time_to_go=time_to_go,
+        # )
 
     print("Opening gripper")
     robot.gripper_open()

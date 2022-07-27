@@ -92,7 +92,7 @@ sink_pose = torch.tensor([-0.2135, -0.0278,  0.5381, -2.1573,  0.0384,  2.1235, 
 
 act_instance = construct_act_instance(is_action_available=False, is_action_to_be_predicted=True, relative_timestep=1)
 
-def move_to_joint_pos(robot, pos, time_to_go=10.0):
+def move_to_joint_pos(robot, pos, time_to_go=5.0):
     state_log = []
     while len(state_log) < time_to_go*100:
         state_log = robot.move_to_joint_positions(pos, time_to_go)

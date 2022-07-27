@@ -21,14 +21,16 @@ mrp.process(
 
 mrp.process(
     name="cam_pub",
-    runtime=mrp.Host(
+    runtime=mrp.Conda(
+        use_named_env="polygrasp",
         run_command=["python", "-m", "polygrasp.cam_pub_sub"],
     ),
 )
 
 mrp.process(
     name="gripper_server",
-    runtime=mrp.Host(
+    runtime=mrp.Conda(
+        use_named_env="polygrasp",
         run_command=["launch_gripper.py", "gripper=robotiq_2f", "gripper.comport=/dev/ttyUSB1"],
     ),
 )

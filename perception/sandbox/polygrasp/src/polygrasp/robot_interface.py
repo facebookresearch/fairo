@@ -15,6 +15,8 @@ import tempfile
 
 log = logging.getLogger(__name__)
 
+threshold_dist_to_ref_angle = 1.4
+
 
 def compute_des_pose(best_grasp):
     """Convert between GraspNet coordinates to robot coordinates."""
@@ -73,8 +75,9 @@ def min_dist_grasp_no_z(default_ee_quat, grasps):
             np.linalg.norm((rot.inv() * default_r).as_rotvec()[:2]) for rot in rots_as_R
         ]
         i = torch.argmin(torch.Tensor(dists)).item()
+    print(f"Grasp {i} has angle {dists[i]} from reference.")
     log.info(f"Grasp {i} has angle {dists[i]} from reference.")
-    return grasps[i], i
+    return grasps[i], i, dists
 
 
 class GraspingRobotInterface(polymetis.RobotInterface):
@@ -95,6 +98,15 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             (-0.02, 3.55),
             (-2.7, 2.7),
         ],
+        # soft_limits=[
+        #     (-3.1, 0.5),
+        #     (-1.5, 3.1),
+        #     (-3.1, 3.1),
+        #     (-3.1, 1.5),
+        #     (-2.7, 2.7),
+        #     (-3.1, 3.55),
+        #     (-2.7, 2.7),
+        # ],
         *args,
         **kwargs,
     ):
@@ -146,6 +158,9 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         states = []
         for _ in range(max_attempts):
             joint_pos = self.ik(position, orientation)
+            if joint_pos is None:
+                print('going home as no solution was found for {position} with IK')
+                self.go_home()
             states += self.move_to_joint_positions(joint_pos, time_to_go=time_to_go)
             curr_ee_pos, curr_ee_ori = self.get_ee_pose()
 
@@ -162,13 +177,13 @@ class GraspingRobotInterface(polymetis.RobotInterface):
                 and ori_diff < 0.2
             ):
                 break
-        return states
+        return states, curr_ee_pos
 
     def check_feasibility(self, point: np.ndarray):
         return self.ik(point) is not None
 
     def select_grasp(
-        self, grasps: graspnetAPI.GraspGroup, num_grasp_choices=5
+        self, grasps: graspnetAPI.GraspGroup, num_grasp_choices=20
     ) -> graspnetAPI.Grasp:
         with torch.no_grad():
             feasible_i = []
@@ -181,42 +196,64 @@ class GraspingRobotInterface(polymetis.RobotInterface):
                 grasp_point, grasp_approach_delta, des_ori_quat = compute_des_pose(
                     grasp
                 )
+                # Vidhi: check with Yixin
+                # breakpoint()
                 point_a = grasp_point + self.k_approach * grasp_approach_delta
                 point_b = grasp_point + self.k_grasp * grasp_approach_delta
+                
+                #Vidhi : maybe change z of these points
 
                 if self.check_feasibility(point_a) and self.check_feasibility(point_b):
                     feasible_i.append(i)
 
-                if len(feasible_i) == num_grasp_choices:
-                    if i >= num_grasp_choices:
-                        print(
-                            f"Kinematically filtered {i + 1 - num_grasp_choices} grasps"
-                            " to get 5 feasible positions"
-                        )
-                    break
+                # if len(feasible_i) == num_grasp_choices:
+                #     if i >= num_grasp_choices:
+                #         print(
+                #             f"Kinematically filtered {i + 1 - num_grasp_choices} grasps"
+                #             " to get 5 feasible positions"
+                #         )
+                #     break
 
             # Choose the grasp closest to the neutral position
             filtered_grasps = grasps[feasible_i]
-            grasp, i = min_dist_grasp_no_z(self.default_ee_quat, filtered_grasps)
-            log.info(f"Closest grasp to ee ori, within top 5: {i + 1}")
-            return grasp, filtered_grasps
+            if len(filtered_grasps) > 1:
+                grasp, i, dists = min_dist_grasp_no_z(self.default_ee_quat, filtered_grasps)
+                if dists[i] < threshold_dist_to_ref_angle:
+                    log.info(f"Closest grasp to ee ori, within top {len(grasps)}: {i + 1}")
+                    # breakpoint()
+                    return grasp, filtered_grasps
+                else:
+                    print('angle too big, will hit the table!!!')
+
+            return None, filtered_grasps
+            
 
     def grasp(
         self,
         grasp: graspnetAPI.Grasp,
         time_to_go=3,
-        gripper_width_success_threshold=0.0005,
+        gripper_width_success_threshold=0.00095,
     ):
         states = []
         grasp_point, grasp_approach_delta, des_ori_quat = compute_des_pose(grasp)
 
         self.gripper_open()
+        approach_pos = torch.Tensor(grasp_point + grasp_approach_delta * self.k_approach)
         states += self.move_until_success(
-            position=torch.Tensor(grasp_point + grasp_approach_delta * self.k_approach),
+            position=approach_pos,
             orientation=torch.Tensor(des_ori_quat),
             time_to_go=time_to_go,
         )
+        curr_ee_pos, curr_ee_ori = self.get_ee_pose()
+        if torch.linalg.norm(curr_ee_pos - approach_pos) > 15e-2:
+            success = False
+            return states, success
 
+        # if states[-1]
+        # except:
+        #     print('Exception : failed to execute the grasp approach')
+        #     success = False 
+        #     return states, success
         grip_ee_pos = torch.Tensor(grasp_point + grasp_approach_delta * self.k_grasp) - torch.Tensor([0, 0, 0.02])
 
 
@@ -225,6 +262,11 @@ class GraspingRobotInterface(polymetis.RobotInterface):
             orientation=torch.Tensor(des_ori_quat),
             time_to_go=time_to_go,
         )
+
+        if torch.linalg.norm(curr_ee_pos - grip_ee_pos) > 15e-2:
+            success = False
+            return states, success 
+        
         self.gripper_close()
 
         log.info(f"Waiting for gripper to close...")
