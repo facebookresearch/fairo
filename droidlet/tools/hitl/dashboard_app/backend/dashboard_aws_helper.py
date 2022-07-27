@@ -19,6 +19,7 @@ from droidlet.tools.hitl.utils.read_model_log import read_model_log_to_list
 
 PIPELINE_DATASET_MAPPING = {
     "NLU": "nsp_data",
+    "TAO": "nsp_data"
 }
 
 S3_BUCKET_NAME = "droidlet-hitl"
