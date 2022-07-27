@@ -76,8 +76,8 @@ def compare_traj(state_log, ref_traj, robot_model, ignore_steps, experiment_name
     ori_err_std = torch.std(ori_err)
 
     print(f"=== {experiment_name} EE tracking results ===")
-    print(f"\tPos error: mean={pos_err_mean}, std={pos_err_std}")
-    print(f"\tOri error: mean={ori_err_mean}, std={ori_err_std}")
+    print(f"\tPos error: mean={pos_err_mean:.4f}, std={pos_err_std:.4f}")
+    print(f"\tOri error: mean={ori_err_mean:.4f}, std={ori_err_std:.4f}")
 
 
 if __name__ == "__main__":
