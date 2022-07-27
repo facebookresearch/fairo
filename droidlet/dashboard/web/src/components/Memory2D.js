@@ -115,51 +115,60 @@ class Memory2D extends React.Component {
   /*###############################
   ####  Coordinate Conversion  ####
   ###############################*/
-  convertGridCoordinate = (xy) => {
+  /**
+   * Takes the position of an object on the grid
+   * and converts it to droidlet coords
+   * (NOTE: output is 2d)
+   */
+  convertGridCoordinate = (gridHorz, gridVert) => {
     const { xmax, xmin, ymax, ymin } = this.state;
-    let { width, height, squareMap } = this.state;
-    if (squareMap) {
-      width = Math.min(width, height);
-      height = width;
-    }
+    let { width, height } = this.state;
+
+    // Maintain 1:1 aspect ratio by treating grid as square at all times
+    width = Math.min(width, height);
+    height = width;
+    let gridLength = Math.min(xmax - xmin, ymax - ymin);
+
     return [
-      (xy[1] * (ymax - ymin)) / height + ymin,
-      0,
-      (xy[0] * (xmax - xmin)) / width + xmin,
+      (gridHorz * gridLength) / width + xmin,
+      (gridVert * gridLength) / height + ymin,
     ];
   };
-  convertCoordinate = (xyz, exactInZX = false) => {
+  /**
+   * Takes droidlet coords of object and converts
+   * to 2d grid position (based on desired mapView)
+   */
+  convertCoordinate = (xyz) => {
     const { xmax, xmin, ymax, ymin } = this.state;
-    let { width, height, squareMap, mapView } = this.state;
-    if (squareMap) {
-      width = Math.min(width, height);
-      height = width;
-    }
+    let { width, height, mapView } = this.state;
+
+    // Maintain 1:1 aspect ratio by treating grid as square at all times
+    width = Math.min(width, height);
+    height = width;
+    let gridLength = Math.min(xmax - xmin, ymax - ymin);
+
     let horz, vert;
-    if (exactInZX) {
-      [horz, vert] = [xyz[2], -xyz[0]];
-    } else {
-      switch (mapView) {
-        case "ZX":
-          [horz, vert] = [xyz[2], -xyz[0]];
-          break;
-        case "XY":
-          [horz, vert] = [xyz[0], -xyz[1]];
-          break;
-        case "YZ":
-          [horz, vert] = [xyz[1], -xyz[2]];
-          break;
-        default:
-          console.log("invalid view");
-          return [0, 0];
-      }
-      horz = Math.round(horz);
-      vert = Math.round(vert);
+    switch (mapView) {
+      case "ZX":
+        [horz, vert] = [xyz[2], -xyz[0]];
+        break;
+      case "XY":
+        [horz, vert] = [xyz[0], -xyz[1]];
+        break;
+      case "YZ":
+        [horz, vert] = [xyz[1], -xyz[2]];
+        break;
+      default:
+        console.log("invalid view");
+        return [0, 0];
     }
-    let x = parseInt(((horz - xmin) / (xmax - xmin)) * width);
-    let y = parseInt(((vert - ymin) / (ymax - ymin)) * height);
-    y = height - y;
-    return [x, y];
+    horz = Math.round(horz);
+    vert = Math.round(vert);
+
+    let gridHorz = parseInt(((horz - xmin) / gridLength) * width);
+    let gridVert = parseInt(((vert - ymin) / gridLength) * height);
+    gridVert = height - gridVert;
+    return [gridHorz, gridVert];
   };
 
   /*####################################
@@ -167,6 +176,9 @@ class Memory2D extends React.Component {
   ####################################*/
   handleObjClick = (obj_type, map_pos, obj_data) => {
     let { selection_mode, selected_objects, focused_point_coords } = this.state;
+
+    // do not interact with currently bugged objects without valid memid's
+    if (!["bot", "detection_from_memory"].includes(obj_type)) return;
 
     if (!selection_mode) {
       // if not in grouping mode, open MemoryMapTable
@@ -184,8 +196,6 @@ class Memory2D extends React.Component {
       }
     } else {
       // otherwise if in selection_mode..
-      // ..do not interact with currently bugged objects
-      if (!["bot", "detection_from_memory"].includes(obj_type)) return;
       if (!(obj_data.memid in selected_objects)) {
         // ..select object
         this.setState({
@@ -854,15 +864,13 @@ class Memory2D extends React.Component {
     ####  Axes  ####
     ##############*/
     let coordinateAxesLayer = [];
-    // let rootPointDefault = [9, 0, -9];
-    // let coordinateRootPoint = this.convertCoordinate(rootPointDefault, true);
 
     // Origin of axis fixed at (40, 25) pixels from bottom, left
     let coordinateRootPoint = [40, height - 25];
 
     let rootHorz = (coordinateRootPoint[0] - drag_coordinates[0]) / stageScale;
     let rootVert = (coordinateRootPoint[1] - drag_coordinates[1]) / stageScale;
-    let rootPoint = this.convertGridCoordinate([rootHorz, rootVert]);
+    let rootPoint = this.convertGridCoordinate(rootHorz, rootVert);
 
     let axisStrokeWidth = 0.5 / stageScale;
 
@@ -903,14 +911,14 @@ class Memory2D extends React.Component {
     // Notches for horizontal axis
     while (tmpPointHorz < width - 50) {
       tmpPointHorz += 30;
-      let coordinate = this.convertGridCoordinate([
+      let coordinate = this.convertGridCoordinate(
         (tmpPointHorz - drag_coordinates[0]) / stageScale,
-        0,
-      ]);
+        0
+      );
       notches.push(
         <Text
           key={"textCoordinateX-" + tmpPointHorz}
-          text={coordinate[2].toFixed(2)}
+          text={coordinate[0].toFixed(2)}
           fontSize={10 / stageScale}
           x={(tmpPointHorz - 10 - drag_coordinates[0]) / stageScale}
           y={(coordinateRootPoint[1] - 15 - drag_coordinates[1]) / stageScale}
@@ -932,14 +940,14 @@ class Memory2D extends React.Component {
     // Notches for vertical axis
     while (tmpPointVert > height - coordinateRootPoint[1] + 25) {
       tmpPointVert = tmpPointVert - 25;
-      let coordinate = this.convertGridCoordinate([
+      let coordinate = this.convertGridCoordinate(
         0,
-        (tmpPointVert - drag_coordinates[1]) / stageScale,
-      ]);
+        (tmpPointVert - drag_coordinates[1]) / stageScale
+      );
       notches.push(
         <Text
           key={"textCoordinateY-" + tmpPointVert}
-          text={coordinate[0].toFixed(2)}
+          text={coordinate[1].toFixed(2)}
           fontSize={10 / stageScale}
           x={(coordinateRootPoint[0] - 35 - drag_coordinates[0]) / stageScale}
           y={(tmpPointVert - 5 - drag_coordinates[1]) / stageScale}
@@ -967,7 +975,7 @@ class Memory2D extends React.Component {
       <Text
         key="root-text"
         fill="#AAAAAA"
-        text={`${rootPoint[0].toFixed(2)}, ${rootPoint[2].toFixed(2)}`}
+        text={`${rootPoint[1].toFixed(2)}, ${rootPoint[0].toFixed(2)}`}
         fontSize={10 / stageScale}
         x={rootTextCoordinate[0]}
         y={rootTextCoordinate[1]}
