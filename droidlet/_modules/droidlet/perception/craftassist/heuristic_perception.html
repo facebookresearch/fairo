@@ -115,7 +115,7 @@
 <span class="kn">from</span> <span class="nn">droidlet.base_util</span> <span class="kn">import</span> <span class="n">depth_first_search</span><span class="p">,</span> <span class="n">to_block_pos</span><span class="p">,</span> <span class="n">manhat_dist</span><span class="p">,</span> <span class="n">euclid_dist</span>
 <span class="kn">from</span> <span class="nn">droidlet.shared_data_struct.craftassist_shared_utils</span> <span class="kn">import</span> <span class="n">CraftAssistPerceptionData</span>
 
-<span class="n">GROUND_BLOCKS</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">80</span><span class="p">]</span>
+<span class="n">GROUND_BLOCKS</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">80</span><span class="p">]</span>
 <span class="n">MAX_RADIUS</span> <span class="o">=</span> <span class="mi">20</span>
 
 
@@ -503,7 +503,12 @@
     <span class="c1"># utility functions</span>
     <span class="k">def</span> <span class="nf">get_block_info</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>  <span class="c1"># fudge factor 5</span>
         <span class="n">height</span> <span class="o">=</span> <span class="n">max_height</span>
-        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">min_height</span> <span class="o">=</span> <span class="o">-</span><span class="mi">50</span>
+
+        <span class="k">if</span> <span class="n">agent</span><span class="o">.</span><span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;pyworld&quot;</span><span class="p">:</span>
+            <span class="n">min_height</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="k">while</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">height</span> <span class="o">&gt;</span> <span class="n">min_height</span><span class="p">:</span>
             <span class="n">B</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">get_blocks</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
             <span class="k">if</span> <span class="p">(</span>
                 <span class="p">(</span><span class="n">B</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
@@ -513,6 +518,8 @@
             <span class="p">):</span>  <span class="c1"># if it&#39;s not a mobile block (agent, speaker, mobs)</span>
                 <span class="k">return</span> <span class="n">height</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">B</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
             <span class="n">height</span> <span class="o">-=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">min_height</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
     <span class="n">gx</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
     <span class="n">gz</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>

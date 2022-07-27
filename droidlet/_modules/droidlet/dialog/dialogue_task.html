@@ -243,7 +243,9 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">task_data</span><span class="o">=</span><span class="p">{}):</span>
         <span class="n">task_data</span><span class="p">[</span><span class="s2">&quot;blocking&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">task_data</span><span class="o">=</span><span class="n">task_data</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">question</span> <span class="o">=</span> <span class="n">task_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;question&quot;</span><span class="p">)</span>  <span class="c1"># chat text that will be sent to user</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">question</span> <span class="o">=</span> <span class="n">build_question_json</span><span class="p">(</span>
+            <span class="n">task_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;question&quot;</span><span class="p">),</span> <span class="n">text_response_options</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;yes&quot;</span><span class="p">,</span> <span class="s2">&quot;no&quot;</span><span class="p">]</span>
+        <span class="p">)</span>  <span class="c1"># chat text that will be sent to user</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_memids</span> <span class="o">=</span> <span class="n">task_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="s2">&quot;task_memids&quot;</span>
         <span class="p">)</span>  <span class="c1"># list of Task objects, will be pushed in order</span>
@@ -325,7 +327,9 @@
 
 
 <span class="k">def</span> <span class="nf">map_yes_last_chat</span><span class="p">(</span><span class="n">task</span><span class="p">:</span> <span class="n">Task</span><span class="p">):</span>
-    <span class="n">chat_mem</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_most_recent_incoming_chat</span><span class="p">(</span><span class="n">after</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">step_time</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">chat_mem</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">ChatNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">get_most_recent_incoming_chat</span><span class="p">(</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">after</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">step_time</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="p">)</span>
     <span class="n">response</span> <span class="o">=</span> <span class="s2">&quot;no&quot;</span>
     <span class="k">if</span> <span class="n">chat_mem</span><span class="p">:</span>
         <span class="c1"># FIXME...</span>
@@ -402,13 +406,13 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># Found it! Add the approriate tag to current candidate and mark it as the output</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span>
                         <span class="n">subj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">current_candidate</span><span class="p">,</span>
                         <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_tag&quot;</span><span class="p">,</span>
                         <span class="n">obj_text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_obj_span</span><span class="p">,</span>
                     <span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">TripleNode</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span>
                         <span class="n">subj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span>
                         <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;dialogue_clarification_output&quot;</span><span class="p">,</span>
                         <span class="n">obj_text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">current_candidate</span><span class="p">,</span>
@@ -428,6 +432,7 @@
     <span class="k">def</span> <span class="nf">point_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s2">&quot;get_point_at_target&quot;</span><span class="p">):</span>
             <span class="n">bounds</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">get_point_at_target</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pointing at </span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># FIXME is there a more graceful way to handle this?</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
