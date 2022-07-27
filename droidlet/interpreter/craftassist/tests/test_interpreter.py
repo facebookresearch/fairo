@@ -28,7 +28,9 @@ def add_two_cubes(test):
     )
     test.cube_left: List[Block] = list(
         test.add_object(
-            xyzbms=droidlet.lowlevel.minecraft.shapes.cube(), origin=(19, 63, 20), relations=triples
+            xyzbms=droidlet.lowlevel.minecraft.shapes.cube(),
+            origin=(19, 63, 20),
+            relations=triples,
         ).blocks.items()
     )
     test.set_looking_at(test.cube_right[0][0])
