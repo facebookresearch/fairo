@@ -55,7 +55,7 @@ threshold_no_grasps_from_graspnet_error = 5
 # # torch.tensor([-1.1165,  0.7988,  1.5438, -2.3060, -1.0097,  2.0797, -0.5347])
 rise_above_height = 0.3
 top_closed_1 = torch.tensor([-2.8709,  1.7132,  1.3774, -1.3681, -1.4531,  1.9806,  0.4803])
-top_closed_2 = torch.tensor([-2.5949,  1.7388,  1.0075, -1.6537, -1.4691,  2.3417,  0.4605])
+top_closed_2 = torch.tensor([-2.5949,  1.6388,  1.0075, -1.6537, -1.4691,  2.3417,  0.4605])
 top_open = torch.tensor([-2.8362,  1.7326,  1.0338, -1.2461, -1.4473,  2.2300, -0.0111])
 bottom_closed_1 = torch.tensor([-2.7429,  1.7291,  1.0249, -1.3325, -1.0166,  2.1604, -0.1720])
 bottom_closed_2 = torch.tensor([-2.1674,  1.6435,  0.5143, -1.2161, -0.9969,  2.5138,  0.2471])
@@ -65,7 +65,7 @@ bottom_open = torch.tensor([-2.4781,  1.7273,  0.5201, -0.9822, -0.9824,  2.4964
 high_position_close = torch.tensor([-2.8740,  1.3173,  1.5164, -1.2091, -1.1478,  1.4974, -0.1642])
 sink_pose = torch.tensor([-0.2135, -0.0278,  0.5381, -2.1573,  0.0384,  2.1235, -0.6401])
 drop_pose = torch.tensor([-1.6796,  0.7708,  0.0031, -1.9066,  0.0218,  2.7228, -1.8208])
-above_the_edge = torch.tensor([-2.3,  0.1228,  0.3624, -1.7097, -0.0876,  1.8700, -1.5221])
+above_the_edge = torch.tensor([-2.0,  0.1228,  0.3624, -1.7097, -0.0876,  1.8700, -1.5221])
 
 # torch.tensor([-1.1165,  0.7988,  1.5438, -2.3060, -1.0097,  2.0797, -0.5347])
 kernel = np.ones((3,3), np.uint8)
@@ -537,15 +537,18 @@ def pickplace(
                     filtered_grasp_group
                 )
                 if chosen_grasp is None:
-                    print("Repeating the loop as CHOSEN grasp is None")
-                    continue
-                # grasp_client.visualize_grasp(scene_pcd, final_filtered_grasps)
-                if len(final_filtered_grasps) <= 1:
-                    print('No grasps after ik feasibility check')
+                    # print("Repeating the loop as CHOSEN grasp is None")
+                    # continue
+                    print('None of grasps were IK feasible. Selecting chosen grasp randomly from any of the infeasible IK grasps')
                     chosen_grasp = filtered_grasp_group[0]
-                grasp_client.visualize_grasp(
-                    _pcd, final_filtered_grasps, name=_cat
-                )
+                # # grasp_client.visualize_grasp(scene_pcd, final_filtered_grasps)
+                # if len(final_filtered_grasps) <= 1:
+                #     breakpoint()
+                #     chosen_grasp = filtered_grasp_group[0]
+                else:
+                    grasp_client.visualize_grasp(
+                        _pcd, final_filtered_grasps, name=_cat
+                    )
                 k = 0
                 success = False
                 # while not success and k < len(final_filtered_grasps):
@@ -578,7 +581,7 @@ def main(cfg):
     cfg.cam.intrinsics_file = hydra.utils.to_absolute_path(cfg.cam.intrinsics_file)
     cfg.cam.extrinsics_file = hydra.utils.to_absolute_path(cfg.cam.extrinsics_file)
     cameras = hydra.utils.instantiate(cfg.cam)
-    
+    breakpoint()
     # print("Loading camera workspace masks")
     # # import pdb; pdb.set_trace()
     masks_1 = np.array(
@@ -614,10 +617,10 @@ def main(cfg):
         'pink_small_bowl',
         'red_bowl',
         'purple_plate',
-    # ]
-    # top_category_order = [
+    ]
+    top_category_order = [
         'yellow_cup',
-        'yellow_neon_plate', 
+        'neon_yellow_plate', 
         'light_blue_bowl', 
         'aqua_plate',
     ]
@@ -632,7 +635,7 @@ def main(cfg):
     
     root_working_dir = os.getcwd()
     # # place all in sink
-    # # done = False
+    # done = False
     # while not done:
     #     done = pickplace(
     #         robot,
@@ -646,24 +649,24 @@ def main(cfg):
     #         segmentation_client,
     #         grasp_client
     # #     )
-    # open_top_drawer(robot)  
-    # robot.go_home()  
-    # done = 0
-    # while not done:
-    #     done = pickplace(
-    #         robot,
-    #         top_category_order,
-    #         cfg,
-    #         masks_1,
-    #         masks_2,
-    #         root_working_dir,
-    #         cameras,
-    #         frt_cams,
-    #         segmentation_client,
-    #         grasp_client
-    #     )
-    # close_top_drawer(robot)
-    # open_bottom_drawer(robot)
+    open_top_drawer(robot)  
+    robot.go_home()  
+    done = 0
+    while not done:
+        done = pickplace(
+            robot,
+            top_category_order,
+            cfg,
+            masks_1,
+            masks_2,
+            root_working_dir,
+            cameras,
+            frt_cams,
+            segmentation_client,
+            grasp_client
+        )
+    close_top_drawer(robot)
+    open_bottom_drawer(robot)
     robot.go_home()  
     done = 0
     while not done:

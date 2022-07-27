@@ -15,7 +15,7 @@ import tempfile
 
 log = logging.getLogger(__name__)
 
-threshold_dist_to_ref_angle = 1.4
+threshold_dist_to_ref_angle = 1.7
 
 
 def compute_des_pose(best_grasp):
@@ -89,24 +89,24 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         gripper_max_width=0.085,
         # ikpy params:
         base_elements=["panda_link0"],
-        soft_limits=[
-            (-2.70, 2.70),
-            (-1.56, 1.56),
-            (-2.7, 2.7),
-            (-2.87, -0.07),
-            (-2.7, 2.7),
-            (-0.02, 3.55),
-            (-2.7, 2.7),
-        ],
         # soft_limits=[
-        #     (-3.1, 0.5),
-        #     (-1.5, 3.1),
-        #     (-3.1, 3.1),
-        #     (-3.1, 1.5),
+        #     (-2.70, 2.70),
+        #     (-1.56, 1.56),
         #     (-2.7, 2.7),
-        #     (-3.1, 3.55),
+        #     (-2.87, -0.07),
+        #     (-2.7, 2.7),
+        #     (-0.02, 3.55),
         #     (-2.7, 2.7),
         # ],
+        soft_limits=[
+            (-3.1, 0.5),
+            (-1.5, 3.1),
+            (-3.1, 3.1),
+            (-3.1, 1.5),
+            (-2.7, 2.7),
+            (-3.1, 3.55),
+            (-2.7, 2.7),
+        ],
         *args,
         **kwargs,
     ):
@@ -183,7 +183,7 @@ class GraspingRobotInterface(polymetis.RobotInterface):
         return self.ik(point) is not None
 
     def select_grasp(
-        self, grasps: graspnetAPI.GraspGroup, num_grasp_choices=20
+        self, grasps: graspnetAPI.GraspGroup, num_grasp_choices=150
     ) -> graspnetAPI.Grasp:
         with torch.no_grad():
             feasible_i = []
@@ -206,13 +206,13 @@ class GraspingRobotInterface(polymetis.RobotInterface):
                 if self.check_feasibility(point_a) and self.check_feasibility(point_b):
                     feasible_i.append(i)
 
-                # if len(feasible_i) == num_grasp_choices:
-                #     if i >= num_grasp_choices:
-                #         print(
-                #             f"Kinematically filtered {i + 1 - num_grasp_choices} grasps"
-                #             " to get 5 feasible positions"
-                #         )
-                #     break
+                if len(feasible_i) == num_grasp_choices:
+                    if i >= num_grasp_choices:
+                        print(
+                            f"Kinematically filtered {i + 1 - num_grasp_choices} grasps"
+                            " to get feasible positions"
+                        )
+                    break
 
             # Choose the grasp closest to the neutral position
             filtered_grasps = grasps[feasible_i]
