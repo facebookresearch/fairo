@@ -18,21 +18,16 @@ const defaultCameraNearPlane = 1
 const defaultCameraFarPlane = 10000
 const fps = 2
 const renderInterval = 1000 / fps
-let camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
+let world, camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
 const followPointerScale = 150;
 
-const preLoadMaterialNames = ['grass', 'dirt']//, 'white wool', 'orange wool', 'magenta wool'];
+const preLoadMaterialNames = ['grass', 'dirt', 'wood', 'iron', 'bedrock', 'red wool'];
 const blockScale = 50;
-const bid2Color = {
-    1: 0x808080,
-    2: 0xff0000,
-    3: 0xffff00,
-    4: 0x800000,
-    5: 0x0000ff
-}
 const bid2Name = {
     8: 'grass',
     9: 'dirt',
+    13: 'wood',
+    25: 'bedrock',
     46: 'white wool',
     47: 'orange wool',
     48: 'magenta wool',
@@ -48,13 +43,16 @@ const bid2Name = {
     58: 'brown wool',
     59: 'green wool',
     60: 'red wool',
-    61: 'black wool'
+    61: 'black wool',
+    66: 'gold',
+    67: 'iron',
+    69: 'lava',
 }
 
 const TEXTURE_PATH = "https://cdn.jsdelivr.net/gh/snyxan/assets@main/block_textures/";
 
 
-const SL = 16
+const SL = 15*3
 const voxelOffset = [0, 0, 0]//[SL/2, SL/2, SL/2]
 
 // voxel related constants
@@ -74,11 +72,12 @@ const MoveStep = 0.5 // normalized -- block length is 1 here
 
 let controlled_player, agent_player;
 const AGENT_NAME = "craftassist_agent";
-const PLAYER_NAME = "dashboard_player";
+const PLAYER_NAME = "dashboard";
 
 let mobs = {}
 let mobList = []
 let itemStacks = {}
+let itemList = []
 
 let direction_vec = new THREE.Vector3();
 
@@ -95,18 +94,6 @@ function handleKeypress(e, player) {
     let camera_vec;
     console.log(e.key)
     switch (e.key) {
-        case "ArrowLeft":
-            player.rotate(0.1);
-            break;
-        case "ArrowRight":
-            player.rotate(-0.1);
-            break;
-        case "t":
-            player.toggle();
-            break;
-        case "r":
-            player.rotateTo(0,0);
-            break;
         case "w":
             camera_vec = cameraVector();
             direction_vec.set(camera_vec[0], 0, camera_vec[2])
@@ -288,15 +275,6 @@ class DVoxelEngine {
             }
         );
 
-        let world = {
-            THREE: THREE,
-            scene: scene,
-            render: render,
-            camera: camera,
-            reticle: reticle,
-            sceneItems: sceneItems,
-        };
-
         for (const key in VW_AVATAR_MAP) {
             if (typeof(key) === "string" && VW_AVATAR_MAP[key] !== null) {
                 const opts = {
@@ -304,6 +282,7 @@ class DVoxelEngine {
                     name: key,
                     position: [100, 500, -500]
                 };
+                updateWorld();
                 VoxelPlayer.build(world, opts).then(
                     function (player) {
                         if (player.avatarType === "player") {
@@ -330,10 +309,12 @@ class DVoxelEngine {
     setVoxel(pos, bid) {
         if (bid === 0) {
             let obj = scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2]))
-            console.log('deleting')
-            console.log(obj)
+            // console.log('deleting')
+            // console.log(obj)
             this.scene.remove(scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2])))
             this.scene.remove(scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2], true)))
+            sceneItems = sceneItems.filter(item => item !== obj);
+            updateWorld();
             return;
         }
         const blockName = bid2Name[bid];
@@ -371,16 +352,20 @@ class DVoxelEngine {
         cube.position.set(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
         cube.updateMatrix();
         cube.name = pos2Name(pos[0], pos[1], pos[2]);
-        // console.log("Adding voxel with name: " + cube.name)
-        this.scene.add(cube);
-        this.sceneItems.push(cube);
         
-        const box = new THREE.BoxHelper(cube, 0x000000);
-        box.name = pos2Name(pos[0], pos[1], pos[2], true);
-        this.scene.add(box);
+        if (!scene.getObjectByName(cube.name)) {
+            // console.log("Adding voxel with name: " + cube.name)
+            this.scene.add(cube);
+            this.sceneItems.push(cube);
+        
+            const box = new THREE.BoxHelper(cube, 0x000000);
+            box.name = pos2Name(pos[0], pos[1], pos[2], true);
+            this.scene.add(box);
 
-        const bidx = convertCoordinateSystems(pos[0], pos[1], pos[2]);
-        setBlock2(bidx[0], bidx[1], bidx[2], bid);
+            const bidx = convertCoordinateSystems(pos[0], pos[1], pos[2]);
+            setBlock2(bidx[0], bidx[1], bidx[2], bid);
+            updateWorld();
+        }
     }
 
     raycastVoxels(v) {
@@ -414,14 +399,16 @@ class DVoxelEngine {
                 key["x"],
                 key["y"],
                 key["z"]
-            )
+            );
+            let look = [key["yaw"], key["pitch"]];
+
             // console.log("name: " + name + "x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2])
             if (name === AGENT_NAME && agent_player != null) {
-                agent_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale)
-                that.playerPostionSafetyCheck(agent_player);
+                agent_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale);
+                agent_player.rotateTo(look[0], look[1]);
             } else if (name === PLAYER_NAME && controlled_player != null) {
-                // console.log("player moveTo: x: " + xyz[0] + ", y:" + xyz[1] + ", z:" + xyz[2]);
-                controlled_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale)
+                controlled_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale);
+                // let the player object own look direction always
                 that.playerPostionSafetyCheck(controlled_player);
             }
         })
@@ -434,15 +421,15 @@ class DVoxelEngine {
         }
         let pos = player.getPosition();
         let pos_xyz = convertCoordinateSystems(pos.x, pos.y, pos.z);
-        if (((pos_xyz[0] / blockScale) > SL) ||
-            ((pos_xyz[0] / blockScale) < 0) ||
-            ((pos_xyz[1] / blockScale) > SL) ||
+        if (((pos_xyz[0] / blockScale) > (2 * SL / 3)) ||
+            ((pos_xyz[0] / blockScale) < (SL / 3)) ||
+            ((pos_xyz[1] / blockScale) > (SL / 3)) ||
             ((pos_xyz[1] / blockScale) < 0) ||
-            ((pos_xyz[2] / blockScale) > SL) ||
-            ((pos_xyz[2] / blockScale) < 0) ) {
+            ((pos_xyz[2] / blockScale) > (2 * SL / 3)) ||
+            ((pos_xyz[2] / blockScale) < (SL / 3)) ) {
                 console.log("safety fail, running away");
                 // TODO check collisions and move somewhere else
-                let safe_xyz = convertCoordinateSystems(1, SL-2, 1);
+                let safe_xyz = convertCoordinateSystems(Math.floor(SL/2), 5, Math.floor(SL/2));
                 player.moveTo(safe_xyz[0] * blockScale, safe_xyz[1] * blockScale, safe_xyz[2] * blockScale);
                 updatePlayerPosition(player);
         }
@@ -451,12 +438,7 @@ class DVoxelEngine {
     updateMobs(mobsInfo) {
         // console.log("DVoxel Engine update mobs")
         // console.log(mobsInfo)
-        let world = {
-            THREE: THREE,
-            scene: scene,
-            render: render,
-            camera: camera,
-        };
+
         mobsInfo.forEach(function(key, index) {
             const entityId = key['entityId'].toString()
             const pos = convertCoordinateSystems(
@@ -468,7 +450,9 @@ class DVoxelEngine {
             if (entityId in mobs) {
                 // console.log("mob already exists, updating states")
                 mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
+                mobs[entityId].rotateTo(key['look'][0], key['look'][1]);
             } else if (mobList.includes(entityId)) {
+                console.log("mob build race condition");
                 // Mob still being built, ignore
             } else {
                 console.log("building mob with ID: " + entityId);
@@ -478,6 +462,7 @@ class DVoxelEngine {
                     name: name,
                     position: [pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale]
                 };
+                updateWorld();
                 VoxelMob.build(world, mobOpts).then(
                     function (newMob) {
                         mobs[entityId] = newMob;
@@ -491,12 +476,7 @@ class DVoxelEngine {
     updateItemStacks(itemStacksInfo) {
         // console.log("DVoxel Engine update item stacks")
         // console.log(itemStacksInfo)
-        let world = {
-            THREE: THREE,
-            scene: scene,
-            render: render,
-            camera: camera,
-        };
+
         itemStacksInfo.forEach(function(key, index) {
             const entityId = key['entityId'].toString()
             const pos = convertCoordinateSystems(
@@ -504,16 +484,28 @@ class DVoxelEngine {
                 key['pos'][1],
                 key['pos'][2]
             )
-            const name = key['name']
+            const name = key['typeName'];
             if (entityId in itemStacks) {
                 // console.log("item already exists, updating states")
                 itemStacks[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
+
+                if (key['holder_entityId'] == -1) {
+                    itemStacks[entityId].drop()
+                } else {
+                    itemStacks[entityId].pick()
+                }
+            } else if (itemList.includes(entityId)) {
+                console.log("item build race condition");
+                // Item still being built, ignore
             } else {
+                console.log("building item with ID: " + entityId);
+                itemList.push(entityId);
                 const itemStackOpts = {
                     GLTFLoader: GLTFLoader,
                     name: name,
                     position: [pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale]
                 };
+                updateWorld();
                 VoxelItem.build(world, itemStackOpts).then(
                     function (newItemStack) {
                         itemStacks[entityId] = newItemStack;
@@ -547,11 +539,45 @@ class DVoxelEngine {
     }
 
     flashBlocks(bbox) {
-        // !Need to convert coordinates when this is implemented
-        // console.log("DVoxel Engine flash bbox")
+        console.log("DVoxel Engine flash bbox: " + bbox)
+
+        const coords = bbox.split(' ');
+        const pixOverlap = 6; // How many pixels bigger than the obj being flashed
+        const lowCorner = convertCoordinateSystems(parseInt(coords[0]), parseInt(coords[1]), parseInt(coords[2]));
+        const highCorner = convertCoordinateSystems(parseInt(coords[3]), parseInt(coords[4]), parseInt(coords[5]));
+        const geometry = new THREE.BoxGeometry(
+            ((Math.abs((highCorner[0] - lowCorner[0])) + 1) * blockScale) + pixOverlap,
+            ((Math.abs((highCorner[1] - lowCorner[1])) + 1) * blockScale) + pixOverlap,
+            ((Math.abs((highCorner[2] - lowCorner[2])) + 1) * blockScale) + pixOverlap,
+        );
+        const highlighterMaterial = new THREE.MeshBasicMaterial({color: 0x049ef4})
+        const highlightCube = new THREE.Mesh(geometry, highlighterMaterial);
+        highlightCube.position.x += ((((highCorner[0] - lowCorner[0]) / 2) + lowCorner[0]) * blockScale);
+        highlightCube.position.y += ((((highCorner[1] - lowCorner[1]) / 2) + lowCorner[1]) * blockScale);
+        highlightCube.position.z += ((((highCorner[2] - lowCorner[2]) / 2) + lowCorner[2]) * blockScale);
+        scene.add(highlightCube);
+
+        let flashInterval = window.setInterval(function () {
+            if (highlightCube.visible) {
+                highlightCube.visible = false;
+            } else {
+                highlightCube.visible = true;
+            }
+        }, 500);
+
+        window.setTimeout(function () {
+            window.clearInterval(flashInterval);
+            scene.remove(highlightCube);
+        }, 4100);
+
     }
 
 }
+
+// *** Everything should be in radians ***
+// function degToRad(deg) {
+//     return (deg / 360) * Math.PI * 2
+// }
 
 function setBlock2(x, y, z, id) {
     voxels[x + voxelOffset[0]][y + voxelOffset[1]][z + voxelOffset[2]] = id
@@ -576,6 +602,21 @@ function cameraPosition() {
     temporaryPosition.applyMatrix4(camera.matrixWorld)
     return [temporaryPosition.x / blockScale, temporaryPosition.y / blockScale, temporaryPosition.z / blockScale]
   }
+
+function updateWorld() {
+    // Keep the world variable updated with the most recent contents
+    world = {
+        THREE: THREE,
+        scene: scene,
+        render: render,
+        camera: camera,
+        reticle: reticle,
+        sceneItems: sceneItems,
+    };
+    if (controlled_player) {
+        controlled_player.updateWorld(world);
+    }
+}
 
 function render() {
     renderer.render( scene, camera );
