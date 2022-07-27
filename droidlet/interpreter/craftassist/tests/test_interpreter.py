@@ -22,13 +22,13 @@ def add_two_cubes(test):
     test.cube_right: List[Block] = list(
         test.add_object(
             xyzbms=droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)),
-            origin=(9, 63, 4),
+            origin=(19, 63, 14),
             relations=triples,
         ).blocks.items()
     )
     test.cube_left: List[Block] = list(
         test.add_object(
-            xyzbms=droidlet.lowlevel.minecraft.shapes.cube(), origin=(9, 63, 10), relations=triples
+            xyzbms=droidlet.lowlevel.minecraft.shapes.cube(), origin=(19, 63, 20), relations=triples
         ).blocks.items()
     )
     test.set_looking_at(test.cube_right[0][0])

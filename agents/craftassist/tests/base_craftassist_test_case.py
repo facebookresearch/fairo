@@ -41,7 +41,7 @@ class BaseCraftassistTestCase(unittest.TestCase):
             "coord_shift": (-16, 54, -16),
         }
         world_opts = Opt()
-        world_opts.sl = 32
+        world_opts.sl = 45
         self.world = World(world_opts, spec)
         self.agent = FakeAgent(self.world, opts=agent_opts)
         self.set_looking_at((0, 63, 0))
