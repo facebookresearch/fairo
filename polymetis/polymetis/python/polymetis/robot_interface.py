@@ -332,7 +332,7 @@ class RobotInterface(BaseRobotInterface):
         self.ik_solver = TracIKSolver(
             robot_description_path,
             ee_link_name,
-            #TODO
+            # TODO
         )
 
     """
@@ -491,10 +491,9 @@ class RobotInterface(BaseRobotInterface):
 
         # Compute IK
         joint_pos_desired = self.ik_solver.ik(
-            ee_pose_desired.as_matrix().numpy(), 
-            q_init=joint_pos_current.numpy()
+            ee_pose_desired.as_matrix().numpy(), q_init=joint_pos_current.numpy()
         )
-        #TODO: Check IK output with FK and raise error if the desired pose is not achieved?
+        # TODO: Check IK output with FK and raise error if the desired pose is not achieved?
 
         return self.move_to_joint_positions(joint_pos_desired, time_to_go=time_to_go)
 
