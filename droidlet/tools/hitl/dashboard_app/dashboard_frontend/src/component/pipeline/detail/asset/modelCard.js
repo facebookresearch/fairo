@@ -9,6 +9,7 @@ Usage:
 import { Button, Card, Descriptions, Divider, Tooltip } from "antd";
 import React, { useContext, useEffect, useState } from "react";
 import { SocketContext } from "../../../../context/socket";
+import ModelAtrributeModal from "./modelAttributeDetailModal";
 
 const { Meta } = Card;
 
@@ -19,6 +20,8 @@ const ModelCard = (props) => {
     const [modelKeys, setModelKeys] = useState(null);
     const [loadingArgs, setLoadingArgs] = useState(true);
     const [loadingKeys, setLoadingKeys] = useState(true);
+    const [currentModelKey, setCurrentModelKey] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
 
     const socket = useContext(SocketContext);
 
@@ -27,11 +30,6 @@ const ModelCard = (props) => {
         // data other than args are rendered in the ModelAttributeDetailModal component
         if (data !== 404 && data[0] === "args") {
             setModelArgs(JSON.parse(data[1]));
-        }
-    });
-
-        if (data !== 404) {
-            setModelArgs(JSON.parse(data));
         }
     }
 
