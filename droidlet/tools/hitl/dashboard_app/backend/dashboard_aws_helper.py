@@ -80,22 +80,20 @@ def _read_file(fname: str):
     return content
 
 
-def get_job_list():
+def get_run_list(pipeline: str):
     """
-    helper method for preparing get_job_list api's response
+    helper method for preparing get_run_list api's response
     """
-    job_list = []
-    # list object from s3 bucket
-    res = s3.meta.client.get_paginator("list_objects").paginate(
-        Bucket=S3_BUCKET_NAME, Delimiter="/"
-    )
-    # pattern of YYYYMMDDHHMMSS (batch id pattern)
-    pattern = r"([0-9]{4})(0[1-9]|1[0-2])(0[1-9]|[1-2][0-9]|3[0-1])(2[0-3]|[01][0-9])([0-5][0-9])([0-5][0-9])"
+    # download run list file
+    local_fname = _dowload_file(f"{pipeline}_run_list")
+    if local_fname is None:
+        return f"cannot find run list for pipeline {pipeline}", 404
+    
+    run_list = _read_file(local_fname).split("\n")
+    run_list = list(filter(lambda line: len(line), run_list))    # filter out empty strings if there 
+    run_list = [int(bid) for bid in run_list]
 
-    for prefix in res.search("CommonPrefixes"):
-        if re.match(pattern, prefix.get("Prefix")):
-            job_list.append(int(prefix.get("Prefix")[:-1]))
-    return job_list
+    return run_list, None
 
 
 def get_traceback_by_id(batch_id: int):

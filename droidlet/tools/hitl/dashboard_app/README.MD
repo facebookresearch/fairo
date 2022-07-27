@@ -87,7 +87,7 @@ npm start
 
 ## Supported APIs
 APIs are based on socket event, the following APIs are supported currently: 
-- get_job_list:
+- get_run_list:
     - get a list of jobs stored on AWS that has been run in the past. 
     - input: no parameter input.
     - output: a list of batch ids of the jobs.

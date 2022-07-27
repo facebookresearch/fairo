@@ -20,7 +20,7 @@ const Main = () => {
     }, []);
 
     const getJobList = () => {
-        socket.emit("get_job_list");
+        socket.emit("get_run_list");
         setLoading(true);
     } 
 
@@ -43,7 +43,7 @@ const Main = () => {
     }
 
     useEffect(() => {
-        socket.on("get_job_list", (data) => handleReceivedJobList(data));
+        socket.on("get_run_list", (data) => handleReceivedJobList(data));
         socket.on("get_traceback_by_id", (data) => handleReciveTraceback(data));
         socket.on("get_run_info_by_id", (data) => handleReciveInfo(data));
     }, [socket, handleReceivedJobList, handleReciveTraceback, handleReciveInfo]);

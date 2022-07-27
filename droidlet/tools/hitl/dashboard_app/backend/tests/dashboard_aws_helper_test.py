@@ -4,7 +4,7 @@ import boto3
 import json
 
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
-    get_job_list,
+    get_run_list,
     get_run_info_by_id,
     get_traceback_by_id,
 )
@@ -41,8 +41,8 @@ class TestAWSHelper(unittest.TestCase):
         s3.Object(S3_BUCKET_NAME, self._info_fname).put(Body=json_content)
         s3.Object(S3_BUCKET_NAME, self._traceback_fname).put(Body="1, 2 \n1, 2")
 
-    def test_get_job_list(self):
-        res = get_job_list()
+    def test_get_run_list(self):
+        res = get_run_list()
         self.assertGreater(len(res), 0)
 
     def test_get_traceback_by_id_valid(self):
