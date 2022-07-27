@@ -12,6 +12,7 @@ import logging
 
 import grpc  # This requires `conda install grpcio protobuf`
 import torch
+from tracikpy import TracIKSolver
 
 import polymetis
 from polymetis_pb2 import LogInterval, RobotState, ControllerChunk, Empty
@@ -328,6 +329,11 @@ class RobotInterface(BaseRobotInterface):
         self.robot_model = toco.models.RobotModelPinocchio(
             robot_description_path, ee_link_name
         )
+        self.ik_solver = TracIKSolver(
+            robot_description_path,
+            ee_link_name,
+            #TODO
+        )
 
     """
     Getter methods
@@ -456,6 +462,7 @@ class RobotInterface(BaseRobotInterface):
             self.robot_model is not None
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
 
+        joint_pos_current = self.get_joint_positions()
         ee_pos_current, ee_quat_current = self.get_ee_pose()
 
         # Parse parameters
@@ -481,40 +488,15 @@ class RobotInterface(BaseRobotInterface):
         ee_pose_desired = T.from_rot_xyz(
             rotation=R.from_quat(ee_quat_desired), translation=ee_pos_desired
         )
-        # Roughly estimate joint diff by linearizing around current joint pose
-        joint_pos_current = self.get_joint_positions()
-        jacobian = self.robot_model.compute_jacobian(joint_pos_current)
 
-        ee_pose_diff = ee_pose_desired * ee_pose_current.inv()
-        joint_pos_diff = torch.linalg.pinv(jacobian) @ ee_pose_diff.as_twist()
-        time_to_go_adaptive = self._adaptive_time_to_go(joint_pos_diff)
-
-        if time_to_go is None:
-            time_to_go = time_to_go_adaptive
-        elif time_to_go < time_to_go_adaptive:
-            log.warn(
-                "The specified 'time_to_go' might not be large enough to ensure accurate movement."
-            )
-
-        # Plan trajectory
-        waypoints = toco.planning.generate_cartesian_space_min_jerk(
-            start=ee_pose_current,
-            goal=ee_pose_desired,
-            time_to_go=time_to_go,
-            hz=self.hz,
+        # Compute IK
+        joint_pos_desired = self.ik_solver.ik(
+            ee_pose_desired.as_matrix().numpy(), 
+            q_init=joint_pos_current.numpy()
         )
+        #TODO: Check IK output with FK and raise error if the desired pose is not achieved?
 
-        # Create & execute policy
-        torch_policy = toco.policies.EndEffectorTrajectoryExecutor(
-            ee_pose_trajectory=[waypoint["pose"] for waypoint in waypoints],
-            ee_twist_trajectory=[waypoint["twist"] for waypoint in waypoints],
-            Kp=self.Kx_default if Kx is None else Kx,
-            Kd=self.Kxd_default if Kxd is None else Kxd,
-            robot_model=self.robot_model,
-            ignore_gravity=self.use_grav_comp,
-        )
-
-        return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
+        return self.move_to_joint_positions(joint_pos_desired, time_to_go=time_to_go)
 
     """
     Continuous control methods
