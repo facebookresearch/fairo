@@ -5,9 +5,9 @@ This file include a flask server that is the backend of the HITL dashboard app.
 """
 
 
-import argparse
 from enum import Enum
 import json
+from droidlet.tools.artifact_scripts.compute_checksum import compute_checksum_for_directory
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
     get_dataset_by_name,
     get_dataset_indices_by_id,
@@ -22,6 +22,7 @@ from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_model_utils import (
     get_complete_model,
     get_keys,
+    get_model_checksum_by_name_n_agent,
     get_value_by_key,
 )
 from flask import Flask, abort
@@ -48,6 +49,9 @@ class DASHBOARD_EVENT(Enum):
     GET_DATASET = "get_dataset_by_name"
     GET_MODEL_KEYS = "get_model_keys_by_id"
     GET_MODEL_VALUE = "get_model_value_by_id_n_key"
+
+    GET_MODEL_CHECKSUM = "get_model_checksum_by_name_n_agent"
+    UPDATE_MODEL_CHECKSUM = "update_model_checksum_by_name_n_agent"
 
 
 # constants for model related apis
@@ -223,6 +227,49 @@ def get_model_value(batch_id, key):
     else:
         # get a specific value
         emit(DASHBOARD_EVENT.GET_MODEL_VALUE.value, [key, get_value_by_key(model, key)])
+
+
+@socketio.on(DASHBOARD_EVENT.GET_MODEL_CHECKSUM.value)
+def get_model_checksum(model_name, agent):
+    """
+    get the checksum for a specific model and agent
+    - input:
+        - model name
+        - agent name
+        - the valid combinations for model name and agent are:
+            - nlu
+            - perception locobot
+            - perception craftassist
+    - output: the checksum if model and agent combination are valid, and if checksum has been computed; otherwise error code
+    """
+    print(
+        f"Request received: {DASHBOARD_EVENT.GET_MODEL_CHECKSUM.value}, model = {model_name}, agent = {agent}"
+    )
+    checksum, error_code = get_model_checksum_by_name_n_agent(model_name, agent)
+    if error_code:
+        emit(DASHBOARD_EVENT.GET_MODEL_CHECKSUM.value, [model_name, agent, error_code])
+    else:
+        emit(DASHBOARD_EVENT.GET_MODEL_CHECKSUM.value, [model_name, agent, checksum])
+
+
+@socketio.on(DASHBOARD_EVENT.UPDATE_MODEL_CHECKSUM.value)
+def update_model_checksum(model_name, agent):
+    """
+    update the checksum for a specific model and agent
+    - input:
+        - model name
+        - agent name
+        - the valid combinations for model name and agent are:
+            - nlu
+            - perception locobot
+            - perception craftassist
+    - output: an success code if update success
+    """
+    print(
+        f"Request received: {DASHBOARD_EVENT.UPDATE_MODEL_CHECKSUM.value}, model = {model_name}, agent = {agent}"
+    )
+    compute_checksum_for_directory(agent, "models", model_name)
+    emit(DASHBOARD_EVENT.UPDATE_MODEL_CHECKSUM.value, 200)
 
 
 if __name__ == "__main__":

@@ -1,9 +1,14 @@
 # Dashboard App for HITL
-Updated July 13 by Chuxi.
+Updated July 22 by Chuxi.
 
 This is a Dashboard app prototype for the HITL system.
 
 ## Update Note
+- July 22:
+    - Added backend api and frontend components for viewing current model checksum and updating checksum.
+    - Demo:
+        - View and update checksum:
+            - ![demo_view_n_update_model_checksum](https://user-images.githubusercontent.com/51009396/180574655-2ffac43a-7e50-473b-a4aa-5379753b04cd.gif)
 - July 14:
     - Added model visualization component, user can see text info about a model:
     - Demo:
@@ -119,6 +124,26 @@ APIs are based on socket event, the following APIs are supported currently:
         - the batch id of the run.
         - the key for the model, could be any key from the model, or "COMPLETE", indicating getting the complete model dict
     - output: the key and the value specific to the key for the model if the model exists and key is valid, otherwise error code
-    
+ - get_model_checksum_by_name_n_agent    
+    - get the checksum for a specific model and agent
+    - input:
+        - model name
+        - agent name 
+        - the valid combinations for model name and agent are:
+            - nlu
+            - perception locobot
+            - perception craftassist
+    - output: the checksum if model and agent combination are valid, and if checksum has been computed; otherwise error code
+- update_model_checksum_by_name_n_agent
+    - update the checksum for a specific model and agent
+    - input:
+        - model name
+        - agent name
+        - the valid combinations for model name and agent are:
+            - nlu
+            - perception locobot
+            - perception craftassist
+    - output: an success code if update success
+
 ## Demo
 ![backend_api_demo](https://user-images.githubusercontent.com/51009396/175696481-532cec55-5b2e-4bae-bceb-9e7d3f2aa7b7.gif)
