@@ -38,13 +38,13 @@ def generate_trajectory(center_pose, radius, hz, num_loops, time_to_go):
         ee_pose_traj[i, :3] = center_pose[:3] + torch.Tensor([dx, dy, dz])
 
         # Orientation: Only rotate wrist
-        dr = R.from_rotvec(torch.Tensor([0.0, 0.0, np.pi * np.sin(theta) / 2.0]))
+        dr = R.from_rotvec(torch.Tensor([0.0, 0.0, np.pi * np.sin(theta) / 4.0]))
         ee_pose_traj[i, 3:] = (dr * R.from_quat(center_pose[3:])).as_quat()
 
     return ee_pose_traj
 
 
-def compare_traj(state_log, ref_traj, robot_model, experiment_name=""):
+def compare_traj(state_log, ref_traj, robot_model, ignore_steps, experiment_name=""):
     assert len(state_log) == ref_traj.shape[0]
 
     # Parse state log
@@ -55,6 +55,10 @@ def compare_traj(state_log, ref_traj, robot_model, experiment_name=""):
         ],
         dim=0,
     )
+
+    # Ignore spinup phase of trajectory
+    traj = traj[ignore_steps:, :]
+    ref_traj = ref_traj[ignore_steps:, :]
 
     # Compute error
     pos_err = torch.zeros(traj.shape[0])
@@ -79,6 +83,7 @@ def compare_traj(state_log, ref_traj, robot_model, experiment_name=""):
 if __name__ == "__main__":
     robot = RobotInterface()
     robot.go_home()
+    ignore_steps = int(0.5 * robot.metadata.hz)
 
     # Offline tracking: Send entire trajectory as controller
     pose_traj_offline = generate_trajectory(
@@ -116,7 +121,9 @@ if __name__ == "__main__":
     )
 
     state_log = robot.send_torch_policy(policy)
-    compare_traj(state_log, pose_traj_offline, robot.robot_model, "Offline")
+    compare_traj(
+        state_log, pose_traj_offline, robot.robot_model, ignore_steps, "Offline"
+    )
 
     # Online tracking: Send trajectory updates to impedance controller
     pose_traj_online = generate_trajectory(
@@ -136,4 +143,10 @@ if __name__ == "__main__":
     time.sleep(0.5)  # pad state log to be longer than the offline traj
 
     state_log = robot.terminate_current_policy()
-    compare_traj(state_log[:num_steps], pose_traj_offline, robot.robot_model, "Online")
+    compare_traj(
+        state_log[:num_steps],
+        pose_traj_offline,
+        robot.robot_model,
+        ignore_steps,
+        "Online",
+    )
