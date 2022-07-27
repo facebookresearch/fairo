@@ -74,14 +74,21 @@ def robot_poses(ip_address, pose_generator, time_to_go=3):
     )
 
     # Get reference state
+    robot_stuck_count = 0
     robot.go_home()
     for i, (pos_sampled, ori_sampled) in enumerate(pose_generator):
         print( f"Moving to pose ({i}): pos={pos_sampled}, quat={ori_sampled.as_quat()}")
 
         state_log = robot.move_to_ee_pose(position=pos_sampled,orientation=ori_sampled.as_quat(),time_to_go = time_to_go)
         print(f"Length of state_log: {len(state_log)}")
+        if len(state_log) < time_to_go*700:
+            robot_stuck_count += 1
+        if robot_stuck_count > 4:
+            robot.go_home()
+            robot_stuck_count = 0
+            continue
         if len(state_log) != time_to_go * robot.hz:
-            print(f"warning: log incorrect length. {len(state_log)} != {time_to_go * robot.hz}")
+            print(f"warning: log incorrect length. {len(state_log)} != {time_to_go * robot.hz}, robot stuck count = {robot_stuck_count}")
         while True:
             pos0, quat0 = robot.get_ee_pose()
             time.sleep(1)
@@ -125,11 +132,11 @@ def main(argv):
     parser.add_argument('--ip', default='100.96.135.68', help="robot ip address")
     parser.add_argument('--datafile', default='caldata.pkl', help="file to either load or save camera data")
     parser.add_argument('--overwrite', default=False, action='store_true', help="overwrite existing datafile, if it exists")
-    parser.add_argument('--marker-id', default=9, type=int, help="ID of the ARTag marker in the image")
+    parser.add_argument('--marker-id', default=17, type=int, help="ID of the ARTag marker in the image")
     parser.add_argument('--calibration-file', default='calibration.json', help="file to save final calibration data")
     parser.add_argument('--points-file', default='calibration_points.json', help="file to load convex hull to sample points from")
-    parser.add_argument('--num-points', default=20, type=int, help="number of points to sample from convex hull")
-    parser.add_argument('--time-to-go', default=3, type=float, help="time_to_go in seconds for each movement")
+    parser.add_argument('--num-points', default=10, type=int, help="number of points to sample from convex hull")
+    parser.add_argument('--time-to-go', default=5, type=float, help="time_to_go in seconds for each movement")
     parser.add_argument('--imagedir', default=None, help="folder to save debug images")
     parser.add_argument('--pixel-tolerance', default=2.0, type=float, help="mean pixel error tolerance (stage 2)")
     proj_funcs = {'hand_marker_proj_world_camera' :hand_marker_proj_world_camera, 

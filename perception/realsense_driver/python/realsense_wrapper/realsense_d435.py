@@ -38,6 +38,16 @@ class RealsenseAPI:
         # Warm start camera (realsense automatically adjusts brightness during initial frames)
         for _ in range(warm_start):
             self._get_frames()
+        self.decimation = rs.decimation_filter()
+        self.spatial = rs.spatial_filter()
+        self.temporal = rs.temporal_filter()
+        self.depth_to_disparity = rs.disparity_transform(True)
+        self.disparity_to_depth = rs.disparity_transform(False)
+        
+        self.spatial.set_option(rs.option.filter_magnitude, 5)
+        self.spatial.set_option(rs.option.filter_smooth_alpha, 1)
+        self.spatial.set_option(rs.option.filter_smooth_delta, 50)
+        self.spatial.set_option(rs.option.holes_fill, 3)
 
     def _get_frames(self):
         framesets = [pipe.wait_for_frames() for pipe in self.pipes]
@@ -58,20 +68,27 @@ class RealsenseAPI:
 
     def get_rgbd(self):
         """Returns a numpy array of [n_cams, height, width, RGBD]"""
-        framesets = self._get_frames()
         num_cams = self.get_num_cameras()
 
         rgbd = np.empty([num_cams, self.height, self.width, 4], dtype=np.uint16)
 
-        for i, frameset in enumerate(framesets):
+        for i, frameset in enumerate(self._get_frames()):
             color_frame = frameset.get_color_frame()
             rgbd[i, :, :, :3] = np.asanyarray(color_frame.get_data())
 
             depth_frame = frameset.get_depth_frame()
-            rgbd[i, :, :, 3] = np.asanyarray(depth_frame.get_data())
+            # breakpoint() # apply post-processing filters
+            # print('I was in realsense wrapper!!!!!!!')
+            
+            # depth_frame = self.decimation.process(depth_frame)
+            filtered_depth = self.spatial.process(depth_frame)
+            
+            rgbd[i, :, :, 3] = np.asanyarray(filtered_depth.get_data())
+            # rgbd[i, :, :, 3] = np.asanyarray(depth_frame.get_data())
 
         return rgbd
 
+    # def visualize_depth(self, )
 
 if __name__ == "__main__":
     cams = RealsenseAPI()
