@@ -50,6 +50,7 @@ import TurkInfo from "./components/Turk/TurkInfo";
 class StateManager {
   refs = [];
   socket = null;
+  worldSocket = null;
   default_url = "http://localhost:8000";
   connected = false;
   initialMemoryState = {
@@ -75,6 +76,9 @@ class StateManager {
     isTurk: false,
     agent_replies: [{}],
     last_reply: "",
+    dash_enable_map: false,
+    agent_enable_map: false,
+    backend: null,
   };
   session_id = null;
 
@@ -84,6 +88,7 @@ class StateManager {
     this.setLastChatActionDict = this.setLastChatActionDict.bind(this);
     this.setConnected = this.setConnected.bind(this);
     this.updateAgentType = this.updateAgentType.bind(this);
+    this.handleAgentWantsMap = this.handleAgentWantsMap.bind(this);
     this.forceErrorLabeling = this.forceErrorLabeling.bind(this);
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
     this.keyHandler = this.keyHandler.bind(this);
@@ -99,6 +104,8 @@ class StateManager {
     this.processHumans = this.processHumans.bind(this);
 
     this.processMap = this.processMap.bind(this);
+    this.handleMapToggle = this.handleMapToggle.bind(this);
+    this.sendManualChange = this.sendManualChange.bind(this);
 
     this.returnTimelineEvent = this.returnTimelineEvent.bind(this);
 
@@ -231,6 +238,11 @@ class StateManager {
       this.setConnected(true);
       this.socket.emit("get_memory_objects");
       this.socket.emit("get_agent_type");
+      this.socket.emit("does_agent_want_map");
+      const wsocket = this.worldSocket;
+      window.setTimeout(function () {
+        wsocket.emit("getVoxelWorldInitialState");
+      }, 3000);
     });
 
     socket.on("reconnect", (msg) => {
@@ -238,6 +250,11 @@ class StateManager {
       this.setConnected(true);
       this.socket.emit("get_memory_objects");
       this.socket.emit("get_agent_type");
+      this.socket.emit("does_agent_want_map");
+      const wsocket = this.worldSocket;
+      window.setTimeout(function () {
+        wsocket.emit("getVoxelWorldInitialState");
+      }, 3000);
     });
 
     socket.on("disconnect", (msg) => {
@@ -259,12 +276,13 @@ class StateManager {
     socket.on("memoryState", this.processMemoryState);
     socket.on("updateState", this.updateStateManagerMemory);
     socket.on("updateAgentType", this.updateAgentType);
+    socket.on("agentWantsMap", this.handleAgentWantsMap);
 
     socket.on("rgb", this.processRGB);
     socket.on("depth", this.processDepth);
     socket.on("image", this.processRGBDepth); // RGB + Depth
     socket.on("objects", this.processObjects);
-    socket.on("updateVoxelWorldState", this.updateVoxelWorld);
+    // socket.on("updateVoxelWorldState", this.updateVoxelWorld);
     socket.on("setVoxelWorldInitialState", this.setVoxelWorldInitialState);
     socket.on("showAssistantReply", this.showAssistantReply);
     socket.on("humans", this.processHumans);
@@ -274,6 +292,19 @@ class StateManager {
     socket.on("annotationRetrain", this.annotationRetrain);
     socket.on("saveRgbSegCallback", this.saveAnnotations);
     socket.on("handleMaxFrames", this.handleMaxFrames);
+
+    const worldUrl = "http://localhost:6002";
+    this.worldSocket = io.connect(worldUrl, {
+      transports: ["polling", "websocket"],
+    });
+    const wSocket = this.worldSocket;
+    wSocket.on("connect", (msg) => {
+      this.worldSocket.emit("init_player", {
+        player_type: "player",
+        name: "dashboard",
+      });
+    });
+    wSocket.on("updateVoxelWorldState", this.updateVoxelWorld);
   }
 
   updateStateManagerMemory(data) {
@@ -297,6 +328,16 @@ class StateManager {
       }
       if (ref instanceof InteractApp) {
         ref.setState({ agentType: this.memory.agentType });
+      }
+    });
+  }
+
+  handleAgentWantsMap(data) {
+    console.log("agentWantsMap: " + data["agent_enable_map"]);
+    this.agent_enable_map = data["agent_enable_map"];
+    this.refs.forEach((ref) => {
+      if (ref instanceof Settings) {
+        ref.setState({ agent_enable_map: this.agent_enable_map });
       }
     });
   }
@@ -339,7 +380,7 @@ class StateManager {
       alert("Received text message: " + res.chat);
     }
     this.memory.chats = res.allChats;
-
+    console.log("StateManager setChatResponse");
     // Set the commandState to display 'received' for one poll cycle and then switch
     this.memory.commandState = "received";
     setTimeout(() => {
@@ -365,6 +406,7 @@ class StateManager {
   }
 
   setLastChatActionDict(res) {
+    console.log("StateManager setLastChatActionDict");
     this.memory.lastChatActionDict = res.action_dict;
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
@@ -376,6 +418,9 @@ class StateManager {
   }
 
   updateVoxelWorld(res) {
+    if (res.backend) {
+      this.memory.backend = res.backend;
+    }
     this.refs.forEach((ref) => {
       if (ref instanceof VoxelWorld) {
         ref.setState({
@@ -398,15 +443,28 @@ class StateManager {
   }
 
   showAssistantReply(res) {
-    // TODO handle content types besides plain text
-    
+    // TODO support more content types
+
     let chat, response_options, isQuestion, questionType;
     try {
-      if (res.content_type === "point") { return }  // Let the minecraft client handle point
       let content = res.content;
-      chat = content.filter(entry => entry["id"] === "text")[0]["content"];
+      chat = content.filter((entry) => entry["id"] === "text")[0]["content"];
+
+      if (res.content_type === "point") {
+        if (this.memory.backend === "pyworld") {
+          this.refs.forEach((ref) => {
+            if (ref instanceof VoxelWorld) {
+              ref.flashVoxelWorldBlocks( chat.slice(7,) );
+            }
+          });
+        }
+        // Otherwise let cuberite handle point
+        return;
+      } 
       if (res.content_type === "chat_and_text_options") {
-        response_options = content.filter(entry => entry["id"] === "response_option").map(x => x["content"]);
+        response_options = content
+          .filter((entry) => entry["id"] === "response_option")
+          .map((x) => x["content"]);
         isQuestion = true;
         questionType = "clarification";
       } else {
@@ -420,7 +478,7 @@ class StateManager {
       isQuestion = false;
     }
     this.memory.last_reply = chat;
-    
+
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
         ref.setState({
@@ -428,7 +486,7 @@ class StateManager {
           response_options: response_options,
         });
         ref.addNewAgentReplies({
-          msg: chat, 
+          msg: chat,
           isQuestion: isQuestion,
           questionType: questionType,
           enableBack: false,
@@ -1058,11 +1116,17 @@ class StateManager {
   processMap(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof Memory2D) {
-        ref.setState({
-          isLoaded: true,
-          memory: this.memory,
-          bot_xyz: [res.x, res.y, res.yaw],
-          obstacle_map: res.map,
+        ref.setState((prevState) => {
+          return {
+            isLoaded: true,
+            detections_from_memory: res.detections_from_memory,
+            memory: this.memory,
+            triples: res.triples,
+            bot_xyz: [res.x, res.y, res.yaw],
+            bot_data: res.bot_data,
+            obstacle_map: res.map,
+            map_update_count: prevState.map_update_count + 1,
+          };
         });
       }
     });
@@ -1085,6 +1149,21 @@ class StateManager {
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation();
     }
+  }
+
+  handleMapToggle() {
+    this.dash_enable_map = !this.dash_enable_map;
+    this.socket.emit("toggle_map", { dash_enable_map: this.dash_enable_map });
+  }
+
+  sendManualChange(change) {
+    /**
+     * change = {
+     *    type: "edit" or "restore" or "group"
+     *    data: <data>
+     * }
+     */
+    this.socket.emit("manual_change", change);
   }
 
   connect(o) {

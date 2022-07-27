@@ -466,16 +466,102 @@ exports[`Storyshots InteractApp Default 1`] = `
                   >
                     Press the start button to begin!
                   </div>
+                  <div
+                    className="answer-buttons"
+                  >
+                    <button
+                      className="MuiButtonBase-root MuiButton-root MuiButton-contained yes-button MuiButton-containedPrimary"
+                      disabled={false}
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onDragLeave={[Function]}
+                      onFocus={[Function]}
+                      onKeyDown={[Function]}
+                      onKeyUp={[Function]}
+                      onMouseDown={[Function]}
+                      onMouseLeave={[Function]}
+                      onMouseUp={[Function]}
+                      onTouchEnd={[Function]}
+                      onTouchMove={[Function]}
+                      onTouchStart={[Function]}
+                      style={
+                        Object {
+                          "display": "none",
+                        }
+                      }
+                      tabIndex={0}
+                      type="button"
+                    >
+                      <span
+                        className="MuiButton-label"
+                      >
+                        Yes
+                      </span>
+                    </button>
+                    <button
+                      className="MuiButtonBase-root MuiButton-root MuiButton-contained no-button MuiButton-containedPrimary"
+                      disabled={false}
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onDragLeave={[Function]}
+                      onFocus={[Function]}
+                      onKeyDown={[Function]}
+                      onKeyUp={[Function]}
+                      onMouseDown={[Function]}
+                      onMouseLeave={[Function]}
+                      onMouseUp={[Function]}
+                      onTouchEnd={[Function]}
+                      onTouchMove={[Function]}
+                      onTouchStart={[Function]}
+                      style={
+                        Object {
+                          "display": "none",
+                        }
+                      }
+                      tabIndex={0}
+                      type="button"
+                    >
+                      <span
+                        className="MuiButton-label"
+                      >
+                        No
+                      </span>
+                    </button>
+                    <button
+                      className="MuiButtonBase-root MuiButton-root MuiButton-contained back-button MuiButton-containedPrimary"
+                      disabled={false}
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onDragLeave={[Function]}
+                      onFocus={[Function]}
+                      onKeyDown={[Function]}
+                      onKeyUp={[Function]}
+                      onMouseDown={[Function]}
+                      onMouseLeave={[Function]}
+                      onMouseUp={[Function]}
+                      onTouchEnd={[Function]}
+                      onTouchMove={[Function]}
+                      onTouchStart={[Function]}
+                      style={
+                        Object {
+                          "display": "none",
+                        }
+                      }
+                      tabIndex={0}
+                      type="button"
+                    >
+                      <span
+                        className="MuiButton-label"
+                      >
+                        Go Back
+                      </span>
+                    </button>
+                  </div>
                 </li>
+                <div
+                  className="messagesEnd"
+                />
               </ul>
-              <div
-                style={
-                  Object {
-                    "clear": "both",
-                    "float": "left",
-                  }
-                }
-              />
             </div>
           </div>
           <div
@@ -484,33 +570,9 @@ exports[`Storyshots InteractApp Default 1`] = `
             <input
               disabled={false}
               id="msg"
-              placeholder="Type your command here"
+              placeholder="Type your command or response here"
               type="text"
             />
-            <button
-              className="MuiButtonBase-root MuiButton-root MuiButton-contained stop-button MuiButton-containedPrimary Mui-disabled Mui-disabled"
-              disabled={true}
-              onBlur={[Function]}
-              onClick={[Function]}
-              onDragLeave={[Function]}
-              onFocus={[Function]}
-              onKeyDown={[Function]}
-              onKeyUp={[Function]}
-              onMouseDown={[Function]}
-              onMouseLeave={[Function]}
-              onMouseUp={[Function]}
-              onTouchEnd={[Function]}
-              onTouchMove={[Function]}
-              onTouchStart={[Function]}
-              tabIndex={-1}
-              type="button"
-            >
-              <span
-                className="MuiButton-label"
-              >
-                Stop
-              </span>
-            </button>
           </div>
         </div>
       </div>

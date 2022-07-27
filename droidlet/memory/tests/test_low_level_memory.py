@@ -227,10 +227,9 @@ class BasicTest(unittest.TestCase):
     # TODO: expand these
     def test_sql_form(self):
         self.memory = AgentMemory()
-        # FIXME? should this be in memory init?
-        # FIXME!! in agents use SelfNode instead of PlayerNode
-        self_memid = SelfNode.create(
-            self.memory, Player(1, "robot", Pos(0, 0, 0), Look(0, 0)), memid=self.memory.self_memid
+        self_mem = self.memory.get_mem_by_id(self.memory.self_memid)
+        SelfNode.update(
+            self.memory, Player(1, "robot", Pos(0, 0, 0), Look(0, 0)), self.memory.self_memid
         )
         rachel_memid = PlayerNode.create(
             self.memory, Player(10, "rachel", Pos(1, 0, 1), Look(0, 0))
@@ -370,6 +369,9 @@ class BasicTest(unittest.TestCase):
             self.memory.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self.memory, 10).name
             == "joey"
         )
+
+        # Test empty WHERE clause:
+        _, memnodes = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
 
         # Test basic_search to get player by name
         _, memnode = self.memory.basic_search(

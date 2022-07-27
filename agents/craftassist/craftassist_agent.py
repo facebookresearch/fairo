@@ -11,21 +11,18 @@ import time
 import json
 from multiprocessing import set_start_method
 from collections import namedtuple
-from datetime import datetime
+from datetime import datetime, timedelta
 from copy import deepcopy
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
-from droidlet.interpreter.craftassist import (
-    default_behaviors,
-    inventory,
-    dance,
-)
+from droidlet.interpreter.craftassist import default_behaviors, dance
 from droidlet.memory.craftassist import mc_memory
-from droidlet.memory.memory_nodes import ChatNode
+from droidlet.memory.memory_nodes import ChatNode, SelfNode
 from droidlet.shared_data_struct import rotation
 from droidlet.lowlevel.minecraft.craftassist_mover import (
     CraftassistMover,
+    from_minecraft_look_to_droidlet,
     from_minecraft_xyz_to_droidlet,
 )
 
@@ -43,19 +40,12 @@ from droidlet.dialog.dialogue_task import build_question_json
 from droidlet.base_util import Pos, Look, npy_to_blocks_list
 from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item
 from agents.droidlet_agent import DroidletAgent
-from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
-from droidlet.interpreter.craftassist import (
-    MCGetMemoryHandler,
-    PutMemoryHandler,
-    MCInterpreter,
-)
-from droidlet.perception.craftassist.low_level_perception import (
-    LowLevelMCPerception,
-)
-from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
+from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
+from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
+from droidlet.perception.craftassist.manual_edits_perception import ManualChangesPerception
 from droidlet.lowlevel.minecraft.mc_util import (
     cluster_areas,
     MCTime,
@@ -107,17 +97,19 @@ class CraftAssistAgent(DroidletAgent):
             "fill_idmeta": fill_idmeta,
             "color_bid_map": COLOR_BID_MAP,
         }
+        self.backend = opts.backend
         self.mark_airtouching_blocks = opts.mark_airtouching_blocks
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
         self.agent_type = "craftassist"
         self.point_targets = []
         self.last_chat_time = 0
+        self.dash_enable_map = False # dash has map disabled by default
+        self.map_last_updated = datetime.now()
         # areas must be perceived at each step
         # List of tuple (XYZ, radius), each defines a cube
         self.areas_to_perceive = []
         self.add_self_memory_node()
-        self.init_inventory()
         self.init_event_handlers()
 
         shape_util_dict = {
@@ -134,9 +126,9 @@ class CraftAssistAgent(DroidletAgent):
         self.perceive_on_chat = True
 
     def get_chats(self):
-        """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
+        """This function is a wrapper around self.mover.get_incoming_chats and adds a new
         chat self.dashboard_chat which is set by the dashboard."""
-        all_chats = self.cagent.get_incoming_chats()
+        all_chats = self.mover.get_incoming_chats()
         updated_chats = []
         if self.dashboard_chat:
             updated_chats.append(self.dashboard_chat)
@@ -154,13 +146,15 @@ class CraftAssistAgent(DroidletAgent):
             if player.name == "dashboard":
                 player_exists = True
         if not player_exists:
-            newPlayer = Player(
-                12345678,
-                "dashboard",
-                Pos(0.0, 64.0, 0.0),
-                Look(0.0, 0.0),
-                Item(0, 0),
-            )
+            if self.backend == "cuberite":
+                newPlayer = Player(
+                    12345678, "dashboard", Pos(0.0, 64.0, 0.0), Look(0.0, 0.0), Item(0, 0)
+                )
+            elif self.backend == "pyworld":
+                # FIXME this won't be updated with actual player position until/unless the player moves (abs_move)
+                newPlayer = Player(
+                    12345678, "dashboard", Pos(0.0, 5.0, 0.0), Look(0.0, 0.0), Item(0, 0)
+                )
             updated_players.append(newPlayer)
         return updated_players
 
@@ -168,7 +162,8 @@ class CraftAssistAgent(DroidletAgent):
         """return a fixed value for "dashboard" player"""
         # FIXME, this is too dangerous.
         if player_struct.name == "dashboard":
-            return Pos(-1, 63, 14)
+            if self.backend == "cuberite":
+                return Pos(-1, 63, 14)
         return self.mover.get_player_line_of_sight(player_struct)
 
     def init_event_handlers(self):
@@ -216,11 +211,6 @@ class CraftAssistAgent(DroidletAgent):
             }
             sio.emit("setVoxelWorldInitialState", payload)
 
-    def init_inventory(self):
-        """Initialize the agent's inventory"""
-        self.inventory = inventory.Inventory()
-        logging.info("Initialized agent inventory")
-
     def init_memory(self):
         """Intialize the agent memory and logging."""
         low_level_data = self.low_level_data.copy()
@@ -267,6 +257,12 @@ class CraftAssistAgent(DroidletAgent):
                 self.opts.semseg_model_path,
                 low_level_data=self.low_level_data,
             )
+        # manual edits from dashboard
+        self.perception_modules["dashboard"] = ManualChangesPerception(self)
+        @sio.on("manual_change")
+        def make_manual_change(sid, change):
+            self.perception_modules["dashboard"].process_change(change)
+
 
     def init_controller(self):
         """Initialize all controllers"""
@@ -327,7 +323,20 @@ class CraftAssistAgent(DroidletAgent):
             ].perceive()
             self.memory.update(sem_seg_perception_output)
         self.areas_to_perceive = []
+        # 5. perceive any manual edits made from frontend
+        dashboard_perception_output = self.perception_modules["dashboard"].perceive()
+        self.memory.update(dashboard_perception_output)
+        # 6. update dashboard world and map
         self.update_dashboard_world()
+
+        @sio.on("toggle_map")
+        def handle_toggle_map(sid, data):
+            self.dash_enable_map = data["dash_enable_map"]
+            #self.draw_map_to_dashboard()
+        if self.opts.draw_map and self.dash_enable_map:
+            if datetime.now() >= self.map_last_updated + timedelta(seconds=0.05*self.opts.map_update_ticks):
+                self.map_last_updated = datetime.now()
+                self.draw_map_to_dashboard()
 
     def get_time(self):
         """round to 100th of second, return as
@@ -370,7 +379,7 @@ class CraftAssistAgent(DroidletAgent):
             safe_blocks = blocks
         return safe_blocks
 
-    def point_at(self, target, sleep=None):
+    def point_at(self, target, sleep=0):
         """Bot pointing.
 
         Args:
@@ -383,15 +392,9 @@ class CraftAssistAgent(DroidletAgent):
         self.point_targets.append((target, time.time()))
 
         # TODO: put this in mover
-        # flip x to move from droidlet coords to  cuberite coords
-        target = [
-            -target[3],
-            target[1],
-            target[2],
-            -target[0],
-            target[4],
-            target[5],
-        ]
+        if self.backend == "cuberite":
+            # flip x to move from droidlet coords to  cuberite coords
+            target = [-target[3], target[1], target[2], -target[0], target[4], target[5]]
 
         point_json = build_question_json(
             "/point {} {} {} {} {} {}".format(*target)
@@ -401,18 +404,16 @@ class CraftAssistAgent(DroidletAgent):
         # sleep before the bot can take any actions
         # otherwise there might be bugs since the object is flashing
         # deal with this in the task...
-        if sleep:
-            time.sleep(sleep)
+        time.sleep(sleep)
 
     ###FIXME!!
     #    self.get_incoming_chats = self.get_chats
 
-    # WARNING!! this is in degrees.  agent's memory stores looks in radians.
     # FIXME: normalize, switch in DSL to radians.
     def relative_head_pitch(self, angle):
         """Converts assistant's current pitch and yaw
         into a pitch and yaw relative to the angle."""
-        new_pitch = np.rad2deg(self.get_player().look.pitch) - angle
+        new_pitch = self.get_player().look.pitch - angle
         self.set_look(self.get_player().look.yaw, new_pitch)
 
     def send_chat(self, chat: str):
@@ -431,7 +432,7 @@ class CraftAssistAgent(DroidletAgent):
             self.memory, self.memory.self_memid, f"Agent: {chat_text}"
         )
 
-        if chat_json:
+        if chat_json and not isinstance(chat_json, int):
             chat_json["chat_memid"] = chat_memid
             chat_json["timestamp"] = round(
                 datetime.timestamp(datetime.now()) * 1000
@@ -444,7 +445,52 @@ class CraftAssistAgent(DroidletAgent):
                 {"agent_reply": "{}".format(chat_text)},
             )
 
-        return self.cagent.send_chat(chat_text)
+        return self.mover.send_chat(chat_text)
+
+    def get_detected_objects_for_map(self):
+        search_res = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
+        mems = []
+        if search_res is not None:
+            _, mems = search_res
+        detections_for_map = []
+        for mem in mems:
+            if hasattr(mem, "pos"):
+                id_str = "no_id" if not hasattr(mem, "obj_id") else mem.obj_id
+                obj = vars(mem)
+                obj.pop('agent_memory', None)   # not necessary to show memory object type and location 
+                obj["node_type"] = type(mem).__name__
+                obj["obj_id"] = id_str
+                obj["pos"] = list(mem.pos)
+                detections_for_map.append(obj)
+        return detections_for_map
+
+    def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
+        detections_for_map = []
+        if not obstacles:
+            obstacles = self.memory.place_field.get_obstacle_list()
+            # if we are getting obstacles from memory, get detections from memory for map too
+            detections_for_map = self.get_detected_objects_for_map()
+        if not xyyaw:
+            agent_pos = self.get_player().pos  # position of agent's feet
+            agent_look = self.get_player().look
+            mc_xyz = agent_pos.x, agent_pos.y, agent_pos.z
+            mc_look = Look(agent_look.yaw, agent_look.pitch)
+            x, _, z = from_minecraft_xyz_to_droidlet(mc_xyz)
+            yaw, _ = from_minecraft_look_to_droidlet(mc_look)
+            xyyaw = (x, z, yaw)
+        triples = self.memory._db_read("SELECT * FROM Triples")
+        sio.emit(
+            "map",
+            {
+                "x": xyyaw[0],
+                "y": xyyaw[1],
+                "yaw": xyyaw[2],
+                "map": obstacles,
+                "bot_data": detections_for_map[0],
+                "detections_from_memory": detections_for_map[1:],
+                "triples": triples,
+            },
+        )
 
     def update_agent_pos_dashboard(self):
         agent_pos = self.get_player().pos
@@ -533,7 +579,6 @@ class CraftAssistAgent(DroidletAgent):
         self.mover.step_forward()
         self.update_agent_pos_dashboard()
 
-    # TODO update client so we can just loop through these
     # TODO rename things a bit- some perceptual things are here,
     #      but under current abstraction should be in init_perception
     def init_physical_interfaces(self):
@@ -541,10 +586,29 @@ class CraftAssistAgent(DroidletAgent):
         # For testing agent without cuberite server
         if self.opts.port == -1:
             return
-        logging.info("Attempting to connect to port {}".format(self.opts.port))
-        self.cagent = MCAgent("localhost", self.opts.port, self.name)
-        logging.info("Logged in to server")
-        self.mover = CraftassistMover(self.cagent)
+        if self.backend == "cuberite":
+            from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
+
+            logging.info(
+                "Attempting to connect to cuberite cagent on port {}".format(self.opts.port)
+            )
+            self.cagent = MCAgent("localhost", self.opts.port, self.name)
+            logging.info("Logged in to server")
+            self.mover = CraftassistMover(self.cagent)
+        elif self.backend == "pyworld":
+            from droidlet.lowlevel.minecraft.pyworld_mover import PyWorldMover
+
+            logging.info("Attempting to connect to pyworld on port {}".format(self.opts.port))
+            # TODO allow pyworld ip to not be localhost
+            try:
+                self.mover = PyWorldMover(self.opts.port)
+                self.cagent = None
+                logging.info("Logged in to server")
+            except:
+                raise Exception("unable to connect to PyWorld on port {}".format(self.opts.port))
+        else:
+            raise Exception("unknown backend option {}".format(self.backend))
+
         for m in dir(self.mover):
             if (
                 callable(getattr(self.mover, m))
@@ -563,7 +627,7 @@ class CraftAssistAgent(DroidletAgent):
             p = self.get_player()
         except:  # this is for test/test_agent
             return
-        PlayerNode.create(self.memory, p, memid=self.memory.self_memid)
+        SelfNode.update(self.memory, p, memid=self.memory.self_memid)
 
 
 if __name__ == "__main__":

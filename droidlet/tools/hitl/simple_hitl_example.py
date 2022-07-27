@@ -16,12 +16,12 @@ import time
 
 from typing import List
 
-from .data_generator import DataGenerator
-from .job_listener import JobListener
-from .task_runner import TaskRunner
+from droidlet.tools.hitl.data_generator import DataGenerator
+from droidlet.tools.hitl.job_listener import JobListener
+from droidlet.tools.hitl.task_runner import TaskRunner
 
 
-WORKDIR = ""
+WORKDIR = "./"
 
 log_formatter = logging.Formatter(
     "%(asctime)s [%(filename)s:%(lineno)s - %(funcName)s() %(levelname)s]: %(message)s"

@@ -23,11 +23,11 @@ class Opt:
 
 
 class BaseCraftassistTestCase(unittest.TestCase):
-    def setUp(self, agent_opts=None, players=[]):
+    def setUp(self, agent_opts=None, players=[], items=[]):
         if not players:
             players = [
                 FakePlayer(
-                    Player(42, "SPEAKER", Pos(5, 63, 5), Look(270, 0), Item(0, 0)),
+                    Player(42, "SPEAKER", Pos(12, 63, 12), Look(270, 0), Item(0, 0)),
                     active=False,
                     opts=agent_opts,
                 )
@@ -35,13 +35,13 @@ class BaseCraftassistTestCase(unittest.TestCase):
         spec = {
             "players": players,
             "mobs": [],
-            "item_stacks": [],
+            "items": items,
             "ground_generator": flat_ground_generator,
             "agent": {"pos": (0, 63, 0)},
             "coord_shift": (-16, 54, -16),
         }
         world_opts = Opt()
-        world_opts.sl = 32
+        world_opts.sl = 45
         self.world = World(world_opts, spec)
         self.agent = FakeAgent(self.world, opts=agent_opts)
         self.set_looking_at((0, 63, 0))
@@ -138,10 +138,10 @@ class BaseCraftassistTestCase(unittest.TestCase):
         """Add a chat to memory as if it was just spoken by SPEAKER"""
         self.world.chat_log.append("<" + speaker_name + ">" + " " + chat)
         if add_to_memory:
-            memid, _ = self.agent.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={self.speaker}')
-            self.agent.memory.nodes[ChatNode.NODE_TYPE].create(
-                self.agent.memory, memid[0], chat
+            memid, _ = self.agent.memory.basic_search(
+                f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={self.speaker}"
             )
+            self.agent.memory.nodes[ChatNode.NODE_TYPE].create(self.agent.memory, memid[0], chat)
 
     def assert_schematics_equal(self, a, b):
         """Check equality between two list[(xyz, idm)] schematics
@@ -159,5 +159,7 @@ class BaseCraftassistTestCase(unittest.TestCase):
         return self.agent.get_last_outgoing_chat()
 
     def get_speaker_pos(self) -> XYZ:
-        _, memnode = self.agent.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={self.speaker}')
+        _, memnode = self.agent.memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={self.speaker}"
+        )
         return memnode[0].pos

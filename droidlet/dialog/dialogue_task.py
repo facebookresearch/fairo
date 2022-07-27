@@ -140,7 +140,9 @@ class ConfirmTask(Task):
     def __init__(self, agent, task_data={}):
         task_data["blocking"] = True
         super().__init__(agent, task_data=task_data)
-        self.question = task_data.get("question")  # chat text that will be sent to user
+        self.question = build_question_json(
+            task_data.get("question"), text_response_options=["yes", "no"]
+        )  # chat text that will be sent to user
         self.task_memids = task_data.get(
             "task_memids"
         )  # list of Task objects, will be pushed in order
@@ -341,6 +343,12 @@ class ClarifyNoMatch(Task):
                     # Found it! The NSP should have updated the tag. Mark it as the output
                     self.agent.memory.nodes[TripleNode.NODE_TYPE].create(
                         self.agent.memory,
+                        subj=self.current_candidate,
+                        pred_text="has_tag",
+                        obj_text=self.ref_obj_span,
+                    )
+                    self.agent.memory.nodes[TripleNode.NODE_TYPE].create(
+                        self.agent.memory,
                         subj=self.memid,
                         pred_text="dialogue_clarification_output",
                         obj_text=self.current_candidate,
@@ -363,6 +371,7 @@ class ClarifyNoMatch(Task):
     def point_at(self, target):
         if hasattr(target, "get_point_at_target"):
             bounds = target.get_point_at_target()
+            print(f"pointing at {target}")
         else:
             # FIXME is there a more graceful way to handle this?
             logging.error(

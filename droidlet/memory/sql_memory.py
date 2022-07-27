@@ -23,6 +23,7 @@ from droidlet.memory.place_field import PlaceField, EmptyPlaceField
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
     TripleNode,
+    SelfNode,
     PlayerNode,
     ProgramNode,
     MemoryNode,
@@ -143,10 +144,8 @@ class AgentMemory:
         self.db_write(
             "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, "Self", 0, 0, -1, False
         )
-
-        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_physical_object")
-        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_animate")
-        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_not_location")
+        player_struct = None
+        SelfNode.create(self, player_struct, memid=self.self_memid)
         self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "AGENT")
         self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "SELF")
 

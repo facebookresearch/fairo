@@ -508,12 +508,9 @@ class MemorySearcher:
         if query.get("where_clause"):
             memids = self.handle_where(agent_memory, query["where_clause"], memtype)
         else:
-            node_types = agent_memory.node_children.get(memtype, [])
-            memids = [
-                m[0]
-                for nt in node_types
-                for m in agent_memory._db_read("SELECT uuid FROM Memories WHERE node_type=?", nt)
-            ]
+            # queries with no WHERE clause will not return archived/snapshotted memories.
+            # to get a snapshot or to get all mems snapshotted or not use explicit WHERE.
+            memids = get_all_memids_of_node_type(agent_memory, memtype)
         memids = self.handle_selector(agent_memory, query, memids)
         if self.ignore_self:
             try:

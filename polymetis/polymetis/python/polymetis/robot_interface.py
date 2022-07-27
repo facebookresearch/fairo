@@ -413,8 +413,8 @@ class RobotInterface(BaseRobotInterface):
         torch_policy = toco.policies.JointTrajectoryExecutor(
             joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
             joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
-            Kp=Kq or self.Kq_default,
-            Kd=Kqd or self.Kqd_default,
+            Kp=self.Kq_default if Kq is None else Kq,
+            Kd=self.Kqd_default if Kqd is None else Kqd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
@@ -508,8 +508,8 @@ class RobotInterface(BaseRobotInterface):
         torch_policy = toco.policies.EndEffectorTrajectoryExecutor(
             ee_pose_trajectory=[waypoint["pose"] for waypoint in waypoints],
             ee_twist_trajectory=[waypoint["twist"] for waypoint in waypoints],
-            Kp=Kx or self.Kx_default,
-            Kd=Kxd or self.Kxd_default,
+            Kp=self.Kx_default if Kx is None else Kx,
+            Kd=self.Kxd_default if Kxd is None else Kxd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
@@ -527,8 +527,8 @@ class RobotInterface(BaseRobotInterface):
         """
         torch_policy = toco.policies.JointImpedanceControl(
             joint_pos_current=self.get_joint_positions(),
-            Kp=Kq or self.Kq_default,
-            Kd=Kqd or self.Kqd_default,
+            Kp=self.Kq_default if Kq is None else Kq,
+            Kd=self.Kqd_default if Kqd is None else Kqd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
@@ -542,8 +542,8 @@ class RobotInterface(BaseRobotInterface):
         """
         torch_policy = toco.policies.CartesianImpedanceControl(
             joint_pos_current=self.get_joint_positions(),
-            Kp=Kx or self.Kx_default,
-            Kd=Kxd or self.Kxd_default,
+            Kp=self.Kx_default if Kx is None else Kx,
+            Kd=self.Kxd_default if Kxd is None else Kxd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
@@ -583,6 +583,38 @@ class RobotInterface(BaseRobotInterface):
         except grpc.RpcError as e:
             log.error(
                 "Unable to update desired EE pose. Use 'start_cartesian_impedance' to start a Cartesian impedance controller."
+            )
+            raise e
+
+        return update_idx
+
+    def start_joint_velocity_control(
+        self, joint_vel_desired, hz=None, Kq=None, Kqd=None, **kwargs
+    ):
+        """Starts joint velocity control mode.
+        Runs a non-blocking joint velocity controller.
+        The desired joint velocities can be updated using `update_desired_joint_velocities`
+        """
+        torch_policy = toco.policies.JointVelocityControl(
+            joint_vel_desired=joint_vel_desired,
+            Kp=self.Kq_default if Kq is None else Kq,
+            Kd=self.Kqd_default if Kqd is None else Kqd,
+            robot_model=self.robot_model,
+            hz=self.metadata.hz if hz is None else hz,
+            ignore_gravity=self.use_grav_comp,
+        )
+
+        return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
+
+    def update_desired_joint_velocities(self, velocities: torch.Tensor):
+        """Update the desired joint velocities used by the joint velocities control mode.
+        Requires starting a joint velocities controller with `start_joint_velocity_control` beforehand.
+        """
+        try:
+            update_idx = self.update_current_policy({"joint_vel_desired": velocities})
+        except grpc.RpcError as e:
+            log.error(
+                "Unable to update desired joint velocities. Use 'start_joint_velocity_control' to start a joint velocities controller."
             )
             raise e
 
