@@ -29,6 +29,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app, cors_allowed_origins="*")  # allow cors
 
+
 class DASHBOARD_EVENT(Enum):
     """
     server supported event types, i.e. API types
@@ -184,6 +185,7 @@ def get_dataset_indices(batch_id):
     else:
         emit(DASHBOARD_EVENT.GET_DATASET_INDECIES.value, indices)
 
+
 @socketio.on(DASHBOARD_EVENT.GET_DATASET_LIST.value)
 def get_dataset_list(pipeline):
     """
@@ -241,6 +243,7 @@ def get_model_keys(batch_id):
     else:
         emit(DASHBOARD_EVENT.GET_MODEL_KEYS.value, get_keys(model))
 
+
 @socketio.on(DASHBOARD_EVENT.GET_MODEL_VALUE.value)
 def get_model_value(batch_id, key):
     """
@@ -261,6 +264,7 @@ def get_model_value(batch_id, key):
     else:
         # get a specific value
         emit(DASHBOARD_EVENT.GET_MODEL_VALUE.value, [key, get_value_by_key(model, key)])
+
 
 if __name__ == "__main__":
     socketio.run(app)

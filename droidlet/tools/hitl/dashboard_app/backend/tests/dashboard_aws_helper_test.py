@@ -44,10 +44,12 @@ class TestAWSHelper(unittest.TestCase):
     def test_get_job_list(self):
         res = get_job_list()
         self.assertGreater(len(res), 0)
+
     def test_get_traceback_by_id_valid(self):
         res = get_traceback_by_id(VALID_ID)
         self.assertIsNotNone(res)
         self.assertNotEqual(res, f"cannot find traceback with id {VALID_ID}")
+
     def test_get_traceback_by_id_invalid(self):
         res = get_traceback_by_id(INVALID_ID)
         self.assertEqual(res, f"cannot find traceback with id {INVALID_ID}")
@@ -56,6 +58,7 @@ class TestAWSHelper(unittest.TestCase):
         res, _ = get_run_info_by_id(VALID_ID)
         self.assertIsNotNone(res)
         self.assertNotEqual(res, f"cannot find run info with id {VALID_ID}")
+
     def test_get_run_info_by_id_inalid(self):
         res, _ = get_run_info_by_id(INVALID_ID)
         self.assertEqual(res, f"cannot find run info with id {INVALID_ID}")

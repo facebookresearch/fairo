@@ -9,7 +9,6 @@ import json
 import torch
 
 
-
 def load_model(model_fpath: str):
     """
     generates a model instance from the model file
