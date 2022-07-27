@@ -232,7 +232,7 @@ class MCAgentMemory(AgentMemory):
             for player, location in player_list:
                 mem = self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self, player.entityId)
                 if mem is None:
-                    memid = PlayerNode.create(self, player)
+                    memid = self.nodes[PlayerNode.NODE_TYPE].create(self, player)
                 else:
                     memid = mem.memid
                 cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
