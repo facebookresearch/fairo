@@ -42,7 +42,7 @@ class TriggersTests(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
         self.cube_right = self.add_object(
-            droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)), (9, 63, 4)
+            droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)), (25, 63, 25)
         )
         self.cube_left = self.add_object(droidlet.lowlevel.minecraft.shapes.cube(), (9, 63, 10))
         self.set_looking_at(list(self.cube_right.blocks.keys())[0])

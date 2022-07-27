@@ -23,11 +23,11 @@ class Opt:
 
 
 class BaseCraftassistTestCase(unittest.TestCase):
-    def setUp(self, agent_opts=None, players=[]):
+    def setUp(self, agent_opts=None, players=[], items=[]):
         if not players:
             players = [
                 FakePlayer(
-                    Player(42, "SPEAKER", Pos(5, 63, 5), Look(270, 0), Item(0, 0)),
+                    Player(42, "SPEAKER", Pos(12, 63, 12), Look(270, 0), Item(0, 0)),
                     active=False,
                     opts=agent_opts,
                 )
@@ -35,13 +35,13 @@ class BaseCraftassistTestCase(unittest.TestCase):
         spec = {
             "players": players,
             "mobs": [],
-            "items": [],
+            "items": items,
             "ground_generator": flat_ground_generator,
             "agent": {"pos": (0, 63, 0)},
             "coord_shift": (-16, 54, -16),
         }
         world_opts = Opt()
-        world_opts.sl = 32
+        world_opts.sl = 45
         self.world = World(world_opts, spec)
         self.agent = FakeAgent(self.world, opts=agent_opts)
         self.set_looking_at((0, 63, 0))

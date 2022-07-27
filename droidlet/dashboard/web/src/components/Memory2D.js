@@ -5,9 +5,17 @@ Copyright (c) Facebook, Inc. and its affiliates.
 // src/components/Memory2D.js
 
 import React from "react";
-import { Stage, Layer, Circle, Line, Text, Group } from "react-konva";
+import { Stage, Layer, Circle, Line, Text, Group, Shape } from "react-konva";
 import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
-import MemoryMapTable from "./Memory2D/MemoryMapTable";
+import MemoryMapTable, {
+  positionMemoryMapTable,
+} from "./Memory2D/MemoryMapTable";
+import ClusteredObjsPopup, {
+  positionClusteredObjsPopup,
+} from "./Memory2D/ClusteredObjsPopup";
+import Memory2DMenu from "./Memory2D/Memory2DMenu";
+import IconButton from "@material-ui/core/IconButton";
+import MenuIcon from "@material-ui/icons/Menu";
 
 var hashCode = function (s) {
   return s.split("").reduce(function (a, b) {
@@ -26,6 +34,7 @@ class Memory2D extends React.Component {
       width: 600,
       isLoaded: false,
       memory: null,
+      triples: null,
       detections_from_memory: [],
       xmin: -10,
       xmax: 10,
@@ -40,41 +49,39 @@ class Memory2D extends React.Component {
       memory2d_className: "memory2d",
       drag_coordinates: [0, 0],
       enlarge_bot_marker: false,
+      focused_point_coords: [null, null],
       table_data: null,
       table_visible: false,
-      table_coords: [0, 0],
+      popup_data: null,
+      popup_visible: false,
+      map_update_count: 0,
+      selection_mode: false,
+      drawing_mode: false,
+      draw_pos_curr: null,
+      draw_pos_start: null,
+      selected_objects: {},
+      group_name: "",
+      grouping_count: 0,
+      showMenu: false,
+      dynamicPositioning: false,
+      showTriples: false,
+      mapView: "ZX",
+      squareMap: true,
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
+    this.stage_ref = React.createRef();
     this.resizeHandler = this.resizeHandler.bind(this);
-    this.handleObjClick = this.handleObjClick.bind(this);
   }
+
+  /*########################
+  ####  Stage Handlers  ####
+  ########################*/
   handleDrag = (className, drag_coordinates) => {
     this.setState({ memory2d_className: className });
     if (drag_coordinates) {
       this.setState({ drag_coordinates });
     }
-  };
-  convertGridCoordinate = (xy) => {
-    const { xmax, xmin, ymax, ymin } = this.state;
-    let { width, height } = this.state;
-    width = Math.min(width, height);
-    height = width;
-    return [
-      (xy[1] * (ymax - ymin)) / height + ymin,
-      0,
-      (xy[0] * (xmax - xmin)) / width + xmin,
-    ];
-  };
-  convertCoordinate = (xyz) => {
-    const { xmax, xmin, ymax, ymin } = this.state;
-    let { width, height } = this.state;
-    width = Math.min(width, height);
-    height = width;
-    let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
-    let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
-    y = height - y;
-    return [x, y];
   };
   /* zoom-in, zoom-out function
      the maximum zoom-out is 100% (stageScale = 1), the maximum zoom-in is unlimited 
@@ -104,52 +111,362 @@ class Memory2D extends React.Component {
         -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
     });
   };
-  handleObjClick = (obj_type, x, y, data) => {
-    /* 
-     * Potentially useful code to debug table positioning when zooming in *
-     *
-     * 
-    let {
-      table_coords,
-      drag_coordinates,
-      stageX,
-      stageY,
-      stageScale,
-      height,
-      width,
-    } = this.state;
+
+  /*###############################
+  ####  Coordinate Conversion  ####
+  ###############################*/
+  /**
+   * Takes the position of an object on the grid
+   * and converts it to droidlet coords
+   * (NOTE: output is 2d)
+   */
+  convertGridCoordinate = (gridHorz, gridVert) => {
+    const { xmax, xmin, ymax, ymin } = this.state;
+    let { width, height } = this.state;
+
+    // Maintain 1:1 aspect ratio by treating grid as square at all times
     width = Math.min(width, height);
     height = width;
+    let gridLength = Math.min(xmax - xmin, ymax - ymin);
 
-    console.log("x:", x, "y:", y);
-    console.log("drag_coordinates:", drag_coordinates[0], ", ", drag_coordinates[1]);
-    console.log("stage_coords:", stageX, ", ", stageY);
-    console.log("stageScale:", stageScale);
-    console.log("width:", width, "height:", height);
-    console.log("will plot table at: [", (x + drag_coordinates[0]), ", ", (Math.min(height, width) - y - drag_coordinates[1]), "]");
-    */
+    return [
+      (gridHorz * gridLength) / width + xmin,
+      (gridVert * gridLength) / height + ymin,
+    ];
+  };
+  /**
+   * Takes droidlet coords of object and converts
+   * to 2d grid position (based on desired mapView)
+   */
+  convertCoordinate = (xyz) => {
+    const { xmax, xmin, ymax, ymin } = this.state;
+    let { width, height, mapView } = this.state;
 
-    console.log(obj_type + " clicked");
+    // Maintain 1:1 aspect ratio by treating grid as square at all times
+    width = Math.min(width, height);
+    height = width;
+    let gridLength = Math.min(xmax - xmin, ymax - ymin);
 
-    this.setState({
-      table_visible: true,
-      table_coords: [x, y],
-      table_data: data,
+    let horz, vert;
+    switch (mapView) {
+      case "ZX":
+        [horz, vert] = [xyz[2], -xyz[0]];
+        break;
+      case "XY":
+        [horz, vert] = [xyz[0], -xyz[1]];
+        break;
+      case "YZ":
+        [horz, vert] = [xyz[1], -xyz[2]];
+        break;
+      default:
+        console.log("invalid view");
+        return [0, 0];
+    }
+    horz = Math.round(horz);
+    vert = Math.round(vert);
+
+    let gridHorz = parseInt(((horz - xmin) / gridLength) * width);
+    let gridVert = parseInt(((vert - ymin) / gridLength) * height);
+    gridVert = height - gridVert;
+    return [gridHorz, gridVert];
+  };
+
+  /*####################################
+  ####  Tabular Component Handlers  ####
+  ####################################*/
+  handleObjClick = (obj_type, map_pos, obj_data) => {
+    let { selection_mode, selected_objects, focused_point_coords } = this.state;
+
+    // do not interact with currently bugged objects without valid memid's
+    if (!["bot", "detection_from_memory"].includes(obj_type)) return;
+
+    if (!selection_mode) {
+      // if not in grouping mode, open MemoryMapTable
+      this.setState({
+        table_data: obj_data,
+        table_visible: true,
+        focused_point_coords: map_pos,
+      });
+      // make other tabular elements invisible when switching to new obj/cluster
+      if (
+        map_pos[0] !== focused_point_coords[0] ||
+        map_pos[1] !== focused_point_coords[1]
+      ) {
+        this.setState({ popup_visible: false });
+      }
+    } else {
+      // otherwise if in selection_mode..
+      if (!(obj_data.memid in selected_objects)) {
+        // ..select object
+        this.setState({
+          selected_objects: {
+            ...selected_objects,
+            [obj_data.memid]: obj_data,
+          },
+        });
+      } else {
+        // ..unselect object
+        let { [obj_data.memid]: _, ...rest } = selected_objects;
+        this.setState({ selected_objects: rest });
+      }
+    }
+  };
+  handlePopupClick = (map_pos, clusteredObjects) => {
+    let { selection_mode, selected_objects, focused_point_coords } = this.state;
+
+    if (!selection_mode) {
+      // if not in selection_mode, open ClusteredObjsPopup
+      this.setState({
+        popup_data: clusteredObjects,
+        popup_visible: true,
+        focused_point_coords: map_pos,
+      });
+      // make other tabular elements invisible when switching to new focus point
+      if (
+        map_pos[0] !== focused_point_coords[0] ||
+        map_pos[1] !== focused_point_coords[1]
+      ) {
+        this.setState({ table_visible: false });
+      }
+    } else {
+      // otherwise if in selection_mode..
+      let toSelect = {};
+      let toUnselectFrom = selected_objects;
+      clusteredObjects.forEach((obj) => {
+        let obj_data = obj.data;
+        if (!(obj_data.memid in selected_objects)) {
+          // ..select object
+          toSelect[obj_data.memid] = obj_data;
+        } else {
+          // ..unselect object
+          let { [obj_data.memid]: _, ...rest } = toUnselectFrom;
+          toUnselectFrom = rest;
+        }
+      });
+      this.setState({
+        selected_objects: {
+          ...toUnselectFrom,
+          ...toSelect,
+        },
+      });
+    }
+  };
+  onTableClose = () => {
+    // make table invisible; unfocus point if popup not open
+    this.setState((prevState) => {
+      return {
+        table_visible: false,
+        ...(!prevState.popup_visible && { focused_point_coords: [null, null] }),
+      };
     });
   };
-  positionTable = (h, w, tc, dc, td) => {
-    // this takes all these parameters so table will properly update position on change
-    let ret = { position: "absolute" };
-    let final_coords = [tc[0] + dc[0], Math.min(h, w) - (tc[1] + dc[1])];
-    let final_pos = ["left", "bottom"];
-    let table_dims = [200, 61 * Object.keys(td).length + 100];
-    if (final_coords[1] > Math.min(h, w) - table_dims[1]) {
-      final_coords[1] = Math.min(h, w) - final_coords[1];
-      final_pos[1] = "top";
+  onTableSubmit = (em) => {
+    let numChanged = Object.keys(em).reduce((numChanged, attr) => {
+      if (em[attr].status === "changed") numChanged += 1;
+      return numChanged;
+    }, 0);
+    if (numChanged > 0)
+      this.props.stateManager.sendManualChange({
+        type: "edit",
+        data: em,
+      });
+    this.onTableClose();
+  };
+  onTableRestore = (memid) => {
+    this.props.stateManager.sendManualChange({
+      type: "restore",
+      data: memid,
+    });
+    this.onTableClose();
+  };
+  onPopupClose = () => {
+    this.setState({
+      popup_visible: false,
+      focused_point_coords: [null, null],
+    });
+    this.onTableClose();
+  };
+
+  /*##########################
+  ####  Drawing Handlers  ####
+  ##########################*/
+  handleToggleDraw = (e) => {
+    let { drag_coordinates, stageScale, drawing_mode } = this.state;
+
+    e.evt.preventDefault();
+    // close non-stage components
+    this.onTableClose();
+    this.onPopupClose();
+
+    let draw_pos = {
+      x:
+        (e.target.getStage().getPointerPosition().x - drag_coordinates[0]) /
+        stageScale,
+      y:
+        (e.target.getStage().getPointerPosition().y - drag_coordinates[1]) /
+        stageScale,
+    };
+    if (!drawing_mode) {
+      // start drawing
+      this.setState({ draw_pos_start: draw_pos });
+    } else {
+      // end drawing
+      this.handleDrawEnd(draw_pos);
     }
-    ret[final_pos[0]] = final_coords[0];
-    ret[final_pos[1]] = final_coords[1];
-    return ret;
+    this.setState({ drawing_mode: !drawing_mode });
+  };
+  inDrawnBounds = (map_pos, whileDrawing = true, end_pos = null) => {
+    let { drawing_mode, draw_pos_curr, draw_pos_start } = this.state;
+    let [map_x, map_y] = map_pos;
+
+    let startRect = draw_pos_start;
+    let endRect = end_pos ? end_pos : draw_pos_curr;
+
+    if (!(endRect && startRect)) return false;
+    let start = {
+      x: Math.min(startRect.x, endRect.x),
+      y: Math.min(startRect.y, endRect.y),
+    };
+    let end = {
+      x: Math.max(startRect.x, endRect.x),
+      y: Math.max(startRect.y, endRect.y),
+    };
+    return (
+      whileDrawing === drawing_mode &&
+      map_x > start.x &&
+      map_y > start.y &&
+      map_x < end.x &&
+      map_y < end.y
+    );
+  };
+  handleDrawEnd = (end_pos) => {
+    let {
+      bot_data,
+      obstacle_map,
+      detections_from_memory,
+      xmin,
+      xmax,
+      ymin,
+      ymax,
+      width,
+      height,
+      selected_objects,
+    } = this.state;
+
+    let toSelect = {};
+    let toUnselectFrom = selected_objects;
+
+    // Select/unselect map obstacles
+    // FIXME: map obstacles do not currently have memid from agent,
+    //        disabling grouping for now
+    let enableObstacleMapGrouping = false;
+    if (enableObstacleMapGrouping && obstacle_map) {
+      obstacle_map.forEach((obj) => {
+        let map_x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
+        let map_y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
+        let map_pos = "" + map_x + "," + map_y;
+        let data = {
+          memid: "don't edit " + map_pos,
+          x: obj[0],
+          y: obj[1],
+          pos: "[" + obj[0] + ",0," + obj[1] + "]",
+        };
+
+        if (this.inDrawnBounds([map_x, map_y], true, end_pos)) {
+          if (!(data.memid in selected_objects)) {
+            toSelect[data.memid] = data;
+          } else {
+            let { [data.memid]: _, ...rest } = toUnselectFrom;
+            toUnselectFrom = rest;
+          }
+        }
+      });
+    }
+
+    // Select/unselect bot
+    if (
+      this.inDrawnBounds(this.convertCoordinate(bot_data.pos), true, end_pos)
+    ) {
+      if (!(bot_data.memid in selected_objects)) {
+        toSelect[bot_data.memid] = bot_data;
+      } else {
+        let { [bot_data.memid]: _, ...rest } = toUnselectFrom;
+        toUnselectFrom = rest;
+      }
+    }
+
+    // Select/unselect detected objects from memory
+    detections_from_memory.forEach((obj) => {
+      let xyz = obj.pos;
+      let [map_x, map_y] = this.convertCoordinate(xyz);
+
+      if (this.inDrawnBounds([map_x, map_y], true, end_pos)) {
+        if (!(obj.memid in selected_objects)) {
+          toSelect[obj.memid] = obj;
+        } else {
+          let { [obj.memid]: _, ...rest } = toUnselectFrom;
+          toUnselectFrom = rest;
+        }
+      }
+    });
+
+    this.setState({
+      selected_objects: {
+        ...toUnselectFrom,
+        ...toSelect,
+      },
+    });
+  };
+  handleMouseMove = (e) => {
+    let { drag_coordinates, stageScale } = this.state;
+
+    let draw_pos = {
+      x:
+        (e.target.getStage().getPointerPosition().x - drag_coordinates[0]) /
+        stageScale,
+      y:
+        (e.target.getStage().getPointerPosition().y - drag_coordinates[1]) /
+        stageScale,
+    };
+    this.setState({
+      draw_pos_curr: draw_pos,
+    });
+  };
+
+  /*#######################
+  ####  Menu Handlers  ####
+  #######################*/
+  onMenuOpen = () => {
+    this.setState({ showMenu: true });
+  };
+
+  onGroupSubmit = (data) => {
+    this.props.stateManager.sendManualChange({
+      type: "group",
+      data: data,
+    });
+    // flush previously selected objects
+    this.setState({ selected_objects: {} });
+  };
+  centerToBot = () => {
+    let { height, width, bot_data, squareMap } = this.state;
+    if (squareMap) {
+      width = Math.min(width, height);
+      height = width;
+    }
+    let [bot_horz, bot_vert] = this.convertCoordinate(bot_data.pos);
+    this.setState(
+      {
+        drag_coordinates: [width / 2 - bot_horz, height / 2 - bot_vert],
+        stageScale: 1,
+      },
+      () => {
+        this.stage_ref.current.setAttrs({
+          x: width / 2 - bot_horz,
+          y: height / 2 - bot_vert,
+        });
+      }
+    );
   };
   resizeHandler() {
     if (this.props.isMobile) {
@@ -181,7 +498,7 @@ class Memory2D extends React.Component {
     }
   }
   componentDidUpdate(prevProps, prevState) {
-    const { bot_xyz, bot_data } = this.state;
+    const { bot_xyz } = this.state;
     let { xmin, xmax, ymin, ymax } = this.state;
     let bot_x = bot_xyz[0],
       bot_y = bot_xyz[1];
@@ -212,6 +529,10 @@ class Memory2D extends React.Component {
     if (this.props.stateManager) this.props.stateManager.disconnect(this);
   }
 
+  onMenuOpen = () => {
+    this.setState({ showMenu: true });
+  };
+
   render() {
     if (!this.state.isLoaded) return <p>Loading</p>;
     let {
@@ -227,16 +548,25 @@ class Memory2D extends React.Component {
       enlarge_bot_marker,
       table_data,
       table_visible,
-      table_coords,
+      popup_data,
+      popup_visible,
+      dynamicPositioning,
+      showTriples,
+      focused_point_coords,
+      map_update_count,
+      selected_objects,
+      draw_pos_start,
+      draw_pos_curr,
+      drawing_mode,
+      mapView,
+      squareMap,
     } = this.state;
-    width = Math.min(width, height);
-    height = width;
+    if (squareMap) {
+      width = Math.min(width, height);
+      height = width;
+    }
     let { objects } = memory;
     let { xmin, xmax, ymin, ymax } = this.state;
-
-    let bot_x = bot_data.pos[2];
-    let bot_y = -bot_data.pos[0];
-    let bot_yaw = bot_data.yaw;
 
     if (height === 0 && width === 0) {
       // return early for performance
@@ -251,86 +581,71 @@ class Memory2D extends React.Component {
       return <p>Map Disabled</p>;
     }
 
-    bot_x = parseInt(((bot_x - xmin) / (xmax - xmin)) * width);
-    bot_y = parseInt(((bot_y - ymin) / (ymax - ymin)) * height);
-    bot_y = height - bot_y;
-
     let renderedObjects = [];
-    let mapBoundary = [];
     let j = 0;
 
-    // Visualize map
+    let objectPosPool = {};
+
+    /*#################
+    ####  Pooling  ####
+    #################*/
+    // Pool map obstacles by position
     if (obstacle_map) {
       obstacle_map.forEach((obj) => {
         let color = "#827f7f";
-        let x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
-        let y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
-        renderedObjects.push(
-          // FIXME: may need to also add mobile support? by using onTap/onTouchEnd
-          <Circle
-            key={j++}
-            radius={2}
-            x={x}
-            y={y}
-            fill={color}
-            onClick={(e) => {
-              this.handleObjClick("obstacle_map", x, y, {
-                x: obj[0],
-                y: obj[1],
-              });
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.setRadius(5);
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.setRadius(2);
-            }}
-          />
-        );
+        let map_x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
+        let map_y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
+        let map_pos = "" + map_x + "," + map_y;
+        let poolData = {
+          type: "obstacle_map",
+          radius: 2,
+          radiusFocused: 5,
+          color: color,
+          data: {
+            memid: "don't edit " + map_pos,
+            x: obj[0],
+            y: obj[1],
+            pos: "[" + obj[0] + ",0," + obj[1] + "]",
+          },
+        };
+        if (!(map_pos in objectPosPool)) {
+          objectPosPool[map_pos] = [poolData];
+        } else {
+          objectPosPool[map_pos].push(poolData);
+        }
       });
     }
 
-    // Put detected objects from memory on map
+    // Pool detected objects from memory by position
     detections_from_memory.forEach((obj) => {
-      let obj_id = obj.obj_id;
       let xyz = obj.pos;
       let color = "#0000FF";
-      let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
-      let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
-      y = height - y;
-      renderedObjects.push(
-        <Circle
-          key={obj.memid}
-          radius={3}
-          x={x}
-          y={y}
-          fill={color}
-          onClick={(e) => {
-            this.handleObjClick("detection_from_memory", x, y, obj);
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.setRadius(6);
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.setRadius(3);
-          }}
-        />
-      );
+      let [map_x, map_y] = this.convertCoordinate(xyz);
+      let map_pos = "" + map_x + "," + map_y;
+      let poolData = {
+        type: "detection_from_memory",
+        radius: 6,
+        color: color,
+        data: obj,
+      };
+      if (!(map_pos in objectPosPool)) {
+        objectPosPool[map_pos] = [poolData];
+      } else {
+        objectPosPool[map_pos].push(poolData);
+      }
     });
 
     if (objects !== undefined && objects.forEach !== undefined) {
       objects.forEach((obj, key, map) => {
         let color = colorScheme[Math.abs(hashCode(obj.label)) % 10];
         let xyz = obj.xyz;
-        let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
-        let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
-        y = height - y;
+        let [map_x, map_y] = this.convertCoordinate(xyz);
         renderedObjects.push(
           <Circle
             key={j++}
             radius={3}
-            x={x}
-            y={y}
+            x={map_x}
+            y={map_y}
             fill={color}
             onMouseOver={(e) => {
               e.currentTarget.setRadius(6);
@@ -338,23 +653,118 @@ class Memory2D extends React.Component {
             onMouseOut={(e) => {
               e.currentTarget.setRadius(3);
             }}
+            perfectDrawEnabled={false}
           />
         );
-        // renderedObjects.push(<Text key={j++} text={obj.label} x={x} y={y} fill={color} fontSize={10} />);
+        renderedObjects.push(
+          <Text
+            key={j++}
+            text={obj.label}
+            x={map_x}
+            y={map_y}
+            fill={color}
+            fontSize={10}
+            perfectDrawEnabled={false}
+          />
+        );
       });
     }
 
-    /* bot marker
-      a circle to show position and
-      a line to show orientation
-    */
+    /*#########################
+    ####  Plotting Points  ####
+    #########################*/
+    // Use pooling to plot points/groups on map
+    Object.entries(objectPosPool).forEach((entry) => {
+      let [map_pos, objs_at_pos] = entry;
+      let [map_x, map_y] = map_pos.split(",");
+      map_x = parseInt(map_x);
+      map_y = parseInt(map_y);
+      let isFocused =
+        this.inDrawnBounds([map_x, map_y]) ||
+        (map_x === focused_point_coords[0] &&
+          map_y === focused_point_coords[1]);
+      if (objs_at_pos.length === 1) {
+        // only one object at map position
+        let obj = objs_at_pos[0];
+        renderedObjects.push(
+          <Circle
+            key={obj.data.memid}
+            x={map_x}
+            y={map_y}
+            radius={isFocused ? obj.radius * 1.5 : obj.radius}
+            fill={obj.data.memid in selected_objects ? "green" : obj.color}
+            onClick={(e) => {
+              if (e.evt.button === 0)
+                this.handleObjClick(obj.type, [map_x, map_y], obj.data);
+            }}
+            perfectDrawEnabled={false}
+          />
+        );
+      } else {
+        // several objects clustered at map position
+        let numObjs = objs_at_pos.length;
+        let clusteredObjects = [];
+        let [clusterColor, clusterRadius] = ["#0000FF", 6];
+        objs_at_pos.forEach((obj) => {
+          clusteredObjects.push(obj);
+        });
+        let someObjSelected = objs_at_pos.some(
+          (obj) => obj.data.memid in selected_objects
+        );
+        renderedObjects.push(
+          <Group
+            key={map_pos}
+            x={map_x}
+            y={map_y}
+            onClick={(e) => {
+              if (e.evt.button === 0)
+                this.handlePopupClick([map_x, map_y], clusteredObjects);
+            }}
+          >
+            <Circle
+              x={0}
+              y={0}
+              radius={isFocused ? clusterRadius * 1.5 : clusterRadius}
+              fill={someObjSelected ? "green" : clusterColor}
+              stroke="black"
+              strokeWidth={1}
+              perfectDrawEnabled={false}
+            />
+            <Text
+              x={numObjs > 9 ? -5 : -3}
+              y={numObjs > 9 ? -5 : -3}
+              width={numObjs > 9 ? 10 : 6}
+              height={numObjs > 9 ? 10 : 6}
+              text={numObjs > 9 ? "9+" : numObjs}
+              fontSize={numObjs > 9 ? 8 : 10}
+              fontFamily="Segoe UI"
+              fill="white"
+              align="center"
+              verticalAlign="middle"
+              perfectDrawEnabled={false}
+            />
+          </Group>
+        );
+      }
+    });
+
+    /*####################
+    ####  Bot Marker  ####
+    ####################*/
+    /*
+        a circle to show position and
+        a line to show orientation
+      */
+    let [bot_x, bot_y] = this.convertCoordinate(bot_data.pos);
+    let bot_yaw = bot_data.yaw;
     renderedObjects.push(
       <Group
         key={bot_data.memid}
         x={bot_x}
         y={bot_y}
         onClick={(e) => {
-          this.handleObjClick("bot", bot_x, bot_y, bot_data);
+          if (e.evt.button === 0)
+            this.handleObjClick("bot", [bot_x, bot_y], bot_data);
         }}
         onMouseOver={(e) => {
           this.setState({ enlarge_bot_marker: true });
@@ -363,20 +773,51 @@ class Memory2D extends React.Component {
           this.setState({ enlarge_bot_marker: false });
         }}
       >
-        <Circle key={j++} radius={enlarge_bot_marker ? 15 : 10} fill="red" />
+        <Circle
+          key={j++}
+          radius={
+            enlarge_bot_marker ||
+            this.inDrawnBounds([bot_x, bot_y]) ||
+            (bot_x === focused_point_coords[0] &&
+              bot_y === focused_point_coords[1])
+              ? 15
+              : 10
+          }
+          fill={bot_data.memid in selected_objects ? "green" : "red"}
+          perfectDrawEnabled={false}
+        />
         <Line
           key={j++}
-          points={enlarge_bot_marker ? [0, 0, 18, 0] : [0, 0, 12, 0]}
+          points={
+            enlarge_bot_marker ||
+            this.inDrawnBounds([bot_x, bot_y]) ||
+            (bot_x === focused_point_coords[0] &&
+              bot_y === focused_point_coords[1])
+              ? [0, 0, 18, 0]
+              : [0, 0, 12, 0]
+          }
           rotation={(-bot_yaw * 180) / Math.PI}
           stroke="black"
-          strokeWidth={enlarge_bot_marker ? 1.5 : 1}
+          strokeWidth={
+            enlarge_bot_marker ||
+            this.inDrawnBounds([bot_x, bot_y]) ||
+            (bot_x === focused_point_coords[0] &&
+              bot_y === focused_point_coords[1])
+              ? 1.5
+              : 1
+          }
+          perfectDrawEnabled={false}
         />
       </Group>
     );
 
+    /*##############
+    ####  Grid  ####
+    ##############*/
     var gridLayer = [];
     var padding = 10;
     var gridKey = 12344;
+
     for (var i = 0; i < width / padding; i++) {
       // Vertical Lines
       let startX = drag_coordinates[0] % (padding * stageScale);
@@ -399,7 +840,6 @@ class Memory2D extends React.Component {
       );
     }
 
-    //gridLayer.push(<Line key={gridKey + i++} points={[0, 0, 10, 10]} />); // this draws a diagonal line at the top left of the grid?
     for (j = 0; j < height / padding; j++) {
       // Horizontal Lines
       let startY = drag_coordinates[1] % (padding * stageScale);
@@ -420,106 +860,113 @@ class Memory2D extends React.Component {
       );
     }
 
+    /*##############
+    ####  Axes  ####
+    ##############*/
     let coordinateAxesLayer = [];
-    let rootPointDefault = [9, 0, -9];
-    let coordinateRootPoint = this.convertCoordinate(rootPointDefault);
 
-    let x = (coordinateRootPoint[0] - drag_coordinates[0]) / stageScale;
-    let y = (coordinateRootPoint[1] - drag_coordinates[1]) / stageScale;
+    // Origin of axis fixed at (40, 25) pixels from bottom, left
+    let coordinateRootPoint = [40, height - 25];
 
-    let rootPoint = this.convertGridCoordinate([x, y]);
-    let strokeWidth = 0.5 / stageScale;
+    let rootHorz = (coordinateRootPoint[0] - drag_coordinates[0]) / stageScale;
+    let rootVert = (coordinateRootPoint[1] - drag_coordinates[1]) / stageScale;
+    let rootPoint = this.convertGridCoordinate(rootHorz, rootVert);
 
-    let axesZ = (
+    let axisStrokeWidth = 0.5 / stageScale;
+
+    let axesHorz = (
       <Line
-        key="axesZ"
-        points={[0, 0, width, 0]}
-        x={x}
-        y={y}
+        key="axesHorz"
+        points={[0, 0, (width - coordinateRootPoint[0] - 20) / stageScale, 0]}
+        x={rootHorz}
+        y={rootVert}
         stroke="#AAAAAA"
-        strokeWidth={strokeWidth}
+        strokeWidth={axisStrokeWidth}
       />
     );
 
-    let axesX = (
+    let axesVert = (
       <Line
-        key="axesX"
-        points={[0, -height, 0, 0]}
-        x={x}
-        y={y}
+        key="axesVert"
+        points={[0, (20 - coordinateRootPoint[1]) / stageScale, 0, 0]}
+        x={rootHorz}
+        y={rootVert}
         stroke="#AAAAAA"
-        strokeWidth={strokeWidth}
+        strokeWidth={axisStrokeWidth}
       />
     );
+
+    /*#################
+    ####  Notches  ####
+    #################*/
     /* add notches and coordinate point value to coordinate axes
        the number of notches axes is unchanged when zoom-in, zoom-out 
        the coordinate point values is shown rounded 2 decimal digits 
        (e.g: 5.123 = 5.12; 5.129 = 5.13) 
     */
     let notches = [];
-    let endPointXZ = [
-      coordinateRootPoint[0] + width,
-      coordinateRootPoint[1] - height,
-    ];
-    let tmpPointX = coordinateRootPoint[0];
-    let tmpPointY = coordinateRootPoint[1];
+    let tmpPointHorz = coordinateRootPoint[0];
+    let tmpPointVert = coordinateRootPoint[1];
 
-    while (tmpPointX < endPointXZ[0]) {
-      tmpPointX += 30;
-      let coordinate = this.convertGridCoordinate([
-        (tmpPointX - drag_coordinates[0]) / stageScale,
-        0,
-      ]);
+    // Notches for horizontal axis
+    while (tmpPointHorz < width - 50) {
+      tmpPointHorz += 30;
+      let coordinate = this.convertGridCoordinate(
+        (tmpPointHorz - drag_coordinates[0]) / stageScale,
+        0
+      );
       notches.push(
         <Text
-          key={"textCoordinateX-" + tmpPointX}
-          text={coordinate[2].toFixed(2)}
+          key={"textCoordinateX-" + tmpPointHorz}
+          text={coordinate[0].toFixed(2)}
           fontSize={10 / stageScale}
-          x={(tmpPointX - 10 - drag_coordinates[0]) / stageScale}
+          x={(tmpPointHorz - 10 - drag_coordinates[0]) / stageScale}
           y={(coordinateRootPoint[1] - 15 - drag_coordinates[1]) / stageScale}
           fill="#AAAAAA"
         />
       );
       notches.push(
         <Line
-          key={"coordinateX-" + tmpPointX}
+          key={"coordinateX-" + tmpPointHorz}
           points={[0, -3 / stageScale, 0, 3 / stageScale]}
-          x={(tmpPointX - drag_coordinates[0]) / stageScale}
-          y={y}
+          x={(tmpPointHorz - drag_coordinates[0]) / stageScale}
+          y={rootVert}
           stroke="#AAAAAA"
-          strokeWidth={strokeWidth}
+          strokeWidth={axisStrokeWidth}
         />
       );
     }
 
-    while (tmpPointY > endPointXZ[1]) {
-      tmpPointY = tmpPointY - 20;
-      let coordinate = this.convertGridCoordinate([
+    // Notches for vertical axis
+    while (tmpPointVert > height - coordinateRootPoint[1] + 25) {
+      tmpPointVert = tmpPointVert - 25;
+      let coordinate = this.convertGridCoordinate(
         0,
-        (tmpPointY - drag_coordinates[1]) / stageScale,
-      ]);
+        (tmpPointVert - drag_coordinates[1]) / stageScale
+      );
       notches.push(
         <Text
-          key={"textCoordinateY-" + tmpPointY}
-          text={coordinate[0].toFixed(2)}
+          key={"textCoordinateY-" + tmpPointVert}
+          text={coordinate[1].toFixed(2)}
           fontSize={10 / stageScale}
           x={(coordinateRootPoint[0] - 35 - drag_coordinates[0]) / stageScale}
-          y={(tmpPointY - 5 - drag_coordinates[1]) / stageScale}
+          y={(tmpPointVert - 5 - drag_coordinates[1]) / stageScale}
           fill="#AAAAAA"
         />
       );
       notches.push(
         <Line
-          key={"coordinateY-" + tmpPointY}
+          key={"coordinateY-" + tmpPointVert}
           points={[-3 / stageScale, 0, 3 / stageScale, 0]}
-          x={x}
-          y={(tmpPointY - drag_coordinates[1]) / stageScale}
+          x={rootHorz}
+          y={(tmpPointVert - drag_coordinates[1]) / stageScale}
           stroke="#AAAAAA"
-          strokeWidth={strokeWidth}
+          strokeWidth={axisStrokeWidth}
         />
       );
     }
 
+    // Root Text
     let rootTextCoordinate = [
       (coordinateRootPoint[0] - 25 - drag_coordinates[0]) / stageScale,
       (coordinateRootPoint[1] + 10 - drag_coordinates[1]) / stageScale,
@@ -528,77 +975,93 @@ class Memory2D extends React.Component {
       <Text
         key="root-text"
         fill="#AAAAAA"
-        text={`${rootPoint[0].toFixed(2)}, ${rootPoint[2].toFixed(2)}`}
+        text={`${rootPoint[1].toFixed(2)}, ${rootPoint[0].toFixed(2)}`}
         fontSize={10 / stageScale}
         x={rootTextCoordinate[0]}
         y={rootTextCoordinate[1]}
       />
     );
+
+    // Axis Labels
+    let vertLabelWindowPos = [35, 2];
     notches.push(
       <Text
-        key="x-text"
+        key="vert-axis-text"
         fill="#AAAAAA"
-        text="x"
-        fontSize={12 / stageScale}
-        x={
-          (this.convertCoordinate([-9, 0, -8.8])[0] - drag_coordinates[0]) /
-          stageScale
-        }
-        y={
-          (this.convertCoordinate([-9, 0, -8.8])[1] - drag_coordinates[1]) /
-          stageScale
-        }
+        text={mapView === "ZX" ? "x" : mapView === "XY" ? "y" : "z"}
+        fontSize={18 / stageScale}
+        x={(vertLabelWindowPos[0] - drag_coordinates[0]) / stageScale}
+        y={(vertLabelWindowPos[1] - drag_coordinates[1]) / stageScale}
       />
     );
+
+    let horzLabelWindowPos = [width - 15, height - 35];
     notches.push(
       <Text
-        key="z-text"
+        key="horz-axis-text"
         fill="#AAAAAA"
-        text="z"
-        fontSize={12 / stageScale}
-        x={
-          (this.convertCoordinate([9.1, 0, 9])[0] - drag_coordinates[0]) /
-          stageScale
-        }
-        y={
-          (this.convertCoordinate([9.1, 0, 9])[1] - drag_coordinates[1]) /
-          stageScale
-        }
+        text={mapView === "ZX" ? "z" : mapView === "XY" ? "x" : "y"}
+        fontSize={18 / stageScale}
+        x={(horzLabelWindowPos[0] - drag_coordinates[0]) / stageScale}
+        y={(horzLabelWindowPos[1] - drag_coordinates[1]) / stageScale}
       />
     );
-    coordinateAxesLayer.push(axesX, axesZ, notches);
 
-    // table props
-    const onTableDone = (e) => {
-      this.setState({ table_visible: false });
-    };
-    const rows = [];
-    if (table_visible) {
-      console.assert(table_data !== null, "table_data should be initialized");
-      let data = Object.entries(table_data);
-      data.forEach((entry) =>
-        rows.push({
-          attribute: entry[0].toString(),
-          value: entry[1].toString(),
-        })
-      );
-    }
+    coordinateAxesLayer.push(axesVert, axesHorz, notches);
 
-    // final render
+    /*######################
+    ####  Final Render  ####
+    ######################*/
     return (
       <div
         ref={this.outer_div}
         style={{ height: "100%", width: "100%", position: "relative" }}
+        onKeyDown={(e) => {
+          let selectionKeys = ["Meta", "Command", "Ctrl"];
+          if (selectionKeys.includes(e.key)) {
+            this.setState({ selection_mode: true });
+          }
+          let escapeKeys = ["Escape", "Esc"];
+          if (escapeKeys.includes(e.key)) {
+            this.setState({
+              selection_mode: false,
+              drawing_mode: false,
+              draw_pos_start: null,
+            });
+            this.onTableClose();
+            this.onPopupClose();
+          }
+        }}
+        onKeyUp={() => {
+          this.setState({ selection_mode: false });
+        }}
+        tabIndex="0"
+        onMouseDown={(e) => {
+          // quick open/close menu with middle button click
+          if (e.button === 1) {
+            this.setState((prev) => {
+              return {
+                showMenu: !prev.showMenu,
+              };
+            });
+          }
+        }}
       >
-        <div style={{ position: "absolute" }}>
+        <div
+          style={{
+            position: "absolute",
+            ...(this.state.drawing_mode && { cursor: "crosshair" }),
+          }}
+        >
           <Stage
             draggable
             className={this.state.memory2d_className}
+            ref={this.stage_ref}
             width={width}
             height={height}
             onWheel={this.handleWheel}
-            scaleX={this.state.stageScale}
-            scaleY={this.state.stageScale}
+            scaleX={stageScale}
+            scaleY={stageScale}
             x={this.state.stageX}
             y={this.state.stageY}
             onDragMove={(e) =>
@@ -610,11 +1073,19 @@ class Memory2D extends React.Component {
             onDragEnd={(e) =>
               this.handleDrag("memory2d", [e.target.attrs.x, e.target.attrs.y])
             }
+            onContextMenu={(e) => {
+              // toggle draw selection rectangle with right click
+              this.handleToggleDraw(e);
+            }}
+            onMouseMove={(e) => {
+              this.handleMouseMove(e);
+            }}
           >
             <Layer className="gridLayer">{gridLayer}</Layer>
             <Layer className="coordinateAxesLayer">{coordinateAxesLayer}</Layer>
-            <Layer className="mapBoundary">{mapBoundary}</Layer>
-            <Layer className="renderedObjects">{renderedObjects}</Layer>
+            <Layer className="renderedObjects" key={map_update_count}>
+              {renderedObjects}
+            </Layer>
             <Layer>
               <Text
                 text={tooltip}
@@ -624,21 +1095,121 @@ class Memory2D extends React.Component {
                 shadowEnabled={true}
               />
             </Layer>
+            <Layer className="dragToGroup">
+              <Shape
+                sceneFunc={(ctx, shape) => {
+                  if (drawing_mode) {
+                    let mouseX = parseInt(draw_pos_curr.x);
+                    let mouseY = parseInt(draw_pos_curr.y);
+                    let startX = parseInt(draw_pos_start.x);
+                    let startY = parseInt(draw_pos_start.y);
+
+                    ctx.clearRect(0, 0, shape.width, shape.height);
+                    ctx.beginPath();
+                    ctx.rect(startX, startY, mouseX - startX, mouseY - startY);
+                    ctx.fillStrokeShape(shape);
+                  }
+                }}
+                fill="transparent"
+                stroke="black"
+                strokeWidth={4 / stageScale}
+                perfectDrawEnabled={false}
+              />
+            </Layer>
           </Stage>
         </div>
-        {table_visible && (
+        {popup_visible && (
           <div
-            style={this.positionTable(
-              height,
-              width,
-              table_coords,
+            style={positionClusteredObjsPopup(
+              this.state.height,
+              this.state.width,
+              focused_point_coords,
               drag_coordinates,
-              table_data
+              dynamicPositioning,
+              dynamicPositioning && popup_data
             )}
           >
-            <MemoryMapTable rows={rows} onTableDone={onTableDone} />
+            <ClusteredObjsPopup
+              data={popup_data}
+              map_pos={focused_point_coords}
+              onPopupClose={this.onPopupClose}
+              handleObjClick={this.handleObjClick}
+              table_visible={table_visible}
+              selection_mode={this.state.selection_mode}
+              selected_objects={selected_objects}
+            />
           </div>
         )}
+        {table_visible && (
+          <div
+            style={positionMemoryMapTable(
+              this.state.height,
+              this.state.width,
+              focused_point_coords,
+              drag_coordinates,
+              dynamicPositioning,
+              dynamicPositioning && table_data
+            )}
+          >
+            <MemoryMapTable
+              data={table_data}
+              onTableClose={this.onTableClose}
+              onTableSubmit={this.onTableSubmit}
+              onTableRestore={this.onTableRestore}
+              allTriples={showTriples && this.state.triples}
+            />
+          </div>
+        )}
+        <div
+          style={{
+            position: "absolute",
+            right: this.state.width - width,
+            top: "-0.1%",
+          }}
+        >
+          <IconButton size="small" disableRipple onClick={this.onMenuOpen}>
+            <MenuIcon />
+          </IconButton>
+        </div>
+        <Memory2DMenu
+          showMenu={this.state.showMenu}
+          onMenuClose={() => {
+            this.setState({ showMenu: false });
+          }}
+          selected_objects={selected_objects}
+          onGroupSubmit={this.onGroupSubmit}
+          dynamicPositioning={dynamicPositioning}
+          toggleDynamicPositioning={() => {
+            this.setState((prev) => {
+              return {
+                dynamicPositioning: !prev.dynamicPositioning,
+              };
+            });
+          }}
+          showTriples={showTriples}
+          toggleShowTriples={() => {
+            this.setState((prev) => {
+              return {
+                showTriples: !prev.showTriples,
+              };
+            });
+          }}
+          mapView={this.state.mapView}
+          toggleMapView={(view) => {
+            this.setState({ mapView: view }, () => {
+              this.centerToBot();
+            });
+          }}
+          centerToBot={this.centerToBot}
+          squareMap={squareMap}
+          toggleSquareMap={() => {
+            this.setState((prev) => {
+              return {
+                squareMap: !prev.squareMap,
+              };
+            });
+          }}
+        />
       </div>
     );
   }
