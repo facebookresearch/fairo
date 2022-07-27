@@ -29,18 +29,17 @@ def generate_trajectory(center_pose, radius, hz, num_loops, time_to_go):
     ee_pose_traj = torch.empty([num_steps, 7])
 
     for i in range(num_steps):
-        theta = i * num_loops * 2 * np.pi / num_steps
+        theta = i * num_loops * 2.0 * np.pi / num_steps
 
+        # Position: Draw meta
         dx = radius * np.cos(theta)
         dy = 1.5 * radius * np.sin(theta)
         dz = radius * np.sin(theta * 2)
         ee_pose_traj[i, :3] = center_pose[:3] + torch.Tensor([dx, dy, dz])
 
-        dr_wrist = R.from_rotvec(torch.Tensor([0.0, 0.0, 0.25 * np.sin(theta / 2.0)]))
-        dr_sway = R.from_rotvec(torch.Tensor([0.5 * np.sin(theta), 0.0, 0.0]))
-        dr = dr_sway * dr_wrist
+        # Orientation: Only rotate wrist
+        dr = R.from_rotvec(torch.Tensor([0.0, 0.0, np.pi * np.sin(theta) / 2.0]))
         ee_pose_traj[i, 3:] = (dr * R.from_quat(center_pose[3:])).as_quat()
-        ee_pose_traj[i, 3:] = center_pose[3:]
 
     return ee_pose_traj
 
