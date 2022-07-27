@@ -109,6 +109,5 @@ if __name__ == "__main__":
         robot.update_desired_ee_pose(pose[:3], pose[3:])
         spinner.spin()
 
-
     state_log = robot.terminate_current_policy()
     compare_traj(state_log, pose_traj_offline, "Online")
