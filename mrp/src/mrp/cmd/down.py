@@ -8,13 +8,16 @@ import click
 @click.command()
 @click.option("--all", is_flag=True)
 @click.option("--wait/--nowait", is_flag=True)
-@click.argument("procs", nargs=-1, shell_complete=_autocomplete.defined_processes)
+@click.argument("procs", nargs=-1, shell_complete=_autocomplete.running_processes)
 def cli(*cmd_procs, procs=None, all=False, wait=True):
     procs = procs or []
 
     # Get all MRP procs running in the system
-    running_procs = life_cycle.system_state().procs.keys()
-    down_procs = set(running_procs)
+    down_procs = set(
+        name
+        for name, info in life_cycle.system_state().procs.items()
+        if info.state == life_cycle.State.STARTED
+    )
 
     if all:  # system-wide down
         assert not procs, "Specifying processes is not supported with the flag '--all'."
