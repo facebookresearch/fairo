@@ -22,5 +22,8 @@ setup(
     package_dir={"": "python"},
     include_package_data=True,
     scripts=scripts,
-    install_requires=["alephzero"],
+    install_requires=[
+        "alephzero",
+        "tracikpy @ git+ssh://git@github.com/mjd3/tracikpy@v0.2.0#egg=trakikpy",
+    ],
 )
