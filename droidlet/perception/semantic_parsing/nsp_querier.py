@@ -142,12 +142,22 @@ class NSPQuerier(object):
             conv_history = " ".join([chat.chat_text for chat in recent_chats])
             logging.info(f"Conversation history: {conv_history}")
 
-            preprocessed_chat, chat_parse, gt_chat, full_conversation = self.get_parse(chat, conv_history)
+            preprocessed_chat, chat_parse, gt_chat, full_conversation = self.get_parse(
+                chat, conv_history
+            )
 
             if gt_chat != preprocessed_chat:
                 chat = gt_chat
 
-        return force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse, full_conversation
+        return (
+            force,
+            received_chats_flag,
+            speaker,
+            chat,
+            preprocessed_chat,
+            chat_parse,
+            full_conversation,
+        )
 
     def preprocess_chat(self, chat):
         """Tokenize the chat and get list of sentences to parse.
@@ -229,7 +239,7 @@ class NSPQuerier(object):
             gt_chat = chat[6:]
         if gt_chat in self.ground_truth_actions:
             logical_form = copy.deepcopy(self.ground_truth_actions[gt_chat])
-            full_conversation = gt_chat #just want to postprocess the gt_chat in this case
+            full_conversation = gt_chat  # just want to postprocess the gt_chat in this case
             logging.info('Found ground truth action for "{}"'.format(gt_chat))
             # log the current UTC time
             time_now = time.time()
