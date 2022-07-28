@@ -6,12 +6,14 @@ it provides helper method to interact with aws s3
 and preparing proper response for APIs the server provides.
 """
 
+import ast
 import json
 import tarfile
 import boto3
 import botocore
 import os
 import re
+import pandas as pd
 
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_model_utils import load_model
 from droidlet.tools.hitl.utils.read_model_log import read_model_log_to_list
@@ -93,7 +95,10 @@ def get_traceback_by_id(batch_id: int):
     local_fname = _download_file(f"{batch_id}/log_traceback.csv")
     if local_fname is None:
         return f"cannot find traceback with id {batch_id}", 404
-    return _read_file(local_fname), None
+    traceback_df = pd.read_csv(local_fname) 
+    traceback_df.chat_content = traceback_df.chat_content.map(lambda x: ast.literal_eval(x)) # parsse array
+    traceback_df.chat_content = traceback_df.chat_content.map(lambda ls: [o for o in ls if len(o)]) # filter out empty ones
+    return traceback_df.to_json(orient="records"), None
 
 
 def get_run_info_by_id(batch_id: int):
