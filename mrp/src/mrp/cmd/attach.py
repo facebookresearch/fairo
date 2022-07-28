@@ -26,8 +26,8 @@ def cli(proc):
         os.write(sys.stderr.fileno(), pkt.payload[: 4 * 1024])
 
     pub_in = a0.Publisher(f"mrp/{proc}/stdin")
-    sub_out = a0.Subscriber(f"mrp/{proc}/stdout", on_pty_stdout) # noqa: F841
-    sub_err = a0.Subscriber(f"mrp/{proc}/stderr", on_pty_stderr) # noqa: F841
+    sub_out = a0.Subscriber(f"mrp/{proc}/stdout", on_pty_stdout)  # noqa: F841
+    sub_err = a0.Subscriber(f"mrp/{proc}/stderr", on_pty_stderr)  # noqa: F841
 
     while True:
         r, _, _ = select.select([sys.stdin], [], [], 0.1)
