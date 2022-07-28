@@ -19,10 +19,7 @@ from droidlet.tools.hitl.dashboard_app.backend.dashboard_model_utils import load
 from droidlet.tools.hitl.utils.read_model_log import read_model_log_to_list
 
 
-PIPELINE_DATASET_MAPPING = {
-    "NLU": "nsp_data",
-    "TAO": "nsp_data"
-}
+PIPELINE_DATASET_MAPPING = {"NLU": "nsp_data", "TAO": "nsp_data"}
 
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
@@ -72,6 +69,7 @@ def _read_file(fname: str):
     f.close()
     return content
 
+
 def get_run_list(pipeline: str):
     """
     helper method for preparing get_run_list api's response
@@ -80,9 +78,9 @@ def get_run_list(pipeline: str):
     local_fname = _download_file(f"{pipeline}_run_list")
     if local_fname is None:
         return f"cannot find run list for pipeline {pipeline}", 404
-    
+
     run_list = _read_file(local_fname).split("\n")
-    run_list = list(filter(lambda line: len(line), run_list))    # filter out empty strings if there 
+    run_list = list(filter(lambda line: len(line), run_list))  # filter out empty strings if there
     run_list = [int(bid) for bid in run_list]
 
     return run_list, None
