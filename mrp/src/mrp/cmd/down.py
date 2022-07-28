@@ -16,7 +16,7 @@ def cli(*cmd_procs, procs=None, all=False, wait=True):
     down_procs = set(
         name
         for name, info in life_cycle.system_state().procs.items()
-        if info.state == life_cycle.State.STARTED
+        if info.state != life_cycle.State.STOPPED
     )
 
     if all:  # system-wide down
