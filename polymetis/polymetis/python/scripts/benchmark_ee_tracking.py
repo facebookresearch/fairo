@@ -44,7 +44,39 @@ def generate_trajectory(center_pose, radius, hz, num_loops, time_to_go):
     return ee_pose_traj
 
 
+def run_offline_policy_from_traj(robot, traj):
+    """Executes offline policy that executes trajectories in a similar fashion to robot.move_to_ee_pose"""
+    num_steps = traj.shape[0]
+
+    ee_pose_traj = []
+    for i in range(num_steps):
+        ee_pose = T.from_rot_xyz(
+            rotation=R.from_quat(traj[i, 3:]),
+            translation=traj[i, :3],
+        )
+        ee_pose_traj.append(ee_pose)
+
+    ee_twist_traj = []
+    for i in range(num_steps):
+        pose0 = ee_pose_traj[max(i - 1, 0)]
+        pose1 = ee_pose_traj[min(i + 1, num_steps - 1)]
+        ee_twist = (pose1 * pose0.inv()).as_twist() * robot.metadata.hz
+        ee_twist_traj.append(ee_twist)
+
+    policy = toco.policies.EndEffectorTrajectoryExecutor(
+        ee_pose_trajectory=ee_pose_traj,
+        ee_twist_trajectory=ee_twist_traj,
+        Kp=robot.Kx_default,
+        Kd=robot.Kxd_default,
+        robot_model=robot.robot_model,
+        ignore_gravity=True,
+    )
+
+    return robot.send_torch_policy(policy)
+
+
 def compare_traj(state_log, ref_traj, robot_model, ignore_steps, experiment_name=""):
+    """Compute and print error between state log and the reference trajectory"""
     assert len(state_log) == ref_traj.shape[0]
 
     # Parse state log
@@ -93,34 +125,9 @@ if __name__ == "__main__":
         NUM_LOOPS,
         TIME_TO_GO,
     )
-    num_steps = pose_traj_offline.shape[0]
     robot.move_to_ee_pose(pose_traj_offline[0, :3], pose_traj_offline[0, 3:])
 
-    ee_pose_traj = []
-    for i in range(num_steps):
-        ee_pose = T.from_rot_xyz(
-            rotation=R.from_quat(pose_traj_offline[i, 3:]),
-            translation=pose_traj_offline[i, :3],
-        )
-        ee_pose_traj.append(ee_pose)
-
-    ee_twist_traj = []
-    for i in range(num_steps):
-        pose0 = ee_pose_traj[max(i - 1, 0)]
-        pose1 = ee_pose_traj[min(i + 1, num_steps - 1)]
-        ee_twist = (pose1 * pose0.inv()).as_twist() * robot.metadata.hz
-        ee_twist_traj.append(ee_twist)
-
-    policy = toco.policies.EndEffectorTrajectoryExecutor(
-        ee_pose_trajectory=ee_pose_traj,
-        ee_twist_trajectory=ee_twist_traj,
-        Kp=robot.Kx_default,
-        Kd=robot.Kxd_default,
-        robot_model=robot.robot_model,
-        ignore_gravity=True,
-    )
-
-    state_log = robot.send_torch_policy(policy)
+    state_log = run_offline_policy_from_traj(robot, pose_traj_offline)
     compare_traj(
         state_log, pose_traj_offline, robot.robot_model, ignore_steps, "Offline"
     )
@@ -144,7 +151,7 @@ if __name__ == "__main__":
 
     state_log = robot.terminate_current_policy()
     compare_traj(
-        state_log[:num_steps],
+        state_log[: pose_traj_offline.shape[0]],
         pose_traj_offline,
         robot.robot_model,
         ignore_steps,
