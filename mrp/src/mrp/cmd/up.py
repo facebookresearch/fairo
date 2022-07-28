@@ -124,7 +124,7 @@ def cli(
         raise ValueError(f"Cannot attach to {len(names)} processes")
 
     if attach and not run:
-        raise ValueError(f"Cannot attach to without running")
+        raise ValueError("Cannot attach to without running")
 
     down_existing(names, force)
 
