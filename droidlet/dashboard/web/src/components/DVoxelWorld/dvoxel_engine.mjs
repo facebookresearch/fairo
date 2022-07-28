@@ -18,7 +18,7 @@ const defaultCameraNearPlane = 1
 const defaultCameraFarPlane = 10000
 const fps = 2
 const renderInterval = 1000 / fps
-let world, camera, reticle, scene, renderer, loader, preLoadBlockMaterials, sceneItems;
+let world, camera, reticle, scene, renderer, loader, preLoadBlockMaterials;
 const followPointerScale = 150;
 
 const preLoadMaterialNames = ['grass', 'dirt', 'wood', 'iron', 'bedrock', 'red wool'];
@@ -48,6 +48,7 @@ const bid2Name = {
     67: 'iron',
     69: 'lava',
 }
+const DEFAULT_MATERIAL = "wood";
 
 const TEXTURE_PATH = "https://cdn.jsdelivr.net/gh/snyxan/assets@main/block_textures/";
 
@@ -75,9 +76,12 @@ const AGENT_NAME = "craftassist_agent";
 const PLAYER_NAME = "dashboard";
 
 let mobs = {}
-let mobList = []
 let itemStacks = {}
-let itemList = []
+let mobList = new Set();
+let itemList = new Set();
+let blockList = new Set();
+let shellCheck = new Set();
+let sceneItems = new Set();
 
 let direction_vec = new THREE.Vector3();
 
@@ -200,9 +204,6 @@ class DVoxelEngine {
         scene = this.scene
         this.scene.background = new THREE.Color( 0xf0f0f0 );
 
-        this.sceneItems = [];
-        sceneItems = this.sceneItems;
-
         this.cameraWidth = opts.cameraWidth || defaultCameraWidth;
         this.cameraHeight = opts.cameraHeight || defaultCameraHeight;
         this.cameraAspectRatio = opts.cameraAspectRatio || defaultCameraAspectRatio;
@@ -291,6 +292,7 @@ class DVoxelEngine {
                         }
                         if (player.avatarType === "agent") {
                             agent_player = player;
+                            sceneItems.add(player.mesh);
                         }
                     }
                 );
@@ -307,63 +309,79 @@ class DVoxelEngine {
 
 
     setVoxel(pos, bid) {
+        const name = pos2Name(pos[0], pos[1], pos[2]);
+        const bidx = convertCoordinateSystems(pos[0], pos[1], pos[2]);
         if (bid === 0) {
-            let obj = scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2]))
-            // console.log('deleting')
-            // console.log(obj)
-            this.scene.remove(scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2])))
-            this.scene.remove(scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2], true)))
-            sceneItems = sceneItems.filter(item => item !== obj);
-            updateWorld();
+            let obj = scene.getObjectByName(name)
+            if (obj) {
+                // console.log('deleting')
+                // console.log(obj)
+                this.scene.remove(obj);
+                this.scene.remove(scene.getObjectByName(pos2Name(pos[0], pos[1], pos[2], true)));
+                setBlock2(bidx[0], bidx[1], bidx[2], bid);
+                sceneItems.delete(obj);
+                blockList.delete(JSON.stringify([bidx[0], bidx[1], bidx[2]]));
+                shellCheck.add([bidx[0]+1, bidx[1], bidx[2]]);
+                shellCheck.add([bidx[0]-1, bidx[1], bidx[2]]);
+                shellCheck.add([bidx[0], bidx[1]+1, bidx[2]]);
+                shellCheck.add([bidx[0], bidx[1]-1, bidx[2]]);
+                shellCheck.add([bidx[0], bidx[1], bidx[2]+1]);
+                shellCheck.add([bidx[0], bidx[1], bidx[2]-1]);
+                updateWorld();    
+            }
             return;
-        }
-        const blockName = bid2Name[bid];
-        const geometry = new THREE.BoxGeometry( blockScale, blockScale, blockScale );
-        let block_data = VW_ITEM_MAP[blockName];
-        let blockMaterials;
-        if (preLoadBlockMaterials.has(blockName)) {
-            // console.log('preloaddding!!!' + blockName)
-            blockMaterials = preLoadBlockMaterials.get(blockName);
-        } else {
-            blockMaterials = [
-                new THREE.MeshBasicMaterial({ 
-                    map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                    color: block_data["color"]}), //right side
-                new THREE.MeshBasicMaterial({ 
-                    map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                    color: block_data["color"]}), //left side
-                new THREE.MeshBasicMaterial({ 
-                    map: loader.load(TEXTURE_PATH+block_data["top"]), 
-                    color: block_data["color"]}), //top side
-                new THREE.MeshBasicMaterial({ 
-                    map: loader.load(TEXTURE_PATH+block_data["bottom"]), 
-                    color: block_data["color"]}), //bottom side
-                new THREE.MeshBasicMaterial({ 
-                    map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                    color: block_data["color"]}), //front side
-                new THREE.MeshBasicMaterial({ 
-                    map: loader.load(TEXTURE_PATH+block_data["sides"]), 
-                    color: block_data["color"]}), //back side
-            ];
-        }
-        
-        const cube = new THREE.Mesh(geometry, blockMaterials);
-        cube.matrixAutoUpdate = false;
-        cube.position.set(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
-        cube.updateMatrix();
-        cube.name = pos2Name(pos[0], pos[1], pos[2]);
-        
-        if (!scene.getObjectByName(cube.name)) {
+        } else if (!scene.getObjectByName(name)) {
             // console.log("Adding voxel with name: " + cube.name)
+
+            let blockName = bid2Name[bid];
+            if (!blockName) { blockName = DEFAULT_MATERIAL };
+            const geometry = new THREE.BoxGeometry( blockScale, blockScale, blockScale );
+            let block_data = VW_ITEM_MAP[blockName];
+            let blockMaterials;
+            if (preLoadBlockMaterials.has(blockName)) {
+                // console.log('preloaddding!!!' + blockName)
+                blockMaterials = preLoadBlockMaterials.get(blockName);
+            } else {
+                blockMaterials = [
+                    new THREE.MeshBasicMaterial({ 
+                        map: loader.load(TEXTURE_PATH+block_data["sides"]), 
+                        color: block_data["color"]}), //right side
+                    new THREE.MeshBasicMaterial({ 
+                        map: loader.load(TEXTURE_PATH+block_data["sides"]), 
+                        color: block_data["color"]}), //left side
+                    new THREE.MeshBasicMaterial({ 
+                        map: loader.load(TEXTURE_PATH+block_data["top"]), 
+                        color: block_data["color"]}), //top side
+                    new THREE.MeshBasicMaterial({ 
+                        map: loader.load(TEXTURE_PATH+block_data["bottom"]), 
+                        color: block_data["color"]}), //bottom side
+                    new THREE.MeshBasicMaterial({ 
+                        map: loader.load(TEXTURE_PATH+block_data["sides"]), 
+                        color: block_data["color"]}), //front side
+                    new THREE.MeshBasicMaterial({ 
+                        map: loader.load(TEXTURE_PATH+block_data["sides"]), 
+                        color: block_data["color"]}), //back side
+                ];
+            }
+            
+            const cube = new THREE.Mesh(geometry, blockMaterials);
+            cube.matrixAutoUpdate = false;
+            cube.position.set(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
+            cube.updateMatrix();
+            cube.name = name;
+        
             this.scene.add(cube);
-            this.sceneItems.push(cube);
+            sceneItems.add(cube);
         
             const box = new THREE.BoxHelper(cube, 0x000000);
+            box.matrixAutoUpdate = false;
+            box.updateMatrix();
             box.name = pos2Name(pos[0], pos[1], pos[2], true);
             this.scene.add(box);
 
-            const bidx = convertCoordinateSystems(pos[0], pos[1], pos[2]);
             setBlock2(bidx[0], bidx[1], bidx[2], bid);
+            blockList.add(JSON.stringify([bidx[0], bidx[1], bidx[2]]));
+            shellCheck.add([bidx[0], bidx[1], bidx[2]]);
             updateWorld();
         }
     }
@@ -451,12 +469,12 @@ class DVoxelEngine {
                 // console.log("mob already exists, updating states")
                 mobs[entityId].moveTo(pos[0] * blockScale, pos[1] * blockScale, pos[2] * blockScale);
                 mobs[entityId].rotateTo(key['look'][0], key['look'][1]);
-            } else if (mobList.includes(entityId)) {
+            } else if (mobList.has(entityId)) {
                 console.log("mob build race condition");
                 // Mob still being built, ignore
             } else {
                 console.log("building mob with ID: " + entityId);
-                mobList.push(entityId);
+                mobList.add(entityId);
                 const mobOpts = {
                     GLTFLoader: GLTFLoader,
                     name: name,
@@ -466,7 +484,7 @@ class DVoxelEngine {
                 VoxelMob.build(world, mobOpts).then(
                     function (newMob) {
                         mobs[entityId] = newMob;
-                        sceneItems.push(newMob.mesh);
+                        sceneItems.add(newMob.mesh);
                     }
                 );
             }       
@@ -494,12 +512,12 @@ class DVoxelEngine {
                 } else {
                     itemStacks[entityId].pick()
                 }
-            } else if (itemList.includes(entityId)) {
+            } else if (itemList.has(entityId)) {
                 console.log("item build race condition");
                 // Item still being built, ignore
             } else {
                 console.log("building item with ID: " + entityId);
-                itemList.push(entityId);
+                itemList.add(entityId);
                 const itemStackOpts = {
                     GLTFLoader: GLTFLoader,
                     name: name,
@@ -509,7 +527,7 @@ class DVoxelEngine {
                 VoxelItem.build(world, itemStackOpts).then(
                     function (newItemStack) {
                         itemStacks[entityId] = newItemStack;
-                        sceneItems.push(newItemStack.mesh);
+                        sceneItems.add(newItemStack.mesh);
                     }
                 );
             }            
@@ -519,6 +537,9 @@ class DVoxelEngine {
     updateBlocks(blocksInfo) {
         // console.log("blocksInfo")
         // console.log(blocksInfo)
+
+        shellCheck.clear();
+
         let that = this
         blocksInfo.forEach(function(key, index) {
             let xyz = convertCoordinateSystems(
@@ -532,6 +553,35 @@ class DVoxelEngine {
             that.setVoxel([xyz[0],xyz[1],xyz[2]], bid);
         });
         // console.log("DVoxel Engine update blocks")
+
+        if (shellCheck.size > 0) {
+            that.shellVoxels(shellCheck);
+        }
+    }
+
+    shellVoxels(voxelsToCheck) {
+        // Remove visibility for occluded blocks
+        voxelsToCheck.forEach((block) => {
+            if (blockList.has(JSON.stringify(block))) {
+                const pos = convertCoordinateSystems(block[0], block[1], block[2]);
+                const blockName = pos2Name(pos[0], pos[1], pos[2]);
+                const boxName = pos2Name(pos[0], pos[1], pos[2], true);
+                if (
+                    (getBlock2(block[0] + 1, block[1], block[2]) !== 0) &&
+                    (getBlock2(block[0] - 1, block[1], block[2]) !== 0) &&
+                    (getBlock2(block[0], block[1] - 1, block[2]) !== 0) &&
+                    (getBlock2(block[0], block[1] + 1, block[2]) !== 0) &&
+                    (getBlock2(block[0], block[1], block[2] + 1) !== 0) &&
+                    (getBlock2(block[0], block[1], block[2] - 1) !== 0)
+                ) {
+                    scene.getObjectByName(blockName).visible = false;
+                    scene.getObjectByName(boxName).visible = false;
+                } else {
+                    scene.getObjectByName(blockName).visible = true;
+                    scene.getObjectByName(boxName).visible = true;
+                }
+            }
+        });
     }
 
     setBlock(x, y, z, idm) {
@@ -574,18 +624,19 @@ class DVoxelEngine {
 
 }
 
-// *** Everything should be in radians ***
-// function degToRad(deg) {
-//     return (deg / 360) * Math.PI * 2
-// }
 
 function setBlock2(x, y, z, id) {
-    voxels[x + voxelOffset[0]][y + voxelOffset[1]][z + voxelOffset[2]] = id
+    if (x + voxelOffset[0] < 0 || x + voxelOffset[0] >= SL || y + voxelOffset[1] < 0 || y + voxelOffset[1] >= SL || z + voxelOffset[2] < 0 || z + voxelOffset[2] >= SL) {
+        console.log("Tried to place illegal block: " + x + ", " + y + ", " + z)
+        return
+    }
+    voxels[x + voxelOffset[0]][y + voxelOffset[1]][z + voxelOffset[2]] = id;
 }
 
 function getBlock2(x, y, z) {
     if (x + voxelOffset[0] < 0 || x + voxelOffset[0] >= SL || y + voxelOffset[1] < 0 || y + voxelOffset[1] >= SL || z + voxelOffset[2] < 0 || z + voxelOffset[2] >= SL) {
-        console.log("Get Block 2 out of index")
+        // console.log("Get Block 2 out of index")
+        return 0
     }
     return voxels[x + voxelOffset[0]][y + voxelOffset[1]][z + voxelOffset[2]]
 }
