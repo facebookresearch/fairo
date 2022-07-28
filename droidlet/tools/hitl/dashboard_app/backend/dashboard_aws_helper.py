@@ -93,9 +93,13 @@ def get_traceback_by_id(batch_id: int):
     local_fname = _download_file(f"{batch_id}/log_traceback.csv")
     if local_fname is None:
         return f"cannot find traceback with id {batch_id}", 404
-    traceback_df = pd.read_csv(local_fname) 
-    traceback_df.chat_content = traceback_df.chat_content.map(lambda x: ast.literal_eval(x)) # parsse array
-    traceback_df.chat_content = traceback_df.chat_content.map(lambda ls: [o for o in ls if len(o)]) # filter out empty ones
+    traceback_df = pd.read_csv(local_fname)
+    traceback_df.chat_content = traceback_df.chat_content.map(
+        lambda x: ast.literal_eval(x)
+    )  # parsse array
+    traceback_df.chat_content = traceback_df.chat_content.map(
+        lambda ls: [o for o in ls if len(o)]
+    )  # filter out empty ones
     return traceback_df.to_json(orient="records"), None
 
 
