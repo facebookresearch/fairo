@@ -343,12 +343,6 @@ class ClarifyNoMatch(Task):
                     # Found it! The NSP should have updated the tag. Mark it as the output
                     self.agent.memory.nodes[TripleNode.NODE_TYPE].create(
                         self.agent.memory,
-                        subj=self.current_candidate,
-                        pred_text="has_tag",
-                        obj_text=self.ref_obj_span,
-                    )
-                    self.agent.memory.nodes[TripleNode.NODE_TYPE].create(
-                        self.agent.memory,
                         subj=self.memid,
                         pred_text="dialogue_clarification_output",
                         obj_text=self.current_candidate,
@@ -400,7 +394,7 @@ class ClarifyNoMatch(Task):
         dir_lang = MAP_DIRECTION_SYNTAX.get(self.relative_direction, "")
         if dir_lang:
             dir_lang += " "
-        question = f"I'm not sure about something. I think you wanted me to {self.action.lower()} {dir_lang}a {self.ref_obj_span}, is that right?"
+        question = f"I am not sure about something. I think you wanted me to {self.action.lower()} {dir_lang}a {self.ref_obj_span}, is that right?"
         question_obj = build_question_json(question, text_response_options=["yes", "no"])
         task_list = [
             Say(self.agent, {"response_options": question_obj}),

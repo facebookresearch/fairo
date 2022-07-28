@@ -106,7 +106,7 @@ class NSPQuerier(object):
         and return
         Process incoming chats and run through parser"""
         received_chats_flag = False
-        speaker, chat, preprocessed_chat, chat_parse = "", "", "", {}
+        speaker, chat, preprocessed_chat, full_conversation, chat_parse = "", "", "", "", {}
         raw_incoming_chats = self.agent.get_incoming_chats()
         if raw_incoming_chats:
             logging.info("Incoming chats: {}".format(raw_incoming_chats))
@@ -142,12 +142,12 @@ class NSPQuerier(object):
             conv_history = " ".join([chat.chat_text for chat in recent_chats])
             logging.info(f"Conversation history: {conv_history}")
 
-            preprocessed_chat, chat_parse, gt_chat = self.get_parse(chat, conv_history)
+            preprocessed_chat, chat_parse, gt_chat, full_conversation = self.get_parse(chat, conv_history)
 
             if gt_chat != preprocessed_chat:
                 chat = gt_chat
 
-        return force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse
+        return force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse, full_conversation
 
     def preprocess_chat(self, chat):
         """Tokenize the chat and get list of sentences to parse.
@@ -172,11 +172,11 @@ class NSPQuerier(object):
         chat = self.preprocess_chat(chatstr)
 
         # 2. Get logical form from either ground truth or query the parsing model
-        logical_form, gt_chat = self.get_logical_form(
+        logical_form, gt_chat, full_conversation = self.get_logical_form(
             chat=chat, parsing_model=self.parsing_model, conv_history=conv_history
         )
 
-        return chat, logical_form, gt_chat
+        return chat, logical_form, gt_chat, full_conversation
 
     def validate_parse_tree(self, parse_tree: Dict, debug: bool = True) -> bool:
         """Validate the parse tree against current grammar.
@@ -221,6 +221,7 @@ class NSPQuerier(object):
             }
         """
         logical_form_source = "ground_truth"
+        full_conversation = ""
         # Check if chat is in ground_truth otherwise query parsing model
         gt_chat = chat
         if "User:" in chat:
@@ -228,11 +229,12 @@ class NSPQuerier(object):
             gt_chat = chat[6:]
         if gt_chat in self.ground_truth_actions:
             logical_form = copy.deepcopy(self.ground_truth_actions[gt_chat])
+            full_conversation = gt_chat #just want to postprocess the gt_chat in this case
             logging.info('Found ground truth action for "{}"'.format(gt_chat))
             # log the current UTC time
             time_now = time.time()
         elif self.parsing_model:
-            full_conversation = conv_history + " " + chat
+            full_conversation += conv_history + " " + chat
             logging.info(f"Querying parser with conversation: {full_conversation}")
             logical_form = parsing_model.query_for_logical_form(full_conversation)
             time_now = time.time()
@@ -255,4 +257,4 @@ class NSPQuerier(object):
             logical_form = {"dialogue_type": "NOOP"}
             logging.error("Returning NOOP")
 
-        return logical_form, gt_chat
+        return logical_form, gt_chat, full_conversation

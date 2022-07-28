@@ -162,7 +162,7 @@ class DroidletAgent(BaseAgent):
             ref_obj_data = None
             try:
                 chat_memids, _ = self.memory.basic_search(
-                    f"SELECT MEMORY FROM Chat WHERE chat={chat}"
+                    f"SELECT MEMORY FROM Chat WHERE chat={f'User: {chat}'}"
                 )
                 logical_form_triples = self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
                     self.memory, subj=chat_memids[0], pred_text="has_logical_form"
@@ -341,16 +341,17 @@ class DroidletAgent(BaseAgent):
         # n hundreth of seconds since agent init
         return self.memory.get_time()
 
-    def process_language_perception(self, speaker, chat, preprocessed_chat, chat_parse):
+    def process_language_perception(self, speaker, chat, preprocessed_chat, chat_parse, conv_history):
         """this munges the results of the semantic parser and writes them to memory"""
 
         # add postprocessed chat here
         memid, _ = self.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}')
+        logging.info(f"Creating chat node memory for chat: {preprocessed_chat}")
         chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
             self.memory, memid[0], preprocessed_chat
         )
         post_processed_parse = postprocess_logical_form(
-            self.memory, speaker=speaker, chat=chat, logical_form=chat_parse
+            self.memory, speaker=speaker, chat=conv_history, logical_form=chat_parse
         )
         logical_form_memid = self.memory.nodes[ProgramNode.NODE_TYPE].create(self.memory, post_processed_parse)
         self.memory.nodes[TripleNode.NODE_TYPE].create(
@@ -377,10 +378,11 @@ class DroidletAgent(BaseAgent):
             chat,
             preprocessed_chat,
             chat_parse,
+            conv_history
         ) = nlu_perceive_output
         if received_chats_flag:
             # put results from semantic parsing model into memory, if necessary
-            self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)
+            self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse, conv_history)
 
             # Send data to the dashboard timeline
             end_time = datetime.datetime.now()

@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import spacy
+from spacy.symbols import ORTH
 import sentry_sdk
 from typing import Dict
 
@@ -9,6 +10,9 @@ from droidlet.base_util import hash_user
 from droidlet.interpreter import coref_resolve, process_spans_and_remove_fixed_value
 
 spacy_model = spacy.load("en_core_web_sm")
+spacy_model.tokenizer.add_special_case("User:", [{ORTH: "User:"}])
+spacy_model.tokenizer.add_special_case("Agent:", [{ORTH: "Agent:"}])
+spacy_model.tokenizer.add_special_case("'m", [{ORTH: "be"}])
 
 
 def postprocess_logical_form(memory, speaker: str, chat: str, logical_form: Dict) -> Dict:

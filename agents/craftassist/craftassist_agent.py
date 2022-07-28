@@ -41,6 +41,7 @@ from droidlet.base_util import Pos, Look, npy_to_blocks_list
 from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item
 from agents.droidlet_agent import DroidletAgent
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
+from droidlet.perception.semantic_parsing.utils.preprocess import preprocess_chat
 from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
@@ -428,9 +429,13 @@ class CraftAssistAgent(DroidletAgent):
             chat_text = chat
 
         logging.info("Sending chat: {}".format(chat_text))
-        chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
-            self.memory, self.memory.self_memid, f"Agent: {chat_text}"
-        )
+
+        chat_memid = ""
+        if '/' not in chat_text:  # Don't store points as chat memories
+            preprocessed_chat = preprocess_chat(f"Agent: {chat_text}")
+            chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
+                self.memory, self.memory.self_memid, preprocessed_chat
+            )
 
         if chat_json and not isinstance(chat_json, int):
             chat_json["chat_memid"] = chat_memid
