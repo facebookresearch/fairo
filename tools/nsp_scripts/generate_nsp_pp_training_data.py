@@ -32,7 +32,7 @@ OBJECTS = [
     " platform",
 ]
 RESPONSES = ["yes", "no", "modification", "replacement"]
-ITS = ["", "It's "]
+ITS = ["", "It is "]
 MODIFICATION_FOLLOWUPS = ["adjective", "near"]
 REPLACEMENT_PREFIXES = ["", " No,", " I mean"]
 NEAR = ["near", "next to", "beside", "by"]
@@ -104,7 +104,7 @@ def build_first_turn():
     ref_obj = choice(OBJECTS)
     adj = choice(ADJECTIVES)
     user1 = f"User:{filler}{action}the{adj}{ref_obj}"
-    agent1 = f"Agent: I'm not sure about something. I think you wanted me to{action}a{ref_obj}, is that right?"
+    agent1 = f"Agent: I am not sure about something. I think you wanted me to{action}a{ref_obj}, is that right?"
     first_turn = user1 + " " + agent1
 
     return action, adj, ref_obj, first_turn
