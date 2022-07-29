@@ -112,7 +112,6 @@ def get_traceback_by_id(batch_id: int):
     traceback_df.chat_content = traceback_df.chat_content.map(
         lambda x: _get_freq(x)
     )  # get frequency
-    print(traceback_df.head(10))
     return traceback_df.to_json(orient="records"), None
 
 

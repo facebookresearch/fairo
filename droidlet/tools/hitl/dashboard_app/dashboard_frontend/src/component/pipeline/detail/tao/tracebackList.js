@@ -1,20 +1,29 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+Traceback List for displaying traceback.
+
+Usage:
+<TracebackList />
+*/
+
 import React, { useContext, useEffect, useState } from "react";
 import { SocketContext } from "../../../../context/socket";
 import { Table, Tag, Tooltip, Typography } from "antd";
-import { MinusSquareTwoTone, PlusSquareTwoTone } from '@ant-design/icons';
-import { style } from "@mui/system";
+import { MinusSquareTwoTone, PlusSquareTwoTone } from "@ant-design/icons";
 
 const innerListCols = [
+    // columns for list of each of the row in the traceback list
     {
-        title: 'Cause Command',
-        dataIndex: 'command',
+        title: "Cause Command",
+        dataIndex: "command",
         sorter: (one, other) => (one.command.localeCompare(other.command)),
         render: (_, row) => (
             <Typography.Paragraph>{row.command}</Typography.Paragraph>
         )
     }, {
-        title: 'Frequency',
-        dataIndex: 'freq',
+        title: "Frequency",
+        dataIndex: "freq",
         sorter: (one, other) => (one.freq === other.freq ? 0 : (one.freq < other.freq ? 1 : -1)),
         render: (_, row) => (<HeatColoredNum num={row.freq}/>),
     }
@@ -22,8 +31,8 @@ const innerListCols = [
 
 const tracebackListCols = [
     {
-        title: 'Traceback Content',
-        dataIndex: 'content',
+        title: "Traceback Content",
+        dataIndex: "content",
         sorter: (one, other) => (one.content.localeCompare(other.content)),
         render: (_, row) => (
             <Typography.Paragraph
@@ -33,15 +42,15 @@ const tracebackListCols = [
             </Typography.Paragraph>)
     },
     {
-        title: 'Frequency',
-        dataIndex: 'freq',
+        title: "Frequency",
+        dataIndex: "freq",
         width: "10%",
         sorter: (one, other) => (one.freq === other.freq ? 0 : (one.freq < other.freq ? 1 : -1)),
         render: (_, row) => (<HeatColoredNum num={row.freq}/>),
     }, 
     {
-        title: 'Unique Causes Count',
-        dataIndex: 'chat_content',
+        title: "Causes Count",
+        dataIndex: "chat_content",
         width: "10%",
         render: (_, row) => (<HeatColoredNum num={row.chat_content.length}/>),
         sorter: (one, other) => (one.chat_content.length === other.chat_content.length ?
@@ -101,8 +110,9 @@ const TracebackList = (props) => {
             title={() => <Typography.Title level={4} style={{ textAlign: "left" }}>Tracebacks</Typography.Title>}
             columns={tracebackListCols}
             dataSource={listData}
-            scroll={{ y: '80vh' }}
+            scroll={{ y: "80vh" }}
             expandable={{
+                // inner list, shows the command that causing the traceback
                 expandedRowRender: (row) =>
                     <Table
                         bordered
