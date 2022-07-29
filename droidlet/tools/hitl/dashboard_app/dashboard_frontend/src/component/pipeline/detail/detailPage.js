@@ -32,7 +32,7 @@ const { Panel } = Collapse;
 const DetailPage = (props) => {
     const socket = useContext(SocketContext);
     const pipelineType = props.pipelineType;
-    
+
     const batch_id = useParams().batch_id;
     const [runInfo, setRunInfo] = useState(null);
     const [jobs, setJobs] = useState(null);
@@ -104,14 +104,14 @@ const DetailPage = (props) => {
                     >
                         <MetaInfoDescription metaInfo={runInfo} />
                         <Divider />
-                        <div style={{ 'display': 'flex'}}>
+                        <div style={{ 'display': 'flex' }}>
                             <DatasetCard batchId={batch_id} pipelineType={pipelineType} />
                             <ModelCard batchId={batch_id} pipelineType={pipelineType} />
                         </div>
                     </Panel>
                 </Collapse>
 
-                
+
                 <Divider />
                 <div style={{ 'display': 'flex', "padding": "0 32px 0 32px" }}>
                     <div style={{ 'width': '160px' }}>
@@ -128,7 +128,10 @@ const DetailPage = (props) => {
                     <Outlet context={{ metaInfo: runInfo }} />
                 </div>
                 {
-                    pipelineType === "TAO" && <TracebackList batchId={batch_id} />
+                    pipelineType === "TAO" && <>
+                        <Divider />
+                        <TracebackList batchId={batch_id} />
+                    </>
                 }
                 <div style={{ "paddingTop": "18px" }}>
                     <Button type="primary">

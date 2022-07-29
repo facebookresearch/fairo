@@ -3,9 +3,6 @@ import { SocketContext } from "../../../../context/socket";
 import { Table, Tooltip, Typography } from "antd";
 import { MinusSquareTwoTone, PlusSquareTwoTone } from '@ant-design/icons';
 
-const getFormattedText = (text) => {
-}
-
 const innerListCols = [
     {
         title: 'Cause Command',
