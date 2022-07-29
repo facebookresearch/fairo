@@ -26,6 +26,8 @@ The map is disabled by default, use the `--draw_map` flag with the agent to enab
 
 Note: these demos are recorded using a build from July 2022
 
+Note: Memory2D may appear to have significantly more lag due to GIF formatting
+
 ### Initialization
 
 <figure align="center">
