@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <nlopt.hpp>
+
 #include "pinocchio/algorithm/frames.hpp"
 #include "pinocchio/algorithm/jacobian.hpp"
 #include "pinocchio/algorithm/joint-configuration.hpp"
@@ -26,6 +28,9 @@ struct State {
   pinocchio::Data *model_data = nullptr;
   Eigen::VectorXd ik_sol_v;
   pinocchio::Data::Matrix6x ik_sol_J;
+
+  //nlopt::opt opt_local(LD_??);
+  //nlopt::opt opt_global(GD_??);
 };
 
 State *initialize(const char *xml_buffer) {

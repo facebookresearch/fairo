@@ -105,6 +105,7 @@ include_directories(
     "$ENV{CONDA_PREFIX}/include/"
     ${EIGEN3_INCLUDE_DIR}
     ${pinocchio_INCLUDE_DIRS}
+    ${nlopt_INCLUDE_DIRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/pinocchio_isolation/include"
 )
