@@ -549,14 +549,13 @@ class RobotInterface(BaseRobotInterface):
         Runs an non-blocking Cartesian impedance controller.
         The desired EE pose can be updated using `update_desired_ee_pose`
         """
-        torch_policy = toco.policies.CartesianImpedanceControl(
+        torch_policy = toco.policies.AdaptiveJointImpedanceControl(
             joint_pos_current=self.get_joint_positions(),
             Kp=self.Kx_default if Kx is None else Kx,
             Kd=self.Kxd_default if Kxd is None else Kxd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
-
         return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
 
     def update_desired_joint_positions(self, positions: torch.Tensor):
@@ -581,21 +580,15 @@ class RobotInterface(BaseRobotInterface):
         """Update the desired EE pose used by the Cartesian position control mode.
         Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
         """
-        param_dict = {}
-        if position is not None:
-            param_dict["ee_pos_desired"] = position
-        if orientation is not None:
-            param_dict["ee_quat_desired"] = orientation
+        joint_pos_curr = self.get_joint_positions()
+        ee_pos_curr, ee_quat_curr = self.get_ee_pose()
+        joint_pos_desired = self.robot_model.inverse_kinematics(
+            ee_pos_curr if position is None else position,
+            ee_quat_curr if orientation is None else orientation,
+            rest_pose=joint_pos_curr,
+        )
 
-        try:
-            update_idx = self.update_current_policy(param_dict)
-        except grpc.RpcError as e:
-            log.error(
-                "Unable to update desired EE pose. Use 'start_cartesian_impedance' to start a Cartesian impedance controller."
-            )
-            raise e
-
-        return update_idx
+        return self.update_desired_joint_positions(joint_pos_desired)
 
     def start_joint_velocity_control(
         self, joint_vel_desired, hz=None, Kq=None, Kqd=None, **kwargs
