@@ -143,7 +143,7 @@ class Launcher(BaseLauncher):
         self.down_task.cancel()
 
     async def handle_down(self):
-        await self.proc.kill(signal="SIGTERM")
+        await self.proc.stop()
         with contextlib.suppress(asyncio.TimeoutError):
             await self.proc.wait(timeout=3.0)
         await self.proc.delete(force=True)
