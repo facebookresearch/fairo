@@ -15,8 +15,8 @@ from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
     get_dataset_version_list_by_pipeline,
     get_interaction_session_log_by_id,
     get_interaction_sessions_by_id,
-    get_job_list,
     get_model_by_id,
+    get_run_list,
     get_run_info_by_id,
     get_traceback_by_id,
 )
@@ -38,7 +38,7 @@ class DASHBOARD_EVENT(Enum):
     server supported event types, i.e. API types
     """
 
-    GET_RUNS = "get_job_list"
+    GET_RUNS = "get_run_list"
     GET_TRACEBACK = "get_traceback_by_id"
     GET_RUN_INFO = "get_run_info_by_id"
     GET_INTERACTION_SESSIONS = "get_interaction_sessions_by_id"
@@ -57,16 +57,20 @@ KEY_COMPLETE = "complete_model"
 
 
 @socketio.on(DASHBOARD_EVENT.GET_RUNS.value)
-def get_jobs():
+def get_runs(pipeline: str):
     """
     get a list of jobs stored on AWS that has been run in the past.
-    - input: no parameter input.
+    - input: pipeline name in lowercase (nlu, tao, vision etc.)
     - output: a list of batch ids of the jobs.
     """
-    print(f"Request received: {DASHBOARD_EVENT.GET_RUNS.value}")
-    job_list = get_job_list()
-    print(f"Job list reterived from aws, sending job list (length:{len(job_list)}) to client")
-    emit(DASHBOARD_EVENT.GET_RUNS.value, job_list)
+    print(f"Request received: {DASHBOARD_EVENT.GET_RUNS.value}, pipeline = {pipeline}")
+    job_list, error_code = get_run_list(pipeline)
+    if error_code:
+        print(job_list)
+        emit(DASHBOARD_EVENT.GET_RUNS.value, error_code)
+    else:
+        print(f"Job list reterived from aws, sending job list (length:{len(job_list)}) to client")
+        emit(DASHBOARD_EVENT.GET_RUNS.value, job_list)
 
 
 @socketio.on(DASHBOARD_EVENT.GET_TRACEBACK.value)

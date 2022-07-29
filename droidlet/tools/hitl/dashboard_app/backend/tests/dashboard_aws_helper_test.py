@@ -4,7 +4,7 @@ import boto3
 import json
 
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
-    get_job_list,
+    get_run_list,
     get_run_info_by_id,
     get_traceback_by_id,
 )
@@ -41,8 +41,8 @@ class TestAWSHelper(unittest.TestCase):
         s3.Object(S3_BUCKET_NAME, self._info_fname).put(Body=json_content)
         s3.Object(S3_BUCKET_NAME, self._traceback_fname).put(Body="1, 2 \n1, 2")
 
-    def test_get_job_list(self):
-        res = get_job_list()
+    def test_get_run_list(self):
+        res = get_run_list()
         self.assertGreater(len(res), 0)
 
     def test_get_traceback_by_id_valid(self):
@@ -55,12 +55,12 @@ class TestAWSHelper(unittest.TestCase):
         self.assertEqual(res, f"cannot find traceback with id {INVALID_ID}")
 
     def test_get_run_info_by_id_valid(self):
-        res = get_run_info_by_id(VALID_ID)
+        res, _ = get_run_info_by_id(VALID_ID)
         self.assertIsNotNone(res)
         self.assertNotEqual(res, f"cannot find run info with id {VALID_ID}")
 
     def test_get_run_info_by_id_inalid(self):
-        res = get_run_info_by_id(INVALID_ID)
+        res, _ = get_run_info_by_id(INVALID_ID)
         self.assertEqual(res, f"cannot find run info with id {INVALID_ID}")
 
     def tearDown(self):
@@ -70,7 +70,6 @@ class TestAWSHelper(unittest.TestCase):
         # remove from local temp directory as well
         local_info_fname = os.path.join(HITL_TMP_DIR, self._info_fname)
         local_traceback_fname = os.path.join(HITL_TMP_DIR, self._traceback_fname)
-
         if os.path.exists(local_info_fname):
             os.remove(local_info_fname)
         if os.path.exists(local_traceback_fname):

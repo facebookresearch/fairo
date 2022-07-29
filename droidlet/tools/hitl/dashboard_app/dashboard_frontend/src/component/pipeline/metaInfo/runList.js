@@ -9,14 +9,14 @@ To use this component:
 */
 import { Badge, DatePicker, Input, Select, Skeleton, Table, Typography } from 'antd';
 import React, { useContext, useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { SocketContext } from '../../../context/socket';
 import moment from 'moment';
 
 const { Title } = Typography;
 const { Search } = Input;
-const {Option} = Select;
-const {RangePicker} = DatePicker;
+const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 const timeComp = (one, other) => {
     // get datetime object
@@ -98,8 +98,9 @@ const runListCols = [
 
 const RunList = (props) => {
     const socket = useContext(SocketContext);
-
-    const pipelineType = props.pipelineType; // to do get runs by pipelineType
+    const [pipelineType,] = useState(props.pipelineType); // to do get runs by pipelineType
+    let pipelineLocation = useLocation();
+    const navigate = useNavigate();
 
     const [runListData, setRunListData] = useState([]);
     const [displayData, setDisplayData] = useState([]);
@@ -108,32 +109,44 @@ const RunList = (props) => {
     const [filterType, setFilterType] = useState("start");
 
     const handleReceivedRunList = useCallback((data) => {
-        data = data.map((o) => (
-            // TODO: update backend api for get job list, 
-            // right now using fake name, descrioption infomation, and status
-            {
-                name: `name${o}`,
-                batch_id: o,
-                description: 'some description here',
-                status: o % 2 === 0 ? 'done' : 'running',
-                start_time: `${o.toString().substring(0, 4)}-${o.toString().substring(4, 6)}-${o.toString().substring(6, 8)} 12:00:${o.toString().substring(12)}`,
-                end_time: `${o.toString().substring(0, 4)}-${o.toString().substring(4, 6)}-${o.toString().substring(6, 8)} 18:30:${o.toString().substring(12)}`
-            }
-        ));
+        if (data === 404) {
+            navigate("/notfound");
+            return;
+        }
+        if (data.length > 0) {
+            data = data.map((o) => (
+                // TODO: update backend api for get job list, 
+                // right now using fake name, descrioption infomation, and status
+                {
+                    name: `name${o}`,
+                    batch_id: o,
+                    description: 'some description here',
+                    status: o % 2 === 0 ? 'done' : 'running',
+                    start_time: `${o.toString().substring(0, 4)}-${o.toString().substring(4, 6)}-${o.toString().substring(6, 8)} 12:00:${o.toString().substring(12)}`,
+                    end_time: `${o.toString().substring(0, 4)}-${o.toString().substring(4, 6)}-${o.toString().substring(6, 8)} 18:30:${o.toString().substring(12)}`
+                }
+            ));
+        }
         setRunListData(data);
         setDisplayData(data);
         setLoading(false);
     }, []);
 
     const getRunList = () => {
-        socket.emit("get_job_list");
+        setRunListData([]);
+        setDisplayData([]);
+        setLoading(true);
+        setRangeValue([]);
+        setFilterType("start");
+        socket.emit("get_run_list", pipelineLocation.pathname.substring(1));
         setLoading(true);
     }
 
     useEffect(() => getRunList(), []); // load job list when init the component (didMount)
+    useEffect(() => getRunList(), [pipelineLocation]); // load job list when location changed 
 
     useEffect(() => {
-        socket.on("get_job_list", (data) => handleReceivedRunList(data));
+        socket.on("get_run_list", (data) => handleReceivedRunList(data));
     }, [socket, handleReceivedRunList]);
 
     const onSearch = (searchBoxValue) => {
@@ -170,13 +183,13 @@ const RunList = (props) => {
         setFilterType(filterTypeValue);
         setRangeValue([]); // reset RangePicker value
         setDisplayData(runListData);
-    } 
+    }
 
     return (
         <>
             <div style={{ "text-align": "left" }}>
                 <Title level={5}>
-                    View All {pipelineType.label} Runs
+                    View All {pipelineLocation.pathname.substring(1).toUpperCase()} Runs
                 </Title>
 
                 <div style={{ 'display': 'flex', 'padding': '6px 0 12px 0' }}>

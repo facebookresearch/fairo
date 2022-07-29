@@ -13,8 +13,8 @@ import { SocketContext, socket } from './context/socket';
 import Main from './component/main';
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import NavBar from './component/navbar';
-import { SUBPATHS } from './constants/subpaths';
-import { BackTop, Layout, Typography } from 'antd';
+import { PIPELINES, SUBPATHS } from './constants/subpaths';
+import { BackTop, Layout } from 'antd';
 import PipelinePanel from './component/pipeline/panel';
 import DetailPage from './component/pipeline/detail/detailPage';
 import JobInfoCard from './component/pipeline/detail/job/jobInfoCard';
@@ -36,15 +36,17 @@ function App() {
             {/* Routes for different pipeline */}
             <Layout>
               <Routes>
-                <Route path={SUBPATHS.HOME.key} element={<div><Typography.Title>Welcome to Droidlet HiTL Dashboard</Typography.Title></div>} />
-                <Route path={SUBPATHS.NLU.key} element={<PipelinePanel pipelineType={SUBPATHS.NLU} />}>
-                  <Route path=":batch_id" element={<DetailPage pipelineType={SUBPATHS.NLU.label} />}>
-                    <Route path=":job" element={<JobInfoCard />} />
+                <Route path={SUBPATHS.HOME.key} element={<Main />} />
+                {PIPELINES.map((pipeline) =>
+                  <Route path={pipeline.key} element={<PipelinePanel pipelineType={pipeline} />}>
+                    <Route path=":batch_id" element={<DetailPage pipelineType={pipeline.label} />}>
+                      <Route path=":job" element={<JobInfoCard />} />
+                    </Route>
                   </Route>
-                </Route>
-                <Route path="dataset" element={<DatasetPageContainer />}> 
+                )}
+                <Route path="dataset" element={<DatasetPageContainer />}>
                   <Route path=":pipeline" element={<DatasetDetailPage />} />
-                </Route>
+                </Route>               
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
               <BackTop />
