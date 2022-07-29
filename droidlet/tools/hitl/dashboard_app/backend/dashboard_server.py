@@ -60,7 +60,7 @@ KEY_COMPLETE = "complete_model"
 def get_runs(pipeline: str):
     """
     get a list of jobs stored on AWS that has been run in the past.
-    - input: no parameter input.
+    - input: pipeline name in lowercase (nlu, tao, vision etc.)
     - output: a list of batch ids of the jobs.
     """
     print(f"Request received: {DASHBOARD_EVENT.GET_RUNS.value}, pipeline = {pipeline}")

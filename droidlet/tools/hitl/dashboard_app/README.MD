@@ -1,9 +1,14 @@
 # Dashboard App for HITL
-Updated July 22 by Chuxi.
+Updated July 29 by Chuxi.
 
 This is a Dashboard app prototype for the HITL system.
 
 ## Update Note
+- July 29:
+    - Extend components / backend APIs to be able to display different pipeline.
+    - Added traceback list component.
+    - Demo:
+        - 
 - July 22:
     - Updated frontend component to show the model line graph of loss and accuracy vs epoch.
     - Demo:
@@ -88,9 +93,9 @@ npm start
 ## Supported APIs
 APIs are based on socket event, the following APIs are supported currently: 
 - get_run_list:
-    - get a list of jobs stored on AWS that has been run in the past. 
-    - input: no parameter input.
-    - output: a list of batch ids of the jobs.
+    - get a list of jobs stored on AWS that has been run in the past.
+    - input: pipeline name in lowercase (nlu, tao, vision etc.)
+    - output: a list of batch ids of the jobs of the pipeline.
 - get_traceback_by_id:
     - get traceback record by id.
     - input: a batch id.
