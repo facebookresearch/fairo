@@ -7,13 +7,11 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import React from "react";
 import { Stage, Layer, Circle, Line, Text, Group, Shape } from "react-konva";
 import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
-import MemoryMapTable, {
-  positionMemoryMapTable,
-} from "./Memory2D/MemoryMapTable";
+import MemoryMapTable, { positionMemoryMapTable } from "./MemoryMapTable";
 import ClusteredObjsPopup, {
   positionClusteredObjsPopup,
-} from "./Memory2D/ClusteredObjsPopup";
-import Memory2DMenu from "./Memory2D/Memory2DMenu";
+} from "./ClusteredObjsPopup";
+import Memory2DMenu from "./Memory2DMenu";
 import IconButton from "@material-ui/core/IconButton";
 import MenuIcon from "@material-ui/icons/Menu";
 
@@ -439,7 +437,6 @@ class Memory2D extends React.Component {
   onMenuOpen = () => {
     this.setState({ showMenu: true });
   };
-
   onGroupSubmit = (data) => {
     this.props.stateManager.sendManualChange({
       type: "group",
@@ -468,6 +465,7 @@ class Memory2D extends React.Component {
       }
     );
   };
+
   resizeHandler() {
     if (this.props.isMobile) {
       let dimensions = this.props.dimensions;
@@ -528,10 +526,6 @@ class Memory2D extends React.Component {
   componentWillUnmount() {
     if (this.props.stateManager) this.props.stateManager.disconnect(this);
   }
-
-  onMenuOpen = () => {
-    this.setState({ showMenu: true });
-  };
 
   render() {
     if (!this.state.isLoaded) return <p>Loading</p>;
