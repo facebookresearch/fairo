@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import { SocketContext } from "../../../../context/socket";
-import { Table, Tooltip, Typography } from "antd";
+import { Table, Tag, Tooltip, Typography } from "antd";
 import { MinusSquareTwoTone, PlusSquareTwoTone } from '@ant-design/icons';
+import { style } from "@mui/system";
 
 const innerListCols = [
     {
@@ -14,7 +15,8 @@ const innerListCols = [
     }, {
         title: 'Frequency',
         dataIndex: 'freq',
-        sorter: (one, other) => (one.freq === other.freq ? 0 : (one.freq < other.freq ? 1 : -1))
+        sorter: (one, other) => (one.freq === other.freq ? 0 : (one.freq < other.freq ? 1 : -1)),
+        render: (_, row) => (<HeatColoredNum num={row.freq}/>),
     }
 ]
 
@@ -34,13 +36,14 @@ const tracebackListCols = [
         title: 'Frequency',
         dataIndex: 'freq',
         width: "10%",
-        sorter: (one, other) => (one.freq === other.freq ? 0 : (one.freq < other.freq ? 1 : -1))
+        sorter: (one, other) => (one.freq === other.freq ? 0 : (one.freq < other.freq ? 1 : -1)),
+        render: (_, row) => (<HeatColoredNum num={row.freq}/>),
     }, 
     {
         title: 'Unique Causes Count',
         dataIndex: 'chat_content',
         width: "10%",
-        render: (_, row) => (<div>{row.chat_content.length}</div>),
+        render: (_, row) => (<HeatColoredNum num={row.chat_content.length}/>),
         sorter: (one, other) => (one.chat_content.length === other.chat_content.length ?
             0 :
             (one.chat_content.length < other.chat_content.length ? 1 : -1)
@@ -48,6 +51,13 @@ const tracebackListCols = [
     },
     Table.EXPAND_COLUMN
 ]
+
+const HeatColoredNum = (props) => {
+    const num = props.num;
+    const colorList = ["magenta", "red", "volcano", "orange", "gold", "lime", "green", "cyan", "blue", "geekblue"]; // for color gradient for the tag
+
+    return <Tag color={colorList[num > 100 ? 0 : Math.trunc(10 - num / 10)]}>{num}</Tag>
+}
 
 const TracebackList = (props) => {
     const socket = useContext(SocketContext);

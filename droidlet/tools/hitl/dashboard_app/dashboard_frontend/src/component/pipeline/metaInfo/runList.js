@@ -189,7 +189,7 @@ const RunList = (props) => {
         <>
             <div style={{ "text-align": "left" }}>
                 <Title level={5}>
-                    View All {pipelineType.label} Runs
+                    View All {pipelineLocation.pathname.substring(1).toUpperCase()} Runs
                 </Title>
 
                 <div style={{ 'display': 'flex', 'padding': '6px 0 12px 0' }}>
