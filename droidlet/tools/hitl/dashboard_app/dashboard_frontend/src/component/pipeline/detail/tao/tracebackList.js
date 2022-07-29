@@ -3,11 +3,17 @@ import { SocketContext } from "../../../../context/socket";
 import { Table, Tooltip, Typography } from "antd";
 import { MinusSquareTwoTone, PlusSquareTwoTone } from '@ant-design/icons';
 
+const getFormattedText = (text) => {
+}
+
 const innerListCols = [
     {
         title: 'Cause Command',
         dataIndex: 'command',
         sorter: (one, other) => (one.command.localeCompare(other.command)),
+        render: (_, row) => (
+            <Typography.Paragraph>{row.command}</Typography.Paragraph>
+        )
     }, {
         title: 'Frequency',
         dataIndex: 'freq',
@@ -30,8 +36,20 @@ const tracebackListCols = [
     {
         title: 'Frequency',
         dataIndex: 'freq',
+        width: "10%",
         sorter: (one, other) => (one.freq === other.freq ? 0 : (one.freq < other.freq ? 1 : -1))
-    }
+    }, 
+    {
+        title: 'Unique Causes Count',
+        dataIndex: 'chat_content',
+        width: "10%",
+        render: (_, row) => (<div>{row.chat_content.length}</div>),
+        sorter: (one, other) => (one.chat_content.length === other.chat_content.length ?
+            0 :
+            (one.chat_content.length < other.chat_content.length ? 1 : -1)
+        )
+    },
+    Table.EXPAND_COLUMN
 ]
 
 const TracebackList = (props) => {
