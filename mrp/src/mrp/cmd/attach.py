@@ -30,8 +30,12 @@ def cli(proc):
         return lambda pkt: os.write(fd, pkt.payload[: 4 * 1024])
 
     pub_in = a0.Publisher(f"mrp/{proc}/stdin")
-    sub_out = a0.Subscriber(f"mrp/{proc}/stdout", make_writer(sys.stdout.fileno()))  # noqa: F841
-    sub_err = a0.Subscriber(f"mrp/{proc}/stderr", make_writer(sys.stderr.fileno()))  # noqa: F841
+    sub_out = a0.Subscriber(  # noqa: F841
+        f"mrp/{proc}/stdout", make_writer(sys.stdout.fileno())
+    )
+    sub_err = a0.Subscriber(  # noqa: F841
+        f"mrp/{proc}/stderr", make_writer(sys.stderr.fileno())
+    )
 
     while True:
         # Wait until stdin is available, or a timeout of 0.1s.
