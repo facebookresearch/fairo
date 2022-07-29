@@ -50,6 +50,7 @@ dependencies:
     - pyserial
     - pytest
     - pytest-benchmark
+    - quaternion
     - scipy
     - spdlog
     - sphinx
