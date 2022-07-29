@@ -61,6 +61,8 @@ annotation_data/seg/*
 annotation_data/coco/*
 annotation_data/output/*
 annotation_data/model/model_999.pth
+dashboard_data.db
+error_details.csv
 
 
 .circleci/habitat_docker/conda.txt
