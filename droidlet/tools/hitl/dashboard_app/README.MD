@@ -8,7 +8,10 @@ This is a Dashboard app prototype for the HITL system.
     - Extend components / backend APIs to be able to display different pipeline.
     - Added traceback list component.
     - Demo:
-        - 
+        - View different pipeline
+            - ![demo_different_pipeline_extension](https://user-images.githubusercontent.com/51009396/181843461-f27f9fe8-b575-440c-b14d-12f57f1807b2.gif)
+        - View traceback list
+            - ![demo_traceback_list](https://user-images.githubusercontent.com/51009396/181843326-3c367e8d-999f-497b-8011-956d885db886.gif)
 - July 22:
     - Updated frontend component to show the model line graph of loss and accuracy vs epoch.
     - Demo:
