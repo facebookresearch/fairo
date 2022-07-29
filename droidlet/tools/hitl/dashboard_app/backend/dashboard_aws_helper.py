@@ -95,7 +95,18 @@ def get_traceback_by_id(batch_id: int):
         return f"cannot find traceback with id {batch_id}", 404
     traceback_df = pd.read_csv(local_fname) 
     traceback_df.chat_content = traceback_df.chat_content.map(lambda x: ast.literal_eval(x)) # parsse array
+
+    def _get_freq(x):
+        freq_dict = {}
+        for o in x:
+            if o not in freq_dict:
+                freq_dict[o] = 0
+            freq_dict[o] += 1
+        return freq_dict
+
     traceback_df.chat_content = traceback_df.chat_content.map(lambda ls: [o for o in ls if len(o)]) # filter out empty ones
+    traceback_df.chat_content = traceback_df.chat_content.map(lambda x: _get_freq(x)) # get frequency 
+    print(traceback_df.head(10))
     return traceback_df.to_json(orient="records"), None
 
 

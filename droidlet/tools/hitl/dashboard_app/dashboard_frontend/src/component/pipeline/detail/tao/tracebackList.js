@@ -1,51 +1,37 @@
 import React, { useContext, useEffect, useState } from "react";
 import { SocketContext } from "../../../../context/socket";
-import { Button, List, Table, Typography } from "antd";
-import { CopyOutlined } from '@ant-design/icons';
+import { Table, Tooltip, Typography } from "antd";
+import { MinusSquareTwoTone, PlusSquareTwoTone } from '@ant-design/icons';
 
-const CopyButton = (props) => {
-    const text = JSON.stringify(props.data);
-
-    return <Button type="primary" icon={<CopyOutlined/>} onClick={() => { navigator.clipboard.writeText(JSON.stringify(text))}} />
-}
+const innerListCols = [
+    {
+        title: 'Cause Command',
+        dataIndex: 'command',
+        sorter: (one, other) => (one.command.localeCompare(other.command)),
+    }, {
+        title: 'Frequency',
+        dataIndex: 'freq',
+        sorter: (one, other) => (one.freq === other.freq ? 0 : (one.freq < other.freq ? 1 : -1))
+    }
+]
 
 const tracebackListCols = [
     {
-        title: 'Chat Content',
-        dataIndex: 'chat_content',
-        render: (o) => (
-            <>
-                <List>
-                    {
-                        o.slice(0, 10).map((line) =>
-                            line.length
-                            &&
-                            <List.Item>
-                                <Typography.Paragraph ellipsis={{ rows: 2, expandable: true, symbol: 'more' }}>{line}</Typography.Paragraph>
-                            </List.Item>
-                        )
-                    }
-                    {
-                        o.length > 10 &&
-                        <List.Item>Copy All {o.length} Chat Contents to Clipboard.
-                            <Button type="primary" icon={<CopyOutlined onClick={() => { navigator.clipboard.writeText(JSON.stringify(o))}} />} />
-                        </List.Item>
-                    }
-                </List>
-
-            </>
-        )
-    },
-    {
-        title: 'Content',
+        title: 'Traceback Content',
         dataIndex: 'content',
         sorter: (one, other) => (one.content.localeCompare(other.content)),
+        render: (_, row) => (
+            <Typography.Paragraph
+                style={{ whiteSpace: "pre-line" }}
+            >
+                {row.content}
+            </Typography.Paragraph>)
     },
     {
         title: 'Frequency',
         dataIndex: 'freq',
         sorter: (one, other) => (one.freq === other.freq ? 0 : (one.freq < other.freq ? 1 : -1))
-    },
+    }
 ]
 
 const TracebackList = (props) => {
@@ -56,7 +42,22 @@ const TracebackList = (props) => {
 
     const handleReceivedTraceback = (data) => {
         if (data !== 404) {
-            setListData(JSON.parse(data));
+            console.log(JSON.parse(data).map(
+                (o) => ({
+                    content: o.content,
+                    freq: o.freq,
+                    chat_content:
+                        Object.keys(o.chat_content).map((k) => ({ command: k, freq: o.chat_content[k] }))
+                })
+            ))
+            setListData(JSON.parse(data).map(
+                (o) => ({
+                    content: o.content,
+                    freq: o.freq,
+                    chat_content:
+                        Object.keys(o.chat_content).map((k) => ({ command: k, freq: o.chat_content[k] }))
+                })
+            ));
         }
         setLoading(false);
 
@@ -71,11 +72,28 @@ const TracebackList = (props) => {
     }, [socket, handleReceivedTraceback]);
 
     return <div>
-        Traceback List
         <Table
+            title={() => <Typography.Title level={4} style={{ textAlign: "left" }}>Tracebacks</Typography.Title>}
             columns={tracebackListCols}
             dataSource={listData}
             scroll={{ y: '80vh' }}
+            expandable={{
+                expandedRowRender: (row) =>
+                    <Table
+                        bordered
+                        columns={innerListCols}
+                        dataSource={row.chat_content}
+                        pagination={row.chat_content.length > 10}
+                    />,
+                expandRowByClick: true,
+                indentSize: 0,
+                expandIcon: ({ expanded, onExpand, record }) =>
+                    expanded ? (
+                        <Tooltip title="Close"><MinusSquareTwoTone onClick={e => onExpand(record, e)} /></Tooltip>
+                    ) : (
+                        <Tooltip title="View Causes"><PlusSquareTwoTone onClick={e => onExpand(record, e)} /></Tooltip>
+                    )
+            }}
             loading={loading}
         />
     </div>;
