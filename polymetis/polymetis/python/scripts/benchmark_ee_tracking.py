@@ -127,10 +127,12 @@ if __name__ == "__main__":
     )
     robot.move_to_ee_pose(pose_traj_offline[0, :3], pose_traj_offline[0, 3:])
 
+    """ # disabled for online tracking testing
     state_log = run_offline_policy_from_traj(robot, pose_traj_offline)
     compare_traj(
         state_log, pose_traj_offline, robot.robot_model, ignore_steps, "Offline"
     )
+    """
 
     # Online tracking: Send trajectory updates to impedance controller
     pose_traj_online = generate_trajectory(
