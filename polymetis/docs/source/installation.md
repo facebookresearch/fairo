@@ -54,11 +54,7 @@
     - Optionally, [install the CUDA-enabled version of PyTorch](https://pytorch.org/get-started/locally/) (by default, only the CPU version is enabled).
     - Build Polymetis from source:
         ```bash
-        mkdir -p ./polymetis/build
-        cd ./polymetis/build
-
-        cmake .. -DBUILD_FRANKA=[OFF/ON] -DBUILD_TESTS=[OFF/ON] -DBUILD_DOCS=[OFF/ON]
-        make -j
+        ./scripts/build_and_install_polymetis.sh
         ```
 
 5. Start developing! Remember to rebuild if modifying C++ source code. When updating, you may need to do a `conda env update --file ./polymetis/environment.yml --prune` to update dependencies.
