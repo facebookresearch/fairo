@@ -366,7 +366,7 @@ export function positionMemoryMapTable(
 }
 
 function shortenLongTableEntries(e) {
-  if (e.length > 16) {
+  if (e && e.length > 16) {
     return (
       <Box
         display="flex"

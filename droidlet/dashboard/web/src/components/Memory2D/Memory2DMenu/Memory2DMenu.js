@@ -15,6 +15,7 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
+import NodeColorPicker from "./NodeColorPicker";
 
 const menuTheme = createMuiTheme({
   palette: {
@@ -129,7 +130,7 @@ export default function Memory2DMenu(props) {
                 </Card>
               </Grid>
               <Grid item container direction="column" alignItems="flex-start">
-                <Grid item container alignItems="center">
+                <Grid item desc="toggle dyna pos" container alignItems="center">
                   <Grid item>
                     <FormControlLabel
                       control={
@@ -154,7 +155,7 @@ export default function Memory2DMenu(props) {
                     </Tooltip>
                   </Grid>
                 </Grid>
-                <Grid item>
+                <Grid item desc="toggle show triples">
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -167,7 +168,7 @@ export default function Memory2DMenu(props) {
                     labelPlacement="end"
                   />
                 </Grid>
-                <Grid item>
+                <Grid item desc="toggle square map">
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -180,7 +181,7 @@ export default function Memory2DMenu(props) {
                     labelPlacement="end"
                   />
                 </Grid>
-                <Grid item>
+                <Grid item desc="change map view">
                   {"View:   "}
                   <ButtonGroup variant="contained">
                     <Button
@@ -212,6 +213,9 @@ export default function Memory2DMenu(props) {
                     </Button>
                   </ButtonGroup>
                   <Button onClick={props.centerToBot}>CENTER TO BOT</Button>
+                </Grid>
+                <Grid item desc="color picker">
+                  <NodeColorPicker />
                 </Grid>
               </Grid>
             </Grid>

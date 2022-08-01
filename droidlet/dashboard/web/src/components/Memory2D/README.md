@@ -30,9 +30,9 @@ Note: Memory2D may appear to have significantly more lag due to GIF formatting
 
 ### Initialization
 
-<figure align="center">
+<p align="center">
     <img src="https://drive.google.com/uc?export=view&id=120iYksCeyQz8hOC1rb3ua8ebNLRAUkOV" width="500" alt="Starting Memory2D"/> </br>
-</figure>
+</p>
 
 To get started using Memory2D on the dashboard, ensure you run your agent with the `--draw_map` option. If this option is triggered, a "Toggle Map" button should appear in the dashboard Settings pane. If you happen to start the dashboard before the agent has fully loaded (i.e before the agent starts perceiving its world), refresh the page and the "Toggle Map" button should appear.
 
@@ -40,23 +40,23 @@ To get started using Memory2D on the dashboard, ensure you run your agent with t
 
 Every clickable point on the map will open some sort of tabular component. Broadly, there are two types of points:
 
-<figure align="center">
+<p align="center">
     <img src="https://drive.google.com/uc?export=view&id=1svawRF-Z6Mu41DlKUtZNfCPtVR_OX6DP" width="300" alt="Two Types of Clickable Points"/> </br>
-    <figcaption><b>Object</b> (left) and <b>Cluster</b> (right)</figcaption>
-</figure>
+    <b>Object</b> (left) and <b>Cluster</b> (right)
+</p>
 
 - **Objects** - These have no numeric label. Each represents a tuple in agent memory (i.e. a `ReferenceObject`), and clicking on an **Object** will open up a `MemoryMapTable` that allows a user to inspect and edit the memory tags associated with that **Object**. If desired, a user can enable "Show Triples" from the side menu to inspect those as well.
-<figure align="center" style="display: table;">
-    <img src="https://drive.google.com/uc?export=view&id=1lz40BIBK_Vn6YH_K63oJgY9se5vdUEMd" width="500" alt="Clicking Object"/>
-    <figcaption>Note that both the points clicked here are objects, the second being a specially designed point that represents the agent itself.</figcaption>
-</figure>
+<p align="center">
+    <img src="https://drive.google.com/uc?export=view&id=1lz40BIBK_Vn6YH_K63oJgY9se5vdUEMd" width="500" alt="Clicking Object"/> </br>
+    Note that both the points clicked here are objects, the second being </br> a specially designed point that represents the agent itself.
+</p>
 
 - **Clusters** - These are signified with a number label in their center, representing the amount of objects in that cluster. Composed of all the objects that have nearby coordinates in the current map view. For example, suppose the map is in the XY view and there exist objects at (0, 0, 64), (0, 0, 63), and (0.1, -0.23, -743); these three objects would all appear in the same cluster. </br>
 Clicking on a cluster will open up a `ClusteredObjsPopup`. Each row of this popup represents an **Object** which you can interact with as if were its own plot point (i.e. you can click
 to open an associated `MemoryMapTable`, can "`Cmd` + click` to select, etc.)
-<figure align="center">
+<p align="center">
     <img src="https://drive.google.com/uc?export=view&id=1N1fkbK0kxWA80_IozJogptoOmoXXptxA" width="500" alt="Clicking Cluster"/>
-</figure>
+</p>
 
 ### Editing Memory Tags
 
@@ -65,9 +65,9 @@ Some fields are immutable (i.e. `memid`), while others are user-editable.
 Clicking the "Submit" button at the bottom of the table will send the changes to the agent backend, which may take a few moments to register the manual changes.
 Incorrectly formatted changes are automatically caught, and users can refresh all changed values to what they were when first opening the table. Moreover, users can restore an object to eliminate any manually made changes to it.
 
-<figure align="center">
+<p align="center">
     <img src="https://drive.google.com/uc?export=view&id=1Y4WlYLd2MLGaar7vCZVzWfFSEeHkIiR3" width="500" alt="Clicking Cluster"/>
-</figure>
+</p>
 
 The manual changes made by a user are _persistent_ and will continuously overwrite any other changes made to the agent memory.
 This may cause some strange behaviors; for example, if a user changed the position of a `ModNode`, that object will appear static on the map even if it is moving around in the world.
@@ -81,15 +81,15 @@ Users have two options to select objects:
 
 - `Right Click` -> Drag -> `Right Click` (**Preferred**) </br>
 Use `Right Click` (or equivalent on trackpad) to enter "drawing mode". You can then drag, zoom, and/or pan to describe a rectangle in which all objects in the drawn frame will be selected/unselected. `Right Click` again to finish drawing and toggle the select/unselect actions. Can also use `Esc` to exit "drawing mode" without toggling any actions in the frame you already drew.
-<figure align="center">
+<p align="center">
     <img src="https://drive.google.com/uc?export=view&id=1vt-MnLCnlTPVRoEhDOEsMbC8W5DLSjaH" width="500" alt="Clicking Cluster"/>
-</figure>
+</p>
 
 - `Cmd` + Click </br>
 Similar to selection in most file managers and visual media software, press `Cmd` (or `Ctrl` on Windows) and (left) click an object to select it. Use this option for finer selection of objects.
-<figure align="center">
+<p align="center">
     <img src="https://drive.google.com/uc?export=view&id=1SnQfhRzJ0fLdJGTOz_WnWTx0iwVHDq1e" width="500" alt="Clicking Cluster"/>
-</figure>
+</p>
 
 ### Quirks
 
