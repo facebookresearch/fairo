@@ -53,6 +53,7 @@ cd ..
 
 # Install habitat package
 $PYTHON -m pip install ../third_party/habitat-lab/
+$PYTHON -m pip install -r ../third_party/habitat-lab/requirements.txt # remove when habitat-lab is pip installable
 
 # Install python package
 if [ "$DEV_PYTHON" == "ON" ]; then
