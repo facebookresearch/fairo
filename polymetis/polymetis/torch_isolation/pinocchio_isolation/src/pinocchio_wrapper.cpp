@@ -115,53 +115,30 @@ void inverse_kinematics(State *state, const Eigen::Vector3d &link_pos,
                         const Eigen::Quaterniond &link_quat, int64_t frame_idx,
                         Eigen::VectorXd &ik_sol_p_, double eps,
                         int64_t max_iters, double dt, double damping) {
-  pinocchio::FrameIndex frame_idx_ =
-      static_cast<pinocchio::FrameIndex>(frame_idx);
   auto model = *state->model;
   auto model_data = *state->model_data;
   auto ik_sol_v = state->ik_sol_v;
-  auto ik_sol_J = state->ik_sol_J;
+  double cost;
 
-  auto link_orient = link_quat.toRotationMatrix();
-
-  // Initialize IK variables
-  const pinocchio::SE3 desired_ee(link_orient, link_pos);
-
-  ik_sol_J.setZero();
-
-  Eigen::Matrix<double, 6, 1> err;
-  ik_sol_v.setZero();
-
-  // Reset robot pose
-  pinocchio::forwardKinematics(model, model_data, ik_sol_p_);
-  pinocchio::updateFramePlacement(model, model_data, frame_idx_);
+  // Initialize IK
+  inverse_kinematics_init(state, link_pos, link_quat, frame_idx);
 
   // Solve IK iteratively
   for (int i = 0; i < max_iters; i++) {
-    // Compute forward kinematics error
-    pinocchio::forwardKinematics(model, model_data, ik_sol_p_);
-    pinocchio::updateFramePlacement(model, model_data, frame_idx_);
-    const pinocchio::SE3 dMf = desired_ee.actInv(model_data.oMf[frame_idx_]);
-    err = pinocchio::log6(dMf).toVector();
+    // Step IK
+    cost = inverse_kinematics_step(state, ik_sol_p_, true, damping, ik_sol_v);
 
     // Check termination
-    if (err.norm() < eps) {
+    if (cost < eps) {
       spdlog::info("Ending IK at {}/{} iteration.", i + 1, max_iters);
       break;
     }
 
-    // Descent solution
-    pinocchio::computeFrameJacobian(model, model_data, ik_sol_p_, frame_idx_,
-                                    pinocchio::LOCAL, ik_sol_J);
-
-    pinocchio::Data::Matrix6 JJt;
-    JJt.noalias() = ik_sol_J * ik_sol_J.transpose();
-    JJt.diagonal().array() += damping;
-    ik_sol_v.noalias() = -ik_sol_J.transpose() * JJt.ldlt().solve(err);
+    // Compute next step by descent
     ik_sol_p_ = pinocchio::integrate(model, ik_sol_p_, ik_sol_v * dt);
   }
 
-  if (err.norm() >= eps) {
+  if (cost >= eps) {
     spdlog::warn("WARNING: IK did not converge!");
   }
 }
