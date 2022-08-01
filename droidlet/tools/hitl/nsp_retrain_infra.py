@@ -23,6 +23,7 @@ from droidlet.tools.artifact_scripts.upload_artifacts_to_aws import (
     tar_and_upload,
     compute_checksum_tar_and_upload,
 )
+from droidlet.tools.hitl.utils.hitl_recorder import Job, Recorder, JobStat
 
 
 log_formatter = logging.Formatter(
@@ -48,11 +49,13 @@ MODEL_INFO_NAME = "best_model_info.txt"
 
 
 class NSPRetrainingJob(DataGenerator):
-    def __init__(self, batch_id, opts):
+    def __init__(self, job_mng_util: Recorder, batch_id, opts):
         super(NSPRetrainingJob, self).__init__()
+        self._job_mng_util = job_mng_util
         self.batch_id = batch_id
         self.opts = opts
         self.exec_training_run = True
+        job_mng_util.set_job_stat(Job.RETRAIN, JobStat.ENABLED, True)
 
     def max_and_argmax(self, l):
         i = max(range(len(l)), key=lambda i: l[i])
@@ -241,6 +244,12 @@ class NSPRetrainingJob(DataGenerator):
             f"Percent of data used for testing: {(sum(1 for i in final_masks['test'] if i)*100 / total_rows):.2f}%"
         )
 
+        # Save nsp retrain job stat
+        self._job_mng_util.set_job_stat(
+            Job.RETRAIN, JobStat.ORI_DATA_SZ, total_rows - new_data_rows
+        )
+        self._job_mng_util.set_job_stat(Job.register, JobStat.NEW_DATA_SZ, total_rows)
+
         # Save locally and upload to S3
         mask_filepath = os.path.join(batch_config_dir, "split_masks.pth")
         torch.save({"annotated": final_masks}, mask_filepath)
@@ -273,6 +282,7 @@ class NSPRetrainingJob(DataGenerator):
         return True
 
     def run(self):
+        self._job_mng_util.set_job_start(Job.INTERACTION)
         logging.info(f"NSP Retraining Job initialized, downloading new data")
         opts = self.opts
 
@@ -364,12 +374,15 @@ class NSPRetrainingJob(DataGenerator):
         # Wait for child process to finish and log outputs/errors
         now = datetime.now()
         while sweep.poll() != 0:
+            # TODO: update job completed
+
             if (datetime.now() - now).seconds > NSP_RETRAIN_TIMEOUT:
                 sweep.kill()
                 raise TimeoutError(
                     f"NSP Retrain child process timed out after {NSP_RETRAIN_TIMEOUT} seconds"
                 )
                 break
+
         outs, errs = sweep.stdout.read(), sweep.stderr.read()
         logging.info(f"Sweep script outputs: \n{outs}")
         logging.info(f"Sweep script errors: \n{errs}")
@@ -446,12 +459,21 @@ class NSPRetrainingJob(DataGenerator):
             f_log.write("hash_model " + checksum_m + "\n")
             f_log.write("hash_dataset " + checksum_d + "\n")
 
+            # update corresponding job status
+            self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.MODEL_ACCURACY, acc)
+            self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.MODEL_EPOCH, epoch)
+            self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.MODEL_LOSS, loss)
+
         # Tar model and upload them to AWS
         tar_and_upload(checksum_m, artifact_path_name, artifact_name)
         # Compute checksum, tar and uploaf for dataset
         compute_checksum_tar_and_upload("craftassist", "datasets", "")
 
         logging.info(f"NSP Retraining Job finished")
+
+        # TODO: update total finished jobs
+        self._job_mng_util.set_job_end(Job.RETRAIN)
+
         self.set_finished(True)
         return
 
@@ -463,7 +485,7 @@ class NSPNewDataListener(JobListener):
         self.new_data_found = False
         self.opts = opts
 
-    def run(self, runner):
+    def run(self, runner: TaskRunner):
         logging.info(f"NSP New Data Listener running")
 
         while not self.check_is_finished():
@@ -487,7 +509,11 @@ class NSPNewDataListener(JobListener):
                 logging.info(f"NSP Listener has found new data")
 
                 # Initialize retraining job
-                nsp_rt = NSPRetrainingJob(batch_id=self.batch_id, opts=self.opts)
+                nsp_rt = NSPRetrainingJob(
+                    job_mng_util=runner.get_job_manage_util(),
+                    batch_id=self.batch_id,
+                    opts=self.opts,
+                )
                 runner.register_data_generators([nsp_rt])
 
                 logging.info(f"NSP data gen job registered, listener return")
