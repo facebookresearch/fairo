@@ -170,6 +170,41 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     return torch::from_blob(ik_sol_p_.data(), dims, torch::kFloat64).clone();
   }
 
+  void inverse_kinematics_init(torch::Tensor link_pos, torch::Tensor link_quat,
+                               int64_t frame_idx) {
+    link_pos = validTensor(link_pos);
+    Eigen::Vector3d link_pos_(
+        Eigen::Map<Eigen::Vector3d>(link_pos.data_ptr<double>(), 3));
+
+    auto quat = tensor4ToQuat(link_quat);
+    auto link_quat_ = Eigen::Quaterniond(quat).cast<double>();
+
+    pinocchio_wrapper::inverse_kinematics_init(pinocchio_state_, link_pos_,
+                                               link_quat_, frame_idx);
+    std::vector<int64_t> dims = {ik_sol_p_.rows()};
+  }
+
+  c10::List<torch::Tensor> inverse_kinematics_step(torch::Tensor q,
+                                                   bool compute_grad = true,
+                                                   double damping = 1e-12) {
+    c10::List<torch::Tensor> result;
+    torch::Tensor cost = torch::zeros(1, torch::kFloat64);
+
+    q = validTensor(q);
+    ik_sol_p_ = matrixToVector(dtt::libtorch2eigen<double>(q));
+    ik_sol_v_ = Eigen::VectorXd::Zero(ik_sol_p_.rows());
+
+    cost[0] = pinocchio_wrapper::inverse_kinematics_step(
+        pinocchio_state_, ik_sol_p_, compute_grad, damping, ik_sol_v_);
+    result.push_back(cost);
+
+    std::vector<int64_t> dims = {ik_sol_v_.rows()};
+    result.push_back(
+        torch::from_blob(ik_sol_v_.data(), dims, torch::kFloat64).clone());
+
+    return result;
+  }
+
   int64_t get_link_idx_from_name(std::string link_name) {
     return pinocchio_wrapper::get_link_idx_from_name(pinocchio_state_,
                                                      link_name.c_str());
@@ -187,6 +222,10 @@ TORCH_LIBRARY(torchscript_pinocchio, m) {
       .def("compute_jacobian", &RobotModelPinocchio::compute_jacobian)
       .def("inverse_dynamics", &RobotModelPinocchio::inverse_dynamics)
       .def("inverse_kinematics", &RobotModelPinocchio::inverse_kinematics)
+      .def("inverse_kinematics_init",
+           &RobotModelPinocchio::inverse_kinematics_init)
+      .def("inverse_kinematics_step",
+           &RobotModelPinocchio::inverse_kinematics_step)
       .def("get_link_idx_from_name",
            &RobotModelPinocchio::get_link_idx_from_name)
       .def_pickle(

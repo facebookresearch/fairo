@@ -25,6 +25,10 @@ struct State {
   pinocchio::Model *model = nullptr;
   pinocchio::Data *model_data = nullptr;
   Eigen::VectorXd ik_sol_v;
+
+  pinocchio::SE3 ik_desired_ee;
+  pinocchio::FrameIndex ik_frame_idx;
+  Eigen::VectorXd ik_err;
   pinocchio::Data::Matrix6x ik_sol_J;
 };
 
@@ -33,7 +37,12 @@ State *initialize(const char *xml_buffer) {
   pinocchio::urdf::buildModelFromXML(xml_buffer, *model);
   auto model_data = new pinocchio::Data(*model);
 
-  return new State{model, model_data, Eigen::VectorXd(model->nv),
+  return new State{model,
+                   model_data,
+                   Eigen::VectorXd(model->nv),
+                   pinocchio::SE3(),
+                   pinocchio::FrameIndex(0),
+                   Eigen::VectorXd(model->nv),
                    pinocchio::Data::Matrix6x(6, model->nv)};
 }
 
@@ -155,6 +164,42 @@ void inverse_kinematics(State *state, const Eigen::Vector3d &link_pos,
   if (err.norm() >= eps) {
     spdlog::warn("WARNING: IK did not converge!");
   }
+}
+
+void inverse_kinematics_init(State *state, const Eigen::Vector3d &link_pos,
+                             const Eigen::Quaterniond &link_quat,
+                             int64_t frame_idx) {
+  state->ik_desired_ee = pinocchio::SE3(link_quat.toRotationMatrix(), link_pos);
+  state->ik_frame_idx = static_cast<pinocchio::FrameIndex>(frame_idx);
+  state->ik_err.setZero();
+  state->ik_sol_J.setZero();
+}
+
+double inverse_kinematics_step(State *state, Eigen::VectorXd ik_sol_p,
+                               bool compute_grad, double damping,
+                               Eigen::VectorXd &gradient) {
+  // Compute forward kinematics error
+  pinocchio::forwardKinematics(*state->model, *state->model_data, ik_sol_p);
+  pinocchio::updateFramePlacement(*state->model, *state->model_data,
+                                  state->ik_frame_idx);
+  const pinocchio::SE3 dMf =
+      state->ik_desired_ee.actInv(state->model_data->oMf[state->ik_frame_idx]);
+  state->ik_err = pinocchio::log6(dMf).toVector();
+
+  // Compute gradient
+  if (compute_grad) {
+    pinocchio::computeFrameJacobian(*state->model, *state->model_data, ik_sol_p,
+                                    state->ik_frame_idx, pinocchio::LOCAL,
+                                    state->ik_sol_J);
+
+    pinocchio::Data::Matrix6 JJt;
+    JJt.noalias() = state->ik_sol_J * state->ik_sol_J.transpose();
+    JJt.diagonal().array() += damping;
+    gradient.noalias() =
+        -state->ik_sol_J.transpose() * JJt.ldlt().solve(state->ik_err);
+  }
+
+  return state->ik_err.norm();
 }
 
 int64_t get_link_idx_from_name(State *state, const char *link_name) {
