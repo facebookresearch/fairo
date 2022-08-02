@@ -57,12 +57,13 @@ class NSPBertModel(object):
         Returns:
             dict: Logical form.
         """
-        btr = beam_search_lm(chat, self.encoder_decoder, self.tokenizer, self.dataset, beam_size, well_formed_pen)
+        btr = beam_search_lm(
+            chat, self.encoder_decoder, self.tokenizer, self.dataset, beam_size, well_formed_pen
+        )
         for res in btr:
             if len(res[0]) != 0:
                 if not (
-                    res[0].get("dialogue_type", "NONE") == "NOOP"
-                    and math.exp(res[1]) < noop_thres
+                    res[0].get("dialogue_type", "NONE") == "NOOP" and math.exp(res[1]) < noop_thres
                 ):
                     return res[0]
 
