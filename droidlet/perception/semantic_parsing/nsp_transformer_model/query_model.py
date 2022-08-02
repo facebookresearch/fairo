@@ -39,15 +39,14 @@ class NSPBertModel(object):
         sd, _, _, args, full_tree_voc = load_model(model_dir)
         _, encoder_decoder, _ = build_model(args, full_tree_voc[1])
         args.data_dir = data_dir
+        # load saved tokenzier
+        self.tokenizer = AutoTokenizer.from_pretrained(os.path.join(args.model_dir, "tokenizer"))
         self.dataset = CAIPDataset(self.tokenizer, args, prefix="", full_tree_voc=full_tree_voc)
         self.encoder_decoder = encoder_decoder
         self.encoder_decoder.load_state_dict(sd, strict=True)
         if torch.cuda.is_available():
             self.encoder_decoder.cuda()
         self.encoder_decoder.eval()
-
-        # load saved tokenzier
-        self.tokenizer = AutoTokenizer.from_pretrained(os.path.join(args.model_dir, "tokenizer"))
 
     def parse(self, chat, noop_thres=0.95, beam_size=5, well_formed_pen=1e2):
         """Given an incoming chat, query the parser and return a logical form.
