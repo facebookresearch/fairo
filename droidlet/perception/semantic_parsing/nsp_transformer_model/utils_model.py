@@ -21,13 +21,13 @@ def build_model(args, tree_i2w):
     bert_config.add_cross_attention = True
     if args.tree_to_text:
         tokenizer.add_tokens(tree_i2w)
-    
+
     # add new tokens into tokenzier in case
     tree_keys = set(TREE_KEYs) - set(tokenizer.vocab.keys())
     tokenizer.add_tokens(list(tree_keys))
     # update word embedding for encoder
     enc_model = AutoModel.from_pretrained(args.pretrained_encoder_name)
-    enc_model.resize_token_embeddings(len(tokenizer)) 
+    enc_model.resize_token_embeddings(len(tokenizer))
 
     bert_config.vocab_size = len(tokenizer)
     dec_with_loss = DecoderWithLoss(bert_config, args, tokenizer)
