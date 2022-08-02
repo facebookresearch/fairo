@@ -17,6 +17,8 @@ import time
 import torch
 from torch.utils.data import DataLoader, SequentialSampler
 
+from transformers import AutoTokenizer
+
 from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_model import (
     build_model,
     load_model,
@@ -360,10 +362,13 @@ def model_configure(args):
     logging.info("====== Loading Pretrained Parameters ======")
     sd, _, _, _, _ = load_model(args.model_dir)
     logging.info("====== Setting up Model ======")
-    _, encoder_decoder, tokenizer = build_model(args, full_tree_voc[1])
+    _, encoder_decoder, _ = build_model(args, full_tree_voc[1])
     encoder_decoder.load_state_dict(sd, strict=True)
     encoder_decoder = encoder_decoder.cuda()
     encoder_decoder.eval()
+
+    # load saved tokenzier
+    tokenizer = AutoTokenizer.from_pretrained(os.path.join(args.model_dir, "tokenizer"))
 
     return encoder_decoder, tokenizer
 
