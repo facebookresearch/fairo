@@ -40,7 +40,7 @@ class NSPBertModel(object):
         _, encoder_decoder, _ = build_model(args, full_tree_voc[1])
         args.data_dir = data_dir
         # load saved tokenzier
-        self.tokenizer = AutoTokenizer.from_pretrained(os.path.join(args.model_dir, "tokenizer"))
+        self.tokenizer = AutoTokenizer.from_pretrained(os.path.join(model_dir, "tokenizer"))
         self.dataset = CAIPDataset(self.tokenizer, args, prefix="", full_tree_voc=full_tree_voc)
         self.encoder_decoder = encoder_decoder
         self.encoder_decoder.load_state_dict(sd, strict=True)
