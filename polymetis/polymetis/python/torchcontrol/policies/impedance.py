@@ -103,8 +103,7 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         self.invdyn = toco.modules.feedforward.InverseDynamics(
             self.robot_model, ignore_gravity=ignore_gravity
         )
-        self.joint_pd = toco.modules.feedback.JointSpacePD(Kq, Kqd)
-        self.op_space_pd = toco.modules.feedback.AdaptiveJointSpacePD(Kx, Kxd)
+        self.joint_pd = toco.modules.feedback.HybridJointSpacePD(Kq, Kqd, Kx, Kxd)
 
         # Reference pose
         self.joint_pos_desired = torch.nn.Parameter(to_tensor(joint_pos_current))
@@ -123,23 +122,17 @@ class HybridJointImpedanceControl(toco.PolicyModule):
         joint_vel_current = state_dict["joint_velocities"]
 
         # Control logic
-        torque_feedback_op = self.op_space_pd(
+        torque_feedback = self.joint_pd(
             joint_pos_current,
             joint_vel_current,
             self.joint_pos_desired,
             self.joint_vel_desired,
             self.robot_model.compute_jacobian(joint_pos_current),
         )
-        torque_feedback_joint = self.joint_pd(
-            joint_pos_current,
-            joint_vel_current,
-            self.joint_pos_desired,
-            self.joint_vel_desired,
-        )
         torque_feedforward = self.invdyn(
             joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)
         )  # coriolis
-        torque_out = torque_feedback_op + torque_feedback_joint + torque_feedforward
+        torque_out = torque_feedback + torque_feedforward
 
         return {"joint_torques": torque_out}
 
