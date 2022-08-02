@@ -73,16 +73,18 @@ class JointImpedanceControl(toco.PolicyModule):
         return {"joint_torques": torque_out}
 
 
-class AdaptiveJointImpedanceControl(toco.PolicyModule):
+class HybridJointImpedanceControl(toco.PolicyModule):
     """
-    Impedance control in joint space, but with adaptive gains to achieve constant Cartesian performance.
+    Impedance control in joint space, but with both fixed joint gains and adaptive operational space gains.
     """
 
     def __init__(
         self,
         joint_pos_current,
-        Kp,
-        Kd,
+        Kq,
+        Kqd,
+        Kx,
+        Kxd,
         robot_model: torch.nn.Module,
         ignore_gravity=True,
     ):
@@ -101,7 +103,8 @@ class AdaptiveJointImpedanceControl(toco.PolicyModule):
         self.invdyn = toco.modules.feedforward.InverseDynamics(
             self.robot_model, ignore_gravity=ignore_gravity
         )
-        self.joint_pd = toco.modules.feedback.AdaptiveJointSpacePD(Kp, Kd)
+        self.joint_pd = toco.modules.feedback.JointSpacePD(Kq, Kqd)
+        self.op_space_pd = toco.modules.feedback.AdaptiveJointSpacePD(Kx, Kxd)
 
         # Reference pose
         self.joint_pos_desired = torch.nn.Parameter(to_tensor(joint_pos_current))
@@ -120,17 +123,23 @@ class AdaptiveJointImpedanceControl(toco.PolicyModule):
         joint_vel_current = state_dict["joint_velocities"]
 
         # Control logic
-        torque_feedback = self.joint_pd(
+        torque_feedback_op = self.op_space_pd(
             joint_pos_current,
             joint_vel_current,
             self.joint_pos_desired,
             self.joint_vel_desired,
             self.robot_model.compute_jacobian(joint_pos_current),
         )
+        torque_feedback_joint = self.joint_pd(
+            joint_pos_current,
+            joint_vel_current,
+            self.joint_pos_desired,
+            self.joint_vel_desired,
+        )
         torque_feedforward = self.invdyn(
             joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)
         )  # coriolis
-        torque_out = torque_feedback + torque_feedforward
+        torque_out = torque_feedback_op + torque_feedback_joint + torque_feedforward
 
         return {"joint_torques": torque_out}
 
