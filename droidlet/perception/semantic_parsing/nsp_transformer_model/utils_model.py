@@ -9,7 +9,7 @@ from droidlet.perception.semantic_parsing.nsp_transformer_model.encoder_decoder 
     EncoderDecoderWithLoss,
 )
 from droidlet.perception.semantic_parsing.nsp_transformer_model.tokenization_utils import TREE_KEYs
-from transformers import AutoModel, AutoTokenizer, BertConfig, load_tf_weights_in_realm
+from transformers import AutoModel, AutoTokenizer, BertConfig
 
 
 def build_model(args, tree_i2w):
