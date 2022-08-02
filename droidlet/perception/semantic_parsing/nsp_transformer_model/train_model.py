@@ -137,7 +137,6 @@ class NLUModelTrainer:
                 t.to(model.decoder.lm_head.predictions.decoder.weight.device) for t in batch[:4]
             ]
             x, x_mask, y, y_mask = batch_tensors
-
             # pass batch data through model
             if self.args.tree_to_text:
                 outputs = model(y, y_mask, x, x_mask)
@@ -623,6 +622,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--nm_shows", default=10, type=int, help="Number of branches to keep in beam search"
     )
+    parser.add_argument("--cuda", action="store_true", help="use cuda")
     args = parser.parse_args()
 
     # parse proportion of different types of data samples from input arguments
@@ -693,7 +693,8 @@ if __name__ == "__main__":
     print(val_datasets)
 
     logging.info("====== Initializing NLU Model Trainer ======")
-    encoder_decoder = encoder_decoder.cuda()
+    if args.cuda:
+        encoder_decoder = encoder_decoder.cuda()
     model_trainer = NLUModelTrainer(
         args, encoder_decoder, tokenizer, model_identifier, full_tree_voc
     )

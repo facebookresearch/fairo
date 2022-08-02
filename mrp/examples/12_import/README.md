@@ -1,4 +1,4 @@
-# Example 08: Importing other msetup
+# Example 12: Importing other msetup
 
 In this example, we show two ways of importing process definitions from other `msetup.py`.
 
