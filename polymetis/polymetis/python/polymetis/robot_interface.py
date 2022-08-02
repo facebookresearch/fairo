@@ -315,6 +315,17 @@ class RobotInterface(BaseRobotInterface):
         time_to_go = torch.max(joint_pos_diff / joint_vel_limits * 8.0)
         return max(time_to_go, self.time_to_go_default)
 
+    def _solve_ik(self, position, orientation, q0):
+        ee_pose_desired = T.from_rot_xyz(
+            rotation=R.from_quat(orientation), translation=position
+        )
+        q_opt = self.ik_solver.ik(ee_pose_desired.as_matrix(), qinit=q0)
+        if q_opt is None:
+            import ipdb
+
+            ipdb.set_trace()
+        return torch.Tensor(q_opt)
+
     """
     Setter methods
     """
@@ -331,8 +342,8 @@ class RobotInterface(BaseRobotInterface):
         )
         self.ik_solver = TracIKSolver(
             robot_description_path,
-            ee_link_name,
             "panda_link0",  # TODO
+            ee_link_name,
         )
 
     """
@@ -482,18 +493,9 @@ class RobotInterface(BaseRobotInterface):
                     R.from_quat(ee_quat_desired) * R.from_quat(ee_quat_current)
                 ).as_quat()
 
-        ee_pose_current = T.from_rot_xyz(
-            rotation=R.from_quat(ee_quat_current), translation=ee_pos_current
+        joint_pos_desired = self._solve_ik(
+            ee_pos_desired, ee_quat_desired, joint_pos_current
         )
-        ee_pose_desired = T.from_rot_xyz(
-            rotation=R.from_quat(ee_quat_desired), translation=ee_pos_desired
-        )
-
-        # Compute IK
-        joint_pos_desired = self.ik_solver.ik(
-            ee_pose_desired.as_matrix().numpy(), q_init=joint_pos_current.numpy()
-        )
-        # TODO: Check IK output with FK and raise error if the desired pose is not achieved?
 
         return self.move_to_joint_positions(joint_pos_desired, time_to_go=time_to_go)
 
@@ -562,14 +564,13 @@ class RobotInterface(BaseRobotInterface):
         """Update the desired EE pose used by the Cartesian position control mode.
         Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
         """
-        joint_pos_curr = self.get_joint_positions()
-        ee_pos_curr, ee_quat_curr = self.get_ee_pose()
-        ee_pos_desired = (ee_pos_curr if position is None else position,)
-        ee_quat_desired = (ee_quat_curr if orientation is None else orientation,)
+        joint_pos_current = self.get_joint_positions()
+        ee_pos_current, ee_quat_current = self.get_ee_pose()
+        ee_pos_desired = ee_pos_current if position is None else position
+        ee_quat_desired = ee_quat_current if orientation is None else orientation
 
-        joint_pos_desired = self.ik_solver.ik(
-            torch.cat([ee_pos_desired, ee_quat_desired]).numpy(),
-            q_init=joint_pos_curr.numpy(),
+        joint_pos_desired = self._solve_ik(
+            ee_pos_desired, ee_quat_desired, joint_pos_current
         )
 
         return self.update_desired_joint_positions(joint_pos_desired)
