@@ -15,7 +15,9 @@ import { SocketContext } from "../../context/socket";
 
 const { Option } = Select;
 
-const DatasetJSONCmp = (props) => {
+const PrettyJSONText = (props) => {
+    // shows a pretty print json when onclick
+    // on click again will collapse to one line
     const obj = props.obj;
     const [jsonStr, setJsonStr] = useState(props.jsonStr);
     const [tabSep, setTabSep] = useState(false);
@@ -148,7 +150,7 @@ const DatasetDetailPage = (props) => {
                                             <Typography.Text style={{ paddingLeft: "6px" }}>{line[1]}</Typography.Text>
                                         </div>}
                                         description={
-                                            <DatasetJSONCmp obj={line[2].obj} jsonStr={line[2].jsonStr} />
+                                            <PrettyJSONText obj={line[2].obj} jsonStr={line[2].jsonStr} />
                                         }
                                     />
                                 </List.Item>)
