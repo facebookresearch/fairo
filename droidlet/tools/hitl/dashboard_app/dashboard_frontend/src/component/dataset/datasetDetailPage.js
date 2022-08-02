@@ -8,12 +8,42 @@ Takes optional state parameter from react-router-dom navigation (navigate, link,
 Usage:
 <DatasetDetailPage />
 */
-import { Card, Select, Spin, Typography } from "antd";
+import { Card, List, Select, Spin, Tooltip, Typography } from "antd";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { SocketContext } from "../../context/socket";
 
 const { Option } = Select;
+
+const DatasetJSONCmp = (props) => {
+    const obj = props.obj;
+    const [jsonStr, setJsonStr] = useState(props.jsonStr);
+    const [tabSep, setTabSep] = useState(false);
+
+    const handleOnClickJson = () => {
+        // change json format
+        if (!tabSep) {
+            setTabSep(true);
+            const newJsonStr = JSON.stringify(obj, null, 2);
+            setJsonStr(newJsonStr);
+        } else {
+            setTabSep(false);
+            const newJsonStr = JSON.stringify(obj);
+            setJsonStr(newJsonStr);
+        }
+    }
+
+    useEffect(() => { }, [jsonStr]);
+
+    return <pre onClick={() => handleOnClickJson()} >
+        <Tooltip title= {tabSep ? "Collapse" : "Expand"}>
+            <Typography.Text>
+                {jsonStr}
+            </Typography.Text>
+        </Tooltip>
+
+    </pre>
+}
 
 const DatasetDetailPage = (props) => {
     const socket = useContext(SocketContext);
@@ -30,8 +60,22 @@ const DatasetDetailPage = (props) => {
         setDatasetList(data.sort().reverse());
     }, []);
 
+
+
     const handleRecievedDatasetContent = useCallback((data) => {
-        setDatasetContent(data);
+        const formattedData = data.split("\n").map((line) => {
+            line = line.split("|");
+            line[2] = line[2] && line[2].replace("\\", "");
+            try {
+                line[2] = JSON.parse(line[2]);
+            } catch (e) {
+                // do nothing if it is undefined (encounter parse error)
+            }
+            line[2] = { obj: line[2], jsonStr: JSON.stringify(line[2])};
+            return line;
+        });
+
+        setDatasetContent(formattedData);
     }, []);
 
     const getDatasetList = () => {
@@ -93,9 +137,23 @@ const DatasetDetailPage = (props) => {
             <div style={{ padding: '0 18px 0 36px', width: '80%' }}>
                 {/* dataset detail  */}
                 <Card loading={!datasetContent}>
-                    <div style={{ overflow: 'auto', height: '80vh' }}>
-                        {datasetContent}
-                    </div>
+                    <List style={{ overflow: 'auto', height: '80vh', textAlign: "left" }}>
+                        {
+                            datasetContent
+                            && datasetContent.map((line, idx) =>
+                                <List.Item>
+                                    <List.Item.Meta
+                                        title={<div>
+                                            <Typography.Text strong>{"[" + line[0] + "]"}</Typography.Text>
+                                            <Typography.Text style={{ paddingLeft: "6px" }}>{line[1]}</Typography.Text>
+                                        </div>}
+                                        description={
+                                            <DatasetJSONCmp obj={line[2].obj} jsonStr={line[2].jsonStr} />
+                                        }
+                                    />
+                                </List.Item>)
+                        }
+                    </List>
                 </Card>
             </div>
         </div>
