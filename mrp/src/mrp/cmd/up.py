@@ -121,7 +121,9 @@ def cli(
         raise ValueError("No processes found")
 
     if attach and len(names) != 1:
-        raise ValueError(f"Can only attach to exactly 1 process. {len(names)} processes provided.")
+        raise ValueError(
+            f"Can only attach to exactly 1 process. {len(names)} processes provided."
+        )
 
     if attach and not run:
         raise ValueError("Cannot attach without running")
