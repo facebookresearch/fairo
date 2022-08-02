@@ -16,6 +16,10 @@ import CardContent from "@material-ui/core/CardContent";
 
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 import NodeColorPicker from "./NodeColorPicker";
+import Accordion from "@material-ui/core/Accordion";
+import AccordionSummary from "@material-ui/core/AccordionSummary";
+import AccordionDetails from "@material-ui/core/AccordionDetails";
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 
 const menuTheme = createMuiTheme({
   palette: {
@@ -28,6 +32,9 @@ const groupingHelpText =
 
 const dynamicPosHelpText =
   "Enabling this makes it so any tabular component on the map automatically repositions itself to remain on screen when dragging. May reduce performance.";
+
+const nodeDetailsHelpText =
+  "List of all node types on map. Click on colored circle to change color. Click away from color picker menu to close it.";
 
 /**
  * Creates simple table of memory values for an object on the map.
@@ -58,7 +65,7 @@ export default function Memory2DMenu(props) {
       <Drawer anchor="right" open={props.showMenu} onClose={props.onMenuClose}>
         <div style={{ width: 450 }}>
           <Grid container direction="column" spacing={3}>
-            <Grid item desc="close-menu">
+            <Grid item key="close-menu">
               <IconButton onClick={props.onMenuClose}>
                 <CloseIcon />
               </IconButton>
@@ -66,13 +73,13 @@ export default function Memory2DMenu(props) {
             </Grid>
             <Grid
               item
-              desc="menu-items"
+              key="menu-items"
               container
               direction="column"
               spacing={3}
               style={{ marginLeft: 3 }}
             >
-              <Grid item xs="auto" container>
+              <Grid item key="grouping-form" xs="auto" container>
                 <Card variant="outlined">
                   <CardContent>
                     <Grid item container alignItems="center" spacing={6}>
@@ -129,8 +136,14 @@ export default function Memory2DMenu(props) {
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item container direction="column" alignItems="flex-start">
-                <Grid item desc="toggle dyna pos" container alignItems="center">
+              <Grid
+                item
+                key="options"
+                container
+                direction="column"
+                alignItems="flex-start"
+              >
+                <Grid item key="toggle dyna pos" container alignItems="center">
                   <Grid item>
                     <FormControlLabel
                       control={
@@ -155,7 +168,7 @@ export default function Memory2DMenu(props) {
                     </Tooltip>
                   </Grid>
                 </Grid>
-                <Grid item desc="toggle show triples">
+                <Grid item key="toggle show triples">
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -168,7 +181,7 @@ export default function Memory2DMenu(props) {
                     labelPlacement="end"
                   />
                 </Grid>
-                <Grid item desc="toggle square map">
+                <Grid item key="toggle square map">
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -181,8 +194,10 @@ export default function Memory2DMenu(props) {
                     labelPlacement="end"
                   />
                 </Grid>
-                <Grid item desc="change map view">
-                  {"View:   "}
+              </Grid>
+              <Grid item key="change-map-view" container alignItems="center">
+                <Grid item>
+                  {"View:    "}
                   <ButtonGroup variant="contained">
                     <Button
                       color={"ZX" === mapView ? "secondary" : "default"}
@@ -212,11 +227,41 @@ export default function Memory2DMenu(props) {
                       YZ
                     </Button>
                   </ButtonGroup>
+                </Grid>
+                <Grid item>
                   <Button onClick={props.centerToBot}>CENTER TO BOT</Button>
                 </Grid>
-                <Grid item desc="color picker">
-                  <NodeColorPicker />
-                </Grid>
+              </Grid>
+              <Grid item key="color-picker" xs={9}>
+                <Accordion styles={{ color: "#0000FF" }}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Grid container alignItems="center" spacing={3}>
+                      <Grid item>Node Details</Grid>
+                      <Grid item>
+                        <Tooltip
+                          title={nodeDetailsHelpText}
+                          placement="top"
+                          interactive
+                          leaveDelay={500}
+                        >
+                          <HelpIcon fontSize="small" />
+                        </Tooltip>
+                      </Grid>
+                    </Grid>
+                  </AccordionSummary>
+                  {Object.entries(props.nodeTypeInfo).map(([type, info]) => (
+                    <AccordionDetails key={type}>
+                      <NodeColorPicker
+                        type={type}
+                        count={info.count}
+                        color={info.color}
+                        setNodeColoring={(color) => {
+                          props.setNodeColoring(type, color);
+                        }}
+                      />
+                    </AccordionDetails>
+                  ))}
+                </Accordion>
               </Grid>
             </Grid>
           </Grid>
