@@ -552,7 +552,7 @@ class RobotInterface(BaseRobotInterface):
 
         return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
 
-    def update_desired_joint_positions(self, positions: torch.Tensor):
+    def update_desired_joint_positions(self, positions: torch.Tensor) -> int:
         """Update the desired joint positions used by the joint position control mode.
         Requires starting a joint impedance controller with `start_joint_impedance` beforehand.
         """
@@ -570,7 +570,7 @@ class RobotInterface(BaseRobotInterface):
         self,
         position: torch.Tensor = None,
         orientation: torch.Tensor = None,
-    ):
+    ) -> int:
         """Update the desired EE pose used by the Cartesian position control mode.
         Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
         """
@@ -586,7 +586,7 @@ class RobotInterface(BaseRobotInterface):
             log.warning(
                 "Unable to find valid joint target. Skipping update_desired_ee_pose command..."
             )
-            return []
+            return -1
 
         return self.update_desired_joint_positions(joint_pos_desired)
 
