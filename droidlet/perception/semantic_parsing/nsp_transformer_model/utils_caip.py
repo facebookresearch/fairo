@@ -121,11 +121,11 @@ def process_txt_data(filepath: str):
 
 
 def tree_span_node_replace(text, tree):
-    '''
-    replace two keys which are coordinates_span and condition_span with 
+    """
+    replace two keys which are coordinates_span and condition_span with
     coordinates and condition and replace start and end indices of span node
     with exact text
-    '''
+    """
     out_tree = {}
     for key in tree.keys():
         # update certain key name
@@ -460,10 +460,9 @@ def caip_collate(batch, tokenizer, tree_to_text=False):
         ]  # 0 as padding idx
     else:
         batch_y_pad_ls = [
-            y + [tokenizer.pad_token_id] * (y_len - len(y))
-            for y in batch_y_ls
+            y + [tokenizer.pad_token_id] * (y_len - len(y)) for y in batch_y_ls
         ]  # 0 as padding idx
-    
+
     # tensorize
     x = torch.tensor(batch_x_pad_ls)
     x_mask = torch.tensor(x_mask_ls)

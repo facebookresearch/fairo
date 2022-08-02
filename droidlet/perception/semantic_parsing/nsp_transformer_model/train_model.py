@@ -18,9 +18,7 @@ import torch
 import torch.utils.tensorboard
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 
-from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_model import (
-    build_model
-)
+from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_model import build_model
 from droidlet.perception.semantic_parsing.utils.nsp_logger import NSPLogger
 from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_parsing import (
     compute_accuracy,
@@ -312,8 +310,9 @@ class NLUModelTrainer:
         ):
             os.makedirs(os.path.join(self.args.output_dir, self.model_identifier, "tokenizer"))
 
-            self.tokenizer.save_pretrained(os.path.join(self.args.output_dir, self.model_identifier, "tokenizer"))
-
+            self.tokenizer.save_pretrained(
+                os.path.join(self.args.output_dir, self.model_identifier, "tokenizer")
+            )
 
     def show_examples(self, dataset):
         self.model.eval()
@@ -599,7 +598,6 @@ if __name__ == "__main__":
 
     logging.info("====== Setting up NLU Model ======")
     _, encoder_decoder, tokenizer = build_model(args, tree_i2w)
-
 
     logging.info("====== Loading Training Dataset ======")
     train_dataset = CAIPDataset(

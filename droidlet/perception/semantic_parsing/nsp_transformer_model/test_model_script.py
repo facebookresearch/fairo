@@ -79,10 +79,10 @@ class ModelEvaluator:
                     tree = ""
                     for x in tree_c:
                         tree += x.lower()
-                    
+
                     parsed_tree = json.dumps(parsed_tree)
                     if tree == parsed_tree:
-                        tot_accu += 1 
+                        tot_accu += 1
 
                     line = f.readline()
 
@@ -163,7 +163,7 @@ def get_beam_tree(chat, args, model, tokenizer, dataset):
                 and math.exp(res[1]) < args.noop_thres
             ):
                 return res[0]
-    
+
     return {}
 
 
@@ -436,6 +436,7 @@ def eval_model(args, model, tokenizer, dataset):
     """
     model_evaluator = ModelEvaluator(args)
     model_evaluator.evaluate(model, dataset, tokenizer)
+
 
 def eval_model_bm(args, model, tokenizer, dataset):
     """

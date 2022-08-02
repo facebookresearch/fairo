@@ -318,6 +318,7 @@ def check_tree_well_formed(tok_tree):
 
     return len(queue) == 0
 
+
 def detokenize_tree(seq, tokenizer):
     """
     Detokenize tokenized sequence of tree back to original sequence
@@ -332,7 +333,7 @@ def detokenize_tree(seq, tokenizer):
     tok_tree = tokenizer.convert_tokens_to_string(seq)
     tok_tree = tok_tree.split()
 
-    special_tokens = ["[", "]", "{", "}", ":", ",", "_", "\"", "\",", ".", "/", "\\", "="]
+    special_tokens = ["[", "]", "{", "}", ":", ",", "_", '"', '",', ".", "/", "\\", "="]
     tree = ""
     prev_token = None
     idx = 0
@@ -341,13 +342,17 @@ def detokenize_tree(seq, tokenizer):
         if token not in ["[CLS]", "[SEP]", "[PAD]"]:
             # deal with - symbol
             if token == "-":
-                if prev_token in special_tokens or (prev_token[-1].isdigit() and not tok_tree[idx+1][0].isdigit()) or tok_tree[idx+1] == "\"":
+                if (
+                    prev_token in special_tokens
+                    or (prev_token[-1].isdigit() and not tok_tree[idx + 1][0].isdigit())
+                    or tok_tree[idx + 1] == '"'
+                ):
                     tree += token
                 else:
                     tree += " " + token
             elif token not in special_tokens and prev_token == "-":
                 # deal with some cases i.e., 1.5-to-1
-                if tok_tree[idx+1][0] == "-" and not token.isdigit():
+                if tok_tree[idx + 1][0] == "-" and not token.isdigit():
                     tree += token
                     idx += 1
                     tree += tok_tree[idx]
@@ -374,15 +379,15 @@ def detokenize_tree(seq, tokenizer):
             else:
                 tree += token
             prev_token = token
-        
+
         idx += 1
 
-    try: 
+    try:
         tree = json.loads(tree)
     except:
         # return empty dict if tree is not well formed
         return {}
-    
+
     return tree
 
 
