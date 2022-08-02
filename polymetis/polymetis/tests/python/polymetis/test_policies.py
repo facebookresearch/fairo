@@ -46,13 +46,17 @@ def test_policy(policy_class, policy_kwargs, is_terminating, update_params):
     policy = policy_class(**policy_kwargs)
     scripted_policy = torch.jit.script(policy)
 
-    for t in range(time_horizon):
-        assert not scripted_policy.is_terminated()
-        inputs = {"joint_positions": torch.zeros(7), "joint_velocities": torch.zeros(7)}
-        scripted_policy.forward(inputs)
+    with torch.no_grad():
+        for t in range(time_horizon):
+            assert not scripted_policy.is_terminated()
+            inputs = {
+                "joint_positions": torch.zeros(7),
+                "joint_velocities": torch.zeros(7),
+            }
+            scripted_policy.forward(inputs)
 
-    if is_terminating:
-        assert scripted_policy.is_terminated()
+        if is_terminating:
+            assert scripted_policy.is_terminated()
 
-    if update_params is not None:
-        scripted_policy.update(update_params)
+        if update_params is not None:
+            scripted_policy.update(update_params)
