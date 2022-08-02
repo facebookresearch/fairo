@@ -39,7 +39,8 @@ const nodeDetailsHelpText =
 /**
  * Creates simple table of memory values for an object on the map.
  *
- * @param {showMenu, onMenuClose, selected_objects, onGroupSubmit, dynamicPositioning, toggleDynamicPositioning, showTriples, toggleShowTriples} props
+ * @param {showMenu, onMenuClose, selected_objects, onGroupSubmit, dynamicPositioning,
+ *            toggleDynamicPositioning, showTriples, toggleShowTriples, nodeTypeInfo, setNodeColoring} props
  *                            showMenu: bool for if menu should be open/close
  *                            onMenuClose: handler to close menu
  *                            selected_objects: dict of all objects selected and their data
@@ -54,6 +55,8 @@ const nodeDetailsHelpText =
  *                            centerToBot: handler that centers the stage to the bot
  *                            squareMap: whether the map should fill up the whole pane or limited to square
  *                            toggleSquareMap: handler to change squareMap
+ *                            nodeTypeInfo: object with count + color information for each nodeType
+ *                            setNodeColoring: handler to set color of node type
  */
 export default function Memory2DMenu(props) {
   const [groupName, setGroupName] = React.useState("");

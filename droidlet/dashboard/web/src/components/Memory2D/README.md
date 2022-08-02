@@ -41,8 +41,8 @@ To get started using Memory2D on the dashboard, ensure you run your agent with t
 Every clickable point on the map will open some sort of tabular component. Broadly, there are two types of points:
 
 <p align="center">
-    <img src="https://drive.google.com/uc?export=view&id=1svawRF-Z6Mu41DlKUtZNfCPtVR_OX6DP" width="300" alt="Two Types of Clickable Points"/> </br>
-    <b>Object</b> (left) and <b>Cluster</b> (right)
+    <img src="https://drive.google.com/uc?export=view&id=1TuoQsfqq7A-jLiQYM-OLzLhkQHHBXt9M" width="300" alt="Two Types of Clickable Points"/> </br>
+    <b>Cluster</b> and <b>Objects</b> (<i>Bot</i> and <i>Node</i>)
 </p>
 
 - **Objects** - These have no numeric label. Each represents a tuple in agent memory (i.e. a `ReferenceObject`), and clicking on an **Object** will open up a `MemoryMapTable` that allows a user to inspect and edit the memory tags associated with that **Object**. If desired, a user can enable "Show Triples" from the side menu to inspect those as well.
@@ -66,7 +66,7 @@ Clicking the "Submit" button at the bottom of the table will send the changes to
 Incorrectly formatted changes are automatically caught, and users can refresh all changed values to what they were when first opening the table. Moreover, users can restore an object to eliminate any manually made changes to it.
 
 <p align="center">
-    <img src="https://drive.google.com/uc?export=view&id=1Y4WlYLd2MLGaar7vCZVzWfFSEeHkIiR3" width="500" alt="Clicking Cluster"/>
+    <img src="https://drive.google.com/uc?export=view&id=1Y4WlYLd2MLGaar7vCZVzWfFSEeHkIiR3" width="500" alt="Editing Memory Tags"/>
 </p>
 
 The manual changes made by a user are _persistent_ and will continuously overwrite any other changes made to the agent memory.
@@ -82,14 +82,30 @@ Users have two options to select objects:
 - `Right Click` -> Drag -> `Right Click` (**Preferred**) </br>
 Use `Right Click` (or equivalent on trackpad) to enter "drawing mode". You can then drag, zoom, and/or pan to describe a rectangle in which all objects in the drawn frame will be selected/unselected. `Right Click` again to finish drawing and toggle the select/unselect actions. Can also use `Esc` to exit "drawing mode" without toggling any actions in the frame you already drew.
 <p align="center">
-    <img src="https://drive.google.com/uc?export=view&id=1vt-MnLCnlTPVRoEhDOEsMbC8W5DLSjaH" width="500" alt="Clicking Cluster"/>
+    <img src="https://drive.google.com/uc?export=view&id=1vt-MnLCnlTPVRoEhDOEsMbC8W5DLSjaH" width="500" alt="Group with Drag + Click"/>
 </p>
 
 - `Cmd` + Click </br>
 Similar to selection in most file managers and visual media software, press `Cmd` (or `Ctrl` on Windows) and (left) click an object to select it. Use this option for finer selection of objects.
 <p align="center">
-    <img src="https://drive.google.com/uc?export=view&id=1SnQfhRzJ0fLdJGTOz_WnWTx0iwVHDq1e" width="500" alt="Clicking Cluster"/>
+    <img src="https://drive.google.com/uc?export=view&id=1SnQfhRzJ0fLdJGTOz_WnWTx0iwVHDq1e" width="500" alt="Group with Cmd + Click"/>
 </p>
+
+### Menu Tools
+
+The `Memory2DMenu` provides several tools for the user.
+Hover over the help icons for the most updated guidance.
+
+<p align="center">
+    <img src="https://drive.google.com/uc?export=view&id=1VtLlG0mOo-iSbxmlV0rMISZrCkdbMczU" width="500" alt="Memory2DMenu"/>
+</p>
+
+Descriptions are listed in order of appearance from top:
+
+- Grouping Form: used to group all selected objects by storing "is_a" triples in memory. Using an invalid string (i.e. anything that would fail `JSON.stringify`) will cause agent crash. Currently only functional for CraftAssist.
+- Map Options: used to customize UX. For example, toggle `Square Map` if you plan on using `Center to Bot` often.
+- View Options: to inspect objects in other dimensional views. Useful when several objects are clustered in one view (i.e. stacked on top of one another) and different view reveals underlying structure.
+- Node Details: Short summary of all plotted objects and their node types. Users can change colors of different nodes to increase/reduce visibility of certain types of nodes.
 
 ### Quirks
 
