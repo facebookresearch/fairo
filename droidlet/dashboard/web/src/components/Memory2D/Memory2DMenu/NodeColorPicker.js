@@ -1,19 +1,7 @@
-import React, { useEffect, useState, useRef, PureComponent } from "react";
-import ButtonGroup from "@material-ui/core/ButtonGroup";
-import Button from "@material-ui/core/Button";
-import IconButton from "@material-ui/core/IconButton";
-import CloseIcon from "@material-ui/icons/Close";
-import HelpIcon from "@material-ui/icons/Help";
-import Tooltip from "@material-ui/core/Tooltip";
-import Drawer from "@material-ui/core/Drawer";
-import Divider from "@material-ui/core/Divider";
-import TextField from "@material-ui/core/TextField";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Checkbox from "@material-ui/core/Checkbox";
-import FiberManualRecordIcon from "@material-ui/icons/FiberManualRecord"; // Circle
+import React, { useEffect, useState, useRef } from "react";
+import LensIcon from "@material-ui/icons/Lens"; // Circle
 import Grid from "@material-ui/core/Grid";
-import Card from "@material-ui/core/Card";
-import CardContent from "@material-ui/core/CardContent";
+import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 
 import { BlockPicker } from "react-color";
 
@@ -37,42 +25,67 @@ import { BlockPicker } from "react-color";
  *                            toggleSquareMap: handler to change squareMap
  */
 export default function NodeColorPicker(props) {
-  const [nodeColor, setNodeColor] = React.useState({ hex: "#FF6900" });
+  const [nodeColor, setNodeColor] = useState(props.color);
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   const pickerEl = useRef(null);
   const circEl = useRef(null);
 
-  useEffect(() => {
-    console.log(circEl.current.getBoundingClientRect());
-    let circStyle = circEl.current.style;
-    let divStyle = pickerEl.current.style;
-    // let { x, y, height, width } = circEl.current.getBoundingClientRect();
-    // console.log(height, width, x, y);
-    pickerEl.current.style.position = "absolute";
-    pickerEl.current.style.left = 0;
-    pickerEl.current.style.bottom = "100px";
-    console.log(circStyle.position, circStyle.left, circStyle.bottom);
-    console.log(divStyle.position, divStyle.left, divStyle.bottom);
-  });
+  const pickerWidth = 170;
 
+  // Positions color picker at circle
   useEffect(() => {
-    circEl.current.style.color = nodeColor.hex;
+    if (pickerEl.current) {
+      let { x, y, height, width } = circEl.current.getBoundingClientRect();
+      pickerEl.current.style.position = "fixed";
+      pickerEl.current.style.left = x + width / 2 - pickerWidth / 2 + "px";
+      pickerEl.current.style.top = y + height / 2 + 14 + "px"; // 14 added for triangle
+      pickerEl.current.style.zindex = 10;
+    }
+  }, [pickerVisible]);
+
+  // Updates circle color
+  useEffect(() => {
+    circEl.current.style.color = nodeColor;
   }, [nodeColor]);
 
   return (
     <div>
-      <div ref={pickerEl}>
-        <BlockPicker
-          color={nodeColor}
-          width={170}
-          triangle="top"
-          onChange={(color) => {
-            setNodeColor(color);
+      <Grid container spacing={2}>
+        <Grid item>
+          <LensIcon
+            ref={circEl}
+            onClick={() => {
+              setPickerVisible((prev) => {
+                return !prev;
+              });
+            }}
+          />
+        </Grid>
+        <Grid item>
+          {props.type} ({props.count})
+        </Grid>
+      </Grid>
+      {pickerVisible && (
+        <ClickAwayListener
+          onClickAway={() => {
+            setPickerVisible(false);
           }}
-        />
-      </div>
-      LocationNode (2)
-      <FiberManualRecordIcon ref={circEl} />
+        >
+          <div ref={pickerEl}>
+            <BlockPicker
+              color={nodeColor}
+              width={pickerWidth}
+              triangle="top"
+              onChange={({ hex: color }) => {
+                color = color.toUpperCase(); // react-color likes lowercase, Konva disagrees
+                setNodeColor(color);
+                props.setNodeColoring(color);
+              }}
+            />
+          </div>
+        </ClickAwayListener>
+      )}
     </div>
   );
 }

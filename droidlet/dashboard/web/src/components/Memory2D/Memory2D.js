@@ -24,6 +24,14 @@ var hashCode = function (s) {
 
 const DEFAULT_SPACING = 12;
 
+const DEFAULT_NODE_COLORINGS = {
+  PlayerNode: "#F47373",
+  AttentionNode: "#DCE775",
+  LocationNode: "#2CCCE4",
+  MobNode: "#37D67A",
+  ItemStackNode: "#0000FF",
+};
+
 class Memory2D extends React.Component {
   constructor(props) {
     super(props);
@@ -64,7 +72,8 @@ class Memory2D extends React.Component {
       dynamicPositioning: false,
       showTriples: false,
       mapView: "ZX",
-      squareMap: true,
+      squareMap: false,
+      nodeColorings: DEFAULT_NODE_COLORINGS,
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -554,6 +563,7 @@ class Memory2D extends React.Component {
       drawing_mode,
       mapView,
       squareMap,
+      nodeColorings,
     } = this.state;
     if (squareMap) {
       width = Math.min(width, height);
@@ -579,6 +589,7 @@ class Memory2D extends React.Component {
     let j = 0;
 
     let objectPosPool = {};
+    let nodeTypeInfo = {};
 
     /*#################
     ####  Pooling  ####
@@ -613,7 +624,11 @@ class Memory2D extends React.Component {
     // Pool detected objects from memory by position
     detections_from_memory.forEach((obj) => {
       let xyz = obj.pos;
-      let color = "#0000FF";
+      let nodeType = obj.node_type;
+      let color =
+        nodeType && nodeColorings[nodeType]
+          ? nodeColorings[nodeType]
+          : "0000FF";
       let [map_x, map_y] = this.convertCoordinate(xyz);
       let map_pos = "" + map_x + "," + map_y;
       let poolData = {
@@ -626,6 +641,21 @@ class Memory2D extends React.Component {
         objectPosPool[map_pos] = [poolData];
       } else {
         objectPosPool[map_pos].push(poolData);
+      }
+
+      if (nodeType) {
+        if (!(nodeType in nodeTypeInfo)) {
+          nodeTypeInfo[nodeType] = {
+            count: 1,
+            color: color,
+          };
+        } else {
+          let { count, ...rest } = nodeTypeInfo[nodeType];
+          nodeTypeInfo[nodeType] = {
+            count: count + 1,
+            ...rest,
+          };
+        }
       }
     });
 
@@ -697,14 +727,24 @@ class Memory2D extends React.Component {
       } else {
         // several objects clustered at map position
         let numObjs = objs_at_pos.length;
+        let typesOfObjs = new Set();
         let clusteredObjects = [];
-        let [clusterColor, clusterRadius] = ["#0000FF", 6];
+        let clusterRadius = 6;
         objs_at_pos.forEach((obj) => {
+          if (obj.data.node_type) typesOfObjs.add(obj.data.node_type);
           clusteredObjects.push(obj);
         });
         let someObjSelected = objs_at_pos.some(
           (obj) => obj.data.memid in selected_objects
         );
+        let radialFill = [];
+        Array.from(typesOfObjs).forEach((type, index) => {
+          radialFill.push(
+            (index / Math.max(1, typesOfObjs.size - 1)).toFixed(2)
+          );
+          radialFill.push(nodeColorings[type]);
+        });
+
         renderedObjects.push(
           <Group
             key={map_pos}
@@ -719,7 +759,15 @@ class Memory2D extends React.Component {
               x={0}
               y={0}
               radius={isFocused ? clusterRadius * 1.5 : clusterRadius}
-              fill={someObjSelected ? "green" : clusterColor}
+              fillRadialGradientColorStops={
+                someObjSelected ? [0, "green"] : radialFill
+              }
+              fillRadialGradientStartPoint={{ x: 0, y: 0 }}
+              fillRadialGradientStartRadius={0}
+              fillRadialGradientEndPoint={{ x: 0, y: 0 }}
+              fillRadialGradientEndRadius={
+                isFocused ? clusterRadius * 1.5 : clusterRadius
+              }
               stroke="black"
               strokeWidth={1}
               perfectDrawEnabled={false}
@@ -732,7 +780,7 @@ class Memory2D extends React.Component {
               text={numObjs > 9 ? "9+" : numObjs}
               fontSize={numObjs > 9 ? 8 : 10}
               fontFamily="Segoe UI"
-              fill="white"
+              fill="black"
               align="center"
               verticalAlign="middle"
               perfectDrawEnabled={false}
@@ -1200,6 +1248,17 @@ class Memory2D extends React.Component {
             this.setState((prev) => {
               return {
                 squareMap: !prev.squareMap,
+              };
+            });
+          }}
+          nodeTypeInfo={nodeTypeInfo}
+          setNodeColoring={(type, color) => {
+            this.setState((prev) => {
+              return {
+                nodeColorings: {
+                  ...prev.nodeColorings,
+                  [type]: color,
+                },
               };
             });
           }}

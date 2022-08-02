@@ -11,6 +11,7 @@ import Box from "@material-ui/core/Box";
 
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
+import LensIcon from "@material-ui/icons/Lens"; // Circle
 import Tooltip from "@material-ui/core/Tooltip";
 
 const MAX_TABLE_CELL_WIDTH = 100;
@@ -112,8 +113,19 @@ export default function ClusteredObjsPopup(props) {
               }
             >
               <StyledTableCell>
-                {" "}
-                {shortenLongTableEntries(poolData.data.memid)}{" "}
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  {shortenLongTableEntries(poolData.data.memid)}
+                  <IconButton size="small" disableRipple>
+                    <LensIcon
+                      style={{ color: poolData.color }}
+                      fontSize="small"
+                    />
+                  </IconButton>
+                </Box>
               </StyledTableCell>
               <StyledTableCell>
                 {" "}
@@ -155,7 +167,7 @@ export function positionClusteredObjsPopup(
 }
 
 function shortenLongTableEntries(e) {
-  if (e && e.length > 16) {
+  if (e && e.length > 12) {
     return (
       <Box
         display="flex"
@@ -164,7 +176,7 @@ function shortenLongTableEntries(e) {
         maxHeight={20}
       >
         <Tooltip title={e} placement="left-start" interactive leaveDelay={500}>
-          <p>{e.substring(0, 6) + "..." + e.substring(e.length - 6)}</p>
+          <p>{e.substring(0, 4) + "..." + e.substring(e.length - 4)}</p>
         </Tooltip>
       </Box>
     );
