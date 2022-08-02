@@ -113,6 +113,12 @@ class ArgumentParser:
             type=int,
             help='number of ticks after which agent updates map')
         mc_parser.add_argument("--port", type=int, default=25565)
+        mc_parser.add_argument(
+            "--allow_clarification",
+            action="store_true",
+            default=False,
+            help="allow reference object clarification pathway",
+        )
 
     def add_loco_parser(self):
         loco_parser = self.parser.add_argument_group("Locobot Agent Args")

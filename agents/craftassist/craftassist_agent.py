@@ -97,6 +97,7 @@ class CraftAssistAgent(DroidletAgent):
             "fill_idmeta": fill_idmeta,
             "color_bid_map": COLOR_BID_MAP,
         }
+        self.allow_clarification = opts.allow_clarification
         self.backend = opts.backend
         self.mark_airtouching_blocks = opts.mark_airtouching_blocks
         super(CraftAssistAgent, self).__init__(opts)
@@ -262,6 +263,7 @@ class CraftAssistAgent(DroidletAgent):
             "color_bid_map": self.low_level_data["color_bid_map"],
             "get_all_holes_fn": heuristic_perception.get_all_nearby_holes,
             "get_locs_from_entity": get_locs_from_entity,
+            "allow_clarification": self.allow_clarification,
         }
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
