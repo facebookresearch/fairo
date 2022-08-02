@@ -46,12 +46,12 @@ class TestAWSHelper(unittest.TestCase):
         self.assertGreater(len(res), 0)
 
     def test_get_traceback_by_id_valid(self):
-        res = get_traceback_by_id(VALID_ID)
+        res, _ = get_traceback_by_id(VALID_ID)
         self.assertIsNotNone(res)
         self.assertNotEqual(res, f"cannot find traceback with id {VALID_ID}")
 
     def test_get_traceback_by_id_invalid(self):
-        res = get_traceback_by_id(INVALID_ID)
+        res, _ = get_traceback_by_id(INVALID_ID)
         self.assertEqual(res, f"cannot find traceback with id {INVALID_ID}")
 
     def test_get_run_info_by_id_valid(self):

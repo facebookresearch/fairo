@@ -16,7 +16,7 @@ from torchcontrol.transform import Transformation as T
 from polymetis import RobotInterface
 from polysim.grpc_sim_client import Spinner
 
-META_CENTER_POSE = [0.55, 0.0, 0.45, 0.9383, 0.3442, 0.0, 0.0]
+META_CENTER_POSE = [0.45, 0.0, 0.45, 0.9383, 0.3442, 0.0, 0.0]
 META_RADIUS = 0.15
 UPDATE_HZ = 60
 NUM_LOOPS = 1
@@ -34,7 +34,7 @@ def generate_trajectory(center_pose, radius, hz, num_loops, time_to_go):
 
         # Position: Draw meta
         dx = 1.2 * radius * np.cos(theta)
-        dy = 1.5 * radius * np.sin(theta)
+        dy = 1.8 * radius * np.sin(theta)
         dz = radius * np.sin(theta * 2)
         ee_pose_traj[i, :3] = center_pose[:3] + torch.Tensor([dx, dy, dz])
 
@@ -85,15 +85,46 @@ if __name__ == "__main__":
     )
     num_steps = pose_traj.shape[0]
 
-    # Offline: Send entire trajectory as controller
+    # Offline: Send entire trajectory as controller (joint space)
     robot.move_to_ee_pose(pose_traj[0, :3], pose_traj[0, 3:])
 
     states_reached = []
     for i in range(NUM_CHECKPOINTS):
         waypoint_idx = min(int(((i + 1) / NUM_CHECKPOINTS) * num_steps), num_steps - 1)
         pose_desired = pose_traj[waypoint_idx, :]
-        state_log = robot.move_to_ee_pose(pose_desired[:3], pose_desired[3:])
+
+        joint_pos_current = robot.get_joint_positions()
+        joint_pos_desired = robot.robot_model.inverse_kinematics(
+            pose_desired[:3], pose_desired[3:], rest_pose=joint_pos_current
+        )
+
+        state_log = robot.move_to_joint_positions(
+            joint_pos_desired,
+            time_to_go=2 * TIME_TO_GO / NUM_CHECKPOINTS,
+        )
         states_reached.append((waypoint_idx, state_log[-1]))
+
+    compare_traj(
+        pose_traj,
+        states_reached,
+        robot.robot_model,
+        "Offline (move_to_joint_positions)",
+    )
+
+    # Offline: Send entire trajectory as controller (Cartesian space)
+    robot.move_to_ee_pose(pose_traj[0, :3], pose_traj[0, 3:])
+
+    states_reached = []
+    for i in range(NUM_CHECKPOINTS):
+        waypoint_idx = min(int(((i + 1) / NUM_CHECKPOINTS) * num_steps), num_steps - 1)
+        pose_desired = pose_traj[waypoint_idx, :]
+        state_log = robot.move_to_ee_pose(
+            pose_desired[:3],
+            pose_desired[3:],
+            time_to_go=2 * TIME_TO_GO / NUM_CHECKPOINTS,
+        )
+        states_reached.append((waypoint_idx, state_log[-1]))
+
     compare_traj(
         pose_traj, states_reached, robot.robot_model, "Offline (move_to_ee_pose)"
     )
