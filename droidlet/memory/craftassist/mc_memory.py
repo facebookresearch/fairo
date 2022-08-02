@@ -12,6 +12,7 @@ from droidlet.base_util import Pos
 from droidlet.shared_data_struct.craftassist_shared_utils import ItemStack
 from droidlet.base_util import diag_adjacent, IDM, XYZ, Block, npy_to_blocks_list
 from droidlet.memory.memory_nodes import (  # noqa
+    AgentNode,
     TaskNode,
     SelfNode,
     PlayerNode,
@@ -67,6 +68,8 @@ class MCAgentMemory(AgentMemory):
         agent_low_level_data={},
         place_field_pixels_per_unit=DEFAULT_PIXELS_PER_UNIT,
         copy_from_backup=None,
+        mark_agent=False,
+        agent_tag=None,
     ):
         super(MCAgentMemory, self).__init__(
             db_file=db_file,
@@ -76,6 +79,8 @@ class MCAgentMemory(AgentMemory):
             agent_time=agent_time,
             coordinate_transforms=coordinate_transforms,
             place_field_pixels_per_unit=place_field_pixels_per_unit,
+            mark_agent=mark_agent,
+            agent_tag=agent_tag,
         )
         self.low_level_block_data = agent_low_level_data.get("block_data", {})
         self.banned_default_behaviors = []  # FIXME: move into triple store?
@@ -229,8 +234,24 @@ class MCAgentMemory(AgentMemory):
         # 4. Update other in-game players in agent's memory
         if perception_output.other_player_list:
             player_list = perception_output.other_player_list
+            # import ipdb;ipdb.set_trace()
             for player, location in player_list:
-                mem = self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self, player.entityId)
+                # mem = self.get_player_by_eid(player.entityId)
+                # if mem is None:
+                #     if "bot" in player.name:
+                #         memid = AgentNode.create(self, player)
+                #     else:
+                #         memid = PlayerNode.create(self, player)
+                # else:
+                #     memid = mem.memid
+                if "bot" in player.name and not self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(
+                    self, player.entityId
+                ):
+                    # self.get_player_by_eid(player.entityId):
+                    continue
+                mem = self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(
+                    self, player.entityId
+                )  # self.get_player_by_eid(player.entityId)
                 if mem is None:
                     memid = self.nodes[PlayerNode.NODE_TYPE].create(self, player)
                 else:

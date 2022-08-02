@@ -46,7 +46,9 @@ def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent
     """make a search query for a MemorySearcher to return the special ReferenceObject"""
     # TODO/FIXME! add things to workspace memory
     agent_memory = agent_memory or interpreter.memory
-    if type(S) is dict:
+    if type(S) is dict and "fixed_value" in S:
+        S = S["fixed_value"]
+    if type(S) is dict and "coordinates_span" in S:
         coord_span = S["coordinates_span"]
         loc = cast(XYZ, tuple(int(float(w)) for w in re.findall("[-0-9.]+", coord_span)))
         if len(loc) != 3:
@@ -65,6 +67,7 @@ def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent
 
         q = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(memid)
     else:
+
         if S == "AGENT" or S == "SELF" or S == "SPEAKER":
             q = "SELECT MEMORY FROM Player WHERE eid={}".format(entity_id)
         elif S == "SPEAKER_LOOK":
@@ -153,7 +156,7 @@ def interpret_reference_object(
     extra_tags (list of strings): tags added by parent to narrow the search
     allow_clarification (bool): should a Clarification object be put on the DialogueStack
     """
-
+    # d is a reference object dict.
     filters_d = d.get("filters")
     special = d.get("special_reference")
     # filters_d can be empty...
@@ -202,7 +205,8 @@ def interpret_reference_object(
         elif filters_d.get("selector", {}).get("return_quantity", "") == "ALL":
             allow_clarification = False
 
-        # Add any extra_tags to search
+        # Add extra tags to the filters
+
         if any(extra_tags):
             extra_clauses = []
             for tag in extra_tags:
@@ -214,7 +218,12 @@ def interpret_reference_object(
                 filters_d["where_clause"] = {"AND": [subclause]}
             filters_d["where_clause"]["AND"].extend(extra_clauses)
 
-        candidate_mems = apply_memory_filters(interpreter, speaker, filters_d)
+        filters_no_select = deepcopy(filters_d)
+        filters_no_select.pop("selector", None)
+        # filters_no_select.pop("location", None)
+        candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
+
+        # candidate_mems = apply_memory_filters(interpreter, speaker, filters_d)
 
         # Clarification only enabled for HUMAN_GIVE_COMMAND
         command_type = None

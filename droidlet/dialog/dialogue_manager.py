@@ -46,6 +46,7 @@ class DialogueManager(object):
         self.low_level_interpreter_data = low_level_interpreter_data
         self.safety_words = get_safety_words()
         self.greetings = get_greetings(self.opts.ground_truth_data_dir)
+        self.dialogue_target = None
 
     def get_last_m_chats(self, m=1):
         # fetch last m chats from memory

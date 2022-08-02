@@ -63,6 +63,8 @@ def backoff_where(where_clause, triples_to_tags=True, canonicalize=True, lower=F
 
     returns the list of obj_texts and modified dict
     """
+    if not where_clause:
+        return [], where_clause
     new_where_clause = deepcopy(where_clause)
     tags = []
     # doesn't check if where_clause is well formed

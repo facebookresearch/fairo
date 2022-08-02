@@ -21,7 +21,7 @@ class Foo:
 
     def forward(self):
         self.b.put(5, 6)
-        print("getting item:", self.b.get(timeout=2))
+        print("getting item:", self.b.get(timeout=4))
 
 
 import unittest

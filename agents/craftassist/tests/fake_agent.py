@@ -80,6 +80,7 @@ class FakeAgent(DroidletAgent):
     ):
         self.backend = "pyworld"
         self.prebuilt_db = prebuilt_db
+        self.task_step_filters = None
         self.use_place_field = use_place_field
         self.mark_airtouching_blocks = do_heuristic_perception
         self.head_height = HEAD_HEIGHT

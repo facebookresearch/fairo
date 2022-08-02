@@ -24,10 +24,18 @@ class ArgumentParser:
             choices=["info", "debug", "warn", "error"],
             help="Logging tier to specify verbosity level, eg. DEBUG.",
         )
+        # remove when done testing. default = True
         self.parser.add_argument(
             "--no_default_behavior",
             action="store_true",
+            default=True,
             help="do not perform default behaviors when idle",
+        )
+        self.parser.add_argument(
+            "--num_workers",
+            default=1,
+            type=int,
+            help="Number of additional workers for the swarm",
         )
         self.parser.add_argument(
             "--agent_debug_mode",
@@ -53,6 +61,12 @@ class ArgumentParser:
             default=False,
             help="use this option to enable the memory map"
         )
+        self.parser.add_argument(
+            "--name",
+            default=None,
+            help="Name of the agent."
+        )
+
 
     def add_nsp_parser(self):
         nsp_parser = self.parser.add_argument_group("Neural Semantic Parser Args")
@@ -83,12 +97,14 @@ class ArgumentParser:
             default=False,
             help="do not load from ground truth",
         )
+        # remove when done testing. default = False
         nsp_parser.add_argument(
             "--dev",
             action="store_true",
-            default=False,
+            default=True,
             help="Run the agent without automatic model/dataset downloads. Useful for testing models locally.",
         )
+        
 
     def add_mc_parser(self):
         mc_parser = self.parser.add_argument_group("Minecraft Agent Args")

@@ -10,7 +10,7 @@
                     "const": "GET_MEMORY"
                 },
                 "filters": {
-                    "$ref": "filters.schema.json#/definitions/triples"
+                    "$ref": "filters.schema.json"
                 },
                 "replace": {
                     "$ref": "#/definitions/replace"
@@ -23,7 +23,7 @@
                     "const": "PUT_MEMORY"
                 },
                 "filters": {
-                    "$ref": "filters.schema.json#/definitions/triples"
+                    "$ref": "filters.schema.json"
                 },
                 "upsert": {
                     "$ref": "#/definitions/upsert"

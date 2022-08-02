@@ -35,10 +35,14 @@ MEMORY_DUMP_KEYFRAME_TIME = 0.5
 # 2: has a turnable head, can point, and has basic locomotion
 # 3: can send and receive chats
 class DroidletAgent(BaseAgent):
-    def __init__(self, opts, name=None):
+    def __init__(self, opts):
         logging.info("Agent.__init__ started")
-        self.name = name or default_agent_name()
+        self.name = opts.name if opts.name else default_agent_name()
+        logging.info("Agent name ... %r"% (self.name))
+        
+        # self.name = name or default_agent_name()
         self.opts = opts
+        self.task_step_filters = None
         self.dialogue_manager = None
         self.init_physical_interfaces()
         super(DroidletAgent, self).__init__(opts, name=self.name)
@@ -303,6 +307,24 @@ class DroidletAgent(BaseAgent):
                 return
             else:
                 raise e
+    
+    def filter_task(self, mem, task_filter=None):
+        """Check if either:
+        - filter is None or
+        - check whether task_filters is true for any memory here.
+        """
+        # handle task on fiters.
+        if task_filter is None and self.task_step_filters:
+            task_filter = self.task_step_filters
+        if task_filter is None:
+            # This task hasn't explicitly been tagged yet and available, step through
+            return False
+
+        # This task has been explicitly tagged for this agent, step through
+        for filter in task_filter: 
+            if filter in mem.get_tags():
+                return True
+        return False
 
     def step(self):
         if self.count == 0:
@@ -311,11 +333,20 @@ class DroidletAgent(BaseAgent):
         self.maybe_dump_memory_to_dashboard()
 
     def task_step(self, sleep_time=0.25):
+        tasks_out = self.memory._db_read("SELECT uuid, action_name, prio, running, finished from Tasks")           
+        # if len(tasks_out) == 1 and tasks_out[0][1] == "controlblock":
+        #     import ipdb;ipdb.set_trace()
+                
         query = "SELECT MEMORY FROM Task WHERE prio={}".format(TaskNode.CHECK_PRIO)
         _, task_mems = self.memory.basic_search(query)
+        
+        # NOTE: master can set child's priority for all workers here.
         for mem in task_mems:
-            if mem.task.init_condition.check():
-                mem.get_update_status({"prio": TaskNode.CHECK_PRIO + 1})
+            task_filter_flag = self.filter_task(mem)
+            if (not task_filter_flag):
+                # Not a child's task and this agent is the task_executor
+                if mem.task.init_condition.check():
+                    mem.get_update_status({"prio": TaskNode.CHECK_PRIO + 1})
 
         query = "SELECT MEMORY FROM Task WHERE ((prio>{}) AND (paused <= 0))".format(
             TaskNode.CHECK_PRIO
@@ -328,13 +359,15 @@ class DroidletAgent(BaseAgent):
         task_mems.sort(reverse=True, key=lambda x: x.prio)
         for mem in task_mems:
             # prio/finished could have been changed by another Task, e.g. a ControlBlock
-            mem.update_node()
-            if mem.prio > TaskNode.CHECK_PRIO:
-                # FIXME set the other ones to running=0.  doesn't matter rn bc scheduler is empty, everything runs
-                mem.get_update_status({"running": 1})
-                mem.task.step()
-                if mem.task.finished:
-                    mem.update_task()
+            task_filter_flag = self.filter_task(mem)
+            if (not task_filter_flag):
+                mem.update_node()
+                if mem.prio > TaskNode.CHECK_PRIO:
+                    # FIXME set the other ones to running=0.  doesn't matter rn bc scheduler is empty, everything runs
+                    mem.get_update_status({"running": 1})
+                    mem.task.step()
+                    if mem.task.finished:
+                        mem.update_task()
 
     def get_time(self):
         # round to 100th of second, return as
@@ -346,6 +379,7 @@ class DroidletAgent(BaseAgent):
 
         # add postprocessed chat here
         memid, _ = self.memory.basic_search(f'SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}')
+        # import ipdb;ipdb.set_trace()
         chat_memid = self.memory.nodes[ChatNode.NODE_TYPE].create(
             self.memory, memid[0], preprocessed_chat
         )

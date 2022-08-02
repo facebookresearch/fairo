@@ -816,6 +816,60 @@ class SelfNode(PlayerNode):
         return memid
 
 
+class AgentNode(PlayerNode):
+    """This class is a special PlayerNode for representing an
+    agent
+
+    Args:
+        agent_memory  (AgentMemory): An AgentMemory object
+        memid (string): Memory ID for this node
+
+    Examples::
+        >>> node_list = [TaskNode, ChatNode, PlayerNode, SelfNode]
+        >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
+        >>> agent_memory = AgentMemory(db_file=":memory:",
+                                       schema_paths=schema_path,
+                                       db_log_path=None,
+                                       nodelist=node_list)
+        >>> memid = '10517cc584844659907ccfa6161e9d32'
+        >>> AgentNode(agent_memory=agent_memory, memid=memid)
+    """
+
+    TABLE_COLUMNS = ["uuid", "eid", "name", "x", "y", "z", "pitch", "yaw", "ref_type"]
+    NODE_TYPE = "Agent"
+
+    @classmethod
+    def create(cls, memory, player_struct=None, memid=None) -> str:
+        """Creates a new entry into the ReferenceObjects table
+
+        Returns:
+            string: memid of the entry
+
+        """
+        memid = memid or cls.new(memory)
+        if player_struct is None:
+            eid, name, x, y, z, pitch, yaw = None, None, None, None, None, None, None
+        else:
+            eid, name = player_struct.entityId, player_struct.name
+            x, y, z = player_struct.pos
+            yaw, pitch = player_struct.look
+        cmd = "INSERT INTO ReferenceObjects(uuid, eid, name, x, y, z, pitch, yaw, ref_type) VALUES (?,?,?,?,?,?,?,?,?)"
+        memory.db_write(cmd, memid, eid, name, x, y, z, pitch, yaw, "agent")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "AGENT")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "SELF")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_player")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_physical_object")
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_animate")
+        # this is a hack until memory_filters does "not"
+        memory.nodes[TripleNode.NODE_TYPE].tag(memory, memid, "_not_location")
+
+        if name is not None:
+            memory.nodes[TripleNode.NODE_TYPE].create(
+                memory, subj=memid, pred_text="has_name", obj_text=player_struct.name
+            )
+        return memid
+
+
 # locations should always be archives?
 class LocationNode(ReferenceObjectNode):
     """This is a ReferenceObjectNode representing a raw location
@@ -1224,6 +1278,9 @@ class TaskNode(MemoryNode):
     # use this to update prio or running, don't do it directly on task or in db!!
     def get_update_status(self, status, force_db_update=True, force_task_update=True):
         """
+        EGG_PRIO = -3
+        CHECK_PRIO = 0
+        FINISHED_PRIO = -1
         status is a dict with possible keys "prio", "running", "paused", "finished".
 
         prio > CHECK_PRIO  :  run me if possible, check my terminate condition
@@ -1366,6 +1423,7 @@ NODELIST = [
     TimeNode,
     PlayerNode,
     SelfNode,
+    AgentNode,
     ProgramNode,
     NamedAbstractionNode,
     ReferenceObjectNode,

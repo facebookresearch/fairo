@@ -21,6 +21,7 @@ from droidlet.memory.memory_util import parse_sql, format_query
 from droidlet.memory.place_field import PlaceField, EmptyPlaceField
 
 from droidlet.memory.memory_nodes import (  # noqa
+    AgentNode,
     TaskNode,
     TripleNode,
     SelfNode,
@@ -88,6 +89,8 @@ class AgentMemory:
         agent_time=None,
         on_delete_callback=None,
         place_field_pixels_per_unit=DEFAULT_PIXELS_PER_UNIT,
+        mark_agent=False,
+        agent_tag=None,
     ):
         if db_log_path:
             self._db_log_file = gzip.open(db_log_path + ".gz", "w")
@@ -97,9 +100,9 @@ class AgentMemory:
         self.db = sqlite3.connect(db_file, check_same_thread=False)
         self.task_db = {}
         self._safe_pickle_saved_attrs = {}
-
+        self.mark_agent = mark_agent
         self.on_delete_callback = on_delete_callback
-
+        self.self_memid = None
         self.init_time_interface(agent_time)
 
         # FIXME agent : should this be here?  where to put?
@@ -125,7 +128,7 @@ class AgentMemory:
                 if node in possible_child.__mro__:
                     self.node_children[node.NODE_TYPE].append(possible_child.NODE_TYPE)
 
-        self.make_self_mem()
+        self.make_self_mem(agent_tag=agent_tag)
 
         self.searcher = MemorySearcher()
         if place_field_pixels_per_unit > 0:
@@ -138,16 +141,36 @@ class AgentMemory:
         if getattr(self, "_db_log_file", None):
             self._db_log_file.close()
 
-    def make_self_mem(self):
+    def make_self_mem(self, agent_tag=None, agent_type="SELF"):  # , self_memid=None):
         # create a "self" memory to reference in Triples
+
         self.self_memid = "0" * len(uuid.uuid4().hex)
+        node_type = "Self"
+        if self.mark_agent:
+            node_type = "Agent"
         self.db_write(
-            "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, "Self", 0, 0, -1, False
+            "INSERT INTO Memories VALUES (?,?,?,?,?,?)",
+            self.self_memid,
+            node_type,
+            0,
+            0,
+            -1,
+            False,
         )
+        # NOTE: we weren't creating this: #153-157 before.
         player_struct = None
-        SelfNode.create(self, player_struct, memid=self.self_memid)
+        if node_type == "Self":
+            SelfNode.create(self, player_struct, memid=self.self_memid)
+        elif node_type == "Agent":
+            AgentNode.create(self, player_struct, memid=self.self_memid)
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_physical_object")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_animate")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "_not_location")
         self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "AGENT")
-        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, "SELF")
+        self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, agent_type)
+        if agent_tag:
+            # beta for main, alpha for children
+            self.nodes[TripleNode.NODE_TYPE].tag(self, self.self_memid, agent_tag)
 
     def init_time_interface(self, agent_time=None):
         """Initialiaze the current time in memory

@@ -117,6 +117,9 @@ class MockOpt:
         self.ground_truth_data_dir = ""
         self.semseg_model_path = ""
         self.no_ground_truth = True
+        self.name = None
+        self.mark_agent = False
+        self.agent_tag = None
         self.mark_airtouching_blocks = False
         # test does not instantiate cpp client
         self.port = -1
