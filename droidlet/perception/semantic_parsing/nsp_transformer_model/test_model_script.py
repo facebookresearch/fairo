@@ -22,6 +22,7 @@ from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_model impo
     load_model,
 )
 from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_parsing import *
+from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_caip import *
 from droidlet.perception.semantic_parsing.nsp_transformer_model.decoder_with_loss import *
 from droidlet.perception.semantic_parsing.nsp_transformer_model.encoder_decoder import *
 from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset import *
@@ -49,6 +50,44 @@ class ModelEvaluator:
             "evaluation_results.csv",
             ["accuracy", "text_span_accuracy", "inference_speed"],
         )
+
+    def evaluate_bm(self, model, dataset, tokenizer):
+        """Evaluation loop using beam search
+        Args:
+            model: Decoder to be evaluated
+            dataset: Training dataset
+            tokenizer: Tokenizer for input
+        Returns:
+            Accuracy
+        """
+        # Totals are accumulated over all batches then divided by the number of iterations.
+        tot_steps = 0
+        tot_accu = 0.0
+        # disable autograd to reduce memory usage
+        with torch.no_grad():
+            with open("./droidlet/artifacts/datasets/annotated_data/test/annotated.txt", "r") as f:
+                line = f.readline()
+
+                while line:
+                    tot_steps += 1
+                    query, tree = line.split("|")
+
+                    parsed_tree = get_beam_tree(query, self.args, model, tokenizer, dataset)
+
+                    tree_c = tree_span_node_replace(query, json.loads(tree))
+                    tree_c = json.dumps(tree_c)
+                    tree = ""
+                    for x in tree_c:
+                        tree += x.lower()
+                    
+                    parsed_tree = json.dumps(parsed_tree)
+                    if tree == parsed_tree:
+                        tot_accu += 1 
+
+                    line = f.readline()
+
+        print("Evaluation done!")
+        print("Accuracy: {:.3f}".format(tot_accu / tot_steps))
 
     def evaluate(self, model, dataset, tokenizer):
         """Evaluation loop
@@ -113,6 +152,19 @@ class ModelEvaluator:
         print("Evaluation done!")
         print("Accuracy: {:.3f}".format(tot_accu / tot_steps))
         print(("Inference speed (fps): {:.1f}".format(tot_steps / tot_time_cost)))
+
+
+def get_beam_tree(chat, args, model, tokenizer, dataset):
+    btr = beam_search_lm(chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen)
+    for idx, res in enumerate(btr):
+        if len(res[0]) != 0:
+            if not (
+                res[0].get("dialogue_type", "NONE") == "NOOP"
+                and math.exp(res[1]) < args.noop_thres
+            ):
+                return res[0]
+    
+    return {}
 
 
 def build_grammar(args):
@@ -384,6 +436,19 @@ def eval_model(args, model, tokenizer, dataset):
     """
     model_evaluator = ModelEvaluator(args)
     model_evaluator.evaluate(model, dataset, tokenizer)
+
+def eval_model_bm(args, model, tokenizer, dataset):
+    """
+    Evaluation mode via beam search for NLU model, which computes the accuracy of the given dataset
+    Args:
+        args: input arguments of model and dataset configuration
+        model: model class with pretrained model
+        tokenizer: pretrained tokenizer
+        dataset: caip dataset
+    Returns:
+    """
+    model_evaluator = ModelEvaluator(args)
+    model_evaluator.evaluate_bm(model, dataset, tokenizer)
 
 
 if __name__ == "__main__":
