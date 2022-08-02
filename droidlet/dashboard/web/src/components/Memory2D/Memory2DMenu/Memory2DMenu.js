@@ -1,4 +1,14 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+
+// src/components/Memory2D/Memory2DMenu.js
+
 import React from "react";
+
+import * as M2DC from "../Memory2DConstants";
+
+import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
@@ -13,8 +23,6 @@ import Checkbox from "@material-ui/core/Checkbox";
 import Grid from "@material-ui/core/Grid";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-
-import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 import NodeColorPicker from "./NodeColorPicker";
 import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
@@ -66,7 +74,7 @@ export default function Memory2DMenu(props) {
   return (
     <ThemeProvider theme={menuTheme}>
       <Drawer anchor="right" open={props.showMenu} onClose={props.onMenuClose}>
-        <div style={{ width: 450 }}>
+        <div style={{ width: M2DC.MENU_WIDTH }}>
           <Grid container direction="column" spacing={3}>
             <Grid item key="close-menu">
               <IconButton onClick={props.onMenuClose}>

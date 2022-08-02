@@ -1,3 +1,9 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+
+// src/components/Memory2D/NodeColorPicker.js
+
 import React, { useEffect, useState, useRef } from "react";
 import LensIcon from "@material-ui/icons/Lens"; // Circle
 import Grid from "@material-ui/core/Grid";
@@ -65,6 +71,7 @@ export default function NodeColorPicker(props) {
           <div ref={pickerEl}>
             <BlockPicker
               color={nodeColor}
+              colors={DEFAULT_COLOR_CHOICES}
               width={pickerWidth}
               triangle="top"
               onChange={({ hex: color }) => {
@@ -79,3 +86,16 @@ export default function NodeColorPicker(props) {
     </div>
   );
 }
+
+const DEFAULT_COLOR_CHOICES = [
+  "#F47373",
+  "#DCE775",
+  "#2CCCE4",
+  "#37D67A",
+  "#0000FF",
+  "#D9E3F0",
+  "#697689",
+  "#555555",
+  "#FF8A65",
+  "#BA68C8",
+];

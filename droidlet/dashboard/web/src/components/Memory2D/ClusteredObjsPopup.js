@@ -1,4 +1,13 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+
+// src/components/Memory2D/ClusteredObjsPopup.js
+
 import React, { useEffect, useState } from "react";
+
+import * as M2DC from "./Memory2DConstants";
+
 import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -8,19 +17,18 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
 import Box from "@material-ui/core/Box";
-
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import LensIcon from "@material-ui/icons/Lens"; // Circle
-import Tooltip from "@material-ui/core/Tooltip";
 
 const MAX_TABLE_CELL_WIDTH = 100;
 const MAX_TABLE_CONTAINER_HEIGHT = 220;
+const CLUSTERED_OBJS_POPUP_MAX_ENTRY_LENGTH = 12;
 
 const StyledTableCell = withStyles((theme) => ({
   root: {
     fontSize: 14,
-    fontFamily: "Segoe UI",
+    fontFamily: M2DC.FONT,
     width: "auto !important",
     maxWidth: MAX_TABLE_CELL_WIDTH,
     overflow: "hidden",
@@ -118,7 +126,10 @@ export default function ClusteredObjsPopup(props) {
                   justifyContent="space-between"
                   alignItems="center"
                 >
-                  {shortenLongTableEntries(poolData.data.memid)}
+                  {M2DC.shortenLongTableEntries(
+                    poolData.data.memid,
+                    CLUSTERED_OBJS_POPUP_MAX_ENTRY_LENGTH
+                  )}
                   <IconButton size="small" disableRipple>
                     <LensIcon
                       style={{ color: poolData.color }}
@@ -164,22 +175,4 @@ export function positionClusteredObjsPopup(
   ret[final_pos[0]] = final_coords[0];
   ret[final_pos[1]] = final_coords[1];
   return ret;
-}
-
-function shortenLongTableEntries(e) {
-  if (e && e.length > 12) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        maxHeight={20}
-      >
-        <Tooltip title={e} placement="left-start" interactive leaveDelay={500}>
-          <p>{e.substring(0, 4) + "..." + e.substring(e.length - 4)}</p>
-        </Tooltip>
-      </Box>
-    );
-  }
-  return e;
 }

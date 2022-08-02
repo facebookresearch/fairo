@@ -2,9 +2,12 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 */
 
-// src/components/Memory2D.js
+// src/components/Memory2D/Memory2D.js
 
 import React from "react";
+
+import * as M2DC from "./Memory2DConstants";
+
 import { Stage, Layer, Circle, Line, Text, Group, Shape } from "react-konva";
 import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
 import MemoryMapTable, { positionMemoryMapTable } from "./MemoryMapTable";
@@ -22,22 +25,12 @@ var hashCode = function (s) {
   }, 0);
 };
 
-const DEFAULT_SPACING = 12;
-
-const DEFAULT_NODE_COLORINGS = {
-  PlayerNode: "#F47373",
-  AttentionNode: "#DCE775",
-  LocationNode: "#2CCCE4",
-  MobNode: "#37D67A",
-  ItemStackNode: "#0000FF",
-};
-
 class Memory2D extends React.Component {
   constructor(props) {
     super(props);
     this.initialState = {
-      height: 400,
-      width: 600,
+      height: M2DC.INITIAL_HEIGHT,
+      width: M2DC.INITIAL_WIDTH,
       isLoaded: false,
       memory: null,
       triples: null,
@@ -73,7 +66,7 @@ class Memory2D extends React.Component {
       showTriples: false,
       mapView: "ZX",
       squareMap: false,
-      nodeColorings: DEFAULT_NODE_COLORINGS,
+      nodeColorings: M2DC.DEFAULT_NODE_COLORINGS,
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -95,7 +88,7 @@ class Memory2D extends React.Component {
   */
   handleWheel = (e) => {
     e.evt.preventDefault();
-    const scaleBy = 1.2;
+    const scaleBy = M2DC.SCALE_FACTOR;
     const stage = e.target.getStage();
     const oldScale = stage.scaleX();
     const mousePointTo = {
@@ -603,8 +596,7 @@ class Memory2D extends React.Component {
         let map_pos = "" + map_x + "," + map_y;
         let poolData = {
           type: "obstacle_map",
-          radius: 2,
-          radiusFocused: 5,
+          radius: M2DC.OBSTACLE_MAP_RADIUS,
           color: color,
           data: {
             memid: "don't edit " + map_pos,
@@ -633,7 +625,7 @@ class Memory2D extends React.Component {
       let map_pos = "" + map_x + "," + map_y;
       let poolData = {
         type: "detection_from_memory",
-        radius: 6,
+        radius: M2DC.DETECTION_FROM_MEMORY_RADIUS,
         color: color,
         data: obj,
       };
@@ -729,7 +721,7 @@ class Memory2D extends React.Component {
         let numObjs = objs_at_pos.length;
         let typesOfObjs = new Set();
         let clusteredObjects = [];
-        let clusterRadius = 6;
+        let clusterRadius = M2DC.CLUSTER_RADIUS;
         objs_at_pos.forEach((obj) => {
           if (obj.data.node_type) typesOfObjs.add(obj.data.node_type);
           clusteredObjects.push(obj);
@@ -773,13 +765,21 @@ class Memory2D extends React.Component {
               perfectDrawEnabled={false}
             />
             <Text
-              x={numObjs > 9 ? -5 : -3}
-              y={numObjs > 9 ? -5 : -3}
-              width={numObjs > 9 ? 10 : 6}
-              height={numObjs > 9 ? 10 : 6}
+              x={
+                numObjs > 9
+                  ? clusterRadius * (-5 / 6)
+                  : clusterRadius * (-1 / 2)
+              }
+              y={
+                numObjs > 9
+                  ? clusterRadius * (-5 / 6)
+                  : clusterRadius * (-1 / 2)
+              }
+              width={numObjs > 9 ? clusterRadius * (5 / 3) : clusterRadius}
+              height={numObjs > 9 ? clusterRadius * (5 / 3) : clusterRadius}
               text={numObjs > 9 ? "9+" : numObjs}
               fontSize={numObjs > 9 ? 8 : 10}
-              fontFamily="Segoe UI"
+              fontFamily={M2DC.FONT}
               fill="black"
               align="center"
               verticalAlign="middle"
@@ -822,8 +822,8 @@ class Memory2D extends React.Component {
             this.inDrawnBounds([bot_x, bot_y]) ||
             (bot_x === focused_point_coords[0] &&
               bot_y === focused_point_coords[1])
-              ? 15
-              : 10
+              ? M2DC.BOT_RADIUS * 1.5
+              : M2DC.BOT_RADIUS
           }
           fill={bot_data.memid in selected_objects ? "green" : "red"}
           perfectDrawEnabled={false}
@@ -907,8 +907,8 @@ class Memory2D extends React.Component {
     ##############*/
     let coordinateAxesLayer = [];
 
-    // Origin of axis fixed at (40, 25) pixels from bottom, left
-    let coordinateRootPoint = [40, height - 25];
+    // Origin of axes fixed at (40, 25) pixels from bottom, left
+    let coordinateRootPoint = [M2DC.ROOT_POS[0], height - M2DC.ROOT_POS[1]];
 
     let rootHorz = (coordinateRootPoint[0] - drag_coordinates[0]) / stageScale;
     let rootVert = (coordinateRootPoint[1] - drag_coordinates[1]) / stageScale;
@@ -919,7 +919,12 @@ class Memory2D extends React.Component {
     let axesHorz = (
       <Line
         key="axesHorz"
-        points={[0, 0, (width - coordinateRootPoint[0] - 20) / stageScale, 0]}
+        points={[
+          0,
+          0,
+          (width - coordinateRootPoint[0] - M2DC.AXES_MARGIN) / stageScale,
+          0,
+        ]}
         x={rootHorz}
         y={rootVert}
         stroke="#AAAAAA"
@@ -930,7 +935,12 @@ class Memory2D extends React.Component {
     let axesVert = (
       <Line
         key="axesVert"
-        points={[0, (20 - coordinateRootPoint[1]) / stageScale, 0, 0]}
+        points={[
+          0,
+          (M2DC.AXES_MARGIN - coordinateRootPoint[1]) / stageScale,
+          0,
+          0,
+        ]}
         x={rootHorz}
         y={rootVert}
         stroke="#AAAAAA"
@@ -951,8 +961,8 @@ class Memory2D extends React.Component {
     let tmpPointVert = coordinateRootPoint[1];
 
     // Notches for horizontal axis
-    while (tmpPointHorz < width - 50) {
-      tmpPointHorz += 30;
+    while (tmpPointHorz < width - (M2DC.AXES_MARGIN + M2DC.NOTCH_SPACING[0])) {
+      tmpPointHorz += M2DC.NOTCH_SPACING[0];
       let coordinate = this.convertGridCoordinate(
         (tmpPointHorz - drag_coordinates[0]) / stageScale,
         0
@@ -962,15 +972,30 @@ class Memory2D extends React.Component {
           key={"textCoordinateX-" + tmpPointHorz}
           text={coordinate[0].toFixed(2)}
           fontSize={10 / stageScale}
-          x={(tmpPointHorz - 10 - drag_coordinates[0]) / stageScale}
-          y={(coordinateRootPoint[1] - 15 - drag_coordinates[1]) / stageScale}
+          x={
+            (tmpPointHorz -
+              M2DC.HORZ_NOTCH_TEXT_OFFSET[0] -
+              drag_coordinates[0]) /
+            stageScale
+          }
+          y={
+            (coordinateRootPoint[1] -
+              M2DC.HORZ_NOTCH_TEXT_OFFSET[1] -
+              drag_coordinates[1]) /
+            stageScale
+          }
           fill="#AAAAAA"
         />
       );
       notches.push(
         <Line
           key={"coordinateX-" + tmpPointHorz}
-          points={[0, -3 / stageScale, 0, 3 / stageScale]}
+          points={[
+            0,
+            -(M2DC.NOTCH_LENGTH / 2) / stageScale,
+            0,
+            M2DC.NOTCH_LENGTH / 2 / stageScale,
+          ]}
           x={(tmpPointHorz - drag_coordinates[0]) / stageScale}
           y={rootVert}
           stroke="#AAAAAA"
@@ -980,8 +1005,8 @@ class Memory2D extends React.Component {
     }
 
     // Notches for vertical axis
-    while (tmpPointVert > height - coordinateRootPoint[1] + 25) {
-      tmpPointVert = tmpPointVert - 25;
+    while (tmpPointVert > M2DC.AXES_MARGIN + M2DC.NOTCH_SPACING[1]) {
+      tmpPointVert -= M2DC.NOTCH_SPACING[1];
       let coordinate = this.convertGridCoordinate(
         0,
         (tmpPointVert - drag_coordinates[1]) / stageScale
@@ -991,15 +1016,30 @@ class Memory2D extends React.Component {
           key={"textCoordinateY-" + tmpPointVert}
           text={coordinate[1].toFixed(2)}
           fontSize={10 / stageScale}
-          x={(coordinateRootPoint[0] - 35 - drag_coordinates[0]) / stageScale}
-          y={(tmpPointVert - 5 - drag_coordinates[1]) / stageScale}
+          x={
+            (coordinateRootPoint[0] -
+              M2DC.VERT_NOTCH_TEXT_OFFSET[0] -
+              drag_coordinates[0]) /
+            stageScale
+          }
+          y={
+            (tmpPointVert -
+              M2DC.VERT_NOTCH_TEXT_OFFSET[1] -
+              drag_coordinates[1]) /
+            stageScale
+          }
           fill="#AAAAAA"
         />
       );
       notches.push(
         <Line
           key={"coordinateY-" + tmpPointVert}
-          points={[-3 / stageScale, 0, 3 / stageScale, 0]}
+          points={[
+            -(M2DC.NOTCH_LENGTH / 2) / stageScale,
+            0,
+            M2DC.NOTCH_LENGTH / 2 / stageScale,
+            0,
+          ]}
           x={rootHorz}
           y={(tmpPointVert - drag_coordinates[1]) / stageScale}
           stroke="#AAAAAA"
@@ -1131,8 +1171,8 @@ class Memory2D extends React.Component {
             <Layer>
               <Text
                 text={tooltip}
-                offsetX={-DEFAULT_SPACING}
-                offsetY={-DEFAULT_SPACING}
+                offsetX={-M2DC.DEFAULT_SPACING}
+                offsetY={-M2DC.DEFAULT_SPACING}
                 visible={tooltip !== null}
                 shadowEnabled={true}
               />
