@@ -8,21 +8,11 @@ import { BlockPicker } from "react-color";
 /**
  * Creates simple table of memory values for an object on the map.
  *
- * @param {showMenu, onMenuClose, selected_objects, onGroupSubmit, dynamicPositioning, toggleDynamicPositioning, showTriples, toggleShowTriples} props
- *                            showMenu: bool for if menu should be open/close
- *                            onMenuClose: handler to close menu
- *                            selected_objects: dict of all objects selected and their data
- *                            onGroupSubmit: handler to submit grouping
- *                            dynamicPositioning: bool for if map tabular elements should dynamically
- *                                                position themselves based on window position
- *                            toggleDynamicPositioning: handler to toggle DP
- *                            showTriples: bool for if MemoryMapTable should show triples assoc with object
- *                            toggleShowTriples: handler to toggle showTriples
- *                            mapView: the plane which the map is currently displaying
- *                            toggleMapView: handler to change mapView in Memory2D
- *                            centerToBot: handler that centers the stage to the bot
- *                            squareMap: whether the map should fill up the whole pane or limited to square
- *                            toggleSquareMap: handler to change squareMap
+ * @param {type, count, color, setNodeColoring} props
+ *                            type: the nodeType (i.e. LocationNode, MobNode, etc.)
+ *                            count: number of this type of node currently plotted on map
+ *                            color: currently set color for this type of node
+ *                            setNodeColoring: handler to change color of this type of node
  */
 export default function NodeColorPicker(props) {
   const [nodeColor, setNodeColor] = useState(props.color);
