@@ -65,8 +65,7 @@ class NSPQuerier(object):
                 "action_dict",
                 "time",
                 "vision_error",
-                "world_snapshot"
-                "other_error",
+                "world_snapshot" "other_error",
                 "other_error_description",
             ],
         )
@@ -121,15 +120,16 @@ class NSPQuerier(object):
                 logging.info("Could not save error details due to error in dashboard backend.")
                 return
             is_vision_error = data["vision_error"]
-            
+
             if is_vision_error:
                 sl = world_opts.SL
-                blocks = self.agent.get_blocks(int(sl / 3), int(2 * sl / 3), 0, int(sl / 3 - 1), int(sl / 3), int(2 * sl / 3))
+                blocks = self.agent.get_blocks(
+                    int(sl / 3), int(2 * sl / 3), 0, int(sl / 3 - 1), int(sl / 3), int(2 * sl / 3)
+                )
                 logging.info("vision error blocks: %r" % (blocks))
                 self.VisionErrorLogger.log_dialogue_outputs(
                     [data["msg"], data["action_dict"], None, True, False, None]
                 )
-
 
     def perceive(self, force=False):
         """Get the incoming chats, preprocess the chat, run through the parser
