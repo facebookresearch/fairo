@@ -463,8 +463,10 @@ class RobotInterface(BaseRobotInterface):
         torch_policy = toco.policies.JointTrajectoryExecutor(
             joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
             joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
-            Kp=self.Kq_default if Kq is None else Kq,
-            Kd=self.Kqd_default if Kqd is None else Kqd,
+            Kq=self.Kq_default if Kq is None else Kq,
+            Kqd=self.Kqd_default if Kqd is None else Kqd,
+            Kx=self.Kx_default,
+            Kxd=self.Kxd_default,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
@@ -547,10 +549,12 @@ class RobotInterface(BaseRobotInterface):
         The desired joint positions can be updated using `update_desired_joint_positions`
         """
         if adaptive:
-            torch_policy = toco.policies.AdaptiveJointImpedanceControl(
+            torch_policy = toco.policies.HybridJointImpedanceControl(
                 joint_pos_current=self.get_joint_positions(),
-                Kp=self.Kx_default if Kq is None else Kq,
-                Kd=self.Kxd_default if Kqd is None else Kqd,
+                Kq=self.Kq_default if Kq is None else Kq,
+                Kqd=self.Kqd_default if Kqd is None else Kqd,
+                Kx=self.Kx_default,
+                Kxd=self.Kxd_default,
                 robot_model=self.robot_model,
                 ignore_gravity=self.use_grav_comp,
             )
