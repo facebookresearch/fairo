@@ -393,7 +393,7 @@ jobs:
       - run:
           name: Install gh-pages utility
           command: |
-            npm install -g gh-pages
+            sudo npm install -g gh-pages
             git config user.email "bot@fb.com"
             git config user.name "bot"
       - add_ssh_keys:  # read & write access for bot

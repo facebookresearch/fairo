@@ -8,6 +8,7 @@ import filecmp
 import json
 import os
 import pathlib
+import pty
 import shutil
 import signal
 import subprocess
@@ -117,10 +118,15 @@ class Launcher(BaseLauncher):
 
     async def run_cmd_with_conda_envvar(self, conda_envvar):
         """Run the command with the conda envvar."""
+        self.pty_in = pty.openpty()
+        self.pty_out = pty.openpty()
+        self.pty_err = pty.openpty()
+
         self.proc = await asyncio.create_subprocess_shell(
             util.shell_join(self.run_command),
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+            stdin=self.pty_in[1],
+            stdout=self.pty_out[1],
+            stderr=self.pty_err[1],
             cwd=self.proc_def.root,
             env=conda_envvar,
             start_new_session=True,
@@ -140,24 +146,13 @@ class Launcher(BaseLauncher):
         - watching for process death.
         - watching for user down request.
         """
-
-        async def log_pipe(logger, pipe):
-            while True:
-                try:
-                    async for line in pipe:
-                        logger(line)
-                except ValueError:
-                    # TODO(lshamis): Can we grab the line in chucks?
-                    logger("<[MRP] line length exceeded. skipping>")
-                    continue
-                else:
-                    break
-
         self.down_task = asyncio.create_task(self.down_watcher(self.handle_down))
+
+        log_hdl = util.LogPtyPipes(self.pty_in[0], self.pty_out[0], self.pty_err[0])
+        log_hdl.start()
+
         try:
             await asyncio.gather(
-                log_pipe(util.stdout_logger(), self.proc.stdout),
-                log_pipe(util.stderr_logger(), self.proc.stderr),
                 self.log_psutil(),
                 self.death_handler(),
                 self.down_task,
@@ -165,6 +160,8 @@ class Launcher(BaseLauncher):
         except asyncio.exceptions.CancelledError:
             # death_handler cancelled down listener.
             pass
+
+        await log_hdl.stop()
 
     async def run(self):
         """Run the command."""

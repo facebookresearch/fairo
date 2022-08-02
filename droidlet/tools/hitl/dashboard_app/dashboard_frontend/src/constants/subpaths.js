@@ -24,9 +24,8 @@ export const SUBPATHS = {
         key: '/vision'
     },
     /* pipeline ends */
-    OTHER:
-    {
-        label: 'Other',
-        key: '/other'
+    DATASET: {
+        label: 'Dataset',
+        key: '/dataset'
     }
 }

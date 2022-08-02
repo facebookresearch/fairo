@@ -174,7 +174,7 @@ class VoxelPlayer {
             this.world.camera.position,
             this.cameraLook
         );
-        const intersects = this.highlightRay.intersectObjects( this.world.sceneItems, true );
+        const intersects = this.highlightRay.intersectObjects( Array.from(this.world.sceneItems), true );
         if ( intersects.length > 0 ) {
             // There's a collision, show the highlighter at the point of collision
             this.highlighter.visible = true;

@@ -161,6 +161,13 @@ class BaseRobotInterface:
         assert log_interval.start != -1, "Cannot find previous episode."
         return log_interval
 
+    def is_running_policy(self) -> bool:
+        log_interval = self.grpc_connection.GetEpisodeInterval(EMPTY)
+        return (
+            log_interval.start != -1  # policy has started
+            and log_interval.end == -1  # policy has not ended
+        )
+
     def get_previous_log(self, timeout: float = None) -> List[RobotState]:
         """Get the list of RobotStates associated with the currently running policy.
 
