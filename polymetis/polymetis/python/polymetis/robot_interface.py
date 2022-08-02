@@ -315,7 +315,13 @@ class RobotInterface(BaseRobotInterface):
         time_to_go = torch.max(joint_pos_diff / joint_vel_limits * 8.0)
         return max(time_to_go, self.time_to_go_default)
 
-    def _solve_ik(self, position, orientation, q0, local=True):
+    def solve_inverse_kinematics(
+        self,
+        position: torch.Tensor,
+        orientation: torch.Tensor,
+        q0: torch.Tensor,
+        local: bool = True,
+    ) -> Tuple[torch.Tensor, bool]:
         # Choose solver
         if local:
             ik_solver = self.ik_solver_near
@@ -519,7 +525,7 @@ class RobotInterface(BaseRobotInterface):
                     R.from_quat(ee_quat_desired) * R.from_quat(ee_quat_current)
                 ).as_quat()
 
-        joint_pos_desired, success = self._solve_ik(
+        joint_pos_desired, success = self.solve_inverse_kinematics(
             ee_pos_desired, ee_quat_desired, joint_pos_current, local=False
         )
         if not success:
@@ -600,7 +606,7 @@ class RobotInterface(BaseRobotInterface):
         ee_pos_desired = ee_pos_current if position is None else position
         ee_quat_desired = ee_quat_current if orientation is None else orientation
 
-        joint_pos_desired, success = self._solve_ik(
+        joint_pos_desired, success = self.solve_inverse_kinematics(
             ee_pos_desired, ee_quat_desired, joint_pos_current, local=True
         )
         if not success:
