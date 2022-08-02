@@ -64,7 +64,7 @@ class JointTrajectoryExecutor(toco.PolicyModule):
         joint_vel_desired = self.joint_vel_trajectory[self.i, :]
 
         # Control logic
-        torque_feedback_op = self.joint_pd(
+        torque_feedback = self.joint_pd(
             joint_pos_current,
             joint_vel_current,
             joint_pos_desired,
