@@ -29,8 +29,10 @@ class JointTrajectoryExecutor(toco.PolicyModule):
         Args:
             joint_pos_trajectory: Joint position trajectory as list of tensors
             joint_vel_trajectory: Joint position trajectory as list of tensors
-            Kp: P gain matrix of shape (nA, N) or shape (N,) representing a N-by-N diagonal matrix (if nA=N)
-            Kd: D gain matrix of shape (nA, N) or shape (N,) representing a N-by-N diagonal matrix (if nA=N)
+            Kq: P gain matrix of shape (nA, N) or shape (N,) representing a N-by-N diagonal matrix (if nA=N)
+            Kqd: D gain matrix of shape (nA, N) or shape (N,) representing a N-by-N diagonal matrix (if nA=N)
+            Kx: P gain matrix of shape (6, 6) or shape (6,) representing a 6-by-6 diagonal matrix
+            Kxd: D gain matrix of shape (6, 6) or shape (6,) representing a 6-by-6 diagonal matrix
             robot_model: A robot model from torchcontrol.models
             ignore_gravity: `True` if the robot is already gravity compensated, `False` otherwise
 
