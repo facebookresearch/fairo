@@ -17,7 +17,7 @@ class VoxelPlayer {
         this.rotation_offset = opts.rotation_offset;
         this.rotation = {"pitch": 0, "yaw": 0};
         this.possessed = false;
-        this.pov = 3;
+        this.pov = 1;
         this.matrix = new world.THREE.Matrix4();
         this.cam_vector = new world.THREE.Vector3();
         this.cam_pitch = 0;
@@ -33,6 +33,7 @@ class VoxelPlayer {
         this.world.scene.add(this.highlighter);
         this.tempVec = new world.THREE.Vector3();
         this.lockout = Date.now();
+        this.worldY = new world.THREE.Vector3(0, 1, 0);
     };
 
     move(x, y, z) {
@@ -59,7 +60,7 @@ class VoxelPlayer {
     };
 
     rotate(d_yaw) {
-        this.mesh.rotateY(d_yaw);
+        this.mesh.rotateOnWorldAxis(this.worldY, d_yaw);
         this.rotation.yaw += d_yaw;
         if (this.possessed) this.updateCamera();
     };
@@ -67,18 +68,18 @@ class VoxelPlayer {
     rotateTo(yaw, pitch) {
         if (this.rotation.yaw != yaw && this.rotation.pitch != pitch) {
             this.mesh.rotation.set(this.opts.rotation_offset[0], this.opts.rotation_offset[1], this.opts.rotation_offset[2])
-            this.mesh.rotateY(yaw)
+            this.mesh.rotateOnWorldAxis(this.worldY, yaw);
             this.rotation.yaw = yaw;
-            this.cam_pitch = 0
-            this.cameraPitch(pitch)
+            this.cam_pitch = 0;
+            this.cameraPitch(pitch);
             this.rotation.pitch = pitch;
             if (this.possessed) this.updateCamera();
         }
     }
 
     getPitchYaw() {
-        let pitch = MathUtils.radToDeg(this.mesh.rotation.x - this.rotation_offset[0]);
-        let yaw = MathUtils.radToDeg(this.mesh.rotation.y - this.rotation_offset[1]);
+        let pitch = this.mesh.rotation.x - this.rotation_offset[0];
+        let yaw = this.mesh.rotation.y - this.rotation_offset[1];
         return [pitch, yaw]
     }
 
@@ -87,9 +88,9 @@ class VoxelPlayer {
         this.cameraSpherical.setFromVector3(this.cameraLook);
 
         // 0 phi is the +y axis and down is pos, set 0 pitch to be at the horizon and flip
-        let pitch = (-1) * MathUtils.radToDeg(this.cameraSpherical.phi - (Math.PI/2));
+        let pitch = (-1) * (this.cameraSpherical.phi - (Math.PI/2));
         // 0 theta is the +z axis, +yaw is right handed (CCW) - same as agent, no change
-        let yaw = MathUtils.radToDeg(this.cameraSpherical.theta);
+        let yaw = this.cameraSpherical.theta;
 
         return [pitch, yaw]
     }
@@ -173,7 +174,7 @@ class VoxelPlayer {
             this.world.camera.position,
             this.cameraLook
         );
-        const intersects = this.highlightRay.intersectObjects( this.world.sceneItems, true );
+        const intersects = this.highlightRay.intersectObjects( Array.from(this.world.sceneItems), true );
         if ( intersects.length > 0 ) {
             // There's a collision, show the highlighter at the point of collision
             this.highlighter.visible = true;
@@ -187,6 +188,11 @@ class VoxelPlayer {
         } else {
             this.highlighter.visible = false;
         }
+    }
+
+    updateWorld(newWorld) {
+        // If the world changes externally (eg. dig), update property
+        this.world = newWorld;
     }
 
     possess() {

@@ -25,8 +25,10 @@ class VoxelItem {
     };
 
     moveTo(x, y, z) {
-        let xyz = applyOffset([x,y,z], [(25*this.scale),(25*this.scale),(25*this.scale)]);
-        this.mesh.position.set(xyz[0], xyz[1], xyz[2]);
+        if (x != this.mesh.position.x || z != this.mesh.position.z) {
+            // only update if x or z positions have changed, otherwise it breaks float
+            this.mesh.position.set(x, y, z);
+        }
     };
 
     drop() {
@@ -86,7 +88,7 @@ class VoxelItem {
             ).then(
                 function (model) {
                     item = new VoxelItem(model, world, opts);
-                    item.hoverID = window.setInterval(hover, 100, item);
+                    item.hoverID = window.setInterval(hover, 150, item);
                     return item
                }
             );
@@ -98,40 +100,22 @@ class VoxelItem {
             const itemMaterials = [
                 new world.THREE.MeshBasicMaterial({ 
                     map: loader.load('./block_textures/'+item_data["sides"]), 
-                    color: item_data["color"],
-                    opacity: item_data["opacity"],
-                    transparent: true,
-                    side: world.THREE.DoubleSide }), //right side
+                    color: item_data["color"] }), //right side
                 new world.THREE.MeshBasicMaterial({ 
                     map: loader.load('./block_textures/'+item_data["sides"]), 
-                    color: item_data["color"], 
-                    opacity: item_data["opacity"], 
-                    transparent: true, 
-                    side: world.THREE.DoubleSide }), //left side
+                    color: item_data["color"] }), //left side
                 new world.THREE.MeshBasicMaterial({ 
                     map: loader.load('./block_textures/'+item_data["top"]), 
-                    color: item_data["color"], 
-                    opacity: item_data["opacity"], 
-                    transparent: true, 
-                    side: world.THREE.DoubleSide }), //top side
+                    color: item_data["color"] }), //top side
                 new world.THREE.MeshBasicMaterial({ 
                     map: loader.load('./block_textures/'+item_data["bottom"]), 
-                    color: item_data["color"], 
-                    opacity: item_data["opacity"], 
-                    transparent: true, 
-                    side: world.THREE.DoubleSide }), //bottom side
+                    color: item_data["color"] }), //bottom side
                 new world.THREE.MeshBasicMaterial({ 
                     map: loader.load('./block_textures/'+item_data["sides"]), 
-                    color: item_data["color"], 
-                    opacity: item_data["opacity"], 
-                    transparent: true, 
-                    side: world.THREE.DoubleSide }), //front side
+                    color: item_data["color"] }), //front side
                 new world.THREE.MeshBasicMaterial({ 
                     map: loader.load('./block_textures/'+item_data["sides"]), 
-                    color: item_data["color"], 
-                    opacity: item_data["opacity"], 
-                    transparent: true, 
-                    side: world.THREE.DoubleSide }), //back side
+                    color: item_data["color"] }), //back side
             ];
             const geo = new world.THREE.BoxGeometry( (20*opts.scale), (20*opts.scale), (20*opts.scale) );
             let itemMesh = new world.THREE.Mesh( geo, itemMaterials );
@@ -142,7 +126,7 @@ class VoxelItem {
 
             return new Promise(resolve => {
                 item = new VoxelItem(itemMesh, world, opts);
-                item.hoverID = window.setInterval(hover, 100, item);
+                item.hoverID = window.setInterval(hover, 150, item);
                 resolve(item);
             });
         }
@@ -150,7 +134,6 @@ class VoxelItem {
 };
 
 function hover(obj) {
-    // This can't possibly be the right way to do this...
     let vel;
     let rel_pos = obj.mesh.position.y % (50*obj.scale);
     if (rel_pos <= (30 * obj.scale)) {
@@ -158,6 +141,7 @@ function hover(obj) {
     } else {
         vel = Math.abs(rel_pos - (46*obj.scale)) / 2;
     }
+    vel += 0.1;
     obj.mesh.position.y += (vel * obj.hoverDirection * obj.scale);
     obj.mesh.rotation.y += 0.05;
 
