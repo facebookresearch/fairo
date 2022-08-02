@@ -322,6 +322,7 @@ class RobotInterface(BaseRobotInterface):
         q0: torch.Tensor,
         local: bool = True,
     ) -> Tuple[torch.Tensor, bool]:
+        """ Compute inverse kinematics given desired EE pose """
         # Choose solver
         if local:
             ik_solver = self.ik_solver_near
