@@ -137,7 +137,6 @@ void inverse_kinematics(State *state, const Eigen::Vector3d &link_pos,
 
     // Check termination
     if (err.norm() < eps) {
-      spdlog::info("Ending IK at {}/{} iteration.", i + 1, max_iters);
       break;
     }
 
