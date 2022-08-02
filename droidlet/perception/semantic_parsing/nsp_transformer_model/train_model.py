@@ -308,7 +308,7 @@ class NLUModelTrainer:
 
         if not os.path.isdir(os.path.join(self.args.output_dir, self.model_identifier, "tokenizer")):
             os.makedirs(os.path.join(self.args.output_dir, self.model_identifier, "tokenizer"))
-        self.tokenizer.save_pretrained(os.path.join(self.args.output_dir, self.model_identifier, "tokenizer"))
+            self.tokenizer.save_pretrained(os.path.join(self.args.output_dir, self.model_identifier, "tokenizer"))
 
     def show_examples(self, dataset):
         self.model.eval()
@@ -594,6 +594,7 @@ if __name__ == "__main__":
 
     logging.info("====== Setting up NLU Model ======")
     _, encoder_decoder, tokenizer = build_model(args, tree_i2w)
+
 
     logging.info("====== Loading Training Dataset ======")
     train_dataset = CAIPDataset(

@@ -9,20 +9,16 @@ from .tokenization_utils import fixed_span_values_voc
 
 
 def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2):
-    """
-    Beam search decoding.
+    """Beam search decoding.
     Note: Only uses node prediction scores, not the span scores.
-
     Args:
         txt (str): chat input
         model: model class with pretrained model
         tokenizer: pretrained tokenizer
         beam_size (int): Number of branches to keep in beam search
         well_formed_pen (float): penalization for poorly formed trees
-
     Returns:
         logical form (dict)
-
     """
     model_device = model.decoder.lm_head.predictions.decoder.weight.device
     # prepare batch
@@ -33,11 +29,11 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
             idx_rev_map[a] = (line_id, pre_id)
             idx_rev_map[b] = (line_id, pre_id)
     idx_rev_map[-1] = idx_rev_map[-2]
-    tree = [("<S>", -1, -1, -1)]
+    tree = [("<S>", -1, -1, -1, -1, -1)]
     text_idx_ls = dataset.tokenizer.convert_tokens_to_ids(text.split())
     tree_idx_ls = [
-        [dataset.tree_idxs[w], text_span_bi, text_span_ei, fixed_val]
-        for w, text_span_bi, text_span_ei, fixed_val in tree
+        [dataset.tree_idxs[w], bi, ei, text_span_bi, text_span_ei, fixed_val]
+        for w, bi, ei, text_span_bi, text_span_ei, fixed_val in tree
     ]
     pre_batch = [(text_idx_ls, tree_idx_ls, (text, txt, {}))]
     batch = caip_collate(pre_batch, tokenizer)
@@ -52,7 +48,7 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
     )  # B x 1
     beam_scores = torch.Tensor([-1e9 for _ in range(beam_size)]).to(model_device)  # B
     beam_scores[0] = 0
-    beam_seqs = [[("<S>", -1, -1, -1)] for _ in range(beam_size)]
+    beam_seqs = [[("<S>", -1, -1, -1, -1, -1)] for _ in range(beam_size)]
     finished = [False for _ in range(beam_size)]
     fixed_value_vocab_size = len(fixed_span_values_voc)
     pad_scores = torch.Tensor([-1e9] * (len(dataset.tree_voc) - fixed_value_vocab_size)).to(
@@ -86,6 +82,24 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
         finished = [p or n for p, n in zip(pre_finished, new_finished)]
         n_mask = 1 - torch.Tensor(finished).type_as(y_mask)
         y_mask = torch.cat([y_mask[n_beam_ids], n_mask[:, None]], dim=1)
+        # predicted span
+        span_b_scores = outputs["span_b_scores"][:, -1, :][n_beam_ids]  # B x T
+        span_e_scores = outputs["span_e_scores"][:, -1, :][n_beam_ids]  # B x T
+        span_be_scores = span_b_scores[:, :, None] + span_e_scores[:, None, :]
+        # scores are invalid if beginning > end
+        # Create triangular matrix with negative infinity for invalid combos
+        invalid_scores = torch.tril(torch.ones(span_be_scores.shape), diagonal=-1) * -1e9
+        # Make invalid scores very small
+        span_be_scores += invalid_scores.type_as(span_be_scores)
+        # Create linearized view
+        span_be_lin = span_be_scores.view(span_be_scores.shape[0], -1)
+        # Sort linearized scores by descending order
+        _, s_sbe_ids = span_be_lin.sort(dim=-1, descending=True)
+        # Grab token IDs for top scores
+        s_sb_ids = s_sbe_ids[:, 0] // span_b_scores.shape[-1]
+        s_se_ids = s_sbe_ids[:, 0] % span_b_scores.shape[-1]
+        beam_b_ids = [bb_id.item() for bb_id in s_sb_ids]
+        beam_e_ids = [be_id.item() for be_id in s_se_ids]
 
         # predict text spans
         text_span_start_scores = outputs["text_span_start_scores"][:, -1, :][n_beam_ids]  # B x T
@@ -125,6 +139,8 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
             + [
                 (
                     n_words[i],
+                    beam_b_ids[i],
+                    beam_e_ids[i],
                     text_span_beam_start_ids[i],
                     text_span_beam_end_ids[i],
                     fixed_value_words[i],
@@ -144,20 +160,20 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
     # only keep span predictions for span nodes, then map back to tree
     beam_seqs = [
         [
-            (w, text_span_start, text_span_end, -1)
+            (w, b, e, -1, -1, -1)
             if w.startswith("BE:")
-            else (w, text_span_start, text_span_end, fixed_val)
-            for w, text_span_start, text_span_end, fixed_val in res
+            else (w, -1, -1, text_span_start, text_span_end, fixed_val)
+            for w, b, e, text_span_start, text_span_end, fixed_val in res
             if w != "[PAD]"
         ]
         for res in beam_seqs
     ]
     beam_seqs = [
         [
-            (w, text_span_start, text_span_end, -1)
+            (w, -1, -1, text_span_start, text_span_end, -1)
             if w.startswith("TBE:")
-            else (w, text_span_start, text_span_end, fixed_val)
-            for w, text_span_start, text_span_end, fixed_val in res
+            else (w, b, e, -1, -1, fixed_val)
+            for w, b, e, text_span_start, text_span_end, fixed_val in res
             if w != "[PAD]"
         ]
         for res in beam_seqs
@@ -172,7 +188,7 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
     return res
 
 
-def beam_search_simp(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2):
+def beam_search_lm(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2):
     """
     Beam search decoding with only language modelling head.
     Note: Only uses node prediction scores, not the span scores.
@@ -217,7 +233,7 @@ def beam_search_simp(txt, model, tokenizer, dataset, beam_size=5, well_formed_pe
     beam_scores[0] = 0
     beam_seqs = [["[CLS]"] for _ in range(beam_size)]
     finished = [False for _ in range(beam_size)]
-    pad_scores = torch.Tensor([-1e9] * dataset.tokenizer.vocab_size).to(model_device)
+    pad_scores = torch.Tensor([-1e9] * len(dataset.tokenizer.vocab)).to(model_device)
     pad_scores[dataset.tokenizer.convert_tokens_to_ids("[PAD]")] = 0
     for i in range(512):
         outputs = model.decoder.step(y, y_mask, x_reps, x_mask)
@@ -273,7 +289,7 @@ def beam_search_simp(txt, model, tokenizer, dataset, beam_size=5, well_formed_pe
 
 def check_tree_well_formed(tok_tree):
     """
-    Check if the syntactic context of tree is well predicted via pairing
+    Check if the syntax of tree is well predicted via pairing
     left and right curly and square brackets
 
     Args:
@@ -287,14 +303,14 @@ def check_tree_well_formed(tok_tree):
     for tok in tok_tree:
         if tok == "{":
             queue.append(tok)
-        elif tok == "}":
+        elif tok == "}" or tok == "},":
             if queue and queue[-1] == "{":
                 queue.pop()
             else:
                 return False
         elif tok == "[":
             queue.append(tok)
-        elif tok == "]":
+        elif tok == "]" or tok == "],":
             if queue and queue[-1] == "[":
                 queue.pop()
             else:
@@ -302,44 +318,72 @@ def check_tree_well_formed(tok_tree):
 
     return len(queue) == 0
 
-
 def detokenize_tree(seq, tokenizer):
     """
-    Transform tokenized sequence of tree back to tree
+    Detokenize tokenized sequence of tree back to original sequence
 
     Args:
         seq: list of tokens
         tokenizer: pretrained tokenizer
 
     Returns:
-        tree: dictionaru
+        tree: dictionary
     """
     tok_tree = tokenizer.convert_tokens_to_string(seq)
     tok_tree = tok_tree.split()
 
-    special_tokens = ["[", "]", "{", "}", ":", ",", "_", "\"", "\",", ".", "/"]
+    special_tokens = ["[", "]", "{", "}", ":", ",", "_", "\"", "\",", ".", "/", "\\", "="]
     tree = ""
     prev_token = None
-    for token in tok_tree:
-        if token in ["[CLS]", "[SEP]", "[PAD]"]:
-            continue
-        else:
+    idx = 0
+    while idx < len(tok_tree):
+        token = tok_tree[idx]
+        if token not in ["[CLS]", "[SEP]", "[PAD]"]:
             # deal with - symbol
             if token == "-":
-                if prev_token in special_tokens:
+                if prev_token in special_tokens or (prev_token[-1].isdigit() and not tok_tree[idx+1][0].isdigit()) or tok_tree[idx+1] == "\"":
                     tree += token
                 else:
                     tree += " " + token
             elif token not in special_tokens and prev_token == "-":
+                # deal with some cases i.e., 1.5-to-1
+                if tok_tree[idx+1][0] == "-" and not token.isdigit():
+                    tree += token
+                    idx += 1
+                    tree += tok_tree[idx]
+                    idx += 1
+                    while tok_tree[idx].isdigit():
+                        tree += tok_tree[idx]
+                        idx += 1
+                    idx -= 1
+                else:
+                    tree += token
+            # for span node with text
+            elif token not in special_tokens and prev_token[-1] == ".":
                 tree += token
-            # add space between texts of span node
+            elif token not in special_tokens and "'" in token and prev_token in special_tokens:
+                # for example, separate you're into you 're
+                s1, s2 = token.split("'")
+                tree += s1 + " '" + s2
             elif token not in special_tokens and prev_token not in special_tokens:
-                tree += " " + token
+                if "'" in token:
+                    s1, s2 = token.split("'")
+                    tree += " " + s1 + " '" + s2
+                else:
+                    tree += " " + token
             else:
                 tree += token
             prev_token = token
+        
+        idx += 1
 
-    return json.loads(tree)
+    try: 
+        tree = json.loads(tree)
+    except:
+        # return empty dict if tree is not well formed
+        return {}
+    
+    return tree
 
 
 def compute_accuracy(outputs, y):

@@ -263,7 +263,7 @@ def argument_parse(input_arg):
         "--beam_size", default=5, type=int, help="Number of branches to keep in beam search"
     )
     parser.add_argument(
-        "--well_formed_pen", default=1e2, type=float, help="Penalization for poorly formed trees"
+        "--well_formed_pen", default=512, type=float, help="Penalization for poorly formed trees"
     )
     parser.add_argument(
         "--load_ground_truth",
@@ -353,20 +353,23 @@ def query_model(chat, args, model, tokenizer, dataset):
     Returns:
         logical form (dict)
     """
+    # chat is stored in ground truth and directly extract parsed the logic form
     if args.load_ground_truth and chat in GT_QUERY_ACTIONS:
-        tree = GT_QUERY_ACTIONS[chat]
+        return GT_QUERY_ACTIONS[chat]
+    # parse the logic form via NLU model
     else:
-        btr = beam_search_simp(chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen)
-        print(btr[0][0])
-        if (
-            btr[0][0].get("dialogue_type", "NONE") == "NOOP"
-            and math.exp(btr[0][1]) < args.noop_thres
-        ):
-            tree = btr[1][0]
-        else:
-            tree = btr[0][0]
+        btr = beam_search_lm(chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen)
+        for res in btr:
+            if len(res[0]) != 0:
+                if not (
+                    res[0].get("dialogue_type", "NONE") == "NOOP"
+                    and math.exp(res[1]) < args.noop_thres
+                ):
+                    print(res[0])
+                    return res[0]
 
-    return tree
+    # return empty dict if no tree is well formed or NOOP action is lower than thershold
+    return {}
 
 
 def eval_model(args, model, tokenizer, dataset):
