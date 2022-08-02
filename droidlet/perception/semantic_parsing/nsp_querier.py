@@ -123,7 +123,7 @@ class NSPQuerier(object):
             is_vision_error = data["vision_error"]
             
             if is_vision_error:
-                sl = world_opts.sl
+                sl = world_opts.SL
                 blocks = self.agent.get_blocks(int(sl / 3), int(2 * sl / 3), 0, int(sl / 3 - 1), int(sl / 3), int(2 * sl / 3))
                 logging.info("vision error blocks: %r" % (blocks))
                 self.VisionErrorLogger.log_dialogue_outputs(
