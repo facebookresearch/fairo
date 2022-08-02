@@ -15,6 +15,8 @@ from .utils.nsp_logger import NSPLogger
 from .utils.validate_json import JSONValidator
 from droidlet.base_util import hash_user
 
+from droidlet.lowlevel.minecraft.pyworld.world_config import opts as world_opts
+
 
 class MockNSPQuerier(object):
     def __init__(self, opts):
@@ -52,6 +54,18 @@ class NSPQuerier(object):
                 "action_dict",
                 "time",
                 "parser_error",
+                "other_error",
+                "other_error_description",
+            ],
+        )
+        self.VisionErrorLogger = NSPLogger(
+            "vision_error_details.csv",
+            [
+                "command",
+                "action_dict",
+                "time",
+                "vision_error",
+                "world_snapshot"
                 "other_error",
                 "other_error_description",
             ],
@@ -99,6 +113,23 @@ class NSPQuerier(object):
                 self.ErrorLogger.log_dialogue_outputs(
                     [data["msg"], data["action_dict"], None, False, True, data["feedback"]]
                 )
+
+        @sio.on("saveErrorDetailsToCSV")
+        def save_vision_error_details(sid, data):
+            logging.info("Saving vision error details: %r" % (data))
+            if "vision_error" not in data or "msg" not in data:
+                logging.info("Could not save error details due to error in dashboard backend.")
+                return
+            is_vision_error = data["vision_error"]
+            
+            if is_vision_error:
+                sl = world_opts.sl
+                blocks = self.agent.get_blocks(int(sl / 3), int(2 * sl / 3), 0, int(sl / 3 - 1), int(sl / 3), int(2 * sl / 3))
+                logging.info("vision error blocks: %r" % (blocks))
+                self.VisionErrorLogger.log_dialogue_outputs(
+                    [data["msg"], data["action_dict"], None, True, False, None]
+                )
+
 
     def perceive(self, force=False):
         """Get the incoming chats, preprocess the chat, run through the parser

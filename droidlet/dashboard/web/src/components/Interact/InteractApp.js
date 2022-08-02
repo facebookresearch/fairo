@@ -26,6 +26,7 @@ class InteractApp extends Component {
       now: null,
       disableInput: false,
       lastChatActionDict: "",
+      memory_entries: null,
       chats: [{ msg: "", timestamp: Date.now() }],
       response_options: [],
       last_command: "",
@@ -55,10 +56,9 @@ class InteractApp extends Component {
     this.receiveTaskStackPoll = this.receiveTaskStackPoll.bind(this);
   }
 
-
   /**********************************************************************************
-  ********************************** Component Utils ********************************
-  **********************************************************************************/
+   ********************************** Component Utils ********************************
+   **********************************************************************************/
 
   isMounted() {
     //check if this element is being displayed on the screen
@@ -83,15 +83,16 @@ class InteractApp extends Component {
       vision_error: false,
       feedback: "",
       disableInput: false,
-    })
+    });
   }
 
   removeButtonsFromLastQuestion() {
     var new_agent_replies = [...this.state.agent_replies];
-    new_agent_replies.forEach((agent_reply) => (
-      agent_reply.isQuestion = false,
-      agent_reply.enableBack = false
-    ));
+    new_agent_replies.forEach(
+      (agent_reply) => (
+        (agent_reply.isQuestion = false), (agent_reply.enableBack = false)
+      )
+    );
     this.setState({ agent_replies: new_agent_replies });
   }
 
@@ -101,11 +102,13 @@ class InteractApp extends Component {
       this.props.stateManager.connect(this);
       var lastChatActionDict =
         this.props.stateManager.memory.lastChatActionDict;
+      var memory_entries = this.props.stateManager.memory.memory_entries;
       this.setState({
         isTurk: this.props.stateManager.memory.isTurk,
         agent_replies: this.props.stateManager.memory.agent_replies,
         connected: this.props.stateManager.connected,
         action_dict: lastChatActionDict,
+        memory_entries: memory_entries,
         // mockup data for other question case
         // action_dict: {}
       });
@@ -119,12 +122,17 @@ class InteractApp extends Component {
     if (this.props.stateManager) this.props.stateManager.disconnect(this);
   }
 
-
   /************************************************************************************
-  *********************************** Messaging ***************************************
-  ************************************************************************************/
+   *********************************** Messaging ***************************************
+   ************************************************************************************/
 
-  addNewAgentReplies({ msg, isQuestion, questionType, disablePreviousAnswer, enableBack}) {
+  addNewAgentReplies({
+    msg,
+    isQuestion,
+    questionType,
+    disablePreviousAnswer,
+    enableBack,
+  }) {
     // Clear any lingering status messages before saving
     this.setState({
       agent_replies: this.props.stateManager.memory.agent_replies,
@@ -132,7 +140,11 @@ class InteractApp extends Component {
 
     const { agent_replies } = this.state;
     let new_agent_replies = disablePreviousAnswer
-      ? agent_replies.map((item) => ({ ...item, isQuestion: false, enableBack: false }))
+      ? agent_replies.map((item) => ({
+          ...item,
+          isQuestion: false,
+          enableBack: false,
+        }))
       : agent_replies;
     new_agent_replies = [
       ...new_agent_replies,
@@ -179,7 +191,7 @@ class InteractApp extends Component {
         return 1;
       } else if (!a.isQuestion && b.isQuestion) {
         return -1;
-      } 
+      }
       return a.timestamp - b.timestamp;
     });
 
@@ -192,7 +204,7 @@ class InteractApp extends Component {
               variant="contained"
               color="primary"
               className="yes-button"
-              style={{display: chat.isQuestion ? ("inline flex") : ("none")}}
+              style={{ display: chat.isQuestion ? "inline flex" : "none" }}
               onClick={() => this.answerRouting(1, chat.questionType)}
             >
               Yes
@@ -201,7 +213,7 @@ class InteractApp extends Component {
               variant="contained"
               color="primary"
               className="no-button"
-              style={{display: chat.isQuestion ? ("inline flex") : ("none")}}
+              style={{ display: chat.isQuestion ? "inline flex" : "none" }}
               onClick={() => this.answerRouting(2, chat.questionType)}
             >
               No
@@ -210,7 +222,7 @@ class InteractApp extends Component {
               variant="contained"
               color="primary"
               className="back-button"
-              style={{display: chat.enableBack ? ("inline flex") : ("none")}}
+              style={{ display: chat.enableBack ? "inline flex" : "none" }}
               onClick={() => this.answerRouting(3, chat.questionType)}
             >
               Go Back
@@ -275,19 +287,20 @@ class InteractApp extends Component {
   };
 
   issueResetCommand() {
-    if (this.state.clarify) { this.removeButtonsFromLastQuestion() };
+    if (this.state.clarify) {
+      this.removeButtonsFromLastQuestion();
+    }
     // update chat with "reset" instead of "stop" to avoid confusion
     this.updateChat({ msg: "reset", timestamp: Date.now() });
-    // send message 
+    // send message
     this.props.stateManager.logInteractiondata("text command", "stop");
     this.props.stateManager.socket.emit("sendCommandToAgent", "stop");
     this.props.stateManager.memory.commandState = "sent";
   }
 
-
   /**********************************************************************************
-  ******************************* Agent Status Updates ******************************
-  **********************************************************************************/
+   ******************************* Agent Status Updates ******************************
+   **********************************************************************************/
 
   handleAgentThinking() {
     if (this.props.stateManager) {
@@ -349,7 +362,9 @@ class InteractApp extends Component {
 
   renderResetButton() {
     // render during agent thinking and clarification
-    if (this.state.commandState === "idle" && !this.state.clarify) { return }
+    if (this.state.commandState === "idle" && !this.state.clarify) {
+      return;
+    }
 
     return (
       <div className="reset">
@@ -362,11 +377,13 @@ class InteractApp extends Component {
           {this.state.clarify ? "Reset" : "Stop"}
         </Button>
       </div>
-    )
+    );
   }
 
   renderStatusMessages() {
-    if (this.state.commandState === "idle") { return }
+    if (this.state.commandState === "idle") {
+      return;
+    }
 
     let status_message = "";
     if (this.state.commandState === "sent") {
@@ -381,11 +398,7 @@ class InteractApp extends Component {
       status_message = "Assistant is doing the task...";
     }
 
-    return (
-      <div className="status">
-        {status_message}
-      </div>
-    )
+    return <div className="status">{status_message}</div>;
   }
 
   sendTaskStackPoll() {
@@ -406,8 +419,8 @@ class InteractApp extends Component {
         }
         this.handleClearInterval();
       } else if (res.task && res.clarify) {
-        console.log("Agent asked for task clarification")
-        this.setState( {clarify: true });
+        console.log("Agent asked for task clarification");
+        this.setState({ clarify: true });
         setTimeout(() => {
           this.sendTaskStackPoll();
         }, 1000);
@@ -428,7 +441,9 @@ class InteractApp extends Component {
     ) {
       console.log("Safety dance: " + this.state.commandState);
       this.handleClearInterval();
-      if (this.state.isTurk) { this.askActionQuestion() };
+      if (this.state.isTurk) {
+        this.askActionQuestion();
+      }
       return false;
     } else {
       return true;
@@ -451,13 +466,12 @@ class InteractApp extends Component {
     }
   }
 
-
   /**********************************************************************************
-  ********************************* Error Marking ***********************************
-  ***********************************************************************************/
+   ********************************* Error Marking ***********************************
+   ***********************************************************************************/
 
   answerRouting(index, questionType) {
-    switch(questionType) {
+    switch (questionType) {
       case ANSWER_ACTION:
         this.answerAction(index);
         break;
@@ -471,7 +485,7 @@ class InteractApp extends Component {
         this.answerClarification(index);
         break;
       default:
-        console.error("Answer Routing called with invalid question type!")
+        console.error("Answer Routing called with invalid question type!");
     }
   }
 
@@ -507,7 +521,7 @@ class InteractApp extends Component {
         disablePreviousAnswer: true,
         enableBack: true,
       });
-      this.setState({ disableInput: false })
+      this.setState({ disableInput: false });
     } else if (index === 2) {
       this.setState({ task_error: true });
       // No, there was an error of some kind
@@ -518,7 +532,7 @@ class InteractApp extends Component {
           var question_word = "";
           if (dialogue_type === "HUMAN_GIVE_COMMAND") {
             // handle composite action
-  
+
             // get the action type
             var action_dict = this.state.action_dict.event_sequence[0];
             var action_type = action_dict.action_type.toLowerCase();
@@ -588,7 +602,9 @@ class InteractApp extends Component {
                     "'";
                 }
                 // If we don't have a convenient text_span, find the words referenced by index
-                else if ("where_clause" in action_dict.reference_object.filters) {
+                else if (
+                  "where_clause" in action_dict.reference_object.filters
+                ) {
                   let qty = "";
                   if ("selector" in action_dict.reference_object.filters) {
                     qty = action_dict.reference_object.filters.selector.ordinal;
@@ -835,15 +851,15 @@ class InteractApp extends Component {
       this.renderOtherError();
       return;
     }
-    // Check for this reference object in memory
-    let user_message = null;
-    // NOTE: this should come from the state setter sio event.
-    this.state.memory_entries = null;
 
     this.setState({
       agent_replies: this.props.stateManager.memory.agent_replies,
     });
     if (this.state.memory_entries) {
+      var point_target = this.state.memory_entries["point_target"];
+      var bbox = point_target.join(" ");
+      console.log("bbox: " + bbox);
+      this.props.stateManager.flashBlocksInVW(bbox);
       this.addNewAgentReplies({
         msg: `Okay, I was looking for an object of interest called :
           ${reference_object_description}. I'll make it flash in the world now.
@@ -872,8 +888,8 @@ class InteractApp extends Component {
     } else if (index === 2) {
       // no, so vision error
       this.updateChat({ msg: "No", timestamp: Date.now() });
-      this.renderVisionFail();
       this.setState({ vision_error: true });
+      this.renderVisionFail();
     } else if (index === 3) {
       // go back to parsing question
       this.updateChat({ msg: "Go Back", timestamp: Date.now() });
@@ -892,7 +908,7 @@ class InteractApp extends Component {
       msg:
         "Thanks for letting me know that I didn't detect the object right." +
         PLEASE_RESUME,
-        questionType: ANSWER_VISION,
+      questionType: ANSWER_VISION,
       disablePreviousAnswer: true,
       enableBack: false,
     });
@@ -912,17 +928,15 @@ class InteractApp extends Component {
     });
   }
 
-
   /**********************************************************************************
-  ********************************** Clarification **********************************
-  **********************************************************************************/
+   ********************************** Clarification **********************************
+   **********************************************************************************/
 
   answerClarification(index) {
     //handles answer to clarification question
     let chatmsg;
     if (index === 1) {
       chatmsg = "yes";
-      
     } else if (index === 2) {
       chatmsg = "no";
     }
@@ -931,10 +945,9 @@ class InteractApp extends Component {
     this.removeButtonsFromLastQuestion();
   }
 
-
   /**********************************************************************************
-  ************************************* Render **************************************
-  **********************************************************************************/
+   ************************************* Render **************************************
+   **********************************************************************************/
 
   render() {
     return (
@@ -962,11 +975,11 @@ class InteractApp extends Component {
                     <ul className="messagelist" id="chat">
                       {this.renderChatHistory()}
                       <div
-                      className="messagesEnd"
-                      ref={(el) => {
-                        this.messagesEnd = el;
-                      }}
-                    ></div>
+                        className="messagesEnd"
+                        ref={(el) => {
+                          this.messagesEnd = el;
+                        }}
+                      ></div>
                     </ul>
                   </div>
                 </div>
