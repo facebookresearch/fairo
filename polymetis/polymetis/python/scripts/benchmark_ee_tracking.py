@@ -16,8 +16,8 @@ from torchcontrol.transform import Transformation as T
 from polymetis import RobotInterface
 from polysim.grpc_sim_client import Spinner
 
-META_CENTER_POSE = [0.55, 0.0, 0.5, 0.9383, 0.3442, 0.0, 0.0]
-META_RADIUS = 0.2
+META_CENTER_POSE = [0.55, 0.0, 0.4, 0.9383, 0.3442, 0.0, 0.0]
+META_RADIUS = 0.15
 UPDATE_HZ = 60
 NUM_LOOPS = 2
 TIME_TO_GO = 20
