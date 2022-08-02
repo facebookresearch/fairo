@@ -366,7 +366,7 @@ export function positionMemoryMapTable(
 }
 
 function shortenLongTableEntries(e) {
-  if (e && e.length > 16) {
+  if (e && e.length > 12) {
     return (
       <Box
         display="flex"
@@ -375,7 +375,7 @@ function shortenLongTableEntries(e) {
         maxHeight={20}
       >
         <Tooltip title={e} placement="right-start" interactive leaveDelay={500}>
-          <p>{e.substring(0, 6) + "..." + e.substring(e.length - 6)}</p>
+          <p>{e.substring(0, 4) + "..." + e.substring(e.length - 4)}</p>
         </Tooltip>
       </Box>
     );
