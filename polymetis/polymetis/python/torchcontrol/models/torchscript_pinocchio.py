@@ -5,7 +5,9 @@
 import os
 from typing import Tuple, Optional
 
+import numpy as np
 import torch
+import nlopt
 from polymetis.utils.data_dir import PKG_ROOT_DIR
 
 try:
@@ -171,6 +173,7 @@ class RobotModelPinocchio(torch.nn.Module):
         frame_idx = self._get_link_idx_or_use_ee(link_name)
         if rest_pose is None:
             rest_pose = torch.zeros(self.model.get_joint_angle_limits()[0].numel())
+        """
         return self.model.inverse_kinematics(
             link_pos.squeeze(),
             link_quat.squeeze(),
@@ -181,3 +184,42 @@ class RobotModelPinocchio(torch.nn.Module):
             dt,
             damping,
         ).to(link_pos)
+        """
+
+        self.model.inverse_kinematics_init(
+            link_pos.squeeze(), link_quat.squeeze(), frame_idx
+        )
+
+        def f(x, grad):
+            output = self.model.inverse_kinematics_step(
+                torch.Tensor(x.copy()), True, damping
+            )
+            grad = -output[1].numpy()
+            return float(output[0])
+
+        # opt = nlopt.opt(nlopt.GD_STOGO, 7)
+        opt = nlopt.opt(nlopt.LD_SLSQP, 7)
+        # opt = nlopt.opt(nlopt.LD_MMA, 7)
+        opt.set_min_objective(f)
+
+        lb, ub = self.model.get_joint_angle_limits()
+        opt.set_lower_bounds(lb.numpy())
+        opt.set_upper_bounds(ub.numpy())
+
+        opt.set_maxtime(1)
+
+        rest_pose = np.array(
+            [
+                -0.13935425877571106,
+                -0.020481698215007782,
+                -0.05201413854956627,
+                -2.0691256523132324,
+                0.05058913677930832,
+                2.0028650760650635,
+                -0.9167874455451965,
+            ]
+        )
+        xopt = opt.optimize(rest_pose)
+        print(f"Cost: {opt.last_optimum_value()}")
+
+        return xopt
