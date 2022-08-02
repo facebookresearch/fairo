@@ -7,8 +7,8 @@ robot_client:
   use_real_time: ${use_real_time}
   metadata_cfg:
     _target_: polymetis.robot_client.metadata.RobotClientMetadata
-    default_Kq: [80, 120, 100, 100, 70, 50, 20]
-    default_Kqd: [10, 10, 10, 10, 5, 5, 5]
+    default_Kq: [80, 120, 100, 100, 70, 25, 10]
+    default_Kqd: [20, 20, 20, 20, 10, 5, 3]
     default_Kx: [150, 150, 150, 10, 10, 10]
     default_Kxd: [25, 25, 25, 7, 7, 7]
     hz: ${hz}
