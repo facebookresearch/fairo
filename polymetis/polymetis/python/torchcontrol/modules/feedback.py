@@ -103,7 +103,7 @@ class HybridJointSpacePD(toco.ControlModule):
     """
 
     def __init__(
-        self, Kq: torch.Tensor, Kqd: torch.Tensor, Kx: torch.Tensor, Kx: torch.Tensor
+        self, Kq: torch.Tensor, Kqd: torch.Tensor, Kx: torch.Tensor, Kxd: torch.Tensor
     ):
         """
         Args:
