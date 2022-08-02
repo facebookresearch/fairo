@@ -316,15 +316,20 @@ class RobotInterface(BaseRobotInterface):
         return max(time_to_go, self.time_to_go_default)
 
     def _solve_ik(self, position, orientation, q0):
+        ik_sol_found = True
         ee_pose_desired = T.from_rot_xyz(
             rotation=R.from_quat(orientation), translation=position
         )
         q_opt = self.ik_solver.ik(ee_pose_desired.as_matrix(), qinit=q0)
-        if q_opt is None:
-            import ipdb
 
-            ipdb.set_trace()
-        return torch.Tensor(q_opt)
+        if q_opt is None:
+            log.warning(
+                "Inverse kinematics failed to find a valid joint configuration."
+            )
+            q_opt = q0
+            ik_sol_found = False
+
+        return torch.Tensor(q_opt), ik_sol_found
 
     """
     Setter methods
@@ -493,9 +498,14 @@ class RobotInterface(BaseRobotInterface):
                     R.from_quat(ee_quat_desired) * R.from_quat(ee_quat_current)
                 ).as_quat()
 
-        joint_pos_desired = self._solve_ik(
+        joint_pos_desired, success = self._solve_ik(
             ee_pos_desired, ee_quat_desired, joint_pos_current
         )
+        if not success:
+            log.warning(
+                "Unable to find valid joint target. Skipping move_to_ee_pose command..."
+            )
+            return []
 
         return self.move_to_joint_positions(joint_pos_desired, time_to_go=time_to_go)
 
@@ -569,9 +579,14 @@ class RobotInterface(BaseRobotInterface):
         ee_pos_desired = ee_pos_current if position is None else position
         ee_quat_desired = ee_quat_current if orientation is None else orientation
 
-        joint_pos_desired = self._solve_ik(
+        joint_pos_desired, success = self._solve_ik(
             ee_pos_desired, ee_quat_desired, joint_pos_current
         )
+        if not success:
+            log.warning(
+                "Unable to find valid joint target. Skipping update_desired_ee_pose command..."
+            )
+            return []
 
         return self.update_desired_joint_positions(joint_pos_desired)
 
