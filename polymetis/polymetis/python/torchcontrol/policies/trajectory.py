@@ -49,8 +49,7 @@ class JointTrajectoryExecutor(toco.PolicyModule):
         self.invdyn = toco.modules.feedforward.InverseDynamics(
             self.robot_model, ignore_gravity=ignore_gravity
         )
-        self.joint_pd = toco.modules.feedback.JointSpacePD(Kq, Kqd)
-        self.op_space_pd = toco.modules.feedback.AdaptiveJointSpacePD(Kx, Kxd)
+        self.joint_pd = toco.modules.feedback.HybridJointSpacePD(Kq, Kqd, Kx, Kxd)
 
         # Initialize step count
         self.i = 0
@@ -65,23 +64,17 @@ class JointTrajectoryExecutor(toco.PolicyModule):
         joint_vel_desired = self.joint_vel_trajectory[self.i, :]
 
         # Control logic
-        torque_feedback_op = self.op_space_pd(
+        torque_feedback_op = self.joint_pd(
             joint_pos_current,
             joint_vel_current,
             joint_pos_desired,
             joint_vel_desired,
             self.robot_model.compute_jacobian(joint_pos_current),
         )
-        torque_feedback_joint = self.joint_pd(
-            joint_pos_current,
-            joint_vel_current,
-            joint_pos_desired,
-            joint_vel_desired,
-        )
         torque_feedforward = self.invdyn(
             joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)
         )  # coriolis
-        torque_out = torque_feedback_op + torque_feedback_joint + torque_feedforward
+        torque_out = torque_feedback + torque_feedforward
 
         # Increment & termination
         self.i += 1

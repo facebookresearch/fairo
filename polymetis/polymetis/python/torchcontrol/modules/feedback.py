@@ -88,31 +88,44 @@ class JointSpacePD(toco.ControlModule):
         )
 
 
-class AdaptiveJointSpacePD(toco.ControlModule):
+class HybridJointSpacePD(toco.ControlModule):
     """
     PD feedback control in joint space
-    Adapts gains based on joint position to achieve constant end-effector dynamics
+    Uses both constant joint gains and adaptive operational space gains
+
+    nA is the action dimension and N is the number of degrees of freedom
 
     Module parameters:
-        - Kp: P gain matrix of shape (6, 6)
-        - Kd: D gain matrix of shape (6, 6)
+        - Kq: P gain matrix of shape (nA, N)
+        - Kqd: D gain matrix of shape (nA, N)
+        - Kx: P gain matrix of shape (6, 6)
+        - Kxd: D gain matrix of shape (6, 6)
     """
 
-    def __init__(self, Kp: torch.Tensor, Kd: torch.Tensor):
+    def __init__(
+        self, Kq: torch.Tensor, Kqd: torch.Tensor, Kx: torch.Tensor, Kx: torch.Tensor
+    ):
         """
         Args:
-            Kp: P gain matrix of shape (6, 6) or shape (6,) representing a 6-by-6 diagonal matrix
-            Kd: D gain matrix of shape (6, 6) or shape (6,) representing a 6-by-6 diagonal matrix
+            Kq: P gain matrix of shape (nA, N) or shape (N,) representing a N-by-N diagonal matrix (if nA=N)
+            Kqd: D gain matrix of shape (nA, N) or shape (N,) representing a N-by-N diagonal matrix (if nA=N)
+            Kx: P gain matrix of shape (6, 6) or shape (6,) representing a 6-by-6 diagonal matrix
+            Kxd: D gain matrix of shape (6, 6) or shape (6,) representing a 6-by-6 diagonal matrix
         """
         super().__init__()
 
-        Kp = diagonalize_gain(to_tensor(Kp))
-        Kd = diagonalize_gain(to_tensor(Kd))
-        assert Kp.shape == torch.Size([6, 6])
-        assert Kd.shape == torch.Size([6, 6])
+        Kq = diagonalize_gain(to_tensor(Kq))
+        Kqd = diagonalize_gain(to_tensor(Kqd))
+        assert Kq.shape == Kqd.shape
+        Kx = diagonalize_gain(to_tensor(Kx))
+        Kxd = diagonalize_gain(to_tensor(Kxd))
+        assert Kx.shape == torch.Size([6, 6])
+        assert Kxd.shape == torch.Size([6, 6])
 
-        self.Kp = torch.nn.Parameter(Kp)
-        self.Kd = torch.nn.Parameter(Kd)
+        self.Kq = torch.nn.Parameter(Kq)
+        self.Kqd = torch.nn.Parameter(Kqd)
+        self.Kx = torch.nn.Parameter(Kx)
+        self.Kxd = torch.nn.Parameter(Kxd)
 
     def forward(
         self,
@@ -135,8 +148,8 @@ class AdaptiveJointSpacePD(toco.ControlModule):
         Returns:
             Output action of shape (nA,)
         """
-        Kq = jacobian.T @ self.Kp @ jacobian
-        Kqd = jacobian.T @ self.Kd @ jacobian
+        Kp = jacobian.T @ self.Kx @ jacobian + self.Kq
+        Kd = jacobian.T @ self.Kxd @ jacobian + self.Kqd
         return Kq @ (joint_pos_desired - joint_pos_current) + Kqd @ (
             joint_vel_desired - joint_vel_current
         )
