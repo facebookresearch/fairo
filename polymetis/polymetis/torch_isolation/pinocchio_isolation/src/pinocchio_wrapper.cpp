@@ -166,6 +166,13 @@ int64_t get_link_idx_from_name(State *state, const char *link_name) {
   return result;
 }
 
+char *get_link_name_from_idx(State *state, int64_t link_idx) {
+  if (link_idx >= state->model->nframes) {
+    throw std::invalid_argument("Invalid link index: " + link_idx);
+  }
+  return const_cast<char *>(state->model->frames[link_idx].name.c_str());
+}
+
 } // namespace pinocchio_wrapper
 
 } /* extern "C" */

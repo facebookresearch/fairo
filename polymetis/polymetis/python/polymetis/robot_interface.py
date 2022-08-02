@@ -347,7 +347,9 @@ class RobotInterface(BaseRobotInterface):
         )
         self.ik_solver = TracIKSolver(
             robot_description_path,
-            "panda_link0",  # TODO
+            self.robot_model.get_link_name_from_idx(
+                2
+            ),  # 0 => universe, 1 => root_joint
             ee_link_name,
         )
 
