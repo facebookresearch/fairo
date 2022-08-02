@@ -315,13 +315,21 @@ class RobotInterface(BaseRobotInterface):
         time_to_go = torch.max(joint_pos_diff / joint_vel_limits * 8.0)
         return max(time_to_go, self.time_to_go_default)
 
-    def _solve_ik(self, position, orientation, q0):
+    def _solve_ik(self, position, orientation, q0, local=True):
+        # Choose solver
+        if local:
+            ik_solver = self.ik_solver_near
+        else:
+            ik_solver = self.ik_solver_far
+
+        # Solve for IK
         ik_sol_found = True
         ee_pose_desired = T.from_rot_xyz(
             rotation=R.from_quat(orientation), translation=position
         )
-        q_opt = self.ik_solver.ik(ee_pose_desired.as_matrix(), qinit=q0)
+        q_opt = ik_solver.ik(ee_pose_desired.as_matrix(), qinit=q0)
 
+        # Return q0 if solution not found
         if q_opt is None:
             log.warning(
                 "Inverse kinematics failed to find a valid joint configuration."
@@ -345,12 +353,23 @@ class RobotInterface(BaseRobotInterface):
         self.robot_model = toco.models.RobotModelPinocchio(
             robot_description_path, ee_link_name
         )
-        self.ik_solver = TracIKSolver(
+
+        # Create IK solvers
+        base_link_name = self.robot_model.get_link_name_from_idx(
+            2
+        )  # 0: universe, 1: root_joint
+        self.ik_solver_near = TracIKSolver(
             robot_description_path,
-            self.robot_model.get_link_name_from_idx(
-                2
-            ),  # 0 => universe, 1 => root_joint
+            base_link_name,
             ee_link_name,
+            solve_type="Distance",  # prioritize closest
+        )
+        self.ik_solver_far = TracIKSolver(
+            robot_description_path,
+            base_link_name,
+            ee_link_name,
+            timeout=0.1,
+            solve_type="Manip2",  # prioritize most well-conditioned
         )
 
     """
@@ -501,7 +520,7 @@ class RobotInterface(BaseRobotInterface):
                 ).as_quat()
 
         joint_pos_desired, success = self._solve_ik(
-            ee_pos_desired, ee_quat_desired, joint_pos_current
+            ee_pos_desired, ee_quat_desired, joint_pos_current, local=False
         )
         if not success:
             log.warning(
@@ -582,7 +601,7 @@ class RobotInterface(BaseRobotInterface):
         ee_quat_desired = ee_quat_current if orientation is None else orientation
 
         joint_pos_desired, success = self._solve_ik(
-            ee_pos_desired, ee_quat_desired, joint_pos_current
+            ee_pos_desired, ee_quat_desired, joint_pos_current, local=True
         )
         if not success:
             log.warning(
