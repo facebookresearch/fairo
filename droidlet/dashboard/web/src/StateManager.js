@@ -57,6 +57,7 @@ class StateManager {
     objects: new Map(),
     humans: new Map(),
     lastChatActionDict: null,
+    memory_entries: null,
     chats: [
       { msg: "", failed: false },
       { msg: "", failed: false },
@@ -392,6 +393,7 @@ class StateManager {
 
     // once confirm that this chat has been sent, clear last action dict
     this.memory.lastChatActionDict = null;
+    this.memory.memory_entries = null;
 
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
@@ -408,10 +410,12 @@ class StateManager {
   setLastChatActionDict(res) {
     console.log("StateManager setLastChatActionDict");
     this.memory.lastChatActionDict = res.action_dict;
+    this.memory.memory_entries = res.ref_obj_data;
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
         ref.setState({
           action_dict: res.action_dict,
+          memory_entries: res.ref_obj_data,
         });
       }
     });
@@ -442,6 +446,14 @@ class StateManager {
     });
   }
 
+  flashBlockInVW(bbox) {
+    this.refs.forEach((ref) => {
+      if (ref instanceof VoxelWorld) {
+        ref.flashVoxelWorldBlocks(bbox);
+      }
+    });
+  }
+
   showAssistantReply(res) {
     // TODO support more content types
 
@@ -452,15 +464,11 @@ class StateManager {
 
       if (res.content_type === "point") {
         if (this.memory.backend === "pyworld") {
-          this.refs.forEach((ref) => {
-            if (ref instanceof VoxelWorld) {
-              ref.flashVoxelWorldBlocks( chat.slice(7,) );
-            }
-          });
+          this.flashBlockInVW(chat.slice(7));
         }
         // Otherwise let cuberite handle point
         return;
-      } 
+      }
       if (res.content_type === "chat_and_text_options") {
         response_options = content
           .filter((entry) => entry["id"] === "response_option")

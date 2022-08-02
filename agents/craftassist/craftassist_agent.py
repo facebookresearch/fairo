@@ -8,11 +8,8 @@ import signal
 import random
 import sentry_sdk
 import time
-<<<<<<< HEAD
 import json
-=======
 import numpy as np
->>>>>>> 6c7bc4bba (WIP, mostly done, pipeline works, just need to connect to torch model)
 from multiprocessing import set_start_method
 from collections import namedtuple
 from datetime import datetime, timedelta

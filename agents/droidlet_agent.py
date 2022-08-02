@@ -382,6 +382,8 @@ class DroidletAgent(BaseAgent):
             preprocessed_chat,
             chat_parse,
         ) = nlu_perceive_output
+
+        ref_obj_spans = None
         if received_chats_flag:
             # put results from semantic parsing model into memory, if necessary
             _, _, ref_obj_spans = self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)
