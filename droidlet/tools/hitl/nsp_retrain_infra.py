@@ -248,7 +248,7 @@ class NSPRetrainingJob(DataGenerator):
         self._job_mng_util.set_job_stat(
             Job.RETRAIN, JobStat.ORI_DATA_SZ, total_rows - new_data_rows
         )
-        self._job_mng_util.set_job_stat(Job.register, JobStat.NEW_DATA_SZ, total_rows)
+        self._job_mng_util.set_job_stat(Job.RETRAIN, JobStat.NEW_DATA_SZ, total_rows)
 
         # Save locally and upload to S3
         mask_filepath = os.path.join(batch_config_dir, "split_masks.pth")
@@ -282,7 +282,7 @@ class NSPRetrainingJob(DataGenerator):
         return True
 
     def run(self):
-        self._job_mng_util.set_job_start(Job.INTERACTION)
+        self._job_mng_util.set_job_start(Job.RETRAIN)
         logging.info(f"NSP Retraining Job initialized, downloading new data")
         opts = self.opts
 
@@ -460,9 +460,9 @@ class NSPRetrainingJob(DataGenerator):
             f_log.write("hash_dataset " + checksum_d + "\n")
 
             # update corresponding job status
-            self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.MODEL_ACCURACY, acc)
-            self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.MODEL_EPOCH, epoch)
-            self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.MODEL_LOSS, loss)
+            self._job_mng_util.set_job_stat(Job.RETRAIN, JobStat.MODEL_ACCURACY, acc)
+            self._job_mng_util.set_job_stat(Job.RETRAIN, JobStat.MODEL_EPOCH, epoch)
+            self._job_mng_util.set_job_stat(Job.RETRAIN, JobStat.MODEL_LOSS, loss)
 
         # Tar model and upload them to AWS
         tar_and_upload(checksum_m, artifact_path_name, artifact_name)
