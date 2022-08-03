@@ -229,6 +229,7 @@ def get_best_model_loss_acc_by_id(batch_id: int):
 
     # read best model log file
     epoch_ls, text_span_ls = read_model_log_to_list(best_model_log_fname)
+    print(f"epoch length: {len(epoch_ls)}, text_span length: {len(text_span_ls)}")
     return {"epoch": epoch_ls, "text_span": text_span_ls}, None
 
 
