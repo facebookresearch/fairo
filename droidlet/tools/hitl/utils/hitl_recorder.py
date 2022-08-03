@@ -150,10 +150,10 @@ class Recorder:
         if job_type is not None:
             # set job start / end
             jname = job_type._name_
-            if rec_dict[jname][tname] is None:
+            if tname not in rec_dict[jname]:
                 rec_dict[jname][tname] = []
             rec_dict[jname][tname].append(time_now)
-        elif tname in rec_dict:
+        elif tname in rec_dict and rec_dict[tname]:
             # set meta data start / end, can only be set once
             logging.error(
                 f"[Job Management Util] Cannot set meta data start/end time twice, ignoring setting {tname}."
@@ -206,7 +206,7 @@ class Recorder:
         since_last_update = since_last_update.total_seconds()
 
         if (
-            self._record_dict[jname][sname] is None
+            sname not in self._record_dict[jname]
             or since_last_update > self._stat_update_interval
             or force_update
         ):
