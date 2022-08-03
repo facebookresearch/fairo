@@ -307,7 +307,8 @@ class EndToEndSemanticScout:
             model_path = this_dir + "/ckpt/robot_camera_settings_without_noise_and_coco_detector_il_ckpt24.pth"
         elif policy == "robot_camera_settings_without_noise_and_coco_detector_rl":
             # Robot camera settings without noise + COCO segmentation with RL fine-tuning
-            raise NotImplementedError
+            challenge_config_file = this_dir + "/configs/robot_camera_settings.yaml"
+            model_path = this_dir + "/ckpt/robot_camera_settings_without_noise_and_coco_detector_rl_ckpt21.pth"
 
         config = get_config(agent_config_file, ["BASE_TASK_CONFIG_PATH", challenge_config_file])
         config.defrost()
