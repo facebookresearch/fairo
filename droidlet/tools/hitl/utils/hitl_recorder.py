@@ -75,6 +75,7 @@ class JobStat(Enum):
     MODEL_EPOCH = "model_epoch"
     MODEL_LOSS = "model_loss"
 
+
 # update job stat interval in seconds
 DEFAULT_STAT_UPDATE_INTERVAL = 60
 
@@ -200,7 +201,11 @@ class Recorder:
         """
         save local job management record to remote s3 bucket
         """
-        batch_id = self._record_dict[MetaData.BATCH_ID._name_] if MetaData.BATCH_ID._name_ in self._record_dict else None
+        batch_id = (
+            self._record_dict[MetaData.BATCH_ID._name_]
+            if MetaData.BATCH_ID._name_ in self._record_dict
+            else None
+        )
         # check batch_id for saving to s3
         if batch_id is None:
             logging.error(
@@ -210,6 +215,10 @@ class Recorder:
         else:
             remote_file_path = f"{JOB_MNG_PATH_PREFIX}/{batch_id}.json"
             try:
-                resp = s3.meta.client.upload_file(self._local_path, S3_BUCKET_NAME, remote_file_path)
+                resp = s3.meta.client.upload_file(
+                    self._local_path, S3_BUCKET_NAME, remote_file_path
+                )
             except botocore.exceptions.ClientError as e:
-                logging.error(f"[Job Management Util] Not able to save file {self._local_path} to s3.")
+                logging.error(
+                    f"[Job Management Util] Not able to save file {self._local_path} to s3."
+                )
