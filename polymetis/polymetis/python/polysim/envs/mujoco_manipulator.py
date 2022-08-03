@@ -2,6 +2,7 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
+from typing import Tuple, List
 import logging
 import mujoco
 import numpy as np
@@ -28,7 +29,7 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
         )
 
         self.robot_model = mujoco.MjModel.from_xml_path(self.robot_description_path)
-        self.robot_data = mujoco.MjData(model)
+        self.robot_data = mujoco.MjData(self.robot_model)
 
         self.controlled_joints = self.robot_model_cfg.controlled_joints
         self.n_dofs = self.robot_model_cfg.num_dofs
@@ -52,9 +53,13 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
         self.prev_torques_measured = np.zeros(self.n_dofs)
         self.prev_torques_external = np.zeros(self.n_dofs)
 
-    def reset(self):
+    def reset(self, joint_pos: List[float] = None, joint_vel: List[float] = None):
         """Reset the environment."""
         mujoco.mj_resetData(self.robot_model, self.robot_data)
+        if joint_pos is None:
+            self.robot_data.qpos = self.rest_pose
+        if joint_vel is not None:
+            self.robot_data.qvel = joint_vel
 
     def get_num_dofs(self) -> int:
         """Get the number of degrees of freedom for controlling the simulation.
@@ -64,7 +69,7 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
         """
         return self.n_dofs
 
-    def get_current_joint_pos_vel(self) -> tuple[np.ndarray, np.ndarray]:
+    def get_current_joint_pos_vel(self) -> Tuple[np.ndarray, np.ndarray]:
         """
         Returns:
             np.ndarray: Joint positions
@@ -77,7 +82,7 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
 
     def get_current_joint_torques(
         self,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Returns:
             np.ndarray: Torques received from apply_joint_torques

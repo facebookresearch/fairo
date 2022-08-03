@@ -4,6 +4,9 @@
 <!-- |    EDITING THIS FILE BY HAND IS NOT RECOMMENDED                                 | -->
 <!-- =================================================================================== -->
 <robot name="panda">
+  <mujoco>
+    <compiler meshdir="meshes/collision/"/>
+  </mujoco>
   <material name="panda_white">
     <color rgba="1 1 1 1"/>
   </material>
