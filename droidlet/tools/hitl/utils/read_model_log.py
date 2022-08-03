@@ -5,6 +5,7 @@ Utils for processing model log.
 """
 import math
 
+
 def read_model_log_to_list(fname: str):
     """
     Read model log and export to a dictionary including:
@@ -25,7 +26,7 @@ def read_model_log_to_list(fname: str):
                 loss = float(words[i])
                 loss = None if math.isnan(loss) else loss
             elif i > 0 and words[i - 1] == "Accuracy:":
-                acc = float(words[i]) 
+                acc = float(words[i])
                 acc = None if acc is math.isnan(acc) else acc
         return loss, acc
 
