@@ -241,8 +241,7 @@ def get_best_models_by_pipeline(pipeline: str):
     local_fname = _download_file(f"{pipeline}_model_viz_batch_list.txt")
     if local_fname is None:
         return f"Cannot find best model list for {pipeline}", 404
-    
-    model_batch_id_list = _read_file(local_fname).split("\n")
-    
-    return model_batch_id_list, None
 
+    model_batch_id_list = _read_file(local_fname).split("\n")
+
+    return model_batch_id_list, None
