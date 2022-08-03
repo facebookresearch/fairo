@@ -1,4 +1,4 @@
-name: polymetis-local-mujoco
+name: polymetis-local
 channels:
   - pytorch
   - fair-robotics
