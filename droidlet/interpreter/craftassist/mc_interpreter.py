@@ -63,6 +63,7 @@ class MCInterpreter(Interpreter):
         self.get_locs_from_entity = low_level_data["get_locs_from_entity"]
         self.special_shape_functions = low_level_data["special_shape_functions"]
         self.color_bid_map = low_level_data["color_bid_map"]
+        self.allow_clarification = low_level_data["allow_clarification"]
         # These come from agent's perception
         self.get_all_holes_fn = low_level_data["get_all_holes_fn"]
         self.workspace_memory_prio = ["Mob", "BlockObject"]

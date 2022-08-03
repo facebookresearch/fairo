@@ -138,7 +138,6 @@ def interpret_reference_object(
     d,
     extra_tags=[],
     loose_speakerlook=False,
-    allow_clarification=True,
     all_proximity=100,
 ) -> List[ReferenceObjectNode]:
     """this tries to find a ref obj memory matching the criteria from the
@@ -151,8 +150,12 @@ def interpret_reference_object(
     d: logical form from semantic parser
 
     extra_tags (list of strings): tags added by parent to narrow the search
-    allow_clarification (bool): should a Clarification object be put on the DialogueStack
     """
+
+    if hasattr(interpreter, "allow_clarification"):
+        allow_clarification = interpreter.allow_clarification
+    else:
+        allow_clarification = False
 
     filters_d = d.get("filters")
     special = d.get("special_reference")

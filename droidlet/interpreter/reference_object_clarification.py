@@ -29,7 +29,6 @@ def clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
         clarification_class = "REF_NO_MATCH"
         dlf = cc1_to_dlf(interpreter, speaker, d, clarification_class)
         task_egg = {"class": ClarifyNoMatch, "task_data": {"dlf": dlf}}
-        print(task_egg)
         cmemid = TaskNode.create(interpreter.memory, task_egg)
         interpreter.memory.nodes[TripleNode.NODE_TYPE].create(
             interpreter.memory,

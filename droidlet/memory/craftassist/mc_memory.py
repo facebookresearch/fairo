@@ -127,6 +127,8 @@ class MCAgentMemory(AgentMemory):
                 in_perceive_area : blockobjects, holes and blocks in the area agent will be running perception in
                 near_agent: block objects, holes and blocks near the agent
                 labeled_blocks: labels and resulting locations from semantic segmentation model
+                dashboard_edits: Dict of ReferenceObject memid's, edits made to attributes from dashboard
+                dashboard_groups: Dict of ReferenceObject memid's, tags annotated by user in dashboard
 
         :return:
         updated_areas_to_perceive: list of (xyz, idm) representing the area agent should perceive
@@ -136,7 +138,8 @@ class MCAgentMemory(AgentMemory):
         self_node = self.get_mem_by_id(self.self_memid)
         output = {}
         updated_areas_to_perceive = areas_to_perceive
-        """Perform update the memory with input from low_level perception module"""
+
+        """Perform update to memory with input from low_level perception module"""
         # 1. Handle all mobs in agent's perception range
         if perception_output.mobs:
             map_changes = []
@@ -229,7 +232,7 @@ class MCAgentMemory(AgentMemory):
             for player, location in player_list:
                 mem = self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self, player.entityId)
                 if mem is None:
-                    memid = PlayerNode.create(self, player)
+                    memid = self.nodes[PlayerNode.NODE_TYPE].create(self, player)
                 else:
                     memid = mem.memid
                 cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
@@ -283,7 +286,7 @@ class MCAgentMemory(AgentMemory):
                 ) = perception_output.changed_block_attributes[(xyz, idm)]
                 self.maybe_add_block_to_memory(interesting, player_placed, agent_placed, xyz, idm)
 
-        """Now perform update the memory with input from heuristic perception module"""
+        """Now perform update to memory with input from heuristic perception module"""
         # 1. Process everything in area to attend for perception
         if perception_output.in_perceive_area:
             # 1.1 Add colors of all block objects
@@ -332,6 +335,12 @@ class MCAgentMemory(AgentMemory):
         if perception_output.holes:
             hole_memories = self.add_holes_to_mem(perception_output.holes)
             output["holes"] = hole_memories
+
+        """Now perform update to memory with input from manual edits perception module"""
+        if perception_output.dashboard_edits:
+            self.make_manual_edits(perception_output.dashboard_edits)
+        if perception_output.dashboard_groups:
+            self.make_dashboard_groups(perception_output.dashboard_groups)
 
         output["areas_to_perceive"] = updated_areas_to_perceive
         return output
@@ -521,6 +530,37 @@ class MCAgentMemory(AgentMemory):
             *xyz,
         )
         return r
+
+    ########################
+    ###  DashboardEdits  ###
+    ########################
+    def make_manual_edits(self, edits):
+        for memid in edits.keys():
+            toEdit = {
+                attr: val for attr, val in edits[memid].items() if attr not in ("location", "pos")
+            }
+            if toEdit:
+                cmd = (
+                    "UPDATE ReferenceObjects SET " + "=?, ".join(toEdit.keys()) + "=? WHERE uuid=?"
+                )
+                self.db_write(cmd, *toEdit.values(), memid)
+
+            # spatial data is iterable, needs to be handled differently
+            if "pos" in edits[memid].keys():
+                newPos = edits[memid]["pos"]
+                assert len(newPos) == 3
+                cmd = "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?"
+                self.db_write(cmd, newPos[0], newPos[1], newPos[2], memid)
+            elif "location" in edits[memid].keys():
+                newPos = edits[memid]["location"]
+                assert len(newPos) == 3
+                cmd = "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?"
+                self.db_write(cmd, newPos[0], newPos[1], newPos[2], memid)
+
+    def make_dashboard_groups(self, groups):
+        for group, memids in groups.items():
+            for memid in memids:
+                TripleNode.create(self, subj=memid, pred_text="is_a", obj_text=group)
 
     ####################
     ###  Schematics  ###

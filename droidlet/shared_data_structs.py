@@ -126,6 +126,7 @@ class MockOpt:
         self.enable_timeline = False
         # flag for whether loading true model
         self.flag_load_nsp_model = False
+        self.allow_clarification = False
 
 
 class PriorityQueue:

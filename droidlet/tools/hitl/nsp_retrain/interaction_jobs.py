@@ -18,10 +18,17 @@ import botocore
 
 from annotation_jobs import AnnotationJob
 from droidlet.tools.hitl.utils.allocate_instances import allocate_instances, free_ecs_instances
+from droidlet.tools.hitl.utils.hitl_recorder_utils import get_dashboard_version, get_s3_link
 from droidlet.tools.hitl.utils.hitl_utils import (
     generate_batch_id,
     deregister_dashboard_subdomain,
     dedup_commands,
+)
+from droidlet.tools.hitl.utils.hitl_recorder import (
+    Job,
+    Recorder,
+    JobStat,
+    MetaData,
 )
 from droidlet.tools.hitl.utils.process_s3_logs import read_s3_bucket, read_turk_logs
 
@@ -40,6 +47,7 @@ HITL_TMP_DIR = (
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
 NSP_OUTPUT_FNAME = "nsp_outputs"
+ERR_DETAIL_FNAME = "error_details"
 ANNOTATED_COMMANDS_FNAME = "nsp_data.txt"
 
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
@@ -77,7 +85,12 @@ class InteractionJob(DataGenerator):
     """
 
     def __init__(
-        self, instance_num: int, image_tag: str, task_name: str, timeout: float = -1
+        self,
+        job_mng_util: Recorder,
+        instance_num: int,
+        image_tag: str,
+        task_name: str,
+        timeout: float = -1,
     ) -> None:
         super(InteractionJob, self).__init__(timeout)
         self._instance_num = instance_num
@@ -85,8 +98,20 @@ class InteractionJob(DataGenerator):
         self._task_name = task_name
         self.instance_ids = None
         self._batch_id = generate_batch_id()
+        self._job_mng_util = job_mng_util
+
+        # set meta data
+        job_mng_util.set_meta_data(MetaData.BATCH_ID, self._batch_id)
+        job_mng_util.set_meta_data(MetaData.NAME, task_name)
+        job_mng_util.set_meta_data(MetaData.S3_LINK, get_s3_link(self._batch_id))
+        job_mng_util.set_job_stat(
+            Job.INTERACTION, JobStat.DASHBOARD_VER, get_dashboard_version(image_tag)
+        )
+        job_mng_util.set_job_stat(Job.INTERACTION, JobStat.ENABLED, True)
+        job_mng_util.set_job_stat(Job.INTERACTION, JobStat.NUM_REQUESTED, instance_num)
 
     def run(self) -> None:
+        self._job_mng_util.set_job_start(Job.INTERACTION)
         batch_id = self._batch_id
 
         # allocate AWS ECS instances and register DNS records
@@ -111,6 +136,8 @@ class InteractionJob(DataGenerator):
 
         # Keep running Mephisto until timeout or job finished
         while not self.check_is_timeout() and p.poll() is None:
+            # TODO: update job completed
+
             logging.debug(
                 f"[Interaction Job] Interaction Job still running...Remaining time: {self.get_remaining_time()}"
             )
@@ -138,6 +165,8 @@ class InteractionJob(DataGenerator):
         logging.info(f"Processing S3 logs...")
         self.process_s3_logs(batch_id)
 
+        # TODO: update final finished jobs
+        self._job_mng_util.set_job_end(Job.INTERACTION)
         self.set_finished()
 
     def process_s3_logs(self, batch_id) -> None:
@@ -157,8 +186,21 @@ class InteractionJob(DataGenerator):
         )
         time.sleep(120)
 
-        read_s3_bucket(s3_logs_dir, parsed_logs_dir)
+        log_file_ct = read_s3_bucket(s3_logs_dir, parsed_logs_dir)
         command_list = read_turk_logs(parsed_logs_dir, NSP_OUTPUT_FNAME)
+        err_command_list = read_turk_logs(parsed_logs_dir, ERR_DETAIL_FNAME)
+
+        # update job status
+        self._job_mng_util.set_job_stat(
+            Job.INTERACTION, JobStat.NUM_SESSION_LOG, log_file_ct, True
+        )
+        self._job_mng_util.set_job_stat(
+            Job.INTERACTION, JobStat.NUM_COMMAND, len(command_list), True
+        )
+        self._job_mng_util.set_job_stat(
+            Job.INTERACTION, JobStat.NUM_ERR_COMMAND, len(err_command_list), True
+        )
+
         logging.info(f"command list from interactions: {command_list}")
 
         logging.info(f"Uploading command list to S3...")
@@ -207,12 +249,17 @@ class InteractionLogListener(JobListener):
                 commands = response["Body"].read().decode("utf-8").split("\n")
                 cmd_id = 0
                 cmd_list = dedup_commands(commands)
+
                 for cmd in cmd_list:
                     logging.info(
                         f"Pushing Annotation Job [{batch_id}-{cmd_id}-{cmd}] to runner..."
                     )
                     annotation_job = AnnotationJob(
-                        batch_id, cmd, cmd_id, self.get_remaining_time()
+                        runner.get_job_manage_util(),
+                        batch_id,
+                        cmd,
+                        cmd_id,
+                        self.get_remaining_time(),
                     )
                     runner.register_data_generators([annotation_job])
                     cmd_id += 1
@@ -272,7 +319,7 @@ class InteractionLogListener(JobListener):
 
 if __name__ == "__main__":
     runner = TaskRunner()
-    ij = InteractionJob(1, timeout=10)
+    ij = InteractionJob(runner.get_job_manage_util(), 1, "cw_test1", "test", timeout=10)
     batch_id = ij.get_batch_id()
     listener = InteractionLogListener(batch_id, 15)
     runner.register_data_generators([ij])
