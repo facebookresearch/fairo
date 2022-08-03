@@ -249,7 +249,7 @@ def get_best_model_loss_acc(batch_id: int):
     if error_code:
         emit(DASHBOARD_EVENT.GET_BEST_MODEL_LOSS_ACC.value, error_code)
     else:
-        emit(DASHBOARD_EVENT.GET_BEST_MODEL_LOSS_ACC.value, json.dumps([loss_acc_dict, int(batch_id)]))
+        emit(DASHBOARD_EVENT.GET_BEST_MODEL_LOSS_ACC.value, [loss_acc_dict, int(batch_id)])
 
 @socketio.on(DASHBOARD_EVENT.GET_BEST_MODELS.value)
 def get_best_model_batches(pipeline: str):

@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 Utils for processing model log.
 """
-
+import math
 
 def read_model_log_to_list(fname: str):
     """
@@ -23,8 +23,10 @@ def read_model_log_to_list(fname: str):
         for i in range(0, len(words)):
             if i > 0 and words[i - 1] == "Loss:":
                 loss = float(words[i])
+                loss = None if math.isnan(loss) else loss
             elif i > 0 and words[i - 1] == "Accuracy:":
-                acc = float(words[i])
+                acc = float(words[i]) 
+                acc = None if acc is math.isnan(acc) else acc
         return loss, acc
 
     epoch_loss_acc_list = []

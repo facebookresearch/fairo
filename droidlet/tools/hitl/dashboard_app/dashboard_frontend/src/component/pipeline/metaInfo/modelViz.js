@@ -8,6 +8,7 @@ const PipelineModelVizContent = (props) => {
     const [modelBids, setModelBids] = useState(null);
     const [currentIdx, setCurrentIdx] = useState(0);
     const [modelDict, setModelDict] = useState({});
+    const [loadingPrecent, setPercent] = useState(0);
     
     const handleReceivedModelBids = (data) => {
         console.log(data)
@@ -15,10 +16,20 @@ const PipelineModelVizContent = (props) => {
     }
 
     const handleReceivedModelLossAcc = (data) => {
+        // data = JSON.parse(data);
         console.log(data);
-        if (modelBids && modelBids !== 404 && currentIdx >= 0 && currentIdx + 1 < modelBids.length) {
-            setCurrentIdx(currentIdx + 1);
+
+        if (data !== 404) {
+            modelDict[data[1]] = data[0];
+            console.log(modelDict)
+            setPercent(Object.keys(modelDict).length);
+            console.log(Object.keys(modelDict).length);
+
+            if (modelBids && modelBids !== 404 && currentIdx >= 0 && currentIdx + 1 < modelBids.length) {
+                setCurrentIdx(currentIdx + 1);
+            }
         }
+        
     }
 
     useEffect(() => {
@@ -38,6 +49,7 @@ const PipelineModelVizContent = (props) => {
 
     return <div>
         Model
+        {loadingPrecent}
     </div>
 }
 
