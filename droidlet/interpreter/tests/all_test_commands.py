@@ -615,13 +615,13 @@ DESTROY_COMMANDS = {
 }
 
 MOVE_COMMANDS = {
-    "move to 42 65 0": {
+    "move to 8 65 0": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
         "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
-                    "reference_object": {"special_reference": {"coordinates_span": "42 65 0"}}
+                    "reference_object": {"special_reference": {"coordinates_span": "8 65 0"}}
                 },
             }
         ],
@@ -1183,11 +1183,7 @@ STOP_CONDITION_COMMANDS = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "dig a hole 2 times": {
-        "event_sequence": [
-            {
-                "action_type": "DIG",
-            }
-        ],
+        "event_sequence": [{"action_type": "DIG",}],
         "terminate_condition": {
             "condition": {
                 "comparison_type": "EQUAL",

@@ -32,7 +32,9 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
     def test_get_name_and_left_of(self):
         # set the name
         name = "fluffball"
-        self.agent.memory.nodes[TripleNode.NODE_TYPE].create(self.agent.memory, subj=self.cube.memid, pred_text="has_name", obj_text=name)
+        self.agent.memory.nodes[TripleNode.NODE_TYPE].create(
+            self.agent.memory, subj=self.cube.memid, pred_text="has_name", obj_text=name
+        )
 
         # get the name
         d = GET_MEMORY_COMMANDS["what is where I am looking"]
@@ -89,7 +91,7 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
 
     def test_where_are_you_going(self):
         # start moving
-        d = MOVE_COMMANDS["move to 42 65 0"]
+        d = MOVE_COMMANDS["move to 8 65 0"]
         self.handle_logical_form(d, max_steps=3)
 
         # where are you going?
@@ -97,7 +99,7 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
         self.handle_logical_form(d, stop_on_chat=True)
 
         # check that proper chat was sent
-        self.assertIn("42", self.last_outgoing_chat())
+        self.assertIn("8", self.last_outgoing_chat())
         self.assertIn("65", self.last_outgoing_chat())
 
     def test_where_are_you(self):
