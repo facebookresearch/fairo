@@ -74,9 +74,9 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
             mujoco.mjv_defaultCamera(self.gui_camera)
             mujoco.mjv_defaultOption(self.gui_opt)
 
-            self.gui_scene = mj.MjvScene(self.robot_model, maxgeom=10000)
-            self.gui_context = mj.MjrContext(
-                model, mj.mjtFontScale.mjFONTSCALE_150.value
+            self.gui_scene = mujoco.MjvScene(self.robot_model, maxgeom=10000)
+            self.gui_context = mujoco.MjrContext(
+                self.robot_model, mujoco.mjtFontScale.mjFONTSCALE_150.value
             )
 
     def reset(self, joint_pos: List[float] = None, joint_vel: List[float] = None):
