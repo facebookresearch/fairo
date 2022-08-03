@@ -19,7 +19,9 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
     def __init__(
         self,
         robot_model_cfg: DictConfig,
-        gui: bool,
+        gui: bool = False,
+        gui_width: int = 1200,
+        gui_height: int = 900,
         use_grav_comp: bool = True,
         gravity: float = 9.81,
     ):
@@ -52,6 +54,30 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
         self.prev_torques_applied = np.zeros(self.n_dofs)
         self.prev_torques_measured = np.zeros(self.n_dofs)
         self.prev_torques_external = np.zeros(self.n_dofs)
+
+        self.gui = gui
+        if self.gui:
+            # https://mujoco.readthedocs.io/en/latest/programming.html#visualization
+            self.gui_width = gui_width
+            self.gui_height = gui_height
+
+            self.gui_camera = mujoco.MjvCamera()
+            self.gui_opt = mujoco.MjvOption()
+
+            mujoco.glfw.glfw.init()
+            self.gui_window = mujoco.glfw.glfw.create_window(
+                self.gui_width, self.gui_height, "Mujoco Simulation", None, None
+            )
+            mujoco.glfw.glfw.make_context_current(self.gui_window)
+            mujoco.glfw.glfw.swap_interval(1)
+
+            mujoco.mjv_defaultCamera(self.gui_camera)
+            mujoco.mjv_defaultOption(self.gui_opt)
+
+            self.gui_scene = mj.MjvScene(self.robot_model, maxgeom=10000)
+            self.gui_context = mj.MjrContext(
+                model, mj.mjtFontScale.mjFONTSCALE_150.value
+            )
 
     def reset(self, joint_pos: List[float] = None, joint_vel: List[float] = None):
         """Reset the environment."""
@@ -117,4 +143,19 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
         self.prev_torques_applied = applied_torques.copy()
         self.robot_data.ctrl = applied_torques
         mujoco.mj_step(self.robot_model, self.robot_data)
+        if self.gui:
+            viewport = mujoco.MjrRect(0, 0, self.gui_width, self.gui_height)
+            mujoco.mjv_updateScene(
+                self.robot_model,
+                self.robot_data,
+                self.gui_opt,
+                None,  # no perturbance
+                self.gui_camera,
+                mujoco.mjtCatBit.mjCAT_ALL.value,
+                self.gui_scene,
+            )
+            mujoco.mjr_render(viewport, self.gui_scene, self.gui_context)
         return applied_torques
+
+    def render():
+        view
