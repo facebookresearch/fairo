@@ -13,9 +13,8 @@ import ModelAtrributeModal from "./modelAttributeDetailModal";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip as ChartTooltip } from 'recharts';
 
 const { Meta } = Card;
-const LOSS_ACC_TYPES = [{ "label": "Epoch", "value": "epoch" }, { "label": "Text Span", "value": "text_span" }]
 
-const ModelLossAccGraph = (props) => {
+export const ModelLossAccGraph = (props) => {
     const data = props.data.map((o, idx) => ({ Loss: o.loss, Accuracy: o.acc, Epoch: idx }));
 
     return <div style={{ width: "100%", height: "100%" }}>
@@ -41,8 +40,11 @@ const ModelLossAccGraph = (props) => {
     </div>
 }
 
-const ViewLossAccCard = (props) => {
+export const ViewLossAccCard = (props) => {
     const lossAccData = props.data;
+
+    const LOSS_ACC_TYPES = [{ "label": "Epoch", "value": "epoch" }, { "label": "Text Span", "value": "text_span" }]
+
     const [activeTabKey, setActiveTabKey] = useState(LOSS_ACC_TYPES[0]["value"]);
 
     return <Card
@@ -86,7 +88,7 @@ const ModelCard = (props) => {
     const handleReceivedLossAcc = useCallback((data) => {
         setLoadingLossAcc(false);
         if (data !== 404) {
-            setLossAccData(data);
+            setLossAccData(data[0]);
         }
     });
 
@@ -128,10 +130,6 @@ const ModelCard = (props) => {
     const handleOnClickViewModelAttibute = (modelKey) => {
         setCurrentModelKey(modelKey);
         setAttrModalOpen(true);
-    }
-
-    const handleViewModelLossAndAcc = (lossAccType) => {
-        alert(lossAccData[lossAccType].map((o) => (`loss: ${o.loss},  acc: ${o.acc}`)));
     }
 
     return (

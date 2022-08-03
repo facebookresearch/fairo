@@ -23,5 +23,10 @@ export const TAB_ITEMS = {
     {
         label: 'View Runs',
         key: 'runs'
+    },
+    MODEL: 
+    {
+        label: 'View Model',
+        key: 'model'
     }
 }

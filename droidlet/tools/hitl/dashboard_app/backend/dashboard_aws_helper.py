@@ -230,3 +230,18 @@ def get_best_model_loss_acc_by_id(batch_id: int):
     # read best model log file
     epoch_ls, text_span_ls = read_model_log_to_list(best_model_log_fname)
     return {"epoch": epoch_ls, "text_span": text_span_ls}, None
+
+
+def get_best_models_by_pipeline(pipeline: str):
+    """
+    Get best models batch_id list for a pipeline.
+    The pipeline can be nlu, tao or vision
+    """
+    local_fname = _download_file(f"{pipeline}_model_viz_batch_list.txt")
+    if local_fname is None:
+        return f"Cannot find best model list for {pipeline}", 404
+    
+    model_batch_id_list = _read_file(local_fname).split("\n")
+    
+    return model_batch_id_list, None
+

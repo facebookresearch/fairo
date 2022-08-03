@@ -13,6 +13,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useParams } from 'react-router-dom';
 import { TAB_ITEMS } from '../../constants/pipelineConstants';
 import InfoBlock from './metaInfo/infoBlock';
+import PipelineModelVizContent from './metaInfo/modelViz';
 import RunList from './metaInfo/runList';
 
 const menuItems = Object.values(TAB_ITEMS);
@@ -107,6 +108,9 @@ const PipelinePanel = (props) => {
                                                 // render job list if key is jobs, otherwise render info block
                                                 item.key === TAB_ITEMS.RUNS.key ?
                                                     <RunList pipelineType={pipelineType} /> :
+                                                    item.key === TAB_ITEMS.MODEL.key ? 
+                                                    <PipelineModelVizContent />
+                                                    : 
                                                     <InfoBlock infoType={item.key} pipelineType={pipelineType} />
                                             }
                                         </TabPane>
