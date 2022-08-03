@@ -64,6 +64,18 @@ if __name__ == "__main__":
         help="Whether use GPU with 32g memory for training",
     )
     parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
+    parser.add_argument(
+        "--encoder_warmup_steps",
+        default=1,
+        type=int,
+        help="Learning rate warmup steps for the encoder",
+    )
+    parser.add_argument(
+        "--decoder_warmup_steps",
+        default=1000,
+        type=int,
+        help="Learning rate warmup steps for the decoder",
+    )
     opts = parser.parse_args()
 
     ###############################################
@@ -178,6 +190,10 @@ if __name__ == "__main__":
         + opts.decoder_config_name
         + " --param_update_freq "
         + str(opts.param_update_freq)
+        + " --encoder_warmup_steps "
+        + str(opts.encoder_warmup_steps)
+        + " --decoder_warmup_steps "
+        + str(opts.decoder_warmup_steps)
     )
 
     errpaths = []

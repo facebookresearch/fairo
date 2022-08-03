@@ -613,6 +613,7 @@ if __name__ == "__main__":
         type=int,
         help="Number of training epochs",
     )
+    parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
     parser.add_argument(
         "--dtype_samples",
         default="annotated:1.0",
@@ -630,7 +631,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "-encoder_learning_rate", type=float, nargs="+", help="Learning rate for the decoder"
     )
-    parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
+    parser.add_argument(
+        "--encoder_warmup_steps",
+        default=1,
+        type=int,
+        help="Learning rate warmup steps for the encoder",
+    )
+    parser.add_argument(
+        "--decoder_warmup_steps",
+        default=1000,
+        type=int,
+        help="Learning rate warmup steps for the decoder",
+    )
     opts = parser.parse_args()
 
     # build up sweep config folder if it doesn't exist

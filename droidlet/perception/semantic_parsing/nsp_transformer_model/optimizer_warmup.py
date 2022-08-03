@@ -12,6 +12,16 @@ class OptimWarmupEncoderDecoder(object):
             "decoder": args.decoder_learning_rate,
             "text_span_decoder": args.decoder_learning_rate,
         }
+        # convert string into a list
+        encoder_lr_schedules = args.encoder_lr_schedules.split()
+        encoder_lr_schedules_list = [int(e) for e in encoder_lr_schedules]
+        decoder_lr_schedules = args.decoder_lr_schedules.split()
+        decoder_lr_schedules_list = [int(e) for e in decoder_lr_schedules]
+        self.lr_schedules = {
+            "encoder": encoder_lr_schedules_list,
+            "decoder": decoder_lr_schedules_list,
+            "text_span_decoder": decoder_lr_schedules_list,
+        }
         self.warmup_steps = {
             "encoder": args.encoder_warmup_steps,
             "decoder": args.decoder_warmup_steps,
@@ -39,9 +49,16 @@ class OptimWarmupEncoderDecoder(object):
         self._step = 0
 
     def _update_rate(self, stack):
-        return self.lr[stack] * min(
-            (self._step / self.warmup_steps[stack]), (self._step / self.warmup_steps[stack]) ** 0.5
-        )
+        if self._step < self.warmup_steps[stack]:
+            return self.lr[stack] * self._step / self.warmup_steps[stack]
+        else:
+            factor = 1
+            for schedule in self.lr_schedules[stack]:
+                if self._step > schedule:
+                    factor /= 10.
+                    break
+            return self.lr[stack] * factor
+
 
     def zero_grad(self):
         self.optimizer_decoder.zero_grad()

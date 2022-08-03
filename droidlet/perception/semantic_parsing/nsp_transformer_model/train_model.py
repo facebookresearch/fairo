@@ -475,6 +475,12 @@ if __name__ == "__main__":
         "--encoder_learning_rate", default=0.0, type=float, help="Learning rate for the encoder"
     )
     parser.add_argument(
+        "--encoder_lr_schedules",
+        default="23000 35000",
+        type=str,
+        help="Schedules (steps rather than epoches) for learning rate to decay by 1/10",
+    )
+    parser.add_argument(
         "--decoder_warmup_steps",
         default=1000,
         type=int,
@@ -482,6 +488,12 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--decoder_learning_rate", default=1e-5, type=float, help="Learning rate for the decoder"
+    )
+    parser.add_argument(
+        "--decoder_lr_schedules",
+        default="23000 35000",
+        type=str,
+        help="Schedules (steps rather than epoches) for learning rate to decay by 1/10",
     )
     parser.add_argument(
         "--node_label_smoothing",
