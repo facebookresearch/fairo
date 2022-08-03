@@ -55,10 +55,9 @@ class OptimWarmupEncoderDecoder(object):
             factor = 1
             for schedule in self.lr_schedules[stack]:
                 if self._step > schedule:
-                    factor /= 10.
+                    factor /= 10.0
                     break
             return self.lr[stack] * factor
-
 
     def zero_grad(self):
         self.optimizer_decoder.zero_grad()
