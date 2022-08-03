@@ -29,7 +29,7 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
         self.robot_description_path = get_full_path_to_urdf(
             self.robot_model_cfg.robot_description_path
         )
-
+        print(f"loading robot from {self.robot_description_path}")
         self.robot_model = mujoco.MjModel.from_xml_path(self.robot_description_path)
         self.robot_data = mujoco.MjData(self.robot_model)
 
@@ -49,6 +49,7 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
             self.torque_limits = np.inf * np.ones(self.n_dofs)
         else:
             self.torque_limits = np.array(self.robot_model_cfg.torque_limits)
+        self.use_grav_comp = use_grav_comp
 
         self.prev_torques_commanded = np.zeros(self.n_dofs)
         self.prev_torques_applied = np.zeros(self.n_dofs)
@@ -119,7 +120,7 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
         return (
             self.prev_torques_commanded,
             self.prev_torques_applied,
-            self.robot_data.actuator_force,
+            self.prev_torques_measured,
             self.prev_torques_external,  # zeros
         )
 
@@ -131,31 +132,55 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
             np.ndarray: final applied torque
         """
         self.prev_torques_commanded = torques
-        applied_torques = np.clip(torque, -self.torque_limits, self.torque_limits)
+
+        applied_torques = np.clip(torques, -self.torque_limits, self.torque_limits)
+
         if self.use_grav_comp:
-            joint_cur_pos = self.get_current_joint_pos()
+            joint_cur_pos = self.get_current_joint_pos_vel()[0]
             grav_comp_torques = self.compute_inverse_dynamics(
                 joint_pos=joint_cur_pos,
                 joint_vel=[0] * self.n_dofs,
                 joint_acc=[0] * self.n_dofs,
             )  # zero vel + acc to find gravity
-            applied_torque += grav_comp_torques
-        self.prev_torques_applied = applied_torques.copy()
-        self.robot_data.ctrl = applied_torques
+            applied_torques += grav_comp_torques
+        self.prev_torques_measured = applied_torques.copy()
+
+        # self.robot_data.ctrl = applied_torques
         mujoco.mj_step(self.robot_model, self.robot_data)
+
         if self.gui:
-            viewport = mujoco.MjrRect(0, 0, self.gui_width, self.gui_height)
-            mujoco.mjv_updateScene(
-                self.robot_model,
-                self.robot_data,
-                self.gui_opt,
-                None,  # no perturbance
-                self.gui_camera,
-                mujoco.mjtCatBit.mjCAT_ALL.value,
-                self.gui_scene,
-            )
-            mujoco.mjr_render(viewport, self.gui_scene, self.gui_context)
+            self.render()
+
         return applied_torques
 
-    def render():
-        view
+    def compute_inverse_dynamics(
+        self, joint_pos: np.ndarray, joint_vel: np.ndarray, joint_acc: np.ndarray
+    ) -> np.ndarray:
+        """Computes inverse dynamics by returning the torques necessary to get the desired accelerations
+        at the given joint position and velocity."""
+        qvel_orig = self.robot_data.qvel.copy()
+        qacc_orig = self.robot_data.qacc.copy()
+
+        self.robot_data.qvel = joint_vel
+        self.robot_data.qacc = joint_acc
+
+        mujoco.mj_inverse(self.robot_model, self.robot_data)
+
+        self.robot_data.qvel = qvel_orig
+        self.robot_data.qacc = qacc_orig
+        return self.robot_data.qfrc_inverse
+
+    def render(self):
+        viewport = mujoco.MjrRect(0, 0, self.gui_width, self.gui_height)
+        mujoco.mjv_updateScene(
+            self.robot_model,
+            self.robot_data,
+            self.gui_opt,
+            None,  # no perturbance
+            self.gui_camera,
+            mujoco.mjtCatBit.mjCAT_ALL.value,
+            self.gui_scene,
+        )
+        mujoco.mjr_render(viewport, self.gui_scene, self.gui_context)
+        mujoco.glfw.glfw.swap_buffers(self.gui_window)
+        mujoco.glfw.glfw.poll_events()
