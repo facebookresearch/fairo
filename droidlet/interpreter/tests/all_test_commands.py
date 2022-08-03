@@ -1183,7 +1183,11 @@ STOP_CONDITION_COMMANDS = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "dig a hole 2 times": {
-        "event_sequence": [{"action_type": "DIG",}],
+        "event_sequence": [
+            {
+                "action_type": "DIG",
+            }
+        ],
         "terminate_condition": {
             "condition": {
                 "comparison_type": "EQUAL",
