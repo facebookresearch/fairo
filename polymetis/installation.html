@@ -387,7 +387,7 @@ conda activate polymetis-local
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir -p ./polymetis/build
 <span class="nb">cd</span> ./polymetis/build
 
-cmake .. -DBUILD_FRANKA<span class="o">=[</span>OFF/ON<span class="o">]</span> -DBUILD_TESTS<span class="o">=[</span>OFF/ON<span class="o">]</span> -DBUILD_DOCS<span class="o">=[</span>OFF/ON<span class="o">]</span>
+cmake .. -DCMAKE_BUILD_TYPE<span class="o">=</span>Release -DBUILD_FRANKA<span class="o">=[</span>OFF/ON<span class="o">]</span> -DBUILD_TESTS<span class="o">=[</span>OFF/ON<span class="o">]</span> -DBUILD_DOCS<span class="o">=[</span>OFF/ON<span class="o">]</span>
 make -j
 </pre></div>
 </div>
