@@ -6,6 +6,7 @@ from typing import Tuple, List
 import logging
 import mujoco
 import numpy as np
+import os
 
 from omegaconf import DictConfig
 
@@ -29,13 +30,24 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
         self.robot_description_path = get_full_path_to_urdf(
             self.robot_model_cfg.robot_description_path
         )
-        print(f"loading robot from {self.robot_description_path}")
-        self.robot_model = mujoco.MjModel.from_xml_path(self.robot_description_path)
+        robot_desc_mjcf_path = (
+            os.path.splitext(self.robot_description_path)[0] + ".mjcf"
+        )
+        assert os.path.exists(
+            robot_desc_mjcf_path
+        ), f"No MJCF file found. Create an MJCF file at {robot_desc_mjcf_path} to use the MuJoCo simulator."
+        self.robot_model = mujoco.MjModel.from_xml_path(robot_desc_mjcf_path)
         self.robot_data = mujoco.MjData(self.robot_model)
 
         self.controlled_joints = self.robot_model_cfg.controlled_joints
         self.n_dofs = self.robot_model_cfg.num_dofs
-        assert len(self.controlled_joints) == self.n_dofs
+        assert (
+            len(self.controlled_joints) == self.n_dofs
+        ), f"Number of controlled joints ({len(self.controlled_joints)}) != number of DOFs ({self.n_dofs})"
+        assert (
+            self.robot_model.nu == self.n_dofs
+        ), f"Number of actuators ({self.robot_model.nu}) != number of DOFs ({self.n_dofs})"
+
         self.ee_link_idx = self.robot_model_cfg.ee_link_idx
         self.ee_link_name = self.robot_model_cfg.ee_link_name
         self.rest_pose = self.robot_model_cfg.rest_pose
@@ -145,7 +157,7 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
             applied_torques += grav_comp_torques
         self.prev_torques_measured = applied_torques.copy()
 
-        # self.robot_data.ctrl = applied_torques
+        self.robot_data.ctrl = applied_torques
         mujoco.mj_step(self.robot_model, self.robot_data)
 
         if self.gui:
