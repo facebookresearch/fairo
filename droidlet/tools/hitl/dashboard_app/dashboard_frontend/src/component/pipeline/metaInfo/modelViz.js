@@ -1,3 +1,14 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+
+The content for model visualization for a pipeline.
+
+The **pipeline** can be nlu/tao or vision; the pipeline information was reterived from path parameter so no props are required.
+
+Usage:
+<PipelineModelVizContent />
+*/
+
 import { SyncOutlined } from "@ant-design/icons";
 import { Progress, Typography } from "antd";
 import React, { useContext, useEffect, useState } from "react";
@@ -10,7 +21,7 @@ const PipelineModelVizContent = (props) => {
     const socket = useContext(SocketContext);
     const [modelBids, setModelBids] = useState(null);
     const [currentIdx, setCurrentIdx] = useState(0);
-    const [modelDict, setModelDict] = useState({});
+    const [modelDict, ] = useState({});
     const [modelCombined, setModelCombined] = useState(null);
 
     const handleReceivedModelBids = (data) => {
@@ -61,21 +72,31 @@ const PipelineModelVizContent = (props) => {
 
     return <div>
         <Typography.Title level={4}>{"View Model Accuracy & Loss"}</Typography.Title>
-        {
-            // show loading model progress
-            modelBids && modelBids !== 404 && (currentIdx + 1) !== modelBids.length &&
-            <div style={{ padding: "0 24px 0 24px" }}>
-                <span><SyncOutlined spin /> Loading Model Data... </span>
-                <Progress percent={Math.trunc((currentIdx + 1) / modelBids.length * 100)} />
-            </div>
-        }
-        {
-            // show graph when loading is done
-            modelBids && modelBids !== 404 && (currentIdx + 1) === modelBids.length && modelCombined &&
-            <div style={{ width: '1200px', height: '500px' }}>
-                <ViewLossAccCard data={modelCombined} />
-            </div>
-        }
+        <div style={{ padding: "0 24px 0 24px" }}>
+            {
+                // show progress bar after getting model batch ids
+                modelBids && modelBids !== 404 && (Object.keys(modelDict).length) !== modelBids.length &&
+                <div> <span><SyncOutlined spin /> Loading Model Data... </span>
+                    <Progress percent={Math.trunc((Object.keys(modelDict).length) / modelBids.length * 100)} />
+                </div>
+            }
+
+            {
+                // show graph when loading is done
+                modelBids && modelBids !== 404 && (Object.keys(modelDict).length) === modelBids.length && modelCombined &&
+                <div>
+                    <ViewLossAccCard data={modelCombined} width={1500}/>
+                </div>
+            } 
+            {
+                // show no data when not having any batch ids
+                modelBids && modelBids === 404 && 
+                <div>
+                    Sorry, no model data is avaible yet. 
+                </div>
+            }
+        </div>
+
     </div>
 }
 

@@ -15,12 +15,14 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip as ChartT
 const { Meta } = Card;
 
 export const ModelLossAccGraph = (props) => {
+    const width = props.width;
+    const height = props.height;
     const data = props.data.map((o, idx) => ({ Loss: o.loss, Accuracy: o.acc, Epoch: idx }));
 
     return <div style={{ width: "100%", height: "100%" }}>
         <LineChart
-            width={750}
-            height={400}
+            width={width}
+            height={height}
             data={data}
             margin={{
                 top: 5,
@@ -41,6 +43,8 @@ export const ModelLossAccGraph = (props) => {
 }
 
 export const ViewLossAccCard = (props) => {
+    const width = props.width ? props.width : 750;
+    const height = props.height ? props.height : 400;
     const lossAccData = props.data;
 
     const LOSS_ACC_TYPES = [{ "label": "Epoch", "value": "epoch" }, { "label": "Text Span", "value": "text_span" }]
@@ -52,13 +56,12 @@ export const ViewLossAccCard = (props) => {
         activeTabKey={activeTabKey}
         onTabChange={(key) => setActiveTabKey(key)}
     >
-        <ModelLossAccGraph data={lossAccData[activeTabKey]} />
+        <ModelLossAccGraph data={lossAccData[activeTabKey]} height = {height} width = {width} />
     </Card>
 }
 
 const ModelCard = (props) => {
     const batchId = props.batchId;
-    const pipelineType = props.pipelineType;
     const [modelArgs, setModelArgs] = useState(null);
     const [modelKeys, setModelKeys] = useState(null);
     const [loadingArgs, setLoadingArgs] = useState(true);
