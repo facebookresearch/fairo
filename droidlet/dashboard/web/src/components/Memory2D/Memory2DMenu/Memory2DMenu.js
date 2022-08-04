@@ -1,4 +1,14 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+
+// src/components/Memory2D/Memory2DMenu.js
+
 import React from "react";
+
+import * as M2DC from "../Memory2DConstants";
+
+import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
@@ -13,8 +23,11 @@ import Checkbox from "@material-ui/core/Checkbox";
 import Grid from "@material-ui/core/Grid";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-
-import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
+import NodeColorPicker from "./NodeColorPicker";
+import Accordion from "@material-ui/core/Accordion";
+import AccordionSummary from "@material-ui/core/AccordionSummary";
+import AccordionDetails from "@material-ui/core/AccordionDetails";
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 
 const menuTheme = createMuiTheme({
   palette: {
@@ -28,10 +41,14 @@ const groupingHelpText =
 const dynamicPosHelpText =
   "Enabling this makes it so any tabular component on the map automatically repositions itself to remain on screen when dragging. May reduce performance.";
 
+const nodeDetailsHelpText =
+  "List of all node types on map. Click on colored circle to change color. Click away from color picker menu to close it.";
+
 /**
  * Creates simple table of memory values for an object on the map.
  *
- * @param {showMenu, onMenuClose, selected_objects, onGroupSubmit, dynamicPositioning, toggleDynamicPositioning, showTriples, toggleShowTriples} props
+ * @param {showMenu, onMenuClose, selected_objects, onGroupSubmit, dynamicPositioning,
+ *            toggleDynamicPositioning, showTriples, toggleShowTriples, nodeTypeInfo, setNodeColoring} props
  *                            showMenu: bool for if menu should be open/close
  *                            onMenuClose: handler to close menu
  *                            selected_objects: dict of all objects selected and their data
@@ -46,6 +63,8 @@ const dynamicPosHelpText =
  *                            centerToBot: handler that centers the stage to the bot
  *                            squareMap: whether the map should fill up the whole pane or limited to square
  *                            toggleSquareMap: handler to change squareMap
+ *                            nodeTypeInfo: object with count + color information for each nodeType
+ *                            setNodeColoring: handler to set color of node type
  */
 export default function Memory2DMenu(props) {
   const [groupName, setGroupName] = React.useState("");
@@ -55,9 +74,9 @@ export default function Memory2DMenu(props) {
   return (
     <ThemeProvider theme={menuTheme}>
       <Drawer anchor="right" open={props.showMenu} onClose={props.onMenuClose}>
-        <div style={{ width: 450 }}>
+        <div style={{ width: M2DC.MENU_WIDTH }}>
           <Grid container direction="column" spacing={3}>
-            <Grid item desc="close-menu">
+            <Grid item key="close-menu">
               <IconButton onClick={props.onMenuClose}>
                 <CloseIcon />
               </IconButton>
@@ -65,13 +84,13 @@ export default function Memory2DMenu(props) {
             </Grid>
             <Grid
               item
-              desc="menu-items"
+              key="menu-items"
               container
               direction="column"
               spacing={3}
               style={{ marginLeft: 3 }}
             >
-              <Grid item xs="auto" container>
+              <Grid item key="grouping-form" xs="auto" container>
                 <Card variant="outlined">
                   <CardContent>
                     <Grid item container alignItems="center" spacing={6}>
@@ -128,8 +147,14 @@ export default function Memory2DMenu(props) {
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item container direction="column" alignItems="flex-start">
-                <Grid item container alignItems="center">
+              <Grid
+                item
+                key="options"
+                container
+                direction="column"
+                alignItems="flex-start"
+              >
+                <Grid item key="toggle dyna pos" container alignItems="center">
                   <Grid item>
                     <FormControlLabel
                       control={
@@ -154,7 +179,7 @@ export default function Memory2DMenu(props) {
                     </Tooltip>
                   </Grid>
                 </Grid>
-                <Grid item>
+                <Grid item key="toggle show triples">
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -167,7 +192,7 @@ export default function Memory2DMenu(props) {
                     labelPlacement="end"
                   />
                 </Grid>
-                <Grid item>
+                <Grid item key="toggle square map">
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -180,8 +205,10 @@ export default function Memory2DMenu(props) {
                     labelPlacement="end"
                   />
                 </Grid>
+              </Grid>
+              <Grid item key="change-map-view" container alignItems="center">
                 <Grid item>
-                  {"View:   "}
+                  {"View:    "}
                   <ButtonGroup variant="contained">
                     <Button
                       color={"ZX" === mapView ? "secondary" : "default"}
@@ -211,8 +238,41 @@ export default function Memory2DMenu(props) {
                       YZ
                     </Button>
                   </ButtonGroup>
+                </Grid>
+                <Grid item>
                   <Button onClick={props.centerToBot}>CENTER TO BOT</Button>
                 </Grid>
+              </Grid>
+              <Grid item key="color-picker" xs={9}>
+                <Accordion styles={{ color: "#0000FF" }}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Grid container alignItems="center" spacing={3}>
+                      <Grid item>Node Details</Grid>
+                      <Grid item>
+                        <Tooltip
+                          title={nodeDetailsHelpText}
+                          placement="top"
+                          interactive
+                          leaveDelay={500}
+                        >
+                          <HelpIcon fontSize="small" />
+                        </Tooltip>
+                      </Grid>
+                    </Grid>
+                  </AccordionSummary>
+                  {Object.entries(props.nodeTypeInfo).map(([type, info]) => (
+                    <AccordionDetails key={type}>
+                      <NodeColorPicker
+                        type={type}
+                        count={info.count}
+                        color={info.color}
+                        setNodeColoring={(color) => {
+                          props.setNodeColoring(type, color);
+                        }}
+                      />
+                    </AccordionDetails>
+                  ))}
+                </Accordion>
               </Grid>
             </Grid>
           </Grid>

@@ -1,4 +1,13 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+
+// src/components/Memory2D/MemoryMapTable.js
+
 import React, { useEffect, useState } from "react";
+
+import * as M2DC from "./Memory2DConstants";
+
 import { withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -8,23 +17,22 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
 import Box from "@material-ui/core/Box";
-
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import RestoreIcon from "@material-ui/icons/Restore";
 import CloseIcon from "@material-ui/icons/Close";
 import Tooltip from "@material-ui/core/Tooltip";
-
 import TextField from "@material-ui/core/TextField";
 
 const MAX_TABLE_CELL_WIDTH = 100;
 const MAX_TABLE_CONTAINER_HEIGHT = 220;
+const MEMORY_MAP_TABLE_MAX_ENTRY_LENGTH = 16;
 
 const StyledTableCell = withStyles((theme) => ({
   root: {
     fontSize: 14,
-    fontFamily: "Segoe UI",
+    fontFamily: M2DC.FONT,
     width: "auto !important",
     maxWidth: MAX_TABLE_CELL_WIDTH,
     overflow: "hidden",
@@ -105,7 +113,7 @@ function MapTextField(props) {
         style: {
           padding: 5,
           fontSize: 14,
-          fontFamily: "Segoe UI",
+          fontFamily: M2DC.FONT,
         },
       }}
     />
@@ -203,11 +211,19 @@ export default function MemoryMapTable(props) {
           ).map((attr) => (
             <StyledTableRow key={attr}>
               <StyledTableCell desc="attribute cell">
-                {shortenLongTableEntries(attr)}
+                {M2DC.shortenLongTableEntries(
+                  attr,
+                  MEMORY_MAP_TABLE_MAX_ENTRY_LENGTH,
+                  "right-start"
+                )}
               </StyledTableCell>
               <StyledTableCell desc="value cell">
                 {immutableFields.includes(attr) ? (
-                  shortenLongTableEntries(editManager[attr].value)
+                  M2DC.shortenLongTableEntries(
+                    editManager[attr].value,
+                    MEMORY_MAP_TABLE_MAX_ENTRY_LENGTH,
+                    "right-start"
+                  )
                 ) : (
                   <MapTextField
                     attr={attr}
@@ -320,10 +336,18 @@ export default function MemoryMapTable(props) {
               {triples.map((triple) => (
                 <StyledTableRow key={triple[0]}>
                   <StyledTableCell desc="predicate">
-                    {shortenLongTableEntries(triple[4])}
+                    {M2DC.shortenLongTableEntries(
+                      triple[4],
+                      MEMORY_MAP_TABLE_MAX_ENTRY_LENGTH,
+                      "right-start"
+                    )}
                   </StyledTableCell>
                   <StyledTableCell desc="value">
-                    {shortenLongTableEntries(triple[6])}
+                    {M2DC.shortenLongTableEntries(
+                      triple[6],
+                      MEMORY_MAP_TABLE_MAX_ENTRY_LENGTH,
+                      "right-start"
+                    )}
                   </StyledTableCell>
                 </StyledTableRow>
               ))}
@@ -363,22 +387,4 @@ export function positionMemoryMapTable(
   ret[final_pos[0]] = final_coords[0];
   ret[final_pos[1]] = final_coords[1];
   return ret;
-}
-
-function shortenLongTableEntries(e) {
-  if (e.length > 16) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        maxHeight={20}
-      >
-        <Tooltip title={e} placement="right-start" interactive leaveDelay={500}>
-          <p>{e.substring(0, 6) + "..." + e.substring(e.length - 6)}</p>
-        </Tooltip>
-      </Box>
-    );
-  }
-  return e;
 }
