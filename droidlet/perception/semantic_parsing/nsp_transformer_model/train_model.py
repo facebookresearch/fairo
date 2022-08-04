@@ -444,7 +444,10 @@ if __name__ == "__main__":
         "See full list at https://huggingface.co/transformers/pretrained_models.html",
     )
     parser.add_argument(
-        "--tokenizer_max_length", default=512, type=int, help="The maximal length of the sequence of token by tokenzier"
+        "--tokenizer_max_length",
+        default=512,
+        type=int,
+        help="The maximal length of the sequence of token by tokenzier",
     )
     parser.add_argument(
         "--num_decoder_layers",
@@ -505,9 +508,7 @@ if __name__ == "__main__":
         help="Factor for learning rate drop",
     )
     parser.add_argument(
-        "--use_warmup", 
-        action="store_false", 
-        help="whether setup warmup stage for optimizer"
+        "--use_warmup", action="store_false", help="whether setup warmup stage for optimizer"
     )
     parser.add_argument(
         "--warmup_factor",

@@ -60,7 +60,9 @@ class OptimWarmupEncoderDecoder(object):
             alpha = self._step / self.warmup_steps[stack]
             return self.lr[stack] * (self.warmup_factor * (1.0 - alpha) + alpha)
         else:
-            return self.lr[stack] * self.lr_ratio ** bisect_right(self.lr_schedules[stack], self._step)
+            return self.lr[stack] * self.lr_ratio ** bisect_right(
+                self.lr_schedules[stack], self._step
+            )
 
     def zero_grad(self):
         self.optimizer_decoder.zero_grad()

@@ -131,9 +131,9 @@ class CAIPDataset(Dataset):
         # Truncate tokens if it exceeds the maximal length
         # which is 512 for bert tokenizer
         if len(text_idx_ls) > self.tokenizer_max_length:
-            text_idx_ls = text_idx_ls[:self.tokenizer_max_length]
+            text_idx_ls = text_idx_ls[: self.tokenizer_max_length]
         if len(tree_idx_ls) > self.tokenizer_max_length:
-            tree_idx_ls = tree_idx_ls[:self.tokenizer_max_length]
+            tree_idx_ls = tree_idx_ls[: self.tokenizer_max_length]
 
         if self.tree_to_text:
             stripped_tree_tokens = []
