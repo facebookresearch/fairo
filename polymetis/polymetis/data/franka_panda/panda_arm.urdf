@@ -4,9 +4,6 @@
 <!-- |    EDITING THIS FILE BY HAND IS NOT RECOMMENDED                                 | -->
 <!-- =================================================================================== -->
 <robot name="panda">
-  <mujoco model="panda">
-    <compiler strippath="false"/>
-  </mujoco>
   <material name="panda_white">
     <color rgba="1 1 1 1"/>
   </material>
