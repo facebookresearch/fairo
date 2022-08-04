@@ -10,7 +10,7 @@ Usage:
 */
 
 import { SyncOutlined } from "@ant-design/icons";
-import { Progress, Typography } from "antd";
+import { Progress, Tag, Typography } from "antd";
 import React, { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { SocketContext } from "../../../context/socket";
@@ -72,11 +72,21 @@ const PipelineModelVizContent = (props) => {
 
     return <div>
         <Typography.Title level={4}>{"View Model Accuracy & Loss"}</Typography.Title>
+        {
+            modelBids && modelBids !== 404 
+            && 
+            <div
+                style={{padding: "0 0 12px 0"}}
+            >
+                Showing {modelBids.map((bid) => <Tag>{bid}</Tag>)} 
+            </div>
+        }
         <div style={{ padding: "0 24px 0 24px" }}>
             {
                 // show progress bar after getting model batch ids
                 modelBids && modelBids !== 404 && (Object.keys(modelDict).length) !== modelBids.length &&
-                <div> <span><SyncOutlined spin /> Loading Model Data... </span>
+                <div> 
+                    <span><SyncOutlined spin /> Loading Model Data... </span>
                     <Progress percent={Math.trunc((Object.keys(modelDict).length) / modelBids.length * 100)} />
                 </div>
             }

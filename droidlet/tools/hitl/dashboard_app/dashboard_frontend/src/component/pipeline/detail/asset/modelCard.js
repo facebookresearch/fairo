@@ -10,16 +10,26 @@ import { Button, Card, Descriptions, Divider, Tooltip, Typography } from "antd";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { SocketContext } from "../../../../context/socket";
 import ModelAtrributeModal from "./modelAttributeDetailModal";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip as ChartTooltip } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip as ChartTooltip, ResponsiveContainer } from "recharts";
 
 const { Meta } = Card;
 
 export const ModelLossAccGraph = (props) => {
     const width = props.width;
     const height = props.height;
-    const data = props.data.map((o, idx) => ({ Loss: o.loss, Accuracy: o.acc, Epoch: idx }));
+    const yAxisName = props.yAxisName;
 
-    return <div style={{ width: "100%", height: "100%" }}>
+    const getScaled = (yName, value) => {
+        // if is loss, get log2 scaled
+        if ((yName) === "Loss") {
+            return value ? Math.log2(value): 0;
+        } else {
+            return value;
+        }
+    }
+    const data = props.data.map((o, idx) => ({ Training: getScaled(yAxisName, o.training), Validation:  getScaled(yAxisName, o.validation), Epoch: idx }));
+
+    return <ResponsiveContainer height={"70%"} aspect={width / height}>
         <LineChart
             width={width}
             height={height}
@@ -33,13 +43,13 @@ export const ModelLossAccGraph = (props) => {
         >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis type="number" dataKey="Epoch" label={{offset: 0, value: "Epoch", position: "insideBottom" }}/>
-            <YAxis />
+            <YAxis label={{offset: 0, value: (yAxisName === "Loss" ? yAxisName + "(Log2 Scaled)": yAxisName), position: "insideLeft", angle: -90}}/>
             <Legend />
             <ChartTooltip />
-            <Line type="monotone" dataKey="Loss" stroke="#ad2102" />
-            <Line type="monotone" dataKey="Accuracy" stroke="#1890ff" activeDot={{ r: 8 }} dot={{strokeWidth: 2}} strokeWidth={2} />
+            <Line type="monotone" dataKey="Training" stroke="#ad2102" />
+            <Line type="monotone" dataKey="Validation" stroke="#1890ff" activeDot={{ r: 8 }} dot={{strokeWidth: 2}} strokeWidth={2} />
         </LineChart>
-    </div>
+    </ResponsiveContainer>
 }
 
 export const ViewLossAccCard = (props) => {
@@ -47,16 +57,16 @@ export const ViewLossAccCard = (props) => {
     const height = props.height ? props.height : 400;
     const lossAccData = props.data;
 
-    const LOSS_ACC_TYPES = [{ "label": "Epoch", "value": "epoch" }, { "label": "Text Span", "value": "text_span" }]
+    const LOSS_ACC_TYPES = [{ "label": "Accuracy", "value": "acc" }, { "label": "Loss", "value": "loss" }]
 
     const [activeTabKey, setActiveTabKey] = useState(LOSS_ACC_TYPES[0]["value"]);
 
     return <Card
         tabList={LOSS_ACC_TYPES.map((o) => ({ tab: o["label"], key: o["value"] }))}
         activeTabKey={activeTabKey}
-        onTabChange={(key) => setActiveTabKey(key)}
+        onTabChange={(key) => {setActiveTabKey(key)}}
     >
-        <ModelLossAccGraph data={lossAccData[activeTabKey]} height = {height} width = {width} />
+        <ModelLossAccGraph data={lossAccData[activeTabKey]} height = {height} width = {width} yAxisName={LOSS_ACC_TYPES.find((o) => (o.value === activeTabKey))["label"]} />
     </Card>
 }
 
@@ -136,7 +146,7 @@ const ModelCard = (props) => {
     }
 
     return (
-        <div style={{ width: '70%' }}>
+        <div style={{ width: "70%" }}>
             <Card title="Model" loading={loadingKeys || loadingArgs || loadingLossAcc}>
                 <Meta />
                 {
@@ -166,7 +176,7 @@ const ModelCard = (props) => {
                                     lossAccData &&
                                     <>
                                         <Divider />
-                                        <Typography.Title level={5} style={{ paddingBottom: '18px' }}>Model Loss And Accuracy</Typography.Title>
+                                        <Typography.Title level={5} style={{ paddingBottom: "18px" }}>Model Loss And Accuracy</Typography.Title>
                                         <ViewLossAccCard data={lossAccData} />
                                     </>
                                 }
@@ -175,7 +185,7 @@ const ModelCard = (props) => {
                             <div>NA</div>
                     )
                 }
-                {/* modal showing a specific model attribute's field (anything other than args) */}
+                {/* modal showing a specific model attribute"s field (anything other than args) */}
                 {currentModelKey
                     &&
                     <ModelAtrributeModal

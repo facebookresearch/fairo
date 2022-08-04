@@ -239,8 +239,8 @@ def get_best_model_loss_acc(batch_id: int):
     - output:
         - a list contains the following when a best model log file can be found:
             - a dictionary containing:
-                - epoch loss and accuracy
-                - text_span loss and accuracy
+                - key: loss, value: loss list for training and validation dataset
+                - key: acc, value: accuracy list for training and validation dataset
             - batch id 
         - or an error code indicating the best model log cannot be find
     """

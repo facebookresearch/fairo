@@ -199,7 +199,7 @@ def get_best_model_loss_acc_by_id(batch_id: int):
     """
     Get best model loss and accuracy from model log file,
     return:
-        - a dict including epoch & text span loss and accuracy, and no error code if can find the best model log
+        - a dict including loss and accuracy for training and valiation, and no error code if can find the best model log
         - an error message with error code 404 if cannot find the best model log
     """
     def get_best_model_name(batch_id: int):
@@ -227,9 +227,9 @@ def get_best_model_loss_acc_by_id(batch_id: int):
         return f"Cannot find best model log file with batch_id = {batch_id}", 404
 
     # read best model log file
-    epoch_ls, text_span_ls = read_model_log_to_list(best_model_log_fname)
-    print(f"epoch length: {len(epoch_ls)}, text_span length: {len(text_span_ls)}")
-    return {"epoch": epoch_ls, "text_span": text_span_ls}, None
+    loss_ls, acc_ls = read_model_log_to_list(best_model_log_fname)
+    print(f"loss length: {len(loss_ls)}, accuracy length: {len(acc_ls)}")
+    return {"loss": loss_ls, "acc": acc_ls}, None
 
 
 def get_best_models_by_pipeline(pipeline: str):
