@@ -26,7 +26,7 @@ def cli(*cmd_procs, procs=None, local=False, wait=True):
     defined_procs = set(process_def.defined_processes.keys())
 
     if local:  # Down local msetup.py
-        assert not procs, "Specifying processes is not supported with the flag '--local'."
+        assert not procs, "Cannot use '--local' flag and also specify processes."
         down_procs = running_procs & defined_procs
 
     elif procs:  # Specified process set.
