@@ -444,6 +444,9 @@ if __name__ == "__main__":
         "See full list at https://huggingface.co/transformers/pretrained_models.html",
     )
     parser.add_argument(
+        "--tokenizer_max_length", default=512, type=int, help="The maximal length of the sequence of token by tokenzier"
+    )
+    parser.add_argument(
         "--num_decoder_layers",
         default=6,
         type=int,
@@ -478,7 +481,7 @@ if __name__ == "__main__":
         "--encoder_lr_schedules",
         default="23000 35000",
         type=str,
-        help="Schedules (steps rather than epoches) for learning rate to decay by 1/10",
+        help="Schedules for learning rate drop encoder optimizer",
     )
     parser.add_argument(
         "--decoder_warmup_steps",
@@ -493,7 +496,24 @@ if __name__ == "__main__":
         "--decoder_lr_schedules",
         default="23000 35000",
         type=str,
-        help="Schedules (steps rather than epoches) for learning rate to decay by 1/10",
+        help="Schedules for learning rate drop of decoder optimizer",
+    )
+    parser.add_argument(
+        "--lr_ratio",
+        default=0.2,
+        type=float,
+        help="Factor for learning rate drop",
+    )
+    parser.add_argument(
+        "--use_warmup", 
+        action="store_false", 
+        help="whether setup warmup stage for optimizer"
+    )
+    parser.add_argument(
+        "--warmup_factor",
+        default=0.25,
+        type=float,
+        help="Factor for learning rate in warmup stage",
     )
     parser.add_argument(
         "--node_label_smoothing",

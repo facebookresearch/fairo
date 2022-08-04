@@ -40,6 +40,8 @@ class CAIPDataset(Dataset):
     ):
         assert isdir(args.data_dir)
         self.tokenizer = tokenizer
+        # the maximal length of the seqence of token
+        self.tokenizer_max_length = args.tokenizer_max_length
         self.tree_to_text = args.tree_to_text
 
         # We load the (input, tree) pairs for all data types and
@@ -128,11 +130,10 @@ class CAIPDataset(Dataset):
 
         # Truncate tokens if it exceeds the maximal length
         # which is 512 for bert tokenizer
-        max_length = 512
-        if len(text_idx_ls) > max_length:
-            text_idx_ls = text_idx_ls[:max_length]
-        if len(tree_idx_ls) > max_length:
-            tree_idx_ls = tree_idx_ls[:max_length]
+        if len(text_idx_ls) > self.tokenizer_max_length:
+            text_idx_ls = text_idx_ls[:self.tokenizer_max_length]
+        if len(tree_idx_ls) > self.tokenizer_max_length:
+            tree_idx_ls = tree_idx_ls[:self.tokenizer_max_length]
 
         if self.tree_to_text:
             stripped_tree_tokens = []
