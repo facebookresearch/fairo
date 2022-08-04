@@ -47,12 +47,12 @@ def test_down(reset, hanging_proc):
 
 def test_down_all(reset, hanging_proc, hanging_proc_external):
     # proc should be told to go down, but not proc_ext
-    mrp.cmd.down()
+    mrp.cmd.down(local=True)
     assert mrp.life_cycle.system_state().procs["proc"].ask == Ask.DOWN
     assert mrp.life_cycle.system_state().procs["proc_ext"].ask == Ask.UP
 
     # proc should be told to go down
-    mrp.cmd.down(all=True)
+    mrp.cmd.down()
     assert mrp.life_cycle.system_state().procs["proc_ext"].ask == Ask.DOWN
 
 
