@@ -1,8 +1,15 @@
 import torch
 import torch.nn as nn
 import logging
-from .modeling_bert import BertModel, BertOnlyMLMHead
-from .tokenization_utils import fixed_span_values_voc
+from droidlet.perception.semantic_parsing.nsp_transformer_model.modeling_bert import BertModel
+from droidlet.perception.semantic_parsing.nsp_transformer_model.tokenization_utils import (
+    fixed_span_values_voc,
+)
+from droidlet.perception.semantic_parsing.nsp_transformer_model.label_smoothing_loss import (
+    LabelSmoothingLoss,
+)
+
+from transformers.models.bert.modeling_bert import BertOnlyMLMHead
 
 
 def my_xavier_init(m, gain=1):
@@ -40,7 +47,6 @@ class DecoderWithLoss(nn.Module):
     """
     Transformer-based decoder module for sequence and span prediction.
     Predicts the output sequence and computes the loss if the target sequence is provided for convenience.
-
     Attributes:
         bert: BERT model, initialized with config
         lm_head: language modeling head
@@ -51,7 +57,6 @@ class DecoderWithLoss(nn.Module):
         span_ce_loss: Cross Entropy loss for spans
         span_loss_lb: Label smoothing loss for spans
         text_span_loss: Cross Entropy loss for text spans
-
     """
 
     def __init__(self, config, args, tokenizer):
@@ -87,18 +92,14 @@ class DecoderWithLoss(nn.Module):
 
     def step(self, y, y_mask, x_reps, x_mask):
         """Without loss, used at prediction time.
-
         TODO: add previously computed y_rep, currently y only has the node indices, not spans.
-
         Args:
             y: targets
             y_mask: mask for targets
             x_reps: encoder hidden states
             x_mask: input mask
-
         Returns:
             Dictionary containing scores from each output head
-
         """
         y_rep = self.bert(
             labels=y,
@@ -158,13 +159,11 @@ class DecoderWithLoss(nn.Module):
 
     def forward(self, labels, y, y_mask, x_reps, x_mask, is_eval=False):
         """Same as step, except with loss. Set is_eval=True for validation.
-
         labels: B x y_len x num_heads
         y: B x y_len x num_heads
         y_mask: B x y_len x num_heads
         x_reps: B x x_len x H
         x_mask: B x x_len x H
-
         output heads are (lm, span_start, span_end, text_span_start, text_span_end, fixed_value)
         For shape of outputs, see forward() in encoder_decoder.py
         """

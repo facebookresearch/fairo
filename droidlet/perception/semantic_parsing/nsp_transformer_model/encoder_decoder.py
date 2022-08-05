@@ -1,3 +1,4 @@
+from torch import nonzero
 import torch.nn as nn
 
 
@@ -23,6 +24,14 @@ class EncoderDecoderWithLoss(nn.Module):
         self.encoder = encoder
         self.decoder = decoder
         self.train_encoder = args.train_encoder
+
+        if (
+            args.pretrained_encoder_name == "bert-large-uncased"
+            and args.decoder_config_name == "bert-base-uncased"
+        ):
+            self.proj_encoder_decoder = nn.Linear(1024, 768)
+        else:
+            self.proj_encoder_decoder = None
 
     def forward(self, x, x_mask, y, y_mask, x_reps=None, is_eval=False):
         """
@@ -50,5 +59,9 @@ class EncoderDecoderWithLoss(nn.Module):
             x_reps = model[0]
         if not self.train_encoder:
             x_reps = x_reps.detach()
+
+        if self.proj_encoder_decoder:
+            x_reps = self.proj_encoder_decoder(x_reps)
+
         outputs = self.decoder(y, y, y_mask, x_reps, x_mask, is_eval)
         return outputs
