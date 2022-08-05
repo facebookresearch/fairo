@@ -16,6 +16,9 @@ import { useLocation } from "react-router-dom";
 import { SocketContext } from "../../../context/socket";
 import { ViewLossAccCard } from "../detail/asset/modelCard";
 
+const contentDivStyle = { padding: "0 24px 0 24px" };
+const paddingBottomSytle = {padding: "0 0 12px 0"};
+
 const PipelineModelVizContent = (props) => {
     const location = useLocation();
     const socket = useContext(SocketContext);
@@ -76,12 +79,12 @@ const PipelineModelVizContent = (props) => {
             modelBids && modelBids !== 404 
             && 
             <div
-                style={{padding: "0 0 12px 0"}}
+                style={paddingBottomSytle}
             >
                 Showing {modelBids.map((bid) => <Tag>{bid}</Tag>)} 
             </div>
         }
-        <div style={{ padding: "0 24px 0 24px" }}>
+        <div style={contentDivStyle}>
             {
                 // show progress bar after getting model batch ids
                 modelBids && modelBids !== 404 && (Object.keys(modelDict).length) !== modelBids.length &&

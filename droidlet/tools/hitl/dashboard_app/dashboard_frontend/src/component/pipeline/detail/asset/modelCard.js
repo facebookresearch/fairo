@@ -14,6 +14,18 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip as ChartT
 
 const { Meta } = Card;
 
+const lineChartMargin = {
+    top: 5,
+    right: 30,
+    left: 20,
+    bottom: 5,
+};
+
+const modelContainerStyle = {width: "70%"};
+const titleBottomPaddingStyle = { paddingBottom: "18px" };
+const textAlignLeftStyle = { textAlign: "left" };
+
+
 export const ModelLossAccGraph = (props) => {
     const width = props.width;
     const height = props.height;
@@ -22,32 +34,27 @@ export const ModelLossAccGraph = (props) => {
     const getScaled = (yName, value) => {
         // if is loss, get log2 scaled
         if ((yName) === "Loss") {
-            return value ? Math.log2(value): 0;
+            return value ? Math.log2(value) : 0;
         } else {
             return value;
         }
     }
-    const data = props.data.map((o, idx) => ({ Training: getScaled(yAxisName, o.training), Validation:  getScaled(yAxisName, o.validation), Epoch: idx }));
+    const data = props.data.map((o, idx) => ({ Training: getScaled(yAxisName, o.training), Validation: getScaled(yAxisName, o.validation), Epoch: idx }));
 
-    return <ResponsiveContainer height={"70%"} aspect={width / height}>
+    return <ResponsiveContainer aspect={width / height}>
         <LineChart
             width={width}
             height={height}
             data={data}
-            margin={{
-                top: 5,
-                right: 30,
-                left: 20,
-                bottom: 5,
-              }}
+            margin={lineChartMargin}
         >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" dataKey="Epoch" label={{offset: 0, value: "Epoch", position: "insideBottom" }}/>
-            <YAxis label={{offset: 0, value: (yAxisName === "Loss" ? yAxisName + "(Log2 Scaled)": yAxisName), position: "insideLeft", angle: -90}}/>
+            <XAxis type="number" dataKey="Epoch" label={{ offset: 0, value: "Epoch", position: "insideBottom" }} />
+            <YAxis label={{ offset: 0, value: (yAxisName === "Loss" ? yAxisName + " (Log2 Scaled)" : yAxisName), position: "insideLeft", angle: -90 }} />
             <Legend />
             <ChartTooltip />
             <Line type="monotone" dataKey="Training" stroke="#ad2102" />
-            <Line type="monotone" dataKey="Validation" stroke="#1890ff" activeDot={{ r: 8 }} dot={{strokeWidth: 2}} strokeWidth={2} />
+            <Line type="monotone" dataKey="Validation" stroke="#1890ff" activeDot={{ r: 8 }} dot={{ strokeWidth: 2 }} strokeWidth={2} />
         </LineChart>
     </ResponsiveContainer>
 }
@@ -64,9 +71,9 @@ export const ViewLossAccCard = (props) => {
     return <Card
         tabList={LOSS_ACC_TYPES.map((o) => ({ tab: o["label"], key: o["value"] }))}
         activeTabKey={activeTabKey}
-        onTabChange={(key) => {setActiveTabKey(key)}}
+        onTabChange={(key) => { setActiveTabKey(key) }}
     >
-        <ModelLossAccGraph data={lossAccData[activeTabKey]} height = {height} width = {width} yAxisName={LOSS_ACC_TYPES.find((o) => (o.value === activeTabKey))["label"]} />
+        <ModelLossAccGraph data={lossAccData[activeTabKey]} height={height} width={width} yAxisName={LOSS_ACC_TYPES.find((o) => (o.value === activeTabKey))["label"]} />
     </Card>
 }
 
@@ -146,13 +153,13 @@ const ModelCard = (props) => {
     }
 
     return (
-        <div style={{ width: "70%" }}>
+        <div style={modelContainerStyle}>
             <Card title="Model" loading={loadingKeys || loadingArgs || loadingLossAcc}>
                 <Meta />
                 {
                     !loadingKeys && !loadingArgs && (
                         modelKeys ?
-                            <div style={{ textAlign: "left" }}>
+                            <div style={textAlignLeftStyle}>
                                 <Descriptions title="Model Args" bordered column={2}>
                                     {modelArgs && Object.keys(modelArgs).map((key) =>
                                         <Descriptions.Item label={key}>{processModelArg(modelArgs[key])}</Descriptions.Item>
@@ -176,7 +183,7 @@ const ModelCard = (props) => {
                                     lossAccData &&
                                     <>
                                         <Divider />
-                                        <Typography.Title level={5} style={{ paddingBottom: "18px" }}>Model Loss And Accuracy</Typography.Title>
+                                        <Typography.Title level={5} style={titleBottomPaddingStyle}>Model Loss And Accuracy</Typography.Title>
                                         <ViewLossAccCard data={lossAccData} />
                                     </>
                                 }
