@@ -1,9 +1,17 @@
 # Dashboard App for HITL
-Updated July 22 by Chuxi.
+Updated Aug 4 by Chuxi.
 
 This is a Dashboard app prototype for the HITL system.
 
 ## Update Note
+- Aug 4:
+    - Update support for visualizing the model:
+        - Changed from showing loss and accuracy of validation and text_span to showing loss and accuracy seperately, and show training loss/accuracy & validation loss/accuracy in the same graph. 
+        - Demo:
+            - Best models loss & accuracy for NLU pipeline:
+                - 
+            - Best model in a run:
+                - 
 - July 22:
     - Updated frontend component to show the model line graph of loss and accuracy vs epoch.
     - Demo:
@@ -128,15 +136,21 @@ APIs are based on socket event, the following APIs are supported currently:
         - the key for the model, could be any key from the model, or "COMPLETE", indicating getting the complete model dict
     - output: the key and the value specific to the key for the model if the model exists and key is valid, otherwise error code
 - get_best_model_loss_acc_by_id
-    - get loss and accuracy from a model log for a specific run's best model, 
-    the loss and accuracy infomation is reterived by crawling the best model's log file
+    - get loss and accuracy from a model log for a specific run's best model, the loss and accuracy infomation is reterived by crawling the best model's log file
     - input:
         - batch id of a specific run
     - output:
-        - a dictionary containing:
-            - epoch loss and accuracy
-            - text_span loss and accuracy
+        - a list contains the following when a best model log file can be found:
+            - a dictionary containing:
+                - key: loss, value: loss list for training and validation dataset
+                - key: acc, value: accuracy list for training and validation dataset
+            - batch id 
         - or an error code indicating the best model log cannot be find
+- get best models' batch ids for a specific pipeline
+    - input:
+        - pipeline name (can be nlu, tao or vision)
+    - output:
+        - a list of the batch ids of the best models
  
 ## Demo
 ![backend_api_demo](https://user-images.githubusercontent.com/51009396/175696481-532cec55-5b2e-4bae-bceb-9e7d3f2aa7b7.gif)
