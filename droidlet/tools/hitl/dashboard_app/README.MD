@@ -6,7 +6,7 @@ This is a Dashboard app prototype for the HITL system.
 ## Update Note
 - Aug 4:
     - Update support for visualizing the model:
-        - Changed from showing loss and accuracy of validation and text_span to showing loss and accuracy seperately, and show training loss/accuracy & validation loss/accuracy in the same graph. 
+        - Changed from showing loss and accuracy of validation and text_span to showing loss and accuracy separately, and show training loss/accuracy & validation loss/accuracy in the same graph. 
         - Updated the graph visualization container to be responsive to browser window changes. 
         - Demo:
             - Best models loss & accuracy for a pipeline:
