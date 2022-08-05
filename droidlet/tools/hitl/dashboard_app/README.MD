@@ -9,10 +9,10 @@ This is a Dashboard app prototype for the HITL system.
         - Changed from showing loss and accuracy of validation and text_span to showing loss and accuracy seperately, and show training loss/accuracy & validation loss/accuracy in the same graph. 
         - Updated the graph visualization container to be responsive to browser window changes. 
         - Demo:
-            - Best models loss & accuracy for NLU pipeline:
-                - 
+            - Best models loss & accuracy for a pipeline:
+                - ![demo_best_models_for_pipeline](https://user-images.githubusercontent.com/51009396/182976894-a1eb380b-06fd-491b-8e4f-29abd7c2024d.gif)
             - Best model in a run (showing loss and accuracy seperately, graph responsive to browser window changes):
-                - 
+                - ![demo_best_model_for_a_run](https://user-images.githubusercontent.com/51009396/182976905-60713821-31d8-4187-889a-11b3b1d1ce82.gif)
 - July 22:
     - Updated frontend component to show the model line graph of loss and accuracy vs epoch.
     - Demo:
