@@ -147,7 +147,8 @@ APIs are based on socket event, the following APIs are supported currently:
                 - key: acc, value: accuracy list for training and validation dataset
             - batch id 
         - or an error code indicating the best model log cannot be find
-- get best models' batch ids for a specific pipeline
+- get_best_model_bids_by_pipeline
+    - get best models' batch ids for a specific pipeline
     - input:
         - pipeline name (can be nlu, tao or vision)
     - output:
