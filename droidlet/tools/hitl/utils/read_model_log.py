@@ -12,6 +12,7 @@ def read_model_log_to_list(fname: str):
         - Loss changes over epoch increases of training / validation
         - Accuracy changes over epoch increases of training / validation
     """
+
     def get_loss_acc(line: str):
         words = line.split(" ")
         loss, acc = None, None
@@ -24,7 +25,7 @@ def read_model_log_to_list(fname: str):
                 acc = None if acc is math.isnan(acc) else acc
         return loss, acc
 
-    loss_list = []  
+    loss_list = []
     acc_list = []
     t_key, v_key = "training", "validation"
 

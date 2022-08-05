@@ -241,7 +241,7 @@ def get_best_model_loss_acc(batch_id: int):
             - a dictionary containing:
                 - key: loss, value: loss list for training and validation dataset
                 - key: acc, value: accuracy list for training and validation dataset
-            - batch id 
+            - batch id
         - or an error code indicating the best model log cannot be find
     """
     print(

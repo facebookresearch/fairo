@@ -202,6 +202,7 @@ def get_best_model_loss_acc_by_id(batch_id: int):
         - a dict including loss and accuracy for training and valiation, and no error code if can find the best model log
         - an error message with error code 404 if cannot find the best model log
     """
+
     def get_best_model_name(batch_id: int):
         # download and read best_model.txt file
         best_model_fname = ""
