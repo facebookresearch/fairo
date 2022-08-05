@@ -271,6 +271,12 @@ def argument_parse(input_arg):
         type=str,
         help="Directory to pretrained NLU model",
     )
+    parser.add_argument(
+        "--tokenizer_max_length",
+        default=512,
+        type=int,
+        help="The maximal length of the sequence of token by tokenzier",
+    )
     # optimization arugments
     parser.add_argument("--batch_size", default=28, type=int, help="Batch size")
     parser.add_argument(
