@@ -6,6 +6,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from typing import Callable
+from inspect import signature
 import time
 import numpy as np
 import hydra
@@ -127,7 +128,7 @@ class GrpcSimulationClient(AbstractRobotClient):
         """Close connection in destructor"""
         self.channel.close()
 
-    def run(self, time_horizon=float("inf")):
+    def run_torque_control(self, time_horizon=float("inf")):
         """Start running the simulation and querying the server.
 
         Args:
@@ -175,6 +176,31 @@ class GrpcSimulationClient(AbstractRobotClient):
             # Apply action to env
             torque_command = np.array([t for t in msg.joint_torques])
             self.env.apply_joint_torques(torque_command)
+
+            # Idle for the remainder of loop time
+            t += 1
+            spinner.spin()
+
+    run = run_torque_control  # alias torque control to run for backwards compatibility
+
+    def run_mirror_control(self, time_horizon=float("inf")):
+        msg = self.connection.InitRobotClient(self.metadata.get_proto())
+
+        robot_state = polymetis_pb2.RobotState()
+        # Main loop
+        t = 0
+        spinner = Spinner(self.hz)
+        while t < time_horizon:
+            log_request_time = self.log_interval > 0 and t % self.log_interval == 0
+            breakpoint()
+            self.connection.GetRobotState(polymetis_pb2.Empty())
+            breakpoint()
+            msg = self.execute_rpc_call(
+                self.connection.GetRobotState,
+                [polymetis_pb2.Empty()],
+                log_request_time=log_request_time,
+            )
+            breakpoint()
 
             # Idle for the remainder of loop time
             t += 1
