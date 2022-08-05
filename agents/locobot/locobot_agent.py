@@ -150,8 +150,9 @@ class LocobotAgent(DroidletAgent):
             objects = DetectedObjectNode.get_all(self.memory)
             for o in objects:
                 del o["feature_repr"]  # pickling optimization
-#            self.dashboard_memory["objects"] = objects
-#            sio.emit("updateState", {"memory": self.dashboard_memory})
+
+        #            self.dashboard_memory["objects"] = objects
+        #            sio.emit("updateState", {"memory": self.dashboard_memory})
 
         @sio.on("interaction data")
         def log_interaction_data(sid, interactionData):
@@ -280,15 +281,22 @@ class LocobotAgent(DroidletAgent):
         self.memory.update(perception_output)
 
     def get_detected_objects_for_map(self):
-        memids, mems = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
+        search_res = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
+        memids, mems = [], []
+        if search_res is not None:
+            memids, mems = search_res
         detections_for_map = []
         for mem in mems:
-            if hasattr(mem, "obj_id") and hasattr(mem, "pos"):
-                detections_for_map.append([mem.obj_id, list(mem.pos)])
-            elif hasattr(mem, "pos"):
-                detections_for_map.append(["no_id", list(mem.pos)])
+            if hasattr(mem, "pos"):
+                id_str = "no_id" if not hasattr(mem, "obj_id") else mem.obj_id
+                obj = vars(mem)
+                obj.pop('agent_memory', None)   # not necessary to show memory object type and location 
+                obj["node_type"] = type(mem).__name__
+                obj["obj_id"] = id_str
+                obj["pos"] = list(mem.pos)
+                detections_for_map.append(obj)
         return detections_for_map
-    
+
     def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
         detections_for_map = []
         if not obstacles:
@@ -308,7 +316,8 @@ class LocobotAgent(DroidletAgent):
                 "y": xyyaw[1],
                 "yaw": xyyaw[2],
                 "map": obstacles,
-                "detections_from_memory": detections_for_map
+                "bot_data": detections_for_map[0],
+                "detections_from_memory": detections_for_map[1:],
             },
         )
 
@@ -328,11 +337,13 @@ class LocobotAgent(DroidletAgent):
         if self.backend == "habitat":
             from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 
+            print("here")
             self.mover = LoCoBotMover(ip=self.opts.ip, backend=self.opts.backend)
         else:
             from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
 
             self.mover = HelloRobotMover(ip=self.opts.ip)
+        print("done with physical init")
 
     def get_player_struct_by_name(self, speaker_name):
         _, memnode = self.memory.basic_search(

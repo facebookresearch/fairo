@@ -4,9 +4,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import copy
 import os
 import random
+import numpy as np
 from collections import namedtuple
 from typing import Optional, List
 from droidlet.memory.sql_memory import AgentMemory, DEFAULT_PIXELS_PER_UNIT
+from droidlet.base_util import Pos
+from droidlet.shared_data_struct.craftassist_shared_utils import ItemStack
 from droidlet.base_util import diag_adjacent, IDM, XYZ, Block, npy_to_blocks_list
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
@@ -43,9 +46,6 @@ SCHEMAS = [
 ]
 
 SCHEMA = os.path.join(os.path.dirname(__file__), "memory_schema.sql")
-
-THROTTLING_TICK_UPPER_LIMIT = 64
-THROTTLING_TICK_LOWER_LIMIT = 4
 
 # TODO "snapshot" memory type  (giving a what mob/object/player looked like at a fixed timestamp)
 # TODO when a memory is removed, its last state should be snapshotted to prevent tag weirdness
@@ -127,15 +127,19 @@ class MCAgentMemory(AgentMemory):
                 in_perceive_area : blockobjects, holes and blocks in the area agent will be running perception in
                 near_agent: block objects, holes and blocks near the agent
                 labeled_blocks: labels and resulting locations from semantic segmentation model
+                dashboard_edits: Dict of ReferenceObject memid's, edits made to attributes from dashboard
+                dashboard_groups: Dict of ReferenceObject memid's, tags annotated by user in dashboard
 
         :return:
         updated_areas_to_perceive: list of (xyz, idm) representing the area agent should perceive
         """
         if not perception_output:
             return areas_to_perceive
+        self_node = self.get_mem_by_id(self.self_memid)
         output = {}
         updated_areas_to_perceive = areas_to_perceive
-        """Perform update the memory with input from low_level perception module"""
+
+        """Perform update to memory with input from low_level perception module"""
         # 1. Handle all mobs in agent's perception range
         if perception_output.mobs:
             map_changes = []
@@ -147,28 +151,57 @@ class MCAgentMemory(AgentMemory):
                 )
             # FIXME track these semi-automatically...
             self.place_field.update_map(map_changes)
+
         # 2. Handle all items that the agent can pick up in-game
-        if perception_output.agent_pickable_items:
-            # FIXME PUT IN MEMORY PROPERLY
-            # 2.1 Items that are in perception range
-            if perception_output.agent_pickable_items["in_perception_items"]:
-                for pickable_items in perception_output.agent_pickable_items[
-                    "in_perception_items"
-                ]:
-                    self.set_item_stack_position(pickable_items)
-            # 2.2 Update previous pickable_item_stack based on perception
-            if perception_output.agent_pickable_items["all_items"]:
-                # Note: item stacks are not stored properly in memory right now @Yuxuan to fix this.
-                old_item_stacks = self.get_all_item_stacks()
-                if old_item_stacks:
-                    for old_item_stack in old_item_stacks:
-                        memid = old_item_stack[0]
-                        eid = old_item_stack[1]
-                        # NIT3: return untag set and tag set
-                        if eid not in perception_output.agent_pickable_items["all_items"]:
-                            self.nodes[TripleNode.NODE_TYPE].untag(self, memid, "_on_ground")
-                        else:
-                            self.nodes[TripleNode.NODE_TYPE].tag(self, memid, "_on_ground")
+        holder_eids = {}
+        # FIXME: deal with far away things better
+        for eid, item_stack_info in perception_output.agent_pickable_items.items():
+            struct, holder_eid, tags = item_stack_info
+            holder_eids[struct.entityId] = holder_eid
+            if (
+                np.linalg.norm(np.array(self_node.pos) - np.array(struct.pos))
+                < self.perception_range
+            ):
+                node = ItemStackNode.maybe_update_item_stack_position(self, struct)
+                if not node:
+                    memid = ItemStackNode.create(self, struct, self.low_level_block_data)
+                else:
+                    memid = node.memid
+                TripleNode.untag(self, memid, "_possibly_stale_location")
+                # TODO: remove stale triples?
+                for pred_text, obj_text in tags:
+                    TripleNode.create(self, subj=memid, pred_text=pred_text, obj_text=obj_text)
+
+        # cuberite/mc does not return item_stacks in agent's or others inventory.
+        # we do the best we can with these, FIXME
+        # not removing any old items, FIXME
+        all_item_stacks = self._db_read(
+            "SELECT uuid, eid FROM ReferenceObjects WHERE ref_type=?", "item_stack"
+        )
+        for memid, eid in all_item_stacks:
+            holder_eid = holder_eids.get(eid)
+            if holder_eid is not None:
+                if holder_eid == -1:
+                    node = self.get_mem_by_id(memid)
+                    TripleNode.tag(self, memid, "_on_ground")
+                    TripleNode.untag(self, memid, "_in_inventory")
+                    TripleNode.untag(self, memid, "_in_others_inventory")
+                else:
+                    TripleNode.untag(self, memid, "_on_ground")
+                    if holder_eid == self_node.eid:
+                        TripleNode.tag(self, memid, "_in_inventory")
+                    else:
+                        TripleNode.tag(self, memid, "_in_others_inventory")
+            else:
+                node = self.get_mem_by_id(memid)
+                # we are in cuberite, and an item is held by another entity or has disappeared
+                # in any case, we can't track its location
+                TripleNode.tag(self, memid, "_possibly_stale_location")
+        held_memids = TripleNode.get_memids_by_tag(self, "_in_inventory")
+        for memid in held_memids:
+            eid = self._db_read_one("SELECT eid FROM ReferenceObjects WHERE uuid=?", memid)[0]
+            struct = ItemStack(None, Pos(*self_node.pos), eid, "")
+            ItemStackNode.maybe_update_item_stack_position(self, struct)
 
         # 3. Update agent's current position and attributes in memory
         if perception_output.agent_attributes:
@@ -199,7 +232,7 @@ class MCAgentMemory(AgentMemory):
             for player, location in player_list:
                 mem = self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self, player.entityId)
                 if mem is None:
-                    memid = PlayerNode.create(self, player)
+                    memid = self.nodes[PlayerNode.NODE_TYPE].create(self, player)
                 else:
                     memid = mem.memid
                 cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
@@ -253,7 +286,7 @@ class MCAgentMemory(AgentMemory):
                 ) = perception_output.changed_block_attributes[(xyz, idm)]
                 self.maybe_add_block_to_memory(interesting, player_placed, agent_placed, xyz, idm)
 
-        """Now perform update the memory with input from heuristic perception module"""
+        """Now perform update to memory with input from heuristic perception module"""
         # 1. Process everything in area to attend for perception
         if perception_output.in_perceive_area:
             # 1.1 Add colors of all block objects
@@ -264,7 +297,7 @@ class MCAgentMemory(AgentMemory):
                     block_object, color_tags = block_object_attr
                     memid = BlockObjectNode.create(self, block_object)
                     for color_tag in list(set(color_tags)):
-                        self.nodes[TripleNode.NODE_TYPE].create(
+                        TripleNode.create(
                             self, subj=memid, pred_text="has_colour", obj_text=color_tag
                         )
             # 1.2 Update all holes with their block type in memory
@@ -282,7 +315,7 @@ class MCAgentMemory(AgentMemory):
                     block_object, color_tags = block_object_attr
                     memid = BlockObjectNode.create(self, block_object)
                     for color_tag in list(set(color_tags)):
-                        self.nodes[TripleNode.NODE_TYPE].create(
+                        TripleNode.create(
                             self, subj=memid, pred_text="has_colour", obj_text=color_tag
                         )
             # 2.2 Update all holes with their block type in memory
@@ -302,6 +335,12 @@ class MCAgentMemory(AgentMemory):
         if perception_output.holes:
             hole_memories = self.add_holes_to_mem(perception_output.holes)
             output["holes"] = hole_memories
+
+        """Now perform update to memory with input from manual edits perception module"""
+        if perception_output.dashboard_edits:
+            self.make_manual_edits(perception_output.dashboard_edits)
+        if perception_output.dashboard_groups:
+            self.make_dashboard_groups(perception_output.dashboard_groups)
 
         output["areas_to_perceive"] = updated_areas_to_perceive
         return output
@@ -371,7 +410,7 @@ class MCAgentMemory(AgentMemory):
                 query = "SELECT MEMORY FROM BlockType WHERE has_name={}".format(fill_block_name)
                 _, fill_block_mems = self.basic_search(query)
                 fill_block_memid = fill_block_mems[0].memid
-                self.nodes[TripleNode.NODE_TYPE].create(
+                TripleNode.create(
                     self, subj=memid, pred_text="has_fill_type", obj=fill_block_memid
                 )
             hole_memories.append(self.get_mem_by_id(memid))
@@ -492,6 +531,37 @@ class MCAgentMemory(AgentMemory):
         )
         return r
 
+    ########################
+    ###  DashboardEdits  ###
+    ########################
+    def make_manual_edits(self, edits):
+        for memid in edits.keys():
+            toEdit = {
+                attr: val for attr, val in edits[memid].items() if attr not in ("location", "pos")
+            }
+            if toEdit:
+                cmd = (
+                    "UPDATE ReferenceObjects SET " + "=?, ".join(toEdit.keys()) + "=? WHERE uuid=?"
+                )
+                self.db_write(cmd, *toEdit.values(), memid)
+
+            # spatial data is iterable, needs to be handled differently
+            if "pos" in edits[memid].keys():
+                newPos = edits[memid]["pos"]
+                assert len(newPos) == 3
+                cmd = "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?"
+                self.db_write(cmd, newPos[0], newPos[1], newPos[2], memid)
+            elif "location" in edits[memid].keys():
+                newPos = edits[memid]["location"]
+                assert len(newPos) == 3
+                cmd = "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?"
+                self.db_write(cmd, newPos[0], newPos[1], newPos[2], memid)
+
+    def make_dashboard_groups(self, groups):
+        for group, memids in groups.items():
+            for memid in memids:
+                TripleNode.create(self, subj=memid, pred_text="is_a", obj_text=group)
+
     ####################
     ###  Schematics  ###
     ####################
@@ -524,11 +594,9 @@ class MCAgentMemory(AgentMemory):
             if b >= 256:
                 continue
             memid = BlockTypeNode.create(self, type_name, (b, m))
-            self.nodes[TripleNode.NODE_TYPE].create(
-                self, subj=memid, pred_text="has_name", obj_text=type_name
-            )
+            TripleNode.create(self, subj=memid, pred_text="has_name", obj_text=type_name)
             if "block" in type_name:
-                self.nodes[TripleNode.NODE_TYPE].create(
+                TripleNode.create(
                     self,
                     subj=memid,
                     pred_text="has_name",
@@ -538,14 +606,12 @@ class MCAgentMemory(AgentMemory):
             if load_color:
                 if name_to_colors.get(type_name) is not None:
                     for color in name_to_colors[type_name]:
-                        self.nodes[TripleNode.NODE_TYPE].create(
-                            self, subj=memid, pred_text="has_colour", obj_text=color
-                        )
+                        TripleNode.create(self, subj=memid, pred_text="has_colour", obj_text=color)
 
             if load_block_property:
                 if block_name_to_properties.get(type_name) is not None:
                     for property in block_name_to_properties[type_name]:
-                        self.nodes[TripleNode.NODE_TYPE].create(
+                        TripleNode.create(
                             self, subj_text=memid, pred_text="has_name", obj_text=property
                         )
 
@@ -560,58 +626,15 @@ class MCAgentMemory(AgentMemory):
 
             # load single mob as schematics
             memid = SchematicNode.create(self, [((0, 0, 0), (383, m))])
-            self.nodes[TripleNode.NODE_TYPE].create(
-                self, subj=memid, pred_text="has_name", obj_text=type_name
-            )
-            self.nodes[TripleNode.NODE_TYPE].tag(self, memid, "_spawn")
-            self.nodes[TripleNode.NODE_TYPE].tag(self, memid, name)
+            TripleNode.create(self, subj=memid, pred_text="has_name", obj_text=type_name)
+            TripleNode.tag(self, memid, "_spawn")
+            TripleNode.tag(self, memid, name)
             if "block" in name:
-                self.nodes[TripleNode.NODE_TYPE].tag(self, memid, name.strip("block").strip())
+                TripleNode.tag(self, memid, name.strip("block").strip())
 
             # then load properties
             memid = MobTypeNode.create(self, type_name, (383, m))
-            self.nodes[TripleNode.NODE_TYPE].create(
-                self, subj=memid, pred_text="has_name", obj_text=type_name
-            )
+            TripleNode.create(self, subj=memid, pred_text="has_name", obj_text=type_name)
             if mob_name_to_properties.get(type_name) is not None:
                 for prop in mob_name_to_properties[type_name]:
-                    self.nodes[TripleNode.NODE_TYPE].tag(self, memid, prop)
-
-    ####################
-    ###  ItemStacks  ###
-    ####################
-
-    def update_item_stack_eid(self, memid, eid) -> "ItemStackNode":
-        """Update ItemStack in memory and return the corresponding node
-        Returns:
-            ItemStackNode
-        """
-        r = self._db_read_one("SELECT * FROM ReferenceObjects WHERE uuid=?", memid)
-        if r:
-            self.db_write("UPDATE ReferenceObjects SET eid=? WHERE uuid=?", eid, memid)
-        return self.get_mem_by_id(memid)
-
-    def set_item_stack_position(self, item_stack) -> "ItemStackNode":
-        """If the node exists, update the position of item stack in memory
-        else create a new node.
-        Returns :
-            Updated or new ItemStackNode
-        """
-        r = self._db_read_one("SELECT uuid FROM ReferenceObjects WHERE eid=?", item_stack.entityId)
-        if r:
-            self.db_write(
-                "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE eid=?",
-                item_stack.pos.x,
-                item_stack.pos.y,
-                item_stack.pos.z,
-                item_stack.entityId,
-            )
-            (memid,) = r
-        else:
-            memid = ItemStackNode.create(self, item_stack, self.low_level_block_data)
-        return self.get_mem_by_id(memid)
-
-    def get_all_item_stacks(self):
-        """Get all nodes that are of type "item_stack" """
-        r = self._db_read("SELECT uuid, eid FROM ReferenceObjects WHERE ref_type=?", "item_stack")
-        return r
+                    TripleNode.tag(self, memid, prop)

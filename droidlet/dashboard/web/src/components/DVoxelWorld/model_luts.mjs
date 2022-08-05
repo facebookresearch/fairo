@@ -69,7 +69,10 @@ const MINECRAFT_BLOCK_MAP = {
     "38,0": 63, // Poppy
     "39,0": 64, // Brown Mushroom
     "40,0": 65, // Red Mushroom
-    "95,4": 66, // Yellow Stained Glass
+    "41,0": 66, // Gold
+    "42,0": 67, // Iron
+    "95,4": 68, // Yellow Stained Glass
+    "10,0": 69, // Lava
   };
 
 const VW_ITEM_MAP = {
@@ -99,7 +102,7 @@ const VW_ITEM_MAP = {
     // 61: 0x1a1a1a, // Black Wool
 
     // 66: null, // Yellow Glass
-
+    
     "stone": {
         "color": 0xffffff,
         "opacity": 1.0,
@@ -120,6 +123,41 @@ const VW_ITEM_MAP = {
         "sides": 'dirt.png',
         "bottom": 'dirt.png',
         "top": 'dirt.png',
+    },
+    "wood": {
+        "color": 0xffffff,
+        "opacity": 1.0,
+        "sides": 'wood.png',
+        "bottom": 'wood.png',
+        "top": 'wood.png',
+    },
+    "iron": {
+        "color": 0xffffff,
+        "opacity": 1.0,
+        "sides": 'iron.png',
+        "bottom": 'iron.png',
+        "top": 'iron.png',
+    },
+    "bedrock": {
+        "color": 0xffffff,
+        "opacity": 1.0,
+        "sides": 'bedrock.png',
+        "bottom": 'bedrock.png',
+        "top": 'bedrock.png',
+    },
+    "gold": {
+        "color": 0xffffff,
+        "opacity": 1.0,
+        "sides": 'gold.png',
+        "bottom": 'gold.png',
+        "top": 'gold.png',
+    },
+    "lava": {
+        "color": 0xffffff,
+        "opacity": 1.0,
+        "sides": 'lava.png',
+        "bottom": 'lava.png',
+        "top": 'lava.png',
     },
 
     "white wool": {
@@ -201,6 +239,13 @@ const VW_ITEM_MAP = {
     },
     "brown wool": {
         "color": 0xdd992c,
+        "opacity": 1.0,
+        "sides": 'wool.png',
+        "bottom": 'wool.png',
+        "top": 'wool.png',
+    },
+    "lime wool": {
+        "color": 0x00ff00,
         "opacity": 1.0,
         "sides": 'wool.png',
         "bottom": 'wool.png',
@@ -310,70 +355,70 @@ const VW_MOB_MAP = {
         "model_folder": "low_poly_bat/",
         "model_file": "scene.gltf",
         "default_scale": 60,
-        "rotation_offset": [0, -Math.PI/2, 0],
+        "rotation_offset": [0, 0, 0],
         "position_offset": [22, 0, 23] 
     },
     "cat": {
         "model_folder": "low_poly_cat/",
         "model_file": "scene.gltf",
         "default_scale": 0.15,
-        "rotation_offset": [0, 0, 0],
+        "rotation_offset": [0, Math.PI/2, 0],
         "position_offset": [25, 0, 25] 
     },
     "chicken": {
         "model_folder": "low_poly_chicken/",
         "model_file": "chicken.gltf",
         "default_scale": 70.0,
-        "rotation_offset": [0, 0, 0],
+        "rotation_offset": [0, Math.PI/2, 0],
         "position_offset": [17, 0, 23] 
     },
     "cow": {
         "model_folder": "low_poly_cow/",
         "model_file": "scene.gltf",
         "default_scale": 0.075,
-        "rotation_offset": [0, -Math.PI/2, 0],
+        "rotation_offset": [0, 0, 0],
         "position_offset": [22, 20, 23] 
     },
     "horse": {
         "model_folder": "low_poly_horse/",
         "model_file": "scene.gltf",
         "default_scale": 25.0,
-        "rotation_offset": [0, Math.PI-0.3, 0],
+        "rotation_offset": [0, (-Math.PI/2)-0.3, 0],
         "position_offset": [30, 35, 25] 
     },
     "parrot": {
         "model_folder": "low_poly_parrot/",
         "model_file": "scene.gltf",
         "default_scale": 8.0,
-        "rotation_offset": [0, 0, 0],
+        "rotation_offset": [0, Math.PI/2, 0],
         "position_offset": [30, 35, 25] 
     },
     "pig": {
         "model_folder": "low_poly_pig/",
         "model_file": "scene.gltf",
         "default_scale": 5.0,
-        "rotation_offset": [0, Math.PI, 0],
+        "rotation_offset": [0, -Math.PI/2, 0],
         "position_offset": [20, 5, 25] 
     },
     "rabbit": {
         "model_folder": "low_poly_rabbit/",
         "model_file": "scene.gltf",
         "default_scale": 15.0,
-        "rotation_offset": [0, -Math.PI/2, 0],
+        "rotation_offset": [0, 0, 0],
         "position_offset": [28, 0, 25] 
     },
     "sheep": {
         "model_folder": "low_poly_sheep/",
         "model_file": "scene.gltf",
         "default_scale": 40.0,
-        "rotation_offset": [0, 0, 0],
+        "rotation_offset": [0, Math.PI/2, 0],
         "position_offset": [28, -18, 70] 
     },
     "wolf": {
         "model_folder": "low_poly_wolf/",
         "model_file": "scene.gltf",
         "default_scale": 0.08,
-        "rotation_offset": [0, Math.PI/2, 0],
+        "rotation_offset": [0, Math.PI, 0],
         "position_offset": [5, 28, 25] 
     },
 };
@@ -390,7 +435,7 @@ const VW_AVATAR_MAP = {
         "model_folder": "robot/",
         "model_file": "scene.gltf",
         "default_scale": 1.7,
-        "rotation_offset": [0, Math.PI/2, 0],
+        "rotation_offset": [0, Math.PI, 0],
         "position_offset": [25, 0, 25] 
     },
 }

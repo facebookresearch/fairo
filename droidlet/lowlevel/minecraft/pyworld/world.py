@@ -3,11 +3,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import time
 import numpy as np
-from threading import Thread
 from typing import Sequence, Dict
 from droidlet.base_util import Pos, Look
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM
-from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item
+from droidlet.shared_data_struct.craftassist_shared_utils import Player, Slot, Item, ItemStack
 from droidlet.shared_data_struct.rotation import look_vec
 from droidlet.lowlevel.minecraft.pyworld.fake_mobs import make_mob_opts, MOB_META, SimpleMob
 from droidlet.lowlevel.minecraft.pyworld.utils import (
@@ -15,6 +14,8 @@ from droidlet.lowlevel.minecraft.pyworld.utils import (
     make_pose,
     build_coord_shifts,
     shift_coords,
+    BEDROCK,
+    AIR,
 )
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import PASSABLE_BLOCKS
 
@@ -33,6 +34,9 @@ class World:
         self.to_npy_coords = to_npy_coords
         self.from_npy_coords = from_npy_coords
 
+        # TODO point to the actual object?  for now this just stores the eid to avoid collisions
+        self.all_eids = {}
+
         self.blocks = np.zeros((opts.sl, opts.sl, opts.sl, 2), dtype="int32")
         if spec.get("ground_generator"):
             ground_args = spec.get("ground_args", None)
@@ -42,18 +46,34 @@ class World:
                 spec["ground_generator"](self, **ground_args)
         else:
             build_ground(self)
+        # TODO make some machinery to never allow these to go out of sync- adding blocks
+        # and removing them should go through interface
+        nz_blocks = [
+            (int(l[0]), int(l[1]), int(l[2]))
+            for l in zip(*np.nonzero(self.blocks[:, :, :, 0] > 0))
+        ]
+        self.blocks_dict = {l: tuple(int(i) for i in self.blocks[l].tolist()) for l in nz_blocks}
+
         self.mobs = []
         for m in spec["mobs"]:
             m.add_to_world(self)
-        self.item_stacks = []
-        for i in spec["item_stacks"]:
+        self.items = {}
+        for i in spec.get("items"):
             i.add_to_world(self)
         self.players = {}
+        # TODO make this more robust
+        # rn it is a dict for each player entityId with
+        # item typeNames as keys, and a list of item objects as values
+        self.player_inventories = {}
         for p in spec["players"]:
+            # FIXME! world should assign and manage entityId
             if hasattr(p, "add_to_world"):
                 p.add_to_world(self)
             else:
                 self.players[p.entityId] = p
+                # players cannot have anything in their inventory at init, TODO
+                self.player_inventories[p.entityId] = {}
+
         self.agent_data = spec["agent"]
         self.chat_log = []
 
@@ -76,15 +96,44 @@ class World:
             port = getattr(opts, "port", 25565)
             self.server = self.setup_server(port=port)
 
+    def new_eid(self, entityId=None):
+        count = 0
+        while entityId is None:
+            eid = int(np.random.randint(0, 1000000000))
+            if self.all_eids.get(eid, False):
+                count = count + 1
+            else:
+                entityId = eid
+            if count > 10000:
+                raise Exception(
+                    "Tried to add a new entity 10000 times, could not make an entityId"
+                )
+        if type(entityId) is not int:
+            raise Exception(
+                "tried to add a new entity with bad entityId type {}".format(type(entityId))
+            )
+        if entityId < 1:
+            raise Exception(
+                "tried to add a new entity with negative entityId  {}".format(entityId)
+            )
+        self.all_eids[entityId] = True
+        return entityId
+
     def set_count(self, count):
         self.count = count
 
     def step(self):
         for m in self.mobs:
             m.step()
+
         for eid, p in self.players.items():
-            if hasattr(p, "step"):
+            if hasattr(p, "step") and not getattr(p, "no_step_from_world", False):
                 p.step()
+
+        for eid, item in self.items.items():
+            if self.players.get(item.holder_entityId):
+                item.update_position(*self.players[item.holder_entityId].pos)
+
         self.count += 1
 
         if self.is_server:
@@ -93,9 +142,16 @@ class World:
     def broadcast_updates(self):
         # broadcast updates
         players = [
-            {"name": player.name, "x": player.pos.x, "y": player.pos.y, "z": player.pos.z}
+            {
+                "name": player.name,
+                "x": player.pos.x,
+                "y": player.pos.y,
+                "z": player.pos.z,
+                "yaw": player.look.yaw,
+                "pitch": player.look.pitch,
+            }
             for player in self.get_players()
-            if player.name in ["craftassist_agent", "dashboard_player"]
+            if player.name in ["craftassist_agent", "dashboard"]
         ]
         mobs = [
             {
@@ -108,10 +164,12 @@ class World:
             }
             for m in self.mobs
         ]
-        item_stacks = [i.get_info() for i in self.item_stacks]
+        items = self.get_items()
+        # FIXME !!!! item_stacks
         payload = {
             "status": "updateVoxelWorldState",
-            "world_state": {"agent": players, "mob": mobs, "item_stack": item_stacks},
+            "world_state": {"agent": players, "mob": mobs, "item_stack": items},
+            "backend": "pyworld",
         }
         # print(f"Server stepping, payload: {payload}")
         self.server.emit("updateVoxelWorldState", payload)
@@ -120,11 +178,19 @@ class World:
         blocks = [((int(loc[0]), int(loc[1]), int(loc[2])), (int(idm[0]), int(idm[1])))]
         payload = {
             "status": "updateVoxelWorldState",
-            "world_state": {
-                "block": blocks,
-            },
+            "world_state": {"block": blocks, "backend": "pyworld"},
         }
         self.server.emit("updateVoxelWorldState", payload)
+
+    def get_height_map(self):
+        """
+        get the ground height at each location, to maybe place items, mobs, and players
+        """
+        height_map = np.zeros((self.sl, self.sl))
+        for l, idm in self.blocks_dict.items():
+            if l[1] > height_map[l[0], l[2]] and idm[0] > 0:
+                height_map[l[0], l[2]] = l[1]
+        return height_map
 
     def place_block(self, block, force=False):
         loc, idm = block
@@ -139,15 +205,19 @@ class World:
             except:
                 return False
         # mobs keep loc in real coords, block objects we convert to the numpy index
-        loc = tuple(self.to_npy_coords(loc))
+        loc = tuple(int(i) for i in self.to_npy_coords(loc))
         idm = tuple(int(s) for s in idm)
         try:  # FIXME only allow placing non-air blocks in air locations?
-            if tuple(self.blocks[loc]) != (7, 0) or force:
+            if tuple(int(i) for i in self.blocks[loc]) != BEDROCK or force:
                 self.blocks[loc] = idm
                 if self.is_server:
                     self.broadcast_block_update(loc, idm)
                 for sid, store in self.changed_blocks_store.items():
                     store[tuple(loc)] = idm
+                if idm != AIR:
+                    self.blocks_dict[loc] = idm
+                else:
+                    self.blocks_dict.pop(loc, None)
                 return True
             else:
                 return False
@@ -156,7 +226,7 @@ class World:
             return False
 
     def dig(self, loc: XYZ):
-        return self.place_block((loc, (0, 0)))
+        return self.place_block((loc, AIR))
 
     def blocks_to_dict(self):
         d = {}
@@ -177,6 +247,20 @@ class World:
     def get_mobs(self):
         return [m.get_info() for m in self.mobs]
 
+    def get_items(self):
+        return [i.get_info() for i in self.items.values()]
+
+    def get_item_stacks(self):
+        item_stacks = []
+        for item in self.get_items():
+            pos = Pos(item["x"], item["y"], item["z"])
+            item_stacks.append(
+                ItemStack(
+                    Slot(item["id"], item["meta"], 1), pos, item["entityId"], item["typeName"]
+                )
+            )
+        return item_stacks
+
     def get_player_info(self, eid):
         """
         returns a Player struct
@@ -195,31 +279,28 @@ class World:
     def get_players(self):
         return [self.get_player_info(eid) for eid in self.players]
 
-    def get_item_stacks(self):
-        return [i.get_info() for i in self.item_stacks]
-
     def get_blocks(self, xa, xb, ya, yb, za, zb, transpose=True):
         xa, ya, za = self.to_npy_coords((xa, ya, za))
         xb, yb, zb = self.to_npy_coords((xb, yb, zb))
         M = np.array((xb, yb, zb))
         m = np.array((xa, ya, za))
         szs = M - m + 1
-        B = np.zeros((szs[1], szs[2], szs[0], 2), dtype="uint8")
+        B = np.zeros((szs[0], szs[1], szs[2], 2), dtype="uint8")
         B[:, :, :, 0] = 7
         xs, ys, zs = [0, 0, 0]
         xS, yS, zS = szs
-        if xb < 0 or yb < 0 or zb < 0:
-            return B
-        if xa > self.sl - 1 or ya > self.sl - 1 or za > self.sl - 1:
+        if xb < 0 or yb < 0 or zb < 0 or xa > self.sl - 1 or ya > self.sl - 1 or za > self.sl - 1:
+            if transpose:
+                B = B.transpose(1, 2, 0, 3)
             return B
         if xb > self.sl - 1:
-            xS = self.sl - xa
+            xS -= xb - (self.sl - 1)
             xb = self.sl - 1
         if yb > self.sl - 1:
-            yS = self.sl - ya
+            yS -= yb - (self.sl - 1)
             yb = self.sl - 1
         if zb > self.sl - 1:
-            zS = self.sl - za
+            zS -= zb - (self.sl - 1)
             zb = self.sl - 1
         if xa < 0:
             xs = -xa
@@ -230,27 +311,25 @@ class World:
         if za < 0:
             zs = -za
             za = 0
-        pre_B = self.blocks[xa : xb + 1, ya : yb + 1, za : zb + 1, :]
-        # pre_B = self.blocks[ya : yb + 1, za : zb + 1, xa : xb + 1, :]
-        B[ys:yS, zs:zS, xs:xS, :] = pre_B.transpose(1, 2, 0, 3)
-        if transpose:
-            return B
-        else:
-            return pre_B
 
-    def get_line_of_sight(self, pos, yaw, pitch):
+        B[xs:xS, ys:yS, zs:zS, :] = self.blocks[xa : xb + 1, ya : yb + 1, za : zb + 1, :]
+        if transpose:
+            B = B.transpose(1, 2, 0, 3)
+        return B
+
+    def get_line_of_sight(self, pos, yaw, pitch, loose=0):
         # it is assumed lv is unit normalized
         pos = tuple(self.to_npy_coords(pos))
         lv = look_vec(yaw, pitch)
         dt = 1.0
         for n in range(2 * self.sl):
             p = tuple(np.round(np.add(pos, n * dt * lv)).astype("int32"))
-            for i in range(-1, 2):
-                for j in range(-1, 2):
-                    for k in range(-1, 2):
+            for i in range(-loose, loose + 1):
+                for j in range(-loose, loose + 1):
+                    for k in range(-loose, loose + 1):
                         sp = tuple(np.add(p, (i, j, k)))
                         if all([x >= 0 for x in sp]) and all([x < self.sl for x in sp]):
-                            if tuple(self.blocks[sp]) != (0, 0):
+                            if tuple(self.blocks[sp]) != AIR:
                                 # TODO: deal with close blocks artifacts,
                                 # etc
                                 pos = self.from_npy_coords(sp)
@@ -266,11 +345,20 @@ class World:
         if self.connected_sids.get(sid) is not None:
             print("reconnecting eid {} (sid {})".format(self.connected_sids["sid"], sid))
             return
-        # FIXME add height map
+        for player_eid in self.connected_sids.values():
+            player_info = self.get_player_info(player_eid)
+            if player_info.name == data.get("name"):
+                print("reconnecting eid {} (sid {})".format(player_eid, sid))
+                return
+
         x, y, z, pitch, yaw = make_pose(
-            self.sl, self.sl, loc=data.get("loc"), pitchyaw=data.get("pitchyaw")
+            self.sl,
+            self.sl,
+            loc=data.get("loc"),
+            pitchyaw=data.get("pitchyaw"),
+            height_map=self.get_height_map(),
         )
-        entityId = data.get("entityId") or int(np.random.randint(0, 100000000))
+        entityId = self.new_eid(entityId=data.get("entityId"))
         # FIXME
         name = data.get("name", "anonymous")
         p = Player(entityId, name, Pos(int(x), int(y), int(z)), Look(float(yaw), float(pitch)))
@@ -287,6 +375,44 @@ class World:
             if player_info.name == player_name:
                 return {"player": player_info}
         return None
+
+    def player_pick_drop_items(self, player_eid, data, action="pick"):
+        """
+        data should be a list of entityIds
+        """
+        count = 0
+        for eid in data:
+            item = self.items.get(eid)
+            if item is not None:
+                # TODO inform caller if eid doesn't exist?
+                if action == "pick":
+                    # TODO check it isn't already attached?
+                    item.attach_to_entity(player_eid)
+                    count += 1
+                else:
+                    if item.holder_entityId == player_eid:
+                        item.attach_to_entity(-1)
+                        count += 1
+        return count
+
+    def check_in_bounds(self, player, pos):
+        if player.name == "dashboard":
+            lowerb = (self.sl / 3, 0, self.sl / 3)
+            upperb = (2 * self.sl / 3, self.sl / 3 - 1, 2 * self.sl / 3)
+        else:
+            lowerb = (0, 0, 0)
+            upperb = (self.sl, self.sl - 1, self.sl)
+        if (
+            pos[0] >= lowerb[0]
+            and pos[1] >= lowerb[1]
+            and pos[2] >= lowerb[2]
+            and pos[0] < upperb[0]
+            and pos[1] < upperb[1]
+            and pos[2] < upperb[2]
+        ):
+            return True
+        else:
+            return False
 
     def setup_server(self, port=25565):
         import socketio
@@ -325,11 +451,10 @@ class World:
 
             payload = {
                 "status": "updateVoxelWorldState",
-                "world_state": {
-                    "block": blocks,
-                },
+                "world_state": {"block": blocks},
+                "backend": "pyworld",
             }
-            print(f"Initial payload: {payload}")
+            # print(f"Initial payload: {payload}")
             server.emit("updateVoxelWorldState", payload)
 
         @server.on("get_world_info")
@@ -342,8 +467,9 @@ class World:
             eid = self.connected_sids.get(sid)
             player_struct = self.get_player_info(eid)
             chat_with_name = "<{}> {}".format(player_struct.name, chat_text)
-            for sid, store in self.incoming_chats_store.items():
-                store.append(chat_with_name)
+            for other_sid, store in self.incoming_chats_store.items():
+                if sid != other_sid:
+                    store.append(chat_with_name)
 
         @server.on("get_incoming_chats")
         def get_chats(sid):
@@ -376,6 +502,15 @@ class World:
         def set_agent_look(sid, data):
             eid = self.connected_sids.get(sid)
             player_struct = self.get_player_info(eid)
+            if not player_struct:
+                # FIXME only works for dashboard reconnect
+                for player_eid in self.connected_sids.values():
+                    player_info = self.get_player_info(player_eid)
+                    if player_info.name == "dashboard":
+                        player_struct = self.get_player_info(player_eid)
+                        eid = player_eid
+                        break
+
             new_look = Look(data["yaw"], data["pitch"])
             self.players[eid] = self.players[eid]._replace(look=new_look)
 
@@ -391,21 +526,50 @@ class World:
                 y += data.get("y", 0)
                 z += data.get("z", 0)
             nx, ny, nz = self.to_npy_coords((x, y, z))
-            # agent is 2 blocks high
-            if (
-                nx >= 0
-                and ny >= 0
-                and nz >= 0
-                and nx < self.sl
-                and ny < self.sl - 1
-                and nz < self.sl
-            ):
+            if self.check_in_bounds(player_struct, (nx, ny, nz)):
                 if (
                     self.blocks[nx, ny, nz, 0] in PASSABLE_BLOCKS
                     and self.blocks[nx, ny + 1, nz, 0] in PASSABLE_BLOCKS
                 ):
                     new_pos = Pos(x, y, z)
                     self.players[eid] = self.players[eid]._replace(pos=new_pos)
+                else:
+                    print(f"{player_struct.name} tried to move somewhere impossible")
+            else:
+                print(f"{player_struct.name} tried to move somewhere impossible")
+
+        @server.on("abs_move")
+        def move_agent_abs(sid, data):
+            eid = self.connected_sids.get(sid)
+            player_struct = self.get_player_info(eid)
+            # FIXME sid lost on page refresh, hacky workaround
+            if not player_struct:
+                for player_eid in self.connected_sids.values():
+                    player_info = self.get_player_info(player_eid)
+                    if player_info.name == "dashboard":
+                        player_struct = self.get_player_info(player_eid)
+                        eid = player_eid
+                        break
+
+            x, y, z = player_struct.pos
+            x = data.get("x", 0)
+            y = data.get("y", 0)
+            z = data.get("z", 0)
+
+            nx, ny, nz = self.to_npy_coords((x, y, z))
+            if self.check_in_bounds(player_struct, (nx, ny, nz)):
+                if (
+                    self.blocks[int(nx), int(ny), int(nz), 0] in PASSABLE_BLOCKS
+                    and self.blocks[int(nx), int(ny) + 1, int(nz), 0] in PASSABLE_BLOCKS
+                ):
+                    new_pos = Pos(x, y, z)
+                    self.players[eid] = self.players[eid]._replace(pos=new_pos)
+                else:
+                    print(f"{player_struct.name} tried to move somewhere impossible")
+                    print(player_struct.pos)
+            else:
+                print(f"{player_struct.name} tried to move somewhere impossible")
+                print(player_struct.pos)
 
         @server.on("set_held_item")
         def set_agent_mainhand(sid, data):
@@ -449,6 +613,26 @@ class World:
                 serialized_mobs.append((m.entityId, m.mobType, x, y, z, yaw, pitch))
             return serialized_mobs
 
+        @server.on("get_item_info")
+        def send_items(sid):
+            return self.get_items()
+
+        @server.on("pick_items")
+        def pick_items(sid, data):
+            """
+            data should be a list of entityId
+            """
+            player_eid = self.connected_sids[sid]
+            return self.player_pick_drop_items(player_eid, data, action="pick")
+
+        @server.on("drop_items")
+        def drop_items(sid, data):
+            """
+            data should be a list of entityId
+            """
+            player_eid = self.connected_sids[sid]
+            return self.player_pick_drop_items(player_eid, data, action="drop")
+
         @server.on("get_changed_blocks")
         def changed_blocks(sid):
             eid = self.connected_sids.get(sid)
@@ -463,7 +647,22 @@ class World:
             x, X, y, Y, z, Z = data["bounds"]
             npy = self.get_blocks(x, X, y, Y, z, Z, transpose=False)
             nz_locs = list(zip(*np.nonzero(npy[:, :, :, 0])))
-            nz_idms = [tuple(int(i) for i in self.blocks[l]) for l in nz_locs]
+            nz_idm_locs = [
+                (int(l[0]) + int(x), int(l[1]) + int(y), int(l[2]) + int(z)) for l in nz_locs
+            ]
+            nz_idms = []
+            for l in nz_idm_locs:
+                if (
+                    l[0] >= 0
+                    and l[0] < self.sl
+                    and l[1] >= 0
+                    and l[1] < self.sl
+                    and l[2] >= 0
+                    and l[2] < self.sl
+                ):
+                    nz_idms.append(tuple(int(i) for i in self.blocks[l]))
+                else:
+                    nz_idms.append((7, 0))
             nz_locs = [(int(x), int(y), int(z)) for x, y, z in nz_locs]
             flattened_blocks = [nz_locs[i] + nz_idms[i] for i in range(len(nz_locs))]
             return flattened_blocks
@@ -474,7 +673,6 @@ class World:
 
         @server.on("step_world")
         def step_world(sid):
-
             self.step()
 
         app = socketio.WSGIApp(server)
@@ -487,9 +685,9 @@ if __name__ == "__main__":
     class Opt:
         pass
 
-    spec = {"players": [], "mobs": [], "item_stacks": [], "coord_shift": (0, 0, 0), "agent": {}}
+    spec = {"players": [], "mobs": [], "items": [], "coord_shift": (0, 0, 0), "agent": {}}
     world_opts = Opt()
-    world_opts.sl = 16
+    world_opts.sl = 16 * 3
     world_opts.world_server = True
     world_opts.port = 6002
     world = World(world_opts, spec)

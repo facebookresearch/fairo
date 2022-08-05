@@ -115,11 +115,15 @@ class Settings extends React.Component {
     if (this.state.agent_enable_map === true) {
       map_switch = (
         <FormControlLabel
-          onChange={(e) => {
-            this.props.stateManager.handleMapToggle();
-          }}
-          control={<Switch size="small" />}
-          label="Toggle Dashboard: "
+          control={
+            <Switch
+              size="small"
+              onChange={() => {
+                this.props.stateManager.handleMapToggle();
+              }}
+            />
+          }
+          label="Toggle Map: "
           labelPlacement="start"
         />
       );
@@ -161,11 +165,7 @@ class Settings extends React.Component {
 
         <p> FPS: {this.state.fps} </p>
         <p> Connection Status: {status_indicator} </p>
-        <p>
-          <div style={{ position: "absolute", left: "-15px" }}>
-            {map_switch}
-          </div>
-        </p>
+        <div style={{ position: "absolute", left: "-15px" }}>{map_switch}</div>
         <div style={slider_style}>
           <label style={labelStyle}>Image Quality: &nbsp;</label>
           <span>{this.state.image_quality}</span>

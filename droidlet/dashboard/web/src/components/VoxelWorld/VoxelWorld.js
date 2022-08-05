@@ -25,9 +25,9 @@ class VoxelWorld extends React.Component {
   }
 
   flashVoxelWorldBlocks(bbox) {
-    this.state.flash_bbox = bbox;
+    this.setState({ flash_bbox: bbox });
     this.worldContainerRef.current.contentWindow.postMessage(this.state, "*");
-    this.state.flash_bbox = null;
+    this.setState({ flash_bbox: null });
   }
 
   componentDidUpdate() {
@@ -35,7 +35,23 @@ class VoxelWorld extends React.Component {
   }
 
   componentDidMount() {
-    if (this.props.stateManager) this.props.stateManager.connect(this);
+    if (this.props.stateManager) {
+      this.props.stateManager.connect(this);
+
+      this.worldContainerRef.current.contentWindow.addEventListener(
+        "message",
+        (event) => {
+          const payload = event["data"];
+          if (payload["status"] === "set_look") {
+            this.props.stateManager.worldSocket.emit("set_look", payload);
+          } else if (payload["status"] === "abs_move") {
+            this.props.stateManager.worldSocket.emit("abs_move", payload);
+          }
+        },
+        false
+      );
+    }
+
     this.getVoxelWorldInitialState();
     this.connectToWorld();
 

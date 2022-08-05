@@ -15,10 +15,7 @@ from droidlet.memory.craftassist.mc_memory_nodes import (
 )
 from droidlet.memory.memory_nodes import PlayerNode, TripleNode
 from droidlet.base_util import Pos, Look, Player
-
-Mob = namedtuple("Mob", "entityId, mobType, pos, look")
-Item = namedtuple("item", "id, meta")
-ItemStack = namedtuple("ItemStack", "entityId, item, pos")
+from droidlet.shared_data_struct.craftassist_shared_utils import Slot, Item, Mob, ItemStack
 
 
 class BasicTest(unittest.TestCase):
@@ -132,20 +129,24 @@ class BasicTest(unittest.TestCase):
     def test_items_apis(self):
         self.memory = MCAgentMemory()
         low_level_data = {"bid_to_name": {(0, 0): "sand", (10, 4): "grass"}}
+        sand_count = 2
+        sand_bid = 0
+        sand_meta = 0
+        eid = 12
         item_memid = ItemStackNode.create(
-            self.memory, ItemStack(12, Item(0, 0), Pos(0, 0, 0)), low_level_data
+            self.memory,
+            ItemStack(Slot(sand_bid, sand_meta, sand_count), Pos(0, 0, 0), eid),
+            low_level_data,
         )
+
+        new_eid = 23
         # test update_item_stack_eid
-        assert self.memory.update_item_stack_eid(item_memid, 23).eid == 23
+        assert ItemStackNode.update_item_stack_eid(self.memory, item_memid, new_eid).eid == new_eid
         # test set_item_stack_position
-        new_item = ItemStack(23, Item(0, 0), Pos(2, 2, 2))
-        self.memory.set_item_stack_position(new_item)
+
+        new_item = ItemStack(Slot(sand_bid, sand_meta, sand_count), Pos(2, 2, 2), new_eid)
+        ItemStackNode.maybe_update_item_stack_position(self.memory, new_item)
         assert self.memory.get_mem_by_id(item_memid).pos == (2.0, 2.0, 2.0)
-        # test get_all_item_stacks
-        item_2_memid = ItemStackNode.create(
-            self.memory, ItemStack(34, Item(10, 4), Pos(2, 3, 3)), low_level_data
-        )
-        assert len(self.memory.get_all_item_stacks()) == 2
 
     def test_dance_api(self):
         self.memory = MCAgentMemory()
