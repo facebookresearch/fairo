@@ -48,6 +48,9 @@ def reconfigure_scene(env, scene_path, add_humans):
     elif scene_name == "devendra-home-scan":
         # Devendra's apartment
 
+        start_position = np.asarray([0., 0., 0.])
+        start_rotation = quaternion.from_euler_angles(0, 0, 0)
+
         # chair2
         # start_position = np.asarray([3.5, 0., -9])
         # start_rotation = quaternion.from_euler_angles(0, np.pi * (5 / 4), 0)
@@ -57,8 +60,31 @@ def reconfigure_scene(env, scene_path, add_humans):
         # start_rotation = quaternion.from_euler_angles(0, np.pi, 0)
 
         # chair1
-        start_position = np.asarray([0, 0., 0])
-        start_rotation = quaternion.from_euler_angles(0, np.pi, 0)
+        # [-3.31961608  5.11869717  1.57079312]
+        # start_position = np.asarray([-3.31, 0., -5.11])
+        # start_rotation = quaternion.from_euler_angles(0, np.pi / 2, 0)
+
+        # couch1
+        # [-2.69019866  6.9696312   0.52359944]
+        # guest bedroom
+        # start_position = np.asarray([0., 0., 0.])
+        # start_rotation = quaternion.from_euler_angles(0, 0, 0)
+
+        # couch2
+        # [7.52118969 6.23809099 3.05612133]
+        # kitchen
+
+        # plant2
+        # [ 5.45788908  7.0098753  -1.04719873]
+        # kitchen
+
+        # toilet2
+        # [ 3.11959887  2.4402051  -0.52359982]
+        # living
+
+        # tv1
+        # [ 5.26769686  6.60005665 -1.57079751]
+        # kitchen
 
     elif scene_name == "fremont-home-scan":
         # Fremont space
