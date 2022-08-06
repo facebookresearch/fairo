@@ -44,20 +44,21 @@ def reconfigure_scene(env, scene_path, add_humans):
         # first scene in Replica Dataset
         start_position = np.asarray([0.18430093, -1.3747652, 5.265953])
         start_rotation = np.quaternion(1.0, 0.0, 0.0, 0.0)
-    
+
     elif scene_name == "devendra-home-scan":
         # Devendra's apartment
 
-        start_position = np.asarray([0., 0., 0.])
-        start_rotation = quaternion.from_euler_angles(0, 0, 0)
+        # origin
+        # start_position = np.asarray([0., 0., 0.])
+        # start_rotation = quaternion.from_euler_angles(0, 0, 0)
 
         # chair2
         # start_position = np.asarray([3.5, 0., -9])
         # start_rotation = quaternion.from_euler_angles(0, np.pi * (5 / 4), 0)
 
         # bed1, plant1, toilet1
-        # start_position = np.asarray([7.5, 0., -9])
-        # start_rotation = quaternion.from_euler_angles(0, np.pi, 0)
+        start_position = np.asarray([7.5, 0., -9])
+        start_rotation = quaternion.from_euler_angles(0, np.pi, 0)
 
         # chair1
         # [-3.31961608  5.11869717  1.57079312]
@@ -88,7 +89,7 @@ def reconfigure_scene(env, scene_path, add_humans):
 
     elif scene_name == "fremont-home-scan":
         # Fremont space
-        start_position = np.asarray([0., 0., 0.])
+        start_position = np.asarray([0.0, 0.0, 0.0])
         start_rotation = np.quaternion(1.0, 0.0, 0.0, 0.0)
 
     else:
