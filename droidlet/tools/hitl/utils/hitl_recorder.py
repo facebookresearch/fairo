@@ -1,10 +1,8 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
-
 This file include job management utils for recording hitl job run statistics,
 including meta data like name, batch id, and job specific statistics like 
 failed/sucess command in interaction jobs, model accuracy in the nsp retrain jobs etc.
-
 This util class is extendable, if you want to add a new statistics for recording, 
 please do the following:
     - To add a new meta data - please add a new entry in the MetaData enum.
@@ -83,7 +81,6 @@ DEFAULT_STAT_UPDATE_INTERVAL = 60
 class Recorder:
     """
     Job Management Util.
-
     Each hitl pipeline run corresponds to a JobManagementUtil instance.
     A stat_update_interal (in seconds) can be specificed for the minimal time to be wait for a repeatly update of the same statistic.
     """
