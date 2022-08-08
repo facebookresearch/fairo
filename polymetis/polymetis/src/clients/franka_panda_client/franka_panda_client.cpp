@@ -4,7 +4,6 @@
 // LICENSE file in the root directory of this source tree.
 #include "polymetis/clients/franka_panda_client.hpp"
 
-#include "real_time.hpp"
 #include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
 #include <Eigen/Dense>
@@ -23,8 +22,10 @@ using grpc::ClientContext;
 using grpc::Status;
 
 FrankaTorqueControlClient::FrankaTorqueControlClient(
-    std::shared_ptr<grpc::Channel> channel, YAML::Node config)
-    : stub_(PolymetisControllerServer::NewStub(channel)) {
+    std::shared_ptr<PolymetisControllerServerImpl> controller_service,
+    YAML::Node config) {
+  controller_server_ = controller_service;
+
   std::string robot_client_metadata_path =
       config["robot_client_metadata_path"].as<std::string>();
 
@@ -40,8 +41,7 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
   // Initialize robot client with metadata
   ClientContext context;
   Empty empty;
-  Status status = stub_->InitRobotClient(&context, metadata, &empty);
-  assert(status.ok());
+  controller_server_->InitRobotClient(&metadata, &empty);
 
   // Connect to robot
   mock_franka_ = config["mock"].as<bool>();
@@ -255,12 +255,8 @@ void FrankaTorqueControlClient::updateServerCommand(
   // Retrieve torques
   grpc::ClientContext context;
   long int pre_update_ns = getNanoseconds();
-  status_ = stub_->ControlUpdate(&context, robot_state_, &torque_command_);
+  controller_server_->ControlUpdate(&robot_state_, &torque_command_);
   long int post_update_ns = getNanoseconds();
-  if (!status_.ok()) {
-    std::string error_msg = "ControlUpdate rpc failed. ";
-    throw std::runtime_error(error_msg + status_.error_message());
-  }
 
   robot_state_.set_prev_controller_latency_ms(
       float(post_update_ns - pre_update_ns) / 1e6);
@@ -424,35 +420,4 @@ void FrankaTorqueControlClient::computeSafetyReflex(
     active_constraints_map_[item_name_str] = false;
     spdlog::info("Safety limits no longer violated: \"{}\"", item_name_str);
   }
-}
-
-void *rt_main(void *cfg_ptr) {
-  YAML::Node &config = *(static_cast<YAML::Node *>(cfg_ptr));
-
-  // Launch adapter
-  std::string control_address = config["control_ip"].as<std::string>() + ":" +
-                                config["control_port"].as<std::string>();
-  FrankaTorqueControlClient franka_panda_client(
-      grpc::CreateChannel(control_address, grpc::InsecureChannelCredentials()),
-      config);
-  franka_panda_client.run();
-
-  return NULL;
-}
-
-int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    spdlog::error("Usage: franka_panda_client /path/to/cfg.yaml");
-    return 1;
-  }
-  YAML::Node config = YAML::LoadFile(argv[1]);
-  void *config_void_ptr = static_cast<void *>(&config);
-
-  // Launch thread
-  create_real_time_thread(rt_main, config_void_ptr);
-
-  // Termination
-  spdlog::info("Wait for shutdown; press CTRL+C to close.");
-
-  return 0;
 }

@@ -7,7 +7,8 @@
 #include <kj/windows-sanity.h>
 
 #if CAPNP_VERSION != 9001
-#error "Version mismatch between generated code and library headers.  You must use the same version of the Cap'n Proto compiler and library."
+#error                                                                         \
+    "Version mismatch between generated code and library headers.  You must use the same version of the Cap'n Proto compiler and library."
 #endif
 
 #include "std_msgs.capnp.h"
@@ -47,8 +48,8 @@ CAPNP_DECLARE_SCHEMA(f1b4c19528330dc3);
 CAPNP_DECLARE_SCHEMA(81c2ac67ce6ef5ac);
 CAPNP_DECLARE_SCHEMA(92557f02c3e04d9a);
 
-}  // namespace schemas
-}  // namespace capnp
+} // namespace schemas
+} // namespace capnp
 
 namespace mrp {
 namespace geometry {
@@ -62,9 +63,11 @@ struct Accel {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(c85214e2b79237b1, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -77,9 +80,11 @@ struct AccelStamped {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(8806d80e8e8c4d40, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -92,9 +97,11 @@ struct AccelWithCovariance {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(a51c6b3c512f5eee, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -107,9 +114,11 @@ struct AccelWithCovarianceStamped {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(fd8fa84434c29dd4, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -122,9 +131,11 @@ struct Inertia {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(85066bc334c104d8, 7, 1)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -137,9 +148,11 @@ struct InertiaStamped {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(c0a33a5089a90236, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -152,9 +165,11 @@ struct Point {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(ebab599af84d3b44, 3, 0)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -167,9 +182,11 @@ struct Point32 {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(bd17305162f7a3dd, 2, 0)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -182,9 +199,11 @@ struct PointStamped {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(bb3a4e3eb6109801, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -197,9 +216,11 @@ struct Polygon {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(ac7d25eb0068cd89, 0, 1)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -212,9 +233,11 @@ struct PolygonStamped {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(90ebe6e3a8d4af38, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -227,9 +250,11 @@ struct Pose {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(aaf6c5a3bec98ba8, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -242,9 +267,11 @@ struct Pose2D {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(e5f936f25dcdb4a0, 3, 0)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -257,9 +284,11 @@ struct PoseArray {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(a7f72661fcb193b7, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -272,9 +301,11 @@ struct PoseStamped {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(9e7f144eb85fe85e, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -287,9 +318,11 @@ struct PoseWithCovariance {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(fa182984d85f3156, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -302,9 +335,11 @@ struct PoseWithCovarianceStamped {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(90e5c0f787726f80, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -317,9 +352,11 @@ struct Quaternion {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(af118a4cffb70464, 4, 0)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -332,9 +369,11 @@ struct QuaternionStamped {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(e714439bda2b8906, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -347,9 +386,11 @@ struct Transform {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(cf223f32b610adbc, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -362,9 +403,11 @@ struct TransformStamped {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(dfcb9692fa102dfa, 0, 3)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -377,9 +420,11 @@ struct Twist {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(e3eff53945d605c5, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -392,9 +437,11 @@ struct TwistStamped {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(ec932d063971839b, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -407,9 +454,11 @@ struct TwistWithCovariance {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(f3d733cd6fbc271d, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -422,9 +471,11 @@ struct TwistWithCovarianceStamped {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(a7564fb9bc29b220, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -437,9 +488,11 @@ struct Vector3 {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(89d716bb34f0209a, 3, 0)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -452,9 +505,11 @@ struct Vector3Stamped {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(f1b4c19528330dc3, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -467,9 +522,11 @@ struct Wrench {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(81c2ac67ce6ef5ac, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -482,9 +539,11 @@ struct WrenchStamped {
 
   struct _capnpPrivate {
     CAPNP_DECLARE_STRUCT_HEADER(92557f02c3e04d9a, 0, 2)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
+#if !CAPNP_LITE
+    static constexpr ::capnp::_::RawBrandedSchema const *brand() {
+      return &schema->defaultBrand;
+    }
+#endif // !CAPNP_LITE
   };
 };
 
@@ -495,7 +554,7 @@ public:
   typedef Accel Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -505,22 +564,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasLinear() const;
-  inline  ::mrp::geometry::Vector3::Reader getLinear() const;
+  inline ::mrp::geometry::Vector3::Reader getLinear() const;
 
   inline bool hasAngular() const;
-  inline  ::mrp::geometry::Vector3::Reader getAngular() const;
+  inline ::mrp::geometry::Vector3::Reader getAngular() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -529,39 +585,39 @@ class Accel::Builder {
 public:
   typedef Accel Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasLinear();
-  inline  ::mrp::geometry::Vector3::Builder getLinear();
-  inline void setLinear( ::mrp::geometry::Vector3::Reader value);
-  inline  ::mrp::geometry::Vector3::Builder initLinear();
-  inline void adoptLinear(::capnp::Orphan< ::mrp::geometry::Vector3>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Vector3> disownLinear();
+  inline ::mrp::geometry::Vector3::Builder getLinear();
+  inline void setLinear(::mrp::geometry::Vector3::Reader value);
+  inline ::mrp::geometry::Vector3::Builder initLinear();
+  inline void adoptLinear(::capnp::Orphan<::mrp::geometry::Vector3> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Vector3> disownLinear();
 
   inline bool hasAngular();
-  inline  ::mrp::geometry::Vector3::Builder getAngular();
-  inline void setAngular( ::mrp::geometry::Vector3::Reader value);
-  inline  ::mrp::geometry::Vector3::Builder initAngular();
-  inline void adoptAngular(::capnp::Orphan< ::mrp::geometry::Vector3>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Vector3> disownAngular();
+  inline ::mrp::geometry::Vector3::Builder getAngular();
+  inline void setAngular(::mrp::geometry::Vector3::Reader value);
+  inline ::mrp::geometry::Vector3::Builder initAngular();
+  inline void adoptAngular(::capnp::Orphan<::mrp::geometry::Vector3> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Vector3> disownAngular();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -569,26 +625,26 @@ class Accel::Pipeline {
 public:
   typedef Accel Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::geometry::Vector3::Pipeline getLinear();
-  inline  ::mrp::geometry::Vector3::Pipeline getAngular();
+  inline ::mrp::geometry::Vector3::Pipeline getLinear();
+  inline ::mrp::geometry::Vector3::Pipeline getAngular();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class AccelStamped::Reader {
 public:
   typedef AccelStamped Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -598,22 +654,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader() const;
-  inline  ::mrp::std::Header::Reader getHeader() const;
+  inline ::mrp::std::Header::Reader getHeader() const;
 
   inline bool hasAccel() const;
-  inline  ::mrp::geometry::Accel::Reader getAccel() const;
+  inline ::mrp::geometry::Accel::Reader getAccel() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -622,39 +675,39 @@ class AccelStamped::Builder {
 public:
   typedef AccelStamped Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader();
-  inline  ::mrp::std::Header::Builder getHeader();
-  inline void setHeader( ::mrp::std::Header::Reader value);
-  inline  ::mrp::std::Header::Builder initHeader();
-  inline void adoptHeader(::capnp::Orphan< ::mrp::std::Header>&& value);
-  inline ::capnp::Orphan< ::mrp::std::Header> disownHeader();
+  inline ::mrp::std::Header::Builder getHeader();
+  inline void setHeader(::mrp::std::Header::Reader value);
+  inline ::mrp::std::Header::Builder initHeader();
+  inline void adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value);
+  inline ::capnp::Orphan<::mrp::std::Header> disownHeader();
 
   inline bool hasAccel();
-  inline  ::mrp::geometry::Accel::Builder getAccel();
-  inline void setAccel( ::mrp::geometry::Accel::Reader value);
-  inline  ::mrp::geometry::Accel::Builder initAccel();
-  inline void adoptAccel(::capnp::Orphan< ::mrp::geometry::Accel>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Accel> disownAccel();
+  inline ::mrp::geometry::Accel::Builder getAccel();
+  inline void setAccel(::mrp::geometry::Accel::Reader value);
+  inline ::mrp::geometry::Accel::Builder initAccel();
+  inline void adoptAccel(::capnp::Orphan<::mrp::geometry::Accel> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Accel> disownAccel();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -662,26 +715,26 @@ class AccelStamped::Pipeline {
 public:
   typedef AccelStamped Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::std::Header::Pipeline getHeader();
-  inline  ::mrp::geometry::Accel::Pipeline getAccel();
+  inline ::mrp::std::Header::Pipeline getHeader();
+  inline ::mrp::geometry::Accel::Pipeline getAccel();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class AccelWithCovariance::Reader {
 public:
   typedef AccelWithCovariance Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -691,22 +744,20 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasAccel() const;
-  inline  ::mrp::geometry::Accel::Reader getAccel() const;
+  inline ::mrp::geometry::Accel::Reader getAccel() const;
 
   inline bool hasCovariance() const;
-  inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Reader getCovariance() const;
+  inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Reader
+  getCovariance() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -715,40 +766,45 @@ class AccelWithCovariance::Builder {
 public:
   typedef AccelWithCovariance Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasAccel();
-  inline  ::mrp::geometry::Accel::Builder getAccel();
-  inline void setAccel( ::mrp::geometry::Accel::Reader value);
-  inline  ::mrp::geometry::Accel::Builder initAccel();
-  inline void adoptAccel(::capnp::Orphan< ::mrp::geometry::Accel>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Accel> disownAccel();
+  inline ::mrp::geometry::Accel::Builder getAccel();
+  inline void setAccel(::mrp::geometry::Accel::Reader value);
+  inline ::mrp::geometry::Accel::Builder initAccel();
+  inline void adoptAccel(::capnp::Orphan<::mrp::geometry::Accel> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Accel> disownAccel();
 
   inline bool hasCovariance();
-  inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Builder getCovariance();
-  inline void setCovariance( ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Reader value);
+  inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Builder
+  getCovariance();
+  inline void
+  setCovariance(::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Reader value);
   inline void setCovariance(::kj::ArrayPtr<const double> value);
-  inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Builder initCovariance(unsigned int size);
-  inline void adoptCovariance(::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>&& value);
-  inline ::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>> disownCovariance();
+  inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Builder
+  initCovariance(unsigned int size);
+  inline void adoptCovariance(
+      ::capnp::Orphan<::capnp::List<double, ::capnp::Kind::PRIMITIVE>> &&value);
+  inline ::capnp::Orphan<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>
+  disownCovariance();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -756,25 +812,25 @@ class AccelWithCovariance::Pipeline {
 public:
   typedef AccelWithCovariance Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::geometry::Accel::Pipeline getAccel();
+  inline ::mrp::geometry::Accel::Pipeline getAccel();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class AccelWithCovarianceStamped::Reader {
 public:
   typedef AccelWithCovarianceStamped Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -784,22 +840,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader() const;
-  inline  ::mrp::std::Header::Reader getHeader() const;
+  inline ::mrp::std::Header::Reader getHeader() const;
 
   inline bool hasAccel() const;
-  inline  ::mrp::geometry::AccelWithCovariance::Reader getAccel() const;
+  inline ::mrp::geometry::AccelWithCovariance::Reader getAccel() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -808,39 +861,40 @@ class AccelWithCovarianceStamped::Builder {
 public:
   typedef AccelWithCovarianceStamped Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader();
-  inline  ::mrp::std::Header::Builder getHeader();
-  inline void setHeader( ::mrp::std::Header::Reader value);
-  inline  ::mrp::std::Header::Builder initHeader();
-  inline void adoptHeader(::capnp::Orphan< ::mrp::std::Header>&& value);
-  inline ::capnp::Orphan< ::mrp::std::Header> disownHeader();
+  inline ::mrp::std::Header::Builder getHeader();
+  inline void setHeader(::mrp::std::Header::Reader value);
+  inline ::mrp::std::Header::Builder initHeader();
+  inline void adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value);
+  inline ::capnp::Orphan<::mrp::std::Header> disownHeader();
 
   inline bool hasAccel();
-  inline  ::mrp::geometry::AccelWithCovariance::Builder getAccel();
-  inline void setAccel( ::mrp::geometry::AccelWithCovariance::Reader value);
-  inline  ::mrp::geometry::AccelWithCovariance::Builder initAccel();
-  inline void adoptAccel(::capnp::Orphan< ::mrp::geometry::AccelWithCovariance>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::AccelWithCovariance> disownAccel();
+  inline ::mrp::geometry::AccelWithCovariance::Builder getAccel();
+  inline void setAccel(::mrp::geometry::AccelWithCovariance::Reader value);
+  inline ::mrp::geometry::AccelWithCovariance::Builder initAccel();
+  inline void
+  adoptAccel(::capnp::Orphan<::mrp::geometry::AccelWithCovariance> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::AccelWithCovariance> disownAccel();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -848,26 +902,26 @@ class AccelWithCovarianceStamped::Pipeline {
 public:
   typedef AccelWithCovarianceStamped Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::std::Header::Pipeline getHeader();
-  inline  ::mrp::geometry::AccelWithCovariance::Pipeline getAccel();
+  inline ::mrp::std::Header::Pipeline getHeader();
+  inline ::mrp::geometry::AccelWithCovariance::Pipeline getAccel();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class Inertia::Reader {
 public:
   typedef Inertia Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -877,12 +931,12 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline double getM() const;
 
   inline bool hasCom() const;
-  inline  ::mrp::geometry::Vector3::Reader getCom() const;
+  inline ::mrp::geometry::Vector3::Reader getCom() const;
 
   inline double getIxx() const;
 
@@ -898,12 +952,9 @@ public:
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -912,27 +963,29 @@ class Inertia::Builder {
 public:
   typedef Inertia Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline double getM();
   inline void setM(double value);
 
   inline bool hasCom();
-  inline  ::mrp::geometry::Vector3::Builder getCom();
-  inline void setCom( ::mrp::geometry::Vector3::Reader value);
-  inline  ::mrp::geometry::Vector3::Builder initCom();
-  inline void adoptCom(::capnp::Orphan< ::mrp::geometry::Vector3>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Vector3> disownCom();
+  inline ::mrp::geometry::Vector3::Builder getCom();
+  inline void setCom(::mrp::geometry::Vector3::Reader value);
+  inline ::mrp::geometry::Vector3::Builder initCom();
+  inline void adoptCom(::capnp::Orphan<::mrp::geometry::Vector3> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Vector3> disownCom();
 
   inline double getIxx();
   inline void setIxx(double value);
@@ -954,11 +1007,9 @@ public:
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -966,25 +1017,25 @@ class Inertia::Pipeline {
 public:
   typedef Inertia Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::geometry::Vector3::Pipeline getCom();
+  inline ::mrp::geometry::Vector3::Pipeline getCom();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class InertiaStamped::Reader {
 public:
   typedef InertiaStamped Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -994,22 +1045,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader() const;
-  inline  ::mrp::std::Header::Reader getHeader() const;
+  inline ::mrp::std::Header::Reader getHeader() const;
 
   inline bool hasInertia() const;
-  inline  ::mrp::geometry::Inertia::Reader getInertia() const;
+  inline ::mrp::geometry::Inertia::Reader getInertia() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -1018,39 +1066,39 @@ class InertiaStamped::Builder {
 public:
   typedef InertiaStamped Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader();
-  inline  ::mrp::std::Header::Builder getHeader();
-  inline void setHeader( ::mrp::std::Header::Reader value);
-  inline  ::mrp::std::Header::Builder initHeader();
-  inline void adoptHeader(::capnp::Orphan< ::mrp::std::Header>&& value);
-  inline ::capnp::Orphan< ::mrp::std::Header> disownHeader();
+  inline ::mrp::std::Header::Builder getHeader();
+  inline void setHeader(::mrp::std::Header::Reader value);
+  inline ::mrp::std::Header::Builder initHeader();
+  inline void adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value);
+  inline ::capnp::Orphan<::mrp::std::Header> disownHeader();
 
   inline bool hasInertia();
-  inline  ::mrp::geometry::Inertia::Builder getInertia();
-  inline void setInertia( ::mrp::geometry::Inertia::Reader value);
-  inline  ::mrp::geometry::Inertia::Builder initInertia();
-  inline void adoptInertia(::capnp::Orphan< ::mrp::geometry::Inertia>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Inertia> disownInertia();
+  inline ::mrp::geometry::Inertia::Builder getInertia();
+  inline void setInertia(::mrp::geometry::Inertia::Reader value);
+  inline ::mrp::geometry::Inertia::Builder initInertia();
+  inline void adoptInertia(::capnp::Orphan<::mrp::geometry::Inertia> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Inertia> disownInertia();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -1058,26 +1106,26 @@ class InertiaStamped::Pipeline {
 public:
   typedef InertiaStamped Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::std::Header::Pipeline getHeader();
-  inline  ::mrp::geometry::Inertia::Pipeline getInertia();
+  inline ::mrp::std::Header::Pipeline getHeader();
+  inline ::mrp::geometry::Inertia::Pipeline getInertia();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class Point::Reader {
 public:
   typedef Point Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -1087,7 +1135,7 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline double getX() const;
 
@@ -1097,12 +1145,9 @@ public:
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -1111,17 +1156,19 @@ class Point::Builder {
 public:
   typedef Point Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline double getX();
   inline void setX(double value);
@@ -1134,11 +1181,9 @@ public:
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -1146,24 +1191,23 @@ class Point::Pipeline {
 public:
   typedef Point Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class Point32::Reader {
 public:
   typedef Point32 Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -1173,7 +1217,7 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline float getX() const;
 
@@ -1183,12 +1227,9 @@ public:
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -1197,17 +1238,19 @@ class Point32::Builder {
 public:
   typedef Point32 Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline float getX();
   inline void setX(float value);
@@ -1220,11 +1263,9 @@ public:
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -1232,24 +1273,23 @@ class Point32::Pipeline {
 public:
   typedef Point32 Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class PointStamped::Reader {
 public:
   typedef PointStamped Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -1259,22 +1299,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader() const;
-  inline  ::mrp::std::Header::Reader getHeader() const;
+  inline ::mrp::std::Header::Reader getHeader() const;
 
   inline bool hasPoint() const;
-  inline  ::mrp::geometry::Point::Reader getPoint() const;
+  inline ::mrp::geometry::Point::Reader getPoint() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -1283,39 +1320,39 @@ class PointStamped::Builder {
 public:
   typedef PointStamped Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader();
-  inline  ::mrp::std::Header::Builder getHeader();
-  inline void setHeader( ::mrp::std::Header::Reader value);
-  inline  ::mrp::std::Header::Builder initHeader();
-  inline void adoptHeader(::capnp::Orphan< ::mrp::std::Header>&& value);
-  inline ::capnp::Orphan< ::mrp::std::Header> disownHeader();
+  inline ::mrp::std::Header::Builder getHeader();
+  inline void setHeader(::mrp::std::Header::Reader value);
+  inline ::mrp::std::Header::Builder initHeader();
+  inline void adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value);
+  inline ::capnp::Orphan<::mrp::std::Header> disownHeader();
 
   inline bool hasPoint();
-  inline  ::mrp::geometry::Point::Builder getPoint();
-  inline void setPoint( ::mrp::geometry::Point::Reader value);
-  inline  ::mrp::geometry::Point::Builder initPoint();
-  inline void adoptPoint(::capnp::Orphan< ::mrp::geometry::Point>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Point> disownPoint();
+  inline ::mrp::geometry::Point::Builder getPoint();
+  inline void setPoint(::mrp::geometry::Point::Reader value);
+  inline ::mrp::geometry::Point::Builder initPoint();
+  inline void adoptPoint(::capnp::Orphan<::mrp::geometry::Point> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Point> disownPoint();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -1323,26 +1360,26 @@ class PointStamped::Pipeline {
 public:
   typedef PointStamped Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::std::Header::Pipeline getHeader();
-  inline  ::mrp::geometry::Point::Pipeline getPoint();
+  inline ::mrp::std::Header::Pipeline getHeader();
+  inline ::mrp::geometry::Point::Pipeline getPoint();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class Polygon::Reader {
 public:
   typedef Polygon Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -1352,19 +1389,17 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasPoints() const;
-  inline  ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>::Reader getPoints() const;
+  inline ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>::Reader
+  getPoints() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -1373,32 +1408,39 @@ class Polygon::Builder {
 public:
   typedef Polygon Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasPoints();
-  inline  ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>::Builder getPoints();
-  inline void setPoints( ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>::Reader value);
-  inline  ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>::Builder initPoints(unsigned int size);
-  inline void adoptPoints(::capnp::Orphan< ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>>&& value);
-  inline ::capnp::Orphan< ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>> disownPoints();
+  inline ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>::Builder
+  getPoints();
+  inline void setPoints(::capnp::List<::mrp::geometry::Point32,
+                                      ::capnp::Kind::STRUCT>::Reader value);
+  inline ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>::Builder
+  initPoints(unsigned int size);
+  inline void
+  adoptPoints(::capnp::Orphan<::capnp::List<::mrp::geometry::Point32,
+                                            ::capnp::Kind::STRUCT>> &&value);
+  inline ::capnp::Orphan<
+      ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>>
+  disownPoints();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -1406,24 +1448,23 @@ class Polygon::Pipeline {
 public:
   typedef Polygon Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class PolygonStamped::Reader {
 public:
   typedef PolygonStamped Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -1433,22 +1474,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader() const;
-  inline  ::mrp::std::Header::Reader getHeader() const;
+  inline ::mrp::std::Header::Reader getHeader() const;
 
   inline bool hasPolygon() const;
-  inline  ::mrp::geometry::Polygon::Reader getPolygon() const;
+  inline ::mrp::geometry::Polygon::Reader getPolygon() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -1457,39 +1495,39 @@ class PolygonStamped::Builder {
 public:
   typedef PolygonStamped Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader();
-  inline  ::mrp::std::Header::Builder getHeader();
-  inline void setHeader( ::mrp::std::Header::Reader value);
-  inline  ::mrp::std::Header::Builder initHeader();
-  inline void adoptHeader(::capnp::Orphan< ::mrp::std::Header>&& value);
-  inline ::capnp::Orphan< ::mrp::std::Header> disownHeader();
+  inline ::mrp::std::Header::Builder getHeader();
+  inline void setHeader(::mrp::std::Header::Reader value);
+  inline ::mrp::std::Header::Builder initHeader();
+  inline void adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value);
+  inline ::capnp::Orphan<::mrp::std::Header> disownHeader();
 
   inline bool hasPolygon();
-  inline  ::mrp::geometry::Polygon::Builder getPolygon();
-  inline void setPolygon( ::mrp::geometry::Polygon::Reader value);
-  inline  ::mrp::geometry::Polygon::Builder initPolygon();
-  inline void adoptPolygon(::capnp::Orphan< ::mrp::geometry::Polygon>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Polygon> disownPolygon();
+  inline ::mrp::geometry::Polygon::Builder getPolygon();
+  inline void setPolygon(::mrp::geometry::Polygon::Reader value);
+  inline ::mrp::geometry::Polygon::Builder initPolygon();
+  inline void adoptPolygon(::capnp::Orphan<::mrp::geometry::Polygon> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Polygon> disownPolygon();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -1497,26 +1535,26 @@ class PolygonStamped::Pipeline {
 public:
   typedef PolygonStamped Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::std::Header::Pipeline getHeader();
-  inline  ::mrp::geometry::Polygon::Pipeline getPolygon();
+  inline ::mrp::std::Header::Pipeline getHeader();
+  inline ::mrp::geometry::Polygon::Pipeline getPolygon();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class Pose::Reader {
 public:
   typedef Pose Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -1526,22 +1564,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasPosition() const;
-  inline  ::mrp::geometry::Point::Reader getPosition() const;
+  inline ::mrp::geometry::Point::Reader getPosition() const;
 
   inline bool hasOrientation() const;
-  inline  ::mrp::geometry::Quaternion::Reader getOrientation() const;
+  inline ::mrp::geometry::Quaternion::Reader getOrientation() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -1550,39 +1585,40 @@ class Pose::Builder {
 public:
   typedef Pose Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasPosition();
-  inline  ::mrp::geometry::Point::Builder getPosition();
-  inline void setPosition( ::mrp::geometry::Point::Reader value);
-  inline  ::mrp::geometry::Point::Builder initPosition();
-  inline void adoptPosition(::capnp::Orphan< ::mrp::geometry::Point>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Point> disownPosition();
+  inline ::mrp::geometry::Point::Builder getPosition();
+  inline void setPosition(::mrp::geometry::Point::Reader value);
+  inline ::mrp::geometry::Point::Builder initPosition();
+  inline void adoptPosition(::capnp::Orphan<::mrp::geometry::Point> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Point> disownPosition();
 
   inline bool hasOrientation();
-  inline  ::mrp::geometry::Quaternion::Builder getOrientation();
-  inline void setOrientation( ::mrp::geometry::Quaternion::Reader value);
-  inline  ::mrp::geometry::Quaternion::Builder initOrientation();
-  inline void adoptOrientation(::capnp::Orphan< ::mrp::geometry::Quaternion>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Quaternion> disownOrientation();
+  inline ::mrp::geometry::Quaternion::Builder getOrientation();
+  inline void setOrientation(::mrp::geometry::Quaternion::Reader value);
+  inline ::mrp::geometry::Quaternion::Builder initOrientation();
+  inline void
+  adoptOrientation(::capnp::Orphan<::mrp::geometry::Quaternion> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Quaternion> disownOrientation();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -1590,26 +1626,26 @@ class Pose::Pipeline {
 public:
   typedef Pose Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::geometry::Point::Pipeline getPosition();
-  inline  ::mrp::geometry::Quaternion::Pipeline getOrientation();
+  inline ::mrp::geometry::Point::Pipeline getPosition();
+  inline ::mrp::geometry::Quaternion::Pipeline getOrientation();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class Pose2D::Reader {
 public:
   typedef Pose2D Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -1619,7 +1655,7 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline double getX() const;
 
@@ -1629,12 +1665,9 @@ public:
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -1643,17 +1676,19 @@ class Pose2D::Builder {
 public:
   typedef Pose2D Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline double getX();
   inline void setX(double value);
@@ -1666,11 +1701,9 @@ public:
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -1678,24 +1711,23 @@ class Pose2D::Pipeline {
 public:
   typedef Pose2D Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class PoseArray::Reader {
 public:
   typedef PoseArray Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -1705,22 +1737,20 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader() const;
-  inline  ::mrp::std::Header::Reader getHeader() const;
+  inline ::mrp::std::Header::Reader getHeader() const;
 
   inline bool hasPoses() const;
-  inline  ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>::Reader getPoses() const;
+  inline ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>::Reader
+  getPoses() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -1729,39 +1759,46 @@ class PoseArray::Builder {
 public:
   typedef PoseArray Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader();
-  inline  ::mrp::std::Header::Builder getHeader();
-  inline void setHeader( ::mrp::std::Header::Reader value);
-  inline  ::mrp::std::Header::Builder initHeader();
-  inline void adoptHeader(::capnp::Orphan< ::mrp::std::Header>&& value);
-  inline ::capnp::Orphan< ::mrp::std::Header> disownHeader();
+  inline ::mrp::std::Header::Builder getHeader();
+  inline void setHeader(::mrp::std::Header::Reader value);
+  inline ::mrp::std::Header::Builder initHeader();
+  inline void adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value);
+  inline ::capnp::Orphan<::mrp::std::Header> disownHeader();
 
   inline bool hasPoses();
-  inline  ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>::Builder getPoses();
-  inline void setPoses( ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>::Reader value);
-  inline  ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>::Builder initPoses(unsigned int size);
-  inline void adoptPoses(::capnp::Orphan< ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>>&& value);
-  inline ::capnp::Orphan< ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>> disownPoses();
+  inline ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>::Builder
+  getPoses();
+  inline void setPoses(::capnp::List<::mrp::geometry::Pose,
+                                     ::capnp::Kind::STRUCT>::Reader value);
+  inline ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>::Builder
+  initPoses(unsigned int size);
+  inline void adoptPoses(
+      ::capnp::Orphan<
+          ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>> &&value);
+  inline ::capnp::Orphan<
+      ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>>
+  disownPoses();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -1769,25 +1806,25 @@ class PoseArray::Pipeline {
 public:
   typedef PoseArray Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::std::Header::Pipeline getHeader();
+  inline ::mrp::std::Header::Pipeline getHeader();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class PoseStamped::Reader {
 public:
   typedef PoseStamped Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -1797,22 +1834,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader() const;
-  inline  ::mrp::std::Header::Reader getHeader() const;
+  inline ::mrp::std::Header::Reader getHeader() const;
 
   inline bool hasPose() const;
-  inline  ::mrp::geometry::Pose::Reader getPose() const;
+  inline ::mrp::geometry::Pose::Reader getPose() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -1821,39 +1855,39 @@ class PoseStamped::Builder {
 public:
   typedef PoseStamped Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader();
-  inline  ::mrp::std::Header::Builder getHeader();
-  inline void setHeader( ::mrp::std::Header::Reader value);
-  inline  ::mrp::std::Header::Builder initHeader();
-  inline void adoptHeader(::capnp::Orphan< ::mrp::std::Header>&& value);
-  inline ::capnp::Orphan< ::mrp::std::Header> disownHeader();
+  inline ::mrp::std::Header::Builder getHeader();
+  inline void setHeader(::mrp::std::Header::Reader value);
+  inline ::mrp::std::Header::Builder initHeader();
+  inline void adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value);
+  inline ::capnp::Orphan<::mrp::std::Header> disownHeader();
 
   inline bool hasPose();
-  inline  ::mrp::geometry::Pose::Builder getPose();
-  inline void setPose( ::mrp::geometry::Pose::Reader value);
-  inline  ::mrp::geometry::Pose::Builder initPose();
-  inline void adoptPose(::capnp::Orphan< ::mrp::geometry::Pose>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Pose> disownPose();
+  inline ::mrp::geometry::Pose::Builder getPose();
+  inline void setPose(::mrp::geometry::Pose::Reader value);
+  inline ::mrp::geometry::Pose::Builder initPose();
+  inline void adoptPose(::capnp::Orphan<::mrp::geometry::Pose> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Pose> disownPose();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -1861,26 +1895,26 @@ class PoseStamped::Pipeline {
 public:
   typedef PoseStamped Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::std::Header::Pipeline getHeader();
-  inline  ::mrp::geometry::Pose::Pipeline getPose();
+  inline ::mrp::std::Header::Pipeline getHeader();
+  inline ::mrp::geometry::Pose::Pipeline getPose();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class PoseWithCovariance::Reader {
 public:
   typedef PoseWithCovariance Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -1890,22 +1924,20 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasPose() const;
-  inline  ::mrp::geometry::Pose::Reader getPose() const;
+  inline ::mrp::geometry::Pose::Reader getPose() const;
 
   inline bool hasCovariance() const;
-  inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Reader getCovariance() const;
+  inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Reader
+  getCovariance() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -1914,40 +1946,45 @@ class PoseWithCovariance::Builder {
 public:
   typedef PoseWithCovariance Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasPose();
-  inline  ::mrp::geometry::Pose::Builder getPose();
-  inline void setPose( ::mrp::geometry::Pose::Reader value);
-  inline  ::mrp::geometry::Pose::Builder initPose();
-  inline void adoptPose(::capnp::Orphan< ::mrp::geometry::Pose>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Pose> disownPose();
+  inline ::mrp::geometry::Pose::Builder getPose();
+  inline void setPose(::mrp::geometry::Pose::Reader value);
+  inline ::mrp::geometry::Pose::Builder initPose();
+  inline void adoptPose(::capnp::Orphan<::mrp::geometry::Pose> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Pose> disownPose();
 
   inline bool hasCovariance();
-  inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Builder getCovariance();
-  inline void setCovariance( ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Reader value);
+  inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Builder
+  getCovariance();
+  inline void
+  setCovariance(::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Reader value);
   inline void setCovariance(::kj::ArrayPtr<const double> value);
-  inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Builder initCovariance(unsigned int size);
-  inline void adoptCovariance(::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>&& value);
-  inline ::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>> disownCovariance();
+  inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Builder
+  initCovariance(unsigned int size);
+  inline void adoptCovariance(
+      ::capnp::Orphan<::capnp::List<double, ::capnp::Kind::PRIMITIVE>> &&value);
+  inline ::capnp::Orphan<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>
+  disownCovariance();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -1955,25 +1992,25 @@ class PoseWithCovariance::Pipeline {
 public:
   typedef PoseWithCovariance Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::geometry::Pose::Pipeline getPose();
+  inline ::mrp::geometry::Pose::Pipeline getPose();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class PoseWithCovarianceStamped::Reader {
 public:
   typedef PoseWithCovarianceStamped Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -1983,22 +2020,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader() const;
-  inline  ::mrp::std::Header::Reader getHeader() const;
+  inline ::mrp::std::Header::Reader getHeader() const;
 
   inline bool hasPose() const;
-  inline  ::mrp::geometry::PoseWithCovariance::Reader getPose() const;
+  inline ::mrp::geometry::PoseWithCovariance::Reader getPose() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -2007,39 +2041,40 @@ class PoseWithCovarianceStamped::Builder {
 public:
   typedef PoseWithCovarianceStamped Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader();
-  inline  ::mrp::std::Header::Builder getHeader();
-  inline void setHeader( ::mrp::std::Header::Reader value);
-  inline  ::mrp::std::Header::Builder initHeader();
-  inline void adoptHeader(::capnp::Orphan< ::mrp::std::Header>&& value);
-  inline ::capnp::Orphan< ::mrp::std::Header> disownHeader();
+  inline ::mrp::std::Header::Builder getHeader();
+  inline void setHeader(::mrp::std::Header::Reader value);
+  inline ::mrp::std::Header::Builder initHeader();
+  inline void adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value);
+  inline ::capnp::Orphan<::mrp::std::Header> disownHeader();
 
   inline bool hasPose();
-  inline  ::mrp::geometry::PoseWithCovariance::Builder getPose();
-  inline void setPose( ::mrp::geometry::PoseWithCovariance::Reader value);
-  inline  ::mrp::geometry::PoseWithCovariance::Builder initPose();
-  inline void adoptPose(::capnp::Orphan< ::mrp::geometry::PoseWithCovariance>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::PoseWithCovariance> disownPose();
+  inline ::mrp::geometry::PoseWithCovariance::Builder getPose();
+  inline void setPose(::mrp::geometry::PoseWithCovariance::Reader value);
+  inline ::mrp::geometry::PoseWithCovariance::Builder initPose();
+  inline void
+  adoptPose(::capnp::Orphan<::mrp::geometry::PoseWithCovariance> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::PoseWithCovariance> disownPose();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -2047,26 +2082,26 @@ class PoseWithCovarianceStamped::Pipeline {
 public:
   typedef PoseWithCovarianceStamped Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::std::Header::Pipeline getHeader();
-  inline  ::mrp::geometry::PoseWithCovariance::Pipeline getPose();
+  inline ::mrp::std::Header::Pipeline getHeader();
+  inline ::mrp::geometry::PoseWithCovariance::Pipeline getPose();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class Quaternion::Reader {
 public:
   typedef Quaternion Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -2076,7 +2111,7 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline double getX() const;
 
@@ -2088,12 +2123,9 @@ public:
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -2102,17 +2134,19 @@ class Quaternion::Builder {
 public:
   typedef Quaternion Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline double getX();
   inline void setX(double value);
@@ -2128,11 +2162,9 @@ public:
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -2140,24 +2172,23 @@ class Quaternion::Pipeline {
 public:
   typedef Quaternion Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class QuaternionStamped::Reader {
 public:
   typedef QuaternionStamped Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -2167,22 +2198,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader() const;
-  inline  ::mrp::std::Header::Reader getHeader() const;
+  inline ::mrp::std::Header::Reader getHeader() const;
 
   inline bool hasQuaternion() const;
-  inline  ::mrp::geometry::Quaternion::Reader getQuaternion() const;
+  inline ::mrp::geometry::Quaternion::Reader getQuaternion() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -2191,39 +2219,40 @@ class QuaternionStamped::Builder {
 public:
   typedef QuaternionStamped Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader();
-  inline  ::mrp::std::Header::Builder getHeader();
-  inline void setHeader( ::mrp::std::Header::Reader value);
-  inline  ::mrp::std::Header::Builder initHeader();
-  inline void adoptHeader(::capnp::Orphan< ::mrp::std::Header>&& value);
-  inline ::capnp::Orphan< ::mrp::std::Header> disownHeader();
+  inline ::mrp::std::Header::Builder getHeader();
+  inline void setHeader(::mrp::std::Header::Reader value);
+  inline ::mrp::std::Header::Builder initHeader();
+  inline void adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value);
+  inline ::capnp::Orphan<::mrp::std::Header> disownHeader();
 
   inline bool hasQuaternion();
-  inline  ::mrp::geometry::Quaternion::Builder getQuaternion();
-  inline void setQuaternion( ::mrp::geometry::Quaternion::Reader value);
-  inline  ::mrp::geometry::Quaternion::Builder initQuaternion();
-  inline void adoptQuaternion(::capnp::Orphan< ::mrp::geometry::Quaternion>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Quaternion> disownQuaternion();
+  inline ::mrp::geometry::Quaternion::Builder getQuaternion();
+  inline void setQuaternion(::mrp::geometry::Quaternion::Reader value);
+  inline ::mrp::geometry::Quaternion::Builder initQuaternion();
+  inline void
+  adoptQuaternion(::capnp::Orphan<::mrp::geometry::Quaternion> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Quaternion> disownQuaternion();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -2231,26 +2260,26 @@ class QuaternionStamped::Pipeline {
 public:
   typedef QuaternionStamped Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::std::Header::Pipeline getHeader();
-  inline  ::mrp::geometry::Quaternion::Pipeline getQuaternion();
+  inline ::mrp::std::Header::Pipeline getHeader();
+  inline ::mrp::geometry::Quaternion::Pipeline getQuaternion();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class Transform::Reader {
 public:
   typedef Transform Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -2260,22 +2289,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasTranslation() const;
-  inline  ::mrp::geometry::Vector3::Reader getTranslation() const;
+  inline ::mrp::geometry::Vector3::Reader getTranslation() const;
 
   inline bool hasRotation() const;
-  inline  ::mrp::geometry::Quaternion::Reader getRotation() const;
+  inline ::mrp::geometry::Quaternion::Reader getRotation() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -2284,39 +2310,41 @@ class Transform::Builder {
 public:
   typedef Transform Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasTranslation();
-  inline  ::mrp::geometry::Vector3::Builder getTranslation();
-  inline void setTranslation( ::mrp::geometry::Vector3::Reader value);
-  inline  ::mrp::geometry::Vector3::Builder initTranslation();
-  inline void adoptTranslation(::capnp::Orphan< ::mrp::geometry::Vector3>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Vector3> disownTranslation();
+  inline ::mrp::geometry::Vector3::Builder getTranslation();
+  inline void setTranslation(::mrp::geometry::Vector3::Reader value);
+  inline ::mrp::geometry::Vector3::Builder initTranslation();
+  inline void
+  adoptTranslation(::capnp::Orphan<::mrp::geometry::Vector3> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Vector3> disownTranslation();
 
   inline bool hasRotation();
-  inline  ::mrp::geometry::Quaternion::Builder getRotation();
-  inline void setRotation( ::mrp::geometry::Quaternion::Reader value);
-  inline  ::mrp::geometry::Quaternion::Builder initRotation();
-  inline void adoptRotation(::capnp::Orphan< ::mrp::geometry::Quaternion>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Quaternion> disownRotation();
+  inline ::mrp::geometry::Quaternion::Builder getRotation();
+  inline void setRotation(::mrp::geometry::Quaternion::Reader value);
+  inline ::mrp::geometry::Quaternion::Builder initRotation();
+  inline void
+  adoptRotation(::capnp::Orphan<::mrp::geometry::Quaternion> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Quaternion> disownRotation();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -2324,26 +2352,26 @@ class Transform::Pipeline {
 public:
   typedef Transform Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::geometry::Vector3::Pipeline getTranslation();
-  inline  ::mrp::geometry::Quaternion::Pipeline getRotation();
+  inline ::mrp::geometry::Vector3::Pipeline getTranslation();
+  inline ::mrp::geometry::Quaternion::Pipeline getRotation();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class TransformStamped::Reader {
 public:
   typedef TransformStamped Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -2353,25 +2381,22 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader() const;
-  inline  ::mrp::std::Header::Reader getHeader() const;
+  inline ::mrp::std::Header::Reader getHeader() const;
 
   inline bool hasChildFrameId() const;
-  inline  ::capnp::Text::Reader getChildFrameId() const;
+  inline ::capnp::Text::Reader getChildFrameId() const;
 
   inline bool hasTransform() const;
-  inline  ::mrp::geometry::Transform::Reader getTransform() const;
+  inline ::mrp::geometry::Transform::Reader getTransform() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -2380,46 +2405,47 @@ class TransformStamped::Builder {
 public:
   typedef TransformStamped Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader();
-  inline  ::mrp::std::Header::Builder getHeader();
-  inline void setHeader( ::mrp::std::Header::Reader value);
-  inline  ::mrp::std::Header::Builder initHeader();
-  inline void adoptHeader(::capnp::Orphan< ::mrp::std::Header>&& value);
-  inline ::capnp::Orphan< ::mrp::std::Header> disownHeader();
+  inline ::mrp::std::Header::Builder getHeader();
+  inline void setHeader(::mrp::std::Header::Reader value);
+  inline ::mrp::std::Header::Builder initHeader();
+  inline void adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value);
+  inline ::capnp::Orphan<::mrp::std::Header> disownHeader();
 
   inline bool hasChildFrameId();
-  inline  ::capnp::Text::Builder getChildFrameId();
-  inline void setChildFrameId( ::capnp::Text::Reader value);
-  inline  ::capnp::Text::Builder initChildFrameId(unsigned int size);
-  inline void adoptChildFrameId(::capnp::Orphan< ::capnp::Text>&& value);
-  inline ::capnp::Orphan< ::capnp::Text> disownChildFrameId();
+  inline ::capnp::Text::Builder getChildFrameId();
+  inline void setChildFrameId(::capnp::Text::Reader value);
+  inline ::capnp::Text::Builder initChildFrameId(unsigned int size);
+  inline void adoptChildFrameId(::capnp::Orphan<::capnp::Text> &&value);
+  inline ::capnp::Orphan<::capnp::Text> disownChildFrameId();
 
   inline bool hasTransform();
-  inline  ::mrp::geometry::Transform::Builder getTransform();
-  inline void setTransform( ::mrp::geometry::Transform::Reader value);
-  inline  ::mrp::geometry::Transform::Builder initTransform();
-  inline void adoptTransform(::capnp::Orphan< ::mrp::geometry::Transform>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Transform> disownTransform();
+  inline ::mrp::geometry::Transform::Builder getTransform();
+  inline void setTransform(::mrp::geometry::Transform::Reader value);
+  inline ::mrp::geometry::Transform::Builder initTransform();
+  inline void
+  adoptTransform(::capnp::Orphan<::mrp::geometry::Transform> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Transform> disownTransform();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -2427,26 +2453,26 @@ class TransformStamped::Pipeline {
 public:
   typedef TransformStamped Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::std::Header::Pipeline getHeader();
-  inline  ::mrp::geometry::Transform::Pipeline getTransform();
+  inline ::mrp::std::Header::Pipeline getHeader();
+  inline ::mrp::geometry::Transform::Pipeline getTransform();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class Twist::Reader {
 public:
   typedef Twist Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -2456,22 +2482,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasLinear() const;
-  inline  ::mrp::geometry::Vector3::Reader getLinear() const;
+  inline ::mrp::geometry::Vector3::Reader getLinear() const;
 
   inline bool hasAngular() const;
-  inline  ::mrp::geometry::Vector3::Reader getAngular() const;
+  inline ::mrp::geometry::Vector3::Reader getAngular() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -2480,39 +2503,39 @@ class Twist::Builder {
 public:
   typedef Twist Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasLinear();
-  inline  ::mrp::geometry::Vector3::Builder getLinear();
-  inline void setLinear( ::mrp::geometry::Vector3::Reader value);
-  inline  ::mrp::geometry::Vector3::Builder initLinear();
-  inline void adoptLinear(::capnp::Orphan< ::mrp::geometry::Vector3>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Vector3> disownLinear();
+  inline ::mrp::geometry::Vector3::Builder getLinear();
+  inline void setLinear(::mrp::geometry::Vector3::Reader value);
+  inline ::mrp::geometry::Vector3::Builder initLinear();
+  inline void adoptLinear(::capnp::Orphan<::mrp::geometry::Vector3> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Vector3> disownLinear();
 
   inline bool hasAngular();
-  inline  ::mrp::geometry::Vector3::Builder getAngular();
-  inline void setAngular( ::mrp::geometry::Vector3::Reader value);
-  inline  ::mrp::geometry::Vector3::Builder initAngular();
-  inline void adoptAngular(::capnp::Orphan< ::mrp::geometry::Vector3>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Vector3> disownAngular();
+  inline ::mrp::geometry::Vector3::Builder getAngular();
+  inline void setAngular(::mrp::geometry::Vector3::Reader value);
+  inline ::mrp::geometry::Vector3::Builder initAngular();
+  inline void adoptAngular(::capnp::Orphan<::mrp::geometry::Vector3> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Vector3> disownAngular();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -2520,26 +2543,26 @@ class Twist::Pipeline {
 public:
   typedef Twist Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::geometry::Vector3::Pipeline getLinear();
-  inline  ::mrp::geometry::Vector3::Pipeline getAngular();
+  inline ::mrp::geometry::Vector3::Pipeline getLinear();
+  inline ::mrp::geometry::Vector3::Pipeline getAngular();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class TwistStamped::Reader {
 public:
   typedef TwistStamped Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -2549,22 +2572,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader() const;
-  inline  ::mrp::std::Header::Reader getHeader() const;
+  inline ::mrp::std::Header::Reader getHeader() const;
 
   inline bool hasTwist() const;
-  inline  ::mrp::geometry::Twist::Reader getTwist() const;
+  inline ::mrp::geometry::Twist::Reader getTwist() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -2573,39 +2593,39 @@ class TwistStamped::Builder {
 public:
   typedef TwistStamped Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader();
-  inline  ::mrp::std::Header::Builder getHeader();
-  inline void setHeader( ::mrp::std::Header::Reader value);
-  inline  ::mrp::std::Header::Builder initHeader();
-  inline void adoptHeader(::capnp::Orphan< ::mrp::std::Header>&& value);
-  inline ::capnp::Orphan< ::mrp::std::Header> disownHeader();
+  inline ::mrp::std::Header::Builder getHeader();
+  inline void setHeader(::mrp::std::Header::Reader value);
+  inline ::mrp::std::Header::Builder initHeader();
+  inline void adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value);
+  inline ::capnp::Orphan<::mrp::std::Header> disownHeader();
 
   inline bool hasTwist();
-  inline  ::mrp::geometry::Twist::Builder getTwist();
-  inline void setTwist( ::mrp::geometry::Twist::Reader value);
-  inline  ::mrp::geometry::Twist::Builder initTwist();
-  inline void adoptTwist(::capnp::Orphan< ::mrp::geometry::Twist>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Twist> disownTwist();
+  inline ::mrp::geometry::Twist::Builder getTwist();
+  inline void setTwist(::mrp::geometry::Twist::Reader value);
+  inline ::mrp::geometry::Twist::Builder initTwist();
+  inline void adoptTwist(::capnp::Orphan<::mrp::geometry::Twist> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Twist> disownTwist();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -2613,26 +2633,26 @@ class TwistStamped::Pipeline {
 public:
   typedef TwistStamped Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::std::Header::Pipeline getHeader();
-  inline  ::mrp::geometry::Twist::Pipeline getTwist();
+  inline ::mrp::std::Header::Pipeline getHeader();
+  inline ::mrp::geometry::Twist::Pipeline getTwist();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class TwistWithCovariance::Reader {
 public:
   typedef TwistWithCovariance Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -2642,22 +2662,20 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasTwist() const;
-  inline  ::mrp::geometry::Twist::Reader getTwist() const;
+  inline ::mrp::geometry::Twist::Reader getTwist() const;
 
   inline bool hasCovariance() const;
-  inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Reader getCovariance() const;
+  inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Reader
+  getCovariance() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -2666,40 +2684,45 @@ class TwistWithCovariance::Builder {
 public:
   typedef TwistWithCovariance Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasTwist();
-  inline  ::mrp::geometry::Twist::Builder getTwist();
-  inline void setTwist( ::mrp::geometry::Twist::Reader value);
-  inline  ::mrp::geometry::Twist::Builder initTwist();
-  inline void adoptTwist(::capnp::Orphan< ::mrp::geometry::Twist>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Twist> disownTwist();
+  inline ::mrp::geometry::Twist::Builder getTwist();
+  inline void setTwist(::mrp::geometry::Twist::Reader value);
+  inline ::mrp::geometry::Twist::Builder initTwist();
+  inline void adoptTwist(::capnp::Orphan<::mrp::geometry::Twist> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Twist> disownTwist();
 
   inline bool hasCovariance();
-  inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Builder getCovariance();
-  inline void setCovariance( ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Reader value);
+  inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Builder
+  getCovariance();
+  inline void
+  setCovariance(::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Reader value);
   inline void setCovariance(::kj::ArrayPtr<const double> value);
-  inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Builder initCovariance(unsigned int size);
-  inline void adoptCovariance(::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>&& value);
-  inline ::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>> disownCovariance();
+  inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Builder
+  initCovariance(unsigned int size);
+  inline void adoptCovariance(
+      ::capnp::Orphan<::capnp::List<double, ::capnp::Kind::PRIMITIVE>> &&value);
+  inline ::capnp::Orphan<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>
+  disownCovariance();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -2707,25 +2730,25 @@ class TwistWithCovariance::Pipeline {
 public:
   typedef TwistWithCovariance Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::geometry::Twist::Pipeline getTwist();
+  inline ::mrp::geometry::Twist::Pipeline getTwist();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class TwistWithCovarianceStamped::Reader {
 public:
   typedef TwistWithCovarianceStamped Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -2735,22 +2758,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader() const;
-  inline  ::mrp::std::Header::Reader getHeader() const;
+  inline ::mrp::std::Header::Reader getHeader() const;
 
   inline bool hasTwist() const;
-  inline  ::mrp::geometry::TwistWithCovariance::Reader getTwist() const;
+  inline ::mrp::geometry::TwistWithCovariance::Reader getTwist() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -2759,39 +2779,40 @@ class TwistWithCovarianceStamped::Builder {
 public:
   typedef TwistWithCovarianceStamped Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader();
-  inline  ::mrp::std::Header::Builder getHeader();
-  inline void setHeader( ::mrp::std::Header::Reader value);
-  inline  ::mrp::std::Header::Builder initHeader();
-  inline void adoptHeader(::capnp::Orphan< ::mrp::std::Header>&& value);
-  inline ::capnp::Orphan< ::mrp::std::Header> disownHeader();
+  inline ::mrp::std::Header::Builder getHeader();
+  inline void setHeader(::mrp::std::Header::Reader value);
+  inline ::mrp::std::Header::Builder initHeader();
+  inline void adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value);
+  inline ::capnp::Orphan<::mrp::std::Header> disownHeader();
 
   inline bool hasTwist();
-  inline  ::mrp::geometry::TwistWithCovariance::Builder getTwist();
-  inline void setTwist( ::mrp::geometry::TwistWithCovariance::Reader value);
-  inline  ::mrp::geometry::TwistWithCovariance::Builder initTwist();
-  inline void adoptTwist(::capnp::Orphan< ::mrp::geometry::TwistWithCovariance>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::TwistWithCovariance> disownTwist();
+  inline ::mrp::geometry::TwistWithCovariance::Builder getTwist();
+  inline void setTwist(::mrp::geometry::TwistWithCovariance::Reader value);
+  inline ::mrp::geometry::TwistWithCovariance::Builder initTwist();
+  inline void
+  adoptTwist(::capnp::Orphan<::mrp::geometry::TwistWithCovariance> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::TwistWithCovariance> disownTwist();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -2799,26 +2820,26 @@ class TwistWithCovarianceStamped::Pipeline {
 public:
   typedef TwistWithCovarianceStamped Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::std::Header::Pipeline getHeader();
-  inline  ::mrp::geometry::TwistWithCovariance::Pipeline getTwist();
+  inline ::mrp::std::Header::Pipeline getHeader();
+  inline ::mrp::geometry::TwistWithCovariance::Pipeline getTwist();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class Vector3::Reader {
 public:
   typedef Vector3 Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -2828,7 +2849,7 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline double getX() const;
 
@@ -2838,12 +2859,9 @@ public:
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -2852,17 +2870,19 @@ class Vector3::Builder {
 public:
   typedef Vector3 Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline double getX();
   inline void setX(double value);
@@ -2875,11 +2895,9 @@ public:
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -2887,24 +2905,23 @@ class Vector3::Pipeline {
 public:
   typedef Vector3 Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class Vector3Stamped::Reader {
 public:
   typedef Vector3Stamped Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -2914,22 +2931,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader() const;
-  inline  ::mrp::std::Header::Reader getHeader() const;
+  inline ::mrp::std::Header::Reader getHeader() const;
 
   inline bool hasVector() const;
-  inline  ::mrp::geometry::Vector3::Reader getVector() const;
+  inline ::mrp::geometry::Vector3::Reader getVector() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -2938,39 +2952,39 @@ class Vector3Stamped::Builder {
 public:
   typedef Vector3Stamped Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader();
-  inline  ::mrp::std::Header::Builder getHeader();
-  inline void setHeader( ::mrp::std::Header::Reader value);
-  inline  ::mrp::std::Header::Builder initHeader();
-  inline void adoptHeader(::capnp::Orphan< ::mrp::std::Header>&& value);
-  inline ::capnp::Orphan< ::mrp::std::Header> disownHeader();
+  inline ::mrp::std::Header::Builder getHeader();
+  inline void setHeader(::mrp::std::Header::Reader value);
+  inline ::mrp::std::Header::Builder initHeader();
+  inline void adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value);
+  inline ::capnp::Orphan<::mrp::std::Header> disownHeader();
 
   inline bool hasVector();
-  inline  ::mrp::geometry::Vector3::Builder getVector();
-  inline void setVector( ::mrp::geometry::Vector3::Reader value);
-  inline  ::mrp::geometry::Vector3::Builder initVector();
-  inline void adoptVector(::capnp::Orphan< ::mrp::geometry::Vector3>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Vector3> disownVector();
+  inline ::mrp::geometry::Vector3::Builder getVector();
+  inline void setVector(::mrp::geometry::Vector3::Reader value);
+  inline ::mrp::geometry::Vector3::Builder initVector();
+  inline void adoptVector(::capnp::Orphan<::mrp::geometry::Vector3> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Vector3> disownVector();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -2978,26 +2992,26 @@ class Vector3Stamped::Pipeline {
 public:
   typedef Vector3Stamped Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::std::Header::Pipeline getHeader();
-  inline  ::mrp::geometry::Vector3::Pipeline getVector();
+  inline ::mrp::std::Header::Pipeline getHeader();
+  inline ::mrp::geometry::Vector3::Pipeline getVector();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class Wrench::Reader {
 public:
   typedef Wrench Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -3007,22 +3021,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasForce() const;
-  inline  ::mrp::geometry::Vector3::Reader getForce() const;
+  inline ::mrp::geometry::Vector3::Reader getForce() const;
 
   inline bool hasTorque() const;
-  inline  ::mrp::geometry::Vector3::Reader getTorque() const;
+  inline ::mrp::geometry::Vector3::Reader getTorque() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -3031,39 +3042,39 @@ class Wrench::Builder {
 public:
   typedef Wrench Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasForce();
-  inline  ::mrp::geometry::Vector3::Builder getForce();
-  inline void setForce( ::mrp::geometry::Vector3::Reader value);
-  inline  ::mrp::geometry::Vector3::Builder initForce();
-  inline void adoptForce(::capnp::Orphan< ::mrp::geometry::Vector3>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Vector3> disownForce();
+  inline ::mrp::geometry::Vector3::Builder getForce();
+  inline void setForce(::mrp::geometry::Vector3::Reader value);
+  inline ::mrp::geometry::Vector3::Builder initForce();
+  inline void adoptForce(::capnp::Orphan<::mrp::geometry::Vector3> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Vector3> disownForce();
 
   inline bool hasTorque();
-  inline  ::mrp::geometry::Vector3::Builder getTorque();
-  inline void setTorque( ::mrp::geometry::Vector3::Reader value);
-  inline  ::mrp::geometry::Vector3::Builder initTorque();
-  inline void adoptTorque(::capnp::Orphan< ::mrp::geometry::Vector3>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Vector3> disownTorque();
+  inline ::mrp::geometry::Vector3::Builder getTorque();
+  inline void setTorque(::mrp::geometry::Vector3::Reader value);
+  inline ::mrp::geometry::Vector3::Builder initTorque();
+  inline void adoptTorque(::capnp::Orphan<::mrp::geometry::Vector3> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Vector3> disownTorque();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -3071,26 +3082,26 @@ class Wrench::Pipeline {
 public:
   typedef Wrench Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::geometry::Vector3::Pipeline getForce();
-  inline  ::mrp::geometry::Vector3::Pipeline getTorque();
+  inline ::mrp::geometry::Vector3::Pipeline getForce();
+  inline ::mrp::geometry::Vector3::Pipeline getTorque();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 class WrenchStamped::Reader {
 public:
   typedef WrenchStamped Reads;
 
   Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
+  inline explicit Reader(::capnp::_::StructReader base) : _reader(base) {}
 
   inline ::capnp::MessageSize totalSize() const {
     return _reader.totalSize().asPublic();
@@ -3100,22 +3111,19 @@ public:
   inline ::kj::StringTree toString() const {
     return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
   }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader() const;
-  inline  ::mrp::std::Header::Reader getHeader() const;
+  inline ::mrp::std::Header::Reader getHeader() const;
 
   inline bool hasWrench() const;
-  inline  ::mrp::geometry::Wrench::Reader getWrench() const;
+  inline ::mrp::geometry::Wrench::Reader getWrench() const;
 
 private:
   ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::List;
   friend class ::capnp::MessageBuilder;
   friend class ::capnp::Orphanage;
 };
@@ -3124,39 +3132,39 @@ class WrenchStamped::Builder {
 public:
   typedef WrenchStamped Builds;
 
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
+  Builder() = delete; // Deleted to discourage incorrect usage.
+                      // You can explicitly initialize to nullptr instead.
   inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
+  inline explicit Builder(::capnp::_::StructBuilder base) : _builder(base) {}
   inline operator Reader() const { return Reader(_builder.asReader()); }
   inline Reader asReader() const { return *this; }
 
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
+  inline ::capnp::MessageSize totalSize() const {
+    return asReader().totalSize();
+  }
 #if !CAPNP_LITE
   inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
   inline bool hasHeader();
-  inline  ::mrp::std::Header::Builder getHeader();
-  inline void setHeader( ::mrp::std::Header::Reader value);
-  inline  ::mrp::std::Header::Builder initHeader();
-  inline void adoptHeader(::capnp::Orphan< ::mrp::std::Header>&& value);
-  inline ::capnp::Orphan< ::mrp::std::Header> disownHeader();
+  inline ::mrp::std::Header::Builder getHeader();
+  inline void setHeader(::mrp::std::Header::Reader value);
+  inline ::mrp::std::Header::Builder initHeader();
+  inline void adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value);
+  inline ::capnp::Orphan<::mrp::std::Header> disownHeader();
 
   inline bool hasWrench();
-  inline  ::mrp::geometry::Wrench::Builder getWrench();
-  inline void setWrench( ::mrp::geometry::Wrench::Reader value);
-  inline  ::mrp::geometry::Wrench::Builder initWrench();
-  inline void adoptWrench(::capnp::Orphan< ::mrp::geometry::Wrench>&& value);
-  inline ::capnp::Orphan< ::mrp::geometry::Wrench> disownWrench();
+  inline ::mrp::geometry::Wrench::Builder getWrench();
+  inline void setWrench(::mrp::geometry::Wrench::Reader value);
+  inline ::mrp::geometry::Wrench::Builder initWrench();
+  inline void adoptWrench(::capnp::Orphan<::mrp::geometry::Wrench> &&value);
+  inline ::capnp::Orphan<::mrp::geometry::Wrench> disownWrench();
 
 private:
   ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
   friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
+  template <typename, ::capnp::Kind> friend struct ::capnp::_::PointerHelpers;
 };
 
 #if !CAPNP_LITE
@@ -3164,2161 +3172,2448 @@ class WrenchStamped::Pipeline {
 public:
   typedef WrenchStamped Pipelines;
 
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
+  inline Pipeline(decltype(nullptr)) : _typeless(nullptr) {}
+  inline explicit Pipeline(::capnp::AnyPointer::Pipeline &&typeless)
       : _typeless(kj::mv(typeless)) {}
 
-  inline  ::mrp::std::Header::Pipeline getHeader();
-  inline  ::mrp::geometry::Wrench::Pipeline getWrench();
+  inline ::mrp::std::Header::Pipeline getHeader();
+  inline ::mrp::geometry::Wrench::Pipeline getWrench();
+
 private:
   ::capnp::AnyPointer::Pipeline _typeless;
   friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
+  template <typename, ::capnp::Kind> friend struct ::capnp::ToDynamic_;
 };
-#endif  // !CAPNP_LITE
+#endif // !CAPNP_LITE
 
 // =======================================================================================
 
 inline bool Accel::Reader::hasLinear() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool Accel::Builder::hasLinear() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Vector3::Reader Accel::Reader::getLinear() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Reader Accel::Reader::getLinear() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Vector3::Builder Accel::Builder::getLinear() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Accel::Builder::getLinear() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Vector3::Pipeline Accel::Pipeline::getLinear() {
-  return  ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::geometry::Vector3::Pipeline Accel::Pipeline::getLinear() {
+  return ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void Accel::Builder::setLinear( ::mrp::geometry::Vector3::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void Accel::Builder::setLinear(::mrp::geometry::Vector3::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Vector3::Builder Accel::Builder::initLinear() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Accel::Builder::initLinear() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline void Accel::Builder::adoptLinear(
-    ::capnp::Orphan< ::mrp::geometry::Vector3>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+inline void
+Accel::Builder::adoptLinear(::capnp::Orphan<::mrp::geometry::Vector3> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Vector3> Accel::Builder::disownLinear() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Vector3>
+Accel::Builder::disownLinear() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool Accel::Reader::hasAngular() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool Accel::Builder::hasAngular() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Vector3::Reader Accel::Reader::getAngular() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Reader Accel::Reader::getAngular() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Vector3::Builder Accel::Builder::getAngular() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Accel::Builder::getAngular() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Vector3::Pipeline Accel::Pipeline::getAngular() {
-  return  ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::Vector3::Pipeline Accel::Pipeline::getAngular() {
+  return ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void Accel::Builder::setAngular( ::mrp::geometry::Vector3::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void Accel::Builder::setAngular(::mrp::geometry::Vector3::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Vector3::Builder Accel::Builder::initAngular() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Accel::Builder::initAngular() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void Accel::Builder::adoptAngular(
-    ::capnp::Orphan< ::mrp::geometry::Vector3>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Vector3> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Vector3> Accel::Builder::disownAngular() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Vector3>
+Accel::Builder::disownAngular() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool AccelStamped::Reader::hasHeader() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool AccelStamped::Builder::hasHeader() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::std::Header::Reader AccelStamped::Reader::getHeader() const {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Reader AccelStamped::Reader::getHeader() const {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::std::Header::Builder AccelStamped::Builder::getHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder AccelStamped::Builder::getHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::std::Header::Pipeline AccelStamped::Pipeline::getHeader() {
-  return  ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::std::Header::Pipeline AccelStamped::Pipeline::getHeader() {
+  return ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void AccelStamped::Builder::setHeader( ::mrp::std::Header::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void AccelStamped::Builder::setHeader(::mrp::std::Header::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::std::Header::Builder AccelStamped::Builder::initHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder AccelStamped::Builder::initHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void AccelStamped::Builder::adoptHeader(
-    ::capnp::Orphan< ::mrp::std::Header>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::std::Header> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::std::Header> AccelStamped::Builder::disownHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::std::Header>
+AccelStamped::Builder::disownHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool AccelStamped::Reader::hasAccel() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool AccelStamped::Builder::hasAccel() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Accel::Reader AccelStamped::Reader::getAccel() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Accel>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Accel::Reader AccelStamped::Reader::getAccel() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Accel>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Accel::Builder AccelStamped::Builder::getAccel() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Accel>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Accel::Builder AccelStamped::Builder::getAccel() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Accel>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Accel::Pipeline AccelStamped::Pipeline::getAccel() {
-  return  ::mrp::geometry::Accel::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::Accel::Pipeline AccelStamped::Pipeline::getAccel() {
+  return ::mrp::geometry::Accel::Pipeline(_typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void AccelStamped::Builder::setAccel( ::mrp::geometry::Accel::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Accel>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+AccelStamped::Builder::setAccel(::mrp::geometry::Accel::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Accel>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Accel::Builder AccelStamped::Builder::initAccel() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Accel>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Accel::Builder AccelStamped::Builder::initAccel() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Accel>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void AccelStamped::Builder::adoptAccel(
-    ::capnp::Orphan< ::mrp::geometry::Accel>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Accel>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Accel> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Accel>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Accel> AccelStamped::Builder::disownAccel() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Accel>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Accel>
+AccelStamped::Builder::disownAccel() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Accel>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool AccelWithCovariance::Reader::hasAccel() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool AccelWithCovariance::Builder::hasAccel() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Accel::Reader AccelWithCovariance::Reader::getAccel() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Accel>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Accel::Reader
+AccelWithCovariance::Reader::getAccel() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Accel>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Accel::Builder AccelWithCovariance::Builder::getAccel() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Accel>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Accel::Builder
+AccelWithCovariance::Builder::getAccel() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Accel>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Accel::Pipeline AccelWithCovariance::Pipeline::getAccel() {
-  return  ::mrp::geometry::Accel::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::geometry::Accel::Pipeline
+AccelWithCovariance::Pipeline::getAccel() {
+  return ::mrp::geometry::Accel::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void AccelWithCovariance::Builder::setAccel( ::mrp::geometry::Accel::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Accel>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+AccelWithCovariance::Builder::setAccel(::mrp::geometry::Accel::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Accel>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Accel::Builder AccelWithCovariance::Builder::initAccel() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Accel>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Accel::Builder
+AccelWithCovariance::Builder::initAccel() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Accel>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void AccelWithCovariance::Builder::adoptAccel(
-    ::capnp::Orphan< ::mrp::geometry::Accel>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Accel>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Accel> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Accel>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Accel> AccelWithCovariance::Builder::disownAccel() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Accel>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Accel>
+AccelWithCovariance::Builder::disownAccel() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Accel>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool AccelWithCovariance::Reader::hasCovariance() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool AccelWithCovariance::Builder::hasCovariance() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Reader AccelWithCovariance::Reader::getCovariance() const {
-  return ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Reader
+AccelWithCovariance::Reader::getCovariance() const {
+  return ::capnp::_::
+      PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::get(
+          _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Builder AccelWithCovariance::Builder::getCovariance() {
-  return ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Builder
+AccelWithCovariance::Builder::getCovariance() {
+  return ::capnp::_::
+      PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::get(
+          _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline void AccelWithCovariance::Builder::setCovariance( ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Reader value) {
-  ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+inline void AccelWithCovariance::Builder::setCovariance(
+    ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Reader value) {
+  ::capnp::_::PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::
+      set(_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+          value);
 }
-inline void AccelWithCovariance::Builder::setCovariance(::kj::ArrayPtr<const double> value) {
-  ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+inline void AccelWithCovariance::Builder::setCovariance(
+    ::kj::ArrayPtr<const double> value) {
+  ::capnp::_::PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::
+      set(_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+          value);
 }
-inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Builder AccelWithCovariance::Builder::initCovariance(unsigned int size) {
-  return ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), size);
+inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Builder
+AccelWithCovariance::Builder::initCovariance(unsigned int size) {
+  return ::capnp::_::
+      PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::init(
+          _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+          size);
 }
 inline void AccelWithCovariance::Builder::adoptCovariance(
-    ::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>&& value) {
-  ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::capnp::List<double, ::capnp::Kind::PRIMITIVE>> &&value) {
+  ::capnp::_::PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::
+      adopt(_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+            kj::mv(value));
 }
-inline ::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>> AccelWithCovariance::Builder::disownCovariance() {
-  return ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>
+AccelWithCovariance::Builder::disownCovariance() {
+  return ::capnp::_::
+      PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::disown(
+          _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool AccelWithCovarianceStamped::Reader::hasHeader() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool AccelWithCovarianceStamped::Builder::hasHeader() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::std::Header::Reader AccelWithCovarianceStamped::Reader::getHeader() const {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Reader
+AccelWithCovarianceStamped::Reader::getHeader() const {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::std::Header::Builder AccelWithCovarianceStamped::Builder::getHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder
+AccelWithCovarianceStamped::Builder::getHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::std::Header::Pipeline AccelWithCovarianceStamped::Pipeline::getHeader() {
-  return  ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::std::Header::Pipeline
+AccelWithCovarianceStamped::Pipeline::getHeader() {
+  return ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void AccelWithCovarianceStamped::Builder::setHeader( ::mrp::std::Header::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void AccelWithCovarianceStamped::Builder::setHeader(
+    ::mrp::std::Header::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::std::Header::Builder AccelWithCovarianceStamped::Builder::initHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder
+AccelWithCovarianceStamped::Builder::initHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void AccelWithCovarianceStamped::Builder::adoptHeader(
-    ::capnp::Orphan< ::mrp::std::Header>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::std::Header> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::std::Header> AccelWithCovarianceStamped::Builder::disownHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::std::Header>
+AccelWithCovarianceStamped::Builder::disownHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool AccelWithCovarianceStamped::Reader::hasAccel() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool AccelWithCovarianceStamped::Builder::hasAccel() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::AccelWithCovariance::Reader AccelWithCovarianceStamped::Reader::getAccel() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::AccelWithCovariance>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::AccelWithCovariance::Reader
+AccelWithCovarianceStamped::Reader::getAccel() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::AccelWithCovariance>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::AccelWithCovariance::Builder AccelWithCovarianceStamped::Builder::getAccel() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::AccelWithCovariance>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::AccelWithCovariance::Builder
+AccelWithCovarianceStamped::Builder::getAccel() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::AccelWithCovariance>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::AccelWithCovariance::Pipeline AccelWithCovarianceStamped::Pipeline::getAccel() {
-  return  ::mrp::geometry::AccelWithCovariance::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::AccelWithCovariance::Pipeline
+AccelWithCovarianceStamped::Pipeline::getAccel() {
+  return ::mrp::geometry::AccelWithCovariance::Pipeline(
+      _typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void AccelWithCovarianceStamped::Builder::setAccel( ::mrp::geometry::AccelWithCovariance::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::AccelWithCovariance>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void AccelWithCovarianceStamped::Builder::setAccel(
+    ::mrp::geometry::AccelWithCovariance::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::AccelWithCovariance>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::AccelWithCovariance::Builder AccelWithCovarianceStamped::Builder::initAccel() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::AccelWithCovariance>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::AccelWithCovariance::Builder
+AccelWithCovarianceStamped::Builder::initAccel() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::AccelWithCovariance>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void AccelWithCovarianceStamped::Builder::adoptAccel(
-    ::capnp::Orphan< ::mrp::geometry::AccelWithCovariance>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::AccelWithCovariance>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::AccelWithCovariance> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::AccelWithCovariance>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::AccelWithCovariance> AccelWithCovarianceStamped::Builder::disownAccel() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::AccelWithCovariance>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::AccelWithCovariance>
+AccelWithCovarianceStamped::Builder::disownAccel() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::AccelWithCovariance>::
+      disown(
+          _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline double Inertia::Reader::getM() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<0>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Inertia::Builder::getM() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<0>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Inertia::Builder::setM(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<0>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline bool Inertia::Reader::hasCom() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool Inertia::Builder::hasCom() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Vector3::Reader Inertia::Reader::getCom() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Reader Inertia::Reader::getCom() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Vector3::Builder Inertia::Builder::getCom() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Inertia::Builder::getCom() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Vector3::Pipeline Inertia::Pipeline::getCom() {
-  return  ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::geometry::Vector3::Pipeline Inertia::Pipeline::getCom() {
+  return ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void Inertia::Builder::setCom( ::mrp::geometry::Vector3::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void Inertia::Builder::setCom(::mrp::geometry::Vector3::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Vector3::Builder Inertia::Builder::initCom() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Inertia::Builder::initCom() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline void Inertia::Builder::adoptCom(
-    ::capnp::Orphan< ::mrp::geometry::Vector3>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+inline void
+Inertia::Builder::adoptCom(::capnp::Orphan<::mrp::geometry::Vector3> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Vector3> Inertia::Builder::disownCom() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Vector3> Inertia::Builder::disownCom() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline double Inertia::Reader::getIxx() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<1>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Inertia::Builder::getIxx() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<1>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Inertia::Builder::setIxx(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<1>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline double Inertia::Reader::getIxy() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<2>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Inertia::Builder::getIxy() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<2>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Inertia::Builder::setIxy(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<2>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline double Inertia::Reader::getIxz() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<3>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<3>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Inertia::Builder::getIxz() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<3>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<3>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Inertia::Builder::setIxz(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<3>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<3>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline double Inertia::Reader::getIyy() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<4>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<4>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Inertia::Builder::getIyy() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<4>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<4>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Inertia::Builder::setIyy(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<4>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<4>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline double Inertia::Reader::getIyz() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<5>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<5>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Inertia::Builder::getIyz() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<5>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<5>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Inertia::Builder::setIyz(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<5>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<5>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline double Inertia::Reader::getIzz() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<6>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<6>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Inertia::Builder::getIzz() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<6>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<6>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Inertia::Builder::setIzz(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<6>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<6>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline bool InertiaStamped::Reader::hasHeader() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool InertiaStamped::Builder::hasHeader() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::std::Header::Reader InertiaStamped::Reader::getHeader() const {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Reader InertiaStamped::Reader::getHeader() const {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::std::Header::Builder InertiaStamped::Builder::getHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder InertiaStamped::Builder::getHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::std::Header::Pipeline InertiaStamped::Pipeline::getHeader() {
-  return  ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::std::Header::Pipeline InertiaStamped::Pipeline::getHeader() {
+  return ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void InertiaStamped::Builder::setHeader( ::mrp::std::Header::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+InertiaStamped::Builder::setHeader(::mrp::std::Header::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::std::Header::Builder InertiaStamped::Builder::initHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder InertiaStamped::Builder::initHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void InertiaStamped::Builder::adoptHeader(
-    ::capnp::Orphan< ::mrp::std::Header>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::std::Header> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::std::Header> InertiaStamped::Builder::disownHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::std::Header>
+InertiaStamped::Builder::disownHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool InertiaStamped::Reader::hasInertia() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool InertiaStamped::Builder::hasInertia() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Inertia::Reader InertiaStamped::Reader::getInertia() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Inertia>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Inertia::Reader
+InertiaStamped::Reader::getInertia() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Inertia>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Inertia::Builder InertiaStamped::Builder::getInertia() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Inertia>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Inertia::Builder InertiaStamped::Builder::getInertia() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Inertia>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Inertia::Pipeline InertiaStamped::Pipeline::getInertia() {
-  return  ::mrp::geometry::Inertia::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::Inertia::Pipeline
+InertiaStamped::Pipeline::getInertia() {
+  return ::mrp::geometry::Inertia::Pipeline(_typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void InertiaStamped::Builder::setInertia( ::mrp::geometry::Inertia::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Inertia>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+InertiaStamped::Builder::setInertia(::mrp::geometry::Inertia::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Inertia>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Inertia::Builder InertiaStamped::Builder::initInertia() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Inertia>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Inertia::Builder
+InertiaStamped::Builder::initInertia() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Inertia>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void InertiaStamped::Builder::adoptInertia(
-    ::capnp::Orphan< ::mrp::geometry::Inertia>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Inertia>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Inertia> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Inertia>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Inertia> InertiaStamped::Builder::disownInertia() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Inertia>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Inertia>
+InertiaStamped::Builder::disownInertia() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Inertia>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline double Point::Reader::getX() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<0>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Point::Builder::getX() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<0>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Point::Builder::setX(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<0>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline double Point::Reader::getY() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<1>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Point::Builder::getY() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<1>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Point::Builder::setY(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<1>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline double Point::Reader::getZ() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<2>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Point::Builder::getZ() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<2>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Point::Builder::setZ(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<2>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline float Point32::Reader::getX() const {
-  return _reader.getDataField<float>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<float>(::capnp::bounded<0>() * ::capnp::ELEMENTS);
 }
 
 inline float Point32::Builder::getX() {
-  return _builder.getDataField<float>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<float>(::capnp::bounded<0>() *
+                                      ::capnp::ELEMENTS);
 }
 inline void Point32::Builder::setX(float value) {
-  _builder.setDataField<float>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<float>(::capnp::bounded<0>() * ::capnp::ELEMENTS,
+                               value);
 }
 
 inline float Point32::Reader::getY() const {
-  return _reader.getDataField<float>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<float>(::capnp::bounded<1>() * ::capnp::ELEMENTS);
 }
 
 inline float Point32::Builder::getY() {
-  return _builder.getDataField<float>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<float>(::capnp::bounded<1>() *
+                                      ::capnp::ELEMENTS);
 }
 inline void Point32::Builder::setY(float value) {
-  _builder.setDataField<float>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<float>(::capnp::bounded<1>() * ::capnp::ELEMENTS,
+                               value);
 }
 
 inline float Point32::Reader::getZ() const {
-  return _reader.getDataField<float>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<float>(::capnp::bounded<2>() * ::capnp::ELEMENTS);
 }
 
 inline float Point32::Builder::getZ() {
-  return _builder.getDataField<float>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<float>(::capnp::bounded<2>() *
+                                      ::capnp::ELEMENTS);
 }
 inline void Point32::Builder::setZ(float value) {
-  _builder.setDataField<float>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<float>(::capnp::bounded<2>() * ::capnp::ELEMENTS,
+                               value);
 }
 
 inline bool PointStamped::Reader::hasHeader() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool PointStamped::Builder::hasHeader() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::std::Header::Reader PointStamped::Reader::getHeader() const {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Reader PointStamped::Reader::getHeader() const {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::std::Header::Builder PointStamped::Builder::getHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder PointStamped::Builder::getHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::std::Header::Pipeline PointStamped::Pipeline::getHeader() {
-  return  ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::std::Header::Pipeline PointStamped::Pipeline::getHeader() {
+  return ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void PointStamped::Builder::setHeader( ::mrp::std::Header::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void PointStamped::Builder::setHeader(::mrp::std::Header::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::std::Header::Builder PointStamped::Builder::initHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder PointStamped::Builder::initHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void PointStamped::Builder::adoptHeader(
-    ::capnp::Orphan< ::mrp::std::Header>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::std::Header> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::std::Header> PointStamped::Builder::disownHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::std::Header>
+PointStamped::Builder::disownHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool PointStamped::Reader::hasPoint() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool PointStamped::Builder::hasPoint() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Point::Reader PointStamped::Reader::getPoint() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Point>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Point::Reader PointStamped::Reader::getPoint() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Point>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Point::Builder PointStamped::Builder::getPoint() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Point>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Point::Builder PointStamped::Builder::getPoint() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Point>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Point::Pipeline PointStamped::Pipeline::getPoint() {
-  return  ::mrp::geometry::Point::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::Point::Pipeline PointStamped::Pipeline::getPoint() {
+  return ::mrp::geometry::Point::Pipeline(_typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void PointStamped::Builder::setPoint( ::mrp::geometry::Point::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Point>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+PointStamped::Builder::setPoint(::mrp::geometry::Point::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Point>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Point::Builder PointStamped::Builder::initPoint() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Point>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Point::Builder PointStamped::Builder::initPoint() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Point>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void PointStamped::Builder::adoptPoint(
-    ::capnp::Orphan< ::mrp::geometry::Point>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Point>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Point> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Point>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Point> PointStamped::Builder::disownPoint() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Point>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Point>
+PointStamped::Builder::disownPoint() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Point>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool Polygon::Reader::hasPoints() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool Polygon::Builder::hasPoints() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>::Reader Polygon::Reader::getPoints() const {
-  return ::capnp::_::PointerHelpers< ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>::Reader
+Polygon::Reader::getPoints() const {
+  return ::capnp::_::PointerHelpers<
+      ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>>::
+      get(_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>::Builder Polygon::Builder::getPoints() {
-  return ::capnp::_::PointerHelpers< ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>::Builder
+Polygon::Builder::getPoints() {
+  return ::capnp::_::PointerHelpers<
+      ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>>::
+      get(_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline void Polygon::Builder::setPoints( ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>::Reader value) {
-  ::capnp::_::PointerHelpers< ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+inline void Polygon::Builder::setPoints(
+    ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>::Reader
+        value) {
+  ::capnp::_::PointerHelpers<
+      ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>>::
+      set(_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+          value);
 }
-inline  ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>::Builder Polygon::Builder::initPoints(unsigned int size) {
-  return ::capnp::_::PointerHelpers< ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), size);
+inline ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>::Builder
+Polygon::Builder::initPoints(unsigned int size) {
+  return ::capnp::_::PointerHelpers<
+      ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>>::
+      init(_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+           size);
 }
 inline void Polygon::Builder::adoptPoints(
-    ::capnp::Orphan< ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>>&& value) {
-  ::capnp::_::PointerHelpers< ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::capnp::List<::mrp::geometry::Point32,
+                                  ::capnp::Kind::STRUCT>> &&value) {
+  ::capnp::_::PointerHelpers<
+      ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>>::
+      adopt(_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+            kj::mv(value));
 }
-inline ::capnp::Orphan< ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>> Polygon::Builder::disownPoints() {
-  return ::capnp::_::PointerHelpers< ::capnp::List< ::mrp::geometry::Point32,  ::capnp::Kind::STRUCT>>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<
+    ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>>
+Polygon::Builder::disownPoints() {
+  return ::capnp::_::PointerHelpers<
+      ::capnp::List<::mrp::geometry::Point32, ::capnp::Kind::STRUCT>>::
+      disown(
+          _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool PolygonStamped::Reader::hasHeader() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool PolygonStamped::Builder::hasHeader() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::std::Header::Reader PolygonStamped::Reader::getHeader() const {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Reader PolygonStamped::Reader::getHeader() const {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::std::Header::Builder PolygonStamped::Builder::getHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder PolygonStamped::Builder::getHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::std::Header::Pipeline PolygonStamped::Pipeline::getHeader() {
-  return  ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::std::Header::Pipeline PolygonStamped::Pipeline::getHeader() {
+  return ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void PolygonStamped::Builder::setHeader( ::mrp::std::Header::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+PolygonStamped::Builder::setHeader(::mrp::std::Header::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::std::Header::Builder PolygonStamped::Builder::initHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder PolygonStamped::Builder::initHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void PolygonStamped::Builder::adoptHeader(
-    ::capnp::Orphan< ::mrp::std::Header>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::std::Header> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::std::Header> PolygonStamped::Builder::disownHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::std::Header>
+PolygonStamped::Builder::disownHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool PolygonStamped::Reader::hasPolygon() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool PolygonStamped::Builder::hasPolygon() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Polygon::Reader PolygonStamped::Reader::getPolygon() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Polygon>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Polygon::Reader
+PolygonStamped::Reader::getPolygon() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Polygon>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Polygon::Builder PolygonStamped::Builder::getPolygon() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Polygon>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Polygon::Builder PolygonStamped::Builder::getPolygon() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Polygon>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Polygon::Pipeline PolygonStamped::Pipeline::getPolygon() {
-  return  ::mrp::geometry::Polygon::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::Polygon::Pipeline
+PolygonStamped::Pipeline::getPolygon() {
+  return ::mrp::geometry::Polygon::Pipeline(_typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void PolygonStamped::Builder::setPolygon( ::mrp::geometry::Polygon::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Polygon>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+PolygonStamped::Builder::setPolygon(::mrp::geometry::Polygon::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Polygon>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Polygon::Builder PolygonStamped::Builder::initPolygon() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Polygon>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Polygon::Builder
+PolygonStamped::Builder::initPolygon() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Polygon>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void PolygonStamped::Builder::adoptPolygon(
-    ::capnp::Orphan< ::mrp::geometry::Polygon>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Polygon>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Polygon> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Polygon>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Polygon> PolygonStamped::Builder::disownPolygon() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Polygon>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Polygon>
+PolygonStamped::Builder::disownPolygon() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Polygon>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool Pose::Reader::hasPosition() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool Pose::Builder::hasPosition() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Point::Reader Pose::Reader::getPosition() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Point>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Point::Reader Pose::Reader::getPosition() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Point>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Point::Builder Pose::Builder::getPosition() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Point>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Point::Builder Pose::Builder::getPosition() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Point>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Point::Pipeline Pose::Pipeline::getPosition() {
-  return  ::mrp::geometry::Point::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::geometry::Point::Pipeline Pose::Pipeline::getPosition() {
+  return ::mrp::geometry::Point::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void Pose::Builder::setPosition( ::mrp::geometry::Point::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Point>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void Pose::Builder::setPosition(::mrp::geometry::Point::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Point>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Point::Builder Pose::Builder::initPosition() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Point>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Point::Builder Pose::Builder::initPosition() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Point>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline void Pose::Builder::adoptPosition(
-    ::capnp::Orphan< ::mrp::geometry::Point>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Point>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+inline void
+Pose::Builder::adoptPosition(::capnp::Orphan<::mrp::geometry::Point> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Point>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Point> Pose::Builder::disownPosition() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Point>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Point> Pose::Builder::disownPosition() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Point>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool Pose::Reader::hasOrientation() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool Pose::Builder::hasOrientation() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Quaternion::Reader Pose::Reader::getOrientation() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Quaternion::Reader
+Pose::Reader::getOrientation() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Quaternion::Builder Pose::Builder::getOrientation() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Quaternion::Builder Pose::Builder::getOrientation() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Quaternion::Pipeline Pose::Pipeline::getOrientation() {
-  return  ::mrp::geometry::Quaternion::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::Quaternion::Pipeline Pose::Pipeline::getOrientation() {
+  return ::mrp::geometry::Quaternion::Pipeline(_typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void Pose::Builder::setOrientation( ::mrp::geometry::Quaternion::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+Pose::Builder::setOrientation(::mrp::geometry::Quaternion::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Quaternion::Builder Pose::Builder::initOrientation() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Quaternion::Builder Pose::Builder::initOrientation() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void Pose::Builder::adoptOrientation(
-    ::capnp::Orphan< ::mrp::geometry::Quaternion>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Quaternion> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Quaternion> Pose::Builder::disownOrientation() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Quaternion>
+Pose::Builder::disownOrientation() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline double Pose2D::Reader::getX() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<0>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Pose2D::Builder::getX() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<0>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Pose2D::Builder::setX(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<0>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline double Pose2D::Reader::getY() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<1>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Pose2D::Builder::getY() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<1>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Pose2D::Builder::setY(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<1>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline double Pose2D::Reader::getTheta() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<2>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Pose2D::Builder::getTheta() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<2>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Pose2D::Builder::setTheta(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<2>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline bool PoseArray::Reader::hasHeader() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool PoseArray::Builder::hasHeader() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::std::Header::Reader PoseArray::Reader::getHeader() const {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Reader PoseArray::Reader::getHeader() const {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::std::Header::Builder PoseArray::Builder::getHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder PoseArray::Builder::getHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::std::Header::Pipeline PoseArray::Pipeline::getHeader() {
-  return  ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::std::Header::Pipeline PoseArray::Pipeline::getHeader() {
+  return ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void PoseArray::Builder::setHeader( ::mrp::std::Header::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void PoseArray::Builder::setHeader(::mrp::std::Header::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::std::Header::Builder PoseArray::Builder::initHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder PoseArray::Builder::initHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline void PoseArray::Builder::adoptHeader(
-    ::capnp::Orphan< ::mrp::std::Header>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+inline void
+PoseArray::Builder::adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::std::Header> PoseArray::Builder::disownHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::std::Header> PoseArray::Builder::disownHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool PoseArray::Reader::hasPoses() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool PoseArray::Builder::hasPoses() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>::Reader PoseArray::Reader::getPoses() const {
-  return ::capnp::_::PointerHelpers< ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>::Reader
+PoseArray::Reader::getPoses() const {
+  return ::capnp::_::PointerHelpers<
+      ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>>::
+      get(_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>::Builder PoseArray::Builder::getPoses() {
-  return ::capnp::_::PointerHelpers< ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>::Builder
+PoseArray::Builder::getPoses() {
+  return ::capnp::_::PointerHelpers<
+      ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>>::
+      get(_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline void PoseArray::Builder::setPoses( ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>::Reader value) {
-  ::capnp::_::PointerHelpers< ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+inline void PoseArray::Builder::setPoses(
+    ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>::Reader value) {
+  ::capnp::_::PointerHelpers<
+      ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>>::
+      set(_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+          value);
 }
-inline  ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>::Builder PoseArray::Builder::initPoses(unsigned int size) {
-  return ::capnp::_::PointerHelpers< ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), size);
+inline ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>::Builder
+PoseArray::Builder::initPoses(unsigned int size) {
+  return ::capnp::_::PointerHelpers<
+      ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>>::
+      init(_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+           size);
 }
 inline void PoseArray::Builder::adoptPoses(
-    ::capnp::Orphan< ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>>&& value) {
-  ::capnp::_::PointerHelpers< ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>>
+        &&value) {
+  ::capnp::_::PointerHelpers<
+      ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>>::
+      adopt(_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+            kj::mv(value));
 }
-inline ::capnp::Orphan< ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>> PoseArray::Builder::disownPoses() {
-  return ::capnp::_::PointerHelpers< ::capnp::List< ::mrp::geometry::Pose,  ::capnp::Kind::STRUCT>>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<
+    ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>>
+PoseArray::Builder::disownPoses() {
+  return ::capnp::_::PointerHelpers<
+      ::capnp::List<::mrp::geometry::Pose, ::capnp::Kind::STRUCT>>::
+      disown(
+          _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool PoseStamped::Reader::hasHeader() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool PoseStamped::Builder::hasHeader() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::std::Header::Reader PoseStamped::Reader::getHeader() const {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Reader PoseStamped::Reader::getHeader() const {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::std::Header::Builder PoseStamped::Builder::getHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder PoseStamped::Builder::getHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::std::Header::Pipeline PoseStamped::Pipeline::getHeader() {
-  return  ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::std::Header::Pipeline PoseStamped::Pipeline::getHeader() {
+  return ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void PoseStamped::Builder::setHeader( ::mrp::std::Header::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void PoseStamped::Builder::setHeader(::mrp::std::Header::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::std::Header::Builder PoseStamped::Builder::initHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder PoseStamped::Builder::initHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline void PoseStamped::Builder::adoptHeader(
-    ::capnp::Orphan< ::mrp::std::Header>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+inline void
+PoseStamped::Builder::adoptHeader(::capnp::Orphan<::mrp::std::Header> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::std::Header> PoseStamped::Builder::disownHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::std::Header>
+PoseStamped::Builder::disownHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool PoseStamped::Reader::hasPose() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool PoseStamped::Builder::hasPose() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Pose::Reader PoseStamped::Reader::getPose() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Pose>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Pose::Reader PoseStamped::Reader::getPose() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Pose>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Pose::Builder PoseStamped::Builder::getPose() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Pose>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Pose::Builder PoseStamped::Builder::getPose() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Pose>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Pose::Pipeline PoseStamped::Pipeline::getPose() {
-  return  ::mrp::geometry::Pose::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::Pose::Pipeline PoseStamped::Pipeline::getPose() {
+  return ::mrp::geometry::Pose::Pipeline(_typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void PoseStamped::Builder::setPose( ::mrp::geometry::Pose::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Pose>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void PoseStamped::Builder::setPose(::mrp::geometry::Pose::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Pose>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Pose::Builder PoseStamped::Builder::initPose() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Pose>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Pose::Builder PoseStamped::Builder::initPose() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Pose>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void PoseStamped::Builder::adoptPose(
-    ::capnp::Orphan< ::mrp::geometry::Pose>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Pose>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Pose> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Pose>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Pose> PoseStamped::Builder::disownPose() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Pose>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Pose>
+PoseStamped::Builder::disownPose() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Pose>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool PoseWithCovariance::Reader::hasPose() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool PoseWithCovariance::Builder::hasPose() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Pose::Reader PoseWithCovariance::Reader::getPose() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Pose>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Pose::Reader
+PoseWithCovariance::Reader::getPose() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Pose>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Pose::Builder PoseWithCovariance::Builder::getPose() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Pose>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Pose::Builder PoseWithCovariance::Builder::getPose() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Pose>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Pose::Pipeline PoseWithCovariance::Pipeline::getPose() {
-  return  ::mrp::geometry::Pose::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::geometry::Pose::Pipeline PoseWithCovariance::Pipeline::getPose() {
+  return ::mrp::geometry::Pose::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void PoseWithCovariance::Builder::setPose( ::mrp::geometry::Pose::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Pose>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+PoseWithCovariance::Builder::setPose(::mrp::geometry::Pose::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Pose>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Pose::Builder PoseWithCovariance::Builder::initPose() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Pose>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Pose::Builder PoseWithCovariance::Builder::initPose() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Pose>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void PoseWithCovariance::Builder::adoptPose(
-    ::capnp::Orphan< ::mrp::geometry::Pose>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Pose>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Pose> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Pose>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Pose> PoseWithCovariance::Builder::disownPose() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Pose>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Pose>
+PoseWithCovariance::Builder::disownPose() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Pose>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool PoseWithCovariance::Reader::hasCovariance() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool PoseWithCovariance::Builder::hasCovariance() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Reader PoseWithCovariance::Reader::getCovariance() const {
-  return ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Reader
+PoseWithCovariance::Reader::getCovariance() const {
+  return ::capnp::_::
+      PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::get(
+          _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Builder PoseWithCovariance::Builder::getCovariance() {
-  return ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Builder
+PoseWithCovariance::Builder::getCovariance() {
+  return ::capnp::_::
+      PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::get(
+          _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline void PoseWithCovariance::Builder::setCovariance( ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Reader value) {
-  ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+inline void PoseWithCovariance::Builder::setCovariance(
+    ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Reader value) {
+  ::capnp::_::PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::
+      set(_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+          value);
 }
-inline void PoseWithCovariance::Builder::setCovariance(::kj::ArrayPtr<const double> value) {
-  ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+inline void
+PoseWithCovariance::Builder::setCovariance(::kj::ArrayPtr<const double> value) {
+  ::capnp::_::PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::
+      set(_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+          value);
 }
-inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Builder PoseWithCovariance::Builder::initCovariance(unsigned int size) {
-  return ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), size);
+inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Builder
+PoseWithCovariance::Builder::initCovariance(unsigned int size) {
+  return ::capnp::_::
+      PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::init(
+          _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+          size);
 }
 inline void PoseWithCovariance::Builder::adoptCovariance(
-    ::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>&& value) {
-  ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::capnp::List<double, ::capnp::Kind::PRIMITIVE>> &&value) {
+  ::capnp::_::PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::
+      adopt(_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+            kj::mv(value));
 }
-inline ::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>> PoseWithCovariance::Builder::disownCovariance() {
-  return ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>
+PoseWithCovariance::Builder::disownCovariance() {
+  return ::capnp::_::
+      PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::disown(
+          _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool PoseWithCovarianceStamped::Reader::hasHeader() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool PoseWithCovarianceStamped::Builder::hasHeader() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::std::Header::Reader PoseWithCovarianceStamped::Reader::getHeader() const {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Reader
+PoseWithCovarianceStamped::Reader::getHeader() const {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::std::Header::Builder PoseWithCovarianceStamped::Builder::getHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder
+PoseWithCovarianceStamped::Builder::getHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::std::Header::Pipeline PoseWithCovarianceStamped::Pipeline::getHeader() {
-  return  ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::std::Header::Pipeline
+PoseWithCovarianceStamped::Pipeline::getHeader() {
+  return ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void PoseWithCovarianceStamped::Builder::setHeader( ::mrp::std::Header::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void PoseWithCovarianceStamped::Builder::setHeader(
+    ::mrp::std::Header::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::std::Header::Builder PoseWithCovarianceStamped::Builder::initHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder
+PoseWithCovarianceStamped::Builder::initHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void PoseWithCovarianceStamped::Builder::adoptHeader(
-    ::capnp::Orphan< ::mrp::std::Header>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::std::Header> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::std::Header> PoseWithCovarianceStamped::Builder::disownHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::std::Header>
+PoseWithCovarianceStamped::Builder::disownHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool PoseWithCovarianceStamped::Reader::hasPose() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool PoseWithCovarianceStamped::Builder::hasPose() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::PoseWithCovariance::Reader PoseWithCovarianceStamped::Reader::getPose() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::PoseWithCovariance>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::PoseWithCovariance::Reader
+PoseWithCovarianceStamped::Reader::getPose() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::PoseWithCovariance>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::PoseWithCovariance::Builder PoseWithCovarianceStamped::Builder::getPose() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::PoseWithCovariance>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::PoseWithCovariance::Builder
+PoseWithCovarianceStamped::Builder::getPose() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::PoseWithCovariance>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::PoseWithCovariance::Pipeline PoseWithCovarianceStamped::Pipeline::getPose() {
-  return  ::mrp::geometry::PoseWithCovariance::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::PoseWithCovariance::Pipeline
+PoseWithCovarianceStamped::Pipeline::getPose() {
+  return ::mrp::geometry::PoseWithCovariance::Pipeline(
+      _typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void PoseWithCovarianceStamped::Builder::setPose( ::mrp::geometry::PoseWithCovariance::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::PoseWithCovariance>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void PoseWithCovarianceStamped::Builder::setPose(
+    ::mrp::geometry::PoseWithCovariance::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::PoseWithCovariance>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::PoseWithCovariance::Builder PoseWithCovarianceStamped::Builder::initPose() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::PoseWithCovariance>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::PoseWithCovariance::Builder
+PoseWithCovarianceStamped::Builder::initPose() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::PoseWithCovariance>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void PoseWithCovarianceStamped::Builder::adoptPose(
-    ::capnp::Orphan< ::mrp::geometry::PoseWithCovariance>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::PoseWithCovariance>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::PoseWithCovariance> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::PoseWithCovariance>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::PoseWithCovariance> PoseWithCovarianceStamped::Builder::disownPose() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::PoseWithCovariance>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::PoseWithCovariance>
+PoseWithCovarianceStamped::Builder::disownPose() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::PoseWithCovariance>::
+      disown(
+          _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline double Quaternion::Reader::getX() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<0>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Quaternion::Builder::getX() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<0>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Quaternion::Builder::setX(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<0>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline double Quaternion::Reader::getY() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<1>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Quaternion::Builder::getY() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<1>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Quaternion::Builder::setY(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<1>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline double Quaternion::Reader::getZ() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<2>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Quaternion::Builder::getZ() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<2>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Quaternion::Builder::setZ(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<2>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline double Quaternion::Reader::getW() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<3>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<3>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Quaternion::Builder::getW() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<3>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<3>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Quaternion::Builder::setW(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<3>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<3>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline bool QuaternionStamped::Reader::hasHeader() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool QuaternionStamped::Builder::hasHeader() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::std::Header::Reader QuaternionStamped::Reader::getHeader() const {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Reader QuaternionStamped::Reader::getHeader() const {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::std::Header::Builder QuaternionStamped::Builder::getHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder QuaternionStamped::Builder::getHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::std::Header::Pipeline QuaternionStamped::Pipeline::getHeader() {
-  return  ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::std::Header::Pipeline QuaternionStamped::Pipeline::getHeader() {
+  return ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void QuaternionStamped::Builder::setHeader( ::mrp::std::Header::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+QuaternionStamped::Builder::setHeader(::mrp::std::Header::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::std::Header::Builder QuaternionStamped::Builder::initHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder QuaternionStamped::Builder::initHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void QuaternionStamped::Builder::adoptHeader(
-    ::capnp::Orphan< ::mrp::std::Header>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::std::Header> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::std::Header> QuaternionStamped::Builder::disownHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::std::Header>
+QuaternionStamped::Builder::disownHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool QuaternionStamped::Reader::hasQuaternion() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool QuaternionStamped::Builder::hasQuaternion() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Quaternion::Reader QuaternionStamped::Reader::getQuaternion() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Quaternion::Reader
+QuaternionStamped::Reader::getQuaternion() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Quaternion::Builder QuaternionStamped::Builder::getQuaternion() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Quaternion::Builder
+QuaternionStamped::Builder::getQuaternion() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Quaternion::Pipeline QuaternionStamped::Pipeline::getQuaternion() {
-  return  ::mrp::geometry::Quaternion::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::Quaternion::Pipeline
+QuaternionStamped::Pipeline::getQuaternion() {
+  return ::mrp::geometry::Quaternion::Pipeline(_typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void QuaternionStamped::Builder::setQuaternion( ::mrp::geometry::Quaternion::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void QuaternionStamped::Builder::setQuaternion(
+    ::mrp::geometry::Quaternion::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Quaternion::Builder QuaternionStamped::Builder::initQuaternion() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Quaternion::Builder
+QuaternionStamped::Builder::initQuaternion() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void QuaternionStamped::Builder::adoptQuaternion(
-    ::capnp::Orphan< ::mrp::geometry::Quaternion>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Quaternion> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Quaternion> QuaternionStamped::Builder::disownQuaternion() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Quaternion>
+QuaternionStamped::Builder::disownQuaternion() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool Transform::Reader::hasTranslation() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool Transform::Builder::hasTranslation() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Vector3::Reader Transform::Reader::getTranslation() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Reader
+Transform::Reader::getTranslation() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Vector3::Builder Transform::Builder::getTranslation() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Transform::Builder::getTranslation() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Vector3::Pipeline Transform::Pipeline::getTranslation() {
-  return  ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::geometry::Vector3::Pipeline
+Transform::Pipeline::getTranslation() {
+  return ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void Transform::Builder::setTranslation( ::mrp::geometry::Vector3::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+Transform::Builder::setTranslation(::mrp::geometry::Vector3::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Vector3::Builder Transform::Builder::initTranslation() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Transform::Builder::initTranslation() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void Transform::Builder::adoptTranslation(
-    ::capnp::Orphan< ::mrp::geometry::Vector3>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Vector3> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Vector3> Transform::Builder::disownTranslation() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Vector3>
+Transform::Builder::disownTranslation() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool Transform::Reader::hasRotation() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool Transform::Builder::hasRotation() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Quaternion::Reader Transform::Reader::getRotation() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Quaternion::Reader
+Transform::Reader::getRotation() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Quaternion::Builder Transform::Builder::getRotation() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Quaternion::Builder Transform::Builder::getRotation() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Quaternion::Pipeline Transform::Pipeline::getRotation() {
-  return  ::mrp::geometry::Quaternion::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::Quaternion::Pipeline
+Transform::Pipeline::getRotation() {
+  return ::mrp::geometry::Quaternion::Pipeline(_typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void Transform::Builder::setRotation( ::mrp::geometry::Quaternion::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+Transform::Builder::setRotation(::mrp::geometry::Quaternion::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Quaternion::Builder Transform::Builder::initRotation() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Quaternion::Builder Transform::Builder::initRotation() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void Transform::Builder::adoptRotation(
-    ::capnp::Orphan< ::mrp::geometry::Quaternion>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Quaternion> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Quaternion> Transform::Builder::disownRotation() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Quaternion>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Quaternion>
+Transform::Builder::disownRotation() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Quaternion>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool TransformStamped::Reader::hasHeader() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool TransformStamped::Builder::hasHeader() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::std::Header::Reader TransformStamped::Reader::getHeader() const {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Reader TransformStamped::Reader::getHeader() const {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::std::Header::Builder TransformStamped::Builder::getHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder TransformStamped::Builder::getHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::std::Header::Pipeline TransformStamped::Pipeline::getHeader() {
-  return  ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::std::Header::Pipeline TransformStamped::Pipeline::getHeader() {
+  return ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void TransformStamped::Builder::setHeader( ::mrp::std::Header::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+TransformStamped::Builder::setHeader(::mrp::std::Header::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::std::Header::Builder TransformStamped::Builder::initHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder TransformStamped::Builder::initHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void TransformStamped::Builder::adoptHeader(
-    ::capnp::Orphan< ::mrp::std::Header>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::std::Header> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::std::Header> TransformStamped::Builder::disownHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::std::Header>
+TransformStamped::Builder::disownHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool TransformStamped::Reader::hasChildFrameId() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool TransformStamped::Builder::hasChildFrameId() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::capnp::Text::Reader TransformStamped::Reader::getChildFrameId() const {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Text::Reader TransformStamped::Reader::getChildFrameId() const {
+  return ::capnp::_::PointerHelpers<::capnp::Text>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::capnp::Text::Builder TransformStamped::Builder::getChildFrameId() {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Text::Builder TransformStamped::Builder::getChildFrameId() {
+  return ::capnp::_::PointerHelpers<::capnp::Text>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline void TransformStamped::Builder::setChildFrameId( ::capnp::Text::Reader value) {
-  ::capnp::_::PointerHelpers< ::capnp::Text>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+inline void
+TransformStamped::Builder::setChildFrameId(::capnp::Text::Reader value) {
+  ::capnp::_::PointerHelpers<::capnp::Text>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::capnp::Text::Builder TransformStamped::Builder::initChildFrameId(unsigned int size) {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), size);
+inline ::capnp::Text::Builder
+TransformStamped::Builder::initChildFrameId(unsigned int size) {
+  return ::capnp::_::PointerHelpers<::capnp::Text>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      size);
 }
 inline void TransformStamped::Builder::adoptChildFrameId(
-    ::capnp::Orphan< ::capnp::Text>&& value) {
-  ::capnp::_::PointerHelpers< ::capnp::Text>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::capnp::Text> &&value) {
+  ::capnp::_::PointerHelpers<::capnp::Text>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::capnp::Text> TransformStamped::Builder::disownChildFrameId() {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::capnp::Text>
+TransformStamped::Builder::disownChildFrameId() {
+  return ::capnp::_::PointerHelpers<::capnp::Text>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool TransformStamped::Reader::hasTransform() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<2>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool TransformStamped::Builder::hasTransform() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<2>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Transform::Reader TransformStamped::Reader::getTransform() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Transform>::get(_reader.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Transform::Reader
+TransformStamped::Reader::getTransform() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Transform>::get(
+      _reader.getPointerField(::capnp::bounded<2>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Transform::Builder TransformStamped::Builder::getTransform() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Transform>::get(_builder.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Transform::Builder
+TransformStamped::Builder::getTransform() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Transform>::get(
+      _builder.getPointerField(::capnp::bounded<2>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Transform::Pipeline TransformStamped::Pipeline::getTransform() {
-  return  ::mrp::geometry::Transform::Pipeline(_typeless.getPointerField(2));
+inline ::mrp::geometry::Transform::Pipeline
+TransformStamped::Pipeline::getTransform() {
+  return ::mrp::geometry::Transform::Pipeline(_typeless.getPointerField(2));
 }
-#endif  // !CAPNP_LITE
-inline void TransformStamped::Builder::setTransform( ::mrp::geometry::Transform::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Transform>::set(_builder.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void TransformStamped::Builder::setTransform(
+    ::mrp::geometry::Transform::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Transform>::set(
+      _builder.getPointerField(::capnp::bounded<2>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Transform::Builder TransformStamped::Builder::initTransform() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Transform>::init(_builder.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Transform::Builder
+TransformStamped::Builder::initTransform() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Transform>::init(
+      _builder.getPointerField(::capnp::bounded<2>() * ::capnp::POINTERS));
 }
 inline void TransformStamped::Builder::adoptTransform(
-    ::capnp::Orphan< ::mrp::geometry::Transform>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Transform>::adopt(_builder.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Transform> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Transform>::adopt(
+      _builder.getPointerField(::capnp::bounded<2>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Transform> TransformStamped::Builder::disownTransform() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Transform>::disown(_builder.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Transform>
+TransformStamped::Builder::disownTransform() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Transform>::disown(
+      _builder.getPointerField(::capnp::bounded<2>() * ::capnp::POINTERS));
 }
 
 inline bool Twist::Reader::hasLinear() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool Twist::Builder::hasLinear() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Vector3::Reader Twist::Reader::getLinear() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Reader Twist::Reader::getLinear() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Vector3::Builder Twist::Builder::getLinear() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Twist::Builder::getLinear() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Vector3::Pipeline Twist::Pipeline::getLinear() {
-  return  ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::geometry::Vector3::Pipeline Twist::Pipeline::getLinear() {
+  return ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void Twist::Builder::setLinear( ::mrp::geometry::Vector3::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void Twist::Builder::setLinear(::mrp::geometry::Vector3::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Vector3::Builder Twist::Builder::initLinear() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Twist::Builder::initLinear() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline void Twist::Builder::adoptLinear(
-    ::capnp::Orphan< ::mrp::geometry::Vector3>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+inline void
+Twist::Builder::adoptLinear(::capnp::Orphan<::mrp::geometry::Vector3> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Vector3> Twist::Builder::disownLinear() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Vector3>
+Twist::Builder::disownLinear() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool Twist::Reader::hasAngular() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool Twist::Builder::hasAngular() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Vector3::Reader Twist::Reader::getAngular() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Reader Twist::Reader::getAngular() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Vector3::Builder Twist::Builder::getAngular() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Twist::Builder::getAngular() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Vector3::Pipeline Twist::Pipeline::getAngular() {
-  return  ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::Vector3::Pipeline Twist::Pipeline::getAngular() {
+  return ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void Twist::Builder::setAngular( ::mrp::geometry::Vector3::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void Twist::Builder::setAngular(::mrp::geometry::Vector3::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Vector3::Builder Twist::Builder::initAngular() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Twist::Builder::initAngular() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void Twist::Builder::adoptAngular(
-    ::capnp::Orphan< ::mrp::geometry::Vector3>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Vector3> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Vector3> Twist::Builder::disownAngular() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Vector3>
+Twist::Builder::disownAngular() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool TwistStamped::Reader::hasHeader() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool TwistStamped::Builder::hasHeader() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::std::Header::Reader TwistStamped::Reader::getHeader() const {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Reader TwistStamped::Reader::getHeader() const {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::std::Header::Builder TwistStamped::Builder::getHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder TwistStamped::Builder::getHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::std::Header::Pipeline TwistStamped::Pipeline::getHeader() {
-  return  ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::std::Header::Pipeline TwistStamped::Pipeline::getHeader() {
+  return ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void TwistStamped::Builder::setHeader( ::mrp::std::Header::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void TwistStamped::Builder::setHeader(::mrp::std::Header::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::std::Header::Builder TwistStamped::Builder::initHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder TwistStamped::Builder::initHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void TwistStamped::Builder::adoptHeader(
-    ::capnp::Orphan< ::mrp::std::Header>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::std::Header> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::std::Header> TwistStamped::Builder::disownHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::std::Header>
+TwistStamped::Builder::disownHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool TwistStamped::Reader::hasTwist() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool TwistStamped::Builder::hasTwist() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Twist::Reader TwistStamped::Reader::getTwist() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Twist>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Twist::Reader TwistStamped::Reader::getTwist() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Twist>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Twist::Builder TwistStamped::Builder::getTwist() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Twist>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Twist::Builder TwistStamped::Builder::getTwist() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Twist>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Twist::Pipeline TwistStamped::Pipeline::getTwist() {
-  return  ::mrp::geometry::Twist::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::Twist::Pipeline TwistStamped::Pipeline::getTwist() {
+  return ::mrp::geometry::Twist::Pipeline(_typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void TwistStamped::Builder::setTwist( ::mrp::geometry::Twist::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Twist>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+TwistStamped::Builder::setTwist(::mrp::geometry::Twist::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Twist>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Twist::Builder TwistStamped::Builder::initTwist() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Twist>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Twist::Builder TwistStamped::Builder::initTwist() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Twist>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void TwistStamped::Builder::adoptTwist(
-    ::capnp::Orphan< ::mrp::geometry::Twist>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Twist>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Twist> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Twist>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Twist> TwistStamped::Builder::disownTwist() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Twist>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Twist>
+TwistStamped::Builder::disownTwist() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Twist>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool TwistWithCovariance::Reader::hasTwist() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool TwistWithCovariance::Builder::hasTwist() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Twist::Reader TwistWithCovariance::Reader::getTwist() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Twist>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Twist::Reader
+TwistWithCovariance::Reader::getTwist() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Twist>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Twist::Builder TwistWithCovariance::Builder::getTwist() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Twist>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Twist::Builder
+TwistWithCovariance::Builder::getTwist() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Twist>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Twist::Pipeline TwistWithCovariance::Pipeline::getTwist() {
-  return  ::mrp::geometry::Twist::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::geometry::Twist::Pipeline
+TwistWithCovariance::Pipeline::getTwist() {
+  return ::mrp::geometry::Twist::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void TwistWithCovariance::Builder::setTwist( ::mrp::geometry::Twist::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Twist>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+TwistWithCovariance::Builder::setTwist(::mrp::geometry::Twist::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Twist>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Twist::Builder TwistWithCovariance::Builder::initTwist() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Twist>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Twist::Builder
+TwistWithCovariance::Builder::initTwist() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Twist>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void TwistWithCovariance::Builder::adoptTwist(
-    ::capnp::Orphan< ::mrp::geometry::Twist>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Twist>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Twist> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Twist>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Twist> TwistWithCovariance::Builder::disownTwist() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Twist>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Twist>
+TwistWithCovariance::Builder::disownTwist() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Twist>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool TwistWithCovariance::Reader::hasCovariance() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool TwistWithCovariance::Builder::hasCovariance() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Reader TwistWithCovariance::Reader::getCovariance() const {
-  return ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Reader
+TwistWithCovariance::Reader::getCovariance() const {
+  return ::capnp::_::
+      PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::get(
+          _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Builder TwistWithCovariance::Builder::getCovariance() {
-  return ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Builder
+TwistWithCovariance::Builder::getCovariance() {
+  return ::capnp::_::
+      PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::get(
+          _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline void TwistWithCovariance::Builder::setCovariance( ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Reader value) {
-  ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+inline void TwistWithCovariance::Builder::setCovariance(
+    ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Reader value) {
+  ::capnp::_::PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::
+      set(_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+          value);
 }
-inline void TwistWithCovariance::Builder::setCovariance(::kj::ArrayPtr<const double> value) {
-  ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+inline void TwistWithCovariance::Builder::setCovariance(
+    ::kj::ArrayPtr<const double> value) {
+  ::capnp::_::PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::
+      set(_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+          value);
 }
-inline  ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>::Builder TwistWithCovariance::Builder::initCovariance(unsigned int size) {
-  return ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), size);
+inline ::capnp::List<double, ::capnp::Kind::PRIMITIVE>::Builder
+TwistWithCovariance::Builder::initCovariance(unsigned int size) {
+  return ::capnp::_::
+      PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::init(
+          _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+          size);
 }
 inline void TwistWithCovariance::Builder::adoptCovariance(
-    ::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>&& value) {
-  ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::capnp::List<double, ::capnp::Kind::PRIMITIVE>> &&value) {
+  ::capnp::_::PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::
+      adopt(_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+            kj::mv(value));
 }
-inline ::capnp::Orphan< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>> TwistWithCovariance::Builder::disownCovariance() {
-  return ::capnp::_::PointerHelpers< ::capnp::List<double,  ::capnp::Kind::PRIMITIVE>>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>
+TwistWithCovariance::Builder::disownCovariance() {
+  return ::capnp::_::
+      PointerHelpers<::capnp::List<double, ::capnp::Kind::PRIMITIVE>>::disown(
+          _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool TwistWithCovarianceStamped::Reader::hasHeader() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool TwistWithCovarianceStamped::Builder::hasHeader() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::std::Header::Reader TwistWithCovarianceStamped::Reader::getHeader() const {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Reader
+TwistWithCovarianceStamped::Reader::getHeader() const {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::std::Header::Builder TwistWithCovarianceStamped::Builder::getHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder
+TwistWithCovarianceStamped::Builder::getHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::std::Header::Pipeline TwistWithCovarianceStamped::Pipeline::getHeader() {
-  return  ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::std::Header::Pipeline
+TwistWithCovarianceStamped::Pipeline::getHeader() {
+  return ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void TwistWithCovarianceStamped::Builder::setHeader( ::mrp::std::Header::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void TwistWithCovarianceStamped::Builder::setHeader(
+    ::mrp::std::Header::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::std::Header::Builder TwistWithCovarianceStamped::Builder::initHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder
+TwistWithCovarianceStamped::Builder::initHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void TwistWithCovarianceStamped::Builder::adoptHeader(
-    ::capnp::Orphan< ::mrp::std::Header>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::std::Header> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::std::Header> TwistWithCovarianceStamped::Builder::disownHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::std::Header>
+TwistWithCovarianceStamped::Builder::disownHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool TwistWithCovarianceStamped::Reader::hasTwist() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool TwistWithCovarianceStamped::Builder::hasTwist() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::TwistWithCovariance::Reader TwistWithCovarianceStamped::Reader::getTwist() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::TwistWithCovariance>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::TwistWithCovariance::Reader
+TwistWithCovarianceStamped::Reader::getTwist() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::TwistWithCovariance>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::TwistWithCovariance::Builder TwistWithCovarianceStamped::Builder::getTwist() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::TwistWithCovariance>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::TwistWithCovariance::Builder
+TwistWithCovarianceStamped::Builder::getTwist() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::TwistWithCovariance>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::TwistWithCovariance::Pipeline TwistWithCovarianceStamped::Pipeline::getTwist() {
-  return  ::mrp::geometry::TwistWithCovariance::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::TwistWithCovariance::Pipeline
+TwistWithCovarianceStamped::Pipeline::getTwist() {
+  return ::mrp::geometry::TwistWithCovariance::Pipeline(
+      _typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void TwistWithCovarianceStamped::Builder::setTwist( ::mrp::geometry::TwistWithCovariance::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::TwistWithCovariance>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void TwistWithCovarianceStamped::Builder::setTwist(
+    ::mrp::geometry::TwistWithCovariance::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::TwistWithCovariance>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::TwistWithCovariance::Builder TwistWithCovarianceStamped::Builder::initTwist() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::TwistWithCovariance>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::TwistWithCovariance::Builder
+TwistWithCovarianceStamped::Builder::initTwist() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::TwistWithCovariance>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void TwistWithCovarianceStamped::Builder::adoptTwist(
-    ::capnp::Orphan< ::mrp::geometry::TwistWithCovariance>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::TwistWithCovariance>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::TwistWithCovariance> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::TwistWithCovariance>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::TwistWithCovariance> TwistWithCovarianceStamped::Builder::disownTwist() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::TwistWithCovariance>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::TwistWithCovariance>
+TwistWithCovarianceStamped::Builder::disownTwist() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::TwistWithCovariance>::
+      disown(
+          _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline double Vector3::Reader::getX() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<0>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Vector3::Builder::getX() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<0>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Vector3::Builder::setX(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<0>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<0>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline double Vector3::Reader::getY() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<1>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Vector3::Builder::getY() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<1>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Vector3::Builder::setY(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<1>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<1>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline double Vector3::Reader::getZ() const {
-  return _reader.getDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+  return _reader.getDataField<double>(::capnp::bounded<2>() *
+                                      ::capnp::ELEMENTS);
 }
 
 inline double Vector3::Builder::getZ() {
-  return _builder.getDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS);
+  return _builder.getDataField<double>(::capnp::bounded<2>() *
+                                       ::capnp::ELEMENTS);
 }
 inline void Vector3::Builder::setZ(double value) {
-  _builder.setDataField<double>(
-      ::capnp::bounded<2>() * ::capnp::ELEMENTS, value);
+  _builder.setDataField<double>(::capnp::bounded<2>() * ::capnp::ELEMENTS,
+                                value);
 }
 
 inline bool Vector3Stamped::Reader::hasHeader() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool Vector3Stamped::Builder::hasHeader() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::std::Header::Reader Vector3Stamped::Reader::getHeader() const {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Reader Vector3Stamped::Reader::getHeader() const {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::std::Header::Builder Vector3Stamped::Builder::getHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder Vector3Stamped::Builder::getHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::std::Header::Pipeline Vector3Stamped::Pipeline::getHeader() {
-  return  ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::std::Header::Pipeline Vector3Stamped::Pipeline::getHeader() {
+  return ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void Vector3Stamped::Builder::setHeader( ::mrp::std::Header::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+Vector3Stamped::Builder::setHeader(::mrp::std::Header::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::std::Header::Builder Vector3Stamped::Builder::initHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder Vector3Stamped::Builder::initHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void Vector3Stamped::Builder::adoptHeader(
-    ::capnp::Orphan< ::mrp::std::Header>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::std::Header> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::std::Header> Vector3Stamped::Builder::disownHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::std::Header>
+Vector3Stamped::Builder::disownHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool Vector3Stamped::Reader::hasVector() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool Vector3Stamped::Builder::hasVector() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Vector3::Reader Vector3Stamped::Reader::getVector() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Reader
+Vector3Stamped::Reader::getVector() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Vector3::Builder Vector3Stamped::Builder::getVector() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Vector3Stamped::Builder::getVector() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Vector3::Pipeline Vector3Stamped::Pipeline::getVector() {
-  return  ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::Vector3::Pipeline
+Vector3Stamped::Pipeline::getVector() {
+  return ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void Vector3Stamped::Builder::setVector( ::mrp::geometry::Vector3::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+Vector3Stamped::Builder::setVector(::mrp::geometry::Vector3::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Vector3::Builder Vector3Stamped::Builder::initVector() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Vector3Stamped::Builder::initVector() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void Vector3Stamped::Builder::adoptVector(
-    ::capnp::Orphan< ::mrp::geometry::Vector3>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Vector3> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Vector3> Vector3Stamped::Builder::disownVector() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Vector3>
+Vector3Stamped::Builder::disownVector() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool Wrench::Reader::hasForce() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool Wrench::Builder::hasForce() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Vector3::Reader Wrench::Reader::getForce() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Reader Wrench::Reader::getForce() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Vector3::Builder Wrench::Builder::getForce() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Wrench::Builder::getForce() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Vector3::Pipeline Wrench::Pipeline::getForce() {
-  return  ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::geometry::Vector3::Pipeline Wrench::Pipeline::getForce() {
+  return ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void Wrench::Builder::setForce( ::mrp::geometry::Vector3::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void Wrench::Builder::setForce(::mrp::geometry::Vector3::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Vector3::Builder Wrench::Builder::initForce() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Wrench::Builder::initForce() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline void Wrench::Builder::adoptForce(
-    ::capnp::Orphan< ::mrp::geometry::Vector3>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+inline void
+Wrench::Builder::adoptForce(::capnp::Orphan<::mrp::geometry::Vector3> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Vector3> Wrench::Builder::disownForce() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Vector3>
+Wrench::Builder::disownForce() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool Wrench::Reader::hasTorque() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool Wrench::Builder::hasTorque() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Vector3::Reader Wrench::Reader::getTorque() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Reader Wrench::Reader::getTorque() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Vector3::Builder Wrench::Builder::getTorque() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Wrench::Builder::getTorque() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Vector3::Pipeline Wrench::Pipeline::getTorque() {
-  return  ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::Vector3::Pipeline Wrench::Pipeline::getTorque() {
+  return ::mrp::geometry::Vector3::Pipeline(_typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void Wrench::Builder::setTorque( ::mrp::geometry::Vector3::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void Wrench::Builder::setTorque(::mrp::geometry::Vector3::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Vector3::Builder Wrench::Builder::initTorque() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Vector3::Builder Wrench::Builder::initTorque() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void Wrench::Builder::adoptTorque(
-    ::capnp::Orphan< ::mrp::geometry::Vector3>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Vector3> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Vector3> Wrench::Builder::disownTorque() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Vector3>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Vector3>
+Wrench::Builder::disownTorque() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Vector3>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
 inline bool WrenchStamped::Reader::hasHeader() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool WrenchStamped::Builder::hasHeader() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::std::Header::Reader WrenchStamped::Reader::getHeader() const {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Reader WrenchStamped::Reader::getHeader() const {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _reader.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
-inline  ::mrp::std::Header::Builder WrenchStamped::Builder::getHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder WrenchStamped::Builder::getHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::get(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::std::Header::Pipeline WrenchStamped::Pipeline::getHeader() {
-  return  ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
+inline ::mrp::std::Header::Pipeline WrenchStamped::Pipeline::getHeader() {
+  return ::mrp::std::Header::Pipeline(_typeless.getPointerField(0));
 }
-#endif  // !CAPNP_LITE
-inline void WrenchStamped::Builder::setHeader( ::mrp::std::Header::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+WrenchStamped::Builder::setHeader(::mrp::std::Header::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::set(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::std::Header::Builder WrenchStamped::Builder::initHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::mrp::std::Header::Builder WrenchStamped::Builder::initHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::init(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 inline void WrenchStamped::Builder::adoptHeader(
-    ::capnp::Orphan< ::mrp::std::Header>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::std::Header>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::std::Header> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::std::Header>::adopt(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::std::Header> WrenchStamped::Builder::disownHeader() {
-  return ::capnp::_::PointerHelpers< ::mrp::std::Header>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::std::Header>
+WrenchStamped::Builder::disownHeader() {
+  return ::capnp::_::PointerHelpers<::mrp::std::Header>::disown(
+      _builder.getPointerField(::capnp::bounded<0>() * ::capnp::POINTERS));
 }
 
 inline bool WrenchStamped::Reader::hasWrench() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
 inline bool WrenchStamped::Builder::hasWrench() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
+  return !_builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS)
+              .isNull();
 }
-inline  ::mrp::geometry::Wrench::Reader WrenchStamped::Reader::getWrench() const {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Wrench>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Wrench::Reader
+WrenchStamped::Reader::getWrench() const {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Wrench>::get(
+      _reader.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
-inline  ::mrp::geometry::Wrench::Builder WrenchStamped::Builder::getWrench() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Wrench>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Wrench::Builder WrenchStamped::Builder::getWrench() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Wrench>::get(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 #if !CAPNP_LITE
-inline  ::mrp::geometry::Wrench::Pipeline WrenchStamped::Pipeline::getWrench() {
-  return  ::mrp::geometry::Wrench::Pipeline(_typeless.getPointerField(1));
+inline ::mrp::geometry::Wrench::Pipeline WrenchStamped::Pipeline::getWrench() {
+  return ::mrp::geometry::Wrench::Pipeline(_typeless.getPointerField(1));
 }
-#endif  // !CAPNP_LITE
-inline void WrenchStamped::Builder::setWrench( ::mrp::geometry::Wrench::Reader value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Wrench>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
+#endif // !CAPNP_LITE
+inline void
+WrenchStamped::Builder::setWrench(::mrp::geometry::Wrench::Reader value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Wrench>::set(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      value);
 }
-inline  ::mrp::geometry::Wrench::Builder WrenchStamped::Builder::initWrench() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Wrench>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::mrp::geometry::Wrench::Builder WrenchStamped::Builder::initWrench() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Wrench>::init(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 inline void WrenchStamped::Builder::adoptWrench(
-    ::capnp::Orphan< ::mrp::geometry::Wrench>&& value) {
-  ::capnp::_::PointerHelpers< ::mrp::geometry::Wrench>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
+    ::capnp::Orphan<::mrp::geometry::Wrench> &&value) {
+  ::capnp::_::PointerHelpers<::mrp::geometry::Wrench>::adopt(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS),
+      kj::mv(value));
 }
-inline ::capnp::Orphan< ::mrp::geometry::Wrench> WrenchStamped::Builder::disownWrench() {
-  return ::capnp::_::PointerHelpers< ::mrp::geometry::Wrench>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
+inline ::capnp::Orphan<::mrp::geometry::Wrench>
+WrenchStamped::Builder::disownWrench() {
+  return ::capnp::_::PointerHelpers<::mrp::geometry::Wrench>::disown(
+      _builder.getPointerField(::capnp::bounded<1>() * ::capnp::POINTERS));
 }
 
-}  // namespace
-}  // namespace
+} // namespace geometry
+} // namespace mrp
 
 CAPNP_END_HEADER
-

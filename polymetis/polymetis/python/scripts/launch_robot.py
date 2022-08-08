@@ -13,8 +13,11 @@ import atexit
 import sys
 import time
 import signal
+import tempfile
 
 import hydra
+import omegaconf
+from omegaconf import OmegaConf
 
 from polymetis.utils.data_dir import PKG_ROOT_DIR, which
 
@@ -43,19 +46,41 @@ def main(cfg):
     ip = str(cfg.ip)
     port = str(cfg.port)
 
+    # Generate robot client config path (tmpfiles close implicitly upon gc)
+    metadata_file = tempfile.NamedTemporaryFile(mode="wb")
+    metadata = hydra.utils.instantiate(cfg.robot_client.metadata_cfg)
+    metadata_file.write(metadata.serialize())
+    metadata_file.flush()
+
+    cfg_file = tempfile.NamedTemporaryFile(mode="w")
+    cfg.robot_client.executable_cfg.robot_client_metadata_path = metadata_file.name
+    cfg_pretty = OmegaConf.to_yaml(cfg.robot_client.executable_cfg, resolve=True)
+    log.info(f"=== Config: ===\n{cfg_pretty}")
+    cfg_file.write(cfg_pretty)
+    cfg_file.flush()
+
     # Start server
     log.info(f"Starting server")
     server_exec_path = which(cfg.server_exec)
     server_cmd = [server_exec_path]
-    server_cmd = server_cmd + ["-s", ip, "-p", port]
+    server_cmd = server_cmd + ["-s", ip, "-p", port, "-c", cfg_file.name]
 
     if cfg.use_real_time:
         log.info(f"Acquiring sudo...")
         subprocess.run(["sudo", "echo", '"Acquired sudo."'], check=True)
 
         server_cmd = ["sudo", "-s", "env", '"PATH=$PATH"'] + server_cmd + ["-r"]
+    """
     server_output = subprocess.Popen(
         server_cmd, stdout=sys.stdout, stderr=sys.stderr, preexec_fn=os.setpgrp
+    )
+    """
+    subprocess.run(
+        server_cmd,
+        stdin=sys.stdin,
+        stdout=sys.stdout,
+        stderr=sys.stderr,
+        check=True,
     )
     pgid = os.getpgid(server_output.pid)
 
@@ -77,17 +102,6 @@ def main(cfg):
 
     atexit.register(cleanup)
     signal.signal(signal.SIGTERM, lambda signal_number, stack_frame: cleanup())
-
-    # Start client
-    t0 = time.time()
-    while not check_server_exists(cfg.ip, cfg.port):
-        time.sleep(0.1)
-        if time.time() - t0 > cfg.timeout:
-            raise ConnectionError("Robot client: Unable to locate server.")
-
-    log.info(f"Starting robot client...")
-    client = hydra.utils.instantiate(cfg.robot_client)
-    client.run()
 
 
 if __name__ == "__main__":

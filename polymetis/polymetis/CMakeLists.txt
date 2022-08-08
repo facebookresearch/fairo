@@ -121,63 +121,6 @@ target_link_libraries(polymetis_server -Wl,--no-as-needed torchscript_pinocchio)
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchrot)
 target_link_libraries(polymetis_server -Wl,--no-as-needed torch_server_ops)
 
-add_executable(run_server "src/run_server.cpp")
-target_link_libraries(run_server polymetis_server)
-
-# Add test client
-add_executable(empty_statistics_client "src/clients/empty_statistics_client.cpp"
-)
-target_link_libraries(empty_statistics_client
-    generated_grpc_protos
-    yaml-cpp
-    spdlog::spdlog
-)
-
-if(BUILD_ALLEGRO)
-  add_library(allegro_hand
-    src/clients/allegro_hand_client/allegro_hand.cpp
-    src/clients/allegro_hand_client/event_watcher.cpp
-    src/clients/allegro_hand_client/pcan_netdev_interface.cpp)
-
-  target_link_libraries(allegro_hand
-    yaml-cpp
-    spdlog::spdlog
-    )
-
-  add_executable(allegro_hand_client
-    src/clients/allegro_hand_client/allegro_hand_client.cpp
-    )
-
-  target_link_libraries(allegro_hand_client
-    allegro_hand
-    generated_grpc_protos
-    )
-
-  if(BUILD_TESTS)
-    find_package(Git REQUIRED QUIET)
-    execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive -- tests/cpp/fake_clock
-      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-      COMMAND_ERROR_IS_FATAL ANY)
-
-    add_library(fake_clock tests/cpp/fake_clock/fake_clock.cc)
-    add_executable(test_allegro_hand_client
-      tests/cpp/test_allegro_hand_client.cpp
-      )
-
-    target_include_directories(test_allegro_hand_client PRIVATE
-      src/clients/allegro_hand_client
-      ${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR}
-      )
-
-    target_link_libraries(test_allegro_hand_client
-      allegro_hand
-      fake_clock
-      gtest
-      gtest_main
-      )
-  endif()
-endif()
-
 if(BUILD_FRANKA)
   if(NOT DEFINED Franka_DIR)
     set(Franka_DIR "src/clients/franka_panda_client/third_party/libfranka/build")
@@ -190,10 +133,11 @@ if(BUILD_FRANKA)
   )
 
   # Add Franka clients
-  add_executable(franka_panda_client
+  add_library(franka_panda_client
       src/clients/franka_panda_client/franka_panda_client.cpp
   )
   target_link_libraries(franka_panda_client
+      polymetis_server
       generated_grpc_protos
       Franka::Franka
       yaml-cpp
@@ -210,20 +154,13 @@ if(BUILD_FRANKA)
   )
 endif()
 
-
-if(BUILD_TESTS)
-  include(FetchContent)
-  FetchContent_Declare(
-    googletest
-    # Specify the commit you depend on and update it regularly.
-    URL https://github.com/google/googletest/archive/23ef29555ef4789f555f1ba8c51b4c52975f0907.zip
-  )
-  FetchContent_MakeAvailable(googletest)
-
-  include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
-  add_executable(test_server ./tests/cpp/test_server.cpp)
-  target_link_libraries(test_server polymetis_server gtest)
-endif()
+# Add server executable
+add_executable(run_server "src/run_server.cpp")
+target_link_libraries(run_server 
+    polymetis_server
+    franka_panda_client
+    yaml-cpp
+)
 
 if(BUILD_DOCS)
   find_package(Doxygen)
