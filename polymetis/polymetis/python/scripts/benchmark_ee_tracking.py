@@ -39,7 +39,7 @@ def generate_trajectory(center_pose, radius, hz, num_loops, time_to_go):
         ee_pose_traj[i, :3] = center_pose[:3] + torch.Tensor([dx, dy, dz])
 
         # Orientation: Only rotate wrist
-        dr = R.from_rotvec(torch.Tensor([0.0, 0.0, np.pi * np.sin(theta) / 4.0]))
+        dr = R.from_rotvec(torch.Tensor([0.0, 0.0, -np.pi * np.sin(theta) / 4.0]))
         ee_pose_traj[i, 3:] = (dr * R.from_quat(center_pose[3:])).as_quat()
 
     return ee_pose_traj
