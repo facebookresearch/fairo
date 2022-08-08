@@ -119,12 +119,12 @@ class VisionLabelingJob(DataGenerator):
                 + os.environ["IGLU_SCENE_PATH"]
             )
             try:
-                logging.info(f"Starting scene generation script")
+                logging.info("Starting scene generation script")
                 scene_gen = subprocess.Popen(
                     scene_gen_cmd, shell=True, stdout=sys.stdout, stderr=sys.stderr, text=True
                 )
             except ValueError:
-                logging.info(f"Likely error: Popen called with invalid arguments")
+                logging.info("Likely error: Popen called with invalid arguments")
                 raise
 
             # Keep running Mephisto until timeout or job finished
@@ -140,7 +140,7 @@ class VisionLabelingJob(DataGenerator):
 
             if scene_gen.poll() is None:
                 # if scene generator is still running after timeout, terminate it
-                logging.info(f"Scene generation timed out, canceling labeling job!")
+                logging.info("Scene generation timed out, canceling labeling job!")
                 os.killpg(os.getpgid(scene_gen.pid), signal.SIGINT)
                 time.sleep(10)
                 os.killpg(os.getpgid(scene_gen.pid), signal.SIGKILL)
@@ -194,7 +194,7 @@ class VisionLabelingJob(DataGenerator):
                 logging.info(f"Launching job with {self._NUM_SCENES} HITs")
                 job_launch = subprocess.Popen(job_launch_cmd, shell=True, preexec_fn=os.setsid)
             except ValueError:
-                logging.info(f"Likely error: Popen called with invalid arguments")
+                logging.info("Likely error: Popen called with invalid arguments")
                 raise
 
             # Keep running Mephisto until timeout or job finished
@@ -206,11 +206,11 @@ class VisionLabelingJob(DataGenerator):
 
             if job_launch.poll() is None:
                 # if mturk job is still running after timeout, terminate it
-                logging.info(f"Manually terminate turk job after timeout...")
+                logging.info("Manually terminate turk job after timeout...")
                 os.killpg(os.getpgid(job_launch.pid), signal.SIGINT)
-                time.sleep(300)
+                time.sleep(180)
                 os.killpg(os.getpgid(job_launch.pid), signal.SIGINT)
-                time.sleep(300)
+                time.sleep(120)
                 os.killpg(os.getpgid(job_launch.pid), signal.SIGKILL)
 
             # Pull results from local DB
@@ -228,7 +228,7 @@ class VisionLabelingJob(DataGenerator):
                 scene_list = []
                 for unit in units:
                     data = mephisto_data_browser.get_data_from_unit(unit)
-                    worker_name = Worker(db, data["worker_id"]).worker_name
+                    worker_name = Worker.get(db, data["worker_id"]).worker_name
                     outputs = data["data"]["outputs"]
                     csv_writer.writerow(
                         [
@@ -348,22 +348,22 @@ class VisionLabelingListener(JobListener):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--scene_length", type=int, default=18)
+    parser.add_argument("--scene_length", type=int, default=17)
     parser.add_argument("--scene_height", type=int, default=13)
     parser.add_argument("--ground_depth", type=int, default=4)
     parser.add_argument("--max_num_shapes", type=int, default=4)
     parser.add_argument("--max_num_holes", type=int, default=3)
-    parser.add_argument("--num_hits", type=int, default=1, help="Number of HITs to request")
+    parser.add_argument("--num_hits", type=int, default=1000, help="Number of HITs to request")
     parser.add_argument(
         "--labeling_timeout",
         type=int,
-        default=200,
+        default=180,
         help="Number of minutes before labeling job times out",
     )
     parser.add_argument(
         "--annotation_timeout",
         type=int,
-        default=200,
+        default=180,
         help="Number of minutes before annotation job times out",
     )
     opts = parser.parse_args()

@@ -153,7 +153,7 @@ class Recorder:
             if rec_dict[jname][tname] is None:
                 rec_dict[jname][tname] = []
             rec_dict[jname][tname].append(time_now)
-        elif rec_dict[tname]:
+        elif rec_dict.get(tname, False):
             # set meta data start / end, can only be set once
             logging.error(
                 f"[Job Management Util] Cannot set meta data start/end time twice, ignoring setting {tname}."
