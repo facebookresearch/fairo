@@ -65,7 +65,7 @@ if __name__ == "__main__":
     state_log = robot.go_home(time_to_go=time_to_go)
     time.sleep(0.5)
 
-    joint_pos = test_new_joint_pos(robot, joint_pos_desired, time_to_go=time_to_go)
+    joint_pos = test_new_joint_pos(robot, joint_pos_desired)
     check_episode_log(state_log, int(time_to_go * hz))
 
     # Joint impedance control
