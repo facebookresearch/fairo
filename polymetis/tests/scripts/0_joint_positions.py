@@ -62,7 +62,7 @@ if __name__ == "__main__":
     joint_pos_desired = torch.Tensor(robot.home_pose)
     time_to_go = 3.0
 
-    state_log = robot.go_home()
+    state_log = robot.go_home(time_to_go=time_to_go)
     time.sleep(0.5)
 
     joint_pos = test_new_joint_pos(robot, joint_pos_desired, time_to_go=time_to_go)
