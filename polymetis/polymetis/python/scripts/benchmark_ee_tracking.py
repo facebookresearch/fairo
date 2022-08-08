@@ -39,7 +39,7 @@ def generate_trajectory(center_pose, radius, hz, num_loops, time_to_go):
         ee_pose_traj[i, :3] = center_pose[:3] + torch.Tensor([dx, dy, dz])
 
         # Orientation: Only rotate wrist
-        dr = R.from_rotvec(torch.Tensor([0.0, 0.0, np.pi * np.sin(theta) / 4.0]))
+        dr = R.from_rotvec(torch.Tensor([0.0, 0.0, -np.pi * np.sin(theta) / 4.0]))
         ee_pose_traj[i, 3:] = (dr * R.from_quat(center_pose[3:])).as_quat()
 
     return ee_pose_traj
@@ -60,15 +60,15 @@ def compare_traj(ref_traj, states_reached, robot_model, experiment_name=""):
         pos_err[i] = torch.linalg.norm(pos_diff)
         ori_err[i] = torch.linalg.norm(ori_diff.as_rotvec())
 
-    # Compute & print stats
-    pos_err_mean = torch.mean(pos_err)
-    pos_err_std = torch.std(pos_err)
-    ori_err_mean = torch.mean(ori_err)
-    ori_err_std = torch.std(ori_err)
+    # Compute, convert, and print stats
+    pos_err_mean = torch.mean(pos_err) * 1000.0
+    pos_err_std = torch.std(pos_err) * 1000.0
+    ori_err_mean = torch.mean(ori_err) * 180 / np.pi
+    ori_err_std = torch.std(ori_err) * 180 / np.pi
 
     print(f"=== {experiment_name} tracking results ===")
-    print(f"\tPos error: mean={pos_err_mean:.4f}, std={pos_err_std:.4f}")
-    print(f"\tOri error: mean={ori_err_mean:.4f}, std={ori_err_std:.4f}")
+    print(f"\tPos error(mm): mean={pos_err_mean:.2f}, std={pos_err_std:.2f}")
+    print(f"\tOri error(deg): mean={ori_err_mean:.2f}, std={ori_err_std:.2f}")
 
 
 if __name__ == "__main__":
