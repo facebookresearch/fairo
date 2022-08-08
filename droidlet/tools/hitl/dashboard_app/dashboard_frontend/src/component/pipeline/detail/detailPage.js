@@ -22,6 +22,8 @@ import { TAB_ITEMS } from "../../../constants/pipelineConstants";
 import MetaInfoDescription from "./metaInfoDescription";
 import { SocketContext } from '../../../context/socket';
 import { JOB_TYPES } from "../../../constants/runContants";
+import ModelCard from "./asset/modelCard";
+import DatasetCard from "./asset/datasetCard";
 
 const { Title } = Typography;
 const { Panel } = Collapse;
@@ -53,7 +55,7 @@ const DetailPage = (props) => {
         socket.on("get_run_info_by_id", (data) => handleReceivedRunInfo(data));
     }, [socket, handleReceivedRunInfo]);
 
-    useEffect(() => {}, [runInfo]);
+    useEffect(() => { }, [runInfo]);
 
     const getJobs = (runInfo) => {
         const jobs = Object
@@ -99,6 +101,11 @@ const DetailPage = (props) => {
                         key='overview'
                     >
                         <MetaInfoDescription metaInfo={runInfo} />
+                        <Divider />
+                        <div style={{ 'display': 'flex'}}>
+                            <DatasetCard batchId={batch_id} pipelineType={pipelineType} />
+                            <ModelCard batchId={batch_id} pipelineType={pipelineType} />
+                        </div>
                     </Panel>
                 </Collapse>
 
@@ -122,7 +129,7 @@ const DetailPage = (props) => {
                         <Link to="../" state={{ label: TAB_ITEMS.RUNS.label, key: TAB_ITEMS.RUNS.key }}>
                             Back to View All
                         </Link>
-                    </Button> 
+                    </Button>
                 </div>
             </div> :
             <Spin />

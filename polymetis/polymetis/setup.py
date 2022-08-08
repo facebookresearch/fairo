@@ -24,6 +24,5 @@ setup(
     scripts=scripts,
     install_requires=[
         "alephzero",
-        "tracikpy @ git+ssh://git@github.com/mjd3/tracikpy@v0.2.0#egg=trakikpy",
     ],
 )

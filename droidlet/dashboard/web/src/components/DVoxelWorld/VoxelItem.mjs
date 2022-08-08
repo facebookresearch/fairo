@@ -88,7 +88,7 @@ class VoxelItem {
             ).then(
                 function (model) {
                     item = new VoxelItem(model, world, opts);
-                    item.hoverID = window.setInterval(hover, 100, item);
+                    item.hoverID = window.setInterval(hover, 150, item);
                     return item
                }
             );
@@ -126,7 +126,7 @@ class VoxelItem {
 
             return new Promise(resolve => {
                 item = new VoxelItem(itemMesh, world, opts);
-                item.hoverID = window.setInterval(hover, 100, item);
+                item.hoverID = window.setInterval(hover, 150, item);
                 resolve(item);
             });
         }

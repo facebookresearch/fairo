@@ -12,7 +12,6 @@ import logging
 
 import grpc  # This requires `conda install grpcio protobuf`
 import torch
-from tracikpy import TracIKSolver
 
 import polymetis
 from polymetis_pb2 import LogInterval, RobotState, ControllerChunk, Empty
@@ -161,6 +160,13 @@ class BaseRobotInterface:
         assert log_interval.start != -1, "Cannot find previous episode."
         return log_interval
 
+    def is_running_policy(self) -> bool:
+        log_interval = self.grpc_connection.GetEpisodeInterval(EMPTY)
+        return (
+            log_interval.start != -1  # policy has started
+            and log_interval.end == -1  # policy has not ended
+        )
+
     def get_previous_log(self, timeout: float = None) -> List[RobotState]:
         """Get the list of RobotStates associated with the currently running policy.
 
@@ -277,7 +283,7 @@ class RobotInterface(BaseRobotInterface):
 
     def __init__(
         self,
-        time_to_go_default: float = 3.0,
+        time_to_go_default: float = 1.0,
         use_grav_comp: bool = True,
         *args,
         **kwargs,
@@ -320,31 +326,22 @@ class RobotInterface(BaseRobotInterface):
         position: torch.Tensor,
         orientation: torch.Tensor,
         q0: torch.Tensor,
-        local: bool = True,
+        tol: float = 1e-3,
     ) -> Tuple[torch.Tensor, bool]:
         """Compute inverse kinematics given desired EE pose"""
-        # Choose solver
-        if local:
-            ik_solver = self.ik_solver_near
-        else:
-            ik_solver = self.ik_solver_far
-
-        # Solve for IK
-        ik_sol_found = True
-        ee_pose_desired = T.from_rot_xyz(
-            rotation=R.from_quat(orientation), translation=position
+        # Call IK
+        joint_pos_output = self.robot_model.inverse_kinematics(
+            position, orientation, rest_pose=q0
         )
-        q_opt = ik_solver.ik(ee_pose_desired.as_matrix(), qinit=q0)
 
-        # Return q0 if solution not found
-        if q_opt is None:
-            log.warning(
-                "Inverse kinematics failed to find a valid joint configuration."
-            )
-            q_opt = q0
-            ik_sol_found = False
+        # Check result
+        pos_output, quat_output = self.robot_model.forward_kinematics(joint_pos_output)
+        pose_desired = T.from_rot_xyz(R.from_quat(orientation), position)
+        pose_output = T.from_rot_xyz(R.from_quat(quat_output), pos_output)
+        err = torch.linalg.norm((pose_desired * pose_output.inv()).as_twist())
+        ik_sol_found = err < tol
 
-        return torch.Tensor(q_opt), ik_sol_found
+        return joint_pos_output, ik_sol_found
 
     """
     Setter methods
@@ -359,24 +356,6 @@ class RobotInterface(BaseRobotInterface):
         # Create Torchscript Pinocchio model for DynamicsControllers
         self.robot_model = toco.models.RobotModelPinocchio(
             robot_description_path, ee_link_name
-        )
-
-        # Create IK solvers
-        base_link_name = self.robot_model.get_link_name_from_idx(
-            2
-        )  # 0: universe, 1: root_joint
-        self.ik_solver_near = TracIKSolver(
-            robot_description_path,
-            base_link_name,
-            ee_link_name,
-            solve_type="Distance",  # prioritize closest
-        )
-        self.ik_solver_far = TracIKSolver(
-            robot_description_path,
-            base_link_name,
-            ee_link_name,
-            timeout=0.1,
-            solve_type="Manip2",  # prioritize most well-conditioned
         )
 
     """
@@ -529,7 +508,7 @@ class RobotInterface(BaseRobotInterface):
                 ).as_quat()
 
         joint_pos_desired, success = self.solve_inverse_kinematics(
-            ee_pos_desired, ee_quat_desired, joint_pos_current, local=False
+            ee_pos_desired, ee_quat_desired, joint_pos_current
         )
         if not success:
             log.warning(
@@ -574,10 +553,12 @@ class RobotInterface(BaseRobotInterface):
         Runs an non-blocking Cartesian impedance controller.
         The desired EE pose can be updated using `update_desired_ee_pose`
         """
-        torch_policy = toco.policies.AdaptiveJointImpedanceControl(
+        torch_policy = toco.policies.HybridJointImpedanceControl(
             joint_pos_current=self.get_joint_positions(),
-            Kp=self.Kx_default if Kx is None else Kx,
-            Kd=self.Kxd_default if Kxd is None else Kxd,
+            Kq=self.Kq_default,
+            Kqd=self.Kqd_default,
+            Kx=self.Kx_default if Kx is None else Kx,
+            Kxd=self.Kxd_default if Kxd is None else Kxd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
@@ -612,7 +593,7 @@ class RobotInterface(BaseRobotInterface):
         ee_quat_desired = ee_quat_current if orientation is None else orientation
 
         joint_pos_desired, success = self.solve_inverse_kinematics(
-            ee_pos_desired, ee_quat_desired, joint_pos_current, local=True
+            ee_pos_desired, ee_quat_desired, joint_pos_current
         )
         if not success:
             log.warning(
