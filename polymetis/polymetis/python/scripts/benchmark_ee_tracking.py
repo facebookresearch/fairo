@@ -43,7 +43,7 @@ def generate_trajectory(center_pose, radius, hz, num_loops, time_to_go):
 
     return ee_pose_traj
 
-
+@torch.no_grad()
 def compare_traj(ref_traj, states_reached, robot_model, experiment_name=""):
     """Compute and print error between state log and the reference trajectory"""
     # Compute error
