@@ -200,8 +200,7 @@ class Recorder:
         """
         batch_id = (
             self._record_dict[MetaData.BATCH_ID._name_]
-            if hasattr(MetaData, "BATCH_ID")
-            and MetaData.BATCH_ID._name_ in self._record_dict
+            if hasattr(MetaData, "BATCH_ID") and MetaData.BATCH_ID._name_ in self._record_dict
             else None
         )
         # check batch_id for saving to s3
