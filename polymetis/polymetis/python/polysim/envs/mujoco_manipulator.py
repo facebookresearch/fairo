@@ -17,6 +17,29 @@ log = logging.getLogger(__name__)
 
 
 class MujocoManipulatorEnv(AbstractControlledEnv):
+    """A manipulator environment using MuJoCo.
+
+    Args:
+        robot_model_cfg: A Hydra configuration file containing information needed for the
+                        robot model, e.g. URDF. For an example, see
+                        `polymetis/conf/robot_model/franka_panda.yaml`
+
+                        NB: When specifying the path to a URDF file in
+                        `robot_description_path`, ensure an MJCF file exists at the
+                        same path and same filename with a .mjcf extension. For an
+                        example, see `polymetis/data/franka_panda/panda_arm.[urdf|mjcf]`
+
+        gui: Whether to initialize the PyBullet simulation in GUI mode.
+
+        gui_width: Width of GUI window, default 1200
+
+        gui_height: Height of GUI window, default 900
+
+        use_grav_comp: If True, adds gravity compensation torques to the input torques.
+
+        gravity: Value of gravity, default to 9.81
+    """
+
     def __init__(
         self,
         robot_model_cfg: DictConfig,
