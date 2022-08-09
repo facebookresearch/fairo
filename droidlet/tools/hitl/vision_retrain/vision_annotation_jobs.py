@@ -181,7 +181,9 @@ class VisionAnnotationJob(DataGenerator):
             os.remove(data_csv_path)
 
             logging.info("NOTE!  It is likely that not all scenes were annotated.")
-            logging.info("Run `recover_unannotated_scenes.py` with this batch ID to clean scene list.")
+            logging.info(
+                "Run `recover_unannotated_scenes.py` with this batch ID to clean scene list."
+            )
 
         except:
             logging.info(f"Annotation Job [{self._batch_id}] terminated unexpectedly...")

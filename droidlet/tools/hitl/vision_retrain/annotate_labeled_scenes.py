@@ -12,6 +12,7 @@ HITL_TMP_DIR = (
     os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
 )
 
+
 def main(batch_ids: list, timeout: int):
     scene_list = []
     annotation_batch_id = generate_batch_id()
@@ -20,13 +21,15 @@ def main(batch_ids: list, timeout: int):
     print("Scraping batch_id directories for unannotated scenes")
     for batch_id in batch_ids:
         anno_dir = os.path.join(HITL_TMP_DIR, f"{batch_id}/annotated_scenes")
-        potential_files = [f for f in os.listdir(anno_dir) if re.match('\d+\_unannotated.json', f)]
+        potential_files = [f for f in os.listdir(anno_dir) if re.match("\d+\_unannotated.json", f)]
         if len(potential_files) == 0:
             print(f"WARNING did not find a match for batch_id {batch_id}")
             print("Check file name and maybe run `recover_unannotated_scenes.py`")
         else:
             if len(potential_files) > 1:
-                print(f"WARNING found more than one match for batch_id {batch_id} ; Only using the first.")
+                print(
+                    f"WARNING found more than one match for batch_id {batch_id} ; Only using the first."
+                )
             unannotated_filename = potential_files[0]
             unannotated_filepath = os.path.join(anno_dir, unannotated_filename)
             with open(unannotated_filepath, "r") as f:
@@ -35,17 +38,19 @@ def main(batch_ids: list, timeout: int):
             scene_list.extend(js)
 
             # Mark the old unannotated file as reannotated
-            reannotated_filename = unannotated_filename[:-5] + f"_reannotated{annotation_batch_id}.json"
+            reannotated_filename = (
+                unannotated_filename[:-5] + f"_reannotated{annotation_batch_id}.json"
+            )
             reannotated_filepath = os.path.join(anno_dir, reannotated_filename)
             os.rename(unannotated_filepath, reannotated_filepath)
             print(f"Renamed {unannotated_filename} as {reannotated_filename} for posterity")
 
-            
-
-    assert(len(scene_list) > 0), "No unannotated scenes found in the given batch_id folders"
+    assert len(scene_list) > 0, "No unannotated scenes found in the given batch_id folders"
 
     # Launch a new annotation job
-    print(f"Scene list compiled, contains {len(scene_list)} scenes. Running annotation job: {annotation_batch_id}.")
+    print(
+        f"Scene list compiled, contains {len(scene_list)} scenes. Running annotation job: {annotation_batch_id}."
+    )
     runner = TaskRunner()
 
     aj = VisionAnnotationJob(
@@ -58,6 +63,7 @@ def main(batch_ids: list, timeout: int):
     runner.run()
 
     return
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -77,4 +83,3 @@ if __name__ == "__main__":
     else:
         print(f"Combining labeled scenes from the following batch_ids: {batch_ids}")
         main(batch_ids, timeout)
-    
