@@ -283,7 +283,7 @@ class RobotInterface(BaseRobotInterface):
 
     def __init__(
         self,
-        time_to_go_default: float = 3.0,
+        time_to_go_default: float = 1.0,
         use_grav_comp: bool = True,
         *args,
         **kwargs,
@@ -320,6 +320,28 @@ class RobotInterface(BaseRobotInterface):
         joint_pos_diff = torch.abs(joint_displacement)
         time_to_go = torch.max(joint_pos_diff / joint_vel_limits * 8.0)
         return max(time_to_go, self.time_to_go_default)
+
+    def solve_inverse_kinematics(
+        self,
+        position: torch.Tensor,
+        orientation: torch.Tensor,
+        q0: torch.Tensor,
+        tol: float = 1e-3,
+    ) -> Tuple[torch.Tensor, bool]:
+        """Compute inverse kinematics given desired EE pose"""
+        # Call IK
+        joint_pos_output = self.robot_model.inverse_kinematics(
+            position, orientation, rest_pose=q0
+        )
+
+        # Check result
+        pos_output, quat_output = self.robot_model.forward_kinematics(joint_pos_output)
+        pose_desired = T.from_rot_xyz(R.from_quat(orientation), position)
+        pose_output = T.from_rot_xyz(R.from_quat(quat_output), pos_output)
+        err = torch.linalg.norm((pose_desired * pose_output.inv()).as_twist())
+        ik_sol_found = err < tol
+
+        return joint_pos_output, ik_sol_found
 
     """
     Setter methods
@@ -447,6 +469,7 @@ class RobotInterface(BaseRobotInterface):
         delta: bool = False,
         Kx: torch.Tensor = None,
         Kxd: torch.Tensor = None,
+        op_space_interp: bool = True,
         **kwargs,
     ) -> List[RobotState]:
         """Uses an operational space controller to move to a desired end-effector position (and, optionally orientation).
@@ -457,6 +480,7 @@ class RobotInterface(BaseRobotInterface):
             delta: Whether the specified `position` and `orientation` are relative to current pose or absolute.
             Kx: P gains for the tracking controller. Uses default values if not specified.
             Kxd: D gains for the tracking controller. Uses default values if not specified.
+            op_space_interp: Interpolate trajectory in operational space, resulting in a straight line in 3D space instead of the shortest path in joint movement space.
 
         Returns:
             Same as `send_torch_policy`
@@ -465,6 +489,7 @@ class RobotInterface(BaseRobotInterface):
             self.robot_model is not None
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
 
+        joint_pos_current = self.get_joint_positions()
         ee_pos_current, ee_quat_current = self.get_ee_pose()
 
         # Parse parameters
@@ -484,52 +509,63 @@ class RobotInterface(BaseRobotInterface):
                     R.from_quat(ee_quat_desired) * R.from_quat(ee_quat_current)
                 ).as_quat()
 
-        ee_pose_current = T.from_rot_xyz(
-            rotation=R.from_quat(ee_quat_current), translation=ee_pos_current
+        # Compute joint space target
+        joint_pos_desired, success = self.solve_inverse_kinematics(
+            ee_pos_desired, ee_quat_desired, joint_pos_current
         )
-        ee_pose_desired = T.from_rot_xyz(
-            rotation=R.from_quat(ee_quat_desired), translation=ee_pos_desired
-        )
-        # Roughly estimate joint diff by linearizing around current joint pose
-        joint_pos_current = self.get_joint_positions()
-        jacobian = self.robot_model.compute_jacobian(joint_pos_current)
+        if not success:
+            log.warning(
+                "Unable to find valid joint target. Skipping move_to_ee_pose command..."
+            )
+            return []
 
-        ee_pose_diff = ee_pose_desired * ee_pose_current.inv()
-        joint_pos_diff = torch.linalg.pinv(jacobian) @ ee_pose_diff.as_twist()
-        time_to_go_adaptive = self._adaptive_time_to_go(joint_pos_diff)
-
+        # Compute adaptive time_to_go
         if time_to_go is None:
+            time_to_go_adaptive = self._adaptive_time_to_go(
+                joint_pos_desired - joint_pos_current
+            )
             time_to_go = time_to_go_adaptive
-        elif time_to_go < time_to_go_adaptive:
-            log.warn(
-                "The specified 'time_to_go' might not be large enough to ensure accurate movement."
+
+        # Generate & run policy
+        if op_space_interp:
+            # Compute operational space trajectory
+            ee_pose_desired = T.from_rot_xyz(
+                rotation=R.from_quat(ee_quat_desired), translation=ee_pos_desired
+            )
+            waypoints = toco.planning.generate_cartesian_target_joint_min_jerk(
+                joint_pos_start=joint_pos_current,
+                ee_pose_goal=ee_pose_desired,
+                time_to_go=time_to_go,
+                hz=self.hz,
+                robot_model=self.robot_model,
+                home_pose=self.home_pose,
             )
 
-        # Plan trajectory
-        waypoints = toco.planning.generate_cartesian_space_min_jerk(
-            start=ee_pose_current,
-            goal=ee_pose_desired,
-            time_to_go=time_to_go,
-            hz=self.hz,
-        )
+            # Create joint tracking policy and run
+            torch_policy = toco.policies.JointTrajectoryExecutor(
+                joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
+                joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
+                Kq=self.Kq_default,
+                Kqd=self.Kqd_default,
+                Kx=self.Kx_default if Kx is None else Kx,
+                Kxd=self.Kxd_default if Kxd is None else Kxd,
+                robot_model=self.robot_model,
+                ignore_gravity=self.use_grav_comp,
+            )
 
-        # Create & execute policy
-        torch_policy = toco.policies.EndEffectorTrajectoryExecutor(
-            ee_pose_trajectory=[waypoint["pose"] for waypoint in waypoints],
-            ee_twist_trajectory=[waypoint["twist"] for waypoint in waypoints],
-            Kp=self.Kx_default if Kx is None else Kx,
-            Kd=self.Kxd_default if Kxd is None else Kxd,
-            robot_model=self.robot_model,
-            ignore_gravity=self.use_grav_comp,
-        )
+            return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
 
-        return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
+        else:
+            # Use joint space controller to move to joint target
+            return self.move_to_joint_positions(
+                joint_pos_desired, time_to_go=time_to_go
+            )
 
     """
     Continuous control methods
     """
 
-    def start_joint_impedance(self, Kq=None, Kqd=None, adaptive=False, **kwargs):
+    def start_joint_impedance(self, Kq=None, Kqd=None, adaptive=True, **kwargs):
         """Starts joint position control mode.
         Runs an non-blocking joint impedance controller.
         The desired joint positions can be updated using `update_desired_joint_positions`
@@ -560,17 +596,19 @@ class RobotInterface(BaseRobotInterface):
         Runs an non-blocking Cartesian impedance controller.
         The desired EE pose can be updated using `update_desired_ee_pose`
         """
-        torch_policy = toco.policies.CartesianImpedanceControl(
+        torch_policy = toco.policies.HybridJointImpedanceControl(
             joint_pos_current=self.get_joint_positions(),
-            Kp=self.Kx_default if Kx is None else Kx,
-            Kd=self.Kxd_default if Kxd is None else Kxd,
+            Kq=self.Kq_default,
+            Kqd=self.Kqd_default,
+            Kx=self.Kx_default if Kx is None else Kx,
+            Kxd=self.Kxd_default if Kxd is None else Kxd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
 
         return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
 
-    def update_desired_joint_positions(self, positions: torch.Tensor):
+    def update_desired_joint_positions(self, positions: torch.Tensor) -> int:
         """Update the desired joint positions used by the joint position control mode.
         Requires starting a joint impedance controller with `start_joint_impedance` beforehand.
         """
@@ -588,25 +626,25 @@ class RobotInterface(BaseRobotInterface):
         self,
         position: torch.Tensor = None,
         orientation: torch.Tensor = None,
-    ):
+    ) -> int:
         """Update the desired EE pose used by the Cartesian position control mode.
         Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
         """
-        param_dict = {}
-        if position is not None:
-            param_dict["ee_pos_desired"] = position
-        if orientation is not None:
-            param_dict["ee_quat_desired"] = orientation
+        joint_pos_current = self.get_joint_positions()
+        ee_pos_current, ee_quat_current = self.get_ee_pose()
+        ee_pos_desired = ee_pos_current if position is None else position
+        ee_quat_desired = ee_quat_current if orientation is None else orientation
 
-        try:
-            update_idx = self.update_current_policy(param_dict)
-        except grpc.RpcError as e:
-            log.error(
-                "Unable to update desired EE pose. Use 'start_cartesian_impedance' to start a Cartesian impedance controller."
+        joint_pos_desired, success = self.solve_inverse_kinematics(
+            ee_pos_desired, ee_quat_desired, joint_pos_current
+        )
+        if not success:
+            log.warning(
+                "Unable to find valid joint target. Skipping update_desired_ee_pose command..."
             )
-            raise e
+            return -1
 
-        return update_idx
+        return self.update_desired_joint_positions(joint_pos_desired)
 
     def start_joint_velocity_control(
         self, joint_vel_desired, hz=None, Kq=None, Kqd=None, **kwargs
