@@ -80,6 +80,9 @@ class RobotModelPinocchio(torch.nn.Module):
             frame_idx = self.model.get_link_idx_from_name(link_name)
         return frame_idx
 
+    def get_link_name_from_idx(self, link_idx: int):
+        return self.model.get_link_name_from_idx(link_idx)
+
     def get_joint_angle_limits(self) -> torch.Tensor:
         return self.model.get_joint_angle_limits()
 
