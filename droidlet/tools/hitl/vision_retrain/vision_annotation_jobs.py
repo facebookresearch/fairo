@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
 import os
+import shutil
 import signal
 import subprocess
 import time
@@ -173,7 +174,14 @@ class VisionAnnotationJob(DataGenerator):
 
             # Delete the scene file from extra_refs and the bespoke data csv
             os.remove(scene_ref_filepath)
+            copydest = os.path.join(
+                HITL_TMP_DIR, f"{self._batch_id}/annotated_scenes/{self._timestamp}data.csv"
+            )
+            shutil.copy(data_csv_path, copydest)
             os.remove(data_csv_path)
+
+            logging.info("NOTE!  It is likely that not all scenes were annotated.")
+            logging.info("Run `recover_unannotated_scenes.py` with this batch ID to clean scene list.")
 
         except:
             logging.info(f"Annotation Job [{self._batch_id}] terminated unexpectedly...")
