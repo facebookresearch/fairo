@@ -387,6 +387,44 @@ Slower implementation due to object creation and member access.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="torchcontrol.modules.feedback.HybridJointSpacePD">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">torchcontrol.modules.feedback.</span></span><span class="sig-name descname"><span class="pre">HybridJointSpacePD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Kq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kqd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kxd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torchcontrol.modules.feedback.HybridJointSpacePD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ControlModule</span></code></p>
+<p>PD feedback control in joint space
+Uses both constant joint gains and adaptive operational space gains</p>
+<p>nA is the action dimension and N is the number of degrees of freedom</p>
+<dl class="simple">
+<dt>Module parameters:</dt><dd><ul class="simple">
+<li><p>Kq: P gain matrix of shape (nA, N)</p></li>
+<li><p>Kqd: D gain matrix of shape (nA, N)</p></li>
+<li><p>Kx: P gain matrix of shape (6, 6)</p></li>
+<li><p>Kxd: D gain matrix of shape (6, 6)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="torchcontrol.modules.feedback.HybridJointSpacePD.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_pos_current</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_vel_current</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_pos_desired</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_vel_desired</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jacobian</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#torchcontrol.modules.feedback.HybridJointSpacePD.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>nA is the action dimension and N is the number of degrees of freedom</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint_pos_current</strong> – Current joint position of shape (N,)</p></li>
+<li><p><strong>joint_vel_current</strong> – Current joint velocity of shape (N,)</p></li>
+<li><p><strong>joint_pos_desired</strong> – Desired joint position of shape (N,)</p></li>
+<li><p><strong>joint_vel_desired</strong> – Desired joint velocity of shape (N,)</p></li>
+<li><p><strong>jacobian</strong> – End-effector jacobian of shape (N, 6)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Output action of shape (nA,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="torchcontrol.modules.feedback.JointSpacePD">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">torchcontrol.modules.feedback.</span></span><span class="sig-name descname"><span class="pre">JointSpacePD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Kp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torchcontrol.modules.feedback.JointSpacePD" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ControlModule</span></code></p>

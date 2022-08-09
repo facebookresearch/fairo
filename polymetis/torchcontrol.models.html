@@ -382,6 +382,11 @@ end-effector link, if it was set during initialization.</p></li>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.get_link_name_from_idx">
+<span class="sig-name descname"><span class="pre">get_link_name_from_idx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">link_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.get_link_name_from_idx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.inverse_dynamics">
 <span class="sig-name descname"><span class="pre">inverse_dynamics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_positions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_velocities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_accelerations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.inverse_dynamics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the desired torques to achieve a certain joint acceleration from
