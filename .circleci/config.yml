@@ -240,7 +240,7 @@ jobs:
         name: Pull docker image
         command: |
           set -ex
-          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:11.0
+          export DOCKER_IMAGE=fbsimonxu/locobot-assistant:12.0
           echo Pulling docker image $DOCKER_IMAGE
           docker pull $DOCKER_IMAGE >/dev/null
 
@@ -251,7 +251,7 @@ jobs:
           set -ex
 
           cd ${HOME}/project/
-          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:11.0
+          export DOCKER_IMAGE=fbsimonxu/locobot-assistant:12.0
           mkdir shared
           docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
           pip3 install codecov

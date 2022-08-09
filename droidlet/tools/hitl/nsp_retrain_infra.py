@@ -37,7 +37,7 @@ sh.setFormatter(log_formatter)
 logger.addHandler(sh)
 
 LISTENER_SLEEP_TIME = 10  # Seconds to wait before listener looks for new data
-NSP_RETRAIN_TIMEOUT = 18000  # Wait a max of 5h for the NSP retraining script to finish
+NSP_RETRAIN_TIMEOUT = 72000  # Wait a max of 5h for the NSP retraining script to finish
 MODEL_OUTPUT_POLL_TIME = 60  # Seconds to wait between looking for model output logs
 NUM_MODEL_OUTPUT_POLLS = 500  # Number of times to poll model output files before assuming finished
 
@@ -248,7 +248,7 @@ class NSPRetrainingJob(DataGenerator):
         self._job_mng_util.set_job_stat(
             Job.RETRAIN, JobStat.ORI_DATA_SZ, total_rows - new_data_rows
         )
-        self._job_mng_util.set_job_stat(Job.register, JobStat.NEW_DATA_SZ, total_rows)
+        self._job_mng_util.set_job_stat(Job.RETRAIN, JobStat.NEW_DATA_SZ, total_rows)
 
         # Save locally and upload to S3
         mask_filepath = os.path.join(batch_config_dir, "split_masks.pth")
@@ -282,7 +282,7 @@ class NSPRetrainingJob(DataGenerator):
         return True
 
     def run(self):
-        self._job_mng_util.set_job_start(Job.INTERACTION)
+        self._job_mng_util.set_job_start(Job.RETRAIN)
         logging.info(f"NSP Retraining Job initialized, downloading new data")
         opts = self.opts
 
@@ -353,10 +353,12 @@ class NSPRetrainingJob(DataGenerator):
             + opts.pretrained_encoder_name
             + " --decoder_config_name "
             + opts.decoder_config_name
+            + " --param_update_freq "
+            + str(opts.param_update_freq)
         )
         # Require 32g GPU for training
         if opts.use_32g_gpu:
-            sweep_args += "--use_32g_gpu "
+            sweep_args += " --use_32g_gpu "
 
         # Initialize the training run
         try:
@@ -460,9 +462,9 @@ class NSPRetrainingJob(DataGenerator):
             f_log.write("hash_dataset " + checksum_d + "\n")
 
             # update corresponding job status
-            self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.MODEL_ACCURACY, acc)
-            self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.MODEL_EPOCH, epoch)
-            self._job_mng_util.set_job_stat(Job.INTERACTION, JobStat.MODEL_LOSS, loss)
+            self._job_mng_util.set_job_stat(Job.RETRAIN, JobStat.MODEL_ACCURACY, acc)
+            self._job_mng_util.set_job_stat(Job.RETRAIN, JobStat.MODEL_EPOCH, epoch)
+            self._job_mng_util.set_job_stat(Job.RETRAIN, JobStat.MODEL_LOSS, loss)
 
         # Tar model and upload them to AWS
         tar_and_upload(checksum_m, artifact_path_name, artifact_name)
@@ -611,6 +613,7 @@ if __name__ == "__main__":
         type=int,
         help="Number of training epochs",
     )
+    parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
     parser.add_argument(
         "--dtype_samples",
         default="annotated:1.0",
@@ -627,6 +630,18 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-encoder_learning_rate", type=float, nargs="+", help="Learning rate for the decoder"
+    )
+    parser.add_argument(
+        "--encoder_warmup_steps",
+        default=1,
+        type=int,
+        help="Learning rate warmup steps for the encoder",
+    )
+    parser.add_argument(
+        "--decoder_warmup_steps",
+        default=1000,
+        type=int,
+        help="Learning rate warmup steps for the decoder",
     )
     opts = parser.parse_args()
 
