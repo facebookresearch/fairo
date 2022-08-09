@@ -172,13 +172,7 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
         self.prev_torques_applied = applied_torques.copy()
 
         if self.use_grav_comp:
-            joint_cur_pos = self.get_current_joint_pos_vel()[0]
-            grav_comp_torques = self.compute_inverse_dynamics(
-                joint_pos=joint_cur_pos,
-                joint_vel=[0] * self.n_dofs,
-                joint_acc=[0] * self.n_dofs,
-            )  # zero vel + acc to find gravity
-            applied_torques += grav_comp_torques
+            applied_torques += self.robot_data.qfrc_bias
         self.prev_torques_measured = applied_torques.copy()
 
         self.robot_data.ctrl = applied_torques
@@ -188,23 +182,6 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
             self.render()
 
         return applied_torques
-
-    def compute_inverse_dynamics(
-        self, joint_pos: np.ndarray, joint_vel: np.ndarray, joint_acc: np.ndarray
-    ) -> np.ndarray:
-        """Computes inverse dynamics by returning the torques necessary to get the desired accelerations
-        at the given joint position and velocity."""
-        qvel_orig = self.robot_data.qvel.copy()
-        qacc_orig = self.robot_data.qacc.copy()
-
-        self.robot_data.qvel = joint_vel
-        self.robot_data.qacc = joint_acc
-
-        mujoco.mj_inverse(self.robot_model, self.robot_data)
-
-        self.robot_data.qvel = qvel_orig
-        self.robot_data.qacc = qacc_orig
-        return self.robot_data.qfrc_inverse
 
     def render(self):
         viewport = mujoco.MjrRect(0, 0, self.gui_width, self.gui_height)
