@@ -88,6 +88,73 @@ class JointSpacePD(toco.ControlModule):
         )
 
 
+class HybridJointSpacePD(toco.ControlModule):
+    """
+    PD feedback control in joint space
+    Uses both constant joint gains and adaptive operational space gains
+
+    nA is the action dimension and N is the number of degrees of freedom
+
+    Module parameters:
+        - Kq: P gain matrix of shape (nA, N)
+        - Kqd: D gain matrix of shape (nA, N)
+        - Kx: P gain matrix of shape (6, 6)
+        - Kxd: D gain matrix of shape (6, 6)
+    """
+
+    def __init__(
+        self, Kq: torch.Tensor, Kqd: torch.Tensor, Kx: torch.Tensor, Kxd: torch.Tensor
+    ):
+        """
+        Args:
+            Kq: P gain matrix of shape (nA, N) or shape (N,) representing a N-by-N diagonal matrix (if nA=N)
+            Kqd: D gain matrix of shape (nA, N) or shape (N,) representing a N-by-N diagonal matrix (if nA=N)
+            Kx: P gain matrix of shape (6, 6) or shape (6,) representing a 6-by-6 diagonal matrix
+            Kxd: D gain matrix of shape (6, 6) or shape (6,) representing a 6-by-6 diagonal matrix
+        """
+        super().__init__()
+
+        Kq = diagonalize_gain(to_tensor(Kq))
+        Kqd = diagonalize_gain(to_tensor(Kqd))
+        assert Kq.shape == Kqd.shape
+        Kx = diagonalize_gain(to_tensor(Kx))
+        Kxd = diagonalize_gain(to_tensor(Kxd))
+        assert Kx.shape == torch.Size([6, 6])
+        assert Kxd.shape == torch.Size([6, 6])
+
+        self.Kq = torch.nn.Parameter(Kq)
+        self.Kqd = torch.nn.Parameter(Kqd)
+        self.Kx = torch.nn.Parameter(Kx)
+        self.Kxd = torch.nn.Parameter(Kxd)
+
+    def forward(
+        self,
+        joint_pos_current: torch.Tensor,
+        joint_vel_current: torch.Tensor,
+        joint_pos_desired: torch.Tensor,
+        joint_vel_desired: torch.Tensor,
+        jacobian: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        nA is the action dimension and N is the number of degrees of freedom
+
+        Args:
+            joint_pos_current: Current joint position of shape (N,)
+            joint_vel_current: Current joint velocity of shape (N,)
+            joint_pos_desired: Desired joint position of shape (N,)
+            joint_vel_desired: Desired joint velocity of shape (N,)
+            jacobian: End-effector jacobian of shape (N, 6)
+
+        Returns:
+            Output action of shape (nA,)
+        """
+        Kp = jacobian.T @ self.Kx @ jacobian + self.Kq
+        Kd = jacobian.T @ self.Kxd @ jacobian + self.Kqd
+        return Kp @ (joint_pos_desired - joint_pos_current) + Kd @ (
+            joint_vel_desired - joint_vel_current
+        )
+
+
 class CartesianSpacePDFast(toco.ControlModule):
     """
     PD feedback control in SE3 pose space

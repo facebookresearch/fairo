@@ -47,6 +47,7 @@ inverse_kinematics(State *state, const Eigen::Vector3d &link_pos,
                    double damping = 1e-12);
 C_TORCH_EXPORT int64_t get_link_idx_from_name(State *state,
                                               const char *link_name);
+C_TORCH_EXPORT char *get_link_name_from_idx(State *state, int64_t link_idx);
 } // namespace pinocchio_wrapper
 
 #ifdef __cplusplus
