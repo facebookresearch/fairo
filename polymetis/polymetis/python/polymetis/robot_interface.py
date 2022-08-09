@@ -480,6 +480,7 @@ class RobotInterface(BaseRobotInterface):
             delta: Whether the specified `position` and `orientation` are relative to current pose or absolute.
             Kx: P gains for the tracking controller. Uses default values if not specified.
             Kxd: D gains for the tracking controller. Uses default values if not specified.
+            op_space_interp: Interpolate trajectory in operational space, resulting in a straight line in 3D space instead of the shortest path in joint movement space.
 
         Returns:
             Same as `send_torch_policy`
