@@ -146,6 +146,7 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
         self.prev_torques_commanded = torques
 
         applied_torques = np.clip(torques, -self.torque_limits, self.torque_limits)
+        self.prev_torques_applied = applied_torques.copy()
 
         if self.use_grav_comp:
             joint_cur_pos = self.get_current_joint_pos_vel()[0]
