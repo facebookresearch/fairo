@@ -565,7 +565,7 @@ class RobotInterface(BaseRobotInterface):
     Continuous control methods
     """
 
-    def start_joint_impedance(self, Kq=None, Kqd=None, adaptive=False, **kwargs):
+    def start_joint_impedance(self, Kq=None, Kqd=None, adaptive=True, **kwargs):
         """Starts joint position control mode.
         Runs an non-blocking joint impedance controller.
         The desired joint positions can be updated using `update_desired_joint_positions`
