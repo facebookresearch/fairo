@@ -469,6 +469,7 @@ class RobotInterface(BaseRobotInterface):
         delta: bool = False,
         Kx: torch.Tensor = None,
         Kxd: torch.Tensor = None,
+        op_space_interp: bool = True,
         **kwargs,
     ) -> List[RobotState]:
         """Uses an operational space controller to move to a desired end-effector position (and, optionally orientation).
@@ -507,6 +508,7 @@ class RobotInterface(BaseRobotInterface):
                     R.from_quat(ee_quat_desired) * R.from_quat(ee_quat_current)
                 ).as_quat()
 
+        # Compute joint space target
         joint_pos_desired, success = self.solve_inverse_kinematics(
             ee_pos_desired, ee_quat_desired, joint_pos_current
         )
@@ -516,7 +518,47 @@ class RobotInterface(BaseRobotInterface):
             )
             return []
 
-        return self.move_to_joint_positions(joint_pos_desired, time_to_go=time_to_go)
+        # Compute adaptive time_to_go
+        if time_to_go is None:
+            time_to_go_adaptive = self._adaptive_time_to_go(
+                joint_pos_desired - joint_pos_current
+            )
+            time_to_go = time_to_go_adaptive
+
+        # Generate & run policy
+        if op_space_interp:
+            # Compute operational space trajectory
+            ee_pose_desired = T.from_rot_xyz(
+                rotation=R.from_quat(ee_quat_desired), translation=ee_pos_desired
+            )
+            waypoints = toco.planning.generate_cartesian_target_joint_min_jerk(
+                joint_pos_start=joint_pos_current,
+                ee_pose_goal=ee_pose_desired,
+                time_to_go=time_to_go,
+                hz=self.hz,
+                robot_model=self.robot_model,
+                home_pose=self.home_pose,
+            )
+
+            # Create joint tracking policy and run
+            torch_policy = toco.policies.JointTrajectoryExecutor(
+                joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
+                joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
+                Kq=self.Kq_default,
+                Kqd=self.Kqd_default,
+                Kx=self.Kx_default if Kx is None else Kx,
+                Kxd=self.Kxd_default if Kxd is None else Kxd,
+                robot_model=self.robot_model,
+                ignore_gravity=self.use_grav_comp,
+            )
+
+            return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
+
+        else:
+            # Use joint space controller to move to joint target
+            return self.move_to_joint_positions(
+                joint_pos_desired, time_to_go=time_to_go
+            )
 
     """
     Continuous control methods
