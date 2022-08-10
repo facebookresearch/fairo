@@ -211,7 +211,7 @@ def main(cfg):
                 f"Merging {len(unmerged_obj_pcds)} object pcds by clustering their centroids"
             )
             obj_pcds = merge_pcds(unmerged_obj_pcds)
-            obj_pcds [x for x in obj_pcds if len(x.points) > 0]
+            obj_pcds = [x for x in obj_pcds if len(x.points) > 0]
             if len(obj_pcds) == 0:
                 print(
                     f"Failed to find any objects with mask size > {cfg.min_mask_size}!"
