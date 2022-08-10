@@ -16,8 +16,10 @@ class JointTrajectoryExecutor(toco.PolicyModule):
         self,
         joint_pos_trajectory: List[torch.Tensor],
         joint_vel_trajectory: List[torch.Tensor],
-        Kp,
-        Kd,
+        Kq,
+        Kqd,
+        Kx,
+        Kxd,
         robot_model: torch.nn.Module,
         ignore_gravity=True,
     ):
@@ -27,8 +29,10 @@ class JointTrajectoryExecutor(toco.PolicyModule):
         Args:
             joint_pos_trajectory: Joint position trajectory as list of tensors
             joint_vel_trajectory: Joint position trajectory as list of tensors
-            Kp: P gain matrix of shape (nA, N) or shape (N,) representing a N-by-N diagonal matrix (if nA=N)
-            Kd: D gain matrix of shape (nA, N) or shape (N,) representing a N-by-N diagonal matrix (if nA=N)
+            Kq: P gain matrix of shape (nA, N) or shape (N,) representing a N-by-N diagonal matrix (if nA=N)
+            Kqd: D gain matrix of shape (nA, N) or shape (N,) representing a N-by-N diagonal matrix (if nA=N)
+            Kx: P gain matrix of shape (6, 6) or shape (6,) representing a 6-by-6 diagonal matrix
+            Kxd: D gain matrix of shape (6, 6) or shape (6,) representing a 6-by-6 diagonal matrix
             robot_model: A robot model from torchcontrol.models
             ignore_gravity: `True` if the robot is already gravity compensated, `False` otherwise
 
@@ -47,7 +51,7 @@ class JointTrajectoryExecutor(toco.PolicyModule):
         self.invdyn = toco.modules.feedforward.InverseDynamics(
             self.robot_model, ignore_gravity=ignore_gravity
         )
-        self.joint_pd = toco.modules.feedback.JointSpacePD(Kp, Kd)
+        self.joint_pd = toco.modules.feedback.HybridJointSpacePD(Kq, Kqd, Kx, Kxd)
 
         # Initialize step count
         self.i = 0
@@ -67,6 +71,7 @@ class JointTrajectoryExecutor(toco.PolicyModule):
             joint_vel_current,
             joint_pos_desired,
             joint_vel_desired,
+            self.robot_model.compute_jacobian(joint_pos_current),
         )
         torque_feedforward = self.invdyn(
             joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)

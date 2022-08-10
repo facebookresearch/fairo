@@ -4,9 +4,11 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import time
 import socketio
-from droidlet.base_util import XYZ, Pos, Look
+import sys
+import logging
+from droidlet.base_util import Pos, Look
 from droidlet.shared_data_struct.craftassist_shared_utils import Player, Slot, Item, ItemStack, Mob
-from droidlet.lowlevel.minecraft.pyworld.utils import build_coord_shifts, BEDROCK
+from droidlet.lowlevel.minecraft.pyworld.utils import build_coord_shifts
 
 
 class DataCallback:
@@ -14,7 +16,7 @@ class DataCallback:
         self.data = data
 
 
-def wait_for_data(data_callback, step=0.001, max_steps=100):
+def wait_for_data(data_callback, step=0.002, max_steps=100):
     data = None
     count = 0
     while not data:
@@ -35,7 +37,7 @@ class PyWorldMover:
         except:
             raise Exception("unable to connect to server on port {} at ip {}".format(port, ip))
 
-        print("connected to server on port {} at ip {}".format(port, ip))
+        logging.info("connected to server on port {} at ip {}".format(port, ip))
 
         self.sio = sio
         D = DataCallback()
@@ -142,7 +144,7 @@ class PyWorldMover:
         pos = player_struct.pos
         look = player_struct.look
         pose_data = {
-            "pos": (float(pos.x), float(pos.y), float(pos.z)),
+            "pos": (float(pos.x), float(pos.y) + 1, float(pos.z)),
             "yaw": float(look.yaw),
             "pitch": float(look.pitch),
         }
@@ -182,8 +184,8 @@ class PyWorldMover:
                 )
         return item_stacks
 
-    def get_inventory_item_count(bid, meta, entityId=None):
-        item_stacks = get_item_stacks(holder_entityId=self.entityId)
+    def get_inventory_item_count(self, bid, meta, entityId=None):
+        item_stacks = self.get_item_stacks(holder_entityId=self.entityId)
         count = 0
         for item_stack in item_stacks:
             correct_idm = item_stack.item.id == bid[0] and item_stack.item.meta == bid[1]
@@ -198,18 +200,34 @@ class PyWorldMover:
         item_stacks = self.get_item_stacks()
         for item_stack in item_stacks:
             if np.linalg.norm(np.array(item_stack.pos) - pos) < pick_range:
-                count = self.sio.emit("pick_items", [int(item_stack.entityId)])
+                D = DataCallback()
+                self.sio.emit("pick_items", [int(item_stack.entityId)], callback=D)
+                count = wait_for_data(D)
+                return count
+
+    def pick_entityId(self, eid):
+        item_stacks = self.get_item_stacks(get_all=True)
+        matching_items = [i for i in item_stacks if i[0].entityId == eid]
+        if len(matching_items) >= 1:
+            logging.info(f"Picking up item: {matching_items[0][0]}")
+            D = DataCallback()
+            self.sio.emit("pick_items", [int(matching_items[0][0].entityId)], callback=D)
+            count = wait_for_data(D)
+            return count
+        else:
+            logging.error("Tried to pick up an item that doesn't exist in the world")
+            return 0
 
     def drop_inventory_item_stack(self, bid=None, meta=None, count=1, entityId=-1):
         dropped = 0
-        item_stacks = get_item_stacks(holder_entityId=self.entityId)
+        item_stacks = self.get_item_stacks(holder_entityId=self.entityId)
         assert bid is not None or entityId > 0
         for item_stack in item_stacks:
             correct_idm = bid is None or (
                 item_stack.item.id == bid[0] and item_stack.item.meta == bid[1]
             )
             if item_stack.entityId == entityId or correct_idm:
-                sio.emit("drop_items", [int(item_stack.entityId)])
+                self.sio.emit("drop_items", [int(item_stack.entityId)])
                 dropped = dropped + 1
                 if dropped > count:
                     return
@@ -243,8 +261,9 @@ class PyWorldMover:
         )
         flattened_blocks = wait_for_data(D)
         npy_blocks = np.zeros((Y - y + 1, Z - z + 1, X - x + 1, 2), dtype="int32")
-        for b in flattened_blocks:
-            npy_blocks[b[1], b[2], b[0]] = [b[3], b[4]]
+        if flattened_blocks:
+            for b in flattened_blocks:
+                npy_blocks[b[1], b[2], b[0]] = [b[3], b[4]]
         return npy_blocks
 
     def send_chat(self, chat_text):
@@ -267,9 +286,14 @@ class PyWorldMover:
         return out
 
     def get_incoming_chats(self):
-        D = DataCallback()
-        self.sio.emit("get_incoming_chats", callback=D)
-        chats = wait_for_data(D)
+        try:
+            D = DataCallback()
+            self.sio.emit("get_incoming_chats", callback=D)
+            chats = wait_for_data(D)
+        except socketio.exceptions.BadNamespaceError:
+            logging.info("Exiting on bad SIO namespace")
+            sys.exit()
+
         if chats is not None:
             chats = chats["chats"]
         else:

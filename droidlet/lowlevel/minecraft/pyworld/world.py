@@ -3,7 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import time
 import numpy as np
-from threading import Thread
 from typing import Sequence, Dict
 from droidlet.base_util import Pos, Look
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM
@@ -143,9 +142,16 @@ class World:
     def broadcast_updates(self):
         # broadcast updates
         players = [
-            {"name": player.name, "x": player.pos.x, "y": player.pos.y, "z": player.pos.z}
+            {
+                "name": player.name,
+                "x": player.pos.x,
+                "y": player.pos.y,
+                "z": player.pos.z,
+                "yaw": player.look.yaw,
+                "pitch": player.look.pitch,
+            }
             for player in self.get_players()
-            if player.name in ["craftassist_agent", "dashboard_player"]
+            if player.name in ["craftassist_agent", "dashboard"]
         ]
         mobs = [
             {
@@ -163,13 +169,17 @@ class World:
         payload = {
             "status": "updateVoxelWorldState",
             "world_state": {"agent": players, "mob": mobs, "item_stack": items},
+            "backend": "pyworld",
         }
         # print(f"Server stepping, payload: {payload}")
         self.server.emit("updateVoxelWorldState", payload)
 
     def broadcast_block_update(self, loc, idm):
         blocks = [((int(loc[0]), int(loc[1]), int(loc[2])), (int(idm[0]), int(idm[1])))]
-        payload = {"status": "updateVoxelWorldState", "world_state": {"block": blocks}}
+        payload = {
+            "status": "updateVoxelWorldState",
+            "world_state": {"block": blocks, "backend": "pyworld"},
+        }
         self.server.emit("updateVoxelWorldState", payload)
 
     def get_height_map(self):
@@ -275,22 +285,22 @@ class World:
         M = np.array((xb, yb, zb))
         m = np.array((xa, ya, za))
         szs = M - m + 1
-        B = np.zeros((szs[1], szs[2], szs[0], 2), dtype="uint8")
+        B = np.zeros((szs[0], szs[1], szs[2], 2), dtype="uint8")
         B[:, :, :, 0] = 7
         xs, ys, zs = [0, 0, 0]
         xS, yS, zS = szs
-        if xb < 0 or yb < 0 or zb < 0:
-            return B
-        if xa > self.sl - 1 or ya > self.sl - 1 or za > self.sl - 1:
+        if xb < 0 or yb < 0 or zb < 0 or xa > self.sl - 1 or ya > self.sl - 1 or za > self.sl - 1:
+            if transpose:
+                B = B.transpose(1, 2, 0, 3)
             return B
         if xb > self.sl - 1:
-            xS = self.sl - xa
+            xS -= xb - (self.sl - 1)
             xb = self.sl - 1
         if yb > self.sl - 1:
-            yS = self.sl - ya
+            yS -= yb - (self.sl - 1)
             yb = self.sl - 1
         if zb > self.sl - 1:
-            zS = self.sl - za
+            zS -= zb - (self.sl - 1)
             zb = self.sl - 1
         if xa < 0:
             xs = -xa
@@ -301,24 +311,22 @@ class World:
         if za < 0:
             zs = -za
             za = 0
-        pre_B = self.blocks[xa : xb + 1, ya : yb + 1, za : zb + 1, :]
-        # pre_B = self.blocks[ya : yb + 1, za : zb + 1, xa : xb + 1, :]
-        B[ys:yS, zs:zS, xs:xS, :] = pre_B.transpose(1, 2, 0, 3)
-        if transpose:
-            return B
-        else:
-            return pre_B
 
-    def get_line_of_sight(self, pos, yaw, pitch):
+        B[xs:xS, ys:yS, zs:zS, :] = self.blocks[xa : xb + 1, ya : yb + 1, za : zb + 1, :]
+        if transpose:
+            B = B.transpose(1, 2, 0, 3)
+        return B
+
+    def get_line_of_sight(self, pos, yaw, pitch, loose=0):
         # it is assumed lv is unit normalized
         pos = tuple(self.to_npy_coords(pos))
         lv = look_vec(yaw, pitch)
         dt = 1.0
         for n in range(2 * self.sl):
             p = tuple(np.round(np.add(pos, n * dt * lv)).astype("int32"))
-            for i in range(-1, 2):
-                for j in range(-1, 2):
-                    for k in range(-1, 2):
+            for i in range(-loose, loose + 1):
+                for j in range(-loose, loose + 1):
+                    for k in range(-loose, loose + 1):
                         sp = tuple(np.add(p, (i, j, k)))
                         if all([x >= 0 for x in sp]) and all([x < self.sl for x in sp]):
                             if tuple(self.blocks[sp]) != AIR:
@@ -387,6 +395,25 @@ class World:
                         count += 1
         return count
 
+    def check_in_bounds(self, player, pos):
+        if player.name == "dashboard":
+            lowerb = (self.sl / 3, 0, self.sl / 3)
+            upperb = (2 * self.sl / 3, self.sl / 3 - 1, 2 * self.sl / 3)
+        else:
+            lowerb = (0, 0, 0)
+            upperb = (self.sl, self.sl - 1, self.sl)
+        if (
+            pos[0] >= lowerb[0]
+            and pos[1] >= lowerb[1]
+            and pos[2] >= lowerb[2]
+            and pos[0] < upperb[0]
+            and pos[1] < upperb[1]
+            and pos[2] < upperb[2]
+        ):
+            return True
+        else:
+            return False
+
     def setup_server(self, port=25565):
         import socketio
         import eventlet
@@ -422,7 +449,11 @@ class World:
                 for xyz, idm in blocks.items()
             ]
 
-            payload = {"status": "updateVoxelWorldState", "world_state": {"block": blocks}}
+            payload = {
+                "status": "updateVoxelWorldState",
+                "world_state": {"block": blocks},
+                "backend": "pyworld",
+            }
             # print(f"Initial payload: {payload}")
             server.emit("updateVoxelWorldState", payload)
 
@@ -475,7 +506,7 @@ class World:
                 # FIXME only works for dashboard reconnect
                 for player_eid in self.connected_sids.values():
                     player_info = self.get_player_info(player_eid)
-                    if player_info.name == "dashboard_player":
+                    if player_info.name == "dashboard":
                         player_struct = self.get_player_info(player_eid)
                         eid = player_eid
                         break
@@ -495,21 +526,17 @@ class World:
                 y += data.get("y", 0)
                 z += data.get("z", 0)
             nx, ny, nz = self.to_npy_coords((x, y, z))
-            # agent is 2 blocks high
-            if (
-                nx >= 0
-                and ny >= 0
-                and nz >= 0
-                and nx < self.sl
-                and ny < self.sl - 1
-                and nz < self.sl
-            ):
+            if self.check_in_bounds(player_struct, (nx, ny, nz)):
                 if (
                     self.blocks[nx, ny, nz, 0] in PASSABLE_BLOCKS
                     and self.blocks[nx, ny + 1, nz, 0] in PASSABLE_BLOCKS
                 ):
                     new_pos = Pos(x, y, z)
                     self.players[eid] = self.players[eid]._replace(pos=new_pos)
+                else:
+                    print(f"{player_struct.name} tried to move somewhere impossible")
+            else:
+                print(f"{player_struct.name} tried to move somewhere impossible")
 
         @server.on("abs_move")
         def move_agent_abs(sid, data):
@@ -519,7 +546,7 @@ class World:
             if not player_struct:
                 for player_eid in self.connected_sids.values():
                     player_info = self.get_player_info(player_eid)
-                    if player_info.name == "dashboard_player":
+                    if player_info.name == "dashboard":
                         player_struct = self.get_player_info(player_eid)
                         eid = player_eid
                         break
@@ -530,21 +557,19 @@ class World:
             z = data.get("z", 0)
 
             nx, ny, nz = self.to_npy_coords((x, y, z))
-            # agent is 2 blocks high
-            if (
-                nx >= 0
-                and ny >= 0
-                and nz >= 0
-                and nx < self.sl
-                and ny < self.sl - 1
-                and nz < self.sl
-            ):
+            if self.check_in_bounds(player_struct, (nx, ny, nz)):
                 if (
                     self.blocks[int(nx), int(ny), int(nz), 0] in PASSABLE_BLOCKS
                     and self.blocks[int(nx), int(ny) + 1, int(nz), 0] in PASSABLE_BLOCKS
                 ):
                     new_pos = Pos(x, y, z)
                     self.players[eid] = self.players[eid]._replace(pos=new_pos)
+                else:
+                    print(f"{player_struct.name} tried to move somewhere impossible")
+                    print(player_struct.pos)
+            else:
+                print(f"{player_struct.name} tried to move somewhere impossible")
+                print(player_struct.pos)
 
         @server.on("set_held_item")
         def set_agent_mainhand(sid, data):
@@ -622,7 +647,22 @@ class World:
             x, X, y, Y, z, Z = data["bounds"]
             npy = self.get_blocks(x, X, y, Y, z, Z, transpose=False)
             nz_locs = list(zip(*np.nonzero(npy[:, :, :, 0])))
-            nz_idms = [tuple(int(i) for i in self.blocks[l]) for l in nz_locs]
+            nz_idm_locs = [
+                (int(l[0]) + int(x), int(l[1]) + int(y), int(l[2]) + int(z)) for l in nz_locs
+            ]
+            nz_idms = []
+            for l in nz_idm_locs:
+                if (
+                    l[0] >= 0
+                    and l[0] < self.sl
+                    and l[1] >= 0
+                    and l[1] < self.sl
+                    and l[2] >= 0
+                    and l[2] < self.sl
+                ):
+                    nz_idms.append(tuple(int(i) for i in self.blocks[l]))
+                else:
+                    nz_idms.append((7, 0))
             nz_locs = [(int(x), int(y), int(z)) for x, y, z in nz_locs]
             flattened_blocks = [nz_locs[i] + nz_idms[i] for i in range(len(nz_locs))]
             return flattened_blocks
@@ -647,7 +687,7 @@ if __name__ == "__main__":
 
     spec = {"players": [], "mobs": [], "items": [], "coord_shift": (0, 0, 0), "agent": {}}
     world_opts = Opt()
-    world_opts.sl = 16
+    world_opts.sl = 16 * 3
     world_opts.world_server = True
     world_opts.port = 6002
     world = World(world_opts, spec)

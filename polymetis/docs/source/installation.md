@@ -57,7 +57,7 @@
         mkdir -p ./polymetis/build
         cd ./polymetis/build
 
-        cmake .. -DBUILD_FRANKA=[OFF/ON] -DBUILD_TESTS=[OFF/ON] -DBUILD_DOCS=[OFF/ON]
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_FRANKA=[OFF/ON] -DBUILD_TESTS=[OFF/ON] -DBUILD_DOCS=[OFF/ON]
         make -j
         ```
 

@@ -7,13 +7,13 @@ from droidlet.base_util import to_block_pos, XYZ, IDM, pos_to_np, euclid_dist
 from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
 
 
-def capped_line_of_sight(agent, player_struct, cap=20):
+def capped_line_of_sight(agent, player_struct, cap=15):
     """Return the block directly in the entity's line of sight, or a point in the distance"""
+
     xsect = agent.get_player_line_of_sight(player_struct)
     if xsect is not None and euclid_dist(pos_to_np(xsect), pos_to_np(player_struct.pos)) <= cap:
         return pos_to_np(xsect)
 
-    # default to cap blocks in front of entity
     vec = agent.coordinate_transforms.look_vec(player_struct.look.yaw, player_struct.look.pitch)
     return cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
 
