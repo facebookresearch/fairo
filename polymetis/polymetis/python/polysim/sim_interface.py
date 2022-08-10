@@ -52,8 +52,7 @@ class SimInterface:
     def _serialize_controller(controller):
         buffer = io.BytesIO()
         torch.jit.save(torch.jit.script(controller), buffer)
-        buffer.seek(0)
-        return buffer.read()
+        return buffer.getvalue()
 
     def register_arm_control(
         self,
