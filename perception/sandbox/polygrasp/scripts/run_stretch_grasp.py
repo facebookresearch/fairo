@@ -104,11 +104,15 @@ def main(cfg):
     grasp_client = GraspClient(
         view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path)
     )
+    rgbd = np.concatenate([rgb, dpt[:, :, None]], axis=-1)
+    print("Segment...")
+    obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd, min_mask_size=cfg.min_mask_size)
 
     # Create the robot
     rob = init_robot()
     model = rob.get_model()  # get the planning model in case we need it
 
+    
     
 
 if __name__ == "__main__":
