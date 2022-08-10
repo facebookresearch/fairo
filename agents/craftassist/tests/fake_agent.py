@@ -174,6 +174,7 @@ class FakeAgent(DroidletAgent):
             "color_bid_map": self.low_level_data["color_bid_map"],
             "get_all_holes_fn": heuristic_perception.get_all_nearby_holes,
             "get_locs_from_entity": get_locs_from_entity,
+            "allow_clarification": False,
         }
         self.dialogue_manager = DialogueManager(
             self.memory,

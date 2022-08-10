@@ -146,12 +146,12 @@ def make_pose(SL, H, loc=None, pitchyaw=None, height_map=None):
     """
     ENTITY_HEIGHT = 2
     if loc is None:
-        x, y, z = np.random.randint((SL - 1, H - 1, SL - 1))
+        x, y, z = np.random.randint((SL / 3 - 1, H / 3 - 1, SL / 3 - 1)) + SL / 3
     else:
         x, y, z = loc
     if pitchyaw is None:
-        pitch = np.random.uniform(-90, 90)
-        yaw = np.random.uniform(-180, 180)
+        pitch = np.random.uniform(-np.pi / 2, np.pi / 2)
+        yaw = np.random.uniform(-np.pi, np.pi)
     else:
         pitch, yaw = pitchyaw
     # put the entity above the current height map.  this will break if
