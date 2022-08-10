@@ -15,7 +15,7 @@ from .third_party.robotiq_2finger_grippers.robotiq_2f_gripper import (
 )
 
 
-class RobotiqGripperServer(polymetis_pb2_grpc.GripperServerServicer):
+class RobotiqGripperServer(polymetis_pb2_grpc.PolymetisControllerServerServicer):
     """gRPC server that exposes a Robotiq gripper controls to the client
     Communicates with the gripper through modbus
     """
@@ -47,7 +47,7 @@ class RobotiqGripperServer(polymetis_pb2_grpc.GripperServerServicer):
         else:
             raise Exception(f"Unable to activate!")
 
-    def GetState(self, request, context):
+    def GripperGetState(self, request, context):
         self.gripper.getStatus()
 
         state = polymetis_pb2.GripperState()
@@ -59,13 +59,13 @@ class RobotiqGripperServer(polymetis_pb2_grpc.GripperServerServicer):
 
         return state
 
-    def Goto(self, request, context):
+    def GripperGoto(self, request, context):
         self.gripper.goto(pos=request.width, vel=request.speed, force=request.force)
         self.gripper.sendCommand()
 
         return polymetis_pb2.Empty()
 
-    def Grasp(self, request, context):
+    def GripperGrasp(self, request, context):
         self.gripper.goto(pos=request.width, vel=request.speed, force=request.force)
         self.gripper.sendCommand()
 
