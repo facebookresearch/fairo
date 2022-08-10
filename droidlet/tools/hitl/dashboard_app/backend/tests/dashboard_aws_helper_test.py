@@ -3,7 +3,6 @@ import os
 from unittest.mock import patch
 import boto3
 from moto import mock_s3
-import botocore.session
 import json
 
 S3_BUCKET_NAME = "droidlet-hitl"
