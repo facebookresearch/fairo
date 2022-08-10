@@ -130,11 +130,12 @@ class SimInterface:
     def register_step_callback(self, step_callback: Callable):
         self.step_callback = step_callback
 
-    def run(self):
+    def run(self, time_horizon=float("inf")):
         assert self.step_callback is not None, "Step callback not assigned!"
 
         spinner = Spinner(self.hz)
-        while True:
+        t = 0
+        while t < time_horizon:
             # Perform control updates
             for service_info in self.control_items:
                 state = service_info.state_callback()
@@ -144,5 +145,6 @@ class SimInterface:
             self.step_callback()
 
             # Spin
+            t += 1
             if not self.fast_forward:
                 spinner.spin()

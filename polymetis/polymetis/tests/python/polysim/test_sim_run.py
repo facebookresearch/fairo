@@ -6,54 +6,16 @@ import time
 import pytest
 
 import grpc
-import polymetis_pb2
 import polymetis_pb2_grpc
 
 import numpy as np
 
 from polysim import GrpcSimulationClient
-from polysim.envs import AbstractControlledEnv
-from polysim.test_utils import fake_metadata_cfg
+from polysim.test_utils import fake_metadata_cfg, FakeEnv, FakeChannel, FakeConnection
 
 N_DIM = 7
 HZ = 250
 STEPS = 100
-
-
-class FakeEnv(AbstractControlledEnv):
-    def reset(self):
-        pass
-
-    def get_num_dofs(self):
-        pass
-
-    def get_current_joint_pos_vel(self):
-        return np.zeros(N_DIM), np.zeros(N_DIM)
-
-    def get_current_joint_torques(self):
-        return np.zeros(N_DIM), np.zeros(N_DIM), np.zeros(N_DIM), np.zeros(N_DIM)
-
-    def apply_joint_torques(self, torques):
-        pass
-
-
-class FakeChannel:
-    def __init__(self, ip):
-        pass
-
-    def close(self):
-        pass
-
-
-class FakeConnection:
-    def __init__(self, channel):
-        pass
-
-    def ControlUpdate(self, robot_state):
-        return polymetis_pb2.TorqueCommand()
-
-    def InitRobotClient(self, metadata):
-        pass
 
 
 def test_spinner(monkeypatch):
