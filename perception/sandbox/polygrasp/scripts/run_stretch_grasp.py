@@ -87,6 +87,7 @@ def main(cfg):
     rgb = rgb_cam.get()
     dpt = dpt_cam.get()
     xyz = dpt_cam.depth_to_xyz(dpt)
+    rgb, dpt, xyz = [np.rot90(np.fliplr(np.flipud(x))) for x in [rgb, dpt, xyz]]
     plt.figure()
     plt.subplot(1,3,1); plt.imshow(rgb)
     plt.subplot(1,3,2); plt.imshow(dpt)
