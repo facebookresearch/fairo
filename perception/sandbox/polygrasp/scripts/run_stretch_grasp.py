@@ -13,6 +13,7 @@ from home_robot.hardware.stretch_ros import HelloStretchROSInterface
 from home_robot.motion.robot import STRETCH_HOME_Q, HelloStretchIdx
 from home_robot.ros.path import get_package_path
 from home_robot.ros.camera import RosCamera
+import home_robot.utils.image as hrimg
 
 import numpy as np
 import sklearn
@@ -70,7 +71,8 @@ def init_robot():
     rob.goto(q, move_base=False, wait=True, verbose=False)
     return rob
 
-def main():
+@hydra.main(config_path="../conf", config_name="run_grasp")
+def main(cfg):
     print("--------------")
     print("Start example - hardware using ROS")
     rospy.init_node('hello_stretch_ros_test')
@@ -84,10 +86,23 @@ def main():
     # Now get the images for each one
     rgb = rgb_cam.get()
     dpt = dpt_cam.get()
+    xyz = dpt_cam.depth_to_xyz(dpt)
     plt.figure()
-    plt.subplot(1,2,1); plt.imshow(rgb)
-    plt.subplot(1,2,2); plt.imshow(dpt)
+    plt.subplot(1,3,1); plt.imshow(rgb)
+    plt.subplot(1,3,2); plt.imshow(dpt)
+    plt.subplot(1,3,3); plt.imshow(xyz)
     plt.show()
+
+    # TODO remove debug code
+    # Use to show the point cloud if you want to see it
+    # hrimg.show_point_cloud(xyz, rgb / 255.)
+    # import pdb; pdb.set_trace()
+
+    print("Connect to grasp candidate selection and pointcloud processor")
+    segmentation_client = SegmentationClient()
+    grasp_client = GraspClient(
+        view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path)
+    )
 
     # Create the robot
     rob = init_robot()
