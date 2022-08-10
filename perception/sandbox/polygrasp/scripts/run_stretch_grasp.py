@@ -12,6 +12,7 @@ import os
 from home_robot.hardware.stretch_ros import HelloStretchROSInterface
 from home_robot.motion.robot import STRETCH_HOME_Q, HelloStretchIdx
 from home_robot.ros.path import get_package_path
+from home_robot.ros.camera import RosCamera
 
 import numpy as np
 import sklearn
@@ -31,6 +32,7 @@ import open3d as o3d
 from typing import List
 
 import cv2
+import matplotlib.pyplot as plt
 
 """
 Manual installs needed for:
@@ -39,11 +41,8 @@ Manual installs needed for:
 """
 
 
-def main():
+def init_robot():
     # Create the robot
-    print("--------------")
-    print("Start example - hardware using ROS")
-    rospy.init_node('hello_stretch_ros_test')
     print("Create ROS interface")
     rob = HelloStretchROSInterface(visualize_planner=False, root=get_package_path())
     print("Wait...")
@@ -69,7 +68,25 @@ def main():
     q[HelloStretchIdx.ARM] = 0.06
     q[HelloStretchIdx.LIFT] = 0.85
     rob.goto(q, move_base=False, wait=True, verbose=False)
+    return rob
 
+def main():
+    print("--------------")
+    print("Start example - hardware using ROS")
+    rospy.init_node('hello_stretch_ros_test')
+
+    # Get a couple camera listeners
+    rgb_cam = RosCamera('/camera/color')
+    dpt_cam = RosCamera('/camera/aligned_depth_to_color')
+
+    # Create the robot
+    rob = init_robot()
+    model = rob.get_model()  # get the planning model in case we need it
+
+    # Now get the images for each one
+    rgb = rgb_cam.get()
+    dpt = dpt_cam.get()
+    
 
 if __name__ == "__main__":
     main()
