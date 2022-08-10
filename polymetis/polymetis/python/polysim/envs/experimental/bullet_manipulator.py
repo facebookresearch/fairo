@@ -143,14 +143,14 @@ class BulletManipulator:
 @hydra.main(config_path=".", config_name="config")
 def main(cfg):
     # Create sim
-    sim = BulletManipulator(cfg.hz, cfg.robot_model, gui=cfg.gui)
+    sim_wrapper = BulletManipulator(cfg.hz, cfg.robot_model, gui=cfg.gui)
 
     # Connect to Polymetis sim interface
-    ps_interface = polysim.SimInterface(cfg.hz)
-    ps_interface.register_arm_control(
+    sim_client = polysim.SimInterface(cfg.hz)
+    sim_client.register_arm_control(
         server_address=f"{cfg.arm.ip}:{cfg.arm.port}",
-        state_callback=sim.get_arm_state,
-        action_callback=sim.apply_arm_control,
+        state_callback=sim_wrapper.get_arm_state,
+        action_callback=sim_wrapper.apply_arm_control,
         dof=7,
         kp_joint=cfg.robot_client.metadata_cfg.default_Kq,
         kd_joint=cfg.robot_client.metadata_cfg.default_Kqd,
@@ -160,16 +160,16 @@ def main(cfg):
         rest_pose=cfg.robot_model.rest_pose,
         ee_link_name=cfg.robot_model.ee_link_name,
     )
-    ps_interface.register_gripper_control(
+    sim_client.register_gripper_control(
         server_address=f"{cfg.gripper.ip}:{cfg.gripper.port}",
-        state_callback=sim.get_gripper_state,
-        action_callback=sim.apply_gripper_control,
+        state_callback=sim_wrapper.get_gripper_state,
+        action_callback=sim_wrapper.apply_gripper_control,
         max_width=cfg.robot_model.gripper.max_width,
     )
-    ps_interface.register_step_callback(sim.step)
+    sim_client.register_step_callback(sim.step)
 
     # Start sim client
-    ps_interface.run()
+    sim_client.run()
 
 
 if __name__ == "__main__":
