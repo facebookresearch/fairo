@@ -66,7 +66,7 @@ def init_robot():
     # Send it to lift pose + wait
     #q, _ = rob.update()
     q[HelloStretchIdx.ARM] = 0.06
-    q[HelloStretchIdx.LIFT] = 0.85
+    q[HelloStretchIdx.LIFT] = 0.35
     rob.goto(q, move_base=False, wait=True, verbose=False)
     return rob
 
@@ -78,14 +78,21 @@ def main():
     # Get a couple camera listeners
     rgb_cam = RosCamera('/camera/color')
     dpt_cam = RosCamera('/camera/aligned_depth_to_color')
+    rgb_cam.wait_for_image()
+    dpt_cam.wait_for_image()
+
+    # Now get the images for each one
+    rgb = rgb_cam.get()
+    dpt = dpt_cam.get()
+    plt.figure()
+    plt.subplot(1,2,1); plt.imshow(rgb)
+    plt.subplot(1,2,2); plt.imshow(dpt)
+    plt.show()
 
     # Create the robot
     rob = init_robot()
     model = rob.get_model()  # get the planning model in case we need it
 
-    # Now get the images for each one
-    rgb = rgb_cam.get()
-    dpt = dpt_cam.get()
     
 
 if __name__ == "__main__":
