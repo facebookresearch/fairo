@@ -1,9 +1,11 @@
 # Dashboard App for HITL
-Updated July 13 by Chuxi.
+Updated Aug 10 by Chuxi.
 
 This is a Dashboard app prototype for the HITL system.
 
 ## Update Note
+- Aug 10:
+    - Updated dashboard_aws_helper_test.py to use mock s3. 
 - July 14:
     - Added model visualization component, user can see text info about a model:
     - Demo:
@@ -53,6 +55,8 @@ Please note this dashboard app is currently only in development build and is not
 - Dependency required for backend server (in addition to the droidelet setting, please make sure you have the updated version as below):
 Flask==2.1.2
 Flask-SocketIO==5.2.0
+- You need to have the following python package to be able to run the tests:
+moto==3.1.17
 - Dependency for frontend is specified in the `fairo/droidlet/tools/hitl/dashboard_app/dashboard_frontend/package.json` file.
 
 ## How to run
