@@ -19,27 +19,27 @@ HITL_TMP_DIR = (
 OS_ENV_DICT = {
     "AWS_ACCESS_KEY_ID": "test_key_id",
     "AWS_SECRET_ACCESS_KEY": "secretkkkkkk",
-    "AWS_DEFAULT_REGION": "us-west-1"
+    "AWS_DEFAULT_REGION": "us-east-1" 
 }
 
 @mock_s3
 class TestAWSHelper(unittest.TestCase):
     def setUp(self):
-        conn = boto3.resource("s3", region_name="us-east-1")
+        conn = boto3.resource("s3", region_name=OS_ENV_DICT["AWS_DEFAULT_REGION"])
         # We need to create the bucket since this is all in Moto's 'virtual' AWS account
-        conn.create_bucket(Bucket="droidlet-hitl")
+        conn.create_bucket(Bucket=S3_BUCKET_NAME)
         self._info_fname = f"job_management_records/{VALID_ID}.json"
         self._traceback_fname = f"{VALID_ID}/log_traceback.csv"
         some_dict = {"msg": "hello"}
         json_content = json.dumps(some_dict)
-        s3 = boto3.client("s3", region_name="us-east-1")
-        s3.put_object(Bucket="droidlet-hitl", Key=self._info_fname, Body=json_content)
-        s3.put_object(Bucket="droidlet-hitl", Key=self._traceback_fname, Body="1, 2 \n1, 2")
+        s3 = boto3.client("s3", region_name=OS_ENV_DICT["AWS_DEFAULT_REGION"])
+        s3.put_object(Bucket=S3_BUCKET_NAME, Key=self._info_fname, Body=json_content)
+        s3.put_object(Bucket=S3_BUCKET_NAME, Key=self._traceback_fname, Body="1, 2 \n1, 2")
 
     @patch.dict("os.environ", OS_ENV_DICT)
     def test_get_job_list(self):
-        s3 = boto3.client("s3", region_name="us-east-1")
-        s3.put_object(Bucket="droidlet-hitl", Key="20220224132033/", Body="1, 2 \n1, 2")
+        s3 = boto3.client("s3", region_name=OS_ENV_DICT["AWS_DEFAULT_REGION"])
+        s3.put_object(Bucket=S3_BUCKET_NAME, Key="20220224132033/", Body="1, 2 \n1, 2")
         from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import get_job_list
 
         res = get_job_list()
@@ -85,17 +85,14 @@ class TestAWSHelper(unittest.TestCase):
         self.assertEqual(res, f"cannot find run info with id {INVALID_ID}")
 
     def tearDown(self):
-        # s3.Object(S3_BUCKET_NAME, self._info_fname).delete()
-        # s3.Object(S3_BUCKET_NAME, self._traceback_fname).delete()
-
-        # # remove from local temp directory as well
-        # local_info_fname = os.path.join(HITL_TMP_DIR, self._info_fname)
-        # local_traceback_fname = os.path.join(HITL_TMP_DIR, self._traceback_fname)
-        # if os.path.exists(local_info_fname):
-        #     os.remove(local_info_fname)
-        # if os.path.exists(local_traceback_fname):
-        #     os.remove(local_traceback_fname)
-        pass
+        # no need to clean up s3 as using mock s3 client
+        # remove from local temp directory 
+        local_info_fname = os.path.join(HITL_TMP_DIR, self._info_fname)
+        local_traceback_fname = os.path.join(HITL_TMP_DIR, self._traceback_fname)
+        if os.path.exists(local_info_fname):
+            os.remove(local_info_fname)
+        if os.path.exists(local_traceback_fname):
+            os.remove(local_traceback_fname)
 
 
 if __name__ == "__main__":
