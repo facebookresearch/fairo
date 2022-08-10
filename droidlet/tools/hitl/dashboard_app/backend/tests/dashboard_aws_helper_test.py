@@ -6,8 +6,6 @@ from moto import mock_s3
 import botocore.session
 import json
 
-from droidlet.tools.hitl.dashboard_app.backend.tests.s3_client_stubber import OS_ENV_DICT, MockListObjResult, S3ClientMock, mock_make_api_call
-
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
 
@@ -17,6 +15,12 @@ INVALID_ID = 11111111111111111
 HITL_TMP_DIR = (
     os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
 )
+
+OS_ENV_DICT = {
+    "AWS_ACCESS_KEY_ID": "test_key_id",
+    "AWS_SECRET_ACCESS_KEY": "secretkkkkkk",
+    "AWS_DEFAULT_REGION": "us-west-1"
+}
 
 @mock_s3
 class TestAWSHelper(unittest.TestCase):
