@@ -18,8 +18,9 @@ HITL_TMP_DIR = (
 OS_ENV_DICT = {
     "AWS_ACCESS_KEY_ID": "test_key_id",
     "AWS_SECRET_ACCESS_KEY": "secretkkkkkk",
-    "AWS_DEFAULT_REGION": "us-east-1" 
+    "AWS_DEFAULT_REGION": "us-east-1",
 }
+
 
 @mock_s3
 class TestAWSHelper(unittest.TestCase):
@@ -85,7 +86,7 @@ class TestAWSHelper(unittest.TestCase):
 
     def tearDown(self):
         # no need to clean up s3 as using mock s3 client
-        # remove from local temp directory 
+        # remove from local temp directory
         local_info_fname = os.path.join(HITL_TMP_DIR, self._info_fname)
         local_traceback_fname = os.path.join(HITL_TMP_DIR, self._traceback_fname)
         if os.path.exists(local_info_fname):
