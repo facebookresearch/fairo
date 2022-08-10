@@ -56,6 +56,46 @@ franka_panda = OmegaConf.create(
     },
 )
 
+franka_panda_abs = OmegaConf.create(
+    {
+        "robot_description_path": "/root/project/polymetis/polymetis/data/franka_panda/panda_arm.urdf",
+        "controlled_joints": [0, 1, 2, 3, 4, 5, 6],
+        "ee_link_idx": 7,
+        "ee_link_name": "panda_link8",
+        "rest_pose": [
+            -0.13935425877571106,
+            -0.020481698215007782,
+            -0.05201413854956627,
+            -2.0691256523132324,
+            0.05058913677930832,
+            2.0028650760650635,
+            -0.9167874455451965,
+        ],
+        "joint_limits_low": [
+            -2.8973,
+            -1.7628,
+            -2.8973,
+            -3.0718,
+            -2.8973,
+            -0.0175,
+            -2.8973,
+        ],
+        "joint_limits_high": [
+            2.8973,
+            1.7628,
+            2.8973,
+            -0.0698,
+            2.8973,
+            3.7525,
+            2.8973,
+        ],
+        "joint_damping": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
+        "torque_limits": [87.0, 87.0, 87.0, 87.0, 12.0, 12.0, 12.0],
+        "use_grav_comp": True,
+        "num_dofs": 7,
+    },
+)
+
 kuka_iiwa = OmegaConf.create(
     {
         "robot_description_path": "kuka_iiwa/urdf/iiwa7.urdf",
@@ -203,7 +243,7 @@ kuka_gripper_sdf = OmegaConf.create(
         (
             MujocoManipulatorEnv,
             {
-                "robot_model_cfg": franka_panda,
+                "robot_model_cfg": franka_panda_abs,
             },
         ),
     ],
