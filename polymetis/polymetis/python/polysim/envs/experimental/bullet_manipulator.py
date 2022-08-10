@@ -64,7 +64,7 @@ class BulletManipulator:
 
     def get_arm_state(self) -> polymetis_pb2.RobotState:
         # Timestamp
-        self.arm_state.timestamp.FromNanoseconds(int(1e9 * self.t))
+        self.arm_state.timestamp.GetCurrentTime()
 
         # Joint pos & vel
         joint_cur_states = self.sim.getJointStates(
@@ -77,7 +77,7 @@ class BulletManipulator:
 
     def get_gripper_state(self) -> polymetis_pb2.GripperState:
         # Timestamp
-        self.gripper_state.timestamp.FromNanoseconds(int(1e9 * self.t))
+        self.gripper_state.timestamp.GetCurrentTime()
 
         # Gripper states
         joint_cur_states = self.sim.getJointStates(
