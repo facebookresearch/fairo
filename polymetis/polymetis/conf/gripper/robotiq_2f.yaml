@@ -1,5 +1,5 @@
 gripper:
-  _target_: polymetis.robot_drivers.robotiq_gripper.GripperServerLauncher
-  ip: ${ip}
-  port: ${port}
+  _target_: polymetis.robot_client.robotiq_gripper.RobotiqGripperClient
+  server_ip: ${ip}
+  server_port: ${port}
   comport: /dev/ttyUSB0
