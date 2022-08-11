@@ -103,11 +103,11 @@ def main(cfg):
     rgb, dpt, xyz = [np.rot90(np.fliplr(np.flipud(x))) for x in [rgb, dpt, xyz]]
     H, W = rgb.shape[:2]
     xyz = xyz.reshape(-1, 3)
-    xyz = xyz @ tra.euler_matrix(0, 0, np.pi/2)[:3, :3]
+    xyz = xyz @ tra.euler_matrix(0, 0, -np.pi/2)[:3, :3]
     xyz = xyz.reshape(H, W, 3)
 
     show_imgs = False
-    show_pcs = True
+    show_pcs = False
     if show_imgs:
         plt.figure()
         plt.subplot(1,3,1); plt.imshow(rgb)
@@ -130,16 +130,21 @@ def main(cfg):
     print("RGBD image of shape:", rgbd.shape)
     rgbd = cv2.resize(rgbd, [int(W / 2), int(H / 2)])
     print("Resized to", rgbd.shape)
+
+    min_points = 50
     segment = True
     if segment:
         print("Segment...")
         obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd, min_mask_size=cfg.min_mask_size)
         for rgbd, mask in zip(obj_masked_rgbds, obj_masks):
+            mask2 = hrimg.smooth_mask(mask)
+            if np.sum(mask2) < min_points: continue
+            masked_rgb = (rgbd[:, :, :3] / 255.) * mask2[:, :, None].repeat(3, axis=-1)
             plt.figure()
-            plt.subplot(221); plt.imshow(rgbd[:, :, :3])
-            plt.subplot(222); plt.imshow(mask)
-            plt.subplot(223); plt.imshow(rgb)
-            plt.subplot(224); plt.imshow(rgbd[:, :, 3:])
+            plt.subplot(221); plt.imshow(mask) # rgbd[:, :, :3])
+            plt.subplot(222); plt.imshow(mask2)
+            plt.subplot(223); plt.imshow(masked_rgb)
+            plt.subplot(224); plt.imshow(rgb) # rgbd[:, :, 3:])
             plt.show()
     obj_i, filtered_grasp_group = grasp_client.get_obj_grasps(
         obj_pcds, scene_pcd
