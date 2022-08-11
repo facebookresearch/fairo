@@ -14,6 +14,7 @@ import { Link, Outlet, useLocation, useParams } from 'react-router-dom';
 import { TAB_ITEMS } from '../../constants/pipelineConstants';
 import InfoBlock from './metaInfo/infoBlock';
 import RunList from './metaInfo/runList';
+import TurkList from './metaInfo/turkList';
 
 const menuItems = Object.values(TAB_ITEMS);
 const { TabPane } = Tabs;
@@ -107,6 +108,8 @@ const PipelinePanel = (props) => {
                                                 // render job list if key is jobs, otherwise render info block
                                                 item.key === TAB_ITEMS.RUNS.key ?
                                                     <RunList pipelineType={pipelineType} /> :
+                                                item.key === TAB_ITEMS.TURK.key ? 
+                                                    <TurkList pipelineType={pipelineType} /> :
                                                     <InfoBlock infoType={item.key} pipelineType={pipelineType} />
                                             }
                                         </TabPane>

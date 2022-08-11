@@ -23,5 +23,10 @@ export const TAB_ITEMS = {
     {
         label: 'View Runs',
         key: 'runs'
+    },
+    TURK: 
+    {
+        label: 'Manage Turks',
+        key: 'turk'
     }
 }
