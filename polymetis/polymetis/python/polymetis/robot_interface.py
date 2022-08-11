@@ -72,7 +72,7 @@ class RobotInterface(BaseRobotInterface):
         self.use_grav_comp = use_grav_comp
 
         # Initialize reference states
-        self.def_controller_cfg = DefaultControllerConfig()
+        self._def_controller_cfg = DefaultControllerConfig()
         self._set_default_controller(
             joint_pos_desired=self.get_joint_positions(),
             Kq=self.Kq_default,
@@ -106,7 +106,7 @@ class RobotInterface(BaseRobotInterface):
     ):
         # Update default controller config
         if joint_pos_desired is not None:
-            self.def_controller_cfg.q_des = joint_pos_desired
+            self._def_controller_cfg.q_des = joint_pos_desired
 
         for key in ["Kq", "Kqd", "Kx", "Kxd"]:
             K = eval(key)
@@ -114,19 +114,19 @@ class RobotInterface(BaseRobotInterface):
                 assert (
                     type(K) is torch.Tensor
                 ), f"Invalid gain type. Has to be torch.Tensor, got {type(K)} instead."
-                K_old = self.def_controller_cfg.getattr(key)
+                K_old = self._def_controller_cfg.getattr(key)
                 assert (
                     K.shape == K_old.shape
                 ), f"Invalid gain shape. Got {K.shape} instead of {K_old.shape}"
-            self.def_controller_cfg.setattr(key, K)
+            self._def_controller_cfg.setattr(key, K)
 
         # Send updated controller
         default_controller = toco.policies.HybridJointImpedanceControl(
-            joint_pos_current=self.def_controller_cfg.q_des,
-            Kq=self.def_controller_cfg.Kq,
-            Kqd=self.def_controller_cfg.Kqd,
-            Kx=self.def_controller_cfg.Kx,
-            Kxd=self.def_controller_cfg.Kxd,
+            joint_pos_current=self._def_controller_cfg.q_des,
+            Kq=self._def_controller_cfg.Kq,
+            Kqd=self._def_controller_cfg.Kqd,
+            Kx=self._def_controller_cfg.Kx,
+            Kxd=self._def_controller_cfg.Kxd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
