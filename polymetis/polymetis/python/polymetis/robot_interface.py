@@ -72,14 +72,14 @@ class RobotInterface(BaseRobotInterface):
         self.use_grav_comp = use_grav_comp
 
         # Initialize reference states
-        self._def_controller_cfg = DefaultControllerConfig()
-        self._set_default_controller(
-            joint_pos_desired=self.get_joint_positions(),
+        self._def_controller_cfg = DefaultControllerConfig(
+            q_des=self.get_joint_positions(),
             Kq=self.Kq_default,
             Kqd=self.Kqd_default,
             Kx=self.Kx_default,
             Kxd=self.Kxd_default,
         )
+        self._set_default_controller()
 
     def _adaptive_time_to_go(self, joint_displacement: torch.Tensor):
         """Compute adaptive time_to_go
@@ -114,11 +114,12 @@ class RobotInterface(BaseRobotInterface):
                 assert (
                     type(K) is torch.Tensor
                 ), f"Invalid gain type. Has to be torch.Tensor, got {type(K)} instead."
-                K_old = self._def_controller_cfg.getattr(key)
+                K_old = getattr(self._def_controller_cfg, key)
                 assert (
                     K.shape == K_old.shape
                 ), f"Invalid gain shape. Got {K.shape} instead of {K_old.shape}"
-            self._def_controller_cfg.setattr(key, K)
+
+                setattr(self._def_controller_cfg, key, K)
 
         # Send updated controller
         default_controller = toco.policies.HybridJointImpedanceControl(
@@ -130,7 +131,7 @@ class RobotInterface(BaseRobotInterface):
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
-        self.send_torch_policy(default_controller)
+        self.send_torch_policy(default_controller, blocking=False)
 
     def solve_inverse_kinematics(
         self,
