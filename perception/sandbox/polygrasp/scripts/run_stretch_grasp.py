@@ -58,8 +58,8 @@ def init_robot():
 
     home_q = STRETCH_HOME_Q
     model = rob.get_model()
-    q = model.update_look_front(home_q.copy())
-    rob.goto(q, move_base=False, wait=True)
+    # q = model.update_look_front(home_q.copy())
+    # rob.goto(q, move_base=False, wait=True)
 
     # Robot - look at the object because we are switching to grasping mode
     # Send robot to home_q + wait
@@ -90,6 +90,8 @@ def main(cfg):
     # Get images from the robot
     rgb_cam.wait_for_image()
     dpt_cam.wait_for_image()
+    rospy.sleep(1.)
+
     print("rgb frame =", rgb_cam.get_frame())
     print("dpt frame =", dpt_cam.get_frame())
     pose = rob.get_pose(rgb_cam.get_frame())
@@ -98,7 +100,8 @@ def main(cfg):
 
     # Now get the images for each one
     rgb = rgb_cam.get()
-    dpt = dpt_cam.fix_depth(dpt_cam.get())
+    dpt = dpt_cam.get()
+    xyz = dpt_cam.fix_depth(dpt_cam.depth_to_xyz(dpt))
     xyz = dpt_cam.depth_to_xyz(dpt)
     rgb, dpt, xyz = [np.rot90(np.fliplr(np.flipud(x))) for x in [rgb, dpt, xyz]]
     H, W = rgb.shape[:2]
@@ -108,6 +111,7 @@ def main(cfg):
 
     show_imgs = False
     show_pcs = False
+    show_masks = False
     if show_imgs:
         plt.figure()
         plt.subplot(1,3,1); plt.imshow(rgb)
@@ -129,27 +133,55 @@ def main(cfg):
     rgbd = np.concatenate([rgb, xyz], axis=-1)
     print("RGBD image of shape:", rgbd.shape)
     rgbd = cv2.resize(rgbd, [int(W / 2), int(H / 2)])
+    rgb, xyz = rgbd[:, :, :3], rgbd[:, :, 3:]
     print("Resized to", rgbd.shape)
 
-    min_points = 50
+    min_points = 150
     segment = True
-    if segment:
-        print("Segment...")
-        obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd, min_mask_size=cfg.min_mask_size)
-        for rgbd, mask in zip(obj_masked_rgbds, obj_masks):
-            mask2 = hrimg.smooth_mask(mask)
-            if np.sum(mask2) < min_points: continue
-            masked_rgb = (rgbd[:, :, :3] / 255.) * mask2[:, :, None].repeat(3, axis=-1)
+    print("Segment...")
+    obj_pcds = []
+    obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd, min_mask_size=cfg.min_mask_size)
+    scene_pcd = hrimg.to_o3d_point_cloud(xyz, rgb / 255.)
+    print("Found:", len(obj_masks))
+    for rgbd, mask in zip(obj_masked_rgbds, obj_masks):
+        mask2 = hrimg.smooth_mask(mask)
+        if np.sum(mask2) < min_points: continue
+        masked_rgb = (rgbd[:, :, :3] / 255.) * mask2[:, :, None].repeat(3, axis=-1)
+        obj_pcd = hrimg.to_o3d_point_cloud(xyz, rgb / 255., mask2)
+        # o3d.visualization.draw_geometries([obj_pcd])
+        obj_pcds.append(obj_pcd)
+        # o3d.visualization.draw_geometries([obj_pcd])
+        if show_masks:
             plt.figure()
             plt.subplot(221); plt.imshow(mask) # rgbd[:, :, :3])
             plt.subplot(222); plt.imshow(mask2)
             plt.subplot(223); plt.imshow(masked_rgb)
             plt.subplot(224); plt.imshow(rgb) # rgbd[:, :, 3:])
             plt.show()
+
+    # o3d.visualization.draw_geometries([scene_pcd])
     obj_i, filtered_grasp_group = grasp_client.get_obj_grasps(
         obj_pcds, scene_pcd
     )
-    
+
+    xyz = np.asarray(scene_pcd.points)
+    rgb = np.asarray(scene_pcd.colors)
+    offset = np.eye(4)
+    offset[2, 3] = -0.05
+    for i, grasp in enumerate(filtered_grasp_group):
+        print(i, grasp.translation)
+        # import pdb; pdb.set_trace()
+        pose = np.eye(4)
+        pose[:3, :3] = grasp.rotation_matrix
+        pose[:3, 3] = grasp.translation
+        pose = pose @ offset
+        xyz = np.concatenate([xyz, pose[:3, 3][None]], axis=0)
+        rgb = np.concatenate([rgb, np.array([[1., 0., 0]])], axis=0) # red
+        print(xyz.shape, rgb.shape)
+    scene_pcd.points = o3d.utility.Vector3dVector(xyz)
+    scene_pcd.colors = o3d.utility.Vector3dVector(rgb)
+    o3d.visualization.draw_geometries([scene_pcd])
+
 
 if __name__ == "__main__":
     main()
