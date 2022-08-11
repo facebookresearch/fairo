@@ -2,7 +2,7 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import time
 import tempfile
 import logging
@@ -21,6 +21,15 @@ from torchcontrol.transform import Rotation as R
 from torchcontrol.transform import Transformation as T
 
 log = logging.getLogger(__name__)
+
+
+@dataclass
+class DefaultControllerConfig:
+    q_des: torch.Tensor
+    Kq: torch.Tensor
+    Kqd: torch.Tensor
+    Kx: torch.Tensor
+    Kxd: torch.Tensor
 
 
 class RobotInterface(BaseRobotInterface):
@@ -62,6 +71,16 @@ class RobotInterface(BaseRobotInterface):
 
         self.use_grav_comp = use_grav_comp
 
+        # Initialize reference states
+        self.def_controller_cfg = DefaultControllerConfig()
+        self._set_default_controller(
+            joint_pos_desired=self.get_joint_positions(),
+            Kq=self.Kq_default,
+            Kqd=self.Kqd_default,
+            Kx=self.Kx_default,
+            Kxd=self.Kxd_default,
+        )
+
     def _adaptive_time_to_go(self, joint_displacement: torch.Tensor):
         """Compute adaptive time_to_go
         Computes the corresponding time_to_go such that the mean velocity is equal to one-eighth
@@ -76,6 +95,42 @@ class RobotInterface(BaseRobotInterface):
         joint_pos_diff = torch.abs(joint_displacement)
         time_to_go = torch.max(joint_pos_diff / joint_vel_limits * 8.0)
         return max(time_to_go, self.time_to_go_default)
+
+    def _set_default_controller(
+        self,
+        joint_pos_desired: Optional[torch.Tensor] = None,
+        Kq: Optional[torch.Tensor] = None,
+        Kqd: Optional[torch.Tensor] = None,
+        Kx: Optional[torch.Tensor] = None,
+        Kxd: Optional[torch.Tensor] = None,
+    ):
+        # Update default controller config
+        if joint_pos_desired is not None:
+            self.def_controller_cfg.q_des = joint_pos_desired
+
+        for key in ["Kq", "Kqd", "Kx", "Kxd"]:
+            K = eval(key)
+            if K is not None:
+                assert (
+                    type(K) is torch.Tensor
+                ), f"Invalid gain type. Has to be torch.Tensor, got {type(K)} instead."
+                K_old = self.def_controller_cfg.getattr(key)
+                assert (
+                    K.shape == K_old.shape
+                ), f"Invalid gain shape. Got {K.shape} instead of {K_old.shape}"
+            self.def_controller_cfg.setattr(key, K)
+
+        # Send updated controller
+        default_controller = toco.policies.HybridJointImpedanceControl(
+            joint_pos_current=self.def_controller_cfg.q_des,
+            Kq=self.def_controller_cfg.Kq,
+            Kqd=self.def_controller_cfg.Kqd,
+            Kx=self.def_controller_cfg.Kx,
+            Kxd=self.def_controller_cfg.Kxd,
+            robot_model=self.robot_model,
+            ignore_gravity=self.use_grav_comp,
+        )
+        self.send_torch_policy(default_controller)
 
     def solve_inverse_kinematics(
         self,
@@ -113,6 +168,11 @@ class RobotInterface(BaseRobotInterface):
         self.robot_model = toco.models.RobotModelPinocchio(
             robot_description_path, ee_link_name
         )
+
+    def set_control_gains(self, **kwargs):
+        """Update tracking controller gains."""
+        self._set_default_controller(joint_pos_desired=None, **kwargs)
+        log.warning("Controller gains updated.")
 
     """
     Getter methods
