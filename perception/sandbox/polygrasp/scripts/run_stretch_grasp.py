@@ -77,43 +77,59 @@ def main(cfg):
     print("Start example - hardware using ROS")
     rospy.init_node('hello_stretch_ros_test')
 
+    # Create the robot
+    rob = init_robot()
+    model = rob.get_model()  # get the planning model in case we need it
+
     # Get a couple camera listeners
-    rgb_cam = RosCamera('/camera/color')
-    dpt_cam = RosCamera('/camera/aligned_depth_to_color')
+    rgb_cam = RosCamera('/camera/color', flipxy=False)
+    dpt_cam = RosCamera('/camera/aligned_depth_to_color', flipxy=False)
+
+    # Get images from the robot
     rgb_cam.wait_for_image()
     dpt_cam.wait_for_image()
 
     # Now get the images for each one
     rgb = rgb_cam.get()
-    dpt = dpt_cam.get()
+    dpt = dpt_cam.fix_depth(dpt_cam.get())
     xyz = dpt_cam.depth_to_xyz(dpt)
     rgb, dpt, xyz = [np.rot90(np.fliplr(np.flipud(x))) for x in [rgb, dpt, xyz]]
-    plt.figure()
-    plt.subplot(1,3,1); plt.imshow(rgb)
-    plt.subplot(1,3,2); plt.imshow(dpt)
-    plt.subplot(1,3,3); plt.imshow(xyz)
-    plt.show()
+
+    show_imgs = True
+    show_pcs = True
+    if show_imgs:
+        plt.figure()
+        plt.subplot(1,3,1); plt.imshow(rgb)
+        plt.subplot(1,3,2); plt.imshow(dpt)
+        plt.subplot(1,3,3); plt.imshow(xyz)
+        plt.show()
 
     # TODO remove debug code
     # Use to show the point cloud if you want to see it
-    # hrimg.show_point_cloud(xyz, rgb / 255.)
-    # import pdb; pdb.set_trace()
+    if show_pcs:
+        hrimg.show_point_cloud(xyz, rgb / 255., orig=np.zeros(3))
+        # import pdb; pdb.set_trace()
 
     print("Connect to grasp candidate selection and pointcloud processor")
     segmentation_client = SegmentationClient()
     grasp_client = GraspClient(
         view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path)
     )
-    rgbd = np.concatenate([rgb, dpt[:, :, None]], axis=-1)
+    rgbd = np.concatenate([rgb, xyz], axis=-1)
+    print("RGBD image of shape:", rgbd.shape)
+    H, W = rgbd.shape[:2]
+    rgbd = cv2.resize(rgbd, [int(W / 2), int(H / 2)])
+    print("Resized to", rgbd.shape)
     print("Segment...")
-    rgbd = cv2.resize(rgbd, [320, 240])
     obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd, min_mask_size=cfg.min_mask_size)
-
-    # Create the robot
-    rob = init_robot()
-    model = rob.get_model()  # get the planning model in case we need it
-
-    
+    for rgbd, mask in zip(obj_masked_rgbds, obj_masks):
+        plt.figure()
+        plt.subplot(221); plt.imshow(rgbd[:, :, :3])
+        plt.subplot(222); plt.imshow(mask)
+        plt.subplot(223); plt.imshow(rgb)
+        plt.subplot(224); plt.imshow(rgbd[:, :, 3:])
+        plt.show()
+    import pdb; pdb.set_trace()
     
 
 if __name__ == "__main__":
