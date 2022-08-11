@@ -6,6 +6,8 @@
 from unittest.mock import MagicMock
 from omegaconf.dictconfig import DictConfig
 
+import numpy as np
+
 import polymetis_pb2
 from polymetis.robot_client.metadata import RobotClientMetadata
 from polysim.envs import AbstractControlledEnv
@@ -40,6 +42,9 @@ A fake simulation env for testing.
 
 
 class FakeEnv(AbstractControlledEnv):
+    def __init__(self, n_dim=1):
+        self.n_dim = n_dim
+
     def reset(self):
         pass
 
@@ -47,10 +52,15 @@ class FakeEnv(AbstractControlledEnv):
         pass
 
     def get_current_joint_pos_vel(self):
-        return np.zeros(N_DIM), np.zeros(N_DIM)
+        return np.zeros(self.n_dim), np.zeros(self.n_dim)
 
     def get_current_joint_torques(self):
-        return np.zeros(N_DIM), np.zeros(N_DIM), np.zeros(N_DIM), np.zeros(N_DIM)
+        return (
+            np.zeros(self.n_dim),
+            np.zeros(self.n_dim),
+            np.zeros(self.n_dim),
+            np.zeros(self.n_dim),
+        )
 
     def apply_joint_torques(self, torques):
         pass

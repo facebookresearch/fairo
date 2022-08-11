@@ -14,7 +14,7 @@ STEPS = 100
 
 class SimWrapper:
     def __init__(self):
-        self.arm_env = FakeEnv()
+        self.arm_env = FakeEnv(N_DIM)
 
     def arm_state_callback(self):
         return polymetis_pb2.RobotState()

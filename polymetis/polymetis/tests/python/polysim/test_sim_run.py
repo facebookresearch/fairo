@@ -8,8 +8,6 @@ import pytest
 import grpc
 import polymetis_pb2_grpc
 
-import numpy as np
-
 from polysim import GrpcSimulationClient
 from polysim.test_utils import fake_metadata_cfg, FakeEnv, FakeChannel, FakeConnection
 
@@ -27,7 +25,7 @@ def test_spinner(monkeypatch):
 
     # Initialize env
     dt = 1.0 / HZ
-    env = FakeEnv()
+    env = FakeEnv(N_DIM)
     fake_metadata_cfg.hz = HZ
     sim = GrpcSimulationClient(env=env, metadata_cfg=fake_metadata_cfg)
 
