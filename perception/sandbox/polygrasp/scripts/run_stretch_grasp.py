@@ -102,10 +102,12 @@ def main(cfg):
     rgb = rgb_cam.get()
     dpt = dpt_cam.get()
     xyz = dpt_cam.depth_to_xyz(dpt_cam.fix_depth(dpt))
-    # rgb, dpt, xyz = [np.rot90(np.fliplr(np.flipud(x))) for x in [rgb, dpt, xyz]]
+    # Get xyz in base coords for later
+    rgb, dpt, xyz = [np.rot90(np.fliplr(np.flipud(x))) for x in [rgb, dpt, xyz]]
     H, W = rgb.shape[:2]
     xyz = xyz.reshape(-1, 3)
-    # xyz = xyz @ tra.euler_matrix(0, 0, -np.pi/2)[:3, :3]
+    base_xyz = trimesh.transform_points(xyz, pose)
+    xyz = xyz @ tra.euler_matrix(0, 0, -np.pi/2)[:3, :3]
     xyz = xyz.reshape(H, W, 3)
 
     show_imgs = False
@@ -121,8 +123,6 @@ def main(cfg):
     # TODO remove debug code
     # Use to show the point cloud if you want to see it
     if show_pcs:
-        base_xyz = xyz.reshape(-1, 3)
-        base_xyz = trimesh.transform_points(base_xyz, pose)
         # base_xyz = base_xyz @ tra.euler_matrix(0, 0, np.pi/2)[:3, :3]
         hrimg.show_point_cloud(base_xyz, rgb / 255., orig=np.zeros(3))
         # import pdb; pdb.set_trace()
@@ -179,7 +179,6 @@ def main(cfg):
         pose = pose @ offset
         xyz = np.concatenate([xyz, pose[:3, 3][None]], axis=0)
         rgb = np.concatenate([rgb, np.array([[1., 0., 0]])], axis=0) # red
-        print(xyz.shape, rgb.shape)
     scene_pcd.points = o3d.utility.Vector3dVector(xyz)
     scene_pcd.colors = o3d.utility.Vector3dVector(rgb)
     o3d.visualization.draw_geometries([scene_pcd])
