@@ -384,28 +384,91 @@ send a debug message warning.</p></li>
 
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="polysim.grpc_sim_client.Spinner">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">polysim.grpc_sim_client.</span></span><span class="sig-name descname"><span class="pre">Spinner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#polysim.grpc_sim_client.Spinner" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Sleeps the right amount of time to roughly maintain a specific frequency.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>hz</strong> – frequency (times called / second)</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="polysim.grpc_sim_client.Spinner.spin">
-<span class="sig-name descname"><span class="pre">spin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#polysim.grpc_sim_client.Spinner.spin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called each time in a loop to sleep a duration which maintains a specific frequency.</p>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 <section id="module-polysim.test_utils">
 <span id="polysim-test-utils-module"></span><h2>polysim.test_utils module<a class="headerlink" href="#module-polysim.test_utils" title="Permalink to this heading">¶</a></h2>
 <p>Utilities for unit testing.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="polysim.test_utils.FakeConnection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">polysim.test_utils.</span></span><span class="sig-name descname"><span class="pre">FakeConnection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#polysim.test_utils.FakeConnection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="polysim.test_utils.FakeConnection.ControlUpdate">
+<span class="sig-name descname"><span class="pre">ControlUpdate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">robot_state</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#polysim.test_utils.FakeConnection.ControlUpdate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polysim.test_utils.FakeConnection.InitRobotClient">
+<span class="sig-name descname"><span class="pre">InitRobotClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#polysim.test_utils.FakeConnection.InitRobotClient" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="polysim.test_utils.FakeEnv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">polysim.test_utils.</span></span><span class="sig-name descname"><span class="pre">FakeEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#polysim.test_utils.FakeEnv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="polysim.envs.html#polysim.envs.abstract_env.AbstractControlledEnv" title="polysim.envs.abstract_env.AbstractControlledEnv"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractControlledEnv</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="polysim.test_utils.FakeEnv.apply_joint_torques">
+<span class="sig-name descname"><span class="pre">apply_joint_torques</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">torques</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#polysim.test_utils.FakeEnv.apply_joint_torques" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>input:</dt><dd><p>np.ndarray: Desired torques</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polysim.test_utils.FakeEnv.get_current_joint_pos_vel">
+<span class="sig-name descname"><span class="pre">get_current_joint_pos_vel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#polysim.test_utils.FakeEnv.get_current_joint_pos_vel" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Joint positions
+np.ndarray: Joint velocities</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polysim.test_utils.FakeEnv.get_current_joint_torques">
+<span class="sig-name descname"><span class="pre">get_current_joint_torques</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#polysim.test_utils.FakeEnv.get_current_joint_torques" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Torques received from apply_joint_torques
+np.ndarray: Torques sent to robot (e.g. after clipping)
+np.ndarray: Torques generated by the actuators (e.g. after grav comp)
+np.ndarray: Torques exerted onto the robot</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polysim.test_utils.FakeEnv.get_num_dofs">
+<span class="sig-name descname"><span class="pre">get_num_dofs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#polysim.test_utils.FakeEnv.get_num_dofs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of degrees of freedom for controlling the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Number of control input dimensions</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="polysim.test_utils.FakeEnv.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#polysim.test_utils.FakeEnv.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the environment.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="polysim.test_utils.FakeMetadata">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">polysim.test_utils.</span></span><span class="sig-name descname"><span class="pre">FakeMetadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#polysim.test_utils.FakeMetadata" title="Permalink to this definition">¶</a></dt>
@@ -421,7 +484,7 @@ send a debug message warning.</p></li>
 <dl class="py data">
 <dt class="sig sig-object py" id="polysim.test_utils.fake_metadata_cfg">
 <span class="sig-prename descclassname"><span class="pre">polysim.test_utils.</span></span><span class="sig-name descname"><span class="pre">fake_metadata_cfg</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'_target_':</span> <span class="pre">'polysim.test_utils.FakeMetadata',</span> <span class="pre">'hz':</span> <span class="pre">10}</span></em><a class="headerlink" href="#polysim.test_utils.fake_metadata_cfg" title="Permalink to this definition">¶</a></dt>
-<dd><p>A fake metadata DictConfig for testing.</p>
+<dd><p>A fake metadata for testing.</p>
 </dd></dl>
 
 </section>
