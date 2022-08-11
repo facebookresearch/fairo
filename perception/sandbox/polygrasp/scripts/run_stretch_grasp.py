@@ -149,7 +149,6 @@ def main(cfg):
     obj_i, filtered_grasp_group = grasp_client.get_obj_grasps(
         obj_pcds, scene_pcd
     )
-    import pdb; pdb.set_trace()
     
 
 if __name__ == "__main__":
