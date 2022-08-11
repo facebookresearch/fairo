@@ -101,16 +101,15 @@ def main(cfg):
     # Now get the images for each one
     rgb = rgb_cam.get()
     dpt = dpt_cam.get()
-    xyz = dpt_cam.fix_depth(dpt_cam.depth_to_xyz(dpt))
-    xyz = dpt_cam.depth_to_xyz(dpt)
-    rgb, dpt, xyz = [np.rot90(np.fliplr(np.flipud(x))) for x in [rgb, dpt, xyz]]
+    xyz = dpt_cam.depth_to_xyz(dpt_cam.fix_depth(dpt))
+    # rgb, dpt, xyz = [np.rot90(np.fliplr(np.flipud(x))) for x in [rgb, dpt, xyz]]
     H, W = rgb.shape[:2]
     xyz = xyz.reshape(-1, 3)
-    xyz = xyz @ tra.euler_matrix(0, 0, -np.pi/2)[:3, :3]
+    # xyz = xyz @ tra.euler_matrix(0, 0, -np.pi/2)[:3, :3]
     xyz = xyz.reshape(H, W, 3)
 
     show_imgs = False
-    show_pcs = False
+    show_pcs = True
     show_masks = False
     if show_imgs:
         plt.figure()
@@ -122,7 +121,10 @@ def main(cfg):
     # TODO remove debug code
     # Use to show the point cloud if you want to see it
     if show_pcs:
-        hrimg.show_point_cloud(xyz, rgb / 255., orig=np.zeros(3))
+        base_xyz = xyz.reshape(-1, 3)
+        base_xyz = trimesh.transform_points(base_xyz, pose)
+        # base_xyz = base_xyz @ tra.euler_matrix(0, 0, np.pi/2)[:3, :3]
+        hrimg.show_point_cloud(base_xyz, rgb / 255., orig=np.zeros(3))
         # import pdb; pdb.set_trace()
 
     print("Connect to grasp candidate selection and pointcloud processor")
