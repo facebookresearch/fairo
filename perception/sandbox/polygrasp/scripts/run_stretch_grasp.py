@@ -14,6 +14,8 @@ from home_robot.motion.robot import STRETCH_HOME_Q, HelloStretchIdx
 from home_robot.ros.path import get_package_path
 from home_robot.ros.camera import RosCamera
 import home_robot.utils.image as hrimg
+import trimesh
+import trimesh.transformations as tra
 
 import numpy as np
 import sklearn
@@ -88,14 +90,23 @@ def main(cfg):
     # Get images from the robot
     rgb_cam.wait_for_image()
     dpt_cam.wait_for_image()
+    print("rgb frame =", rgb_cam.get_frame())
+    print("dpt frame =", dpt_cam.get_frame())
+    pose = rob.get_pose(rgb_cam.get_frame())
+    print("rgb pose:")
+    print(pose)
 
     # Now get the images for each one
     rgb = rgb_cam.get()
     dpt = dpt_cam.fix_depth(dpt_cam.get())
     xyz = dpt_cam.depth_to_xyz(dpt)
     rgb, dpt, xyz = [np.rot90(np.fliplr(np.flipud(x))) for x in [rgb, dpt, xyz]]
+    H, W = rgb.shape[:2]
+    xyz = xyz.reshape(-1, 3)
+    xyz = xyz @ tra.euler_matrix(0, 0, np.pi/2)[:3, :3]
+    xyz = xyz.reshape(H, W, 3)
 
-    show_imgs = True
+    show_imgs = False
     show_pcs = True
     if show_imgs:
         plt.figure()
@@ -117,18 +128,22 @@ def main(cfg):
     )
     rgbd = np.concatenate([rgb, xyz], axis=-1)
     print("RGBD image of shape:", rgbd.shape)
-    H, W = rgbd.shape[:2]
     rgbd = cv2.resize(rgbd, [int(W / 2), int(H / 2)])
     print("Resized to", rgbd.shape)
-    print("Segment...")
-    obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd, min_mask_size=cfg.min_mask_size)
-    for rgbd, mask in zip(obj_masked_rgbds, obj_masks):
-        plt.figure()
-        plt.subplot(221); plt.imshow(rgbd[:, :, :3])
-        plt.subplot(222); plt.imshow(mask)
-        plt.subplot(223); plt.imshow(rgb)
-        plt.subplot(224); plt.imshow(rgbd[:, :, 3:])
-        plt.show()
+    segment = True
+    if segment:
+        print("Segment...")
+        obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd, min_mask_size=cfg.min_mask_size)
+        for rgbd, mask in zip(obj_masked_rgbds, obj_masks):
+            plt.figure()
+            plt.subplot(221); plt.imshow(rgbd[:, :, :3])
+            plt.subplot(222); plt.imshow(mask)
+            plt.subplot(223); plt.imshow(rgb)
+            plt.subplot(224); plt.imshow(rgbd[:, :, 3:])
+            plt.show()
+    obj_i, filtered_grasp_group = grasp_client.get_obj_grasps(
+        obj_pcds, scene_pcd
+    )
     import pdb; pdb.set_trace()
     
 
