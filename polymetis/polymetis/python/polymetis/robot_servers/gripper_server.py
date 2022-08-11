@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 import time
 from concurrent import futures
+import json
 
 import grpc
 
@@ -19,13 +20,21 @@ class PolymetisGripperServer(polymetis_pb2_grpc.GripperServerServicer):
     def __init__(self):
         self.gripper_state_cache = polymetis_pb2.GripperState()
         self.gripper_cmd_cache = polymetis_pb2.GripperCommand()
+        self.metadata = None
 
-    def GetState(self, request, context):
-        return self.gripper_state_cache
+    def InitRobotClient(self, request, context):
+        self.metadata = request
+        return polymetis_pb2.Empty()
+
+    def GetRobotClientMetadata(self, request, context):
+        return self.metadata
 
     def ControlUpdate(self, request, context):
         self.gripper_state_cache = request
         return self.gripper_cmd_cache
+
+    def GetState(self, request, context):
+        return self.gripper_state_cache
 
     def Goto(self, request, context):
         self.gripper_cmd_cache = request

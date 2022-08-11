@@ -6,6 +6,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
+import signal
 import time
 
 import hydra
@@ -16,12 +17,17 @@ from polymetis.utils.grpc_utils import check_server_exists
 
 @hydra.main(config_name="launch_gripper")
 def main(cfg):
-    if os.fork() > 0:
+    if cfg.gripper:
+        pid = os.fork()
+    else:
+        pid = os.getpid()  # doesn't fork so only the server gets launched
+
+    if pid > 0:
         # Run server
         gripper_server = GripperServerLauncher(cfg.ip, cfg.port)
         gripper_server.run()
 
-    else:
+    else:  # (this block does not run if gripper=none)
         # Wait for server to launch
         t0 = time.time()
         while not check_server_exists(cfg.ip, cfg.port):

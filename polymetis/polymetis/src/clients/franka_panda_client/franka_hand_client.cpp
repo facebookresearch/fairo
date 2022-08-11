@@ -10,6 +10,8 @@
 #include "polymetis.grpc.pb.h"
 #include "polymetis/utils.h"
 
+using grpc::ClientContext;
+
 FrankaHandClient::FrankaHandClient(std::shared_ptr<grpc::Channel> channel,
                                    YAML::Node config)
     : stub_(GripperServer::NewStub(channel)) {
@@ -21,13 +23,23 @@ FrankaHandClient::FrankaHandClient(std::shared_ptr<grpc::Channel> channel,
   // Initialize gripper
   gripper_->homing();
   is_moving_ = false;
+
+  // Initialize server connection
+  franka::GripperState franka_gripper_state = gripper_->readOnce();
+
+  GripperMetadata metadata;
+  metadata.set_max_width(franka_gripper_state.max_width);
+  metadata.set_hz(GRIPPER_HZ);
+
+  ClientContext context;
+  Empty empty;
+  stub_->InitRobotClient(&context, metadata, &empty);
 }
 
 void FrankaHandClient::getGripperState(GripperState &gripper_state) {
   franka::GripperState franka_gripper_state = gripper_->readOnce();
 
   gripper_state.set_width(franka_gripper_state.width);
-  gripper_state.set_max_width(franka_gripper_state.max_width);
   gripper_state.set_is_grasped(franka_gripper_state.is_grasped);
   gripper_state.set_is_moving(is_moving_);
 
