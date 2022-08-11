@@ -106,6 +106,7 @@ def main(cfg):
     )
     rgbd = np.concatenate([rgb, dpt[:, :, None]], axis=-1)
     print("Segment...")
+    rgbd = cv2.resize(rgbd, [320, 240])
     obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd, min_mask_size=cfg.min_mask_size)
 
     # Create the robot
