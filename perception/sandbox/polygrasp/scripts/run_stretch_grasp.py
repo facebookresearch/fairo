@@ -289,6 +289,8 @@ def main(cfg):
         if q1 is not None:
             q2 = model.static_ik(grasp_pose, q1)
             if q2 is not None:
+                q1[HelloStretchIdx.ARM] -= 0.04
+                q2[HelloStretchIdx.ARM] -= 0.04
                 model.set_config(q1)
                 # TODO - what is wrong with base corrections
                 eq1 = q1[HelloStretchIdx.BASE_THETA] - q0
