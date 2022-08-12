@@ -147,7 +147,7 @@ def main(cfg):
                                                                   min_mask_size=cfg.min_mask_size)
     print("Found:", len(obj_masks))
     for rgbd, mask in zip(obj_masked_rgbds, obj_masks):
-        mask2 = hrimg.smooth_mask(mask)
+        mask2, _ = hrimg.smooth_mask(mask)
         if np.sum(mask2) < min_points: continue
         masked_rgb = (rgbd[:, :, :3] / 255.) * mask2[:, :, None].repeat(3, axis=-1)
         obj_pcd = hrimg.to_o3d_point_cloud(xyz, rgb / 255., mask2)
