@@ -79,7 +79,7 @@ CATS_LOWER = [l.lower() for l in cats]
 
 
 def capitalize_categoricals(d):
-    """ 
+    """
     if semantic parser outputs lowercase categoricals, fix here....
     """
     if type(d) is not dict:
