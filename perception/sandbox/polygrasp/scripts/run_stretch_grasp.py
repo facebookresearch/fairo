@@ -44,10 +44,11 @@ Manual installs needed for:
 """
 
 
-def init_robot():
+def init_robot(visualize=False):
     # Create the robot
     print("Create ROS interface")
-    rob = HelloStretchROSInterface(visualize_planner=False, root=get_package_path())
+    rob = HelloStretchROSInterface(visualize_planner=visualize,
+                                   root=get_package_path())
     print("Wait...")
     rospy.sleep(0.5)  # Make sure we have time to get ROS messages
     for i in range(1):
@@ -152,16 +153,29 @@ def main(cfg):
     obj_pcds = []
     obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd,
                                                                   min_mask_size=cfg.min_mask_size)
-    print("Found:", len(obj_masks))
+    print("Found:", len(obj_masked_rgbds))
+
     #mask_scene = np.ones((int(H / 2), int(W / 2)))
-    mask_scene = depth > dpt_cam.near_val
+    mask_valid = depth > dpt_cam.near_val  # remove bad points
+    mask_scene = mask_valid  # initial mask has to be good
+    mask_scene = mask_scene.reshape(-1)
+    # Convert XYZ into world frame
+    xyz = xyz.reshape(-1, 3)
+    xyz = trimesh.transform_points(xyz @ R_stretch_camera.T, camera_pose)
+    rgb = rgb.reshape(-1, 3) / 255.
+
+    # Loop to get masks
     for rgbd, mask in zip(obj_masked_rgbds, obj_masks):
-        mask1, mask2 = hrimg.smooth_mask(mask)
-        mask_scene = np.bitwise_and(mask_scene > 0, mask1 == 0)
+        # Smooth mask over valid pixels only
+        mask1, mask2 = hrimg.smooth_mask(np.bitwise_and(mask_valid, mask))
+        mask_scene = np.bitwise_and(mask_scene > 0, mask1.reshape(-1) == 0)
+        # Make sure enough points are observed
         if np.sum(mask2) < min_points: continue
+        # Correct hte mask and display - convert to pt cloud
         masked_rgb = (rgbd[:, :, :3] / 255.) * mask2[:, :, None].repeat(3, axis=-1)
-        obj_pcd = hrimg.to_o3d_point_cloud(xyz, rgb / 255., mask2)
         # o3d.visualization.draw_geometries([obj_pcd])
+        obj_pcd = hrimg.to_o3d_point_cloud(xyz, rgb / 255., mask2)
+
         obj_pcds.append(obj_pcd)
         # o3d.visualization.draw_geometries([obj_pcd])
         if show_masks:
@@ -173,10 +187,6 @@ def main(cfg):
             plt.subplot(236); plt.imshow(rgb) # rgbd[:, :, 3:])
             plt.show()
 
-    mask_scene = mask_scene.reshape(-1)
-    xyz = xyz.reshape(-1, 3)
-    rgb = rgb.reshape(-1, 3) / 255.
-
     # Apply the mask - no more bad poitns
     xyz = xyz[mask_scene]
     rgb = rgb[mask_scene]
@@ -186,33 +196,39 @@ def main(cfg):
         obj_pcds, scene_pcd
     )
 
+    # Transform point clouds with help from trimesh
+    geoms = [scene_pcd] + obj_pcds
+    coords = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=np.zeros(3))
+    geoms.append(coords)
+    o3d.visualization.draw_geometries(geoms)
+    pose_xyz = []
+    pose_rgb = []
+
     offset = np.eye(4)
-    # o3d.visualization.draw_geometries([scene_pcd])
     for i, grasp in enumerate(filtered_grasp_group):
         print(i, grasp.translation)
         # import pdb; pdb.set_trace()
         pose = np.eye(4)
         pose[:3, :3] = grasp.rotation_matrix
         pose[:3, 3] = grasp.translation
+        # pose = camera_pose @ pose @ T_fix_stetch_camera
         M = 10
         for j in range(1, M + 1):
             offset[2, 3] = -0.005 * j
             pose = pose @ offset
-            xyz = np.concatenate([xyz, pose[:3, 3][None]], axis=0)
-            rgb = np.concatenate([rgb, np.array([[1., 1 - (float(j) / M), 0]])], axis=0) # red
-    scene_pcd.points = o3d.utility.Vector3dVector(xyz)
-    scene_pcd.colors = o3d.utility.Vector3dVector(rgb)
-    geoms = []
-    for pcd in [scene_pcd] + obj_pcds:
-        xyz = np.asarray(pcd.points)
-        # transform into camera frame
-        xyz = trimesh.transform_points(xyz @ R_stretch_camera.T, camera_pose)
-        pcd.points = o3d.utility.Vector3dVector(xyz)
-        geoms.append(pcd)
+            pose_xyz.append(pose[:3, 3])
+            pose_rgb.append(np.array([1., 1 - (float(j) / M), 0]))
+            #xyz = np.concatenate([xyz, pose[:3, 3][None]], axis=0)
+            #rgb = np.concatenate([rgb, np.array([[1., 1 - (float(j) / M), 0]])], axis=0) # red
 
-    #o3d.visualization.draw_geometries([scene_pcd] + obj_pcds)
-    coords = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=np.zeros(3))
-    geoms.append(coords)
+    # pose_xyz = trimesh.transform_points(pose_xyz @ R_stretch_camera.T, camera_pose)
+    pose_xyz = np.array(pose_xyz)
+    pose_rgb = np.array(pose_rgb)
+
+    #scene_pcd.points = o3d.utility.Vector3dVector(xyz)
+    #scene_pcd.colors = o3d.utility.Vector3dVector(rgb)
+    grasp_pcd = hrimg.to_o3d_point_cloud(pose_xyz, pose_rgb)
+    geoms.append(grasp_pcd)
     o3d.visualization.draw_geometries(geoms)
 
 
