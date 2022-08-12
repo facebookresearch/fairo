@@ -84,8 +84,9 @@ def main(cfg):
     model = rob.get_model()  # get the planning model in case we need it
 
     # Get a couple camera listeners
-    rgb_cam = RosCamera('/camera/color', flipxy=False)
-    dpt_cam = RosCamera('/camera/aligned_depth_to_color', flipxy=False)
+    rgb_cam = RosCamera('/camera/color')
+    dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=5)
+    dpt_cam.far_val = 1.5
 
     # Get images from the robot
     rgb_cam.wait_for_image()
@@ -100,7 +101,7 @@ def main(cfg):
 
     # Now get the images for each one
     rgb = rgb_cam.get()
-    dpt = dpt_cam.get()
+    dpt = dpt_cam.get_filtered()
     xyz = dpt_cam.depth_to_xyz(dpt_cam.fix_depth(dpt))
     # Get xyz in base coords for later
     rgb, dpt, xyz = [np.rot90(np.fliplr(np.flipud(x))) for x in [rgb, dpt, xyz]]
@@ -111,8 +112,8 @@ def main(cfg):
     xyz = xyz.reshape(H, W, 3)
 
     show_imgs = False
-    show_pcs = True
-    show_masks = False
+    show_pcs = False
+    show_masks = True
     if show_imgs:
         plt.figure()
         plt.subplot(1,3,1); plt.imshow(rgb)
@@ -138,12 +139,12 @@ def main(cfg):
     rgb, xyz = rgbd[:, :, :3], rgbd[:, :, 3:]
     print("Resized to", rgbd.shape)
 
-    min_points = 150
+    min_points = 200
     segment = True
     print("Segment...")
     obj_pcds = []
-    obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd, min_mask_size=cfg.min_mask_size)
-    scene_pcd = hrimg.to_o3d_point_cloud(xyz, rgb / 255.)
+    obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd,
+                                                                  min_mask_size=cfg.min_mask_size)
     print("Found:", len(obj_masks))
     for rgbd, mask in zip(obj_masked_rgbds, obj_masks):
         mask2 = hrimg.smooth_mask(mask)
@@ -161,7 +162,8 @@ def main(cfg):
             plt.subplot(224); plt.imshow(rgb) # rgbd[:, :, 3:])
             plt.show()
 
-    # o3d.visualization.draw_geometries([scene_pcd])
+    mask = np.bitwise_and(dpt < 0.1, dpt > 2)
+    scene_pcd = hrimg.to_o3d_point_cloud(xyz, rgb / 255.)
     obj_i, filtered_grasp_group = grasp_client.get_obj_grasps(
         obj_pcds, scene_pcd
     )
@@ -170,6 +172,7 @@ def main(cfg):
     rgb = np.asarray(scene_pcd.colors)
     offset = np.eye(4)
     offset[2, 3] = -0.05
+    o3d.visualization.draw_geometries([scene_pcd])
     for i, grasp in enumerate(filtered_grasp_group):
         print(i, grasp.translation)
         # import pdb; pdb.set_trace()
