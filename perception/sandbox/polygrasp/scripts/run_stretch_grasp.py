@@ -13,6 +13,7 @@ from home_robot.hardware.stretch_ros import HelloStretchROSInterface
 from home_robot.motion.robot import STRETCH_HOME_Q, HelloStretchIdx
 from home_robot.ros.path import get_package_path
 from home_robot.ros.camera import RosCamera
+from home_robot.utils.pose import to_pos_quat
 import home_robot.utils.image as hrimg
 import trimesh
 import trimesh.transformations as tra
@@ -72,7 +73,7 @@ def init_robot(visualize=False):
     q[HelloStretchIdx.ARM] = 0.06
     q[HelloStretchIdx.LIFT] = 0.35
     rob.goto(q, move_base=False, wait=True, verbose=False)
-    return rob
+    return rob, q
 
 @hydra.main(config_path="../conf", config_name="run_grasp")
 def main(cfg):
@@ -82,7 +83,7 @@ def main(cfg):
 
     # Create the robot
     visualize = True
-    rob = init_robot(visualize=visualize)
+    rob, q = init_robot(visualize=visualize)
     model = rob.get_model()  # get the planning model in case we need it
 
     # Get a couple camera listeners
@@ -262,9 +263,24 @@ def main(cfg):
     geoms.append(coords)
     o3d.visualization.draw_geometries(geoms)
 
-
     # Now execute planning
-
+    offset = np.eye(4)
+    offset[2, 3] = -0.1
+    for grasp in grasps:
+        grasp_pose = to_pos_quat(grasp)
+        standoff_pose = to_pos_quat(grasp @ offset)
+        qi = model.ik(grasp_pose, q)
+        #if qi is not None:
+        #    model.set_config(qi)
+        #    input('-- full body --')
+        q1 = model.static_ik(standoff_pose, q)
+        if q1 is not None:
+            q2 = model.static_ik(grasp_pose, q1)
+            if q2 is not None:
+                model.set_config(q1)
+                input('-- static - standoff --')
+                model.set_config(q2)
+                input('-- static - grasp --')
 
 if __name__ == "__main__":
     main()
