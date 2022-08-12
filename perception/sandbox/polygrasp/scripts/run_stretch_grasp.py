@@ -95,9 +95,9 @@ def main(cfg):
 
     print("rgb frame =", rgb_cam.get_frame())
     print("dpt frame =", dpt_cam.get_frame())
-    pose = rob.get_pose(rgb_cam.get_frame())
-    print("rgb pose:")
-    print(pose)
+    camera_pose = rob.get_pose(rgb_cam.get_frame())
+    print("camera rgb pose:")
+    print(camera_pose)
 
     # Now get the images for each one
     rgb = rgb_cam.get()
@@ -107,14 +107,13 @@ def main(cfg):
     rgb, dpt, xyz = [np.rot90(np.fliplr(np.flipud(x))) for x in [rgb, dpt, xyz]]
     H, W = rgb.shape[:2]
     xyz = xyz.reshape(-1, 3)
-    base_xyz = trimesh.transform_points(xyz, pose)
     # Rotate the sretch camera so that top of image is "up"
     R_stretch_camera = tra.euler_matrix(0, 0, -np.pi/2)[:3, :3]
     xyz = xyz @ R_stretch_camera
     xyz = xyz.reshape(H, W, 3)
 
     show_imgs = False
-    show_pcs = True
+    show_pcs = False
     show_masks = False
     if show_imgs:
         plt.figure()
@@ -127,8 +126,13 @@ def main(cfg):
     # Use to show the point cloud if you want to see it
     if show_pcs:
         # base_xyz = base_xyz @ tra.euler_matrix(0, 0, np.pi/2)[:3, :3]
-        hrimg.show_point_cloud(base_xyz, rgb / 255., orig=np.zeros(3))
-        # import pdb; pdb.set_trace()
+        # hrimg.show_point_cloud(base_xyz, rgb / 255., orig=np.zeros(3))
+        # TODO remove dead code
+        # Convert into base coords
+        xyz = xyz.reshape(-1, 3)
+        xyz = tra.transform_points(xyz @ R_stretch_camera.T, camera_pose)
+        hrimg.show_point_cloud(xyz, rgb / 255., orig=np.zeros(3))
+        xyz = xyz.reshape(H, W, 3)
 
     print("Connect to grasp candidate selection and pointcloud processor")
     segmentation_client = SegmentationClient()
@@ -172,12 +176,16 @@ def main(cfg):
     mask_scene = mask_scene.reshape(-1)
     xyz = xyz.reshape(-1, 3)
     rgb = rgb.reshape(-1, 3) / 255.
+
+    # Apply the mask - no more bad poitns
     xyz = xyz[mask_scene]
     rgb = rgb[mask_scene]
     scene_pcd = hrimg.to_o3d_point_cloud(xyz, rgb)
+
     obj_i, filtered_grasp_group = grasp_client.get_obj_grasps(
         obj_pcds, scene_pcd
     )
+
     offset = np.eye(4)
     # o3d.visualization.draw_geometries([scene_pcd])
     for i, grasp in enumerate(filtered_grasp_group):
@@ -197,10 +205,8 @@ def main(cfg):
     geoms = []
     for pcd in [scene_pcd] + obj_pcds:
         xyz = np.asarray(pcd.points)
-        # Undo this rotation
-        xyz = xyz @ R_stretch_camera.T
         # transform into camera frame
-        xyz = trimesh.transform_points(xyz, pose)
+        xyz = trimesh.transform_points(xyz @ R_stretch_camera.T, camera_pose)
         pcd.points = o3d.utility.Vector3dVector(xyz)
         geoms.append(pcd)
 
