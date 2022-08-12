@@ -86,7 +86,7 @@ def main(cfg):
     # Get a couple camera listeners
     rgb_cam = RosCamera('/camera/color')
     dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=5)
-    dpt_cam.far_val = 1.2
+    dpt_cam.far_val = 1.5
 
     # Get images from the robot
     rgb_cam.wait_for_image()
@@ -146,8 +146,10 @@ def main(cfg):
     obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd,
                                                                   min_mask_size=cfg.min_mask_size)
     print("Found:", len(obj_masks))
+    mask_scene = np.ones((int(H / 2), int(W / 2)))
     for rgbd, mask in zip(obj_masked_rgbds, obj_masks):
-        _, mask2 = hrimg.smooth_mask(mask)
+        mask1, mask2 = hrimg.smooth_mask(mask)
+        mask_scene = np.bitwise_and(mask_scene > 0, mask1 == 0)
         if np.sum(mask2) < min_points: continue
         masked_rgb = (rgbd[:, :, :3] / 255.) * mask2[:, :, None].repeat(3, axis=-1)
         obj_pcd = hrimg.to_o3d_point_cloud(xyz, rgb / 255., mask2)
@@ -156,29 +158,32 @@ def main(cfg):
         # o3d.visualization.draw_geometries([obj_pcd])
         if show_masks:
             plt.figure()
-            plt.subplot(221); plt.imshow(mask) # rgbd[:, :, :3])
-            plt.subplot(222); plt.imshow(mask2)
-            plt.subplot(223); plt.imshow(masked_rgb)
-            plt.subplot(224); plt.imshow(rgb) # rgbd[:, :, 3:])
+            plt.subplot(231); plt.imshow(mask) # rgbd[:, :, :3])
+            plt.subplot(232); plt.imshow(mask2)
+            plt.subplot(233); plt.imshow(mask_scene) # rgbd[:, :, 3:])
+            plt.subplot(235); plt.imshow(masked_rgb)
+            plt.subplot(236); plt.imshow(rgb) # rgbd[:, :, 3:])
             plt.show()
 
-    mask = np.bitwise_and(dpt < 0.1, dpt > 2)
+    mask_scene = mask_scene.reshape(-1)
+    xyz = xyz.reshape(-1, 3)
+    rgb = rgb.reshape(-1, 3)
+    xyz = xyz[mask_scene]
+    rgb = rgb[mask_scene]
     scene_pcd = hrimg.to_o3d_point_cloud(xyz, rgb / 255.)
     obj_i, filtered_grasp_group = grasp_client.get_obj_grasps(
         obj_pcds, scene_pcd
     )
-
-    xyz = np.asarray(scene_pcd.points)
-    rgb = np.asarray(scene_pcd.colors)
     offset = np.eye(4)
+    o3d.visualization.draw_geometries([scene_pcd])
     for i, grasp in enumerate(filtered_grasp_group):
         print(i, grasp.translation)
         # import pdb; pdb.set_trace()
         pose = np.eye(4)
         pose[:3, :3] = grasp.rotation_matrix
         pose[:3, 3] = grasp.translation
-        for j in range(1, 6):
-            offset[2, 3] = -0.01 * j
+        for j in range(1, 11):
+            offset[2, 3] = -0.005 * j
             pose = pose @ offset
             xyz = np.concatenate([xyz, pose[:3, 3][None]], axis=0)
             rgb = np.concatenate([rgb, np.array([[1., 0., 0]])], axis=0) # red
