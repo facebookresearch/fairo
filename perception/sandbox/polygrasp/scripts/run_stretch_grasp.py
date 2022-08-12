@@ -108,12 +108,14 @@ def main(cfg):
     H, W = rgb.shape[:2]
     xyz = xyz.reshape(-1, 3)
     base_xyz = trimesh.transform_points(xyz, pose)
-    xyz = xyz @ tra.euler_matrix(0, 0, -np.pi/2)[:3, :3]
+    # Rotate the sretch camera so that top of image is "up"
+    R_stretch_camera = tra.euler_matrix(0, 0, -np.pi/2)[:3, :3]
+    xyz = xyz @ R_stretch_camera
     xyz = xyz.reshape(H, W, 3)
 
     show_imgs = False
-    show_pcs = False
-    show_masks = True
+    show_pcs = True
+    show_masks = False
     if show_imgs:
         plt.figure()
         plt.subplot(1,3,1); plt.imshow(rgb)
@@ -135,7 +137,8 @@ def main(cfg):
     )
     rgbd = np.concatenate([rgb, xyz], axis=-1)
     print("RGBD image of shape:", rgbd.shape)
-    rgbd = cv2.resize(rgbd, [int(W / 2), int(H / 2)])
+    rgbd = cv2.resize(rgbd, [int(W / 2), int(H / 2)], interpolation=cv2.INTER_NEAREST)
+    depth = cv2.resize(dpt, [int(W / 2), int(H / 2)], interpolation=cv2.INTER_NEAREST)
     rgb, xyz = rgbd[:, :, :3], rgbd[:, :, 3:]
     print("Resized to", rgbd.shape)
 
@@ -146,7 +149,8 @@ def main(cfg):
     obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd,
                                                                   min_mask_size=cfg.min_mask_size)
     print("Found:", len(obj_masks))
-    mask_scene = np.ones((int(H / 2), int(W / 2)))
+    #mask_scene = np.ones((int(H / 2), int(W / 2)))
+    mask_scene = depth > dpt_cam.near_val
     for rgbd, mask in zip(obj_masked_rgbds, obj_masks):
         mask1, mask2 = hrimg.smooth_mask(mask)
         mask_scene = np.bitwise_and(mask_scene > 0, mask1 == 0)
@@ -167,29 +171,43 @@ def main(cfg):
 
     mask_scene = mask_scene.reshape(-1)
     xyz = xyz.reshape(-1, 3)
-    rgb = rgb.reshape(-1, 3)
+    rgb = rgb.reshape(-1, 3) / 255.
     xyz = xyz[mask_scene]
     rgb = rgb[mask_scene]
-    scene_pcd = hrimg.to_o3d_point_cloud(xyz, rgb / 255.)
+    scene_pcd = hrimg.to_o3d_point_cloud(xyz, rgb)
     obj_i, filtered_grasp_group = grasp_client.get_obj_grasps(
         obj_pcds, scene_pcd
     )
     offset = np.eye(4)
-    o3d.visualization.draw_geometries([scene_pcd])
+    # o3d.visualization.draw_geometries([scene_pcd])
     for i, grasp in enumerate(filtered_grasp_group):
         print(i, grasp.translation)
         # import pdb; pdb.set_trace()
         pose = np.eye(4)
         pose[:3, :3] = grasp.rotation_matrix
         pose[:3, 3] = grasp.translation
-        for j in range(1, 11):
+        M = 10
+        for j in range(1, M + 1):
             offset[2, 3] = -0.005 * j
             pose = pose @ offset
             xyz = np.concatenate([xyz, pose[:3, 3][None]], axis=0)
-            rgb = np.concatenate([rgb, np.array([[1., 0., 0]])], axis=0) # red
+            rgb = np.concatenate([rgb, np.array([[1., 1 - (float(j) / M), 0]])], axis=0) # red
     scene_pcd.points = o3d.utility.Vector3dVector(xyz)
     scene_pcd.colors = o3d.utility.Vector3dVector(rgb)
-    o3d.visualization.draw_geometries([scene_pcd])
+    geoms = []
+    for pcd in [scene_pcd] + obj_pcds:
+        xyz = np.asarray(pcd.points)
+        # Undo this rotation
+        xyz = xyz @ R_stretch_camera.T
+        # transform into camera frame
+        xyz = trimesh.transform_points(xyz, pose)
+        pcd.points = o3d.utility.Vector3dVector(xyz)
+        geoms.append(pcd)
+
+    #o3d.visualization.draw_geometries([scene_pcd] + obj_pcds)
+    coords = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=np.zeros(3))
+    geoms.append(coords)
+    o3d.visualization.draw_geometries(geoms)
 
 
 if __name__ == "__main__":
