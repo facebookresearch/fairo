@@ -88,6 +88,7 @@ def main(cfg):
     rgb_cam = RosCamera('/camera/color')
     dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=5)
     dpt_cam.far_val = 1.5
+    min_grasp_score = 0.1
 
     # Get images from the robot
     rgb_cam.wait_for_image()
@@ -161,7 +162,7 @@ def main(cfg):
     mask_scene = mask_scene.reshape(-1)
     # Convert XYZ into world frame
     xyz = xyz.reshape(-1, 3)
-    xyz = trimesh.transform_points(xyz @ R_stretch_camera.T, camera_pose)
+    # xyz = trimesh.transform_points(xyz @ R_stretch_camera.T, camera_pose)
     rgb = rgb.reshape(-1, 3) / 255.
 
     # Loop to get masks
@@ -174,7 +175,7 @@ def main(cfg):
         # Correct hte mask and display - convert to pt cloud
         masked_rgb = (rgbd[:, :, :3] / 255.) * mask2[:, :, None].repeat(3, axis=-1)
         # o3d.visualization.draw_geometries([obj_pcd])
-        obj_pcd = hrimg.to_o3d_point_cloud(xyz, rgb / 255., mask2)
+        obj_pcd = hrimg.to_o3d_point_cloud(xyz, rgb, mask2)
 
         obj_pcds.append(obj_pcd)
         # o3d.visualization.draw_geometries([obj_pcd])
@@ -198,19 +199,32 @@ def main(cfg):
 
     # Transform point clouds with help from trimesh
     geoms = [scene_pcd] + obj_pcds
-    coords = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=np.zeros(3))
-    geoms.append(coords)
-    o3d.visualization.draw_geometries(geoms)
     pose_xyz = []
     pose_rgb = []
 
+    T_fix_camera = np.eye(4)
+    T_fix_camera[:3, :3] = R_stretch_camera
     offset = np.eye(4)
+    scores = [grasp.score for grasp in filtered_grasp_group]
     for i, grasp in enumerate(filtered_grasp_group):
-        print(i, grasp.translation)
         # import pdb; pdb.set_trace()
         pose = np.eye(4)
-        pose[:3, :3] = grasp.rotation_matrix
-        pose[:3, 3] = grasp.translation
+        pose[:3, :3] = grasp.rotation_matrix @ R_stretch_camera.T
+        pose[:3, 3] = grasp.translation @ R_stretch_camera.T
+        
+        pose2 = pose.copy()
+        pose = camera_pose @ T_fix_camera @ pose
+        # pose2 = pose2 @ T_fix_camera
+        # import pdb; pdb.set_trace()
+
+        if grasp.score < min_grasp_score:
+            continue
+
+        R_camera = camera_pose[:3, :3]
+        R_cam_to_grasp = grasp.rotation_matrix @ R_camera
+        angles = tra.euler_from_matrix(R_cam_to_grasp)
+        print(i, "score =", grasp.score, "orientation =", angles)
+
         # pose = camera_pose @ pose @ T_fix_stetch_camera
         M = 10
         for j in range(1, M + 1):
@@ -221,14 +235,19 @@ def main(cfg):
             #xyz = np.concatenate([xyz, pose[:3, 3][None]], axis=0)
             #rgb = np.concatenate([rgb, np.array([[1., 1 - (float(j) / M), 0]])], axis=0) # red
 
-    # pose_xyz = trimesh.transform_points(pose_xyz @ R_stretch_camera.T, camera_pose)
+    for geom in geoms:
+        xyz = np.asarray(geom.points)
+        xyz = trimesh.transform_points(xyz @ R_stretch_camera.T, camera_pose)
+        #xyz = (xyz @ R_stretch_camera.T)
+        geom.points = o3d.utility.Vector3dVector(xyz)
+
+    # Add final things to visualize point cloud problems
     pose_xyz = np.array(pose_xyz)
     pose_rgb = np.array(pose_rgb)
-
-    #scene_pcd.points = o3d.utility.Vector3dVector(xyz)
-    #scene_pcd.colors = o3d.utility.Vector3dVector(rgb)
     grasp_pcd = hrimg.to_o3d_point_cloud(pose_xyz, pose_rgb)
     geoms.append(grasp_pcd)
+    coords = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=np.zeros(3))
+    geoms.append(coords)
     o3d.visualization.draw_geometries(geoms)
 
 
