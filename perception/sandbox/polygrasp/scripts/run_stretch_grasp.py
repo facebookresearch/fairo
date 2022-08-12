@@ -234,7 +234,8 @@ def main(cfg):
         # angle between these two is...
         theta = np.abs(np.arccos(dirn @ axis / (np.linalg.norm(dirn)))) / np.pi
         print(i, "score =", grasp.score, theta) #, "orientation =", angles)
-        if theta < 0.5: continue
+        # Reject grasps that arent top down for now
+        if theta < 0.75: continue
 
         # pose = camera_pose @ pose @ T_fix_stetch_camera
         M = 10
@@ -260,6 +261,9 @@ def main(cfg):
     coords = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=np.zeros(3))
     geoms.append(coords)
     o3d.visualization.draw_geometries(geoms)
+
+
+    # Now execute planning
 
 
 if __name__ == "__main__":
