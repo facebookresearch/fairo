@@ -72,7 +72,8 @@ def init_robot(visualize=False):
     #q, _ = rob.update()
     q[HelloStretchIdx.ARM] = 0.06
     q[HelloStretchIdx.LIFT] = 0.35
-    rob.goto(q, move_base=False, wait=True, verbose=False)
+    model.update_gripper(q, open=True)
+    rob.goto(q, move_base=False, wait=False, verbose=False)
     return rob, q
 
 @hydra.main(config_path="../conf", config_name="run_grasp")
@@ -119,6 +120,7 @@ def main(cfg):
     show_imgs = False
     show_pcs = False
     show_masks = False
+    show_grasps = True
     if show_imgs:
         plt.figure()
         plt.subplot(1,3,1); plt.imshow(rgb)
@@ -228,7 +230,6 @@ def main(cfg):
         # Get angles in world frame
         pose = camera_pose @ T_fix_camera @ pose
         # angles = tra.euler_from_matrix(pose)
-        grasps.append(pose)
         # z direction for grasping
         dirn = pose[:3, 2]
         axis = np.array([0, 0, 1])
@@ -237,13 +238,14 @@ def main(cfg):
         print(i, "score =", grasp.score, theta) #, "orientation =", angles)
         # Reject grasps that arent top down for now
         if theta < 0.75: continue
+        grasps.append(pose)
 
         # pose = camera_pose @ pose @ T_fix_stetch_camera
         M = 10
         for j in range(1, M + 1):
-            offset[2, 3] = -0.005 * j
-            pose = pose @ offset
-            pose_xyz.append(pose[:3, 3])
+            offset[2, 3] = (-0.005 * j) + -0.2
+            _pose = pose @ offset
+            pose_xyz.append(_pose[:3, 3])
             pose_rgb.append(np.array([1., 1 - (float(j) / M), theta]))
             #xyz = np.concatenate([xyz, pose[:3, 3][None]], axis=0)
             #rgb = np.concatenate([rgb, np.array([[1., 1 - (float(j) / M), 0]])], axis=0) # red
@@ -261,11 +263,20 @@ def main(cfg):
     geoms.append(grasp_pcd)
     coords = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=np.zeros(3))
     geoms.append(coords)
-    o3d.visualization.draw_geometries(geoms)
+    if show_grasps:
+        o3d.visualization.draw_geometries(geoms)
+
+    grasp_offset = np.eye(4)
+    grasp_offset[2, 3] = -0.28
+    for i, grasp in enumerate(grasps):
+        grasps[i] = grasp @ grasp_offset
 
     # Now execute planning
     offset = np.eye(4)
     offset[2, 3] = -0.1
+
+    print("=========== grasps =============")
+    print("find a grasp that doesnt rotate base...")
     for grasp in grasps:
         grasp_pose = to_pos_quat(grasp)
         standoff_pose = to_pos_quat(grasp @ offset)
@@ -273,14 +284,44 @@ def main(cfg):
         #if qi is not None:
         #    model.set_config(qi)
         #    input('-- full body --')
+        q0 = np.pi / 2
         q1 = model.static_ik(standoff_pose, q)
         if q1 is not None:
             q2 = model.static_ik(grasp_pose, q1)
             if q2 is not None:
                 model.set_config(q1)
-                input('-- static - standoff --')
+                # TODO - what is wrong with base corrections
+                eq1 = q1[HelloStretchIdx.BASE_THETA] - q0
+                eq2 = q2[HelloStretchIdx.BASE_THETA] - q0 # q[HelloStretchIdx.BASE_THETA]
+                print("theta 1 =", eq1)
+                # input('-- static - standoff --')
                 model.set_config(q2)
-                input('-- static - grasp --')
+                print("theta 2 =", eq2)
+                # input('-- static - grasp --')
+                if np.abs(eq1) < 0.075 and np.abs(eq2) < 0.075:
+                    # go to the grasp and try it
+                    q[HelloStretchIdx.LIFT] = 1.0
+                    rob.goto(q, move_base=False, wait=True, verbose=False)
+                    input('--> go high')
+                    q_pre = q.copy()
+                    q_pre[5:] = q1[5:]
+                    q_pre = model.update_gripper(q_pre, open=True)
+                    rob.goto(q_pre, move_base=False, wait=False, verbose=False)
+                    input('--> gripper ready')
+                    q1 = model.update_gripper(q1, open=True)
+                    rob.goto(q1, move_base=False, wait=False, verbose=False)
+                    input('--> go standoff')
+                    q2 = model.update_gripper(q2, open=True)
+                    rob.goto(q2, move_base=False, wait=False, verbose=False)
+                    input('--> go grasp')
+                    q2 = model.update_gripper(q2, open=False)
+                    rob.goto(q2, move_base=False, wait=False, verbose=False)
+                    rospy.sleep(2.)
+                    q = model.update_gripper(q, open=False)
+                    rob.goto(q, move_base=False, wait=False, verbose=False)
+                    input('--> go high again')
+                    break
+        
 
 if __name__ == "__main__":
     main()
