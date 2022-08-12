@@ -81,7 +81,8 @@ def main(cfg):
     rospy.init_node('hello_stretch_ros_test')
 
     # Create the robot
-    rob = init_robot()
+    visualize = True
+    rob = init_robot(visualize=visualize)
     model = rob.get_model()  # get the planning model in case we need it
 
     # Get a couple camera listeners
@@ -206,24 +207,34 @@ def main(cfg):
     T_fix_camera[:3, :3] = R_stretch_camera
     offset = np.eye(4)
     scores = [grasp.score for grasp in filtered_grasp_group]
+    grasps = []
     for i, grasp in enumerate(filtered_grasp_group):
         # import pdb; pdb.set_trace()
         pose = np.eye(4)
-        pose[:3, :3] = grasp.rotation_matrix @ R_stretch_camera.T
-        pose[:3, 3] = grasp.translation @ R_stretch_camera.T
-        
-        pose2 = pose.copy()
-        pose = camera_pose @ T_fix_camera @ pose
-        # pose2 = pose2 @ T_fix_camera
-        # import pdb; pdb.set_trace()
-
+        pose[:3, :3] = grasp.rotation_matrix
+        pose[:3, 3] = grasp.translation
         if grasp.score < min_grasp_score:
             continue
 
-        R_camera = camera_pose[:3, :3]
-        R_cam_to_grasp = grasp.rotation_matrix @ R_camera
-        angles = tra.euler_from_matrix(R_cam_to_grasp)
-        print(i, "score =", grasp.score, "orientation =", angles)
+        # camera setup
+        #R_camera = camera_pose[:3, :3]
+        #R_cam_to_grasp = grasp.rotation_matrix @ R_camera
+        #angle_dist = np.abs(angles)
+        #if angle_dist[0] > 1.5 or angle_dist[1] > 1.5:
+        #    # angle relative to camera too big to trust it
+        #    continue
+
+        # Get angles in world frame
+        pose = camera_pose @ T_fix_camera @ pose
+        # angles = tra.euler_from_matrix(pose)
+        grasps.append(pose)
+        # z direction for grasping
+        dirn = pose[:3, 2]
+        axis = np.array([0, 0, 1])
+        # angle between these two is...
+        theta = np.abs(np.arccos(dirn @ axis / (np.linalg.norm(dirn)))) / np.pi
+        print(i, "score =", grasp.score, theta) #, "orientation =", angles)
+        if theta < 0.5: continue
 
         # pose = camera_pose @ pose @ T_fix_stetch_camera
         M = 10
@@ -231,7 +242,7 @@ def main(cfg):
             offset[2, 3] = -0.005 * j
             pose = pose @ offset
             pose_xyz.append(pose[:3, 3])
-            pose_rgb.append(np.array([1., 1 - (float(j) / M), 0]))
+            pose_rgb.append(np.array([1., 1 - (float(j) / M), theta]))
             #xyz = np.concatenate([xyz, pose[:3, 3][None]], axis=0)
             #rgb = np.concatenate([rgb, np.array([[1., 1 - (float(j) / M), 0]])], axis=0) # red
 
