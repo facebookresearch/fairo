@@ -5,25 +5,25 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-from mephisto.operations.operator import Operator
-from mephisto.operations.utils import get_root_dir
-from mephisto.tools.scripts import load_db_and_process_config
-from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
-    BLUEPRINT_TYPE,
-)
-from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
-    SharedStaticTaskState,
-)
-
 import hydra
 from omegaconf import DictConfig
 from dataclasses import dataclass, field
 from typing import List, Any
 
+from mephisto.operations.operator import Operator
+from mephisto.tools.scripts import load_db_and_process_config
+from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
+    BLUEPRINT_TYPE_STATIC_HTML,
+)
+from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
+    SharedStaticTaskState,
+)
+
+
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 defaults = [
-    {"mephisto/blueprint": BLUEPRINT_TYPE},
+    {"mephisto/blueprint": BLUEPRINT_TYPE_STATIC_HTML},
     {"mephisto/architect": "local"},
     {"mephisto/provider": "mock"},
     {"conf": "onboarding_example"},
