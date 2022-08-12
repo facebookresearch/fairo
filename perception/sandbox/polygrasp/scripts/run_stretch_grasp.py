@@ -86,7 +86,7 @@ def main(cfg):
     # Get a couple camera listeners
     rgb_cam = RosCamera('/camera/color')
     dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=5)
-    dpt_cam.far_val = 1.5
+    dpt_cam.far_val = 1.2
 
     # Get images from the robot
     rgb_cam.wait_for_image()
@@ -147,7 +147,7 @@ def main(cfg):
                                                                   min_mask_size=cfg.min_mask_size)
     print("Found:", len(obj_masks))
     for rgbd, mask in zip(obj_masked_rgbds, obj_masks):
-        mask2, _ = hrimg.smooth_mask(mask)
+        _, mask2 = hrimg.smooth_mask(mask)
         if np.sum(mask2) < min_points: continue
         masked_rgb = (rgbd[:, :, :3] / 255.) * mask2[:, :, None].repeat(3, axis=-1)
         obj_pcd = hrimg.to_o3d_point_cloud(xyz, rgb / 255., mask2)
@@ -171,17 +171,17 @@ def main(cfg):
     xyz = np.asarray(scene_pcd.points)
     rgb = np.asarray(scene_pcd.colors)
     offset = np.eye(4)
-    offset[2, 3] = -0.05
-    o3d.visualization.draw_geometries([scene_pcd])
     for i, grasp in enumerate(filtered_grasp_group):
         print(i, grasp.translation)
         # import pdb; pdb.set_trace()
         pose = np.eye(4)
         pose[:3, :3] = grasp.rotation_matrix
         pose[:3, 3] = grasp.translation
-        pose = pose @ offset
-        xyz = np.concatenate([xyz, pose[:3, 3][None]], axis=0)
-        rgb = np.concatenate([rgb, np.array([[1., 0., 0]])], axis=0) # red
+        for j in range(1, 6):
+            offset[2, 3] = -0.01 * j
+            pose = pose @ offset
+            xyz = np.concatenate([xyz, pose[:3, 3][None]], axis=0)
+            rgb = np.concatenate([rgb, np.array([[1., 0., 0]])], axis=0) # red
     scene_pcd.points = o3d.utility.Vector3dVector(xyz)
     scene_pcd.colors = o3d.utility.Vector3dVector(rgb)
     o3d.visualization.draw_geometries([scene_pcd])
