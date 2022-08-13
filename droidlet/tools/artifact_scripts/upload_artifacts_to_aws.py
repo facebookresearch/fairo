@@ -69,7 +69,7 @@ def compute_checksum(agent, artifact_name, model_name=None):
         artifact_path_name = artifact_path_name + model_name
         artifact_path = artifact_path + "/" + model_name
         artifact_name = artifact_name + "_" + model_name
-        if model_name != "nlu":
+        if model_name == "perception":
             # agent specific models
             artifact_path_name = artifact_path_name + "/" + agent
             artifact_path = artifact_path + "/" + agent

@@ -6,6 +6,7 @@ import sys
 import math
 import copy
 import time
+import random
 import logging
 from collections.abc import Iterable
 from prettytable import PrettyTable
@@ -33,6 +34,8 @@ from droidlet.lowlevel.robot_coordinate_utils import (
     base_canonical_coords_to_pyrobot_coords,
 )
 
+random.seed(0)
+np.random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
@@ -139,9 +142,8 @@ class LoCoBotMover:
         for xyt in xyt_positions:
             logging.info("Move absolute in canonical coordinates {}".format(xyt))
             self.nav_result.wait()  # wait for the previous navigation command to finish
-            self.nav_result = self.nav.go_to_absolute(
-                base_canonical_coords_to_pyrobot_coords(xyt),
-            )
+            robot_coords = base_canonical_coords_to_pyrobot_coords(xyt)
+            self.nav_result = safe_call(self.nav.go_to_absolute, robot_coords)
             if blocking:
                 self.nav_result.wait()
             start_base_state = self.get_base_pos_in_canonical_coords()
@@ -271,6 +273,7 @@ class LoCoBotMover:
             pts = ros_to_habitat_frame.T @ pts.T
             pts = pts.T
         pts = transform_pose(pts, base_state)
+
         return RGBDepth(rgb, d, pts)
 
     def get_rgb_depth_segm(self):

@@ -6,17 +6,20 @@ import copy
 import Pyro4
 from pyrobot import Robot
 import numpy as np
+import torch
 from scipy.spatial.transform import Rotation
 import logging
+from PIL import Image
+import quaternion
 import os
 import open3d as o3d
 from pyrobot.habitat.base_control_utils import LocalActionStatus
 from slam_pkg.utils import depth_util as du
 from obstacle_utils import is_obstacle
-from droidlet.lowlevel.robot_mover_utils import (
-    transform_pose,
-)
+from droidlet.lowlevel.robot_mover_utils import transform_pose
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
+from droidlet.perception.robot.semantic_mapper.constants import coco_categories
+from habitat_utils import reconfigure_scene
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
@@ -32,10 +35,7 @@ class RemoteLocobot(object):
     """
 
     def __init__(self, scene_path, noisy=False, add_humans=True):
-        backend_config = {
-            "scene_path": scene_path,
-            "physics_config": "DEFAULT",
-        }
+        backend_config = {"scene_path": scene_path, "physics_config": "DEFAULT"}
         self.add_humans = add_humans
         if backend_config["physics_config"] == "DEFAULT":
             assets_path = os.path.abspath(
@@ -48,6 +48,9 @@ class RemoteLocobot(object):
         backend_config["noisy"] = noisy
         print("backend_config", backend_config)
         self.backend_config = backend_config
+
+        self.num_sem_categories = len(coco_categories)
+
         # we do it this way to have the ability to restart from the client at arbitrary times
         self.restart_habitat()
 
@@ -61,13 +64,19 @@ class RemoteLocobot(object):
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
 
+    def get_habitat_configs(self):
+        return self._robot.configs
+        # return [
+        #     x.__dict__
+        #     for x in self._robot.simulator.sim.config.agents[0].sensor_specifications
+        # ]
+
     def restart_habitat(self):
         if hasattr(self, "_robot"):
             del self._robot
         backend_config = self.backend_config
 
         self._robot = Robot("habitat", common_config=backend_config, parent=self)
-        from habitat_utils import reconfigure_scene
 
         # adds objects to the scene, doing scene-specific configurations
         reconfigure_scene(self, backend_config["scene_path"], self.add_humans)
@@ -84,7 +93,7 @@ class RemoteLocobot(object):
         """Respawns the agent at the position and rotation specified"""
         sim = self._robot.base.sim
         agent = sim.get_agent(0)
-        new_agent_state = habitat_sim.AgentState()
+        new_agent_state = sim.AgentState()
         new_agent_state.position = position
         new_agent_state.rotation = quaternion.from_float_array(rotation)
         agent.set_state(new_agent_state)
@@ -95,7 +104,7 @@ class RemoteLocobot(object):
 
     def get_img_resolution(self):
         """return height and width"""
-        return (512, 512)
+        return self._robot.configs.COMMON.SIMULATOR.AGENT.SENSORS.RESOLUTIONS[0]
 
     def get_pcd_data(self):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
@@ -120,13 +129,12 @@ class RemoteLocobot(object):
         depth = depth.astype(np.float32)
 
         valid = depth > 0
-        depth = depth[valid]
-        rgb = rgb[valid]
+        depth_valid = depth[valid]
         uv_one_in_cam = self.uv_one_in_cam[:, valid.reshape(-1)]
 
-        depth = depth.reshape(-1)
+        depth_valid = depth_valid.reshape(-1)
 
-        pts_in_cam = np.multiply(uv_one_in_cam, depth)
+        pts_in_cam = np.multiply(uv_one_in_cam, depth_valid)
         pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
         pts = pts_in_cam[:3, :].T
         pts = np.dot(pts, rot.T)
@@ -136,10 +144,10 @@ class RemoteLocobot(object):
         pts = pts.T
         pts = transform_pose(pts, base_state)
 
-        return pts, rgb
+        return pts, rgb, depth
 
     def get_open3d_pcd(self):
-        pts, rgb = self.get_current_pcd()
+        pts, rgb, depth = self.get_current_pcd()
         points, colors = pts.reshape(-1, 3), rgb.reshape(-1, 3)
         colors = colors / 255.0
 
@@ -163,11 +171,7 @@ class RemoteLocobot(object):
             obstacle = ret
             return obstacle
 
-    def go_to_absolute(
-        self,
-        xyt_position,
-        wait=True,
-    ):
+    def go_to_absolute(self, xyt_position, wait=True):
         """Moves the robot base to given goal state in the world frame.
 
         :param xyt_position: The goal state of the form (x,y,yaw)
@@ -182,11 +186,7 @@ class RemoteLocobot(object):
         status = self.get_base_status()
         return status
 
-    def go_to_relative(
-        self,
-        xyt_position,
-        wait=True,
-    ):
+    def go_to_relative(self, xyt_position, wait=True):
         """Moves the robot base to the given goal state relative to its current
         pose.
 
@@ -390,6 +390,69 @@ class RemoteLocobot(object):
         else:
             return "UNKNOWN"
 
+    def scene_contains_semantic_annotations(self):
+        semantic_annotations = self._robot.base.sim.semantic_scene
+        return len(semantic_annotations.objects) > 0
+
+    def get_instance_id_to_category_id(self, debug=True):
+        semantic_annotations = self._robot.base.sim.semantic_scene
+
+        max_obj_id = max(
+            [int(obj.id.split("_")[-1]) for obj in semantic_annotations.objects if obj is not None]
+        )
+
+        # default to no category
+        instance_id_to_category_id = (
+            np.ones(max_obj_id + 1) * (self.num_sem_categories - 1)
+        ).astype(np.int32)
+        categories_present = set()
+
+        for obj in semantic_annotations.objects:
+            if obj is None or obj.category is None:
+                continue
+            category = obj.category.name()
+
+            if "tv" in category:
+                # replace tv-screen in replica and tv_monitor in mp3d
+                category = "tv"
+
+            if "plant" in category:
+                # replace indoor-plant in replica and plant in mp3d
+                category = "potted plant"
+
+            if category in coco_categories.keys():
+                cat_id = coco_categories[category]
+                obj_id = int(obj.id.split("_")[-1])
+                instance_id_to_category_id[obj_id] = cat_id
+                categories_present.add(category)
+
+        if debug:
+            print(f"Semantic categories present in the scene: {categories_present}")
+
+        return instance_id_to_category_id, categories_present
+
+    def get_orientation(self):
+        """Get discretized robot orientation."""
+        # yaw is in radians in [-3.14, 3.14] in Habitat
+        _, _, yaw_in_radians = self.get_base_state()
+        # convert it to degrees in [0, 360]
+        yaw_in_degrees = int(yaw_in_radians * 180.0 / np.pi + 180.0)
+        orientation = torch.tensor([yaw_in_degrees // 5])
+        return orientation
+
+    def get_semantic_categories_in_scene(self):
+        if self.scene_contains_semantic_annotations():
+            return self.categories_present
+        else:
+            return set()
+
+    def get_scene_name(self):
+        scene_path = self.backend_config["scene_path"]
+        scene_name = os.path.basename(scene_path).split(".")[0]
+        if scene_name == "mesh_semantic":  # for Replica Dataset
+            scene_name = os.path.basename(os.path.dirname(os.path.dirname(scene_path)))
+        return scene_name
+
 
 if __name__ == "__main__":
     import argparse
@@ -433,9 +496,7 @@ if __name__ == "__main__":
 
     with Pyro4.Daemon(args.ip) as daemon:
         robot = RemoteLocobot(
-            scene_path=args.scene_path,
-            noisy=args.noisy,
-            add_humans=args.add_humans,
+            scene_path=args.scene_path, noisy=args.noisy, add_humans=args.add_humans
         )
         robot_uri = daemon.register(robot)
         with Pyro4.locateNS() as ns:

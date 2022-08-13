@@ -7,6 +7,7 @@ import math
 import copy
 import time
 import logging
+import random
 from collections.abc import Iterable
 from prettytable import PrettyTable
 import Pyro4
@@ -39,6 +40,8 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 from droidlet.lowlevel.pyro_utils import safe_call
 from .data_compression import *
 
+random.seed(0)
+np.random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 2
@@ -267,7 +270,8 @@ class HelloRobotMover(MoverInterface):
             logging.info("Move absolute in canonical coordinates {}".format(xzt))
             self.nav_result.wait()
             robot_coords = base_canonical_coords_to_pyrobot_coords(xzt)
-            self.nav_result = self.nav.go_to_absolute(
+            self.nav_result = safe_call(
+                self.nav.go_to_absolute,
                 goal=robot_coords,
                 distance_threshold=distance_threshold,
                 angle_threshold=angle_threshold,
@@ -275,6 +279,21 @@ class HelloRobotMover(MoverInterface):
             if blocking:
                 self.nav_result.wait()
         return "finished"
+
+    def move_to_object(self, object_goal: str, blocking=True):
+        """Command to execute a move to an object category.
+
+        Args:
+            object_goal: supported COCO object category
+        """
+        if self.nav_result.ready:
+            self.nav_result.wait()
+            self.nav_result = safe_call(self.nav.go_to_object, object_goal)
+            if blocking:
+                self.nav_result.wait()
+        else:
+            print("navigator executing another call right now")
+        return self.nav_result
 
     def get_base_pos_in_canonical_coords(self):
         """get the current robot position in the canonical coordinate system

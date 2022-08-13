@@ -1,6 +1,8 @@
 import numpy as np
 import skfmm
 from numpy import ma
+import skimage.morphology
+import cv2
 
 
 class FMMPlanner(object):
@@ -32,8 +34,33 @@ class FMMPlanner(object):
         # dd = ma.filled(dd, np.max(dd) + 1)
         dd = ma.filled(dd, 10000)
         self.fmm_dist = dd
-
         # print(f'fmm_dist.shape {self.fmm_dist.shape}')
+
+    def set_multi_goal(self, goal_map, visualize=False):
+        """Set multiple possible target goals - this is useful for object goal navigation.
+        :param goal_map: binary map that contains multiple goals (encoded as 1)
+        """
+        selem = skimage.morphology.disk(10)
+        goal_map = skimage.morphology.binary_dilation(goal_map, selem) != True
+        goal_map = 1 - goal_map * 1.0
+        traversible_ma = ma.masked_values(self.traversable * 1, 0)
+        traversible_ma[goal_map == 1] = 0
+        dd = skfmm.distance(traversible_ma, dx=1)
+        dd = ma.filled(dd, np.max(dd) + 1)
+        self.fmm_dist = dd
+
+        if visualize:
+            r, c = self.traversable.shape
+            dist_vis = np.zeros((r, c * 3))
+            dist_vis[:, :c] = self.traversable
+            dist_vis[:, c : 2 * c] = goal_map
+            dist_vis[:, 2 * c :] = self.fmm_dist / self.fmm_dist.max()
+
+            try:
+                cv2.imshow("planner distance", dist_vis)
+                cv2.waitKey(1)
+            except:
+                cv2.imwrite("planner_distance.png", (dist_vis * 255.0).astype(np.uint8))
 
     def get_short_term_goal(self, state):
         """

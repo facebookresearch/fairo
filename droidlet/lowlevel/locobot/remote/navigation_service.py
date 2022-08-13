@@ -2,15 +2,20 @@ import os
 import sys
 import random
 import math
+from threading import local
 import time
+import torch
 import numpy as np
 import Pyro4
-from slam_pkg.utils import depth_util as du
 from rich import print
 from droidlet.lowlevel.pyro_utils import safe_call
 
 
+from slam_pkg.utils import depth_util as du
+
 random.seed(0)
+torch.manual_seed(0)
+np.random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
@@ -59,6 +64,7 @@ class Navigation(object):
         self.slam = slam
         self.robot = robot
         self.trackback = Trackback(planner)
+
         self._busy = False
         self._stop = True
         self._done_exploring = False
@@ -74,17 +80,30 @@ class Navigation(object):
             abs_goal, distance_threshold=distance_threshold, angle_threshold=angle_threshold
         )
 
-    def go_to_absolute(self, goal, steps=100000000, distance_threshold=None, angle_threshold=None):
+    def go_to_absolute(
+        self,
+        goal=None,
+        goal_map=None,
+        steps=100000000,
+        distance_threshold=None,
+        angle_threshold=None,
+    ):
+        print(f"[navigation] Starting a go_to_absolute {goal if goal is not None else 'goal_map'}")
+
+        # specify exactly one of goal or goal_map
+        assert (goal is not None and goal_map is None) or (goal is None and goal_map is not None)
         self._busy = True
         self._stop = False
         robot_loc = self.robot.get_base_state()
         initial_robot_loc = robot_loc
         goal_reached = False
-        return_code = True
+        path_found = True
+
         while (not goal_reached) and steps > 0 and self._stop is False:
             stg = self.planner.get_short_term_goal(
                 robot_loc,
-                goal,
+                goal=goal,
+                goal_map=goal_map,
                 distance_threshold=distance_threshold,
                 angle_threshold=angle_threshold,
             )
@@ -96,7 +115,7 @@ class Navigation(object):
                         goal, robot_loc
                     )
                 )
-                return_code = False
+                path_found = False
                 break
             robot_loc = self.robot.get_base_state()
             print(f"[navigation] starting at point {robot_loc} and going to point {stg}")
@@ -104,12 +123,20 @@ class Navigation(object):
             robot_loc = self.robot.get_base_state()
 
             print("[navigation] Finished a go_to_absolute")
-            print(" initial location: {} Final goal: {}".format(initial_robot_loc, goal))
+            print(
+                " initial location: {} Final goal: {}".format(
+                    initial_robot_loc, goal if goal is not None else "goal map"
+                )
+            )
             print(" short-term goal: {}, Reached Location: {}".format(stg, robot_loc))
             print(" Robot Status: {}".format(status))
             if status == "SUCCEEDED":
                 goal_reached = self.planner.goal_within_threshold(
-                    robot_loc, goal, distance_threshold, angle_threshold
+                    robot_loc,
+                    goal=goal,
+                    goal_map=goal_map,
+                    distance_threshold=distance_threshold,
+                    angle_threshold=angle_threshold,
                 )
                 self.trackback.update(robot_loc)
             else:
@@ -125,15 +152,15 @@ class Navigation(object):
             steps = steps - 1
 
         self._busy = False
-        return return_code
+        return path_found, goal_reached
 
     def explore(self, far_away_goal):
         if not hasattr(self, "_done_exploring"):
             self._done_exploring = False
         if not self._done_exploring:
             print("exploring 1 step")
-            success = self.go_to_absolute(far_away_goal, steps=1)
-            if success == False:
+            path_found, _ = self.go_to_absolute(far_away_goal, steps=1)
+            if path_found == False:
                 # couldn't reach far_away_goal
                 # and don't seem to have any unexplored
                 # paths to attempt to get there

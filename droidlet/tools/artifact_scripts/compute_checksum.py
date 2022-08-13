@@ -15,7 +15,7 @@ def compute_checksum_for_directory(agent=None, artifact_type=None, model_name=No
     Args:
         agent: Name of agent.
         artifact_type: datasets or models artifact
-        model_name: name of model (nlu or perception)
+        model_name: name of model (nlu, perception or tasks)
     """
     ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../")
     print("Rootdir : %r" % ROOTDIR)
@@ -50,6 +50,10 @@ def compute_checksum_for_directory(agent=None, artifact_type=None, model_name=No
                 checksum_name = "locobot_perception.txt"
             elif agent == "craftassist":
                 checksum_name = "craftassist_perception.txt"
+        elif model_name == "tasks":
+            # perception models
+            artifact_folder_name = "models/" + model_name + "/"
+            checksum_name = "tasks.txt"
     else:
         # datasets
         artifact_folder_name = "datasets/"
