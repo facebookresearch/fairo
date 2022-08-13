@@ -9,17 +9,20 @@ import time
 
 EXPECTED_KEYS = ["blocks", "inst_seg_tags", "avatarInfo"]
 
+
 def launch_scene_viewer(scene_list: dict):
-    '''
+    """
     Launches the scene viewer located in the same folder to show the scene passed in as an argument.
     Saves the scene as 'scene_list.json' in the local dir
     Deletes the temporary scene file on exit
     Scene passed must be formatted correctly (see above expected keys)
-    '''
+    """
 
     # Only checking the first scene; assuming they are all formatted the same
-    assert(all([x in scene_list[0].keys() for x in EXPECTED_KEYS])), "Scene not formatted correctly!"
-    
+    assert all(
+        [x in scene_list[0].keys() for x in EXPECTED_KEYS]
+    ), "Scene not formatted correctly!"
+
     # Save the scene list locally
     with open("scene_list.json", "w") as f:
         json.dump(scene_list, f)
@@ -44,7 +47,7 @@ def launch_scene_viewer(scene_list: dict):
     except KeyboardInterrupt:
         os.remove("scene_list.json")
         raise
-    
+
 
 if __name__ == "__main__":
     # Generate example scenes
@@ -73,10 +76,12 @@ if __name__ == "__main__":
         + os.environ["IGLU_SCENE_PATH"]
     )
     print("Starting scene generation script")
-    scene_gen = subprocess.Popen(scene_gen_cmd, shell=True, stdout=sys.stdout, stderr=sys.stderr, text=True)
-    while (scene_gen.poll() is None):
+    scene_gen = subprocess.Popen(
+        scene_gen_cmd, shell=True, stdout=sys.stdout, stderr=sys.stderr, text=True
+    )
+    while scene_gen.poll() is None:
         time.sleep(1)
 
-    with open('scene_list.json', "r") as f:
+    with open("scene_list.json", "r") as f:
         js = json.load(f)
     launch_scene_viewer(js)
