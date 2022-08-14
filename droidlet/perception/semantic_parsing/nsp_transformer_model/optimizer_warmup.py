@@ -52,7 +52,8 @@ class OptimWarmupEncoderDecoder(object):
             }
         else:
             raise NotImplementedError
-
+        self.lr_scheduler_method = args.lr_scheduler_method
+        self.num_training_steps = args.dataset_size / args.batch_size + (args.dataset_size % args.batch_size > 0)
         self._step = 0
 
     def _update_rate(self, stack):
@@ -60,9 +61,22 @@ class OptimWarmupEncoderDecoder(object):
             alpha = self._step / self.warmup_steps[stack]
             return self.lr[stack] * (self.warmup_factor * (1.0 - alpha) + alpha)
         else:
-            return self.lr[stack] * self.lr_ratio ** bisect_right(
-                self.lr_schedules[stack], self._step
-            )
+            if self.lr_scheduler_method == 'constant':
+                return self.lr[stack] * 1.0
+            elif self.lr_scheduler_method == 'linear':
+                return max(0.0, float(self.num_training_steps - self._step) / float(max(1, self.num_training_steps - self.warmup_steps[stack])))
+            elif self.lr_scheduler_method == 'cosine':
+                progress = float(self._step - self.warmup_steps[stack]) / float(max(1, self.num_training_steps - self.warmup_steps[stack]))
+                return self.lr[stack] * max(0.0, 0.5 * (1.0 + math.cos(math.pi * float(num_cycles) * 2.0 * progress)))
+            elif self.lr_scheduler_method == 'cosine_hard':
+                progress = float(self._step - self.warmup_steps[stack]) / float(max(1, self.num_training_steps - self.warmup_steps[stack]))
+                if progress >= 1.0:
+                    return 0.0
+                return max(0.0, 0.5 * (1.0 + math.cos(math.pi * ((float(num_cycles) * progress) % 1.0))))
+            else:
+                return self.lr[stack] * self.lr_ratio ** bisect_right(
+                    self.lr_schedules[stack], self._step
+                )
 
     def zero_grad(self):
         self.optimizer_decoder.zero_grad()
