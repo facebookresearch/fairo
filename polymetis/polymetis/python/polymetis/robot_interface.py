@@ -2,6 +2,7 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
+from functools import partial
 from typing import List, Tuple, Optional
 import time
 import tempfile
@@ -249,6 +250,7 @@ class RobotInterface(BaseRobotInterface):
             time_to_go=time_to_go,
             hz=self.hz,
         )
+        joint_pos_desired_final = waypoints[-1]["position"]
 
         # Create & execute policy
         torch_policy = toco.policies.JointTrajectoryExecutor(
@@ -262,7 +264,12 @@ class RobotInterface(BaseRobotInterface):
             ignore_gravity=self.use_grav_comp,
         )
 
-        return self.send_torch_policy(torch_policy=torch_policy)
+        return self.send_torch_policy(
+            torch_policy=torch_policy,
+            post_exe_hook=partial(
+                self._set_default_controller, joint_pos_desired_final
+            ),
+        )
 
     def go_home(self, time_to_go: float = None) -> List[RobotState]:
         """Calls move_to_joint_positions to the current home positions.
@@ -352,6 +359,7 @@ class RobotInterface(BaseRobotInterface):
                 robot_model=self.robot_model,
                 home_pose=self.home_pose,
             )
+            joint_pos_desired_final = waypoints[-1]["position"]
 
             # Create joint tracking policy and run
             torch_policy = toco.policies.JointTrajectoryExecutor(
@@ -365,7 +373,12 @@ class RobotInterface(BaseRobotInterface):
                 ignore_gravity=self.use_grav_comp,
             )
 
-            return self.send_torch_policy(torch_policy=torch_policy)
+            return self.send_torch_policy(
+                torch_policy=torch_policy,
+                post_exe_hook=partial(
+                    self._set_default_controller, joint_pos_desired_final
+                ),
+            )
 
         else:
             # Use joint space controller to move to joint target

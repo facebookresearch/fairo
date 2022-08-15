@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 import io
-from typing import Dict, Generator, List
+from typing import Dict, Generator, List, Callable
 import time
 import threading
 import atexit
@@ -181,6 +181,7 @@ class BaseRobotInterface:
         torch_policy: toco.PolicyModule,
         blocking: bool = True,
         timeout: float = None,
+        post_exe_hook: Callable = None,
     ) -> List[RobotState]:
         """Sends the ScriptableTorchPolicy to the server.
 
@@ -213,6 +214,10 @@ class BaseRobotInterface:
                 if timeout is not None and time.time() - start_time > timeout:
                     raise TimeoutError("Operation timed out.")
                 time.sleep(1.0 / POLLING_RATE)
+
+            # Execute post-execution hook
+            if post_exe_hook is not None:
+                post_exe_hook()
 
             # Retrieve robot state log
             if timeout is not None:
