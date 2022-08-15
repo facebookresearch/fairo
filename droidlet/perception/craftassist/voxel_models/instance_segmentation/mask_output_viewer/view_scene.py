@@ -23,6 +23,10 @@ def launch_scene_viewer(scene_list: dict):
         [x in scene_list[0].keys() for x in EXPECTED_KEYS]
     ), "Scene not formatted correctly!"
 
+    # Set the working directory to be this one, in case this function was imported
+    # Have to do this to have access to supporting html and js files
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
     # Save the scene list locally
     with open("scene_list.json", "w") as f:
         json.dump(scene_list, f)
