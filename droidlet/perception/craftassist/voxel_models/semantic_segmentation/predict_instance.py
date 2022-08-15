@@ -3,7 +3,7 @@ import numpy as np
 from vision import SemSegWrapper
 
 
-SL = 17 
+SL = 17
 H = 13
 
 model_path = "/checkpoint/yuxuans/jobs/hitl_vision/data_shapes_6kind_6000_nfbid_0_nepochs_500_lr_0.001_batchsz_256_sampleEmptyProb_0.05_hiddenDim_128_noTargetProb_0.3_probThreshold_0.3_queryEmbed_bert_runName_SWEEP2/model.pt"
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     #                 # S.append(((r, s, t), bid))
     #                 CNT += 1
     # print(f"CNT: {CNT}")
-    
+
     for ix in range(17):
         for iy in range(10, 12):
             for iz in range(17):
@@ -49,7 +49,3 @@ if __name__ == "__main__":
     pred = model.perceive(fake_data, text_span=text, offset=None)
 
     print(pred)
-
-
-
-    

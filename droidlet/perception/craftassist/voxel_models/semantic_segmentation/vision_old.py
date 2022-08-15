@@ -9,7 +9,8 @@ from data_loaders import make_example_from_raw
 
 from droidlet.lowlevel.minecraft.small_scenes_with_shapes import SL, H
 
-BERT_HIDDEN_DIM = 1# 768
+BERT_HIDDEN_DIM = 1  # 768
+
 
 class SemSegNet(nn.Module):
     """Semantic Segmentation Neural Network"""
@@ -40,7 +41,7 @@ class SemSegNet(nn.Module):
         try:
             num_layers = opts.num_layers
         except:
-            num_layers = 4 
+            num_layers = 4
         try:
             hidden_dim = opts.hidden_dim
         except:
@@ -70,7 +71,7 @@ class SemSegNet(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x, t):
-        szs = list(x.size()) # B x SL x SL x SL
+        szs = list(x.size())  # B x SL x SL x SL
         B = szs[0]
         x = x.view(-1)
         z = self.embedding.weight.index_select(0, x)
@@ -81,17 +82,18 @@ class SemSegNet(nn.Module):
         for i in range(self.num_layers):
             z = self.layers[i](z)
 
-        t = t.unsqueeze(2).unsqueeze(3).unsqueeze(4).repeat(1, 1, SL, SL, SL) # B x TE x SL x SL x SL
+        t = (
+            t.unsqueeze(2).unsqueeze(3).unsqueeze(4).repeat(1, 1, SL, SL, SL)
+        )  # B x TE x SL x SL x SL
         TE = t.size(1)
         H = z.size(1)
         # print(f"voxel embed norm: {torch.norm(z[0])}, bert embed norm: {torch.norm(t[0])}")
-        z = torch.cat((z, t), 1) # B x (TE + H) x SL x SL x SL
+        z = torch.cat((z, t), 1)  # B x (TE + H) x SL x SL x SL
 
-        z = z.permute(0, 2, 3, 4, 1).contiguous() # B x SL x SL x SL x (TE + H)
-        z = self.linear(z).permute(0, 4, 1, 2, 3) # B x (TE + H) x SL x SL x SL
+        z = z.permute(0, 2, 3, 4, 1).contiguous()  # B x SL x SL x SL x (TE + H)
+        z = self.linear(z).permute(0, 4, 1, 2, 3)  # B x (TE + H) x SL x SL x SL
         z = self.sigmoid(z).squeeze()
         return z
-
 
     def save(self, filepath):
         self.cpu()

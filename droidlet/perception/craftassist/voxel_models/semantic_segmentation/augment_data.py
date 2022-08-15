@@ -10,10 +10,12 @@ random.seed(seed)
 np.random.seed(seed)
 
 
-
-original_data_path = "/checkpoint/yuxuans/datasets/inst_seg/turk_annotated_data_0/1659755341_clean_modeldata.pkl"
+original_data_path = (
+    "/checkpoint/yuxuans/datasets/inst_seg/turk_annotated_data_0/1659755341_clean_modeldata.pkl"
+)
 split_ratio = 0.8
 output_dir = f"/checkpoint/yuxuans/datasets/inst_seg/aug_turk_data_seed{seed}/"
+
 
 def augment_data(data):
     new_data = []
@@ -33,50 +35,50 @@ def augment_data(data):
         np.flip(NL, axis)
         d = copy.deepcopy([NS, NL, tags])
         new_data.append(d)
-    
+
     for shift_d in [2]:
         # positive shift x
         NS = copy.deepcopy(S)
         NL = copy.deepcopy(L)
-        np.pad(NS, ((shift_d, 0), (0, 0), (0, 0)), mode='constant')[: -shift_d, :, :]
-        np.pad(NL, ((shift_d, 0), (0, 0), (0, 0)), mode='constant')[: -shift_d, :, :]
+        np.pad(NS, ((shift_d, 0), (0, 0), (0, 0)), mode="constant")[:-shift_d, :, :]
+        np.pad(NL, ((shift_d, 0), (0, 0), (0, 0)), mode="constant")[:-shift_d, :, :]
         d = copy.deepcopy([NS, NL, tags])
         new_data.append(d)
         # negative shift x
         NS = copy.deepcopy(S)
         NL = copy.deepcopy(L)
-        np.pad(NS, ((0, shift_d), (0, 0), (0, 0)), mode='constant')[shift_d:, :, :]
-        np.pad(NL, ((0, shift_d), (0, 0), (0, 0)), mode='constant')[shift_d:, :, :]
+        np.pad(NS, ((0, shift_d), (0, 0), (0, 0)), mode="constant")[shift_d:, :, :]
+        np.pad(NL, ((0, shift_d), (0, 0), (0, 0)), mode="constant")[shift_d:, :, :]
         d = copy.deepcopy([NS, NL, tags])
         new_data.append(d)
 
         # positive shift y
         NS = copy.deepcopy(S)
         NL = copy.deepcopy(L)
-        np.pad(NS, ((0, 0), (shift_d, 0), (0, 0)), mode='constant')[:, : -shift_d, :]
-        np.pad(NL, ((0, 0), (shift_d, 0), (0, 0)), mode='constant')[:, : -shift_d, :]
+        np.pad(NS, ((0, 0), (shift_d, 0), (0, 0)), mode="constant")[:, :-shift_d, :]
+        np.pad(NL, ((0, 0), (shift_d, 0), (0, 0)), mode="constant")[:, :-shift_d, :]
         d = copy.deepcopy([NS, NL, tags])
         new_data.append(d)
         # negative shift y
         NS = copy.deepcopy(S)
         NL = copy.deepcopy(L)
-        np.pad(NS, ((0, 0), (0, shift_d), (0, 0)), mode='constant')[:, shift_d: , :]
-        np.pad(NL, ((0, 0), (0, shift_d), (0, 0)), mode='constant')[:, shift_d: , :]
+        np.pad(NS, ((0, 0), (0, shift_d), (0, 0)), mode="constant")[:, shift_d:, :]
+        np.pad(NL, ((0, 0), (0, shift_d), (0, 0)), mode="constant")[:, shift_d:, :]
         d = copy.deepcopy([NS, NL, tags])
         new_data.append(d)
 
         # positive shift z
         NS = copy.deepcopy(S)
         NL = copy.deepcopy(L)
-        np.pad(NS, ((0, 0), (0, 0), (shift_d, 0)), mode='constant')[:, :, : -shift_d]
-        np.pad(NL, ((0, 0), (0, 0), (shift_d, 0)), mode='constant')[:, :, : -shift_d]
+        np.pad(NS, ((0, 0), (0, 0), (shift_d, 0)), mode="constant")[:, :, :-shift_d]
+        np.pad(NL, ((0, 0), (0, 0), (shift_d, 0)), mode="constant")[:, :, :-shift_d]
         d = copy.deepcopy([NS, NL, tags])
         new_data.append(d)
         # negative shift z
         NS = copy.deepcopy(S)
         NL = copy.deepcopy(L)
-        np.pad(NS, ((0, 0), (0, 0), (0, shift_d)), mode='constant')[:, :, shift_d: ]
-        np.pad(NL, ((0, 0), (0, 0), (0, shift_d)), mode='constant')[:, :, shift_d: ]
+        np.pad(NS, ((0, 0), (0, 0), (0, shift_d)), mode="constant")[:, :, shift_d:]
+        np.pad(NL, ((0, 0), (0, 0), (0, shift_d)), mode="constant")[:, :, shift_d:]
         d = copy.deepcopy([NS, NL, tags])
         new_data.append(d)
 
@@ -90,6 +92,7 @@ def augment_dataset(dataset):
         for d in augmented_data:
             new_data.append(d)
     return new_data
+
 
 original_data = pickle.load(open(original_data_path, "rb"))
 train_len = int(len(original_data) * split_ratio)

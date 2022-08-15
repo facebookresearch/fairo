@@ -61,16 +61,28 @@ def semseg_output(S, n, data):
 # training loop
 ##################################################
 
-def get_stats(stat, text, target_voxel_correct, target_voxel_total, non_air_correct, non_air_total):
+
+def get_stats(
+    stat, text, target_voxel_correct, target_voxel_total, non_air_correct, non_air_total
+):
     if text not in stat:
-        stat[text] = [(0, 0), (0, 0)] # [target_voxel, non_air_voxel]
-    (prev_correct_target_voxel, prev_total_target_voxel), (prev_correct_nonair_voxel, prev_total_nonair_voxel) = stat[text]
-    stat[text] = [(prev_correct_target_voxel + target_voxel_correct, prev_total_target_voxel + target_voxel_total), (prev_correct_nonair_voxel + non_air_correct, prev_total_nonair_voxel + non_air_total)]
+        stat[text] = [(0, 0), (0, 0)]  # [target_voxel, non_air_voxel]
+    (prev_correct_target_voxel, prev_total_target_voxel), (
+        prev_correct_nonair_voxel,
+        prev_total_nonair_voxel,
+    ) = stat[text]
+    stat[text] = [
+        (
+            prev_correct_target_voxel + target_voxel_correct,
+            prev_total_target_voxel + target_voxel_total,
+        ),
+        (prev_correct_nonair_voxel + non_air_correct, prev_total_nonair_voxel + non_air_total),
+    ]
 
 
 def stringify_opts(opts):
     data_name = opts.data_dir.strip("/")
-    data_name = data_name[data_name.rfind("/"):].strip("/")
+    data_name = data_name[data_name.rfind("/") :].strip("/")
     batchsize = opts.batchsize
     lr = opts.lr
     sample_empty_prob = opts.sample_empty_prob
@@ -107,7 +119,7 @@ def validate(model, DL, loss, optimizer, args):
 
         ###### per data wise
         for idx in range(c.size(0)):
-            non_zero_idx_i = (c[idx] != 0)
+            non_zero_idx_i = c[idx] != 0
             non_zero_total_i = torch.sum(non_zero_idx_i)
 
             pred_i = yhat[idx] > prob_threshold
@@ -116,7 +128,7 @@ def validate(model, DL, loss, optimizer, args):
         ######
 
         ##### calculate acc
-        non_zero_idx = (c != 0)
+        non_zero_idx = c != 0
         non_zero_total += torch.sum(non_zero_idx)
         # print(f"yhat: all: {yhat[0].numel()}, nonzero: {torch.count_nonzero(yhat[0])},  {yhat[0]}")
         pred = yhat > prob_threshold
@@ -136,7 +148,9 @@ def validate(model, DL, loss, optimizer, args):
         preloss *= mask
         l = preloss.sum() / M
         losses.append(l.item())
-    print(f"[Valid] Accuracy: {correct_num / total_num}[{correct_num}/{total_num}], non empty acc: {non_zero_correct / non_zero_total}[{non_zero_correct}/{non_zero_total}]")
+    print(
+        f"[Valid] Accuracy: {correct_num / total_num}[{correct_num}/{total_num}], non empty acc: {non_zero_correct / non_zero_total}[{non_zero_correct}/{non_zero_total}]"
+    )
     for k, v in stat.items():
         print(f"For shape: {k}, accuracy is: {v[0] / v[1]}[{v[0]}/{v[1]}]")
     return losses
@@ -176,7 +190,7 @@ def train_epoch(model, DL, loss, optimizer, args, epoch, validation, summary_wri
         for idx in range(y.size(0)):
 
             # Target voxel
-            target_voxel_idx_i = (y[idx] != 0)
+            target_voxel_idx_i = y[idx] != 0
             target_voxel_total_i = torch.sum(target_voxel_idx_i)
 
             tot_ele_in_data_point = torch.numel(y[idx])
@@ -189,9 +203,8 @@ def train_epoch(model, DL, loss, optimizer, args, epoch, validation, summary_wri
             tot_pred_true = torch.sum(pred_i == True)
             tot_pred_correct_all = torch.sum(pred_i == y[idx])
 
-
             # Non air voxel
-            non_air_idx_i = (c[idx] != 0)
+            non_air_idx_i = c[idx] != 0
             non_air_total_i = torch.sum(non_air_idx_i)
             non_air_correct_i = torch.sum((pred_i == y[idx]) * non_air_idx_i)
 
@@ -210,11 +223,18 @@ def train_epoch(model, DL, loss, optimizer, args, epoch, validation, summary_wri
             # print(pred_i)
             # print(y[idx])
             ### helper output
-            get_stats(stat, text[idx], target_voxel_correct_i.item(), target_voxel_total_i.item(), non_air_correct_i.item(), non_air_total_i.item())
+            get_stats(
+                stat,
+                text[idx],
+                target_voxel_correct_i.item(),
+                target_voxel_total_i.item(),
+                non_air_correct_i.item(),
+                non_air_total_i.item(),
+            )
         ######
 
         ##### calculate acc
-        non_zero_idx = (c != 0)
+        non_zero_idx = c != 0
         non_zero_total += torch.sum(non_zero_idx)
 
         pred = yhat > prob_threshold
@@ -222,8 +242,7 @@ def train_epoch(model, DL, loss, optimizer, args, epoch, validation, summary_wri
         non_zero_correct += torch.sum((pred == y) * non_zero_idx)
         total_num += torch.numel(y)
 
-
-        gt_true_idx = (y != 0)
+        gt_true_idx = y != 0
         gt_true_total += torch.sum(gt_true_idx)
         gt_true_correct += torch.sum((pred == y) * gt_true_idx)
         #####
@@ -248,36 +267,42 @@ def train_epoch(model, DL, loss, optimizer, args, epoch, validation, summary_wri
             optimizer.step()
             # print(f"non zero total: {non_zero_total}, total: {total_num}")
     if not validation:
-        print(f"[Train] Accuracy: {correct_num / total_num}[{correct_num}/{total_num}], non air acc: {non_zero_correct / non_zero_total}[{non_zero_correct}/{non_zero_total}], gt should be true acc: {gt_true_correct / gt_true_total}[{gt_true_correct}/{gt_true_total}]")
+        print(
+            f"[Train] Accuracy: {correct_num / total_num}[{correct_num}/{total_num}], non air acc: {non_zero_correct / non_zero_total}[{non_zero_correct}/{non_zero_total}], gt should be true acc: {gt_true_correct / gt_true_total}[{gt_true_correct}/{gt_true_total}]"
+        )
         train_tot_acc_l.append((correct_num / total_num).item())
-        
+
         train_non_air_acc_l.append((non_zero_correct / non_zero_total).item())
-        
+
         train_target_acc_l.append((gt_true_correct / gt_true_total).item())
-        
+
         for k, v in stat.items():
             if k not in train_cls_acc_l.keys():
                 train_cls_acc_l[k] = []
             # train_cls_acc_l[k].append((v[0] / v[1]).item())
-            print(f"For shape: {k}, target voxel acc: {(v[0][0] / (v[0][1] + 1)):.2f}[{v[0][0]}/{v[0][1]+1}], non air voxel acc: {(v[1][0] / (v[1][1] + 1)):.2f}[{v[1][0]}/{v[1][1]+1}]")
-        
+            print(
+                f"For shape: {k}, target voxel acc: {(v[0][0] / (v[0][1] + 1)):.2f}[{v[0][0]}/{v[0][1]+1}], non air voxel acc: {(v[1][0] / (v[1][1] + 1)):.2f}[{v[1][0]}/{v[1][1]+1}]"
+            )
+
         precision_all = correct_num / total_num
         precision_occupied = non_zero_correct / non_zero_total
         recall = gt_true_correct / gt_true_total
         f1_all = 2 * precision_all * recall / (precision_all + recall)
         f1_occupied = 2 * precision_occupied * recall / (precision_occupied + recall)
-        summary_writer.add_scalar('Precision_All[Accuracy]/Train', precision_all, epoch)
-        summary_writer.add_scalar('Precision_Occupied/Train', precision_occupied, epoch)
-        summary_writer.add_scalar('Recall/Train', recall, epoch)
-        summary_writer.add_scalar('F1_All/Train', f1_all, epoch)
-        summary_writer.add_scalar('F1_Occupied/Train', f1_occupied, epoch)
-        summary_writer.add_scalar('Loss/Train', sum(losses) / len(losses), epoch)
+        summary_writer.add_scalar("Precision_All[Accuracy]/Train", precision_all, epoch)
+        summary_writer.add_scalar("Precision_Occupied/Train", precision_occupied, epoch)
+        summary_writer.add_scalar("Recall/Train", recall, epoch)
+        summary_writer.add_scalar("F1_All/Train", f1_all, epoch)
+        summary_writer.add_scalar("F1_Occupied/Train", f1_occupied, epoch)
+        summary_writer.add_scalar("Loss/Train", sum(losses) / len(losses), epoch)
         # print(f"train_tot_acc_l\n{train_tot_acc_l}")
         # print(f"train_non_air_acc_l\n{train_non_air_acc_l}")
         # print(f"train_target_acc_l\n{train_target_acc_l}")
         # print(f"train_cls_acc_l\n{train_cls_acc_l}")
     else:
-        print(f"[Valid] Accuracy: {correct_num / total_num}[{correct_num}/{total_num}], non air acc: {non_zero_correct / non_zero_total}[{non_zero_correct}/{non_zero_total}], gt should be true acc: {gt_true_correct / gt_true_total}[{gt_true_correct}/{gt_true_total}]")
+        print(
+            f"[Valid] Accuracy: {correct_num / total_num}[{correct_num}/{total_num}], non air acc: {non_zero_correct / non_zero_total}[{non_zero_correct}/{non_zero_total}], gt should be true acc: {gt_true_correct / gt_true_total}[{gt_true_correct}/{gt_true_total}]"
+        )
         valid_tot_acc_l.append((correct_num / total_num).item())
         valid_non_air_acc_l.append((non_zero_correct / non_zero_total).item())
         valid_target_acc_l.append((gt_true_correct / gt_true_total).item())
@@ -285,24 +310,26 @@ def train_epoch(model, DL, loss, optimizer, args, epoch, validation, summary_wri
             if k not in valid_cls_acc_l.keys():
                 valid_cls_acc_l[k] = []
             # valid_cls_acc_l[k].append((v[0] / v[1]).item())
-            print(f"For shape: {k}, target voxel acc: {(v[0][0] / (v[0][1] + 1)):.2f}[{v[0][0]}/{v[0][1]+1}], non air voxel acc: {(v[1][0] / (v[1][1] + 1)):.2f}[{v[1][0]}/{v[1][1]+1}]")
-        
+            print(
+                f"For shape: {k}, target voxel acc: {(v[0][0] / (v[0][1] + 1)):.2f}[{v[0][0]}/{v[0][1]+1}], non air voxel acc: {(v[1][0] / (v[1][1] + 1)):.2f}[{v[1][0]}/{v[1][1]+1}]"
+            )
+
         precision_all = correct_num / total_num
         precision_occupied = non_zero_correct / non_zero_total
         recall = gt_true_correct / gt_true_total
         f1_all = 2 * precision_all * recall / (precision_all + recall)
         f1_occupied = 2 * precision_occupied * recall / (precision_occupied + recall)
-        summary_writer.add_scalar('Precision_All[Accuracy]/Valid', precision_all, epoch)
-        summary_writer.add_scalar('Precision_Occupied/Valid', precision_occupied, epoch)
-        summary_writer.add_scalar('Recall/Valid', recall, epoch)
-        summary_writer.add_scalar('F1_All/Valid', f1_all, epoch)
-        summary_writer.add_scalar('F1_Occupied/Valid', f1_occupied, epoch)
-        summary_writer.add_scalar('Loss/Valid', sum(losses) / len(losses), epoch)
+        summary_writer.add_scalar("Precision_All[Accuracy]/Valid", precision_all, epoch)
+        summary_writer.add_scalar("Precision_Occupied/Valid", precision_occupied, epoch)
+        summary_writer.add_scalar("Recall/Valid", recall, epoch)
+        summary_writer.add_scalar("F1_All/Valid", f1_all, epoch)
+        summary_writer.add_scalar("F1_Occupied/Valid", f1_occupied, epoch)
+        summary_writer.add_scalar("Loss/Valid", sum(losses) / len(losses), epoch)
         # print(f"valid_tot_acc_l\n{valid_tot_acc_l}")
         # print(f"valid_non_air_acc_l\n{valid_non_air_acc_l}")
         # print(f"valid_target_acc_l\n{valid_target_acc_l}")
         # print(f"valid_cls_acc_l\n{valid_cls_acc_l}")
-    
+
     return losses
 
 
@@ -349,15 +376,13 @@ def get_parser():
     )
     parser.add_argument("--ndonkeys", type=int, default=4, help="workers in dataloader")
 
+    parser.add_argument("--run_name", default="", help="unique name to identify this run")
     parser.add_argument(
-        "--run_name", default="", help="unique name to identify this run"
+        "--visualization_dir",
+        default="/checkpoint/yuxuans/vis_dir",
+        help="path to store tensorboard graphs",
     )
-    parser.add_argument(
-        "--visualization_dir", default="/checkpoint/yuxuans/vis_dir", help="path to store tensorboard graphs"
-    )
-    parser.add_argument(
-        "--query_embed", default="lut", help="lut or bert"
-    )
+    parser.add_argument("--query_embed", default="lut", help="lut or bert")
     return parser
 
 
@@ -377,9 +402,22 @@ def main(args):
     if args.debug > 0 and len(aug) > 0:
         print("warning debug and augmentation together?")
 
-    train_data = SemSegData(args.data_dir + "training_data.pkl", nexamples=args.debug, augment=aug, no_target_prob=args.no_target_prob, query_embed=args.query_embed)
+    train_data = SemSegData(
+        args.data_dir + "training_data.pkl",
+        nexamples=args.debug,
+        augment=aug,
+        no_target_prob=args.no_target_prob,
+        query_embed=args.query_embed,
+    )
     train_classes = train_data.get_classes()
-    valid_data = SemSegData(args.data_dir + "validation_data.pkl", nexamples=args.debug, augment=aug, classes=train_classes, no_target_prob=args.no_target_prob, query_embed=args.query_embed)
+    valid_data = SemSegData(
+        args.data_dir + "validation_data.pkl",
+        nexamples=args.debug,
+        augment=aug,
+        classes=train_classes,
+        no_target_prob=args.no_target_prob,
+        query_embed=args.query_embed,
+    )
 
     shuffle = True
     if args.debug > 0:
@@ -394,8 +432,6 @@ def main(args):
         drop_last=True,
         num_workers=args.ndonkeys,
     )
-
-    
 
     print("making validation dataloader")
     vDL = torch.utils.data.DataLoader(
@@ -415,7 +451,7 @@ def main(args):
         args.load = True
     model = models.SemSegNet(args, classes=train_data.classes)
     # nll = nn.NLLLoss(reduction="none")
-    bceloss = nn.BCELoss(reduction='none')
+    bceloss = nn.BCELoss(reduction="none")
 
     if args.cuda:
         model.cuda()
@@ -428,21 +464,23 @@ def main(args):
         print("[Valid] loss: {}\n".format(sum(losses) / len(losses)))
         exit()
 
-
     unique_name = stringify_opts(args)
     writer = SummaryWriter(f"{args.visualization_dir}/{unique_name}")
-
 
     train_loss_l = []
     valid_loss_l = []
     print("training")
     for epoch in range(args.num_epochs):
         print(f"========== Epoch {epoch} =============")
-        losses = train_epoch(model, rDL, bceloss, optimizer, args, epoch, validation=False, summary_writer=writer)
+        losses = train_epoch(
+            model, rDL, bceloss, optimizer, args, epoch, validation=False, summary_writer=writer
+        )
         print("[Train] loss: {}\n".format(sum(losses) / len(losses)))
         train_loss_l.append((sum(losses) / len(losses)))
         # print(f"[Train] loss list: \n {train_loss_l}")
-        losses = train_epoch(model, vDL, bceloss, optimizer, args, epoch, validation=True, summary_writer=writer)
+        losses = train_epoch(
+            model, vDL, bceloss, optimizer, args, epoch, validation=True, summary_writer=writer
+        )
         print("[Valid] loss: {}\n".format(sum(losses) / len(losses)))
         valid_loss_l.append((sum(losses) / len(losses)))
         # print(f"[Valid] loss list: \n {valid_loss_l}")
