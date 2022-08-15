@@ -4,10 +4,103 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import pickle
 import numpy as np
+import random
 import torch
 from torch.utils import data as tds
 from copy import deepcopy
 
+# from droidlet.lowlevel.minecraft.shape_util import (
+#     SHAPE_NAMES,
+#     SHAPE_FNS,
+#     SHAPE_OPTION_FUNCTION_MAP,
+# )
+
+from transformers import DistilBertTokenizer, DistilBertModel
+import clip
+
+# SHAPE_NAMES = [
+#     "CUBE",
+#     # "HOLLOW_CUBE",
+#     # "RECTANGULOID",
+#     # "HOLLOW_RECTANGULOID",
+#     # "SPHERE",
+#     # "SPHERICAL_SHELL",
+#     # "PYRAMID",
+#     "SQUARE",
+#     "RECTANGLE",
+#     "CIRCLE",
+#     "DISK",
+#     "TRIANGLE",
+#     "DOME",
+#     "ARCH",
+#     # "ELLIPSOID",
+#     # "HOLLOW_TRIANGLE",
+#     # "HOLLOW_RECTANGLE",
+#     # "RECTANGULOID_FRAME",
+# ] # 8 kind
+
+SHAPE_NAMES = [
+    "CUBE",
+    # "HOLLOW_CUBE",
+    # "RECTANGULOID",
+    # "HOLLOW_RECTANGULOID",
+    "SPHERE",
+    # "SPHERICAL_SHELL",
+    "PYRAMID",
+    # "SQUARE",
+    # "RECTANGLE",
+    "CIRCLE",
+    # "DISK",
+    "TRIANGLE",
+    # "DOME",
+    "ARCH",
+    # "ELLIPSOID",
+    # "HOLLOW_TRIANGLE",
+    # "HOLLOW_RECTANGLE",
+    # "RECTANGULOID_FRAME",
+] # 6 kind
+
+# SHAPE_NAMES = [
+#     "CUBE",
+#     # "HOLLOW_CUBE",
+#     # "RECTANGULOID",
+#     # "HOLLOW_RECTANGULOID",
+#     # "SPHERE",
+#     # "SPHERICAL_SHELL",
+#     "PYRAMID",
+#     # "SQUARE",
+#     # "RECTANGLE",
+#     "CIRCLE",
+#     # "DISK",
+#     "TRIANGLE",
+#     # "DOME",
+#     # "ARCH",
+#     # "ELLIPSOID",
+#     # "HOLLOW_TRIANGLE",
+#     # "HOLLOW_RECTANGLE",
+#     # "RECTANGULOID_FRAME",
+# ] # 2 kind
+
+# SHAPE_NAMES = [
+#     "CUBE",
+#     # "HOLLOW_CUBE",
+#     # "RECTANGULOID",
+#     # "HOLLOW_RECTANGULOID",
+#     "SPHERE",
+#     # "SPHERICAL_SHELL",
+#     # "PYRAMID",
+#     # "SQUARE",
+#     # "RECTANGLE",
+#     "CIRCLE",
+#     # "DISK",
+#     # "TRIANGLE",
+#     # "DOME",
+#     "ARCH",
+#     # "ELLIPSOID",
+#     # "HOLLOW_TRIANGLE",
+#     # "HOLLOW_RECTANGLE",
+#     # "RECTANGULOID_FRAME",
+# ] # 4 kind
 
 def underdirt(schematic, labels=None, max_shift=0, nothing_id=0):
     """Convert schematic to underdirt"""
@@ -110,7 +203,7 @@ def make_example_from_raw(schematic, labels=None, augment={}, nothing_id=0, sl=3
     """Preprocess raw data and make good examples out of it"""
     max_shift = augment.get("max_shift", 0)
     s, l, o = fit_in_sidelength(
-        schematic, labels=labels, nothing_id=nothing_id, max_shift=max_shift
+        schematic, labels=labels, nothing_id=nothing_id, max_shift=max_shift, sl=sl
     )
     if len(augment) > 0:
         if augment.get("flip_rotate", False):
@@ -167,6 +260,36 @@ def organize_classes(classes, min_occurence):
     return new_classes, class_map
 
 
+def pick_no_target_shape(all_shapes, shapes):
+    # pick a shape from all_shapes that is not in shapes
+    random.shuffle(all_shapes)
+    for shape in all_shapes:
+        if shape not in shapes:
+            return shape
+    
+    return None
+
+def pick_query_shape_text(data, no_target_prob):
+    shape_ids_in_scene = set(data[1].cpu().detach().numpy().flatten())
+    shape_texts_in_scene = set([data[2][idx] for idx in shape_ids_in_scene])
+    shape_texts_not_in_scene = set(SHAPE_NAMES).difference(shape_texts_in_scene)
+    if "nothing" in shape_texts_in_scene:
+        shape_texts_in_scene.remove('nothing')
+    if "none" in shape_texts_in_scene:
+        shape_texts_in_scene.remove('none')
+    if random.random() < no_target_prob:
+        text = random.sample(shape_texts_not_in_scene, 1)[0]
+    else:
+        text = random.sample(shape_texts_in_scene, 1)[0]
+    
+    prefixs = ["where is", "tell me what is", "can you point where is"]
+    prefix_i = random.randint(0, 2)
+    prefix = prefixs[prefix_i]
+    texts = prefix + " " + text
+    return text, texts
+    # return text, text # use single word to make question easier
+
+
 class SemSegData(tds.Dataset):
     """Semantic Segmentation Dataset out of raw data"""
 
@@ -174,24 +297,49 @@ class SemSegData(tds.Dataset):
         self,
         data_path,
         nexamples=-1,
-        sidelength=32,
+        sidelength=17,
         classes=None,
         augment={},
         min_class_occurence=1,
         useid=True,
+        no_target_prob=0.2,
+        query_embed="lut"
     ):
         self.sidelength = sidelength
         self.useid = useid
         self.examples = []
-        self.inst_data = pickle.load(open(data_path, "rb"))
+        self.inst_data = pickle.load(open(data_path, "rb"))#[:100]
+        print(f"Dataset size: {len(self.inst_data)}")
+        for i in range(5):
+            print(f"===== data point {i}=======")
+            data = self.inst_data[i][0]
+            labels = self.inst_data[i][1]
+            classes2 = self.inst_data[i][2]
+            print(f"======= data =====")
+            for d1 in range(len(data)):
+                print(data[d1])
+            print(f"======= label =====")
+            for l1 in range(len(labels)):
+                print(labels[l1])
+            print(f" ===== set : {set(labels.flatten())} ========")
+            print(classes2)
         self.nexamples = nexamples
         self.augment = augment
+        self.query_embed = query_embed
+        self.no_target_prob = no_target_prob
+        self.tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+        self.model = DistilBertModel.from_pretrained('distilbert-base-uncased', return_dict=True)
+
+        self.device = "cpu"#"cuda" if torch.cuda.is_available() else "cpu"
+        self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device=self.device)
+
         if self.nexamples < 0:
             self.nexamples = len(self.inst_data)
         else:
             self.nexamples = min(len(self.inst_data), self.nexamples)
         preload_classes = None
         if classes is None:
+            print(f"classes is None, creating it from data")
             classes = {"name2idx": {}, "idx2name": [], "name2count": {}}
             for i in range(len(self.inst_data)):
                 for cname in self.inst_data[i][2]:
@@ -200,11 +348,14 @@ class SemSegData(tds.Dataset):
                     else:
                         classes["name2count"][cname] += 1
         else:
+            print(f"classes is not None, directly loading it")
             preload_classes = classes
+        print(f"Okay, after loading/creating, data classes is:")
+        print(classes)
         if classes["name2count"].get("none") is None:
             classes["name2count"]["none"] = 1
         merged_classes, class_map = organize_classes(classes, min_class_occurence)
-        # print(f"merged classes: {merged_classes}, classmap: {class_map}")
+        print(f"merged classes: {merged_classes}, classmap: {class_map}")
         if preload_classes:
             merged_classes = preload_classes
         for cname in merged_classes["name2idx"]:
@@ -219,7 +370,13 @@ class SemSegData(tds.Dataset):
             x[0] = torch.from_numpy(x[0]).long()
             x[1] = torch.from_numpy(x[1]).long()
             x[1].apply_(lambda z: c[class_map[x[2][z]]] if z > 0 else self.nothing_id)
+            ########## FIXME, don't assign to x[2] ########
+            # x[2] = self.classes["idx2name"]
+            shape, text = pick_query_shape_text(x, self.no_target_prob)
+            x.append((shape, text))
+            # x[3] = (shape, text)
         print(f"CLASS MAP: {self.classes}")
+        
 
     def get_classes(self):
         return self.classes
@@ -229,10 +386,51 @@ class SemSegData(tds.Dataset):
 
     def __getitem__(self, index):
         x = self.inst_data[index]
-        s, l, _ = make_example_from_raw(
+        # iii = random.randint(1, 9)
+        # text = x[2][iii] # FIXME always
+        # prefixs = ["where is", "tell me what is", "can you point where is"]
+        # prefix_i = random.randint(0, 2)
+        # prefix = prefixs[prefix_i]
+        # texts = prefix + " " + text
+        # # Choose another shape that is not in the scene
+        # is_no_target = False
+        # if random.random() < self.no_target_prob:
+        #     new_text = pick_no_target_shape(SHAPE_NAMES, x[2])
+        #     if new_text is not None:
+        #         is_no_target = True
+        #         text = new_text
+        # print(f"x0: {x[0]}\n x1: {x[1]}\n x2: {x[2]}\n x3: {x[3]} ")
+        (text, texts) = x[3]
+
+        if self.query_embed == "bert":
+            ### bert embed ###
+            with torch.no_grad():
+                text_inputs = self.tokenizer(texts, return_tensors="pt")
+                text_outputs = self.model(**text_inputs)
+                last_hidden_state = text_outputs.last_hidden_state
+                text_embed = torch.squeeze(torch.sum(last_hidden_state, 1))
+            ### bert embed ###
+        elif self.query_embed == "clip":
+            with torch.no_grad():
+                tokenized_text = clip.tokenize([texts]).to(self.device)
+                text_embed = torch.squeeze(self.clip_model.encode_text(tokenized_text), 0)
+        else:
+            ### lut ###
+            text_embed = torch.tensor([self.classes["name2idx"][text]], dtype=torch.float)
+            # print(f"text embedding: {text_embed}")
+            ### lut ###
+        s, c, _ = make_example_from_raw(
             x[0], labels=x[1], nothing_id=self.nothing_id, sl=self.sidelength, augment=self.augment
         )
-        return s, l
+
+        # if is_no_target:
+        #     l = torch.zeros_like(c).to(torch.float)
+        # else:
+        if text in self.classes["name2idx"].keys():
+            l = (c == self.classes["name2idx"][text]).to(torch.float)
+        else:
+            l = torch.zeros_like(c).to(torch.float)
+        return s, l, c, text_embed, text
 
     def __len__(self):
         return self.nexamples
