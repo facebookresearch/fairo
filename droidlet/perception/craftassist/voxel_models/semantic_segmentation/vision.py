@@ -14,6 +14,7 @@ from droidlet.lowlevel.minecraft.small_scenes_with_shapes import SL, H
 BERT_HIDDEN_DIM = 768
 CLIP_HIDDEN_DIM = 512
 
+
 class SemSegNet(nn.Module):
     """Semantic Segmentation Neural Network"""
 
@@ -43,7 +44,7 @@ class SemSegNet(nn.Module):
         try:
             num_layers = opts.num_layers
         except:
-            num_layers = 4 
+            num_layers = 4
         try:
             hidden_dim = opts.hidden_dim
         except:
@@ -84,7 +85,7 @@ class SemSegNet(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x, t):
-        szs = list(x.size()) # B x SL x SL x SL
+        szs = list(x.size())  # B x SL x SL x SL
         B = szs[0]
         x = x.view(-1)
         z = self.embedding.weight.index_select(0, x)
@@ -114,7 +115,6 @@ class SemSegNet(nn.Module):
         z = self.sigmoid(z).squeeze()
         # print(f"z size: {z.size()}")
         return z
-
 
     def save(self, filepath):
         self.cpu()
@@ -169,8 +169,10 @@ class SemSegWrapper:
         self.tags = [(c, self.classes["name2count"][c]) for c in i2n]
         assert self.classes["name2idx"]["none"] == 0
 
-        self.bert_tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-        self.bert_model = DistilBertModel.from_pretrained('distilbert-base-uncased', return_dict=True)
+        self.bert_tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+        self.bert_model = DistilBertModel.from_pretrained(
+            "distilbert-base-uncased", return_dict=True
+        )
 
     @torch.no_grad()
     def segment_object(self, blocks):
@@ -192,8 +194,7 @@ class SemSegWrapper:
             }
         else:
             return {tuple(ll for ll in l): mids[l[0], l[1], l[2]].item() for l in locs}
-        
-    
+
     def encode_text(self, texts):
         text_inputs = self.bert_tokenizer(texts, return_tensors="pt")
         text_outputs = self.bert_model(**text_inputs)

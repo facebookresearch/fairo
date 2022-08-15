@@ -58,7 +58,7 @@ SHAPE_NAMES = [
     # "HOLLOW_TRIANGLE",
     # "HOLLOW_RECTANGLE",
     # "RECTANGULOID_FRAME",
-] # 6 kind
+]  # 6 kind
 
 # SHAPE_NAMES = [
 #     "CUBE",
@@ -101,6 +101,7 @@ SHAPE_NAMES = [
 #     # "HOLLOW_RECTANGLE",
 #     # "RECTANGULOID_FRAME",
 # ] # 4 kind
+
 
 def underdirt(schematic, labels=None, max_shift=0, nothing_id=0):
     """Convert schematic to underdirt"""
@@ -266,22 +267,23 @@ def pick_no_target_shape(all_shapes, shapes):
     for shape in all_shapes:
         if shape not in shapes:
             return shape
-    
+
     return None
+
 
 def pick_query_shape_text(data, no_target_prob):
     shape_ids_in_scene = set(data[1].cpu().detach().numpy().flatten())
     shape_texts_in_scene = set([data[2][idx] for idx in shape_ids_in_scene])
     shape_texts_not_in_scene = set(SHAPE_NAMES).difference(shape_texts_in_scene)
     if "nothing" in shape_texts_in_scene:
-        shape_texts_in_scene.remove('nothing')
+        shape_texts_in_scene.remove("nothing")
     if "none" in shape_texts_in_scene:
-        shape_texts_in_scene.remove('none')
+        shape_texts_in_scene.remove("none")
     if random.random() < no_target_prob:
         text = random.sample(shape_texts_not_in_scene, 1)[0]
     else:
         text = random.sample(shape_texts_in_scene, 1)[0]
-    
+
     prefixs = ["where is", "tell me what is", "can you point where is"]
     prefix_i = random.randint(0, 2)
     prefix = prefixs[prefix_i]
@@ -303,12 +305,12 @@ class SemSegData(tds.Dataset):
         min_class_occurence=1,
         useid=True,
         no_target_prob=0.2,
-        query_embed="lut"
+        query_embed="lut",
     ):
         self.sidelength = sidelength
         self.useid = useid
         self.examples = []
-        self.inst_data = pickle.load(open(data_path, "rb"))#[:100]
+        self.inst_data = pickle.load(open(data_path, "rb"))  # [:100]
         print(f"Dataset size: {len(self.inst_data)}")
         for i in range(5):
             print(f"===== data point {i}=======")
@@ -327,10 +329,10 @@ class SemSegData(tds.Dataset):
         self.augment = augment
         self.query_embed = query_embed
         self.no_target_prob = no_target_prob
-        self.tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-        self.model = DistilBertModel.from_pretrained('distilbert-base-uncased', return_dict=True)
+        self.tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+        self.model = DistilBertModel.from_pretrained("distilbert-base-uncased", return_dict=True)
 
-        self.device = "cpu"#"cuda" if torch.cuda.is_available() else "cpu"
+        self.device = "cpu"  # "cuda" if torch.cuda.is_available() else "cpu"
         self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device=self.device)
 
         if self.nexamples < 0:
@@ -376,7 +378,6 @@ class SemSegData(tds.Dataset):
             x.append((shape, text))
             # x[3] = (shape, text)
         print(f"CLASS MAP: {self.classes}")
-        
 
     def get_classes(self):
         return self.classes
