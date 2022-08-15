@@ -1,0 +1,88 @@
+<!-- Voxel model output viewer -->	
+<!-- Bootstrap v3.0.3 -->	
+
+<!-- Copyright (c) Facebook, Inc. and its affiliates.
+   This source code is licensed under the MIT license found in the
+   LICENSE file in the root directory of this source tree. -->
+<html>
+    <head>
+        <link	
+        rel="stylesheet"	
+        href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"	
+        />	
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>	
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>	
+    </head>
+
+    <body>
+        <section class="container">	
+        <div class="row col-xs-12 col-md-12">
+            <div class="panel panel-primary">		
+                <div class="panel-heading"></div>
+                <h2 class="center">Voxel Perception Model Output Viewer</h2>
+                <hr>
+                <div class="instructions-section">
+                    <h4 class="instruction-headings">Navigating the Scenes:</h4>
+                    Click once within the window to get everything inside to fully render.
+                    You can use the arrow keys to rotate the view, or click and drag.
+                    You can zoom with your scroll wheel.
+                </div>
+                <div class="instructions-section">
+                    <h4 class="instruction-headings">Block Colors:</h4>
+                    The "ground" in the scene is made up of translucent white blocks outlined in black.
+                    The "air" in the scene is transparent.
+                    The instance segment masks are shown in colored blocks with darker edges.  The labels for each mask are below.
+                </div>
+            </div>	
+        </div>
+        </section>
+
+        <section class="container">	
+            <div class="row">
+                <div class="col-xs-12">
+                    <h3 class="center">Perception Model Prediction</h3>
+                    <p class="center">
+                        This window shows the masks predicted by the model
+                    </p>
+                </div>
+                <iframe style="width:100%; height:600px; margin: 0 auto;" id="myiframe" src="voxel_wrapper_local.html?batch_id=${batch_id}&error_idx=${error_idx}" scrolling="no"></iframe>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 center">
+                    <h4>Model Output Segment Legend</h4>
+                    <ul class="legend" id="legend1"></ul>
+                </div>
+            </div>
+        </section>
+        <link rel="stylesheet" href="index.css">
+        <script>
+            window.addEventListener("message", (event) => {
+                if (typeof(event.data) === "string") {
+                data = JSON.parse(event.data);
+                } else data = event.data;
+                if (data.msg) populateLegend(data.msg);
+            }, false);
+
+            function populateLegend(msg) {
+                if (msg === "clear") { 
+                    clearLegend();
+                    return;
+                }
+                let li = document.createElement("li");
+                li.appendChild(document.createTextNode(msg.label.tags[0]));
+                li.style.color = "#" + msg.color.toString(16);
+                let eleID = "legend" + msg.idx
+                document.getElementById(eleID).appendChild(li);
+            }
+
+            function clearLegend() {
+                legends = document.getElementsByClassName("legend");
+                Array.from(legends).forEach((leg) => {
+                    while (leg.firstChild) {
+                        leg.removeChild(leg.firstChild);
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>
