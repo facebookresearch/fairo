@@ -264,13 +264,16 @@ class RobotInterface(BaseRobotInterface):
 
         return self.send_torch_policy(torch_policy=torch_policy)
 
-    def go_home(self, *args, **kwargs) -> List[RobotState]:
-        """Calls move_to_joint_positions to the current home positions."""
+    def go_home(self, time_to_go: float = None) -> List[RobotState]:
+        """Calls move_to_joint_positions to the current home positions.
+        Args:
+            time_to_go: Amount of time to execute the motion. Uses an adaptive value if not specified (see `_adaptive_time_to_go` for details).
+        """
         assert (
             self.home_pose is not None
         ), "Home pose not assigned! Call 'set_home_pose(<joint_angles>)' to enable homing"
         return self.move_to_joint_positions(
-            positions=self.home_pose, delta=False, *args, **kwargs
+            positions=self.home_pose, time_to_go=time_to_go, delta=False
         )
 
     def move_to_ee_pose(
@@ -280,7 +283,6 @@ class RobotInterface(BaseRobotInterface):
         time_to_go: float = None,
         delta: bool = False,
         op_space_interp: bool = True,
-        **kwargs,
     ) -> List[RobotState]:
         """Uses an operational space controller to move to a desired end-effector position (and, optionally orientation).
         Args:
@@ -363,7 +365,7 @@ class RobotInterface(BaseRobotInterface):
                 ignore_gravity=self.use_grav_comp,
             )
 
-            return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
+            return self.send_torch_policy(torch_policy=torch_policy)
 
         else:
             # Use joint space controller to move to joint target
