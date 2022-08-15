@@ -212,17 +212,12 @@ class RobotInterface(BaseRobotInterface):
         positions: torch.Tensor,
         time_to_go: float = None,
         delta: bool = False,
-        Kq: torch.Tensor = None,
-        Kqd: torch.Tensor = None,
-        **kwargs,
     ) -> List[RobotState]:
         """Uses JointGoToPolicy to move to the desired positions with the given gains.
         Args:
             positions: Desired target joint positions.
             time_to_go: Amount of time to execute the motion. Uses an adaptive value if not specified (see `_adaptive_time_to_go` for details).
             delta: Whether the specified `positions` are relative to current pose or absolute.
-            Kq: Joint P gains for the tracking controller. Uses default values if not specified.
-            Kqd: Joint D gains for the tracking controller. Uses default values if not specified.
 
         Returns:
             Same as `send_torch_policy`
@@ -259,15 +254,15 @@ class RobotInterface(BaseRobotInterface):
         torch_policy = toco.policies.JointTrajectoryExecutor(
             joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
             joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
-            Kq=self.Kq_default if Kq is None else Kq,
-            Kqd=self.Kqd_default if Kqd is None else Kqd,
-            Kx=self.Kx_default,
-            Kxd=self.Kxd_default,
+            Kq=self._def_controller_cfg.Kq,
+            Kqd=self._def_controller_cfg.Kqd,
+            Kx=self._def_controller_cfg.Kx,
+            Kxd=self._def_controller_cfg.Kxd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
 
-        return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
+        return self.send_torch_policy(torch_policy=torch_policy)
 
     def go_home(self, *args, **kwargs) -> List[RobotState]:
         """Calls move_to_joint_positions to the current home positions."""
@@ -284,8 +279,6 @@ class RobotInterface(BaseRobotInterface):
         orientation: torch.Tensor = None,
         time_to_go: float = None,
         delta: bool = False,
-        Kx: torch.Tensor = None,
-        Kxd: torch.Tensor = None,
         op_space_interp: bool = True,
         **kwargs,
     ) -> List[RobotState]:
@@ -362,10 +355,10 @@ class RobotInterface(BaseRobotInterface):
             torch_policy = toco.policies.JointTrajectoryExecutor(
                 joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
                 joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
-                Kq=self.Kq_default,
-                Kqd=self.Kqd_default,
-                Kx=self.Kx_default if Kx is None else Kx,
-                Kxd=self.Kxd_default if Kxd is None else Kxd,
+                Kq=self._def_controller_cfg.Kq,
+                Kqd=self._def_controller_cfg.Kqd,
+                Kx=self._def_controller_cfg.Kx,
+                Kxd=self._def_controller_cfg.Kxd,
                 robot_model=self.robot_model,
                 ignore_gravity=self.use_grav_comp,
             )
