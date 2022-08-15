@@ -516,6 +516,12 @@ if __name__ == "__main__":
         help="Factor for learning rate in warmup stage",
     )
     parser.add_argument(
+        "--lr_scheduler",
+        default="constant",
+        type=str,
+        help="Different schedulers",
+    )
+    parser.add_argument(
         "--node_label_smoothing",
         default=0.0,
         type=float,
@@ -657,6 +663,7 @@ if __name__ == "__main__":
     logging.info("====== Initializing NLU Model Trainer ======")
     if args.cuda:
         encoder_decoder = encoder_decoder.cuda()
+    args.dataset_size = len(train_dataset)
     model_trainer = NLUModelTrainer(
         args, encoder_decoder, tokenizer, model_identifier, full_tree_voc
     )
