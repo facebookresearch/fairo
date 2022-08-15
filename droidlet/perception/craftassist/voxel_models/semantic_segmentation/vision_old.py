@@ -5,8 +5,11 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import torch
 import torch.nn as nn
-from .data_loaders import make_example_from_raw
+from data_loaders import make_example_from_raw
 
+from droidlet.lowlevel.minecraft.small_scenes_with_shapes import SL, H
+
+BERT_HIDDEN_DIM = 1# 768
 
 class SemSegNet(nn.Module):
     """Semantic Segmentation Neural Network"""
@@ -37,7 +40,7 @@ class SemSegNet(nn.Module):
         try:
             num_layers = opts.num_layers
         except:
-            num_layers = 4  # 32x32x32 input
+            num_layers = 4 
         try:
             hidden_dim = opts.hidden_dim
         except:
@@ -62,22 +65,33 @@ class SemSegNet(nn.Module):
                     nn.ReLU(inplace=True),
                 )
             )
-        self.out = nn.Conv3d(hidden_dim, opts.num_classes, kernel_size=1)
-        self.lsm = nn.LogSoftmax(dim=1)
+        self.linear = nn.Linear(hidden_dim + BERT_HIDDEN_DIM, 1)
+        # self.linear = nn.Linear(hidden_dim, 1)
+        self.sigmoid = nn.Sigmoid()
 
-    def forward(self, x):
-        # FIXME when pytorch is ready for this, embedding
-        # backwards is soooooo slow
-        # z = self.embedding(x)
-        szs = list(x.size())
+    def forward(self, x, t):
+        szs = list(x.size()) # B x SL x SL x SL
+        B = szs[0]
         x = x.view(-1)
         z = self.embedding.weight.index_select(0, x)
         szs.append(self.embedding_dim)
         z = z.view(torch.Size(szs))
         z = z.permute(0, 4, 1, 2, 3).contiguous()
+
         for i in range(self.num_layers):
             z = self.layers[i](z)
-        return self.lsm(self.out(z))
+
+        t = t.unsqueeze(2).unsqueeze(3).unsqueeze(4).repeat(1, 1, SL, SL, SL) # B x TE x SL x SL x SL
+        TE = t.size(1)
+        H = z.size(1)
+        # print(f"voxel embed norm: {torch.norm(z[0])}, bert embed norm: {torch.norm(t[0])}")
+        z = torch.cat((z, t), 1) # B x (TE + H) x SL x SL x SL
+
+        z = z.permute(0, 2, 3, 4, 1).contiguous() # B x SL x SL x SL x (TE + H)
+        z = self.linear(z).permute(0, 4, 1, 2, 3) # B x (TE + H) x SL x SL x SL
+        z = self.sigmoid(z).squeeze()
+        return z
+
 
     def save(self, filepath):
         self.cpu()
@@ -95,7 +109,7 @@ class SemSegNet(nn.Module):
         print("loading from file, using opts")
         print(self.opts)
         self._build()
-        self.load_state_dict(sds["state_dict"])
+        self.load_state_dict(sds["state_dict"], strict=False)
         self.zero_grad()
         self.classes = sds["classes"]
 
