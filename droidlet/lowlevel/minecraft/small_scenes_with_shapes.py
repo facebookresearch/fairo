@@ -270,7 +270,7 @@ def build_shape_scene(args):
             assets = pickle.load(f)
             iglu_scenes = list(assets.keys())
             if args.num_iglu_scenes and args.num_iglu_scenes < len(iglu_scenes):
-                iglu_scenes = iglu_scenes[:args.num_iglu_scenes]
+                iglu_scenes = iglu_scenes[: args.num_iglu_scenes]
             sid = np.random.choice(iglu_scenes)
             scene = assets[sid]
             scene = scene.transpose(1, 0, 2)
@@ -411,7 +411,9 @@ if __name__ == "__main__":
     parser.add_argument("--cuberite_z_offset", type=int, default=-SL // 2)
     parser.add_argument("--save_data_path", default="")
     parser.add_argument("--iglu_scenes", default="")
-    parser.add_argument("--num_iglu_scenes", default=156, type=int, help="Subset of IGLU scenes to use")
+    parser.add_argument(
+        "--num_iglu_scenes", default=156, type=int, help="Subset of IGLU scenes to use"
+    )
     parser.add_argument("--extra_simple", action="store_true", default=False)
     args = parser.parse_args()
 
