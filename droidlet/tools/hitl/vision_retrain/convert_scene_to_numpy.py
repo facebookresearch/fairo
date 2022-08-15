@@ -29,17 +29,17 @@ s3 = boto3.client(
 
 
 def main(batch_id: int, scene_filename: str, save_path: str):
-    '''
+    """
     Takes in the output of an annotation job.
     Outputs the scene list in the format required by the vision model training script.
-    '''
+    """
 
     # Figure out the scene filename from the batch ID if not given
     if not scene_filename:
         print("No scene file name provided, looking for one in .hitl")
         anno_dir = os.path.join(HITL_TMP_DIR, f"{batch_id}/annotated_scenes")
         filenames = [f for f in os.listdir(anno_dir) if re.match("\d+\_clean.json", f)]
-        assert(len(filenames) > 0), "Scene filename not given or found in local .hitl"
+        assert len(filenames) > 0, "Scene filename not given or found in local .hitl"
         scene_filename = filenames[0]
 
     # Download the scene from S3 and load into a json file
@@ -56,18 +56,18 @@ def main(batch_id: int, scene_filename: str, save_path: str):
 
     with open("scene_list.json", "r") as f:
         js = json.load(f)
-    assert(isinstance(js, list)), "JSON scene file appears improperly formatted"
+    assert isinstance(js, list), "JSON scene file appears improperly formatted"
 
     print("Converting scene list to model training format")
     output_scenes = []
     scenes_complete = 0
     for scene in js:
         output_scene = []
-        
+
         # Handle potential xyz offset
-        xmin, ymin, zmin = np.inf, np.inf, np.inf 
+        xmin, ymin, zmin = np.inf, np.inf, np.inf
         xmax, ymax, zmax = np.NINF, np.NINF, np.NINF
-        for block in  scene["blocks"]:
+        for block in scene["blocks"]:
             if block[0] < xmin:
                 xmin = block[0]
             if block[0] > xmax:
@@ -85,7 +85,7 @@ def main(batch_id: int, scene_filename: str, save_path: str):
         # Populate the bid npy array
         npy_blocks = np.zeros([xrange, yrange, zrange], dtype=np.int32)
         for block in scene["blocks"]:
-            npy_blocks[block[0]-xmin][block[1]-ymin][block[2]-zmin] = block[3]
+            npy_blocks[block[0] - xmin][block[1] - ymin][block[2] - zmin] = block[3]
         output_scene.append(npy_blocks)
 
         # Populate the tag index map
@@ -93,14 +93,16 @@ def main(batch_id: int, scene_filename: str, save_path: str):
         npy_index_map = np.zeros([xrange, yrange, zrange], dtype=np.int32)
         for loc in tag_locs:
             try:
-                npy_index_map[loc[0]-xmin][loc[1]-ymin][loc[2]-zmin] = 1
+                npy_index_map[loc[0] - xmin][loc[1] - ymin][loc[2] - zmin] = 1
             except IndexError:
                 # If the annotator marked a block outside the scene, ignore it
                 continue
         output_scene.append(npy_index_map)
 
         # Create the list of tags
-        assert(len(scene["inst_seg_tags"][-1]["tags"]) == 1), "Scene appears to have the wrong number of tags (should be one)"
+        assert (
+            len(scene["inst_seg_tags"][-1]["tags"]) == 1
+        ), "Scene appears to have the wrong number of tags (should be one)"
         # take the rightmost entry, possible that worker submitted a new annotation that was appended
         output_scene.append(["nothing", scene["inst_seg_tags"][-1]["tags"][0]])
 
@@ -133,9 +135,21 @@ def main(batch_id: int, scene_filename: str, save_path: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch_id", type=int, help="The batch_id of the annotation job to convert")
-    parser.add_argument("--scene_filename", type=str, default="", help="The .json filename of the scene to convert, default will search .hitl")
-    parser.add_argument("--save_path", type=str, default="", help="Path to save the reformatted data, default .hitl/batch_id")
+    parser.add_argument(
+        "--batch_id", type=int, help="The batch_id of the annotation job to convert"
+    )
+    parser.add_argument(
+        "--scene_filename",
+        type=str,
+        default="",
+        help="The .json filename of the scene to convert, default will search .hitl",
+    )
+    parser.add_argument(
+        "--save_path",
+        type=str,
+        default="",
+        help="Path to save the reformatted data, default .hitl/batch_id",
+    )
     opts = parser.parse_args()
 
     main(opts.batch_id, opts.scene_filename, opts.save_path)
