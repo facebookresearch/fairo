@@ -5,4 +5,4 @@ defaults:
 server_exec: run_server
 ip: 0.0.0.0
 port: 50051
-timeout: 8
+timeout: 15

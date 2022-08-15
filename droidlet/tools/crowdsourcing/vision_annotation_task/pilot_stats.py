@@ -154,7 +154,7 @@ def timing_charts(run_id: int) -> None:
     bug_count = 0
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
-        worker = Worker(db, data["worker_id"]).worker_name
+        worker = Worker.get(db, data["worker_id"]).worker_name
         workers["total"].append(worker)
         starttime, endtime, unit_timing = hit_timing(data["data"], starttime, endtime, unit_timing)
 
@@ -280,3 +280,6 @@ def plot_scatter(
     if ymax:
         plt.ylim(0, ymax)
     plt.show()
+
+
+# %%

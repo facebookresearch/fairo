@@ -7,10 +7,10 @@ robot_client:
   use_real_time: ${use_real_time}
   metadata_cfg:
     _target_: polymetis.robot_client.metadata.RobotClientMetadata
-    default_Kq: [80, 120, 100, 100, 70, 50, 20]
-    default_Kqd: [10, 10, 10, 10, 5, 5, 5]
-    default_Kx: [150, 150, 150, 10, 10, 10]
-    default_Kxd: [25, 25, 25, 7, 7, 7]
+    default_Kq: [40, 30, 50, 25, 35, 25, 10]
+    default_Kqd: [4, 6, 5, 5, 3, 2, 1]
+    default_Kx: [750, 750, 750, 15, 15, 15]
+    default_Kxd: [37, 37, 37, 2, 2, 2]
     hz: ${hz}
     robot_model_cfg: ${robot_model}
   executable_cfg:
@@ -75,10 +75,10 @@ robot_client:
         - 11.5
 
     collision_behavior:
-      lower_torque: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
-      upper_torque: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
-      lower_force: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
-      upper_force: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
+      lower_torque: [40.0, 40.0, 40.0, 40.0, 40.0, 40.0, 40.0]
+      upper_torque: [40.0, 40.0, 40.0, 40.0, 40.0, 40.0, 40.0]
+      lower_force: [40.0, 40.0, 40.0, 40.0, 40.0, 40.0]
+      upper_force: [40.0, 40.0, 40.0, 40.0, 40.0, 40.0]
 
     safety_controller:
       is_active: true

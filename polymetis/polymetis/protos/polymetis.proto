@@ -57,23 +57,34 @@ service PolymetisControllerServer {
 }
 
 service GripperServer {
+    rpc InitRobotClient(GripperMetadata) returns(Empty) {}
+    rpc GetRobotClientMetadata(Empty) returns(GripperMetadata) {}
+
     rpc GetState(Empty) returns(GripperState) {}
     rpc Goto(GripperCommand) returns(Empty) {}
-    rpc Grasp(GripperCommand) returns(Empty) {}
+
+    rpc ControlUpdate(GripperState) returns(GripperCommand) {}
+}
+
+message GripperMetadata {
+  string polymetis_version = 1;
+  int32 hz = 2;
+  float max_width = 3;
 }
 
 message GripperCommand {
-    float width = 1;
-    float speed = 2;
-    float force = 3;
+    google.protobuf.Timestamp timestamp = 1;
+    float width = 2;
+    float speed = 3;
+    float force = 4;
+    bool grasp = 5;
 }
 
 message GripperState {
     google.protobuf.Timestamp timestamp = 1;
     float width = 2;
-    float max_width = 3;
-    bool is_grasped = 4;
-    bool is_moving = 5;
+    bool is_grasped = 3;
+    bool is_moving = 4;
 }
 
 message LogInterval {

@@ -8,15 +8,16 @@ ARG current_branch
 ADD . /fairo
 WORKDIR /fairo
 
-RUN cd droidlet/lowlevel/minecraft && \
-    make clean && \
-    make && \
-    cd ../../../
 
 RUN source activate /root/miniconda3/envs/droidlet
 RUN mamba install python=3.8 --file conda.txt -c conda-forge  -c pytorch -c nvidia
 RUN pip3 install -r requirements.txt
 RUN pip3 install -r agents/craftassist/requirements.txt
+
+RUN cd droidlet/lowlevel/minecraft && \
+    make clean && \
+    make && \
+    cd ../../..
 
 RUN cd /fairo && \
     python3 setup.py develop && \

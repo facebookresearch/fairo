@@ -10,6 +10,7 @@ import numpy as np
 from omegaconf import OmegaConf
 from polysim.envs import BulletManipulatorEnv
 from polysim.envs import HabitatManipulatorEnv
+from polysim.envs import MujocoManipulatorEnv
 
 import pybullet_data
 
@@ -197,6 +198,12 @@ kuka_gripper_sdf = OmegaConf.create(
                 "habitat_dir": os.path.join(
                     os.path.dirname(__file__), "../../data/habitat-sim"
                 ),
+            },
+        ),
+        (
+            MujocoManipulatorEnv,
+            {
+                "robot_model_cfg": franka_panda,
             },
         ),
     ],

@@ -75,6 +75,7 @@ class VisionLabelingJob(DataGenerator):
         NUM_SCENES: int,
         MAX_HOLES: int,
         timeout: float = -1,
+        use_basic_shapes: bool = False,
     ) -> None:
         super(VisionLabelingJob, self).__init__(timeout)
         self._batch_id = generate_batch_id()
@@ -84,6 +85,7 @@ class VisionLabelingJob(DataGenerator):
         self._MAX_NUM_SHAPES = MAX_NUM_SHAPES
         self._NUM_SCENES = NUM_SCENES
         self._MAX_HOLES = MAX_HOLES
+        self._use_basic_shapes = use_basic_shapes
 
     def run(self) -> None:
 
@@ -115,16 +117,16 @@ class VisionLabelingJob(DataGenerator):
                 + str(self._MAX_HOLES)
                 + " --save_data_path="
                 + scene_save_path
-                + " --iglu_scenes="
-                + os.environ["IGLU_SCENE_PATH"]
             )
+            if not self._use_basic_shapes:
+                scene_gen_cmd += " --iglu_scenes=" + os.environ["IGLU_SCENE_PATH"]
             try:
-                logging.info(f"Starting scene generation script")
+                logging.info("Starting scene generation script")
                 scene_gen = subprocess.Popen(
                     scene_gen_cmd, shell=True, stdout=sys.stdout, stderr=sys.stderr, text=True
                 )
             except ValueError:
-                logging.info(f"Likely error: Popen called with invalid arguments")
+                logging.info("Likely error: Popen called with invalid arguments")
                 raise
 
             # Keep running Mephisto until timeout or job finished
@@ -140,7 +142,7 @@ class VisionLabelingJob(DataGenerator):
 
             if scene_gen.poll() is None:
                 # if scene generator is still running after timeout, terminate it
-                logging.info(f"Scene generation timed out, canceling labeling job!")
+                logging.info("Scene generation timed out, canceling labeling job!")
                 os.killpg(os.getpgid(scene_gen.pid), signal.SIGINT)
                 time.sleep(10)
                 os.killpg(os.getpgid(scene_gen.pid), signal.SIGKILL)
@@ -194,7 +196,7 @@ class VisionLabelingJob(DataGenerator):
                 logging.info(f"Launching job with {self._NUM_SCENES} HITs")
                 job_launch = subprocess.Popen(job_launch_cmd, shell=True, preexec_fn=os.setsid)
             except ValueError:
-                logging.info(f"Likely error: Popen called with invalid arguments")
+                logging.info("Likely error: Popen called with invalid arguments")
                 raise
 
             # Keep running Mephisto until timeout or job finished
@@ -206,11 +208,11 @@ class VisionLabelingJob(DataGenerator):
 
             if job_launch.poll() is None:
                 # if mturk job is still running after timeout, terminate it
-                logging.info(f"Manually terminate turk job after timeout...")
+                logging.info("Manually terminate turk job after timeout...")
                 os.killpg(os.getpgid(job_launch.pid), signal.SIGINT)
-                time.sleep(300)
+                time.sleep(180)
                 os.killpg(os.getpgid(job_launch.pid), signal.SIGINT)
-                time.sleep(300)
+                time.sleep(120)
                 os.killpg(os.getpgid(job_launch.pid), signal.SIGKILL)
 
             # Pull results from local DB
@@ -228,7 +230,7 @@ class VisionLabelingJob(DataGenerator):
                 scene_list = []
                 for unit in units:
                     data = mephisto_data_browser.get_data_from_unit(unit)
-                    worker_name = Worker(db, data["worker_id"]).worker_name
+                    worker_name = Worker.get(db, data["worker_id"]).worker_name
                     outputs = data["data"]["outputs"]
                     csv_writer.writerow(
                         [
@@ -348,24 +350,25 @@ class VisionLabelingListener(JobListener):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--scene_length", type=int, default=18)
+    parser.add_argument("--scene_length", type=int, default=17)
     parser.add_argument("--scene_height", type=int, default=13)
     parser.add_argument("--ground_depth", type=int, default=4)
     parser.add_argument("--max_num_shapes", type=int, default=4)
     parser.add_argument("--max_num_holes", type=int, default=3)
-    parser.add_argument("--num_hits", type=int, default=1, help="Number of HITs to request")
+    parser.add_argument("--num_hits", type=int, default=100, help="Number of HITs to request")
     parser.add_argument(
         "--labeling_timeout",
         type=int,
-        default=200,
+        default=75,
         help="Number of minutes before labeling job times out",
     )
     parser.add_argument(
         "--annotation_timeout",
         type=int,
-        default=200,
+        default=75,
         help="Number of minutes before annotation job times out",
     )
+    parser.add_argument("--use_basic_shapes", action="store_true", default=False)
     opts = parser.parse_args()
 
     LISTENER_TIMEOUT = opts.labeling_timeout + opts.annotation_timeout
@@ -379,6 +382,7 @@ if __name__ == "__main__":
         NUM_SCENES=opts.num_hits,
         MAX_HOLES=opts.max_num_holes,
         timeout=opts.labeling_timeout,
+        use_basic_shapes=opts.use_basic_shapes,
     )
 
     batch_id = lj.get_batch_id()

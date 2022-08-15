@@ -1,18 +1,13 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
-
 This file include job management utils for recording hitl job run statistics,
 including meta data like name, batch id, and job specific statistics like 
 failed/sucess command in interaction jobs, model accuracy in the nsp retrain jobs etc.
-
 This util class is extendable, if you want to add a new statistics for recording, 
 please do the following:
     - To add a new meta data - please add a new entry in the MetaData enum.
     - To add a new job type - please add a new entry in the Job enum.
-    - To add a new job statistic:
-        1. add a new entry in the JobStat enum.
-        2a. if this job statistic is shared by all jobs, add it to the STAT_FOR_ALL set.
-        2b. if this job belongs to a specific job, add it to the STAT_JOB_PAIR dict (key - corresonding job, val - a job statistics set).
+    - To add a new job statistic - please add a new entry in the JobStat enum.
 """
 import logging
 import boto3
@@ -79,38 +74,6 @@ class JobStat(Enum):
     MODEL_LOSS = "model_loss"
 
 
-# statastics that all jobs have
-STAT_FOR_ALL = set(
-    [
-        JobStat.ENABLED,
-        JobStat.NUM_REQUESTED,
-        JobStat.NUM_COMPLETED,
-        JobStat.START_TIME,
-        JobStat.END_TIME,
-    ]
-)
-
-# statatics that are unique for a job (not in the STAT_FOR_ALL set)
-STAT_JOB_PAIR = {
-    Job.INTERACTION: set(
-        [
-            JobStat.NUM_SESSION_LOG,
-            JobStat.NUM_COMMAND,
-            JobStat.NUM_ERR_COMMAND,
-            JobStat.DASHBOARD_VER,
-        ]
-    ),
-    Job.RETRAIN: set(
-        [
-            JobStat.ORI_DATA_SZ,
-            JobStat.NEW_DATA_SZ,
-            JobStat.MODEL_ACCURACY,
-            JobStat.MODEL_EPOCH,
-            JobStat.MODEL_LOSS,
-        ]
-    ),
-}
-
 # update job stat interval in seconds
 DEFAULT_STAT_UPDATE_INTERVAL = 60
 
@@ -118,7 +81,6 @@ DEFAULT_STAT_UPDATE_INTERVAL = 60
 class Recorder:
     """
     Job Management Util.
-
     Each hitl pipeline run corresponds to a JobManagementUtil instance.
     A stat_update_interal (in seconds) can be specificed for the minimal time to be wait for a repeatly update of the same statistic.
     """
@@ -148,12 +110,13 @@ class Recorder:
         tname = time_type._name_
 
         if job_type is not None:
+            self._check_n_init_job(job_type)
             # set job start / end
             jname = job_type._name_
-            if rec_dict[jname][tname] is None:
+            if tname not in rec_dict[jname]:
                 rec_dict[jname][tname] = []
             rec_dict[jname][tname].append(time_now)
-        elif rec_dict[tname]:
+        elif tname in rec_dict and rec_dict[tname]:
             # set meta data start / end, can only be set once
             logging.error(
                 f"[Job Management Util] Cannot set meta data start/end time twice, ignoring setting {tname}."
@@ -206,7 +169,7 @@ class Recorder:
         since_last_update = since_last_update.total_seconds()
 
         if (
-            self._record_dict[jname][sname] is None
+            sname not in self._record_dict[jname]
             or since_last_update > self._stat_update_interval
             or force_update
         ):
@@ -235,16 +198,24 @@ class Recorder:
         """
         save local job management record to remote s3 bucket
         """
-        batch_id = self._record_dict[MetaData.BATCH_ID._name_]
+        batch_id = (
+            self._record_dict[MetaData.BATCH_ID._name_]
+            if hasattr(MetaData, "BATCH_ID") and MetaData.BATCH_ID._name_ in self._record_dict
+            else None
+        )
         # check batch_id for saving to s3
         if batch_id is None:
             logging.error(
-                "[Job Management Util] Must have an associated batch to be able to save to s3"
+                f"[Job Management Util] Must have an associated batch to be able to save to s3, please check local path for temporary file job stats record file - {self._local_path}"
             )
-            raise RuntimeError("No associated batch_id set")
         # save to s3
-        remote_file_path = f"{JOB_MNG_PATH_PREFIX}/{batch_id}.json"
-        try:
-            resp = s3.meta.client.upload_file(self._local_path, S3_BUCKET_NAME, remote_file_path)
-        except botocore.exceptions.ClientError as e:
-            logging.info(f"[Job Management Util] Not able to save file {self._local_path} to s3.")
+        else:
+            remote_file_path = f"{JOB_MNG_PATH_PREFIX}/{batch_id}.json"
+            try:
+                resp = s3.meta.client.upload_file(
+                    self._local_path, S3_BUCKET_NAME, remote_file_path
+                )
+            except botocore.exceptions.ClientError as e:
+                logging.error(
+                    f"[Job Management Util] Not able to save file {self._local_path} to s3."
+                )
