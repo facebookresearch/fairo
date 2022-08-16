@@ -401,18 +401,20 @@ class RobotInterface(BaseRobotInterface):
         """Starts joint position control mode.
         Runs an non-blocking joint impedance controller.
         The desired joint positions can be updated using `update_desired_joint_positions`
+        **This method is being deprecated.**
         """
         log.warning(
-            "It is no longer required to call 'start_joint_impedance' as the default controller now provides tracking functionality. Nothing is being sent to the robot."
+            "'start_joint_impedance' is being deprecated as desired states can now be updated directly without sending a policy. Nothing is being sent to the robot."
         )
 
     def start_cartesian_impedance(self, Kx=None, Kxd=None, **kwargs):
         """Starts Cartesian position control mode.
         Runs an non-blocking Cartesian impedance controller.
         The desired EE pose can be updated using `update_desired_ee_pose`
+        **This method is being deprecated.**
         """
         log.warning(
-            "It is no longer required to call 'start_cartesian_impedance' as the default controller now provides tracking functionality. Nothing is being sent to the robot."
+            "'start_cartesian_impedance' is being deprecated as desired states can now be updated directly without sending a policy. Nothing is being sent to the robot."
         )
 
     def update_desired_joint_positions(self, positions: torch.Tensor) -> int:
