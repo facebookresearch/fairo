@@ -402,43 +402,18 @@ class RobotInterface(BaseRobotInterface):
         Runs an non-blocking joint impedance controller.
         The desired joint positions can be updated using `update_desired_joint_positions`
         """
-        if adaptive:
-            torch_policy = toco.policies.HybridJointImpedanceControl(
-                joint_pos_current=self.get_joint_positions(),
-                Kq=self.Kq_default if Kq is None else Kq,
-                Kqd=self.Kqd_default if Kqd is None else Kqd,
-                Kx=self.Kx_default,
-                Kxd=self.Kxd_default,
-                robot_model=self.robot_model,
-                ignore_gravity=self.use_grav_comp,
-            )
-        else:
-            torch_policy = toco.policies.JointImpedanceControl(
-                joint_pos_current=self.get_joint_positions(),
-                Kp=self.Kq_default if Kq is None else Kq,
-                Kd=self.Kqd_default if Kqd is None else Kqd,
-                robot_model=self.robot_model,
-                ignore_gravity=self.use_grav_comp,
-            )
-
-        return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
+        log.warning(
+            "It is no longer required to call 'start_joint_impedance' as the default controller now provides tracking functionality. Nothing is being sent to the robot."
+        )
 
     def start_cartesian_impedance(self, Kx=None, Kxd=None, **kwargs):
         """Starts Cartesian position control mode.
         Runs an non-blocking Cartesian impedance controller.
         The desired EE pose can be updated using `update_desired_ee_pose`
         """
-        torch_policy = toco.policies.HybridJointImpedanceControl(
-            joint_pos_current=self.get_joint_positions(),
-            Kq=self.Kq_default,
-            Kqd=self.Kqd_default,
-            Kx=self.Kx_default if Kx is None else Kx,
-            Kxd=self.Kxd_default if Kxd is None else Kxd,
-            robot_model=self.robot_model,
-            ignore_gravity=self.use_grav_comp,
+        log.warning(
+            "It is no longer required to call 'start_cartesian_impedance' as the default controller now provides tracking functionality. Nothing is being sent to the robot."
         )
-
-        return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
 
     def update_desired_joint_positions(self, positions: torch.Tensor) -> int:
         """Update the desired joint positions used by the joint position control mode.
@@ -521,17 +496,17 @@ class RobotInterface(BaseRobotInterface):
         """Functionally identical to `get_joint_positions`.
         **This method is being deprecated in favor of `get_joint_positions`.**
         """
-        log.warning(
+        log.error(
             "The method 'get_joint_angles' is deprecated, use 'get_joint_positions' instead."
         )
-        return self.get_joint_positions()
+        raise NotImplementedError
 
     def pose_ee(self) -> Tuple[torch.Tensor, torch.Tensor]:
         """Functionally identical to `get_ee_pose`.
         **This method is being deprecated in favor of `get_ee_pose`.**
         """
-        log.warning("The method 'pose_ee' is deprecated, use 'get_ee_pose' instead.")
-        return self.get_ee_pose()
+        log.error("The method 'pose_ee' is deprecated, use 'get_ee_pose' instead.")
+        raise NotImplementedError
 
     def set_joint_positions(
         self, desired_positions, *args, **kwargs
@@ -539,12 +514,10 @@ class RobotInterface(BaseRobotInterface):
         """Functionally identical to `move_to_joint_positions`.
         **This method is being deprecated in favor of `move_to_joint_positions`.**
         """
-        log.warning(
+        log.error(
             "The method 'set_joint_positions' is deprecated, use 'move_to_joint_positions' instead."
         )
-        return self.move_to_joint_positions(
-            positions=desired_positions, *args, **kwargs
-        )
+        raise NotImplementedError
 
     def move_joint_positions(
         self, delta_positions, *args, **kwargs
@@ -552,21 +525,19 @@ class RobotInterface(BaseRobotInterface):
         """Functionally identical to calling `move_to_joint_positions` with the argument `delta=True`.
         **This method is being deprecated in favor of `move_to_joint_positions`.**
         """
-        log.warning(
+        log.error(
             "The method 'set_joint_positions' is deprecated, use 'move_to_joint_positions' with 'delta=True' instead."
         )
-        return self.move_to_joint_positions(
-            positions=delta_positions, delta=True, *args, **kwargs
-        )
+        raise NotImplementedError
 
     def set_ee_pose(self, *args, **kwargs) -> List[RobotState]:
         """Functionally identical to `move_to_ee_pose`.
         **This method is being deprecated in favor of `move_to_ee_pose`.**
         """
-        log.warning(
+        log.error(
             "The method 'set_ee_pose' is deprecated, use 'move_to_ee_pose' instead."
         )
-        return self.move_to_ee_pose(*args, **kwargs)
+        raise NotImplementedError
 
     def move_ee_xyz(
         self, displacement: torch.Tensor, use_orient: bool = True, **kwargs
@@ -574,7 +545,7 @@ class RobotInterface(BaseRobotInterface):
         """Functionally identical to calling `move_to_ee_pose` with the argument `delta=True`.
         **This method is being deprecated in favor of `move_to_ee_pose`.**
         """
-        log.warning(
+        log.error(
             "The method 'move_ee_xyz' is deprecated, use 'move_to_ee_pose' with 'delta=True' instead."
         )
-        return self.move_to_ee_pose(position=displacement, delta=True, **kwargs)
+        raise NotImplementedError
