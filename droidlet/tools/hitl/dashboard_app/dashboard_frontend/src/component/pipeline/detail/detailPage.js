@@ -24,6 +24,7 @@ import { SocketContext } from '../../../context/socket';
 import { JOB_TYPES } from "../../../constants/runContants";
 import ModelCard from "./asset/modelCard";
 import DatasetCard from "./asset/datasetCard";
+import TracebackList from "./tao/tracebackList";
 
 const { Title } = Typography;
 const { Panel } = Collapse;
@@ -31,6 +32,7 @@ const { Panel } = Collapse;
 const DetailPage = (props) => {
     const socket = useContext(SocketContext);
     const pipelineType = props.pipelineType;
+
     const batch_id = useParams().batch_id;
     const [runInfo, setRunInfo] = useState(null);
     const [jobs, setJobs] = useState(null);
@@ -102,12 +104,13 @@ const DetailPage = (props) => {
                     >
                         <MetaInfoDescription metaInfo={runInfo} />
                         <Divider />
-                        <div style={{ 'display': 'flex'}}>
+                        <div style={{ 'display': 'flex' }}>
                             <DatasetCard batchId={batch_id} pipelineType={pipelineType} />
                             <ModelCard batchId={batch_id} pipelineType={pipelineType} />
                         </div>
                     </Panel>
                 </Collapse>
+
 
                 <Divider />
                 <div style={{ 'display': 'flex', "padding": "0 32px 0 32px" }}>
@@ -124,9 +127,15 @@ const DetailPage = (props) => {
                     </div>
                     <Outlet context={{ metaInfo: runInfo }} />
                 </div>
+                {
+                    pipelineType === "TAO" && <>
+                        <Divider />
+                        <TracebackList batchId={batch_id} />
+                    </>
+                }
                 <div style={{ "paddingTop": "18px" }}>
                     <Button type="primary">
-                        <Link to="../" state={{ label: TAB_ITEMS.RUNS.label, key: TAB_ITEMS.RUNS.key }}>
+                        <Link to="../." state={{ label: TAB_ITEMS.RUNS.label, key: TAB_ITEMS.RUNS.key }}>
                             Back to View All
                         </Link>
                     </Button>

@@ -130,10 +130,6 @@ const ModelCard = (props) => {
         setAttrModalOpen(true);
     }
 
-    const handleViewModelLossAndAcc = (lossAccType) => {
-        alert(lossAccData[lossAccType].map((o) => (`loss: ${o.loss},  acc: ${o.acc}`)));
-    }
-
     return (
         <div style={{ width: '70%' }}>
             <Card title="Model" loading={loadingKeys || loadingArgs || loadingLossAcc}>

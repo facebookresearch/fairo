@@ -29,3 +29,5 @@ export const SUBPATHS = {
         key: '/dataset'
     }
 }
+
+export const PIPELINES = [SUBPATHS.NLU, SUBPATHS.TAO, SUBPATHS.VIS]
