@@ -135,7 +135,7 @@ const DetailPage = (props) => {
                 }
                 <div style={{ "paddingTop": "18px" }}>
                     <Button type="primary">
-                        <Link to="../" state={{ label: TAB_ITEMS.RUNS.label, key: TAB_ITEMS.RUNS.key }}>
+                        <Link to="../." state={{ label: TAB_ITEMS.RUNS.label, key: TAB_ITEMS.RUNS.key }}>
                             Back to View All
                         </Link>
                     </Button>
