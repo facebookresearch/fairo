@@ -74,13 +74,13 @@ class RobotInterface(BaseRobotInterface):
 
         # Initialize reference states
         self._def_controller_cfg = DefaultControllerConfig(
-            q_des=self.get_joint_positions(),
+            q_des=self.home_pose,
             Kq=self.Kq_default,
             Kqd=self.Kqd_default,
             Kx=self.Kx_default,
             Kxd=self.Kxd_default,
         )
-        self._set_default_controller()
+        self._reset_default_controller()
 
     def _adaptive_time_to_go(self, joint_displacement: torch.Tensor):
         """Compute adaptive time_to_go
@@ -96,6 +96,11 @@ class RobotInterface(BaseRobotInterface):
         joint_pos_diff = torch.abs(joint_displacement)
         time_to_go = torch.max(joint_pos_diff / joint_vel_limits * 8.0)
         return max(time_to_go, self.time_to_go_default)
+
+    def _reset_default_controller(self):
+        if not self.is_running_policy():
+            self._def_controller_cfg.q_des = self.get_joint_positions()
+            self._set_default_controller()
 
     def _set_default_controller(
         self,
