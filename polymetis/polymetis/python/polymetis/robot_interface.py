@@ -269,6 +269,7 @@ class RobotInterface(BaseRobotInterface):
             ignore_gravity=self.use_grav_comp,
         )
 
+        self._reset_default_controller()
         return self.send_torch_policy(
             torch_policy=torch_policy,
             post_exe_hook=partial(
@@ -378,6 +379,7 @@ class RobotInterface(BaseRobotInterface):
                 ignore_gravity=self.use_grav_comp,
             )
 
+            self._reset_default_controller()
             return self.send_torch_policy(
                 torch_policy=torch_policy,
                 post_exe_hook=partial(
@@ -442,13 +444,16 @@ class RobotInterface(BaseRobotInterface):
         """Update the desired joint positions used by the joint position control mode.
         Requires starting a joint impedance controller with `start_joint_impedance` beforehand.
         """
+        self._reset_default_controller()
         try:
             update_idx = self.update_current_policy({"joint_pos_desired": positions})
         except grpc.RpcError as e:
             log.error(
-                "Unable to update desired joint positions. Use 'start_joint_impedance' to start a joint impedance controller."
+                "Unable to update desired robot state. Is another policy currently running?"
             )
             raise e
+
+        self._def_controller_cfg.q_des = positions.clone()
 
         return update_idx
 
