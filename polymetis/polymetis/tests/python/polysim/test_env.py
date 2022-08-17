@@ -246,9 +246,10 @@ def test_env(obj, obj_kwargs):
 )
 def test_mirror_env(obj, obj_kwargs):
     env = obj(**obj_kwargs, gui=False)
+    ndofs = obj_kwargs["robot_model_cfg"].num_dofs
     robot_state = RobotState()
-    robot_state.joint_positions[:] = np.random.random(robot_model_cfg.num_dofs)
-    robot_state.joint_velocities[:] = np.random.random(robot_model_cfg.num_dofs)
+    robot_state.joint_positions[:] = np.random.random(ndofs)
+    robot_state.joint_velocities[:] = np.random.random(ndofs)
     env.set_robot_state(robot_state)
     obs_pos, obs_vel = env.get_current_joint_pos_vel()
     assert robot_state.joint_positions == obs_pos
