@@ -183,3 +183,18 @@ class GrpcSimulationClient(AbstractRobotClient):
                 self.interval_log = []
 
         return ret
+
+    # def poll_for_mirror_states(self):
+    #     mirror_state_stream = self.connection.GetRobotStateStream(polymetis_pb2.Empty())
+    #     state_queue = queue.Queue(maxsize=100)
+    #     mirror_step = 0
+    #     mirror_downsample_ratio = 1
+    #     while True:
+    #         while
+    #         for robot_state in stream:
+    #             if step % self.downsampling_ratio == 0:
+    #                 self.env.set_robot_state(robot_state)
+    #             step = (step + 1) % mirror_downsample_ratio
+
+    def set_robot_state(self, robot_state: polymetis_pb2.RobotState):
+        self.env.set_robot_state(robot_state)

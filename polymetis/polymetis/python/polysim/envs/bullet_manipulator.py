@@ -287,3 +287,8 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             self.robot_id, list(joint_pos), list(joint_vel), list(joint_acc)
         )
         return np.asarray(torques)
+
+    def set_robot_state(self, robot_state):
+        raise NotImplementedError(
+            f"Mirror simulation not implemented for {type(self).__name__}"
+        )
