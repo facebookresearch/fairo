@@ -299,10 +299,3 @@ class BulletManipulatorEnv(AbstractControlledEnv):
                 targetValue=req_joint_pos[i],
                 targetVelocity=req_joint_vel[i],
             )
-
-        self.sim.setJointMotorControlArray(
-            bodyIndex=self.robot_id,
-            jointIndices=self.controlled_joints,
-            controlMode=pybullet.TORQUE_CONTROL,
-            forces=robot_state.joint_torques_computed,
-        )
