@@ -253,4 +253,4 @@ def test_mirror_env(obj, obj_kwargs):
     env.set_robot_state(robot_state)
     obs_pos, obs_vel = env.get_current_joint_pos_vel()
     assert np.allclose(robot_state.joint_positions, obs_pos)
-    assert np.allclose(robot_state.joint_velocities, obs_vel)
+    assert np.allclose(robot_state.joint_velocities, obs_vel, atol=1e-2)
