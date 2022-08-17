@@ -252,5 +252,5 @@ def test_mirror_env(obj, obj_kwargs):
     robot_state.joint_velocities[:] = np.random.random(ndofs)
     env.set_robot_state(robot_state)
     obs_pos, obs_vel = env.get_current_joint_pos_vel()
-    assert robot_state.joint_positions == obs_pos
-    assert robot_state.joint_velocities == obs_vel
+    assert (robot_state.joint_positions == obs_pos).all()
+    assert (robot_state.joint_velocities == obs_vel).all()
