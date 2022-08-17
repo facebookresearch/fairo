@@ -299,3 +299,24 @@ class BulletManipulatorEnv(AbstractControlledEnv):
                 targetValue=req_joint_pos[i],
                 targetVelocity=req_joint_vel[i],
             )
+
+        grav_comp_torques = self.compute_inverse_dynamics(
+            joint_pos=req_joint_pos,
+            joint_vel=[0] * self.n_dofs,
+            joint_acc=[0] * self.n_dofs,
+        )
+
+        # bug in pybullet requires many steps after reset so that subsequent forward sim calls work correctly
+        for _ in range(100):
+            self.sim.setJointMotorControlArray(
+                bodyIndex=self.robot_id,
+                jointIndices=self.controlled_joints,
+                controlMode=pybullet.TORQUE_CONTROL,
+                forces=grav_comp_torques,
+            )
+            self.sim.stepSimulation()
+
+        joint_state = self.sim.getJointStates(
+            bodyUniqueId=self.robot_id,
+            jointIndices=self.controlled_joints,
+        )

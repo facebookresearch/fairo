@@ -22,8 +22,8 @@ def main(cfg):
     # set state
     print("Running state setter...")
     curr_state = robot.get_robot_state()
-    coef = 0.0001
-    while True:
+    coef = 0.001
+    for _ in range(500):
         curr_state.joint_positions[:] += coef * np.ones_like(curr_state.joint_positions)
         # robot.set_state(curr_state)
         mirror_sim_client.set_robot_state(curr_state)
