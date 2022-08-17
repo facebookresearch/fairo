@@ -201,6 +201,7 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
     def set_robot_state(self, robot_state):
         self.robot_data.qpos = robot_state.joint_positions
         self.robot_data.qvel = robot_state.joint_velocities
+        self.robot_data.ctrl = self.robot_data.qfrc_bias
         mujoco.mj_step(self.robot_model, self.robot_data)
         if self.gui:
             self.render()
