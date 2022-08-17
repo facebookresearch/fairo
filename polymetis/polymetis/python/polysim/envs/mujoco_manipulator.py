@@ -199,9 +199,6 @@ class MujocoManipulatorEnv(AbstractControlledEnv):
         mujoco.glfw.glfw.poll_events()
 
     def set_robot_state(self, robot_state):
-        print(f"Requested joint positions {robot_state.joint_positions}")
-        print(f"Requested joint velocities {robot_state.joint_velocities}")
-        print(f"Requested joint torques {robot_state.joint_torques_computed}")
         self.robot_data.qpos = robot_state.joint_positions
         self.robot_data.qvel = robot_state.joint_velocities
         self.robot_data.ctrl = robot_state.joint_torques_computed

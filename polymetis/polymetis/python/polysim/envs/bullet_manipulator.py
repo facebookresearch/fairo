@@ -289,6 +289,20 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         return np.asarray(torques)
 
     def set_robot_state(self, robot_state):
-        raise NotImplementedError(
-            f"Mirror simulation not implemented for {type(self).__name__}"
+        req_joint_pos = robot_state.joint_positions
+        req_joint_vel = robot_state.joint_velocities
+        assert len(req_joint_pos) == len(req_joint_vel) == self.n_dofs
+        for i in range(self.n_dofs):
+            self.sim.resetJointState(
+                bodyUniqueId=self.robot_id,
+                jointIndex=i,
+                targetValue=req_joint_pos[i],
+                targetVelocity=req_joint_vel[i],
+            )
+
+        self.sim.setJointMotorControlArray(
+            bodyIndex=self.robot_id,
+            jointIndices=self.controlled_joints,
+            controlMode=pybullet.TORQUE_CONTROL,
+            forces=robot_state.joint_torques_computed,
         )
