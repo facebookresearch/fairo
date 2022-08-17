@@ -14,6 +14,8 @@ from polysim.envs import MujocoManipulatorEnv
 
 import pybullet_data
 
+from polymetis_pb2 import RobotState
+
 # from polysim.envs import DaisyLocomotorEnv
 
 franka_panda = OmegaConf.create(
@@ -217,3 +219,43 @@ def test_env(obj, obj_kwargs):
     env.get_current_joint_pos_vel()
     env.get_current_joint_torques()
     env.apply_joint_torques(np.zeros(env.get_num_dofs()))
+
+
+@pytest.mark.parametrize(
+    "obj, obj_kwargs",
+    [
+        (
+            BulletManipulatorEnv,
+            {
+                "robot_model_cfg": franka_panda,
+            },
+        ),
+        (
+            BulletManipulatorEnv,
+            {
+                "robot_model_cfg": kuka_iiwa,
+            },
+        ),
+        (
+            MujocoManipulatorEnv,
+            {
+                "robot_model_cfg": franka_panda,
+            },
+        ),
+        (
+            MujocoManipulatorEnv,
+            {
+                "robot_model_cfg": kuka_iiwa,
+            },
+        ),
+    ],
+)
+def test_mirror_env(obj, obj_kwargs):
+    env = obj(**obj_kwargs, gui=False)
+    robot_state = RobotState()
+    robot_state.joint_positions[:] = np.random.random(robot_model_cfg.num_dofs)
+    robot_state.joint_velocities[:] = np.random.random(robot_model_cfg.num_dofs)
+    env.set_robot_state(robot_state)
+    obs_pos, obs_vel = env.get_current_joint_pos_vel()
+    assert robot_state.joint_positions == obs_pos
+    assert robot_state.joint_velocities == obs_vel
