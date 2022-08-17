@@ -242,12 +242,6 @@ def test_env(obj, obj_kwargs):
                 "robot_model_cfg": franka_panda,
             },
         ),
-        (
-            MujocoManipulatorEnv,
-            {
-                "robot_model_cfg": kuka_iiwa,
-            },
-        ),
     ],
 )
 def test_mirror_env(obj, obj_kwargs):
