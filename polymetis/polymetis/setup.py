@@ -11,7 +11,7 @@ from setuptools import find_namespace_packages
 scripts = []
 for here, dirs, files in os.walk("python/scripts"):
     for file in files:
-        if (file.endswith(".py")):
+        if file.endswith(".py"):
             scripts.append(os.path.join(here, file))
 
 packages = find_packages(where="python") + find_namespace_packages(
