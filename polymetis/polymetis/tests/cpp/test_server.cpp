@@ -196,6 +196,72 @@ TEST_F(ServiceTest, TestInvalidRequests) {
                   .ok());
 }
 
+TEST_F(ServiceTest, TestMirrorRobotState) {
+  RobotClientMetadata sim_metadata_;
+  sim_metadata_.CopyFrom(metadata_);
+  sim_metadata_.set_is_sim(true);
+  stub_.get()->InitRobotClient(new grpc::ClientContext, sim_metadata_,
+                               new Empty);
+  RobotState acquired_robot_state;
+
+  // write and read
+  ASSERT_TRUE(stub_.get()
+                  ->SetMirrorRobotState(new grpc::ClientContext,
+                                        dummy_robot_state_, new Empty)
+                  .ok());
+  ASSERT_TRUE(stub_.get()
+                  ->GetMirrorRobotState(new grpc::ClientContext, empty_,
+                                        &acquired_robot_state)
+                  .ok());
+  EXPECT_EQ(acquired_robot_state.timestamp().nanos(),
+            dummy_robot_state_.timestamp().nanos());
+
+  // try to overwrite with stale data
+  RobotState fresh_robot_state;
+  setTimestampToNow(fresh_robot_state.mutable_timestamp());
+  ASSERT_TRUE(stub_.get()
+                  ->SetMirrorRobotState(new grpc::ClientContext,
+                                        fresh_robot_state, new Empty)
+                  .ok());
+  ASSERT_TRUE(stub_.get()
+                  ->SetMirrorRobotState(new grpc::ClientContext,
+                                        dummy_robot_state_, new Empty)
+                  .ok());
+  ASSERT_TRUE(stub_.get()
+                  ->GetMirrorRobotState(new grpc::ClientContext, empty_,
+                                        &acquired_robot_state)
+                  .ok());
+  EXPECT_EQ(acquired_robot_state.timestamp().nanos(),
+            fresh_robot_state.timestamp().nanos());
+
+  // read before write
+  std::thread reader([&]() {
+    ASSERT_TRUE(stub_.get()
+                    ->GetMirrorRobotState(new grpc::ClientContext, empty_,
+                                          &acquired_robot_state)
+                    .ok());
+  });
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  ASSERT_TRUE(stub_.get()
+                  ->SetMirrorRobotState(new grpc::ClientContext,
+                                        dummy_robot_state_, new Empty)
+                  .ok());
+  reader.join();
+  EXPECT_EQ(acquired_robot_state.timestamp().nanos(),
+            dummy_robot_state_.timestamp().nanos());
+
+  // read, write for hw fails
+  stub_.get()->InitRobotClient(new grpc::ClientContext, metadata_, new Empty);
+  ASSERT_FALSE(stub_.get()
+                   ->SetMirrorRobotState(new grpc::ClientContext,
+                                         dummy_robot_state_, new Empty)
+                   .ok());
+  ASSERT_FALSE(stub_.get()
+                   ->GetMirrorRobotState(new grpc::ClientContext, empty_,
+                                         &acquired_robot_state)
+                   .ok());
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
 

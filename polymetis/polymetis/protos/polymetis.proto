@@ -27,6 +27,12 @@ service PolymetisControllerServer {
   // start & end of controller execution
   rpc TerminateController(Empty) returns(LogInterval) {}
 
+  // Set the mirror robot state (only for simulator clients)
+  rpc SetMirrorRobotState(RobotState) returns(Empty) {}
+
+  // Get the mirror robot state (only for simulator clients)
+  rpc GetMirrorRobotState(Empty) returns(RobotState) {}
+
   // Get the current robot state
   rpc GetRobotState(Empty) returns(RobotState) {}
 
@@ -111,6 +117,7 @@ message RobotClientMetadata {
   string polymetis_version = 10;
   repeated float default_Kx = 11;
   repeated float default_Kxd = 12;
+  optional bool is_sim = 13;
 }
 
 message RobotState {
