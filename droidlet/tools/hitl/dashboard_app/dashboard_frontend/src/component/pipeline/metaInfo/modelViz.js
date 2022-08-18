@@ -106,7 +106,7 @@ const PipelineModelVizContent = (props) => {
                 // show graph when loading is done
                 modelBids && modelBids !== 404 && currentIdx === modelBids.length &&
                 <div>
-                    <ViewLossAccCard data={modelDict} width={1500} bids={selectedBids} />
+                    <ViewLossAccCard data={modelDict} width={1200} height={800} bids={selectedBids} />
                 </div>
             }
             {

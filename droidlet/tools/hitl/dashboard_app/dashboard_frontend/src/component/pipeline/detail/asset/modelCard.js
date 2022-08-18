@@ -5,12 +5,14 @@ The card showing Model infomation of a run.
 
 Usage:
 <ModelCard batchId = {batchId} pipelineType={pipelineType}/>
+<ModelLossAccGraph width={width} height={height} bids={batchIds (list)} data={data}>
 */
 import { Button, Card, Descriptions, Divider, Tooltip, Typography } from "antd";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { SocketContext } from "../../../../context/socket";
 import ModelAtrributeModal from "./modelAttributeDetailModal";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, Tooltip as ChartTooltip, ResponsiveContainer } from "recharts";
+import {BLUE_GREEN_COLS, RED_ORG_COLS} from "../../../../constants/modelVizColors";
 
 const { Meta } = Card;
 
@@ -83,20 +85,20 @@ export const ModelLossAccGraph = (props) => {
                 <Legend />
                 {
                     props.bids.map((bid, idx) => {
-                        const alpha =  1 - idx / (props.bids.length * 1.2);
+                        const colIdx =  idx % props.bids.length;
 
                         return <>
                             <Line
                                 type="monotone"
                                 key={`Training_${bid}`}
                                 dataKey={`Training_${bid}`}
-                                stroke={`rgba(0, 0, 255, ${alpha})`}
+                                stroke={RED_ORG_COLS[colIdx]}
                             />
                             <Line
                                 type="monotone"
                                 key={`Validation_${bid}`}
                                 dataKey={`Validation_${bid}`}
-                                stroke={`rgba(255, 0, 0, ${alpha})`}
+                                stroke={BLUE_GREEN_COLS[colIdx]}
                                 activeDot={{ r: 8 }}
                                 dot={{ strokeWidth: 2 }}
                                 strokeWidth={2}
