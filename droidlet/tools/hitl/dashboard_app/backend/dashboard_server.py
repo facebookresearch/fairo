@@ -10,6 +10,7 @@ from enum import Enum
 import json
 from droidlet.tools.hitl.dashboard_app.backend.dashboard_aws_helper import (
     get_best_model_loss_acc_by_id,
+    get_best_models_by_pipeline,
     get_dataset_by_name,
     get_dataset_indices_by_id,
     get_dataset_version_list_by_pipeline,
@@ -50,6 +51,7 @@ class DASHBOARD_EVENT(Enum):
     GET_MODEL_KEYS = "get_model_keys_by_id"
     GET_MODEL_VALUE = "get_model_value_by_id_n_key"
     GET_BEST_MODEL_LOSS_ACC = "get_best_model_loss_acc_by_id"
+    GET_BEST_MODELS = "get_best_model_bids_by_pipeline"
 
 
 # constants for model related apis
@@ -235,9 +237,11 @@ def get_best_model_loss_acc(batch_id: int):
     - input:
         - batch id of a specific run
     - output:
-        - a dictionary containing:
-            - epoch loss and accuracy
-            - text_span loss and accuracy
+        - a list contains the following when a best model log file can be found:
+            - a dictionary containing:
+                - key: loss, value: loss list for training and validation dataset
+                - key: acc, value: accuracy list for training and validation dataset
+            - batch id
         - or an error code indicating the best model log cannot be find
     """
     print(
@@ -247,7 +251,24 @@ def get_best_model_loss_acc(batch_id: int):
     if error_code:
         emit(DASHBOARD_EVENT.GET_BEST_MODEL_LOSS_ACC.value, error_code)
     else:
-        emit(DASHBOARD_EVENT.GET_BEST_MODEL_LOSS_ACC.value, loss_acc_dict)
+        emit(DASHBOARD_EVENT.GET_BEST_MODEL_LOSS_ACC.value, [loss_acc_dict, int(batch_id)])
+
+
+@socketio.on(DASHBOARD_EVENT.GET_BEST_MODELS.value)
+def get_best_model_batches(pipeline: str):
+    """
+    get best models' batch ids for a specific pipeline
+    - input:
+        - pipeline name (can be nlu, tao or vision)
+    - output:
+        - a list of the batch ids of the best models
+    """
+    print(f"Request received: {DASHBOARD_EVENT.GET_BEST_MODELS.value}, pipeline = {pipeline}")
+    model_dict, error_code = get_best_models_by_pipeline(pipeline)
+    if error_code:
+        emit(DASHBOARD_EVENT.GET_BEST_MODELS.value, error_code)
+    else:
+        emit(DASHBOARD_EVENT.GET_BEST_MODELS.value, model_dict)
 
 
 if __name__ == "__main__":
