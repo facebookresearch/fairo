@@ -21,7 +21,7 @@ const lineChartMargin = {
     bottom: 5,
 };
 
-const modelContainerStyle = {width: "70%"};
+const modelContainerStyle = { width: "70%" };
 const titleBottomPaddingStyle = { paddingBottom: "18px" };
 const textAlignLeftStyle = { textAlign: "left" };
 
@@ -30,38 +30,91 @@ export const ModelLossAccGraph = (props) => {
     const width = props.width;
     const height = props.height;
     const yAxisName = props.yAxisName;
+    const [plotData, setPlotData] = useState(null);
+
+    const getPlotData = (rawData, bids) => {
+        const getPlotDataPoint = (o, idx, bid) => {
+            const dataPoint = {};
+            dataPoint[`Training_${bid}`] = getScaled(yAxisName, o.training);
+            dataPoint[`Validation_${bid}`] = getScaled(yAxisName, o.validation);
+            dataPoint["Epoch"] = idx;
+            return dataPoint;
+        }
+
+        let plotData = [];
+
+        for (let i = 0; i < bids.length; i++) {
+            const k = bids[i];
+
+            const v = rawData[k];
+            plotData = plotData.concat(v.map((o, idx) => getPlotDataPoint(o, idx, k)));
+
+        }
+
+        return plotData;
+    }
+
+    useEffect(() => {
+        const pd = getPlotData(props.data, props.bids);
+
+        setPlotData(pd);
+    }, [props.bids, props.data]);
 
     const getScaled = (yName, value) => {
         // if is loss, get log2 scaled
         if ((yName) === "Loss") {
             return value ? Math.log2(value) : 0;
         } else {
-            return value;
+            return value ? value : 0;
         }
     }
-    const data = props.data.map((o, idx) => ({ Training: getScaled(yAxisName, o.training), Validation: getScaled(yAxisName, o.validation), Epoch: idx }));
-
     return <ResponsiveContainer aspect={width / height}>
-        <LineChart
-            width={width}
-            height={height}
-            data={data}
-            margin={lineChartMargin}
-        >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" dataKey="Epoch" label={{ offset: 0, value: "Epoch", position: "insideBottom" }} />
-            <YAxis label={{ offset: 0, value: (yAxisName === "Loss" ? yAxisName + " (Log2 Scaled)" : yAxisName), position: "insideLeft", angle: -90 }} />
-            <Legend />
-            <ChartTooltip />
-            <Line type="monotone" dataKey="Training" stroke="#ad2102" />
-            <Line type="monotone" dataKey="Validation" stroke="#1890ff" activeDot={{ r: 8 }} dot={{ strokeWidth: 2 }} strokeWidth={2} />
-        </LineChart>
+        {plotData &&
+            <LineChart
+                data={plotData}
+                width={width}
+                height={height}
+                margin={lineChartMargin}
+            >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" dataKey="Epoch" label={{ offset: 0, value: "Epoch", position: "insideBottom" }} />
+                <YAxis label={{ offset: 0, value: (yAxisName === "Loss" ? yAxisName + " (Log2 Scaled)" : yAxisName), position: "insideLeft", angle: -90 }} />
+                <ChartTooltip />
+                <Legend />
+                {
+                    props.bids.map((bid, idx) => {
+                        const alpha =  1 - idx / (props.bids.length * 1.2);
+
+                        return <>
+                            <Line
+                                type="monotone"
+                                key={`Training_${bid}`}
+                                dataKey={`Training_${bid}`}
+                                stroke={`rgba(0, 0, 255, ${alpha})`}
+                            />
+                            <Line
+                                type="monotone"
+                                key={`Validation_${bid}`}
+                                dataKey={`Validation_${bid}`}
+                                stroke={`rgba(255, 0, 0, ${alpha})`}
+                                activeDot={{ r: 8 }}
+                                dot={{ strokeWidth: 2 }}
+                                strokeWidth={2}
+                            />
+                        </>
+
+                    }
+                    )
+                }
+            </LineChart>
+        }
     </ResponsiveContainer>
 }
 
 export const ViewLossAccCard = (props) => {
     const width = props.width ? props.width : 750;
     const height = props.height ? props.height : 400;
+    const bids = props.bids ? props.bids : null;
     const lossAccData = props.data;
 
     const LOSS_ACC_TYPES = [{ "label": "Accuracy", "value": "acc" }, { "label": "Loss", "value": "loss" }]
@@ -73,7 +126,12 @@ export const ViewLossAccCard = (props) => {
         activeTabKey={activeTabKey}
         onTabChange={(key) => { setActiveTabKey(key) }}
     >
-        <ModelLossAccGraph data={lossAccData[activeTabKey]} height={height} width={width} yAxisName={LOSS_ACC_TYPES.find((o) => (o.value === activeTabKey))["label"]} />
+        <ModelLossAccGraph
+            data={lossAccData[activeTabKey]}
+            height={height} width={width}
+            yAxisName={LOSS_ACC_TYPES.find((o) => (o.value === activeTabKey))["label"]}
+            bids={bids}
+        />
     </Card>
 }
 
@@ -85,7 +143,10 @@ const ModelCard = (props) => {
     const [loadingKeys, setLoadingKeys] = useState(true);
     const [currentModelKey, setCurrentModelKey] = useState(null);
     const [attrModalOpen, setAttrModalOpen] = useState(false);
-    const [lossAccData, setLossAccData] = useState(null);
+    const [lossAccData, setLossAccData] = useState({
+        loss: {},
+        acc: {}
+    });
     const [loadingLossAcc, setLoadingLossAcc] = useState(true);
 
     const socket = useContext(SocketContext);
@@ -108,7 +169,11 @@ const ModelCard = (props) => {
     const handleReceivedLossAcc = useCallback((data) => {
         setLoadingLossAcc(false);
         if (data !== 404) {
-            setLossAccData(data[0]);
+            setLossAccData((prev) => ({
+                ...prev,
+                loss: { ...prev.loss, [data[1]]: data[0].loss },
+                acc: { ...prev.acc, [data[1]]: data[0].acc },
+            }));
         }
     });
 
@@ -184,7 +249,7 @@ const ModelCard = (props) => {
                                     <>
                                         <Divider />
                                         <Typography.Title level={5} style={titleBottomPaddingStyle}>Model Loss And Accuracy</Typography.Title>
-                                        <ViewLossAccCard data={lossAccData} />
+                                        <ViewLossAccCard data={lossAccData} bids={[parseInt(batchId)]} />
                                     </>
                                 }
                             </div>
