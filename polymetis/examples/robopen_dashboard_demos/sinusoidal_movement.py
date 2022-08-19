@@ -5,6 +5,8 @@ import time
 import fairomsg
 import json
 
+FUNCTION = 1 # 0 = fixed-frequency sinusoid, 1 = chirp
+
 if __name__ == "__main__":
     sensor_msgs = fairomsg.get_msgs("sensor_msgs")
     joint_pub = a0.Publisher("robot/desired_joint_state/sinusoidal")
@@ -28,13 +30,12 @@ if __name__ == "__main__":
     for i in range(time_left * control_hz):
         start = time.time()
 
-        # sinusoidal function
-        joint_positions[target_joint] = (
-            np.sin(np.pi * i / (T * control_hz)) * joint_limit
-        )
-
-        # chirp function
-        # joint_positions[target_joint] = np.sin(np.pi * i * i / (T * control_hz * chirp)) * joint_limit
+        if (FUNCTION == 0): # fixed-frequency sinusoid
+            joint_positions[target_joint] = (
+                np.sin(np.pi * i / (T * control_hz)) * joint_limit
+            )
+        elif (FUNCTION == 1): # chirp function
+            joint_positions[target_joint] = np.sin(np.pi * i * i / (T * control_hz * chirp)) * joint_limit
 
         robot.update_desired_joint_positions(joint_positions)
 

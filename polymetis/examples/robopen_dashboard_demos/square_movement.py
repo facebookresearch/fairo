@@ -25,20 +25,6 @@ if __name__ == "__main__":
     z_ee_limit = 0.7
     side_length = min(y_ee_limit - ee_pos[1], z_ee_limit - ee_pos[2])
 
-    # Square using move_to_ee_pose
-    # for i in range(4):
-    #     if i == 0:
-    #         ee_pos += torch.Tensor([0.0, side_length, 0.0])
-    #     elif i == 1:
-    #         ee_pos += torch.Tensor([0.0, 0.0, side_length])
-    #     elif i == 2:
-    #         ee_pos += torch.Tensor([0.0, -side_length, 0.0])
-    #     else:
-    #         ee_pos += torch.Tensor([0.0, 0.0, -side_length])
-
-    #     robot.move_to_ee_pose(ee_pos)
-
-    # Square using update_desired_ee_pose
     control_hz = 50
     time_left = 10
     steps_per_side = control_hz * time_left / 4
