@@ -1,9 +1,12 @@
 # Dashboard App for HITL
-Updated July 13 by Chuxi.
+Updated Aug 1 by Chuxi.
 
 This is a Dashboard app prototype for the HITL system.
 
 ## Update Note
+- Aug 1:
+    - Updated database display to be able to show pretty print json when user clicks on the json string:
+        - ![demo_pretty_json](https://user-images.githubusercontent.com/51009396/182296422-8fd45bc1-36a8-434c-b344-4e2a1d6e63f5.gif)
 - July 13:
     - Added dataset visualization component including:
         - View newly added data points indices on the run detail page
