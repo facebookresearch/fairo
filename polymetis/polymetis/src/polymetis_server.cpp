@@ -70,49 +70,36 @@ Status PolymetisControllerServerImpl::GetRobotStateLog(
   return Status::OK;
 }
 
-Status PolymetisControllerServerImpl::SetMirrorRobotState(
+Status PolymetisControllerServerImpl::SetSimRobotState(
     ServerContext *context, const RobotState *robot_state, Empty *) {
   if (!robot_client_context_.metadata.is_sim()) {
-    return Status(
-        StatusCode::FAILED_PRECONDITION,
-        "SetMirrorRobotState may only be used with a simulator client!");
+    return Status(StatusCode::FAILED_PRECONDITION,
+                  "SetSimRobotState may only be used with a simulator client!");
   }
-  std::lock_guard<std::mutex> guard(mirror_state_mtx_);
-  auto curr_sec = mirror_sim_robot_state_.timestamp().seconds();
-  auto curr_nano = mirror_sim_robot_state_.timestamp().nanos();
-  auto rs_sec = robot_state->timestamp().seconds();
-  auto rs_nano = robot_state->timestamp().nanos();
-  if (!is_mirror_state_set_ || (curr_sec == rs_sec && curr_nano < rs_nano) ||
-      curr_sec < rs_sec) {
-    // update if fresh
-    mirror_sim_robot_state_.CopyFrom(*robot_state);
-    is_mirror_state_set_ = true;
-  }
+  std::lock_guard<std::mutex> guard(sim_state_mtx_);
+  sim_robot_state_.CopyFrom(*robot_state);
+  is_sim_state_set_ = true;
   return Status::OK;
 }
 
-Status PolymetisControllerServerImpl::GetMirrorRobotState(
+Status PolymetisControllerServerImpl::GetSimRobotState(
     ServerContext *context, const Empty *, RobotState *robot_state) {
   if (!robot_client_context_.metadata.is_sim()) {
-    return Status(
-        StatusCode::FAILED_PRECONDITION,
-        "GetMirrorRobotState may only be used with a simulator client!");
+    return Status(StatusCode::FAILED_PRECONDITION,
+                  "GetSimRobotState may only be used with a simulator client!");
   }
   while (true) {
     if (context->IsCancelled()) {
       return Status::CANCELLED;
     }
-    mirror_state_mtx_.lock();
-    if (is_mirror_state_set_) {
+    if (is_sim_state_set_) {
       break;
     }
-    mirror_state_mtx_.unlock();
     usleep(SPIN_INTERVAL_USEC);
   }
-  // lock still held
-  robot_state->CopyFrom(mirror_sim_robot_state_);
-  is_mirror_state_set_ = false;
-  mirror_state_mtx_.unlock();
+  std::lock_guard<std::mutex> guard(sim_state_mtx_);
+  robot_state->CopyFrom(sim_robot_state_);
+  is_sim_state_set_ = false;
   return Status::OK;
 }
 

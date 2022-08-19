@@ -124,11 +124,11 @@ public:
   /**
   TODO
   */
-  Status SetMirrorRobotState(ServerContext *context,
-                             const RobotState *robot_state, Empty *) override;
+  Status SetSimRobotState(ServerContext *context, const RobotState *robot_state,
+                          Empty *) override;
 
-  Status GetMirrorRobotState(ServerContext *context, const Empty *,
-                             RobotState *robot_state) override;
+  Status GetSimRobotState(ServerContext *context, const Empty *,
+                          RobotState *robot_state) override;
 
   /**
   TODO
@@ -180,10 +180,10 @@ private:
   CircularBuffer<RobotState> robot_state_buffer_ =
       CircularBuffer<RobotState>(MAX_CIRCULAR_BUFFER_SIZE);
 
-  RobotState mirror_sim_robot_state_;
-  long int mirror_state_last_update_ = 0;
-  bool is_mirror_state_set_ = false;
-  std::mutex mirror_state_mtx_;
+  RobotState sim_robot_state_;
+  long int sim_state_last_update_ = 0;
+  bool is_sim_state_set_ = false;
+  std::mutex sim_state_mtx_;
 
   CustomControllerContext custom_controller_context_;
   RobotClientContext robot_client_context_;

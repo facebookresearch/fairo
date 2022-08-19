@@ -27,11 +27,12 @@ service PolymetisControllerServer {
   // start & end of controller execution
   rpc TerminateController(Empty) returns(LogInterval) {}
 
-  // Set the mirror robot state (only for simulator clients)
-  rpc SetMirrorRobotState(RobotState) returns(Empty) {}
+  // Set the robot state in simulator clients
+  rpc SetSimRobotState(RobotState) returns(Empty) {}
 
-  // Get the mirror robot state (only for simulator clients)
-  rpc GetMirrorRobotState(Empty) returns(RobotState) {}
+  // Get the mirror robot state in simulator clients
+  // Blocks until a sim state has been set
+  rpc GetSimRobotState(Empty) returns(RobotState) {}
 
   // Get the current robot state
   rpc GetRobotState(Empty) returns(RobotState) {}
