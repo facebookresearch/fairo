@@ -31,7 +31,6 @@ service PolymetisControllerServer {
   rpc SetSimRobotState(RobotState) returns(Empty) {}
 
   // Get the mirror robot state in simulator clients
-  // Blocks until a sim state has been set
   rpc GetSimRobotState(Empty) returns(RobotState) {}
 
   // Get the current robot state

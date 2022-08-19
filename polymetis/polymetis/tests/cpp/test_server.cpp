@@ -204,6 +204,12 @@ TEST_F(ServiceTest, TestSimRobotState) {
                                new Empty);
   RobotState acquired_robot_state;
 
+  // read before write
+  ASSERT_FALSE(stub_.get()
+                   ->GetSimRobotState(new grpc::ClientContext, empty_,
+                                      &acquired_robot_state)
+                   .ok());
+
   // write and read
   ASSERT_TRUE(stub_.get()
                   ->SetSimRobotState(new grpc::ClientContext,
@@ -215,33 +221,6 @@ TEST_F(ServiceTest, TestSimRobotState) {
                   .ok());
   EXPECT_EQ(acquired_robot_state.timestamp().nanos(),
             dummy_robot_state_.timestamp().nanos());
-
-  // read before write
-  std::thread reader([&]() {
-    ASSERT_TRUE(stub_.get()
-                    ->GetSimRobotState(new grpc::ClientContext, empty_,
-                                       &acquired_robot_state)
-                    .ok());
-  });
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
-  ASSERT_TRUE(stub_.get()
-                  ->SetSimRobotState(new grpc::ClientContext,
-                                     dummy_robot_state_, new Empty)
-                  .ok());
-  reader.join();
-  EXPECT_EQ(acquired_robot_state.timestamp().nanos(),
-            dummy_robot_state_.timestamp().nanos());
-
-  // read, write for hw fails
-  stub_.get()->InitRobotClient(new grpc::ClientContext, metadata_, new Empty);
-  ASSERT_FALSE(stub_.get()
-                   ->SetSimRobotState(new grpc::ClientContext,
-                                      dummy_robot_state_, new Empty)
-                   .ok());
-  ASSERT_FALSE(stub_.get()
-                   ->GetSimRobotState(new grpc::ClientContext, empty_,
-                                      &acquired_robot_state)
-                   .ok());
 }
 
 int main(int argc, char **argv) {

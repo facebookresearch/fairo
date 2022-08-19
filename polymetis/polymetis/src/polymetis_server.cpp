@@ -88,18 +88,12 @@ Status PolymetisControllerServerImpl::GetSimRobotState(
     return Status(StatusCode::FAILED_PRECONDITION,
                   "GetSimRobotState may only be used with a simulator client!");
   }
-  while (true) {
-    if (context->IsCancelled()) {
-      return Status::CANCELLED;
-    }
-    if (is_sim_state_set_) {
-      break;
-    }
-    usleep(SPIN_INTERVAL_USEC);
+  if (!is_sim_state_set_) {
+    return Status(StatusCode::FAILED_PRECONDITION,
+                  "Simulator robot state has not been set!");
   }
   std::lock_guard<std::mutex> guard(sim_state_mtx_);
   robot_state->CopyFrom(sim_robot_state_);
-  is_sim_state_set_ = false;
   return Status::OK;
 }
 
