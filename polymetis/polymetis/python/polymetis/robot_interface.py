@@ -744,3 +744,9 @@ class RobotInterface(BaseRobotInterface):
             "The method 'move_ee_xyz' is deprecated, use 'move_to_ee_pose' with 'delta=True' instead."
         )
         return self.move_to_ee_pose(position=displacement, delta=True, **kwargs)
+
+    def set_sim_state(self, robot_state: RobotState):
+        self.grpc_connection.SetSimRobotState(robot_state)
+
+    def sync(self, tgt_robot, timestep):
+        pass
