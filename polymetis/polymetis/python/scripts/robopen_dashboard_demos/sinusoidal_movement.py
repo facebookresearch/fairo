@@ -2,11 +2,11 @@ import a0
 import polymetis
 import numpy as np
 import time
-import serdes
+import fairomsg
 import json
 
 if __name__ == "__main__":
-    sensor_msgs = serdes.get_capnp_msgs("sensor_msgs")
+    sensor_msgs = fairomsg.get_msgs("sensor_msgs")
     joint_pub = a0.Publisher("robot/desired_joint_state/sinusoidal")
     json_pub = a0.Publisher("robot/desired_joint_state/sinusoidal_json")
 

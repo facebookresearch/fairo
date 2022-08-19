@@ -8,6 +8,11 @@ The IP of the NUC may need to be changed, and the topics may change for the real
 
 Make sure you are also running the MRP processes in /robopen/perception/realsense_pub in the RoBoPen repository.
 
+Install fairomsg according to its [readme](https://github.com/facebookresearch/fairo/tree/main/msg), or run the line below inside the robopen_dashboard_demos directory:
+```
+pip install git+https://github.com/facebookresearch/fairo.git@main#subdirectory=msg
+```
+
 
 ## Sinusoidal Movement
 

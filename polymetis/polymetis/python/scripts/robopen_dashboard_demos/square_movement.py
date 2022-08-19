@@ -2,12 +2,12 @@ import a0
 import polymetis
 import torch
 import time
-import serdes
+import fairomsg
 import json
 
 if __name__ == "__main__":
-    std_msgs = serdes.get_capnp_msgs("std_msgs")
-    geometry_msgs = serdes.get_capnp_msgs("geometry_msgs")
+    std_msgs = fairomsg.get_msgs("std_msgs")
+    geometry_msgs = fairomsg.get_msgs("geometry_msgs")
     transform_pub = a0.Publisher("robot/desired_ee_pose/square")
     json_pub = a0.Publisher("robot/desired_ee_pose/square_json")
 
