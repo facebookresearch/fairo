@@ -6,7 +6,6 @@ from mrp.runtime.host import Host
 from mrp.util import NoEscape
 from importlib.machinery import SourceFileLoader
 import click
-import contextlib
 import inspect
 import os
 import sys
