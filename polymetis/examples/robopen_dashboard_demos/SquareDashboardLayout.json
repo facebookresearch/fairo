@@ -1,0 +1,98 @@
+ {
+    "header": "RoBoPen",
+    "created": "Wednesday, August 17th 2022, 3:48:44 pm",
+    "layout": {
+        "direction": "row",
+        "first": {
+            "direction": "column",
+            "first": "3d765524-646a-4bc8-900d-dbcfa4d630e6",
+            "second": "3f3f8c41-3da5-4411-ad9e-2f06550a6c49"
+        },
+        "second": {
+            "direction": "column",
+            "first": "17a17584-46a5-4bbf-aeb6-22663196c418",
+            "second": "af085da6-7a8b-4d52-befb-1371ae3de0fd"
+        }
+    },
+    "panels": {
+        "3d87706d-848d-4ff6-b02f-b045f0a1c231": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "robot/desired_joint_state/sinusoidal",
+            "channel": "",
+            "subChannel": "position",
+            "layers": []
+        },
+        "930d6d4a-7272-4597-b592-5c6637c2c163": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "robot/joint_state",
+            "channel": "",
+            "subChannel": "position/4",
+            "layers": []
+        },
+        "3f3f8c41-3da5-4411-ad9e-2f06550a6c49": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "realsense_148122070878/pointcloud_xyz",
+            "channel": "",
+            "subChannel": "",
+            "layers": []
+        },
+        "af085da6-7a8b-4d52-befb-1371ae3de0fd": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "robot/desired_ee_pose/square",
+            "channel": "",
+            "subChannel": "",
+            "layers": [
+                {
+                    "channel": "robot/end_effector/transform",
+                    "id": 12,
+                    "checked": true,
+                    "opacity": 1
+                }
+            ]
+        },
+        "47c53ffd-cdf7-4062-af48-5a809be1ce37": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "robot/desired_joint_state/sinusoidal",
+            "channel": "",
+            "subChannel": "position/4",
+            "layers": []
+        },
+        "f263b16a-b8bd-453e-8263-dd34a65770a4": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "robot/desired_joint_state/sinusoidal",
+            "channel": "",
+            "subChannel": "position/4",
+            "layers": []
+        },
+        "bf2211e8-c49c-4ec2-83b2-513c947969f4": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "robot/joint_state",
+            "channel": "",
+            "subChannel": "position/4",
+            "layers": []
+        },
+        "3d765524-646a-4bc8-900d-dbcfa4d630e6": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "robot/desired_ee_pose/square_json",
+            "channel": "",
+            "subChannel": "position",
+            "layers": []
+        },
+        "17a17584-46a5-4bbf-aeb6-22663196c418": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "realsense_148122070878/color/image_compressed",
+            "channel": "",
+            "subChannel": "",
+            "layers": []
+        }
+    }
+}
