@@ -68,6 +68,8 @@ requirements:
     - sphinx-book-theme
     - tqdm
     - withbullet
+    - pip:
+      - git+https://github.com/facebookresearch/habitat-lab.git
 
 about:
   home:
