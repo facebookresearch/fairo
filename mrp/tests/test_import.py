@@ -1,5 +1,6 @@
 import mrp
 
+
 def test_import():
     assert mrp.defined_processes == {}
 
