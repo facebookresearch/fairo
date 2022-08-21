@@ -60,7 +60,13 @@ def extract_where(sw, remove_s=False):
                 x = sw[0]
         if len(x) == 0:
             return {}
-        where_clause = {"where_clause": {"AND": [{"pred_text": "has_name", "obj_text": x},]}}
+        where_clause = {
+            "where_clause": {
+                "AND": [
+                    {"pred_text": "has_name", "obj_text": x},
+                ]
+            }
+        }
     return where_clause
 
 
@@ -167,7 +173,11 @@ def templated_match(chat):
         if w[1] == "the":
             if len(w) == 3:
                 where_clause = {
-                    "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": w[2]},]}
+                    "where_clause": {
+                        "AND": [
+                            {"pred_text": "has_name", "obj_text": w[2]},
+                        ]
+                    }
                 }
             if len(w) == 4 and w[2] in color_words:
                 where_clause = {
@@ -191,8 +201,14 @@ def templated_match(chat):
                 },
             }
             if len(w) == 3:
-                f["where_clause"] = {"AND": [{"pred_text": "has_name", "obj_text": w[2]},]}
-            out = command({"action_type": "DESTROY", "reference_object": {"filters": f}},)
+                f["where_clause"] = {
+                    "AND": [
+                        {"pred_text": "has_name", "obj_text": w[2]},
+                    ]
+                }
+            out = command(
+                {"action_type": "DESTROY", "reference_object": {"filters": f}},
+            )
             return out
 
     if w[0] == "build":
@@ -206,8 +222,14 @@ def templated_match(chat):
                 "selector": {"same": "allowed", "return_quantity": "random", "ordinal": str(num)},
             }
             if len(w) == 3:
-                f["where_clause"] = {"AND": [{"pred_text": "has_name", "obj_text": w[2]},]}
-            out = command({"action_type": "BUILD", "schematic": {"filters": f}},)
+                f["where_clause"] = {
+                    "AND": [
+                        {"pred_text": "has_name", "obj_text": w[2]},
+                    ]
+                }
+            out = command(
+                {"action_type": "BUILD", "schematic": {"filters": f}},
+            )
             return out
 
 

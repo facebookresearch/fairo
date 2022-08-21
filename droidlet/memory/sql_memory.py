@@ -243,7 +243,7 @@ class AgentMemory:
 
         Args:
             memtype (string): The node type of memory.  empty string returns all memtypes
-            ignore_self (bool): if set to False, allows returning self memory node 
+            ignore_self (bool): if set to False, allows returning self memory node
             time_window (int): The time window for maintaining recency window from current time
             check_coref_tag (bool): only returns mems that have been tagged as _possible_coref
 

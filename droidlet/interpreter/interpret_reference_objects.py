@@ -133,7 +133,12 @@ class ReferenceObjectInterpreter:
 
 
 def interpret_reference_object(
-    interpreter, speaker, d, extra_tags=[], loose_speakerlook=False, all_proximity=100,
+    interpreter,
+    speaker,
+    d,
+    extra_tags=[],
+    loose_speakerlook=False,
+    all_proximity=100,
 ) -> List[ReferenceObjectNode]:
     """this tries to find a ref obj memory matching the criteria from the
     ref_obj_dict
