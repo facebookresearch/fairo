@@ -5,6 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 ###TODO put dances back
 import gzip
 import logging
+from copy import deepcopy
 import numpy as np
 import os
 import pickle
@@ -234,13 +235,17 @@ class AgentMemory:
             mem.update_recently_attended()
 
     # for now, no archives in recent entities
-    def get_recent_entities(self, memtype, time_window=12000) -> List["MemoryNode"]:
+    def get_recent_entities(
+        self, memtype="ReferenceObject", time_window=12000, ignore_self=True, check_coref_tag=False
+    ) -> List["MemoryNode"]:
         """Get all entities of given memtype that were recently (within the
         time window) attended
 
         Args:
-            memtype (string): The node type of memory
+            memtype (string): The node type of memory.  empty string returns all memtypes
+            ignore_self (bool): if set to False, allows returning self memory node 
             time_window (int): The time window for maintaining recency window from current time
+            check_coref_tag (bool): only returns mems that have been tagged as _possible_coref
 
         Returns:
             list[MemoryNode]: list of MemoryNode objects
@@ -250,14 +255,29 @@ class AgentMemory:
             >>> get_recent_entities(memtype)
         """
         r = self._db_read(
-            """SELECT uuid
+            """SELECT uuid, node_type
             FROM Memories
-            WHERE node_type=? AND attended_time >= ? and is_snapshot=0
+            WHERE attended_time >= ? and is_snapshot=0
             ORDER BY attended_time DESC""",
-            memtype,
             self.get_time() - time_window,
         )
-        return [self.get_mem_by_id(memid, memtype) for memid, in r]
+        if memtype:
+            memtypes = self.node_children[memtype]
+
+        def type_ok(t):
+            if ignore_self and t == "Self":
+                return False
+            if memtype:
+                if t in memtypes:
+                    return True
+                else:
+                    return False
+            return True
+
+        mems = [self.get_mem_by_id(memid) for memid, t in r if type_ok(t)]
+        if check_coref_tag:
+            mems = [m for m in mems if "_possible_coref" in m.get_tags()]
+        return mems
 
     ###############
     ### General ###

@@ -60,7 +60,7 @@ class TriggersTests(BaseCraftassistTestCase):
         self.assertEqual(set(changes.keys()), set(self.cube_right.blocks.keys()))
 
         # Ensure it is not in recent entities
-        recent_memids = [m.memid for m in self.agent.memory.get_recent_entities("BlockObjects")]
+        recent_memids = [m.memid for m in self.agent.memory.get_recent_entities("BlockObject")]
         self.assertNotIn(self.cube_right.memid, recent_memids)
 
 

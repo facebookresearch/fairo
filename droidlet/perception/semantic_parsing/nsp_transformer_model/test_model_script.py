@@ -49,8 +49,7 @@ class ModelEvaluator:
     def __init__(self, args):
         self.args = args
         self.evaluate_results_logger = NSPLogger(
-            "evaluation_results.csv",
-            ["accuracy", "text_span_accuracy", "inference_speed"],
+            "evaluation_results.csv", ["accuracy", "text_span_accuracy", "inference_speed"],
         )
 
     def evaluate_bm(self, model, dataset, tokenizer):
@@ -327,7 +326,8 @@ def argument_parse(input_arg):
     )
     parser.add_argument(
         "--load_ground_truth",
-        action="store_false",
+        action="store_true",
+        default=False,
         help="Load ground truth for querying input chat",
     )
 
@@ -393,11 +393,7 @@ def dataset_configure(args, tokenizer):
     full_tree_voc = (full_tree, tree_i2w)
 
     dataset = CAIPDataset(
-        tokenizer,
-        args,
-        prefix="test",
-        full_tree_voc=full_tree_voc,
-        dtype="annotated",
+        tokenizer, args, prefix="test", full_tree_voc=full_tree_voc, dtype="annotated",
     )
 
     return dataset

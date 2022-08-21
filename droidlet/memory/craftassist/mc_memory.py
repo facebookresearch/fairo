@@ -86,6 +86,8 @@ class MCAgentMemory(AgentMemory):
         self.dances = {}
         self.perception_range = perception_range
 
+        self.COREF_RESOLVE_ORDER = ["ItemStack", "Mob", "BlockObject"]
+
         if copy_from_backup is not None:
             copy_from_backup.backup(self.db)
             self.make_self_mem()

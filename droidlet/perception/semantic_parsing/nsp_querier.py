@@ -13,12 +13,16 @@ from .nsp_model_wrapper import DroidletSemanticParsingModel
 from droidlet.event import sio
 from .utils.nsp_logger import NSPLogger
 from .utils.validate_json import JSONValidator
+from .templated_parses import templated_match
 from droidlet.base_util import hash_user
 
 # FIXME: move all this to json validator and model data
 cats = [
     "HUMAN_GIVE_COMMAND",
+    "PUT_MEMORY",
     "GET_MEMORY",
+    "TRIPLE",
+    "REWARD",
     "SAY",
     "BUILD",
     "DESTROY",
@@ -150,7 +154,6 @@ class NSPQuerier(object):
         self.ground_truth_actions = get_ground_truth(
             self.opts.no_ground_truth, self.opts.ground_truth_data_dir
         )
-
         # Socket event listener
         # TODO(kavya): I might want to move this to SemanticParserWrapper
         @sio.on("queryParser")
@@ -291,8 +294,17 @@ class NSPQuerier(object):
             }
         """
         logical_form_source = "ground_truth"
+        try:
+            templated_result = templated_match(chat)
+        except:
+            print("warning in parse")
+            templated_result = None
         # Check if chat is in ground_truth otherwise query parsing model
-        if chat in self.ground_truth_actions:
+        if templated_result is not None:
+            logical_form = templated_result
+            time.sleep(0.3)
+            time_now = time.time()
+        elif chat in self.ground_truth_actions:
             logical_form = copy.deepcopy(self.ground_truth_actions[chat])
             logging.info('Found ground truth action for "{}"'.format(chat))
             # log the current UTC time

@@ -453,10 +453,7 @@ class Build(Task):
             interesting, player_placed, agent_placed = agent.perception_modules[
                 "low_level"
             ].mark_blocks_with_env_change(
-                target,
-                (0, 0),
-                agent.low_level_data["boring_blocks"],
-                agent_placed=True,
+                target, (0, 0), agent.low_level_data["boring_blocks"], agent_placed=True,
             )
             agent.memory.maybe_add_block_to_memory(
                 interesting, player_placed, agent_placed, target, (0, 0)
@@ -511,10 +508,7 @@ class Build(Task):
         interesting, player_placed, agent_placed = agent.perception_modules[
             "low_level"
         ].mark_blocks_with_env_change(
-            target,
-            tuple(idm),
-            agent.low_level_data["boring_blocks"],
-            agent_placed=True,
+            target, tuple(idm), agent.low_level_data["boring_blocks"], agent_placed=True,
         )
         agent.memory.maybe_add_block_to_memory(
             interesting, player_placed, agent_placed, target, tuple(idm)
@@ -536,6 +530,7 @@ class Build(Task):
         TripleNode.create(
             agent.memory, subj=self.memid, pred_text="task_reference_object", obj=blockobj_memid
         )
+        TripleNode.tag(agent.memory, self.blockobj_memid, "_possible_coref")
         if self.schematic_memid:
             TripleNode.create(
                 agent.memory,
@@ -880,9 +875,10 @@ class Spawn(Task):
                 mobmem = agent.memory.get_mem_by_id(memid)
                 agent.memory.update_recent_entities(mems=[mobmem])
                 if self.memid is not None:
-                    agent.memory.nodes[TripleNode.NODE_TYPE].create(
+                    TripleNode.create(
                         agent.memory, subj=self.memid, pred_text="task_effect_", obj=mobmem.memid
                     )
+                    TripleNode.tag(agent.memory, mobmem.memid, "_possible_coref")
                     # the chat_effect_ triple was already made when the task is added if there was a chat...
                     # but it points to the task memory.  link the chat to the mob memory:
                     chat_mem_triples = agent.memory.nodes[TripleNode.NODE_TYPE].get_triples(
@@ -1011,6 +1007,7 @@ class Get(Task):
             ItemStackNode.add_to_inventory(
                 agent.memory, agent.memory.get_mem_by_id(self.obj_memid)
             )
+            TripleNode.tag(agent.memory, self.obj_memid, "_possible_coref")
             agent.send_chat("Got Item!")
             self.finished = True
             return
@@ -1106,9 +1103,8 @@ class Drop(Task):
                 if new_eid != self.eid:
                     ItemStackNode.update_item_stack_eid(agent.memory, self.obj_memid, new_eid)
                 ItemStackNode.maybe_update_item_stack_position(agent.memory, dropped_item_stack)
-            agent.memory.nodes[TripleNode.NODE_TYPE].tag(
-                agent.memory, self.obj_memid, "_on_ground"
-            )
+            TripleNode.tag(agent.memory, self.obj_memid, "_on_ground")
+            TripleNode.tag(agent.memory, self.obj_memid, "_possible_coref")
             agent.send_chat("here it is".format(node.type_name))
         else:
             agent.send_chat("I tried to drop the {}, but I can't".format(node.type_name))

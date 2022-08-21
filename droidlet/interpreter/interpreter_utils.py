@@ -41,6 +41,10 @@ def update_attended_and_link_lf(interpreter, mems):
     and links it to the interpreters logical form (if it has one).
     """
     interpreter.memory.update_recent_entities(mems)
+    for m in mems:
+        interpreter.memory.nodes[TripleNode.NODE_TYPE].tag(
+            interpreter.memory, m.memid, "_possible_coref"
+        )
     lf_memid = getattr(interpreter, "logical_form_memid", None)
     # a dummy interpreter may have no logical form memid associated to it...
     if lf_memid:
@@ -165,10 +169,6 @@ def process_spans_and_remove_fixed_value(d, original_words, lemmatized_words):
                 d[k] = " ".join(lemmatized_words[L : (R + 1)])
 
 
-#####FIXME!!!
-# this is bad
-# and
-# in addition to being bad, abstraction is leaking
 def coref_resolve(memory, d, chat):
     """Walk logical form "d" and replace coref_resolve values
 
@@ -208,31 +208,9 @@ def coref_resolve(memory, d, chat):
                         v_copy["location"] = SPEAKERLOOK
                         v_copy["contains_coreference"] = "resolved"
                     else:
-                        mems = memory.get_recent_entities("BlockObject")
+                        mems = memory.get_recent_entities(check_coref_tag=True)
                         if len(mems) == 0:
-                            mems = memory.get_recent_entities(
-                                "Mob"
-                            )  # if its a follow, this should be first, FIXME
-                            if len(mems) == 0:
-                                v_copy[k_] = "NULL"
-                            else:
-                                v_copy[k_] = mems[0]
+                            v_copy[k_] = "NULL"
                         else:
                             v_copy[k_] = mems[0]
             d[k] = v_copy
-        # fix/delete this branch! its for old broken spec
-        else:
-            for k_ in v:
-                if k_ == "contains_coreference":
-                    v_copy = deepcopy(v)
-                    if "this" in c or "that" in c:
-                        v_copy["location"] = SPEAKERLOOK
-                        v_copy["contains_coreference"] = "resolved"
-            d[k] = v_copy
-
-
-if __name__ == "__main__":
-    x = eval(
-        "{'dialogue_type': 'PUT_MEMORY', 'filters': {'reference_object':{'contains_coreference': 'yes'}}, 'upsert': {'memory_data': {'memory_type': 'TRIPLE', 'has_tag': 'j'}}}"
-    )
-    y = coref_resolve(None, x, "that is a j")

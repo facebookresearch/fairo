@@ -133,12 +133,7 @@ class ReferenceObjectInterpreter:
 
 
 def interpret_reference_object(
-    interpreter,
-    speaker,
-    d,
-    extra_tags=[],
-    loose_speakerlook=False,
-    all_proximity=100,
+    interpreter, speaker, d, extra_tags=[], loose_speakerlook=False, all_proximity=100,
 ) -> List[ReferenceObjectNode]:
     """this tries to find a ref obj memory matching the criteria from the
     ref_obj_dict
@@ -202,6 +197,7 @@ def interpret_reference_object(
                 num_refs = len(filters_d["where_clause"].get("OR"))
         elif filters_d.get("selector", {}).get("ordinal", "").isdigit():
             num_refs = int(filters_d["selector"]["ordinal"])
+            print("num_refs {}".format(num_refs))
         elif filters_d.get("selector", {}).get("return_quantity", "") == "ALL":
             allow_clarification = False
 
@@ -218,6 +214,9 @@ def interpret_reference_object(
             filters_d["where_clause"]["AND"].extend(extra_clauses)
 
         candidate_mems = apply_memory_filters(interpreter, speaker, filters_d)
+
+        print("num_refs here {}".format(num_refs))
+        print(candidate_mems)
 
         # Clarification only enabled for HUMAN_GIVE_COMMAND
         command_type = None

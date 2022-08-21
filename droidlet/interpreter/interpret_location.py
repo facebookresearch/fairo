@@ -39,35 +39,40 @@ class ReferenceLocationInterpreter:
             ref_obj_1 = d.get("reference_object_1")
             ref_obj_2 = d.get("reference_object_2")
             if ref_obj_1 and ref_obj_2:
-                interpreter.allow_clarificaiton = False
+                interpreter.allow_clarification = False
                 mem1 = interpreter.subinterpret["reference_objects"](
-                    interpreter,
-                    speaker,
-                    ref_obj_1,
-                    loose_speakerlook=loose_speakerlook,
+                    interpreter, speaker, ref_obj_1, loose_speakerlook=loose_speakerlook,
                 )[0]
                 mem2 = interpreter.subinterpret["reference_objects"](
-                    interpreter,
-                    speaker,
-                    ref_obj_2,
-                    loose_speakerlook=loose_speakerlook,
+                    interpreter, speaker, ref_obj_2, loose_speakerlook=loose_speakerlook,
                 )[0]
                 if mem1 is None or mem2 is None:
                     raise ErrorWithResponse("I don't know what you're referring to")
                 mems = [mem1, mem2]
                 update_attended_and_link_lf(interpreter, mems)
                 return mems
-
             else:
                 interpreter.allow_clarification = False
+                ref_obj = d.get("reference_object")
+                if ref_obj.get("filters"):
+                    ref_obj["filters"]["selector"] = {
+                        "same": "DISALLOWED",
+                        "return_quantity": "RANDOM",
+                        "ordinal": "2",
+                    }
+                mems = interpreter.subinterpret["reference_objects"](
+                    interpreter, speaker, ref_obj, loose_speakerlook=loose_speakerlook,
+                )
+                if len(mems) > 1:
+                    update_attended_and_link_lf(interpreter, mems)
+                    return mems
+                else:
+                    raise ErrorWithResponse("I can't find you want me to go between")
 
         default_loc = getattr(interpreter, "default_loc", SPEAKERLOOK)
         ref_obj = d.get("reference_object", default_loc["reference_object"])
         mems = interpreter.subinterpret["reference_objects"](
-            interpreter,
-            speaker,
-            ref_obj,
-            loose_speakerlook=loose_speakerlook,
+            interpreter, speaker, ref_obj, loose_speakerlook=loose_speakerlook,
         )
 
         # FIXME use FILTERS here!!
