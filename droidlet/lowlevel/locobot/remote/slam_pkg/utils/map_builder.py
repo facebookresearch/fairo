@@ -188,7 +188,7 @@ class MapBuilder(object):
             # radius = 10 => ideal for Habitat
             # radius = 40 => ideal on robot
             # TODO Make this adaptive
-            radius = 10
+            radius = 40
             explored_disk = skimage.morphology.disk(radius)
             self.semantic_map[
                 1, curr_r - radius : curr_r + radius + 1, curr_c - radius : curr_c + radius + 1
