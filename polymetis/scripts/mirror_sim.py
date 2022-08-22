@@ -27,13 +27,15 @@ def main(cfg):
     assert check_server_exists(
         ip=sim_ip, port=sim_port
     ), f"Sim CM server must be started at {sim_ip}:{sim_port}"
-    # launch sim client, TODO: move mirror sim into robot interface
-    mirror_sim_client = hydra.utils.instantiate(cfg.robot_client)
-    mirror_sim_client.init_robot_client()
 
-    # create hw and sim robots
-    sim_robot = RobotInterface(ip_address=sim_ip, port=sim_port)
-    hw_robot = RobotInterface(ip_address=hw_ip, port=hw_port)
+    hw_robot = RobotInterface(
+        ip_address=hw_ip,
+        port=hw_port,
+        use_mirror_sim=True,
+        mirror_cfg=cfg,
+        mirror_ip=sim_ip,
+        mirror_port=sim_port,
+    )
 
     # Create policy instance
     hz = hw_robot.metadata.hz
@@ -45,7 +47,7 @@ def main(cfg):
     print("Planning...")
     waypoints = toco.planning.generate_joint_space_min_jerk(
         start=hw_robot.get_joint_positions(),
-        goal=hw_robot.get_joint_positions() + 0.3,
+        goal=hw_robot.get_joint_positions() + 0.1,
         time_to_go=5,
         hz=hz,
     )
@@ -61,19 +63,16 @@ def main(cfg):
         ignore_gravity=hw_robot.use_grav_comp,
     )
 
-    # Reset and test in sim, TODO: not easily doable until the mirror sim is moved into RoboInterface
-    # sim_robot.go_home()
-    # sim_robot.send_torch_policy(policy)
+    # print("Homing simulation...")
+    # hw_robot.mirror_sim_robot.go_home()
+    # print("Running forward sim...")
+    # hw_robot.mirror_sim_robot.send_torch_policy(policy)
 
     # Mirror
     print("Homing robot...")
     hw_robot.go_home()
-    print("Syncing...")
-    mirror_sim_client.sync(hw_robot)  # must be non-blocking
     print("Sending policy...")
     hw_robot.send_torch_policy(policy)
-    print("Unsyncing...")
-    mirror_sim_client.unsync()
 
 
 # this should be preceded by a call to launch_robot.py robot_client=None on the same machine

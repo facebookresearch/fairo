@@ -9,6 +9,8 @@ import tempfile
 import threading
 import atexit
 import logging
+from omegaconf import DictConfig
+import hydra
 
 import grpc  # This requires `conda install grpcio protobuf`
 import torch
@@ -66,7 +68,14 @@ class BaseRobotInterface:
     """
 
     def __init__(
-        self, ip_address: str = "localhost", port: int = 50051, enforce_version=True
+        self,
+        ip_address: str = "localhost",
+        port: int = 50051,
+        enforce_version=True,
+        use_mirror_sim: bool = False,
+        mirror_cfg: DictConfig = None,
+        mirror_ip: str = "",
+        mirror_port: int = -1,
     ):
         # Create connection
         self.channel = grpc.insecure_channel(f"{ip_address}:{port}")
@@ -82,6 +91,15 @@ class BaseRobotInterface:
             assert (
                 client_ver == server_ver
             ), "Version mismatch between client & server detected! Set enforce_version=False to bypass this error."
+
+        self.use_mirror_sim = use_mirror_sim
+        if use_mirror_sim:
+            self.mirror_sim_client = hydra.utils.instantiate(mirror_cfg.robot_client)
+            self.mirror_sim_client.init_robot_client()
+            self.mirror_sim_client.sync(self)
+            self.mirror_sim_robot = RobotInterface(
+                ip_address=mirror_ip, port=mirror_port
+            )
 
     def __del__(self):
         # Close connection in destructor
