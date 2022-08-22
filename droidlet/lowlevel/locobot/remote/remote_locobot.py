@@ -135,6 +135,9 @@ class RemoteLocobot(object):
 
         # reproduce robot settings: restrict depth to 4m
         depth[depth > 4.0] = 0.
+        print("depth.min()", depth.min())
+        print("depth.max()", depth.max())
+        print()
 
         cur_sensor_state = cur_state.sensor_states["rgb"]
         initial_rotation = cur_state.rotation
