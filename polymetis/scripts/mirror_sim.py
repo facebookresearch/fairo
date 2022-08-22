@@ -45,8 +45,8 @@ def main(cfg):
     print("Planning...")
     waypoints = toco.planning.generate_joint_space_min_jerk(
         start=hw_robot.get_joint_positions(),
-        goal=hw_robot.get_joint_positions() + 0.01,
-        time_to_go=1,
+        goal=hw_robot.get_joint_positions() + 0.3,
+        time_to_go=5,
         hz=hz,
     )
     print("Creating policy...")
