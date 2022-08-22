@@ -73,7 +73,7 @@ def reconfigure_scene(env, scene_path, add_humans):
         # start_rotation = quaternion.from_euler_angles(0, -1.04, 0)
 
         # toilet2
-        start_position = np.asarray([3.11, 0., -2.44])
+        start_position = np.asarray([3.11, 0.0, -2.44])
         start_rotation = quaternion.from_euler_angles(0, -0.52, 0)
 
         # tv1
