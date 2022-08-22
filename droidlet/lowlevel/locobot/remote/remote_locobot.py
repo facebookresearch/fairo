@@ -134,7 +134,7 @@ class RemoteLocobot(object):
         depth[depth > np.power(2, 6) - 1] = np.power(2, 6) - 1
 
         # reproduce robot settings: restrict depth to 4m
-        depth[depth > 4.0] = 0.
+        depth[depth > 4.0] = 0.0
         print("depth.min()", depth.min())
         print("depth.max()", depth.max())
         print()
