@@ -296,6 +296,8 @@ if __name__ == "__main__":
 
         # this goes from 21ms to 120ms
         rgb_depth = mover.get_rgb_depth()
+        print("rgb_depth.depth.min()", rgb_depth.depth.min())
+        print("rgb_depth.depth.max()", rgb_depth.depth.max())
 
         points, colors = rgb_depth.ptcloud.reshape(-1, 3), rgb_depth.rgb.reshape(-1, 3)
         colors = colors / 255.
