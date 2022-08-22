@@ -61,6 +61,9 @@ def make_cfg(SIM):
         sensor_spec.gpu2gpu_transfer = False  # Todo: Move this to config
         if SIM.noisy and sensor_uuid in ("depth"):
             sensor_spec.noise_model = sensor_params["noise_model"]
+        if sensor_uuid == "depth":
+            sensor_spec.min_depth = 0.1
+            sensor_spec.max_depth = 2.0
         print("==== Initialized Sensor Spec: =====")
         print("Sensor uuid: ", sensor_spec.uuid)
         print("Sensor type: ", sensor_spec.sensor_type)
