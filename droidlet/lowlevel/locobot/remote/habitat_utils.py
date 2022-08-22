@@ -53,8 +53,8 @@ def reconfigure_scene(env, scene_path, add_humans):
         # start_rotation = quaternion.from_euler_angles(0, np.pi * (5 / 4), 0)
 
         # bed1, plant1, toilet1
-        start_position = np.asarray([7.5, 0.0, -9])
-        start_rotation = quaternion.from_euler_angles(0, np.pi, 0)
+        # start_position = np.asarray([7.5, 0.0, -9])
+        # start_rotation = quaternion.from_euler_angles(0, np.pi, 0)
 
         # chair1
         # start_position = np.asarray([-3.31, 0., -5.11])
@@ -73,8 +73,8 @@ def reconfigure_scene(env, scene_path, add_humans):
         # start_rotation = quaternion.from_euler_angles(0, -1.04, 0)
 
         # toilet2
-        # start_position = np.asarray([3.11, 0., -2.44])
-        # start_rotation = quaternion.from_euler_angles(0, -0.52, 0)
+        start_position = np.asarray([3.11, 0., -2.44])
+        start_rotation = quaternion.from_euler_angles(0, -0.52, 0)
 
         # tv1
         # start_position = np.asarray([5.26, 0., -6.60])
