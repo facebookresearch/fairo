@@ -133,6 +133,9 @@ class RemoteLocobot(object):
         # cap anything more than np.power(2,6)~ 64 meter
         depth[depth > np.power(2, 6) - 1] = np.power(2, 6) - 1
 
+        # reproduce robot settings: restrict depth to 4m
+        depth[depth > 4.0] = np.power(2, 6) - 1
+
         cur_sensor_state = cur_state.sensor_states["rgb"]
         initial_rotation = cur_state.rotation
         rot_init_rotation = self._robot.camera._rot_matrix(initial_rotation)
