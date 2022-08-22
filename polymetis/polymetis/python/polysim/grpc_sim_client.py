@@ -59,6 +59,7 @@ class GrpcSimulationClient(AbstractRobotClient):
         port: int = 50051,
         log_interval: int = 0,
         max_ping: float = 0.0,
+        mirror_hz: int = 24,
     ):
         super().__init__(metadata_cfg=metadata_cfg)
 
@@ -97,15 +98,13 @@ class GrpcSimulationClient(AbstractRobotClient):
 
         self._state_setter = None
         self._kill_state_setter = False
+        self.mirror_hz = mirror_hz
 
     def __del__(self):
         """Close connection in destructor"""
         self.channel.close()
 
     def run(self, time_horizon=float("inf")):
-        self.simulate(time_horizon)
-
-    def simulate(self, time_horizon=float("inf")):
         """Start running the simulation and querying the server.
 
         Args:
@@ -158,25 +157,6 @@ class GrpcSimulationClient(AbstractRobotClient):
             t += 1
             spinner.spin()
 
-    def mirror(self, time_horizon=float("inf")):
-        """Start mirror simulation by setting simulation state
-
-        Args:
-            time_horizon: If finite, the number of timesteps to stop the simulation.
-
-        """
-        self.connection.InitRobotClient(self.metadata.get_proto())
-        t = 0
-        spinner = Spinner(self.hz)
-        while t < time_horizon:
-            log_request_time = self.log_interval > 0 and t % self.log_interval == 0
-            robot_state = self.execute_rpc_call(
-                self.connection.GetMirrorRobotState,
-                [polymetis_pb2.Empty()],
-                log_request_time=log_request_time,
-            )
-            self.set_robot_state(robot_state)
-
     def execute_rpc_call(self, request_func: Callable, args=[], log_request_time=False):
         """Executes an RPC call and performs round trip time intervals checks and logging
 
@@ -219,12 +199,14 @@ class GrpcSimulationClient(AbstractRobotClient):
 
     def _sync_blocking(self, tgt_robot: RobotInterface, timesteps: int):
         step = 0
-        while step < timesteps and not self._kill_state_setter:
+        spinner = Spinner(self.mirror_hz)
+        while (timesteps < 0 or step < timesteps) and not self._kill_state_setter:
             tgt_state = tgt_robot.get_robot_state()
             self.set_robot_state(tgt_state)
             step += 1
+            spinner.spin()
 
-    def sync(self, tgt_robot: RobotInterface, timesteps: int = float("inf")):
+    def sync(self, tgt_robot: RobotInterface, timesteps: int = -1):
         assert (
             self._state_setter is None
         ), "The simulation client is already synced to a robot"
