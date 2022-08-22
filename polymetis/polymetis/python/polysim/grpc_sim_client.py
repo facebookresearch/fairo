@@ -211,6 +211,9 @@ class GrpcSimulationClient(AbstractRobotClient):
 
         return ret
 
+    def init_robot_client(self):
+        self.connection.InitRobotClient(self.metadata.get_proto())
+
     def set_robot_state(self, robot_state: polymetis_pb2.RobotState):
         self.env.set_robot_state(robot_state)
 
@@ -225,8 +228,12 @@ class GrpcSimulationClient(AbstractRobotClient):
         assert (
             self._state_setter is None
         ), "The simulation client is already synced to a robot"
-        self._state_setter = Thread(_sync_blocking, [tgt_robot, timesteps])
+        self._state_setter = Thread(
+            target=self._sync_blocking, args=[tgt_robot, timesteps]
+        )
+        self._state_setter.start()
 
     def unsync(self):
+        assert self._state_setter is not None, "The mirror simulator is not synced"
         self._kill_state_setter = True
         self._state_setter.join()
