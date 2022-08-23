@@ -17,7 +17,7 @@ from collections import Counter
 from droidlet.tools.hitl.utils.process_s3_logs import read_s3_bucket
 from droidlet.dialog.post_process_logical_form import retrieve_ref_obj_span
 
-PROD_BATCH_IDS = [ # The 10 ~1000 HIT jobs from early 2022
+PROD_BATCH_IDS = [  # The 10 ~1000 HIT jobs from early 2022
     20211115024843,
     20211122224720,
     # 20211202170632, # This one is weird b/c of a bug when launched, see quip
@@ -27,25 +27,17 @@ PROD_BATCH_IDS = [ # The 10 ~1000 HIT jobs from early 2022
     20220224132033,
     20220228100513,
     20220302172356,
-    20220304025542
+    20220304025542,
 ]
-LABELING_IGLU_BATCHES = [
-    20220804134815,
-    20220805093118,
-    20220815162244
-]
-LABELING_SIMPLE_SHAPES_BATCHES = [
-    20220809133448,
-    20220816110956,
-    20220816152958
-]
+LABELING_IGLU_BATCHES = [20220804134815, 20220805093118, 20220815162244]
+LABELING_SIMPLE_SHAPES_BATCHES = [20220809133448, 20220816110956, 20220816152958]
 LABELING_DATA_LUT = {
     "iglu": LABELING_IGLU_BATCHES,
     "simple": LABELING_SIMPLE_SHAPES_BATCHES,
-    "both": LABELING_IGLU_BATCHES + LABELING_SIMPLE_SHAPES_BATCHES
+    "both": LABELING_IGLU_BATCHES + LABELING_SIMPLE_SHAPES_BATCHES,
 }
 
-ACTION_LIST = ['build', 'destroy', 'fill', 'copy', 'dance', 'tag', 'dig', 'spawn', 'move']
+ACTION_LIST = ["build", "destroy", "fill", "copy", "dance", "tag", "dig", "spawn", "move"]
 
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
@@ -66,6 +58,7 @@ s3 = boto3.client(
 HITL_TMP_DIR = (
     os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
 )
+
 
 def scrape_interaction(opts):
     # Determine the batch_ids being scraped
@@ -100,13 +93,13 @@ def scrape_interaction(opts):
     # Produce some charts
     obj_cnt = Counter(ref_objs)
     obj_cnt.most_common(10)
-    plt.bar(list(obj_cnt.keys()), obj_cnt.values(), color='g')
+    plt.bar(list(obj_cnt.keys()), obj_cnt.values(), color="g")
     plt.xlabel("Command")
     plt.ylabel("Count")
     fig_save_path = os.path.join(opts.output_save_dir, "interaction_ref_obj_cnt.png")
-    plt.savefig(fig_save_path, format='png')
+    plt.savefig(fig_save_path, format="png")
 
-    data_save_path = os.path.join(opts.output_save_dir, 'interaction_refs.pkl')
+    data_save_path = os.path.join(opts.output_save_dir, "interaction_refs.pkl")
     with open(data_save_path, "wb") as f:
         pickle.dump(ref_objs, f)
 
@@ -115,7 +108,7 @@ def scrape_interaction(opts):
 
 def process_s3_logs(batch_id, job_type) -> None:
     """
-    This borrows heavily from the function of the same name in 
+    This borrows heavily from the function of the same name in
     droidlet.tools.hitl.nsp_retrain.interaction_jobs
     """
     if job_type == "interaction":
@@ -129,15 +122,10 @@ def process_s3_logs(batch_id, job_type) -> None:
 
     os.makedirs(s3_logs_dir, exist_ok=True)
 
-    rc = subprocess.Popen(
-        s3_sync_cmd, shell=True, stdout=sys.stdout, stderr=sys.stderr, text=True
-    )
+    rc = subprocess.Popen(s3_sync_cmd, shell=True, stdout=sys.stdout, stderr=sys.stderr, text=True)
 
     now = datetime.now().timestamp()
-    while (
-        not (datetime.now().timestamp() - now > S3_SYNC_TIMEOUT) 
-        and rc.poll() is None
-    ):
+    while not (datetime.now().timestamp() - now > S3_SYNC_TIMEOUT) and rc.poll() is None:
         print(
             f"S3 syncing for batch_id {batch_id}...Remaining time: {int(S3_SYNC_TIMEOUT - (datetime.now().timestamp() - now))} sec"
         )
@@ -152,9 +140,9 @@ def process_s3_logs(batch_id, job_type) -> None:
     print(f"Done downloading files for batch_id {batch_id}")
 
     if job_type == "interaction":
-        cnt = read_s3_bucket(s3_logs_dir, parsed_logs_dir) # extract all tarballs
-        assert(cnt > 0)
-    
+        cnt = read_s3_bucket(s3_logs_dir, parsed_logs_dir)  # extract all tarballs
+        assert cnt > 0
+
     return
 
 
@@ -163,7 +151,7 @@ def read_turk_logs(turk_output_directory) -> list:
     ref_objs = []
     for csv_path in glob.glob(f"{turk_output_directory}/**/nsp_outputs.csv"):
         csv_file = pd.read_csv(csv_path, delimiter="|")
-        
+
         for _, row in csv_file.iterrows():
             d = yaml.load(row["action_dict"], yaml.SafeLoader)
             span = d.get("text_span", retrieve_ref_obj_span(d))
@@ -172,7 +160,7 @@ def read_turk_logs(turk_output_directory) -> list:
                 continue
             new_ref = span_to_text(span, row["command"])
             if new_ref:
-                new_ref = new_ref.replace('&nbsp', '')
+                new_ref = new_ref.replace("&nbsp", "")
                 new_ref = filter_stop_words(new_ref)
                 if new_ref not in ACTION_LIST:
                     # FIXME This issue comes from poor NSP accuracy...
@@ -184,7 +172,7 @@ def read_turk_logs(turk_output_directory) -> list:
 def span_to_text(span, cmd) -> str:
     # Convert span nums to words
     if isinstance(span, list):
-        cmd_list = cmd.split(' ')
+        cmd_list = cmd.split(" ")
         return " ".join(cmd_list[span[1][0] : (span[1][1] + 1)])
     elif isinstance(span, str):
         maybe_span_nums = yaml.load(span)
@@ -233,14 +221,16 @@ def scrape_labeling(opts):
     xs = [x[0] for x in most_common]
     print(xs)
     ys = [x[1] for x in most_common]
-    plt.bar(xs, ys, color='g')
+    plt.bar(xs, ys, color="g")
     plt.xlabel("Command")
-    plt.xticks(rotation=70, fontsize=6, va='top', ha='right')
+    plt.xticks(rotation=70, fontsize=6, va="top", ha="right")
     plt.ylabel("Count")
-    fig_save_path = os.path.join(opts.output_save_dir, f"labeling_{opts.labeling_job_types}_ref_obj_cnt.png")
-    plt.savefig(fig_save_path, format='png', dpi=300)
+    fig_save_path = os.path.join(
+        opts.output_save_dir, f"labeling_{opts.labeling_job_types}_ref_obj_cnt.png"
+    )
+    plt.savefig(fig_save_path, format="png", dpi=300)
 
-    data_save_path = os.path.join(opts.output_save_dir, 'labeling_refs.pkl')
+    data_save_path = os.path.join(opts.output_save_dir, "labeling_refs.pkl")
     with open(data_save_path, "wb") as f:
         pickle.dump(ref_objs, f)
 
@@ -249,7 +239,7 @@ def scrape_labeling(opts):
 
 def read_labeling_csv(dir):
     # Crawl turk logs directory and retrieve reference objects
-    csv_filename = [f for f in os.listdir(dir) if re.match('\d+\.csv', f)][0]
+    csv_filename = [f for f in os.listdir(dir) if re.match("\d+\.csv", f)][0]
     csv_path = os.path.join(dir, csv_filename)
     csv_file = pd.read_csv(csv_path)
 
@@ -264,18 +254,54 @@ def read_labeling_csv(dir):
 
 def filter_stop_words(ref):
     STRIP_LIST = [
-        "a", "the", "and", "an", "there", "is", "here", " ",
-        "orange", "yellow", "purple", "black", "grey", "gray", "green", "white", "red", "blue", "pink", "olive", "magenta", "aqua", "lime", "cyan", "gold", "golden", "bronze", "teal", "brown",
-        "dark", "light", "multicolored", "hot", "colorful", "multi-colored", "multi", "colored",
-        "letter", "nothing" # controversial
+        "a",
+        "the",
+        "and",
+        "an",
+        "there",
+        "is",
+        "here",
+        " ",
+        "orange",
+        "yellow",
+        "purple",
+        "black",
+        "grey",
+        "gray",
+        "green",
+        "white",
+        "red",
+        "blue",
+        "pink",
+        "olive",
+        "magenta",
+        "aqua",
+        "lime",
+        "cyan",
+        "gold",
+        "golden",
+        "bronze",
+        "teal",
+        "brown",
+        "dark",
+        "light",
+        "multicolored",
+        "hot",
+        "colorful",
+        "multi-colored",
+        "multi",
+        "colored",
+        "letter",
+        "nothing",  # controversial
     ]
+
     def check_filter(word):
         if word not in STRIP_LIST:
             return True
         else:
             return False
 
-    split = ref.split(' ')
+    split = ref.split(" ")
     lower = [w.lower() for w in split]
     filtered = filter(check_filter, lower)
     word = " ".join(filtered)
@@ -290,9 +316,13 @@ def compare_distributions(interaction_refs, labeling_refs):
         if ref in labeling_refs:
             interaction_overlaps += 1
             unique_interaction_overlaps.add(ref)
-    print(f"% of Interaction ref_objs also in labeling corpus: {interaction_overlaps/len(interaction_refs)}")
+    print(
+        f"% of Interaction ref_objs also in labeling corpus: {interaction_overlaps/len(interaction_refs)}"
+    )
     interaction_set = set(interaction_refs)
-    print(f"% of unique Interaction ref_objs also in labeling corpus: {len(unique_interaction_overlaps)/len(interaction_set)}")
+    print(
+        f"% of unique Interaction ref_objs also in labeling corpus: {len(unique_interaction_overlaps)/len(interaction_set)}"
+    )
     print(unique_interaction_overlaps)
     print(" ")
 
@@ -302,9 +332,13 @@ def compare_distributions(interaction_refs, labeling_refs):
         if ref in interaction_refs:
             labeling_overlaps += 1
             unique_labeling_overlaps.add(ref)
-    print(f"% of Labeling ref_objs also in interaction corpus: {labeling_overlaps/len(labeling_refs)}")
+    print(
+        f"% of Labeling ref_objs also in interaction corpus: {labeling_overlaps/len(labeling_refs)}"
+    )
     labeling_set = set(labeling_refs)
-    print(f"% of unique Labeling ref_objs also in interaction corpus: {len(unique_labeling_overlaps)/len(labeling_set)}")
+    print(
+        f"% of unique Labeling ref_objs also in interaction corpus: {len(unique_labeling_overlaps)/len(labeling_set)}"
+    )
     print(unique_labeling_overlaps)
     print(" ")
 
@@ -315,11 +349,11 @@ def compare_distributions(interaction_refs, labeling_refs):
     for tag in interaction_counter.keys():
         if tag not in labeling_refs:
             labeling_counter[tag] = 0
-        interaction_counter[tag] /= len(interaction_refs) #normalize based on data size
+        interaction_counter[tag] /= len(interaction_refs)  # normalize based on data size
     for tag in labeling_counter.keys():
         if tag not in interaction_refs:
             interaction_counter[tag] = 0
-        labeling_counter[tag] /= len(labeling_refs) #normalize based on data size
+        labeling_counter[tag] /= len(labeling_refs)  # normalize based on data size
 
     # At this point the counter dicts should contain the % of that corpus for each tag
     # Sum the differences in corpus percentages to get the total 1 - overlap
@@ -333,14 +367,41 @@ def compare_distributions(interaction_refs, labeling_refs):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output_save_dir", type=str, default="", help="Where to save the output plot")
+    parser.add_argument(
+        "--output_save_dir", type=str, default="", help="Where to save the output plot"
+    )
     parser.add_argument("--test_batch_id", type=int, default=0)
-    parser.add_argument("--just_prod_jobs", action="store_true", default=False, help="Scrape just 10 prod jobs from early 2022")
-    parser.add_argument("--scrape_interaction", action="store_true", default=False, help="Enable interaction job scrape")
-    parser.add_argument("--scrape_labeling", action="store_true", default=False, help="Enable labeling job scrape")
-    parser.add_argument("--compare", action="store_true", default=False, help="Compare interaction and labeling command distributions")
-    parser.add_argument("--labeling_job_types", type=str, choices=["iglu", "simple", "both"], default="simple", help="What types of labeling jobs to scrape data from")
-    parser.add_argument("--load_existing_data", action="store_true", default=False, help="Load local ref files")
+    parser.add_argument(
+        "--just_prod_jobs",
+        action="store_true",
+        default=False,
+        help="Scrape just 10 prod jobs from early 2022",
+    )
+    parser.add_argument(
+        "--scrape_interaction",
+        action="store_true",
+        default=False,
+        help="Enable interaction job scrape",
+    )
+    parser.add_argument(
+        "--scrape_labeling", action="store_true", default=False, help="Enable labeling job scrape"
+    )
+    parser.add_argument(
+        "--compare",
+        action="store_true",
+        default=False,
+        help="Compare interaction and labeling command distributions",
+    )
+    parser.add_argument(
+        "--labeling_job_types",
+        type=str,
+        choices=["iglu", "simple", "both"],
+        default="simple",
+        help="What types of labeling jobs to scrape data from",
+    )
+    parser.add_argument(
+        "--load_existing_data", action="store_true", default=False, help="Load local ref files"
+    )
     opts = parser.parse_args()
 
     interaction_refs, labeling_refs = None, None
