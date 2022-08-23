@@ -153,7 +153,7 @@ class VisionAnnotationJob(DataGenerator):
                     )
                 except json.decoder.JSONDecodeError:
                     output_scene[i]["inst_seg_tags"] = 0
-                if i%50 == 0:
+                if i % 50 == 0:
                     logging.info(f"Processed {i+1} scene annotation results")
 
             # Upload vision annotation results to S3 and save locally
