@@ -74,8 +74,9 @@ class VisionLabelingJob(DataGenerator):
         MAX_NUM_SHAPES: int,
         NUM_SCENES: int,
         MAX_HOLES: int,
+        num_iglu_scenes: int,
+        use_basic_shapes: bool,
         timeout: float = -1,
-        use_basic_shapes: bool = False,
     ) -> None:
         super(VisionLabelingJob, self).__init__(timeout)
         self._batch_id = generate_batch_id()
@@ -86,6 +87,7 @@ class VisionLabelingJob(DataGenerator):
         self._NUM_SCENES = NUM_SCENES
         self._MAX_HOLES = MAX_HOLES
         self._use_basic_shapes = use_basic_shapes
+        self._num_iglu_scenes = num_iglu_scenes
 
     def run(self) -> None:
 
@@ -120,6 +122,7 @@ class VisionLabelingJob(DataGenerator):
             )
             if not self._use_basic_shapes:
                 scene_gen_cmd += " --iglu_scenes=" + os.environ["IGLU_SCENE_PATH"]
+                scene_gen_cmd += " --num_iglu_scenes=" + str(self._num_iglu_scenes)
             try:
                 logging.info("Starting scene generation script")
                 scene_gen = subprocess.Popen(
@@ -355,20 +358,21 @@ if __name__ == "__main__":
     parser.add_argument("--ground_depth", type=int, default=4)
     parser.add_argument("--max_num_shapes", type=int, default=4)
     parser.add_argument("--max_num_holes", type=int, default=3)
-    parser.add_argument("--num_hits", type=int, default=100, help="Number of HITs to request")
+    parser.add_argument("--num_hits", type=int, default=500, help="Number of HITs to request")
     parser.add_argument(
         "--labeling_timeout",
         type=int,
-        default=75,
+        default=120,
         help="Number of minutes before labeling job times out",
     )
     parser.add_argument(
         "--annotation_timeout",
         type=int,
-        default=75,
+        default=120,
         help="Number of minutes before annotation job times out",
     )
     parser.add_argument("--use_basic_shapes", action="store_true", default=False)
+    parser.add_argument("--num_iglu_scenes", type=int, default=30, help="Subset of IGLU scenes")
     opts = parser.parse_args()
 
     LISTENER_TIMEOUT = opts.labeling_timeout + opts.annotation_timeout
@@ -383,6 +387,7 @@ if __name__ == "__main__":
         MAX_HOLES=opts.max_num_holes,
         timeout=opts.labeling_timeout,
         use_basic_shapes=opts.use_basic_shapes,
+        num_iglu_scenes=opts.num_iglu_scenes,
     )
 
     batch_id = lj.get_batch_id()
