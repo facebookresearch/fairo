@@ -69,22 +69,20 @@ def build_shape_scene(args):
     """
     fence = getattr(args, "fence", False)
     blocks = build_base_world(args.SL, args.H, args.GROUND_DEPTH, fence=fence)
-    print(len(blocks))
     num_shapes = np.random.randint(1, args.MAX_NUM_SHAPES + 1)
-    print(num_shapes)
     for t in range(num_shapes):
         shape = random.choice(SHAPE_NAMES)
         opts = SHAPE_OPTION_FUNCTION_MAP[shape]()
         opts["bid"] = bid()
         S = SHAPE_FNS[shape](**opts)
         m = np.mean([l for l, idm in S], axis=0)
+        m = [round(l) for l in m]
         offsets = np.random.randint((args.SL, args.H, args.SL)) - m
         for l, idm in S:
             ln = np.add(l, offsets)
             if ln[0] >= 0 and ln[1] >= 0 and ln[2] >= 0:
                 if ln[0] < args.SL and ln[1] < args.H and ln[2] < args.SL:
                     blocks.append((ln, idm))
-        print(len(blocks))
     J = {}
     J["avatarInfo"] = {"pos": avatar_pos(args, blocks), "look": avatar_look(args, blocks)}
     J["agentInfo"] = {"pos": agent_pos(args, blocks), "look": agent_look(args, blocks)}

@@ -350,6 +350,7 @@ def sphere(radius=5, size=None, bid=DEFAULT_IDM, labelme=False, **kwargs):
                         if labelme:
                             L[(r, s, t)] = ["spherical_surface"]
                             insts["spherical_surface"][0].append((r, s, t))
+    # print(S)
     if not labelme:
         return S
     else:
