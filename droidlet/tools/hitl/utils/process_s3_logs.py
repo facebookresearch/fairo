@@ -41,6 +41,8 @@ def read_s3_bucket(s3_logs_dir, output_dir):
         timestamp = pattern.match(csv_path).group(1)
         tf.extractall(path="{}/{}/".format(output_dir, timestamp))
 
+        if log_file_ct % 25 == 0:
+            print(f"Count extracted: {log_file_ct}")
     return log_file_ct
 
 
