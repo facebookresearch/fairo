@@ -56,3 +56,24 @@ On the stretch run:
 ```
 roslaunch home_robot startup_stretch_hector_slam.launch
 ```
+
+Then in `$SOURCE/fairo/perception/sandbox/polygrasp`:
+```
+mrp up
+# or
+# mrp down && mrp up
+```
+
+Then you can run the polygrasp script! If you want to verify data is streaming, run rviz:
+```
+source ~/catkin_ws/devel/setup.bash
+roslaunch home_robot visualization.launch
+```
+You should be able to see the robot model and its location in the world.
+
+Run the code:
+```
+source ~/catkin_ws/devel/setup.bash
+conda activate mrp_polygrasp
+python scripts/run_stretch_grasp.py
+```
