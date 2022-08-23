@@ -49,3 +49,10 @@ python scripts/run_grasp.py robot=robot_mock cam=cam_mock num_bin_shifts=1 num_g
 ```
 
 which runs the loop without connecting to a real robot and loading the RGBD images from [data/rgbd.npy](data/rgbd.npy).
+
+### ROS support
+
+On the stretch run:
+```
+roslaunch home_robot startup_stretch_hector_slam.launch
+```
