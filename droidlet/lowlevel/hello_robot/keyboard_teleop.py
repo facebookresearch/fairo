@@ -3,7 +3,7 @@ import time
 from pynput import keyboard 
 import numpy as np
 
-from droidlet.hello_robot.hello_robot_mover import HelloRobotMover
+from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
 
 UP = keyboard.Key.up
 DOWN = keyboard.Key.down
