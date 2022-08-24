@@ -73,6 +73,10 @@ class MapBuilder(object):
             geocentric_pc_for_map, self.map.shape[0], self.z_bins, self.resolution
         )
 
+        # Hacky fix to bug where walls too close to the agent don't get mapped
+        if geocentric_flat[:, :, 1].sum() == 0:
+            geocentric_flat[:, :, 1] = geocentric_flat[:, :, 2]
+
         self.map = self.map + geocentric_flat
         # maps = np.concatenate((self.map[:, np.newaxis], geocentric_flat[:, np.newaxis]), 1)
         # self.map = np.max(maps, 1)
