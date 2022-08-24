@@ -66,11 +66,11 @@ def main(cfg):
     )
 
     print("Setting up mirror for forward...")
-    mirror_sim_robot = hw_robot.setup_mirror_for_forward()
+    hw_robot.setup_mirror_for_forward()
     print("Homing simulation...")
-    mirror_sim_robot.go_home()
+    hw_robot.go_home(use_mirror=True)
     print("Running forward sim...")
-    mirror_sim_robot.send_torch_policy(policy)
+    hw_robot.send_torch_policy(policy, use_mirror=True)
     hw_robot.clean_mirror_after_forward()
 
     # Mirror

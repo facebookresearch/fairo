@@ -195,6 +195,7 @@ class BaseRobotInterface:
         torch_policy: toco.PolicyModule,
         blocking: bool = True,
         timeout: float = None,
+        use_mirror: bool = False,
     ) -> List[RobotState]:
         """Sends the ScriptableTorchPolicy to the server.
 
@@ -207,6 +208,13 @@ class BaseRobotInterface:
             If `blocking`, returns a list of RobotState objects. Otherwise, returns None.
 
         """
+        if use_mirror:
+            assert (
+                self.mirror_sim_robot
+            ), "Must call setup_mirror_for_forward before forward methods can be used on mirror sim"
+            return self.mirror_sim_robot.send_torch_policy(
+                torch_policy, blocking, timeout, use_mirror=False
+            )
         start_time = time.time()
 
         # Script & chunk policy
@@ -480,8 +488,13 @@ class RobotInterface(BaseRobotInterface):
 
         return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
 
-    def go_home(self, *args, **kwargs) -> List[RobotState]:
+    def go_home(self, use_mirror=False, *args, **kwargs) -> List[RobotState]:
         """Calls move_to_joint_positions to the current home positions."""
+        if use_mirror:
+            assert (
+                self.mirror_sim_robot
+            ), "Must call setup_mirror_for_forward before forward methods can be used on mirror sim"
+            return self.mirror_sim_robot.go_home(use_mirror=False, *args, **kwargs)
         assert (
             self.home_pose is not None
         ), "Home pose not assigned! Call 'set_home_pose(<joint_angles>)' to enable homing"
@@ -786,7 +799,7 @@ class RobotInterface(BaseRobotInterface):
         assert self.use_mirror_sim, "Mirror sim must be instantiated!"
         self.mirror_sim_client.run(time_horizon=1)
         self.mirror_sim_client.run_no_wait()
-        return RobotInterface(
+        self.mirror_sim_robot = RobotInterface(
             ip_address=self.mirror_ip,
             port=self.mirror_port,
             mirror_metadata=self.mirror_sim_client.metadata.get_proto(),
