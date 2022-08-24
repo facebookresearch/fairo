@@ -72,7 +72,11 @@ class BaseRobotInterface:
         ip_address: str = "localhost",
         port: int = 50051,
         enforce_version=True,
-        mirror_metadata=None,
+        use_mirror_sim: bool = False,
+        mirror_cfg: DictConfig = None,
+        mirror_ip: str = "",
+        mirror_port: int = -1,
+        mirror_metadata: DictConfig = None,
     ):
         # Create connection
         self.channel = grpc.insecure_channel(f"{ip_address}:{port}")
@@ -92,6 +96,12 @@ class BaseRobotInterface:
             assert (
                 client_ver == server_ver
             ), "Version mismatch between client & server detected! Set enforce_version=False to bypass this error."
+
+        self.use_mirror_sim = use_mirror_sim
+        if use_mirror_sim:
+            self.mirror_sim_client = hydra.utils.instantiate(mirror_cfg.robot_client)
+            self.mirror_ip = mirror_ip
+            self.mirror_port = mirror_port
 
     def __del__(self):
         # Close connection in destructor
@@ -285,6 +295,35 @@ class BaseRobotInterface:
         if return_log:
             return self._get_robot_state_log(log_interval, timeout=timeout)
 
+    # MIRROR METHODS
+
+    def sync_with_mirror(self):
+        assert self.use_mirror_sim, "Mirror sim must be instantiated!"
+        assert not self.mirror_sim_robot, "Clean mirror after forward in order to sync!"
+        self.mirror_sim_client.sync(self)
+
+    def unsync_with_mirror(self):
+        assert self.use_mirror_sim, "Mirror sim must be instantiated!"
+        self.mirror_sim_client.unsync()
+
+    def setup_mirror_for_forward(self):
+        assert self.use_mirror_sim, "Mirror sim must be instantiated!"
+        assert (
+            not self.mirror_sim_client._state_setter
+        ), "Unsync before setting up for forward!"
+        self.mirror_sim_client.run(time_horizon=1)
+        self.mirror_sim_client.run_no_wait()
+        self.mirror_sim_robot = RobotInterface(
+            ip_address=self.mirror_ip,
+            port=self.mirror_port,
+            mirror_metadata=self.mirror_sim_client.metadata.get_proto(),
+        )
+
+    def clean_mirror_after_forward(self):
+        assert self.use_mirror_sim, "Mirror sim must be instantiated!"
+        self.mirror_sim_client.kill_run()
+        self.mirror_sim_robot = None
+
 
 class RobotInterface(BaseRobotInterface):
     """
@@ -303,10 +342,6 @@ class RobotInterface(BaseRobotInterface):
         self,
         time_to_go_default: float = 1.0,
         use_grav_comp: bool = True,
-        use_mirror_sim: bool = False,
-        mirror_cfg: DictConfig = None,
-        mirror_ip: str = "",
-        mirror_port: int = -1,
         *args,
         **kwargs,
     ):
@@ -328,19 +363,6 @@ class RobotInterface(BaseRobotInterface):
         self.time_to_go_default = time_to_go_default
 
         self.use_grav_comp = use_grav_comp
-
-        self.use_mirror_sim = use_mirror_sim
-        if use_mirror_sim:
-            self.mirror_sim_client = hydra.utils.instantiate(mirror_cfg.robot_client)
-            self.mirror_ip = mirror_ip
-            self.mirror_port = mirror_port
-            # self.mirror_sim_client.init_robot_client()
-            # self.mirror_sim_client.sync(self)
-            # self.mirror_sim_robot = RobotInterface(
-            #     ip_address=mirror_ip,
-            #     port=mirror_port,
-            #     mirror_metadata=self.mirror_sim_client.metadata.get_proto(),
-            # )
 
     def _adaptive_time_to_go(self, joint_displacement: torch.Tensor):
         """Compute adaptive time_to_go
@@ -784,32 +806,3 @@ class RobotInterface(BaseRobotInterface):
             "The method 'move_ee_xyz' is deprecated, use 'move_to_ee_pose' with 'delta=True' instead."
         )
         return self.move_to_ee_pose(position=displacement, delta=True, **kwargs)
-
-    # MIRROR METHODS
-
-    def sync_with_mirror(self):
-        assert self.use_mirror_sim, "Mirror sim must be instantiated!"
-        assert not self.mirror_sim_robot, "Clean mirror after forward in order to sync!"
-        self.mirror_sim_client.sync(self)
-
-    def unsync_with_mirror(self):
-        assert self.use_mirror_sim, "Mirror sim must be instantiated!"
-        self.mirror_sim_client.unsync()
-
-    def setup_mirror_for_forward(self):
-        assert self.use_mirror_sim, "Mirror sim must be instantiated!"
-        assert (
-            not self.mirror_sim_client._state_setter
-        ), "Unsync before setting up for forward!"
-        self.mirror_sim_client.run(time_horizon=1)
-        self.mirror_sim_client.run_no_wait()
-        self.mirror_sim_robot = RobotInterface(
-            ip_address=self.mirror_ip,
-            port=self.mirror_port,
-            mirror_metadata=self.mirror_sim_client.metadata.get_proto(),
-        )
-
-    def clean_mirror_after_forward(self):
-        assert self.use_mirror_sim, "Mirror sim must be instantiated!"
-        self.mirror_sim_client.kill_run()
-        self.mirror_sim_robot = None
