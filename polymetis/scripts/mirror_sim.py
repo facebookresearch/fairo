@@ -50,7 +50,7 @@ def main(cfg):
     waypoints = toco.planning.generate_joint_space_min_jerk(
         start=hw_robot.get_joint_positions(),
         goal=target,
-        time_to_go=5,
+        time_to_go=3,
         hz=hz,
     )
     print("Creating policy...")
@@ -74,11 +74,13 @@ def main(cfg):
     hw_robot.clean_mirror_after_forward()
 
     # Mirror
+    print("Syncing...")
     hw_robot.sync_with_mirror()
     print("Homing robot...")
     hw_robot.go_home()
     print("Sending policy...")
     hw_robot.send_torch_policy(policy)
+    print("Unsyncing...")
     hw_robot.unsync_with_mirror()
 
 

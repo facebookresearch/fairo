@@ -789,6 +789,7 @@ class RobotInterface(BaseRobotInterface):
 
     def sync_with_mirror(self):
         assert self.use_mirror_sim, "Mirror sim must be instantiated!"
+        assert not self.mirror_sim_robot, "Clean mirror after forward in order to sync!"
         self.mirror_sim_client.sync(self)
 
     def unsync_with_mirror(self):
@@ -797,6 +798,9 @@ class RobotInterface(BaseRobotInterface):
 
     def setup_mirror_for_forward(self):
         assert self.use_mirror_sim, "Mirror sim must be instantiated!"
+        assert (
+            not self.mirror_sim_client._state_setter
+        ), "Unsync before setting up for forward!"
         self.mirror_sim_client.run(time_horizon=1)
         self.mirror_sim_client.run_no_wait()
         self.mirror_sim_robot = RobotInterface(
@@ -808,3 +812,4 @@ class RobotInterface(BaseRobotInterface):
     def clean_mirror_after_forward(self):
         assert self.use_mirror_sim, "Mirror sim must be instantiated!"
         self.mirror_sim_client.kill_run()
+        self.mirror_sim_robot = None
