@@ -363,7 +363,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("--use_basic_shapes", action="store_true", default=False)
     parser.add_argument("--num_iglu_scenes", type=int, default=30, help="Subset of IGLU scenes")
-    parser.add_argument("--hits_per_scene", type=int, default=10, help="# HITs to launch per scene")
+    parser.add_argument(
+        "--hits_per_scene", type=int, default=10, help="# HITs to launch per scene"
+    )
     opts = parser.parse_args()
 
     LISTENER_TIMEOUT = opts.labeling_timeout + opts.annotation_timeout

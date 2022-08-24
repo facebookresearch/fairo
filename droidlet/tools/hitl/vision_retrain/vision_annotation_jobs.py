@@ -147,11 +147,13 @@ class VisionAnnotationJob(DataGenerator):
             output_scene = copy.deepcopy(self._scenes)
             for i in range(len(units)):
                 data = mephisto_data_browser.get_data_from_unit(units[i])
-                if output_scene[i].get("inst_seg_tags", False) and isinstance(output_scene[i]["inst_seg_tags"], list):
+                if output_scene[i].get("inst_seg_tags", False) and isinstance(
+                    output_scene[i]["inst_seg_tags"], list
+                ):
                     try:
-                        output_scene[i]["inst_seg_tags"].extend(json.loads(
-                            data["data"]["outputs"]["inst_seg_tags"]
-                        ))
+                        output_scene[i]["inst_seg_tags"].extend(
+                            json.loads(data["data"]["outputs"]["inst_seg_tags"])
+                        )
                     except json.decoder.JSONDecodeError:
                         continue
                 else:
