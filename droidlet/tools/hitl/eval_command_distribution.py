@@ -228,10 +228,8 @@ def plot_refs(ref_objs, job_type) -> None:
     plt.xlabel("Command")
     plt.xticks(rotation=70, fontsize=6, va="top", ha="right")
     plt.ylabel("Count")
-    plt.subplots_adjust(bottom=.2)
-    fig_save_path = os.path.join(
-        opts.output_save_dir, f"{job_type}_ref_obj_cnt.png"
-    )
+    plt.subplots_adjust(bottom=0.2)
+    fig_save_path = os.path.join(opts.output_save_dir, f"{job_type}_ref_obj_cnt.png")
     plt.savefig(fig_save_path, format="png", dpi=300)
 
 
@@ -292,7 +290,14 @@ def filter_stop_words(ref):
         "letter",
         "nothing",  # controversial
         "single",
-        "big", "small", "deep", "shallow", "large", "tiny", "narrow", "wide"
+        "big",
+        "small",
+        "deep",
+        "shallow",
+        "large",
+        "tiny",
+        "narrow",
+        "wide",
     ]
 
     def check_filter(word):
@@ -350,7 +355,7 @@ def compare_distributions(interaction_refs, labeling_refs):
     for tag in interaction_counter.keys():
         if tag not in labeling_refs:
             labeling_counter[tag] = 0
-        interaction_counter[tag] /= interaction_size # normalize based on data size
+        interaction_counter[tag] /= interaction_size  # normalize based on data size
     for tag in labeling_counter.keys():
         if tag not in interaction_refs:
             interaction_counter[tag] = 0
