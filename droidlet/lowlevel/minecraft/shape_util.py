@@ -133,11 +133,11 @@ def options_square():
 
 
 def options_triangle():
-    return {"size": sizes1(), "orient": orientation3()}
+    return {"size": sizes1(ranges=(3, 6)), "orient": orientation3()}
 
 
 def options_circle():
-    return {"radius": sizes1(), "orient": orientation3()}
+    return {"radius": sizes1(ranges=(2, 4)), "orient": orientation3()}
 
 
 def options_disk():
@@ -145,7 +145,7 @@ def options_disk():
 
 
 def options_cube():
-    return {"size": sizes1(ranges=(1, 8))}
+    return {"size": sizes1(ranges=(3, 6))}
 
 
 def options_hollow_cube():
@@ -161,7 +161,7 @@ def options_hollow_rectanguloid():
 
 
 def options_sphere():
-    return {"radius": sizes1(ranges=(3, 5))}
+    return {"radius": sizes1(ranges=(2, 3))}
 
 
 def options_spherical_shell():
@@ -169,7 +169,7 @@ def options_spherical_shell():
 
 
 def options_square_pyramid():
-    return {"slope": slope(), "radius": sizes1()}
+    return {"slope": slope(), "radius": sizes1(ranges=(2, 3))}
 
 
 def options_tower():
@@ -185,7 +185,7 @@ def options_dome():
 
 
 def options_arch():
-    return {"size": sizes1(), "distance": 2 * sizes1(ranges=(2, 5)) + 1}
+    return {"size": sizes1(), "distance": 2 * sizes1(ranges=(2, 4)) + 1}
 
 
 def options_hollow_triangle():

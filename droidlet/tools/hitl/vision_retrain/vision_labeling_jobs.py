@@ -66,28 +66,18 @@ class VisionLabelingJob(DataGenerator):
 
     """
 
-    def __init__(
-        self,
-        SL: int,
-        H: int,
-        GROUND_DEPTH: int,
-        MAX_NUM_SHAPES: int,
-        NUM_SCENES: int,
-        MAX_HOLES: int,
-        num_iglu_scenes: int,
-        use_basic_shapes: bool,
-        timeout: float = -1,
-    ) -> None:
+    def __init__(self, opts, timeout: float = -1) -> None:
         super(VisionLabelingJob, self).__init__(timeout)
         self._batch_id = generate_batch_id()
-        self._SL = SL
-        self._H = H
-        self._GROUND_DEPTH = GROUND_DEPTH
-        self._MAX_NUM_SHAPES = MAX_NUM_SHAPES
-        self._NUM_SCENES = NUM_SCENES
-        self._MAX_HOLES = MAX_HOLES
-        self._use_basic_shapes = use_basic_shapes
-        self._num_iglu_scenes = num_iglu_scenes
+        self._SL = opts.scene_length
+        self._H = opts.scene_height
+        self._GROUND_DEPTH = opts.ground_depth
+        self._MAX_NUM_SHAPES = opts.max_num_shapes
+        self._NUM_HITS = opts.num_hits
+        self._NUM_SCENES = int(opts.num_hits / opts.hits_per_scene)
+        self._MAX_HOLES = opts.max_num_holes
+        self._use_basic_shapes = opts.use_basic_shapes
+        self._num_iglu_scenes = opts.num_iglu_scenes
 
     def run(self) -> None:
 
@@ -165,14 +155,14 @@ class VisionLabelingJob(DataGenerator):
             with open("../../crowdsourcing/vision_annotation_task/labeling_data.csv", "w") as f:
                 csv_writer = csv.writer(f, delimiter=",")
                 csv_writer.writerow(["scene_filename", "scene_idx"])
-                for i in range(self._NUM_SCENES):
-                    csv_writer.writerow(["scene_list.json", str(i)])
+                for i in range(self._NUM_HITS):
+                    csv_writer.writerow(["scene_list.json", str(i % self._NUM_SCENES)])
 
             # Edit Mephisto config file task name
             logging.info(
                 "Editing Mephisto config file to have parameterized task anme and units/worker"
             )
-            maximum_units_per_worker = 15 if self._NUM_SCENES < 50 else int(self._NUM_SCENES / 4)
+            maximum_units_per_worker = 10 if self._NUM_HITS < 50 else int(self._NUM_HITS / 8)
             with open(
                 "../../crowdsourcing/vision_annotation_task/conf/labeling.yaml", "r"
             ) as stream:
@@ -196,7 +186,7 @@ class VisionLabelingJob(DataGenerator):
                 + " mephisto.architect.profile_name=mephisto-router-iam"
             )
             try:
-                logging.info(f"Launching job with {self._NUM_SCENES} HITs")
+                logging.info(f"Launching job with {self._NUM_HITS} HITs")
                 job_launch = subprocess.Popen(job_launch_cmd, shell=True, preexec_fn=os.setsid)
             except ValueError:
                 logging.info("Likely error: Popen called with invalid arguments")
@@ -356,39 +346,30 @@ if __name__ == "__main__":
     parser.add_argument("--scene_length", type=int, default=17)
     parser.add_argument("--scene_height", type=int, default=13)
     parser.add_argument("--ground_depth", type=int, default=4)
-    parser.add_argument("--max_num_shapes", type=int, default=4)
-    parser.add_argument("--max_num_holes", type=int, default=3)
-    parser.add_argument("--num_hits", type=int, default=500, help="Number of HITs to request")
+    parser.add_argument("--max_num_shapes", type=int, default=5)
+    parser.add_argument("--max_num_holes", type=int, default=2)
+    parser.add_argument("--num_hits", type=int, default=1000, help="Number of HITs to request")
     parser.add_argument(
         "--labeling_timeout",
         type=int,
-        default=120,
+        default=180,
         help="Number of minutes before labeling job times out",
     )
     parser.add_argument(
         "--annotation_timeout",
         type=int,
-        default=120,
+        default=180,
         help="Number of minutes before annotation job times out",
     )
     parser.add_argument("--use_basic_shapes", action="store_true", default=False)
     parser.add_argument("--num_iglu_scenes", type=int, default=30, help="Subset of IGLU scenes")
+    parser.add_argument("--hits_per_scene", type=int, default=10, help="# HITs to launch per scene")
     opts = parser.parse_args()
 
     LISTENER_TIMEOUT = opts.labeling_timeout + opts.annotation_timeout
 
     runner = TaskRunner()
-    lj = VisionLabelingJob(
-        SL=opts.scene_length,
-        H=opts.scene_height,
-        GROUND_DEPTH=opts.ground_depth,
-        MAX_NUM_SHAPES=opts.max_num_shapes,
-        NUM_SCENES=opts.num_hits,
-        MAX_HOLES=opts.max_num_holes,
-        timeout=opts.labeling_timeout,
-        use_basic_shapes=opts.use_basic_shapes,
-        num_iglu_scenes=opts.num_iglu_scenes,
-    )
+    lj = VisionLabelingJob(opts, opts.labeling_timeout)
 
     batch_id = lj.get_batch_id()
     listener = VisionLabelingListener(batch_id, LISTENER_TIMEOUT)
