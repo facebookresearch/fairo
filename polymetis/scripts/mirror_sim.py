@@ -46,7 +46,7 @@ def main(cfg):
 
     print("Planning...")
     target = hw_robot.get_joint_positions()
-    target[0] += 0.3
+    target[0] += 0.5
     waypoints = toco.planning.generate_joint_space_min_jerk(
         start=hw_robot.get_joint_positions(),
         goal=target,
