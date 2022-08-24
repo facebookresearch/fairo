@@ -63,16 +63,21 @@ def main(cfg):
         ignore_gravity=hw_robot.use_grav_comp,
     )
 
-    # print("Homing simulation...")
-    # hw_robot.mirror_sim_robot.go_home()
-    # print("Running forward sim...")
-    # hw_robot.mirror_sim_robot.send_torch_policy(policy)
+    print("Setting up mirror for forward...")
+    mirror_sim_robot = hw_robot.setup_mirror_for_forward()
+    print("Homing simulation...")
+    mirror_sim_robot.go_home()
+    print("Running forward sim...")
+    mirror_sim_robot.send_torch_policy(policy)
+    hw_robot.clean_mirror_after_forward()
 
     # Mirror
+    hw_robot.sync_with_mirror()
     print("Homing robot...")
     hw_robot.go_home()
     print("Sending policy...")
     hw_robot.send_torch_policy(policy)
+    hw_robot.unsync_with_mirror()
 
 
 # this should be preceded by a call to launch_robot.py robot_client=None on the same machine
