@@ -784,6 +784,7 @@ class RobotInterface(BaseRobotInterface):
 
     def setup_mirror_for_forward(self):
         assert self.use_mirror_sim, "Mirror sim must be instantiated!"
+        self.mirror_sim_client.run(time_horizon=1)
         self.mirror_sim_client.run_no_wait()
         return RobotInterface(
             ip_address=self.mirror_ip,

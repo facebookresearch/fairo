@@ -45,9 +45,11 @@ def main(cfg):
     Kxd_default = torch.Tensor(hw_robot.metadata.default_Kxd)
 
     print("Planning...")
+    target = hw_robot.get_joint_positions()
+    target[0] += 0.3
     waypoints = toco.planning.generate_joint_space_min_jerk(
         start=hw_robot.get_joint_positions(),
-        goal=hw_robot.get_joint_positions() + 0.1,
+        goal=target,
         time_to_go=5,
         hz=hz,
     )

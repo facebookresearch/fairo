@@ -135,8 +135,10 @@ class GrpcSimulationClient(AbstractRobotClient):
         t = 0
         spinner = Spinner(self.hz)
         while t < time_horizon:
-            if threaded and self._kill_runner:
-                break
+            if threaded:
+                # print(f"Threaded run {t}")
+                if self._kill_runner:
+                    break
             # Get robot state from env
             joint_pos, joint_vel = self.env.get_current_joint_pos_vel()
             robot_state.joint_positions[:] = joint_pos
