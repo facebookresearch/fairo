@@ -91,13 +91,7 @@ def scrape_interaction(opts):
     print(f"Finished scraping interaction job reference objects: {ref_objs}")
 
     # Produce some charts
-    obj_cnt = Counter(ref_objs)
-    obj_cnt.most_common(10)
-    plt.bar(list(obj_cnt.keys()), obj_cnt.values(), color="g")
-    plt.xlabel("Command")
-    plt.ylabel("Count")
-    fig_save_path = os.path.join(opts.output_save_dir, "interaction_ref_obj_cnt.png")
-    plt.savefig(fig_save_path, format="png")
+    plot_refs(ref_objs, "interaction")
 
     data_save_path = os.path.join(opts.output_save_dir, "interaction_refs.pkl")
     with open(data_save_path, "wb") as f:
@@ -216,25 +210,29 @@ def scrape_labeling(opts):
     print(f"Finished scraping labeling job reference objects: {ref_objs}")
 
     # Produce some charts
-    obj_cnt = Counter(ref_objs)
-    most_common = obj_cnt.most_common(50)
-    xs = [x[0] for x in most_common]
-    print(xs)
-    ys = [x[1] for x in most_common]
-    plt.bar(xs, ys, color="g")
-    plt.xlabel("Command")
-    plt.xticks(rotation=70, fontsize=6, va="top", ha="right")
-    plt.ylabel("Count")
-    fig_save_path = os.path.join(
-        opts.output_save_dir, f"labeling_{opts.labeling_job_types}_ref_obj_cnt.png"
-    )
-    plt.savefig(fig_save_path, format="png", dpi=300)
+    plot_refs(ref_objs, f"labeling_{opts.labeling_job_types}")
 
     data_save_path = os.path.join(opts.output_save_dir, "labeling_refs.pkl")
     with open(data_save_path, "wb") as f:
         pickle.dump(ref_objs, f)
 
     return ref_objs
+
+
+def plot_refs(ref_objs, job_type) -> None:
+    obj_cnt = Counter(ref_objs)
+    most_common = obj_cnt.most_common(50)
+    xs = [x[0] for x in most_common]
+    ys = [x[1] for x in most_common]
+    plt.bar(xs, ys, color="g")
+    plt.xlabel("Command")
+    plt.xticks(rotation=70, fontsize=6, va="top", ha="right")
+    plt.ylabel("Count")
+    plt.subplots_adjust(bottom=.2)
+    fig_save_path = os.path.join(
+        opts.output_save_dir, f"{job_type}_ref_obj_cnt.png"
+    )
+    plt.savefig(fig_save_path, format="png", dpi=300)
 
 
 def read_labeling_csv(dir):
@@ -293,6 +291,8 @@ def filter_stop_words(ref):
         "colored",
         "letter",
         "nothing",  # controversial
+        "single",
+        "big", "small", "deep", "shallow", "large", "tiny", "narrow", "wide"
     ]
 
     def check_filter(word):
@@ -323,8 +323,6 @@ def compare_distributions(interaction_refs, labeling_refs):
     print(
         f"% of unique Interaction ref_objs also in labeling corpus: {len(unique_interaction_overlaps)/len(interaction_set)}"
     )
-    print(unique_interaction_overlaps)
-    print(" ")
 
     labeling_overlaps = 0
     unique_labeling_overlaps = set()
@@ -343,17 +341,20 @@ def compare_distributions(interaction_refs, labeling_refs):
     print(" ")
 
     # Exact distributional overlap
+    # FIXME This section doesn't work
     interaction_counter = Counter(interaction_refs)
+    interaction_size = sum(interaction_counter.values())
     labeling_counter = Counter(labeling_refs)
+    labeling_size = sum(labeling_counter.values())
 
     for tag in interaction_counter.keys():
         if tag not in labeling_refs:
             labeling_counter[tag] = 0
-        interaction_counter[tag] /= len(interaction_refs)  # normalize based on data size
+        interaction_counter[tag] /= interaction_size # normalize based on data size
     for tag in labeling_counter.keys():
         if tag not in interaction_refs:
             interaction_counter[tag] = 0
-        labeling_counter[tag] /= len(labeling_refs)  # normalize based on data size
+        labeling_counter[tag] /= labeling_size  # normalize based on data size
 
     # At this point the counter dicts should contain the % of that corpus for each tag
     # Sum the differences in corpus percentages to get the total 1 - overlap
@@ -412,9 +413,12 @@ if __name__ == "__main__":
         labeling_path = os.path.join(opts.output_save_dir, "labeling_refs.pkl")
         with open(labeling_path, "rb") as f:
             labeling_refs = pickle.load(f)
+
     if opts.scrape_interaction:
         interaction_refs = scrape_interaction(opts)
+
     if opts.scrape_labeling:
         labeling_refs = scrape_labeling(opts)
+
     if interaction_refs and labeling_refs and opts.compare:
         compare_distributions(interaction_refs, labeling_refs)
