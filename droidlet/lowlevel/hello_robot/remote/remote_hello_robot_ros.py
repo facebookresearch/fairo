@@ -18,6 +18,7 @@ from stretch_ros_move_api import MoveNode as Robot
 from droidlet.lowlevel.pyro_utils import safe_call
 import traceback
 
+from stretch_body.robot import Robot as Robot1
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
@@ -38,6 +39,11 @@ class RemoteHelloRobot(object):
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
         self._load_urdf()
         self.tilt_correction = 0.0
+
+        self._robot1 = Robot1()
+
+    def set_velocity(self, v_m, w_r):
+        self._robot1.base.set_velocity(v_m, w_r)
 
     def _load_urdf(self):
         import os
