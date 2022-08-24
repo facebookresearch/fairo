@@ -157,7 +157,7 @@ class HelloRobotMover(MoverInterface):
     def look_at(self, target, turn_base=True, face=False):
         """
         Executes "look at" by setting the pan, tilt of the camera
-        or turning the base if required.
+        or turning th/ base if required.
         Uses both the base state and object coordinates in
         canonical world coordinates to calculate expected yaw and pitch.
         if face == True will move body so head yaw is 0
@@ -275,6 +275,9 @@ class HelloRobotMover(MoverInterface):
             if blocking:
                 self.nav_result.wait()
         return "finished"
+
+    def set_velocity(self, v_m, w_r):
+        self.bot.set_velocity(v_m, w_r)
 
     def get_base_pos_in_canonical_coords(self):
         """get the current robot position in the canonical coordinate system

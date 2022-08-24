@@ -249,6 +249,9 @@ class RemoteHelloRobot(object):
             self._done = True
         return status
 
+    def set_velocity(self, v_m, w_r):
+        self._robot.base.set_velocity(v_m, w_r)
+
     def is_base_moving(self):
         robot = self._robot
         left_wheel_moving = (
