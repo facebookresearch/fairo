@@ -15,8 +15,8 @@ class RobotController:
     def __init__(self,
         ip,
         hz=10,
-        acc=0.1,
-        racc=0.1,
+        acc=1.,
+        racc=2.,
         vel_max=1.,
         rvel_max=1.,
     ):
@@ -46,8 +46,11 @@ class RobotController:
     def run(self):
         while True:
             # Map keystrokes
-            acc = self.acc * (self.key_states[UP] - self.key_states[DOWN])
-            racc = self.racc * (self.key_states[LEFT] - self.key_states[RIGHT])
+            vert_val = self.key_states[UP] - self.key_states[DOWN]
+            hori_val = self.key_states[LEFT] - self.key_states[RIGHT]
+
+            acc = self.acc * (vert_val or -np.sign(self.vel))
+            racc = self.racc * (hori_val or -np.sign(self.rvel))
 
             # Compute velocity commands
             self.vel = np.clip(self.vel + acc * self.dt, -self.vel_max, self.vel_max)
