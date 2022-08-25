@@ -12,11 +12,11 @@
 
 using grpc::ClientContext;
 
-struct ThreadDeleter { 
-    void operator() (std::thread *p) {
-        p->join();
-        delete p;
-    }
+struct ThreadDeleter {
+  void operator()(std::thread *p) {
+    p->join();
+    delete p;
+  }
 };
 
 FrankaHandClient::FrankaHandClient(std::shared_ptr<grpc::Channel> channel,
@@ -88,15 +88,15 @@ void FrankaHandClient::run(void) {
     getGripperState();
 
     grpc::ClientContext context;
-    status_ = stub_->ControlUpdate(&context, gripper_state_,
-                                   &gripper_cmd_);
+    status_ = stub_->ControlUpdate(&context, gripper_state_, &gripper_cmd_);
 
     if (!is_moving_) {
       // Skip if command not updated
       timestamp_ns = gripper_cmd_.timestamp().nanos();
       if (timestamp_ns != prev_cmd_timestamp_ns_ && timestamp_ns) {
         // applyGripperCommand() in separate thread
-        cmd_thread_ptr.reset(new std::thread(&FrankaHandClient::applyGripperCommand, this));
+        cmd_thread_ptr.reset(
+            new std::thread(&FrankaHandClient::applyGripperCommand, this));
         prev_cmd_timestamp_ns_ = timestamp_ns;
       }
     }
