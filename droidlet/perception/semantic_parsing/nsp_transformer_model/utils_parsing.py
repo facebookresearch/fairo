@@ -1,9 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from black import NothingChanged
 import torch
-import json
 from .utils_caip import select_spans, seq_to_tree, tokenize_mapidx, caip_collate
 from .tokenization_utils import fixed_span_values_voc
 
@@ -11,14 +9,17 @@ from .tokenization_utils import fixed_span_values_voc
 def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2):
     """Beam search decoding.
     Note: Only uses node prediction scores, not the span scores.
+
     Args:
         txt (str): chat input
         model: model class with pretrained model
         tokenizer: pretrained tokenizer
         beam_size (int): Number of branches to keep in beam search
         well_formed_pen (float): penalization for poorly formed trees
+
     Returns:
         logical form (dict)
+
     """
     model_device = model.decoder.lm_head.predictions.decoder.weight.device
     # prepare batch
@@ -188,209 +189,6 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
     return res
 
 
-def beam_search_lm(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2):
-    """
-    Beam search decoding with only language modelling head.
-    Note: Only uses node prediction scores, not the span scores.
-
-    Args:
-        txt (str): chat input
-        model: model class with pretrained model
-        tokenizer: pretrained tokenizer
-        beam_size (int): Number of branches to keep in beam search
-        well_formed_pen (float): penalization for poorly formed trees
-
-    Returns:
-        logical form (dict)
-
-    """
-    model_device = model.decoder.lm_head.predictions.decoder.weight.device
-    # prepare batch
-    text, idx_maps = tokenize_mapidx(txt, tokenizer)
-    idx_rev_map = [(0, 0)] * len(text.split())
-    for line_id, idx_map in enumerate(idx_maps):
-        for pre_id, (a, b) in enumerate(idx_map):
-            idx_rev_map[a] = (line_id, pre_id)
-            idx_rev_map[b] = (line_id, pre_id)
-    idx_rev_map[-1] = idx_rev_map[-2]
-    tree = ["[CLS]"]
-    text_idx_ls = dataset.tokenizer.convert_tokens_to_ids(text.split())
-    tree_idx_ls = dataset.tokenizer.convert_tokens_to_ids(tree)
-    pre_batch = [(text_idx_ls, tree_idx_ls, (text, txt, {}))]
-    batch = caip_collate(pre_batch, tokenizer)
-    batch = [t.to(model_device) for t in batch[:4]]
-    x, x_mask, y, y_mask = batch
-    x_reps = model.encoder(input_ids=x, attention_mask=x_mask)[0].detach()
-    x_mask = x_mask.expand(beam_size, -1)
-    x_reps = x_reps.expand(beam_size, -1, -1)
-    # start decoding
-    y = torch.LongTensor(
-        [[dataset.tokenizer.convert_tokens_to_ids("[CLS]")] for _ in range(beam_size)]
-    ).to(
-        model_device
-    )  # B x 1
-    beam_scores = torch.Tensor([-1e9 for _ in range(beam_size)]).to(model_device)  # B
-    beam_scores[0] = 0
-    beam_seqs = [["[CLS]"] for _ in range(beam_size)]
-    finished = [False for _ in range(beam_size)]
-    pad_scores = torch.Tensor([-1e9] * len(dataset.tokenizer.vocab)).to(model_device)
-    pad_scores[dataset.tokenizer.convert_tokens_to_ids("[PAD]")] = 0
-    for i in range(512):
-        outputs = model.decoder.step(y, y_mask, x_reps, x_mask)
-        # next word, grab the final token
-        lm_scores = outputs["lm_scores"][:, -1, :]  # B x V
-        for i, fshed in enumerate(finished):
-            if fshed:
-                # set predictions to padding tokens
-                lm_scores[i] = pad_scores
-        beam_lm_scores = lm_scores + beam_scores[:, None]  # B x V
-        beam_lm_lin = beam_lm_scores.view(-1)
-        # get the highest probability tokens
-        s_scores, s_ids = beam_lm_lin.sort(dim=-1, descending=True)
-        s_beam_ids = s_ids // beam_lm_scores.shape[-1]
-        s_word_ids = s_ids % beam_lm_scores.shape[-1]
-        # re-order and add next token
-        beam_scores = s_scores[:beam_size]
-        n_beam_ids = s_beam_ids[:beam_size]
-        n_word_ids = s_word_ids[:beam_size]
-        # convert tokens to words
-        n_words = [tokenizer.convert_ids_to_tokens(nw_id.item()) for nw_id in n_word_ids]
-        y = torch.cat([y[n_beam_ids], n_word_ids[:, None]], dim=1)
-        # find out which of the beams are finished
-        pre_finished = [finished[b_id.item()] for b_id in n_beam_ids]
-        new_finished = [
-            w_id.item() == dataset.tokenizer.convert_tokens_to_ids("[SEP]") for w_id in n_word_ids
-        ]
-        finished = [p or n for p, n in zip(pre_finished, new_finished)]
-        n_mask = 1 - torch.Tensor(finished).type_as(y_mask)
-        y_mask = torch.cat([y_mask[n_beam_ids], n_mask[:, None]], dim=1)
-
-        # update beam_seq
-        beam_seqs = [beam_seqs[n_beam_ids[i].item()] + [n_words[i]] for i in range(beam_size)]
-        # penalize poorly formed trees
-        for i, seq in enumerate(beam_seqs):
-            if seq[-1] == "[SEP]":
-                well_formed = check_tree_well_formed(seq)
-                if not well_formed:
-                    beam_scores[i] -= well_formed_pen
-        # check whether all beams have reached EOS
-        if all(finished):
-            break
-
-    # map tokenized sequence of tree back to tree
-    beam_trees = [detokenize_tree(res, dataset.tokenizer) for res in beam_seqs]
-    pre_res = [
-        (tree, score.item(), seq) for tree, score, seq in zip(beam_trees, beam_scores, beam_seqs)
-    ]
-    # sort one last time to have well-formed trees on top
-    res = sorted(pre_res, key=lambda x: x[1], reverse=True)
-    return res
-
-
-def check_tree_well_formed(tok_tree):
-    """
-    Check if the syntax of tree is well predicted via pairing
-    left and right curly and square brackets
-
-    Args:
-        tok_tree: predicted tree tokens
-
-    Returns:
-        well_formed: boolean, whether all left brackets are paired to
-        right brackets
-    """
-    queue = []
-    for tok in tok_tree:
-        if tok == "{":
-            queue.append(tok)
-        elif tok == "}" or tok == "},":
-            if queue and queue[-1] == "{":
-                queue.pop()
-            else:
-                return False
-        elif tok == "[":
-            queue.append(tok)
-        elif tok == "]" or tok == "],":
-            if queue and queue[-1] == "[":
-                queue.pop()
-            else:
-                return False
-
-    return len(queue) == 0
-
-
-def detokenize_tree(seq, tokenizer):
-    """
-    Detokenize tokenized sequence of tree back to original sequence
-
-    Args:
-        seq: list of tokens
-        tokenizer: pretrained tokenizer
-
-    Returns:
-        tree: dictionary
-    """
-    tok_tree = tokenizer.convert_tokens_to_string(seq)
-    tok_tree = tok_tree.split()
-
-    special_tokens = ["[", "]", "{", "}", ":", ",", "_", '"', '",', ".", "/", "\\", "="]
-    tree = ""
-    prev_token = None
-    idx = 0
-    while idx < len(tok_tree):
-        token = tok_tree[idx]
-        if token not in ["[CLS]", "[SEP]", "[PAD]"]:
-            # deal with - symbol
-            if token == "-":
-                if (
-                    prev_token in special_tokens
-                    or (prev_token[-1].isdigit() and not tok_tree[idx + 1][0].isdigit())
-                    or tok_tree[idx + 1] == '"'
-                ):
-                    tree += token
-                else:
-                    tree += " " + token
-            elif token not in special_tokens and prev_token == "-":
-                # deal with some cases i.e., 1.5-to-1
-                if tok_tree[idx + 1][0] == "-" and not token.isdigit():
-                    tree += token
-                    idx += 1
-                    tree += tok_tree[idx]
-                    idx += 1
-                    while tok_tree[idx].isdigit():
-                        tree += tok_tree[idx]
-                        idx += 1
-                    idx -= 1
-                else:
-                    tree += token
-            # for span node with text
-            elif token not in special_tokens and prev_token[-1] == ".":
-                tree += token
-            elif token not in special_tokens and "'" in token and prev_token in special_tokens:
-                # for example, separate you're into you 're
-                s1, s2 = token.split("'")
-                tree += s1 + " '" + s2
-            elif token not in special_tokens and prev_token not in special_tokens:
-                if "'" in token:
-                    s1, s2 = token.split("'")
-                    tree += " " + s1 + " '" + s2
-                else:
-                    tree += " " + token
-            else:
-                tree += token
-            prev_token = token
-
-        idx += 1
-
-    try:
-        tree = json.loads(tree)
-    except:
-        # return empty dict if tree is not well formed
-        return {}
-
-    return tree
-
-
 def compute_accuracy(outputs, y):
     """Util function for validation.
 
@@ -414,28 +212,41 @@ def compute_accuracy(outputs, y):
     y: B x y_len x num_heads
     """
     if len(y.shape) == 2:
-        lm_targets = y[:, 1:]
+        lm_targets = y
     else:
         lm_targets = y[:, 1:, 0]
 
     lm_preds = outputs["lm_scores"].max(dim=-1)[1]
-    lm_acc = ((lm_preds == lm_targets) * (lm_targets > 101)).sum(dim=1) == (lm_targets > 101).sum(
+    lm_acc = ((lm_preds == lm_targets) * (lm_targets > 6)).sum(dim=1) == (lm_targets > 6).sum(
         dim=1
     )
-    full_acc = lm_acc
-
-    if "text_span_start_scores" in outputs:
-        text_span_b_targets = y[:, 1:, 1]
-        text_span_e_targets = y[:, 1:, 2]
-        text_span_b_pred = outputs["text_span_start_scores"].max(dim=-1)[1]
-        text_span_e_pred = outputs["text_span_end_scores"].max(dim=-1)[1]
-        text_span_b_acc = (
-            (text_span_b_pred == text_span_b_targets) * (text_span_b_targets >= 0)
-        ).sum(dim=1) == (text_span_b_targets >= 0).sum(dim=1)
-        text_span_e_acc = (
-            (text_span_e_pred == text_span_e_targets) * (text_span_e_targets >= 0)
-        ).sum(dim=1) == (text_span_e_targets >= 0).sum(dim=1)
-        text_span_acc = text_span_b_acc * text_span_e_acc
-        return (lm_acc, text_span_acc, full_acc)
+    if "span_b_scores" in outputs:
+        sb_targets = y[:, 1:, 1]
+        sb_preds = outputs["span_b_scores"].max(dim=-1)[1]
+        sb_acc = ((sb_preds == sb_targets) * (sb_targets >= 0)).sum(dim=1) == (
+            sb_targets >= 0
+        ).sum(dim=1)
+        se_targets = y[:, 1:, 2]
+        se_preds = outputs["span_e_scores"].max(dim=-1)[1]
+        se_acc = ((se_preds == se_targets) * (se_targets >= 0)).sum(dim=1) == (
+            se_targets >= 0
+        ).sum(dim=1)
+        sp_acc = sb_acc * se_acc
+        full_acc = lm_acc * sp_acc
+        if "text_span_start_scores" in outputs:
+            text_span_b_targets = y[:, 1:, 3]
+            text_span_e_targets = y[:, 1:, 4]
+            text_span_b_pred = outputs["text_span_start_scores"].max(dim=-1)[1]
+            text_span_e_pred = outputs["text_span_end_scores"].max(dim=-1)[1]
+            text_span_b_acc = (
+                (text_span_b_pred == text_span_b_targets) * (text_span_b_targets >= 0)
+            ).sum(dim=1) == (text_span_b_targets >= 0).sum(dim=1)
+            text_span_e_acc = (
+                (text_span_e_pred == text_span_e_targets) * (text_span_e_targets >= 0)
+            ).sum(dim=1) == (text_span_e_targets >= 0).sum(dim=1)
+            text_span_acc = text_span_b_acc * text_span_e_acc
+            return (lm_acc, sp_acc, text_span_acc, full_acc)
+        else:
+            return (lm_acc, sp_acc, full_acc)
     else:
-        return (lm_acc, full_acc)
+        return lm_acc

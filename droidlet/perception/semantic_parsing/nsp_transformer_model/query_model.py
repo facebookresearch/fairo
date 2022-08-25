@@ -7,7 +7,6 @@ import math
 import pickle
 
 import torch
-from transformers import AutoTokenizer
 
 from .utils_model import build_model, load_model
 from .utils_parsing import beam_search
@@ -36,11 +35,10 @@ class NSPBertModel(object):
     """
 
     def __init__(self, model_dir, data_dir, model_name="caip_test_model"):
-        sd, _, _, args, full_tree_voc = load_model(model_dir)
-        _, encoder_decoder, _ = build_model(args, full_tree_voc[1])
+        sd, tree_voc, tree_idxs, args, full_tree_voc = load_model(model_dir)
+        decoder_with_loss, encoder_decoder, tokenizer = build_model(args, full_tree_voc[1])
         args.data_dir = data_dir
-        # load saved tokenzier
-        self.tokenizer = AutoTokenizer.from_pretrained(os.path.join(model_dir, "tokenizer"))
+        self.tokenizer = tokenizer
         self.dataset = CAIPDataset(self.tokenizer, args, prefix="", full_tree_voc=full_tree_voc)
         self.encoder_decoder = encoder_decoder
         self.encoder_decoder.load_state_dict(sd, strict=True)
@@ -56,14 +54,11 @@ class NSPBertModel(object):
         Returns:
             dict: Logical form.
         """
-        btr = beam_search_lm(
+        btr = beam_search(
             chat, self.encoder_decoder, self.tokenizer, self.dataset, beam_size, well_formed_pen
         )
-        for res in btr:
-            if len(res[0]) != 0:
-                if not (
-                    res[0].get("dialogue_type", "NONE") == "NOOP" and math.exp(res[1]) < noop_thres
-                ):
-                    return res[0]
-
-        return {}
+        if btr[0][0].get("dialogue_type", "NONE") == "NOOP" and math.exp(btr[0][1]) < noop_thres:
+            tree = btr[1][0]
+        else:
+            tree = btr[0][0]
+        return tree

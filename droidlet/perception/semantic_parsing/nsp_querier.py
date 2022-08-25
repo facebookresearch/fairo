@@ -15,89 +15,6 @@ from .utils.nsp_logger import NSPLogger
 from .utils.validate_json import JSONValidator
 from droidlet.base_util import hash_user
 
-# FIXME: move all this to json validator and model data
-cats = [
-    "HUMAN_GIVE_COMMAND",
-    "GET_MEMORY",
-    "SAY",
-    "BUILD",
-    "DESTROY",
-    "MOVE",
-    "UNDO",
-    "STOP",
-    "DIG",
-    "DANCE",
-    "GET",
-    "SPAWN",
-    "RESUME",
-    "FILL",
-    "SCOUT",
-    "AGENT",
-    "AGENT_POS",
-    "SPEAKER_POS",
-    "SPEAKER_LOOK",
-    "SPEAKER",
-    "LEFT",
-    "RIGHT",
-    "UP",
-    "DOWN",
-    "FRONT",
-    "BACK",
-    "AWAY",
-    "INSIDE",
-    "NEAR",
-    "OUTSIDE",
-    "AROUND",
-    "BETWEEN",
-    "ANTICLOCKWISE",
-    "CLOCKWISE",
-    "FIRST",
-    "RANDOM",
-    "ALL",
-    "THIS",
-    "ALLOWED",
-    "DISALLOWED",
-    "REQUIRED",
-    "MAX",
-    "MIN",
-    "GREATER_THAN",
-    "LESS_THAN",
-    "GREATER_THAN_EQUAL",
-    "LESS_THAN_EQUAL",
-    "NOT_EQUAL",
-    "EQUAL",
-    "ANY",
-    "SELF",
-    "CURRENTLY_RUNNING",
-    "FINISHED",
-    "AND",
-    "OR",
-    "NOT",
-]
-
-CATS_LOWER = [l.lower() for l in cats]
-
-
-def capitalize_categoricals(d):
-    """
-    if semantic parser outputs lowercase categoricals, fix here....
-    """
-    if type(d) is not dict:
-        return
-    keys_to_fix = []
-    for k, v in d.items():
-        if type(k) is str and k in ["and", "or", "not"]:
-            keys_to_fix.append(k)
-        if type(v) is str and v in CATS_LOWER:
-            d[k] = v.upper()
-        elif type(v) is dict:
-            capitalize_categoricals(v)
-        elif type(v) is list:
-            for l in v:
-                capitalize_categoricals(l)
-    for k in keys_to_fix:
-        d[k.upper()] = d.pop(k)
-
 
 class MockNSPQuerier(object):
     def __init__(self, opts):
@@ -259,8 +176,6 @@ class NSPQuerier(object):
             pkg_resources.resource_filename("droidlet.documents", "json_schema")
         )
         json_validator = JSONValidator(schema_dir, span_type="all")
-        # FIXME: model should get these...
-        capitalize_categoricals(parse_tree)
         is_valid_json = json_validator.validate_instance(parse_tree, debug)
         return is_valid_json
 
@@ -311,7 +226,6 @@ class NSPQuerier(object):
             [chat, logical_form, logical_form_source, "craftassist", time_now]
         )
         # check if logical_form conforms to the grammar
-
         is_valid_json = self.validate_parse_tree(logical_form)
         if not is_valid_json:
             # Send a NOOP
