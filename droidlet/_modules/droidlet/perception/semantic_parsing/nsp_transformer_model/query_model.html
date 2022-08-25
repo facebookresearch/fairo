@@ -110,7 +110,6 @@
 <span class="kn">import</span> <span class="nn">pickle</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">transformers</span> <span class="kn">import</span> <span class="n">AutoTokenizer</span>
 
 <span class="kn">from</span> <span class="nn">.utils_model</span> <span class="kn">import</span> <span class="n">build_model</span><span class="p">,</span> <span class="n">load_model</span>
 <span class="kn">from</span> <span class="nn">.utils_parsing</span> <span class="kn">import</span> <span class="n">beam_search</span>
@@ -139,11 +138,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_dir</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;caip_test_model&quot;</span><span class="p">):</span>
-        <span class="n">sd</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">full_tree_voc</span> <span class="o">=</span> <span class="n">load_model</span><span class="p">(</span><span class="n">model_dir</span><span class="p">)</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">encoder_decoder</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_model</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">full_tree_voc</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">sd</span><span class="p">,</span> <span class="n">tree_voc</span><span class="p">,</span> <span class="n">tree_idxs</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">full_tree_voc</span> <span class="o">=</span> <span class="n">load_model</span><span class="p">(</span><span class="n">model_dir</span><span class="p">)</span>
+        <span class="n">decoder_with_loss</span><span class="p">,</span> <span class="n">encoder_decoder</span><span class="p">,</span> <span class="n">tokenizer</span> <span class="o">=</span> <span class="n">build_model</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">full_tree_voc</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">args</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">=</span> <span class="n">data_dir</span>
-        <span class="c1"># load saved tokenzier</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model_dir</span><span class="p">,</span> <span class="s2">&quot;tokenizer&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">tokenizer</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">CAIPDataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">full_tree_voc</span><span class="o">=</span><span class="n">full_tree_voc</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">encoder_decoder</span> <span class="o">=</span> <span class="n">encoder_decoder</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">encoder_decoder</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">sd</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -159,17 +157,14 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            dict: Logical form.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">btr</span> <span class="o">=</span> <span class="n">beam_search_lm</span><span class="p">(</span>
+        <span class="n">btr</span> <span class="o">=</span> <span class="n">beam_search</span><span class="p">(</span>
             <span class="n">chat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder_decoder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="n">beam_size</span><span class="p">,</span> <span class="n">well_formed_pen</span>
         <span class="p">)</span>
-        <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">btr</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
-                    <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dialogue_type&quot;</span><span class="p">,</span> <span class="s2">&quot;NONE&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;NOOP&quot;</span> <span class="ow">and</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">noop_thres</span>
-                <span class="p">):</span>
-                    <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-        <span class="k">return</span> <span class="p">{}</span></div></div>
+        <span class="k">if</span> <span class="n">btr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dialogue_type&quot;</span><span class="p">,</span> <span class="s2">&quot;NONE&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;NOOP&quot;</span> <span class="ow">and</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">btr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">noop_thres</span><span class="p">:</span>
+            <span class="n">tree</span> <span class="o">=</span> <span class="n">btr</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tree</span> <span class="o">=</span> <span class="n">btr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">tree</span></div></div>
 </pre></div>
 
            </div>
