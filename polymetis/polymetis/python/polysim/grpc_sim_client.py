@@ -59,7 +59,7 @@ class GrpcSimulationClient(AbstractRobotClient):
         port: int = 50051,
         log_interval: int = 0,
         max_ping: float = 0.0,
-        mirror_hz: int = 24,
+        mirror_hz: float = 24.0,
     ):
         super().__init__(metadata_cfg=metadata_cfg)
 
@@ -98,13 +98,30 @@ class GrpcSimulationClient(AbstractRobotClient):
 
         self._state_setter = None
         self._kill_state_setter = False
+
+        self._runner = None
+        self._kill_runner = False
+
         self.mirror_hz = mirror_hz
 
     def __del__(self):
         """Close connection in destructor"""
         self.channel.close()
+        if self._state_setter:
+            self.unsync()
 
-    def run(self, time_horizon=float("inf")):
+    def run_no_wait(self, time_horizon=float("inf")):
+        assert self._runner is None, "Simulator already running in background thread!"
+        self._runner = Thread(target=self.run, args=[time_horizon, True], daemon=True)
+        self._runner.start()
+
+    def kill_run(self):
+        assert self._runner is not None, "No background simulator to kill!"
+        self._kill_runner = True
+        self._runner.join()
+        self._runner = None
+
+    def run(self, time_horizon=float("inf"), threaded=False):
         """Start running the simulation and querying the server.
 
         Args:
@@ -118,6 +135,10 @@ class GrpcSimulationClient(AbstractRobotClient):
         t = 0
         spinner = Spinner(self.hz)
         while t < time_horizon:
+            if threaded:
+                # print(f"Threaded run {t}")
+                if self._kill_runner:
+                    break
             # Get robot state from env
             joint_pos, joint_vel = self.env.get_current_joint_pos_vel()
             robot_state.joint_positions[:] = joint_pos
@@ -211,7 +232,7 @@ class GrpcSimulationClient(AbstractRobotClient):
             self._state_setter is None
         ), "The simulation client is already synced to a robot"
         self._state_setter = Thread(
-            target=self._sync_blocking, args=[tgt_robot, timesteps]
+            target=self._sync_blocking, args=[tgt_robot, timesteps], daemon=True
         )
         self._state_setter.start()
 
@@ -219,3 +240,4 @@ class GrpcSimulationClient(AbstractRobotClient):
         assert self._state_setter is not None, "The mirror simulator is not synced"
         self._kill_state_setter = True
         self._state_setter.join()
+        self._state_setter = None

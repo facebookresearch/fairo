@@ -27,13 +27,15 @@ def main(cfg):
     assert check_server_exists(
         ip=sim_ip, port=sim_port
     ), f"Sim CM server must be started at {sim_ip}:{sim_port}"
-    # launch sim client, TODO: move mirror sim into robot interface
-    mirror_sim_client = hydra.utils.instantiate(cfg.robot_client)
-    mirror_sim_client.init_robot_client()
 
-    # create hw and sim robots
-    sim_robot = RobotInterface(ip_address=sim_ip, port=sim_port)
-    hw_robot = RobotInterface(ip_address=hw_ip, port=hw_port)
+    hw_robot = RobotInterface(
+        ip_address=hw_ip,
+        port=hw_port,
+        use_mirror_sim=True,
+        mirror_cfg=cfg,
+        mirror_ip=sim_ip,
+        mirror_port=sim_port,
+    )
 
     # Create policy instance
     hz = hw_robot.metadata.hz
@@ -43,10 +45,12 @@ def main(cfg):
     Kxd_default = torch.Tensor(hw_robot.metadata.default_Kxd)
 
     print("Planning...")
+    target = hw_robot.get_joint_positions()
+    target[0] += 0.5
     waypoints = toco.planning.generate_joint_space_min_jerk(
         start=hw_robot.get_joint_positions(),
-        goal=hw_robot.get_joint_positions() + 0.3,
-        time_to_go=5,
+        goal=target,
+        time_to_go=3,
         hz=hz,
     )
     print("Creating policy...")
@@ -61,19 +65,23 @@ def main(cfg):
         ignore_gravity=hw_robot.use_grav_comp,
     )
 
-    # Reset and test in sim, TODO: not easily doable until the mirror sim is moved into RoboInterface
-    # sim_robot.go_home()
-    # sim_robot.send_torch_policy(policy)
+    print("Setting up mirror for forward...")
+    hw_robot.setup_mirror_for_forward()
+    print("Homing simulation...")
+    hw_robot.go_home(use_mirror=True)
+    print("Running forward sim...")
+    hw_robot.send_torch_policy(policy, use_mirror=True)
+    hw_robot.clean_mirror_after_forward()
 
     # Mirror
+    print("Syncing...")
+    hw_robot.sync_with_mirror()
     print("Homing robot...")
     hw_robot.go_home()
-    print("Syncing...")
-    mirror_sim_client.sync(hw_robot)  # must be non-blocking
     print("Sending policy...")
     hw_robot.send_torch_policy(policy)
     print("Unsyncing...")
-    mirror_sim_client.unsync()
+    hw_robot.unsync_with_mirror()
 
 
 # this should be preceded by a call to launch_robot.py robot_client=None on the same machine
