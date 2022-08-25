@@ -9,7 +9,6 @@ import math
 import functools
 import logging
 import os
-from tkinter import X
 from tqdm import tqdm
 import random
 import time
@@ -17,14 +16,11 @@ import time
 import torch
 from torch.utils.data import DataLoader, SequentialSampler
 
-from transformers import AutoTokenizer
-
 from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_model import (
     build_model,
     load_model,
 )
 from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_parsing import *
-from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_caip import *
 from droidlet.perception.semantic_parsing.nsp_transformer_model.decoder_with_loss import *
 from droidlet.perception.semantic_parsing.nsp_transformer_model.encoder_decoder import *
 from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset import *
@@ -53,44 +49,6 @@ class ModelEvaluator:
             ["accuracy", "text_span_accuracy", "inference_speed"],
         )
 
-    def evaluate_bm(self, model, dataset, tokenizer):
-        """Evaluation loop using beam search
-        Args:
-            model: Decoder to be evaluated
-            dataset: Training dataset
-            tokenizer: Tokenizer for input
-        Returns:
-            Accuracy
-        """
-        # Totals are accumulated over all batches then divided by the number of iterations.
-        tot_steps = 0
-        tot_accu = 0.0
-        # disable autograd to reduce memory usage
-        with torch.no_grad():
-            with open("./droidlet/artifacts/datasets/annotated_data/test/annotated.txt", "r") as f:
-                line = f.readline()
-
-                while line:
-                    tot_steps += 1
-                    query, tree = line.split("|")
-
-                    parsed_tree = get_beam_tree(query, self.args, model, tokenizer, dataset)
-
-                    tree_c = tree_span_node_replace(query, json.loads(tree))
-                    tree_c = json.dumps(tree_c)
-                    tree = ""
-                    for x in tree_c:
-                        tree += x.lower()
-
-                    parsed_tree = json.dumps(parsed_tree)
-                    if tree == parsed_tree:
-                        tot_accu += 1
-
-                    line = f.readline()
-
-        print("Evaluation done!")
-        print("Accuracy: {:.3f}".format(tot_accu / tot_steps))
-
     def evaluate(self, model, dataset, tokenizer):
         """Evaluation loop
         Args:
@@ -116,7 +74,9 @@ class ModelEvaluator:
         tot_steps = 0
         # Accuracy of LM predictions/internal nodes
         tot_int_acc = 0.0
+        tot_span_acc = 0.0
         tot_accu = 0.0
+        text_span_tot_acc = 0.0
         tot_time_cost = 0.0
         # disable autograd to reduce memory usage
         with torch.no_grad():
@@ -130,43 +90,38 @@ class ModelEvaluator:
                 outputs = model(x, x_mask, y, y_mask, None, True)
                 time_e = time.time()
                 # compute accuracy and add hard examples
-                lm_acc, full_acc = compute_accuracy(outputs, y)
-
+                lm_acc, sp_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
                 # book-keeping
                 # shapes of accuracies are [B]
                 tot_int_acc += (
                     lm_acc.sum().item() / lm_acc.shape[0]
                 )  # internal_nodes_accuracy / batch_size
+                tot_span_acc += (
+                    sp_acc.sum().item() / sp_acc.shape[0]
+                )  # weighted_accuracy / batch_size
                 tot_accu += full_acc.sum().item() / full_acc.shape[0]
                 # time cost
                 tot_time_cost += (time_e - time_s) / full_acc.shape[0]
                 tot_steps += 1
+                # text span stats
+                text_span_tot_acc += (
+                    text_span_acc.sum().item() / text_span_acc.shape[0]
+                )  # text_span_accuracy / batch_size
 
                 if step % self.args.vis_step_size == 0 and self.args.show_samples:
                     show_examples(self.args, model, dataset, tokenizer)
 
         self.evaluate_results_logger.log_dialogue_outputs(
-            [tot_accu / tot_steps, tot_steps / tot_time_cost]
+            [tot_accu / tot_steps, text_span_tot_acc / tot_steps, tot_steps / tot_time_cost]
         )
 
         logging.info("Accuracy: {:.3f}".format(tot_accu / tot_steps))
+        logging.info("Text span accuracy: {:.3f}".format(text_span_tot_acc / tot_steps))
         logging.info("Inference speed (fps): {:.1f}".format(tot_steps / tot_time_cost))
         print("Evaluation done!")
         print("Accuracy: {:.3f}".format(tot_accu / tot_steps))
+        print("Text span accuracy: {:.3f}".format(text_span_tot_acc / tot_steps))
         print(("Inference speed (fps): {:.1f}".format(tot_steps / tot_time_cost)))
-
-
-def get_beam_tree(chat, args, model, tokenizer, dataset):
-    btr = beam_search_lm(chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen)
-    for idx, res in enumerate(btr):
-        if len(res[0]) != 0:
-            if not (
-                res[0].get("dialogue_type", "NONE") == "NOOP"
-                and math.exp(res[1]) < args.noop_thres
-            ):
-                return res[0]
-
-    return {}
 
 
 def build_grammar(args):
@@ -271,12 +226,6 @@ def argument_parse(input_arg):
         type=str,
         help="Directory to pretrained NLU model",
     )
-    parser.add_argument(
-        "--tokenizer_max_length",
-        default=512,
-        type=int,
-        help="The maximal length of the sequence of token by tokenzier",
-    )
     # optimization arugments
     parser.add_argument("--batch_size", default=28, type=int, help="Batch size")
     parser.add_argument(
@@ -323,7 +272,7 @@ def argument_parse(input_arg):
         "--beam_size", default=5, type=int, help="Number of branches to keep in beam search"
     )
     parser.add_argument(
-        "--well_formed_pen", default=512, type=float, help="Penalization for poorly formed trees"
+        "--well_formed_pen", default=1e2, type=float, help="Penalization for poorly formed trees"
     )
     parser.add_argument(
         "--load_ground_truth",
@@ -368,13 +317,10 @@ def model_configure(args):
     logging.info("====== Loading Pretrained Parameters ======")
     sd, _, _, _, _ = load_model(args.model_dir)
     logging.info("====== Setting up Model ======")
-    _, encoder_decoder, _ = build_model(args, full_tree_voc[1])
+    _, encoder_decoder, tokenizer = build_model(args, full_tree_voc[1])
     encoder_decoder.load_state_dict(sd, strict=True)
     encoder_decoder = encoder_decoder.cuda()
     encoder_decoder.eval()
-
-    # load saved tokenzier
-    tokenizer = AutoTokenizer.from_pretrained(os.path.join(args.model_dir, "tokenizer"))
 
     return encoder_decoder, tokenizer
 
@@ -416,23 +362,20 @@ def query_model(chat, args, model, tokenizer, dataset):
     Returns:
         logical form (dict)
     """
-    # chat is stored in ground truth and directly extract parsed the logic form
     if args.load_ground_truth and chat in GT_QUERY_ACTIONS:
-        return GT_QUERY_ACTIONS[chat]
-    # parse the logic form via NLU model
+        tree = GT_QUERY_ACTIONS[chat]
     else:
-        btr = beam_search_lm(chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen)
-        for res in btr:
-            if len(res[0]) != 0:
-                if not (
-                    res[0].get("dialogue_type", "NONE") == "NOOP"
-                    and math.exp(res[1]) < args.noop_thres
-                ):
-                    print(res[0])
-                    return res[0]
+        btr = beam_search(chat, model, tokenizer, dataset, args.beam_size, args.well_formed_pen)
 
-    # return empty dict if no tree is well formed or NOOP action is lower than thershold
-    return {}
+        if (
+            btr[0][0].get("dialogue_type", "NONE") == "NOOP"
+            and math.exp(btr[0][1]) < args.noop_thres
+        ):
+            tree = btr[1][0]
+        else:
+            tree = btr[0][0]
+
+    return tree
 
 
 def eval_model(args, model, tokenizer, dataset):
@@ -447,20 +390,6 @@ def eval_model(args, model, tokenizer, dataset):
     """
     model_evaluator = ModelEvaluator(args)
     model_evaluator.evaluate(model, dataset, tokenizer)
-
-
-def eval_model_bm(args, model, tokenizer, dataset):
-    """
-    Evaluation mode via beam search for NLU model, which computes the accuracy of the given dataset
-    Args:
-        args: input arguments of model and dataset configuration
-        model: model class with pretrained model
-        tokenizer: pretrained tokenizer
-        dataset: caip dataset
-    Returns:
-    """
-    model_evaluator = ModelEvaluator(args)
-    model_evaluator.evaluate_bm(model, dataset, tokenizer)
 
 
 if __name__ == "__main__":
