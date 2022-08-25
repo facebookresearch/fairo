@@ -6,6 +6,7 @@ import boto3
 import copy
 
 from droidlet.lowlevel.minecraft.shape_util import SHAPE_NAMES
+
 GENERATED_TAGS = copy.deepcopy(SHAPE_NAMES)
 GENERATED_TAGS.append("hole")
 
