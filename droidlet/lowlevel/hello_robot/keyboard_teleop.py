@@ -15,10 +15,10 @@ class RobotController:
     def __init__(self,
         ip,
         hz=10,
-        acc=1.,
+        acc=1.2,
         racc=2.,
-        vel_max=1.,
-        rvel_max=1.,
+        vel_max=0.6,
+        rvel_max=0.5,
     ):
         # Params
         self.dt = 1 / hz.
@@ -57,7 +57,7 @@ class RobotController:
             self.rvel = np.clip(self.rvel + racc * self.dt, -self.rvel_max, self.rvel_max)
 
             # Command robot
-            self.robot.set_vel(self.vel, self.rvel)
+            self.robot.set_velocity(self.vel, self.rvel)
 
             # Spin
             time.sleep(self.dt)
