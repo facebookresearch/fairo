@@ -45,7 +45,8 @@ class ModelEvaluator:
     def __init__(self, args):
         self.args = args
         self.evaluate_results_logger = NSPLogger(
-            "evaluation_results.csv", ["accuracy", "text_span_accuracy", "inference_speed"],
+            "evaluation_results.csv",
+            ["accuracy", "text_span_accuracy", "inference_speed"],
         )
 
     def evaluate(self, model, dataset, tokenizer):
@@ -338,7 +339,11 @@ def dataset_configure(args, tokenizer):
     full_tree_voc = (full_tree, tree_i2w)
 
     dataset = CAIPDataset(
-        tokenizer, args, prefix="test", full_tree_voc=full_tree_voc, dtype="annotated",
+        tokenizer,
+        args,
+        prefix="test",
+        full_tree_voc=full_tree_voc,
+        dtype="annotated",
     )
 
     return dataset

@@ -161,17 +161,21 @@ class NLUModelTrainer:
                 loss.backward()
 
                 # Add text span loss gradients
-                model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
-                    self.text_span_loss_attenuation_factor
-                    * (
-                        model.decoder.text_span_start_hidden_z.grad
-                        + model.decoder.text_span_end_hidden_z.grad
+                model.decoder.bert_final_layer_out.grad = (
+                    model.decoder.bert_final_layer_out.grad.add(
+                        self.text_span_loss_attenuation_factor
+                        * (
+                            model.decoder.text_span_start_hidden_z.grad
+                            + model.decoder.text_span_end_hidden_z.grad
+                        )
                     )
                 )
                 # Add fixed value loss gradients
-                model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
-                    self.fixed_value_loss_attenuation_factor
-                    * (model.decoder.fixed_span_hidden_z.grad)
+                model.decoder.bert_final_layer_out.grad = (
+                    model.decoder.bert_final_layer_out.grad.add(
+                        self.fixed_value_loss_attenuation_factor
+                        * (model.decoder.fixed_span_hidden_z.grad)
+                    )
                 )
                 if step % self.args.param_update_freq == 0:
                     torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -461,7 +465,10 @@ if __name__ == "__main__":
         help="train/valid/test data",
     )
     parser.add_argument(
-        "--root_dir", default="", type=str, help="The root folder of the fairo project",
+        "--root_dir",
+        default="",
+        type=str,
+        help="The root folder of the fairo project",
     )
     parser.add_argument("--tensorboard_dir", default="")
     parser.add_argument(
@@ -478,7 +485,10 @@ if __name__ == "__main__":
         help="Pre-computed grammar and output vocabulary",
     )
     parser.add_argument(
-        "--hard_iter", default=400, type=int, help="Number of iterations to add hard examples",
+        "--hard_iter",
+        default=400,
+        type=int,
+        help="Number of iterations to add hard examples",
     )
     # model arguments
     parser.add_argument(
@@ -672,7 +682,11 @@ if __name__ == "__main__":
     val_datasets = {}
     for dtype, _ in args.dtype_samples.items():
         val_dataset = CAIPDataset(
-            tokenizer, args, prefix="valid", dtype=dtype, full_tree_voc=full_tree_voc,
+            tokenizer,
+            args,
+            prefix="valid",
+            dtype=dtype,
+            full_tree_voc=full_tree_voc,
         )
         val_datasets[dtype] = val_dataset
 
