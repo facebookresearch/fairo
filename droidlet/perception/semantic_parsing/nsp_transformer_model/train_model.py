@@ -516,6 +516,12 @@ if __name__ == "__main__":
         help="Factor for learning rate in warmup stage",
     )
     parser.add_argument(
+        "--lr_scheduler_method",
+        default="default",
+        type=str,
+        help="Method for learning rate warmup scheduler, e.g. linear, cosine, constant, cosine_hard"
+    )
+    parser.add_argument(
         "--node_label_smoothing",
         default=0.0,
         type=float,
@@ -641,7 +647,7 @@ if __name__ == "__main__":
         word_noise=args.word_dropout,
         full_tree_voc=full_tree_voc,
     )
-
+    args.dataset_size = len(train_dataset)
     logging.info("====== Loading Validation Datasets ======")
     val_datasets = {}
     for dtype, _ in args.dtype_samples.items():
