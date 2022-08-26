@@ -252,9 +252,16 @@ class Navigation(object):
 
                 # add an obstacle where the collision occurred
                 print(f" Collided at {robot_loc}. Adding an obstacle to the map")
-                width = 3  # width of obstacle rectangle
+                # Robot settings
+                # width = 3  # width of obstacle rectangle
+                # length = 2  # depth of obstacle rectangle
+                # buf = 1  # buffer space between robot and obstacle placed in front of it
+
+                 # Habitat settings
+                width = 5  # width of obstacle rectangle
                 length = 2  # depth of obstacle rectangle
                 buf = 1  # buffer space between robot and obstacle placed in front of it
+
                 x1, y1, t1 = robot_loc
                 obstacle_locs = []
                 for i in range(length):
@@ -262,6 +269,7 @@ class Navigation(object):
                         wx = x1 + 0.05 * ((i + buf) * np.cos(t1) + (j - width // 2) * np.sin(t1))
                         wy = y1 + 0.05 * ((i + buf) * np.sin(t1) - (j - width // 2) * np.cos(t1))
                         obstacle_locs.append((wx, wy))
+
                 self.slam.add_obstacles(obstacle_locs)
 
                 # trackback to a known good location
