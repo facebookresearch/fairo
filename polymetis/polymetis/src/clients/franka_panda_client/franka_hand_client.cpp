@@ -80,8 +80,7 @@ void FrankaHandClient::run(void) {
     getGripperState();
 
     grpc::ClientContext context;
-    status_ = stub_->ControlUpdate(&context, gripper_state_,
-                                   &gripper_cmd_);
+    status_ = stub_->ControlUpdate(&context, gripper_state_, &gripper_cmd_);
 
     if (!is_moving_) {
       // Skip if command not updated
