@@ -34,59 +34,61 @@ FrankaHandClient::FrankaHandClient(std::shared_ptr<grpc::Channel> channel,
   ClientContext context;
   Empty empty;
   stub_->InitRobotClient(&context, metadata, &empty);
+
+  spdlog::info("Connected.", robot_ip);
 }
 
-void FrankaHandClient::getGripperState(GripperState &gripper_state) {
+void FrankaHandClient::getGripperState(void) {
   franka::GripperState franka_gripper_state = gripper_->readOnce();
 
-  gripper_state.set_width(franka_gripper_state.width);
-  gripper_state.set_is_grasped(franka_gripper_state.is_grasped);
-  gripper_state.set_is_moving(is_moving_);
+  gripper_state_.set_width(franka_gripper_state.width);
+  gripper_state_.set_is_grasped(franka_gripper_state.is_grasped);
+  gripper_state_.set_is_moving(is_moving_);
 
   // gripper_state.time();  // Use current timestamp instead!
-  setTimestampToNow(gripper_state.mutable_timestamp());
+  setTimestampToNow(gripper_state_.mutable_timestamp());
 }
 
-void FrankaHandClient::applyGripperCommand(GripperCommand &gripper_cmd) {
-  if (gripper_cmd.grasp()) {
-    spdlog::info("Grasping at width {} at speed={}", gripper_cmd.width(),
-                 gripper_cmd.speed());
-    is_moving_ = true;
-    gripper_->grasp(gripper_cmd.width(), gripper_cmd.speed(),
-                    gripper_cmd.force(), EPSILON_INNER, EPSILON_OUTER);
-    is_moving_ = false;
+void FrankaHandClient::applyGripperCommand(void) {
+  is_moving_ = true;
+
+  if (gripper_cmd_.grasp()) {
+    spdlog::info("Grasping at width {} at speed={}", gripper_cmd_.width(),
+                 gripper_cmd_.speed());
+    gripper_->grasp(gripper_cmd_.width(), gripper_cmd_.speed(),
+                    gripper_cmd_.force(), EPSILON_INNER, EPSILON_OUTER);
 
   } else {
-    spdlog::info("Moving to width {} at speed={}", gripper_cmd.width(),
-                 gripper_cmd.speed());
-    is_moving_ = true;
-    gripper_->move(gripper_cmd.width(), gripper_cmd.speed());
-    is_moving_ = false;
+    spdlog::info("Moving to width {} at speed={}", gripper_cmd_.width(),
+                 gripper_cmd_.speed());
+    gripper_->move(gripper_cmd_.width(), gripper_cmd_.speed());
   }
+
+  is_moving_ = false;
 }
 
 void FrankaHandClient::run(void) {
   int period = 1.0 / GRIPPER_HZ;
   int period_ns = period * 1.0e9;
 
+  int timestamp_ns;
+
   struct timespec abs_target_time;
   clock_gettime(CLOCK_REALTIME, &abs_target_time);
   while (true) {
     // Run control step
-    getGripperState(proto_gripper_state_);
+    getGripperState();
 
     grpc::ClientContext context;
-    status_ = stub_->ControlUpdate(&context, proto_gripper_state_,
-                                   &proto_gripper_cmd_);
+    status_ = stub_->ControlUpdate(&context, gripper_state_, &gripper_cmd_);
 
     if (!is_moving_) {
-      int timestamp_ns = proto_gripper_cmd_.timestamp().nanos();
-
       // Skip if command not updated
-      if (timestamp_ns != prev_cmd_timestamp_ns_) {
-        // applyGripperCommand(proto_gripper_cmd_) in separate thread
-        std::thread th(
-            [this] { this->applyGripperCommand(proto_gripper_cmd_); });
+      timestamp_ns = gripper_cmd_.timestamp().nanos();
+      if (timestamp_ns != prev_cmd_timestamp_ns_ && timestamp_ns) {
+        // applyGripperCommand() in separate thread
+        std::thread th(&FrankaHandClient::applyGripperCommand, this);
+        th.detach();
         prev_cmd_timestamp_ns_ = timestamp_ns;
       }
     }
