@@ -61,7 +61,7 @@ def reconfigure_scene(env, scene_path, add_humans):
         # start_rotation = quaternion.from_euler_angles(0, np.pi / 2, 0)
 
         # couch1
-        start_position = np.asarray([-2.69, 0., -6.96])
+        start_position = np.asarray([-2.69, 0.0, -6.96])
         start_rotation = quaternion.from_euler_angles(0, 0.52, 0)
 
         # couch2
