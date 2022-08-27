@@ -377,8 +377,6 @@ class EndToEndSemanticScout:
             rgb_depth = mover.get_rgb_depth()
             rgb = rgb_depth.rgb
             depth = rgb_depth.depth
-            print("rgb.shape", rgb.shape)
-            print("depth.shape", depth.shape)
         else:
             # Robot
             rgb, depth = mover.get_rgb_depth_optimized_for_habitat_transfer()
