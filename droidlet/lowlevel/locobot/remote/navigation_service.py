@@ -258,8 +258,8 @@ class Navigation(object):
                 # buf = 1  # buffer space between robot and obstacle placed in front of it
 
                  # Habitat settings
-                width = 20  # width of obstacle rectangle
-                length = 20  # depth of obstacle rectangle
+                width = 7  # width of obstacle rectangle
+                length = 4  # depth of obstacle rectangle
                 buf = 1  # buffer space between robot and obstacle placed in front of it
 
                 x1, y1, t1 = robot_loc
