@@ -155,9 +155,8 @@ class LoCoBotCamera(object):
         quat_pan_to_base = habUtils.quat_from_angle_axis(-1 * pan, np.asarray([0.0, 1.0, 0.0]))
 
         sensor_offset_base = habUtils.quat_rotate_vector(quat_pan_to_base, sensor_offset_pan)
-        # sensor_offset_base += np.asarray([0.0, 0.5, 0.1])  # offset w.r.t base
+        sensor_offset_base += np.asarray([0.0, 0.88, 0.1])  # offset w.r.t base
         # sensor_offset_base += np.asarray([0.0, 1.31, 0.1])  # offset w.r.t base
-        sensor_offset_base += np.asarray([0.0, 1.31, 0.1])  # offset w.r.t base
 
         # translation
         quat = quat_cam_to_pan * quat_pan_to_base
