@@ -66,6 +66,10 @@ class SimpleMob:
         self.entityId = str(np.random.randint(0, 100000))
         self.mobType = opts.mobType
         self.agent_built = False
+        self.inventory = set()
+        self.pick_prob = getattr(opts, "pick_prob", 0.0)
+        self.drop_prob = getattr(opts, "drop_prob", 0.0)
+        self.pick_range = getattr(opts, "pick_range", 0.0)
 
     def add_to_world(self, world):
         self.world = world
@@ -100,6 +104,27 @@ class SimpleMob:
         self.look = (yaw, 0.0)
 
     def step(self):
+        # if mob is carrying something, maybe drop:
+        if np.random.rand() < self.drop_prob and len(self.inventory) > 0:
+            eid = self.inventory.pop()
+            dropped = self.world.player_pick_drop_items(self.entityId, [eid], action="drop")
+            if dropped == 0:  # world didn't drop it, add back to inventory
+                self.inventory.add(eid)
+
+        # if mob can pick things, and if something is nearby, pick it
+        if np.random.rand() < self.pick_prob:
+            pickable_items = self.world.get_items()
+            for i in pickable_items:
+                if i["holder_entityId"] == -1:  # on ground
+                    ix, iy, iz = i["x"], i["y"], i["z"]
+                    x, y, z = self.pos
+                    if (x - ix) ** 2 + (y - iy) ** 2 + (z - iz) ** 2 < self.pick_range ** 2:
+                        picked = self.world.player_pick_drop_items(
+                            self.entityId, [i["entityId"]], action="pick"
+                        )
+                        if picked > 0:
+                            self.inventory.add(i["entityId"])
+
         # check if falling:
         x, y, z = self.world.to_npy_coords(self.pos)
         fy = min(max(int(np.floor(y)), 0), self.world.blocks.shape[1])
