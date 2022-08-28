@@ -118,7 +118,7 @@ class SimpleMob:
                 if i["holder_entityId"] == -1:  # on ground
                     ix, iy, iz = i["x"], i["y"], i["z"]
                     x, y, z = self.pos
-                    if (x - ix) ** 2 + (y - iy) ** 2 + (z - iz) ** 2 < self.pick_range ** 2:
+                    if (x - ix) ** 2 + (y - iy) ** 2 + (z - iz) ** 2 < self.pick_range**2:
                         picked = self.world.player_pick_drop_items(
                             self.entityId, [i["entityId"]], action="pick"
                         )
