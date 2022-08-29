@@ -181,12 +181,27 @@ class MCAgentMemory(AgentMemory):
         for memid, eid in all_item_stacks:
             holder_eid = holder_eids.get(eid)
             if holder_eid is not None:
+                old_triples = self._db_read(
+                    "SELECT uuid FROM Triples WHERE subj=? AND pred_text=?", memid, "held_by"
+                )
+                for uuid in old_triples:
+                    self.forget(uuid[0])
                 if holder_eid == -1:
                     node = self.get_mem_by_id(memid)
                     TripleNode.tag(self, memid, "_on_ground")
                     TripleNode.untag(self, memid, "_in_inventory")
                     TripleNode.untag(self, memid, "_in_others_inventory")
                 else:
+                    r = self._db_read_one(
+                        "SELECT uuid FROM ReferenceObjects WHERE eid=?", holder_eid
+                    )
+                    if not r:
+                        raise Exception(
+                            "holder eid from perception given as {} but entity not found in ReferenceObjects".format(
+                                holder_eid
+                            )
+                        )
+                    TripleNode.create(self, subj=memid, pred_text="held_by", obj=r[0])
                     TripleNode.untag(self, memid, "_on_ground")
                     if holder_eid == self_node.eid:
                         TripleNode.tag(self, memid, "_in_inventory")
