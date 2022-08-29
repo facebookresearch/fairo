@@ -206,7 +206,7 @@ class MCAgentMemory(AgentMemory):
                     )
                     for uuid in old_triples:
                         self.forget(uuid)
-                    TripleNode.create(subj=memid, pred_text="held_by", obj=r[0])
+                    TripleNode.create(self, subj=memid, pred_text="held_by", obj=r[0])
                     TripleNode.untag(self, memid, "_on_ground")
                     if holder_eid == self_node.eid:
                         TripleNode.tag(self, memid, "_in_inventory")
