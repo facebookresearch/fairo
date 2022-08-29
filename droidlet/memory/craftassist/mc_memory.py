@@ -185,7 +185,7 @@ class MCAgentMemory(AgentMemory):
                     "SELECT uuid FROM Triples WHERE subj=? AND pred_text=?", memid, "held_by"
                 )
                 for uuid in old_triples:
-                    self.forget(uuid)
+                    self.forget(uuid[0])
                 if holder_eid == -1:
                     node = self.get_mem_by_id(memid)
                     TripleNode.tag(self, memid, "_on_ground")
@@ -201,11 +201,6 @@ class MCAgentMemory(AgentMemory):
                                 holder_eid
                             )
                         )
-                    old_triples = self._db_read(
-                        "SELECT uuid FROM Triples WHERE subj=? AND pred_text=?", memid, "held_by"
-                    )
-                    for uuid in old_triples:
-                        self.forget(uuid)
                     TripleNode.create(self, subj=memid, pred_text="held_by", obj=r[0])
                     TripleNode.untag(self, memid, "_on_ground")
                     if holder_eid == self_node.eid:
