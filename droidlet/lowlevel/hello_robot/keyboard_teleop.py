@@ -51,21 +51,12 @@ class RobotController:
         print("Teleoperation started.")
         while True:
             # Map keystrokes
-            vert_val = self.key_states[UP] - self.key_states[DOWN]
-            hori_val = self.key_states[LEFT] - self.key_states[RIGHT]
-
-            if vert_val:
-                acc = self.acc * vert_val
-            else:
-                acc = np.clip(-self.vel / self.dt, -self.acc, self.acc)
-            if hori_val:
-                racc = self.racc * hori_val
-            else:
-                racc = np.clip(-self.rvel / self.dt, -self.racc, self.racc)
+            vert_sign = self.key_states[UP] - self.key_states[DOWN]
+            hori_sign = self.key_states[LEFT] - self.key_states[RIGHT]
 
             # Compute velocity commands
-            self.vel = np.clip(self.vel + acc * self.dt, -self.vel_max, self.vel_max)
-            self.rvel = np.clip(self.rvel + racc * self.dt, -self.rvel_max, self.rvel_max)
+            self.vel = self.vel_max * vert_sign
+            self.rvel = self.rvel_max * hori_sign
 
             # Command robot
             self.robot.set_velocity(self.vel, self.rvel)

@@ -251,8 +251,9 @@ class RemoteHelloRobot(object):
         return status
 
     def set_velocity(self, v_m, w_r):
-        # self._robot.base.set_velocity(v_m, w_r)
+        self._robot.base.set_velocity(v_m, w_r)
 
+        """
         base = self._robot.base
 
         acc_mr = base.translate_to_motor_rad(base.params["motion"]["default"]["accel_m"])
@@ -261,6 +262,7 @@ class RemoteHelloRobot(object):
 
         base.left_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wl_r, a_des=acc_mr)
         base.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wr_r, a_des=acc_mr)
+        """
 
         self._robot.push_command()
 
