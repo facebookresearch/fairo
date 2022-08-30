@@ -2,11 +2,19 @@ import numpy as np
 from droidlet.lowlevel.minecraft.small_scenes_with_shapes import build_shape_scene, GROUND_DEPTH, SL, H
 from droidlet.lowlevel.minecraft.shape_util import SHAPE_NAMES
 
-IDX2NAME = ["nothing"] + SHAPE_NAMES
-NAME2IDX = {IDX2NAME[i]: i for i in range(len(IDX2NAME))}
-
 
 def json_to_segdata(J):
+    tags = []
+    for t in J["inst_seg_tags"]:
+        tags.extend(t["tags"])
+    tags = set(tags)
+    IDX2NAME = []
+    if "nothing" not in tags:
+        IDX2NAME.append("nothing")
+    for t in tags:
+        IDX2NAME.append(t)
+    NAME2IDX = {IDX2NAME[i]: i for i in range(len(IDX2NAME))}
+    
     data = [np.zeros((SL, H, SL), dtype="int32"),
             np.zeros((SL, H, SL), dtype="int32"),
             IDX2NAME]
