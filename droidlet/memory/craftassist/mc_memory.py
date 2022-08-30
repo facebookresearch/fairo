@@ -276,10 +276,16 @@ class MCAgentMemory(AgentMemory):
                 # we are in cuberite, and an item is held by another entity or has disappeared
                 # in any case, we can't track its location
                 TripleNode.tag(self, memid, "_possibly_stale_location")
-        held_memids = TripleNode.get_memids_by_tag(self, "_in_inventory")
-        for memid in held_memids:
-            eid = self._db_read_one("SELECT eid FROM ReferenceObjects WHERE uuid=?", memid)[0]
-            struct = ItemStack(None, Pos(*self_node.pos), eid, "")
+        to_update_pos = TripleNode.get_triples(self, pred_text="held_by")
+        for t in to_update_pos:
+            obj_memid, _, holder_memid = t
+            item_eid = self._db_read_one(
+                "SELECT eid FROM ReferenceObjects WHERE uuid=?", obj_memid
+            )[0]
+            xyz = self._db_read_one(
+                "SELECT x,y,z FROM ReferenceObjects WHERE uuid=?", holder_memid
+            )
+            struct = ItemStack(None, Pos(*xyz), eid, "")
             ItemStackNode.maybe_update_item_stack_position(self, struct)
 
         # 5. Update the state of the world when a block is changed.
