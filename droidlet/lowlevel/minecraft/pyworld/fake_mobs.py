@@ -118,7 +118,7 @@ class SimpleMob:
                 if i["holder_entityId"] == -1:  # on ground
                     ix, iy, iz = i["x"], i["y"], i["z"]
                     x, y, z = self.pos
-                    if (x - ix) ** 2 + (y - iy) ** 2 + (z - iz) ** 2 < self.pick_range**2:
+                    if (x - ix) ** 2 + (y - iy) ** 2 + (z - iz) ** 2 < self.pick_range ** 2:
                         picked = self.world.player_pick_drop_items(
                             self.entityId, [i["entityId"]], action="pick"
                         )
@@ -155,9 +155,9 @@ class SimpleMob:
         new_z = step[1] + z
         # is there a block in new location? if no go there, if yes go up
         for i in range(self.step_height):
-            if fy + i >= self.world.sl / 3:
-                self.new_direction()
-                return
+            #            if fy + i >= self.world.sl / 3:
+            #                self.new_direction()
+            #                return
             if self.world.blocks[int(np.round(new_x)), fy + i, int(np.round(new_z)), 0] == 0:
                 self.pos = self.world.from_npy_coords((new_x, y + i, new_z))
                 return
