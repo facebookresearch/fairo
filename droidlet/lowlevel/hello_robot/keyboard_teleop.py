@@ -54,8 +54,14 @@ class RobotController:
             vert_val = self.key_states[UP] - self.key_states[DOWN]
             hori_val = self.key_states[LEFT] - self.key_states[RIGHT]
 
-            acc = self.acc * (vert_val or -np.sign(self.vel))
-            racc = self.racc * (hori_val or -np.sign(self.rvel))
+            if vert_val:
+                acc = self.acc * vert_val
+            else:
+                acc = np.clip(-self.vel / self.dt, -self.acc, self.acc)
+            if hori_val:
+                racc = self.racc * hori_val
+            else:
+                racc = np.clip(-self.rvel / self.dt, -self.racc, self.racc)
 
             # Compute velocity commands
             self.vel = np.clip(self.vel + acc * self.dt, -self.vel_max, self.vel_max)

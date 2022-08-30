@@ -251,6 +251,7 @@ class RemoteHelloRobot(object):
 
     def set_velocity(self, v_m, w_r):
         self._robot.base.set_velocity(v_m, w_r)
+        self._robot.push_command()
 
     def is_base_moving(self):
         robot = self._robot
