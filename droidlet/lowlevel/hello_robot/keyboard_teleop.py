@@ -17,15 +17,11 @@ class RobotController:
         self,
         ip,
         hz=10,
-        acc=1.2,
-        racc=2.0,
-        vel_max=0.6,
+        vel_max=0.25,
         rvel_max=0.5,
     ):
         # Params
         self.dt = 1.0 / hz
-        self.acc = acc
-        self.racc = racc
         self.vel_max = vel_max
         self.rvel_max = rvel_max
 
