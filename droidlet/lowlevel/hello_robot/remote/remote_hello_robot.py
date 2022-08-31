@@ -16,7 +16,6 @@ import Pyro4
 from stretch_body.robot import Robot
 from colorama import Fore, Back, Style
 import stretch_body.hello_utils as hu
-from stretch_body.stepper import Stepper
 
 hu.print_stretch_re_use()
 import numpy as np
@@ -252,18 +251,6 @@ class RemoteHelloRobot(object):
 
     def set_velocity(self, v_m, w_r):
         self._robot.base.set_velocity(v_m, w_r)
-
-        """
-        base = self._robot.base
-
-        acc_mr = base.translate_to_motor_rad(base.params["motion"]["default"]["accel_m"])
-        wl_r = base.translate_to_motor_rad(v_m)
-        wr_r = base.translate_to_motor_rad(w_r)
-
-        base.left_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wl_r, a_des=acc_mr)
-        base.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wr_r, a_des=acc_mr)
-        """
-
         self._robot.push_command()
 
     def is_base_moving(self):
