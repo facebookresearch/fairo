@@ -75,12 +75,8 @@ def run_teleop(mover, vel=None, rvel=None):
     robot_controller.run()
 
 
-def run_teleop_from_ip(ip, vel=None, rvel=None):
+if __name__ == "__main__":
     from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
 
-    mover = HelloRobotMover(ip=ip)
-    run_teleop(mover, vel, rvel)
-
-
-if __name__ == "__main__":
-    run_teleop(sys.argv[1])
+    mover = HelloRobotMover(ip=sys.argv[1])
+    run_teleop(mover)
