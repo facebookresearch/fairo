@@ -41,6 +41,7 @@ class RemoteHelloRobot(object):
         self.tilt_correction = 0.0
 
         self._robot_direct = RobotDirect()
+        self._robot_direct.startup()
 
     def set_velocity(self, v_m, w_r):
         self._robot_direct.base.set_velocity(v_m, w_r)

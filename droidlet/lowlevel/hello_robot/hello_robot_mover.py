@@ -157,7 +157,7 @@ class HelloRobotMover(MoverInterface):
     def look_at(self, target, turn_base=True, face=False):
         """
         Executes "look at" by setting the pan, tilt of the camera
-        or turning th/ base if required.
+        or turning the base if required.
         Uses both the base state and object coordinates in
         canonical world coordinates to calculate expected yaw and pitch.
         if face == True will move body so head yaw is 0
