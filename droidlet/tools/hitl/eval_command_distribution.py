@@ -343,30 +343,6 @@ def compare_distributions(interaction_refs, labeling_refs):
         f"% of unique Labeling ref_objs also in interaction corpus: {len(unique_labeling_overlaps)/len(labeling_set)}"
     )
     print(unique_labeling_overlaps)
-    print(" ")
-
-    # Exact distributional overlap
-    # FIXME This section doesn't work
-    interaction_counter = Counter(interaction_refs)
-    interaction_size = sum(interaction_counter.values())
-    labeling_counter = Counter(labeling_refs)
-    labeling_size = sum(labeling_counter.values())
-
-    for tag in interaction_counter.keys():
-        if tag not in labeling_refs:
-            labeling_counter[tag] = 0
-        interaction_counter[tag] /= interaction_size  # normalize based on data size
-    for tag in labeling_counter.keys():
-        if tag not in interaction_refs:
-            interaction_counter[tag] = 0
-        labeling_counter[tag] /= labeling_size  # normalize based on data size
-
-    # At this point the counter dicts should contain the % of that corpus for each tag
-    # Sum the differences in corpus percentages to get the total 1 - overlap
-    perc_diff = 0
-    for tag in interaction_counter.keys():
-        perc_diff += abs(interaction_counter[tag] - labeling_counter[tag])
-    print(f"% exact distributional overlap = {1 - perc_diff}")
 
     return
 
