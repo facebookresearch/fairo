@@ -37,6 +37,10 @@ class MoveNode(hm.HelloNode):
         self._scan_matched_pose = None
         self._lock = threading.Lock()
 
+        self._nav_mode = rospy.ServiceProxy("/switch_to_navigation_mode", Trigger)
+        s_request = TriggerRequest()
+        self._nav_mode(s_request)
+
         self._vel_command_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1)
 
     def _joint_states_callback(self, joint_state):
