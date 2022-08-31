@@ -4,7 +4,6 @@ import time
 from pynput import keyboard
 import numpy as np
 
-from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
 
 UP = keyboard.Key.up
 DOWN = keyboard.Key.down
@@ -15,7 +14,7 @@ RIGHT = keyboard.Key.right
 class RobotController:
     def __init__(
         self,
-        ip,
+        mover,
         hz=10,
         vel_max=0.25,
         rvel_max=0.5,
@@ -27,7 +26,7 @@ class RobotController:
 
         # Robot
         print("Connecting to robot...")
-        self.robot = HelloRobotMover(ip=ip)
+        self.robot = mover
         print("Connected.")
 
         # Keyboard
@@ -61,8 +60,8 @@ class RobotController:
             time.sleep(self.dt)
 
 
-if __name__ == "__main__":
-    robot_controller = RobotController(sys.argv[1])
+def run_teleop(mover):
+    robot_controller = RobotController(mover)
 
     listener = keyboard.Listener(
         on_press=robot_controller.on_press,
@@ -71,3 +70,14 @@ if __name__ == "__main__":
     listener.start()
 
     robot_controller.run()
+
+
+def run_teleop_from_ip(ip):
+    from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
+
+    mover = HelloRobotMover(ip=ip)
+    run_teleop(mover)
+
+
+if __name__ == "__main__":
+    run_teleop(sys.argv[1])
