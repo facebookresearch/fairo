@@ -10,19 +10,22 @@ DOWN = keyboard.Key.down
 LEFT = keyboard.Key.left
 RIGHT = keyboard.Key.right
 
+VEL_MAX_DEFAULT = 0.25
+RVEL_MAX_DEFAULT = 0.5
+
 
 class RobotController:
     def __init__(
         self,
         mover,
+        vel_max=None,
+        rvel_max=None,
         hz=10,
-        vel_max=0.25,
-        rvel_max=0.5,
     ):
         # Params
         self.dt = 1.0 / hz
-        self.vel_max = vel_max
-        self.rvel_max = rvel_max
+        self.vel_max = vel_max or VEL_MAX_DEFAULT
+        self.rvel_max = rvel_max or RVEL_MAX_DEFAULT
 
         # Robot
         print("Connecting to robot...")
@@ -60,8 +63,8 @@ class RobotController:
             time.sleep(self.dt)
 
 
-def run_teleop(mover):
-    robot_controller = RobotController(mover)
+def run_teleop(mover, vel=None, rvel=None):
+    robot_controller = RobotController(mover, vel, rvel)
 
     listener = keyboard.Listener(
         on_press=robot_controller.on_press,
@@ -72,11 +75,11 @@ def run_teleop(mover):
     robot_controller.run()
 
 
-def run_teleop_from_ip(ip):
+def run_teleop_from_ip(ip, vel=None, rvel=None):
     from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
 
     mover = HelloRobotMover(ip=ip)
-    run_teleop(mover)
+    run_teleop(mover, vel, rvel)
 
 
 if __name__ == "__main__":
