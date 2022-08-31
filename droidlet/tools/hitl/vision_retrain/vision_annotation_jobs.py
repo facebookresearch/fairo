@@ -147,9 +147,24 @@ class VisionAnnotationJob(DataGenerator):
             output_scene = copy.deepcopy(self._scenes)
             for i in range(len(units)):
                 data = mephisto_data_browser.get_data_from_unit(units[i])
-                output_scene[i]["inst_seg_tags"] = json.loads(
-                    data["data"]["outputs"]["inst_seg_tags"]
-                )
+                if "inst_seg_tags" in output_scene[i] and isinstance(
+                    output_scene[i]["inst_seg_tags"], list
+                ):
+                    try:
+                        anno = json.loads(data["data"]["outputs"]["inst_seg_tags"])
+                        if isinstance(anno, list):
+                            output_scene[i]["inst_seg_tags"].extend(anno)
+                    except json.decoder.JSONDecodeError:
+                        continue
+                else:
+                    try:
+                        output_scene[i]["inst_seg_tags"] = json.loads(
+                            data["data"]["outputs"]["inst_seg_tags"]
+                        )
+                    except json.decoder.JSONDecodeError:
+                        output_scene[i]["inst_seg_tags"] = 0
+                if i % 50 == 0:
+                    logging.info(f"Processed {i+1} scene annotation results")
 
             # Upload vision annotation results to S3 and save locally
             logging.info(

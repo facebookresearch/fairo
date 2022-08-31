@@ -268,7 +268,10 @@ def build_shape_scene(args):
 
         with open(args.iglu_scenes, "rb") as f:
             assets = pickle.load(f)
-            sid = np.random.choice(list(assets.keys()))
+            iglu_scenes = list(assets.keys())
+            if args.num_iglu_scenes and args.num_iglu_scenes < len(iglu_scenes):
+                iglu_scenes = iglu_scenes[: args.num_iglu_scenes]
+            sid = np.random.choice(iglu_scenes)
             scene = assets[sid]
             scene = scene.transpose(1, 0, 2)
             for i in range(11):
@@ -409,6 +412,9 @@ if __name__ == "__main__":
     parser.add_argument("--save_data_path", default="")
     parser.add_argument("--iglu_scenes", default="")
     parser.add_argument("--extra_simple", action="store_true", default=False)
+    parser.add_argument(
+        "--num_iglu_scenes", default=156, type=int, help="Subset of IGLU scenes to use"
+    )
     args = parser.parse_args()
 
     scenes = []
