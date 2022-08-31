@@ -67,7 +67,6 @@ class MoveNode(hm.HelloNode):
         cmd = Twist()
         cmd.linear.x = v_m
         cmd.angular.z = w_r
-        print(cmd)
         self._vel_command_pub.publish(cmd)
 
     def is_moving(self):
