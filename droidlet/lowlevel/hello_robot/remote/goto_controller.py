@@ -122,6 +122,8 @@ class GotoVelocityController:
         r_tol: Optional[float] = None,
     ):
         self.xyt_err = xyt_position
+        self.lin_error_tol = x_tol or DEFAULT_LIN_TOL
+        self.ang_error_tol = r_tol or DEFAULT_ANG_TOL
 
     def enable_yaw_tracking(self, value: bool):
         self.track_yaw = value
