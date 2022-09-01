@@ -155,9 +155,9 @@ class SimpleMob:
         new_z = step[1] + z
         # is there a block in new location? if no go there, if yes go up
         for i in range(self.step_height):
-            if fy + i >= self.world.sl / 3:
-                self.new_direction()
-                return
+            #            if fy + i >= self.world.sl / 3:
+            #                self.new_direction()
+            #                return
             if self.world.blocks[int(np.round(new_x)), fy + i, int(np.round(new_z)), 0] == 0:
                 self.pos = self.world.from_npy_coords((new_x, y + i, new_z))
                 return

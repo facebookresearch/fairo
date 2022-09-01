@@ -152,7 +152,71 @@ class MCAgentMemory(AgentMemory):
             # FIXME track these semi-automatically...
             self.place_field.update_map(map_changes)
 
-        # 2. Handle all items that the agent can pick up in-game
+        # 2. Update agent's current position and attributes in memory
+        if perception_output.agent_attributes:
+            agent_player = perception_output.agent_attributes
+            cmd = (
+                "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
+            )
+            cmd = cmd + "uuid=?"
+            self.db_write(
+                cmd,
+                agent_player.entityId,
+                agent_player.name,
+                agent_player.pos.x,
+                agent_player.pos.y,
+                agent_player.pos.z,
+                agent_player.look.pitch,
+                agent_player.look.yaw,
+                self.self_memid,
+            )
+            ap = (agent_player.pos.x, agent_player.pos.y, agent_player.pos.z)
+            self.place_field.update_map(
+                [{"pos": ap, "is_obstacle": True, "memid": self.self_memid, "is_move": True}]
+            )
+
+        # 3. Update other in-game players in agent's memory
+        if perception_output.other_player_list:
+            player_list = perception_output.other_player_list
+            for player, location in player_list:
+                mem = self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self, player.entityId)
+                if mem is None:
+                    memid = self.nodes[PlayerNode.NODE_TYPE].create(self, player)
+                else:
+                    memid = mem.memid
+                cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
+                cmd = cmd + "uuid=?"
+                self.db_write(
+                    cmd,
+                    player.entityId,
+                    player.name,
+                    player.pos.x,
+                    player.pos.y,
+                    player.pos.z,
+                    player.look.pitch,
+                    player.look.yaw,
+                    memid,
+                )
+                pp = (player.pos.x, player.pos.y, player.pos.z)
+                self.place_field.update_map(
+                    [{"pos": pp, "is_obstacle": True, "memid": memid, "is_move": True}]
+                )
+                memids = self._db_read_one(
+                    'SELECT uuid FROM ReferenceObjects WHERE ref_type="attention" AND type_name=?',
+                    player.entityId,
+                )
+                if memids:
+                    self.db_write(
+                        "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?",
+                        location[0],
+                        location[1],
+                        location[2],
+                        memids[0],
+                    )
+                else:
+                    AttentionNode.create(self, location, attender=player.entityId)
+
+        # 4. Handle all items that the agent can pick up in-game
         holder_eids = {}
         # FIXME: deal with far away things better
         for eid, item_stack_info in perception_output.agent_pickable_items.items():
@@ -212,75 +276,17 @@ class MCAgentMemory(AgentMemory):
                 # we are in cuberite, and an item is held by another entity or has disappeared
                 # in any case, we can't track its location
                 TripleNode.tag(self, memid, "_possibly_stale_location")
-        held_memids = TripleNode.get_memids_by_tag(self, "_in_inventory")
-        for memid in held_memids:
-            eid = self._db_read_one("SELECT eid FROM ReferenceObjects WHERE uuid=?", memid)[0]
-            struct = ItemStack(None, Pos(*self_node.pos), eid, "")
+        to_update_pos = TripleNode.get_triples(self, pred_text="held_by")
+        for t in to_update_pos:
+            obj_memid, _, holder_memid = t
+            item_eid = self._db_read_one(
+                "SELECT eid FROM ReferenceObjects WHERE uuid=?", obj_memid
+            )[0]
+            xyz = self._db_read_one(
+                "SELECT x,y,z FROM ReferenceObjects WHERE uuid=?", holder_memid
+            )
+            struct = ItemStack(None, Pos(*xyz), eid, "")
             ItemStackNode.maybe_update_item_stack_position(self, struct)
-
-        # 3. Update agent's current position and attributes in memory
-        if perception_output.agent_attributes:
-            agent_player = perception_output.agent_attributes
-            cmd = (
-                "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
-            )
-            cmd = cmd + "uuid=?"
-            self.db_write(
-                cmd,
-                agent_player.entityId,
-                agent_player.name,
-                agent_player.pos.x,
-                agent_player.pos.y,
-                agent_player.pos.z,
-                agent_player.look.pitch,
-                agent_player.look.yaw,
-                self.self_memid,
-            )
-            ap = (agent_player.pos.x, agent_player.pos.y, agent_player.pos.z)
-            self.place_field.update_map(
-                [{"pos": ap, "is_obstacle": True, "memid": self.self_memid, "is_move": True}]
-            )
-
-        # 4. Update other in-game players in agent's memory
-        if perception_output.other_player_list:
-            player_list = perception_output.other_player_list
-            for player, location in player_list:
-                mem = self.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self, player.entityId)
-                if mem is None:
-                    memid = self.nodes[PlayerNode.NODE_TYPE].create(self, player)
-                else:
-                    memid = mem.memid
-                cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
-                cmd = cmd + "uuid=?"
-                self.db_write(
-                    cmd,
-                    player.entityId,
-                    player.name,
-                    player.pos.x,
-                    player.pos.y,
-                    player.pos.z,
-                    player.look.pitch,
-                    player.look.yaw,
-                    memid,
-                )
-                pp = (player.pos.x, player.pos.y, player.pos.z)
-                self.place_field.update_map(
-                    [{"pos": pp, "is_obstacle": True, "memid": memid, "is_move": True}]
-                )
-                memids = self._db_read_one(
-                    'SELECT uuid FROM ReferenceObjects WHERE ref_type="attention" AND type_name=?',
-                    player.entityId,
-                )
-                if memids:
-                    self.db_write(
-                        "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?",
-                        location[0],
-                        location[1],
-                        location[2],
-                        memids[0],
-                    )
-                else:
-                    AttentionNode.create(self, location, attender=player.entityId)
 
         # 5. Update the state of the world when a block is changed.
         if perception_output.changed_block_attributes:
