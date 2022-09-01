@@ -255,9 +255,11 @@ class RemoteHelloRobot(object):
 
     def set_relative_position_goal(self, xy_position):
         xyt_position = list(xy_position) + [0.0]
+        self._goto_controller.enable_yaw_tracking(False)
         self._goto_controller.set_goal(xyt_position)
 
     def set_relative_goal(self, xyt_position):
+        self._goto_controller.enable_yaw_tracking(True)
         self._goto_controller.set_goal(xyt_position)
 
     def is_moving(self):

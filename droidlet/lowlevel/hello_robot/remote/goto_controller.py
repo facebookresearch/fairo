@@ -117,7 +117,7 @@ class GotoVelocityController:
     def set_goal(self, xyt_position, x_tol=None, r_tol=None):
         self.xyt_err = xyt_position
 
-    def toggle_yaw_tracking(self, value: bool):
+    def enable_yaw_tracking(self, value: bool):
         self.track_yaw = value
 
     def start(self):
