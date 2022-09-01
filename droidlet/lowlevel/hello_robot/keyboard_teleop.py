@@ -29,7 +29,7 @@ class RobotController:
 
         # Robot
         print("Connecting to robot...")
-        self.robot = mover
+        self.robot = mover.bot
         print("Connected.")
 
         # Keyboard

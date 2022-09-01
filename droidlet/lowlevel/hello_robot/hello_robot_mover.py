@@ -276,9 +276,6 @@ class HelloRobotMover(MoverInterface):
                 self.nav_result.wait()
         return "finished"
 
-    def set_velocity(self, v_m, w_r):
-        self.bot.set_velocity(v_m, w_r)
-
     def get_base_pos_in_canonical_coords(self):
         """get the current robot position in the canonical coordinate system
 
