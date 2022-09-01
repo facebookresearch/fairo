@@ -51,7 +51,7 @@ class GotoVelocityController:
         Used to control linear motion.
         """
         assert theta_err >= 0.0
-        return 1.0 - np.sin(min(max(theta_err - tol, 0.0), np.pi / 2.0))
+        return 1.0 - np.sin(min(max(theta_err - tol, 0.0) * 2.0, np.pi / 2.0))
 
     def _integrate_state(self, v, w):
         """
