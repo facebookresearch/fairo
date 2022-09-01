@@ -1,3 +1,4 @@
+from typing import List, Optional
 import time
 import threading
 
@@ -105,7 +106,7 @@ class GotoVelocityController:
             t_sleep = max(t_target - time.time(), 0.0)
             time.sleep(t_sleep)
 
-    def check_at_goal(self):
+    def check_at_goal(self) -> bool:
         xy_fulfilled = np.linalg.norm(self.xyt_err[0:2]) <= self.lin_error_tol
 
         t_fulfilled = True
@@ -114,7 +115,12 @@ class GotoVelocityController:
 
         return xy_fulfilled and t_fulfilled
 
-    def set_goal(self, xyt_position, x_tol=None, r_tol=None):
+    def set_goal(
+        self,
+        xyt_position: List[float],
+        x_tol: Optional[float] = None,
+        r_tol: Optional[float] = None,
+    ):
         self.xyt_err = xyt_position
 
     def enable_yaw_tracking(self, value: bool):
