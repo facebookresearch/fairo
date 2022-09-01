@@ -33,7 +33,8 @@ class GotoVelocityController:
         self.track_yaw = True
         self.loop_thr = None
 
-    def _trapezoidal_velocity_multiplier(self, x_err, a):
+    @staticmethod
+    def _trapezoidal_velocity_multiplier(x_err, a):
         """
         Computes velocity multiplier based on distance from target.
         Maintains a trapezoidal velocity profile.
@@ -42,7 +43,8 @@ class GotoVelocityController:
         t = np.sqrt(2.0 * x_err / a)  # x_err = (1/2) * a * t^2
         return min(a * t, 1.0)
 
-    def _projection_velocity_multiplier(self, theta_err):
+    @staticmethod
+    def _projection_velocity_multiplier(theta_err):
         """
         Compute velocity muliplier based on yaw (faster if facing towards target).
         Used to control linear motion.
