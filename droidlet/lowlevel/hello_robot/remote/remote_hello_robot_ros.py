@@ -24,6 +24,7 @@ Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
 
+VEL_CONTROL_HZ = 10
 
 # #####################################################
 @Pyro4.expose
@@ -40,7 +41,7 @@ class RemoteHelloRobot(object):
         self._load_urdf()
         self.tilt_correction = 0.0
 
-        self._goto_controller = GotoVelocityController(robot=self._robot, hz=self._robot.rate)
+        self._goto_controller = GotoVelocityController(robot=self._robot, hz=VEL_CONTROL_HZ)
         self._goto_controller.start()
 
     def _load_urdf(self):

@@ -3,11 +3,10 @@ import threading
 
 import numpy as np
 
-# TODO: Get params using robot.Robot().base.params
-ACC_LIN = 0
-ACC_ANG = 0
-V_MAX = 0
-W_MAX = 0
+V_MAX = 0.15  # base.params["motion"]["default"]["vel_m"]
+W_MAX = 0.9  # 2 * (vel_m_max - vel_m_default) / wheel_separation_m
+ACC_LIN = 0.2  # base.params["motion"]["default"]["accel_m"]
+ACC_ANG = 1.2  # 2 * (accel_m_max - accel_m_default) / wheel_separation_m
 
 DEFAULT_LIN_TOL = 0.01
 DEFAULT_ANG_TOL = 0.05

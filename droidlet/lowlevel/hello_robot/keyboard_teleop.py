@@ -10,8 +10,8 @@ DOWN = keyboard.Key.down
 LEFT = keyboard.Key.left
 RIGHT = keyboard.Key.right
 
-VEL_MAX_DEFAULT = 0.25
-RVEL_MAX_DEFAULT = 0.5
+VEL_MAX_DEFAULT = 0.15
+RVEL_MAX_DEFAULT = 0.9
 
 
 class RobotController:
