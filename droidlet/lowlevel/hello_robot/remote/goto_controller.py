@@ -9,8 +9,8 @@ W_MAX = 0.9  # 2 * (vel_m_max - vel_m_default) / wheel_separation_m
 ACC_LIN = 0.2  # base.params["motion"]["default"]["accel_m"]
 ACC_ANG = 1.2  # 2 * (accel_m_max - accel_m_default) / wheel_separation_m
 
-DEFAULT_LIN_TOL = 0.01
-DEFAULT_ANG_TOL = 0.05
+DEFAULT_LIN_TOL = 0.005
+DEFAULT_ANG_TOL = 0.025
 
 
 class GotoVelocityController:
@@ -34,22 +34,24 @@ class GotoVelocityController:
         self.loop_thr = None
 
     @staticmethod
-    def _trapezoidal_velocity_multiplier(x_err, a):
+    def _trapezoidal_velocity_multiplier(x_err, a, tol=0.0):
         """
         Computes velocity multiplier based on distance from target.
         Maintains a trapezoidal velocity profile.
         Used for both linear and angular motion.
         """
-        t = np.sqrt(2.0 * x_err / a)  # x_err = (1/2) * a * t^2
+        assert x_err >= 0.0
+        t = np.sqrt(2.0 * max(x_err - tol, 0.0) / a)  # x_err = (1/2) * a * t^2
         return min(a * t, 1.0)
 
     @staticmethod
-    def _projection_velocity_multiplier(theta_err):
+    def _projection_velocity_multiplier(theta_err, tol=0.0):
         """
         Compute velocity muliplier based on yaw (faster if facing towards target).
         Used to control linear motion.
         """
-        return 1.0 - np.sin(min(theta_err, np.pi / 2.0))
+        assert theta_err >= 0.0
+        return 1.0 - np.sin(min(max(theta_err - tol, 0.0), np.pi / 2.0))
 
     def _integrate_state(self, v, w):
         """
@@ -83,18 +85,24 @@ class GotoVelocityController:
                 heading_err_abs = abs(heading_err)
 
                 # Compute linear velocity
-                k_t = self._trapezoidal_velocity_multiplier(lin_err_abs, self.a_lin)
-                k_p = self._projection_velocity_multiplier(heading_err_abs)
+                k_t = self._trapezoidal_velocity_multiplier(
+                    lin_err_abs, self.a_lin, tol=self.lin_error_tol
+                )
+                k_p = self._projection_velocity_multiplier(heading_err_abs, tol=self.ang_error_tol)
                 v_cmd = k_t * k_p * self.v_max
 
                 # Compute angular velocity
-                k_t_ang = self._trapezoidal_velocity_multiplier(heading_err_abs, self.a_ang)
+                k_t_ang = self._trapezoidal_velocity_multiplier(
+                    heading_err_abs, self.a_ang, tol=0.0
+                )
                 w_cmd = np.sign(heading_err) * k_t_ang * self.w_max
 
             # Rotate to correct yaw if yaw tracking is on and XY position is at goal
             elif self.track_yaw and ang_err_abs > self.ang_error_tol:
                 # Compute angular velocity
-                k_t_ang = self._trapezoidal_velocity_multiplier(ang_err_abs, self.a_ang)
+                k_t_ang = self._trapezoidal_velocity_multiplier(
+                    ang_err_abs, self.a_ang, tol=self.ang_error_tol
+                )
                 w_cmd = np.sign(ang_err) * k_t_ang * self.w_max
 
             # Command robot
