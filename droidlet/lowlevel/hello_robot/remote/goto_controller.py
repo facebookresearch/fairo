@@ -6,8 +6,8 @@ import numpy as np
 
 V_MAX = 0.15  # base.params["motion"]["default"]["vel_m"]
 W_MAX = 0.9  # 2 * (vel_m_max - vel_m_default) / wheel_separation_m
-ACC_LIN = 0.2  # base.params["motion"]["default"]["accel_m"]
-ACC_ANG = 1.2  # 2 * (accel_m_max - accel_m_default) / wheel_separation_m
+ACC_LIN = 0.4  # base.params["motion"]["max"]["accel_m"]
+ACC_ANG = 2.4  # 2 * (accel_m_max - accel_m_max) / wheel_separation_m
 
 DEFAULT_LIN_TOL = 0.005
 DEFAULT_ANG_TOL = 0.025
@@ -65,8 +65,8 @@ class GotoVelocityController:
         ct = np.cos(-dtheta)
         st = np.sin(-dtheta)
 
-        self.xyt_err[0] = ct * x_err_f0 + st * y_err_f0
-        self.xyt_err[1] = -st * x_err_f0 + ct * y_err_f0
+        self.xyt_err[0] = ct * x_err_f0 - st * y_err_f0
+        self.xyt_err[1] = st * x_err_f0 + ct * y_err_f0
         self.xyt_err[2] = self.xyt_err[2] - dtheta
 
     def _run(self):
@@ -81,7 +81,7 @@ class GotoVelocityController:
 
             # Go to goal XY position if not there yet
             if lin_err_abs > self.lin_error_tol:
-                heading_err = np.arctan(self.xyt_err[1] / self.xyt_err[0])
+                heading_err = np.arctan2(self.xyt_err[1], self.xyt_err[0])
                 heading_err_abs = abs(heading_err)
 
                 # Compute linear velocity
@@ -109,7 +109,7 @@ class GotoVelocityController:
             self.robot.set_velocity(v_cmd, w_cmd)
 
             # Update odometry prediction
-            self._integrate_error(v_cmd, w_cmd)
+            self._integrate_state(v_cmd, w_cmd)
 
             # Spin
             t_target += self.dt
@@ -139,5 +139,5 @@ class GotoVelocityController:
         self.track_yaw = value
 
     def start(self):
-        self.loop_thr = threading.thread(target=self._run)
+        self.loop_thr = threading.Thread(target=self._run)
         self.loop_thr.start()
