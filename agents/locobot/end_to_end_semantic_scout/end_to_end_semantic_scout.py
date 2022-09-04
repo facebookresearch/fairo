@@ -17,6 +17,8 @@ from habitat.core.logging import logger
 from habitat.core.agent import Agent
 from habitat.sims.habitat_simulator.actions import HabitatSimActions
 
+from agents.locobot.end_to_end_semantic_scout.segmentation.mmdetection_segmentation import MMDetectionSegmentation
+
 from .src import POLICY_CLASSES
 from .src.default import get_config
 from .src.models.common import batch_obs
@@ -28,6 +30,7 @@ from .constants import (
     frame_color_palette,
 )
 from .segmentation.detectron2_segmentation import Detectron2Segmentation
+from .segmentation.mmdetection_segmentation import MMDetectionSegmentation
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 from droidlet.lowlevel.pyro_utils import safe_call
 
@@ -125,8 +128,11 @@ class RLSegFTAgent(Agent):
                 )
                 self.semantic_predictor.eval()
         elif "coco_detector" in config.POLICY:
-            self.semantic_predictor = Detectron2Segmentation(
-                sem_pred_prob_thr=0.9, sem_gpu_id=config.TORCH_GPU_ID, visualize=True
+            # self.semantic_predictor = Detectron2Segmentation(
+            #     sem_pred_prob_thr=0.9, sem_gpu_id=config.TORCH_GPU_ID, visualize=True
+            # )
+            self.semantic_predictor = MMDetectionSegmentation(
+                sem_pred_prob_thr=0.9, device=self.device, visualize=True
             )
 
         # Load other items
@@ -190,7 +196,8 @@ class RLSegFTAgent(Agent):
                 # to train the policy with detectron2 Mask-RCNN that works much better
                 # in the real world (we use only the object goal categories for now)
 
-                if isinstance(self.semantic_predictor, Detectron2Segmentation):
+                # if isinstance(self.semantic_predictor, Detectron2Segmentation):
+                if isinstance(self.semantic_predictor, MMDetectionSegmentation):
                     semantic, semantic_vis = self.semantic_predictor.get_prediction(
                         batch["rgb"].cpu().numpy(),
                         batch["depth"].cpu().numpy()
