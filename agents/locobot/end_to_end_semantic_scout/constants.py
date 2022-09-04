@@ -64,6 +64,15 @@ detectron_categories_to_expected_categories = {
     # ??: 21,  # clothes (MP3D 38)
 }
 
+mmdetection_categories_to_expected_categories = {
+    0: 1,   # chair
+    5: 6,   # couch
+    8: 9,   # potted plant
+    6: 7,   # bed
+    10: 11,  # toilet
+    13: 14,  # tv
+}
+
 coco_categories_color_palette = [
     0.9400000000000001,
     0.7818,
