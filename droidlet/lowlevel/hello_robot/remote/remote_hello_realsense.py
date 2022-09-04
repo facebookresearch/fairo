@@ -9,7 +9,9 @@ import time
 import copy
 import math
 from math import *
-from droidlet.lowlevel.locobot.remote.segmentation.detectron2_segmentation import Detectron2Segmentation
+from droidlet.lowlevel.locobot.remote.segmentation.detectron2_segmentation import (
+    Detectron2Segmentation,
+)
 
 import pyrealsense2 as rs
 import Pyro4
