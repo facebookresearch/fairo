@@ -21,7 +21,7 @@ from droidlet.lowlevel.robot_mover_utils import (
 )
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
 from segmentation.constants import coco_categories, frame_color_palette
-from segmentation.semantic_prediction import SemanticPredMaskRCNN
+from segmentation.detectron2_segmentation import Detectron2Segmentation
 from habitat_utils import reconfigure_scene
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
@@ -95,7 +95,7 @@ class RemoteLocobot(object):
             ) = self.get_instance_id_to_category_id()
         else:
             print("Scene does not contain semantic annotations")
-            self.segmentation_model = SemanticPredMaskRCNN(
+            self.segmentation_model = Detectron2Segmentation(
                 sem_pred_prob_thr=0.9, sem_gpu_id=-1, visualize=True
             )
 

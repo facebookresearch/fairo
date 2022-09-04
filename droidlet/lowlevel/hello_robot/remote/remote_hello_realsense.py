@@ -9,6 +9,7 @@ import time
 import copy
 import math
 from math import *
+from droidlet.lowlevel.locobot.remote.segmentation.detectron2_segmentation import Detectron2Segmentation
 
 import pyrealsense2 as rs
 import Pyro4
@@ -22,7 +23,7 @@ from obstacle_utils import is_obstacle
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
 from data_compression import *
 from segmentation.constants import coco_categories
-from segmentation.semantic_prediction import SemanticPredMaskRCNN
+from segmentation.detectron2_segmentation import Detectron2Segmentation
 
 
 # Configure depth and color streams
@@ -66,7 +67,7 @@ class RemoteHelloRealsense(object):
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
         self.num_sem_categories = len(coco_categories)
-        self.segmentation_model = SemanticPredMaskRCNN(
+        self.segmentation_model = Detectron2Segmentation(
             sem_pred_prob_thr=0.9, sem_gpu_id=-1, visualize=True
         )
 

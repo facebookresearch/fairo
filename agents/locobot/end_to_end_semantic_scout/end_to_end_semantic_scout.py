@@ -27,7 +27,7 @@ from .constants import (
     expected_categories_to_coco_categories,
     frame_color_palette,
 )
-from .segmentation.semantic_prediction import COCOSegmentationModel
+from .segmentation.detectron2_segmentation import Detectron2Segmentation
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 from droidlet.lowlevel.pyro_utils import safe_call
 
@@ -125,7 +125,7 @@ class RLSegFTAgent(Agent):
                 )
                 self.semantic_predictor.eval()
         elif "coco_detector" in config.POLICY:
-            self.semantic_predictor = COCOSegmentationModel(
+            self.semantic_predictor = Detectron2Segmentation(
                 sem_pred_prob_thr=0.9, sem_gpu_id=config.TORCH_GPU_ID, visualize=True
             )
 
@@ -190,7 +190,7 @@ class RLSegFTAgent(Agent):
                 # to train the policy with detectron2 Mask-RCNN that works much better
                 # in the real world (we use only the object goal categories for now)
 
-                if isinstance(self.semantic_predictor, COCOSegmentationModel):
+                if isinstance(self.semantic_predictor, Detectron2Segmentation):
                     semantic, semantic_vis = self.semantic_predictor.get_prediction(
                         batch["rgb"].cpu().numpy(),
                         batch["depth"].cpu().numpy()
