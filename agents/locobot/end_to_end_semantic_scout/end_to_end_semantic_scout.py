@@ -129,6 +129,7 @@ class RLSegFTAgent(Agent):
             # self.semantic_predictor = Detectron2Segmentation(
             #     sem_pred_prob_thr=0.9, sem_gpu_id=config.TORCH_GPU_ID, visualize=True
             # )
+            print("MMDETECTION DEVICE", self.device)
             self.semantic_predictor = MMDetectionSegmentation(
                 sem_pred_prob_thr=0.9, device=self.device, visualize=True
             )

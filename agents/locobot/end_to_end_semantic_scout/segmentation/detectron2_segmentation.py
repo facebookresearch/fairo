@@ -38,6 +38,7 @@ class Detectron2Segmentation:
         Arguments:
             images: images of shape (batch_size, H, W, 3) (in BGR order)
             depths: depth frames of shape (batch_size, H, W) - currently not used
+        
         Returns:
             prediction_masks: segmentation predictions of shape (batch_size, H, W)
             visualizations: prediction visualization images of
