@@ -37,10 +37,9 @@ class MMDetectionSegmentation:
             depths: depth frames of shape (batch_size, H, W)
 
         Returns:
-            one_hot_predictions: one hot segmentation predictions of shape
-             (batch_size, H, W, num_sem_categories)
-            visualizations: prediction visualization images
-             shape (batch_size, H, W, 3) of self.visualize=True, else
+            prediction_masks: segmentation predictions of shape (batch_size, H, W)
+            visualizations: prediction visualization images of
+             shape (batch_size, H, W, 3) if self.visualize=True, else
              original images
         """
         batch_size, height, width, _ = images.shape
@@ -48,8 +47,7 @@ class MMDetectionSegmentation:
 
         result_list = inference_detector(self.segmentation_model, image_list)
 
-        one_hot_predictions = np.zeros(
-            (batch_size, height, width, self.num_sem_categories))
+        prediction_masks = np.zeros((batch_size, height, width))
 
         for img_idx in range(batch_size):
             obj_masks = result_list[img_idx][1]
@@ -64,21 +62,7 @@ class MMDetectionSegmentation:
                         if confidence_score < self.score_thr:
                             continue
 
-                        if depths is not None:
-                            depth = depths[img_idx]
-                            md = np.median(depth[obj_mask == 1])
-                            if md == 0:
-                                filter_mask = np.ones_like(obj_mask, dtype=bool)
-                            else:
-                                # Restrict objects to 1m depth
-                                filter_mask = (depth >= md + 50) | (depth <= md - 50)
-                            # print(
-                            #     f"Median object depth: {md.item()}, filtering out "
-                            #     f"{np.count_nonzero(filter_mask)} pixels"
-                            # )
-                            obj_mask[filter_mask] = 0.0
-
-                        one_hot_predictions[img_idx, :, :, idx] += obj_mask
+                        prediction_masks[img_idx, obj_mask] = idx
 
         # Convert BGR to RGB for visualization
         image_list = [img[:, :, ::-1] for img in image_list]
@@ -93,4 +77,4 @@ class MMDetectionSegmentation:
         else:
             visualizations = images
 
-        return one_hot_predictions, visualizations
+        return prediction_masks, visualizations
