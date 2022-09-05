@@ -17,8 +17,6 @@ from habitat.core.logging import logger
 from habitat.core.agent import Agent
 from habitat.sims.habitat_simulator.actions import HabitatSimActions
 
-from agents.locobot.end_to_end_semantic_scout.segmentation.mmdetection_segmentation import MMDetectionSegmentation
-
 from .src import POLICY_CLASSES
 from .src.default import get_config
 from .src.models.common import batch_obs
@@ -29,7 +27,7 @@ from .constants import (
     expected_categories_to_coco_categories,
     frame_color_palette,
 )
-from .segmentation.detectron2_segmentation import Detectron2Segmentation
+# from .segmentation.detectron2_segmentation import Detectron2Segmentation
 from .segmentation.mmdetection_segmentation import MMDetectionSegmentation
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 from droidlet.lowlevel.pyro_utils import safe_call
@@ -253,6 +251,15 @@ class EndToEndSemanticScout:
         python setup.py develop
         pip install -r agents/locobot/requirements.txt
         python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
+
+    If using MMDetection:
+    - need to install PyTorch with official instructions:
+        conda install pytorch==1.10.2 torchvision==0.11.3 cudatoolkit=11.3 -c pytorch
+    - then install MMDetection
+        pip install mmcv-full -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.10.2/index.html
+        git clone https://github.com/open-mmlab/mmdetection.git
+        pushd mmdetection; pip install -r requirements/build.txt; pip install "git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI"; pip install -v -e .; popd
+    - then proceed with other instructions (can use pip install of conda for most installs if conda is too slow)
     """
 
     def __init__(self, mover, object_goal: str, episode_id: str, max_steps=400,
