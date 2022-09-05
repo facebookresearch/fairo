@@ -19,8 +19,8 @@ class MMDetectionSegmentation:
             visualize: if True, visualize predictions
         """
         self.segmentation_model = init_detector(
-            "submission/obs_preprocessor/mmdet_qinst_hm3d_config.py",
-            "submission/obs_preprocessor/mmdet_qinst_hm3d.pth",
+            "mmdet_qinst_hm3d_config.py",
+            "mmdet_qinst_hm3d.pth",
             device=device
         )
         self.visualize = visualize
