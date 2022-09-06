@@ -27,8 +27,8 @@ from .constants import (
     expected_categories_to_coco_categories,
     frame_color_palette,
 )
-# from .segmentation.detectron2_segmentation import Detectron2Segmentation
-from .segmentation.mmdetection_segmentation import MMDetectionSegmentation
+from .segmentation.detectron2_segmentation import Detectron2Segmentation
+# from .segmentation.mmdetection_segmentation import MMDetectionSegmentation
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 from droidlet.lowlevel.pyro_utils import safe_call
 
@@ -126,13 +126,12 @@ class RLSegFTAgent(Agent):
                 )
                 self.semantic_predictor.eval()
         elif "coco_detector" in config.POLICY:
-            # self.semantic_predictor = Detectron2Segmentation(
-            #     sem_pred_prob_thr=0.9, sem_gpu_id=config.TORCH_GPU_ID, visualize=True
-            # )
-            print("MMDETECTION DEVICE", self.device)
-            self.semantic_predictor = MMDetectionSegmentation(
-                sem_pred_prob_thr=0.9, device=self.device, visualize=True
+            self.semantic_predictor = Detectron2Segmentation(
+                sem_pred_prob_thr=0.9, sem_gpu_id=config.TORCH_GPU_ID, visualize=True
             )
+            # self.semantic_predictor = MMDetectionSegmentation(
+            #     sem_pred_prob_thr=0.9, device=self.device, visualize=True
+            # )
 
         # Load other items
         self.test_recurrent_hidden_states = torch.zeros(
@@ -195,8 +194,8 @@ class RLSegFTAgent(Agent):
                 # to train the policy with detectron2 Mask-RCNN that works much better
                 # in the real world (we use only the object goal categories for now)
 
-                # if isinstance(self.semantic_predictor, Detectron2Segmentation):
-                if isinstance(self.semantic_predictor, MMDetectionSegmentation):
+                if isinstance(self.semantic_predictor, Detectron2Segmentation):
+                # if isinstance(self.semantic_predictor, MMDetectionSegmentation):
                     semantic, semantic_vis = self.semantic_predictor.get_prediction(
                         batch["rgb"].cpu().numpy(),
                         batch["depth"].cpu().numpy()
@@ -255,12 +254,19 @@ class EndToEndSemanticScout:
 
     If using MMDetection:
     - need to install PyTorch with official instructions:
-        conda install pytorch==1.10.2 torchvision==0.11.3 cudatoolkit=11.3 -c pytorch
+        pip3 install torch==1.11.0 torchvision==0.12.0 --extra-index-url https://download.pytorch.org/whl/cu113
     - then install MMDetection
         pip install mmcv-full -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.10.2/index.html
         git clone https://github.com/open-mmlab/mmdetection.git
         pushd mmdetection; pip install -r requirements/build.txt; pip install "git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI"; pip install -v -e .; popd
     - then proceed with other instructions (can use pip install of conda for most installs if conda is too slow)
+        conda install opencv -c pytorch -c conda-forge
+        pip install -r agents/locobot/conda.txt
+        conda install https://anaconda.org/aihabitat/habitat-sim/0.2.0/download/linux-64/habitat-sim-0.2.0-py3.8_headless_linux_bfafd7934df465d79d807e4698659e2c20daf57d.tar.bz2
+        pushd habitat-lab; git checkout tags/v0.2.0; pip install -r requirements.txt; pip install -e .; popd
+        python setup.py develop
+        pip install -r agents/locobot/requirements.txt
+        python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
     """
 
     def __init__(self, mover, object_goal: str, episode_id: str, max_steps=400,
