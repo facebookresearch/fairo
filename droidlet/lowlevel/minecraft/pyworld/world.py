@@ -125,6 +125,9 @@ class World:
     def step(self):
         for m in self.mobs:
             m.step()
+            for item_eid in getattr(m, "inventory", []):
+                item = self.items[item_eid]
+                item.update_position(*m.pos)
 
         for eid, p in self.players.items():
             if hasattr(p, "step") and not getattr(p, "no_step_from_world", False):
