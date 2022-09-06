@@ -194,8 +194,8 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
                 mover,
                 episode_id=episode_id,
                 object_goal=object_goal,
-                policy="robot_camera_settings_without_noise_and_coco_detector_il",  # NO DEPTH NOISE IL
-                # policy="robot_camera_settings_without_noise_and_coco_detector_rl",  # NO DEPTH NOISE RL
+                # policy="robot_camera_settings_without_noise_and_coco_detector_il",  # NO DEPTH NOISE IL
+                policy="robot_camera_settings_without_noise_and_coco_detector_rl",  # NO DEPTH NOISE RL
                 # policy="robot_camera_settings_and_coco_detector_rl",                # WITH DEPTH NOISE 
                 # policy="original_camera_settings_and_mp3d_detector_rl",             # ORIGINAL      
             )
