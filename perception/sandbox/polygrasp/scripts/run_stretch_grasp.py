@@ -88,6 +88,7 @@ def main(cfg):
     model = rob.get_model()  # get the planning model in case we need it
 
     # Get a couple camera listeners
+    print("Creating ROS cameras...")
     rgb_cam = RosCamera('/camera/color')
     dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=5)
     dpt_cam.far_val = 1.5
