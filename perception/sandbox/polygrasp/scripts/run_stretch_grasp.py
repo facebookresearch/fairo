@@ -251,7 +251,12 @@ def main(cfg):
             #xyz = np.concatenate([xyz, pose[:3, 3][None]], axis=0)
             #rgb = np.concatenate([rgb, np.array([[1., 1 - (float(j) / M), 0]])], axis=0) # red
 
-    for geom in geoms:
+    for i, geom in enumerate(geoms):
+        # Fade out the rgb on the scene
+        if i == 0:
+            rgb = np.asarray(geom.colors)
+            rgb = rgb * 0.5
+            geom.colors = o3d.utility.Vector3dVector(rgb)
         xyz = np.asarray(geom.points)
         xyz = trimesh.transform_points(xyz @ R_stretch_camera.T, camera_pose)
         #xyz = (xyz @ R_stretch_camera.T)
@@ -277,11 +282,11 @@ def main(cfg):
     offset[2, 3] = -0.1
 
     print("=========== grasps =============")
-    print("find a grasp that doesnt rotate base...")
+    print("find a grasp that doesnt move the base...")
     for grasp in grasps:
         grasp_pose = to_pos_quat(grasp)
         standoff_pose = to_pos_quat(grasp @ offset)
-        qi = model.ik(grasp_pose, q)
+        qi = model.static_ik(grasp_pose, q)
         #if qi is not None:
         #    model.set_config(qi)
         #    input('-- full body --')
