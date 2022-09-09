@@ -287,9 +287,9 @@ def main(cfg):
         grasp_pose = to_pos_quat(grasp)
         standoff_pose = to_pos_quat(grasp @ offset)
         qi = model.static_ik(grasp_pose, q)
-        #if qi is not None:
-        #    model.set_config(qi)
-        #    input('-- full body --')
+        if qi is not None:
+            model.set_config(qi)
+            input('-- full body --')
         q0 = np.pi / 2
         q1 = model.static_ik(standoff_pose, q)
         if q1 is not None:

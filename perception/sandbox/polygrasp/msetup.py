@@ -33,7 +33,7 @@ mrp.process(
             ["pip", "install", "-e", "./third_party/graspnet-baseline/"],
         ]
         + polygrasp_setup_commands,
-        run_command=["python", "-m", "graspnet_baseline.mrp_wrapper"],
+        run_command=["python", "-m", "graspnet_baseline.mrp_wrapper", "--collision_thresh=0"],
     ),
 )
 
