@@ -14,6 +14,7 @@ from home_robot.motion.robot import STRETCH_HOME_Q, HelloStretchIdx
 from home_robot.ros.path import get_package_path
 from home_robot.ros.camera import RosCamera
 from home_robot.utils.pose import to_pos_quat
+from home_robot.utils.numpy import to_npy_file
 import home_robot.utils.image as hrimg
 import trimesh
 import trimesh.transformations as tra
@@ -37,6 +38,7 @@ from typing import List
 
 import cv2
 import matplotlib.pyplot as plt
+
 
 """
 Manual installs needed for:
@@ -136,10 +138,10 @@ def main(cfg):
         # hrimg.show_point_cloud(base_xyz, rgb / 255., orig=np.zeros(3))
         # TODO remove dead code
         # Convert into base coords
-        xyz = xyz.reshape(-1, 3)
-        xyz = tra.transform_points(xyz @ R_stretch_camera.T, camera_pose)
-        hrimg.show_point_cloud(xyz, rgb / 255., orig=np.zeros(3))
-        xyz = xyz.reshape(H, W, 3)
+        xyz2 = xyz.reshape(-1, 3)
+        xyz2 = tra.transform_points(xyz2 @ R_stretch_camera.T, camera_pose)
+        hrimg.show_point_cloud(xyz2, rgb / 255., orig=np.zeros(3))
+        # xyz = xyz.reshape(H, W, 3)
 
     print("Connect to grasp candidate selection and pointcloud processor")
     segmentation_client = SegmentationClient()
@@ -171,7 +173,9 @@ def main(cfg):
     rgb = rgb.reshape(-1, 3) / 255.
 
     # Loop to get masks
-    for rgbd, mask in zip(obj_masked_rgbds, obj_masks):
+    seg = np.zeros((rgbd.shape[0], rgbd.shape[1]), dtype=np.uint16)
+    for i, (rgbd, mask) in enumerate(zip(obj_masked_rgbds, obj_masks)):
+        seg[mask] = i + 1
         # Smooth mask over valid pixels only
         mask1, mask2 = hrimg.smooth_mask(np.bitwise_and(mask_valid, mask))
         mask_scene = np.bitwise_and(mask_scene > 0, mask1.reshape(-1) == 0)
