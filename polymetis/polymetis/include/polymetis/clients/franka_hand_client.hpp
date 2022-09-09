@@ -15,15 +15,15 @@
 
 class FrankaHandClient {
 private:
-  void getGripperState(GripperState &gripper_state);
-  void applyGripperCommand(GripperCommand &gripper_cmd);
+  void getGripperState(void);
+  void applyGripperCommand(void);
 
   // gRPC
   std::unique_ptr<GripperServer::Stub> stub_;
   grpc::Status status_;
 
-  GripperState proto_gripper_state_;
-  GripperCommand proto_gripper_cmd_;
+  GripperState gripper_state_;
+  GripperCommand gripper_cmd_;
   int prev_cmd_timestamp_ns_;
 
   // Franka

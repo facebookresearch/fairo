@@ -152,58 +152,7 @@ class MCAgentMemory(AgentMemory):
             # FIXME track these semi-automatically...
             self.place_field.update_map(map_changes)
 
-        # 2. Handle all items that the agent can pick up in-game
-        holder_eids = {}
-        # FIXME: deal with far away things better
-        for eid, item_stack_info in perception_output.agent_pickable_items.items():
-            struct, holder_eid, tags = item_stack_info
-            holder_eids[struct.entityId] = holder_eid
-            if (
-                np.linalg.norm(np.array(self_node.pos) - np.array(struct.pos))
-                < self.perception_range
-            ):
-                node = ItemStackNode.maybe_update_item_stack_position(self, struct)
-                if not node:
-                    memid = ItemStackNode.create(self, struct, self.low_level_block_data)
-                else:
-                    memid = node.memid
-                TripleNode.untag(self, memid, "_possibly_stale_location")
-                # TODO: remove stale triples?
-                for pred_text, obj_text in tags:
-                    TripleNode.create(self, subj=memid, pred_text=pred_text, obj_text=obj_text)
-
-        # cuberite/mc does not return item_stacks in agent's or others inventory.
-        # we do the best we can with these, FIXME
-        # not removing any old items, FIXME
-        all_item_stacks = self._db_read(
-            "SELECT uuid, eid FROM ReferenceObjects WHERE ref_type=?", "item_stack"
-        )
-        for memid, eid in all_item_stacks:
-            holder_eid = holder_eids.get(eid)
-            if holder_eid is not None:
-                if holder_eid == -1:
-                    node = self.get_mem_by_id(memid)
-                    TripleNode.tag(self, memid, "_on_ground")
-                    TripleNode.untag(self, memid, "_in_inventory")
-                    TripleNode.untag(self, memid, "_in_others_inventory")
-                else:
-                    TripleNode.untag(self, memid, "_on_ground")
-                    if holder_eid == self_node.eid:
-                        TripleNode.tag(self, memid, "_in_inventory")
-                    else:
-                        TripleNode.tag(self, memid, "_in_others_inventory")
-            else:
-                node = self.get_mem_by_id(memid)
-                # we are in cuberite, and an item is held by another entity or has disappeared
-                # in any case, we can't track its location
-                TripleNode.tag(self, memid, "_possibly_stale_location")
-        held_memids = TripleNode.get_memids_by_tag(self, "_in_inventory")
-        for memid in held_memids:
-            eid = self._db_read_one("SELECT eid FROM ReferenceObjects WHERE uuid=?", memid)[0]
-            struct = ItemStack(None, Pos(*self_node.pos), eid, "")
-            ItemStackNode.maybe_update_item_stack_position(self, struct)
-
-        # 3. Update agent's current position and attributes in memory
+        # 2. Update agent's current position and attributes in memory
         if perception_output.agent_attributes:
             agent_player = perception_output.agent_attributes
             cmd = (
@@ -226,7 +175,7 @@ class MCAgentMemory(AgentMemory):
                 [{"pos": ap, "is_obstacle": True, "memid": self.self_memid, "is_move": True}]
             )
 
-        # 4. Update other in-game players in agent's memory
+        # 3. Update other in-game players in agent's memory
         if perception_output.other_player_list:
             player_list = perception_output.other_player_list
             for player, location in player_list:
@@ -266,6 +215,78 @@ class MCAgentMemory(AgentMemory):
                     )
                 else:
                     AttentionNode.create(self, location, attender=player.entityId)
+
+        # 4. Handle all items that the agent can pick up in-game
+        holder_eids = {}
+        # FIXME: deal with far away things better
+        for eid, item_stack_info in perception_output.agent_pickable_items.items():
+            struct, holder_eid, tags = item_stack_info
+            holder_eids[struct.entityId] = holder_eid
+            if (
+                np.linalg.norm(np.array(self_node.pos) - np.array(struct.pos))
+                < self.perception_range
+            ):
+                node = ItemStackNode.maybe_update_item_stack_position(self, struct)
+                if not node:
+                    memid = ItemStackNode.create(self, struct, self.low_level_block_data)
+                else:
+                    memid = node.memid
+                TripleNode.untag(self, memid, "_possibly_stale_location")
+                # TODO: remove stale triples?
+                for pred_text, obj_text in tags:
+                    TripleNode.create(self, subj=memid, pred_text=pred_text, obj_text=obj_text)
+
+        # cuberite/mc does not return item_stacks in agent's or others inventory.
+        # we do the best we can with these, FIXME
+        # not removing any old items, FIXME
+        all_item_stacks = self._db_read(
+            "SELECT uuid, eid FROM ReferenceObjects WHERE ref_type=?", "item_stack"
+        )
+        for memid, eid in all_item_stacks:
+            holder_eid = holder_eids.get(eid)
+            if holder_eid is not None:
+                old_triples = self._db_read(
+                    "SELECT uuid FROM Triples WHERE subj=? AND pred_text=?", memid, "held_by"
+                )
+                for uuid in old_triples:
+                    self.forget(uuid[0])
+                if holder_eid == -1:
+                    node = self.get_mem_by_id(memid)
+                    TripleNode.tag(self, memid, "_on_ground")
+                    TripleNode.untag(self, memid, "_in_inventory")
+                    TripleNode.untag(self, memid, "_in_others_inventory")
+                else:
+                    r = self._db_read_one(
+                        "SELECT uuid FROM ReferenceObjects WHERE eid=?", holder_eid
+                    )
+                    if not r:
+                        raise Exception(
+                            "holder eid from perception given as {} but entity not found in ReferenceObjects".format(
+                                holder_eid
+                            )
+                        )
+                    TripleNode.create(self, subj=memid, pred_text="held_by", obj=r[0])
+                    TripleNode.untag(self, memid, "_on_ground")
+                    if holder_eid == self_node.eid:
+                        TripleNode.tag(self, memid, "_in_inventory")
+                    else:
+                        TripleNode.tag(self, memid, "_in_others_inventory")
+            else:
+                node = self.get_mem_by_id(memid)
+                # we are in cuberite, and an item is held by another entity or has disappeared
+                # in any case, we can't track its location
+                TripleNode.tag(self, memid, "_possibly_stale_location")
+        to_update_pos = TripleNode.get_triples(self, pred_text="held_by")
+        for t in to_update_pos:
+            obj_memid, _, holder_memid = t
+            item_eid = self._db_read_one(
+                "SELECT eid FROM ReferenceObjects WHERE uuid=?", obj_memid
+            )[0]
+            xyz = self._db_read_one(
+                "SELECT x,y,z FROM ReferenceObjects WHERE uuid=?", holder_memid
+            )
+            struct = ItemStack(None, Pos(*xyz), eid, "")
+            ItemStackNode.maybe_update_item_stack_position(self, struct)
 
         # 5. Update the state of the world when a block is changed.
         if perception_output.changed_block_attributes:

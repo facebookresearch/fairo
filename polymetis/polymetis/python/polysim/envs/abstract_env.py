@@ -50,3 +50,11 @@ class AbstractControlledEnv(abc.ABC):
           np.ndarray: Desired torques
         """
         pass
+
+    @abc.abstractmethod
+    def set_robot_state(self, robot_state):
+        """
+        input:
+          RobotState: Desired state of robot
+        """
+        pass

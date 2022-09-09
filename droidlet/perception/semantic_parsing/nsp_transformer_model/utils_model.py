@@ -1,35 +1,25 @@
 import os
 import torch
-import pickle
-import json
 from droidlet.perception.semantic_parsing.nsp_transformer_model.decoder_with_loss import (
     DecoderWithLoss,
 )
 from droidlet.perception.semantic_parsing.nsp_transformer_model.encoder_decoder import (
     EncoderDecoderWithLoss,
 )
-from droidlet.perception.semantic_parsing.nsp_transformer_model.tokenization_utils import TREE_KEYs
 from transformers import AutoModel, AutoTokenizer, BertConfig
 
 
 def build_model(args, tree_i2w):
-    # Initialize tokenier
     tokenizer = AutoTokenizer.from_pretrained(args.pretrained_encoder_name)
-    # Initialize bert configuration for decoder
+    enc_model = AutoModel.from_pretrained(args.pretrained_encoder_name)
     bert_config = BertConfig.from_pretrained(args.decoder_config_name)
     bert_config.is_decoder = True
     bert_config.add_cross_attention = True
     if args.tree_to_text:
         tokenizer.add_tokens(tree_i2w)
-
-    # add new tokens into tokenzier in case
-    tree_keys = set(TREE_KEYs) - set(tokenizer.vocab.keys())
-    tokenizer.add_tokens(list(tree_keys))
-    # update word embedding for encoder
-    enc_model = AutoModel.from_pretrained(args.pretrained_encoder_name)
-    enc_model.resize_token_embeddings(len(tokenizer))
-
-    bert_config.vocab_size = len(tokenizer)
+    else:
+        # FIXME "8"
+        bert_config.vocab_size = len(tree_i2w) + 8
     dec_with_loss = DecoderWithLoss(bert_config, args, tokenizer)
     encoder_decoder = EncoderDecoderWithLoss(enc_model, dec_with_loss, args)
     return dec_with_loss, encoder_decoder, tokenizer
