@@ -76,8 +76,8 @@ class GotoVelocityController:
                 heading_err_abs = abs(heading_err)
 
                 # Compute linear velocity
-                k_t = self._error_velocity_multiplier(lin_err_abs)
-                k_p = self._projection_velocity_multiplier(heading_err_abs, tol=self.ang_error_tol)
+                k_t = self._error_velocity_multiplier(lin_err_abs, tol=self.lin_error_tol)
+                k_p = self._projection_velocity_multiplier(heading_err_abs, tol=0.0)
                 v_cmd = k_t * k_p * self.v_max
 
                 # Compute angular velocity
@@ -87,7 +87,7 @@ class GotoVelocityController:
             # Rotate to correct yaw if yaw tracking is on and XY position is at goal
             elif self.track_yaw and ang_err_abs > self.ang_error_tol:
                 # Compute angular velocity
-                k_t_ang = self._error_velocity_multiplier(ang_err_abs)
+                k_t_ang = self._error_velocity_multiplier(ang_err_abs, tol=self.ang_error_tol)
                 w_cmd = np.sign(ang_err) * k_t_ang * self.w_max
 
             # Command robot
