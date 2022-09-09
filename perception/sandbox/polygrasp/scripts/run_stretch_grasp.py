@@ -149,11 +149,13 @@ def main(cfg):
         view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path)
     )
     rgbd = np.concatenate([rgb, xyz], axis=-1)
-    print("RGBD image of shape:", rgbd.shape)
-    rgbd = cv2.resize(rgbd, [int(W / 2), int(H / 2)], interpolation=cv2.INTER_NEAREST)
-    depth = cv2.resize(dpt, [int(W / 2), int(H / 2)], interpolation=cv2.INTER_NEAREST)
-    rgb, xyz = rgbd[:, :, :3], rgbd[:, :, 3:]
-    print("Resized to", rgbd.shape)
+    seg_only = False
+    if not seg_only:
+        print("RGBD image of shape:", rgbd.shape)
+        rgbd = cv2.resize(rgbd, [int(W / 2), int(H / 2)], interpolation=cv2.INTER_NEAREST)
+        depth = cv2.resize(dpt, [int(W / 2), int(H / 2)], interpolation=cv2.INTER_NEAREST)
+        rgb, xyz = rgbd[:, :, :3], rgbd[:, :, 3:]
+        print("Resized to", rgbd.shape)
 
     min_points = 200
     segment = True
@@ -167,6 +169,10 @@ def main(cfg):
     mask_valid = depth > dpt_cam.near_val  # remove bad points
     mask_scene = mask_valid  # initial mask has to be good
     mask_scene = mask_scene.reshape(-1)
+
+    orig_xyz = xyz.copy()
+    orig_rgb = rgb.copy()
+
     # Convert XYZ into world frame
     xyz = xyz.reshape(-1, 3)
     # xyz = trimesh.transform_points(xyz @ R_stretch_camera.T, camera_pose)
@@ -196,6 +202,12 @@ def main(cfg):
             plt.subplot(235); plt.imshow(masked_rgb)
             plt.subplot(236); plt.imshow(rgb) # rgbd[:, :, 3:])
             plt.show()
+
+    # Save some data
+    to_npy_file('stretch', xyz=xyz, rgb=rgb, depth=dpt, xyz_color=rgb, seg=seg, K=rgb_cam.get_K())
+    if seg_only:
+        return
+
 
     # Apply the mask - no more bad poitns
     xyz = xyz[mask_scene]
