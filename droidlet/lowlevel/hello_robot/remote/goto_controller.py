@@ -16,11 +16,10 @@ class GotoVelocityController:
         self.dt = 1.0 / hz
 
         # Params
-        self.a_lin = ACC_LIN
-        self.a_ang = ACC_ANG
-
         self.v_max = V_MAX
         self.w_max = W_MAX
+        self.lin_error_tol = DEFAULT_LIN_TOL
+        self.ang_error_tol = DEFAULT_ANG_TOL
 
         # Initialize
         self.xyt_err = np.zeros(3)
