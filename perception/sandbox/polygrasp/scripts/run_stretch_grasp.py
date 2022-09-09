@@ -204,10 +204,9 @@ def main(cfg):
             plt.show()
 
     # Save some data
-    to_npy_file('stretch', xyz=xyz, rgb=rgb, depth=dpt, xyz_color=rgb, seg=seg, K=rgb_cam.get_K())
+    to_npy_file('stretch', xyz=orig_xyz, rgb=orig_rgb, depth=dpt, xyz_color=orig_rgb, seg=seg, K=rgb_cam.get_K())
     if seg_only:
         return
-
 
     # Apply the mask - no more bad poitns
     xyz = xyz[mask_scene]
