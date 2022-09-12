@@ -35,6 +35,9 @@ class GotoVelocityController:
         """
         Computes velocity multiplier based on distance from target.
         Used for both linear and angular motion.
+
+        Current implementation: Simple thresholding
+        Output = 1 if linear error is larger than the tolerance, 0 otherwise.
         """
         assert x_err >= 0.0
         return float(x_err - tol > 0)
@@ -44,12 +47,18 @@ class GotoVelocityController:
         """
         Compute velocity muliplier based on yaw (faster if facing towards target).
         Used to control linear motion.
+
+        Current implementation:
+        Output = 1 when facing target, gradually decreases to 0 when angle to target is pi/3.
         """
         assert theta_err >= 0.0
         return 1.0 - np.sin(min(max(theta_err - tol, 0.0) * 2.0, np.pi / 3.0))
 
     @staticmethod
     def _turn_rate_limit(w_max, lin_err, heading_err):
+        """
+        Computed velocity limit based on the turning radius required to reach goal.
+        """
         assert lin_err >= 0.0
         assert heading_err >= 0.0
         return w_max * lin_err / np.sin(heading_err) + 1e-5 / 2.0
