@@ -46,13 +46,13 @@ class GotoVelocityController:
         Used to control linear motion.
         """
         assert theta_err >= 0.0
-        return 1.0 - np.sin(min(max(theta_err - tol, 0.0) * 2.0, np.pi / 2.0))
+        return 1.0 - np.sin(min(max(theta_err - tol, 0.0) * 2.0, np.pi / 3.0))
 
     @staticmethod
     def _turn_rate_limit(w_max, lin_err, heading_err):
         assert lin_err >= 0.0
         assert heading_err >= 0.0
-        return w_max * lin_err / np.sin(heading_err) / 2.0
+        return w_max * lin_err / np.sin(heading_err) + 1e-5 / 2.0
 
     def _integrate_state(self, v, w):
         """
@@ -87,12 +87,12 @@ class GotoVelocityController:
 
                 # Compute linear velocity
                 k_t = self._error_velocity_multiplier(lin_err_abs, tol=self.lin_error_tol)
-                k_p = self._projection_velocity_multiplier(heading_err_abs, tol=0.0)
+                k_p = self._projection_velocity_multiplier(heading_err_abs, tol=self.ang_error_tol)
                 v_limit = self._turn_rate_limit(self.w_max, lin_err_abs, heading_err_abs)
                 v_cmd = min(k_t * k_p * self.v_max, v_limit)
 
                 # Compute angular velocity
-                k_t_ang = self._error_velocity_multiplier(heading_err_abs, tol=0.0)
+                k_t_ang = self._error_velocity_multiplier(heading_err_abs, tol=self.ang_error_tol)
                 w_cmd = np.sign(heading_err) * k_t_ang * self.w_max
 
             # Rotate to correct yaw if yaw tracking is on and XY position is at goal
