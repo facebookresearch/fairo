@@ -4,22 +4,26 @@ import threading
 
 import numpy as np
 
-V_MAX = 0.15  # base.params["motion"]["default"]["vel_m"]
-W_MAX = 0.9  # 2 * (vel_m_max - vel_m_default) / wheel_separation_m
-DEFAULT_LIN_TOL = 0.005
-DEFAULT_ANG_TOL = 0.025
+V_MAX_DEFAULT = 0.15  # base.params["motion"]["default"]["vel_m"]
+W_MAX_DEFAULT = 0.45  # (vel_m_max - vel_m_default) / wheel_separation_m
 
 
 class GotoVelocityController:
-    def __init__(self, robot, hz):
+    def __init__(
+        self,
+        robot,
+        hz: float,
+        v_max: Optional[float] = None,
+        w_max: Optional[float] = None,
+    ):
         self.robot = robot
         self.dt = 1.0 / hz
 
         # Params
-        self.v_max = V_MAX
-        self.w_max = W_MAX
-        self.lin_error_tol = DEFAULT_LIN_TOL
-        self.ang_error_tol = DEFAULT_ANG_TOL
+        self.v_max = v_max or V_MAX_DEFAULT
+        self.w_max = w_max or W_MAX_DEFAULT
+        self.lin_error_tol = self.v_max / hz
+        self.ang_error_tol = self.w_max / hz
 
         # Initialize
         self.xyt_err = np.zeros(3)
@@ -43,6 +47,12 @@ class GotoVelocityController:
         """
         assert theta_err >= 0.0
         return 1.0 - np.sin(min(max(theta_err - tol, 0.0) * 2.0, np.pi / 2.0))
+
+    @staticmethod
+    def _turn_rate_limit(w_max, lin_err, heading_err):
+        assert lin_err >= 0.0
+        assert heading_err >= 0.0
+        return w_max * lin_err / np.sin(heading_err) / 2.0
 
     def _integrate_state(self, v, w):
         """
@@ -78,7 +88,8 @@ class GotoVelocityController:
                 # Compute linear velocity
                 k_t = self._error_velocity_multiplier(lin_err_abs, tol=self.lin_error_tol)
                 k_p = self._projection_velocity_multiplier(heading_err_abs, tol=0.0)
-                v_cmd = k_t * k_p * self.v_max
+                v_limit = self._turn_rate_limit(self.w_max, lin_err_abs, heading_err_abs)
+                v_cmd = min(k_t * k_p * self.v_max, v_limit)
 
                 # Compute angular velocity
                 k_t_ang = self._error_velocity_multiplier(heading_err_abs, tol=0.0)
@@ -113,12 +124,8 @@ class GotoVelocityController:
     def set_goal(
         self,
         xyt_position: List[float],
-        x_tol: Optional[float] = None,
-        r_tol: Optional[float] = None,
     ):
         self.xyt_err = xyt_position
-        self.lin_error_tol = x_tol or DEFAULT_LIN_TOL
-        self.ang_error_tol = r_tol or DEFAULT_ANG_TOL
 
     def enable_yaw_tracking(self, value: bool):
         self.track_yaw = value
