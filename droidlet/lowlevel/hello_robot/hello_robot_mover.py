@@ -285,6 +285,23 @@ class HelloRobotMover(MoverInterface):
         else:
             print("navigator executing another call right now")
         return self.nav_result
+    
+    def collect_data(
+        self, episode_id: str, exploration_method: str, blocking=True
+    ):
+        """Active learning - Command to explore the scene to gather training data.
+        
+        Args:
+            exploration_method: learned, frontier or SEAL
+        """
+        if self.nav_result.ready:
+            self.nav_result.wait()
+            self.nav_result = self.nav.collect_data(episode_id, exploration_method)
+            if blocking:
+                self.nav_result.wait()
+        else:
+            print("navigator executing another call right now")
+        return self.nav_result
 
     def get_base_pos_in_canonical_coords(self):
         """get the current robot position in the canonical coordinate system

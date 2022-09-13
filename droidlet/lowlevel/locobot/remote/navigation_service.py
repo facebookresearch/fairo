@@ -15,6 +15,7 @@ import cv2
 from slam_pkg.utils import depth_util as du
 from visualization.ogn_vis import ObjectGoalNavigationVisualization
 from policy.goal_policy import GoalPolicy
+from policy.active_learning_policy import ActiveLearningPolicy
 from segmentation.constants import coco_categories
 
 random.seed(0)
@@ -82,6 +83,8 @@ class Navigation(object):
 
         num_sem_categories = len(coco_categories)
         self.map_size, self.local_map_size = self.slam.get_map_sizes()
+
+        # ObjectNav policy
         self.goal_policy = GoalPolicy(
             map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
             num_outputs=2,
@@ -91,6 +94,20 @@ class Navigation(object):
         state_dict = torch.load("policy/goal_policy.pth", map_location="cpu")
         self.goal_policy.load_state_dict(state_dict, strict=False)
 
+        # Active learning - Learned exploration policy
+        self.active_learning_learned_policy = ActiveLearningPolicy(map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
+                                                                   num_outputs=2,
+                                                                   hidden_size=256,)
+        state_dict = torch.load("policy/active_learning_policies/active_learning_learned_policy.pth", map_location="cpu")
+        self.active_learning_learned_policy.load_state_dict(state_dict, strict=False)
+        
+        # Active learning - Learned SEAL policy
+        self.active_learning_seal_policy = ActiveLearningPolicy(map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
+                                                                num_outputs=2,
+                                                                hidden_size=256,)
+        state_dict = torch.load("policy/active_learning_policies/active_learning_seal_policy.pth", map_location="cpu")
+        self.active_learning_seal_policy.load_state_dict(state_dict, strict=False)
+        
         self._busy = False
         self._stop = True
         self._done_exploring = False
@@ -547,10 +564,111 @@ class Navigation(object):
             )
 
         self.vis.record_aggregate_metrics(last_pose=self.robot.get_base_state())
-
+        
         print(f"[navigation] Finished a go_to_object {object_goal}")
         print(f"goal reached: {goal_reached}")
 
+    def collect_data(
+        self,
+        episode_id: str,
+        exploration_method="learned",
+        debug=False,
+        visualize=True,
+        max_steps=400
+    ):
+        assert exploration_method in ["learned", "frontier", "seal"]
+        print(
+            f"[navigation] Starting collecting data with "
+            f"{exploration_method} exploration"
+        )
+        
+        if visualize:
+            subpath = "modular_{}".format(exploration_method)
+            vis_path = f"trajectories/{episode_id}/{subpath}"
+            self.vis = ObjectGoalNavigationVisualization(path=vis_path)
+
+        step = 0
+        while step < max_steps:
+            step += 1
+            info = self.slam.get_last_position_vis_info()
+
+            if exploration_method == "learned" or exploration_method == "seal":
+                print(
+                    f"[navigation] Step {step}: "
+                    f"starting a go_to_absolute decided by learned policy"
+                )
+
+                # Only difference between "learned" and "seal" is in the policy weights (same model trained with different
+                # reward functions).
+                if exploration_method == "learned":
+                    policy = self.active_learning_learned_policy
+                elif exploration_method == "seal":
+                    policy = self.active_learning_seal_policy
+
+                map_features = self.slam.get_semantic_map_features()
+                orientation_tensor = self.slam.get_orientation()
+                
+                goal_action = policy(
+                    map_features,
+                    orientation_tensor,
+                    deterministic=False,
+                )[0]
+
+                goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
+                global_loc = np.array(self.slam.robot2map(self.robot.get_base_state()[:2]))
+                goal_in_global_map = global_loc + (
+                    goal_in_local_map - self.local_map_size // 2
+                )
+                goal_in_global_map = np.clip(goal_in_global_map, 0, self.map_size - 1)
+                goal_in_world = self.slam.map2robot(goal_in_global_map)
+                goal_map = np.zeros((self.map_size, self.map_size))
+                goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
+
+                if debug:
+                    print("goal_action:       ", goal_action)
+                    print("goal_in_local_map: ", goal_in_local_map)
+                    print("global_loc:        ", global_loc)
+                    print("goal_in_global_map:", goal_in_global_map)
+                    print("goal_in_world:     ", goal_in_world)
+
+            elif exploration_method == "frontier":
+                print(
+                    f"[navigation] Step {step}: "
+                    f"starting a go_to_absolute decided by frontier exploration"
+                )
+
+                # Select unexplored area
+                sem_map = info["semantic_map"]
+                goal_map = sem_map[1, :, :] == 0
+
+                # Dilate explored area
+                goal_map = 1 - skimage.morphology.binary_dilation(
+                    1 - goal_map, skimage.morphology.disk(10)
+                ).astype(int)
+                
+                # Select the frontier
+                goal_map = (
+                    skimage.morphology.binary_dilation(
+                        goal_map, skimage.morphology.disk(1)
+                    ).astype(int)
+                    - goal_map
+                )
+
+            if visualize:
+                self.vis.set_location_goal(goal_map)
+
+            self.go_to_absolute(
+                goal_map=goal_map,
+                distance_threshold=0.5,
+                angle_threshold=30,
+                steps=1,
+                visualize=visualize,
+            )
+
+        self.vis.record_aggregate_metrics(last_pose=self.robot.get_base_state())
+
+        print(f"[navigation] Finished data collection.")
+    
     def get_last_semantic_map_vis(self):
         return self.vis.vis_image
 

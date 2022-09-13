@@ -42,7 +42,7 @@ from droidlet.interpreter.robot import (
 )
 from droidlet.dialog.robot import LocoBotCapabilities
 from droidlet.event import sio
-from agents.locobot.end_to_end_semantic_scout import EndToEndSemanticScout
+# from agents.locobot.end_to_end_semantic_scout import EndToEndSemanticScout
 
 faulthandler.register(signal.SIGUSR1)
 
@@ -153,7 +153,7 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             print("action: MOVE_ABSOLUTE", xyyaw_f)
             mover.move_absolute(xyyaw_f, blocking=False)
             sync()
-
+        
         # Commands we introduce
         elif command == "SEARCH_OBJECT_MODULAR_LEARNED":
             if "_" in value.strip():
@@ -202,7 +202,36 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             while not scout.finished:
                 scout.step(mover)
                 end_to_end_vis = scout.semantic_frame
-
+        
+        # Active learning commands
+        elif command == "ACTIVE_LEARNING_EXPLOR_HEURISTIC":
+            print("action: ACTIVE_LEARNING_EXPLOR_HEURISTIC")
+            mover.collect_data(
+                episode_id=str(value),
+                exploration_method="frontier",
+                blocking=False
+            )
+            modular_vis = True
+            sync()
+        elif command == "ACTIVE_LEARNING_EXPLOR_LEARNED":
+            print("action: ACTIVE_LEARNING_EXPLOR_LEARNED")
+            mover.collect_data(
+                episode_id=str(value),
+                exploration_method="learned",
+                blocking=False
+            )
+            modular_vis = True
+            sync()
+        elif command == "ACTIVE_LEARNING_SEAL":
+            print("action: ACTIVE_LEARNING_SEAL")
+            mover.collect_data(
+                episode_id=str(value),
+                exploration_method="seal",
+                blocking=False
+            )
+            modular_vis = True
+            sync()
+        
         elif command == "LOOK_AT":
             xyz = value.split(',')
             xyz = [float(p) for p in xyz]
