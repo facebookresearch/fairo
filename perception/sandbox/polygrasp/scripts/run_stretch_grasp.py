@@ -145,21 +145,24 @@ def main(cfg):
 
     print("Connect to grasp candidate selection and pointcloud processor")
     segmentation_client = SegmentationClient()
+    print("... segmentation connected")
     grasp_client = GraspClient(
         view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path)
     )
+    print("... grasps connected")
     rgbd = np.concatenate([rgb, xyz], axis=-1)
     seg_only = False
     if not seg_only:
         print("RGBD image of shape:", rgbd.shape)
-        rgbd = cv2.resize(rgbd, [int(W / 2), int(H / 2)], interpolation=cv2.INTER_NEAREST)
-        depth = cv2.resize(dpt, [int(W / 2), int(H / 2)], interpolation=cv2.INTER_NEAREST)
+        rgbd = cv2.resize(rgbd, [int(W / 4), int(H / 4)], interpolation=cv2.INTER_NEAREST)
+        depth = cv2.resize(dpt, [int(W / 4), int(H / 4)], interpolation=cv2.INTER_NEAREST)
         rgb, xyz = rgbd[:, :, :3], rgbd[:, :, 3:]
         print("Resized to", rgbd.shape)
 
     min_points = 200
     segment = True
     print("Segment...")
+    print("shape =", rgbd.shape)
     obj_pcds = []
     obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd,
                                                                   min_mask_size=cfg.min_mask_size)
