@@ -95,19 +95,28 @@ class Navigation(object):
         self.goal_policy.load_state_dict(state_dict, strict=False)
 
         # Active learning - Learned exploration policy
-        self.active_learning_learned_policy = ActiveLearningPolicy(map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
-                                                                   num_outputs=2,
-                                                                   hidden_size=256,)
-        state_dict = torch.load("policy/active_learning_policies/active_learning_learned_policy.pth", map_location="cpu")
+        self.active_learning_learned_policy = ActiveLearningPolicy(
+            map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
+            num_outputs=2,
+            hidden_size=256,
+        )
+        state_dict = torch.load(
+            "policy/active_learning_policies/active_learning_learned_policy.pth",
+            map_location="cpu",
+        )
         self.active_learning_learned_policy.load_state_dict(state_dict, strict=False)
-        
+
         # Active learning - Learned SEAL policy
-        self.active_learning_seal_policy = ActiveLearningPolicy(map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
-                                                                num_outputs=2,
-                                                                hidden_size=256,)
-        state_dict = torch.load("policy/active_learning_policies/active_learning_seal_policy.pth", map_location="cpu")
+        self.active_learning_seal_policy = ActiveLearningPolicy(
+            map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
+            num_outputs=2,
+            hidden_size=256,
+        )
+        state_dict = torch.load(
+            "policy/active_learning_policies/active_learning_seal_policy.pth", map_location="cpu"
+        )
         self.active_learning_seal_policy.load_state_dict(state_dict, strict=False)
-        
+
         self._busy = False
         self._stop = True
         self._done_exploring = False
@@ -564,7 +573,7 @@ class Navigation(object):
             )
 
         self.vis.record_aggregate_metrics(last_pose=self.robot.get_base_state())
-        
+
         print(f"[navigation] Finished a go_to_object {object_goal}")
         print(f"goal reached: {goal_reached}")
 
@@ -574,14 +583,11 @@ class Navigation(object):
         exploration_method="learned",
         debug=False,
         visualize=True,
-        max_steps=400
+        max_steps=400,
     ):
         assert exploration_method in ["learned", "frontier", "seal"]
-        print(
-            f"[navigation] Starting collecting data with "
-            f"{exploration_method} exploration"
-        )
-        
+        print(f"[navigation] Starting collecting data with " f"{exploration_method} exploration")
+
         if visualize:
             subpath = "modular_{}".format(exploration_method)
             vis_path = f"trajectories/{episode_id}/{subpath}"
@@ -607,7 +613,7 @@ class Navigation(object):
 
                 map_features = self.slam.get_semantic_map_features()
                 orientation_tensor = self.slam.get_orientation()
-                
+
                 goal_action = policy(
                     map_features,
                     orientation_tensor,
@@ -616,9 +622,7 @@ class Navigation(object):
 
                 goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
                 global_loc = np.array(self.slam.robot2map(self.robot.get_base_state()[:2]))
-                goal_in_global_map = global_loc + (
-                    goal_in_local_map - self.local_map_size // 2
-                )
+                goal_in_global_map = global_loc + (goal_in_local_map - self.local_map_size // 2)
                 goal_in_global_map = np.clip(goal_in_global_map, 0, self.map_size - 1)
                 goal_in_world = self.slam.map2robot(goal_in_global_map)
                 goal_map = np.zeros((self.map_size, self.map_size))
@@ -645,7 +649,7 @@ class Navigation(object):
                 goal_map = 1 - skimage.morphology.binary_dilation(
                     1 - goal_map, skimage.morphology.disk(10)
                 ).astype(int)
-                
+
                 # Select the frontier
                 goal_map = (
                     skimage.morphology.binary_dilation(
@@ -668,7 +672,7 @@ class Navigation(object):
         self.vis.record_aggregate_metrics(last_pose=self.robot.get_base_state())
 
         print(f"[navigation] Finished data collection.")
-    
+
     def get_last_semantic_map_vis(self):
         return self.vis.vis_image
 
