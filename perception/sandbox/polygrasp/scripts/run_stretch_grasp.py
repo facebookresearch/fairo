@@ -68,12 +68,13 @@ def init_robot(visualize=False):
     # Robot - look at the object because we are switching to grasping mode
     # Send robot to home_q + wait
     q = model.update_look_at_ee(home_q.copy())
-    rob.goto(q, move_base=False, wait=True)
+    # rob.goto(q, move_base=False, wait=True)
     # rob.look('tool')
     # Send it to lift pose + wait
     #q, _ = rob.update()
     q[HelloStretchIdx.ARM] = 0.06
-    q[HelloStretchIdx.LIFT] = 0.35
+    #q[HelloStretchIdx.LIFT] = 0.35
+    q[HelloStretchIdx.LIFT] = 0.75
     model.update_gripper(q, open=True)
     rob.goto(q, move_base=False, wait=False, verbose=False)
     return rob, q
@@ -153,23 +154,29 @@ def main(cfg):
     rgbd = np.concatenate([rgb, xyz], axis=-1)
     seg_only = False
     if not seg_only:
-        print("RGBD image of shape:", rgbd.shape)
-        rgbd = cv2.resize(rgbd, [int(W / 4), int(H / 4)], interpolation=cv2.INTER_NEAREST)
-        depth = cv2.resize(dpt, [int(W / 4), int(H / 4)], interpolation=cv2.INTER_NEAREST)
-        rgb, xyz = rgbd[:, :, :3], rgbd[:, :, 3:]
-        print("Resized to", rgbd.shape)
+        print("Image was too big for your tiny little GPU!")
+        print(" - RGBD image of shape:", rgbd.shape)
+        seg_rgbd = cv2.resize(rgbd, [int(W / 4), int(H / 4)], interpolation=cv2.INTER_NEAREST)
+        # seg_depth = cv2.resize(dpt, [int(W / 4), int(H / 4)], interpolation=cv2.INTER_NEAREST)
+        print(" - Resized to", seg_rgbd.shape)
+        resized = True
+    else:
+        seg_rgbd = rgbd
+        resized = False
+        # seg_depth = dpt
+    seg_rgb, seg_xyz = rgbd[:, :, :3], rgbd[:, :, 3:]
 
     min_points = 200
     segment = True
     print("Segment...")
-    print("shape =", rgbd.shape)
+    print(" - segmented image shape =", seg_rgbd.shape)
     obj_pcds = []
-    obj_masked_rgbds, obj_masks = segmentation_client.segment_img(rgbd,
+    obj_masked_rgbds, obj_masks = segmentation_client.segment_img(seg_rgbd,
                                                                   min_mask_size=cfg.min_mask_size)
     print("Found:", len(obj_masked_rgbds))
 
     #mask_scene = np.ones((int(H / 2), int(W / 2)))
-    mask_valid = depth > dpt_cam.near_val  # remove bad points
+    mask_valid = dpt > dpt_cam.near_val  # remove bad points
     mask_scene = mask_valid  # initial mask has to be good
     mask_scene = mask_scene.reshape(-1)
 
@@ -183,8 +190,15 @@ def main(cfg):
 
     # Loop to get masks
     seg = np.zeros((rgbd.shape[0], rgbd.shape[1]), dtype=np.uint16)
-    for i, (rgbd, mask) in enumerate(zip(obj_masked_rgbds, obj_masks)):
-        seg[mask] = i + 1
+    #for i, (rgbd, mask) in enumerate(zip(obj_masked_rgbds, obj_masks)):
+    for i, mask in enumerate(obj_masks):
+        print(mask.shape)
+        mask = mask.astype(np.uint8)
+
+        # Upscale the mask
+        mask = cv2.resize(mask, [W, H], interpolation=cv2.INTER_NEAREST)
+        print(mask.shape)
+        seg[mask > 0] = i + 1
         # Smooth mask over valid pixels only
         mask1, mask2 = hrimg.smooth_mask(np.bitwise_and(mask_valid, mask))
         mask_scene = np.bitwise_and(mask_scene > 0, mask1.reshape(-1) == 0)
