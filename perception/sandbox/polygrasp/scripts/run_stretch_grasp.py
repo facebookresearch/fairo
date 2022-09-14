@@ -74,7 +74,7 @@ def init_robot(visualize=False):
     #q, _ = rob.update()
     q[HelloStretchIdx.ARM] = 0.06
     #q[HelloStretchIdx.LIFT] = 0.35
-    q[HelloStretchIdx.LIFT] = 0.75
+    q[HelloStretchIdx.LIFT] = 0.5
     model.update_gripper(q, open=True)
     rob.goto(q, move_base=False, wait=False, verbose=False)
     return rob, q
@@ -192,12 +192,9 @@ def main(cfg):
     seg = np.zeros((rgbd.shape[0], rgbd.shape[1]), dtype=np.uint16)
     #for i, (rgbd, mask) in enumerate(zip(obj_masked_rgbds, obj_masks)):
     for i, mask in enumerate(obj_masks):
-        print(mask.shape)
-        mask = mask.astype(np.uint8)
-
-        # Upscale the mask
+        # Upscale the mask back to full size
+        mask = mask.astype(np.uint8)  # needs to be non-boolean for opencv
         mask = cv2.resize(mask, [W, H], interpolation=cv2.INTER_NEAREST)
-        print(mask.shape)
         seg[mask > 0] = i + 1
         # Smooth mask over valid pixels only
         mask1, mask2 = hrimg.smooth_mask(np.bitwise_and(mask_valid, mask))
@@ -288,6 +285,7 @@ def main(cfg):
         if i == 0:
             rgb = np.asarray(geom.colors)
             rgb = rgb * 0.5
+            rgb[:, 0] = 1
             geom.colors = o3d.utility.Vector3dVector(rgb)
         xyz = np.asarray(geom.points)
         xyz = trimesh.transform_points(xyz @ R_stretch_camera.T, camera_pose)
