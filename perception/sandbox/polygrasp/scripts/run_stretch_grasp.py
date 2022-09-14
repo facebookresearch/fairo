@@ -95,7 +95,7 @@ def main(cfg):
     rgb_cam = RosCamera('/camera/color')
     dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=5)
     dpt_cam.far_val = 1.5
-    min_grasp_score = 0.1
+    min_grasp_score = 0.
 
     # Get images from the robot
     rgb_cam.wait_for_image()
