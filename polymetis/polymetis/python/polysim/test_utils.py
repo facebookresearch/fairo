@@ -65,6 +65,9 @@ class FakeEnv(AbstractControlledEnv):
     def apply_joint_torques(self, torques):
         pass
 
+    def set_robot_state(self, robot_state):
+        pass
+
 
 """
 Fake gRPC artifacts for testing.

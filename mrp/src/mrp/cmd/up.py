@@ -98,6 +98,7 @@ def down_existing(names: typing.List[str], force: bool):
 @click.option("-f", "--force/--noforce", is_flag=True, default=False)
 @click.option("--reset_logs", is_flag=True, default=False)
 @click.option("--attach", is_flag=True, default=False)
+@click.option("--wait", is_flag=True, default=False)
 def cli(
     *cmd_procs,
     procs=None,
@@ -109,6 +110,7 @@ def cli(
     force=False,
     reset_logs=False,
     attach=False,
+    wait=False,
 ):
     procs = procs or []
 
@@ -127,6 +129,9 @@ def cli(
 
     if attach and not run:
         raise ValueError("Cannot attach without running")
+
+    if wait and not run:
+        raise ValueError("Cannot wait without running")
 
     down_existing(names, force)
 
@@ -185,3 +190,6 @@ def cli(
 
         if attach:
             mrp.cmd.attach(names[0])
+
+        if wait:
+            mrp.cmd.wait(*names)

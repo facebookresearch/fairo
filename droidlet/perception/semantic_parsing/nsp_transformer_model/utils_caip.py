@@ -113,49 +113,8 @@ def process_txt_data(filepath: str):
     samples = open(filepath, "r").readlines()
     split_lines = [line.split("|") for line in samples]
     # Format of each sample is [text, action_dict]
-    formatted_data = [
-        [text, tree_span_node_replace(text, json.loads(action_dict))]
-        for text, action_dict in split_lines
-    ]
+    formatted_data = [[text, json.loads(action_dict)] for text, action_dict in split_lines]
     return formatted_data
-
-
-def tree_span_node_replace(text, tree):
-    """
-    replace two keys which are coordinates_span and condition_span with
-    coordinates and condition and replace start and end indices of span node
-    with exact text
-    """
-    out_tree = {}
-    for key in tree.keys():
-        # update certain key name
-        f_key = ""
-        if key == "coordinates_span" or key == "condition_span":
-            f_key = key.split("_")[0]
-        else:
-            f_key = key
-
-        if key == "fixed_value":
-            out_tree[f_key] = tree[key]
-        elif is_cat(tree[key]):
-            out_tree[f_key] = tree[key]
-        elif is_span(tree[key]):
-            # keep text span
-            _, (b, c) = tree[key]
-            split_text = text.split()
-            out_tree[f_key] = " ".join([split_text[idx] for idx in range(b, c + 1)])
-        elif is_int(tree[key]):
-            out_tree[f_key] = tree_span_node_replace(text, tree[key])
-        elif is_int_list(tree[key]):
-            output = []
-            for c in tree[key]:
-                output.append(tree_span_node_replace(text, c))
-            out_tree[f_key] = output
-        else:
-            print(tree)
-            print(key)
-
-    return out_tree
 
 
 def tree_to_seq(full_tree, tree, idx_map=None):
@@ -174,31 +133,31 @@ def tree_to_seq(full_tree, tree, idx_map=None):
     try:
         for k in sorted_keys:
             if k == "fixed_value":
-                res += [("FS:" + k, -1, -1, fixed_span_values[tree[k]])]
+                res += [("FS:" + k, -1, -1, -1, -1, fixed_span_values[tree[k]])]
             elif is_cat(tree[k]):
-                res += [("C:" + k + "|" + str(tree[k]), -1, -1, -1)]
+                res += [("C:" + k + "|" + str(tree[k]), -1, -1, -1, -1, -1)]
             elif is_span(tree[k]):
                 if k == "text_span":
                     a, (b, c) = tree[k]
-                    res += [("TS:" + k, -1, -1, -1)]
-                    res += [("TBE:" + k, idx_map[a][b][0], idx_map[a][c][1], -1)]
+                    res += [("TS:" + k, -1, -1, -1, -1, -1)]
+                    res += [("TBE:" + k, -1, -1, idx_map[a][b][0], idx_map[a][c][1], -1)]
                 else:
                     a, (b, c) = tree[k]
-                    res += [("S:" + k, -1, -1, -1)]
-                    res += [("BE:" + k, idx_map[a][b][0], idx_map[a][c][1], -1)]
+                    res += [("S:" + k, -1, -1, -1, -1, -1)]
+                    res += [("BE:" + k, idx_map[a][b][0], idx_map[a][c][1], -1, -1, -1)]
             elif is_int(tree[k]):
                 res += (
-                    [("IB:" + k, -1, -1, -1)]
+                    [("IB:" + k, -1, -1, -1, -1, -1)]
                     + tree_to_seq(full_tree.get(k, {"children": {}})["children"], tree[k], idx_map)
-                    + [("IE:" + k, -1, -1, -1)]
+                    + [("IE:" + k, -1, -1, -1, -1, -1)]
                 )
             elif is_int_list(tree[k]):
-                res += [("ILB:" + k, -1, -1, -1)]
+                res += [("ILB:" + k, -1, -1, -1, -1, -1)]
                 for c in tree[k]:
                     res += tree_to_seq(
                         full_tree.get(k, {"children": {}})["children"], c, idx_map
-                    ) + [("IL&:" + k, -1, -1, -1)]
-                res = res[:-1] + [("ILE:" + k, -1, -1, -1)]
+                    ) + [("IL&:" + k, -1, -1, -1, -1, -1)]
+                res = res[:-1] + [("ILE:" + k, -1, -1, -1, -1, -1)]
             else:
                 print(tree)
                 print(k)
@@ -273,10 +232,21 @@ def seq_to_tree(full_tree, seq, idx_rev_map=None, span_dct=None, start_id=0):
             res["fixed_value"] = seq[idx][-1]
             idx += 1
         # span node
-        elif t == "S" or t == "TS":
+        elif t == "S":
             if idx + 1 < len(seq):
-                text_span_start = seq[idx + 1][1]
-                text_span_end = seq[idx + 1][2]
+                b_pre = seq[idx + 1][1]
+                e_pre = seq[idx + 1][2]
+                l_idx, b_idx = idx_rev_map[b_pre]
+                _, e_idx = idx_rev_map[e_pre]
+                res[w] = [l_idx, [b_idx, e_idx]]
+            else:
+                res[w] = [-1, [-1, -1]]
+            # idx     += 1
+            idx += 2
+        elif t == "TS":
+            if idx + 1 < len(seq):
+                text_span_start = seq[idx + 1][3]
+                text_span_end = seq[idx + 1][4]
                 list_idx, start_idx = idx_rev_map[text_span_start]
                 _, end_idx = idx_rev_map[text_span_end]
                 res[w] = [list_idx, [start_idx, end_idx]]
@@ -411,25 +381,7 @@ def tokenize_linearize(text, tree, tokenizer, full_tree, word_noise=0.0):
         lin_tree = tree_to_seq(full_tree, tree, idx_maps)
     except IndexError as e:
         raise e
-
     return (tokenized, lin_tree)
-
-
-def tokenize_text_tree(text, tree, tokenizer, word_noise=0.0):
-    """Takes raw text and tree, returns BPE-ed text and tree"""
-    tok_text, text_idx_maps = tokenize_mapidx(text, tokenizer)
-    tokenized_text = " ".join(
-        [
-            "[UNK]" if w not in ["[CLS]", "[SEP]"] and random.random() < word_noise else w
-            for w in tok_text.split()
-        ]
-    )
-
-    tree = json.dumps(tree)
-    tok_tree, tree_idx_maps = tokenize_mapidx(tree, tokenizer)
-    tokenized_tree = tok_tree
-
-    return (tokenized_text, tokenized_tree)
 
 
 def caip_collate(batch, tokenizer, tree_to_text=False):
@@ -460,9 +412,8 @@ def caip_collate(batch, tokenizer, tree_to_text=False):
         ]  # 0 as padding idx
     else:
         batch_y_pad_ls = [
-            y + [tokenizer.pad_token_id] * (y_len - len(y)) for y in batch_y_ls
+            y + [[0, -1, -1, -1, -1, -1]] * (y_len - len(y)) for y in batch_y_ls
         ]  # 0 as padding idx
-
     # tensorize
     x = torch.tensor(batch_x_pad_ls)
     x_mask = torch.tensor(x_mask_ls)

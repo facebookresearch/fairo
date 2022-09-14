@@ -8,7 +8,7 @@ from os.path import isfile, isdir
 from os.path import join as pjoin
 from torch.utils.data import Dataset
 from .tokenization_utils import fixed_span_values
-from .utils_caip import make_full_tree, process_txt_data, tokenize_text_tree
+from .utils_caip import make_full_tree, process_txt_data, tokenize_linearize
 
 
 class CAIPDataset(Dataset):
@@ -40,8 +40,6 @@ class CAIPDataset(Dataset):
     ):
         assert isdir(args.data_dir)
         self.tokenizer = tokenizer
-        # the maximal length of the seqence of token
-        self.tokenizer_max_length = args.tokenizer_max_length
         self.tree_to_text = args.tree_to_text
 
         # We load the (input, tree) pairs for all data types and
@@ -122,19 +120,30 @@ class CAIPDataset(Dataset):
             p_text, p_tree = t
         except ValueError as e:
             print(e)
-
-        text, tree = tokenize_text_tree(p_text, p_tree, self.tokenizer, self.word_noise)
+        text, tree = tokenize_linearize(
+            p_text, p_tree, self.tokenizer, self.full_tree, self.word_noise
+        )
 
         text_idx_ls = self.tokenizer.convert_tokens_to_ids(text.split())
-        tree_idx_ls = self.tokenizer.convert_tokens_to_ids(tree.split())
-
-        # Truncate tokens if it exceeds the maximal length
-        # which is 512 for bert tokenizer
-        if len(text_idx_ls) > self.tokenizer_max_length:
-            text_idx_ls = text_idx_ls[: self.tokenizer_max_length]
-        if len(tree_idx_ls) > self.tokenizer_max_length:
-            tree_idx_ls = tree_idx_ls[: self.tokenizer_max_length]
-
+        tree_idx_ls = [
+            [
+                self.tree_idxs[w],
+                bi,
+                ei,
+                text_span_start,
+                text_span_end,
+                (
+                    self.tree_idxs[fixed_span_val]
+                    if type(fixed_span_val) == str
+                    else fixed_span_val
+                ),
+            ]
+            for w, bi, ei, text_span_start, text_span_end, fixed_span_val in [
+                ("<S>", -1, -1, -1, -1, -1)
+            ]
+            + tree
+            + [("</S>", -1, -1, -1, -1, -1)]
+        ]
         if self.tree_to_text:
             stripped_tree_tokens = []
             for w, _, _, _, _, _ in tree:

@@ -1,0 +1,107 @@
+<mujoco model="panda">
+  <compiler angle="radian"/>
+  <size njmax="500" nconmax="100"/>
+  <default/>
+  <asset>
+    <mesh name="link0" file="meshes/collision/link0.stl"/>
+    <mesh name="link1" file="meshes/collision/link1.stl"/>
+    <mesh name="link2" file="meshes/collision/link2.stl"/>
+    <mesh name="link3" file="meshes/collision/link3.stl"/>
+    <mesh name="link4" file="meshes/collision/link4.stl"/>
+    <mesh name="link5" file="meshes/collision/link5.stl"/>
+    <mesh name="link6" file="meshes/collision/link6.stl"/>
+    <mesh name="link7" file="meshes/collision/link7.stl"/>
+    <mesh name="base" file="meshes/robotiq-2f/collision/base.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="driver" file="meshes/robotiq-2f/collision/driver.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="coupler" file="meshes/robotiq-2f/collision/coupler.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="follower" file="meshes/robotiq-2f/collision/follower.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="pad" file="meshes/robotiq-2f/collision/pad.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="spring_link" file="meshes/robotiq-2f/collision/spring_link.stl" scale="0.001 0.001 0.001"/>
+  </asset>
+  <worldbody>
+    <geom type="mesh" rgba="0.4 0.4 0.4 1" mesh="link0"/>
+    <body name="panda_link1" pos="0 0 0.333">
+      <inertial pos="0.003875 0.002081 -0.175" quat="0.711549 0.00634377 -0.0131124 0.702485" mass="4.97068" diaginertia="0.707137 0.703435 0.00852456"/>
+      <joint name="panda_joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-2.8973 2.8973" damping="10" frictionloss="5"/>
+      <geom type="mesh" rgba="1 1 1 1" mesh="link1"/>
+      <body name="panda_link2" pos="0 0 0" quat="0.707107 -0.707107 0 0">
+        <inertial pos="-0.003141 -0.02872 0.003495" quat="-0.168175 0.828366 -0.122878 0.520027" mass="0.646926" diaginertia="0.0310326 0.0283001 0.00273425"/>
+        <joint name="panda_joint2" pos="0 0 0" axis="0 0 1" limited="true" range="-1.7628 1.7628" damping="5" frictionloss="2"/>
+        <geom type="mesh" rgba="1 1 1 1" mesh="link2"/>
+        <body name="panda_link3" pos="0 -0.316 0" quat="0.707107 0.707107 0 0">
+          <inertial pos="0.027518 0.039252 -0.066502" quat="0.662769 -0.00678331 0.252053 0.705096" mass="3.2286" diaginertia="0.0415014 0.0414793 0.00124635"/>
+          <joint name="panda_joint3" pos="0 0 0" axis="0 0 1" limited="true" range="-2.8973 2.8973" damping="5" frictionloss="2"/>
+          <geom type="mesh" rgba="1 1 1 1" mesh="link3"/>
+          <body name="panda_link4" pos="0.0825 0 0" quat="0.707107 0.707107 0 0">
+            <inertial pos="-0.05317 0.104419 0.027454" quat="0.65058 0.529822 -0.0962034 0.535518" mass="3.5879" diaginertia="0.0349596 0.0281483 0.0106201"/>
+            <joint name="panda_joint4" pos="0 0 0" axis="0 0 1" limited="true" range="-3.0718 -0.0698" damping="1" frictionloss="0.5"/>
+            <geom type="mesh" rgba="1 1 1 1" mesh="link4"/>
+            <body name="panda_link5" pos="-0.0825 0.384 0" quat="0.707107 -0.707107 0 0">
+              <inertial pos="-0.011953 0.041065 -0.038437" quat="0.987313 -0.0121954 0.0719187 -0.141037" mass="1.22595" diaginertia="0.0367625 0.0288531 0.00803437"/>
+              <joint name="panda_joint5" pos="0 0 0" axis="0 0 1" limited="true" range="-2.8973 2.8973" damping="2" frictionloss="1"/>
+              <geom type="mesh" rgba="1 1 1 1" mesh="link5"/>
+              <body name="panda_link6" pos="0 0 0" quat="0.707107 0.707107 0 0">
+                <inertial pos="0.060149 -0.014117 -0.010517" quat="0.101075 0.59332 0.0287227 0.798079" mass="1.66656" diaginertia="0.00584276 0.00431037 0.00159787"/>
+                <joint name="panda_joint6" pos="0 0 0" axis="0 0 1" limited="true" range="-0.0175 3.7525" damping="1" frictionloss="0.5"/>
+                <geom type="mesh" rgba="1 1 1 1" mesh="link6"/>
+                <body name="panda_link7" pos="0.088 0 0" quat="0.707107 0.707107 0 0">
+                  <inertial pos="0.0092472 -0.00373862 0.066168" quat="0.993188 -0.0757047 0.0701801 -0.0540548" mass="0.836522" diaginertia="0.0130443 0.0104268 0.00473204"/>
+                  <joint name="panda_joint7" pos="0 0 0" axis="0 0 1" limited="true" range="-2.8973 2.8973" damping="1" frictionloss="0.5"/>
+                  <geom type="mesh" rgba="0.4 0.4 0.4 1" mesh="link7"/>
+                  <geom pos="0 0 0.045" type="mesh" rgba="1 1 1 1" mesh="base"/>
+                  <body name="robotiq_2f_85_right_driver" pos="0 0.0306011 0.099904">
+                    <inertial pos="0 0.01575 0.05295" quat="0.738425 0.674335 0 0" mass="0.2" diaginertia="0.00043212 0.000431866 0.000360253"/>
+                    <joint name="robotiq_2f_85_right_driver_joint" pos="0 0 0" axis="1 0 0" limited="true" range="0 0.834"/>
+                    <geom type="mesh" rgba="1 1 1 1" mesh="driver"/>
+                    <geom pos="0 0.0315 -0.0041" type="mesh" rgba="1 1 1 1" mesh="coupler"/>
+                    <body name="robotiq_2f_85_right_follower" pos="0 0.0376 0.043">
+                      <inertial pos="0 0 0.055" quat="0.707107 0.707107 0 0" mass="0.2" diaginertia="0.000380833 0.000380833 0.00036"/>
+                      <joint name="robotiq_2f_85_right_follower_joint" pos="0 0 0" axis="1 0 0" limited="true" range="-2.96706 2.96706"/>
+                      <geom type="mesh" rgba="1 1 1 1" mesh="follower"/>
+                      <geom type="mesh" rgba="1 1 1 1" mesh="pad"/>
+                    </body>
+                  </body>
+                  <body name="robotiq_2f_85_right_spring_link" pos="0 0.012 0.1064">
+                    <inertial pos="0 0 0.055" quat="0.707107 0.707107 0 0" mass="0.1" diaginertia="0.000190833 0.000190833 0.00018"/>
+                    <joint name="robotiq_2f_85_right_spring_link_joint" pos="0 0 0" axis="1 0 0" limited="true" range="-2.96706 2.96706"/>
+                    <geom type="mesh" rgba="1 1 1 1" mesh="spring_link"/>
+                  </body>
+                  <body name="robotiq_2f_85_left_driver" pos="0 -0.0306011 0.099904" quat="0 0 0 1">
+                    <inertial pos="0 0.01575 0.05295" quat="0.738425 0.674335 0 0" mass="0.2" diaginertia="0.00043212 0.000431866 0.000360253"/>
+                    <joint name="robotiq_2f_85_left_driver_joint" pos="0 0 0" axis="1 0 0" limited="true" range="0 0.834"/>
+                    <geom type="mesh" rgba="1 1 1 1" mesh="driver"/>
+                    <geom pos="0 0.0315 -0.0041" type="mesh" rgba="1 1 1 1" mesh="coupler"/>
+                    <body name="robotiq_2f_85_left_follower" pos="0 0.0376 0.043">
+                      <inertial pos="0 0 0.055" quat="0.707107 0.707107 0 0" mass="0.2" diaginertia="0.000380833 0.000380833 0.00036"/>
+                      <joint name="robotiq_2f_85_left_follower_joint" pos="0 0 0" axis="1 0 0" limited="true" range="-2.96706 2.96706"/>
+                      <geom type="mesh" rgba="1 1 1 1" mesh="pad"/>
+                    </body>
+                  </body>
+                  <body name="robotiq_2f_85_left_spring_link" pos="0 -0.012 0.1064" quat="0 0 0 1">
+                    <inertial pos="0 0 0.055" quat="0.707107 0.707107 0 0" mass="0.1" diaginertia="0.000190833 0.000190833 0.00018"/>
+                    <joint name="robotiq_2f_85_left_spring_link_joint" pos="0 0 0" axis="1 0 0" limited="true" range="-2.96706 2.96706"/>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <motor joint="panda_joint1" name="panda_actuator1"/>
+    <motor joint="panda_joint2" name="panda_actuator2"/>
+    <motor joint="panda_joint3" name="panda_actuator3"/>
+    <motor joint="panda_joint4" name="panda_actuator4"/>
+    <motor joint="panda_joint5" name="panda_actuator5"/>
+    <motor joint="panda_joint6" name="panda_actuator6"/>
+    <motor joint="panda_joint7" name="panda_actuator7"/>
+    <motor joint="robotiq_2f_85_right_driver_joint" name="robotiq_2f_85_right_driver_actuator"/>
+    <motor joint="robotiq_2f_85_right_follower_joint" name="robotiq_2f_85_right_follower_actuator"/>
+    <motor joint="robotiq_2f_85_right_spring_link_joint" name="robotiq_2f_85_right_spring_link_actuator"/>
+    <motor joint="robotiq_2f_85_left_driver_joint" name="robotiq_2f_85_left_driver_actuator"/>
+    <motor joint="robotiq_2f_85_left_follower_joint" name="robotiq_2f_85_left_follower_actuator"/>
+    <motor joint="robotiq_2f_85_left_spring_link_joint" name="robotiq_2f_85_left_spring_link_actuator"/>
+  </actuator> 
+</mujoco>

@@ -214,3 +214,8 @@ class DaisyLocomotorEnv(AbstractControlledEnv):
         if np.abs(next_state[22] - curr_state[22]) > 0.001:
             next_state[22] = curr_state[22]
         return next_state
+
+    def set_robot_state(self, robot_state):
+        raise NotImplementedError(
+            f"Mirror simulation not implemented for {type(self).__name__}"
+        )
