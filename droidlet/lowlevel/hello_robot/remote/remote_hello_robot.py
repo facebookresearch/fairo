@@ -59,7 +59,7 @@ class RemoteHelloRobot(object):
         self._robot.startup()
         if not self._robot.is_calibrated():
             self._robot.home()
-        # self._robot.stow()
+        # self._robot.stow()  # HACK: not working currently, robot runs fine without this line
         self._done = True
         self.cam = None
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
