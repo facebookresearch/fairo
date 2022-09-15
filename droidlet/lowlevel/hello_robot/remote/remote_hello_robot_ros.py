@@ -42,7 +42,6 @@ class RemoteHelloRobot(object):
         self.tilt_correction = 0.0
 
         self._goto_controller = GotoVelocityController(robot=self._robot, hz=VEL_CONTROL_HZ)
-        self._goto_controller.start()
 
     def _load_urdf(self):
         import os
@@ -266,6 +265,8 @@ class RemoteHelloRobot(object):
         ), f"Input goal should be of length 2 (xy), got {len(xy_position)} instead."
 
         xyt_position = list(xy_position) + [0.0]
+
+        self._goto_controller.start()
         self._goto_controller.enable_yaw_tracking(False)
         self._goto_controller.set_goal(xyt_position)
 
@@ -279,8 +280,12 @@ class RemoteHelloRobot(object):
             len(xyt_position) == 3
         ), f"Input goal should be of length 3 (xyt), got {len(xyt_position)} instead."
 
+        self._goto_controller.start()
         self._goto_controller.enable_yaw_tracking(True)
         self._goto_controller.set_goal(xyt_position)
+
+    def stop_continuous_control(self):
+        self._goto_controller.pause()
 
     def is_moving(self):
         return not self._done

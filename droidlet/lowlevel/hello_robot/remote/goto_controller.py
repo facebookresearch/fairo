@@ -26,9 +26,12 @@ class GotoVelocityController:
         self.ang_error_tol = self.w_max / hz
 
         # Initialize
+        self.loop_thr = None
+        self.control_lock = threading.Lock()
+        self.active = False
+
         self.xyt_err = np.zeros(3)
         self.track_yaw = True
-        self.loop_thr = None
 
     @staticmethod
     def _error_velocity_multiplier(x_err, tol=0.0):
@@ -111,7 +114,8 @@ class GotoVelocityController:
                 w_cmd = np.sign(ang_err) * k_t_ang * self.w_max
 
             # Command robot
-            self.robot.set_velocity(v_cmd, w_cmd)
+            with self.control_lock:
+                self.robot.set_velocity(v_cmd, w_cmd)
 
             # Update odometry prediction
             self._integrate_state(v_cmd, w_cmd)
@@ -142,5 +146,12 @@ class GotoVelocityController:
         self.track_yaw = value
 
     def start(self):
-        self.loop_thr = threading.Thread(target=self._run)
-        self.loop_thr.start()
+        if self.loop_thr is None:
+            self.loop_thr = threading.Thread(target=self._run)
+            self.loop_thr.start()
+        self.active = True
+
+    def pause(self):
+        self.active = False
+        with self.control_lock:
+            self.robot.set_velocity(0.0, 0.0)
