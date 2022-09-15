@@ -24,7 +24,7 @@ Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
 
-VEL_CONTROL_HZ = 10
+VEL_CONTROL_HZ = 15
 
 # #####################################################
 @Pyro4.expose

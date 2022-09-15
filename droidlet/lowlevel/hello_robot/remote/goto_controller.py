@@ -3,6 +3,7 @@ import time
 import threading
 
 import numpy as np
+import rospy
 
 V_MAX_DEFAULT = 0.15  # base.params["motion"]["default"]["vel_m"]
 W_MAX_DEFAULT = 0.45  # (vel_m_max - vel_m_default) / wheel_separation_m
@@ -17,7 +18,8 @@ class GotoVelocityController:
         w_max: Optional[float] = None,
     ):
         self.robot = robot
-        self.dt = 1.0 / hz
+        self.hz = hz
+        self.dt = 1.0 / self.hz
 
         # Params
         self.v_max = v_max or V_MAX_DEFAULT
@@ -83,7 +85,7 @@ class GotoVelocityController:
         self.xyt_err[2] = self.xyt_err[2] - dtheta if self.track_yaw else 0.0
 
     def _run(self):
-        t_target = time.time()
+        rate = rospy.Rate(self.hz)
 
         while True:
             v_cmd = w_cmd = 0
@@ -121,9 +123,7 @@ class GotoVelocityController:
             self._integrate_state(v_cmd, w_cmd)
 
             # Spin
-            t_target += self.dt
-            t_sleep = max(t_target - time.time(), 0.0)
-            time.sleep(t_sleep)
+            rate.sleep()
 
     def check_at_goal(self) -> bool:
         xy_fulfilled = np.linalg.norm(self.xyt_err[0:2]) <= self.lin_error_tol
