@@ -77,7 +77,7 @@ class GotoVelocityController:
 
         self.xyt_err[0] = ct * x_err_f0 - st * y_err_f0
         self.xyt_err[1] = st * x_err_f0 + ct * y_err_f0
-        self.xyt_err[2] = self.xyt_err[2] - dtheta
+        self.xyt_err[2] = self.xyt_err[2] - dtheta if self.track_yaw else 0.0
 
     def _run(self):
         t_target = time.time()
@@ -105,7 +105,7 @@ class GotoVelocityController:
                 w_cmd = np.sign(heading_err) * k_t_ang * self.w_max
 
             # Rotate to correct yaw if yaw tracking is on and XY position is at goal
-            elif self.track_yaw and ang_err_abs > self.ang_error_tol:
+            elif ang_err_abs > self.ang_error_tol:
                 # Compute angular velocity
                 k_t_ang = self._error_velocity_multiplier(ang_err_abs, tol=self.ang_error_tol)
                 w_cmd = np.sign(ang_err) * k_t_ang * self.w_max
@@ -135,8 +135,10 @@ class GotoVelocityController:
         xyt_position: List[float],
     ):
         self.xyt_err = xyt_position
+        if not self.track_yaw:
+            self.xyt_err[2] = 0.0
 
-    def enable_yaw_tracking(self, value: bool):
+    def enable_yaw_tracking(self, value: bool = True):
         self.track_yaw = value
 
     def start(self):
