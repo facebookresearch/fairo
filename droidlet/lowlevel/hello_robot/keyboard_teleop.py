@@ -11,6 +11,8 @@ LEFT = keyboard.Key.left
 RIGHT = keyboard.Key.right
 ESC = keyboard.Key.esc
 
+HZ_DEFAULT = 15
+
 # 6 * v_max + w_max <= 1.8  (computed from max wheel vel & vel diff required for w)
 VEL_MAX_DEFAULT = 0.20
 RVEL_MAX_DEFAULT = 0.45
@@ -22,7 +24,7 @@ class RobotController:
         mover,
         vel_max=None,
         rvel_max=None,
-        hz=10,
+        hz=HZ_DEFAULT,
     ):
         # Params
         self.dt = 1.0 / hz
