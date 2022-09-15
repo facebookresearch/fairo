@@ -2,8 +2,11 @@ import os
 import sys
 import random
 import math
-from threading import local
+import threading
 import time
+from dataclasses import dataclass
+from typing import Optional
+
 import torch
 import numpy as np
 import Pyro4
@@ -72,6 +75,24 @@ class Trackback(object):
         return ans
 
 
+@dataclass
+class GoalParams:
+    is_multi_goal: bool
+    goal: Optional[np.ndarray]
+    goal_map: Optional[np.ndarray]
+    distance_threshold: Optional[np.ndarray]
+    angle_threshold: Optional[np.ndarray]
+    steps: float
+    visualize: bool
+
+
+@dataclass
+class NavigationStatus:
+    valid: bool
+    path_found: bool
+    goal_reached: bool
+
+
 @Pyro4.expose
 class Navigation(object):
     def __init__(self, planner, slam, robot):
@@ -82,6 +103,14 @@ class Navigation(object):
 
         num_sem_categories = len(coco_categories)
         self.map_size, self.local_map_size = self.slam.get_map_sizes()
+
+        # Async navigator
+        self.goto_thr = None
+        self.goal_data = None
+        self.nav_status = NavigationStatus(False, False, False)
+        self.nav_init = threading.Event()
+
+        # ObjectNav policy
         self.goal_policy = GoalPolicy(
             map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
             num_outputs=2,
@@ -198,18 +227,44 @@ class Navigation(object):
         steps=100000000,
         visualize=True,
     ):
-        print("[navigation] Starting a go_to_absolute")
-        # specify exactly one of goal or goal_map
+        # Specify exactly one of goal or goal_map
         assert (goal is not None and goal_map is None) or (goal is None and goal_map is not None)
+        is_multi_goal = goal is None
+        self.goal_data = GoalParams(
+            is_multi_goal, goal, goal_map, distance_threshold, angle_threshold, steps, visualize
+        )
+
+        # Reset params
+        self.nav_status = NavigationStatus(True, False, False)
+        self.nav_init.clear()
+
+        # Start navigator thread
+        if self.goto_thr is None:
+            self.goto_thr = threading.Thread(target=self._navigate_to_absolute)
+            self.goto_thr.start()
+            self._stop = False
+
+        # Wait for navigator to finish first loop
+        self.nav_init.wait()
+
+    def _navigate_to_absolute(self):
+        print("[navigation] Starting a go_to_absolute")
 
         self._busy = True
         self._stop = False
         robot_loc = self.robot.get_base_state()
         initial_robot_loc = robot_loc
-        goal_reached = False
-        path_found = True
 
-        while not goal_reached and steps > 0 and self._stop is False:
+        while not self.nav_status.goal_reached and steps > 0 and self._stop is False:
+            # Load goal data
+            goal = self.goal_data.goal
+            goal_map = self.goal_data.goal_map
+            distance_threshold = self.goal_data.distance_threshold
+            angle_threshold = self.goal_data.angle_threshold
+            steps = self.goal_data.steps
+            visualize = self.goal_data.visualize
+
+            # Plan & execute
             stg = self.planner.get_short_term_goal(
                 robot_loc,
                 goal=goal,
@@ -223,7 +278,7 @@ class Navigation(object):
                         goal, robot_loc
                     )
                 )
-                path_found = False
+                self.nav_status.path_found = False
                 break
             robot_loc = self.robot.get_base_state()
             status, action = self.robot.go_to_absolute(stg)
@@ -238,7 +293,7 @@ class Navigation(object):
             print(" Short-term goal: {}, Reached Location: {}".format(stg, robot_loc))
             print(" Robot Status: {}".format(status))
             if status == "SUCCEEDED":
-                goal_reached = self.planner.goal_within_threshold(
+                self.nav_status.goal_reached = self.planner.goal_within_threshold(
                     robot_loc,
                     goal=goal,
                     goal_map=goal_map,
@@ -293,8 +348,9 @@ class Navigation(object):
                 self.vis.update_last_position_vis_info(self.slam.get_last_position_vis_info())
                 self.vis.snapshot()
 
+            self.nav_init.set()
+
         self._busy = False
-        return path_found, goal_reached
 
     def go_to_object(
         self,
@@ -357,13 +413,14 @@ class Navigation(object):
                 if visualize:
                     self.vis.set_location_goal(goal_map)
 
-                _, goal_reached = self.go_to_absolute(
+                self.go_to_absolute(
                     goal_map=goal_map,
                     distance_threshold=0.5,
                     angle_threshold=30,
                     steps=1,
                     visualize=visualize,
                 )
+                goal_reached = self.nav_status.goal_reached
                 continue
 
             elif (cat_frame == 1).sum() > 0:
@@ -559,8 +616,8 @@ class Navigation(object):
             self._done_exploring = False
         if not self._done_exploring:
             print("exploring 1 step")
-            path_found, _ = self.go_to_absolute(far_away_goal, steps=1)
-            if path_found == False:
+            self.go_to_absolute(far_away_goal, steps=1)
+            if self.nav_status.path_found == False:
                 # couldn't reach far_away_goal
                 # and don't seem to have any unexplored
                 # paths to attempt to get there
@@ -578,6 +635,9 @@ class Navigation(object):
 
     def stop(self):
         self._stop = True
+        if self.goto_thr is not None:
+            self.goto_thr.join()
+            self.goto_thr = None
 
 
 robot_ip = os.getenv("LOCOBOT_IP")
