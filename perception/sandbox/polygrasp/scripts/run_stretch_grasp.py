@@ -86,21 +86,15 @@ def main(cfg):
     rospy.init_node('hello_stretch_ros_test')
 
     # Create the robot
-    visualize = True
+    visualize = False
     rob, q = init_robot(visualize=visualize)
     model = rob.get_model()  # get the planning model in case we need it
 
     # Get a couple camera listeners
-    print("Creating ROS cameras...")
-    rgb_cam = RosCamera('/camera/color')
-    dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=5)
+    rgb_cam = rob.rgb_cam
+    dpt_cam = rob.dpt_cam
     dpt_cam.far_val = 1.5
     min_grasp_score = 0.
-
-    # Get images from the robot
-    rgb_cam.wait_for_image()
-    dpt_cam.wait_for_image()
-    rospy.sleep(1.)
 
     print("rgb frame =", rgb_cam.get_frame())
     print("dpt frame =", dpt_cam.get_frame())
@@ -121,8 +115,16 @@ def main(cfg):
     xyz = xyz @ R_stretch_camera
     xyz = xyz.reshape(H, W, 3)
 
+    H0 = int(H / 4)
+    # H1 = int(3 * H / 4)
+    H1 = int(H0 + W)
+    xyz = xyz[H0:H1]
+    rgb = rgb[H0:H1]
+    dpt = dpt[H0:H1]
+    H2 = xyz.shape[0]
+
     show_imgs = False
-    show_pcs = False
+    show_pcs = True
     show_masks = False
     show_grasps = True
     if show_imgs:
@@ -156,7 +158,7 @@ def main(cfg):
     if not seg_only:
         print("Image was too big for your tiny little GPU!")
         print(" - RGBD image of shape:", rgbd.shape)
-        seg_rgbd = cv2.resize(rgbd, [int(W / 4), int(H / 4)], interpolation=cv2.INTER_NEAREST)
+        seg_rgbd = cv2.resize(rgbd, [int(H2 / 4), int(W / 4)], interpolation=cv2.INTER_NEAREST)
         # seg_depth = cv2.resize(dpt, [int(W / 4), int(H / 4)], interpolation=cv2.INTER_NEAREST)
         print(" - Resized to", seg_rgbd.shape)
         resized = True
@@ -227,9 +229,13 @@ def main(cfg):
     rgb = rgb[mask_scene]
     scene_pcd = hrimg.to_o3d_point_cloud(xyz, rgb)
 
+    print("Get grasps...")
     obj_i, filtered_grasp_group = grasp_client.get_obj_grasps(
         obj_pcds, scene_pcd
     )
+    # print("Visualize...")
+    # grasp_client.visualize_grasp(obj_pcds[obj_i], filtered_grasp_group, n=len(filtered_grasp_group), render=False, save_view=False)
+    # print("...done.")
 
     # Transform point clouds with help from trimesh
     geoms = [scene_pcd] + obj_pcds
@@ -312,6 +318,7 @@ def main(cfg):
     offset[2, 3] = -0.1
 
     print("=========== grasps =============")
+    return
     print("find a grasp that doesnt move the base...")
     for grasp in grasps:
         grasp_pose = to_pos_quat(grasp)
