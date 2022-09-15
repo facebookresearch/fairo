@@ -59,7 +59,7 @@ class RemoteHelloRobot(object):
         self._robot.startup()
         if not self._robot.is_calibrated():
             self._robot.home()
-        self._robot.stow()
+        # self._robot.stow()  # HACK: not working currently, robot runs fine without this line
         self._done = True
         self.cam = None
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
@@ -248,6 +248,10 @@ class RemoteHelloRobot(object):
             status = goto(self, list(xyt_position), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
         return status
+
+    def set_velocity(self, v_m, w_r):
+        self._robot.base.set_velocity(v_m, w_r)
+        self._robot.push_command()
 
     def is_base_moving(self):
         robot = self._robot

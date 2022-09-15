@@ -14,8 +14,9 @@ from rich import print
 import Pyro4
 import numpy as np
 from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
-from stretch_ros_move_api import MoveNode as Robot
 from droidlet.lowlevel.pyro_utils import safe_call
+from stretch_ros_move_api import MoveNode as Robot
+from goto_controller import GotoVelocityController
 import traceback
 
 
@@ -23,6 +24,7 @@ Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
 
+VEL_CONTROL_HZ = 15
 
 # #####################################################
 @Pyro4.expose
@@ -38,6 +40,8 @@ class RemoteHelloRobot(object):
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
         self._load_urdf()
         self.tilt_correction = 0.0
+
+        self._goto_controller = GotoVelocityController(robot=self._robot, hz=VEL_CONTROL_HZ)
 
     def _load_urdf(self):
         import os
@@ -244,6 +248,44 @@ class RemoteHelloRobot(object):
                 self._done = True
                 raise e
         return status
+
+    def set_velocity(self, v_m, w_r):
+        """Directly sets the forward and yaw velocity of the robot."""
+        self._robot.set_velocity(v_m, w_r)
+
+    def set_relative_position_goal(self, xy_position):
+        """Moves the robot base to the given goal position relative to its current
+        pose. The robot does not have a yaw goal and will simply turn & move towards
+        the desired position.
+
+        :param xy_position: The relative goal position of the form (x,y)
+        """
+        assert (
+            len(xy_position) == 2
+        ), f"Input goal should be of length 2 (xy), got {len(xy_position)} instead."
+
+        xyt_position = list(xy_position) + [0.0]
+
+        self._goto_controller.start()
+        self._goto_controller.enable_yaw_tracking(False)
+        self._goto_controller.set_goal(xyt_position)
+
+    def set_relative_goal(self, xyt_position):
+        """Moves the robot base to the given goal state relative to its current
+        pose.
+
+        :param xyt_position: The  relative goal state of the form (x,y,yaw)
+        """
+        assert (
+            len(xyt_position) == 3
+        ), f"Input goal should be of length 3 (xyt), got {len(xyt_position)} instead."
+
+        self._goto_controller.start()
+        self._goto_controller.enable_yaw_tracking(True)
+        self._goto_controller.set_goal(xyt_position)
+
+    def stop_continuous_control(self):
+        self._goto_controller.pause()
 
     def is_moving(self):
         return not self._done

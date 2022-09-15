@@ -6,7 +6,7 @@ from std_srvs.srv import Trigger, TriggerRequest
 from sensor_msgs.msg import JointState
 from control_msgs.msg import FollowJointTrajectoryGoal
 from trajectory_msgs.msg import JointTrajectoryPoint
-from geometry_msgs.msg import PoseStamped, Pose2D, PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseStamped, Pose2D, PoseWithCovarianceStamped, Twist
 from nav_msgs.msg import Odometry
 import hello_helpers.hello_misc as hm
 from tf.transformations import euler_from_quaternion
@@ -37,6 +37,12 @@ class MoveNode(hm.HelloNode):
         self._scan_matched_pose = None
         self._lock = threading.Lock()
 
+        self._nav_mode = rospy.ServiceProxy("/switch_to_navigation_mode", Trigger)
+        s_request = TriggerRequest()
+        self._nav_mode(s_request)
+
+        self._vel_command_pub = rospy.Publisher("/stretch/cmd_vel", Twist, queue_size=1)
+
     def _joint_states_callback(self, joint_state):
         with self._lock:
             self._joint_state = joint_state
@@ -56,6 +62,12 @@ class MoveNode(hm.HelloNode):
                 max(abs(pose.twist.twist.linear.x), abs(pose.twist.twist.linear.y))
             )
             self._angular_movement.append(abs(pose.twist.twist.angular.z))
+
+    def set_velocity(self, v_m, w_r):
+        cmd = Twist()
+        cmd.linear.x = v_m
+        cmd.angular.z = w_r
+        self._vel_command_pub.publish(cmd)
 
     def is_moving(self):
         with self._lock:
