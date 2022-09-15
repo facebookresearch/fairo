@@ -196,7 +196,7 @@ def main(cfg):
     for i, mask in enumerate(obj_masks):
         # Upscale the mask back to full size
         mask = mask.astype(np.uint8)  # needs to be non-boolean for opencv
-        mask = cv2.resize(mask, [W, H], interpolation=cv2.INTER_NEAREST)
+        mask = cv2.resize(mask, [H2, W], interpolation=cv2.INTER_NEAREST)
         seg[mask > 0] = i + 1
         # Smooth mask over valid pixels only
         mask1, mask2 = hrimg.smooth_mask(np.bitwise_and(mask_valid, mask))
