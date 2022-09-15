@@ -13,7 +13,7 @@ ESC = keyboard.Key.esc
 
 # 6 * v_max + w_max <= 1.8  (computed from max wheel vel & vel diff required for w)
 VEL_MAX_DEFAULT = 0.20
-RVEL_MAX_DEFAULT = 0.6
+RVEL_MAX_DEFAULT = 0.45
 
 
 class RobotController:
