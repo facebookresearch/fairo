@@ -259,7 +259,7 @@ class RemoteHelloRobot(object):
         pose. The robot does not have a yaw goal and will simply turn & move towards
         the desired position.
 
-        :param xyt_position: The relative goal position of the form (x,y)
+        :param xy_position: The relative goal position of the form (x,y)
         """
         assert (
             len(xy_position) == 2
