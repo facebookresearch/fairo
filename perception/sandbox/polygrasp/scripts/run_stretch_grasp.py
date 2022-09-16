@@ -84,6 +84,7 @@ def init_robot(visualize=False):
     rob.goto(q, move_base=False, wait=False, verbose=False)
     return rob, q
 
+
 @hydra.main(config_path="../conf", config_name="run_grasp")
 def main(cfg):
     print("--------------")
@@ -237,30 +238,34 @@ def main(cfg):
     rgb = rgb[mask_scene]
     scene_pcd = hrimg.to_o3d_point_cloud(xyz, rgb)
 
-    print("Get grasps...")
-    obj_i, filtered_grasp_group = grasp_client.get_obj_grasps(
-        obj_pcds, scene_pcd
-    )
-    # print("Visualize...")
-    # grasp_client.visualize_grasp(obj_pcds[obj_i], filtered_grasp_group, n=len(filtered_grasp_group), render=False, save_view=False)
-    # print("...done.")
-
     # Transform point clouds with help from trimesh
     geoms = [scene_pcd] + obj_pcds
     pose_xyz = []
     pose_rgb = []
+
+    print("Get grasps...")
+    if USE_POLYGRASP:
+        obj_i, filtered_grasp_group = grasp_client.get_obj_grasps(
+            obj_pcds, scene_pcd
+        )
+    # print("Visualize...")
+    # grasp_client.visualize_grasp(obj_pcds[obj_i], filtered_grasp_group, n=len(filtered_grasp_group), render=False, save_view=False)
+    # print("...done.")
 
     T_fix_camera = np.eye(4)
     T_fix_camera[:3, :3] = R_stretch_camera
     offset = np.eye(4)
     scores = [grasp.score for grasp in filtered_grasp_group]
     grasps = []
-    for i, grasp in enumerate(filtered_grasp_group):
+    for i, (score, grasp) in enumerate(zip(scores, filtered_grasp_group)):
         # import pdb; pdb.set_trace()
-        pose = np.eye(4)
-        pose[:3, :3] = grasp.rotation_matrix
-        pose[:3, 3] = grasp.translation
-        if grasp.score < min_grasp_score:
+        if USE_POLYGRASP:
+            pose = np.eye(4)
+            pose[:3, :3] = grasp.rotation_matrix
+            pose[:3, 3] = grasp.translation
+        else:
+            pose = grasp
+        if score < min_grasp_score:
             continue
 
         # camera setup

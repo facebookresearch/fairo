@@ -24,18 +24,18 @@ mrp.process(
     ),
 )
 
-mrp.process(
-    name="grasp_server",
-    runtime=mrp.Conda(
-        yaml="./third_party/graspnet-baseline/environment.yml",
-        setup_commands=[
-            ["pip", "install", "./third_party/graspnet-baseline/pointnet2/"],
-            ["pip", "install", "-e", "./third_party/graspnet-baseline/"],
-        ]
-        + polygrasp_setup_commands,
-        run_command=["python", "-m", "graspnet_baseline.mrp_wrapper", "--collision_thresh=0.0", "--voxel_size=0.005"],
-    ),
-)
+#mrp.process(
+#    name="grasp_server",
+#    runtime=mrp.Conda(
+#        yaml="./third_party/graspnet-baseline/environment.yml",
+#        setup_commands=[
+#            ["pip", "install", "./third_party/graspnet-baseline/pointnet2/"],
+#            ["pip", "install", "-e", "./third_party/graspnet-baseline/"],
+#        ]
+#        + polygrasp_setup_commands,
+#        run_command=["python", "-m", "graspnet_baseline.mrp_wrapper", "--collision_thresh=0.0", "--voxel_size=0.005"],
+#    ),
+#)
 
 polygrasp_shared_env = mrp.Conda.SharedEnv(
     "polygrasp",
