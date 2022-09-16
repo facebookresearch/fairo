@@ -281,9 +281,13 @@ class Navigation(object):
                 self.nav_status.path_found = False
                 break
             robot_loc = self.robot.get_base_state()
-            status, action = self.robot.go_to_absolute(stg)
-            robot_loc = self.robot.get_base_state()
+            # status, action = self.robot.go_to_absolute(stg)
+            self.robot.set_goal(stg, absolute=True)
+            status = "SUCCEEDED"
+            action = "move_to"
 
+            robot_loc = self.robot.get_base_state()
+            """
             print("[navigation] Finished a go_to_absolute")
             print(
                 " Initial location: {} Final goal: {}".format(
@@ -292,6 +296,7 @@ class Navigation(object):
             )
             print(" Short-term goal: {}, Reached Location: {}".format(stg, robot_loc))
             print(" Robot Status: {}".format(status))
+            """
             if status == "SUCCEEDED":
                 self.nav_status.goal_reached = self.planner.goal_within_threshold(
                     robot_loc,

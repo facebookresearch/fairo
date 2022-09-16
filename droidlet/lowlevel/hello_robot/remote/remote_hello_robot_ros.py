@@ -269,33 +269,44 @@ class RemoteHelloRobot(object):
         """Directly sets the forward and yaw velocity of the robot."""
         self._robot.set_velocity(v_m, w_r)
 
-    def set_relative_position_goal(self, xy_position):
-        """Moves the robot base to the given goal position relative to its current
-        pose. The robot does not have a yaw goal and will simply turn & move towards
+    def set_position_goal(self, xy_position, absolute=False):
+        """Moves the robot base to the given goal position.
+        The robot does not have a yaw goal and will simply turn & move towards
         the desired position.
 
-        :param xy_position: The relative goal position of the form (x,y)
+        :param xy_position: The goal position of the form (x,y)
         """
         assert (
             len(xy_position) == 2
         ), f"Input goal should be of length 2 (xy), got {len(xy_position)} instead."
 
+        # Convert abs to rel
         xyt_position = list(xy_position) + [0.0]
+        if absolute:
+            base_state = self.get_base_state()
+            xyt_position = transform_global_to_base(xyt_position, base_state)
+        xyt_position[2] = 0.0
 
+        # Set motion goal
         self._goto_controller.start()
         self._goto_controller.enable_yaw_tracking(False)
         self._goto_controller.set_goal(xyt_position)
 
-    def set_relative_goal(self, xyt_position):
-        """Moves the robot base to the given goal state relative to its current
-        pose.
+    def set_goal(self, xyt_position, absolute=False):
+        """Moves the robot base to the given goal state
 
-        :param xyt_position: The  relative goal state of the form (x,y,yaw)
+        :param xyt_position: The goal state of the form (x,y,yaw)
         """
         assert (
             len(xyt_position) == 3
         ), f"Input goal should be of length 3 (xyt), got {len(xyt_position)} instead."
 
+        # Convert abs to rel
+        if absolute:
+            base_state = self.get_base_state()
+            xyt_position = transform_global_to_base(xyt_position, base_state)
+
+        # Set motion goal
         self._goto_controller.start()
         self._goto_controller.enable_yaw_tracking(True)
         self._goto_controller.set_goal(xyt_position)
