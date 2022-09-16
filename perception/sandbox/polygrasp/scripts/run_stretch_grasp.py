@@ -45,6 +45,11 @@ Manual installs needed for:
     tracikpy
     home_robot
 """
+# import a simple ROS grasp client for now
+from home_robot.ros.grasp_helper import GraspClient as RosGraspClient
+
+
+USE_POLYGRASP = False
 
 
 def init_robot(visualize=False):
@@ -149,10 +154,13 @@ def main(cfg):
     print("Connect to grasp candidate selection and pointcloud processor")
     segmentation_client = SegmentationClient()
     print("... segmentation connected")
-    grasp_client = GraspClient(
-        view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path)
-    )
-    print("... grasps connected")
+    if USE_POLYGRASP:
+        grasp_client = GraspClient(
+            view_json_path=hydra.utils.to_absolute_path(cfg.view_json_path)
+        )
+        print("... grasps connected")
+    else:
+        grasp_client = RosGraspClient()
     rgbd = np.concatenate([rgb, xyz], axis=-1)
     seg_only = False
     if not seg_only:
