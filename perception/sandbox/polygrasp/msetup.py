@@ -44,13 +44,13 @@ polygrasp_shared_env = mrp.Conda.SharedEnv(
     setup_commands=polygrasp_setup_commands,
 )
 
-mrp.process(
-    name="cam_pub",
-    runtime=mrp.Conda(
-        shared_env=polygrasp_shared_env,
-        run_command=["python", "-m", "polygrasp.cam_pub_sub"],
-    ),
-)
+#mrp.process(
+#    name="cam_pub",
+#    runtime=mrp.Conda(
+#        shared_env=polygrasp_shared_env,
+#        run_command=["python", "-m", "polygrasp.cam_pub_sub"],
+#    ),
+#)
 
 # mrp.process(
 #     name="gripper_server",
