@@ -245,19 +245,21 @@ def main(cfg):
 
     print("Get grasps...")
     if USE_POLYGRASP:
-        obj_i, filtered_grasp_group = grasp_client.get_obj_grasps(
+        obj_i, predicted_grasps = grasp_client.get_obj_grasps(
             obj_pcds, scene_pcd
         )
-    # print("Visualize...")
-    # grasp_client.visualize_grasp(obj_pcds[obj_i], filtered_grasp_group, n=len(filtered_grasp_group), render=False, save_view=False)
-    # print("...done.")
+        # print("Visualize...")
+        # grasp_client.visualize_grasp(obj_pcds[obj_i], predicted_grasps, n=len(predicted_grasps), render=False, save_view=False)
+        # print("...done.")
+        scores = [grasp.score for grasp in predicted_grasps]
+    else:
+        predicted_grasps = grasp_client.request(orig_xyz, orig_rgb, seg, frame=rgb_cam.get_frame())
 
     T_fix_camera = np.eye(4)
     T_fix_camera[:3, :3] = R_stretch_camera
     offset = np.eye(4)
-    scores = [grasp.score for grasp in filtered_grasp_group]
     grasps = []
-    for i, (score, grasp) in enumerate(zip(scores, filtered_grasp_group)):
+    for i, (score, grasp) in enumerate(zip(scores, predicted_grasps)):
         # import pdb; pdb.set_trace()
         if USE_POLYGRASP:
             pose = np.eye(4)
@@ -286,7 +288,7 @@ def main(cfg):
         theta = np.abs(np.arccos(dirn @ axis / (np.linalg.norm(dirn)))) / np.pi
         print(i, "score =", grasp.score, theta) #, "orientation =", angles)
         # Reject grasps that arent top down for now
-        if theta < 0.75: continue
+        # if theta < 0.75: continue
         grasps.append(pose)
 
         # pose = camera_pose @ pose @ T_fix_stetch_camera
