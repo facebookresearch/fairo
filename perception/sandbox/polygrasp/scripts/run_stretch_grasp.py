@@ -152,7 +152,7 @@ def main(cfg):
         hrimg.show_point_cloud(xyz2, rgb / 255., orig=np.zeros(3))
         # xyz = xyz.reshape(H, W, 3)
 
-    print("Connect to grasp candidate selection and pointcloud processor")
+    print("Connect to grasp candidate selection and pointcloud segmenter...")
     segmentation_client = SegmentationClient()
     print("... segmentation connected")
     if USE_POLYGRASP:
