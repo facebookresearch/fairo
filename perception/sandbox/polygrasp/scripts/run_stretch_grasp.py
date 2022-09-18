@@ -130,7 +130,7 @@ def main(cfg):
     H2 = xyz.shape[0]
 
     show_imgs = False
-    show_pcs = True
+    show_pcs = False
     show_masks = False
     show_grasps = True
     if show_imgs:
