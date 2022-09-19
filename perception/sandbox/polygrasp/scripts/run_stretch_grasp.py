@@ -82,6 +82,9 @@ def init_robot(visualize=False):
     q[HelloStretchIdx.LIFT] = 0.5
     model.update_gripper(q, open=True)
     rob.goto(q, move_base=False, wait=False, verbose=False)
+    # Sleep for a bit to make sure we have decent frames
+    rospy.sleep(2.)
+    # And now return robot info
     return rob, q
 
 
