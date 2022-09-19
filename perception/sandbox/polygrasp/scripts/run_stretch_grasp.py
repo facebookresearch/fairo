@@ -340,6 +340,7 @@ def main(cfg):
         standoff_pose = to_pos_quat(grasp @ offset)
         qi = model.static_ik(grasp_pose, q)
         if qi is not None:
+            print(qi)
             model.set_config(qi)
             input('-- full body --')
         q0 = np.pi / 2
@@ -358,29 +359,31 @@ def main(cfg):
                 model.set_config(q2)
                 print("theta 2 =", eq2)
                 # input('-- static - grasp --')
-                if np.abs(eq1) < 0.075 and np.abs(eq2) < 0.075:
-                    # go to the grasp and try it
-                    q[HelloStretchIdx.LIFT] = 1.0
-                    rob.goto(q, move_base=False, wait=True, verbose=False)
-                    input('--> go high')
-                    q_pre = q.copy()
-                    q_pre[5:] = q1[5:]
-                    q_pre = model.update_gripper(q_pre, open=True)
-                    rob.goto(q_pre, move_base=False, wait=False, verbose=False)
-                    input('--> gripper ready')
-                    q1 = model.update_gripper(q1, open=True)
-                    rob.goto(q1, move_base=False, wait=False, verbose=False)
-                    input('--> go standoff')
-                    q2 = model.update_gripper(q2, open=True)
-                    rob.goto(q2, move_base=False, wait=False, verbose=False)
-                    input('--> go grasp')
-                    q2 = model.update_gripper(q2, open=False)
-                    rob.goto(q2, move_base=False, wait=False, verbose=False)
-                    rospy.sleep(2.)
-                    q = model.update_gripper(q, open=False)
-                    rob.goto(q, move_base=False, wait=False, verbose=False)
-                    input('--> go high again')
-                    break
+                # if np.abs(eq1) < 0.075 and np.abs(eq2) < 0.075:
+                # go to the grasp and try it
+                q[HelloStretchIdx.LIFT] = 1.0
+                rob.goto_theta(eq1)
+                rob.goto(q, move_base=False, wait=True, verbose=False)
+                input('--> go high')
+                q_pre = q.copy()
+                q_pre[5:] = q1[5:]
+                q_pre = model.update_gripper(q_pre, open=True)
+                rob.goto(q_pre, move_base=False, wait=False, verbose=False)
+                input('--> gripper ready')
+                q1 = model.update_gripper(q1, open=True)
+                rob.goto(q1, move_base=False, wait=False, verbose=False)
+                input('--> go standoff')
+                rob.goto_theta(eq2)
+                q2 = model.update_gripper(q2, open=True)
+                rob.goto(q2, move_base=False, wait=False, verbose=False)
+                input('--> go grasp')
+                q2 = model.update_gripper(q2, open=False)
+                rob.goto(q2, move_base=False, wait=False, verbose=False)
+                rospy.sleep(2.)
+                q = model.update_gripper(q, open=False)
+                rob.goto(q, move_base=False, wait=False, verbose=False)
+                input('--> go high again')
+                break
         
 
 if __name__ == "__main__":
