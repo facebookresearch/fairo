@@ -1,4 +1,6 @@
-from re import S
+import cv2
+import numpy as np
+
 from .constants import coco_categories
 
 
@@ -36,7 +38,6 @@ class PickAndPlaceTask:
             max_steps=400,
             start_with_panorama=True,
         )
-
     
     def pick(self, object: str):
         """
@@ -57,6 +58,7 @@ class PickAndPlaceTask:
         flat_pcd = info["pcd"]
         flat_object_mask = info["semantic_frame"][:, category_id]
         image_object_mask = info["unfiltered_semantic_frame"][:, :, category_id]
+        semantic_frame = info["semantic_frame_vis"]
         obstacle_map = info["semantic_map"][0]
         object_map = info["semantic_map"][4 + category_id]
 
@@ -68,15 +70,19 @@ class PickAndPlaceTask:
         print("object_map.shape", object_map.shape)
         print()
 
+        cv2.imwrite("semantic_frame.png", semantic_frame)
+        cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
+        cv2.imwrite("obstacle_map.png", (obstacle_map * 255).astype(np.uint8))
+        cv2.imwrite("object_map.png", (object_map * 255).astype(np.uint8))
+
         print("Here is how to transform robot coordinates to map coordinates:")
 
-        curr_pose = self.bot.get_base_state()
         pose_of_last_map_update = info["pose"]
-        curr_pose_in_map_coordinates = self.slam.robot2map(curr_pose[:2])
+        pose_in_map_coordinates = self.slam.robot2map(
+            pose_of_last_map_update[:2])
 
-        print("curr_pose", curr_pose)
         print("pose_of_last_map_update", pose_of_last_map_update)
-        print("curr_pose_in_map_coordinates", curr_pose_in_map_coordinates)
+        print("curr_pose_in_map_coordinates", pose_in_map_coordinates)
         print()
 
     def place(self):
