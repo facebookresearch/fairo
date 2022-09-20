@@ -13,6 +13,9 @@ from tf.transformations import euler_from_quaternion
 import collections
 import numpy as np
 
+import rospy
+from geometry_msgs.msg import Twist
+
 
 class MoveNode(hm.HelloNode):
     def __init__(self):
@@ -33,6 +36,9 @@ class MoveNode(hm.HelloNode):
 
         self._vel_command_pub = rospy.Publisher("/stretch/cmd_vel", Twist, queue_size=1)
 
+        # ROS monitoring
+        self._pose_pub = rospy.Publisher("robot/slam_pose", Twist)
+
     def _joint_states_callback(self, joint_state):
         with self._lock:
             self._joint_state = joint_state
@@ -40,6 +46,13 @@ class MoveNode(hm.HelloNode):
     def _slam_pose_callback(self, pose):
         with self._lock:
             self._slam_pose = pose
+
+        xyt_pose = self.slam_pose_to_xyt_pose(pose)
+        msg = Twist()
+        msg.linear.x = xyt_pose[0]
+        msg.linear.y = xyt_pose[1]
+        msg.angular.z = xyt_pose[2]
+        self._pose_pub.publish(msg)
 
     def _scan_matched_pose_callback(self, pose):
         with self._lock:
@@ -52,6 +65,19 @@ class MoveNode(hm.HelloNode):
                 max(abs(pose.twist.twist.linear.x), abs(pose.twist.twist.linear.y))
             )
             self._angular_movement.append(abs(pose.twist.twist.angular.z))
+
+    @staticmethod
+    def slam_pose_to_xyt_pose(pose):
+        quat = np.array(
+            [
+                pose.pose.pose.orientation.x,
+                pose.pose.pose.orientation.y,
+                pose.pose.pose.orientation.z,
+                pose.pose.pose.orientation.w,
+            ]
+        )
+        euler = euler_from_quaternion(quat)
+        return (pose.pose.pose.position.x, pose.pose.pose.position.y, euler[2])
 
     def set_velocity(self, v_m, w_r):
         cmd = Twist()
@@ -70,16 +96,7 @@ class MoveNode(hm.HelloNode):
         with self._lock:
             pose = self._slam_pose
         if pose is not None:
-            quat = np.array(
-                [
-                    pose.pose.pose.orientation.x,
-                    pose.pose.pose.orientation.y,
-                    pose.pose.pose.orientation.z,
-                    pose.pose.pose.orientation.w,
-                ]
-            )
-            euler = euler_from_quaternion(quat)
-            return (pose.pose.pose.position.x, pose.pose.pose.position.y, euler[2])
+            return self.slam_pose_to_xyt_pose(pose)
         else:
             return (0.0, 0.0, 0.0)
 

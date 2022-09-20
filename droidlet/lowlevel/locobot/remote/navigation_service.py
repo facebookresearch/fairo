@@ -14,6 +14,8 @@ from rich import print
 from droidlet.lowlevel.pyro_utils import safe_call
 import skimage.morphology
 import cv2
+import rospy
+from geometry_msgs.msg import Twist
 
 from slam_pkg.utils import depth_util as du
 from visualization.ogn_vis import ObjectGoalNavigationVisualization
@@ -107,6 +109,12 @@ class Navigation(object):
         num_sem_categories = len(coco_categories)
         self.map_size, self.local_map_size = self.slam.get_map_sizes()
 
+        # ROS publishers for monitoring
+        self._loc_pub = rospy.Publisher("nav/robot_pose", Twist)
+        self._stg_pub = rospy.Publisher("nav/st_goal_pose", Twist)
+        self._goal_pub = rospy.Publisher("nav/goal_pose", Twist)
+        rospy.init_node("navigation_service")
+
         # Async navigator
         self.nav_status = NavigationStatus(False, False, None, threading.Event(), threading.Lock())
         self.goto_thr = threading.Thread(target=self._navigation_loop)
@@ -149,6 +157,14 @@ class Navigation(object):
         self._done_exploring = False
 
         self.vis = ObjectGoalNavigationVisualization()
+
+    @staticmethod
+    def pose_msg(x, y, theta):
+        msg = Twist()
+        msg.linear.x = x
+        msg.linear.y = y
+        msg.angular.z = theta
+        return msg
 
     def go_to_relative(self, goal, distance_threshold=None, angle_threshold=None):
         robot_loc = self.robot.get_base_state()
@@ -263,6 +279,10 @@ class Navigation(object):
             self.nav_status.goal_data = goal_data
             self.nav_status.goal_update.set()
 
+        # Log
+        if goal is not None:
+            self._goal_pub.publish(self.pose_msg(*goal))
+
     def _navigation_loop(self):
         self._stop = False
 
@@ -283,6 +303,8 @@ class Navigation(object):
                 self.nav_status.path_found = True
 
                 robot_loc = self.robot.get_base_state()
+                self._loc_pub.publish(self.pose_msg(*robot_loc))
+
                 stg = self.planner.get_short_term_goal(
                     robot_loc,
                     goal=goal,
@@ -298,6 +320,10 @@ class Navigation(object):
                     )
                     self.nav_status.path_found = False
                     break
+
+                # Log
+                if goal is not None:
+                    self._stg_pub.publish(self.pose_msg(*stg))
 
             # Execute plan
             # status, action = self.robot.go_to_absolute(stg)
