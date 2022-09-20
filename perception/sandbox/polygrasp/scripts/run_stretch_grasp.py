@@ -84,6 +84,7 @@ def init_robot(visualize=False):
     rob.goto(q, move_base=False, wait=False, verbose=False)
     # Sleep for a bit to make sure we have decent frames
     rospy.sleep(2.)
+    q, _ = rob.update()
     # And now return robot info
     return rob, q
 
@@ -95,7 +96,7 @@ def main(cfg):
     rospy.init_node('hello_stretch_ros_test')
 
     # Create the robot
-    visualize = False
+    visualize = True
     rob, q = init_robot(visualize=visualize)
     model = rob.get_model()  # get the planning model in case we need it
 
@@ -340,53 +341,49 @@ def main(cfg):
     offset[2, 3] = -0.1
 
     print("=========== grasps =============")
-    return
     print("find a grasp that doesnt move the base...")
+    # Main loop over solutions
     for grasp in grasps:
         grasp_pose = to_pos_quat(grasp)
         standoff_pose = to_pos_quat(grasp @ offset)
         qi = model.static_ik(grasp_pose, q)
+        print("grasp xyz =", grasp_pose[0])
         if qi is not None:
-            print(qi)
+            print("q0 =", q)
+            print("qi =", qi)
+            print("theta =", qi[2])
             model.set_config(qi)
-            input('-- full body --')
-        q0 = np.pi / 2
+        # Record the initial q value here and use it 
+        theta0 = q[2]
         q1 = model.static_ik(standoff_pose, q)
         if q1 is not None:
+            print("found standoff")
             q2 = model.static_ik(grasp_pose, q1)
             if q2 is not None:
-                q1[HelloStretchIdx.ARM] -= 0.04
-                q2[HelloStretchIdx.ARM] -= 0.04
-                model.set_config(q1)
-                # TODO - what is wrong with base corrections
-                eq1 = q1[HelloStretchIdx.BASE_THETA] - q0
-                eq2 = q2[HelloStretchIdx.BASE_THETA] - q0 # q[HelloStretchIdx.BASE_THETA]
-                print("theta 1 =", eq1)
-                # input('-- static - standoff --')
-                model.set_config(q2)
-                print("theta 2 =", eq2)
-                # input('-- static - grasp --')
+                # model.set_config(q1)
+                # model.set_config(q2)
                 # if np.abs(eq1) < 0.075 and np.abs(eq2) < 0.075:
                 # go to the grasp and try it
                 q[HelloStretchIdx.LIFT] = 1.0
-                rob.goto_theta(eq1)
                 rob.goto(q, move_base=False, wait=True, verbose=False)
                 input('--> go high')
                 q_pre = q.copy()
                 q_pre[5:] = q1[5:]
                 q_pre = model.update_gripper(q_pre, open=True)
+                rob.move_base(theta=q1[2])
                 rob.goto(q_pre, move_base=False, wait=False, verbose=False)
                 input('--> gripper ready')
                 q1 = model.update_gripper(q1, open=True)
                 rob.goto(q1, move_base=False, wait=False, verbose=False)
                 input('--> go standoff')
-                rob.goto_theta(eq2)
+                rob.move_base(theta=q2[2])
                 q2 = model.update_gripper(q2, open=True)
                 rob.goto(q2, move_base=False, wait=False, verbose=False)
                 input('--> go grasp')
                 q2 = model.update_gripper(q2, open=False)
                 rob.goto(q2, move_base=False, wait=False, verbose=False)
                 rospy.sleep(2.)
+                rob.move_base(theta=q[0])
                 q = model.update_gripper(q, open=False)
                 rob.goto(q, move_base=False, wait=False, verbose=False)
                 input('--> go high again')
