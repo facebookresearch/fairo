@@ -43,6 +43,7 @@ from droidlet.interpreter.robot import (
 from droidlet.dialog.robot import LocoBotCapabilities
 from droidlet.event import sio
 from agents.locobot.end_to_end_semantic_scout import EndToEndSemanticScout
+from agents.locobot.pick_and_place.pick_and_place_task import PickAndPlaceTask
 
 faulthandler.register(signal.SIGUSR1)
 
@@ -154,7 +155,7 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             mover.move_absolute(xyyaw_f, blocking=False)
             sync()
 
-        # Commands we introduce
+        # Navigation commands we introduce
         elif command == "SEARCH_OBJECT_MODULAR_LEARNED":
             if "_" in value.strip():
                 object_goal, episode_id = [x.strip() for x in value.split("_")]
@@ -202,6 +203,18 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             while not scout.finished:
                 scout.step(mover)
                 end_to_end_vis = scout.semantic_frame
+
+        # Pick and place commands we introduce
+        elif command == "PICK_AND_PLACE":
+            start_receptacle, object, end_receptacle = [x.strip() for x in value.split("_")]
+            print(f"action: PICK_AND_PLACE {object} from {start_receptacle} to {end_receptacle}")
+            task = PickAndPlaceTask(mover)
+            task.pick_and_place(start_receptacle, object, end_receptacle)
+        elif command == "PICK":
+            object = value.strip()
+            print("action: PICK", object)
+            task = PickAndPlaceTask(mover)
+            task.pick(object)
 
         elif command == "LOOK_AT":
             xyz = value.split(',')
