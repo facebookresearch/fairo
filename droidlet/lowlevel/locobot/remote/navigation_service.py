@@ -23,6 +23,9 @@ from policy.goal_policy import GoalPolicy
 from policy.active_learning_policy import ActiveLearningPolicy
 from segmentation.constants import coco_categories
 
+from geometry_msgs.msg import Pose
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
+
 random.seed(0)
 torch.manual_seed(0)
 np.random.seed(0)
@@ -40,6 +43,20 @@ def draw_line(start, end, mat, steps=25, w=1):
         c = int(np.rint(start[1] + (end[1] - start[1]) * i / steps))
         mat[r - w : r + w, c - w : c + w] = 1
     return mat
+
+
+def xyt2pose(xyt):
+    quat = quaternion_from_euler(0.0, 0.0, xyt[2])
+
+    pose = Pose()
+    pose.position.x = xyt[0]
+    pose.position.y = xyt[1]
+    pose.orientation.x = quat[0]
+    pose.orientation.y = quat[1]
+    pose.orientation.z = quat[2]
+    pose.orientation.w = quat[3]
+
+    return pose
 
 
 class Trackback(object):
@@ -110,9 +127,9 @@ class Navigation(object):
         self.map_size, self.local_map_size = self.slam.get_map_sizes()
 
         # ROS publishers for monitoring
-        self._loc_pub = rospy.Publisher("nav/robot_pose", Twist)
-        self._stg_pub = rospy.Publisher("nav/st_goal_pose", Twist)
-        self._goal_pub = rospy.Publisher("nav/goal_pose", Twist)
+        self._loc_pub = rospy.Publisher("nav/robot_pose", Pose, queue_size=1)
+        self._stg_pub = rospy.Publisher("nav/st_goal_pose", Pose, queue_size=1)
+        self._goal_pub = rospy.Publisher("nav/goal_pose", Pose, queue_size=1)
         rospy.init_node("navigation_service")
 
         # Async navigator
@@ -157,14 +174,6 @@ class Navigation(object):
         self._done_exploring = False
 
         self.vis = ObjectGoalNavigationVisualization()
-
-    @staticmethod
-    def pose_msg(x, y, theta):
-        msg = Twist()
-        msg.linear.x = x
-        msg.linear.y = y
-        msg.angular.z = theta
-        return msg
 
     def go_to_relative(self, goal, distance_threshold=None, angle_threshold=None):
         robot_loc = self.robot.get_base_state()
@@ -281,7 +290,7 @@ class Navigation(object):
 
         # Log
         if goal is not None:
-            self._goal_pub.publish(self.pose_msg(*goal))
+            self._goal_pub.publish(xyt2pose(goal))
 
     def _navigation_loop(self):
         self._stop = False
@@ -303,7 +312,7 @@ class Navigation(object):
                 self.nav_status.path_found = True
 
                 robot_loc = self.robot.get_base_state()
-                self._loc_pub.publish(self.pose_msg(*robot_loc))
+                self._loc_pub.publish(xyt2pose(robot_loc))
 
                 stg = self.planner.get_short_term_goal(
                     robot_loc,
@@ -323,7 +332,7 @@ class Navigation(object):
 
                 # Log
                 if goal is not None:
-                    self._stg_pub.publish(self.pose_msg(*stg))
+                    self._stg_pub.publish(xyt2pose(stg))
 
             # Execute plan
             # status, action = self.robot.go_to_absolute(stg)
