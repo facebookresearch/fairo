@@ -256,7 +256,10 @@ def main(cfg):
         # print("...done.")
         scores = [grasp.score for grasp in predicted_grasps]
     else:
+        print("unique =", np.unique(seg))
         predicted_grasps = grasp_client.request(orig_xyz, orig_rgb, seg, frame=rgb_cam.get_frame())
+        print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
+        predicted_grasps, scores = predicted_grasps[0]
 
     T_fix_camera = np.eye(4)
     T_fix_camera[:3, :3] = R_stretch_camera
@@ -268,8 +271,10 @@ def main(cfg):
             pose = np.eye(4)
             pose[:3, :3] = grasp.rotation_matrix
             pose[:3, 3] = grasp.translation
+            pose = camera_pose @ T_fix_camera @ pose
         else:
             pose = grasp
+            pose = camera_pose @ pose
         if score < min_grasp_score:
             continue
 
@@ -282,14 +287,13 @@ def main(cfg):
         #    continue
 
         # Get angles in world frame
-        pose = camera_pose @ T_fix_camera @ pose
         # angles = tra.euler_from_matrix(pose)
         # z direction for grasping
         dirn = pose[:3, 2]
         axis = np.array([0, 0, 1])
         # angle between these two is...
         theta = np.abs(np.arccos(dirn @ axis / (np.linalg.norm(dirn)))) / np.pi
-        print(i, "score =", grasp.score, theta) #, "orientation =", angles)
+        print(i, "score =", score, theta) #, "orientation =", angles)
         # Reject grasps that arent top down for now
         # if theta < 0.75: continue
         grasps.append(pose)
