@@ -90,7 +90,7 @@ class GoalParams:
 class NavigationStatus:
     path_found: bool
     goal_reached: bool
-    goal: Optional[GoalParams]
+    goal_data: Optional[GoalParams]
     goal_update: threading.Event
     goal_lock: threading.Lock
 
@@ -108,7 +108,7 @@ class Navigation(object):
 
         # Async navigator
         self.nav_status = NavigationStatus(False, False, None, threading.Event(), threading.Lock())
-        self.goto_thr = threading.Thread(target=self._navigate_to_absolute)
+        self.goto_thr = threading.Thread(target=self._navigation_loop)
         self.goto_thr.start()
 
         # ObjectNav policy
@@ -122,7 +122,6 @@ class Navigation(object):
         self.goal_policy.load_state_dict(state_dict, strict=False)
 
         self._busy = False
-        self._stop = True
         self._done_exploring = False
 
         self.vis = ObjectGoalNavigationVisualization()
@@ -237,7 +236,7 @@ class Navigation(object):
 
         # Reset params
         with self.nav_status.goal_lock:
-            self.nav_status.goal = goal_data
+            self.nav_status.goal_data = goal_data
             self.nav_status.goal_update.set()
 
     def _navigation_loop(self):
@@ -250,11 +249,11 @@ class Navigation(object):
 
             with self.nav_status.goal_lock:
                 # Load goal data
-                goal = self.goal_data.goal
-                goal_map = self.goal_data.goal_map
-                distance_threshold = self.goal_data.distance_threshold
-                angle_threshold = self.goal_data.angle_threshold
-                visualize = self.goal_data.visualize
+                goal = self.nav_status.goal_data.goal
+                goal_map = self.nav_status.goal_data.goal_map
+                distance_threshold = self.nav_status.goal_data.distance_threshold
+                angle_threshold = self.nav_status.goal_data.angle_threshold
+                visualize = self.nav_status.goal_data.visualize
 
                 # Plan
                 self.nav_status.path_found = True
@@ -339,8 +338,6 @@ class Navigation(object):
                     print("Could not find a track back location. Staying in place")
 
                 # TODO: if the trackback fails, we're screwed. Handle this robustly.
-
-            steps = steps - 1
 
             if visualize:
                 self.vis.set_action_and_collision(
@@ -634,7 +631,6 @@ class Navigation(object):
         self._stop = True
         if self.goto_thr is not None:
             self.goto_thr.join()
-            self.goto_thr = None
 
 
 robot_ip = os.getenv("LOCOBOT_IP")
