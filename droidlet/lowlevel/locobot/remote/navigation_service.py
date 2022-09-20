@@ -93,6 +93,7 @@ class NavigationStatus:
     goal_reached: bool
     goal: Optional[GoalParams]
     goal_update: threading.Event
+    goal_lock: threading.Lock
 
 
 @Pyro4.expose
@@ -107,7 +108,7 @@ class Navigation(object):
         self.map_size, self.local_map_size = self.slam.get_map_sizes()
 
         # Async navigator
-        self.nav_status = NavigationStatus(False, False, None, threading.Event())
+        self.nav_status = NavigationStatus(False, False, None, threading.Event(), threading.Lock())
         self.goto_thr = threading.Thread(target=self._navigate_to_absolute)
         self.goto_thr.start()
 
@@ -259,8 +260,9 @@ class Navigation(object):
         )
 
         # Reset params
-        self.nav_status.goal = goal_data
-        self.nav_status.goal_update.set()
+        with self.nav_status.goal_lock:
+            self.nav_status.goal = goal_data
+            self.nav_status.goal_update.set()
 
     def _navigation_loop(self):
         self._stop = False
@@ -270,33 +272,35 @@ class Navigation(object):
                 self.nav_status.goal_update.clear()
                 self.nav_status.goal_update.wait()
 
-            # Load goal data
-            goal = self.goal_data.goal
-            goal_map = self.goal_data.goal_map
-            distance_threshold = self.goal_data.distance_threshold
-            angle_threshold = self.goal_data.angle_threshold
-            visualize = self.goal_data.visualize
+            with self.nav_status.goal_lock:
+                # Load goal data
+                goal = self.goal_data.goal
+                goal_map = self.goal_data.goal_map
+                distance_threshold = self.goal_data.distance_threshold
+                angle_threshold = self.goal_data.angle_threshold
+                visualize = self.goal_data.visualize
 
-            # Plan & execute
-            self.nav_status.path_found = True
+                # Plan
+                self.nav_status.path_found = True
 
-            robot_loc = self.robot.get_base_state()
-            stg = self.planner.get_short_term_goal(
-                robot_loc,
-                goal=goal,
-                goal_map=goal_map,
-                vis_path=f"{self.vis.path}/planner/step{self.vis.snapshot_idx}.png",
-            )
-            if stg == False:
-                # no path to end-goal
-                print(
-                    "Could not find a path to the end goal {} from current robot location {}, aborting move".format(
-                        goal, robot_loc
-                    )
+                robot_loc = self.robot.get_base_state()
+                stg = self.planner.get_short_term_goal(
+                    robot_loc,
+                    goal=goal,
+                    goal_map=goal_map,
+                    vis_path=f"{self.vis.path}/planner/step{self.vis.snapshot_idx}.png",
                 )
-                self.nav_status.path_found = False
-                break
-            robot_loc = self.robot.get_base_state()
+                if stg == False:
+                    # no path to end-goal
+                    print(
+                        "Could not find a path to the end goal {} from current robot location {}, aborting move".format(
+                            goal, robot_loc
+                        )
+                    )
+                    self.nav_status.path_found = False
+                    break
+
+            # Execute plan
             # status, action = self.robot.go_to_absolute(stg)
             self.robot.set_goal(stg, absolute=True)
             status = "SUCCEEDED"
