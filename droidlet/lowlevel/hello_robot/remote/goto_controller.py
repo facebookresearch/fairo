@@ -7,10 +7,10 @@ import rospy
 
 from utils import transform_global_to_base, transform_base_to_global
 
-V_MAX_DEFAULT = 0.15  # base.params["motion"]["default"]["vel_m"]
+V_MAX_DEFAULT = 0.2  # base.params["motion"]["default"]["vel_m"]
 W_MAX_DEFAULT = 0.45  # (vel_m_max - vel_m_default) / wheel_separation_m
 ACC_LIN = 1.6  # 4 * (base.params["motion"]["max"]["accel_m"])
-ACC_ANG = 9.6  # 4 * (2 * (accel_m_max - accel_m_max) / wheel_separation_m)
+ACC_ANG = 4.8  # 2 * (2 * (accel_m_max - accel_m_max) / wheel_separation_m)
 
 
 class GotoVelocityController:
@@ -20,7 +20,7 @@ class GotoVelocityController:
         hz: float,
         v_max: Optional[float] = None,
         w_max: Optional[float] = None,
-        use_odom: bool = True,
+        use_odom: bool = False,
     ):
         self.robot = robot
         self.hz = hz
@@ -129,7 +129,7 @@ class GotoVelocityController:
 
                 # Compute angular velocity
                 k_t_ang = self._error_velocity_multiplier(
-                    heading_err_abs, ACC_ANG, tol=self.ang_error_tol, use_acc=self.use_odom
+                    heading_err_abs, ACC_ANG, tol=self.ang_error_tol / 2.0, use_acc=self.use_odom
                 )
                 w_cmd = np.sign(heading_err) * k_t_ang * self.w_max
 
