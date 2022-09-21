@@ -11,6 +11,7 @@ import os
 # Robot planning tools
 from home_robot.hardware.stretch_ros import HelloStretchROSInterface
 from home_robot.motion.robot import STRETCH_HOME_Q, HelloStretchIdx
+from home_robot.motion.robot import STRETCH_STANDOFF_DISTANCE
 from home_robot.ros.path import get_package_path
 from home_robot.ros.camera import RosCamera
 from home_robot.utils.pose import to_pos_quat
@@ -332,7 +333,7 @@ def main(cfg):
         o3d.visualization.draw_geometries(geoms)
 
     grasp_offset = np.eye(4)
-    grasp_offset[2, 3] = -0.28
+    grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.11
     for i, grasp in enumerate(grasps):
         grasps[i] = grasp @ grasp_offset
 
@@ -353,9 +354,11 @@ def main(cfg):
             print("qi =", qi)
             print("theta =", qi[2])
             model.set_config(qi)
+        else:
+            continue
         # Record the initial q value here and use it 
         theta0 = q[2]
-        q1 = model.static_ik(standoff_pose, q)
+        q1 = model.static_ik(standoff_pose, qi)
         if q1 is not None:
             print("found standoff")
             q2 = model.static_ik(grasp_pose, q1)
