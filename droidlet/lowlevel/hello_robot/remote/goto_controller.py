@@ -7,6 +7,8 @@ import rospy
 
 V_MAX_DEFAULT = 0.15  # base.params["motion"]["default"]["vel_m"]
 W_MAX_DEFAULT = 0.45  # (vel_m_max - vel_m_default) / wheel_separation_m
+ACC_LIN = 1.6  # 4 * (base.params["motion"]["max"]["accel_m"])
+ACC_ANG = 9.6  # 4 * (2 * (accel_m_max - accel_m_max) / wheel_separation_m)
 
 
 class GotoVelocityController:
@@ -24,8 +26,8 @@ class GotoVelocityController:
         # Params
         self.v_max = v_max or V_MAX_DEFAULT
         self.w_max = w_max or W_MAX_DEFAULT
-        self.lin_error_tol = self.v_max / hz
-        self.ang_error_tol = self.w_max / hz
+        self.lin_error_tol = 2 * self.v_max / hz
+        self.ang_error_tol = 2 * self.w_max / hz
 
         # Initialize
         self.loop_thr = None
@@ -37,7 +39,7 @@ class GotoVelocityController:
         self.track_yaw = True
 
     @staticmethod
-    def _error_velocity_multiplier(x_err, tol=0.0):
+    def _error_velocity_multiplier(x_err, a, tol=0.0):
         """
         Computes velocity multiplier based on distance from target.
         Used for both linear and angular motion.
@@ -46,7 +48,8 @@ class GotoVelocityController:
         Output = 1 if linear error is larger than the tolerance, 0 otherwise.
         """
         assert x_err >= 0.0
-        return float(x_err - tol > 0)
+        t = np.sqrt(2.0 * max(x_err - tol, 0.0) / a)  # x_err = (1/2) * a * t^2
+        return min(a * t, 1.0)
 
     @staticmethod
     def _projection_velocity_multiplier(theta_err, tol=0.0):
@@ -129,19 +132,23 @@ class GotoVelocityController:
                 heading_err_abs = abs(heading_err)
 
                 # Compute linear velocity
-                k_t = self._error_velocity_multiplier(lin_err_abs, tol=self.lin_error_tol)
+                k_t = self._error_velocity_multiplier(lin_err_abs, ACC_LIN, tol=self.lin_error_tol)
                 k_p = self._projection_velocity_multiplier(heading_err_abs, tol=self.ang_error_tol)
                 v_limit = self._turn_rate_limit(self.w_max, lin_err_abs, heading_err_abs)
                 v_cmd = min(k_t * k_p * self.v_max, v_limit)
 
                 # Compute angular velocity
-                k_t_ang = self._error_velocity_multiplier(heading_err_abs, tol=self.ang_error_tol)
+                k_t_ang = self._error_velocity_multiplier(
+                    heading_err_abs, ACC_ANG, tol=self.ang_error_tol
+                )
                 w_cmd = np.sign(heading_err) * k_t_ang * self.w_max
 
             # Rotate to correct yaw if yaw tracking is on and XY position is at goal
             elif ang_err_abs > self.ang_error_tol:
                 # Compute angular velocity
-                k_t_ang = self._error_velocity_multiplier(ang_err_abs, tol=self.ang_error_tol)
+                k_t_ang = self._error_velocity_multiplier(
+                    ang_err_abs, ACC_ANG, tol=self.ang_error_tol
+                )
                 w_cmd = np.sign(ang_err) * k_t_ang * self.w_max
 
             # Command robot
