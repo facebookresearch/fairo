@@ -32,6 +32,7 @@ class GotoVelocityController:
         self.control_lock = threading.Lock()
         self.active = False
 
+        self.xyt_odom = self.robot.get_odom()
         self.xyt_err = np.zeros(3)
         self.track_yaw = True
 
@@ -71,6 +72,7 @@ class GotoVelocityController:
     def _integrate_state(self, v, w):
         """
         Predict error in the next timestep with current commanded velocity
+        Deprecated in favor of _update_error_state.
         """
         dx = v * self.dt
         dtheta = w * self.dt
@@ -83,6 +85,33 @@ class GotoVelocityController:
         self.xyt_err[0] = ct * x_err_f0 - st * y_err_f0
         self.xyt_err[1] = st * x_err_f0 + ct * y_err_f0
         self.xyt_err[2] = self.xyt_err[2] - dtheta if self.track_yaw else 0.0
+
+    def _update_error_state(self):
+        """
+        Updates error based on odometry feedback (has drift but very low noise signal)
+        """
+        xyt_odom_new = self.robot.get_odom()
+
+        # Update error
+        ct0 = np.cos(self.xyt_odom[2])
+        st0 = np.sin(self.xyt_odom[2])
+        ct1 = np.cos(xyt_odom_new[2])
+        st1 = np.sin(xyt_odom_new[2])
+
+        xyt_goal_global = np.array(
+            [
+                self.xyt_odom[0] + ct0 * self.xyt_err[0] - st0 * self.xyt_err[1],
+                self.xyt_odom[1] + st0 * self.xyt_err[0] + ct0 * self.xyt_err[1],
+                self.xyt_odom[2] + self.xyt_err[2],
+            ]
+        )
+        dxyt_global = xyt_goal_global - xyt_odom_new
+        self.xyt_err[0] = ct1 * dxyt_global[0] + st1 * dxyt_global[1]
+        self.xyt_err[1] = -st1 * dxyt_global[0] + ct1 * dxyt_global[1]
+        self.xyt_err[2] = dxyt_global[2]
+
+        # Update odom state
+        self.xyt_odom = xyt_odom_new
 
     def _run(self):
         rate = rospy.Rate(self.hz)
@@ -120,7 +149,7 @@ class GotoVelocityController:
                 self.robot.set_velocity(v_cmd, w_cmd)
 
             # Update odometry prediction
-            self._integrate_state(v_cmd, w_cmd)
+            self._update_error_state()
 
             # Spin
             rate.sleep()
