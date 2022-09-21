@@ -18,10 +18,12 @@ class GotoVelocityController:
         hz: float,
         v_max: Optional[float] = None,
         w_max: Optional[float] = None,
+        use_odom: bool = True,
     ):
         self.robot = robot
         self.hz = hz
         self.dt = 1.0 / self.hz
+        self.use_odom = use_odom
 
         # Params
         self.v_max = v_max or V_MAX_DEFAULT
@@ -39,7 +41,7 @@ class GotoVelocityController:
         self.track_yaw = True
 
     @staticmethod
-    def _error_velocity_multiplier(x_err, a, tol=0.0):
+    def _error_velocity_multiplier(x_err, a, tol=0.0, use_acc=True):
         """
         Computes velocity multiplier based on distance from target.
         Used for both linear and angular motion.
@@ -48,8 +50,11 @@ class GotoVelocityController:
         Output = 1 if linear error is larger than the tolerance, 0 otherwise.
         """
         assert x_err >= 0.0
-        t = np.sqrt(2.0 * max(x_err - tol, 0.0) / a)  # x_err = (1/2) * a * t^2
-        return min(a * t, 1.0)
+        if use_acc:
+            t = np.sqrt(2.0 * max(x_err - tol, 0.0) / a)  # x_err = (1/2) * a * t^2
+            return min(a * t, 1.0)
+        else:
+            return float(x_err > tol)
 
     @staticmethod
     def _projection_velocity_multiplier(theta_err, tol=0.0):
@@ -132,14 +137,16 @@ class GotoVelocityController:
                 heading_err_abs = abs(heading_err)
 
                 # Compute linear velocity
-                k_t = self._error_velocity_multiplier(lin_err_abs, ACC_LIN, tol=self.lin_error_tol)
+                k_t = self._error_velocity_multiplier(
+                    lin_err_abs, ACC_LIN, tol=self.lin_error_tol, use_acc=self.use_odom
+                )
                 k_p = self._projection_velocity_multiplier(heading_err_abs, tol=self.ang_error_tol)
                 v_limit = self._turn_rate_limit(self.w_max, lin_err_abs, heading_err_abs)
                 v_cmd = min(k_t * k_p * self.v_max, v_limit)
 
                 # Compute angular velocity
                 k_t_ang = self._error_velocity_multiplier(
-                    heading_err_abs, ACC_ANG, tol=self.ang_error_tol
+                    heading_err_abs, ACC_ANG, tol=self.ang_error_tol, use_acc=self.use_odom
                 )
                 w_cmd = np.sign(heading_err) * k_t_ang * self.w_max
 
@@ -147,7 +154,7 @@ class GotoVelocityController:
             elif ang_err_abs > self.ang_error_tol:
                 # Compute angular velocity
                 k_t_ang = self._error_velocity_multiplier(
-                    ang_err_abs, ACC_ANG, tol=self.ang_error_tol
+                    ang_err_abs, ACC_ANG, tol=self.ang_error_tol, use_acc=self.use_odom
                 )
                 w_cmd = np.sign(ang_err) * k_t_ang * self.w_max
 
@@ -155,8 +162,11 @@ class GotoVelocityController:
             with self.control_lock:
                 self.robot.set_velocity(v_cmd, w_cmd)
 
-            # Update odometry prediction
-            self._update_error_state()
+            # Update error
+            if self.use_odom:
+                self._update_error_state()
+            else:
+                self._integrate_state(v_cmd, w_cmd)
 
             # Spin
             rate.sleep()
