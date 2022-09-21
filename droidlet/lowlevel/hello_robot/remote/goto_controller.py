@@ -5,6 +5,8 @@ import threading
 import numpy as np
 import rospy
 
+from utils import transform_global_to_base, transform_base_to_global
+
 V_MAX_DEFAULT = 0.15  # base.params["motion"]["default"]["vel_m"]
 W_MAX_DEFAULT = 0.45  # (vel_m_max - vel_m_default) / wheel_separation_m
 ACC_LIN = 1.6  # 4 * (base.params["motion"]["max"]["accel_m"])
@@ -85,14 +87,9 @@ class GotoVelocityController:
         dx = v * self.dt
         dtheta = w * self.dt
 
-        x_err_f0 = self.xyt_err[0] - dx * np.cos(dtheta / 2.0)
-        y_err_f0 = self.xyt_err[1] - dx * np.sin(dtheta / 2.0)
-        ct = np.cos(-dtheta)
-        st = np.sin(-dtheta)
-
-        self.xyt_err[0] = ct * x_err_f0 - st * y_err_f0
-        self.xyt_err[1] = st * x_err_f0 + ct * y_err_f0
-        self.xyt_err[2] = self.xyt_err[2] - dtheta if self.track_yaw else 0.0
+        xyt_goal_global = transform_base_to_global(self.xyt_err, np.zeros(3))
+        xyt_new = np.array([dx * np.cos(dtheta / 2.0), dx * np.sin(dtheta / 2.0), dtheta])
+        self.xyt_err = transform_global_to_base(xyt_goal_global, xyt_new)
 
     def _update_error_state(self):
         """
@@ -101,22 +98,8 @@ class GotoVelocityController:
         xyt_odom_new = self.robot.get_odom()
 
         # Update error
-        ct0 = np.cos(self.xyt_odom[2])
-        st0 = np.sin(self.xyt_odom[2])
-        ct1 = np.cos(xyt_odom_new[2])
-        st1 = np.sin(xyt_odom_new[2])
-
-        xyt_goal_global = np.array(
-            [
-                self.xyt_odom[0] + ct0 * self.xyt_err[0] - st0 * self.xyt_err[1],
-                self.xyt_odom[1] + st0 * self.xyt_err[0] + ct0 * self.xyt_err[1],
-                self.xyt_odom[2] + self.xyt_err[2],
-            ]
-        )
-        dxyt_global = xyt_goal_global - xyt_odom_new
-        self.xyt_err[0] = ct1 * dxyt_global[0] + st1 * dxyt_global[1]
-        self.xyt_err[1] = -st1 * dxyt_global[0] + ct1 * dxyt_global[1]
-        self.xyt_err[2] = dxyt_global[2]
+        xyt_goal_global = transform_base_to_global(self.xyt_err, self.xyt_odom)
+        self.xyt_err = transform_global_to_base(xyt_goal_global, xyt_odom_new)
 
         # Update odom state
         self.xyt_odom = xyt_odom_new
