@@ -58,18 +58,8 @@ def init_robot(visualize=False):
     print("Create ROS interface")
     rob = HelloStretchROSInterface(visualize_planner=visualize,
                                    root=get_package_path())
-    print("Wait...")
-    rospy.sleep(0.5)  # Make sure we have time to get ROS messages
-    for i in range(1):
-        q = rob.update()
-        print(rob.get_base_pose())
-    print("--------------")
-    print("We have updated the robot state. Now test goto.")
-
-    home_q = STRETCH_HOME_Q
+    home_q = STRETCH_HOME_Q.copy()
     model = rob.get_model()
-    # q = model.update_look_front(home_q.copy())
-    # rob.goto(q, move_base=False, wait=True)
 
     # Robot - look at the object because we are switching to grasping mode
     # Send robot to home_q + wait
@@ -77,12 +67,10 @@ def init_robot(visualize=False):
     # rob.goto(q, move_base=False, wait=True)
     # rob.look('tool')
     # Send it to lift pose + wait
-    #q, _ = rob.update()
     q[HelloStretchIdx.ARM] = 0.06
-    #q[HelloStretchIdx.LIFT] = 0.35
     q[HelloStretchIdx.LIFT] = 0.5
     model.update_gripper(q, open=True)
-    rob.goto(q, move_base=False, wait=True, verbose=False)
+    rob.goto(q, move_base=False, wait=True, verbose=True)
     # Sleep for a bit to make sure we have decent frames
     rospy.sleep(1.)
     q, _ = rob.update()
@@ -100,6 +88,45 @@ def main(cfg):
     visualize = True
     rob, q = init_robot(visualize=visualize)
     model = rob.get_model()  # get the planning model in case we need it
+
+    q0 = [-1.91967010e-01, -3.07846069e-02, -6.65076590e-01,  5.00007841e-01,
+      5.99901370e-02,  2.19929959e-01, -1.53398079e-03, -1.07378655e-02,
+      2.99957160e+00, -1.56995219e+00, -7.77738162e-01,]
+    qi = [-0.19196701, -0.03078461,  0.46193263,  0.98585885,  0.3996423,   0.,
+      3.06063741, -1.04642321,  2.79234818, -1.56995219, -0.77773816]
+    q1 = [-0.19196701, -0.03078461,  0.46520073,  1.08587644,  0.40002357,
+        0.22      ,  3.06065091, -1.04632433,  2.78908827, -1.56995219,
+       -0.77773816]
+    q2 = [-0.19196701, -0.03078461,  0.46193488,  0.8858587 ,  0.39964303,
+        0.22      ,  3.060602  , -1.04641236,  2.7923105 , -1.56995219,
+       -0.77773816]
+
+    q1[HelloStretchIdx.ARM] = 0.2
+    q2[HelloStretchIdx.ARM] = 0.2
+
+    print("TEST SEQUENCE")
+    print(q0 - STRETCH_HOME_Q)
+    rob.goto(q0, wait=True)
+    # rob.goto(qi, wait=True)
+    rob.goto(q1, wait=True, verbose=True)
+    input('---')
+    rob.goto(q2, wait=True, verbose=True)
+    input('---')
+    print()
+    print("==========")
+    print(q1[HelloStretchIdx.WRIST_ROLL:HelloStretchIdx.WRIST_YAW+1])
+    print("==========")
+    # q1[HelloStretchIdx.WRIST_ROLL:HelloStretchIdx.WRIST_YAW+1] = np.zeros(3)
+    for i in range(10):
+        rob.goto(q1, wait=False, verbose=False)
+        rospy.sleep(1.0)
+        ex, _ = rob.update()
+        print(i, ex[HelloStretchIdx.WRIST_ROLL:HelloStretchIdx.WRIST_YAW+1])
+        #rob.goto(q2, wait=False, verbose=True)
+        #rospy.sleep(1.0)
+    #rob.goto(q1, wait=True, verbose=True)
+
+    return
 
     # Get a couple camera listeners
     rgb_cam = rob.rgb_cam
@@ -338,15 +365,18 @@ def main(cfg):
         grasps[i] = grasp @ grasp_offset
 
     # Now execute planning
-    offset = np.eye(4)
-    offset[2, 3] = -0.1
+    # offset = np.eye(4)
+    # offset[2, 3] = -0.1
 
     print("=========== grasps =============")
     print("find a grasp that doesnt move the base...")
     # Main loop over solutions
     for grasp in grasps:
         grasp_pose = to_pos_quat(grasp)
-        standoff_pose = to_pos_quat(grasp @ offset)
+        # standoff_pose = to_pos_quat(grasp @ offset)
+        standoff_pose = grasp.copy()
+        standoff_pose[2, 3] += 0.1
+        standoff_pose = to_pos_quat(standoff_pose)
         qi = model.static_ik(grasp_pose, q)
         print("grasp xyz =", grasp_pose[0])
         if qi is not None:
@@ -363,8 +393,6 @@ def main(cfg):
             print("found standoff")
             q2 = model.static_ik(grasp_pose, q1)
             if q2 is not None:
-                # model.set_config(q1)
-                # model.set_config(q2)
                 # if np.abs(eq1) < 0.075 and np.abs(eq2) < 0.075:
                 # go to the grasp and try it
                 q[HelloStretchIdx.LIFT] = 1.0
@@ -375,20 +403,25 @@ def main(cfg):
                 q_pre = model.update_gripper(q_pre, open=True)
                 rob.move_base(theta=q1[2])
                 rob.goto(q_pre, move_base=False, wait=False, verbose=False)
-                input('--> gripper ready')
+                model.set_config(q1)
+                input('--> gripper ready; go to standoff')
                 q1 = model.update_gripper(q1, open=True)
-                rob.goto(q1, move_base=False, wait=False, verbose=False)
-                input('--> go standoff')
+                rob.goto(q1, move_base=False, wait=True, verbose=False)
+                model.set_config(q2)
+                input('--> go to grasp')
                 rob.move_base(theta=q2[2])
+                q2[HelloStretchIdx.LIFT] -= 0.1
+                model.set_config(q2)
                 q2 = model.update_gripper(q2, open=True)
-                rob.goto(q2, move_base=False, wait=False, verbose=False)
-                input('--> go grasp')
+                rob.goto(q1, move_base=False, wait=True, verbose=True)
+                breakpoint()
+                input('--> close the gripper')
                 q2 = model.update_gripper(q2, open=False)
-                rob.goto(q2, move_base=False, wait=False, verbose=False)
+                rob.goto(q2, move_base=False, wait=True, verbose=True)
                 rospy.sleep(2.)
                 rob.move_base(theta=q[0])
                 q = model.update_gripper(q, open=False)
-                rob.goto(q, move_base=False, wait=False, verbose=False)
+                rob.goto(q, move_base=False, wait=True, verbose=False)
                 input('--> go high again')
                 break
         
