@@ -89,45 +89,6 @@ def main(cfg):
     rob, q = init_robot(visualize=visualize)
     model = rob.get_model()  # get the planning model in case we need it
 
-    q0 = [-1.91967010e-01, -3.07846069e-02, -6.65076590e-01,  5.00007841e-01,
-      5.99901370e-02,  2.19929959e-01, -1.53398079e-03, -1.07378655e-02,
-      2.99957160e+00, -1.56995219e+00, -7.77738162e-01,]
-    qi = [-0.19196701, -0.03078461,  0.46193263,  0.98585885,  0.3996423,   0.,
-      3.06063741, -1.04642321,  2.79234818, -1.56995219, -0.77773816]
-    q1 = [-0.19196701, -0.03078461,  0.46520073,  1.08587644,  0.40002357,
-        0.22      ,  3.06065091, -1.04632433,  2.78908827, -1.56995219,
-       -0.77773816]
-    q2 = [-0.19196701, -0.03078461,  0.46193488,  0.8858587 ,  0.39964303,
-        0.22      ,  3.060602  , -1.04641236,  2.7923105 , -1.56995219,
-       -0.77773816]
-
-    q1[HelloStretchIdx.ARM] = 0.2
-    q2[HelloStretchIdx.ARM] = 0.2
-
-    print("TEST SEQUENCE")
-    print(q0 - STRETCH_HOME_Q)
-    rob.goto(q0, wait=True)
-    # rob.goto(qi, wait=True)
-    rob.goto(q1, wait=True, verbose=True)
-    input('---')
-    rob.goto(q2, wait=True, verbose=True)
-    input('---')
-    print()
-    print("==========")
-    print(q1[HelloStretchIdx.WRIST_ROLL:HelloStretchIdx.WRIST_YAW+1])
-    print("==========")
-    # q1[HelloStretchIdx.WRIST_ROLL:HelloStretchIdx.WRIST_YAW+1] = np.zeros(3)
-    for i in range(10):
-        rob.goto(q1, wait=False, verbose=False)
-        rospy.sleep(1.0)
-        ex, _ = rob.update()
-        print(i, ex[HelloStretchIdx.WRIST_ROLL:HelloStretchIdx.WRIST_YAW+1])
-        #rob.goto(q2, wait=False, verbose=True)
-        #rospy.sleep(1.0)
-    #rob.goto(q1, wait=True, verbose=True)
-
-    return
-
     # Get a couple camera listeners
     rgb_cam = rob.rgb_cam
     dpt_cam = rob.dpt_cam
@@ -375,7 +336,7 @@ def main(cfg):
         grasp_pose = to_pos_quat(grasp)
         # standoff_pose = to_pos_quat(grasp @ offset)
         standoff_pose = grasp.copy()
-        standoff_pose[2, 3] += 0.1
+        standoff_pose[2, 3] += 0.05
         standoff_pose = to_pos_quat(standoff_pose)
         qi = model.static_ik(grasp_pose, q)
         print("grasp xyz =", grasp_pose[0])
@@ -390,12 +351,15 @@ def main(cfg):
         theta0 = q[2]
         q1 = model.static_ik(standoff_pose, qi)
         if q1 is not None:
+            if not model.validate(q1):
+                print("invalid standoff config:", q1)
+                continue
             print("found standoff")
             q2 = model.static_ik(grasp_pose, q1)
             if q2 is not None:
                 # if np.abs(eq1) < 0.075 and np.abs(eq2) < 0.075:
                 # go to the grasp and try it
-                q[HelloStretchIdx.LIFT] = 1.0
+                q[HelloStretchIdx.LIFT] = 0.99
                 rob.goto(q, move_base=False, wait=True, verbose=False)
                 input('--> go high')
                 q_pre = q.copy()
@@ -410,19 +374,17 @@ def main(cfg):
                 model.set_config(q2)
                 input('--> go to grasp')
                 rob.move_base(theta=q2[2])
-                q2[HelloStretchIdx.LIFT] -= 0.1
                 model.set_config(q2)
                 q2 = model.update_gripper(q2, open=True)
                 rob.goto(q1, move_base=False, wait=True, verbose=True)
-                breakpoint()
                 input('--> close the gripper')
                 q2 = model.update_gripper(q2, open=False)
                 rob.goto(q2, move_base=False, wait=True, verbose=True)
-                rospy.sleep(2.)
-                rob.move_base(theta=q[0])
+                # rospy.sleep(2.)
                 q = model.update_gripper(q, open=False)
                 rob.goto(q, move_base=False, wait=True, verbose=False)
-                input('--> go high again')
+                rob.move_base(theta=q[0])
+                # input('--> go high again')
                 break
         
 
