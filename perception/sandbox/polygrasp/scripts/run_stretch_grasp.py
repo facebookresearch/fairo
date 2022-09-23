@@ -85,7 +85,7 @@ def main(cfg):
     rospy.init_node('hello_stretch_ros_test')
 
     # Create the robot
-    visualize = True
+    visualize = False
     rob, q = init_robot(visualize=visualize)
     model = rob.get_model()  # get the planning model in case we need it
 
@@ -324,7 +324,7 @@ def main(cfg):
     # Some magic numbers here
     # This should correct for the length of the Stretch gripper and the gripper upon which
     # Graspnet was trained
-    grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.13
+    grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.12
     for i, grasp in enumerate(grasps):
         grasps[i] = grasp @ grasp_offset
 
@@ -337,28 +337,32 @@ def main(cfg):
     # Main loop over solutions
     for grasp in grasps:
         grasp_pose = to_pos_quat(grasp)
-        # standoff_pose = to_pos_quat(grasp @ offset)
-        standoff_pose = grasp.copy()
-        standoff_pose[2, 3] += 0.05
-        standoff_pose = to_pos_quat(standoff_pose)
+        #standoff_pose = grasp.copy()
+        #offset = np.eye(4)
+        #offset[2, 3] = -0.7
+        #standoff_pose = grasp @ offset
+        #standoff_pose = to_pos_quat(standoff_pose)
         qi = model.static_ik(grasp_pose, q)
         print("grasp xyz =", grasp_pose[0])
         if qi is not None:
-            print("q0 =", q)
-            print("qi =", qi)
-            print("theta =", qi[2])
+            #print("q0 =", q)
+            #print("qi =", qi)
+            #print("theta =", qi[2])
             model.set_config(qi)
         else:
             continue
         # Record the initial q value here and use it 
         theta0 = q[2]
-        q1 = model.static_ik(standoff_pose, qi)
+        #q1 = model.static_ik(standoff_pose, qi)
+        q1 = qi.copy()
+        q1[HelloStretchIdx.LIFT] += 0.08
         if q1 is not None:
             if not model.validate(q1):
                 print("invalid standoff config:", q1)
                 continue
             print("found standoff")
-            q2 = model.static_ik(grasp_pose, q1)
+            q2 = qi
+            # q2 = model.static_ik(grasp_pose, q1)
             if q2 is not None:
                 # if np.abs(eq1) < 0.075 and np.abs(eq2) < 0.075:
                 # go to the grasp and try it
@@ -369,21 +373,23 @@ def main(cfg):
                 q_pre[5:] = q1[5:]
                 q_pre = model.update_gripper(q_pre, open=True)
                 rob.move_base(theta=q1[2])
+                rospy.sleep(2.0)
                 rob.goto(q_pre, move_base=False, wait=False, verbose=False)
                 model.set_config(q1)
                 #input('--> gripper ready; go to standoff')
                 q1 = model.update_gripper(q1, open=True)
                 rob.goto(q1, move_base=False, wait=True, verbose=False)
-                model.set_config(q2)
                 #input('--> go to grasp')
                 rob.move_base(theta=q2[2])
+                rospy.sleep(2.0)
+                rob.goto(q_pre, move_base=False, wait=False, verbose=False)
                 model.set_config(q2)
                 q2 = model.update_gripper(q2, open=True)
-                rob.goto(q1, move_base=False, wait=True, verbose=True)
+                rob.goto(q2, move_base=False, wait=True, verbose=True)
                 #input('--> close the gripper')
                 q2 = model.update_gripper(q2, open=False)
-                rob.goto(q2, move_base=False, wait=True, verbose=True)
-                # rospy.sleep(2.)
+                rob.goto(q2, move_base=False, wait=False, verbose=True)
+                rospy.sleep(2.)
                 q = model.update_gripper(q, open=False)
                 rob.goto(q, move_base=False, wait=True, verbose=False)
                 rob.move_base(theta=q[0])
