@@ -321,7 +321,10 @@ def main(cfg):
         o3d.visualization.draw_geometries(geoms)
 
     grasp_offset = np.eye(4)
-    grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.11
+    # Some magic numbers here
+    # This should correct for the length of the Stretch gripper and the gripper upon which
+    # Graspnet was trained
+    grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.13
     for i, grasp in enumerate(grasps):
         grasps[i] = grasp @ grasp_offset
 
@@ -361,23 +364,23 @@ def main(cfg):
                 # go to the grasp and try it
                 q[HelloStretchIdx.LIFT] = 0.99
                 rob.goto(q, move_base=False, wait=True, verbose=False)
-                input('--> go high')
+                #input('--> go high')
                 q_pre = q.copy()
                 q_pre[5:] = q1[5:]
                 q_pre = model.update_gripper(q_pre, open=True)
                 rob.move_base(theta=q1[2])
                 rob.goto(q_pre, move_base=False, wait=False, verbose=False)
                 model.set_config(q1)
-                input('--> gripper ready; go to standoff')
+                #input('--> gripper ready; go to standoff')
                 q1 = model.update_gripper(q1, open=True)
                 rob.goto(q1, move_base=False, wait=True, verbose=False)
                 model.set_config(q2)
-                input('--> go to grasp')
+                #input('--> go to grasp')
                 rob.move_base(theta=q2[2])
                 model.set_config(q2)
                 q2 = model.update_gripper(q2, open=True)
                 rob.goto(q1, move_base=False, wait=True, verbose=True)
-                input('--> close the gripper')
+                #input('--> close the gripper')
                 q2 = model.update_gripper(q2, open=False)
                 rob.goto(q2, move_base=False, wait=True, verbose=True)
                 # rospy.sleep(2.)
