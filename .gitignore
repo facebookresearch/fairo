@@ -65,6 +65,7 @@ annotation_data/model/model_999.pth
 *.swp
 *.swn
 *.swo
+*.egg-info
 
 
 .circleci/habitat_docker/conda.txt
