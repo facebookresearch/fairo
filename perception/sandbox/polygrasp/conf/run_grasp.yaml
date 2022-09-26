@@ -1,0 +1,18 @@
+defaults:
+  - robot: robot_hw
+  - cam: cam_realsense
+
+masks_1:
+  - conf/masks/bin1/1.png
+  # - conf/masks/bin1/2.png
+  # - conf/masks/bin1/3.png
+masks_2:
+  - conf/masks/bin2/1.png
+  # - conf/masks/bin2/2.png
+  # - conf/masks/bin2/3.png
+
+view_json_path: conf/o3d_view.json
+min_mask_size: 1
+
+num_bin_shifts: 10
+num_grasps_per_bin_shift: 10

@@ -1,0 +1,8 @@
+robot:
+  _target_: polygrasp.robot_interface.GraspingRobotInterface
+  ip_address: "100.67.224.116"
+  k_approach: 0.9
+  k_grasp: 0.55
+  gripper_max_width: 0.085
+  gripper:
+    _target_: polymetis.GripperInterface
