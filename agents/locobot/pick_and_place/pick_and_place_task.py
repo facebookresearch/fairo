@@ -3,8 +3,23 @@ import numpy as np
 
 from constants import coco_categories
 
+# ----------------------
+# Robot planning tools
+# TODO(cpaxton): move these all into fairo
+from home_robot.hardware.stretch_ros import HelloStretchROSInterface
+from home_robot.motion.robot import STRETCH_HOME_Q, HelloStretchIdx
+from home_robot.motion.robot import STRETCH_STANDOFF_DISTANCE
+from home_robot.ros.path import get_package_path
+from home_robot.ros.camera import RosCamera
+from home_robot.utils.pose import to_pos_quat
+from home_robot.utils.numpy import to_npy_file
+import home_robot.utils.image as hrimg
+import trimesh
+import trimesh.transformations as tra
+
 
 class PickAndPlaceTask:
+    """ Create pick and place task that integrates with navigation and planning """
     def __init__(self, mover):
         self.nav = mover.nav    # Point goal nav + semantic exploration
         self.slam = mover.slam  # Semantic and obstacle map + last frame
