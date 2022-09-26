@@ -206,6 +206,7 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
 
         # Pick and place commands we introduce
         elif command == "PICK_AND_PLACE":
+            # TODO(cpaxton): test this and make sure that it works properly
             start_receptacle, object, end_receptacle = [x.strip() for x in value.split("_")]
             print(f"action: PICK_AND_PLACE {object} from {start_receptacle} to {end_receptacle}")
             task = PickAndPlaceTask(mover)
