@@ -61,6 +61,12 @@ annotation_data/output/*
 annotation_data/model/model_999.pth
 
 
+# Temporary files
+*.swp
+*.swn
+*.swo
+
+
 .circleci/habitat_docker/conda.txt
 .circleci/habitat_docker/requirements.txt
 .circleci/habitat_docker/Replica-Dataset
