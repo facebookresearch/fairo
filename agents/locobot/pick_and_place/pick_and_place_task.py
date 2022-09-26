@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from .constants import coco_categories
+from constants import coco_categories
 
 
 class PickAndPlaceTask:
@@ -93,6 +93,9 @@ class PickAndPlaceTask:
 
 def test_pick_place(mover, value):
     start_receptacle, object, end_receptacle = [x.strip() for x in value.split("_")]
+    print("Start receptacle =", start_receptacle)
+    print("Object           =", object)
+    print("End receptacle   =", end_receptacle)
     print(f"action: PICK_AND_PLACE {object} from {start_receptacle} to {end_receptacle}")
     task = PickAndPlaceTask(mover)
     task.pick_and_place(start_receptacle, object, end_receptacle)
@@ -100,6 +103,7 @@ def test_pick_place(mover, value):
 
 if __name__ == '__main__':
     import argparse
+    import time
 
     parser = argparse.ArgumentParser(description="Pass in server device IP")
     parser.add_argument(
@@ -110,9 +114,9 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         "--backend",
-        help="Which backend to use: habitat (default), hellorobot",
+        help="Which backend to use: habitat, hellorobot",
         type=str,
-        default='habitat',
+        default='hellorobot',
     )
     args = parser.parse_args()
     
@@ -150,3 +154,4 @@ if __name__ == '__main__':
         mover.bot.set_pan(0.0)
         # mover.bot.set_tilt(-1.05)
 
+    test_pick_place(mover, "chair_cup_dining-table")
