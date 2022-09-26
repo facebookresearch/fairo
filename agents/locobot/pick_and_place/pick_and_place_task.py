@@ -10,6 +10,13 @@ class PickAndPlaceTask:
         self.slam = mover.slam  # Semantic and obstacle map + last frame
         self.bot = mover.bot    # Main robot class
 
+        # Parameters for configuring pick and place motions
+        self.exploration_method = "learned"
+
+        # This is for enabling integration with home-robot grasping code. If this is disabled, we
+        # do not need to run any base motion related commands.
+        self.navigation_enabled = False
+
     def pick_and_place(self, start_receptacle: str, object: str, end_receptacle: str):
         """
         End-to-end pick and place with semantic exploration and mobile
@@ -28,17 +35,20 @@ class PickAndPlaceTask:
             "chair", "couch", "bed", "toilet", "dining-table", "sink"]
         assert object in ["cup", "bottle"]
 
-        # We would use the navigation service for semantic exploration like below
-        self.nav.go_to_object(
-            object_goal=start_receptacle,
-            episode_id=f"go_to_{start_receptacle}",
-            exploration_method="learned",
-            debug=False,
-            visualize=True,
-            max_steps=400,
-            start_with_panorama=True,
-        )
-    
+        if self.navigation_enabled:
+            # we would use the navigation service for semantic exploration like below
+            self.nav.go_to_object(
+                object_goal=start_receptacle,
+                episode_id=f"go_to_{start_receptacle}",
+                exploration_method=self.exploration_method,
+                debug=false,
+                visualize=true,
+                max_steps=400,
+                start_with_panorama=true,
+            )
+        # Pass object into picking code
+        self.pick(object)
+        
     def pick(self, object: str):
         """
         Mobile grasping of an object category present in the last frame.
@@ -85,9 +95,19 @@ class PickAndPlaceTask:
         print("curr_pose_in_map_coordinates", pose_in_map_coordinates)
         print()
 
-    def place(self):
+    def place(self, end_receptacle):
         """Mobile placing of the object picked up."""
         print("Starting place")
+        if self.navigation_enabled:
+            self.nav.go_to_object(
+                object_goal=end_receptacle,
+                episode_id=f"go_to_{end_receptacle}",
+                exploration_method=self.exploration_method,
+                debug=false,
+                visualize=true,
+                max_steps=400,
+                start_with_panorama=true,
+            )
 
 
 
