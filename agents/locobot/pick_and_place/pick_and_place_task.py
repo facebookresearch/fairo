@@ -14,6 +14,7 @@ from home_robot.ros.path import get_package_path
 from home_robot.ros.camera import RosCamera
 from home_robot.utils.pose import to_pos_quat
 from home_robot.utils.numpy import to_npy_file
+from home_robot.ros.grasp_helper import GraspClient as RosGraspClient
 import home_robot.utils.image as hrimg
 import trimesh
 import trimesh.transformations as tra
@@ -35,6 +36,9 @@ class PickAndPlaceTask:
         self.slam = mover.slam  # Semantic and obstacle map + last frame
         self.bot = mover.bot    # Main robot class
 
+        self.num_attempts = 100
+        self.min_obj_pts = 100
+
         # ROS connection into the robot
         # TODO: this needs to be replaced by code that exists in them over
         visualize = False  # Debugging flag, renders kinematics in pybullet
@@ -47,6 +51,7 @@ class PickAndPlaceTask:
         self.model = self.manip.get_model()
         # Look ahead to start out with
         self.manip.look_ahead()
+        self.grasp_client = RosGraspClient()
 
         # Parameters for configuring pick and place motions
         self.exploration_method = "learned"
@@ -108,36 +113,54 @@ class PickAndPlaceTask:
               "semantic map got updated, which might be slightly stale if the "
               "robot has been moving:")
         
-        info = self.slam.get_last_position_vis_info()
-        flat_pcd = info["pcd"]
-        flat_object_mask = info["semantic_frame"][:, category_id]
-        image_object_mask = info["unfiltered_semantic_frame"][:, :, category_id]
-        semantic_frame = info["semantic_frame_vis"]
-        obstacle_map = info["semantic_map"][0]
-        object_map = info["semantic_map"][4 + category_id]
+        for attempt in range(self.num_attempts):
+            info = self.slam.get_last_position_vis_info()
+            flat_pcd = info["pcd"]
+            flat_object_mask = info["semantic_frame"][:, category_id]
+            image_object_mask = info["unfiltered_semantic_frame"][:, :, category_id]
+            semantic_frame = info["semantic_frame_vis"]
+            obstacle_map = info["semantic_map"][0]
+            object_map = info["semantic_map"][4 + category_id]
+            orig_rgb = info['rgb']
 
-        print(list(info.keys()))
-        print("flat_pcd.shape", flat_pcd.shape)
-        print("flat_object_mask.shape", flat_object_mask.shape)
-        print("image_object_mask.shape", image_object_mask.shape)
-        print("obstacle_map.shape", obstacle_map.shape)
-        print("object_map.shape", object_map.shape)
-        print()
+            if attempt == 0:
+                print(list(info.keys()))
+                print("flat_pcd.shape", flat_pcd.shape)
+                print("flat_object_mask.shape", flat_object_mask.shape)
+                print("image_object_mask.shape", image_object_mask.shape)
+                print("obstacle_map.shape", obstacle_map.shape)
+                print("object_map.shape", object_map.shape)
+                print()
 
-        cv2.imwrite("semantic_frame.png", semantic_frame)
-        cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
-        cv2.imwrite("obstacle_map.png", (obstacle_map * 255).astype(np.uint8))
-        cv2.imwrite("object_map.png", (object_map * 255).astype(np.uint8))
+                cv2.imwrite("semantic_frame.png", semantic_frame)
+                cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
+                cv2.imwrite("obstacle_map.png", (obstacle_map * 255).astype(np.uint8))
+                cv2.imwrite("object_map.png", (object_map * 255).astype(np.uint8))
 
-        print("Here is how to transform robot coordinates to map coordinates:")
+                print("Here is how to transform robot coordinates to map coordinates:")
 
-        pose_of_last_map_update = info["pose"]
-        pose_in_map_coordinates = self.slam.robot2map(
-            pose_of_last_map_update[:2])
+                pose_of_last_map_update = info["pose"]
+                pose_in_map_coordinates = self.slam.robot2map(
+                    pose_of_last_map_update[:2])
 
-        print("pose_of_last_map_update", pose_of_last_map_update)
-        print("curr_pose_in_map_coordinates", pose_in_map_coordinates)
-        print()
+                print("pose_of_last_map_update", pose_of_last_map_update)
+                print("curr_pose_in_map_coordinates", pose_in_map_coordinates)
+                print()
+
+            num_obj_pts = np.sum(image_object_mask)
+            print(attempt, "Detected this many object points:", num_obj_pts)
+            if num_obj_pts > self.min_obj_pts:
+                print("Attempting to grasp...")
+                break
+        else:
+            print("FAILED TO GRASP! Could not find the object.")
+
+        predicted_grasps = self.grasp_client.request(flat_pcd,
+                                                     orig_rgb,
+                                                     flat_object_mask,
+                                                     frame="rgb_optical_frame")
+        print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
+        predicted_grasps, scores = predicted_grasps[0]
 
     def place(self, end_receptacle):
         """Mobile placing of the object picked up."""
