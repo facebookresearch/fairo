@@ -63,7 +63,7 @@ class RemoteHelloRobot(object):
         self._robot.startup()
         if not self._robot.is_calibrated():
             self._robot.home()
-        self._robot.stow()
+        # self._robot.stow()  # HACK: not working currently, robot runs fine without this line
         self._done = True
         self.cam = None
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
@@ -158,6 +158,12 @@ class RemoteHelloRobot(object):
         self._robot.head.move_to("head_tilt", tilt)
 
     def reset_camera(self):
+        """
+        Sets the camera facing the forward, i.e.
+        90 degrees from looking at the ground.
+        If the robot base's front is facing a wall,
+        the camera should be directly looking at the wall
+        """
         self.set_pan(0)
         self.set_tilt(0)
 

@@ -35,7 +35,7 @@ else:
 
 def format_for_printing_data(data):
     # Custom tasks can define methods for how to display their data in a relevant way
-    worker_name = Worker(db, data["worker_id"]).worker_name
+    worker_name = Worker.get(db, data["worker_id"]).worker_name
     contents = data["data"]
     duration = contents["times"]["task_end"] - contents["times"]["task_start"]
     metadata_string = (

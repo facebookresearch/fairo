@@ -4,3 +4,4 @@
 # LICENSE file in the root directory of this source tree.
 from .impedance import *
 from .trajectory import *
+from .velocity import *

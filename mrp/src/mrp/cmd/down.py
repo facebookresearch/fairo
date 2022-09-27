@@ -6,32 +6,40 @@ import click
 
 
 @click.command()
-@click.option("--all", is_flag=True)
+@click.option("--local", is_flag=True)
 @click.option("--wait/--nowait", is_flag=True)
-@click.argument("procs", nargs=-1, shell_complete=_autocomplete.defined_processes)
-def cli(*cmd_procs, procs=None, all=False, wait=True):
+@click.argument("procs", nargs=-1, shell_complete=_autocomplete.running_processes)
+def cli(*cmd_procs, procs=None, local=False, wait=True):
     procs = procs or []
+    procs += cmd_procs
 
-    # Get all MRP procs running in the system
-    running_procs = life_cycle.system_state().procs.keys()
-    down_procs = set(running_procs)
+    specified_procs = set(procs)
 
-    if all:  # system-wide down
-        assert not procs, "Specifying processes is not supported with the flag '--all'."
-        assert not cmd_procs, "Specifying processes is not supported when all=True."
+    # Get all MRP procs running in the system.
+    running_procs = set(
+        name
+        for name, info in life_cycle.system_state().procs.items()
+        if info.state != life_cycle.State.STOPPED
+    )
 
-    else:  #  local down (only processes defined within the current msetup.py)
-        defined_procs = process_def.defined_processes.keys()
-        down_procs = down_procs & set(defined_procs)
+    # Get MRP procs defined in the local msetup.py
+    defined_procs = set(process_def.defined_processes.keys())
 
-        # Support procs as *args when using cmd syntax.
-        procs += cmd_procs
-        if procs:
-            down_procs = down_procs & set(procs)
+    if local:  # Down local msetup.py
+        assert not procs, "Cannot use '--local' flag and also specify processes."
+        down_procs = running_procs & defined_procs
 
+    elif procs:  # Specified process set.
+        down_procs = running_procs & specified_procs
+
+    else:  # System-wide down.
+        down_procs = running_procs
+
+    # Ask all the procs to go down.
     for proc in down_procs:
         click.echo(f"stopping {proc}...")
         life_cycle.set_ask(proc, life_cycle.Ask.DOWN)
 
+    # Wait for them to finished shutting down.
     if wait and down_procs:
         mrp.cmd.wait(*down_procs)

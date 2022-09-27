@@ -55,3 +55,9 @@ you can also provide environment variables mentioned in step#1 here by running c
 ```
 MEPHISTO_AWS_ACCESS_KEY_ID="xxxxx" MEPHISTO_AWS_SECRET_ACCESS_KEY="xxxx" .... python main.py --interaction_job_num 2 --image_tag <TAG_NAME> --task_name <TASK_NAME> --resample
 ```
+
+## List of Scripts
+1. [annotation_jobs.py](./annotation_jobs.py) - This script is for spinning up aws HITs to allow turker to anntoated failed commands.
+2. [interaction_jobs.py](./interaction_jobs.py) - This script is for spinnng up aws HITs to allow turkers to interact with craftassist agents on web dashboard and annotated failing commands from agent.
+3. [main.py](./main.py) - This script is the main script for launching the above pipelines.
+4. [scripts/sweep_runner.py](./scripts/sweep_runner.py) - This script is for running NLU model retraining jobs with hyper-parameter sweep in the clusters.ß

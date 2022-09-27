@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
 from droidlet.interpreter.robot import tasks
+from droidlet.memory.memory_nodes import TripleNode
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 import os
 import random
@@ -47,7 +48,9 @@ def add_or_replace(agent, pred_text, obj_text):
     assert len(memids) <= 1, f"more than 1 {len(memids)} returned"
     if len(memids) > 0:
         agent.memory.forget(memids[0])
-    agent.memory.add_triple(subj=agent.memory.self_memid, pred_text=pred_text, obj_text=obj_text)
+    agent.memory.nodes[TripleNode.NODE_TYPE].create(
+        agent.memory, subj=agent.memory.self_memid, pred_text=pred_text, obj_text=obj_text
+    )
 
 
 def get_unique_val_from_memory(agent, pred_text, typ):
@@ -57,7 +60,9 @@ def get_unique_val_from_memory(agent, pred_text, typ):
         if typ == str:
             return ""
 
-    t = agent.memory.get_triples(subj=agent.memory.self_memid, pred_text=pred_text)
+    t = agent.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+        agent.memory, subj=agent.memory.self_memid, pred_text=pred_text
+    )
     # get_triples returns a list of tuples of the form (subject, predicate, object)
     assert len(t) <= 1, f"More than 1 ({len(t)}) triple for {pred_text}"
     return typ(t[0][2]) if len(t) == 1 else get_default(typ)

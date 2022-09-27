@@ -1,0 +1,11 @@
+Model Information:
+* title:	Low Poly Ball Rock
+* source:	https://sketchfab.com/3d-models/low-poly-ball-rock-b40efb651e864113b88f62810567a2ad
+* author:	mankindforward (https://sketchfab.com/mankindforward)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Low Poly Ball Rock" (https://sketchfab.com/3d-models/low-poly-ball-rock-b40efb651e864113b88f62810567a2ad) by mankindforward (https://sketchfab.com/mankindforward) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

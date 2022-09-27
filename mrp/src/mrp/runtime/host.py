@@ -5,6 +5,7 @@ from mrp.runtime.base import BaseLauncher, BaseRuntime
 import asyncio
 import os
 import pathlib
+import pty
 import signal
 import subprocess
 import typing
@@ -22,23 +23,13 @@ class Launcher(BaseLauncher):
         self.proc_def = proc_def
 
     async def gather_cmd_outputs(self):
-        async def log_pipe(logger, pipe):
-            while True:
-                try:
-                    async for line in pipe:
-                        logger(line)
-                except ValueError:
-                    # TODO(lshamis): Can we grab the line in chucks?
-                    logger("<[MRP] line length exceeded. skipping>")
-                    continue
-                else:
-                    break
-
         self.down_task = asyncio.create_task(self.down_watcher(self.handle_down))
+
+        log_hdl = util.LogPtyPipes(self.pty_in[0], self.pty_out[0], self.pty_err[0])
+        log_hdl.start()
+
         try:
             await asyncio.gather(
-                log_pipe(util.stdout_logger(), self.proc.stdout),
-                log_pipe(util.stderr_logger(), self.proc.stderr),
                 self.log_psutil(),
                 self.death_handler(),
                 self.down_task,
@@ -47,21 +38,33 @@ class Launcher(BaseLauncher):
             # death_handler cancelled down listener.
             pass
 
+        await log_hdl.stop()
+
     async def run(self):
         subprocess_env = os.environ.copy()
         subprocess_env.update(self.proc_def.env)
 
+        self.pty_in = pty.openpty()
+        self.pty_out = pty.openpty()
+        self.pty_err = pty.openpty()
+
         self.proc = await asyncio.create_subprocess_shell(
             util.shell_join(self.run_command),
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+            stdin=self.pty_in[1],
+            stdout=self.pty_out[1],
+            stderr=self.pty_err[1],
             executable="/bin/bash",
             cwd=self.proc_def.root,
             env=subprocess_env,
             start_new_session=True,
         )
-        # TODO(lshamis): Handle the case where proc dies before we can query getpgid.
-        self.proc_pgrp = os.getpgid(self.proc.pid)
+        try:
+            self.proc_pgrp = os.getpgid(self.proc.pid)
+        except Exception:
+            life_cycle.set_state(
+                self.name, life_cycle.State.STOPPED, return_code=self.proc.returncode
+            )
+            return
 
         life_cycle.set_state(self.name, life_cycle.State.STARTED)
         await self.gather_cmd_outputs()

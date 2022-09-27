@@ -12,7 +12,7 @@ import logging
 from droidlet.base_util import depth_first_search, to_block_pos, manhat_dist, euclid_dist
 from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
 
-GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 79, 80]
+GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 35, 79, 80]
 MAX_RADIUS = 20
 
 
@@ -347,6 +347,7 @@ def get_nearby_airtouching_blocks(
     all_components = []
     all_tags = []
     for c in components:
+        tags = []
         for loc in c:
             idm = tuple(xyzb[loc[0], loc[1], loc[2], :])
             for coord in range(3):
@@ -359,7 +360,7 @@ def get_nearby_airtouching_blocks(
                             try:
                                 blocktypes.append(idm)
                                 type_name = block_data["bid_to_name"][idm]
-                                tags = [type_name]
+                                tags.append(type_name)
                                 colours = deepcopy(color_data["name_to_colors"].get(type_name, []))
                                 colours.extend([c for c in color_list if c in type_name])
                                 if colours:
@@ -399,7 +400,12 @@ def get_all_nearby_holes(agent, location, block_data, fill_idmeta, radius=15, st
     # utility functions
     def get_block_info(x, z):  # fudge factor 5
         height = max_height
-        while True:
+        min_height = -50
+
+        if agent.backend == "pyworld":
+            min_height = -1
+
+        while True and height > min_height:
             B = agent.get_blocks(x, x, height, height, z, z)
             if (
                 (B[0, 0, 0, 0] != 0)
@@ -409,6 +415,8 @@ def get_all_nearby_holes(agent, location, block_data, fill_idmeta, radius=15, st
             ):  # if it's not a mobile block (agent, speaker, mobs)
                 return height, tuple(B[0, 0, 0])
             height -= 1
+
+        return min_height, (0, 0)
 
     gx = [0, 0, -1, 1]
     gz = [1, -1, 0, 0]

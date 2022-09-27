@@ -1,4 +1,4 @@
-from droidlet.memory.memory_nodes import PlayerNode
+from droidlet.memory.memory_nodes import PlayerNode, TripleNode
 
 
 class HeuristicPerception:
@@ -13,13 +13,13 @@ class HeuristicPerception:
             if bot_node is None:
                 memid = PlayerNode.create(self.agent.memory, bot)
                 bot_node = PlayerNode(self.agent.memory, memid)
-                self.agent.memory.tag(memid, "bot")
+                self.agent.memory.nodes[TripleNode.NODE_TYPE].tag(self.agent.memory, memid, "bot")
             bot_node.update(self.agent.memory, bot, bot_node.memid)
             print(
                 f"[Memory INFO]: update bot [{bot.name}] position: ({bot.pos.x}, {bot.pos.y}, {bot.pos.z})"
             )
 
-        bot_memids = self.agent.memory.get_memids_by_tag("bot")
+        bot_memids = self.agent.memory.nodes[TripleNode.NODE_TYPE].get_memids_by_tag(self.agent.memory, "bot")
         bots_in_world = [b.entityId for b in bots]
         for memid in bot_memids:
             bot_eid = self.agent.memory.get_mem_by_id(memid).eid

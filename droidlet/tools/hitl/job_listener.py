@@ -9,7 +9,7 @@ import time
 from abc import ABC, abstractmethod
 from typing import List
 
-from .data_generator import DataGenerator
+from droidlet.tools.hitl.data_generator import DataGenerator
 
 
 class JobListener:

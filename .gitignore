@@ -33,6 +33,9 @@ droidlet/artifacts/datasets/*
 !droidlet/artifacts/datasets/.gitignore
 *.gz
 *.vscode
+*.swo
+*.swp
+*.swn
 external_push
 artifact_scripts/upload*
 .mypy_cache
@@ -59,8 +62,12 @@ annotation_data/seg/*
 annotation_data/coco/*
 annotation_data/output/*
 annotation_data/model/model_999.pth
+dashboard_data.db
+error_details.csv
 
 
 .circleci/habitat_docker/conda.txt
 .circleci/habitat_docker/requirements.txt
 .circleci/habitat_docker/Replica-Dataset
+agents/craftassist/tests/error_details.csv
+agents/craftassist/tests/dashboard_data.db

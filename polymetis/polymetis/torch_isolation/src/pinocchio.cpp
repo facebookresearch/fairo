@@ -174,6 +174,12 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     return pinocchio_wrapper::get_link_idx_from_name(pinocchio_state_,
                                                      link_name.c_str());
   }
+
+  std::string get_link_name_from_idx(int64_t link_idx) {
+    std::string result(
+        pinocchio_wrapper::get_link_name_from_idx(pinocchio_state_, link_idx));
+    return result;
+  }
 };
 
 TORCH_LIBRARY(torchscript_pinocchio, m) {
@@ -189,6 +195,8 @@ TORCH_LIBRARY(torchscript_pinocchio, m) {
       .def("inverse_kinematics", &RobotModelPinocchio::inverse_kinematics)
       .def("get_link_idx_from_name",
            &RobotModelPinocchio::get_link_idx_from_name)
+      .def("get_link_name_from_idx",
+           &RobotModelPinocchio::get_link_name_from_idx)
       .def_pickle(
           // __getstate__
           [](const c10::intrusive_ptr<RobotModelPinocchio> &self)
