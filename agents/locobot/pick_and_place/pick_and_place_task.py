@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import rospy
 
 from constants import coco_categories
 
@@ -18,12 +19,34 @@ import trimesh
 import trimesh.transformations as tra
 
 
+"""
+Things to install:
+    pip install rospkg
+    pip install pybullet  # Used for kinematics
+    pip install trimesh  # used for motion planning
+    # tracikpy for inverse kinematics
+"""
+
+
 class PickAndPlaceTask:
     """ Create pick and place task that integrates with navigation and planning """
     def __init__(self, mover):
         self.nav = mover.nav    # Point goal nav + semantic exploration
         self.slam = mover.slam  # Semantic and obstacle map + last frame
         self.bot = mover.bot    # Main robot class
+
+        # ROS connection into the robot
+        # TODO: this needs to be replaced by code that exists in them over
+        visualize = False  # Debugging flag, renders kinematics in pybullet
+        self.manip = HelloStretchROSInterface(visualize_planner=visualize,
+                                              root=get_package_path(),
+                                              init_cameras=False,  # ROS camera intialization
+                                              )
+        self.home_q = STRETCH_HOME_Q.copy()
+        # Get the kinematic model for the manipulator in case we end up needing it
+        self.model = self.manip.get_model()
+        # Look ahead to start out with
+        self.manip.look_ahead()
 
         # Parameters for configuring pick and place motions
         self.exploration_method = "learned"
@@ -74,6 +97,12 @@ class PickAndPlaceTask:
         print(f"Starting pick {object}")
         assert object in ["cup", "bottle"]
         category_id = coco_categories[object]
+
+        # Look at end effector and wait long enough that we have a new observation
+        self.manip.stow()
+        rospy.sleep(0.5)
+        self.manip.look_at_ee()
+        rospy.sleep(0.5)
 
         print("Here is the data you have available about the last time the "
               "semantic map got updated, which might be slightly stale if the "
@@ -189,4 +218,5 @@ if __name__ == '__main__':
         mover.bot.set_pan(0.0)
         # mover.bot.set_tilt(-1.05)
 
-    test_pick_place(mover, "chair_cup_dining-table")
+    rospy.init_node('test_pick_place')
+    test_pick_place(mover, "chair_cup_chair")
