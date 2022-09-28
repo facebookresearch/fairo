@@ -42,7 +42,7 @@ class PickAndPlaceTask:
 
         # ROS connection into the robot
         # TODO: this needs to be replaced by code that exists in them over
-        visualize = False  # Debugging flag, renders kinematics in pybullet
+        visualize = True  # Debugging flag, renders kinematics in pybullet
         self.manip = HelloStretchROSInterface(visualize_planner=visualize,
                                               root=get_package_path(),
                                               init_cameras=False,  # ROS camera intialization
@@ -105,8 +105,7 @@ class PickAndPlaceTask:
         category_id = coco_categories[object]
 
         # Look at end effector and wait long enough that we have a new observation
-        self.manip.stow()
-        rospy.sleep(1.)
+        self.manip.stow(wait=True)
         self.manip.look_at_ee()
         rospy.sleep(0.5)
 
@@ -159,10 +158,11 @@ class PickAndPlaceTask:
             predicted_grasps = self.grasp_client.request(flat_pcd,
                                                          orig_rgb,
                                                          flat_object_mask,
-                                                         frame="camera_color_optical_frame")
+                                                         #frame="camera_color_optical_frame")
+                                                         frame="world")
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
             predicted_grasps, scores = predicted_grasps[0]
-            self.manip.goto_static_grasp(predicted_grasps, scores)
+            self.manip.goto_static_grasp(predicted_grasps, scores, pause=True)
         else:
             print("FAILED TO GRASP! Could not find the object.")
 
