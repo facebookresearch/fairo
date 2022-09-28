@@ -126,6 +126,10 @@ class PickAndPlaceTask:
             obstacle_map = info["semantic_map"][0]
             object_map = info["semantic_map"][4 + category_id]
             orig_rgb = info['rgb']
+
+            q, _ = self.manip.update()
+            camera_pose = self.manip.fk(q, "camera_color_optical_frame")
+            flat_pcd = trimesh.transform_points(flat_pcd, np.linalg.inv(camera_pose))
             show_point_cloud(flat_pcd, orig_rgb.reshape(-1, 3), orig=np.zeros(3))
 
             if attempt == 0:
