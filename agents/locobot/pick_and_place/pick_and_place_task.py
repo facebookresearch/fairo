@@ -19,6 +19,9 @@ import home_robot.utils.image as hrimg
 import trimesh
 import trimesh.transformations as tra
 
+# for debugging
+from data_tools.point_cloud import show_point_cloud
+
 
 """
 Things to install:
@@ -123,6 +126,7 @@ class PickAndPlaceTask:
             obstacle_map = info["semantic_map"][0]
             object_map = info["semantic_map"][4 + category_id]
             orig_rgb = info['rgb']
+            show_point_cloud(flat_pcd, orig_rgb.reshape(-1, 3), orig=np.zeros(3))
 
             if attempt == 0:
                 print(list(info.keys()))
@@ -159,7 +163,7 @@ class PickAndPlaceTask:
                                                          orig_rgb,
                                                          flat_object_mask,
                                                          #frame="camera_color_optical_frame")
-                                                         frame="world")
+                                                         frame="map")
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
             predicted_grasps, scores = predicted_grasps[0]
             self.manip.goto_static_grasp(predicted_grasps, scores, pause=True)
