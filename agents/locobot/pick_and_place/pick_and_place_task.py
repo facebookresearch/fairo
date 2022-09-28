@@ -106,7 +106,7 @@ class PickAndPlaceTask:
 
         # Look at end effector and wait long enough that we have a new observation
         self.manip.stow()
-        rospy.sleep(0.5)
+        rospy.sleep(1.)
         self.manip.look_at_ee()
         rospy.sleep(0.5)
 
@@ -159,9 +159,10 @@ class PickAndPlaceTask:
             predicted_grasps = self.grasp_client.request(flat_pcd,
                                                          orig_rgb,
                                                          flat_object_mask,
-                                                         frame="rgb_optical_frame")
+                                                         frame="camera_color_optical_frame")
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
             predicted_grasps, scores = predicted_grasps[0]
+            self.manip.goto_static_grasp(predicted_grasps, scores)
         else:
             print("FAILED TO GRASP! Could not find the object.")
 
