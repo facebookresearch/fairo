@@ -134,6 +134,7 @@ class PickAndPlaceTask:
 
             if attempt == 0:
                 print(list(info.keys()))
+                print("rgb shape was", orig_rgb.shape)
                 print("flat_pcd.shape", flat_pcd.shape)
                 print("flat_object_mask.shape", flat_object_mask.shape)
                 print("image_object_mask.shape", image_object_mask.shape)
@@ -166,11 +167,15 @@ class PickAndPlaceTask:
             predicted_grasps = self.grasp_client.request(flat_pcd,
                                                          orig_rgb,
                                                          flat_object_mask,
-                                                         #frame="camera_color_optical_frame")
-                                                         frame="map")
+                                                         frame="camera_color_optical_frame")
+                                                         #frame="map")
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
             predicted_grasps, scores = predicted_grasps[0]
-            self.manip.goto_static_grasp(predicted_grasps, scores, pause=True)
+            world_grasps = []
+            for grasp in predicted_grasps:
+                grasp = camera_pose @ grasp
+                world_grasps.append(grasp)
+            self.manip.goto_static_grasp(world_grasps, scores, pause=True)
         else:
             print("FAILED TO GRASP! Could not find the object.")
 
