@@ -36,7 +36,8 @@ class PickAndPlaceTask:
         self.slam = mover.slam  # Semantic and obstacle map + last frame
         self.bot = mover.bot    # Main robot class
 
-        self.num_attempts = 100
+        self.num_segment_attempts = 100
+        self.num_grasp_attempts = 10
         self.min_obj_pts = 100
 
         # ROS connection into the robot
@@ -113,7 +114,8 @@ class PickAndPlaceTask:
               "semantic map got updated, which might be slightly stale if the "
               "robot has been moving:")
         
-        for attempt in range(self.num_attempts):
+        grasp_attempts_made = 0
+        for attempt in range(self.num_segment_attempts):
             info = self.slam.get_last_position_vis_info()
             flat_pcd = info["pcd"]
             flat_object_mask = info["semantic_frame"][:, category_id]
@@ -149,18 +151,20 @@ class PickAndPlaceTask:
 
             num_obj_pts = np.sum(image_object_mask)
             print(attempt, "Detected this many object points:", num_obj_pts)
-            if num_obj_pts > self.min_obj_pts:
-                print("Attempting to grasp...")
-                break
+            if num_obj_pts < self.min_obj_pts:
+                print("Too few object points; trying to segment again...")
+                continue
+
+            print("Attempting to grasp...")
+            predicted_grasps = self.grasp_client.request(flat_pcd,
+                                                         orig_rgb,
+                                                         flat_object_mask,
+                                                         frame="rgb_optical_frame")
+            print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
+            predicted_grasps, scores = predicted_grasps[0]
         else:
             print("FAILED TO GRASP! Could not find the object.")
 
-        predicted_grasps = self.grasp_client.request(flat_pcd,
-                                                     orig_rgb,
-                                                     flat_object_mask,
-                                                     frame="rgb_optical_frame")
-        print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
-        predicted_grasps, scores = predicted_grasps[0]
 
     def place(self, end_receptacle):
         """Mobile placing of the object picked up."""
