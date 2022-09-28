@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
+import open3d as o3d
 
 from .constants import coco_categories
+from .utils import get_pcd_in_cam
 
 
 class PickAndPlaceTask:
@@ -9,6 +11,8 @@ class PickAndPlaceTask:
         self.nav = mover.nav    # Point goal nav + semantic exploration
         self.slam = mover.slam  # Semantic and obstacle map + last frame
         self.bot = mover.bot    # Main robot class
+        # self.intrinsic_mat = mover.bot.get_intrinsics()  # Habitat
+        self.intrinsic_mat = mover.cam.get_intrinsics()  # Robot
 
     def pick_and_place(self, start_receptacle: str, object: str, end_receptacle: str):
         """
@@ -55,7 +59,8 @@ class PickAndPlaceTask:
               "robot has been moving:")
         
         info = self.slam.get_last_position_vis_info()
-        flat_pcd = info["pcd"]
+        depth = info["depth"]
+        rgb = info["rgb"]
         flat_object_mask = info["semantic_frame"][:, category_id]
         image_object_mask = info["unfiltered_semantic_frame"][:, :, category_id]
         semantic_frame = info["semantic_frame_vis"]
@@ -63,7 +68,6 @@ class PickAndPlaceTask:
         object_map = info["semantic_map"][4 + category_id]
 
         print(list(info.keys()))
-        print("flat_pcd.shape", flat_pcd.shape)
         print("flat_object_mask.shape", flat_object_mask.shape)
         print("image_object_mask.shape", image_object_mask.shape)
         print("obstacle_map.shape", obstacle_map.shape)
@@ -83,7 +87,12 @@ class PickAndPlaceTask:
 
         print("pose_of_last_map_update", pose_of_last_map_update)
         print("curr_pose_in_map_coordinates", pose_in_map_coordinates)
-        print()
+
+        print("Here is how to generate a point cloud in the camera coordinate frame")
+        
+        print("intrinsic_mat", self.intrinsic_mat)
+        pcd = get_pcd_in_cam(depth, self.intrinsic_mat)
+        print("pcd.shape", pcd.shape)
 
     def place(self):
         """Mobile placing of the object picked up."""
