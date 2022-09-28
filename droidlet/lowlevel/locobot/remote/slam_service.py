@@ -57,6 +57,7 @@ class SLAM(object):
         self.map_size = int(self.map_size_cm // self.map_resolution)
         self.global_downscaling = global_downscaling
         self.local_map_size = self.map_size // global_downscaling
+
         # if the map is a previous map loaded from disk, and
         # if the robot looks around and registers itself at a
         # non-origin location in the map just as it is coming up,
@@ -249,7 +250,9 @@ with Pyro4.Daemon(ip) as daemon:
         max_z = robot_height + 5  # cm
         obj = SLAM(
             robot,
-            obstacle_threshold=5,  # 300 on robot
+            map_size_cm=3600,
+            global_downscaling=3,
+            obstacle_threshold=300,
             agent_min_z=min_z,
             agent_max_z=max_z,
         )

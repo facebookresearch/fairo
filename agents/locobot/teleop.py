@@ -18,8 +18,40 @@ from scipy.spatial import distance
 import open3d as o3d
 from droidlet.lowlevel.hello_robot.remote.obstacle_utils import get_points_in_front, is_obstacle, get_o3d_pointcloud, get_ground_plane
 
-import time
+import copy
 import math
+import json
+import time
+
+
+def get_data(mover):
+    cam_transform = mover.bot.get_camera_transform().value
+    _, _, rot, trans = mover.cam.get_pcd_data(rotate=False)
+    base_state = mover.bot.get_base_state().value
+    rgb_depth = mover.get_rgb_depth()
+    return cam_transform, rot, trans, base_state, rgb_depth
+
+
+def save_data(cam_transform, rot, trans, base_state, rgb_depth, nb_saved_data):    
+    main_folder = 'sept24_fremont/apartment1_beg_toilet/modular_seal/trajectory'
+    step_folder = os.path.join(main_folder, 'step'+str(nb_saved_data))
+    os.makedirs(step_folder)
+    
+    # Frame data (rgb-d and pcd)
+    frames_folder = os.path.join(step_folder, 'frames')
+    os.makedirs(frames_folder)
+
+    np.save(os.path.join(frames_folder, 'depth.npy'), rgb_depth.depth)    
+    cv2.imwrite(os.path.join(frames_folder, 'rgb.png'), rgb_depth.rgb[..., ::-1])
+    
+    # logs data
+    logs_data = {}    
+    logs_data['rot_'] = rot.tolist()
+    logs_data['trans_'] = trans.tolist()
+    logs_data['base_state_'] = base_state.tolist()
+
+    with open(os.path.join(step_folder, 'logs.json'), 'w') as fp:
+        json.dump(logs_data, fp)
 
 
 if __name__ == "__main__":
@@ -304,11 +336,22 @@ if __name__ == "__main__":
     counter = 0
     if backend == 'habitat':
         mover.bot.set_pan(0.0)
-        # mover.bot.set_tilt(-1.5)
     else: # hellorobot
         mover.bot.set_pan(0.0)
-        # mover.bot.set_tilt(-1.05)
+        mover.bot.set_tilt(math.radians(90))
+        mover.bot.set_tilt(math.radians(90))
+        mover.bot.set_tilt(math.radians(90))
+        mover.bot.set_tilt(math.radians(90))
+        mover.bot.set_tilt(math.radians(90))
+        
+        time.sleep(10)
+        print('tilt changed.... ready to start!')
 
+    # Whether to save data here or not
+    saving_data = True
+    if saving_data:
+        last_pose = None
+        nb_saved_data = 0
     while True:
         counter += 1
         iter_time = time.time_ns() - start_time
@@ -316,94 +359,80 @@ if __name__ == "__main__":
             # print("FPS: ", round(counter / (float(iter_time) / 1e9), 1), "  ", int(iter_time / 1e6 / counter), "ms")
             counter = 0
             start_time = time.time_ns()
-
-        base_state = mover.get_base_pos_in_canonical_coords()
-
-        sio.emit("image_settings", log_settings)
-        resolution = log_settings["image_resolution"]
-        quality = log_settings["image_quality"]
-
-        # this goes from 21ms to 120ms
-        rgb_depth = mover.get_rgb_depth()
-
-        points, colors = rgb_depth.ptcloud.reshape(-1, 3), rgb_depth.rgb.reshape(-1, 3)
-        colors = colors / 255.
-
-        # TODO Temporary hack to get semantic map in dashboard
-        if end_to_end_vis is not None:
-            rgb_depth.rgb = end_to_end_vis[:, :, [2, 1, 0]]
-        elif modular_vis is not None:
-            semantic_map_vis = mover.nav.get_last_semantic_map_vis()
-            semantic_map_vis.wait()
-            rgb_depth.rgb = semantic_map_vis.value[:, :, [2, 1, 0]]
-
-        # this takes about 1.5 to 2 fps
-        serialized_image = rgb_depth.to_struct(resolution, quality)
-
-        sio.emit("rgb", serialized_image["rgb"])
-        sio.emit("depth", {
-            "depthImg": serialized_image["depth_img"],
-            "depthMax": serialized_image["depth_max"],
-            "depthMin": serialized_image["depth_min"],
-        })
-
-        if all_points is None:
-            all_points = points
-            all_colors = colors
+        
+        ######## Get robot data
+        if saving_data:
+            cam_transform_, rot_, trans_, base_state_, rgb_depth_ = get_data(mover)
+            base_state_ = np.array(base_state_)
+            
+            # Save data only if pose changed
+            if last_pose is None or np.linalg.norm(last_pose[:2]-base_state_[:2]) >= 0.02 or abs(last_pose[2]-base_state_[2]) >= 0.02:
+                save_data(cam_transform_, rot_, trans_, base_state_, rgb_depth_, nb_saved_data)
+                last_pose = copy.deepcopy(base_state_)
+                nb_saved_data += 1
+        ########
+        
+        # not visualizing when saving data in order to save time
         else:
-            all_points = np.concatenate((all_points, points), axis=0)
-            all_colors = np.concatenate((all_colors, colors), axis=0)
+            base_state = mover.get_base_pos_in_canonical_coords()
 
-        opcd = o3d.geometry.PointCloud()
-        opcd.points = o3d.utility.Vector3dVector(all_points)
-        opcd.colors = o3d.utility.Vector3dVector(all_colors)
-        opcd = opcd.voxel_down_sample(0.03)
+            sio.emit("image_settings", log_settings)
+            resolution = log_settings["image_resolution"]
+            quality = log_settings["image_quality"]
 
-        all_points = np.asarray(opcd.points)
-        all_colors = np.asarray(opcd.colors)
-        
-        o3dviz.put('pointcloud', opcd)
-        # obstacle, cpcd, crop, bbox, rest = mover.is_obstacle_in_front(return_viz=True)
-        # if obstacle:
-        #     crop.paint_uniform_color([0.0, 1.0, 1.0])
-        #     rest.paint_uniform_color([1.0, 0.0, 1.0])
-        # else:
-        #     crop.paint_uniform_color([1.0, 1.0, 0.0])
-        #     rest.paint_uniform_color([0.0, 1.0, 0.0])
-        # o3dviz.put("cpcd", cpcd)
-        # o3dviz.put("bbox", bbox)
-        # o3dviz.put("crop", crop)
-        # o3dviz.put("rest", rest)
-        
-        # print(mover.bot.is_obstacle_in_front())
+            # this goes from 21ms to 120ms
+            rgb_depth = mover.get_rgb_depth()
 
-        # Plot the robot
-        x, y, yaw = base_state.tolist()
+            points, colors = rgb_depth.ptcloud.reshape(-1, 3), rgb_depth.rgb.reshape(-1, 3)
+            colors = colors / 255.
 
-        if backend == 'locobot':
-            height = 0.63
-        else: # hello-robot
-            height = 1.41
-        o3dviz.add_robot(base_state, height)
+            # TODO Temporary hack to get semantic map in dashboard
+            if end_to_end_vis is not None:
+                rgb_depth.rgb = end_to_end_vis[:, :, [2, 1, 0]]
+            elif modular_vis is not None:
+                semantic_map_vis = mover.nav.get_last_semantic_map_vis()
+                semantic_map_vis.wait()
+                rgb_depth.rgb = semantic_map_vis.value[:, :, [2, 1, 0]]
 
-        # start the SLAM
-        # if backend == 'habitat':
-        #     # mover.explore((19, 19, 0))
+            # this takes about 1.5 to 2 fps
+            serialized_image = rgb_depth.to_struct(resolution, quality)
 
-        #     possible_object_goals = mover.bot.get_semantic_categories_in_scene()
-        #     if len(possible_object_goals) > 0:
-        #         object_goal = random.choice(tuple(possible_object_goals))
-        #         mover.move_to_object(object_goal, blocking=True)
+            sio.emit("rgb", serialized_image["rgb"])
+            sio.emit("depth", {
+                "depthImg": serialized_image["depth_img"],
+                "depthMax": serialized_image["depth_max"],
+                "depthMin": serialized_image["depth_min"],
+            })
 
-        #     # import sys
-        #     # sys.exit()
-        #     import os
-        #     os._exit(0)
-        
-        sio.emit(
-            "map",
-            {"x": x, "y": y, "yaw": yaw, "map": mover.get_obstacles_in_canonical_coords()},
-        )
+            if all_points is None:
+                all_points = points
+                all_colors = colors
+            else:
+                all_points = np.concatenate((all_points, points), axis=0)
+                all_colors = np.concatenate((all_colors, colors), axis=0)
 
-        # s = input('...')
+            opcd = o3d.geometry.PointCloud()
+            opcd.points = o3d.utility.Vector3dVector(all_points)
+            opcd.colors = o3d.utility.Vector3dVector(all_colors)
+            opcd = opcd.voxel_down_sample(0.03)
+
+            all_points = np.asarray(opcd.points)
+            all_colors = np.asarray(opcd.colors)
+            
+            o3dviz.put('pointcloud', opcd)
+
+            # Plot the robot
+            x, y, yaw = base_state.tolist()
+
+            if backend == 'locobot':
+                height = 0.63
+            else: # hello-robot
+                height = 1.41
+            o3dviz.add_robot(base_state, height)
+            
+            sio.emit(
+                "map",
+                {"x": x, "y": y, "yaw": yaw, "map": mover.get_obstacles_in_canonical_coords()},
+            )
+
         time.sleep(0.001)

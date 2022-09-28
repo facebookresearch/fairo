@@ -270,14 +270,14 @@ class Navigation(object):
                 # add an obstacle where the collision occurred
                 print(f" Collided at {robot_loc}. Adding an obstacle to the map")
                 # Robot settings
-                # width = 3  # width of obstacle rectangle
-                # length = 2  # depth of obstacle rectangle
-                # buf = 1  # buffer space between robot and obstacle placed in front of it
+                width = 3  # width of obstacle rectangle
+                length = 2  # depth of obstacle rectangle
+                buf = 1  # buffer space between robot and obstacle placed in front of it
 
                 # Habitat settings
-                width = 7  # width of obstacle rectangle
-                length = 4  # depth of obstacle rectangle
-                buf = 1  # buffer space between robot and obstacle placed in front of it
+                # width = 7  # width of obstacle rectangle
+                # length = 4  # depth of obstacle rectangle
+                # buf = 1  # buffer space between robot and obstacle placed in front of it
 
                 x1, y1, t1 = robot_loc
                 obstacle_locs = []
@@ -588,6 +588,7 @@ class Navigation(object):
             self.vis = ObjectGoalNavigationVisualization(path=vis_path)
 
         step = 0
+        remaining_steps_before_sampling = 0
         while step < max_steps:
             step += 1
             info = self.slam.get_last_position_vis_info()
@@ -597,39 +598,45 @@ class Navigation(object):
                     f"[navigation] Step {step}: "
                     f"starting a go_to_absolute decided by learned policy"
                 )
-
-                # Only difference between "learned" and "seal" is in the policy weights (same model trained with different
-                # reward functions).
-                if exploration_method == "learned":
-                    policy = self.active_learning_learned_policy
-                elif exploration_method == "seal":
-                    policy = self.active_learning_seal_policy
-
-                map_features = self.slam.get_semantic_map_features()
-                orientation_tensor = self.slam.get_orientation()
                 
-                goal_action = policy(
-                    map_features,
-                    orientation_tensor,
-                    deterministic=False,
-                )[0]
+                # Sampling long-term goal every 10 steps
+                if remaining_steps_before_sampling == 0:
+                    remaining_steps_before_sampling = 10
 
-                goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
-                global_loc = np.array(self.slam.robot2map(self.robot.get_base_state()[:2]))
-                goal_in_global_map = global_loc + (
-                    goal_in_local_map - self.local_map_size // 2
-                )
-                goal_in_global_map = np.clip(goal_in_global_map, 0, self.map_size - 1)
-                goal_in_world = self.slam.map2robot(goal_in_global_map)
-                goal_map = np.zeros((self.map_size, self.map_size))
-                goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
+                    # Only difference between "learned" and "seal" is in the policy weights (same model trained with different
+                    # reward functions).
+                    if exploration_method == "learned":
+                        policy = self.active_learning_learned_policy
+                    elif exploration_method == "seal":
+                        policy = self.active_learning_seal_policy
 
-                if debug:
-                    print("goal_action:       ", goal_action)
-                    print("goal_in_local_map: ", goal_in_local_map)
-                    print("global_loc:        ", global_loc)
-                    print("goal_in_global_map:", goal_in_global_map)
-                    print("goal_in_world:     ", goal_in_world)
+                    map_features = self.slam.get_semantic_map_features()
+                    orientation_tensor = self.slam.get_orientation()
+                    
+                    goal_action = policy(
+                        map_features,
+                        orientation_tensor,
+                        deterministic=False,
+                    )[0]
+
+                    goal_in_local_map = torch.sigmoid(goal_action).numpy() * self.local_map_size
+                    global_loc = np.array(self.slam.robot2map(self.robot.get_base_state()[:2]))
+                    goal_in_global_map = global_loc + (
+                        goal_in_local_map - self.local_map_size // 2
+                    )
+                    goal_in_global_map = np.clip(goal_in_global_map, 0, self.map_size - 1)
+                    goal_in_world = self.slam.map2robot(goal_in_global_map)
+                    goal_map = np.zeros((self.map_size, self.map_size))
+                    goal_map[int(goal_in_global_map[1]), int(goal_in_global_map[0])] = 1
+
+                    if debug:
+                        print("goal_action:       ", goal_action)
+                        print("goal_in_local_map: ", goal_in_local_map)
+                        print("global_loc:        ", global_loc)
+                        print("goal_in_global_map:", goal_in_global_map)
+                        print("goal_in_world:     ", goal_in_world)
+                else:
+                    remaining_steps_before_sampling -= 1
 
             elif exploration_method == "frontier":
                 print(
