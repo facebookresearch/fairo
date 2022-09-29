@@ -135,7 +135,7 @@ class PickAndPlaceTask:
             camera_pose = self.manip.fk(q, "camera_color_optical_frame")
             # flat_pcd = trimesh.transform_points(flat_pcd, np.linalg.inv(camera_pose))
             flat_pcd = get_pcd_in_cam(depth, self.intrinsic_mat)
-            show_point_cloud(flat_pcd, orig_rgb.reshape(-1, 3), orig=np.zeros(3))
+            #show_point_cloud(flat_pcd, orig_rgb.reshape(-1, 3), orig=np.zeros(3))
 
             if attempt == 0:
                 print(list(info.keys()))
@@ -146,6 +146,7 @@ class PickAndPlaceTask:
                 print("obstacle_map.shape", obstacle_map.shape)
                 print("object_map.shape", object_map.shape)
                 print()
+                print("intrinsics mat:", self.intrinsic_mat)
 
                 cv2.imwrite("semantic_frame.png", semantic_frame)
                 cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
@@ -169,9 +170,14 @@ class PickAndPlaceTask:
                 continue
 
             print("Attempting to grasp...")
+            print("Pcd shape =", flat_pcd.shape)
+            image_object_mask = image_object_mask.reshape(-1)
+            print("image_object_mask", image_object_mask.shape)
+            print("camera pose =", self.bot.get_camera_transform().value)
+            camera_pose = self.bot.get_camera_transform().value
             predicted_grasps = self.grasp_client.request(flat_pcd,
                                                          orig_rgb,
-                                                         flat_object_mask,
+                                                         image_object_mask,
                                                          frame="camera_color_optical_frame")
                                                          #frame="map")
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
