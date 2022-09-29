@@ -11,9 +11,13 @@ class PickAndPlaceTask:
         self.nav = mover.nav    # Point goal nav + semantic exploration
         self.slam = mover.slam  # Semantic and obstacle map + last frame
         self.bot = mover.bot    # Main robot class
+
         # self.intrinsic_mat = mover.bot.get_intrinsics()  # Habitat
         self.intrinsic_mat = mover.cam.get_intrinsics()  # Robot
 
+        # self.extrinsic_mat = None  # Habitat: not sure how to get this
+        self.extrinsic_mat = mover.bot.get_camera_transform()  # Robot
+  
     def pick_and_place(self, start_receptacle: str, object: str, end_receptacle: str):
         """
         End-to-end pick and place with semantic exploration and mobile
@@ -88,9 +92,13 @@ class PickAndPlaceTask:
         print("pose_of_last_map_update", pose_of_last_map_update)
         print("curr_pose_in_map_coordinates", pose_in_map_coordinates)
 
+        print("Here are the camera parameters")
+
+        print("intrinsic_mat", self.intrinsic_mat)
+        print("extrinsic_mat", self.extrinsic_mat)
+
         print("Here is how to generate a point cloud in the camera coordinate frame")
         
-        print("intrinsic_mat", self.intrinsic_mat)
         pcd = get_pcd_in_cam(depth, self.intrinsic_mat)
         print("pcd.shape", pcd.shape)
 
