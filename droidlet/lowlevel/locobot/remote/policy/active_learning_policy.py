@@ -8,7 +8,7 @@ from .utils.model import Flatten, NNBase
 class ActiveLearningNN(NNBase):
     def __init__(self, map_features_shape, hidden_size):
         super(ActiveLearningNN, self).__init__(False, hidden_size, hidden_size)
-        
+
         self.orientation_emb = nn.Embedding(72, 8)
 
         out_size = int(map_features_shape[1] / 16.0) * int(map_features_shape[2] / 16.0)
@@ -47,9 +47,7 @@ class ActiveLearningPolicy(nn.Module):
     def __init__(self, map_features_shape, num_outputs, hidden_size):
         super(ActiveLearningPolicy, self).__init__()
 
-        self.network = ActiveLearningNN(
-            map_features_shape, hidden_size
-        )
+        self.network = ActiveLearningNN(map_features_shape, hidden_size)
         self.dist = DiagGaussian(self.network.output_size, num_outputs)
 
     def forward(self, map_features, orientation, deterministic=False):

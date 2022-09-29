@@ -285,12 +285,10 @@ class HelloRobotMover(MoverInterface):
         else:
             print("navigator executing another call right now")
         return self.nav_result
-    
-    def collect_data(
-        self, episode_id: str, exploration_method: str, blocking=True
-    ):
+
+    def collect_data(self, episode_id: str, exploration_method: str, blocking=True):
         """Active learning - Command to explore the scene to gather training data.
-        
+
         Args:
             exploration_method: learned, frontier or SEAL
         """
