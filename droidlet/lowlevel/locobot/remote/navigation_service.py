@@ -604,7 +604,7 @@ class Navigation(object):
                     f"[navigation] Step {step}: "
                     f"starting a go_to_absolute decided by learned policy"
                 )
-                
+
                 # Sampling long-term goal every 10 steps
                 if remaining_steps_before_sampling == 0:
                     remaining_steps_before_sampling = 10
@@ -618,7 +618,7 @@ class Navigation(object):
 
                     map_features = self.slam.get_semantic_map_features()
                     orientation_tensor = self.slam.get_orientation()
-                    
+
                     goal_action = policy(
                         map_features,
                         orientation_tensor,
