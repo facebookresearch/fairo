@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-<<<<<<< HEAD
+import open3d as o3d
 import rospy
 
 from constants import coco_categories
@@ -32,12 +32,6 @@ Things to install:
     pip install trimesh  # used for motion planning
     # tracikpy for inverse kinematics
 """
-=======
-import open3d as o3d
-
-from .constants import coco_categories
-from .utils import get_pcd_in_cam
->>>>>>> 6e1d6e0e14fbfdf2f322be31abe54d6fbe67932a
 
 
 class PickAndPlaceTask:
@@ -46,7 +40,6 @@ class PickAndPlaceTask:
         self.nav = mover.nav    # Point goal nav + semantic exploration
         self.slam = mover.slam  # Semantic and obstacle map + last frame
         self.bot = mover.bot    # Main robot class
-<<<<<<< HEAD
         self.intrinsic_mat = mover.cam.get_intrinsics()
 
         self.num_segment_attempts = 100
@@ -73,10 +66,6 @@ class PickAndPlaceTask:
         # This is for enabling integration with home-robot grasping code. If this is disabled, we
         # do not need to run any base motion related commands.
         self.navigation_enabled = False
-=======
-        # self.intrinsic_mat = mover.bot.get_intrinsics()  # Habitat
-        self.intrinsic_mat = mover.cam.get_intrinsics()  # Robot
->>>>>>> 6e1d6e0e14fbfdf2f322be31abe54d6fbe67932a
 
     def pick_and_place(self, start_receptacle: str, object: str, end_receptacle: str):
         """
