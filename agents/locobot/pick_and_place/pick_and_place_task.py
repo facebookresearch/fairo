@@ -48,7 +48,7 @@ class PickAndPlaceTask:
 
         # ROS connection into the robot
         # TODO: this needs to be replaced by code that exists in them over
-        visualize = False  # Debugging flag, renders kinematics in pybullet
+        visualize = True  # Debugging flag, renders kinematics in pybullet
         self.manip = HelloStretchROSInterface(visualize_planner=visualize,
                                               root=get_package_path(),
                                               init_cameras=False,  # ROS camera intialization

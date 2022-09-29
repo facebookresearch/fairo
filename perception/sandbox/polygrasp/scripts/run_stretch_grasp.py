@@ -332,11 +332,6 @@ def main(cfg):
     # Main loop over solutions
     for grasp in grasps:
         grasp_pose = to_pos_quat(grasp)
-        #standoff_pose = grasp.copy()
-        #offset = np.eye(4)
-        #offset[2, 3] = -0.7
-        #standoff_pose = grasp @ offset
-        #standoff_pose = to_pos_quat(standoff_pose)
         qi = model.static_ik(grasp_pose, q)
         print("grasp xyz =", grasp_pose[0])
         if qi is not None:
