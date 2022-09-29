@@ -3,6 +3,7 @@ import numpy as np
 import rospy
 
 from constants import coco_categories
+from utils import get_pcd_in_cam
 
 # ----------------------
 # Robot planning tools
@@ -38,6 +39,7 @@ class PickAndPlaceTask:
         self.nav = mover.nav    # Point goal nav + semantic exploration
         self.slam = mover.slam  # Semantic and obstacle map + last frame
         self.bot = mover.bot    # Main robot class
+        self.intrinsic_mat = mover.cam.get_intrinsics()
 
         self.num_segment_attempts = 100
         self.num_grasp_attempts = 10
@@ -126,10 +128,12 @@ class PickAndPlaceTask:
             obstacle_map = info["semantic_map"][0]
             object_map = info["semantic_map"][4 + category_id]
             orig_rgb = info['rgb']
+            depth = info['depth']
 
             q, _ = self.manip.update()
             camera_pose = self.manip.fk(q, "camera_color_optical_frame")
-            flat_pcd = trimesh.transform_points(flat_pcd, np.linalg.inv(camera_pose))
+            # flat_pcd = trimesh.transform_points(flat_pcd, np.linalg.inv(camera_pose))
+            flat_pcd = get_pcd_in_cam(depth, self.intrinsic_mat)
             show_point_cloud(flat_pcd, orig_rgb.reshape(-1, 3), orig=np.zeros(3))
 
             if attempt == 0:
@@ -215,7 +219,8 @@ if __name__ == '__main__':
         "--ip",
         help="Server device (robot) IP.",
         type=str,
-        default="192.168.0.49",
+        # default="192.168.0.49",  # ROBOT 1
+        default="192.168.0.48",  # ROBOT 2
     )
     parser.add_argument(
         "--backend",
