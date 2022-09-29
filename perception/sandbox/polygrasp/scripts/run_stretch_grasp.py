@@ -307,7 +307,6 @@ def main(cfg):
             geom.colors = o3d.utility.Vector3dVector(rgb)
         xyz = np.asarray(geom.points)
         xyz = trimesh.transform_points(xyz @ R_stretch_camera.T, camera_pose)
-        #xyz = (xyz @ R_stretch_camera.T)
         geom.points = o3d.utility.Vector3dVector(xyz)
 
     # Add final things to visualize point cloud problems
@@ -324,13 +323,9 @@ def main(cfg):
     # Some magic numbers here
     # This should correct for the length of the Stretch gripper and the gripper upon which
     # Graspnet was trained
-    grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.12
+    grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.11
     for i, grasp in enumerate(grasps):
         grasps[i] = grasp @ grasp_offset
-
-    # Now execute planning
-    # offset = np.eye(4)
-    # offset[2, 3] = -0.1
 
     print("=========== grasps =============")
     print("find a grasp that doesnt move the base...")

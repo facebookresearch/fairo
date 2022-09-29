@@ -48,7 +48,7 @@ class PickAndPlaceTask:
 
         # ROS connection into the robot
         # TODO: this needs to be replaced by code that exists in them over
-        visualize = True  # Debugging flag, renders kinematics in pybullet
+        visualize = False  # Debugging flag, renders kinematics in pybullet
         self.manip = HelloStretchROSInterface(visualize_planner=visualize,
                                               root=get_package_path(),
                                               init_cameras=False,  # ROS camera intialization
@@ -174,7 +174,7 @@ class PickAndPlaceTask:
             image_object_mask = image_object_mask.reshape(-1)
             print("image_object_mask", image_object_mask.shape)
             print("camera pose =", self.bot.get_camera_transform().value)
-            camera_pose = self.bot.get_camera_transform().value
+            # camera_pose = self.bot.get_camera_transform().value
             predicted_grasps = self.grasp_client.request(flat_pcd,
                                                          orig_rgb,
                                                          image_object_mask,
@@ -184,7 +184,7 @@ class PickAndPlaceTask:
             predicted_grasps, scores = predicted_grasps[0]
             world_grasps = []
             for grasp in predicted_grasps:
-                grasp = camera_pose @ grasp
+                grasp = camera_pose @ grasp # @ tra.euler_matrix(np.pi/2, 0, 0)
                 world_grasps.append(grasp)
             self.manip.goto_static_grasp(world_grasps, scores, pause=True)
         else:
