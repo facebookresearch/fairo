@@ -33,11 +33,11 @@ def get_data(mover):
 
 
 def save_data(cam_transform, rot, trans, base_state, rgb_depth, nb_saved_data):    
-    main_folder = 'sept24_fremont/apartment1_beg_toilet/modular_seal/trajectory'
+    main_folder = 'main_folder_path'
     step_folder = os.path.join(main_folder, 'step'+str(nb_saved_data))
     os.makedirs(step_folder)
     
-    # Frame data (rgb-d and pcd)
+    # Frame data
     frames_folder = os.path.join(step_folder, 'frames')
     os.makedirs(frames_folder)
 
@@ -339,14 +339,9 @@ if __name__ == "__main__":
     else: # hellorobot
         mover.bot.set_pan(0.0)
         mover.bot.set_tilt(math.radians(90))
-        mover.bot.set_tilt(math.radians(90))
-        mover.bot.set_tilt(math.radians(90))
-        mover.bot.set_tilt(math.radians(90))
-        mover.bot.set_tilt(math.radians(90))
-        
         time.sleep(10)
         print('tilt changed.... ready to start!')
-
+        
     # Whether to save data here or not
     saving_data = True
     if saving_data:
