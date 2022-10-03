@@ -23,6 +23,7 @@ import trimesh.transformations as tra
 
 # For handling grasping
 from home_robot.utils.pose import to_pos_quat
+from home_robot.utils.numpy import to_npy_file
 
 # for debugging
 from data_tools.point_cloud import show_point_cloud
@@ -34,6 +35,27 @@ Things to install:
     pip install pybullet  # Used for kinematics
     pip install trimesh  # used for motion planning
     # tracikpy for inverse kinematics
+
+On robot:
+    ssh hello-robot@$ROBOT_IP  # ROBOT 1: 192.168.0.49, ROBOT 2: 192.168.0.48
+    # in separate tabs
+    roscore  # This is just to make development easier, not necessary
+    roslaunch home_robot startup_stretch_hector_slam.launch start_rs_ros:=false
+    droidlet && ./launch.sh --ros
+
+Contact graspnet:
+    cd ~/src/contact_graspnet; conda activate contact_graspnet_env; python contact_graspnet/graspnet_ros_server.py  --local_regions --filter_grasps
+
+RVIZ: To visualize using rviz, on desktop (OPTIONAL STEP):
+    # note that if you want to see the point cloud, we either need to:
+    # (1) modify robot code to publish images to ros, OR
+    # (2) run realsense briefly under ros:
+    #     roslaunch home_robot startup_stretch_hector_slam.launch start_rs_ros:=true
+    roslaunch home_robot visualization.launch
+
+Finally, to run code:
+    cd ~/src/fairo/agents/locobot/pick_and_place; conda activate droidlet
+    python pick_and_place_task.py
 """
 
 
@@ -55,7 +77,7 @@ class PickAndPlaceTask:
 
         # ROS connection into the robot
         # TODO: this needs to be replaced by code that exists in them over
-        visualize = True  # Debugging flag, renders kinematics in pybullet
+        visualize = False  # Debugging flag, renders kinematics in pybullet
         self.manip = HelloStretchROSInterface(visualize_planner=visualize,
                                               root=get_package_path(),
                                               init_cameras=False,  # ROS camera intialization
@@ -157,6 +179,7 @@ class PickAndPlaceTask:
                     q_pre = q.copy()
                     q_pre[5:] = q1[5:]
                     q_pre = self.model.update_gripper(q_pre, open=True)
+                    # TODO replace this
                     #self.move_base(theta=q1[2])
                     time.sleep(2.0)
                     self.manip.goto(q_pre, move_base=False, wait=False, verbose=False)
@@ -167,6 +190,7 @@ class PickAndPlaceTask:
                     self.manip.goto(q1, move_base=False, wait=True, verbose=False)
                     if pause:
                         input('--> go to grasp')
+                    # TODO replace this
                     #self.move_base(theta=q2[2])
                     time.sleep(2.0)
                     self.manip.goto(q_pre, move_base=False, wait=False, verbose=False)
@@ -180,6 +204,7 @@ class PickAndPlaceTask:
                     time.sleep(2.)
                     q = self.model.update_gripper(q, open=False)
                     self.manip.goto(q, move_base=False, wait=True, verbose=False)
+                    # TODO replace this
                     #self.move_base(theta=q[0])
                     return True
         return False
@@ -259,22 +284,46 @@ class PickAndPlaceTask:
             print("Pcd shape =", flat_pcd.shape)
             image_object_mask = image_object_mask.reshape(-1)
             print("image_object_mask", image_object_mask.shape)
-            print("camera pose =", self.bot.get_camera_transform().value)
-            # camera_pose = self.bot.get_camera_transform().value
+            print()
+            print("CAMERA POSE")
+            print("self.bot.get_camera_transform().value")
+            print(self.bot.get_camera_transform().value)
+            print("self.manip.fk(q, 'camera_color_optical_frame')")
+            print(self.manip.fk(q, "camera_color_optical_frame"))
+            print("self.manip.fk(q, 'camera_color_frame')")
+            print(self.manip.fk(q, "camera_color_frame"))
+            print("self.manip.get_pose('camera_color_optical_frame')")
+            print(self.manip.get_pose('camera_color_optical_frame'))
+            print()
+            to_npy_file('stretch2', xyz=flat_pcd, rgb=orig_rgb,
+                        depth=depth, xyz_color=orig_rgb, seg=image_object_mask,
+                        K=self.intrinsic_mat)
             predicted_grasps = self.grasp_client.request(flat_pcd,
                                                          orig_rgb,
                                                          image_object_mask,
                                                          frame="camera_color_optical_frame")
                                                          #frame="map")
-            print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
+            #print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
             predicted_grasps, scores = predicted_grasps[0]
+            #print("len(predicted_grasps)", len(predicted_grasps))
+            #print("len(scores)", len(scores))
             world_grasps = []
             for grasp in predicted_grasps:
-                grasp = camera_pose @ grasp # @ tra.euler_matrix(np.pi/2, 0, 0)
+                grasp = camera_pose @ grasp
                 grasp[2, 3] += BASE_HEIGHT
                 world_grasps.append(grasp)
+            
+            print()
+            print("GRASP")
+            print("predicted_grasps[0]")
+            print(predicted_grasps[0])
+            print("world_grasps[0]")
+            print(world_grasps[0])
+            print()
+            break
+
             #self.manip.goto_static_grasp(world_grasps, scores, pause=True)
-            self.goto_static_grasp(world_grasps, scores, pause=True)
+            #self.goto_static_grasp(world_grasps, scores, pause=True)
         else:
             print("FAILED TO GRASP! Could not find the object.")
 
