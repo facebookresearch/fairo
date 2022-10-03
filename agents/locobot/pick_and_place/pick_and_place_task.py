@@ -21,6 +21,9 @@ import home_robot.utils.image as hrimg
 import trimesh
 import trimesh.transformations as tra
 
+# For handling grasping
+from home_robot.utils.pose import to_pos_quat
+
 # for debugging
 from data_tools.point_cloud import show_point_cloud
 
@@ -32,6 +35,10 @@ Things to install:
     pip install trimesh  # used for motion planning
     # tracikpy for inverse kinematics
 """
+
+
+# Hard coded in remote_hello_robot_ros.py
+BASE_HEIGHT = 0.091491526943
 
 
 class PickAndPlaceTask:
@@ -98,6 +105,84 @@ class PickAndPlaceTask:
             )
         # Pass object into picking code
         self.pick(object)
+
+    def goto_static_grasp(self, grasps, scores=None, pause=False):
+        """
+        Go to a grasp position, given a list of acceptable grasps
+        """
+        if scores is None:
+            scores = np.arange(len(grasps))
+        q, _ = self.manip.update()
+
+        grasp_offset = np.eye(4)
+        # Some magic numbers here
+        # This should correct for the length of the Stretch gripper and the gripper upon which
+        # Graspnet was trained
+        grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.12
+        for i, grasp in enumerate(grasps):
+            grasps[i] = grasp @ grasp_offset
+
+        # q[:3] = np.zeros(3)
+        for grasp, score in sorted(zip(grasps, scores), key=lambda p: p[1]):
+            grasp_pose = to_pos_quat(grasp)
+            qi = self.model.static_ik(grasp_pose, q)
+            print("grasp xyz =", grasp_pose[0])
+            if qi is not None:
+                print(" - IK found")
+                self.model.set_config(qi)
+                input('---')
+            else:
+                # Grasp attempt failure
+                continue
+            # Record the initial q value here and use it 
+            theta0 = q[2]
+            q1 = qi.copy()
+            q1[HelloStretchIdx.LIFT] += 0.08
+            #q1[HelloStretchIdx.LIFT] += 0.2
+            if q1 is not None:
+                # Run a validity check to make sure we can actually pick this thing up
+                if not self.model.validate(q1):
+                    print("invalid standoff config:", q1)
+                    continue
+                print("found standoff")
+                q2 = qi
+                # q2 = model.static_ik(grasp_pose, q1)
+                if q2 is not None:
+                    # if np.abs(eq1) < 0.075 and np.abs(eq2) < 0.075:
+                    # go to the grasp and try it
+                    q[HelloStretchIdx.LIFT] = 0.99
+                    self.manip.goto(q, move_base=False, wait=True, verbose=False)
+                    if pause:
+                        input('--> go high')
+                    q_pre = q.copy()
+                    q_pre[5:] = q1[5:]
+                    q_pre = self.model.update_gripper(q_pre, open=True)
+                    #self.move_base(theta=q1[2])
+                    time.sleep(2.0)
+                    self.manip.goto(q_pre, move_base=False, wait=False, verbose=False)
+                    self.model.set_config(q1)
+                    if pause:
+                        input('--> gripper ready; go to standoff')
+                    q1 = self.model.update_gripper(q1, open=True)
+                    self.manip.goto(q1, move_base=False, wait=True, verbose=False)
+                    if pause:
+                        input('--> go to grasp')
+                    #self.move_base(theta=q2[2])
+                    time.sleep(2.0)
+                    self.manip.goto(q_pre, move_base=False, wait=False, verbose=False)
+                    self.model.set_config(q2)
+                    q2 = self.model.update_gripper(q2, open=True)
+                    self.manip.goto(q2, move_base=False, wait=True, verbose=True)
+                    if pause:
+                        input('--> close the gripper')
+                    q2 = self.model.update_gripper(q2, open=False)
+                    self.manip.goto(q2, move_base=False, wait=False, verbose=True)
+                    time.sleep(2.)
+                    q = self.model.update_gripper(q, open=False)
+                    self.manip.goto(q, move_base=False, wait=True, verbose=False)
+                    #self.move_base(theta=q[0])
+                    return True
+        return False
         
     def pick(self, object: str):
         """
@@ -133,6 +218,7 @@ class PickAndPlaceTask:
 
             q, _ = self.manip.update()
             camera_pose = self.manip.fk(q, "camera_color_optical_frame")
+            #caamera_pose = self.manip.fk(q, "camera_color_frame")
             # flat_pcd = trimesh.transform_points(flat_pcd, np.linalg.inv(camera_pose))
             flat_pcd = get_pcd_in_cam(depth, self.intrinsic_mat)
             #show_point_cloud(flat_pcd, orig_rgb.reshape(-1, 3), orig=np.zeros(3))
@@ -185,8 +271,10 @@ class PickAndPlaceTask:
             world_grasps = []
             for grasp in predicted_grasps:
                 grasp = camera_pose @ grasp # @ tra.euler_matrix(np.pi/2, 0, 0)
+                grasp[2, 3] += BASE_HEIGHT
                 world_grasps.append(grasp)
-            self.manip.goto_static_grasp(world_grasps, scores, pause=True)
+            #self.manip.goto_static_grasp(world_grasps, scores, pause=True)
+            self.goto_static_grasp(world_grasps, scores, pause=True)
         else:
             print("FAILED TO GRASP! Could not find the object.")
 
