@@ -7,6 +7,7 @@ import droidlet.base_util
 import droidlet.lowlevel.minecraft.shape_util
 import droidlet.lowlevel.minecraft.shapes
 import droidlet.lowlevel.minecraft.shapes as shapes
+from droidlet.memory.memory_nodes import TripleNode
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.interpreter.tests.all_test_commands import *
 
@@ -31,7 +32,7 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
     def test_get_name_and_left_of(self):
         # set the name
         name = "fluffball"
-        self.agent.memory.add_triple(subj=self.cube.memid, pred_text="has_name", obj_text=name)
+        self.agent.memory.nodes[TripleNode.NODE_TYPE].create(self.agent.memory, subj=self.cube.memid, pred_text="has_name", obj_text=name)
 
         # get the name
         d = GET_MEMORY_COMMANDS["what is where I am looking"]

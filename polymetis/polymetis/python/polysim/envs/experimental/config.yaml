@@ -1,0 +1,13 @@
+defaults:
+  - robot_model: franka_panda_with_hand
+  - robot_client: franka_sim
+
+hz: 240
+gui: false
+
+arm:
+  ip: localhost
+  port: 50051
+gripper:
+  ip: localhost
+  port: 50052

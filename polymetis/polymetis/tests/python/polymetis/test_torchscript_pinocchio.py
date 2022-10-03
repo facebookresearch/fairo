@@ -75,6 +75,19 @@ def joint_states():
     return joint_pos, joint_vel, joint_acc, num_dofs
 
 
+def test_link_names_and_idcs(pybullet_env, pinocchio_wrapper, joint_states):
+    joint_pos, joint_vel, joint_acc, num_dofs = joint_states
+    bullet_sim, robot_id = pybullet_env
+
+    for idx in range(num_dofs):
+        link_name = bullet_sim.getJointInfo(robot_id, jointIndex=idx)[12].decode(
+            "utf-8"
+        )
+        pindex = pinocchio_wrapper.model.get_link_idx_from_name(link_name)
+        pname = pinocchio_wrapper.get_link_name_from_idx(pindex)
+        assert pname == link_name
+
+
 def test_forward_kinematics(pybullet_env, pinocchio_wrapper, joint_states):
     joint_pos, joint_vel, joint_acc, num_dofs = joint_states
     sim, robot_id = pybullet_env

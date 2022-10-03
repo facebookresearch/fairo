@@ -12,6 +12,8 @@ import time
 import boto3
 
 from droidlet.tools.hitl.data_generator import DataGenerator
+from droidlet.tools.hitl.task_runner import TaskRunner
+from droidlet.tools.hitl.utils.hitl_recorder import Job, Recorder, JobStat
 
 HITL_TMP_DIR = (
     os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
@@ -47,13 +49,23 @@ class AnnotationJob(DataGenerator):
 
     """
 
-    def __init__(self, batch_id: int, command: str, cmd_id: int, timeout: float = -1) -> None:
+    def __init__(
+        self,
+        job_mng_util: Recorder,
+        batch_id: int,
+        command: str,
+        cmd_id: int,
+        timeout: float = -1,
+    ) -> None:
         super(AnnotationJob, self).__init__(timeout)
+        self._job_mng_util = job_mng_util
         self._batch_id = batch_id
         self._command = command
         self._cmd_id = cmd_id
+        job_mng_util.set_job_stat(Job.ANNOTATION, JobStat.ENABLED, True)
 
     def run(self) -> None:
+        self._job_mng_util.set_job_start(job_type=Job.ANNOTATION)
         try:
             MTURK_AWS_ACCESS_KEY_ID = os.environ["MTURK_AWS_ACCESS_KEY_ID"]
             MTURK_AWS_SECRET_ACCESS_KEY = os.environ["MTURK_AWS_SECRET_ACCESS_KEY"]
@@ -73,6 +85,8 @@ class AnnotationJob(DataGenerator):
 
             # Keep running Mephisto until timeout or job finished
             while not self.check_is_timeout() and p.poll() is None:
+                # TODO: update job completed
+
                 logging.info(
                     f"Annotation Job [{self._batch_id}-{self._cmd_id}-{self._command}] still running...Remaining time: {self.get_remaining_time()}"
                 )
@@ -104,9 +118,14 @@ class AnnotationJob(DataGenerator):
                 f"Annotation Job [{self._batch_id}-{self._cmd_id}-{self._command}] terminated unexpectedly..."
             )
 
+        # TODO: update total finished jobs
+        self._job_mng_util.set_job_end(job_type=Job.ANNOTATION)
         self.set_finished()
 
 
 if __name__ == "__main__":
-    aj = AnnotationJob(987, "destory the biggest house behind me", 1, 300)
+    runner = TaskRunner()
+    aj = AnnotationJob(
+        runner.get_job_manage_util(), 987, "destory the biggest house behind me", 1, 300
+    )
     aj.run()

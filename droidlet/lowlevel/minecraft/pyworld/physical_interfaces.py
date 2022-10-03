@@ -165,6 +165,26 @@ class SetLook(FakeCPPAction):
         self.agent.set_look_vec(a[0], a[1], a[2])
 
 
+class Pick(FakeCPPAction):
+    NAME = "pick"
+
+    def action(self, item_eid):
+        self.agent.world_interaction_occurred = True
+        return self.agent.world.player_pick_drop_items(
+            self.agent.entityId, [item_eid], action="pick"
+        )
+
+
+class Drop(FakeCPPAction):
+    NAME = "drop"
+
+    def action(self, item_eid):
+        self.agent.world_interaction_occurred = True
+        return self.agent.world.player_pick_drop_items(
+            self.agent.entityId, [item_eid], action="drop"
+        )
+
+
 class Craft(FakeCPPAction):
     NAME = "craft"
 
@@ -172,7 +192,9 @@ class Craft(FakeCPPAction):
         raise NotImplementedError()
 
 
-def init_agent_interfaces(agent):
+def init_agent_interfaces(agent, fake_backend="pyworld"):
+    # FIXME use pyworld_mover
+    # FIXME run test with "cuberite" fake backend that does picks minecraft style
     agent.dig = Dig(agent)
     agent.send_chat = SendChat(agent)
     agent.set_held_item = SetHeldItem(agent)
@@ -186,3 +208,5 @@ def init_agent_interfaces(agent):
     agent.set_look = SetLook(agent)
     agent.look_at = LookAt(agent)
     agent.place_block = PlaceBlock(agent)
+    agent.pick_entityId = Pick(agent)
+    agent.drop = Drop(agent)

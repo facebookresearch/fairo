@@ -301,3 +301,8 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         self.render()
 
         return applied_torques
+
+    def set_robot_state(self, robot_state):
+        raise NotImplementedError(
+            f"Mirror simulation not implemented for {type(self).__name__}"
+        )

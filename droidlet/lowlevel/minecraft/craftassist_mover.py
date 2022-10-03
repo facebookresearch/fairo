@@ -1,21 +1,10 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from typing import cast
-from collections import namedtuple
-from droidlet.base_util import XYZ
 import numpy as np
-
-# mainHand is the item in the player or agent's hand, that will be placed by a place block action
-# it is defined in lowlevel/minecraft/client/src/types.h as Item, and has fields id, meta
-Player = namedtuple(
-    "Player", "entityId, name, pos, look, mainHand, cagent_struct", defaults=(None,) * 6
-)
-Mob = namedtuple("Mob", "entityId, mobType, pos, look, cagent_struct", defaults=(None,) * 5)
-Pos = namedtuple("Pos", "x, y, z")
-Look = namedtuple("Look", "yaw, pitch")
-Item = namedtuple("Item", "id, meta")
-ItemStack = namedtuple("ItemStack", "item, pos, entityId")
+from typing import cast
+from droidlet.base_util import XYZ, Pos, Look
+from droidlet.shared_data_struct.craftassist_shared_utils import Player, Item, ItemStack, Mob
 
 
 def flip_x(struct, floor=False):
@@ -28,7 +17,9 @@ def flip_x(struct, floor=False):
 
 
 def flip_look(struct):
-    return Look(-struct.yaw, -struct.pitch)
+    yaw = -np.deg2rad(struct.yaw)
+    pitch = -np.deg2rad(struct.pitch)
+    return Look(yaw, pitch)
 
 
 def maybe_flip_x_or_look(struct, floor=False):
@@ -88,6 +79,7 @@ class CraftassistMover:
             "drop_inventory_item_stack",
             "set_inventory_slot",
             "get_player_inventory",
+            "get_incoming_chats",
             "get_inventory_item_count",
             "get_inventory_items_counts",
             "send_chat",
@@ -99,7 +91,6 @@ class CraftassistMover:
             "craft",
             "get_world_age",
             "get_time_of_day",
-            "send_chat",
             "get_vision",
             "disconnect",
         ]
@@ -148,23 +139,24 @@ class CraftassistMover:
 
     # FIXME!! turn_angle is broken in the cagent; should be swapping here,
     # but cagent actually has it backwards
-    # turn_angle isn't being used in other parts of agent.
     def turn_angle(self, yaw):
         self.cagent.turn_angle(yaw)
 
     def set_look(self, yaw, pitch):
-        self.cagent.set_look(-yaw, pitch)
+        self.cagent.set_look(-yaw, -pitch)
 
     def look_at(self, x, y, z):
         self.cagent.look_at(-x, y, z)
 
     def get_blocks(self, x, X, y, Y, z, Z):
         """
-        returns an (X-x+1) x (Y-y+1) x (Z-z+1) x 2 numpy array B of the blocks
+        returns an (Y-y+1) x (Z-z+1) x (X-x+1) x 2 numpy array B of the blocks
         in the rectanguloid with bounded by the input coordinates (including endpoints).
         Input coordinates are in droidlet coordinates; and the output array is
         in yzxb permutation, where B[0,0,0,:] corresponds to the id and meta of
         the block at x, y, z
+
+        TODO: we don't need yzx orientation anymore...
         """
         # negate the x coordinate to shift to cuberite coords
         B = self.cagent.get_blocks(-X, -x, y, Y, z, Z)
@@ -257,8 +249,8 @@ def from_droidlet_xyz_to_minecraft(xyz):
 
 
 def from_minecraft_look_to_droidlet(look):
-    return Look(-look.yaw, look.pitch)
+    return Look(-look.yaw, -look.pitch)
 
 
 def from_droidlet_look_to_craftassist(look):
-    return Look(-look.yaw, look.pitch)
+    return Look(-look.yaw, -look.pitch)

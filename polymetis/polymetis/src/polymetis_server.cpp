@@ -14,6 +14,12 @@ PolymetisControllerServerImpl::PolymetisControllerServerImpl() {
 Status PolymetisControllerServerImpl::GetRobotState(ServerContext *context,
                                                     const Empty *,
                                                     RobotState *robot_state) {
+  std::cout << "Get called, buffer size " << robot_state_buffer_.size()
+            << std::endl;
+  if (robot_state_buffer_.size() == 0) {
+    return Status(StatusCode::FAILED_PRECONDITION,
+                  "Cannot retrieve robot state from empty buffer!");
+  }
   *robot_state = *robot_state_buffer_.get(robot_state_buffer_.size() - 1);
   return Status::OK;
 }
@@ -126,6 +132,18 @@ void PolymetisControllerServerImpl::resetControllerContext() {
   custom_controller_context_.status = UNINITIALIZED;
 }
 
+int PolymetisControllerServerImpl::setThreadPriority(int prio) {
+  pthread_t curr_thr = pthread_self();
+  int policy_noop;
+  struct sched_param orig_param;
+
+  pthread_getschedparam(curr_thr, &policy_noop, &orig_param);
+  pthread_setschedprio(curr_thr, prio);
+
+  // Return original prio for keeping track
+  return orig_param.sched_priority;
+}
+
 Status
 PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
                                              const RobotState *robot_state,
@@ -175,7 +193,7 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   // Select controller
   TorchScriptedController *controller;
   if (custom_controller_context_.status == RUNNING) {
-    controller = custom_controller_context_.custom_controller;
+    controller = custom_controller_context_.custom_controller.get();
   } else {
     controller = robot_client_context_.default_controller;
   }
@@ -223,6 +241,8 @@ Status PolymetisControllerServerImpl::SetController(
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
 
+  int orig_prio = setThreadPriority(RT_LOW_PRIO);
+
   interval->set_start(-1);
   interval->set_end(-1);
 
@@ -240,15 +260,17 @@ Status PolymetisControllerServerImpl::SetController(
 
   try {
     // Load new controller
-    auto new_controller = new TorchScriptedController(
+    auto new_controller = std::make_unique<TorchScriptedController>(
         controller_model_buffer_.data(), controller_model_buffer_.size(),
         *torch_robot_state_);
 
     // Switch in new controller by updating controller context
+    // (note: use std::swap to put ptr to old controller in new_controller,
+    // which destructs automatically after going out of scope)
     custom_controller_context_.controller_mtx.lock();
 
     resetControllerContext();
-    custom_controller_context_.custom_controller = new_controller;
+    std::swap(custom_controller_context_.custom_controller, new_controller);
     custom_controller_context_.status = READY;
 
     custom_controller_context_.controller_mtx.unlock();
@@ -267,7 +289,7 @@ Status PolymetisControllerServerImpl::SetController(
   }
   interval->set_start(custom_controller_context_.episode_begin);
 
-  // Return success.
+  setThreadPriority(orig_prio);
   return Status::OK;
 }
 
@@ -275,6 +297,7 @@ Status PolymetisControllerServerImpl::UpdateController(
     ServerContext *context, ServerReader<ControllerChunk> *stream,
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
+  int orig_prio = setThreadPriority(RT_LOW_PRIO);
 
   interval->set_start(-1);
   interval->set_end(-1);
@@ -321,6 +344,7 @@ Status PolymetisControllerServerImpl::UpdateController(
     return Status(StatusCode::CANCELLED, error_msg);
   }
 
+  setThreadPriority(orig_prio);
   return Status::OK;
 }
 

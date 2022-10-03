@@ -8,12 +8,13 @@ import os
 from mephisto.operations.operator import Operator
 from mephisto.tools.scripts import load_db_and_process_config
 from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
-    BLUEPRINT_TYPE,
+    BLUEPRINT_TYPE_STATIC_HTML,
 )
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
     SharedStaticTaskState,
 )
-from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST, make_qualification_dict
+from mephisto.data_model.qualification import QUAL_EXISTS, QUAL_NOT_EXIST
+from mephisto.utils.qualifications import make_qualification_dict
 from pilot_config import PILOT_ALLOWLIST_QUAL_NAME as ALLOWLIST_QUALIFICATION
 from pilot_config import SOFTBLOCK_QUAL_NAME as SOFTBLOCK_QUALIFICATION
 
@@ -26,7 +27,7 @@ TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 defaults = [
     "_self_",
-    {"mephisto/blueprint": BLUEPRINT_TYPE},
+    {"mephisto/blueprint": BLUEPRINT_TYPE_STATIC_HTML},
     {"mephisto/architect": "ec2"},
     {"mephisto/provider": "mock"},
     {"conf": "annotation"},

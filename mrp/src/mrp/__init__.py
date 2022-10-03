@@ -1,10 +1,12 @@
-from mrp.process_def import process
+import mrp
+from mrp.process_def import defined_processes, process
 from mrp.runtime.conda import Conda
 from mrp.runtime.docker import Docker
 from mrp.runtime.host import Host
 from mrp.util import NoEscape
 from importlib.machinery import SourceFileLoader
 import click
+import inspect
 import os
 import sys
 
@@ -21,6 +23,37 @@ def main(*args):
         click.echo(ex, err=True)
         sys.exit(1)
     sys.exit(0)
+
+
+def import_msetup(path, processes=None):
+    # Get path relative to caller.
+    caller_path = inspect.stack()[1].filename
+    caller_dir = os.path.dirname(caller_path)
+    target_path = os.path.join(caller_dir, path)
+
+    # Add default filename if provided path is a directory.
+    if os.path.isdir(target_path):
+        target_path = os.path.join(target_path, "msetup.py")
+
+    # We hook mrp.process to filter processes within the import.
+
+    # Save the real function for use within the hook
+    # and to restore post-import.
+    process_impl = mrp.process
+
+    # Replacement implementation.
+    def hook(name, *args, **kwargs):
+        if processes is None or name in processes:
+            return process_impl(name, *args, **kwargs)
+
+    # Attach the hook.
+    mrp.process = hook
+
+    # Import.
+    SourceFileLoader("msetup", target_path).load_module()
+
+    # Undo the hook.
+    mrp.process = process_impl
 
 
 class cmd:
@@ -49,4 +82,17 @@ for cmd_file in os.listdir(cmds_path):
         setattr(cmd, cmd_name, module.cli.callback)
         cli.add_command(module.cli, cmd_name)
 
-__all__ = ["main", "process", "NoEscape", "Docker", "Conda", "Host", "cmd"]
+__all__ = [
+    # CLI entrypoint.
+    "main",
+    # Process definition.
+    "process",
+    "defined_processes",
+    "NoEscape",
+    # Runtimes.
+    "Docker",
+    "Conda",
+    "Host",
+    # Command interface.
+    "cmd",
+]

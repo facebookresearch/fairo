@@ -51,7 +51,7 @@ def fetch_test_assets_from_aws(agent=None):
 
     print("Writing to : %r" % test_artifact_path)
     process = Popen(
-        ["tar", "-xzvf", file_name, "-C", test_artifact_path, "--strip-components", "1"],
+        ["tar", "-xzvf", final_path, "-C", test_artifact_path, "--strip-components", "1"],
         stdout=PIPE,
         stderr=PIPE,
     )
@@ -88,7 +88,7 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
             checksum_val = f.read().strip()
     print("CHECKSUM: %r" % checksum_val)
 
-    artifact_path = os.path.join("droidlet/artifacts/", artifact_name)
+    artifact_path = os.path.join(ROOTDIR, "droidlet/artifacts/", artifact_name)
     write_path = artifact_path
     if artifact_name == "models":
         if not model_name:
@@ -126,7 +126,7 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
 
     print("Writing to : %r" % write_path)
     process = Popen(
-        ["tar", "-xzvf", file_name, "-C", write_path, "--strip-components", "1"],
+        ["tar", "-xzvf", final_path, "-C", write_path, "--strip-components", "1"],
         stdout=PIPE,
         stderr=PIPE,
     )
