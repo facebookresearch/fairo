@@ -13,7 +13,7 @@ def compute_uvone(intrinsic_mat, height, width):
     return uv_one_in_cam
 
 def get_pcd_in_cam(depth, intrinsic_mat):
-    uv_one_in_cam = compute_uvone(intrinsic_mat, height=640, width=480)
+    uv_one_in_cam = compute_uvone(intrinsic_mat, height=depth.shape[0], width=depth.shape[1])
     depth = depth.reshape(-1)
     pts_in_cam = np.multiply(uv_one_in_cam, depth)
     pts = pts_in_cam.T

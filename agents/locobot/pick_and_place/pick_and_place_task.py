@@ -87,7 +87,7 @@ class PickAndPlaceTask:
         self.model = self.manip.get_model()
         # Look ahead to start out with
         self.manip.look_ahead()
-        self.grasp_client = RosGraspClient()
+        self.grasp_client = RosGraspClient(flip_grasps=False)
 
         # Parameters for configuring pick and place motions
         self.exploration_method = "learned"
@@ -228,6 +228,8 @@ class PickAndPlaceTask:
         print("Here is the data you have available about the last time the "
               "semantic map got updated, which might be slightly stale if the "
               "robot has been moving:")
+
+        R_stretch_camera = tra.euler_matrix(0, 0, -np.pi/2)
         
         grasp_attempts_made = 0
         for attempt in range(self.num_segment_attempts):
@@ -242,8 +244,9 @@ class PickAndPlaceTask:
             depth = info['depth']
 
             q, _ = self.manip.update()
-            camera_pose = self.manip.fk(q, "camera_color_optical_frame")
-            #caamera_pose = self.manip.fk(q, "camera_color_frame")
+            # camera_pose = self.manip.fk(q, "camera_color_optical_frame")
+            camera_pose = self.manip.get_pose("camera_color_optical_frame")
+            # camera_pose = self.manip.fk(q, "camera_color_frame")
             # flat_pcd = trimesh.transform_points(flat_pcd, np.linalg.inv(camera_pose))
             flat_pcd = get_pcd_in_cam(depth, self.intrinsic_mat)
             #show_point_cloud(flat_pcd, orig_rgb.reshape(-1, 3), orig=np.zeros(3))
@@ -303,15 +306,32 @@ class PickAndPlaceTask:
                                                          image_object_mask,
                                                          frame="camera_color_optical_frame")
                                                          #frame="map")
-            #print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
+            print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
             predicted_grasps, scores = predicted_grasps[0]
+            new_grasps = []
+            for grasp in predicted_grasps:
+                grasp = R_stretch_camera.T @ grasp
+                new_grasps.append(grasp)
+            show_point_cloud(flat_pcd, orig_rgb, orig=np.zeros(3), grasps=new_grasps)
+
             #print("len(predicted_grasps)", len(predicted_grasps))
             #print("len(scores)", len(scores))
             world_grasps = []
             for grasp in predicted_grasps:
                 grasp = camera_pose @ grasp
-                grasp[2, 3] += BASE_HEIGHT
+                #grasp[2, 3] += BASE_HEIGHT
                 world_grasps.append(grasp)
+
+            print("SECOND TRY")
+            world_pcd = trimesh.transform_points(flat_pcd, R_stretch_camera)
+            world_pcd = trimesh.transform_points(world_pcd, camera_pose)
+            #world_pcd = flat_pcd
+            show_point_cloud(world_pcd, orig_rgb, orig=np.zeros(3), grasps=world_grasps)
+
+            # print("THIRD TRY")
+            # world_pcd = trimesh.transform_points(flat_pcd, camera_pose)
+            # #world_pcd = flat_pcd
+            # show_point_cloud(world_pcd, orig_rgb, orig=np.zeros(3), grasps=world_grasps)
             
             print()
             print("GRASP")
@@ -323,7 +343,7 @@ class PickAndPlaceTask:
             break
 
             #self.manip.goto_static_grasp(world_grasps, scores, pause=True)
-            #self.goto_static_grasp(world_grasps, scores, pause=True)
+            self.goto_static_grasp(world_grasps, scores, pause=True)
         else:
             print("FAILED TO GRASP! Could not find the object.")
 
