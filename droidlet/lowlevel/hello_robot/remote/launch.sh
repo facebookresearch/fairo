@@ -10,24 +10,6 @@ export PYRO_PICKLE_PROTOCOL_VERSION=2
 
 default_ip=$(hostname -I | cut -f1 -d" ")
 ip=${LOCOBOT_IP:-$default_ip}
-
-export USE_ROS=0
-
-while [ True ]; do
-    if [ "$1" = "--ros" ]; then
-	export USE_ROS=1
-	echo "Using ROS drivers"
-	shift 1
-    elif [ "$1" = "--ip" ]; then
-	ip=$2
-	shift 2
-	echo "--ip passed in, using ip=$ip"
-    else
-	break
-    fi
-done
-
-
 export LOCAL_IP=$ip
 export PYRO_IP=$ip
 export LOCOBOT_IP=$ip
@@ -41,28 +23,13 @@ export ROBOT_NAME="hello_robot"
 export CAMERA_NAME="hello_realsense"
 
 echo $ip
+python3 ./remote_hello_robot.py --ip $ip &
+timeout 20s bash -c "until python check_connected.py hello_robot $ip; do sleep 0.5; done;" || true
 
-if [[ $USE_ROS -eq 1 ]]; then
-    python3 ./remote_hello_robot_ros.py --ip $ip &
-else
-    python3 ./remote_hello_robot.py --ip $ip &
-fi
-BGPID=$!
-trap 'echo "Killing $BGPID"; kill $BGPID; exit' INT
-timeout --foreground 50s bash -c "until python check_connected.py hello_robot $ip; do sleep 0.5; done;" || true
-
-if [[ $USE_ROS -eq 1 ]]; then
-    python3 ./remote_hello_realsense.py --ip $ip --ros &
-else
-    python3 ./remote_hello_realsense.py --ip $ip --no-ros &
-fi
-BGPID2=$!
-trap 'echo "Killing $BGPID"; kill $BGPID2; exit' INT
-timeout --foreground 20s bash -c "until python check_connected.py hello_realsense $ip; do sleep 0.5; done;" || true
+python3 ./remote_hello_realsense.py --ip $ip &
+timeout 20s bash -c "until python check_connected.py hello_realsense $ip; do sleep 0.5; done;" || true
 
 python3 ./remote_hello_saver.py --ip $ip &
-BGPID3=$!
-trap 'echo "Killing $BGPID"; kill $BGPID3; exit' INT
-timeout --foreground 10s bash -c "until python check_connected.py hello_data_logger $ip; do sleep 0.5; done;" || true
+timeout 10s bash -c "until python check_connected.py hello_data_logger $ip; do sleep 0.5; done;" || true
 
 ./launch_navigation.sh

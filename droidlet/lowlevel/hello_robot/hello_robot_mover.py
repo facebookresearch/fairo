@@ -217,40 +217,23 @@ class HelloRobotMover(MoverInterface):
         """reset the camera to 0 pan and tilt."""
         return self.bot.reset()
 
-    def move_relative(
-        self, xyt_positions, blocking=True, distance_threshold=None, angle_threshold=None
-    ):
+    def move_relative(self, xyt_positions, blocking=True):
         """Command to execute a relative move.
 
         Args:
             xzt_positions: a list of relative (x,y,yaw) positions for the bot to execute.
             x,y,yaw are in the pyrobot's coordinates.
-            distance_threshold: the distance resolution (in metres) for the move to be deemed successful
-                                If distance_threshold=0.1, and you ask the robot to move 0.5, then
-                                if the robot moves 0.4 or 0.6, it still
-                                exits the navigation with a success
-            angle_threshold: the angle resolution (in degrees) for the move to be deemed successful
-                                If angle_threshold=5, and you ask the robot to rotate 30 degrees, then
-                                if the robot rotates 25 or 35 degrees, it still
-                                exits the navigation with a success
         """
         if not isinstance(next(iter(xyt_positions)), Iterable):
             # single xyt position given
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
             self.nav_result.wait()
-            self.nav_result = safe_call(
-                self.nav.go_to_relative,
-                goal=xyt,
-                distance_threshold=distance_threshold,
-                angle_threshold=angle_threshold,
-            )
+            self.nav_result = safe_call(self.nav.go_to_relative, xyt)
             if blocking:
                 self.nav_result.wait()
 
-    def move_absolute(
-        self, xzt_positions, blocking=True, distance_threshold=None, angle_threshold=None
-    ):
+    def move_absolute(self, xzt_positions, blocking=True):
         """Command to execute a move to an absolute position.
 
         It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
@@ -267,11 +250,7 @@ class HelloRobotMover(MoverInterface):
             logging.info("Move absolute in canonical coordinates {}".format(xzt))
             self.nav_result.wait()
             robot_coords = base_canonical_coords_to_pyrobot_coords(xzt)
-            self.nav_result = self.nav.go_to_absolute(
-                goal=robot_coords,
-                distance_threshold=distance_threshold,
-                angle_threshold=angle_threshold,
-            )
+            self.nav_result = self.nav.go_to_absolute(robot_coords)
             if blocking:
                 self.nav_result.wait()
         return "finished"

@@ -8,7 +8,6 @@ from slam_pkg.utils.map_builder import MapBuilder as mb
 from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
 from rich import print
-from droidlet.lowlevel.pyro_utils import safe_call
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
@@ -92,7 +91,7 @@ class SLAM(object):
         self.map_builder.add_obstacle(location)
 
     def update_map(self):
-        pcd = safe_call(self.robot.get_current_pcd)[0]
+        pcd = self.robot.get_current_pcd()[0]
         self.map_builder.update_map(pcd)
 
         # explore the map by robot shape
@@ -140,7 +139,7 @@ with Pyro4.Daemon(ip) as daemon:
     else:
         obj = SLAM(robot)
     obj_uri = daemon.register(obj)
-    with Pyro4.locateNS(host=robot_ip) as ns:
+    with Pyro4.locateNS(robot_ip) as ns:
         ns.register("slam", obj_uri)
 
     print("SLAM Server is started...")

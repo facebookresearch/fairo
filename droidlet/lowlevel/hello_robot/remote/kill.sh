@@ -10,6 +10,5 @@ kill_pattern python planning_service.py
 kill_pattern python slam_service.py
 kill_pattern python remote_hello_realsense.py
 kill_pattern python remote_hello_robot.py
-kill_pattern python remote_hello_robot_ros.py
 kill_pattern python remote_hello_saver.py
 kill_pattern python Pyro4.naming

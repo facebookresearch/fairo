@@ -9,8 +9,3 @@ scikit-image
 torch
 torchvision
 rich
-blosc
-open3d
-yacs
-rospy
-rospkg

@@ -16,6 +16,7 @@ import numpy as np
 import cv2
 import open3d as o3d
 from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
+from droidlet.lowlevel.hello_robot.remote.lidar import Lidar
 from slam_pkg.utils import depth_util as du
 import obstacle_utils
 from obstacle_utils import is_obstacle
@@ -39,14 +40,8 @@ Pyro4.config.ITER_STREAMING = True
 class RemoteHelloRealsense(object):
     """Hello Robot interface"""
 
-    def __init__(self, bot, use_ros=False):
+    def __init__(self, bot):
         self.bot = bot
-        if use_ros:
-            self.use_ros = True
-            from droidlet.lowlevel.hello_robot.remote.lidar_ros_driver import Lidar
-        else:
-            self.use_ros = False
-            from droidlet.lowlevel.hello_robot.remote.lidar import Lidar
         self._lidar = Lidar()
         self._lidar.start()
         self._done = True
@@ -274,9 +269,6 @@ if __name__ == "__main__":
         type=str,
         default="0.0.0.0",
     )
-    parser.add_argument("--ros", action="store_true")
-    parser.add_argument("--no-ros", dest="ros", action="store_false")
-    parser.set_defaults(ros=False)
 
     args = parser.parse_args()
 
@@ -284,9 +276,9 @@ if __name__ == "__main__":
 
     with Pyro4.Daemon(args.ip) as daemon:
         bot = Pyro4.Proxy("PYRONAME:hello_robot@" + args.ip)
-        robot = RemoteHelloRealsense(bot, use_ros=args.ros)
+        robot = RemoteHelloRealsense(bot)
         robot_uri = daemon.register(robot)
-        with Pyro4.locateNS(host=args.ip) as ns:
+        with Pyro4.locateNS() as ns:
             ns.register("hello_realsense", robot_uri)
 
         robot.calibrate_tilt()
