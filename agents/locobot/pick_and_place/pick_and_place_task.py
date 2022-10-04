@@ -261,7 +261,12 @@ class PickAndPlaceTask:
         category_id = coco_categories[object]
 
         # Look at end effector and wait long enough that we have a new observation
-        self.manip.stow(wait=True)
+        goal_q = STRETCH_HOME_Q.copy()
+        goal_q[HelloStretchIdx.LIFT] = 1.
+        self.manip.goto(goal_q, wait=False)
+        rospy.sleep(4.)
+        # self.manip.stow(wait=False)
+        # rospy.sleep(4.)
         self.manip.look_at_ee()
         rospy.sleep(0.5)
         
