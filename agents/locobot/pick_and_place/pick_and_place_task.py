@@ -297,11 +297,6 @@ class PickAndPlaceTask:
                 print("object_map.shape", object_map.shape)
                 print("intrinsics mat:", self.intrinsic_mat)
 
-                cv2.imwrite("semantic_frame.png", semantic_frame)
-                cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
-                cv2.imwrite("obstacle_map.png", (obstacle_map * 255).astype(np.uint8))
-                cv2.imwrite("object_map.png", (object_map * 255).astype(np.uint8))
-
                 print("Here is how to transform robot coordinates to map coordinates:")
 
                 pose_of_last_map_update = info["pose"]
@@ -327,6 +322,7 @@ class PickAndPlaceTask:
                                                          orig_rgb,
                                                          image_object_mask,
                                                          frame="camera_color_optical_frame")
+
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
             predicted_grasps, scores = predicted_grasps[0]
             if len(scores) < self.min_predicted_grasps:
@@ -334,6 +330,11 @@ class PickAndPlaceTask:
                 continue
 
             if debug:
+                cv2.imwrite("semantic_frame.png", semantic_frame)
+                cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
+                #cv2.imwrite("obstacle_map.png", (obstacle_map * 255).astype(np.uint8))
+                #cv2.imwrite("object_map.png", (object_map * 255).astype(np.uint8))
+
                 rotated_grasps = [self.R_stretch_camera.T @ grasp for grasp in predicted_grasps]
                 show_point_cloud(flat_pcd, orig_rgb, orig=np.zeros(3), grasps=rotated_grasps)
 
@@ -364,7 +365,6 @@ class PickAndPlaceTask:
                 max_steps=400,
                 start_with_panorama=False,
             )
-
 
 
 def test_pick_place(mover, value):
