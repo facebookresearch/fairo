@@ -70,10 +70,12 @@ class PickAndPlaceTask:
         self.slam = mover.slam  # Semantic and obstacle map + last frame
         self.bot = mover.bot    # Main robot class
         self.intrinsic_mat = mover.cam.get_intrinsics()
+        self.R_stretch_camera = tra.euler_matrix(0, 0, -np.pi/2)
 
         self.num_segment_attempts = 100
         self.num_grasp_attempts = 10
         self.min_obj_pts = 100
+        self.min_predicted_grasps = 10
 
         # ROS connection into the robot
         # TODO: this needs to be replaced by code that exists in them over
@@ -87,7 +89,7 @@ class PickAndPlaceTask:
         self.model = self.manip.get_model()
         # Look ahead to start out with
         self.manip.look_ahead()
-        self.grasp_client = RosGraspClient(flip_grasps=False)
+        self.grasp_client = RosGraspClient(flip_grasps=True)
 
         # Parameters for configuring pick and place motions
         self.exploration_method = "learned"
@@ -120,37 +122,57 @@ class PickAndPlaceTask:
                 object_goal=start_receptacle,
                 episode_id=f"go_to_{start_receptacle}",
                 exploration_method=self.exploration_method,
-                debug=false,
-                visualize=true,
+                debug=False,
+                visualize=True,
                 max_steps=400,
-                start_with_panorama=true,
+                start_with_panorama=True,
             )
         # Pass object into picking code
         self.pick(object)
 
-    def goto_static_grasp(self, grasps, scores=None, pause=False):
+    def goto_static_grasp(self, grasps, scores=None, world_pcd=None, orig_rgb=None, pause=False, debug=False):
         """
-        Go to a grasp position, given a list of acceptable grasps
+        Go to a grasp position, given a list of acceptable grasps.
         """
         if scores is None:
             scores = np.arange(len(grasps))
         q, _ = self.manip.update()
 
-        grasp_offset = np.eye(4)
         # Some magic numbers here
         # This should correct for the length of the Stretch gripper and the gripper upon which
         # Graspnet was trained
+        grasp_offset = np.eye(4)
         grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.12
         for i, grasp in enumerate(grasps):
-            grasps[i] = grasp @ grasp_offset
+           grasps[i] = grasp @ grasp_offset
 
-        # q[:3] = np.zeros(3)
+        #theta_movements = []
+        #for grasp, score in sorted(zip(grasps, scores), key=lambda p: p[1]):
+        #    grasp_pose = to_pos_quat(grasp)
+        #    qi = self.model.static_ik(grasp_pose, q)
+        #    if qi is not None:
+        #        theta_movement = np.abs(q[HelloStretchIdx.BASE_THETA] - qi[HelloStretchIdx.BASE_THETA])
+        #        theta_movements.append(theta_movement)
+        #theta_movements = np.array(theta_movements)
+        #print("theta_movements.min(), theta_movements.max(), theta_movements.mean()")
+        #print(theta_movements.min(), theta_movements.max(), theta_movements.mean())
+
+        #for grasp, score in sorted(zip(grasps, scores), key=lambda p: p[1]):
+        #    grasp_pose = to_pos_quat(grasp)
+        #    print("self.model.lift_arm_ik_from_matrix(grasp_pose, q)", self.model.lift_arm_ik_from_matrix(grasp_pose, q))
+        #return
+
         for grasp, score in sorted(zip(grasps, scores), key=lambda p: p[1]):
             grasp_pose = to_pos_quat(grasp)
             qi = self.model.static_ik(grasp_pose, q)
             print("grasp xyz =", grasp_pose[0])
+
             if qi is not None:
+                base_theta_movement = np.abs(q[HelloStretchIdx.BASE_THETA] - qi[HelloStretchIdx.BASE_THETA])
+                if base_theta_movement > 0.1: # Prevent large base movements
+                    continue
                 print(" - IK found")
+                print("base_theta_movement", base_theta_movement)
                 self.model.set_config(qi)
                 input('---')
             else:
@@ -159,14 +181,21 @@ class PickAndPlaceTask:
             # Record the initial q value here and use it 
             theta0 = q[2]
             q1 = qi.copy()
-            q1[HelloStretchIdx.LIFT] += 0.08
-            #q1[HelloStretchIdx.LIFT] += 0.2
+            # q1[HelloStretchIdx.LIFT] += 0.08
+            q1[HelloStretchIdx.LIFT] += 0.2
             if q1 is not None:
                 # Run a validity check to make sure we can actually pick this thing up
                 if not self.model.validate(q1):
                     print("invalid standoff config:", q1)
                     continue
+
                 print("found standoff")
+                if debug and world_pcd is not None and orig_rgb is not None:
+                    print("Trying to reach grasp:")
+                    print(grasp)
+                    fk_pose = self.model.fk(qi, as_matrix=True)
+                    show_point_cloud(world_pcd, orig_rgb, orig=np.zeros(3), grasps=[grasp, fk_pose])
+                    
                 q2 = qi
                 # q2 = model.static_ik(grasp_pose, q1)
                 if q2 is not None:
@@ -180,7 +209,7 @@ class PickAndPlaceTask:
                     q_pre[5:] = q1[5:]
                     q_pre = self.model.update_gripper(q_pre, open=True)
                     # TODO replace this
-                    #self.move_base(theta=q1[2])
+                    self.manip.move_base(theta=q1[2])
                     time.sleep(2.0)
                     self.manip.goto(q_pre, move_base=False, wait=False, verbose=False)
                     self.model.set_config(q1)
@@ -191,7 +220,7 @@ class PickAndPlaceTask:
                     if pause:
                         input('--> go to grasp')
                     # TODO replace this
-                    #self.move_base(theta=q2[2])
+                    self.manip.move_base(theta=q2[2])
                     time.sleep(2.0)
                     self.manip.goto(q_pre, move_base=False, wait=False, verbose=False)
                     self.model.set_config(q2)
@@ -205,11 +234,12 @@ class PickAndPlaceTask:
                     q = self.model.update_gripper(q, open=False)
                     self.manip.goto(q, move_base=False, wait=True, verbose=False)
                     # TODO replace this
-                    #self.move_base(theta=q[0])
+                    self.manip.move_base(theta=q[0])
                     return True
+
         return False
-        
-    def pick(self, object: str):
+
+    def pick(self, object: str, debug=True):
         """
         Mobile grasping of an object category present in the last frame.
         
@@ -224,16 +254,11 @@ class PickAndPlaceTask:
         self.manip.stow(wait=True)
         self.manip.look_at_ee()
         rospy.sleep(0.5)
-
-        print("Here is the data you have available about the last time the "
-              "semantic map got updated, which might be slightly stale if the "
-              "robot has been moving:")
-
-        R_stretch_camera = tra.euler_matrix(0, 0, -np.pi/2)
         
         grasp_attempts_made = 0
         for attempt in range(self.num_segment_attempts):
             info = self.slam.get_last_position_vis_info()
+
             flat_pcd = info["pcd"]
             flat_object_mask = info["semantic_frame"][:, category_id]
             image_object_mask = info["unfiltered_semantic_frame"][:, :, category_id]
@@ -244,12 +269,8 @@ class PickAndPlaceTask:
             depth = info['depth']
 
             q, _ = self.manip.update()
-            # camera_pose = self.manip.fk(q, "camera_color_optical_frame")
             camera_pose = self.manip.get_pose("camera_color_optical_frame")
-            # camera_pose = self.manip.fk(q, "camera_color_frame")
-            # flat_pcd = trimesh.transform_points(flat_pcd, np.linalg.inv(camera_pose))
             flat_pcd = get_pcd_in_cam(depth, self.intrinsic_mat)
-            #show_point_cloud(flat_pcd, orig_rgb.reshape(-1, 3), orig=np.zeros(3))
 
             if attempt == 0:
                 print(list(info.keys()))
@@ -259,7 +280,6 @@ class PickAndPlaceTask:
                 print("image_object_mask.shape", image_object_mask.shape)
                 print("obstacle_map.shape", obstacle_map.shape)
                 print("object_map.shape", object_map.shape)
-                print()
                 print("intrinsics mat:", self.intrinsic_mat)
 
                 cv2.imwrite("semantic_frame.png", semantic_frame)
@@ -284,69 +304,37 @@ class PickAndPlaceTask:
                 continue
 
             print("Attempting to grasp...")
-            print("Pcd shape =", flat_pcd.shape)
             image_object_mask = image_object_mask.reshape(-1)
-            print("image_object_mask", image_object_mask.shape)
-            print()
-            print("CAMERA POSE")
-            print("self.bot.get_camera_transform().value")
-            print(self.bot.get_camera_transform().value)
-            print("self.manip.fk(q, 'camera_color_optical_frame')")
-            print(self.manip.fk(q, "camera_color_optical_frame"))
-            print("self.manip.fk(q, 'camera_color_frame')")
-            print(self.manip.fk(q, "camera_color_frame"))
-            print("self.manip.get_pose('camera_color_optical_frame')")
-            print(self.manip.get_pose('camera_color_optical_frame'))
-            print()
-            to_npy_file('stretch2', xyz=flat_pcd, rgb=orig_rgb,
-                        depth=depth, xyz_color=orig_rgb, seg=image_object_mask,
-                        K=self.intrinsic_mat)
+            #to_npy_file('stretch2', xyz=flat_pcd, rgb=orig_rgb,
+            #            depth=depth, xyz_color=orig_rgb, seg=image_object_mask,
+            #            K=self.intrinsic_mat)
             predicted_grasps = self.grasp_client.request(flat_pcd,
                                                          orig_rgb,
                                                          image_object_mask,
                                                          frame="camera_color_optical_frame")
-                                                         #frame="map")
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
             predicted_grasps, scores = predicted_grasps[0]
-            new_grasps = []
-            for grasp in predicted_grasps:
-                grasp = R_stretch_camera.T @ grasp
-                new_grasps.append(grasp)
-            show_point_cloud(flat_pcd, orig_rgb, orig=np.zeros(3), grasps=new_grasps)
+            if len(scores) < self.min_predicted_grasps:
+                print("Too few predicted grasps; trying to segment again...")
+                continue
 
-            #print("len(predicted_grasps)", len(predicted_grasps))
-            #print("len(scores)", len(scores))
-            world_grasps = []
-            for grasp in predicted_grasps:
-                grasp = camera_pose @ grasp
-                #grasp[2, 3] += BASE_HEIGHT
-                world_grasps.append(grasp)
+            if debug:
+                rotated_grasps = [self.R_stretch_camera.T @ grasp for grasp in predicted_grasps]
+                show_point_cloud(flat_pcd, orig_rgb, orig=np.zeros(3), grasps=rotated_grasps)
 
-            print("SECOND TRY")
-            world_pcd = trimesh.transform_points(flat_pcd, R_stretch_camera)
+            world_grasps = [camera_pose @ grasp for grasp in predicted_grasps]
+            world_pcd = trimesh.transform_points(flat_pcd, self.R_stretch_camera)
             world_pcd = trimesh.transform_points(world_pcd, camera_pose)
-            #world_pcd = flat_pcd
-            show_point_cloud(world_pcd, orig_rgb, orig=np.zeros(3), grasps=world_grasps)
 
-            # print("THIRD TRY")
-            # world_pcd = trimesh.transform_points(flat_pcd, camera_pose)
-            # #world_pcd = flat_pcd
-            # show_point_cloud(world_pcd, orig_rgb, orig=np.zeros(3), grasps=world_grasps)
-            
-            print()
-            print("GRASP")
-            print("predicted_grasps[0]")
-            print(predicted_grasps[0])
-            print("world_grasps[0]")
-            print(world_grasps[0])
-            print()
-            break
+            if debug:
+                show_point_cloud(world_pcd, orig_rgb, orig=np.zeros(3), grasps=world_grasps)
 
             #self.manip.goto_static_grasp(world_grasps, scores, pause=True)
-            self.goto_static_grasp(world_grasps, scores, pause=True)
+            self.goto_static_grasp(world_grasps, scores, world_pcd, orig_rgb, pause=False, debug=debug)
+            break
+
         else:
             print("FAILED TO GRASP! Could not find the object.")
-
 
     def place(self, end_receptacle):
         """Mobile placing of the object picked up."""
@@ -356,10 +344,10 @@ class PickAndPlaceTask:
                 object_goal=end_receptacle,
                 episode_id=f"go_to_{end_receptacle}",
                 exploration_method=self.exploration_method,
-                debug=false,
-                visualize=true,
+                debug=False,
+                visualize=True,
                 max_steps=400,
-                start_with_panorama=true,
+                start_with_panorama=False,
             )
 
 
