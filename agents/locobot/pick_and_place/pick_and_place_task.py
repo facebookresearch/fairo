@@ -274,8 +274,6 @@ class PickAndPlaceTask:
         for attempt in range(self.num_segment_attempts):
             info = self.slam.get_last_position_vis_info()
 
-            flat_pcd = info["pcd"]
-            flat_object_mask = info["semantic_frame"][:, category_id]
             image_object_mask = info["unfiltered_semantic_frame"][:, :, category_id]
             semantic_frame = info["semantic_frame_vis"]
             obstacle_map = info["semantic_map"][0]
@@ -291,7 +289,6 @@ class PickAndPlaceTask:
                 print(list(info.keys()))
                 print("rgb shape was", orig_rgb.shape)
                 print("flat_pcd.shape", flat_pcd.shape)
-                print("flat_object_mask.shape", flat_object_mask.shape)
                 print("image_object_mask.shape", image_object_mask.shape)
                 print("obstacle_map.shape", obstacle_map.shape)
                 print("object_map.shape", object_map.shape)
@@ -323,17 +320,19 @@ class PickAndPlaceTask:
                                                          frame="camera_color_optical_frame")
 
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
+
+            if debug:
+                cv2.imwrite("semantic_frame.png", semantic_frame)
+                cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
+                # cv2.imwrite("obstacle_map.png", (obstacle_map * 255).astype(np.uint8))
+                # cv2.imwrite("object_map.png", (object_map * 255).astype(np.uint8))
+
             predicted_grasps, scores = predicted_grasps[0]
             if len(scores) < self.min_predicted_grasps:
                 print("Too few predicted grasps; trying to segment again...")
                 continue
 
             if debug:
-                cv2.imwrite("semantic_frame.png", semantic_frame)
-                cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
-                #cv2.imwrite("obstacle_map.png", (obstacle_map * 255).astype(np.uint8))
-                #cv2.imwrite("object_map.png", (object_map * 255).astype(np.uint8))
-
                 rotated_grasps = [self.R_stretch_camera.T @ grasp for grasp in predicted_grasps]
                 show_point_cloud(flat_pcd, orig_rgb, orig=np.zeros(3), grasps=rotated_grasps)
 
