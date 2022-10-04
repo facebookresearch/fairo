@@ -171,7 +171,7 @@ class PickAndPlaceTask:
 
             if qi is not None:
                 base_theta_movement = np.abs(q[HelloStretchIdx.BASE_THETA] - qi[HelloStretchIdx.BASE_THETA])
-                if base_theta_movement > 0.10:
+                if base_theta_movement > 0.05:
                     # Prevent large base movements
                     continue
                 print(" - IK found")
@@ -212,7 +212,7 @@ class PickAndPlaceTask:
                     q_pre[5:] = q1[5:]
                     q_pre = self.model.update_gripper(q_pre, open=True)
                     # TODO replace this
-                    self.manip.move_base(theta=q1[2])
+                    #self.manip.move_base(theta=q1[2])
                     time.sleep(2.0)
                     self.manip.goto(q_pre, move_base=False, wait=False, verbose=False)
                     self.model.set_config(q1)
@@ -223,7 +223,7 @@ class PickAndPlaceTask:
                     if pause:
                         input('--> go to grasp')
                     # TODO replace this
-                    self.manip.move_base(theta=q2[2])
+                    #self.manip.move_base(theta=q2[2])
                     time.sleep(2.0)
                     self.manip.goto(q_pre, move_base=False, wait=False, verbose=False)
                     self.model.set_config(q2)
@@ -237,7 +237,7 @@ class PickAndPlaceTask:
                     q = self.model.update_gripper(q, open=False)
                     self.manip.goto(q, move_base=False, wait=True, verbose=False)
                     # TODO replace this
-                    self.manip.move_base(theta=q[0])
+                    #self.manip.move_base(theta=q[0])
                     return True
 
         return False
