@@ -21,7 +21,9 @@ from droidlet.lowlevel.robot_coordinate_utils import (
 def assert_distance_moved(pos1, pos2, movement_vector):
     act_dist = norm(array(pos1)[:2] - array(pos2)[:2])
     goal_dist = norm(array(movement_vector)[:2])
-    assert_allclose(act_dist, goal_dist, rtol=1e-3)
+    assert_allclose(
+        act_dist, goal_dist, rtol=3e-3
+    )  # increased rtol from 1e-3 since hello infra changes made error marginally larger
 
 
 def assert_turn_degree(initial_yaw, final_yaw, turn_degree):
