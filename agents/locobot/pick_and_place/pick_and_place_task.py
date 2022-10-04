@@ -146,21 +146,23 @@ class PickAndPlaceTask:
         for i, grasp in enumerate(grasps):
            grasps[i] = grasp @ grasp_offset
 
-        #theta_movements = []
-        #for grasp, score in sorted(zip(grasps, scores), key=lambda p: p[1]):
-        #    grasp_pose = to_pos_quat(grasp)
-        #    qi = self.model.static_ik(grasp_pose, q)
-        #    if qi is not None:
-        #        theta_movement = np.abs(q[HelloStretchIdx.BASE_THETA] - qi[HelloStretchIdx.BASE_THETA])
-        #        theta_movements.append(theta_movement)
-        #theta_movements = np.array(theta_movements)
-        #print("theta_movements.min(), theta_movements.max(), theta_movements.mean()")
-        #print(theta_movements.min(), theta_movements.max(), theta_movements.mean())
-
-        #for grasp, score in sorted(zip(grasps, scores), key=lambda p: p[1]):
-        #    grasp_pose = to_pos_quat(grasp)
-        #    print("self.model.lift_arm_ik_from_matrix(grasp_pose, q)", self.model.lift_arm_ik_from_matrix(grasp_pose, q))
-        #return
+        base_theta_movements = []
+        for grasp in grasps:
+           grasp_pose = to_pos_quat(grasp)
+           qi = self.model.static_ik(grasp_pose, q)
+           if qi is not None:
+               base_theta_movements.append(
+                   np.abs(q[HelloStretchIdx.BASE_THETA] - qi[HelloStretchIdx.BASE_THETA])
+               )
+           else:
+               base_theta_movements.append(np.inf)
+        base_theta_movements = np.array(base_theta_movements)
+        print("base_theta_movements: min, max, mean")
+        print(
+            base_theta_movements.min(),
+            base_theta_movements.max(),
+            base_theta_movements.mean()
+        )
 
         for grasp, score in sorted(zip(grasps, scores), key=lambda p: p[1]):
             grasp_pose = to_pos_quat(grasp)
@@ -169,7 +171,8 @@ class PickAndPlaceTask:
 
             if qi is not None:
                 base_theta_movement = np.abs(q[HelloStretchIdx.BASE_THETA] - qi[HelloStretchIdx.BASE_THETA])
-                if base_theta_movement > 0.1: # Prevent large base movements
+                if base_theta_movement > 0.05:
+                    # Prevent large base movements
                     continue
                 print(" - IK found")
                 print("base_theta_movement", base_theta_movement)
