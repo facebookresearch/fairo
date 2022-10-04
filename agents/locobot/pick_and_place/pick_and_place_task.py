@@ -142,7 +142,14 @@ class PickAndPlaceTask:
         # This should correct for the length of the Stretch gripper and the gripper upon which
         # Graspnet was trained
         grasp_offset = np.eye(4)
-        grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.12
+
+        # Magic number 1
+        # grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.12
+
+        # Magic number 2
+        grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.22
+        grasp_offset[1, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.10
+
         for i, grasp in enumerate(grasps):
            grasps[i] = grasp @ grasp_offset
 
