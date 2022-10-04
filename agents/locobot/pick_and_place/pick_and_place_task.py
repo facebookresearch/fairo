@@ -314,13 +314,12 @@ class PickAndPlaceTask:
                 continue
 
             print("Attempting to grasp...")
-            image_object_mask = image_object_mask.reshape(-1)
             #to_npy_file('stretch2', xyz=flat_pcd, rgb=orig_rgb,
-            #            depth=depth, xyz_color=orig_rgb, seg=image_object_mask,
+            #            depth=depth, xyz_color=orig_rgb, seg=image_object_mask.reshape(-1),
             #            K=self.intrinsic_mat)
             predicted_grasps = self.grasp_client.request(flat_pcd,
                                                          orig_rgb,
-                                                         image_object_mask,
+                                                         image_object_mask.reshape(-1),
                                                          frame="camera_color_optical_frame")
 
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
