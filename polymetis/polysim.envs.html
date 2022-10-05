@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>polysim.envs package &#8212; Polymetis  documentation</title>
     
@@ -37,6 +37,7 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/clipboard.min.js"></script>
     <script src="_static/copybutton.js"></script>
     <script src="_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
@@ -289,11 +290,208 @@
   <a class="reference internal nav-link" href="#module-polysim.envs.abstract_env">
    polysim.envs.abstract_env module
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#polysim.envs.abstract_env.AbstractControlledEnv">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       AbstractControlledEnv
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.abstract_env.AbstractControlledEnv.apply_joint_torques">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         AbstractControlledEnv.apply_joint_torques()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.abstract_env.AbstractControlledEnv.get_current_joint_pos_vel">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         AbstractControlledEnv.get_current_joint_pos_vel()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.abstract_env.AbstractControlledEnv.get_current_joint_torques">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         AbstractControlledEnv.get_current_joint_torques()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.abstract_env.AbstractControlledEnv.get_num_dofs">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         AbstractControlledEnv.get_num_dofs()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.abstract_env.AbstractControlledEnv.reset">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         AbstractControlledEnv.reset()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.abstract_env.AbstractControlledEnv.set_robot_state">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         AbstractControlledEnv.set_robot_state()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-polysim.envs.bullet_manipulator">
    polysim.envs.bullet_manipulator module
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#polysim.envs.bullet_manipulator.BulletManipulatorEnv">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       BulletManipulatorEnv
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.bullet_manipulator.BulletManipulatorEnv.apply_joint_torques">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BulletManipulatorEnv.apply_joint_torques()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.bullet_manipulator.BulletManipulatorEnv.compute_forward_kinematics">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BulletManipulatorEnv.compute_forward_kinematics()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.bullet_manipulator.BulletManipulatorEnv.compute_inverse_dynamics">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BulletManipulatorEnv.compute_inverse_dynamics()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.bullet_manipulator.BulletManipulatorEnv.compute_inverse_kinematics">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BulletManipulatorEnv.compute_inverse_kinematics()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.bullet_manipulator.BulletManipulatorEnv.get_current_joint_pos">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BulletManipulatorEnv.get_current_joint_pos()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.bullet_manipulator.BulletManipulatorEnv.get_current_joint_pos_vel">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BulletManipulatorEnv.get_current_joint_pos_vel()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.bullet_manipulator.BulletManipulatorEnv.get_current_joint_torques">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BulletManipulatorEnv.get_current_joint_torques()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.bullet_manipulator.BulletManipulatorEnv.get_current_joint_vel">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BulletManipulatorEnv.get_current_joint_vel()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.bullet_manipulator.BulletManipulatorEnv.get_num_dofs">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BulletManipulatorEnv.get_num_dofs()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.bullet_manipulator.BulletManipulatorEnv.load_robot_description_from_sdf">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BulletManipulatorEnv.load_robot_description_from_sdf()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.bullet_manipulator.BulletManipulatorEnv.load_robot_description_from_urdf">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BulletManipulatorEnv.load_robot_description_from_urdf()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.bullet_manipulator.BulletManipulatorEnv.reset">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BulletManipulatorEnv.reset()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.envs.bullet_manipulator.BulletManipulatorEnv.set_robot_state">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BulletManipulatorEnv.set_robot_state()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-polysim.envs">

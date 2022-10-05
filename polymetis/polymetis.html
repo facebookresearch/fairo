@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>polymetis package &#8212; Polymetis  documentation</title>
     
@@ -37,6 +37,7 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/clipboard.min.js"></script>
     <script src="_static/copybutton.js"></script>
     <script src="_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
@@ -289,6 +290,356 @@
   <a class="reference internal nav-link" href="#module-polymetis.robot_interface">
    polymetis.robot_interface module
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#polymetis.robot_interface.BaseRobotInterface">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       BaseRobotInterface
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.BaseRobotInterface.clean_mirror_after_forward">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BaseRobotInterface.clean_mirror_after_forward()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.BaseRobotInterface.get_previous_interval">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BaseRobotInterface.get_previous_interval()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.BaseRobotInterface.get_previous_log">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BaseRobotInterface.get_previous_log()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.BaseRobotInterface.get_robot_state">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BaseRobotInterface.get_robot_state()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.BaseRobotInterface.is_running_policy">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BaseRobotInterface.is_running_policy()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.BaseRobotInterface.send_torch_policy">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BaseRobotInterface.send_torch_policy()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.BaseRobotInterface.setup_mirror_for_forward">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BaseRobotInterface.setup_mirror_for_forward()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.BaseRobotInterface.sync_with_mirror">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BaseRobotInterface.sync_with_mirror()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.BaseRobotInterface.terminate_current_policy">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BaseRobotInterface.terminate_current_policy()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.BaseRobotInterface.unsync_with_mirror">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BaseRobotInterface.unsync_with_mirror()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.BaseRobotInterface.update_current_policy">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         BaseRobotInterface.update_current_policy()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#polymetis.robot_interface.ParamDictContainer">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       ParamDictContainer
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.ParamDictContainer.forward">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         ParamDictContainer.forward()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.ParamDictContainer.param_dict">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         ParamDictContainer.param_dict
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       RobotInterface
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.get_ee_pose">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.get_ee_pose()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.get_jacobian">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.get_jacobian()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.get_joint_angles">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.get_joint_angles()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.get_joint_positions">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.get_joint_positions()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.get_joint_velocities">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.get_joint_velocities()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.go_home">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.go_home()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.move_ee_xyz">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.move_ee_xyz()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.move_joint_positions">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.move_joint_positions()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.move_to_ee_pose">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.move_to_ee_pose()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.move_to_joint_positions">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.move_to_joint_positions()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.pose_ee">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.pose_ee()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.set_ee_pose">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.set_ee_pose()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.set_home_pose">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.set_home_pose()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.set_joint_positions">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.set_joint_positions()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.set_robot_model">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.set_robot_model()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.solve_inverse_kinematics">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.solve_inverse_kinematics()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.start_cartesian_impedance">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.start_cartesian_impedance()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.start_joint_impedance">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.start_joint_impedance()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.start_joint_velocity_control">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.start_joint_velocity_control()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.update_desired_ee_pose">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.update_desired_ee_pose()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.update_desired_joint_positions">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.update_desired_joint_positions()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polymetis.robot_interface.RobotInterface.update_desired_joint_velocities">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RobotInterface.update_desired_joint_velocities()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-polymetis">
@@ -315,15 +666,61 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="polymetis.robot_client.html">polymetis.robot_client package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="polymetis.robot_client.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="polymetis.robot_client.html#module-polymetis.robot_client.abstract_robot_client">polymetis.robot_client.abstract_robot_client module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="polymetis.robot_client.html#module-polymetis.robot_client.executable_robot_client">polymetis.robot_client.executable_robot_client module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="polymetis.robot_client.html#module-polymetis.robot_client.metadata">polymetis.robot_client.metadata module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="polymetis.robot_client.html#module-polymetis.robot_client.abstract_robot_client">polymetis.robot_client.abstract_robot_client module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.abstract_robot_client.AbstractRobotClient"><code class="docutils literal notranslate"><span class="pre">AbstractRobotClient</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.abstract_robot_client.AbstractRobotClient.run"><code class="docutils literal notranslate"><span class="pre">AbstractRobotClient.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="polymetis.robot_client.html#module-polymetis.robot_client.executable_robot_client">polymetis.robot_client.executable_robot_client module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.executable_robot_client.ExecutableRobotClient"><code class="docutils literal notranslate"><span class="pre">ExecutableRobotClient</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.executable_robot_client.ExecutableRobotClient.run"><code class="docutils literal notranslate"><span class="pre">ExecutableRobotClient.run()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="polymetis.robot_client.html#module-polymetis.robot_client.metadata">polymetis.robot_client.metadata module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.EmptyRobotClientMetadata"><code class="docutils literal notranslate"><span class="pre">EmptyRobotClientMetadata</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotClientMetadata"><code class="docutils literal notranslate"><span class="pre">RobotClientMetadata</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotClientMetadata.get_proto"><code class="docutils literal notranslate"><span class="pre">RobotClientMetadata.get_proto()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotClientMetadata.serialize"><code class="docutils literal notranslate"><span class="pre">RobotClientMetadata.serialize()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotClientMetadataConfig"><code class="docutils literal notranslate"><span class="pre">RobotClientMetadataConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotClientMetadataConfig.default_Kq"><code class="docutils literal notranslate"><span class="pre">RobotClientMetadataConfig.default_Kq</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotClientMetadataConfig.default_Kqd"><code class="docutils literal notranslate"><span class="pre">RobotClientMetadataConfig.default_Kqd</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotClientMetadataConfig.default_Kx"><code class="docutils literal notranslate"><span class="pre">RobotClientMetadataConfig.default_Kx</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotClientMetadataConfig.default_Kxd"><code class="docutils literal notranslate"><span class="pre">RobotClientMetadataConfig.default_Kxd</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotClientMetadataConfig.hz"><code class="docutils literal notranslate"><span class="pre">RobotClientMetadataConfig.hz</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotClientMetadataConfig.robot_model"><code class="docutils literal notranslate"><span class="pre">RobotClientMetadataConfig.robot_model</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotModelConfig"><code class="docutils literal notranslate"><span class="pre">RobotModelConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotModelConfig.controlled_joints"><code class="docutils literal notranslate"><span class="pre">RobotModelConfig.controlled_joints</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotModelConfig.ee_link_idx"><code class="docutils literal notranslate"><span class="pre">RobotModelConfig.ee_link_idx</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotModelConfig.ee_link_name"><code class="docutils literal notranslate"><span class="pre">RobotModelConfig.ee_link_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotModelConfig.joint_damping"><code class="docutils literal notranslate"><span class="pre">RobotModelConfig.joint_damping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotModelConfig.joint_limits_high"><code class="docutils literal notranslate"><span class="pre">RobotModelConfig.joint_limits_high</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotModelConfig.joint_limits_low"><code class="docutils literal notranslate"><span class="pre">RobotModelConfig.joint_limits_low</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotModelConfig.num_dofs"><code class="docutils literal notranslate"><span class="pre">RobotModelConfig.num_dofs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotModelConfig.rest_pose"><code class="docutils literal notranslate"><span class="pre">RobotModelConfig.rest_pose</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotModelConfig.robot_description_path"><code class="docutils literal notranslate"><span class="pre">RobotModelConfig.robot_description_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polymetis.robot_client.html#polymetis.robot_client.metadata.RobotModelConfig.torque_limits"><code class="docutils literal notranslate"><span class="pre">RobotModelConfig.torque_limits</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="polymetis.robot_client.html#module-polymetis.robot_client">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="polymetis.utils.html">polymetis.utils package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="polymetis.utils.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="polymetis.utils.html#module-polymetis.utils.data_dir">polymetis.utils.data_dir module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="polymetis.utils.html#module-polymetis.utils.data_dir">polymetis.utils.data_dir module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="polymetis.utils.html#polymetis.utils.data_dir.get_full_path_to_urdf"><code class="docutils literal notranslate"><span class="pre">get_full_path_to_urdf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="polymetis.utils.html#polymetis.utils.data_dir.which"><code class="docutils literal notranslate"><span class="pre">which()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="polymetis.utils.html#module-polymetis.utils">Module contents</a></li>
 </ul>
 </li>

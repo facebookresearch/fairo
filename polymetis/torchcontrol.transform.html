@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>torchcontrol.transform package &#8212; Polymetis  documentation</title>
     
@@ -37,6 +37,7 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/clipboard.min.js"></script>
     <script src="_static/copybutton.js"></script>
     <script src="_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
@@ -284,6 +285,118 @@
   <a class="reference internal nav-link" href="#module-torchcontrol.transform.rotation">
    torchcontrol.transform.rotation module
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.transform.rotation.RotationObj">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       RotationObj
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.transform.rotation.RotationObj.apply">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RotationObj.apply()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.transform.rotation.RotationObj.as_matrix">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RotationObj.as_matrix()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.transform.rotation.RotationObj.as_quat">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RotationObj.as_quat()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.transform.rotation.RotationObj.as_rotvec">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RotationObj.as_rotvec()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.transform.rotation.RotationObj.axis">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RotationObj.axis()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.transform.rotation.RotationObj.inv">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RotationObj.inv()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.transform.rotation.RotationObj.magnitude">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         RotationObj.magnitude()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.transform.rotation.from_matrix">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       from_matrix()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.transform.rotation.from_quat">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       from_quat()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.transform.rotation.from_rotvec">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       from_rotvec()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.transform.rotation.identity">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       identity()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#torchcontrol-transform-rotation-conversions-module">
@@ -294,6 +407,100 @@
   <a class="reference internal nav-link" href="#module-torchcontrol.transform.transformation">
    torchcontrol.transform.transformation module
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.transform.transformation.TransformationObj">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       TransformationObj
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.transform.transformation.TransformationObj.apply">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         TransformationObj.apply()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.transform.transformation.TransformationObj.as_matrix">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         TransformationObj.as_matrix()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.transform.transformation.TransformationObj.as_twist">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         TransformationObj.as_twist()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.transform.transformation.TransformationObj.inv">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         TransformationObj.inv()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.transform.transformation.TransformationObj.rotation">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         TransformationObj.rotation()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.transform.transformation.TransformationObj.translation">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         TransformationObj.translation()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.transform.transformation.from_matrix">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       from_matrix()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.transform.transformation.from_rot_xyz">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       from_rot_xyz()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.transform.transformation.identity">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       identity()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-torchcontrol.transform">

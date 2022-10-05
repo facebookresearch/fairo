@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>torchcontrol.modules package &#8212; Polymetis  documentation</title>
     
@@ -37,6 +37,7 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/clipboard.min.js"></script>
     <script src="_static/copybutton.js"></script>
     <script src="_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
@@ -290,11 +291,164 @@
   <a class="reference internal nav-link" href="#module-torchcontrol.modules.feedback">
    torchcontrol.modules.feedback module
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.modules.feedback.CartesianSpacePD">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       CartesianSpacePD
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.modules.feedback.CartesianSpacePD.forward">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         CartesianSpacePD.forward()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.modules.feedback.CartesianSpacePDFast">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       CartesianSpacePDFast
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.modules.feedback.CartesianSpacePDFast.forward">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         CartesianSpacePDFast.forward()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.modules.feedback.HybridJointSpacePD">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       HybridJointSpacePD
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.modules.feedback.HybridJointSpacePD.forward">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         HybridJointSpacePD.forward()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.modules.feedback.JointSpacePD">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       JointSpacePD
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.modules.feedback.JointSpacePD.forward">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         JointSpacePD.forward()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.modules.feedback.LinearFeedback">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       LinearFeedback
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.modules.feedback.LinearFeedback.forward">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         LinearFeedback.forward()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-torchcontrol.modules.feedforward">
    torchcontrol.modules.feedforward module
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.modules.feedforward.Coriolis">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Coriolis
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.modules.feedforward.Coriolis.forward">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Coriolis.forward()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#torchcontrol.modules.feedforward.InverseDynamics">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       InverseDynamics
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.modules.feedforward.InverseDynamics.forward">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         InverseDynamics.forward()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#torchcontrol.modules.feedforward.InverseDynamics.use_grav_comp">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         InverseDynamics.use_grav_comp
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#torchcontrol-modules-planning-module">

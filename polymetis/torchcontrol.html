@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>torchcontrol package &#8212; Polymetis  documentation</title>
     
@@ -37,6 +37,7 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/clipboard.min.js"></script>
     <script src="_static/copybutton.js"></script>
     <script src="_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
@@ -305,15 +306,62 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="torchcontrol.models.html">torchcontrol.models package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="torchcontrol.models.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="torchcontrol.models.html#module-torchcontrol.models.torchscript_pinocchio">torchcontrol.models.torchscript_pinocchio module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchcontrol.models.html#module-torchcontrol.models.torchscript_pinocchio">torchcontrol.models.torchscript_pinocchio module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.models.html#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio"><code class="docutils literal notranslate"><span class="pre">RobotModelPinocchio</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.models.html#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.compute_jacobian"><code class="docutils literal notranslate"><span class="pre">RobotModelPinocchio.compute_jacobian()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.models.html#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.forward_kinematics"><code class="docutils literal notranslate"><span class="pre">RobotModelPinocchio.forward_kinematics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.models.html#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.get_joint_angle_limits"><code class="docutils literal notranslate"><span class="pre">RobotModelPinocchio.get_joint_angle_limits()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.models.html#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.get_joint_velocity_limits"><code class="docutils literal notranslate"><span class="pre">RobotModelPinocchio.get_joint_velocity_limits()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.models.html#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.get_link_name_from_idx"><code class="docutils literal notranslate"><span class="pre">RobotModelPinocchio.get_link_name_from_idx()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.models.html#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.inverse_dynamics"><code class="docutils literal notranslate"><span class="pre">RobotModelPinocchio.inverse_dynamics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.models.html#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.inverse_kinematics"><code class="docutils literal notranslate"><span class="pre">RobotModelPinocchio.inverse_kinematics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.models.html#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.set_ee_link"><code class="docutils literal notranslate"><span class="pre">RobotModelPinocchio.set_ee_link()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.models.html#torchcontrol.models.torchscript_pinocchio.RobotModelPinocchio.training"><code class="docutils literal notranslate"><span class="pre">RobotModelPinocchio.training</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="torchcontrol.models.html#module-torchcontrol.models">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="torchcontrol.modules.html">torchcontrol.modules package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="torchcontrol.modules.html#module-torchcontrol.modules">Module contents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="torchcontrol.modules.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="torchcontrol.modules.html#module-torchcontrol.modules.feedback">torchcontrol.modules.feedback module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="torchcontrol.modules.html#module-torchcontrol.modules.feedforward">torchcontrol.modules.feedforward module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchcontrol.modules.html#module-torchcontrol.modules.feedback">torchcontrol.modules.feedback module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedback.CartesianSpacePD"><code class="docutils literal notranslate"><span class="pre">CartesianSpacePD</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedback.CartesianSpacePD.forward"><code class="docutils literal notranslate"><span class="pre">CartesianSpacePD.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedback.CartesianSpacePDFast"><code class="docutils literal notranslate"><span class="pre">CartesianSpacePDFast</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedback.CartesianSpacePDFast.forward"><code class="docutils literal notranslate"><span class="pre">CartesianSpacePDFast.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedback.HybridJointSpacePD"><code class="docutils literal notranslate"><span class="pre">HybridJointSpacePD</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedback.HybridJointSpacePD.forward"><code class="docutils literal notranslate"><span class="pre">HybridJointSpacePD.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedback.JointSpacePD"><code class="docutils literal notranslate"><span class="pre">JointSpacePD</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedback.JointSpacePD.forward"><code class="docutils literal notranslate"><span class="pre">JointSpacePD.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedback.LinearFeedback"><code class="docutils literal notranslate"><span class="pre">LinearFeedback</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedback.LinearFeedback.forward"><code class="docutils literal notranslate"><span class="pre">LinearFeedback.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="torchcontrol.modules.html#module-torchcontrol.modules.feedforward">torchcontrol.modules.feedforward module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedforward.Coriolis"><code class="docutils literal notranslate"><span class="pre">Coriolis</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedforward.Coriolis.forward"><code class="docutils literal notranslate"><span class="pre">Coriolis.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedforward.InverseDynamics"><code class="docutils literal notranslate"><span class="pre">InverseDynamics</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedforward.InverseDynamics.forward"><code class="docutils literal notranslate"><span class="pre">InverseDynamics.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol.modules.feedforward.InverseDynamics.use_grav_comp"><code class="docutils literal notranslate"><span class="pre">InverseDynamics.use_grav_comp</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="torchcontrol.modules.html#torchcontrol-modules-planning-module">torchcontrol.modules.planning module</a></li>
 </ul>
 </li>
@@ -327,15 +375,50 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="torchcontrol.transform.html">torchcontrol.transform package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="torchcontrol.transform.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="torchcontrol.transform.html#module-torchcontrol.transform.rotation">torchcontrol.transform.rotation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchcontrol.transform.html#module-torchcontrol.transform.rotation">torchcontrol.transform.rotation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.rotation.RotationObj"><code class="docutils literal notranslate"><span class="pre">RotationObj</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.rotation.RotationObj.apply"><code class="docutils literal notranslate"><span class="pre">RotationObj.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.rotation.RotationObj.as_matrix"><code class="docutils literal notranslate"><span class="pre">RotationObj.as_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.rotation.RotationObj.as_quat"><code class="docutils literal notranslate"><span class="pre">RotationObj.as_quat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.rotation.RotationObj.as_rotvec"><code class="docutils literal notranslate"><span class="pre">RotationObj.as_rotvec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.rotation.RotationObj.axis"><code class="docutils literal notranslate"><span class="pre">RotationObj.axis()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.rotation.RotationObj.inv"><code class="docutils literal notranslate"><span class="pre">RotationObj.inv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.rotation.RotationObj.magnitude"><code class="docutils literal notranslate"><span class="pre">RotationObj.magnitude()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.rotation.from_matrix"><code class="docutils literal notranslate"><span class="pre">from_matrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.rotation.from_quat"><code class="docutils literal notranslate"><span class="pre">from_quat()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.rotation.from_rotvec"><code class="docutils literal notranslate"><span class="pre">from_rotvec()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.rotation.identity"><code class="docutils literal notranslate"><span class="pre">identity()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol-transform-rotation-conversions-module">torchcontrol.transform.rotation_conversions module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="torchcontrol.transform.html#module-torchcontrol.transform.transformation">torchcontrol.transform.transformation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchcontrol.transform.html#module-torchcontrol.transform.transformation">torchcontrol.transform.transformation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.transformation.TransformationObj"><code class="docutils literal notranslate"><span class="pre">TransformationObj</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.transformation.TransformationObj.apply"><code class="docutils literal notranslate"><span class="pre">TransformationObj.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.transformation.TransformationObj.as_matrix"><code class="docutils literal notranslate"><span class="pre">TransformationObj.as_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.transformation.TransformationObj.as_twist"><code class="docutils literal notranslate"><span class="pre">TransformationObj.as_twist()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.transformation.TransformationObj.inv"><code class="docutils literal notranslate"><span class="pre">TransformationObj.inv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.transformation.TransformationObj.rotation"><code class="docutils literal notranslate"><span class="pre">TransformationObj.rotation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.transformation.TransformationObj.translation"><code class="docutils literal notranslate"><span class="pre">TransformationObj.translation()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.transformation.from_matrix"><code class="docutils literal notranslate"><span class="pre">from_matrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.transformation.from_rot_xyz"><code class="docutils literal notranslate"><span class="pre">from_rot_xyz()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.transform.html#torchcontrol.transform.transformation.identity"><code class="docutils literal notranslate"><span class="pre">identity()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="torchcontrol.transform.html#module-torchcontrol.transform">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="torchcontrol.utils.html">torchcontrol.utils package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="torchcontrol.utils.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="torchcontrol.utils.html#module-torchcontrol.utils.tensor_utils">torchcontrol.utils.tensor_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torchcontrol.utils.html#module-torchcontrol.utils.tensor_utils">torchcontrol.utils.tensor_utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.utils.html#torchcontrol.utils.tensor_utils.diagonalize_gain"><code class="docutils literal notranslate"><span class="pre">diagonalize_gain()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.utils.html#torchcontrol.utils.tensor_utils.stack_trajectory"><code class="docutils literal notranslate"><span class="pre">stack_trajectory()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="torchcontrol.utils.html#torchcontrol.utils.tensor_utils.to_tensor"><code class="docutils literal notranslate"><span class="pre">to_tensor()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="torchcontrol.utils.html#module-torchcontrol.utils">Module contents</a></li>
 </ul>
 </li>

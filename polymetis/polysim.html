@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>polysim package &#8212; Polymetis  documentation</title>
     
@@ -37,6 +37,7 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/clipboard.min.js"></script>
     <script src="_static/copybutton.js"></script>
     <script src="_static/sphinx-book-theme.7d483ff0a819d6edff12ce0b1ead3928.js"></script>
@@ -289,11 +290,221 @@
   <a class="reference internal nav-link" href="#module-polysim.grpc_sim_client">
    polysim.grpc_sim_client module
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#polysim.grpc_sim_client.GrpcSimulationClient">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       GrpcSimulationClient
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.grpc_sim_client.GrpcSimulationClient.execute_rpc_call">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         GrpcSimulationClient.execute_rpc_call()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.grpc_sim_client.GrpcSimulationClient.init_robot_client">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         GrpcSimulationClient.init_robot_client()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.grpc_sim_client.GrpcSimulationClient.kill_run">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         GrpcSimulationClient.kill_run()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.grpc_sim_client.GrpcSimulationClient.run">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         GrpcSimulationClient.run()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.grpc_sim_client.GrpcSimulationClient.run_no_wait">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         GrpcSimulationClient.run_no_wait()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.grpc_sim_client.GrpcSimulationClient.set_robot_state">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         GrpcSimulationClient.set_robot_state()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.grpc_sim_client.GrpcSimulationClient.sync">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         GrpcSimulationClient.sync()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.grpc_sim_client.GrpcSimulationClient.unsync">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         GrpcSimulationClient.unsync()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-polysim.test_utils">
    polysim.test_utils module
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#polysim.test_utils.FakeConnection">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       FakeConnection
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.test_utils.FakeConnection.ControlUpdate">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         FakeConnection.ControlUpdate()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.test_utils.FakeConnection.InitRobotClient">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         FakeConnection.InitRobotClient()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#polysim.test_utils.FakeEnv">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       FakeEnv
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.test_utils.FakeEnv.apply_joint_torques">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         FakeEnv.apply_joint_torques()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.test_utils.FakeEnv.get_current_joint_pos_vel">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         FakeEnv.get_current_joint_pos_vel()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.test_utils.FakeEnv.get_current_joint_torques">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         FakeEnv.get_current_joint_torques()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.test_utils.FakeEnv.get_num_dofs">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         FakeEnv.get_num_dofs()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.test_utils.FakeEnv.reset">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         FakeEnv.reset()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.test_utils.FakeEnv.set_robot_state">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         FakeEnv.set_robot_state()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#polysim.test_utils.FakeMetadata">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       FakeMetadata
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#polysim.test_utils.FakeMetadata.get_proto">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         FakeMetadata.get_proto()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#polysim.test_utils.fake_metadata_cfg">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       fake_metadata_cfg
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#module-polysim">
@@ -323,8 +534,37 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="polysim.envs.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="polysim.envs.html#module-polysim.envs.abstract_env">polysim.envs.abstract_env module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="polysim.envs.html#module-polysim.envs.bullet_manipulator">polysim.envs.bullet_manipulator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="polysim.envs.html#module-polysim.envs.abstract_env">polysim.envs.abstract_env module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="polysim.envs.html#polysim.envs.abstract_env.AbstractControlledEnv"><code class="docutils literal notranslate"><span class="pre">AbstractControlledEnv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.abstract_env.AbstractControlledEnv.apply_joint_torques"><code class="docutils literal notranslate"><span class="pre">AbstractControlledEnv.apply_joint_torques()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.abstract_env.AbstractControlledEnv.get_current_joint_pos_vel"><code class="docutils literal notranslate"><span class="pre">AbstractControlledEnv.get_current_joint_pos_vel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.abstract_env.AbstractControlledEnv.get_current_joint_torques"><code class="docutils literal notranslate"><span class="pre">AbstractControlledEnv.get_current_joint_torques()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.abstract_env.AbstractControlledEnv.get_num_dofs"><code class="docutils literal notranslate"><span class="pre">AbstractControlledEnv.get_num_dofs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.abstract_env.AbstractControlledEnv.reset"><code class="docutils literal notranslate"><span class="pre">AbstractControlledEnv.reset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.abstract_env.AbstractControlledEnv.set_robot_state"><code class="docutils literal notranslate"><span class="pre">AbstractControlledEnv.set_robot_state()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="polysim.envs.html#module-polysim.envs.bullet_manipulator">polysim.envs.bullet_manipulator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="polysim.envs.html#polysim.envs.bullet_manipulator.BulletManipulatorEnv"><code class="docutils literal notranslate"><span class="pre">BulletManipulatorEnv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.bullet_manipulator.BulletManipulatorEnv.apply_joint_torques"><code class="docutils literal notranslate"><span class="pre">BulletManipulatorEnv.apply_joint_torques()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.bullet_manipulator.BulletManipulatorEnv.compute_forward_kinematics"><code class="docutils literal notranslate"><span class="pre">BulletManipulatorEnv.compute_forward_kinematics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.bullet_manipulator.BulletManipulatorEnv.compute_inverse_dynamics"><code class="docutils literal notranslate"><span class="pre">BulletManipulatorEnv.compute_inverse_dynamics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.bullet_manipulator.BulletManipulatorEnv.compute_inverse_kinematics"><code class="docutils literal notranslate"><span class="pre">BulletManipulatorEnv.compute_inverse_kinematics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.bullet_manipulator.BulletManipulatorEnv.get_current_joint_pos"><code class="docutils literal notranslate"><span class="pre">BulletManipulatorEnv.get_current_joint_pos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.bullet_manipulator.BulletManipulatorEnv.get_current_joint_pos_vel"><code class="docutils literal notranslate"><span class="pre">BulletManipulatorEnv.get_current_joint_pos_vel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.bullet_manipulator.BulletManipulatorEnv.get_current_joint_torques"><code class="docutils literal notranslate"><span class="pre">BulletManipulatorEnv.get_current_joint_torques()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.bullet_manipulator.BulletManipulatorEnv.get_current_joint_vel"><code class="docutils literal notranslate"><span class="pre">BulletManipulatorEnv.get_current_joint_vel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.bullet_manipulator.BulletManipulatorEnv.get_num_dofs"><code class="docutils literal notranslate"><span class="pre">BulletManipulatorEnv.get_num_dofs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.bullet_manipulator.BulletManipulatorEnv.load_robot_description_from_sdf"><code class="docutils literal notranslate"><span class="pre">BulletManipulatorEnv.load_robot_description_from_sdf()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.bullet_manipulator.BulletManipulatorEnv.load_robot_description_from_urdf"><code class="docutils literal notranslate"><span class="pre">BulletManipulatorEnv.load_robot_description_from_urdf()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.bullet_manipulator.BulletManipulatorEnv.reset"><code class="docutils literal notranslate"><span class="pre">BulletManipulatorEnv.reset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="polysim.envs.html#polysim.envs.bullet_manipulator.BulletManipulatorEnv.set_robot_state"><code class="docutils literal notranslate"><span class="pre">BulletManipulatorEnv.set_robot_state()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="polysim.envs.html#module-polysim.envs">Module contents</a></li>
 </ul>
 </li>

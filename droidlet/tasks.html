@@ -15,6 +15,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -43,22 +44,78 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="controller.html">Controller</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="controller.html#dialogue-manager">Dialogue Manager</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="controller.html#semantic-parser">Semantic Parser</a></li>
+<li class="toctree-l3"><a class="reference internal" href="controller.html#droidlet.dialog.dialogue_manager.DialogueManager"><code class="docutils literal notranslate"><span class="pre">DialogueManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="controller.html#droidlet.dialog.dialogue_manager.DialogueManager.step"><code class="docutils literal notranslate"><span class="pre">DialogueManager.step()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="controller.html#semantic-parser">Semantic Parser</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="controller.html#droidlet.perception.semantic_parsing.nsp_transformer_model.query_model.NSPBertModel"><code class="docutils literal notranslate"><span class="pre">NSPBertModel</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="controller.html#dialogue-task">Dialogue Task</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="controller.html#interpreter">Interpreter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="controller.html#droidlet.dialog.dialogue_task.Say"><code class="docutils literal notranslate"><span class="pre">Say</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="controller.html#droidlet.dialog.dialogue_task.AwaitResponse"><code class="docutils literal notranslate"><span class="pre">AwaitResponse</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="controller.html#droidlet.dialog.dialogue_task.BotCapabilities"><code class="docutils literal notranslate"><span class="pre">BotCapabilities</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="controller.html#droidlet.dialog.dialogue_task.ConfirmTask"><code class="docutils literal notranslate"><span class="pre">ConfirmTask</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="controller.html#interpreter">Interpreter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="controller.html#droidlet.interpreter.interpreter.Interpreter"><code class="docutils literal notranslate"><span class="pre">Interpreter</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="memory.html">Memory</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="memory.html#database">Database</a></li>
-<li class="toctree-l2"><a class="reference internal" href="memory.html#memorynodes">MemoryNodes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html#database">Database</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory"><code class="docutils literal notranslate"><span class="pre">AgentMemory</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory._db_read"><code class="docutils literal notranslate"><span class="pre">AgentMemory._db_read()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.basic_search"><code class="docutils literal notranslate"><span class="pre">AgentMemory.basic_search()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.forget"><code class="docutils literal notranslate"><span class="pre">AgentMemory.forget()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.get_last_finished_root_task"><code class="docutils literal notranslate"><span class="pre">AgentMemory.get_last_finished_root_task()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.get_mem_by_id"><code class="docutils literal notranslate"><span class="pre">AgentMemory.get_mem_by_id()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.get_recent_entities"><code class="docutils literal notranslate"><span class="pre">AgentMemory.get_recent_entities()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.get_time"><code class="docutils literal notranslate"><span class="pre">AgentMemory.get_time()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.get_world_time"><code class="docutils literal notranslate"><span class="pre">AgentMemory.get_world_time()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.task_stack_clear"><code class="docutils literal notranslate"><span class="pre">AgentMemory.task_stack_clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.task_stack_find_lowest_instance"><code class="docutils literal notranslate"><span class="pre">AgentMemory.task_stack_find_lowest_instance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.task_stack_pause"><code class="docutils literal notranslate"><span class="pre">AgentMemory.task_stack_pause()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.task_stack_peek"><code class="docutils literal notranslate"><span class="pre">AgentMemory.task_stack_peek()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.task_stack_pop"><code class="docutils literal notranslate"><span class="pre">AgentMemory.task_stack_pop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.task_stack_push"><code class="docutils literal notranslate"><span class="pre">AgentMemory.task_stack_push()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.task_stack_resume"><code class="docutils literal notranslate"><span class="pre">AgentMemory.task_stack_resume()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="memory.html#droidlet.memory.sql_memory.AgentMemory.task_stack_update_task"><code class="docutils literal notranslate"><span class="pre">AgentMemory.task_stack_update_task()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html#memorynodes">MemoryNodes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="memory.html#droidlet.memory.memory_nodes.MemoryNode"><code class="docutils literal notranslate"><span class="pre">MemoryNode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="memory.html#droidlet.memory.memory_nodes.ProgramNode"><code class="docutils literal notranslate"><span class="pre">ProgramNode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="memory.html#droidlet.memory.memory_nodes.NamedAbstractionNode"><code class="docutils literal notranslate"><span class="pre">NamedAbstractionNode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="memory.html#droidlet.memory.memory_nodes.ReferenceObjectNode"><code class="docutils literal notranslate"><span class="pre">ReferenceObjectNode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="memory.html#droidlet.memory.memory_nodes.PlayerNode"><code class="docutils literal notranslate"><span class="pre">PlayerNode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="memory.html#droidlet.memory.memory_nodes.SelfNode"><code class="docutils literal notranslate"><span class="pre">SelfNode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="memory.html#droidlet.memory.memory_nodes.LocationNode"><code class="docutils literal notranslate"><span class="pre">LocationNode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="memory.html#droidlet.memory.memory_nodes.AttentionNode"><code class="docutils literal notranslate"><span class="pre">AttentionNode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="memory.html#droidlet.memory.memory_nodes.TimeNode"><code class="docutils literal notranslate"><span class="pre">TimeNode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="memory.html#droidlet.memory.memory_nodes.ChatNode"><code class="docutils literal notranslate"><span class="pre">ChatNode</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="memory.html#droidlet.memory.memory_nodes.TaskNode"><code class="docutils literal notranslate"><span class="pre">TaskNode</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="perception.html">Perception</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Tasks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tasks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#droidlet.task.task.Task"><code class="docutils literal notranslate"><span class="pre">Task</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#droidlet.task.task.Task.check_finished"><code class="docutils literal notranslate"><span class="pre">Task.check_finished()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#droidlet.task.task.Task.interrupt"><code class="docutils literal notranslate"><span class="pre">Task.interrupt()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#droidlet.task.task.Task.step"><code class="docutils literal notranslate"><span class="pre">Task.step()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="droidlet_agents.html">Agents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#locobot">Locobot</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot-perception">Locobot Perception</a><ul>
@@ -71,7 +128,12 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#craftassist">Craftassist</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#craftassist-perception">Craftassist Perception</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#droidlet.perception.craftassist.low_level_perception.LowLevelMCPerception"><code class="docutils literal notranslate"><span class="pre">LowLevelMCPerception</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#droidlet.perception.craftassist.heuristic_perception.PerceptionWrapper"><code class="docutils literal notranslate"><span class="pre">PerceptionWrapper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#droidlet.perception.craftassist.voxel_models.subcomponent_classifier.SubcomponentClassifierWrapper"><code class="docutils literal notranslate"><span class="pre">SubcomponentClassifierWrapper</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
