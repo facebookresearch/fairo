@@ -292,7 +292,18 @@ class PickAndPlaceTask:
             depth = info['depth']
 
             q, _ = self.manip.update()
+
             camera_pose = self.manip.get_pose("camera_color_optical_frame")
+            camera_pose[2, 3] += BASE_HEIGHT
+            camera_pose[0, 3] -= 0.11526719
+
+            print("CAMERA_POSES")
+            print("self.bot.get_camera_transform()")
+            print(self.bot.get_camera_transform())
+            print('self.manip.get_pose("camera_color_optical_frame")')
+            print(self.manip.get_pose("camera_color_optical_frame"))
+            return
+
             flat_pcd = get_pcd_in_cam(depth, self.intrinsic_mat)
 
             if attempt == 0:
