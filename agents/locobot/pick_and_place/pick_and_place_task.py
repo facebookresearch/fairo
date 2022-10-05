@@ -311,9 +311,12 @@ class PickAndPlaceTask:
             flat_pcd1 = get_pcd_in_cam(depth, self.intrinsic_mat)
             print("flat_pcd1.shape", flat_pcd1.shape)
             depth_ = np.rot90(depth, k=1, axes=(0, 1))
+            print(depth_.shape)
             depth_ = self.dpt_cam.fix_depth(depth_)
-            flat_pcd2 = self.dpt_cam.depth_to_xyz(depth_)
-            print("flat_pcd2.shape", flat_pcd2.shape)
+            pcd2 = self.dpt_cam.depth_to_xyz(depth_)
+            print("pcd2.shape", pcd2.shape)
+            flat_pcd2 = pcd2.reshape(-1, 3)
+            print("flat_pcd2.shape", pcd2.shape)
             flat_pcd = flat_pcd2
 
             if debug:
