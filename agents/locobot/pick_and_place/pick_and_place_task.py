@@ -299,7 +299,7 @@ class PickAndPlaceTask:
 
             print("CAMERA_POSES")
             print("self.bot.get_camera_transform()")
-            print(self.bot.get_camera_transform())
+            print(self.bot.get_camera_transform().value)
             print('self.manip.get_pose("camera_color_optical_frame")')
             print(self.manip.get_pose("camera_color_optical_frame"))
             return
