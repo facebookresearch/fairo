@@ -334,6 +334,12 @@ class PickAndPlaceTask:
             if num_obj_pts < self.min_obj_pts:
                 print("Too few object points; trying to segment again...")
                 continue
+    
+            if debug:
+                np.save("rgb.npy", image_rgb)
+                np.save("depth.npy", depth)
+                cv2.imwrite("semantic_frame.png", semantic_frame)
+                cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
 
             print("Attempting to grasp...")
             #to_npy_file('stretch2', xyz=flat_pcd, rgb=image_rgb,
@@ -345,12 +351,6 @@ class PickAndPlaceTask:
                                                          frame="camera_color_optical_frame")
 
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
-
-            if debug:
-                np.save("rgb.npy", image_rgb)
-                np.save("depth.npy", depth)
-                cv2.imwrite("semantic_frame.png", semantic_frame)
-                cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
 
             predicted_grasps, scores = predicted_grasps[0]
             if len(scores) < self.min_predicted_grasps:
