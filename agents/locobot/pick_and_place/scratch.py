@@ -19,5 +19,5 @@ print(pcd1.shape, pcd1.min(), pcd1.max())
 
 rospy.init_node('debug')
 dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=1)
-pcd2 = dpt_cam.depth_to_xyz(dpt_cam.fix_depth(depth))
+pcd2 = dpt_cam.depth_to_xyz(dpt_cam.fix_depth(np.rot90(depth, k=1, axes=(0, 1))))
 print(pcd2.shape, pcd2.min(), pcd2.max())
