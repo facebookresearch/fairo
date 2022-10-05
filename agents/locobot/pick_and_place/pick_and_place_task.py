@@ -74,6 +74,7 @@ class PickAndPlaceTask:
         self.cam = mover.cam    # Realsense camera wrapper
         self.intrinsic_mat = mover.cam.get_intrinsics()
         self.R_stretch_camera = tra.euler_matrix(0, 0, -np.pi/2)
+        self.dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=5)
 
         self.num_segment_attempts = 100
         self.num_grasp_attempts = 10
@@ -309,7 +310,9 @@ class PickAndPlaceTask:
 
             flat_pcd1 = get_pcd_in_cam(depth, self.intrinsic_mat)
             print("flat_pcd1.shape", flat_pcd1.shape)
-            flat_pcd2 = self.cam.get_pcd_from_depth(depth)
+            depth_ = np.rot90(depth, k=1, axes=(0, 1))
+            depth_ = self.dpt_cam.fix_depth(depth_)
+            flat_pcd2 = self.dpt_cam.depth_to_xyz(depth_)
             print("flat_pcd2.shape", flat_pcd2.shape)
             flat_pcd = flat_pcd2
 
