@@ -293,16 +293,19 @@ class PickAndPlaceTask:
 
             q, _ = self.manip.update()
 
-            camera_pose = self.manip.get_pose("camera_color_optical_frame")
-            camera_pose[2, 3] += BASE_HEIGHT
-            camera_pose[0, 3] -= 0.11526719
+            # camera_pose = self.manip.get_pose("camera_color_optical_frame")
+            # camera_pose[2, 3] += BASE_HEIGHT
+            # camera_pose[0, 3] -= 0.11526719
+            camera_pose = self.bot.get_camera_transform().value
 
             print("CAMERA_POSES")
             print("self.bot.get_camera_transform()")
             print(self.bot.get_camera_transform().value)
             print('self.manip.get_pose("camera_color_optical_frame")')
             print(self.manip.get_pose("camera_color_optical_frame"))
-            return
+            print('self.manip.get_pose("camera_color_frame")')
+            print(self.manip.get_pose("camera_color_frame"))
+            print()
 
             flat_pcd = get_pcd_in_cam(depth, self.intrinsic_mat)
 
@@ -342,18 +345,18 @@ class PickAndPlaceTask:
 
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
 
-            # if debug:
-            #     cv2.imwrite("semantic_frame.png", semantic_frame)
-            #     cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
+            if debug:
+                cv2.imwrite("semantic_frame.png", semantic_frame)
+                cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
 
             predicted_grasps, scores = predicted_grasps[0]
             if len(scores) < self.min_predicted_grasps:
                 print("Too few predicted grasps; trying to segment again...")
                 continue
 
-            # if debug:
-            #     rotated_grasps = [self.R_stretch_camera.T @ grasp for grasp in predicted_grasps]
-            #     show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3), grasps=rotated_grasps)
+            if debug:
+                rotated_grasps = [self.R_stretch_camera.T @ grasp for grasp in predicted_grasps]
+                show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3), grasps=rotated_grasps)
 
             world_grasps = [camera_pose @ grasp for grasp in predicted_grasps]
             world_pcd = trimesh.transform_points(flat_pcd, self.R_stretch_camera)
