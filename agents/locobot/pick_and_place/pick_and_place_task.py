@@ -143,7 +143,7 @@ class PickAndPlaceTask:
         # Graspnet was trained
         # STRETCH_STANDOFF_DISTANCE = 0.235
         grasp_offset = np.eye(4)
-        grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.12
+        grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.05  # 0.12
 
         original_grasps = grasps.copy()
         for i, grasp in enumerate(grasps):
