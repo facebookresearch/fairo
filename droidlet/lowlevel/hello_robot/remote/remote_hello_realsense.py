@@ -126,8 +126,8 @@ class RemoteHelloRealsense(object):
     #     print("connected to realsense")
 
     def _connect_to_realsense(self, depth_buffer_size=5):
-        import rospy
-        rospy.init_node("realsense_ros_to_pyro")
+        # import rospy
+        # rospy.init_node("realsense_ros_to_pyro")
 
         print("Creating cameras...")
         self.rgb_cam = RosCamera('/camera/color')
