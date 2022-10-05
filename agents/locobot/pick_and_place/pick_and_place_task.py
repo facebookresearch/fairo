@@ -147,6 +147,8 @@ class PickAndPlaceTask:
         # grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.12
 
         # Magic number 2
+        print("STRETCH_STANDOFF_DISTANCE", STRETCH_STANDOFF_DISTANCE)
+        return
         grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.22
         #grasp_offset[1, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.10
 
