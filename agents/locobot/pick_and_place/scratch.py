@@ -15,12 +15,15 @@ intrinsic_mat = np.array([
 print(depth.shape, depth.min(), depth.max())
 print(rgb.shape, rgb.min(), rgb.max())
 
-pcd1 = get_pcd_in_cam(depth, intrinsic_mat)
-print(pcd1.shape, pcd1.min(), pcd1.max())
-show_point_cloud(pcd1, rgb, orig=np.zeros(3))
+# pcd1 = get_pcd_in_cam(depth, intrinsic_mat)
+# show_point_cloud(pcd1, rgb, orig=np.zeros(3))
+
+# rospy.init_node('debug')
+# dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=1)
+# pcd2 = np.rot90(dpt_cam.depth_to_xyz(np.rot90(depth, k=1, axes=(0, 1))), k=1, axes=(1, 0))
+# show_point_cloud(pcd2, rgb, orig=np.zeros(3))
 
 rospy.init_node('debug')
 dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=1)
-pcd2 = np.rot90(dpt_cam.depth_to_xyz(np.rot90(depth, k=1, axes=(0, 1))), k=1, axes=(1, 0))
-print(pcd2.shape, pcd2.min(), pcd2.max())
-show_point_cloud(pcd2, rgb, orig=np.zeros(3))
+pcd3 = np.rot90(dpt_cam.depth_to_xyz(np.rot90(depth, k=1, axes=(0, 1))), k=1, axes=(0, 1))
+show_point_cloud(pcd3, rgb, orig=np.zeros(3))
