@@ -334,7 +334,7 @@ class PickAndPlaceTask:
             if num_obj_pts < self.min_obj_pts:
                 print("Too few object points; trying to segment again...")
                 continue
-    
+
             if debug:
                 np.save("rgb.npy", image_rgb)
                 np.save("depth.npy", depth)
