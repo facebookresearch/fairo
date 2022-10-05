@@ -26,7 +26,9 @@ from home_robot.utils.pose import to_pos_quat
 from home_robot.utils.numpy import to_npy_file
 
 # for debugging
+from geometry_msgs.msg import TransformStamped
 from data_tools.point_cloud import show_point_cloud
+from home_robot.ros.utils import ros_pose_to_transform
 
 
 """
@@ -200,8 +202,23 @@ class PickAndPlaceTask:
                     print("Trying to reach grasp:")
                     print(grasp)
                     fk_pose = self.model.fk(qi, as_matrix=True)
+
+                    # Visualize in Open3D
                     show_point_cloud(world_pcd, image_rgb, orig=np.zeros(3), grasps=[grasp, orig_grasp, fk_pose])
-                    
+
+                    # Visualize in RVis
+                    for id, grasp in [("executed_grasp", grasp), ("predicted_grasp", orig_grasp), ("fk_pose", fk_pose)]:
+                        t = TransformStamped()
+                        t.header.stamp = rospy.Time.now()
+                        t.child_frame_id = id
+                        t.header.frame_id = "map"
+                        print()
+                        print("grasp", grasp)
+                        t.transform = ros_pose_to_transform(grasp)
+                        print("grasp", ros_pose_to_transform(grasp))
+                        print()
+                        self.grasp_client.broadcaster.sendTransform(t)
+
                 q2 = qi
                 # q2 = model.static_ik(grasp_pose, q1)
                 if q2 is not None:
