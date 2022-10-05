@@ -293,10 +293,10 @@ class PickAndPlaceTask:
 
             q, _ = self.manip.update()
 
-            # camera_pose = self.manip.get_pose("camera_color_optical_frame")
-            # camera_pose[2, 3] += BASE_HEIGHT
-            # camera_pose[0, 3] -= 0.11526719
-            camera_pose = self.bot.get_camera_transform().value
+            camera_pose = self.manip.get_pose("camera_color_optical_frame")
+            camera_pose[2, 3] += BASE_HEIGHT
+            camera_pose[0, 3] -= 0.11526719
+            # camera_pose = self.bot.get_camera_transform().value
 
             print("CAMERA_POSES")
             print("self.bot.get_camera_transform()")
