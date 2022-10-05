@@ -143,13 +143,10 @@ class PickAndPlaceTask:
         # Graspnet was trained
         # STRETCH_STANDOFF_DISTANCE = 0.235
         grasp_offset = np.eye(4)
-
-        # Magic number 1
         # grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.12
-
-        # Magic number 2
         grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) - 0.05
 
+        original_grasps = grasps.copy()
         for i, grasp in enumerate(grasps):
            grasps[i] = grasp @ grasp_offset
 
@@ -171,7 +168,7 @@ class PickAndPlaceTask:
             base_theta_movements.mean()
         )
 
-        for grasp, score in sorted(zip(grasps, scores), key=lambda p: p[1]):
+        for grasp, orig_grasp, score in sorted(zip(grasps, original_grasps, scores), key=lambda p: p[2]):
             grasp_pose = to_pos_quat(grasp)
             qi = self.model.static_ik(grasp_pose, q)
             print("grasp xyz =", grasp_pose[0])
@@ -204,7 +201,7 @@ class PickAndPlaceTask:
                     print("Trying to reach grasp:")
                     print(grasp)
                     fk_pose = self.model.fk(qi, as_matrix=True)
-                    show_point_cloud(world_pcd, image_rgb, orig=np.zeros(3), grasps=[grasp, fk_pose])
+                    show_point_cloud(world_pcd, image_rgb, orig=np.zeros(3), grasps=[grasp, orig_grasp, fk_pose])
                     
                 q2 = qi
                 # q2 = model.static_ik(grasp_pose, q1)
