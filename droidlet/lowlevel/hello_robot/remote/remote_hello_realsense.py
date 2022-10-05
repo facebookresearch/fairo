@@ -201,7 +201,8 @@ class RemoteHelloRealsense(object):
 
     def get_rgb_depth(self, rotate=True, compressed=False):
         t0 = time.time()
-        depth_image = self.dpt_cam.get_filtered()
+        # depth_image = self.dpt_cam.get_filtered()
+        depth_image = self.dpt_cam.get()
         t1 = time.time()
         color_image = self.rgb_cam.get()
         t2 = time.time()
