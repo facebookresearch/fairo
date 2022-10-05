@@ -210,6 +210,8 @@ class RemoteHelloRealsense(object):
             depth_image = np.rot90(depth_image, k=1, axes=(1, 0))
             color_image = np.rot90(color_image, k=1, axes=(1, 0))
 
+        print("color_image.shape", color_image.shape)
+        print("depth_image.shape", depth_image.shape)
         return color_image, depth_image
 
     def get_rgb_depth_optimized_for_habitat_transfer(self, rotate=True, compressed=False):
