@@ -307,7 +307,9 @@ class PickAndPlaceTask:
             print(self.manip.get_pose("camera_color_frame"))
             print()
 
-            flat_pcd = get_pcd_in_cam(depth, self.intrinsic_mat)
+            flat_pcd1 = get_pcd_in_cam(depth, self.intrinsic_mat)
+            flat_pcd2 = self.cam.get_pcd_from_depth(depth)
+            flat_pcd = flat_pcd1
 
             if attempt == 0:
                 print(list(info.keys()))
