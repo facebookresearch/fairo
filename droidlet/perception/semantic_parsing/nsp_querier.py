@@ -56,7 +56,7 @@ class NSPQuerier(object):
                 "other_error_description",
             ],
         )
-        
+
         try:
             self.parsing_model = DroidletSemanticParsingModel(
                 opts.nsp_models_dir, opts.nsp_data_dir
@@ -100,7 +100,6 @@ class NSPQuerier(object):
                 self.ErrorLogger.log_dialogue_outputs(
                     [data["msg"], data["action_dict"], None, False, True, data["feedback"]]
                 )
-
 
     def perceive(self, force=False):
         """Get the incoming chats, preprocess the chat, run through the parser

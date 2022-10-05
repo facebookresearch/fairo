@@ -13,7 +13,7 @@
 # import argparse
 
 
-# SL = 17 
+# SL = 17
 # H = 13
 
 # # model_path = "/checkpoint/yuxuans/jobs/hitl_vision/data_shapes_6kind_6000_nfbid_0_nepochs_500_lr_0.001_batchsz_256_sampleEmptyProb_0.05_hiddenDim_128_noTargetProb_0.3_probThreshold_0.3_queryEmbed_bert_runName_SWEEP2/model.pt"
@@ -27,7 +27,7 @@
 #     }
 #     cube = []
 #     bar = []
-    
+
 #     # a cube
 #     (x, y, z) = (0, 0, 0)
 #     for ix in range(4):
@@ -63,7 +63,7 @@
 #     #                 # S.append(((r, s, t), bid))
 #     #                 CNT += 1
 #     # print(f"CNT: {CNT}")
-    
+
 #     for ix in range(17):
 #         for iy in range(10, 12):
 #             for iz in range(17):
@@ -106,8 +106,6 @@
 #         pred = model.perceive(blocks, text_embed=text_embed, offset=None)
 #         # print(f"gt: {torch.from_numpy(gt).nonzero()}")
 #         # print(f"pred:{pred}")
-
-
 
 
 #         json_inp_data = {
@@ -163,7 +161,7 @@
 
 
 #################################################################################
-    
+
 import numpy as np
 import json
 import pickle
@@ -172,14 +170,19 @@ import torch
 from vision import SemSegWrapper
 from data_loaders import SemSegData
 
-from droidlet.lowlevel.minecraft.small_scenes_with_shapes import build_shape_scene, GROUND_DEPTH, SL, H
+from droidlet.lowlevel.minecraft.small_scenes_with_shapes import (
+    build_shape_scene,
+    GROUND_DEPTH,
+    SL,
+    H,
+)
 
 from droidlet.lowlevel.minecraft.shape_util import SHAPE_NAMES
 
 import argparse
 
 
-SL = 17 
+SL = 17
 H = 13
 
 # model_path = "/checkpoint/yuxuans/jobs/hitl_vision/data_shapes_6kind_6000_nfbid_0_nepochs_500_lr_0.001_batchsz_256_sampleEmptyProb_0.05_hiddenDim_128_noTargetProb_0.3_probThreshold_0.3_queryEmbed_bert_runName_SWEEP2/model.pt"
@@ -187,13 +190,10 @@ model_path = "/checkpoint/yuxuans/models/hitl_vision/v5.pt"
 data_path = "/checkpoint/yuxuans/datasets/inst_seg/D11_test/training_data.pkl"
 if __name__ == "__main__":
     fake_data = np.zeros((SL, H, SL), dtype="int64")
-    json_data = {
-        "inst_seg_tags": [],
-        "blocks": []
-    }
+    json_data = {"inst_seg_tags": [], "blocks": []}
     cube = []
     bar = []
-    
+
     # a cube
     (x, y, z) = (0, 0, 0)
     for ix in range(4):
@@ -201,8 +201,7 @@ if __name__ == "__main__":
             for iz in range(4):
                 fake_data[x + ix, y + iy, z + iz] = 50
                 cube.append((x + ix, y + iy, z + iz))
-                json_data["blocks"].append((x+ix, y+iy, z+iz, 50))
-
+                json_data["blocks"].append((x + ix, y + iy, z + iz, 50))
 
     # a bar
     (x, y, z) = (7, 0, 7)
@@ -211,7 +210,7 @@ if __name__ == "__main__":
             for iz in range(1):
                 fake_data[x + ix, y + iy, z + iz] = 51
                 bar.append((x + ix, y + iy, z + iz))
-                json_data["blocks"].append((x+ix, y+iy, z+iz, 51))
+                json_data["blocks"].append((x + ix, y + iy, z + iz, 51))
 
     json_data["inst_seg_tags"].append({"cube": cube})
     json_data["inst_seg_tags"].append({"bar": bar})
@@ -229,7 +228,7 @@ if __name__ == "__main__":
     #                 # S.append(((r, s, t), bid))
     #                 CNT += 1
     # print(f"CNT: {CNT}")
-    
+
     for ix in range(17):
         for iy in range(10, 12):
             for iz in range(17):
@@ -248,7 +247,6 @@ if __name__ == "__main__":
     parser.add_argument("--cuberite_z_offset", type=int, default=-SL // 2)
     parser.add_argument("--save_data_path", default="")
     args = parser.parse_args()
-
 
     # scene = build_shape_scene(args)
 
@@ -273,10 +271,7 @@ if __name__ == "__main__":
         # print(f"pred:{pred}")
 
         for i in range(d[4].shape[3]):
-            json_inp_data = {
-                "blocks":[],
-                "inst_seg_tags": []
-            }
+            json_inp_data = {"blocks": [], "inst_seg_tags": []}
 
             for ix in range(blocks.shape[0]):
                 for iy in range(blocks.shape[1]):
@@ -291,11 +286,7 @@ if __name__ == "__main__":
             payload = {"tags": [text[i]], "locs": locs}
             json_inp_data["inst_seg_tags"].append(payload)
 
-
-            json_out_data = {
-                "blocks":[],
-                "inst_seg_tags": []
-            }
+            json_out_data = {"blocks": [], "inst_seg_tags": []}
             for ix in range(blocks.shape[0]):
                 for iy in range(blocks.shape[1]):
                     for iz in range(blocks.shape[2]):
@@ -320,7 +311,3 @@ if __name__ == "__main__":
 
     # with open("/checkpoint/yuxuans/data/demo.json", "w") as f:
     #     json.dump(json_data, f)
-
-
-
-    

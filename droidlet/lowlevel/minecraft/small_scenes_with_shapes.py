@@ -291,8 +291,13 @@ def build_shape_scene(args):
         opts["bid"] = bid()
         S = SHAPE_FNS[shape](**opts)
         m = np.round(np.mean([l for l, idm in S], axis=0)).astype("int32")
-        m[1] = 0 # not allow underground offset
-        offsets = np.random.randint((args.SL//3, 0, args.SL//3),(args.SL*2//3, args.H//3, args.SL*2//3)) - m
+        m[1] = 0  # not allow underground offset
+        offsets = (
+            np.random.randint(
+                (args.SL // 3, 0, args.SL // 3), (args.SL * 2 // 3, args.H // 3, args.SL * 2 // 3)
+            )
+            - m
+        )
         inst_seg = []
         in_box = in_box_builder(0, 0, 0, args.SL, args.H, args.SL)
         record_shape(S, in_box, offsets, blocks, inst_seg, occupied_by_shapes)
