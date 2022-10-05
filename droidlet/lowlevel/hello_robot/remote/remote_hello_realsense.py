@@ -125,7 +125,6 @@ class RemoteHelloRealsense(object):
         print("connected to realsense")
 
     def get_intrinsics(self):
-        # TODO Replace this function
         return self.intrinsic_mat
 
     def get_img_resolution(self, rotate=True):
@@ -139,7 +138,6 @@ class RemoteHelloRealsense(object):
         return "Connected!"  # should print on client terminal
 
     def get_rgb_depth(self, rotate=True, compressed=False):
-        # TODO Replace this function
         tm = time.time()
         frames = None
         while not frames:
@@ -181,8 +179,17 @@ class RemoteHelloRealsense(object):
         print("depth_image.shape", depth_image.shape)
         print("color_image min max", color_image.min(), color_image.max())
         print("depth_image min max", depth_image.min(), depth_image.max())
-        print("get_intrinsics", self.get_intrinsics())
+        print("self.intrinsic_mat", self.intrinsic_mat)
+        print("self.intrinsic_o3d", self.intrinsic_o3d)
         return color_image, depth_image
+
+     # def get_rgb_depth(self, rotate=True, compressed=False):
+     #    print("color_image.shape", color_image.shape)
+     #    print("depth_image.shape", depth_image.shape)
+     #    print("color_image min max", color_image.min(), color_image.max())
+     #    print("depth_image min max", depth_image.min(), depth_image.max())
+     #    print("get_intrinsics", self.get_intrinsics())
+     #    return color_image, depth_image
 
     def get_rgb_depth_optimized_for_habitat_transfer(self, rotate=True, compressed=False):
         tm = time.time()
