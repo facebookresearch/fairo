@@ -130,7 +130,7 @@ class PickAndPlaceTask:
         # Pass object into picking code
         self.pick(object)
 
-    def goto_static_grasp(self, grasps, scores=None, world_pcd=None, orig_rgb=None, pause=False, debug=False):
+    def goto_static_grasp(self, grasps, scores=None, world_pcd=None, image_rgb=None, pause=False, debug=False):
         """
         Go to a grasp position, given a list of acceptable grasps.
         """
@@ -200,11 +200,11 @@ class PickAndPlaceTask:
                     continue
 
                 print("found standoff")
-                if debug and world_pcd is not None and orig_rgb is not None:
+                if debug and world_pcd is not None and image_rgb is not None:
                     print("Trying to reach grasp:")
                     print(grasp)
                     fk_pose = self.model.fk(qi, as_matrix=True)
-                    show_point_cloud(world_pcd, orig_rgb, orig=np.zeros(3), grasps=[grasp, fk_pose])
+                    show_point_cloud(world_pcd, image_rgb, orig=np.zeros(3), grasps=[grasp, fk_pose])
                     
                 q2 = qi
                 # q2 = model.static_ik(grasp_pose, q1)
@@ -275,10 +275,11 @@ class PickAndPlaceTask:
             info = self.slam.get_last_position_vis_info()
 
             image_object_mask = info["unfiltered_semantic_frame"][:, :, category_id]
+            flat_object_mask = image_object_mask.reshape(-1)
             semantic_frame = info["semantic_frame_vis"]
             obstacle_map = info["semantic_map"][0]
             object_map = info["semantic_map"][4 + category_id]
-            orig_rgb = info['rgb']
+            image_rgb = info['rgb']
             depth = info['depth']
 
             q, _ = self.manip.update()
@@ -287,7 +288,7 @@ class PickAndPlaceTask:
 
             if attempt == 0:
                 print(list(info.keys()))
-                print("rgb shape was", orig_rgb.shape)
+                print("image_rgb.shape", image_rgb.shape)
                 print("flat_pcd.shape", flat_pcd.shape)
                 print("image_object_mask.shape", image_object_mask.shape)
                 print("obstacle_map.shape", obstacle_map.shape)
@@ -304,19 +305,19 @@ class PickAndPlaceTask:
                 print("curr_pose_in_map_coordinates", pose_in_map_coordinates)
                 print()
 
-            num_obj_pts = np.sum(image_object_mask)
+            num_obj_pts = np.sum(flat_object_mask)
             print(attempt, "Detected this many object points:", num_obj_pts)
             if num_obj_pts < self.min_obj_pts:
                 print("Too few object points; trying to segment again...")
                 continue
 
             print("Attempting to grasp...")
-            #to_npy_file('stretch2', xyz=flat_pcd, rgb=orig_rgb,
-            #            depth=depth, xyz_color=orig_rgb, seg=image_object_mask.reshape(-1),
+            #to_npy_file('stretch2', xyz=flat_pcd, rgb=image_rgb,
+            #            depth=depth, xyz_color=image_rgb, seg=flat_object_mask,
             #            K=self.intrinsic_mat)
             predicted_grasps = self.grasp_client.request(flat_pcd,
-                                                         orig_rgb,
-                                                         image_object_mask.reshape(-1),
+                                                         image_rgb,
+                                                         flat_object_mask,
                                                          frame="camera_color_optical_frame")
 
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
@@ -334,17 +335,17 @@ class PickAndPlaceTask:
 
             if debug:
                 rotated_grasps = [self.R_stretch_camera.T @ grasp for grasp in predicted_grasps]
-                show_point_cloud(flat_pcd, orig_rgb, orig=np.zeros(3), grasps=rotated_grasps)
+                show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3), grasps=rotated_grasps)
 
             world_grasps = [camera_pose @ grasp for grasp in predicted_grasps]
             world_pcd = trimesh.transform_points(flat_pcd, self.R_stretch_camera)
             world_pcd = trimesh.transform_points(world_pcd, camera_pose)
 
             if debug:
-                show_point_cloud(world_pcd, orig_rgb, orig=np.zeros(3), grasps=world_grasps)
+                show_point_cloud(world_pcd, image_rgb, orig=np.zeros(3), grasps=world_grasps)
 
             #self.manip.goto_static_grasp(world_grasps, scores, pause=True)
-            self.goto_static_grasp(world_grasps, scores, world_pcd, orig_rgb, pause=False, debug=debug)
+            self.goto_static_grasp(world_grasps, scores, world_pcd, image_rgb, pause=False, debug=debug)
             break
 
         else:
