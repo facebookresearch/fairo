@@ -307,7 +307,7 @@ class PickAndPlaceTask:
             print()
 
             flat_pcd1 = get_pcd_in_cam(depth, self.intrinsic_mat)
-            flat_pcd2 = self.bot.get_pcd_from_depth(depth)
+            flat_pcd2 = self.bot.get_pcd_from_depth(depth).value
             flat_pcd = flat_pcd2
 
             if debug:
