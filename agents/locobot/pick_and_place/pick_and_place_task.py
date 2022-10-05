@@ -307,9 +307,6 @@ class PickAndPlaceTask:
             print(self.manip.get_pose("camera_color_frame"))
             print()
 
-            np.save("depth.npy", depth)
-            np.save("rgb.npy", image_rgb)
-            return
             flat_pcd = get_pcd_in_cam(depth, self.intrinsic_mat)
 
             if attempt == 0:
