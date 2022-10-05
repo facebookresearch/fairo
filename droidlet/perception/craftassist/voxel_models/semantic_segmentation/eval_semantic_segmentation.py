@@ -118,7 +118,7 @@ def eval_data(model, DL, loss, optimizer, args):
             t = t.cuda()
         yhat = model(x, t)
         ##### calculate acc
-        non_zero_idx = c != 0
+        non_zero_idx = (c != 0)
         non_zero_total += torch.sum(non_zero_idx)
         # print(f"yhat: all: {yhat[0].numel()}, nonzero: {torch.count_nonzero(yhat[0])},  {yhat[0]}")
         pred = yhat > prob_threshold
@@ -138,9 +138,7 @@ def eval_data(model, DL, loss, optimizer, args):
         preloss *= mask
         l = preloss.sum() / M
         losses.append(l.item())
-    print(
-        f"[Valid] Accuracy: {correct_num / total_num}[{correct_num}/{total_num}], non empty acc: {non_zero_correct / non_zero_total}[{non_zero_correct}/{non_zero_total}]"
-    )
+    print(f"[Valid] Accuracy: {correct_num / total_num}[{correct_num}/{total_num}], non empty acc: {non_zero_correct / non_zero_total}[{non_zero_correct}/{non_zero_total}]")
     return losses
 
 
@@ -205,9 +203,7 @@ if __name__ == "__main__":
         aug["flip_rotate"] = True
     if args.debug > 0 and len(aug) > 0:
         print("warning debug and augmentation together?")
-    train_data = SemSegData(
-        args.data_path, nexamples=args.debug, augment=aug, classes=model.classes
-    )
+    train_data = SemSegData(args.data_path, nexamples=args.debug, augment=aug, classes=model.classes)
 
     shuffle = True
     if args.debug > 0:
@@ -222,8 +218,8 @@ if __name__ == "__main__":
         drop_last=True,
         num_workers=args.ndonkeys,
     )
-
-    bceloss = nn.BCELoss(reduction="none")
+    
+    bceloss = nn.BCELoss(reduction='none')
 
     if args.cuda:
         model.cuda()

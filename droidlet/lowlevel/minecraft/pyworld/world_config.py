@@ -3,8 +3,8 @@ from droidlet.lowlevel.minecraft.pyworld.item import GettableItem
 
 class Opt:
     def __init__(self):
-        self.SL = 15 * 3
-        self.H = 15 * 3
+        self.SL = 17 * 3
+        self.H = 13 * 3
         self.GROUND_DEPTH = 5
         self.mob_config = "num_mobs:4"
         # FIXME make these consts

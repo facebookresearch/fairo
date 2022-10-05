@@ -6,7 +6,7 @@ import logging
 from multiprocessing import Queue, Process
 from droidlet.perception.craftassist.heuristic_perception import all_nearby_objects
 from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
-from .semantic_segmentation.semseg_models import SemSegWrapper
+from .semantic_segmentation.vision import SemSegWrapper
 from droidlet.base_util import blocks_list_to_npy, get_bounds
 
 

@@ -58,7 +58,7 @@ SHAPE_NAMES = [
     # "HOLLOW_TRIANGLE",
     # "HOLLOW_RECTANGLE",
     # "RECTANGULOID_FRAME",
-]  # 6 kind
+] # 6 kind
 
 # SHAPE_NAMES = [
 #     "CUBE",
@@ -101,7 +101,6 @@ SHAPE_NAMES = [
 #     # "HOLLOW_RECTANGLE",
 #     # "RECTANGULOID_FRAME",
 # ] # 4 kind
-
 
 def underdirt(schematic, labels=None, max_shift=0, nothing_id=0):
     """Convert schematic to underdirt"""
@@ -157,7 +156,7 @@ def flip_rotate(c, l=None, idx=None):
     return c_, l_, idx
 
 
-def pad_to_sidelength(schematic, labels=None, nothing_id=0, sidelength=32):
+def pad_to_sidelength(schematic, labels=None, masks=None, nothing_id=0, sidelength=32):
     """Add padding to schematics to sidelength"""
     szs = list(schematic.size())
     szs = np.add(szs, -sidelength)
@@ -172,16 +171,20 @@ def pad_to_sidelength(schematic, labels=None, nothing_id=0, sidelength=32):
     schematic = torch.nn.functional.pad(schematic, pad[::-1])
     if labels is not None:
         labels = torch.nn.functional.pad(labels, pad[::-1], value=nothing_id)
-    return schematic, labels
+    if masks is not None:
+        masks = torch.nn.functional.pad(masks, pad[::-1], value=nothing_id)
+    print(f"M in pad to: {masks}")
+    return schematic, labels, masks
 
 
 # TODO cut outliers
 
 # TODO simplify
-def fit_in_sidelength(schematic, labels=None, nothing_id=0, sl=32, max_shift=0):
+def fit_in_sidelength(schematic, labels=None, masks=None, nothing_id=0, sl=32, max_shift=0):
     """Adjust schematics to the center of the padded one"""
-    schematic, labels = pad_to_sidelength(
-        schematic, labels=labels, nothing_id=nothing_id, sidelength=sl
+    print(f"MMM fit in si: {masks}")
+    schematic, labels, masks = pad_to_sidelength(
+        schematic, labels=labels, masks=masks, nothing_id=nothing_id, sidelength=sl
     )
     nz = schematic.nonzero()
     m, _ = nz.median(0)
@@ -197,14 +200,18 @@ def fit_in_sidelength(schematic, labels=None, nothing_id=0, sl=32, max_shift=0):
     if labels is not None:
         new_labels = torch.LongTensor(sl, sl, sl).fill_(nothing_id)
         new_labels[xshift:, : sl - min_y, zshift:] = labels[: sl - xshift, min_y:sl, : sl - zshift]
-    return new_schematic, new_labels, (xshift, -min_y, zshift)
+    new_masks = None
+    if masks is not None:
+        new_masks = torch.FloatTensor(sl, sl, sl).fill_(nothing_id)
+        new_masks[xshift:, : sl - min_y, zshift:] = masks[: sl - xshift, min_y:sl, : sl - zshift]
+    return new_schematic, new_labels, new_masks, (xshift, -min_y, zshift)
 
 
-def make_example_from_raw(schematic, labels=None, augment={}, nothing_id=0, sl=32):
+def make_example_from_raw(schematic, labels=None, masks=None, augment={}, nothing_id=0, sl=32):
     """Preprocess raw data and make good examples out of it"""
     max_shift = augment.get("max_shift", 0)
-    s, l, o = fit_in_sidelength(
-        schematic, labels=labels, nothing_id=nothing_id, max_shift=max_shift, sl=sl
+    s, l, m, o = fit_in_sidelength(
+        schematic, labels=labels, masks=masks, nothing_id=nothing_id, max_shift=max_shift, sl=sl
     )
     if len(augment) > 0:
         if augment.get("flip_rotate", False):
@@ -215,7 +222,7 @@ def make_example_from_raw(schematic, labels=None, augment={}, nothing_id=0, sl=3
             s, l = underdirt(s, labels=l, max_shift=m, nothing_id=nothing_id)
     s[s == 0] = 1
     s -= 1
-    return s, l, o
+    return s, l, m, o
 
 
 def swallow_classes(classes, predator, prey_classes, class_map):
@@ -267,23 +274,27 @@ def pick_no_target_shape(all_shapes, shapes):
     for shape in all_shapes:
         if shape not in shapes:
             return shape
-
+    
     return None
 
-
-def pick_query_shape_text(data, no_target_prob):
+def pick_query_shape_text(data, no_target_prob, shape_set=None):
+    if shape_set is None:
+        shape_set = SHAPE_NAMES
     shape_ids_in_scene = set(data[1].cpu().detach().numpy().flatten())
     shape_texts_in_scene = set([data[2][idx] for idx in shape_ids_in_scene])
-    shape_texts_not_in_scene = set(SHAPE_NAMES).difference(shape_texts_in_scene)
+    shape_texts_not_in_scene = set(shape_set).difference(shape_texts_in_scene)
     if "nothing" in shape_texts_in_scene:
-        shape_texts_in_scene.remove("nothing")
+        shape_texts_in_scene.remove('nothing')
     if "none" in shape_texts_in_scene:
-        shape_texts_in_scene.remove("none")
+        shape_texts_in_scene.remove('none')
     if random.random() < no_target_prob:
         text = random.sample(shape_texts_not_in_scene, 1)[0]
     else:
-        text = random.sample(shape_texts_in_scene, 1)[0]
-
+        try:
+            text = random.sample(shape_texts_in_scene, 1)[0]
+        except:
+            text = random.sample(shape_texts_not_in_scene, 1)[0]
+    
     prefixs = ["where is", "tell me what is", "can you point where is"]
     prefix_i = random.randint(0, 2)
     prefix = prefixs[prefix_i]
@@ -306,34 +317,42 @@ class SemSegData(tds.Dataset):
         useid=True,
         no_target_prob=0.2,
         query_embed="lut",
+        opts=None
     ):
         self.sidelength = sidelength
         self.useid = useid
         self.examples = []
-        self.inst_data = pickle.load(open(data_path, "rb"))  # [:100]
+        self.inst_data = pickle.load(open(data_path, "rb"))#[:600]
         print(f"Dataset size: {len(self.inst_data)}")
-        for i in range(5):
+        for i in range(2):
             print(f"===== data point {i}=======")
             data = self.inst_data[i][0]
             labels = self.inst_data[i][1]
             classes2 = self.inst_data[i][2]
+            obj_name = self.inst_data[i][3]
+            masks = self.inst_data[i][4]
             print(f"======= data =====")
             for d1 in range(len(data)):
                 print(data[d1])
             print(f"======= label =====")
             for l1 in range(len(labels)):
                 print(labels[l1])
+            for m in range(len(masks)):
+                print(masks[m])
+            print(obj_name)
             print(f" ===== set : {set(labels.flatten())} ========")
             print(classes2)
         self.nexamples = nexamples
         self.augment = augment
         self.query_embed = query_embed
         self.no_target_prob = no_target_prob
-        self.tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
-        self.model = DistilBertModel.from_pretrained("distilbert-base-uncased", return_dict=True)
-
-        self.device = "cpu"  # "cuda" if torch.cuda.is_available() else "cpu"
-        self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device=self.device)
+        if self.query_embed == "bert":
+            self.tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+            self.model = DistilBertModel.from_pretrained('distilbert-base-uncased', return_dict=True)
+        elif self.query_embed == "clip":
+            pass
+            # self.device = opts.device
+            # self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device=self.device)
 
         if self.nexamples < 0:
             self.nexamples = len(self.inst_data)
@@ -367,17 +386,37 @@ class SemSegData(tds.Dataset):
         self.nothing_id = self.classes["name2idx"]["none"]
         c = self.classes["name2idx"]
         for i in range(len(self.inst_data)):
+            print(f"Progress: {i}/{len(self.inst_data)}")
             self.inst_data[i] = list(self.inst_data[i])
             x = self.inst_data[i]
             x[0] = torch.from_numpy(x[0]).long()
             x[1] = torch.from_numpy(x[1]).long()
             x[1].apply_(lambda z: c[class_map[x[2][z]]] if z > 0 else self.nothing_id)
             ########## FIXME, don't assign to x[2] ########
-            # x[2] = self.classes["idx2name"]
-            shape, text = pick_query_shape_text(x, self.no_target_prob)
-            x.append((shape, text))
-            # x[3] = (shape, text)
+            x[2] = self.classes["idx2name"]
+            # shape, text = pick_query_shape_text(x, self.no_target_prob, shape_set=self.classes["idx2name"])
+            # x.append((shape, text))
+            # # x[3] = (shape, text)
+            x[4] = torch.from_numpy(x[4]).float()
+            # texts = x[3]
+            # if self.query_embed == "bert":
+            #     ### bert embed ###
+            #     with torch.no_grad():
+            #         text_inputs = self.tokenizer(texts, return_tensors="pt")
+            #         text_outputs = self.model(**text_inputs)
+            #         last_hidden_state = text_outputs.last_hidden_state
+            #         text_embed = torch.squeeze(torch.sum(last_hidden_state, 1))
+            #     ### bert embed ###
+            # elif self.query_embed == "clip":
+            #     with torch.no_grad():
+            #         tokenized_text = clip.tokenize([texts]).to(self.device)
+            #         text_embed = torch.squeeze(self.clip_model.encode_text(tokenized_text), 0)
+            # else:
+            #     ### lut ###
+            #     text_embed = torch.tensor([self.classes["name2idx"][texts]], dtype=torch.float)
+            # x.append(text_embed)
         print(f"CLASS MAP: {self.classes}")
+        
 
     def get_classes(self):
         return self.classes
@@ -401,8 +440,20 @@ class SemSegData(tds.Dataset):
         #         is_no_target = True
         #         text = new_text
         # print(f"x0: {x[0]}\n x1: {x[1]}\n x2: {x[2]}\n x3: {x[3]} ")
-        (text, texts) = x[3]
 
+        ###
+        # x:
+        # [
+        #   0: block id
+        #   1: class id
+        #   2: class idx2name
+        #   3: tags
+        #   4: masks
+        #   5: tag text embedding
+        # ]
+        ###
+        return x[0], x[4], x[1], x[5], x[3]
+        texts = x[3]
         if self.query_embed == "bert":
             ### bert embed ###
             with torch.no_grad():
@@ -413,25 +464,25 @@ class SemSegData(tds.Dataset):
             ### bert embed ###
         elif self.query_embed == "clip":
             with torch.no_grad():
-                tokenized_text = clip.tokenize([texts]).to(self.device)
-                text_embed = torch.squeeze(self.clip_model.encode_text(tokenized_text), 0)
+                tokenized_text = clip.tokenize(texts).to(self.device)
+                text_embed = self.clip_model.encode_text(tokenized_text).float()
         else:
             ### lut ###
-            text_embed = torch.tensor([self.classes["name2idx"][text]], dtype=torch.float)
-            # print(f"text embedding: {text_embed}")
-            ### lut ###
-        s, c, _ = make_example_from_raw(
-            x[0], labels=x[1], nothing_id=self.nothing_id, sl=self.sidelength, augment=self.augment
-        )
-
-        # if is_no_target:
-        #     l = torch.zeros_like(c).to(torch.float)
-        # else:
-        if text in self.classes["name2idx"].keys():
-            l = (c == self.classes["name2idx"][text]).to(torch.float)
-        else:
-            l = torch.zeros_like(c).to(torch.float)
-        return s, l, c, text_embed, text
+            text_embed = torch.tensor([self.classes["name2idx"][texts]], dtype=torch.float)
+        # print(f"0: {x[0].size()}, 1: {x[4].size()}, 2: {x[1].size()}, 3: {text_embed.size()}, 4: {len(x[3])}")
+        return x[0], x[4], x[1], text_embed, x[3]
+        # s, c, m, _ = make_example_from_raw(
+        #     x[0], labels=x[1], masks=x[4], nothing_id=self.nothing_id, sl=self.sidelength, augment=self.augment
+        # )
+        # print(f"MMM: {m}")
+        # # if is_no_target:
+        # #     l = torch.zeros_like(c).to(torch.float)
+        # # else:
+        # # if text in self.classes["name2idx"].keys():
+        # #     l = (c == self.classes["name2idx"][text]).to(torch.float)
+        # # else:
+        # #     l = torch.zeros_like(c).to(torch.float)
+        # return s, m, c, text_embed, texts
 
     def __len__(self):
         return self.nexamples

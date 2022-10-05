@@ -34,6 +34,7 @@ job_args = args.args.split()
 folder = Path(args.folder)
 os.makedirs(str(folder), exist_ok=True)
 init_file = folder / f"{uuid.uuid4().hex}_init"  # not used when nodes=1
+job_args += ["--dist-init", init_file.as_uri()]
 job_parser = get_parser()
 job_args = job_parser.parse_args(job_args)
 
@@ -55,7 +56,7 @@ executor.update_parameters(
     },
 )
 if args.partition == "priority":
-    executor.update_parameters(slurm_comment="AAAI2023 deadline")
+    executor.update_parameters(slurm_comment="ICLR 2023 Sep 28")
 
 executor.update_parameters(name=args.name)
 submitit_main = SubmititMain(main)

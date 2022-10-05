@@ -1,4 +1,5 @@
 from threading import Thread
+import copy
 
 from droidlet.lowlevel.minecraft.pyworld.world import World
 from droidlet.lowlevel.minecraft.pyworld.fake_mobs import SimpleMob, make_mob_opts

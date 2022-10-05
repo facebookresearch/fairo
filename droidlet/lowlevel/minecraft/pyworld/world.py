@@ -364,7 +364,7 @@ class World:
         entityId = self.new_eid(entityId=data.get("entityId"))
         # FIXME
         name = data.get("name", "anonymous")
-        p = Player(entityId, name, Pos(int(x), int(y), int(z)), Look(float(yaw), float(pitch)))
+        p = Player(entityId, name, Pos(int(x), int(y), int(z)), Look(float(yaw), float(pitch)), Item(None, None))
         self.players[entityId] = p
         self.connected_sids[sid] = entityId
 

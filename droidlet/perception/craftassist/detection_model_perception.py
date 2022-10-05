@@ -3,8 +3,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
 import torch
+import numpy as np
 from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
-
+from droidlet.perception.craftassist.voxel_models.semantic_segmentation.vision import SemSegWrapper
+from droidlet.lowlevel.minecraft.iglu_util import IGLU_BLOCK_MAP
+from .utils.vision_logger import VisionLogger
+from droidlet.lowlevel.minecraft.pyworld.world_config import opts as world_opts
+from droidlet.event import sio
 RADIUSX = 6
 RADIUSY = 5
 RADIUSZ = 6
@@ -18,13 +23,52 @@ class DetectionWrapper:
         model_path (str): path to the segmentation model
     """
 
-    def __init__(self, model=None, threshold=0.5, radius=(RADIUSX, RADIUSY, RADIUSZ)):
+    def __init__(self, model=None, agent=None, threshold=None, radius=(RADIUSX, RADIUSY, RADIUSZ)):
+        self.cuda = torch.cuda.is_available()
         if type(model) is str or type(model) is dict:
-            self.model = load_torch_detector(model)
+            self.model = load_torch_detector(model, self.cuda)
         else:
             self.model = model
-        self.threshold = threshold
+        self.agent = agent
+        self.threshold = self.model.threshold if not threshold else threshold
         self.radius = radius
+        self.vision_err_cnt = 0
+
+        self.VisionErrorLogger = VisionLogger(
+            "vision_error_details.csv",
+            [
+                "command",
+                "action_dict",
+                "time",
+                "vision_error",
+                "other_error",
+                "other_error_description",
+                "world_snapshot",
+            ],
+        )
+
+        @sio.on("saveErrorDetailsToCSV")
+        def save_vision_error_details(sid, data):
+            logging.info("Saving vision error details: %r" % (data))
+            if "vision_error" not in data or "msg" not in data:
+                logging.info("Could not save error details due to error in dashboard backend.")
+                return
+            is_vision_error = data["vision_error"]
+
+            if is_vision_error:
+                sl = world_opts.SL
+                h = world_opts.H
+                blocks = self.agent.get_blocks(
+                    int(sl // 3), int(2 * sl // 3), 0, int(h // 3 - 1), int(sl // 3), int(2 * sl // 3)
+                )
+                print(("vision error blocks: %r" % (blocks)))
+                logging.info("vision error blocks: %r" % (blocks))
+                vision_err_fname = f"vision_err_{self.vision_err_cnt}.npy"
+                self.VisionErrorLogger.log_dialogue_outputs(
+                    [data["msg"], data["action_dict"], None, True, False, None, vision_err_fname]
+                )
+                np.save(vision_err_fname, blocks)
+                self.vision_err_cnt += 1
 
     def perceive(self, blocks, text_spans=[], offset=(0, 0, 0)):
         """
@@ -45,16 +89,31 @@ class DetectionWrapper:
         if self.model is None:
             return out
         # masks should be a list of HxWxW torch arrays with values between 0 and 1
-        masks = self.model(text_spans, blocks)
+        print(blocks.shape)
+        if len(blocks.shape) == 4:
+            blocks = np.apply_along_axis(lambda x: IGLU_BLOCK_MAP[(int(x[0]), int(x[1]))], 3, blocks)
+        assert len(blocks.shape) == 3
+        masks = self.model.perceive(blocks, text_spans)
         for i in range(len(text_spans)):
             t = text_spans[i]
-            mask = masks[i]
-            seg = torch.nonzero(mask > self.threshold).tolist()
+            seg = masks[i]
             out.labeled_blocks[t] = [
                 (l[0] + offset[0], l[1] + offset[1], l[2] + offset[2]) for l in seg
             ]
         return out
 
 
-def load_torch_detector(model_data):
-    raise NotImplementedError
+def load_torch_detector(model_data, cuda=False):
+    model = SemSegWrapper(model=model_data, cuda=cuda)
+    return model
+
+if __name__ == "__main__":
+    model_path = "/checkpoint/yuxuans/models/hitl_vision/v5.pt"
+    mw = DetectionWrapper(model_path)
+    blocks = np.zeros((17,13,17,2))
+    for ix in range(2, 5):
+        for iy in range(2, 5):
+            for iz in range(2, 5):
+                blocks[ix, iy, iz] = (35, 14)
+    out = mw.perceive(blocks, ["red cube", "blue sphere"])
+    print(out)

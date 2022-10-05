@@ -5,6 +5,7 @@ import uuid
 import json
 from typing import Optional, List, Dict, cast, Tuple
 from droidlet.base_util import XYZ, POINT_AT_TARGET, to_player_struct
+from droidlet.dialog.post_process_logical_form import construct_text_span
 
 
 class MemoryNode:
@@ -205,12 +206,20 @@ class ProgramNode(MemoryNode):
         """
         recursively extracts all reference object text spans into a list
         """
+
+        print(f"123get_refobj_text_spans")
         refobj_spans = []
         for k, v in lf.items():
             if k == "reference_object":
                 text_span = v.get("text_span")
                 if text_span is not None:
                     refobj_spans.append(text_span)
+                else:
+                    # try to contruct text span from properties and names
+                    try:
+                        refobj_spans.append(construct_text_span(v))
+                    except:
+                        pass
             else:
                 if type(v) is dict:
                     refobj_spans.extend(cls.get_refobj_text_spans(v))

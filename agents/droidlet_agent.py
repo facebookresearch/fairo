@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 import random
 import time
+from matplotlib.ticker import LogitFormatter
 import numpy as np
 import datetime
 import os
@@ -157,6 +158,7 @@ class DroidletAgent(BaseAgent):
 
         @sio.on("getChatActionDict")
         def get_chat_action_dict(sid, chat):
+            print(f"getChatActionDict: {chat}")
             logging.debug(f"Looking for action dict for command [{chat}] in memory")
             logical_form = None
             ref_obj_data = None
@@ -170,6 +172,7 @@ class DroidletAgent(BaseAgent):
                 if logical_form_triples:
                     logical_form_mem = self.memory.get_mem_by_id(logical_form_triples[0][2])
                     logical_form = logical_form_mem.logical_form
+                    print(f"logical form memid: {logical_form_triples[0][2]}")
                 if logical_form:
                     logical_form = postprocess_logical_form(
                         self.memory,
@@ -193,7 +196,7 @@ class DroidletAgent(BaseAgent):
                     ]
             except Exception as e:
                 logging.debug(f"Failed to find any action dict for command [{chat}] in memory")
-
+            print(f"setLastChatActionDict, presend. ad:  {logical_form}, refobjdata: {ref_obj_data}")
             payload = {"action_dict": logical_form, "lf_refobj_data": ref_obj_data}
             sio.emit("setLastChatActionDict", payload)
 

@@ -53,7 +53,7 @@ const DEFAULT_MATERIAL = "wood";
 const TEXTURE_PATH = "https://cdn.jsdelivr.net/gh/snyxan/assets@main/block_textures/";
 
 
-const SL = 15*3
+const SL = 17*3
 const voxelOffset = [0, 0, 0]//[SL/2, SL/2, SL/2]
 
 // voxel related constants

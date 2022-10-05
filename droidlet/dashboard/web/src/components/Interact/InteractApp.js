@@ -32,7 +32,7 @@ class InteractApp extends Component {
       last_command: "",
       agent_replies: [{}],
       agentType: null,
-      isTurk: false,
+      isTurk: true,
       action_dict: {},
       parsing_error: false,
       vision_error: false,
@@ -40,6 +40,7 @@ class InteractApp extends Component {
       feedback: "",
       isSaveFeedback: false,
       clarify: false,
+      reference_object_description: null,
     };
 
     this.state = this.initialState;
@@ -441,7 +442,10 @@ class InteractApp extends Component {
     ) {
       console.log("Safety dance: " + this.state.commandState);
       this.handleClearInterval();
+      console.log("After handle clear interval");
+      console.log(this.state.isTurk);
       if (this.state.isTurk) {
+        console.log("is turk, ask action question");
         this.askActionQuestion();
       }
       return false;
@@ -490,11 +494,13 @@ class InteractApp extends Component {
   }
 
   askActionQuestion() {
+    console.log("askActionQuestion");
     // Send request to retrieve the logic form of last sent command
     this.props.stateManager.socket.emit(
       "getChatActionDict",
       this.state.last_command
     );
+    console.log("askActionQuestion, sending out request to get chat AD");
 
     // Send a message to the parent iframe for analytics logging
     window.parent.postMessage(
@@ -710,7 +716,7 @@ class InteractApp extends Component {
       // yes, so not a parsing error
       this.updateChat({ msg: "Yes", timestamp: Date.now() });
       this.evalCommandPerception();
-      this.askVisionQuestion();
+      // this.askVisionQuestion();
     } else if (index === 2) {
       // no, so parsing error
       this.updateChat({ msg: "No", timestamp: Date.now() });
@@ -759,6 +765,7 @@ class InteractApp extends Component {
   }
 
   extractLocationRef(action_dict) {
+    console.log("extractLocationRef");
     var locationRef = "";
     if ("reference_object" in action_dict) {
       if ("text_span" in action_dict.reference_object) {
@@ -790,6 +797,8 @@ class InteractApp extends Component {
           "'" + antecedent.join(" ").replace(/  +/g, " ").trim() + "'";
       }
     }
+    console.log("extractLocationRef returns:");
+    console.log(locationRef);
     return locationRef;
   }
 
@@ -801,6 +810,7 @@ class InteractApp extends Component {
     //             Found Location in Memory?
     //                      /   \
     //                    Yes    No -> Perception Error
+    console.log("evalCommandPerception");
     let ref_object = false;
     let reference_object_description = null;
     // Check if reference object exists in the dictionary anywhere
@@ -811,7 +821,8 @@ class InteractApp extends Component {
           ref_object = this.check_reference_object_in_action_dict(action);
         }
       }
-
+      console.log("evalCommandPerception refobj:");
+      console.log(ref_object);
       // If yes, find reference object description.
       if (ref_object === true) {
         const action_dict = this.state.action_dict.event_sequence[0];
@@ -831,21 +842,34 @@ class InteractApp extends Component {
       }
       // If no reference object description found not a perception error.
     }
+    console.log("evalCommandPerception: refobj desc");
+    console.log(reference_object_description);
     if (!reference_object_description) {
       console.log(
         "InteractApp evalCommandPerception: no action dictionary found"
       ); // Shouldn't happen....
     }
-    this.setState({
-      reference_object_description: reference_object_description,
-    });
+    this.setState(
+      {
+        reference_object_description: reference_object_description,
+      },
+      this.askVisionQuestion
+    );
+    console.log("Set state: ref obj desc");
+    console.log(this.state.reference_object_description);
+    console.log("Class state rn:");
+    console.log(this.state);
   }
 
   askVisionQuestion() {
     //        Is 'This' the Location Ref?
     //                  /   \
     // Other Error <- Yes    No -> Perception Error
+    console.log("askVisionQuestion");
+
     let reference_object_description = this.state.reference_object_description;
+    console.log("ref obj desc in ask vision q:");
+    console.log(reference_object_description);
     if (!reference_object_description) {
       // Not perception error.
       this.renderOtherError();
@@ -888,18 +912,21 @@ class InteractApp extends Component {
     } else if (index === 2) {
       // no, so vision error
       this.updateChat({ msg: "No", timestamp: Date.now() });
-      this.setState({ vision_error: true });
-      this.renderVisionFail();
+      this.setState({ vision_error: true }, this.renderVisionFail);
+      // this.renderVisionFail();
     } else if (index === 3) {
       // go back to parsing question
       this.updateChat({ msg: "Go Back", timestamp: Date.now() });
-      this.setState({
-        disableInput: true,
-        isSaveFeedback: false,
-        parsing_error: false,
-        vision_error: false,
-      });
-      this.answerAction(2);
+      this.setState(
+        {
+          disableInput: true,
+          isSaveFeedback: false,
+          parsing_error: false,
+          vision_error: false,
+        },
+        () => this.answerAction(2)
+      );
+      // this.answerAction(2);
     }
   }
 

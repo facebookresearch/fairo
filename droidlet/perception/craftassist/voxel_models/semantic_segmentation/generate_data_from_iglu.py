@@ -1,18 +1,23 @@
 import numpy as np
-from droidlet.lowlevel.minecraft.small_scenes_with_shapes import (
-    build_shape_scene,
-    GROUND_DEPTH,
-    SL,
-    H,
-)
+from droidlet.lowlevel.minecraft.small_scenes_with_shapes import build_shape_scene, GROUND_DEPTH, SL, H
 from droidlet.lowlevel.minecraft.shape_util import SHAPE_NAMES
-
-IDX2NAME = ["nothing"] + SHAPE_NAMES
-NAME2IDX = {IDX2NAME[i]: i for i in range(len(IDX2NAME))}
 
 
 def json_to_segdata(J):
-    data = [np.zeros((SL, H, SL), dtype="int32"), np.zeros((SL, H, SL), dtype="int32"), IDX2NAME]
+    tags = []
+    for t in J["inst_seg_tags"]:
+        tags.extend(t["tags"])
+    tags = set(tags)
+    IDX2NAME = []
+    if "nothing" not in tags:
+        IDX2NAME.append("nothing")
+    for t in tags:
+        IDX2NAME.append(t)
+    NAME2IDX = {IDX2NAME[i]: i for i in range(len(IDX2NAME))}
+    
+    data = [np.zeros((SL, H, SL), dtype="int32"),
+            np.zeros((SL, H, SL), dtype="int32"),
+            IDX2NAME]
     for l in J["blocks"]:
         # print(l)
         data[0][l[0], l[1], l[2]] = l[3]
@@ -48,7 +53,7 @@ if __name__ == "__main__":
         J = build_shape_scene(args)
         data.append(json_to_segdata(J))
         data_cnt += 1
-        # print(f"OK, {data_cnt}")
+            # print(f"OK, {data_cnt}")
         # except Exception as e:
         #     print(f"DATA ERROR, {e}")
     # for i in range(args.NUM_SCENES):

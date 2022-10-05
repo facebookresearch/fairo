@@ -9,7 +9,7 @@ from copy import deepcopy
 from typing import cast, List, Tuple, Dict
 
 from .interpreter_utils import SPEAKERLOOK, update_attended_and_link_lf
-from droidlet.dialog.post_process_logical_form import retrieve_ref_obj_span
+from droidlet.dialog.post_process_logical_form import retrieve_ref_obj_span, construct_text_span
 from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
@@ -106,11 +106,11 @@ def maybe_get_text_span_mems(interpreter, speaker, lf):
     get any memories that exactly match the text span of the reference object sought by the logical
     form lf
     """
-    text_span = lf.get("text_span", retrieve_ref_obj_span(lf))
+    text_span = lf.get("text_span", construct_text_span(lf))
     if not text_span:
         text_span = "NULL"
     query = "SELECT MEMORY FROM ReferenceObject WHERE "
-    query += "<< ?, has_description, {} >>".format(lf.get("text_span", "NULL"))
+    query += "<< ?, has_description, {} >>".format(text_span)
     _, mems = interpreter.memory.basic_search(query + " ORDER BY updated_time LIMIT 1 DESC")
     if len(mems) > 0:
         mems = [mems[0]]

@@ -74,7 +74,7 @@ class StateManager {
     agentType: null,
     commandState: "idle",
     commandPollTime: 500,
-    isTurk: false,
+    isTurk: true,
     agent_replies: [{}],
     last_reply: "",
     dash_enable_map: false,
@@ -408,7 +408,8 @@ class StateManager {
   }
 
   setLastChatActionDict(res) {
-    console.log("StateManager setLastChatActionDict");
+    console.log("StateManager setLastChatActionDict, ad:");
+    console.log(res.action_dict);
     this.memory.lastChatActionDict = res.action_dict;
     this.memory.memory_entries = res.ref_obj_data;
     this.refs.forEach((ref) => {

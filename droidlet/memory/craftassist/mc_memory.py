@@ -352,7 +352,10 @@ class MCAgentMemory(AgentMemory):
             for label, locations in perception_output.labeled_blocks.items():
                 memid = InstSegNode.create(self, locations, [label])
                 # FIXME more general labeled_blocks format, allowing for different triples etc
-                self.add_triple(subj=memid, pred_text="has_description", obj_text=label)
+                # self.add_triple(subj=memid, pred_text="has_description", obj_text=label)
+                self.nodes[TripleNode.NODE_TYPE].create(
+                    self, subj=memid, pred_text="has_description", obj_text=label
+                )
 
         """Update the memory with holes"""
         if perception_output.holes:

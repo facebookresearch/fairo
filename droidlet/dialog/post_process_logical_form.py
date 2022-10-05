@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import copy
+import re
 
 # move location inside reference_object for Fill and Destroy actions
 def fix_fill_and_destroy_location(action_dict):
@@ -67,6 +68,27 @@ def fix_reference_object_with_filters(d):
             new_d[key] = fix_reference_object_with_filters(value)
 
     return new_d
+
+def construct_text_span(d: dict):
+    # This is taken directly from droidlet/dashboard/web/src/components/Interact/InteractApp.js
+    if "filters" in d and "where_clause" in d["filters"]:
+        qty = ""
+        if "selector" in d["filters"]:
+            qty = d["filters"]["selector"]["ordinal"]
+        antecedent = [qty, "", "", "", ""]; # qty then size then colour then block type then name. Ignore everything else.
+        for clause in  d["filters"]["where_clause"]["AND"]:
+            if clause["pred_text"] == "has_size":
+                antecedent[1] = clause["obj_text"]
+            if clause["pred_text"] == "has_colour":
+                antecedent[2] = clause["obj_text"]
+            if clause["pred_text"] == "has_block_type":
+                antecedent[3] = clause["obj_text"]
+            if clause["pred_text"] == "has_name":
+                antecedent[4] = clause["obj_text"]
+        
+        text_span = " ".join((" ".join(antecedent)).split()).strip()
+        print(f"Construct text span: {text_span}")
+        return text_span
 
 
 def retrieve_ref_obj_span(d: dict):

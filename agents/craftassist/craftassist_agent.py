@@ -26,6 +26,7 @@ from droidlet.lowlevel.minecraft.craftassist_mover import (
     from_minecraft_look_to_droidlet,
     from_minecraft_xyz_to_droidlet,
 )
+from droidlet.lowlevel.minecraft.pyworld_mover import PyWorldMover
 
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 import droidlet.dashboard as dashboard
@@ -53,9 +54,6 @@ from droidlet.lowlevel.minecraft.mc_util import (
     SPAWN_OBJECTS,
     get_locs_from_entity,
     fill_idmeta,
-)
-from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import (
-    SubcomponentClassifierWrapper,
 )
 from droidlet.perception.craftassist.detection_model_perception import DetectionWrapper
 from droidlet.lowlevel.minecraft import craftassist_specs
@@ -252,7 +250,8 @@ class CraftAssistAgent(DroidletAgent):
         # TODO: fetch text_span here ?
         if self.opts.detection_model_path and os.path.isfile(self.opts.detection_model_path):
             self.perception_modules["detection_model"] = DetectionWrapper(
-                model=self.opts.detection_model_path
+                model=self.opts.detection_model_path,
+                agent=self
             )
 
     def init_controller(self):
@@ -283,6 +282,7 @@ class CraftAssistAgent(DroidletAgent):
         yzxb = self.get_blocks(x - rx, x + rx, y - ry, y + ry, z - rz, z + rz)
         blocks = np.ascontiguousarray(yzxb.transpose([2, 0, 1, 3]))
         model_out = model.perceive(blocks, text_spans=spans, offset=(x - rx, y - ry, z - rz))
+        print(f"Voxel model run output: {model_out}")
         return model_out
 
     def perceive(self, force=False):
@@ -357,6 +357,8 @@ class CraftAssistAgent(DroidletAgent):
             List of changed blocks
         """
         blocks = self.mover.get_changed_blocks()
+        if isinstance(self.mover, PyWorldMover):
+            blocks = [(xyz, (idm[0], idm[1])) for (xyz, idm) in blocks.items()]
         safe_blocks = deepcopy(blocks)
         if len(self.point_targets) > 0:
             for point_target in self.point_targets:
@@ -371,6 +373,7 @@ class CraftAssistAgent(DroidletAgent):
                             safe_blocks.remove(b)
         else:
             safe_blocks = blocks
+        
         return safe_blocks
 
     def point_at(self, target, sleep=0):
@@ -577,7 +580,6 @@ class CraftAssistAgent(DroidletAgent):
             logging.info("Logged in to server")
             self.mover = CraftassistMover(self.cagent)
         elif self.backend == "pyworld":
-            from droidlet.lowlevel.minecraft.pyworld_mover import PyWorldMover
 
             logging.info("Attempting to connect to pyworld on port {}".format(self.opts.port))
             # TODO allow pyworld ip to not be localhost

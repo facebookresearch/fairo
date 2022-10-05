@@ -89,10 +89,20 @@ class VoxelWorld extends React.Component {
           ></iframe>
           <div id="prompt">
             <span id="prompt-text">Click in this window to enter 3D world</span>
+            <br />
+            <br />
+            <span id="prompt-text">
+              Control: press w/a/s/d to move, space to move up, shift to move
+              down
+            </span>
+            <br />
+            <br />
+            <span id="prompt-text">Tip: press 'esc' to leave the 3D world</span>
           </div>
         </div>
         <p>
-          Tip: press 'esc' to leave the 3D world, w/a/s/d to move, space to jump
+          Tip: press 'esc' to leave the 3D world, w/a/s/d to move, space to move
+          up, shift to move down
         </p>
       </div>
     );

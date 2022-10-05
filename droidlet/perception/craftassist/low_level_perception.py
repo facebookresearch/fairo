@@ -105,6 +105,7 @@ class LowLevelMCPerception:
         # Changed blocks and their attributes
         perceive_info["changed_block_attributes"] = {}
         for (xyz, idm) in self.agent.safe_get_changed_blocks():
+            print(f"xyz: {xyz}, idm: {idm}")
             interesting, player_placed, agent_placed = self.on_block_changed(
                 xyz, idm, boring_blocks
             )

@@ -5,15 +5,16 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import torch
 import torch.nn as nn
-from data_loaders import make_example_from_raw
+from droidlet.perception.craftassist.voxel_models.semantic_segmentation.data_loaders import make_example_from_raw
 
 from transformers import DistilBertTokenizer, DistilBertModel
 
 from droidlet.lowlevel.minecraft.small_scenes_with_shapes import SL, H
 
+import clip
+
 BERT_HIDDEN_DIM = 768
 CLIP_HIDDEN_DIM = 512
-
 
 class SemSegNet(nn.Module):
     """Semantic Segmentation Neural Network"""
@@ -44,7 +45,7 @@ class SemSegNet(nn.Module):
         try:
             num_layers = opts.num_layers
         except:
-            num_layers = 4
+            num_layers = 4 
         try:
             hidden_dim = opts.hidden_dim
         except:
@@ -85,7 +86,7 @@ class SemSegNet(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x, t):
-        szs = list(x.size())  # B x SL x SL x SL
+        szs = list(x.size()) # B x SL x SL x SL
         B = szs[0]
         x = x.view(-1)
         z = self.embedding.weight.index_select(0, x)
@@ -95,36 +96,26 @@ class SemSegNet(nn.Module):
 
         for i in range(self.num_layers):
             z = self.layers[i](z)
-
-        # t = t.unsqueeze(2).unsqueeze(3).unsqueeze(4).repeat(1, 1, SL, SL, SL) # B x TE x SL x SL x SL
-        # TE = t.size(1)
-        # H = z.size(1)
-        # print(f"voxel embed norm: {torch.norm(z[0])}, bert embed norm: {torch.norm(t[0])}")
-        # z = torch.cat((z, t), 1) # B x (TE + H) x SL x SL x SL
-        t = self.text_proj(t).unsqueeze(2)
-        z = z.permute(0, 2, 3, 4, 1).view(B, -1, self.opts.hidden_dim)
-        # print(f"z size 0 : {z.size()}, t sz: {t.size()}")
-        # print(f"TEXT: {t[0]}\n Z: {z[0]}")
-        # t = torch.ones_like(t)
-        z = torch.bmm(z, t).view(B, szs[1], szs[2], szs[3])
-        # print(f"PRODUCT: {z[0]}")
-        # print(f"z size 1: {z.size()}")
-        # z = z.permute(0, 2, 3, 4, 1).contiguous() # B x SL x SL x SL x (TE + H)
-        # z = self.linear(z).permute(0, 4, 1, 2, 3) # B x (TE + H) x SL x SL x SL
-        # print(z)
-        z = self.sigmoid(z).squeeze()
+        t = self.text_proj(t) # B x Q x H
+        t = t.permute(0, 2, 1) # B x H x Q
+        z = z.permute(0, 2, 3, 4, 1).view(B, -1, self.opts.hidden_dim) # B x (SL x SL x SL) x H
+        z = torch.bmm(z, t).view(B, szs[1], szs[2], szs[3], -1) # B x (SL x SL x SL) x Q
+        # do a contrastive not yet
+        # multiple tags for one scene
+        z = self.sigmoid(z)
         # print(f"z size: {z.size()}")
         return z
 
+
     def save(self, filepath):
-        self.cpu()
+        # self.cpu()
         sds = {}
         sds["opts"] = self.opts
         sds["classes"] = self.classes
         sds["state_dict"] = self.state_dict()
         torch.save(sds, filepath)
-        if self.opts.cuda:
-            self.cuda()
+        # if self.opts.cuda:
+        #     self.cuda()
 
     def load(self, filepath):
         sds = torch.load(filepath)
@@ -167,12 +158,13 @@ class SemSegWrapper:
         # this is used by the semseg_process
         i2n = self.classes["idx2name"]
         self.tags = [(c, self.classes["name2count"][c]) for c in i2n]
-        assert self.classes["name2idx"]["none"] == 0
+        # assert self.classes["name2idx"]["none"] == 0
 
-        self.bert_tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
-        self.bert_model = DistilBertModel.from_pretrained(
-            "distilbert-base-uncased", return_dict=True
-        )
+        self.bert_tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+        self.bert_model = DistilBertModel.from_pretrained('distilbert-base-uncased', return_dict=True)
+
+        self.device = "cuda"#opts.device
+        self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device=self.device)
 
     @torch.no_grad()
     def segment_object(self, blocks):
@@ -194,48 +186,62 @@ class SemSegWrapper:
             }
         else:
             return {tuple(ll for ll in l): mids[l[0], l[1], l[2]].item() for l in locs}
-
-    def encode_text(self, texts):
-        text_inputs = self.bert_tokenizer(texts, return_tensors="pt")
-        text_outputs = self.bert_model(**text_inputs)
-        last_hidden_state = text_outputs.last_hidden_state
-        text_embeds = torch.sum(last_hidden_state, 1)
-        return text_embeds
+        
+    
+    def encode_text(self, text, embed_type="clip"):
+        if embed_type == "bert":
+            text_inputs = self.bert_tokenizer(text, return_tensors="pt")
+            text_outputs = self.bert_model(**text_inputs)
+            last_hidden_state = text_outputs.last_hidden_state
+            text_embed = torch.squeeze(torch.sum(last_hidden_state, 1))
+        elif embed_type == "clip":
+            with torch.no_grad():
+                tokenized_text = clip.tokenize(text).to(self.device)
+                text_embed = self.clip_model.encode_text(tokenized_text).float()
+        return text_embed
 
     @torch.no_grad()
-    def perceive(self, blocks, text_span, offset):
+    def perceive(self, blocks, text):
+        text_embed = self.encode_text(text)
         self.model.eval()
-        blocks = torch.from_numpy(blocks)
+        blocks = torch.from_numpy(blocks).long()
         xmax, ymax, zmax = blocks.size()
         print(f"xmax, ymax, zmax: {xmax}, {ymax}, {zmax}")
-        blocks, _, o = make_example_from_raw(blocks)
-        print(o)
+        # blocks, _, o = make_example_from_raw(blocks)
+        # print(o)
         blocks = blocks.unsqueeze(0)
         if self.cuda:
             blocks = blocks.cuda()
-        text_embed = self.encode_text(text_span).unsqueeze(0)
+            text_embed = text_embed.cuda()
+        text_embed = text_embed.unsqueeze(0)
         y = self.model(blocks, text_embed)
-        pred = y > self.threshold
-        locs = pred.squeeze().nonzero()
-        locs = locs.tolist()
-        print(len(locs))
-        res = [tuple(np.subtract(l, o)) for l in locs]
-        pred = []
-        for loc in res:
-            x, y, z = loc
-            if x >= 0 and x < xmax and y >= 0 and y < ymax and z >= 0 and z < zmax:
-                pred.append(loc)
-        print(len(pred))
-        return pred
+        preds = y > self.threshold
+        ret = []
+        for i in range(preds.size(4)):
+            pred = preds[:, :, :, :, i].squeeze()
+            locs = pred.nonzero()
+            res = [tuple(l) for l in locs]
+            p = []
+            for loc in res:
+                x, y, z = loc
+                if x >= 0 and x < xmax and y >= 0 and y < ymax and z >= 0 and z < zmax:
+                    p.append((int(x), int(y), int(z)))
+            ret.append(p)
+        return ret
 
-    @torch.no_grad()
-    def __call__(self, blocks, text_spans):
-        self.model.eval()
-        blocks = torch.from_numpy(blocks)
-        blocks = torch.stack((blocks,) * len(text_spans))
-        text_embeds = self.encode_text(text_spans)
-        out = self.model(blocks, text_embeds)
-        return out
+
+
+        # locs = pred.squeeze().nonzero()
+        # locs = locs.tolist()
+        # print(len(locs))
+        # res = [tuple(l) for l in locs]
+        # pred = []
+        # for loc in res:
+        #     x, y, z = loc
+        #     if x >= 0 and x < xmax and y >= 0 and y < ymax and z >= 0 and z < zmax:
+        #         pred.append((int(x), int(y), int(z)))
+        # print(len(pred))
+        # return pred
 
 
 if __name__ == "__main__":
