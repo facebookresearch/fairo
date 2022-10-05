@@ -28,7 +28,7 @@ from home_robot.utils.numpy import to_npy_file
 # for debugging
 from geometry_msgs.msg import TransformStamped
 from data_tools.point_cloud import show_point_cloud
-from home_robot.ros.utils import ros_pose_to_transform
+from home_robot.ros.utils import ros_pose_to_transform, matrix_to_pose_msg
 
 
 """
@@ -212,11 +212,7 @@ class PickAndPlaceTask:
                         t.header.stamp = rospy.Time.now()
                         t.child_frame_id = id
                         t.header.frame_id = "map"
-                        print()
-                        print("grasp", grasp)
-                        t.transform = ros_pose_to_transform(grasp)
-                        print("grasp", ros_pose_to_transform(grasp))
-                        print()
+                        t.transform = matrix_to_pose_msg(ros_pose_to_transform(grasp))
                         self.grasp_client.broadcaster.sendTransform(t)
 
                 q2 = qi
