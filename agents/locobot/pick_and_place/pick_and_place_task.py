@@ -345,9 +345,9 @@ class PickAndPlaceTask:
 
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
 
-            if debug:
-                cv2.imwrite("semantic_frame.png", semantic_frame)
-                cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
+            # if debug:
+            #     cv2.imwrite("semantic_frame.png", semantic_frame)
+            #     cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
 
             predicted_grasps, scores = predicted_grasps[0]
             if len(scores) < self.min_predicted_grasps:
@@ -362,8 +362,8 @@ class PickAndPlaceTask:
             world_pcd = trimesh.transform_points(flat_pcd, self.R_stretch_camera)
             world_pcd = trimesh.transform_points(world_pcd, camera_pose)
 
-            # if debug:
-            #     show_point_cloud(world_pcd, image_rgb, orig=np.zeros(3), grasps=world_grasps)
+            if debug:
+                show_point_cloud(world_pcd, image_rgb, orig=np.zeros(3), grasps=world_grasps)
 
             #self.manip.goto_static_grasp(world_grasps, scores, pause=True)
             self.goto_static_grasp(world_grasps, scores, world_pcd, image_rgb, pause=False, debug=debug)
