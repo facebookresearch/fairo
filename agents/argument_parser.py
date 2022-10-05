@@ -93,7 +93,7 @@ class ArgumentParser:
     def add_mc_parser(self):
         mc_parser = self.parser.add_argument_group("Minecraft Agent Args")
         mc_parser.add_argument(
-            "--detection_model_path", default="", help="path to instance segmentation model"
+            "--detection_model_path", default="../../droidlet/artifacts/models/perception/craftassist/vision_clip.pt", help="path to instance segmentation model"
         )
         mc_parser.add_argument(
             "--backend", default="cuberite", help="is agent running in cuberite or pyworld?"
