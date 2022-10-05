@@ -74,7 +74,7 @@ class PickAndPlaceTask:
         self.cam = mover.cam    # Realsense camera wrapper
         self.intrinsic_mat = mover.cam.get_intrinsics()
         self.R_stretch_camera = tra.euler_matrix(0, 0, -np.pi/2)
-        self.dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=5)
+        # self.dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=5)
 
         self.num_segment_attempts = 100
         self.num_grasp_attempts = 10
@@ -310,18 +310,18 @@ class PickAndPlaceTask:
 
             flat_pcd1 = get_pcd_in_cam(depth, self.intrinsic_mat)
             print("flat_pcd1.shape", flat_pcd1.shape)
-            depth_ = np.rot90(depth, k=1, axes=(0, 1))
-            print(depth_.shape)
-            depth_ = self.dpt_cam.fix_depth(depth_)
-            pcd2 = self.dpt_cam.depth_to_xyz(depth_)
-            print("pcd2.shape", pcd2.shape)
-            flat_pcd2 = pcd2.reshape(-1, 3)
-            print("flat_pcd2.shape", flat_pcd2.shape)
-            flat_pcd = flat_pcd2
+            # depth_ = np.rot90(depth, k=1, axes=(0, 1))
+            # print(depth_.shape)
+            # depth_ = self.dpt_cam.fix_depth(depth_)
+            # pcd2 = self.dpt_cam.depth_to_xyz(depth_)
+            # print("pcd2.shape", pcd2.shape)
+            # flat_pcd2 = pcd2.reshape(-1, 3)
+            # print("flat_pcd2.shape", flat_pcd2.shape)
+            flat_pcd = flat_pcd1
 
-            if debug:
-                show_point_cloud(flat_pcd1, image_rgb, orig=np.zeros(3))
-                show_point_cloud(flat_pcd2, image_rgb, orig=np.zeros(3))
+            # if debug:
+            #     show_point_cloud(flat_pcd1, image_rgb, orig=np.zeros(3))
+            #     show_point_cloud(flat_pcd2, image_rgb, orig=np.zeros(3))
 
             if attempt == 0:
                 print(list(info.keys()))
