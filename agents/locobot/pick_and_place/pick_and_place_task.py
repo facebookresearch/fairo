@@ -71,6 +71,7 @@ class PickAndPlaceTask:
         self.nav = mover.nav    # Point goal nav + semantic exploration
         self.slam = mover.slam  # Semantic and obstacle map + last frame
         self.bot = mover.bot    # Main robot class
+        self.cam = mover.cam    # Realsense camera wrapper
         self.intrinsic_mat = mover.cam.get_intrinsics()
         self.R_stretch_camera = tra.euler_matrix(0, 0, -np.pi/2)
 
@@ -307,12 +308,12 @@ class PickAndPlaceTask:
             print()
 
             flat_pcd1 = get_pcd_in_cam(depth, self.intrinsic_mat)
-            flat_pcd2 = self.bot.get_pcd_from_depth(depth).value
+            print("flat_pcd1.shape", flat_pcd1.shape)
+            flat_pcd2 = self.cam.get_pcd_from_depth(depth)
+            print("flat_pcd2.shape", flat_pcd2.shape)
             flat_pcd = flat_pcd2
 
             if debug:
-                print("flat_pcd1.shape", flat_pcd1.shape)
-                print("flat_pcd2.shape", flat_pcd2.shape)
                 show_point_cloud(
                     np.concatenate([flat_pcd1, flat_pcd2]),
                     np.concatenate([image_rgb, image_rgb]),
