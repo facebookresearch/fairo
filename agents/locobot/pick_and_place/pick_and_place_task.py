@@ -298,14 +298,14 @@ class PickAndPlaceTask:
             # camera_pose[2, 3] += BASE_HEIGHT
             # camera_pose[0, 3] -= 0.11526719
 
-            print("CAMERA_POSES")
-            print("self.bot.get_camera_transform()")
-            print(self.bot.get_camera_transform().value)
-            print('self.manip.get_pose("camera_color_optical_frame")')
-            print(self.manip.get_pose("camera_color_optical_frame"))
-            print('self.manip.get_pose("camera_color_frame")')
-            print(self.manip.get_pose("camera_color_frame"))
-            print()
+            # print("CAMERA_POSES")
+            # print("self.bot.get_camera_transform()")
+            # print(self.bot.get_camera_transform().value)
+            # print('self.manip.get_pose("camera_color_optical_frame")')
+            # print(self.manip.get_pose("camera_color_optical_frame"))
+            # print('self.manip.get_pose("camera_color_frame")')
+            # print(self.manip.get_pose("camera_color_frame"))
+            # print()
 
             flat_pcd1 = get_pcd_in_cam(depth, self.intrinsic_mat)
             # flat_pcd2 = self.cam.get_pcd_from_depth(depth)
@@ -335,11 +335,11 @@ class PickAndPlaceTask:
                 print("Too few object points; trying to segment again...")
                 continue
 
-            if debug:
-                np.save("rgb.npy", image_rgb)
-                np.save("depth.npy", depth)
-                cv2.imwrite("semantic_frame.png", semantic_frame)
-                cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
+            # if debug:
+            #     np.save("rgb.npy", image_rgb)
+            #     np.save("depth.npy", depth)
+            #     cv2.imwrite("semantic_frame.png", semantic_frame)
+            #     cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
 
             print("Attempting to grasp...")
             #to_npy_file('stretch2', xyz=flat_pcd, rgb=image_rgb,
@@ -352,7 +352,13 @@ class PickAndPlaceTask:
 
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
 
-            predicted_grasps, scores = predicted_grasps[0]
+            try:
+                predicted_grasps, scores = predicted_grasps[0]
+            except KeyError:
+                print("Zero predicted grasps; trying to segment again...")
+                show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3))
+                continue
+
             if len(scores) < self.min_predicted_grasps:
                 print("Too few predicted grasps; trying to segment again...")
                 continue
