@@ -96,6 +96,9 @@ class RemoteHelloRobot(object):
 
         return camera_transform
 
+    def get_pcd_from_depth(self, depth):
+        return self.cam.get_pcd_from_depth(depth)
+
     def get_base_state(self):
         # Best (from SLAM)
         return self._robot.get_slam_pose()

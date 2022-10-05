@@ -307,14 +307,17 @@ class PickAndPlaceTask:
             print()
 
             flat_pcd1 = get_pcd_in_cam(depth, self.intrinsic_mat)
-            flat_pcd2 = self.bot.cam.get_pcd_from_depth(depth)
+            flat_pcd2 = self.bot.get_pcd_from_depth(depth)
             flat_pcd = flat_pcd2
 
             if debug:
                 print("flat_pcd1.shape", flat_pcd1.shape)
                 print("flat_pcd2.shape", flat_pcd2.shape)
-                show_point_cloud(flat_pcd1, image_rgb, orig=np.zeros(3))
-                show_point_cloud(flat_pcd2, image_rgb, orig=np.zeros(3))
+                show_point_cloud(
+                    np.concatenate([flat_pcd1, flat_pcd2]),
+                    np.concatenate([image_rgb, image_rgb]),
+                    orig=np.zeros(3)
+                )
 
             if attempt == 0:
                 print(list(info.keys()))
