@@ -65,16 +65,28 @@ def semseg_output(S, n, data):
 # training loop
 ##################################################
 
-def get_stats(stat, text, target_voxel_correct, target_voxel_total, non_air_correct, non_air_total):
+
+def get_stats(
+    stat, text, target_voxel_correct, target_voxel_total, non_air_correct, non_air_total
+):
     if text not in stat:
-        stat[text] = [(0, 0), (0, 0)] # [target_voxel, non_air_voxel]
-    (prev_correct_target_voxel, prev_total_target_voxel), (prev_correct_nonair_voxel, prev_total_nonair_voxel) = stat[text]
-    stat[text] = [(prev_correct_target_voxel + target_voxel_correct, prev_total_target_voxel + target_voxel_total), (prev_correct_nonair_voxel + non_air_correct, prev_total_nonair_voxel + non_air_total)]
+        stat[text] = [(0, 0), (0, 0)]  # [target_voxel, non_air_voxel]
+    (prev_correct_target_voxel, prev_total_target_voxel), (
+        prev_correct_nonair_voxel,
+        prev_total_nonair_voxel,
+    ) = stat[text]
+    stat[text] = [
+        (
+            prev_correct_target_voxel + target_voxel_correct,
+            prev_total_target_voxel + target_voxel_total,
+        ),
+        (prev_correct_nonair_voxel + non_air_correct, prev_total_nonair_voxel + non_air_total),
+    ]
 
 
 def stringify_opts(opts):
     data_name = opts.data_dir.strip("/")
-    data_name = data_name[data_name.rfind("/"):].strip("/")
+    data_name = data_name[data_name.rfind("/") :].strip("/")
     batchsize = opts.batchsize
     lr = opts.lr
     sample_empty_prob = opts.sample_empty_prob
@@ -214,7 +226,6 @@ def train_epoch(model, DL, loss, optimizer, args, epoch, validation, summary_wri
         #     tot_pred_true = torch.sum(pred_i == True)
         #     tot_pred_correct_all = torch.sum(pred_i == y[idx])
 
-
         #     # Non air voxel
         #     non_air_idx_i = (c[idx] != 0)
         #     non_air_idx_i = non_air_idx_i.unsqueeze(3).repeat(1,1,1,pred_i.size(3))
@@ -241,17 +252,15 @@ def train_epoch(model, DL, loss, optimizer, args, epoch, validation, summary_wri
         ##### calculate acc
         pred = yhat > prob_threshold
 
-        non_zero_idx = (c != 0)
-        non_zero_idx = non_zero_idx.unsqueeze(4).repeat(1,1,1,1,pred.size(4))
+        non_zero_idx = c != 0
+        non_zero_idx = non_zero_idx.unsqueeze(4).repeat(1, 1, 1, 1, pred.size(4))
         non_zero_total += torch.sum(non_zero_idx)
 
-        
         correct_num += torch.sum(pred == y)
         non_zero_correct += torch.sum((pred == y) * non_zero_idx)
         total_num += torch.numel(y)
 
-
-        gt_true_idx = (y != 0)
+        gt_true_idx = y != 0
         gt_true_total += torch.sum(gt_true_idx)
         gt_true_correct += torch.sum((pred == y) * gt_true_idx)
         #####
@@ -276,19 +285,21 @@ def train_epoch(model, DL, loss, optimizer, args, epoch, validation, summary_wri
             optimizer.step()
             # print(f"non zero total: {non_zero_total}, total: {total_num}")
     if not validation:
-        print(f"[Train] Accuracy: {correct_num / total_num}[{correct_num}/{total_num}], non air acc: {non_zero_correct / non_zero_total}[{non_zero_correct}/{non_zero_total}], gt should be true acc: {gt_true_correct / gt_true_total}[{gt_true_correct}/{gt_true_total}]")
+        print(
+            f"[Train] Accuracy: {correct_num / total_num}[{correct_num}/{total_num}], non air acc: {non_zero_correct / non_zero_total}[{non_zero_correct}/{non_zero_total}], gt should be true acc: {gt_true_correct / gt_true_total}[{gt_true_correct}/{gt_true_total}]"
+        )
         train_tot_acc_l.append((correct_num / total_num).item())
-        
+
         train_non_air_acc_l.append((non_zero_correct / non_zero_total).item())
-        
+
         train_target_acc_l.append((gt_true_correct / gt_true_total).item())
-        
+
         # for k, v in stat.items():
         #     if k not in train_cls_acc_l.keys():
         #         train_cls_acc_l[k] = []
         #     # train_cls_acc_l[k].append((v[0] / v[1]).item())
         #     print(f"For shape: {k}, target voxel acc: {(v[0][0] / (v[0][1] + 1)):.2f}[{v[0][0]}/{v[0][1]+1}], non air voxel acc: {(v[1][0] / (v[1][1] + 1)):.2f}[{v[1][0]}/{v[1][1]+1}]")
-        
+
         precision_all = correct_num / total_num
         precision_occupied = non_zero_correct / non_zero_total
         recall = gt_true_correct / gt_true_total
@@ -307,7 +318,9 @@ def train_epoch(model, DL, loss, optimizer, args, epoch, validation, summary_wri
         # summary_writer.add_scalar('F1_Occupied/Train', f1_occupied, epoch)
         # summary_writer.add_scalar('Loss/Train', sum(losses) / len(losses), epoch)
     else:
-        print(f"[Valid] Accuracy: {correct_num / total_num}[{correct_num}/{total_num}], non air acc: {non_zero_correct / non_zero_total}[{non_zero_correct}/{non_zero_total}], gt should be true acc: {gt_true_correct / gt_true_total}[{gt_true_correct}/{gt_true_total}]")
+        print(
+            f"[Valid] Accuracy: {correct_num / total_num}[{correct_num}/{total_num}], non air acc: {non_zero_correct / non_zero_total}[{non_zero_correct}/{non_zero_total}], gt should be true acc: {gt_true_correct / gt_true_total}[{gt_true_correct}/{gt_true_total}]"
+        )
         valid_tot_acc_l.append((correct_num / total_num).item())
         valid_non_air_acc_l.append((non_zero_correct / non_zero_total).item())
         valid_target_acc_l.append((gt_true_correct / gt_true_total).item())
@@ -316,7 +329,7 @@ def train_epoch(model, DL, loss, optimizer, args, epoch, validation, summary_wri
         #         valid_cls_acc_l[k] = []
         #     # valid_cls_acc_l[k].append((v[0] / v[1]).item())
         #     print(f"For shape: {k}, target voxel acc: {(v[0][0] / (v[0][1] + 1)):.2f}[{v[0][0]}/{v[0][1]+1}], non air voxel acc: {(v[1][0] / (v[1][1] + 1)):.2f}[{v[1][0]}/{v[1][1]+1}]")
-        
+
         precision_all = correct_num / total_num
         precision_occupied = non_zero_correct / non_zero_total
         recall = gt_true_correct / gt_true_total
@@ -337,13 +350,14 @@ def train_epoch(model, DL, loss, optimizer, args, epoch, validation, summary_wri
     # print("[Train] loss: {}\n".format(sum(losses) / len(losses)))
     return losses
 
+
 def build_class_map(path, load=False):
     if load:
         classes = pickle.load(open(f"{path}/class_map.pkl", "rb"))
     else:
         class_names = set()
-        class_names.add('none')
-        class_names.add('nothing')
+        class_names.add("none")
+        class_names.add("nothing")
         train = pickle.load(open(f"{path}/training_data.pkl", "rb"))
         for d in train:
             for name in d[2]:
@@ -358,11 +372,11 @@ def build_class_map(path, load=False):
         for name in class_names:
             classes["name2idx"][name] = idx
             classes["idx2name"].append(name)
-            classes["name2count"][name] = 100 # TODO actually calculate this
+            classes["name2count"][name] = 100  # TODO actually calculate this
             idx += 1
     print(f"Pre-built classes: {classes}")
     return classes
-    
+
 
 def get_parser():
     parser = argparse.ArgumentParser()
@@ -408,15 +422,13 @@ def get_parser():
     )
     parser.add_argument("--ndonkeys", type=int, default=4, help="workers in dataloader")
 
+    parser.add_argument("--run_name", default="", help="unique name to identify this run")
     parser.add_argument(
-        "--run_name", default="", help="unique name to identify this run"
+        "--visualization_dir",
+        default="/checkpoint/yuxuans/vis_dir",
+        help="path to store tensorboard graphs",
     )
-    parser.add_argument(
-        "--visualization_dir", default="/checkpoint/yuxuans/vis_dir", help="path to store tensorboard graphs"
-    )
-    parser.add_argument(
-        "--query_embed", default="lut", help="lut or bert"
-    )
+    parser.add_argument("--query_embed", default="lut", help="lut or bert")
     parser.add_argument("--num_workers", type=int, default=8, help="num of workers in dataloader")
     distributed.add_args(parser)
     return parser
@@ -446,15 +458,29 @@ def main(args):
 
     use_cuda = args.cuda and torch.cuda.is_available()
     args.device = torch.device("cuda" if use_cuda else "cpu")
-    train_data = SemSegData(args.data_dir + "training_data.pkl", nexamples=args.debug, augment=aug, no_target_prob=args.no_target_prob, query_embed=args.query_embed, classes=pre_build_classes, opts=args)
+    train_data = SemSegData(
+        args.data_dir + "training_data.pkl",
+        nexamples=args.debug,
+        augment=aug,
+        no_target_prob=args.no_target_prob,
+        query_embed=args.query_embed,
+        classes=pre_build_classes,
+        opts=args,
+    )
     # train_classes = train_data.get_classes()
-    valid_data = SemSegData(args.data_dir + "validation_data.pkl", nexamples=args.debug, augment=aug, classes=pre_build_classes, no_target_prob=args.no_target_prob, query_embed=args.query_embed, opts=args)
+    valid_data = SemSegData(
+        args.data_dir + "validation_data.pkl",
+        nexamples=args.debug,
+        augment=aug,
+        classes=pre_build_classes,
+        no_target_prob=args.no_target_prob,
+        query_embed=args.query_embed,
+        opts=args,
+    )
     shuffle = True
     if args.debug > 0:
         shuffle = False
 
-    
-    
     print("making training dataloader")
     rDL, sampler_train = distributed.wrap_dataset(args, train_data, None, sampler=None)
     # rDL = torch.utils.data.DataLoader(
@@ -465,8 +491,6 @@ def main(args):
     #     drop_last=True,
     #     num_workers=args.ndonkeys,
     # )
-
-    
 
     print("making validation dataloader")
     vDL, sampler_valid = distributed.wrap_dataset(args, valid_data, None, sampler=None, test=True)
@@ -493,7 +517,7 @@ def main(args):
     print("nparameters={:.2f}M".format(nparameters / 1e6))
     model = distributed.wrap_model(args, model)
     # nll = nn.NLLLoss(reduction="none")
-    bceloss = nn.BCELoss(reduction='none')
+    bceloss = nn.BCELoss(reduction="none")
     if args.cuda:
         model.cuda()
         bceloss.cuda()
@@ -505,10 +529,8 @@ def main(args):
     #     print("[Valid] loss: {}\n".format(sum(losses) / len(losses)))
     #     exit()
 
-
-    unique_name = args.run_name#stringify_opts(args)
+    unique_name = args.run_name  # stringify_opts(args)
     writer = SummaryWriter(f"{args.visualization_dir}/{unique_name}")
-
 
     train_loss_l = []
     valid_loss_l = []
@@ -521,11 +543,31 @@ def main(args):
         if args.distributed:
             sampler_train.set_epoch(epoch)
             sampler_valid.set_epoch(epoch)
-        losses = train_epoch(model, rDL, bceloss, optimizer, args, epoch, validation=False, summary_writer=writer, stats=stat)
+        losses = train_epoch(
+            model,
+            rDL,
+            bceloss,
+            optimizer,
+            args,
+            epoch,
+            validation=False,
+            summary_writer=writer,
+            stats=stat,
+        )
         print("[Train] loss: {}\n".format(sum(losses) / len(losses)))
         train_loss_l.append((sum(losses) / len(losses)))
         # print(f"[Train] loss list: \n {train_loss_l}")
-        losses = train_epoch(model, vDL, bceloss, optimizer, args, epoch, validation=True, summary_writer=writer, stats=stat)
+        losses = train_epoch(
+            model,
+            vDL,
+            bceloss,
+            optimizer,
+            args,
+            epoch,
+            validation=True,
+            summary_writer=writer,
+            stats=stat,
+        )
         print("[Valid] loss: {}\n".format(sum(losses) / len(losses)))
         valid_loss_l.append((sum(losses) / len(losses)))
         # print(f"[Valid] loss list: \n {valid_loss_l}")
@@ -545,7 +587,7 @@ def main(args):
             distributed.collect_stat(args, stat)
         if args.distributed == False or args.rank == 0:
             print("Do some work only in master node (e.g. model save, plot)")
-            gpu_mem = torch.cuda.max_memory_allocated() / 1024 ** 3
+            gpu_mem = torch.cuda.max_memory_allocated() / 1024**3
             torch.cuda.reset_max_memory_allocated()
             print(f"Master node, epoch: {epoch}, GPU usage: {gpu_mem}")
             for k, v in stat.items():

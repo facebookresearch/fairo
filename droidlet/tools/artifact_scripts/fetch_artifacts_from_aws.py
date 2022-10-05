@@ -86,7 +86,7 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
         )
         with open(checksum_file_path) as f:
             checksum_val = f.read().strip()
-    checksum_val = "hetero" # hardcoding hetero in it!
+    checksum_val = "hetero"  # hardcoding hetero in it!
     print("CHECKSUM: %r" % checksum_val)
 
     artifact_path = os.path.join(ROOTDIR, "droidlet/artifacts/", artifact_name)

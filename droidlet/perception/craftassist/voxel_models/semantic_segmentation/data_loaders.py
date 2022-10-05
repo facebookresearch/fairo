@@ -58,7 +58,7 @@ SHAPE_NAMES = [
     # "HOLLOW_TRIANGLE",
     # "HOLLOW_RECTANGLE",
     # "RECTANGULOID_FRAME",
-] # 6 kind
+]  # 6 kind
 
 # SHAPE_NAMES = [
 #     "CUBE",
@@ -101,6 +101,7 @@ SHAPE_NAMES = [
 #     # "HOLLOW_RECTANGLE",
 #     # "RECTANGULOID_FRAME",
 # ] # 4 kind
+
 
 def underdirt(schematic, labels=None, max_shift=0, nothing_id=0):
     """Convert schematic to underdirt"""
@@ -274,8 +275,9 @@ def pick_no_target_shape(all_shapes, shapes):
     for shape in all_shapes:
         if shape not in shapes:
             return shape
-    
+
     return None
+
 
 def pick_query_shape_text(data, no_target_prob, shape_set=None):
     if shape_set is None:
@@ -284,9 +286,9 @@ def pick_query_shape_text(data, no_target_prob, shape_set=None):
     shape_texts_in_scene = set([data[2][idx] for idx in shape_ids_in_scene])
     shape_texts_not_in_scene = set(shape_set).difference(shape_texts_in_scene)
     if "nothing" in shape_texts_in_scene:
-        shape_texts_in_scene.remove('nothing')
+        shape_texts_in_scene.remove("nothing")
     if "none" in shape_texts_in_scene:
-        shape_texts_in_scene.remove('none')
+        shape_texts_in_scene.remove("none")
     if random.random() < no_target_prob:
         text = random.sample(shape_texts_not_in_scene, 1)[0]
     else:
@@ -294,7 +296,7 @@ def pick_query_shape_text(data, no_target_prob, shape_set=None):
             text = random.sample(shape_texts_in_scene, 1)[0]
         except:
             text = random.sample(shape_texts_not_in_scene, 1)[0]
-    
+
     prefixs = ["where is", "tell me what is", "can you point where is"]
     prefix_i = random.randint(0, 2)
     prefix = prefixs[prefix_i]
@@ -317,12 +319,12 @@ class SemSegData(tds.Dataset):
         useid=True,
         no_target_prob=0.2,
         query_embed="lut",
-        opts=None
+        opts=None,
     ):
         self.sidelength = sidelength
         self.useid = useid
         self.examples = []
-        self.inst_data = pickle.load(open(data_path, "rb"))#[:600]
+        self.inst_data = pickle.load(open(data_path, "rb"))  # [:600]
         print(f"Dataset size: {len(self.inst_data)}")
         for i in range(2):
             print(f"===== data point {i}=======")
@@ -347,8 +349,10 @@ class SemSegData(tds.Dataset):
         self.query_embed = query_embed
         self.no_target_prob = no_target_prob
         if self.query_embed == "bert":
-            self.tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-            self.model = DistilBertModel.from_pretrained('distilbert-base-uncased', return_dict=True)
+            self.tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+            self.model = DistilBertModel.from_pretrained(
+                "distilbert-base-uncased", return_dict=True
+            )
         elif self.query_embed == "clip":
             pass
             # self.device = opts.device
@@ -416,7 +420,6 @@ class SemSegData(tds.Dataset):
             #     text_embed = torch.tensor([self.classes["name2idx"][texts]], dtype=torch.float)
             # x.append(text_embed)
         print(f"CLASS MAP: {self.classes}")
-        
 
     def get_classes(self):
         return self.classes

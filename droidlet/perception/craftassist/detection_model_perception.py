@@ -10,6 +10,7 @@ from droidlet.lowlevel.minecraft.iglu_util import IGLU_BLOCK_MAP
 from .utils.vision_logger import VisionLogger
 from droidlet.lowlevel.minecraft.pyworld.world_config import opts as world_opts
 from droidlet.event import sio
+
 RADIUSX = 6
 RADIUSY = 5
 RADIUSZ = 6
@@ -59,7 +60,12 @@ class DetectionWrapper:
                 sl = world_opts.SL
                 h = world_opts.H
                 blocks = self.agent.get_blocks(
-                    int(sl // 3), int(2 * sl // 3), 0, int(h // 3 - 1), int(sl // 3), int(2 * sl // 3)
+                    int(sl // 3),
+                    int(2 * sl // 3),
+                    0,
+                    int(h // 3 - 1),
+                    int(sl // 3),
+                    int(2 * sl // 3),
                 )
                 print(("vision error blocks: %r" % (blocks)))
                 logging.info("vision error blocks: %r" % (blocks))
@@ -91,7 +97,9 @@ class DetectionWrapper:
         # masks should be a list of HxWxW torch arrays with values between 0 and 1
         print(blocks.shape)
         if len(blocks.shape) == 4:
-            blocks = np.apply_along_axis(lambda x: IGLU_BLOCK_MAP[(int(x[0]), int(x[1]))], 3, blocks)
+            blocks = np.apply_along_axis(
+                lambda x: IGLU_BLOCK_MAP[(int(x[0]), int(x[1]))], 3, blocks
+            )
         assert len(blocks.shape) == 3
         masks = self.model.perceive(blocks, text_spans)
         for i in range(len(text_spans)):
@@ -107,10 +115,11 @@ def load_torch_detector(model_data, cuda=False):
     model = SemSegWrapper(model=model_data, cuda=cuda)
     return model
 
+
 if __name__ == "__main__":
     model_path = "/checkpoint/yuxuans/models/hitl_vision/v5.pt"
     mw = DetectionWrapper(model_path)
-    blocks = np.zeros((17,13,17,2))
+    blocks = np.zeros((17, 13, 17, 2))
     for ix in range(2, 5):
         for iy in range(2, 5):
             for iz in range(2, 5):

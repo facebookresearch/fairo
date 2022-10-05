@@ -69,14 +69,16 @@ def fix_reference_object_with_filters(d):
 
     return new_d
 
+
 def construct_text_span(d: dict):
     # This is taken directly from droidlet/dashboard/web/src/components/Interact/InteractApp.js
     if "filters" in d and "where_clause" in d["filters"]:
         qty = ""
         if "selector" in d["filters"]:
             qty = d["filters"]["selector"]["ordinal"]
-        antecedent = [qty, "", "", "", ""]; # qty then size then colour then block type then name. Ignore everything else.
-        for clause in  d["filters"]["where_clause"]["AND"]:
+        antecedent = [qty, "", "", "", ""]
+        # qty then size then colour then block type then name. Ignore everything else.
+        for clause in d["filters"]["where_clause"]["AND"]:
             if clause["pred_text"] == "has_size":
                 antecedent[1] = clause["obj_text"]
             if clause["pred_text"] == "has_colour":
@@ -85,7 +87,7 @@ def construct_text_span(d: dict):
                 antecedent[3] = clause["obj_text"]
             if clause["pred_text"] == "has_name":
                 antecedent[4] = clause["obj_text"]
-        
+
         text_span = " ".join((" ".join(antecedent)).split()).strip()
         print(f"Construct text span: {text_span}")
         return text_span

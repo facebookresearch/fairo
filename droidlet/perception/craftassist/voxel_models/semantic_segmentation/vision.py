@@ -5,7 +5,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import torch
 import torch.nn as nn
-from droidlet.perception.craftassist.voxel_models.semantic_segmentation.data_loaders import make_example_from_raw
+from droidlet.perception.craftassist.voxel_models.semantic_segmentation.data_loaders import (
+    make_example_from_raw,
+)
 
 from transformers import DistilBertTokenizer, DistilBertModel
 
@@ -15,6 +17,7 @@ import clip
 
 BERT_HIDDEN_DIM = 768
 CLIP_HIDDEN_DIM = 512
+
 
 class SemSegNet(nn.Module):
     """Semantic Segmentation Neural Network"""
@@ -45,7 +48,7 @@ class SemSegNet(nn.Module):
         try:
             num_layers = opts.num_layers
         except:
-            num_layers = 4 
+            num_layers = 4
         try:
             hidden_dim = opts.hidden_dim
         except:
@@ -86,7 +89,7 @@ class SemSegNet(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x, t):
-        szs = list(x.size()) # B x SL x SL x SL
+        szs = list(x.size())  # B x SL x SL x SL
         B = szs[0]
         x = x.view(-1)
         z = self.embedding.weight.index_select(0, x)
@@ -96,16 +99,15 @@ class SemSegNet(nn.Module):
 
         for i in range(self.num_layers):
             z = self.layers[i](z)
-        t = self.text_proj(t) # B x Q x H
-        t = t.permute(0, 2, 1) # B x H x Q
-        z = z.permute(0, 2, 3, 4, 1).view(B, -1, self.opts.hidden_dim) # B x (SL x SL x SL) x H
-        z = torch.bmm(z, t).view(B, szs[1], szs[2], szs[3], -1) # B x (SL x SL x SL) x Q
+        t = self.text_proj(t)  # B x Q x H
+        t = t.permute(0, 2, 1)  # B x H x Q
+        z = z.permute(0, 2, 3, 4, 1).view(B, -1, self.opts.hidden_dim)  # B x (SL x SL x SL) x H
+        z = torch.bmm(z, t).view(B, szs[1], szs[2], szs[3], -1)  # B x (SL x SL x SL) x Q
         # do a contrastive not yet
         # multiple tags for one scene
         z = self.sigmoid(z)
         # print(f"z size: {z.size()}")
         return z
-
 
     def save(self, filepath):
         # self.cpu()
@@ -160,10 +162,12 @@ class SemSegWrapper:
         self.tags = [(c, self.classes["name2count"][c]) for c in i2n]
         # assert self.classes["name2idx"]["none"] == 0
 
-        self.bert_tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
-        self.bert_model = DistilBertModel.from_pretrained('distilbert-base-uncased', return_dict=True)
+        self.bert_tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+        self.bert_model = DistilBertModel.from_pretrained(
+            "distilbert-base-uncased", return_dict=True
+        )
 
-        self.device = "cuda"#opts.device
+        self.device = "cuda"  # opts.device
         self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device=self.device)
 
     @torch.no_grad()
@@ -186,8 +190,7 @@ class SemSegWrapper:
             }
         else:
             return {tuple(ll for ll in l): mids[l[0], l[1], l[2]].item() for l in locs}
-        
-    
+
     def encode_text(self, text, embed_type="clip"):
         if embed_type == "bert":
             text_inputs = self.bert_tokenizer(text, return_tensors="pt")
@@ -228,8 +231,6 @@ class SemSegWrapper:
                     p.append((int(x), int(y), int(z)))
             ret.append(p)
         return ret
-
-
 
         # locs = pred.squeeze().nonzero()
         # locs = locs.tolist()
