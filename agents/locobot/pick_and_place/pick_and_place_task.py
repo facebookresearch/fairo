@@ -143,8 +143,7 @@ class PickAndPlaceTask:
         # Graspnet was trained
         # STRETCH_STANDOFF_DISTANCE = 0.235
         grasp_offset = np.eye(4)
-        # grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.12
-        grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) - 0.05
+        grasp_offset[2, 3] = (-1 * STRETCH_STANDOFF_DISTANCE) + 0.12
 
         original_grasps = grasps.copy()
         for i, grasp in enumerate(grasps):
@@ -319,27 +318,25 @@ class PickAndPlaceTask:
 
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
 
-            if debug:
-                cv2.imwrite("semantic_frame.png", semantic_frame)
-                cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
-                # cv2.imwrite("obstacle_map.png", (obstacle_map * 255).astype(np.uint8))
-                # cv2.imwrite("object_map.png", (object_map * 255).astype(np.uint8))
+            # if debug:
+            #     cv2.imwrite("semantic_frame.png", semantic_frame)
+            #     cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
 
             predicted_grasps, scores = predicted_grasps[0]
             if len(scores) < self.min_predicted_grasps:
                 print("Too few predicted grasps; trying to segment again...")
                 continue
 
-            if debug:
-                rotated_grasps = [self.R_stretch_camera.T @ grasp for grasp in predicted_grasps]
-                show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3), grasps=rotated_grasps)
+            # if debug:
+            #     rotated_grasps = [self.R_stretch_camera.T @ grasp for grasp in predicted_grasps]
+            #     show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3), grasps=rotated_grasps)
 
             world_grasps = [camera_pose @ grasp for grasp in predicted_grasps]
             world_pcd = trimesh.transform_points(flat_pcd, self.R_stretch_camera)
             world_pcd = trimesh.transform_points(world_pcd, camera_pose)
 
-            if debug:
-                show_point_cloud(world_pcd, image_rgb, orig=np.zeros(3), grasps=world_grasps)
+            # if debug:
+            #     show_point_cloud(world_pcd, image_rgb, orig=np.zeros(3), grasps=world_grasps)
 
             #self.manip.goto_static_grasp(world_grasps, scores, pause=True)
             self.goto_static_grasp(world_grasps, scores, world_pcd, image_rgb, pause=False, debug=debug)
