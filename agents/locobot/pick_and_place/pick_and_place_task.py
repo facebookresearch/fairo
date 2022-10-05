@@ -212,7 +212,7 @@ class PickAndPlaceTask:
                         t.header.stamp = rospy.Time.now()
                         t.child_frame_id = id
                         t.header.frame_id = "map"
-                        t.transform = matrix_to_pose_msg(ros_pose_to_transform(grasp))
+                        t.transform = ros_pose_to_transform(matrix_to_pose_msg(grasp))
                         self.grasp_client.broadcaster.sendTransform(t)
 
                 q2 = qi
