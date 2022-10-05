@@ -316,15 +316,12 @@ class PickAndPlaceTask:
             pcd2 = self.dpt_cam.depth_to_xyz(depth_)
             print("pcd2.shape", pcd2.shape)
             flat_pcd2 = pcd2.reshape(-1, 3)
-            print("flat_pcd2.shape", pcd2.shape)
+            print("flat_pcd2.shape", flat_pcd2.shape)
             flat_pcd = flat_pcd2
 
             if debug:
-                show_point_cloud(
-                    np.concatenate([flat_pcd1, flat_pcd2]),
-                    np.concatenate([image_rgb, image_rgb]),
-                    orig=np.zeros(3)
-                )
+                show_point_cloud(flat_pcd1, image_rgb, orig=np.zeros(3))
+                show_point_cloud(flat_pcd2, image_rgb, orig=np.zeros(3))
 
             if attempt == 0:
                 print(list(info.keys()))
