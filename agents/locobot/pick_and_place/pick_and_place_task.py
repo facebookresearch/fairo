@@ -203,9 +203,6 @@ class PickAndPlaceTask:
                     print(grasp)
                     fk_pose = self.model.fk(qi, as_matrix=True)
 
-                    # Visualize in Open3D
-                    show_point_cloud(world_pcd, image_rgb, orig=np.zeros(3), grasps=[grasp, orig_grasp, fk_pose])
-
                     # Visualize in RVis
                     for id, grasp in [("executed_grasp", grasp), ("predicted_grasp", orig_grasp), ("fk_pose", fk_pose)]:
                         t = TransformStamped()
@@ -214,6 +211,9 @@ class PickAndPlaceTask:
                         t.header.frame_id = "map"
                         t.transform = ros_pose_to_transform(matrix_to_pose_msg(grasp))
                         self.grasp_client.broadcaster.sendTransform(t)
+
+                    # Visualize in Open3D
+                    show_point_cloud(world_pcd, image_rgb, orig=np.zeros(3), grasps=[grasp, orig_grasp, fk_pose])
 
                 q2 = qi
                 # q2 = model.static_ik(grasp_pose, q1)
