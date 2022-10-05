@@ -7,6 +7,7 @@ import math
 import copy
 import time
 import logging
+import random
 from collections.abc import Iterable
 from prettytable import PrettyTable
 import Pyro4
@@ -39,6 +40,8 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 from droidlet.lowlevel.pyro_utils import safe_call
 from .data_compression import *
 
+random.seed(0)
+np.random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 2
@@ -225,14 +228,6 @@ class HelloRobotMover(MoverInterface):
         Args:
             xzt_positions: a list of relative (x,y,yaw) positions for the bot to execute.
             x,y,yaw are in the pyrobot's coordinates.
-            distance_threshold: the distance resolution (in metres) for the move to be deemed successful
-                                If distance_threshold=0.1, and you ask the robot to move 0.5, then
-                                if the robot moves 0.4 or 0.6, it still
-                                exits the navigation with a success
-            angle_threshold: the angle resolution (in degrees) for the move to be deemed successful
-                                If angle_threshold=5, and you ask the robot to rotate 30 degrees, then
-                                if the robot rotates 25 or 35 degrees, it still
-                                exits the navigation with a success
         """
         if not isinstance(next(iter(xyt_positions)), Iterable):
             # single xyt position given
@@ -240,10 +235,7 @@ class HelloRobotMover(MoverInterface):
         for xyt in xyt_positions:
             self.nav_result.wait()
             self.nav_result = safe_call(
-                self.nav.go_to_relative,
-                goal=xyt,
-                distance_threshold=distance_threshold,
-                angle_threshold=angle_threshold,
+                self.nav.go_to_relative, xyt, 10000000000, distance_threshold, angle_threshold
             )
             if blocking:
                 self.nav_result.wait()
@@ -276,6 +268,24 @@ class HelloRobotMover(MoverInterface):
                 self.nav_result.wait()
         return "finished"
 
+    def move_to_object(
+        self, object_goal: str, episode_id: str, exploration_method: str, blocking=True
+    ):
+        """Command to execute a move to an object category.
+
+        Args:
+            object_goal: supported COCO object category
+            exploration_method: learned or frontier
+        """
+        if self.nav_result.ready:
+            self.nav_result.wait()
+            self.nav_result = self.nav.go_to_object(object_goal, episode_id, exploration_method)
+            if blocking:
+                self.nav_result.wait()
+        else:
+            print("navigator executing another call right now")
+        return self.nav_result
+
     def get_base_pos_in_canonical_coords(self):
         """get the current robot position in the canonical coordinate system
 
@@ -297,6 +307,9 @@ class HelloRobotMover(MoverInterface):
     def get_current_pcd(self, in_cam=False, in_global=False):
         """Gets the current point cloud"""
         return self.cam.get_current_pcd()
+
+    def get_rgb_depth_optimized_for_habitat_transfer(self):
+        return self.cam.get_rgb_depth_optimized_for_habitat_transfer()
 
     def get_rgb_depth(self):
         """Fetches rgb, depth and pointcloud in pyrobot world coordinates.

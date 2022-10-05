@@ -13,10 +13,13 @@ import math
 from rich import print
 import Pyro4
 import numpy as np
-from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
-from droidlet.lowlevel.pyro_utils import safe_call
+from droidlet.lowlevel.hello_robot.remote.utils import (
+    goto_trackback,
+    transform_global_to_base,
+    goto,
+)
 from stretch_ros_move_api import MoveNode as Robot
-from goto_controller import GotoVelocityController
+from droidlet.lowlevel.pyro_utils import safe_call
 import traceback
 
 
@@ -24,7 +27,6 @@ Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
 
-VEL_CONTROL_HZ = 15
 
 # #####################################################
 @Pyro4.expose
@@ -40,8 +42,6 @@ class RemoteHelloRobot(object):
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
         self._load_urdf()
         self.tilt_correction = 0.0
-
-        self._goto_controller = GotoVelocityController(robot=self._robot, hz=VEL_CONTROL_HZ)
 
     def _load_urdf(self):
         import os
@@ -108,9 +108,6 @@ class RemoteHelloRobot(object):
         return self._robot.get_slam_pose()
 
     def pull_status(self):
-        """
-        A no-op in the ROS backend. Only there for API compatibility
-        """
         pass
 
     def is_base_moving(self):
@@ -131,12 +128,6 @@ class RemoteHelloRobot(object):
         self._robot.send_command("joint_head_tilt", tilt)
 
     def reset_camera(self):
-        """
-        Sets the camera facing the forward, i.e.
-        90 degrees from looking at the ground.
-        If the robot base's front is facing a wall,
-        the camera should be directly looking at the wall
-        """
         self.set_pan(0)
         self.set_tilt(0)
 
@@ -187,13 +178,14 @@ class RemoteHelloRobot(object):
                 cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + self._ip)
             self.cam = cam
 
-    def go_to_absolute(self, xyt_position):
+    def go_to_absolute(self, xyt_position, trackback=False):
         """Moves the robot base to given goal state in the world frame.
 
         :param xyt_position: The goal state of the form (x,y,yaw)
                              in the world (map) frame.
         """
         status = "SUCCEEDED"
+        action = None
         print("entering done", self._done)
         if self._done:
             self.initialize_cam()
@@ -215,14 +207,33 @@ class RemoteHelloRobot(object):
                 return result
 
             try:
-                status = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
+                if trackback:
+                    status = goto_trackback(
+                        self, list(base_xyt), dryrun=False, optimize_distance=True
+                    )
+                    action = "trackback"
+                else:
+                    status, action = goto(
+                        self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn
+                    )
                 self._done = True
             except Exception as e:
                 print(e)
                 print(traceback.format_exc())
                 self._done = True
                 raise e
-        return status
+        return status, action
+
+    def is_obstacle_in_front(self):
+        self.initialize_cam()
+        result = False
+        while True:
+            try:
+                result = self.cam.is_obstacle_in_front()
+                break
+            except:
+                print("obstacle exception")
+        return result
 
     def go_to_relative(self, xyt_position):
         """Moves the robot base to the given goal state relative to its current
@@ -237,7 +248,7 @@ class RemoteHelloRobot(object):
             self._done = False
 
             def obstacle_fn():
-                return safe_call(self.cam, is_obstacle_in_front)
+                return self.cam.is_obstacle_in_front()
 
             try:
                 status = goto(self, list(xyt_position), dryrun=False, obstacle_fn=obstacle_fn)
@@ -248,44 +259,6 @@ class RemoteHelloRobot(object):
                 self._done = True
                 raise e
         return status
-
-    def set_velocity(self, v_m, w_r):
-        """Directly sets the forward and yaw velocity of the robot."""
-        self._robot.set_velocity(v_m, w_r)
-
-    def set_relative_position_goal(self, xy_position):
-        """Moves the robot base to the given goal position relative to its current
-        pose. The robot does not have a yaw goal and will simply turn & move towards
-        the desired position.
-
-        :param xy_position: The relative goal position of the form (x,y)
-        """
-        assert (
-            len(xy_position) == 2
-        ), f"Input goal should be of length 2 (xy), got {len(xy_position)} instead."
-
-        xyt_position = list(xy_position) + [0.0]
-
-        self._goto_controller.start()
-        self._goto_controller.enable_yaw_tracking(False)
-        self._goto_controller.set_goal(xyt_position)
-
-    def set_relative_goal(self, xyt_position):
-        """Moves the robot base to the given goal state relative to its current
-        pose.
-
-        :param xyt_position: The  relative goal state of the form (x,y,yaw)
-        """
-        assert (
-            len(xyt_position) == 3
-        ), f"Input goal should be of length 3 (xyt), got {len(xyt_position)} instead."
-
-        self._goto_controller.start()
-        self._goto_controller.enable_yaw_tracking(True)
-        self._goto_controller.set_goal(xyt_position)
-
-    def stop_continuous_control(self):
-        self._goto_controller.pause()
 
     def is_moving(self):
         return not self._done
@@ -305,7 +278,7 @@ if __name__ == "__main__":
         "--ip",
         help="Server device (robot) IP. Default is 192.168.0.0",
         type=str,
-        default="192.168.0.0",
+        default="0.0.0.0",
     )
 
     args = parser.parse_args()
@@ -314,9 +287,7 @@ if __name__ == "__main__":
 
     with Pyro4.Daemon(args.ip) as daemon:
         robot = RemoteHelloRobot(ip=args.ip)
-        print("IP address =", args.ip)
         robot_uri = daemon.register(robot)
-        print("Robot URI =", robot_uri)
         with Pyro4.locateNS(host=args.ip) as ns:
             ns.register("hello_robot", robot_uri)
 

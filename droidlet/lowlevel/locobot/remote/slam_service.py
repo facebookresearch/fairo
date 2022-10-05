@@ -1,15 +1,24 @@
 import os
 import sys
 import time
+import random
+import torch
+import torch.nn as nn
 import numpy as np
 import Pyro4
 import select
+from rich import print
+
 from slam_pkg.utils.map_builder import MapBuilder as mb
 from slam_pkg.utils import depth_util as du
 from skimage.morphology import disk, binary_dilation
+from segmentation.constants import coco_categories
 from rich import print
 from droidlet.lowlevel.pyro_utils import safe_call
 
+random.seed(0)
+torch.manual_seed(0)
+np.random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
@@ -20,24 +29,34 @@ class SLAM(object):
     def __init__(
         self,
         robot,
-        map_size=4000,
+        map_size_cm=2400,
         resolution=5,
-        robot_rad=30,
+        robot_rad=20,
         agent_min_z=5,
         agent_max_z=70,
         obstacle_threshold=1,
+        category_threshold=5,
+        global_downscaling=2,
     ):
         self.robot = robot
         self.robot_rad = robot_rad
         self.map_resolution = resolution
+        self.num_sem_categories = len(coco_categories)
+        self.obs_threshold = obstacle_threshold
         self.map_builder = mb(
-            map_size_cm=map_size,
+            pose_init=self.robot.get_base_state(),
+            map_size_cm=map_size_cm,
             resolution=resolution,
             agent_min_z=agent_min_z,
             agent_max_z=agent_max_z,
             obs_thr=obstacle_threshold,
+            cat_thr=category_threshold,
+            num_sem_categories=self.num_sem_categories,
         )
-        self.map_size = map_size
+        self.map_size_cm = map_size_cm
+        self.map_size = int(self.map_size_cm // self.map_resolution)
+        self.global_downscaling = global_downscaling
+        self.local_map_size = self.map_size // global_downscaling
         # if the map is a previous map loaded from disk, and
         # if the robot looks around and registers itself at a
         # non-origin location in the map just as it is coming up,
@@ -50,8 +69,17 @@ class SLAM(object):
         self.init_state = (0.0, 0.0, 0.0)
         self.prev_bot_state = (0.0, 0.0, 0.0)
 
+        self.last_position_vis_info = None
+        self.update_semantic_map = True
+
         self.update_map()
         assert self.traversable is not None
+
+    def disable_semantic_map_update(self):
+        self.update_semantic_map = False
+
+    def get_map_sizes(self):
+        return self.map_size, self.local_map_size
 
     def get_traversable_map(self):
         return self.traversable
@@ -89,14 +117,50 @@ class SLAM(object):
         """
         if not in_map:
             location = self.real2map(location)
+        print(f"Adding obstacle at {location}!")
         self.map_builder.add_obstacle(location)
 
+    def add_obstacles(self, locations, in_map=False):
+        """
+        add a list of obstacles at the given locations.
+        if in_map=False, then location is given in real co-ordinates
+        if in_map=True, then location is given in map co-ordinates
+        """
+        for loc in locations:
+            self.add_obstacle(loc, in_map=in_map)
+
     def update_map(self):
-        pcd = safe_call(self.robot.get_current_pcd)[0]
+        pcd, rgb, depth = self.robot.get_current_pcd()
+        pose = self.robot.get_base_state()
+
         self.map_builder.update_map(pcd)
 
+        if self.update_semantic_map:
+            t0 = time.time()
+            semantics, unfiltered_semantics, semantics_vis = self.robot.get_semantics(rgb, depth)
+            t1 = time.time()
+            print("get_semantics()", t1 - t0)
+
+            self.map_builder.update_semantic_map(pcd, semantics, pose)
+            t2 = time.time()
+            print("update_semantic_map()", t2 - t1)
+
+            self.last_position_vis_info = {
+                # Frame
+                "rgb": rgb,
+                "depth": depth,
+                "pcd": pcd,
+                "semantic_frame": semantics,
+                "unfiltered_semantic_frame": unfiltered_semantics,
+                "semantic_frame_vis": semantics_vis,
+                # Semantic map after update with frame
+                "semantic_map": self.get_global_semantic_map(),
+                # Sensor pose of frame
+                "pose": pose,
+            }
+
         # explore the map by robot shape
-        obstacle = self.map_builder.map[:, :, 1] >= 1.0
+        obstacle = self.map_builder.map[:, :, 1] >= self.obs_threshold
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
         self.traversable = traversable
@@ -107,7 +171,7 @@ class SLAM(object):
     def get_map(self):
         """returns the location of obstacles created by slam only for the obstacles,"""
         # get the index correspnding to obstacles
-        indices = np.where(self.map_builder.map[:, :, 1] >= 1.0)
+        indices = np.where(self.map_builder.map[:, :, 1] >= self.obs_threshold)
         # convert them into robot frame
         real_world_locations = [
             self.map2real([indice[0], indice[1]]).tolist()
@@ -115,8 +179,60 @@ class SLAM(object):
         ]
         return real_world_locations
 
+    def get_last_position_vis_info(self):
+        return self.last_position_vis_info
+
+    def get_global_semantic_map(self):
+        return self.map_builder.semantic_map
+
+    def get_local_semantic_map(self):
+        global_map = self.get_global_semantic_map()
+        x, y, _ = self.robot.get_base_state()
+        c, r = self.map_builder.real2map((x, y))
+
+        c1 = max(int(c - self.local_map_size // 2), 0)
+        r1 = max(int(r - self.local_map_size // 2), 0)
+        if c1 + self.local_map_size > self.map_size:
+            c2 = self.map_size
+            c1 = c2 - self.local_map_size
+        else:
+            c2 = c1 + self.local_map_size
+        if r1 + self.local_map_size > self.map_size:
+            r2 = self.map_size
+            r1 = r2 - self.local_map_size
+        else:
+            r2 = r1 + self.local_map_size
+
+        local_map = global_map[:, r1:r2, c1:c2]
+        return local_map
+
+    def get_semantic_map_features(self):
+        """
+        Returns:
+            map_features: semantic map features
+            orientation: discretized yaw in {0, ..., 72}
+        """
+        global_map = torch.from_numpy(self.get_global_semantic_map())
+        local_map = torch.from_numpy(self.get_local_semantic_map())
+
+        map_features = torch.zeros(
+            self.num_sem_categories + 8, self.local_map_size, self.local_map_size
+        )
+        # Local obstacles, explored area, and current and past position
+        map_features[:4, :, :] = local_map[:4, :, :]
+        # Global obstacles, explored area, and current and past position
+        map_features[4:8, :, :] = nn.MaxPool2d(self.global_downscaling)(global_map[:4, :, :])
+        # Local semantic categories
+        map_features[8:, :, :] = local_map[4:, :, :]
+
+        return map_features.unsqueeze(0)
+
+    def get_orientation(self):
+        """Get discretized robot orientation."""
+        return self.robot.get_orientation()
+
     def reset_map(self, z_bins=None, obs_thr=None):
-        self.map_builder.reset_map(self.map_size, z_bins=z_bins, obs_thr=obs_thr)
+        self.map_builder.reset_map(self.map_size_cm, z_bins=z_bins, obs_thr=obs_thr)
 
 
 robot_ip = os.getenv("LOCOBOT_IP")
@@ -133,7 +249,7 @@ with Pyro4.Daemon(ip) as daemon:
         max_z = robot_height + 5  # cm
         obj = SLAM(
             robot,
-            obstacle_threshold=10,
+            obstacle_threshold=5,  # 300 on robot
             agent_min_z=min_z,
             agent_max_z=max_z,
         )

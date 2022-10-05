@@ -20,7 +20,11 @@ import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
 import numpy as np
 import cv2
-from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
+from droidlet.lowlevel.hello_robot.remote.utils import (
+    transform_global_to_base,
+    goto,
+    goto_trackback,
+)
 
 
 Pyro4.config.SERIALIZER = "pickle"
@@ -59,7 +63,7 @@ class RemoteHelloRobot(object):
         self._robot.startup()
         if not self._robot.is_calibrated():
             self._robot.home()
-        # self._robot.stow()  # HACK: not working currently, robot runs fine without this line
+        self._robot.stow()
         self._done = True
         self.cam = None
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
@@ -76,9 +80,6 @@ class RemoteHelloRobot(object):
         print(Style.RESET_ALL)
 
     def pull_status(self):
-        """
-        Force the Robot API to pull the latest status of all sensors immediately (instead of waiting for the next update)
-        """
         self._robot.pull_status()
 
     def _load_urdf(self):
@@ -157,12 +158,6 @@ class RemoteHelloRobot(object):
         self._robot.head.move_to("head_tilt", tilt)
 
     def reset_camera(self):
-        """
-        Sets the camera facing the forward, i.e.
-        90 degrees from looking at the ground.
-        If the robot base's front is facing a wall,
-        the camera should be directly looking at the wall
-        """
         self.set_pan(0)
         self.set_tilt(0)
 
@@ -209,7 +204,7 @@ class RemoteHelloRobot(object):
                 cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + self._ip)
             self.cam = cam
 
-    def go_to_absolute(self, xyt_position):
+    def go_to_absolute(self, xyt_position, trackback=False):
         """Moves the robot base to given goal state in the world frame.
 
         :param xyt_position: The goal state of the form (x,y,yaw)
@@ -226,9 +221,13 @@ class RemoteHelloRobot(object):
             def obstacle_fn():
                 return self.cam.is_obstacle_in_front()
 
-            status = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
+            if trackback:
+                status = goto_trackback(self, list(base_xyt), dryrun=False, optimize_distance=True)
+            else:
+                status = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
-        return status
+        action = "don't track action"
+        return status, action
 
     def go_to_relative(self, xyt_position):
         """Moves the robot base to the given goal state relative to its current
@@ -248,10 +247,6 @@ class RemoteHelloRobot(object):
             status = goto(self, list(xyt_position), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
         return status
-
-    def set_velocity(self, v_m, w_r):
-        self._robot.base.set_velocity(v_m, w_r)
-        self._robot.push_command()
 
     def is_base_moving(self):
         robot = self._robot

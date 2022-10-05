@@ -107,14 +107,12 @@ def is_obstacle_ahead(dist, depth_fn):
     return obstacle_dist < dist
 
 
-def goto(
+def goto_trackback(
     robot,
     xyt_position=None,
     translation_threshold=0.05,
     dryrun=False,
-    depth_fn=None,
     optimize_distance=False,
-    obstacle_fn=None,
 ):
     """
     Moves the robot to the given goal state in
@@ -207,25 +205,12 @@ def goto(
     print("translate by ", dist)
     if not dryrun:
         print("not a dryrun")
-
-        if obstacle_fn is not None:
-            is_obstacle = obstacle_fn()
-        if is_obstacle:
-            print("Found obstacle before translating. Aborting")
-            return "FAILED"
         robot.translate_by(dist)
         robot.push_command()
         time.sleep(2)
         robot.pull_status()
         is_moving = True
         while is_moving:
-            if obstacle_fn is not None:
-                is_obstacle = obstacle_fn()
-            if is_obstacle:
-                # stop motion
-                print("Found obstacle while translating. Aborting")
-                robot.stop()
-                return "FAILED"
             time.sleep(0.1)
             robot.pull_status()
             is_moving = robot.is_base_moving()
@@ -248,3 +233,85 @@ def goto(
             robot.pull_status()
             is_moving = robot.is_base_moving()
     return status
+
+
+def goto(
+    robot,
+    xyt_position=None,
+    dryrun=False,
+    obstacle_fn=None,
+    forward_dist=0.25,
+    turn_angle=np.pi / 6,
+):
+    """
+    Moves the robot to the given goal state in the relative frame (base frame).
+    :param xyt_position: the goal state of the form (x,y,t) in the relative (base) frame
+    :param forward_dist: the distance to move forward with each forward action (default 25 cm)
+    :param turn_angle: the angle to turn with each turn action (default 30 degrees)
+    """
+    status = "SUCCEEDED"
+
+    if xyt_position is None:
+        xyt_position = [0.0, 0.0, 0.0]
+    rot = xyt_position[2]  # in radians
+
+    rot = rot % (2 * np.pi)
+    if rot > np.pi:
+        rot -= 2 * np.pi
+
+    if rot > turn_angle:
+        # Right
+        action = "right"
+        if not dryrun:
+            robot.rotate_by(turn_angle)
+            robot.push_command()
+            time.sleep(1)
+            is_moving = True
+            while is_moving:
+                time.sleep(0.1)
+                robot.pull_status()
+                is_moving = robot.is_base_moving()
+
+    elif rot < -turn_angle:
+        # Left
+        action = "left"
+        if not dryrun:
+            robot.rotate_by(-turn_angle)
+            robot.push_command()
+            time.sleep(1)
+            is_moving = True
+            while is_moving:
+                time.sleep(0.1)
+                robot.pull_status()
+                is_moving = robot.is_base_moving()
+
+    else:
+        # Forward
+        action = "forward"
+        if obstacle_fn is not None:
+            is_obstacle = obstacle_fn()
+        else:
+            is_obstacle = False
+        if is_obstacle:
+            print("Found obstacle before translating. Aborting")
+            return "FAILED", action
+        robot.translate_by(forward_dist)
+        robot.push_command()
+        time.sleep(2)
+        robot.pull_status()
+        is_moving = True
+        while is_moving:
+            if obstacle_fn is not None:
+                is_obstacle = obstacle_fn()
+            else:
+                is_obstacle = False
+            if is_obstacle:
+                # stop motion
+                print("Found obstacle while translating. Aborting")
+                robot.stop()
+                return "FAILED", action
+            time.sleep(0.1)
+            robot.pull_status()
+            is_moving = robot.is_base_moving()
+
+    return status, action

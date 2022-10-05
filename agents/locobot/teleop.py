@@ -8,6 +8,8 @@ import logging
 import faulthandler
 import threading
 import functools
+import cv2
+import matplotlib.pyplot as plt
 
 from droidlet import dashboard
 from droidlet.dashboard.o3dviz import O3DViz
@@ -18,6 +20,7 @@ from droidlet.lowlevel.hello_robot.remote.obstacle_utils import get_points_in_fr
 
 import time
 import math
+
 
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
@@ -39,6 +42,7 @@ from droidlet.interpreter.robot import (
 )
 from droidlet.dialog.robot import LocoBotCapabilities
 from droidlet.event import sio
+from agents.locobot.end_to_end_semantic_scout import EndToEndSemanticScout
 
 faulthandler.register(signal.SIGUSR1)
 
@@ -52,11 +56,17 @@ logging.getLogger().handlers.clear()
 
 mover = None
 
+# TODO Cleaner way to get scout object state (semantic map + goal) in dashboard
+end_to_end_vis = None
+modular_vis = None
+
+
 @sio.on("sendCommandToAgent")
 def get_command(sid, command):
-    command, value = command.split()
-    print(command)
-    print(value)
+    tokens = command.split()
+    command, value = tokens[0], " ".join(tokens[1:])
+    if len(value) == 0:
+        value = None
     test_command(sid, [command], value=value)
 
 @sio.on("logData")
@@ -77,7 +87,11 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
     move_dist = float(data['move'])
     yaw = float(data['yaw'])
     velocity = float(data['velocity'])
+
     global mover
+    global end_to_end_vis
+    global modular_vis
+
     if mover == None:
         return
     if value is not None:
@@ -139,6 +153,56 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             print("action: MOVE_ABSOLUTE", xyyaw_f)
             mover.move_absolute(xyyaw_f, blocking=False)
             sync()
+
+        # Commands we introduce
+        elif command == "SEARCH_OBJECT_MODULAR_LEARNED":
+            if "_" in value.strip():
+                object_goal, episode_id = [x.strip() for x in value.split("_")]
+            else:
+                object_goal = episode_id = value.strip()
+            print("action: SEARCH_OBJECT_MODULAR_LEARNED", object_goal)
+            mover.move_to_object(
+                object_goal,
+                episode_id=episode_id,
+                exploration_method="learned",
+                blocking=False
+            )
+            modular_vis = True
+            sync()
+        elif command == "SEARCH_OBJECT_MODULAR_HEURISTIC":
+            if "_" in value.strip():
+                object_goal, episode_id = [x.strip() for x in value.split("_")]
+            else:
+                object_goal = episode_id = value.strip()
+            print("action: SEARCH_OBJECT_MODULAR_HEURISTIC", object_goal)
+            mover.move_to_object(
+                object_goal,
+                episode_id=episode_id,
+                exploration_method="frontier",
+                blocking=False
+            )
+            modular_vis = True
+            sync()
+        elif command == "SEARCH_OBJECT_END_TO_END":
+            if "_" in value.strip():
+                object_goal, episode_id = [x.strip() for x in value.split("_")]
+            else:
+                object_goal = episode_id = value.strip()
+            print("action: SEARCH_OBJECT_END_TO_END", object_goal)
+            mover.slam.disable_semantic_map_update()
+            scout = EndToEndSemanticScout(
+                mover,
+                episode_id=episode_id,
+                object_goal=object_goal,
+                # policy="robot_camera_settings_without_noise_and_coco_detector_il",  # NO DEPTH NOISE IL
+                # policy="robot_camera_settings_without_noise_and_coco_detector_rl",  # NO DEPTH NOISE RL
+                policy="robot_camera_settings_and_coco_detector_rl",                # WITH DEPTH NOISE 
+                # policy="original_camera_settings_and_mp3d_detector_rl",             # ORIGINAL      
+            )
+            while not scout.finished:
+                scout.step(mover)
+                end_to_end_vis = scout.semantic_frame
+
         elif command == "LOOK_AT":
             xyz = value.split(',')
             xyz = [float(p) for p in xyz]
@@ -147,12 +211,22 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
         elif command == "RESET":
             mover.bot.set_tilt(0.)
             mover.bot.set_pan(0.)
+        elif command == "TAKE_PHOTO":
+            filename = value.strip()
+            # rgb_depth = mover.get_rgb_depth()
+            # rgb, depth = rgb_depth.rgb, rgb_depth.depth
+            rgb, depth = mover.get_rgb_depth_optimized_for_habitat_transfer()
+            plt.imsave(f"pictures/{filename}_rgb.png", rgb)
+            plt.imsave(f"pictures/{filename}_depth.png", depth)
+            np.save(f"pictures/{filename}_rgb.npy", rgb)
+            np.save(f"pictures/{filename}_depth.npy", depth)
 
         print(command, movement)
 
 @sio.on("movement command")
 def test_command_web(sid, commands, data, value=None):
     test_command(sid, commands, data=data, value=value)
+
 
 if __name__ == "__main__":
     import argparse
@@ -210,7 +284,7 @@ if __name__ == "__main__":
         counter += 1
         iter_time = time.time_ns() - start_time
         if float(iter_time) / 1e9 > fps_freq :
-            print("FPS: ", round(counter / (float(iter_time) / 1e9), 1), "  ", int(iter_time / 1e6 / counter), "ms")
+            # print("FPS: ", round(counter / (float(iter_time) / 1e9), 1), "  ", int(iter_time / 1e6 / counter), "ms")
             counter = 0
             start_time = time.time_ns()
 
@@ -223,6 +297,17 @@ if __name__ == "__main__":
         # this goes from 21ms to 120ms
         rgb_depth = mover.get_rgb_depth()
 
+        points, colors = rgb_depth.ptcloud.reshape(-1, 3), rgb_depth.rgb.reshape(-1, 3)
+        colors = colors / 255.
+
+        # TODO Temporary hack to get semantic map in dashboard
+        if end_to_end_vis is not None:
+            rgb_depth.rgb = end_to_end_vis[:, :, [2, 1, 0]]
+        elif modular_vis is not None:
+            semantic_map_vis = mover.nav.get_last_semantic_map_vis()
+            semantic_map_vis.wait()
+            rgb_depth.rgb = semantic_map_vis.value[:, :, [2, 1, 0]]
+
         # this takes about 1.5 to 2 fps
         serialized_image = rgb_depth.to_struct(resolution, quality)
 
@@ -232,10 +317,6 @@ if __name__ == "__main__":
             "depthMax": serialized_image["depth_max"],
             "depthMin": serialized_image["depth_min"],
         })
-
-
-        points, colors = rgb_depth.ptcloud.reshape(-1, 3), rgb_depth.rgb.reshape(-1, 3)
-        colors = colors / 255.
 
         if all_points is None:
             all_points = points
@@ -271,14 +352,24 @@ if __name__ == "__main__":
         x, y, yaw = base_state.tolist()
 
         if backend == 'locobot':
-            height=0.63
+            height = 0.63
         else: # hello-robot
-            height=1.41
+            height = 1.41
         o3dviz.add_robot(base_state, height)
 
         # start the SLAM
-        if backend == 'habitat':
-            mover.explore((19,19,0))
+        # if backend == 'habitat':
+        #     # mover.explore((19, 19, 0))
+
+        #     possible_object_goals = mover.bot.get_semantic_categories_in_scene()
+        #     if len(possible_object_goals) > 0:
+        #         object_goal = random.choice(tuple(possible_object_goals))
+        #         mover.move_to_object(object_goal, blocking=True)
+
+        #     # import sys
+        #     # sys.exit()
+        #     import os
+        #     os._exit(0)
         
         sio.emit(
             "map",

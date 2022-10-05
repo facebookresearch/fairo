@@ -26,11 +26,13 @@ class MoverTests(unittest.TestCase):
 
         print("DONE INITIAL NAVIGATION")
 
+    """ # test outdated due to changes to navigation from Semantic SLAM
     def test_move_relative(self):
         for task_pos in [(0, 0, 0), (0, -0.1, 1.0), (0, 0.1, 0), (-0.1, -0.1, -1.0)]:
             initial_state = self.agent.bot.get_base_state()
             self.agent.move_relative([task_pos])
             assert_distance_moved(initial_state, self.agent.bot.get_base_state(), task_pos)
+    """
 
     def test_turn(self):
         # turn a set of a angles

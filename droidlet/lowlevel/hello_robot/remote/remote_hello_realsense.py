@@ -9,11 +9,14 @@ import time
 import copy
 import math
 from math import *
+from droidlet.lowlevel.locobot.remote.segmentation.detectron2_segmentation import (
+    Detectron2Segmentation,
+)
 
 import pyrealsense2 as rs
 import Pyro4
 import numpy as np
-import cv2
+import torch
 import open3d as o3d
 from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
 from slam_pkg.utils import depth_util as du
@@ -21,6 +24,8 @@ import obstacle_utils
 from obstacle_utils import is_obstacle
 from droidlet.dashboard.o3dviz import serialize as o3d_pickle
 from data_compression import *
+from segmentation.constants import coco_categories
+from segmentation.detectron2_segmentation import Detectron2Segmentation
 
 
 # Configure depth and color streams
@@ -63,6 +68,13 @@ class RemoteHelloRealsense(object):
         img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
+        self.num_sem_categories = len(coco_categories)
+        self.segmentation_model = Detectron2Segmentation(
+            sem_pred_prob_thr=0.9, sem_gpu_id=-1, visualize=True
+        )
+
+    def get_base_state(self):
+        return self.bot.get_base_state()
 
     def get_camera_transform(self):
         return self.bot.get_camera_transform()
@@ -109,6 +121,9 @@ class RemoteHelloRealsense(object):
         self.spatial = rs.spatial_filter(0.5, 20.0, 2.0, 0.0)
         self.temporal = rs.temporal_filter(0.0, 100.0, 3)
         self.disparity2depth = rs.disparity_transform(False)
+        self.hole_filling = rs.hole_filling_filter(
+            2
+        )  # Fill with neighboring pixel nearest to sensor
 
         print("connected to realsense")
 
@@ -165,6 +180,77 @@ class RemoteHelloRealsense(object):
 
         return color_image, depth_image
 
+    def get_rgb_depth_optimized_for_habitat_transfer(self, rotate=True, compressed=False):
+        tm = time.time()
+        frames = None
+        while not frames:
+            frames = self.realsense.wait_for_frames()
+
+            # post-processing goes here
+            frames = self.decimate.process(frames).as_frameset()
+            # thresholded = self.threshold.process(decimated).as_frameset()
+            frames = self.depth2disparity.process(frames).as_frameset()
+            frames = self.spatial.process(frames).as_frameset()
+            # temporal = self.temporal.process(spatial).as_frameset() # TODO: re-enable
+            frames = self.disparity2depth.process(frames).as_frameset()
+            frames = self.hole_filling.process(frames).as_frameset()
+
+            aligned_frames = self.align.process(frames)
+
+            # Get aligned frames
+            aligned_depth_frame = (
+                aligned_frames.get_depth_frame()
+            )  # aligned_depth_frame is a 640x480 depth image
+            color_frame = aligned_frames.get_color_frame()
+
+            # Validate that both frames are valid
+            if not aligned_depth_frame or not color_frame:
+                continue
+
+            depth_image = np.asanyarray(aligned_depth_frame.get_data())
+            color_image = np.asanyarray(color_frame.get_data())[:, :, [2, 1, 0]]
+
+            if not compressed:
+                depth_image = depth_image / 1000  # convert to meters
+
+            # rotate
+            if rotate:
+                depth_image = np.rot90(depth_image, k=1, axes=(1, 0))
+                color_image = np.rot90(color_image, k=1, axes=(1, 0))
+
+        return color_image, depth_image
+
+    def get_semantics(self, rgb, depth):
+        """Get semantic segmentation."""
+        semantics, semantics_vis = self.segmentation_model.get_prediction(
+            np.expand_dims(rgb[:, :, ::-1], 0), np.expand_dims(depth, 0)
+        )
+        semantics, semantics_vis = semantics[0], semantics_vis[0]
+        unfiltered_semantics = semantics
+
+        # given RGB and depth are rotated after the point cloud creation,
+        # we rotate them back here to align to the point cloud
+        depth = np.rot90(depth, k=1, axes=(0, 1))
+        semantics = np.rot90(semantics, k=1, axes=(0, 1))
+
+        # apply the same depth filter to semantics as we applied to the point cloud
+        semantics = semantics.reshape(-1, self.num_sem_categories)
+        valid = (depth > 0).flatten()
+        semantics = semantics[valid]
+
+        return semantics, unfiltered_semantics, semantics_vis
+
+    def get_orientation(self):
+        """Get discretized robot orientation."""
+        # TODO yaw is in radians in [-3.14, 3.14] when using Hector SLAM
+        # and in [0, 6.28] when not using Hector SLAM => make it consistent
+        _, _, yaw_in_radians = self.get_base_state()
+        # convert it to degrees in [0, 360]
+        # yaw_in_degrees = int(yaw_in_radians * 180.0 / np.pi)
+        yaw_in_degrees = int(yaw_in_radians * 180.0 / np.pi + 180.0)
+        orientation = torch.tensor([yaw_in_degrees // 5])
+        return orientation
+
     def get_open3d_pcd(self, rgb_depth=None, cam_transform=None, base_state=None):
         # get data
         if rgb_depth is None:
@@ -212,7 +298,12 @@ class RemoteHelloRealsense(object):
         rgb, depth = self.get_rgb_depth(rotate=False, compressed=False)
         opcd = self.get_open3d_pcd(rgb_depth=[rgb, depth])
         pcd = np.asarray(opcd.points)
-        return pcd, rgb
+
+        # RGB and depth are rotated after the point cloud creation
+        rgb = np.rot90(rgb, k=1, axes=(1, 0))
+        depth = np.rot90(depth, k=1, axes=(1, 0))
+
+        return pcd, rgb, depth
 
     def is_obstacle_in_front(self, return_viz=False):
         base_state = self.bot.get_base_state()

@@ -6,13 +6,8 @@ import traceback
 import rospy
 from sensor_msgs.msg import LaserScan
 
-if __name__ == "__main__":
-    from lidar_abc import LidarABC
-else:
-    from .lidar_abc import LidarABC
 
-
-class Lidar(LidarABC):
+class Lidar:
     def __init__(self):
         self._lock = threading.Lock()
         self._thread = None

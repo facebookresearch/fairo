@@ -52,6 +52,7 @@ agents/locobot/*.csv
 agents.locobot/*.log
 agents/locobot/models
 agents/locobot/datasets
+agents/locobot/end_to_end_semantic_scout/ckpt
 agents/locobot/dashboard_data.db
 agents/locobot/dashboard_data.db-journal
 .ropeproject
