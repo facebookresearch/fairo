@@ -214,8 +214,8 @@ class RemoteHelloRealsense(object):
         print("depth_image.shape", depth_image.shape)
         return color_image, depth_image
 
-    def get_pcd_from_depth(self, detph):
-        return np.rot90(self.dpt_cam.depth_to_xyz(self.dpt_cam.fix_depth(np.rot90(self.depth, k=1, axes=(0, 1)))), k=1, axes=(0, 1))
+    def get_pcd_from_depth(self, depth):
+        return np.rot90(self.dpt_cam.depth_to_xyz(np.rot90(depth, k=1, axes=(0, 1))), k=1, axes=(0, 1))
 
     def get_rgb_depth_optimized_for_habitat_transfer(self, rotate=True, compressed=False):
         tm = time.time()
