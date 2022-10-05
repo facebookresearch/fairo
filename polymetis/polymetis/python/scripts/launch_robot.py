@@ -6,7 +6,6 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-import socket
 import logging
 import subprocess
 import atexit
@@ -17,7 +16,7 @@ import signal
 import hydra
 
 from polymetis.utils.grpc_utils import check_server_exists
-from polymetis.utils.data_dir import PKG_ROOT_DIR, which
+from polymetis.utils.data_dir import BUILD_DIR, which
 
 
 log = logging.getLogger(__name__)
@@ -25,9 +24,8 @@ log = logging.getLogger(__name__)
 
 @hydra.main(config_name="launch_robot")
 def main(cfg):
-    build_dir = os.path.abspath(os.path.join(PKG_ROOT_DIR, "..", "..", "build"))
-    log.info(f"Adding {build_dir} to $PATH")
-    os.environ["PATH"] = build_dir + os.pathsep + os.environ["PATH"]
+    log.info(f"Adding {BUILD_DIR} to $PATH")
+    os.environ["PATH"] = BUILD_DIR + os.pathsep + os.environ["PATH"]
 
     # Check if another server is alive on address
     assert not check_server_exists(
