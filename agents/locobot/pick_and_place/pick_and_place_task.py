@@ -315,9 +315,9 @@ class PickAndPlaceTask:
             #to_npy_file('stretch2', xyz=flat_pcd, rgb=image_rgb,
             #            depth=depth, xyz_color=image_rgb, seg=flat_object_mask,
             #            K=self.intrinsic_mat)
-            predicted_grasps = self.grasp_client.request(flat_pcd.copy(),
-                                                         image_rgb.copy(),
-                                                         flat_object_mask.copy(),
+            predicted_grasps = self.grasp_client.request(flat_pcd,
+                                                         image_rgb,
+                                                         flat_object_mask,
                                                          frame="camera_color_optical_frame")
 
             print("options =", [(k, v[-1].shape) for k, v in predicted_grasps.items()])
