@@ -126,9 +126,12 @@ class RemoteHelloRealsense(object):
     #     print("connected to realsense")
 
     def _connect_to_realsense(self, depth_buffer_size=5):
+        import rospy
+        rospy.init_node("realsense_ros_to_pyro")
+
         print("Creating cameras...")
-        self.rgb_cam = RosCamera('/camera/color/image_raw')
-        self.dpt_cam = RosCamera('/camera/aligned_depth_to_color/image_raw', buffer_size=depth_buffer_size)
+        self.rgb_cam = RosCamera('/camera/color')
+        self.dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=depth_buffer_size)
 
         print("Waiting for camera images...")
         self.rgb_cam.wait_for_image()
