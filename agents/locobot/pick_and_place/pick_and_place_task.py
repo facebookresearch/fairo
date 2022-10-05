@@ -294,9 +294,8 @@ class PickAndPlaceTask:
             q, _ = self.manip.update()
 
             camera_pose = self.manip.get_pose("camera_color_optical_frame")
-            camera_pose[2, 3] += BASE_HEIGHT
-            camera_pose[0, 3] -= 0.11526719
-            # camera_pose = self.bot.get_camera_transform().value
+            # camera_pose[2, 3] += BASE_HEIGHT
+            # camera_pose[0, 3] -= 0.11526719
 
             print("CAMERA_POSES")
             print("self.bot.get_camera_transform()")
@@ -307,12 +306,19 @@ class PickAndPlaceTask:
             print(self.manip.get_pose("camera_color_frame"))
             print()
 
-            flat_pcd = get_pcd_in_cam(depth, self.intrinsic_mat)
+            flat_pcd1 = get_pcd_in_cam(depth, self.intrinsic_mat)
+            flat_pcd2 = self.bot.cam.get_pcd_from_depth(depth)
+            flat_pcd = flat_pcd2
+
+            if debug:
+                print("flat_pcd1.shape", flat_pcd1.shape)
+                print("flat_pcd2.shape", flat_pcd2.shape)
+                show_point_cloud(flat_pcd1, image_rgb, orig=np.zeros(3))
+                show_point_cloud(flat_pcd2, image_rgb, orig=np.zeros(3))
 
             if attempt == 0:
                 print(list(info.keys()))
                 print("image_rgb.shape", image_rgb.shape)
-                print("flat_pcd.shape", flat_pcd.shape)
                 print("image_object_mask.shape", image_object_mask.shape)
                 print("obstacle_map.shape", obstacle_map.shape)
                 print("object_map.shape", object_map.shape)
