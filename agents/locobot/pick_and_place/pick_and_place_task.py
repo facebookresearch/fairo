@@ -368,7 +368,8 @@ class PickAndPlaceTask:
                 show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3), grasps=rotated_grasps)
 
             world_grasps = [camera_pose @ grasp for grasp in predicted_grasps]
-            world_pcd = trimesh.transform_points(flat_pcd, self.R_stretch_camera)
+            # world_pcd = trimesh.transform_points(flat_pcd, self.R_stretch_camera)
+            world_pcd = flat_pcd
             world_pcd = trimesh.transform_points(world_pcd, camera_pose)
 
             if debug:
