@@ -78,7 +78,7 @@ class PickAndPlaceTask:
         self.num_segment_attempts = 100
         self.num_grasp_attempts = 10
         self.min_obj_pts = 100
-        self.min_predicted_grasps = 10
+        self.min_predicted_grasps = 1
 
         # ROS connection into the robot
         # TODO: this needs to be replaced by code that exists in them over
