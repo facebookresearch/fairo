@@ -120,7 +120,7 @@ class SemSegNet(nn.Module):
         #     self.cuda()
 
     def load(self, filepath):
-        sds = torch.load(filepath)
+        sds = torch.load(filepath, map_location=torch.device('cpu'))
         self.opts = sds["opts"]
         print("loading from file, using opts")
         print(self.opts)
@@ -167,7 +167,7 @@ class SemSegWrapper:
             "distilbert-base-uncased", return_dict=True
         )
 
-        self.device = "cuda"  # opts.device
+        self.device = "cuda" if self.cuda else "cpu"
         self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device=self.device)
 
     @torch.no_grad()
