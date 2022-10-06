@@ -1,6 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+from cmath import pi
 import time
 import numpy as np
 from typing import Sequence, Dict
@@ -123,6 +124,7 @@ class World:
         self.count = count
 
     def step(self):
+        # print("pyworld stepping")
         for m in self.mobs:
             m.step()
             for item_eid in getattr(m, "inventory", []):
@@ -344,6 +346,7 @@ class World:
         self.chat_log.append("<" + speaker_name + ">" + " " + chat)
 
     def connect_player(self, sid, data):
+        print(f"connect player, data: {data}")
         # FIXME, this probably won't actually work
         if self.connected_sids.get(sid) is not None:
             print("reconnecting eid {} (sid {})".format(self.connected_sids["sid"], sid))
@@ -361,6 +364,7 @@ class World:
             pitchyaw=data.get("pitchyaw"),
             height_map=self.get_height_map(),
         )
+        print(f"XYZPY: {x}, {y}, {z}, {pitch}, {yaw}")
         entityId = self.new_eid(entityId=data.get("entityId"))
         # FIXME
         name = data.get("name", "anonymous")
@@ -406,8 +410,8 @@ class World:
 
     def check_in_bounds(self, player, pos):
         if player.name == "dashboard":
-            lowerb = (self.sl / 3, 0, self.sl / 3)
-            upperb = (2 * self.sl / 3, self.sl / 3 - 1, 2 * self.sl / 3)
+            lowerb = (self.sl / 4, 0, self.sl / 4)
+            upperb = (3 * self.sl / 4, self.sl / 2 - 1, 3 * self.sl / 4)
         else:
             lowerb = (0, 0, 0)
             upperb = (self.sl, self.sl - 1, self.sl)
@@ -542,6 +546,8 @@ class World:
                 ):
                     new_pos = Pos(x, y, z)
                     self.players[eid] = self.players[eid]._replace(pos=new_pos)
+                    print(f"{player_struct.name} tried to move somewhere and succeeded")
+                    print(player_struct.pos)
                 else:
                     print(f"{player_struct.name} tried to move somewhere impossible")
             else:
@@ -573,6 +579,8 @@ class World:
                 ):
                     new_pos = Pos(x, y, z)
                     self.players[eid] = self.players[eid]._replace(pos=new_pos)
+                    print(f"{player_struct.name} tried to move somewhere and succeeded")
+                    print(player_struct.pos)
                 else:
                     print(f"{player_struct.name} tried to move somewhere impossible")
                     print(player_struct.pos)

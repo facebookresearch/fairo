@@ -42,8 +42,7 @@ class DetectionWrapper:
                 "action_dict",
                 "time",
                 "vision_error",
-                "other_error",
-                "other_error_description",
+                "ref_obj_text_span"
                 "world_snapshot",
             ],
         )
@@ -55,23 +54,23 @@ class DetectionWrapper:
                 logging.info("Could not save error details due to error in dashboard backend.")
                 return
             is_vision_error = data["vision_error"]
-
+            ref_obj_text_span = data["ref_obj_text_span"]
             if is_vision_error:
                 sl = world_opts.SL
                 h = world_opts.H
                 blocks = self.agent.get_blocks(
-                    int(sl // 3),
-                    int(2 * sl // 3),
+                    int(sl /4),
+                    int(3 * sl // 4 - 1),
                     0,
-                    int(h // 3 - 1),
-                    int(sl // 3),
-                    int(2 * sl // 3),
+                    int(h // 2 - 1),
+                    int(sl // 4),
+                    int(3 * sl // 4 - 1),
                 )
-                print(("vision error blocks: %r" % (blocks)))
-                logging.info("vision error blocks: %r" % (blocks))
+                # print(("vision error blocks: %r" % (blocks)))
+                # logging.info("vision error blocks: %r" % (blocks))
                 vision_err_fname = f"vision_err_{self.vision_err_cnt}.npy"
                 self.VisionErrorLogger.log_dialogue_outputs(
-                    [data["msg"], data["action_dict"], None, True, False, None, vision_err_fname]
+                    [data["msg"], data["action_dict"], None, True, ref_obj_text_span, vision_err_fname]
                 )
                 np.save(vision_err_fname, blocks)
                 self.vision_err_cnt += 1

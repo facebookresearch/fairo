@@ -126,7 +126,7 @@ def make_pose(args, loc=None, pitchyaw=None, height_map=None):
     """
     ENTITY_HEIGHT = 2
     if loc is None:
-        x, y, z = np.random.randint((args.SL / 3, args.H / 3, args.SL / 3)) + args.SL / 3
+        x, y, z = np.random.randint((args.SL / 4, args.H / 4, args.SL / 4)) + args.SL / 2
     else:
         x, y, z = loc
     if pitchyaw is None:
@@ -156,7 +156,7 @@ def build_base_world(sl, h, g, fence=False):
         for j in range(g):
             for k in range(sl):
                 if (
-                    (i < sl / 3 or i >= 2 * sl / 3 or k < sl / 3 or k >= 2 * sl / 3)
+                    (i < sl / 4 or i >= 3 * sl / 4 or k < sl / 4 or k >= 3 * sl / 4)
                     and j == g - 1
                     and fence
                 ):
@@ -282,7 +282,7 @@ def build_shape_scene(args):
                             if c > 0:
                                 blocks[(i + 1, h, k + 1)] = (35, c)
 
-    num_shapes = np.random.randint(0, args.MAX_NUM_SHAPES + 1)
+    num_shapes = np.random.randint(1, args.MAX_NUM_SHAPES + 1)
     occupied_by_shapes = {}
     inst_segs = []
     for t in range(num_shapes):
@@ -294,7 +294,7 @@ def build_shape_scene(args):
         m[1] = 0  # not allow underground offset
         offsets = (
             np.random.randint(
-                (args.SL // 3, 0, args.SL // 3), (args.SL * 2 // 3, args.H // 3, args.SL * 2 // 3)
+                (args.SL // 4, 0, args.SL // 4), (args.SL * 3 // 4, args.H // 4, args.SL * 3 // 4)
             )
             - m
         )

@@ -74,7 +74,7 @@ class SimpleMob:
     def add_to_world(self, world):
         self.world = world
         if self.pos is None:
-            xz = np.random.randint(0, world.sl / 3, (2,))
+            xz = np.random.randint(world.sl / 4, 3 * world.sl / 4, (2,))
             slice = self.world.blocks[xz[0], :, xz[1], 0]
             nz = np.flatnonzero(slice)
             if len(nz) == 0:
@@ -145,8 +145,8 @@ class SimpleMob:
         if np.random.rand() < self.direction_change_prob:
             self.new_direction()
         step = self.direction * self.speed
-        bx = check_bounds(int(np.round(x + step[0])), self.world.sl / 3, 2 * self.world.sl / 3)
-        bz = check_bounds(int(np.round(z + step[1])), self.world.sl / 3, 2 * self.world.sl / 3)
+        bx = check_bounds(int(np.round(x + step[0])), self.world.sl / 4, 3 * self.world.sl / 4)
+        bz = check_bounds(int(np.round(z + step[1])), self.world.sl / 4, 3 * self.world.sl / 4)
         # if hitting boundary, reverse...
         self.direction[0] = bx * self.direction[0]
         self.direction[1] = bz * self.direction[1]
