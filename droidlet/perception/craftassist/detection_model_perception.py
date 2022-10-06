@@ -42,8 +42,7 @@ class DetectionWrapper:
                 "action_dict",
                 "time",
                 "vision_error",
-                "ref_obj_text_span"
-                "world_snapshot",
+                "ref_obj_text_span" "world_snapshot",
             ],
         )
 
@@ -59,7 +58,7 @@ class DetectionWrapper:
                 sl = world_opts.SL
                 h = world_opts.H
                 blocks = self.agent.get_blocks(
-                    int(sl /4),
+                    int(sl / 4),
                     int(3 * sl // 4 - 1),
                     0,
                     int(h // 2 - 1),
@@ -70,7 +69,14 @@ class DetectionWrapper:
                 # logging.info("vision error blocks: %r" % (blocks))
                 vision_err_fname = f"vision_err_{self.vision_err_cnt}.npy"
                 self.VisionErrorLogger.log_dialogue_outputs(
-                    [data["msg"], data["action_dict"], None, True, ref_obj_text_span, vision_err_fname]
+                    [
+                        data["msg"],
+                        data["action_dict"],
+                        None,
+                        True,
+                        ref_obj_text_span,
+                        vision_err_fname,
+                    ]
                 )
                 np.save(vision_err_fname, blocks)
                 self.vision_err_cnt += 1

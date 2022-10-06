@@ -33,7 +33,10 @@ class PyWorldMover:
         try:
             sio.connect("http://{}:{}".format(ip, port))
             time.sleep(0.1)
-            sio.emit("init_player", {"player_type": "agent", "name": "craftassist_agent", "loc": (20, 6, 20)})
+            sio.emit(
+                "init_player",
+                {"player_type": "agent", "name": "craftassist_agent", "loc": (20, 6, 20)},
+            )
         except:
             raise Exception("unable to connect to server on port {} at ip {}".format(port, ip))
 
