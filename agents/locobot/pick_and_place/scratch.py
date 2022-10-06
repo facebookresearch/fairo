@@ -21,6 +21,6 @@ show_point_cloud(pcd1, rgb, orig=np.zeros(3))
 
 rospy.init_node('debug')
 dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=1)
-pcd2 = np.rot90(dpt_cam.depth_to_xyz(np.rot90(depth, k=1, axes=(0, 1))), k=1, axes=(1, 0))
+pcd2 = np.rot90(dpt_cam.depth_to_xyz(np.rot90(depth, k=1, axes=(0, 1))), k=1, axes=(1, 0)).reshape(-1, 3)
 print(pcd2.shape)
 show_point_cloud(pcd2, rgb, orig=np.zeros(3))
