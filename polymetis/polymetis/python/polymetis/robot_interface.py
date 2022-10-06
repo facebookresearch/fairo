@@ -364,6 +364,13 @@ class RobotInterface(BaseRobotInterface):
 
         self.use_grav_comp = use_grav_comp
 
+        try:
+            import dm_robotics, dm_control
+        except ImportError:
+            log.warning(
+                f"If looking for Mujoco-based IK, please install Polymetis using '[mj_ik]'."
+            )
+
     def _adaptive_time_to_go(self, joint_displacement: torch.Tensor):
         """Compute adaptive time_to_go
         Computes the corresponding time_to_go such that the mean velocity is equal to one-eighth
