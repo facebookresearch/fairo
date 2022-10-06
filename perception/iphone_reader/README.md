@@ -3,7 +3,7 @@
 Thin wrapper around [Record3D](https://record3d.app/) to easily retrieve sensor information from an iPhone including:
 - RGB image
 - Depth image
-- camera pose estimation
+- Camera pose estimation
 
 ## Requirements
 - CMake (can be installed via Conda)

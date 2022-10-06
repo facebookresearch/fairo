@@ -82,7 +82,7 @@ class iPhoneReader:
 
         # Get pose
         pose_curr = np.linalg.pinv(self._origin_pose) @ pose_raw
-        pos_curr = pose_curr[:2, 3]
+        pos_curr = pose_curr[:3, 3]
         quat_curr = R.from_matrix(pose_curr[:3, :3]).as_quat()
 
         # Get images
