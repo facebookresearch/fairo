@@ -145,11 +145,15 @@ class SLAM(object):
             t2 = time.time()
             print("update_semantic_map()", t2 - t1)
 
+            # TODO Temporary way to pass this point cloud to the pick and place service
+            manipulation_pcd = self.robot.get_manipulation_pcd_from_depth(depth)
+
             self.last_position_vis_info = {
                 # Frame
                 "rgb": rgb,
                 "depth": depth,
                 "pcd": pcd,
+                "manipulation_pcd": manipulation_pcd,
                 "semantic_frame": semantics,
                 "unfiltered_semantic_frame": unfiltered_semantics,
                 "semantic_frame_vis": semantics_vis,

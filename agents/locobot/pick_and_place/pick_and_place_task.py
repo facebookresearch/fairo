@@ -308,9 +308,8 @@ class PickAndPlaceTask:
             # print()
 
             # flat_pcd1 = get_pcd_in_cam(depth, self.intrinsic_mat)
-            print("BEFORE")
-            flat_pcd2 = self.cam.get_pcd_from_depth(depth)
-            print("AFTER")
+            # flat_pcd2 = self.cam.get_pcd_from_depth(depth)
+            flat_pcd2 = info["manipulation_pcd"]
             flat_pcd = flat_pcd2
 
             if attempt == 0:

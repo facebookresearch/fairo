@@ -212,19 +212,11 @@ class RemoteHelloRealsense(object):
 
         return color_image, depth_image
 
-    def get_pcd_from_depth(self, depth):
-        print("START")
-        x = depth
-        print(x.shape)
-        x = np.rot90(x, k=1, axes=(0, 1))
-        print(x.shape)
+    def get_manipulation_pcd_from_depth(self, depth):
+        x = np.rot90(depth, k=1, axes=(0, 1))
         x = self.dpt_cam.depth_to_xyz(x)
-        print(x.shape)
         x = np.rot90(x, k=1, axes=(1, 0))
-        print(x.shape)
         x = x.reshape(-1, 3)
-        print(x.shape)
-        print("END")
         return x
 
     def get_rgb_depth_optimized_for_habitat_transfer(self, rotate=True, compressed=False):
