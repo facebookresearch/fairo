@@ -18,6 +18,7 @@ class Settings extends React.Component {
     super(props);
     this.initialState = {
       url: this.props.stateManager.url,
+      worldUrl: this.props.stateManager.worldUrl,
       fps: 0,
       connected: false,
       agent_enable_map: false,
@@ -47,7 +48,7 @@ class Settings extends React.Component {
   }
 
   handleSubmit(event) {
-    this.props.stateManager.setUrl(this.state.url);
+    this.props.stateManager.setUrl(this.state.url, this.state.worldUrl);
     event.preventDefault();
   }
 

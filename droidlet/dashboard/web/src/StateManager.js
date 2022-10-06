@@ -52,6 +52,8 @@ class StateManager {
   socket = null;
   worldSocket = null;
   default_url = "http://localhost:8000";
+  default_world_port = "6002";
+  default_world_url = "http://localhost:" + this.default_world_port;
   connected = false;
   initialMemoryState = {
     objects: new Map(),
@@ -130,12 +132,25 @@ class StateManager {
 
     // set default url to actual ip:port
     this.default_url = window.location.host;
+    // set default world url to actual ip:port
+    this.default_world_url =
+      window.location.hostname + ":" + this.default_world_port;
 
     let url = localStorage.getItem("server_url");
     if (url === "undefined" || url === undefined || url === null) {
       url = this.default_url;
     }
-    this.setUrl(url);
+
+    let world_url = localStorage.getItem("world_url");
+    if (
+      world_url === "undefined" ||
+      world_url === undefined ||
+      world_url === null
+    ) {
+      world_url = this.default_world_url;
+    }
+
+    this.setUrl(url, world_url);
 
     this.fps_time = performance.now();
 
@@ -173,16 +188,22 @@ class StateManager {
 
   setDefaultUrl() {
     localStorage.removeItem("server_url");
-    this.setUrl(this.default_url);
+    localStorage.removeItem("world_url");
+    this.setUrl(this.default_url, this.default_world_url);
   }
 
-  setUrl(url) {
+  setUrl(url, world_url) {
     this.url = url;
+    this.world_url = world_url;
     localStorage.setItem("server_url", url);
+    localStorage.setItem("world_url", world_url);
     if (this.socket) {
       this.socket.removeAllListeners();
     }
-    this.restart(this.url);
+    if (this.worldSocket) {
+      this.worldSocket.removeAllListeners();
+    }
+    this.restart(this.url, this.world_url);
   }
 
   setTurkExperimentId(turk_experiment_id) {
@@ -209,7 +230,7 @@ class StateManager {
     return localStorage.getItem("turk_worker_id");
   }
 
-  restart(url) {
+  restart(url, world_url) {
     this.socket = io.connect(url, {
       transports: ["polling", "websocket"],
     });
@@ -242,6 +263,8 @@ class StateManager {
       this.socket.emit("does_agent_want_map");
       const wsocket = this.worldSocket;
       window.setTimeout(function () {
+        console.log("socket connect, emit getVWIS");
+        console.log(wsocket);
         wsocket.emit("getVoxelWorldInitialState");
       }, 3000);
     });
@@ -254,6 +277,8 @@ class StateManager {
       this.socket.emit("does_agent_want_map");
       const wsocket = this.worldSocket;
       window.setTimeout(function () {
+        console.log("socket reconnect, emit getVWIS");
+        console.log(wsocket);
         wsocket.emit("getVoxelWorldInitialState");
       }, 3000);
     });
@@ -294,8 +319,7 @@ class StateManager {
     socket.on("saveRgbSegCallback", this.saveAnnotations);
     socket.on("handleMaxFrames", this.handleMaxFrames);
 
-    const worldUrl = "http://localhost:6002";
-    this.worldSocket = io.connect(worldUrl, {
+    this.worldSocket = io.connect(world_url, {
       transports: ["polling", "websocket"],
     });
     const wSocket = this.worldSocket;
@@ -303,6 +327,8 @@ class StateManager {
       this.worldSocket.emit("init_player", {
         player_type: "player",
         name: "dashboard",
+        loc: [8, 8, 8],
+        pitchyaw: [-0.27, -0.85],
       });
     });
     wSocket.on("updateVoxelWorldState", this.updateVoxelWorld);

@@ -51,7 +51,7 @@ class VoxelWorld extends React.Component {
         false
       );
     }
-
+    console.log("VW component didmount");
     this.getVoxelWorldInitialState();
     this.connectToWorld();
 

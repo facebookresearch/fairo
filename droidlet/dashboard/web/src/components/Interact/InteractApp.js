@@ -74,6 +74,7 @@ class InteractApp extends Component {
       task_error: this.state.task_error,
       vision_error: this.state.vision_error,
       feedback: this.state.feedback,
+      ref_obj_text_span: this.state.reference_object_description,
     };
     // Emit socket.io event to save data to error logs and Mephisto
     this.props.stateManager.socket.emit("saveErrorDetailsToCSV", data);
