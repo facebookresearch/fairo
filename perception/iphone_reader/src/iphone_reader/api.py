@@ -19,7 +19,9 @@ class CameraMetadata:
 
 @dataclass
 class R3dFrame:
-    camera_pose: np.ndarray
+    pose_mat: np.ndarray
+    pose_pos: np.ndarray
+    pose_quat: np.ndarray
     color_img: Optional[np.ndarray]
     depth_img: Optional[np.ndarray]
 
@@ -66,6 +68,7 @@ class iPhoneReader:
 
     def _on_new_frame(self):
         camera_pose = self._session.get_camera_pose()
+        # NOTE: quat & pos - camera_pose.[qx|qy|qz|qw|tx|ty|tz])
         pose_raw = np.eye(4)
         pose_raw[:3, 3] = np.array([camera_pose.tx, camera_pose.ty, camera_pose.tz])
         pose_raw[:3, :3] = R.from_quat(
@@ -79,6 +82,8 @@ class iPhoneReader:
 
         # Get pose
         pose_curr = np.linalg.pinv(self._origin_pose) @ pose_raw
+        pos_curr = pose_curr[:2, 3]
+        quat_curr = R.from_matrix(pose_curr[:3, :3]).as_quat()
 
         # Get images
         img_color = None
@@ -88,7 +93,7 @@ class iPhoneReader:
             img_depth = self._session.get_depth_frame()
 
         # Save frame
-        frame = R3dFrame(pose_curr, img_color, img_depth)
+        frame = R3dFrame(pose_curr, pos_curr, quat_curr, img_color, img_depth)
         self._latest_frame = frame
         self._frame_event.set()
 
