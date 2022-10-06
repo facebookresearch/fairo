@@ -120,7 +120,7 @@ class SemSegNet(nn.Module):
         #     self.cuda()
 
     def load(self, filepath):
-        sds = torch.load(filepath, map_location=torch.device('cpu'))
+        sds = torch.load(filepath, map_location=torch.device("cpu"))
         self.opts = sds["opts"]
         print("loading from file, using opts")
         print(self.opts)
