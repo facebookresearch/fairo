@@ -3644,7 +3644,7 @@ const bid2Name = {
 };
 const DEFAULT_MATERIAL = "wood";
 const TEXTURE_PATH = "https://cdn.jsdelivr.net/gh/snyxan/assets@main/block_textures/";
-const SL = 15 * 3;
+const SL = 16 * 2;
 exports.SL = SL;
 const voxelOffset = [0, 0, 0]; //[SL/2, SL/2, SL/2]
 // voxel related constants
@@ -3747,6 +3747,8 @@ function applyCameraToPlayer(player) {
     if (document.pointerLockElement === document.body) {
       let Xdiff = -ev.movementX / followPointerScale;
       let Ydiff = -ev.movementY / followPointerScale;
+      console.log("XDIFF YDIFF");
+      console.log(Xdiff + " " + Ydiff);
       player.cameraPitch(Ydiff);
       player.rotate(Xdiff);
       updatePlayerLook(player);
@@ -3758,6 +3760,8 @@ function applyCameraToPlayer(player) {
 
 function updatePlayerLook(player) {
   let pitchYaw = player.getLookPitchYaw();
+  console.log("Player pitch, yaw:");
+  console.log(pitchYaw);
   let pitch = pitchYaw[0];
   let yaw = pitchYaw[1];
   let payload = {
@@ -4003,6 +4007,8 @@ class DVoxelEngine {
   updateAgents(agentsInfo) {
     // console.log("DVoxel Engine update agents")
     // console.log(agentsInfo);
+    console.log("updateAgents");
+    console.log(agentsInfo);
     let that = this;
     agentsInfo.forEach(function (key, index) {
       let name = key["name"];
@@ -4013,7 +4019,8 @@ class DVoxelEngine {
         agent_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale);
         agent_player.rotateTo(look[0], look[1]);
       } else if (name === PLAYER_NAME && controlled_player != null) {
-        controlled_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale); // let the player object own look direction always
+        controlled_player.moveTo(xyz[0] * blockScale, xyz[1] * blockScale, xyz[2] * blockScale);
+        controlled_player.rotateTo(look[0], look[1]); // let the player object own look direction always
 
         that.playerPostionSafetyCheck(controlled_player);
       }
@@ -4029,8 +4036,9 @@ class DVoxelEngine {
     let pos = player.getPosition();
     let pos_xyz = convertCoordinateSystems(pos.x, pos.y, pos.z);
 
-    if (pos_xyz[0] / blockScale > 2 * SL / 3 || pos_xyz[0] / blockScale < SL / 3 || pos_xyz[1] / blockScale > SL / 3 || pos_xyz[1] / blockScale < 0 || pos_xyz[2] / blockScale > 2 * SL / 3 || pos_xyz[2] / blockScale < SL / 3) {
-      console.log("safety fail, running away"); // TODO check collisions and move somewhere else
+    if (pos_xyz[0] / blockScale >= 3 * SL / 4 || pos_xyz[0] / blockScale < SL / 4 || pos_xyz[1] / blockScale >= SL / 2 || pos_xyz[1] / blockScale < 0 || pos_xyz[2] / blockScale >= 3 * SL / 4 || pos_xyz[2] / blockScale < SL / 4) {
+      console.log("safety fail, running away");
+      console.log(pos_xyz); // TODO check collisions and move somewhere else
 
       let safe_xyz = convertCoordinateSystems(Math.floor(SL / 2), 5, Math.floor(SL / 2));
       player.moveTo(safe_xyz[0] * blockScale, safe_xyz[1] * blockScale, safe_xyz[2] * blockScale);
