@@ -364,9 +364,9 @@ class PickAndPlaceTask:
                 print("Too few predicted grasps; trying to segment again...")
                 continue
 
-            if debug:
-                rotated_grasps = [self.R_stretch_camera.T @ grasp for grasp in predicted_grasps]
-                show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3), grasps=rotated_grasps)
+            # if debug:
+            #     rotated_grasps = [self.R_stretch_camera.T @ grasp for grasp in predicted_grasps]
+            #     show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3), grasps=rotated_grasps)
 
             # With flat_pcd = get_pcd_in_cam(depth, self.intrinsic_mat):
             # world_grasps = [camera_pose @ grasp for grasp in predicted_grasps]
@@ -377,8 +377,8 @@ class PickAndPlaceTask:
             world_grasps = [camera_pose @ self.R_stretch_camera.T @ grasp for grasp in predicted_grasps]
             world_pcd = trimesh.transform_points(flat_pcd, camera_pose)
 
-            if debug:
-                show_point_cloud(world_pcd, image_rgb, orig=np.zeros(3), grasps=world_grasps)
+            # if debug:
+            #     show_point_cloud(world_pcd, image_rgb, orig=np.zeros(3), grasps=world_grasps)
 
             #self.manip.goto_static_grasp(world_grasps, scores, pause=True)
             self.goto_static_grasp(world_grasps, scores, world_pcd, image_rgb, pause=False, debug=debug)
