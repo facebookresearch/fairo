@@ -359,7 +359,7 @@ class PickAndPlaceTask:
                 print("Zero predicted grasps; trying to segment again...")
                 # show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3))
                 breakpoint()
-                idx = flat_object_mask.astype(int) == 1
+                idx = (flat_object_mask != 0).astype(bool)
                 show_point_cloud(flat_pcd[idx], image_rgb.reshape(-1, 3)[idx], orig=np.zeros(3))
                 continue
 
