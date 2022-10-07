@@ -137,7 +137,7 @@ class SLAM(object):
 
         if self.update_semantic_map:
             t0 = time.time()
-            semantics, unfiltered_semantics, semantics_vis = self.robot.get_semantics(rgb.copy(), depth.copy())
+            semantics, unfiltered_semantics, semantics_vis = self.robot.get_semantics(rgb.copy())#, depth.copy())
             t1 = time.time()
             print("get_semantics()", t1 - t0)
 
