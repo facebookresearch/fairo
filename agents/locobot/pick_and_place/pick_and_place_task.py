@@ -358,6 +358,7 @@ class PickAndPlaceTask:
             except KeyError:
                 print("Zero predicted grasps; trying to segment again...")
                 # show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3))
+                breakpoint()
                 show_point_cloud(flat_pcd * flat_object_mask[:, None], flat_object_mask, orig=np.zeros(3))
                 continue
 
