@@ -141,6 +141,8 @@ class SLAM(object):
             t1 = time.time()
             print("get_semantics()", t1 - t0)
 
+            print("depth.shape", depth.shape)
+            print("depth.min(), depth.max()", depth.min(), depth.max())
             print("pcd.shape", pcd.shape)
             print("semantics.shape", semantics.shape)
 
