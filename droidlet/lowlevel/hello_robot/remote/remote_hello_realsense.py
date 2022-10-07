@@ -200,6 +200,8 @@ class RemoteHelloRealsense(object):
         # t0 = time.time()
         # depth_image = self.dpt_cam.get_filtered()
         depth_image = self.dpt_cam.get()
+        depth_image[depth_image < 0.1] = 0.
+        depth_image[depth_image > 4.0] = 0.
         # t1 = time.time()
         color_image = self.rgb_cam.get()
         # t2 = time.time()
