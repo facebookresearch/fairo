@@ -20,7 +20,7 @@ IPHONE_ROT = [
 
 class Record3dSLAM:
     def __init__(self):
-        self.reader = iPhoneReader()
+        self.reader = iPhoneReader(retrieve_imgs=False)
 
         self.base_pose = np.zeros(3)
         self.pose_lock = threading.Lock()
