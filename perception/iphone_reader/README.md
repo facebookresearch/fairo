@@ -10,7 +10,7 @@ Thin wrapper around [Record3D](https://record3d.app/) to easily retrieve sensor 
 
 ## Installation
 ```sh
-pip install .
+pip install git+https://github.com/facebookresearch/fairo.git@main#subdirectory=perception/iphone_reader
 ```
 
 ## Usage
