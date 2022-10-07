@@ -205,11 +205,24 @@ class RemoteHelloRealsense(object):
         return color_image, depth_image
 
     def get_manipulation_pcd_from_depth(self, depth):
-        x = np.rot90(depth, k=1, axes=(0, 1))
-        x = self.dpt_cam.depth_to_xyz(x)
-        x = np.rot90(x, k=1, axes=(1, 0))
-        x = x.reshape(-1, 3)
-        return x
+        def depth_to_xyz(depth):
+            fx, px = self.intrinsic_mat[0, 0], self.intrinsic_mat[0, 2]
+            fy, py = self.intrinsic_mat[1, 1], self.intrinsic_mat[1, 2]
+            indices = np.indices((CW, CH), dtype=np.float32).transpose(1, 2, 0)
+            z = depth
+            # pixel indices start at top-left corner
+            # for these equations, it starts at bottom-left
+            x = (indices[:, :, 1] - px) * (z / fx)
+            y = (indices[:, :, 0] - py) * (z / fy)
+            # Should now be height x width x 3, after this:
+            xyz = np.stack([x, y, z], axis=-1)
+            return xyz
+
+        depth = np.rot90(depth, k=1, axes=(0, 1))
+        xyz = depth_to_xyz(depth)
+        xyz = np.rot90(xyz, k=1, axes=(1, 0))
+        xyz = xyz.reshape(-1, 3)
+        return xyz
 
     def get_rgb_depth_optimized_for_habitat_transfer(self, rotate=True, compressed=False):
         tm = time.time()
