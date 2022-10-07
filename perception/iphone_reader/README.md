@@ -117,3 +117,8 @@ R3dFrame(pose_mat=array([[ 9.99832715e-01,  9.81316959e-03, -1.54351623e-02,
        [0.6333008 , 0.6147461 , 0.640625  , ..., 0.26831055, 0.25585938,
         0.26953125]], dtype=float32))
 ```
+
+## Notes / Troubleshooting
+
+1. Ensure "Higher quality LiDAR recording" is off else there will be a ~5 second latency
+1. Under certain conditions setting "USB Streaming RGB quality" to too high will result in corrupted RGB images
