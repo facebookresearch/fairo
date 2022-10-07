@@ -11,6 +11,11 @@ from iphone_reader import iPhoneReader
 log = logging.getLogger(__name__)
 
 IPHONE_OFFSET = [0, 0.1]  # XY offset in base frame
+IPHONE_ROT = [
+    [0.0, 1.0, 0.0],
+    [0.0, 0.0, -1.0],
+    [-1.0, 0.0, 0.0],
+]
 
 
 class Record3dSLAM:
@@ -27,7 +32,7 @@ class Record3dSLAM:
         # Compute transformation between base & iphone
         self.T_b2i = np.eye(4)
         self.T_b2i[:2, 3] = np.array(IPHONE_OFFSET)
-        self.T_b2i[:3, :3] = R.from_rotvec([np.pi / 2.0, 0.0, 0.0]).as_matrix()
+        self.T_b2i[:3, :3] = np.array(IPHONE_ROT)
         self.T_i2b = np.linalg.pinv(self.T_b2i)
 
         # Init ros node
