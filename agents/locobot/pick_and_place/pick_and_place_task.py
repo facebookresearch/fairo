@@ -357,12 +357,12 @@ class PickAndPlaceTask:
                 predicted_grasps, scores = predicted_grasps[0]
             except KeyError:
                 print("Zero predicted grasps; trying to segment again...")
-                show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3))
+                # show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3))
                 continue
 
             if len(scores) < self.min_predicted_grasps:
                 print("Too few predicted grasps; trying to segment again...")
-                show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3))
+                # show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3))
                 continue
 
             # if debug:
