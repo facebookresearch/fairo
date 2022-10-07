@@ -42,7 +42,7 @@ Pyro4.config.ITER_STREAMING = True
 class RemoteHelloRealsense(object):
     """Hello Robot interface"""
 
-    def __init__(self, bot, use_ros=False):
+    def __init__(self, bot, use_ros=False, use_ros_realsense=True):
         self.bot = bot
         if use_ros:
             self.use_ros = True
@@ -50,6 +50,7 @@ class RemoteHelloRealsense(object):
         else:
             self.use_ros = False
             from droidlet.lowlevel.hello_robot.remote.lidar import Lidar
+        self.use_ros_realsense = use_ros_realsense
         self._lidar = Lidar()
         self._lidar.start()
         self._done = True
@@ -89,59 +90,60 @@ class RemoteHelloRealsense(object):
         return obstacle_utils.is_lidar_obstacle(lidar_scan)
 
     def _connect_to_realsense(self):
-        config = rs.config()
-        pipeline = rs.pipeline()
-        config.enable_stream(rs.stream.color, CW, CH, rs.format.bgr8, 30)
-        config.enable_stream(rs.stream.depth, CW, CH, rs.format.z16, 30)
+        if self.use_ros_realsense:
+            print("Creating cameras...")
+            self.rgb_cam = RosCamera('/camera/color')
+            self.dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=5)
 
-        cfg = pipeline.start(config)
-        dev = cfg.get_device()
+            print("Waiting for camera images...")
+            self.rgb_cam.wait_for_image()
+            self.dpt_cam.wait_for_image()
 
-        depth_sensor = dev.first_depth_sensor()
-        # set high accuracy: https://github.com/IntelRealSense/librealsense/issues/2577#issuecomment-432137634
-        depth_sensor.set_option(rs.option.visual_preset, 3)
-        self.realsense = pipeline
+            self.intrinsic_mat = np.array([
+                [self.rgb_cam.fx, 0, self.rgb_cam.px],
+                [0, self.rgb_cam.fy, self.rgb_cam.py],
+                [0, 0, 1]]
+            )
+            self.intrinsic_o3d = o3d.camera.PinholeCameraIntrinsic(
+                CW, CH, self.rgb_cam.fx, self.rgb_cam.fy, self.rgb_cam.px, self.rgb_cam.py
+            )
 
-        profile = pipeline.get_active_profile()
-        # because we align the depth frame to the color frame, and only use the aligned depth frame,
-        # we need to use the intrinsics of the color frame
-        color_profile = rs.video_stream_profile(profile.get_stream(rs.stream.color))
-        i = color_profile.get_intrinsics()
-        self.intrinsic_mat = np.array([[i.fx, 0, i.ppx], [0, i.fy, i.ppy], [0, 0, 1]])
-        self.intrinsic_o3d = o3d.camera.PinholeCameraIntrinsic(CW, CH, i.fx, i.fy, i.ppx, i.ppy)
+        else:
+            config = rs.config()
+            pipeline = rs.pipeline()
+            config.enable_stream(rs.stream.color, CW, CH, rs.format.bgr8, 30)
+            config.enable_stream(rs.stream.depth, CW, CH, rs.format.z16, 30)
 
-        align_to = rs.stream.color
-        self.align = rs.align(align_to)
+            cfg = pipeline.start(config)
+            dev = cfg.get_device()
 
-        self.decimate = rs.decimation_filter(2.0)
-        self.threshold = rs.threshold_filter(0.1, 4.0)
-        self.depth2disparity = rs.disparity_transform()
-        self.spatial = rs.spatial_filter(0.5, 20.0, 2.0, 0.0)
-        self.temporal = rs.temporal_filter(0.0, 100.0, 3)
-        self.disparity2depth = rs.disparity_transform(False)
-        self.hole_filling = rs.hole_filling_filter(
-            2
-        )  # Fill with neighboring pixel nearest to sensor
+            depth_sensor = dev.first_depth_sensor()
+            # set high accuracy: https://github.com/IntelRealSense/librealsense/issues/2577#issuecomment-432137634
+            depth_sensor.set_option(rs.option.visual_preset, 3)
+            self.realsense = pipeline
 
-        print("connected to realsense")
+            profile = pipeline.get_active_profile()
+            # because we align the depth frame to the color frame, and only use the aligned depth frame,
+            # we need to use the intrinsics of the color frame
+            color_profile = rs.video_stream_profile(profile.get_stream(rs.stream.color))
+            i = color_profile.get_intrinsics()
+            self.intrinsic_mat = np.array([[i.fx, 0, i.ppx], [0, i.fy, i.ppy], [0, 0, 1]])
+            self.intrinsic_o3d = o3d.camera.PinholeCameraIntrinsic(CW, CH, i.fx, i.fy, i.ppx, i.ppy)
 
-    # def _connect_to_realsense(self, depth_buffer_size=5):
-    #     print("Creating cameras...")
-    #     self.rgb_cam = RosCamera('/camera/color')
-    #     self.dpt_cam = RosCamera('/camera/aligned_depth_to_color', buffer_size=depth_buffer_size)
-    #
-    #     print("Waiting for camera images...")
-    #     self.rgb_cam.wait_for_image()
-    #     self.dpt_cam.wait_for_image()
-    #
-    #     self.intrinsic_mat = np.array([
-    #         [self.rgb_cam.fx, 0, self.rgb_cam.px],
-    #         [0, self.rgb_cam.fy, self.rgb_cam.py],
-    #         [0, 0, 1]]
-    #     )
-    #     self.intrinsic_o3d = o3d.camera.PinholeCameraIntrinsic(
-    #         CW, CH, self.rgb_cam.fx, self.rgb_cam.fy, self.rgb_cam.px, self.rgb_cam.py
-    #     )
+            align_to = rs.stream.color
+            self.align = rs.align(align_to)
+
+            self.decimate = rs.decimation_filter(2.0)
+            self.threshold = rs.threshold_filter(0.1, 4.0)
+            self.depth2disparity = rs.disparity_transform()
+            self.spatial = rs.spatial_filter(0.5, 20.0, 2.0, 0.0)
+            self.temporal = rs.temporal_filter(0.0, 100.0, 3)
+            self.disparity2depth = rs.disparity_transform(False)
+            self.hole_filling = rs.hole_filling_filter(
+                2
+            )  # Fill with neighboring pixel nearest to sensor
+
+            print("connected to realsense")
 
     def get_intrinsics(self):
         return self.intrinsic_mat
@@ -157,62 +159,50 @@ class RemoteHelloRealsense(object):
         return "Connected!"  # should print on client terminal
 
     def get_rgb_depth(self, rotate=True, compressed=False):
-        tm = time.time()
-        frames = None
-        while not frames:
-            frames = self.realsense.wait_for_frames()
+        if self.use_ros_realsense:
+            depth_image = self.dpt_cam.get_filtered()
+            depth_image[depth_image < 0.1] = 0.
+            depth_image[depth_image > 4.0] = 0.
+            color_image = self.rgb_cam.get()
 
-            # post-processing goes here
-            decimated = self.decimate.process(frames).as_frameset()
-            thresholded = self.threshold.process(decimated).as_frameset()
-            disparity = self.depth2disparity.process(thresholded).as_frameset()
-            spatial = self.spatial.process(disparity).as_frameset()
-            # temporal = self.temporal.process(spatial).as_frameset() # TODO: re-enable
-            postprocessed = self.disparity2depth.process(spatial).as_frameset()
+        else:
+            tm = time.time()
+            frames = None
+            while not frames:
+                frames = self.realsense.wait_for_frames()
 
-            aligned_frames = self.align.process(postprocessed)
-            # aligned_frames = self.align.process(frames)
+                # post-processing goes here
+                decimated = self.decimate.process(frames).as_frameset()
+                thresholded = self.threshold.process(decimated).as_frameset()
+                disparity = self.depth2disparity.process(thresholded).as_frameset()
+                spatial = self.spatial.process(disparity).as_frameset()
+                # temporal = self.temporal.process(spatial).as_frameset() # TODO: re-enable
+                postprocessed = self.disparity2depth.process(spatial).as_frameset()
 
-            # Get aligned frames
-            aligned_depth_frame = (
-                aligned_frames.get_depth_frame()
-            )  # aligned_depth_frame is a 640x480 depth image
-            color_frame = aligned_frames.get_color_frame()
+                aligned_frames = self.align.process(postprocessed)
+                # aligned_frames = self.align.process(frames)
 
-            # Validate that both frames are valid
-            if not aligned_depth_frame or not color_frame:
-                continue
+                # Get aligned frames
+                aligned_depth_frame = (
+                    aligned_frames.get_depth_frame()
+                )  # aligned_depth_frame is a 640x480 depth image
+                color_frame = aligned_frames.get_color_frame()
 
-            depth_image = np.asanyarray(aligned_depth_frame.get_data())
-            color_image = np.asanyarray(color_frame.get_data())
+                # Validate that both frames are valid
+                if not aligned_depth_frame or not color_frame:
+                    continue
 
-            if not compressed:
-                depth_image = depth_image / 1000  # convert to meters
+                depth_image = np.asanyarray(aligned_depth_frame.get_data())
+                color_image = np.asanyarray(color_frame.get_data())
 
-            # rotate
-            if rotate:
-                depth_image = np.rot90(depth_image, k=1, axes=(1, 0))
-                color_image = np.rot90(color_image, k=1, axes=(1, 0))
+                if not compressed:
+                    depth_image = depth_image / 1000  # convert to meters
+
+        if rotate:
+            depth_image = np.rot90(depth_image, k=1, axes=(1, 0))
+            color_image = np.rot90(color_image, k=1, axes=(1, 0))
 
         return color_image, depth_image
-
-    # def get_rgb_depth(self, rotate=True, compressed=False):
-    #     # t0 = time.time()
-    #     # depth_image = self.dpt_cam.get_filtered()
-    #     depth_image = self.dpt_cam.get()
-    #     depth_image[depth_image < 0.1] = 0.
-    #     depth_image[depth_image > 4.0] = 0.
-    #     # t1 = time.time()
-    #     color_image = self.rgb_cam.get()
-    #     # t2 = time.time()
-    #     # print(f"Got depth image in {t1 - t0:.2f}")
-    #     # print(f"Got RGB image in {t2 - t1:.2f}")
-    #
-    #     if rotate:
-    #         depth_image = np.rot90(depth_image, k=1, axes=(1, 0))
-    #         color_image = np.rot90(color_image, k=1, axes=(1, 0))
-    #
-    #     return color_image, depth_image
 
     def get_manipulation_pcd_from_depth(self, depth):
         x = np.rot90(depth, k=1, axes=(0, 1))
