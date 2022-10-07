@@ -336,11 +336,11 @@ class PickAndPlaceTask:
                 print("Too few object points; trying to segment again...")
                 continue
 
-            # if debug:
-            #     np.save("rgb.npy", image_rgb)
-            #     np.save("depth.npy", depth)
-            #     cv2.imwrite("semantic_frame.png", semantic_frame)
-            #     cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
+            if debug:
+                # np.save("rgb.npy", image_rgb)
+                # np.save("depth.npy", depth)
+                cv2.imwrite("semantic_frame.png", semantic_frame)
+                cv2.imwrite("image_object_mask.png", (image_object_mask * 255).astype(np.uint8))
 
             print("Attempting to grasp...")
             #to_npy_file('stretch2', xyz=flat_pcd, rgb=image_rgb,
@@ -359,13 +359,13 @@ class PickAndPlaceTask:
                 print("Zero predicted grasps; trying to segment again...")
                 # show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3))
                 breakpoint()
-                show_point_cloud(flat_pcd * flat_object_mask[:, None], flat_object_mask, orig=np.zeros(3))
+                idx = flat_object_mask.astype(int) == 1
+                show_point_cloud(flat_pcd[idx], image_rgb.reshape(-1, 3)[idx], orig=np.zeros(3))
                 continue
 
             if len(scores) < self.min_predicted_grasps:
                 print("Too few predicted grasps; trying to segment again...")
                 # show_point_cloud(flat_pcd, image_rgb, orig=np.zeros(3))
-                show_point_cloud(flat_pcd * flat_object_mask[:, None], flat_object_mask, orig=np.zeros(3))
                 continue
 
             # if debug:
