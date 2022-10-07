@@ -190,8 +190,8 @@ class PickAndPlaceTask:
             # Record the initial q value here and use it 
             theta0 = q[2]
             q1 = qi.copy()
-            # q1[HelloStretchIdx.LIFT] += 0.08
-            q1[HelloStretchIdx.LIFT] += 0.2
+            q1[HelloStretchIdx.LIFT] += 0.08
+            # q1[HelloStretchIdx.LIFT] += 0.2
             if q1 is not None:
                 # Run a validity check to make sure we can actually pick this thing up
                 if not self.model.validate(q1):
