@@ -61,21 +61,22 @@ class Detectron2Segmentation:
                     obj_mask = predictions[i]["instances"].pred_masks[j] * 1.0
                     obj_mask = obj_mask.cpu().numpy()
 
-                    # if depths is not None:
-                    #     depth = depths[i]
-                    #     md = np.median(depth[obj_mask == 1])
-                    #     if md == 0:
-                    #         # Restrict detections further than maximum depth
-                    #         # to only points further than maximum depth
-                    #         filter_mask = depth != 0
-                    #     else:
-                    #         # Restrict objects to 2m depth
-                    #         filter_mask = (depth >= md + 1.0) | (depth <= md - 1.0)
-                    #     # print(
-                    #     #     f"Median object depth: {md.item()}, filtering out "
-                    #     #     f"{np.count_nonzero(filter_mask)} pixels"
-                    #     # )
-                    #     obj_mask[filter_mask] = 0.0
+                    # Prevent depth filtering for cups and bottles
+                    if depths is not None and idx not in [13, 14]:
+                        depth = depths[i]
+                        md = np.median(depth[obj_mask == 1])
+                        if md == 0:
+                            # Restrict detections further than maximum depth
+                            # to only points further than maximum depth
+                            filter_mask = depth != 0
+                        else:
+                            # Restrict objects to 2m depth
+                            filter_mask = (depth >= md + 1.0) | (depth <= md - 1.0)
+                        # print(
+                        #     f"Median object depth: {md.item()}, filtering out "
+                        #     f"{np.count_nonzero(filter_mask)} pixels"
+                        # )
+                        obj_mask[filter_mask] = 0.0
 
                     one_hot_predictions[i, :, :, idx] += obj_mask
 
