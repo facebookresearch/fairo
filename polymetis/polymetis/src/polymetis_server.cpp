@@ -14,8 +14,6 @@ PolymetisControllerServerImpl::PolymetisControllerServerImpl() {
 Status PolymetisControllerServerImpl::GetRobotState(ServerContext *context,
                                                     const Empty *,
                                                     RobotState *robot_state) {
-  std::cout << "Get called, buffer size " << robot_state_buffer_.size()
-            << std::endl;
   if (robot_state_buffer_.size() == 0) {
     return Status(StatusCode::FAILED_PRECONDITION,
                   "Cannot retrieve robot state from empty buffer!");
