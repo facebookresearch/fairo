@@ -208,7 +208,7 @@ class RemoteHelloRealsense(object):
         def depth_to_xyz(depth):
             fx, px = self.intrinsic_mat[0, 0], self.intrinsic_mat[0, 2]
             fy, py = self.intrinsic_mat[1, 1], self.intrinsic_mat[1, 2]
-            indices = np.indices((CW, CH), dtype=np.float32).transpose(1, 2, 0)
+            indices = np.indices((CH, CW), dtype=np.float32).transpose(1, 2, 0)
             z = depth
             # pixel indices start at top-left corner
             # for these equations, it starts at bottom-left
