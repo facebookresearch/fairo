@@ -190,74 +190,6 @@ jobs:
           project_name: droidlet
           relative_path: droidlet/docs/build/html
 
-  locobot:
-    machine:
-      image: ubuntu-2004:202104-01
-    resource_class: gpu.nvidia.small
-    steps:
-    - checkout
-    - run:
-        name: Setup environment
-        command: |
-          set -ex
-
-          curl -L https://packagecloud.io/circleci/trusty/gpgkey | sudo apt-key add -
-          curl -L https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-
-          sudo apt update
-
-          sudo apt install \
-              python3 python3-pip \
-              apt-transport-https \
-              ca-certificates \
-              curl \
-              gnupg-agent \
-              software-properties-common
-
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-          echo \
-            "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-            $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-          sudo apt-get update
-          sudo apt-get install docker-ce docker-ce-cli containerd.io
-
-          # Add the package repositories
-          distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
-             && curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - \
-                && curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
-
-          sudo apt-get update
-          sudo apt-get install -y nvidia-docker2
-          sudo systemctl restart docker
-
-          DRIVER_FN="NVIDIA-Linux-x86_64-470.74.run"
-          wget "https://us.download.nvidia.com/XFree86/Linux-x86_64/470.74/$DRIVER_FN"
-          sudo /bin/bash "$DRIVER_FN" -s --no-drm || (sudo cat /var/log/nvidia-installer.log && false)
-          nvidia-smi
-
-    - run:
-        name: Pull docker image
-        command: |
-          set -ex
-          export DOCKER_IMAGE=fbsimonxu/locobot-assistant:12.0
-          echo Pulling docker image $DOCKER_IMAGE
-          docker pull $DOCKER_IMAGE >/dev/null
-
-    - run:
-        name: Build and run tests
-        no_output_timeout: 50m
-        command: |
-          set -ex
-
-          cd ${HOME}/project/
-          export DOCKER_IMAGE=fbsimonxu/locobot-assistant:12.0
-          mkdir shared
-          docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
-          pip3 install codecov
-          export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
-          codecov -n "locobot tests" -f test*.xml || echo "Codecov did not collect coverage reports"
-  
   polymetis-local-ubuntu-18:
     docker:
       - image: fairrobotics/kuka-workspace:ubuntu-18
@@ -541,7 +473,6 @@ workflows:
   build:
     jobs:
       - minecraft
-      - locobot
       - polymetis-local-ubuntu-18
       - polymetis-local-ubuntu-20
       - polymetis-conda-ubuntu-18
