@@ -4,12 +4,15 @@
 # LICENSE file in the root directory of this source tree.
 #
 # Adapted from code provided by https://github.com/AlexanderKhazatsky
-# TODO: Is this the right way to acknowledge
+# TODO: Is this the right way to acknowledge?
 import sys
+import logging
 
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 import torch
+
+log = logging.getLogger(__name__)
 
 try:
     import dm_robotics, dm_control
@@ -17,7 +20,8 @@ except ImportError:
     log.warning(
         f"If looking for Mujoco-based IK, please install Polymetis using '[mj_ik]'."
     )
-    sys.exit(1)
+    raise ImportError
+
 from dm_control import mjcf
 from dm_robotics.moma.effectors import arm_effector, cartesian_6d_velocity_effector
 from dm_robotics.moma.models.robots.robot_arms import robot_arm
