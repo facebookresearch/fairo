@@ -387,6 +387,20 @@ jobs:
             cd ~/perception/sandbox/eyehandcal
             pip install -e .
             pytest tests
+      # iphone_reader
+      - run:
+          name: Setup env - iphone-reader
+          command: |
+            [ -d ~/iphone_reader_env ] || conda env create -p ~iphone_reader_env/
+      - run:
+          name: Run tests - iphone_reader
+          command: |
+            conda init bash
+            source ~/.bashrc
+            conda activate ~iphone_reader_env/
+            cd ~/perception/iphone_reader
+            pip install -e .
+            pytest tests
   polygrasp:
     machine:
       image: ubuntu-2004-cuda-11.4:202110-01
