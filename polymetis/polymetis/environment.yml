@@ -45,7 +45,7 @@ dependencies:
     - pip
     - protobuf
     - pybullet ==3.17
-    - pymodbus
+    - pymodbus ==2.5.3
     - pyserial
     - pytest
     - pytest-benchmark
