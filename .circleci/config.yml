@@ -352,7 +352,7 @@ jobs:
       - run:
           name: Setup conda env - fairotag
           command: |
-            [ -d ~/fairotag_env ] || conda env create -f perception/fairotag/environment.yml -p ~fairotag_env/
+            [ -d ~/fairotag_env ] || conda env create -f perception/fairotag/environment.yml -p ~/fairotag_env
       - save_cache:
           key: deps9-{{ .Branch }}-perception-{{ checksum "perception/fairotag/environment.yml" }}
           paths:
@@ -364,7 +364,7 @@ jobs:
             conda init bash
             source ~/.bashrc
             conda activate ~/fairotag_env
-            cd ~/perception/fairotag
+            cd perception/fairotag
             pip install -e .
             pytest
       # eyehandcal
@@ -373,7 +373,7 @@ jobs:
       - run:
           name: Setup env - eyehandcal
           command: |
-            [ -d ~/eyehandcal_env ] || conda env create -f perception/sandbox/eyehandcal/environment.yml -p ~eyehandcal_env/
+            [ -d ~/eyehandcal_env ] || conda env create -f perception/sandbox/eyehandcal/environment.yml -p ~/eyehandcal_env
       - save_cache:
           key: deps9-{{ .Branch }}-perception-{{ checksum "perception/sandbox/eyehandcal/environment.yml" }}
           paths:
@@ -383,22 +383,22 @@ jobs:
           command: |
             conda init bash
             source ~/.bashrc
-            conda activate ~eyehandcal_env/
-            cd ~/perception/sandbox/eyehandcal
+            conda activate ~/eyehandcal_env/
+            cd perception/sandbox/eyehandcal
             pip install -e .
             pytest tests
       # iphone_reader
       - run:
           name: Setup env - iphone-reader
           command: |
-            [ -d ~/iphone_reader_env ] || conda env create -p ~iphone_reader_env/
+            [ -d ~/iphone_reader_env ] || conda create -p ~/iphone_reader_env
       - run:
           name: Run tests - iphone_reader
           command: |
             conda init bash
             source ~/.bashrc
-            conda activate ~iphone_reader_env/
-            cd ~/perception/iphone_reader
+            conda activate ~/iphone_reader_env/
+            cd perception/iphone_reader
             pip install -e .
             pytest tests
   polygrasp:
