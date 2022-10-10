@@ -125,13 +125,16 @@ class MujocoModel:
         ee_pos_current,
         ee_quat_current,
         joint_pos_current,
-        joint_vel_current,
     ):
-        lin_vel = ee_pos_desired - ee_pos_current
-        rot_vel = quat_diff(ee_quat_desired, ee_quat_current)
+        lin_vel = (ee_pos_desired - ee_pos_current).numpy()
+        rot_vel = quat_diff(ee_quat_desired.numpy(), ee_quat_current.numpy())
 
         action = np.concatenate([lin_vel, rot_vel])
-        self._arm.update_state(self._physics, joint_pos_current, joint_vel_current)
+        self._arm.update_state(
+            self._physics,
+            joint_pos_current.numpy(),
+            np.zeros_like(joint_pos_current.numpy()),
+        )
         self._cart_effector_6d.set_control(self._physics, action)
         joint_vel_ctrl = self._physics.bind(self._arm.actuators).ctrl.copy()
 
