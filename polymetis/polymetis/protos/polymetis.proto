@@ -85,6 +85,7 @@ message GripperState {
     float width = 2;
     bool is_grasped = 3;
     bool is_moving = 4;
+    int32 error_code = 5;
 }
 
 message LogInterval {

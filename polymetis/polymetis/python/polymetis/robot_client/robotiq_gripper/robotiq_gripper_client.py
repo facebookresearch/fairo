@@ -66,9 +66,12 @@ class RobotiqGripperClient:
         self.connection.InitRobotClient(metadata)
 
     def get_gripper_state(self):
-        self.gripper.getStatus()
-
         state = polymetis_pb2.GripperState()
+
+        if not self.gripper.getStatus():
+            # NOTE: getStatus returns False and does not update state if modbus read fails
+            state.error_code = 1
+
         state.timestamp.GetCurrentTime()
         state.width = self.gripper.get_pos()
         state.is_grasped = self.gripper.object_detected()
