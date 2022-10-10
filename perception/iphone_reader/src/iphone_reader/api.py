@@ -104,9 +104,9 @@ class iPhoneReader:
     def recenter_pose(self):
         self._pose_reset = True
 
-    def wait_for_frame(self) -> R3dFrame:
+    def wait_for_frame(self, timeout=None) -> R3dFrame:
         self._frame_event.clear()
-        self._frame_event.wait()
+        self._frame_event.wait(timeout)
         return self._latest_frame
 
     @property
