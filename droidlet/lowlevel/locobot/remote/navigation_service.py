@@ -124,7 +124,8 @@ class Navigation(object):
             hidden_size=256,
         )
         state_dict = torch.load(
-            "policy/active_learning_policies/active_learning_obs_cov_policy.pth", map_location="cpu"
+            "policy/active_learning_policies/active_learning_obs_cov_policy.pth",
+            map_location="cpu",
         )
         self.active_learning_obs_cov_policy.load_state_dict(state_dict, strict=False)
 
