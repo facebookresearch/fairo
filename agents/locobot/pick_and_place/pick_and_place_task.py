@@ -177,9 +177,9 @@ class PickAndPlaceTask:
 
             if qi is not None:
                 base_theta_movement = np.abs(q[HelloStretchIdx.BASE_THETA] - qi[HelloStretchIdx.BASE_THETA])
-                if base_theta_movement > 0.10:
-                    # Prevent large base movements
-                    continue
+                # if base_theta_movement > 0.10:
+                #     # Prevent large base movements
+                #     continue
                 print(" - IK found")
                 print("base_theta_movement", base_theta_movement)
                 self.model.set_config(qi)
