@@ -117,6 +117,17 @@ class Navigation(object):
         )
         self.active_learning_seal_policy.load_state_dict(state_dict, strict=False)
 
+        # Active learning - Obstacle coverage policy
+        self.active_learning_obs_cov_policy = ActiveLearningPolicy(
+            map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
+            num_outputs=2,
+            hidden_size=256,
+        )
+        state_dict = torch.load(
+            "policy/active_learning_policies/active_learning_obs_cov_policy.pth", map_location="cpu"
+        )
+        self.active_learning_obs_cov_policy.load_state_dict(state_dict, strict=False)
+
         self._busy = False
         self._stop = True
         self._done_exploring = False
@@ -599,7 +610,7 @@ class Navigation(object):
             step += 1
             info = self.slam.get_last_position_vis_info()
 
-            if exploration_method == "learned" or exploration_method == "seal":
+            if exploration_method in ["learned", "seal", "obs_cov"]:
                 print(
                     f"[navigation] Step {step}: "
                     f"starting a go_to_absolute decided by learned policy"
@@ -609,13 +620,15 @@ class Navigation(object):
                 if remaining_steps_before_sampling == 0:
                     remaining_steps_before_sampling = 10
 
-                    # Only difference between "learned" and "seal" is in the policy weights (same model trained with different
+                    # Only difference between "learned", "seal" and "obs_cov" is in the policy weights (same model trained with different
                     # reward functions).
                     if exploration_method == "learned":
                         policy = self.active_learning_learned_policy
                     elif exploration_method == "seal":
                         policy = self.active_learning_seal_policy
-
+                    elif exploration_method = "obs_cov":
+                        policy = self.active_learning_obs_cov_policy
+                    
                     map_features = self.slam.get_semantic_map_features()
                     orientation_tensor = self.slam.get_orientation()
 

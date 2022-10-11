@@ -263,7 +263,16 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             )
             modular_vis = True
             sync()
-        
+        elif command == "ACTIVE_LEARNING_OBS_COV":
+            print("action: ACTIVE_LEARNING_OBS_COV")
+            mover.collect_data(
+                episode_id=str(value),
+                exploration_method="obs_cov",
+                blocking=False
+            )
+            modular_vis = True
+            sync()
+            
         elif command == "LOOK_AT":
             xyz = value.split(',')
             xyz = [float(p) for p in xyz]
