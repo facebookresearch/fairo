@@ -50,6 +50,7 @@ The module depends on pymodbus (http://code.google.com/p/pymodbus/) for the Modb
 """
 
 from pymodbus.client.sync import ModbusSerialClient
+from pymodbus.exceptions import ModbusIOException
 from math import ceil
 
 
@@ -112,6 +113,9 @@ class communication:
         # When reading failes, response is of type None
         if response is None:
             #   print("Failed to receive status")
+            return None
+        # Newer versions of pymodbus returns a ModbusIOException instead
+        elif type(response) is ModbusIOException:
             return None
 
         # Instantiate output as an empty list

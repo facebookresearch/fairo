@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 import time
+import logging
 from concurrent import futures
 
 import grpc
@@ -16,6 +17,8 @@ from polymetis.utils import Spinner
 from .third_party.robotiq_2finger_grippers.robotiq_2f_gripper import (
     Robotiq2FingerGripper,
 )
+
+log = logging.getLogger(__name__)
 
 
 class RobotiqGripperClient:
@@ -66,9 +69,15 @@ class RobotiqGripperClient:
         self.connection.InitRobotClient(metadata)
 
     def get_gripper_state(self):
-        self.gripper.getStatus()
-
         state = polymetis_pb2.GripperState()
+
+        if not self.gripper.getStatus():
+            # NOTE: getStatus returns False and does not update state if modbus read fails
+            state.error_code = 1
+            log.warning(
+                "Failed to read gripper state. Returning last observed state instead."
+            )
+
         state.timestamp.GetCurrentTime()
         state.width = self.gripper.get_pos()
         state.is_grasped = self.gripper.object_detected()
