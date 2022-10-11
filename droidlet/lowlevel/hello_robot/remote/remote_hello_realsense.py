@@ -42,7 +42,7 @@ Pyro4.config.ITER_STREAMING = True
 class RemoteHelloRealsense(object):
     """Hello Robot interface"""
 
-    def __init__(self, bot, use_ros=False, use_ros_realsense=False):
+    def __init__(self, bot, use_ros=False, use_ros_realsense=True):
         self.bot = bot
         if use_ros:
             self.use_ros = True
