@@ -596,7 +596,7 @@ class Navigation(object):
         visualize=True,
         max_steps=400,
     ):
-        assert exploration_method in ["learned", "frontier", "seal"]
+        assert exploration_method in ["learned", "frontier", "seal", "obs_cov"]
         print(f"[navigation] Starting collecting data with " f"{exploration_method} exploration")
 
         if visualize:
@@ -626,9 +626,9 @@ class Navigation(object):
                         policy = self.active_learning_learned_policy
                     elif exploration_method == "seal":
                         policy = self.active_learning_seal_policy
-                    elif exploration_method = "obs_cov":
+                    elif exploration_method == "obs_cov":
                         policy = self.active_learning_obs_cov_policy
-                    
+
                     map_features = self.slam.get_semantic_map_features()
                     orientation_tensor = self.slam.get_orientation()
 
