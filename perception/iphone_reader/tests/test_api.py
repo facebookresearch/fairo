@@ -10,6 +10,8 @@ from iphone_reader import iPhoneReader, R3dFrame
 
 
 class FakeStream:
+    """Fake Record3D Stream that acts as an connected iPhone"""
+
     def __init__(self):
         self.on_new_frame = None
         self.on_stream_stopped = None
@@ -54,8 +56,10 @@ def reader(is_img_enabled, monkeypatch):
 
 
 def test_polling(reader, is_img_enabled):
+    # Start reader without callback
     reader.start()
 
+    # Wait for frame in separate thread
     def get_frame(frame_cache):
         frame = reader.wait_for_frame(timeout=1)
         frame_cache.append(frame)
@@ -64,16 +68,27 @@ def test_polling(reader, is_img_enabled):
     thr = threading.Thread(target=get_frame, args=(frames_out,))
     thr.start()
 
+    # Generate frame and wait for reader to process frame
     reader._session.generate_frame()
     thr.join(timeout=1)
 
+    # Check output frame
     assert len(frames_out) == 1
-    assert type(frames_out[0]) is R3dFrame
+    frame = frames_out[0]
+    assert type(frame) is R3dFrame
+
+    # Check if imgs are queried
+    assert (frame.color_img is not None) == is_img_enabled
+    assert (frame.depth_img is not None) == is_img_enabled
 
 
 def test_callback(reader, is_img_enabled):
+    # Run reader with fake callback
     fake_callback = MagicMock()
     reader.start(frame_callback=fake_callback)
+
+    # Generate frame
     reader._session.generate_frame()
 
+    # Check that frame generation causes the callback to be called
     assert fake_callback.called_once()
