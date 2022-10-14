@@ -12,6 +12,7 @@ install_requires = [
     "numpy",
     "scipy",
     "record3d",
+    "pytest",
 ]
 
 setup(
