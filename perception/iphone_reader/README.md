@@ -27,9 +27,9 @@ pip install git+https://github.com/facebookresearch/fairo.git@main#subdirectory=
 
 Polling
 ```py
-from iphone_reader import iPhoneReader
+from iphone_reader import Record3dReader
 
-reader = iPhoneReader()
+reader = Record3dReader()
 reader.start()
 
 frame = reader.wait_for_frame()
@@ -37,12 +37,12 @@ frame = reader.wait_for_frame()
 
 Callback
 ```py
-from iphone_reader import iPhoneReader
+from iphone_reader import Record3dReader
 
 def print_frame(frame):
     print(frame)
 
-reader = iPhoneReader()
+reader = Record3dReader()
 reader.start(frame_callback=print_frame)
 ```
 

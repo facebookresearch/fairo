@@ -30,7 +30,7 @@ class R3dFrame:
     depth_img: Optional[np.ndarray]
 
 
-class iPhoneReader:
+class Record3dReader:
     def __init__(self, device_idx: int = 0, retrieve_imgs: bool = True):
         # Initialize
         self._retrieve_imgs = retrieve_imgs

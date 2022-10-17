@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 import numpy as np
 
 import iphone_reader
-from iphone_reader import iPhoneReader, R3dFrame
+from iphone_reader import Record3dReader, R3dFrame
 
 
 class FakeStream:
@@ -56,7 +56,7 @@ def is_img_enabled(request):
 @pytest.fixture
 def reader(is_img_enabled, monkeypatch):
     monkeypatch.setattr(iphone_reader.api, "Record3DStream", FakeStream)
-    return iPhoneReader(retrieve_imgs=is_img_enabled)
+    return Record3dReader(retrieve_imgs=is_img_enabled)
 
 
 def test_polling(reader, is_img_enabled):

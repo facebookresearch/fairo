@@ -6,7 +6,7 @@ from scipy.spatial.transform import Rotation as R
 import rospy
 from geometry_msgs.msg import Pose
 
-from iphone_reader import iPhoneReader
+from iphone_reader import Record3dReader
 
 log = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ IPHONE_ROT = [
 
 class Record3dSLAM:
     def __init__(self):
-        self.reader = iPhoneReader(retrieve_imgs=False)
+        self.reader = Record3dReader(retrieve_imgs=False)
 
         self.base_pose = np.zeros(3)
         self.pose_lock = threading.Lock()

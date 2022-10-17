@@ -1,1 +1,1 @@
-from .api import iPhoneReader, CameraMetadata, R3dFrame
+from .api import Record3dReader, CameraMetadata, R3dFrame
