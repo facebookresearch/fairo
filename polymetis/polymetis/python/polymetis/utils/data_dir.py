@@ -9,6 +9,7 @@ import polymetis
 
 PKG_ROOT_DIR = polymetis.__path__[0]
 DATA_DIR = os.path.join(PKG_ROOT_DIR, "data")
+BUILD_DIR = os.path.abspath(os.path.join(PKG_ROOT_DIR, "..", "..", "build"))
 
 
 def get_full_path_to_urdf(path: str):

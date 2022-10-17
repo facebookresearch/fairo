@@ -10,7 +10,7 @@ document.addEventListener('scroll', function(e) {
         }
     } else {
         panel.style.position = "relative";
-        document.getElementById("demos").style.marginTop = "0px";
+        // document.getElementById("demos").style.marginTop = "0px";
     }
 });
   

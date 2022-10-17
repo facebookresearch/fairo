@@ -56,9 +56,12 @@ def compute_checksum_for_directory(agent=None, artifact_type=None, model_name=No
         checksum_name = "datasets.txt"
 
     artifact_path = os.path.join(ROOTDIR, "droidlet/artifacts", artifact_folder_name)
+
     checksum_write_path = os.path.join(
         ROOTDIR, "droidlet/tools/artifact_scripts/tracked_checksums/" + checksum_name
     )
+
+    # Run the script computes the checksum
     result = subprocess.check_output(
         [compute_shasum_script_path, artifact_path, checksum_write_path], text=True
     )

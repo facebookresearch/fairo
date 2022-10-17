@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="19162" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19144"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="InsertPreviewController" customModule="YSS_Drone_SDK" customModuleProvider="target">
+            <connections>
+                <outlet property="insert3DView" destination="pqE-LH-iBS" id="RwO-Vg-fjX"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="j7m-dp-IHX">
+                    <rect key="frame" x="20" y="44" width="60.5" height="31"/>
+                    <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <state key="normal" title="Button"/>
+                    <buttonConfiguration key="configuration" style="plain" title="Close"/>
+                    <connections>
+                        <action selector="cancel:" destination="-1" eventType="touchUpInside" id="sZf-GT-djY"/>
+                    </connections>
+                </button>
+                <stackView opaque="NO" contentMode="scaleToFill" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="A2m-ex-ljW">
+                    <rect key="frame" x="162" y="44" width="90.5" height="31"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="R7p-fe-fk1">
+                            <rect key="frame" x="0.0" y="0.0" width="90.5" height="31"/>
+                            <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <state key="normal" title="Button"/>
+                            <buttonConfiguration key="configuration" style="plain" title="Edit Name"/>
+                            <connections>
+                                <action selector="edit:" destination="-1" eventType="touchUpInside" id="sz2-Oi-Gnz"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                </stackView>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="wHf-PM-B9E">
+                    <rect key="frame" x="338.5" y="44" width="55.5" height="31"/>
+                    <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    <state key="normal" title="Button"/>
+                    <buttonConfiguration key="configuration" style="plain" title="Save"/>
+                    <connections>
+                        <action selector="save:" destination="-1" eventType="touchUpInside" id="dc0-I1-UxF"/>
+                    </connections>
+                </button>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="pqE-LH-iBS">
+                    <rect key="frame" x="0.0" y="85" width="414" height="777"/>
+                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                </view>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
+            <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <constraints>
+                <constraint firstItem="pqE-LH-iBS" firstAttribute="top" secondItem="j7m-dp-IHX" secondAttribute="bottom" constant="10" id="1TO-oj-2Ic"/>
+                <constraint firstItem="wHf-PM-B9E" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="A2m-ex-ljW" secondAttribute="trailing" constant="10" id="29e-yN-F8h"/>
+                <constraint firstItem="pqE-LH-iBS" firstAttribute="centerX" secondItem="i5M-Pr-FkT" secondAttribute="centerX" id="8cv-UZ-AhF"/>
+                <constraint firstItem="j7m-dp-IHX" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" id="BI2-h7-wbl"/>
+                <constraint firstItem="wHf-PM-B9E" firstAttribute="centerY" secondItem="j7m-dp-IHX" secondAttribute="centerY" id="H9K-oL-fOD"/>
+                <constraint firstItem="pqE-LH-iBS" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="KNF-vG-cot"/>
+                <constraint firstItem="j7m-dp-IHX" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="20" id="KP3-Bd-reW"/>
+                <constraint firstItem="A2m-ex-ljW" firstAttribute="centerY" secondItem="j7m-dp-IHX" secondAttribute="centerY" id="LDe-k3-nQ7"/>
+                <constraint firstItem="A2m-ex-ljW" firstAttribute="centerX" secondItem="i5M-Pr-FkT" secondAttribute="centerX" id="PbI-FO-wmb"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="pqE-LH-iBS" secondAttribute="bottom" id="T5r-4t-1Ch"/>
+                <constraint firstItem="wHf-PM-B9E" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" id="bG9-Z5-zUb"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="wHf-PM-B9E" secondAttribute="trailing" constant="20" id="ci8-Wj-kas"/>
+            </constraints>
+            <point key="canvasLocation" x="139" y="52"/>
+        </view>
+    </objects>
+</document>

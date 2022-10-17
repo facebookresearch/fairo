@@ -10,8 +10,11 @@ import numpy as np
 from omegaconf import OmegaConf
 from polysim.envs import BulletManipulatorEnv
 from polysim.envs import HabitatManipulatorEnv
+from polysim.envs import MujocoManipulatorEnv
 
 import pybullet_data
+
+from polymetis_pb2 import RobotState
 
 # from polysim.envs import DaisyLocomotorEnv
 
@@ -199,6 +202,12 @@ kuka_gripper_sdf = OmegaConf.create(
                 ),
             },
         ),
+        (
+            MujocoManipulatorEnv,
+            {
+                "robot_model_cfg": franka_panda,
+            },
+        ),
     ],
 )
 def test_env(obj, obj_kwargs):
@@ -210,3 +219,38 @@ def test_env(obj, obj_kwargs):
     env.get_current_joint_pos_vel()
     env.get_current_joint_torques()
     env.apply_joint_torques(np.zeros(env.get_num_dofs()))
+
+
+@pytest.mark.parametrize(
+    "obj, obj_kwargs",
+    [
+        (
+            BulletManipulatorEnv,
+            {
+                "robot_model_cfg": franka_panda,
+            },
+        ),
+        (
+            BulletManipulatorEnv,
+            {
+                "robot_model_cfg": kuka_iiwa,
+            },
+        ),
+        # (
+        #     MujocoManipulatorEnv,
+        #     {
+        #         "robot_model_cfg": franka_panda,
+        #     },
+        # ),
+    ],
+)
+def test_mirror_env(obj, obj_kwargs):
+    env = obj(**obj_kwargs, gui=False)
+    ndofs = obj_kwargs["robot_model_cfg"].num_dofs
+    robot_state = RobotState()
+    robot_state.joint_positions[:] = list(obj_kwargs["robot_model_cfg"].rest_pose)
+    robot_state.joint_velocities[:] = np.zeros(ndofs)
+    env.set_robot_state(robot_state)
+    obs_pos, obs_vel = env.get_current_joint_pos_vel()
+    assert np.allclose(robot_state.joint_positions, obs_pos, atol=1e-3)
+    assert np.allclose(robot_state.joint_velocities, obs_vel, atol=1e-3)

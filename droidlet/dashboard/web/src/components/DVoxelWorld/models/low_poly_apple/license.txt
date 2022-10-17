@@ -1,0 +1,11 @@
+Model Information:
+* title:	Red Apple (Low Poly)
+* source:	https://sketchfab.com/3d-models/red-apple-low-poly-d45af814432c425da6d8339be0e2ad16
+* author:	Three Dog Night (https://sketchfab.com/ThreeDogNight404)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Red Apple (Low Poly)" (https://sketchfab.com/3d-models/red-apple-low-poly-d45af814432c425da6d8339be0e2ad16) by Three Dog Night (https://sketchfab.com/ThreeDogNight404) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

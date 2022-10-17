@@ -1,0 +1,11 @@
+Model Information:
+* title:	Medieval asset 21\ bat
+* source:	https://sketchfab.com/3d-models/medieval-asset-21-bat-8c900496173b4b32b8f8990c2d97886b
+* author:	hamsterspit (https://sketchfab.com/hamsterspit)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Medieval asset 21\ bat" (https://sketchfab.com/3d-models/medieval-asset-21-bat-8c900496173b4b32b8f8990c2d97886b) by hamsterspit (https://sketchfab.com/hamsterspit) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

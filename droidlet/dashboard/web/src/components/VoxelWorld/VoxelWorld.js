@@ -16,13 +16,18 @@ class VoxelWorld extends React.Component {
   }
 
   getVoxelWorldInitialState() {
-    this.props.stateManager.socket.emit("getVoxelWorldInitialState");
+    this.props.stateManager.worldSocket.emit("getVoxelWorldInitialState");
+  }
+
+  connectToWorld() {
+    // this.props.stateManager.worldSocket.emit("connect");
+    this.props.stateManager.worldSocket.emit("get_world_info"); // test world VW connection
   }
 
   flashVoxelWorldBlocks(bbox) {
-    this.state.flash_bbox = bbox;
+    this.setState({ flash_bbox: bbox });
     this.worldContainerRef.current.contentWindow.postMessage(this.state, "*");
-    this.state.flash_bbox = null;
+    this.setState({ flash_bbox: null });
   }
 
   componentDidUpdate() {
@@ -30,8 +35,25 @@ class VoxelWorld extends React.Component {
   }
 
   componentDidMount() {
-    if (this.props.stateManager) this.props.stateManager.connect(this);
+    if (this.props.stateManager) {
+      this.props.stateManager.connect(this);
+
+      this.worldContainerRef.current.contentWindow.addEventListener(
+        "message",
+        (event) => {
+          const payload = event["data"];
+          if (payload["status"] === "set_look") {
+            this.props.stateManager.worldSocket.emit("set_look", payload);
+          } else if (payload["status"] === "abs_move") {
+            this.props.stateManager.worldSocket.emit("abs_move", payload);
+          }
+        },
+        false
+      );
+    }
+
     this.getVoxelWorldInitialState();
+    this.connectToWorld();
 
     // Listen for a message from the iframe to remove the prompt text when the user clicks in
     window.addEventListener(
@@ -62,7 +84,7 @@ class VoxelWorld extends React.Component {
             src="VoxelWorld/world.html"
             title="Voxel World"
             width="100%"
-            height="500"
+            height="1000"
             ref={this.worldContainerRef}
           ></iframe>
           <div id="prompt">

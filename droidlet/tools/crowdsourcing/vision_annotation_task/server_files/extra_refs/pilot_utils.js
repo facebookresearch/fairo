@@ -19,17 +19,22 @@ var answers = [
 
 // Check submissions
 function checkAnswer(qnum, ans) {
-  console.log("Checking Question #: " + qnum + " answer: " + ans);
+  try {
+    parsedAnswer = JSON.parse(ans)[0]["locs"];
+  } catch {
+    parsedAnswer = JSON.parse(ans);
+  }
+  console.log("Checking Question #: " + qnum + " answer: " + JSON.stringify(parsedAnswer));
   let qidx = qnum -1;
   complete[qidx] = true;
   if (ans === "null" || answers[qidx] === "null") {  // can't sort null
-    if (JSON.stringify(JSON.parse(ans)) === JSON.stringify(answers[qidx])){
+    if (JSON.stringify(parsedAnswer) === JSON.stringify(answers[qidx])){
       correct[qidx] = true;
     } else {
       correct[qidx] = false;
     }
   }
-  else if (JSON.stringify(JSON.parse(ans).sort()) === JSON.stringify(answers[qidx].sort())){
+  else if (JSON.stringify(parsedAnswer.sort()) === JSON.stringify(answers[qidx].sort())){
     correct[qidx] = true;
   } else {
     correct[qidx] = false;

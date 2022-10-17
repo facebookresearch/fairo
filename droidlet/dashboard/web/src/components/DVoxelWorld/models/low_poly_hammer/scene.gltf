@@ -1,0 +1,408 @@
+{
+  "accessors": [
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 153,
+      "max": [
+        1.0,
+        1.0,
+        0.5605000257492065
+      ],
+      "min": [
+        -1.0,
+        -1.0,
+        -5.295010089874268
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 1836,
+      "componentType": 5126,
+      "count": 153,
+      "max": [
+        1.0,
+        1.0,
+        0.49663734436035156
+      ],
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 864,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 3672,
+      "componentType": 5126,
+      "count": 112,
+      "max": [
+        0.8781800270080566,
+        0.8781800270080566,
+        6.671710014343262
+      ],
+      "min": [
+        -0.8781800270080566,
+        -0.8781800270080566,
+        0.5605000257492065
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 5016,
+      "componentType": 5126,
+      "count": 112,
+      "max": [
+        0.9998111128807068,
+        0.9998111128807068,
+        0.41563937067985535
+      ],
+      "min": [
+        -0.9998111128807068,
+        -0.9998111128807068,
+        -0.7183796167373657
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 3456,
+      "componentType": 5125,
+      "count": 576,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 6360,
+      "componentType": 5126,
+      "count": 809,
+      "max": [
+        4.879539966583252,
+        1.2374999523162842,
+        9.098779678344727
+      ],
+      "min": [
+        -4.011519908905029,
+        -1.2374999523162842,
+        6.671710014343262
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 16068,
+      "componentType": 5126,
+      "count": 809,
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 5760,
+      "componentType": 5125,
+      "count": 4800,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "Blender Books (https://sketchfab.com/blenderbooks)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/cartoon-hammer-4b3a4821679d4adea988c2f3134d71c3",
+      "title": "Cartoon Hammer"
+    },
+    "generator": "Sketchfab-12.68.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 24960,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 25776,
+      "byteOffset": 24960,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 50736,
+      "uri": "scene.bin"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "silla_piel.001",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.04490279622231119,
+          0.38811998945653414,
+          0.6392823791396971,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.6
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "taladro_broca.001",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.24012670874784448,
+          0.24012670874784448,
+          0.24012670874784448,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.6
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "taladro_metal.001",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.08012670397947286,
+          0.08012670397947286,
+          0.08012670397947286,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.6
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "instrumento_martillo_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0
+          },
+          "indices": 2,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "instrumento_martillo_1",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 4,
+            "POSITION": 3
+          },
+          "indices": 5,
+          "material": 1,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "instrumento_martillo_2",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 7,
+            "POSITION": 6
+          },
+          "indices": 8,
+          "material": 2,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.220446049250313e-16,
+        -1.0,
+        0.0,
+        0.0,
+        1.0,
+        2.220446049250313e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2,
+        6,
+        8,
+        10
+      ],
+      "name": "Root"
+    },
+    {
+      "children": [
+        3,
+        4,
+        5
+      ],
+      "matrix": [
+        0.015760000000000003,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.015760000000000003,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.015760000000000003,
+        0.0,
+        -0.03386000000000001,
+        0.024450000000000006,
+        0.05959000000000001,
+        1.0
+      ],
+      "name": "instrumento_martillo"
+    },
+    {
+      "mesh": 0,
+      "name": "instrumento_martillo_0"
+    },
+    {
+      "mesh": 1,
+      "name": "instrumento_martillo_1"
+    },
+    {
+      "mesh": 2,
+      "name": "instrumento_martillo_2"
+    },
+    {
+      "children": [
+        7
+      ],
+      "matrix": [
+        -0.29086000000000006,
+        0.9551700000000001,
+        -0.05519000000000001,
+        0.0,
+        -0.7711,
+        -0.19988000000000003,
+        0.6045200000000001,
+        0.0,
+        0.5663900000000001,
+        0.21839000000000003,
+        0.7946700000000001,
+        0.0,
+        -1.1202100000000002,
+        -0.5944400000000001,
+        5.903860000000001,
+        1.0
+      ],
+      "name": "Lamp"
+    },
+    {
+      "name": "Lamp"
+    },
+    {
+      "children": [
+        9
+      ],
+      "matrix": [
+        -0.29086000000000006,
+        0.9551700000000001,
+        -0.05519000000000001,
+        0.0,
+        -0.7711,
+        -0.19988000000000003,
+        0.6045200000000001,
+        0.0,
+        0.5663900000000001,
+        0.21839000000000003,
+        0.7946700000000001,
+        0.0,
+        -0.78743,
+        1.53022,
+        5.903860000000001,
+        1.0
+      ],
+      "name": "Lamp.001"
+    },
+    {
+      "name": "Lamp.001"
+    },
+    {
+      "children": [
+        11
+      ],
+      "matrix": [
+        -0.29086000000000006,
+        0.9551700000000001,
+        -0.05519000000000001,
+        0.0,
+        -0.7711,
+        -0.19988000000000003,
+        0.6045200000000001,
+        0.0,
+        0.5663900000000001,
+        0.21839000000000003,
+        0.7946700000000001,
+        0.0,
+        1.4140199999999998,
+        0.12231,
+        5.903860000000001,
+        1.0
+      ],
+      "name": "Lamp.002"
+    },
+    {
+      "name": "Lamp.002"
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ]
+}
