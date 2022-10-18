@@ -32,7 +32,10 @@ class ComputeLocations:
         padding=(1, 1, 1),
     ):
         repeat_num = max(repeat_num, len(objects))
-        player_mem = interpreter.memory.get_player_by_name(speaker)
+        _, result_mem = interpreter.memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}"
+        )
+        player_mem = result_mem[0] if len(result_mem) == 1 else None
         get_locs_from_entity = interpreter.get_locs_from_entity
         origin = compute_location_heuristic(player_mem, mems, steps, reldir, get_locs_from_entity)
         if repeat_num > 1:

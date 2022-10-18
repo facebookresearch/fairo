@@ -16,4 +16,5 @@ mrp.process(
     runtime=mrp.Docker(image="ghcr.io/alephzero/api:latest"),
 )
 
-mrp.main()
+if __name__ == "__main__":
+    mrp.main()

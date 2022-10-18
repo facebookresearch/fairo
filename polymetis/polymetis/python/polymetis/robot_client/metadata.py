@@ -122,3 +122,8 @@ class RobotClientMetadata:
     def get_proto(self):
         """Returns the underlying protobuf message."""
         return self.metadata_proto
+
+
+class EmptyRobotClientMetadata(RobotClientMetadata):
+    def __init__(self):
+        self.metadata_proto = polymetis_pb2.RobotClientMetadata()

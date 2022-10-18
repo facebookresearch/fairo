@@ -7,13 +7,13 @@ from droidlet.base_util import to_block_pos, XYZ, IDM, pos_to_np, euclid_dist
 from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
 
 
-def capped_line_of_sight(agent, player_struct, cap=20):
+def capped_line_of_sight(agent, player_struct, cap=15):
     """Return the block directly in the entity's line of sight, or a point in the distance"""
+
     xsect = agent.get_player_line_of_sight(player_struct)
     if xsect is not None and euclid_dist(pos_to_np(xsect), pos_to_np(player_struct.pos)) <= cap:
         return pos_to_np(xsect)
 
-    # default to cap blocks in front of entity
     vec = agent.coordinate_transforms.look_vec(player_struct.look.yaw, player_struct.look.pitch)
     return cap * np.array(vec) + to_block_pos(pos_to_np(player_struct.pos))
 
@@ -81,21 +81,20 @@ class LowLevelMCPerception:
                     mobs.append(mob)
             perceive_info["mobs"] = mobs if mobs else None
 
+            # FIXME!  add a step to perceive items picked and/or items in inventory
             # Find items that can be picked by the agent, and in perception range
-            all_items = set()
-            in_perception_items = []
-            for item_stack in self.agent.get_item_stacks():
-                all_items.add(item_stack.entityId)
-                if (
-                    euclid_dist(self.agent.pos, pos_to_np(item_stack.pos))
-                    < self.agent.memory.perception_range
-                ):
-                    in_perception_items.append(item_stack)
-            perceive_info["agent_pickable_items"] = perceive_info.get("agent_pickable_items", {})
-            perceive_info["agent_pickable_items"]["in_perception_items"] = (
-                in_perception_items if in_perception_items else None
-            )
-            perceive_info["agent_pickable_items"]["all_items"] = all_items if all_items else None
+            pickable_items = {}
+            if self.agent.backend == "cuberite":
+                # struct; only returns items on ground
+                pickable_items = {i.entityId: [i, -1, []] for i in self.agent.get_item_stacks()}
+            else:
+                # [struct, holder entityId, properties]
+                pickable_items = {
+                    i[0].entityId: [i[0], i[1], i[2]]
+                    for i in self.agent.get_item_stacks(get_all=True)
+                }
+
+            perceive_info["agent_pickable_items"] = pickable_items
 
         # note: no "force"; these run on every perceive call.  assumed to be fast
         perceive_info["agent_attributes"] = self.get_agent_player()  # Get Agent attributes

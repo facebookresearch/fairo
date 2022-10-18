@@ -1,0 +1,66 @@
+/* Copyright (c) Facebook, Inc. and its affiliates.
+   This source code is licensed under the MIT license found in the
+   LICENSE file in the root directory of this source tree. */
+
+iframe {
+  border-width: 0;
+}
+
+h2 {
+  margin-top: 10px;
+  font-size: 24px;
+}
+
+h4 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 15pt;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+ul {
+  padding-left: 0;
+}
+
+hr {
+  margin: 0.25em;
+}
+
+.instruction-headings {
+  text-decoration: underline;
+}
+
+.container {
+  width: 90%;
+}
+
+.center {
+  text-align: center;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.row {
+  padding: 10px;
+}
+
+.instructions-section {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13pt;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.panel {
+  margin-bottom: 0px;
+}
+
+.panel-heading {
+  padding: 5px;
+}
+
+.legend {
+  font-weight: bold;
+  list-style-type: none;
+}

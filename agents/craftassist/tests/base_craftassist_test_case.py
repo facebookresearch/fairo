@@ -6,28 +6,28 @@ from unittest.mock import Mock
 import numpy as np
 from typing import List, Sequence, Dict
 
+from droidlet.memory.memory_nodes import ChatNode
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from droidlet.lowlevel.minecraft.mc_util import XYZ, Block, IDM
 from droidlet.shared_data_struct.rotation import yaw_pitch
-from droidlet.lowlevel.minecraft.pyworld.world import World, Opt, flat_ground_generator
-from droidlet.lowlevel.minecraft.pyworld.utils import (
-    Player,
-    Pos,
-    Look,
-    Item,
-    Look,
-    to_relative_pos,
-)
+from droidlet.lowlevel.minecraft.pyworld.world import World
+from droidlet.base_util import Look, Pos
+from droidlet.shared_data_struct.craftassist_shared_utils import Item, Player
+from droidlet.lowlevel.minecraft.pyworld.utils import to_relative_pos, flat_ground_generator
 
 from .fake_agent import FakeAgent, FakePlayer
 
 
+class Opt:
+    pass
+
+
 class BaseCraftassistTestCase(unittest.TestCase):
-    def setUp(self, agent_opts=None, players=[]):
+    def setUp(self, agent_opts=None, players=[], items=[]):
         if not players:
             players = [
                 FakePlayer(
-                    Player(42, "SPEAKER", Pos(5, 63, 5), Look(270, 0), Item(0, 0)),
+                    Player(42, "SPEAKER", Pos(12, 63, 12), Look(270, 0), Item(0, 0)),
                     active=False,
                     opts=agent_opts,
                 )
@@ -35,13 +35,13 @@ class BaseCraftassistTestCase(unittest.TestCase):
         spec = {
             "players": players,
             "mobs": [],
-            "item_stacks": [],
+            "items": items,
             "ground_generator": flat_ground_generator,
             "agent": {"pos": (0, 63, 0)},
             "coord_shift": (-16, 54, -16),
         }
         world_opts = Opt()
-        world_opts.sl = 32
+        world_opts.sl = 45
         self.world = World(world_opts, spec)
         self.agent = FakeAgent(self.world, opts=agent_opts)
         self.set_looking_at((0, 63, 0))
@@ -122,7 +122,7 @@ class BaseCraftassistTestCase(unittest.TestCase):
         if something is in between the player and the target xyz;
         and uses the agent's world's get_line_of_sight
         """
-        player = player or self.agent.world.players[0]
+        player = player or list(self.agent.world.players.values())[0]
         player.look_at(*xyz)
 
     def set_blocks(self, xyzbms: List[Block], origin: XYZ = (0, 0, 0)):
@@ -138,9 +138,10 @@ class BaseCraftassistTestCase(unittest.TestCase):
         """Add a chat to memory as if it was just spoken by SPEAKER"""
         self.world.chat_log.append("<" + speaker_name + ">" + " " + chat)
         if add_to_memory:
-            self.agent.memory.add_chat(
-                self.agent.memory.get_player_by_name(self.speaker).memid, chat
+            memid, _ = self.agent.memory.basic_search(
+                f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={self.speaker}"
             )
+            self.agent.memory.nodes[ChatNode.NODE_TYPE].create(self.agent.memory, memid[0], chat)
 
     def assert_schematics_equal(self, a, b):
         """Check equality between two list[(xyz, idm)] schematics
@@ -158,4 +159,7 @@ class BaseCraftassistTestCase(unittest.TestCase):
         return self.agent.get_last_outgoing_chat()
 
     def get_speaker_pos(self) -> XYZ:
-        return self.agent.memory.get_player_by_name(self.speaker).pos
+        _, memnode = self.agent.memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={self.speaker}"
+        )
+        return memnode[0].pos

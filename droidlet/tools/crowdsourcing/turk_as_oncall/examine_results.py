@@ -35,7 +35,7 @@ else:
 
 def format_for_printing_data(data):
     # Custom tasks can define methods for how to display their data in a relevant way
-    worker_name = Worker(db, data["worker_id"]).worker_name
+    worker_name = Worker.get(db, data["worker_id"]).worker_name
     contents = data["data"]
     duration = contents["times"]["task_end"] - contents["times"]["task_start"]
     metadata_string = (
@@ -65,15 +65,7 @@ def format_for_printing_data(data):
     except:
         pass
     try:
-        output_string += f"Command #1 Feedback: {outputs['command_1_feedback']}\n"
-    except:
-        pass
-    try:
         output_string += f"Command #2 Result: {outputs['command_2']}\n"
-    except:
-        pass
-    try:
-        output_string += f"Command #2 Feedback: {outputs['command_2_feedback']}\n"
     except:
         pass
     try:
@@ -81,11 +73,19 @@ def format_for_printing_data(data):
     except:
         pass
     try:
-        output_string += f"Command #3 Feedback: {outputs['command_3_feedback']}\n"
+        output_string += f"Command #4 Result: {outputs['command_4']}\n"
     except:
         pass
     try:
-        output_string += f"Command #4 Result: {outputs['command_4']}\n"
+        output_string += f"Command #1 Feedback: {outputs['command_1_feedback']}\n"
+    except:
+        pass
+    try:
+        output_string += f"Command #2 Feedback: {outputs['command_2_feedback']}\n"
+    except:
+        pass
+    try:
+        output_string += f"Command #3 Feedback: {outputs['command_3_feedback']}\n"
     except:
         pass
     try:

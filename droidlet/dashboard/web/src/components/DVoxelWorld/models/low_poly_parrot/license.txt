@@ -1,0 +1,11 @@
+Model Information:
+* title:	Low-poly Parrot
+* source:	https://sketchfab.com/3d-models/low-poly-parrot-aac71bed4a784536964748569dcf1537
+* author:	Ceyhun (https://sketchfab.com/ceyhun)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Low-poly Parrot" (https://sketchfab.com/3d-models/low-poly-parrot-aac71bed4a784536964748569dcf1537) by Ceyhun (https://sketchfab.com/ceyhun) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

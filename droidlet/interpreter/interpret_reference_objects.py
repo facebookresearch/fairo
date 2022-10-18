@@ -31,9 +31,11 @@ def get_eid_from_special(agent_memory, S="AGENT", speaker=None):
     if S == "SPEAKER_LOOK" or S == "SPEAKER":
         if not speaker:
             raise Exception("Asked for speakers memid but did not give speaker name")
-        player = agent_memory.get_player_by_name(speaker)
-        if player:
-            eid = player.eid
+        _, players = agent_memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}"
+        )
+        if players:
+            eid = players[0].eid
     # FIXME both of these seem to appear in lfs, probably just want one of them?
     elif S == "AGENT" or S == "SELF":
         eid = agent_memory.get_mem_by_id(agent_memory.self_memid).eid
@@ -50,15 +52,17 @@ def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent
         if len(loc) != 3:
             logging.error("Bad coordinates: {}".format(coord_span))
             raise ErrorWithResponse("I don't understand what location you're referring to")
-
         # FIXME, this should be formalized
         # special case to handle world coordinates that are different from
         # droidlet coordinates; as the speaker might be only aware of world coordinates
         if hasattr(agent_memory, "to_droidlet_coords"):
             loc = agent_memory.to_droidlet_coords(loc)
 
-        memid = agent_memory.add_location((int(loc[0]), int(loc[1]), int(loc[2])))
-        mem = agent_memory.get_location_by_id(memid)
+        memid = agent_memory.nodes[LocationNode.NODE_TYPE].create(
+            agent_memory, (int(loc[0]), int(loc[1]), int(loc[2]))
+        )
+        mem = agent_memory.nodes[LocationNode.NODE_TYPE](agent_memory, memid)
+
         q = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(memid)
     else:
         if S == "AGENT" or S == "SELF" or S == "SPEAKER":
@@ -134,7 +138,6 @@ def interpret_reference_object(
     d,
     extra_tags=[],
     loose_speakerlook=False,
-    allow_clarification=True,
     all_proximity=100,
 ) -> List[ReferenceObjectNode]:
     """this tries to find a ref obj memory matching the criteria from the
@@ -147,8 +150,12 @@ def interpret_reference_object(
     d: logical form from semantic parser
 
     extra_tags (list of strings): tags added by parent to narrow the search
-    allow_clarification (bool): should a Clarification object be put on the DialogueStack
     """
+
+    if hasattr(interpreter, "allow_clarification"):
+        allow_clarification = interpreter.allow_clarification
+    else:
+        allow_clarification = False
 
     filters_d = d.get("filters")
     special = d.get("special_reference")
@@ -212,8 +219,19 @@ def interpret_reference_object(
 
         candidate_mems = apply_memory_filters(interpreter, speaker, filters_d)
 
+        # Clarification only enabled for HUMAN_GIVE_COMMAND
+        command_type = None
+        if hasattr(interpreter, "logical_form"):
+            command_type = interpreter.logical_form.get("dialogue_type", None)
+
         # Compare num matches to expected and clarify
-        if (len(candidate_mems) != num_refs) and allow_clarification:
+        # for now don't enter into clarification pathway if |candidate_mem| > num_refs, it isn't built out...
+        if (
+            (len(candidate_mems) < num_refs)
+            and allow_clarification
+            and command_type == "HUMAN_GIVE_COMMAND"
+        ):
+            # TODO extend clarification to work with more 'dialogue_type's
             clarify_reference_objects(interpreter, speaker, d, candidate_mems, num_refs)
             raise NextDialogueStep()
 
@@ -228,10 +246,8 @@ def interpret_reference_object(
             )
             update_attended_and_link_lf(interpreter, mems)
             return mems
-
         else:
             raise ErrorWithResponse("I don't know what you're referring to")
-
     else:
         # there is a clarification task.  is it active?
         task_mem = clarification_task_mems[0]  # FIXME, error if there are many?
@@ -317,7 +333,10 @@ def filter_by_sublocation(
 
             # FIXME!!! handle frame better, might want agent's frame instead
             # FIXME use the subinterpreter, don't directly call the attribute
-            eid = interpreter.memory.get_player_by_name(speaker).eid
+            _, memnode = interpreter.memory.basic_search(
+                f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}"
+            )
+            eid = memnode[0].eid
             self_mem = interpreter.memory.get_mem_by_id(interpreter.memory.self_memid)
             L = LinearExtentAttribute(
                 interpreter.memory, {"frame": eid, "relative_direction": reldir}, mem=self_mem
@@ -382,7 +401,10 @@ def object_looked_at(
         return []
     assert eid or speaker
     if not eid:
-        eid = memory.get_player_by_name(speaker).eid
+        _, memnode = memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}"
+        )
+        eid = memnode[0].eid
     # TODO wrap in try/catch, handle failures in finding speaker or not having speakers LOS
     xsect = capped_line_of_sight(memory, eid=eid, cap=25)
     _, mems = memory.basic_search("SELECT MEMORY FROM Player WHERE eid={}".format(eid))
@@ -432,7 +454,10 @@ def capped_line_of_sight(memory, speaker=None, eid=None, cap=20):
 
     assert eid or speaker
     if not eid:
-        eid = memory.get_player_by_name(speaker).eid
+        _, memnode = memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker}"
+        )
+        eid = memnode[0].eid
 
     xsect_mem = get_special_reference_object(
         None, speaker, "SPEAKER_LOOK", agent_memory=memory, eid=eid

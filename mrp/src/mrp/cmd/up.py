@@ -1,3 +1,4 @@
+import mrp
 from mrp import life_cycle
 from mrp import process_def
 from mrp import util
@@ -96,6 +97,8 @@ def down_existing(names: typing.List[str], force: bool):
 @click.option("--run/--norun", is_flag=True, default=True)
 @click.option("-f", "--force/--noforce", is_flag=True, default=False)
 @click.option("--reset_logs", is_flag=True, default=False)
+@click.option("--attach", is_flag=True, default=False)
+@click.option("--wait", is_flag=True, default=False)
 def cli(
     *cmd_procs,
     procs=None,
@@ -106,6 +109,8 @@ def cli(
     run=True,
     force=False,
     reset_logs=False,
+    attach=False,
+    wait=False,
 ):
     procs = procs or []
 
@@ -116,6 +121,17 @@ def cli(
     names = [name for name in names if process_def.defined_processes[name].runtime]
     if not names:
         raise ValueError("No processes found")
+
+    if attach and len(names) != 1:
+        raise ValueError(
+            f"Can only attach to exactly 1 process. {len(names)} processes provided."
+        )
+
+    if attach and not run:
+        raise ValueError("Cannot attach without running")
+
+    if wait and not run:
+        raise ValueError("Cannot wait without running")
 
     down_existing(names, force)
 
@@ -166,4 +182,14 @@ def cli(
                             click.echo(f"FATAL: {e}")
                             traceback.print_exc()
                         life_cycle.set_launcher_running(name, False)
+                        if life_cycle.proc_info(name).state != life_cycle.State.STOPPED:
+                            life_cycle.set_state(
+                                name, life_cycle.State.STOPPED, return_code=-1
+                            )
                         os._exit(0)  # use this instead of sys.exit in child process
+
+        if attach:
+            mrp.cmd.attach(names[0])
+
+        if wait:
+            mrp.cmd.wait(*names)

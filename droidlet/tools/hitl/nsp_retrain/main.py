@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import argparse
 import logging
+from droidlet.tools.hitl.utils.hitl_recorder import MetaData
 
 from interaction_jobs import InteractionJob, InteractionLogListener
 from droidlet.tools.hitl.task_runner import TaskRunner
@@ -48,11 +49,18 @@ if __name__ == "__main__":
 
     # TODO: parameterize this
     instance_num = opts.interaction_job_num
-    ij = InteractionJob(instance_num, opts.image_tag, opts.task_name, timeout=IJ_TIMEOUT)
+    runner = TaskRunner()
+
+    ij = InteractionJob(
+        runner.get_job_manage_util(),
+        instance_num,
+        opts.image_tag,
+        opts.task_name,
+        timeout=IJ_TIMEOUT,
+    )
     batch_id = ij.get_batch_id()
     listener = InteractionLogListener(batch_id, IL_TIMEOUT)
 
-    runner = TaskRunner()
     runner.register_data_generators([ij])
     runner.register_job_listeners([listener])
     runner.run()

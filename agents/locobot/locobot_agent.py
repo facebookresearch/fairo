@@ -28,6 +28,7 @@ from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.droidlet_agent import DroidletAgent
 from agents.argument_parser import ArgumentParser
 import agents.locobot.label_prop as LP
+from droidlet.memory.memory_nodes import ChatNode
 from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
 from droidlet.perception.robot import Perception
 from droidlet.perception.semantic_parsing.utils.interaction_logger import InteractionLogger
@@ -78,8 +79,14 @@ class LocobotAgent(DroidletAgent):
         self.no_default_behavior = opts.no_default_behavior
         self.last_chat_time = -1000000000000
         self.name = name
-        self.player = Player(100, name, Pos(0, 0, 0), Look(0, 0))
+        self.dash_enable_map = False # dash has map disabled by default
+
+        # FIXME these should only be stored in memory, not here
+        self.pitch = 0.0
+        self.yaw = 0.0
         self.pos = Pos(0, 0, 0)
+        self.player = Player(100, name, self.pos, Look(self.yaw, self.pitch))
+
         self.uncaught_error_count = 0
         self.last_task_memid = None
         self.point_targets = []
@@ -143,8 +150,9 @@ class LocobotAgent(DroidletAgent):
             objects = DetectedObjectNode.get_all(self.memory)
             for o in objects:
                 del o["feature_repr"]  # pickling optimization
-            self.dashboard_memory["objects"] = objects
-            sio.emit("updateState", {"memory": self.dashboard_memory})
+
+        #            self.dashboard_memory["objects"] = objects
+        #            sio.emit("updateState", {"memory": self.dashboard_memory})
 
         @sio.on("interaction data")
         def log_interaction_data(sid, interactionData):
@@ -207,7 +215,6 @@ class LocobotAgent(DroidletAgent):
 
             self.perception_modules["vision"] = Perception(model_path, default_keypoints_path=True)
 
-
     def init_memory(self):
         """Instantiates memory for the agent.
 
@@ -241,6 +248,9 @@ class LocobotAgent(DroidletAgent):
         previous_objects = DetectedObjectNode.get_all(self.memory)
         # perception_output is a namedtuple of:
         # new_detections, updated_detections, humans, self_pose, obstacle_map
+
+        # FIXME self perception module is directly updating self mem.  pass here
+        # and update in memories .update()
         self.perception_modules["self"].perceive(force=force)
         x, z, yaw = self.mover.get_base_pos_in_canonical_coords()
         rgb_depth = self.mover.get_rgb_depth()
@@ -256,27 +266,49 @@ class LocobotAgent(DroidletAgent):
         # 4. self location
         # FIXME better pose object
         perception_output = perception_output._replace(self_pose=(x, z, yaw))
-        
-        if self.opts.draw_map == "memory":
-            # draw the map from memory
-            self.draw_map_to_dashboard()
-        elif self.opts.draw_map == "observations": # else draw directly from current obs
-            self.draw_map_to_dashboard(obstacles=obstacles, xyyaw=(x,z,yaw))
-        else:
-            pass
-                
+
+        @sio.on("toggle_map")
+        def handle_toggle_map(sid, data):
+            self.dash_enable_map = data["dash_enable_map"]
+        if self.opts.draw_map and self.dash_enable_map:
+            if self.opts.map_data == "memory":          # draw the map from memory
+                self.draw_map_to_dashboard()
+            elif self.opts.map_data == "observations":  # else draw directly from current obs
+                self.draw_map_to_dashboard(obstacles=obstacles, xyyaw=(x, z, yaw))
+            else:
+                pass
+
         self.memory.update(perception_output)
 
+    def get_detected_objects_for_map(self):
+        search_res = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject")
+        memids, mems = [], []
+        if search_res is not None:
+            memids, mems = search_res
+        detections_for_map = []
+        for mem in mems:
+            if hasattr(mem, "pos"):
+                id_str = "no_id" if not hasattr(mem, "obj_id") else mem.obj_id
+                obj = vars(mem)
+                obj.pop('agent_memory', None)   # not necessary to show memory object type and location 
+                obj["node_type"] = type(mem).__name__
+                obj["obj_id"] = id_str
+                obj["pos"] = list(mem.pos)
+                detections_for_map.append(obj)
+        return detections_for_map
+
     def draw_map_to_dashboard(self, obstacles=None, xyyaw=None):
+        detections_for_map = []
         if not obstacles:
             obstacles = self.memory.place_field.get_obstacle_list()
+            # if we are getting obstacles from memory, get detections from memory for map too
+            detections_for_map = self.get_detected_objects_for_map()
         if not xyyaw:
             self_mem = self.memory.get_mem_by_id(self.memory.self_memid)
             x, y, z = self_mem.pos
             # TODO: head or body? need better pose nodes
             yaw = self_mem.yaw
             xyyaw = (x, z, yaw)
-            
         sio.emit(
             "map",
             {
@@ -284,6 +316,8 @@ class LocobotAgent(DroidletAgent):
                 "y": xyyaw[1],
                 "yaw": xyyaw[2],
                 "map": obstacles,
+                "bot_data": detections_for_map[0],
+                "detections_from_memory": detections_for_map[1:],
             },
         )
 
@@ -303,14 +337,19 @@ class LocobotAgent(DroidletAgent):
         if self.backend == "habitat":
             from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 
+            print("here")
             self.mover = LoCoBotMover(ip=self.opts.ip, backend=self.opts.backend)
         else:
             from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
 
             self.mover = HelloRobotMover(ip=self.opts.ip)
+        print("done with physical init")
 
     def get_player_struct_by_name(self, speaker_name):
-        p = self.memory.get_player_by_name(speaker_name)
+        _, memnode = self.memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker_name}"
+        )
+        p = memnode[0] if len(memnode) == 1 else None
         if p:
             return p.get_struct()
         else:
@@ -323,7 +362,10 @@ class LocobotAgent(DroidletAgent):
         all_chats = []
         speaker_name = "dashboard"
         if self.dashboard_chat is not None:
-            if not self.memory.get_player_by_name(speaker_name):
+            memids, _ = self.memory.basic_search(
+                f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={speaker_name}"
+            )
+            if len(memids) == 0:
                 PlayerNode.create(
                     self.memory,
                     to_player_struct((None, None, None), None, None, None, speaker_name),
@@ -337,7 +379,7 @@ class LocobotAgent(DroidletAgent):
         logging.info("Sending chat: {}".format(chat))
         # Send the socket event to show this reply on dashboard
         sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat)})
-        self.memory.add_chat(self.memory.self_memid, chat)
+        self.memory.nodes[ChatNode.NODE_TYPE].create(self.memory, self.memory.self_memid, chat)
         # actually send the chat, FIXME FOR HACKATHON
         # return self._cpp_send_chat(chat)
 

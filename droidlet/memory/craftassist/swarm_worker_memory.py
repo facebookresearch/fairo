@@ -58,7 +58,7 @@ class SwarmWorkerMemory:
         # this is a hack until memory_filters does "not"
         self.tag(self.self_memid, "_not_location")
         self.tag(self.self_memid, "AGENT")
-        # self.tag(self.self_memid, "SELF")
+        # self.tag(self, self.self_memid, "SELF")
 
     def init_time_interface(self, agent_time=None):
         """Initialiaze the current time in memory
@@ -142,10 +142,10 @@ class SwarmWorkerMemory:
         return self._db_command("_db_read", query, *args)
 
     def tag(self, subj_memid: str, tag_text: str):
-        return self._db_command("tag", subj_memid, tag_text)
+        return self._db_command("tag", self, subj_memid, tag_text)
 
     def untag(self, subj_memid: str, tag_text: str):
-        return self._db_command("untag", subj_memid, tag_text)
+        return self._db_command("untag", self, subj_memid, tag_text)
 
     def forget(self, memid):
         return self._db_command("forget", memid)
@@ -160,7 +160,7 @@ class SwarmWorkerMemory:
         confidence: float = 1.0,
     ):
         return self._db_command(
-            "add_triple", subj, obj, subj_text, pred_text, obj_text, confidence
+            "add_triple", self, subj, obj, subj_text, pred_text, obj_text, confidence
         )
 
     def get_triples(
@@ -173,7 +173,7 @@ class SwarmWorkerMemory:
         return_obj_text: str = "if_exists",
     ) -> List[Tuple[str, str, str]]:
         return self._db_command(
-            "get_triples", subj, obj, subj_text, pred_text, obj_text, return_obj_text
+            "get_triples", self, subj, obj, subj_text, pred_text, obj_text, return_obj_text
         )
 
     def check_memid_exists(self, memid: str, table: str) -> bool:
@@ -197,6 +197,7 @@ class SwarmWorkerMemory:
     def get_block_object_by_id(self, memid: str) -> "VoxelObjectNode":
         return self._db_command("get_block_object_by_id", memid)
 
+    # not sure if to delete this ?
     def get_object_by_id(self, memid: str, table="BlockObjects") -> "VoxelObjectNode":
         return self._db_command("get_object_by_id", memid, table)
 
@@ -213,14 +214,14 @@ class SwarmWorkerMemory:
         update: bool = True,  # if update is set to False, forces a write
     ):
         return self._db_command(
-            "upsert_block", block, memid, ref_type, player_placed, agent_placed, update
+            "upsert_block", self, block, memid, ref_type, player_placed, agent_placed, update
         )
 
     def _update_voxel_count(self, memid, dn):
-        return self._db_command("_update_voxel_count", memid, dn)
+        return self._db_command("_update_voxel_count", self, memid, dn)
 
     def _update_voxel_mean(self, memid, count, loc):
-        return self._db_command("_update_voxel_mean", memid, count, loc)
+        return self._db_command("_update_voxel_mean", self, memid, count, loc)
 
     def remove_voxel(self, x, y, z, ref_type):
         return self._db_command("remove_voxel", self, x, y, z, ref_type)
@@ -235,4 +236,4 @@ class SwarmWorkerMemory:
     #     return self._db_command("set_mob_position", mob)
 
     def add_chat(self, speaker_memid: str, chat: str) -> str:
-        return self._db_command("add_chat", speaker_memid, chat)
+        return self._db_command("add_chat", self, speaker_memid, chat)

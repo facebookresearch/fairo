@@ -13,7 +13,7 @@ We use the same alephzero/api image as the last example to allow easy edit from 
 
 Launch all the processes as before:
 ```sh
-mrp -v up
+mrp up
 ```
 
 Now open your browser to `file:///path/to/mrp/examples/04_api/cfgedit.html`

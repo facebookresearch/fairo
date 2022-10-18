@@ -1,0 +1,11 @@
+Model Information:
+* title:	Low Poly Sheep
+* source:	https://sketchfab.com/3d-models/low-poly-sheep-20ef523bee784e4a939b4c5f8734edfc
+* author:	The_Cyborg_Lord/Elijah_The_Peacock (https://sketchfab.com/The_Cyborg_Lord)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Low Poly Sheep" (https://sketchfab.com/3d-models/low-poly-sheep-20ef523bee784e4a939b4c5f8734edfc) by The_Cyborg_Lord/Elijah_The_Peacock (https://sketchfab.com/The_Cyborg_Lord) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

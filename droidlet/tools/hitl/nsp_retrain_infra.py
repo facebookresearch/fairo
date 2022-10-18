@@ -6,6 +6,7 @@ import argparse
 import logging
 import os
 import shutil
+from tabnanny import check
 import time
 from subprocess import Popen, PIPE
 import boto3
@@ -16,6 +17,13 @@ import random
 from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.job_listener import JobListener
 from droidlet.tools.hitl.task_runner import TaskRunner
+from droidlet.tools.artifact_scripts.compute_checksum import compute_checksum_for_directory
+from droidlet.tools.artifact_scripts.upload_artifacts_to_aws import (
+    compute_checksum,
+    tar_and_upload,
+    compute_checksum_tar_and_upload,
+)
+from droidlet.tools.hitl.utils.hitl_recorder import Job, Recorder, JobStat
 
 
 log_formatter = logging.Formatter(
@@ -29,7 +37,7 @@ sh.setFormatter(log_formatter)
 logger.addHandler(sh)
 
 LISTENER_SLEEP_TIME = 10  # Seconds to wait before listener looks for new data
-NSP_RETRAIN_TIMEOUT = 18000  # Wait a max of 5h for the NSP retraining script to finish
+NSP_RETRAIN_TIMEOUT = 72000  # Wait a max of 5h for the NSP retraining script to finish
 MODEL_OUTPUT_POLL_TIME = 60  # Seconds to wait between looking for model output logs
 NUM_MODEL_OUTPUT_POLLS = 500  # Number of times to poll model output files before assuming finished
 
@@ -41,18 +49,21 @@ MODEL_INFO_NAME = "best_model_info.txt"
 
 
 class NSPRetrainingJob(DataGenerator):
-    def __init__(self, batch_id, opts):
+    def __init__(self, job_mng_util: Recorder, batch_id, opts):
         super(NSPRetrainingJob, self).__init__()
+        self._job_mng_util = job_mng_util
         self.batch_id = batch_id
         self.opts = opts
         self.exec_training_run = True
+        job_mng_util.set_job_stat(Job.RETRAIN, JobStat.ENABLED, True)
 
     def max_and_argmax(self, l):
         i = max(range(len(l)), key=lambda i: l[i])
         return l[i], i
 
-    def get_accs(self):
+    def get_accuracy_and_losses(self):
         accs = {}
+        losses = {}
         logs = [l for l in os.listdir() if l[-4:] == ".log"]
         if (
             len(logs) < NUM_TRAINING_RUNS
@@ -60,31 +71,38 @@ class NSPRetrainingJob(DataGenerator):
             return False
         for log in logs:
             accs[log] = []
+            losses[log] = []
             f = open(log)
             l = f.readlines()
             for line in l:
                 if "evaluating on" in line:
                     s = line.split("\t")
                     a = s[2][11:17]
+                    l = s[1][7:13]
                     accs[log].append(float(a))
-        return accs
+                    losses[log].append(float(l))
+        return accs, losses
 
-    def copy_best_model(self, accs):
+    def copy_best_model(self, accs, losses):
         macc = 0.0
         mname = ""
         midx = 0
+        loss = 0.0
         for name, acc in accs.items():
             m, mi = self.max_and_argmax(acc)
             if m >= macc:
                 macc = m
                 mname = name
                 midx = mi
+                loss = losses[name][mi]
         source_model = mname[:-4] + "_ep" + str(midx) + ".pth"
         # TODO some sort of lock/semaphore?
         shutil.copyfile(source_model, MODEL_NAME)
         f = open(MODEL_INFO_NAME, "w")
         f.write(source_model + "\n")
+        f.write("epoch " + str(midx) + "\n")
         f.write("valid acc " + str(macc) + "\n")
+        f.write("valid loss " + str(loss) + "\n")
         f.close()
 
     def download_data(self, opts, batch_id):
@@ -96,7 +114,7 @@ class NSPRetrainingJob(DataGenerator):
         data_filepath = download_dir + "/nsp_data.txt"
         try:
             s3.download_file(
-                "droidlet-hitl", "nsp_data.txt", data_filepath
+                "droidlet-hitl", batch_id + "/nsp_data.txt", data_filepath
             )  # Will overwrite file if exists
         except:
             logging.info(f"Exception raised on S3 data file download")
@@ -226,6 +244,12 @@ class NSPRetrainingJob(DataGenerator):
             f"Percent of data used for testing: {(sum(1 for i in final_masks['test'] if i)*100 / total_rows):.2f}%"
         )
 
+        # Save nsp retrain job stat
+        self._job_mng_util.set_job_stat(
+            Job.RETRAIN, JobStat.ORI_DATA_SZ, total_rows - new_data_rows
+        )
+        self._job_mng_util.set_job_stat(Job.RETRAIN, JobStat.NEW_DATA_SZ, total_rows)
+
         # Save locally and upload to S3
         mask_filepath = os.path.join(batch_config_dir, "split_masks.pth")
         torch.save({"annotated": final_masks}, mask_filepath)
@@ -258,6 +282,7 @@ class NSPRetrainingJob(DataGenerator):
         return True
 
     def run(self):
+        self._job_mng_util.set_job_start(Job.RETRAIN)
         logging.info(f"NSP Retraining Job initialized, downloading new data")
         opts = self.opts
 
@@ -271,11 +296,14 @@ class NSPRetrainingJob(DataGenerator):
         if not os.path.isdir(opts.sweep_config_folder):
             raise FileNotFoundError("sweep_config_folder not found or arg not pathlike")
         if not os.path.isdir(opts.sweep_scripts_output_dir):
-            raise FileNotFoundError("sweep_scripts_output_dir not found or arg not pathlike")
+            logging.info(f"Specificed directory for sweep scripts output doesn't exist, build it")
+            os.makedirs(opts.sweep_scripts_output_dir, exist_ok=True)
         if not os.path.isdir(opts.output_dir):
-            raise FileNotFoundError("output_dir not found or arg not pathlike")
+            logging.info(f"Specificed directory for output doesn't exist, build it")
+            os.makedirs(opts.output_dir, exist_ok=True)
         if not os.path.isdir(opts.checkpoint_dir):
-            raise FileNotFoundError("checkpoint_dir not found or arg not pathlike")
+            logging.info(f"Specificed directory for checkpoint doesn't exist, build it")
+            os.makedirs(opts.checkpoint_dir, exist_ok=True)
         if opts.new_data_training_threshold < 0:
             raise ValueError("new_data_training_threshold must be >= 0")
         if len(opts.retrain_data_splits) != 3:
@@ -321,7 +349,16 @@ class NSPRetrainingJob(DataGenerator):
             + opts.droidlet_dir
             + " --full_data_dir "
             + full_data_dir
+            + " --pretrained_encoder_name "
+            + opts.pretrained_encoder_name
+            + " --decoder_config_name "
+            + opts.decoder_config_name
+            + " --param_update_freq "
+            + str(opts.param_update_freq)
         )
+        # Require 32g GPU for training
+        if opts.use_32g_gpu:
+            sweep_args += " --use_32g_gpu "
 
         # Initialize the training run
         try:
@@ -339,12 +376,15 @@ class NSPRetrainingJob(DataGenerator):
         # Wait for child process to finish and log outputs/errors
         now = datetime.now()
         while sweep.poll() != 0:
+            # TODO: update job completed
+
             if (datetime.now() - now).seconds > NSP_RETRAIN_TIMEOUT:
                 sweep.kill()
                 raise TimeoutError(
                     f"NSP Retrain child process timed out after {NSP_RETRAIN_TIMEOUT} seconds"
                 )
                 break
+
         outs, errs = sweep.stdout.read(), sweep.stderr.read()
         logging.info(f"Sweep script outputs: \n{outs}")
         logging.info(f"Sweep script errors: \n{errs}")
@@ -375,8 +415,8 @@ class NSPRetrainingJob(DataGenerator):
                     f"NSP Retrain child process timed out after {NSP_RETRAIN_TIMEOUT} seconds"
                 )
             if self.slurm_jobs_finished(job_ids):
-                accs = self.get_accs()
-                self.copy_best_model(accs)
+                accs, losses = self.get_accuracy_and_losses()
+                self.copy_best_model(accs, losses)
                 break
             time.sleep(MODEL_OUTPUT_POLL_TIME)
 
@@ -384,7 +424,58 @@ class NSPRetrainingJob(DataGenerator):
         upload_key = batch_id + "/best_model/best_model.pth"
         s3.upload_file("best_model.pth", "droidlet-hitl", upload_key)
 
+        # Copy the best model to artifacts folder
+        os.chdir(opts.droidlet_dir)
+        shutil.copyfile(
+            model_out + "best_model.pth",
+            "droidlet/artifacts/models/nlu/ttad_bert_updated/caip_test_model.pth",
+        )
+
+        # Compute the checksum for model and dataset
+        compute_checksum_for_directory("craftassist", "models", "nlu")
+        compute_checksum_for_directory("craftassist", "datasets", "")
+
+        # Read checksum of dataset
+        checksum_d = ""
+        with open("droidlet/tools/artifact_scripts/tracked_checksums/datasets.txt", "r") as f:
+            checksum_d = f.read().strip()
+
+        # Write the checksum to local model
+        checksum_m, artifact_path_name, artifact_name = compute_checksum(
+            "craftassist", "models", "nlu"
+        )
+
+        # Log the information for the best model
+        os.chdir(self.opts.droidlet_dir)
+        with open("droidlet/artifacts/models/nlu/model_log.txt", "w") as f_log, open(
+            model_out + MODEL_INFO_NAME, "r"
+        ) as f:
+            contents = f.readlines()
+            epoch = contents[1].split(" ")[1].split("\n")[0]
+            acc = contents[2].split(" ")[2].split("\n")[0]
+            loss = contents[3].split(" ")[2].split("\n")[0]
+
+            f_log.write("epoch " + epoch + "\n")
+            f_log.write("valid_accuracy " + acc + "\n")
+            f_log.write("valid_loss " + loss + "\n")
+            f_log.write("hash_model " + checksum_m + "\n")
+            f_log.write("hash_dataset " + checksum_d + "\n")
+
+            # update corresponding job status
+            self._job_mng_util.set_job_stat(Job.RETRAIN, JobStat.MODEL_ACCURACY, acc)
+            self._job_mng_util.set_job_stat(Job.RETRAIN, JobStat.MODEL_EPOCH, epoch)
+            self._job_mng_util.set_job_stat(Job.RETRAIN, JobStat.MODEL_LOSS, loss)
+
+        # Tar model and upload them to AWS
+        tar_and_upload(checksum_m, artifact_path_name, artifact_name)
+        # Compute checksum, tar and uploaf for dataset
+        compute_checksum_tar_and_upload("craftassist", "datasets", "")
+
         logging.info(f"NSP Retraining Job finished")
+
+        # TODO: update total finished jobs
+        self._job_mng_util.set_job_end(Job.RETRAIN)
+
         self.set_finished(True)
         return
 
@@ -396,7 +487,7 @@ class NSPNewDataListener(JobListener):
         self.new_data_found = False
         self.opts = opts
 
-    def run(self, runner):
+    def run(self, runner: TaskRunner):
         logging.info(f"NSP New Data Listener running")
 
         while not self.check_is_finished():
@@ -420,7 +511,11 @@ class NSPNewDataListener(JobListener):
                 logging.info(f"NSP Listener has found new data")
 
                 # Initialize retraining job
-                nsp_rt = NSPRetrainingJob(batch_id=self.batch_id, opts=self.opts)
+                nsp_rt = NSPRetrainingJob(
+                    job_mng_util=runner.get_job_manage_util(),
+                    batch_id=self.batch_id,
+                    opts=self.opts,
+                )
                 runner.register_data_generators([nsp_rt])
 
                 logging.info(f"NSP data gen job registered, listener return")
@@ -429,8 +524,14 @@ class NSPNewDataListener(JobListener):
 
 
 if __name__ == "__main__":
+    root_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../")
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--droidlet_dir", type=str, help="Absolute location of droidlet root")
+    # Retrain pipeline arguments
+    parser.add_argument("--batch_id", type=str, default="456", help="Id for this retraining job")
+    parser.add_argument(
+        "--droidlet_dir", type=str, default=root_dir, help="Relative location of droidlet root"
+    )
     parser.add_argument(
         "--full_data_dir",
         default="droidlet/artifacts/datasets/full_data/",
@@ -438,17 +539,38 @@ if __name__ == "__main__":
         help="Relative location for data storage",
     )
     parser.add_argument(
-        "--sweep_runner_dir", type=str, help="Absolute location of sweep_runner script"
+        "--sweep_runner_dir",
+        type=str,
+        default=os.path.join(root_dir, "droidlet/tools/hitl/nsp_retrain/scripts/"),
+        help="Relative location of sweep_runner script",
     )
     parser.add_argument(
-        "--sweep_config_folder", type=str, help="Absolute location of sweep configs"
+        "--sweep_config_folder",
+        type=str,
+        default=os.path.join(root_dir, "droidlet/tools/hitl/nsp_retrain/configs/"),
+        help="Relative location of sweep configs",
     )
     parser.add_argument(
-        "--sweep_scripts_output_dir", type=str, help="Absolute location for sweep shell scripts"
+        "--sweep_scripts_output_dir",
+        type=str,
+        default=os.path.join(
+            root_dir, "droidlet/tools/hitl/nsp_retrain/outputs/nsp/sweeps/scripts/"
+        ),
+        help="Relative location for sweep shell scripts",
     )
-    parser.add_argument("--output_dir", type=str, help="Absolute location for sweep job outputs")
     parser.add_argument(
-        "--checkpoint_dir", type=str, help="Absolute location of NSP checkpoint folder"
+        "--output_dir",
+        type=str,
+        default=os.path.join(
+            root_dir, "droidlet/tools/hitl/nsp_retrain/outputs/nsp/sweeps/job_output"
+        ),
+        help="Relative location for sweep job outputs",
+    )
+    parser.add_argument(
+        "--checkpoint_dir",
+        type=str,
+        default=os.path.join(root_dir, "droidlet/tools/hitl/nsp_retrain/outputs/"),
+        help="Relative location of NSP checkpoint folder",
     )
     parser.add_argument(
         "--retrain_data_splits",
@@ -463,9 +585,83 @@ if __name__ == "__main__":
         type=int,
         help="Number of new data samples below which no training occurs",
     )
+    # NLU model arguments
+    parser.add_argument(
+        "--pretrained_encoder_name",
+        default="distilbert-base-uncased",
+        type=str,
+        help="Pretrained text encoder."
+        "See full list at https://huggingface.co/transformers/pretrained_models.html",
+    )
+    parser.add_argument(
+        "--decoder_config_name",
+        default="bert-base-uncased",
+        type=str,
+        help="Name of Huggingface config used to initialize decoder architecture"
+        "See full list at https://huggingface.co/transformers/pretrained_models.html",
+    )
+    # Training hyperparameter
+    parser.add_argument(
+        "--batch_size",
+        default=32,
+        type=int,
+        help="Number of data per batch",
+    )
+    parser.add_argument(
+        "--num_epochs",
+        default=100,
+        type=int,
+        help="Number of training epochs",
+    )
+    parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
+    parser.add_argument(
+        "--dtype_samples",
+        default="annotated:1.0",
+        type=str,
+        help="Sampling probabilities for handling different data types",
+    )
+    parser.add_argument(
+        "--use_32g_gpu",
+        action="store_true",
+        help="Whether use GPU with 32g memory for training",
+    )
+    parser.add_argument(
+        "-decoder_learning_rate", type=float, nargs="+", help="Learning rate for the decoder"
+    )
+    parser.add_argument(
+        "-encoder_learning_rate", type=float, nargs="+", help="Learning rate for the decoder"
+    )
+    parser.add_argument(
+        "--encoder_warmup_steps",
+        default=1,
+        type=int,
+        help="Learning rate warmup steps for the encoder",
+    )
+    parser.add_argument(
+        "--decoder_warmup_steps",
+        default=1000,
+        type=int,
+        help="Learning rate warmup steps for the decoder",
+    )
     opts = parser.parse_args()
 
-    ndl = NSPNewDataListener(batch_id=456, opts=opts)
+    # build up sweep config folder if it doesn't exist
+    if not os.path.isdir(opts.sweep_config_folder):
+        os.makedirs(opts.sweep_config_folder, exist_ok=True)
+
+    # Setup sweep configuration file
+    with open(os.path.join(opts.sweep_config_folder, "sweep_config.txt"), "w") as f:
+        f.write("batch_size = " + str(opts.batch_size) + "\n")
+        f.write("num_epochs = " + str(opts.num_epochs) + "\n")
+        f.write("dtype_samples = " + str(opts.dtype_samples) + "\n")
+        f.write("decoder_learning_rate = ")
+        dlr_list = list(map(str, opts.decoder_learning_rate))
+        f.write(", ".join(dlr_list) + "\n")
+        f.write("encoder_learning_rate = ")
+        elr_list = list(map(str, opts.encoder_learning_rate))
+        f.write(", ".join(elr_list) + "\n")
+
+    ndl = NSPNewDataListener(batch_id=opts.batch_id, opts=opts)
     runner = TaskRunner()
     runner.register_job_listeners([ndl])
     runner.run()
