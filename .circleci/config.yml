@@ -335,59 +335,70 @@ jobs:
           name: Publish docs to gh-pages branch
           command: CACHE_DIR=~/cache gh-pages --dotfiles --message "[skip ci] Updates" --dist docs/
 
-  fairotag:
+  perception:
     docker:
       - image: continuumio/miniconda3
     resource_class: large
     steps:
       - checkout
-      - restore_cache:
-          key: deps9-{{ .Branch }}-{{ checksum "perception/fairotag/environment.yml" }}
       - run:
           name: Setup env
           command: |
             apt-get update
             apt-get install -y build-essential libgl1-mesa-dev
-            [ -d ~/testenv ] || conda env create -f perception/fairotag/environment.yml -p ~/testenv
+      # fairotag
+      - restore_cache:
+          key: deps9-{{ .Branch }}-perception-{{ checksum "perception/fairotag/environment.yml" }}
+      - run:
+          name: Setup conda env - fairotag
+          command: |
+            [ -d ~/fairotag_env ] || conda env create -f perception/fairotag/environment.yml -p ~/fairotag_env
       - save_cache:
-          key: deps9-{{ .Branch }}-{{ checksum "perception/fairotag/environment.yml" }}
+          key: deps9-{{ .Branch }}-perception-{{ checksum "perception/fairotag/environment.yml" }}
           paths:
-            - "~/testenv"
+            - "~/fairotag_env"
             - "/usr/lib"
       - run:
-          name: Run tests
+          name: Run tests - fairotag
           command: |
             conda init bash
             source ~/.bashrc
-            conda activate ~/testenv
+            conda activate ~/fairotag_env
             cd perception/fairotag
             pip install -e .
             pytest
-  eyehandcal:
-    docker:
-      - image: continuumio/miniconda3
-    resource_class: large
-    steps:
-      - checkout
+      # eyehandcal
       - restore_cache:
-          key: deps9-{{ .Branch }}-{{ checksum "perception/sandbox/eyehandcal/environment.yml" }}
+          key: deps9-{{ .Branch }}-perception-{{ checksum "perception/sandbox/eyehandcal/environment.yml" }}
       - run:
-          name: Setup env
+          name: Setup env - eyehandcal
           command: |
-            apt-get update
-            apt-get install -y build-essential libgl1-mesa-dev
-            [ -d ~/testenv ] || conda env create -f perception/sandbox/eyehandcal/environment.yml -p ~/testenv
+            [ -d ~/eyehandcal_env ] || conda env create -f perception/sandbox/eyehandcal/environment.yml -p ~/eyehandcal_env
       - save_cache:
-          key: deps9-{{ .Branch }}-{{ checksum "perception/sandbox/eyehandcal/environment.yml" }}
+          key: deps9-{{ .Branch }}-perception-{{ checksum "perception/sandbox/eyehandcal/environment.yml" }}
           paths:
-            - "~/testenv"
+            - "~/eyehandcal_env"
       - run:
-          name: Run tests
+          name: Run tests - eyehandcal
           command: |
             conda init bash
             source ~/.bashrc
-            conda activate ~/testenv
+            conda activate ~/eyehandcal_env/
             cd perception/sandbox/eyehandcal
+            pip install -e .
+            pytest tests
+      # iphone_reader
+      - run:
+          name: Setup env - iphone-reader
+          command: |
+            [ -d ~/iphone_reader_env ] || conda create -p ~/iphone_reader_env
+      - run:
+          name: Run tests - iphone_reader
+          command: |
+            conda init bash
+            source ~/.bashrc
+            conda activate ~/iphone_reader_env/
+            cd perception/iphone_reader
             pip install -e .
             pytest tests
   polygrasp:
@@ -480,9 +491,8 @@ workflows:
       - formatting
       - mrp
       - mrp-lint
-      - fairotag
+      - perception
       - fairomsg
-      - eyehandcal
       - polygrasp
       - update-docs:
           requires:
