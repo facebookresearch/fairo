@@ -3,12 +3,14 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
 from typing import List
+import numpy as np
 
 import droidlet.base_util
 import droidlet.perception.craftassist.heuristic_perception as heuristic_perception
 import droidlet.lowlevel.minecraft.shape_util
 import droidlet.lowlevel.minecraft.shapes
 import droidlet.lowlevel.minecraft.shapes as shapes
+from droidlet.lowlevel.minecraft.pyworld.item import GettableItem
 from droidlet.shared_data_structs import NextDialogueStep, ErrorWithResponse
 from droidlet.lowlevel.minecraft.mc_util import Block, strip_idmeta, euclid_dist
 from droidlet.interpreter.tests.all_test_commands import *
@@ -20,13 +22,15 @@ def add_two_cubes(test):
     test.cube_right: List[Block] = list(
         test.add_object(
             xyzbms=droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)),
-            origin=(9, 63, 4),
+            origin=(19, 63, 14),
             relations=triples,
         ).blocks.items()
     )
     test.cube_left: List[Block] = list(
         test.add_object(
-            xyzbms=droidlet.lowlevel.minecraft.shapes.cube(), origin=(9, 63, 10), relations=triples
+            xyzbms=droidlet.lowlevel.minecraft.shapes.cube(),
+            origin=(19, 63, 20),
+            relations=triples,
         ).blocks.items()
     )
     test.set_looking_at(test.cube_right[0][0])
@@ -164,6 +168,42 @@ class TwoCubesInterpreterTest(BaseCraftassistTestCase):
         self.assertEqual(len(changes), len(self.cube_right) + 1)
 
 
+class GetTest(BaseCraftassistTestCase):
+    def setUp(self):
+        stone = GettableItem("stone", idm=(1, 0))
+        obsidian = GettableItem("obsidian", idm=(49, 0))
+        super().setUp(items=[stone, obsidian])
+        self.set_looking_at((0, 63, 0))
+
+    def test_gets(self):
+        d = GIVE_GET_BRING_COMMANDS["get the stone"]
+        changes = self.handle_logical_form(d)
+        items = self.world.get_items()
+        for i in items:
+            if i["typeName"] == "stone":
+                assert i["holder_entityId"] == self.agent.entityId
+            if i["typeName"] == "obsidian":
+                assert i["holder_entityId"] == -1
+        d = GIVE_GET_BRING_COMMANDS["drop the stone"]
+        changes = self.handle_logical_form(d)
+        items = self.world.get_items()
+        for i in items:
+            if i["typeName"] == "stone":
+                assert i["holder_entityId"] == -1
+            if i["typeName"] == "obsidian":
+                assert i["holder_entityId"] == -1
+        d = GIVE_GET_BRING_COMMANDS["bring me the stone"]
+        changes = self.handle_logical_form(d)
+        items = self.world.get_items()
+        for i in items:
+            if i["typeName"] == "stone":
+                assert i["holder_entityId"] == -1
+                speaker_pos = self.agent.get_other_players()[0].pos
+                assert np.linalg.norm(np.array(i["pos"]) - np.array(speaker_pos)) < 3
+            if i["typeName"] == "obsidian":
+                assert i["holder_entityId"] == -1
+
+
 class DigTest(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
@@ -276,14 +316,14 @@ class CirclesLeftOfCircleTest(BaseCraftassistTestCase):
         triples = {"has_name": "circle", "has_shape": "circle"}
         self.circle_right: List[Block] = list(
             self.add_object(
-                xyzbms=shapes.circle(bid=(42, 0)), origin=(2, 63, 4), relations=triples
+                xyzbms=shapes.circle(bid=(42, 0)), origin=(2, 63, 10), relations=triples
             ).blocks.items()
         )
         self.set_looking_at(self.circle_right[0][0])
 
     def test_build_other_circle(self):
         d = BUILD_COMMANDS["build a circle to the left of the circle"]
-        changes = self.handle_logical_form(d)
+        changes = self.handle_logical_form(d, max_steps=1000)
         self.assertGreater(len(changes), 0)
 
 
@@ -313,7 +353,7 @@ class MoveBetweenTest(BaseCraftassistTestCase):
 class DestroyRedCubeTest(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
-        self.set_looking_at((0, 63, 0))
+        self.set_looking_at((6, 65, 6))
 
     def test_destroy_red_cube(self):
         d = BUILD_COMMANDS["build a red cube"]
@@ -343,7 +383,7 @@ class DestroyEverythingTest(BaseCraftassistTestCase):
 class FillTest(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
-        self.hole_poss = [(x, 62, z) for x in (8, 9) for z in (10, 11)]
+        self.hole_poss = [(x, 62, z) for x in (6, 7) for z in (6, 7)]
         self.set_blocks([(pos, (0, 0)) for pos in self.hole_poss])
         self.set_looking_at(self.hole_poss[0])
 

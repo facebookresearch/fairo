@@ -5,6 +5,8 @@ import unittest
 from unittest.mock import Mock
 import copy
 
+from droidlet.memory.memory_nodes import ChatNode
+
 from .fake_agent import FakeAgent
 from .world import World, Opt, SimpleHuman, make_human_opts
 
@@ -100,12 +102,17 @@ class BaseFakeAgentTestCase(unittest.TestCase):
         """Add a chat to memory as if it was just spoken by SPEAKER"""
         self.world.chat_log.append("<" + speaker_name + ">" + " " + chat)
         if add_to_memory:
-            self.agent.memory.add_chat(
-                self.agent.memory.get_player_by_name(self.speaker).memid, chat
+            memid, _ = self.agent.memory.basic_search(
+                f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player and name={speaker_name}"
             )
+            # FIXME throw error or add as a new speaker if the speaker is not found
+            self.agent.memory.nodes[ChatNode.NODE_TYPE].create(self.agent.memory, memid[0], chat)
 
     def last_outgoing_chat(self) -> str:
         return self.agent.get_last_outgoing_chat()
 
     def get_speaker_pos(self):
-        return self.agent.memory.get_player_by_name(self.speaker).pos
+        _, memnode = self.agent.memory.basic_search(
+            f"SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name={self.speaker}"
+        )
+        return memnode[0].pos

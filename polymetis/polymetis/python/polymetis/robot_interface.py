@@ -9,6 +9,8 @@ import tempfile
 import threading
 import atexit
 import logging
+from omegaconf import DictConfig
+import hydra
 
 import grpc  # This requires `conda install grpcio protobuf`
 import torch
@@ -66,14 +68,26 @@ class BaseRobotInterface:
     """
 
     def __init__(
-        self, ip_address: str = "localhost", port: int = 50051, enforce_version=True
+        self,
+        ip_address: str = "localhost",
+        port: int = 50051,
+        enforce_version=True,
+        use_mirror_sim: bool = False,
+        mirror_cfg: DictConfig = None,
+        mirror_ip: str = "",
+        mirror_port: int = -1,
+        mirror_metadata: DictConfig = None,
     ):
         # Create connection
         self.channel = grpc.insecure_channel(f"{ip_address}:{port}")
         self.grpc_connection = PolymetisControllerServerStub(self.channel)
 
         # Get metadata
-        self.metadata = self.grpc_connection.GetRobotClientMetadata(EMPTY)
+        self.metadata = (
+            mirror_metadata
+            if mirror_metadata
+            else self.grpc_connection.GetRobotClientMetadata(EMPTY)
+        )
 
         # Check version
         if enforce_version:
@@ -82,6 +96,12 @@ class BaseRobotInterface:
             assert (
                 client_ver == server_ver
             ), "Version mismatch between client & server detected! Set enforce_version=False to bypass this error."
+
+        self.use_mirror_sim = use_mirror_sim
+        if use_mirror_sim:
+            self.mirror_sim_client = hydra.utils.instantiate(mirror_cfg.robot_client)
+            self.mirror_ip = mirror_ip
+            self.mirror_port = mirror_port
 
     def __del__(self):
         # Close connection in destructor
@@ -160,6 +180,13 @@ class BaseRobotInterface:
         assert log_interval.start != -1, "Cannot find previous episode."
         return log_interval
 
+    def is_running_policy(self) -> bool:
+        log_interval = self.grpc_connection.GetEpisodeInterval(EMPTY)
+        return (
+            log_interval.start != -1  # policy has started
+            and log_interval.end == -1  # policy has not ended
+        )
+
     def get_previous_log(self, timeout: float = None) -> List[RobotState]:
         """Get the list of RobotStates associated with the currently running policy.
 
@@ -178,6 +205,7 @@ class BaseRobotInterface:
         torch_policy: toco.PolicyModule,
         blocking: bool = True,
         timeout: float = None,
+        use_mirror: bool = False,
     ) -> List[RobotState]:
         """Sends the ScriptableTorchPolicy to the server.
 
@@ -190,6 +218,13 @@ class BaseRobotInterface:
             If `blocking`, returns a list of RobotState objects. Otherwise, returns None.
 
         """
+        if use_mirror:
+            assert (
+                self.mirror_sim_robot
+            ), "Must call setup_mirror_for_forward before forward methods can be used on mirror sim"
+            return self.mirror_sim_robot.send_torch_policy(
+                torch_policy, blocking, timeout, use_mirror=False
+            )
         start_time = time.time()
 
         # Script & chunk policy
@@ -260,6 +295,35 @@ class BaseRobotInterface:
         if return_log:
             return self._get_robot_state_log(log_interval, timeout=timeout)
 
+    # MIRROR METHODS
+
+    def sync_with_mirror(self):
+        assert self.use_mirror_sim, "Mirror sim must be instantiated!"
+        assert not self.mirror_sim_robot, "Clean mirror after forward in order to sync!"
+        self.mirror_sim_client.sync(self)
+
+    def unsync_with_mirror(self):
+        assert self.use_mirror_sim, "Mirror sim must be instantiated!"
+        self.mirror_sim_client.unsync()
+
+    def setup_mirror_for_forward(self):
+        assert self.use_mirror_sim, "Mirror sim must be instantiated!"
+        assert (
+            not self.mirror_sim_client._state_setter
+        ), "Unsync before setting up for forward!"
+        self.mirror_sim_client.run(time_horizon=1)
+        self.mirror_sim_client.run_no_wait()
+        self.mirror_sim_robot = RobotInterface(
+            ip_address=self.mirror_ip,
+            port=self.mirror_port,
+            mirror_metadata=self.mirror_sim_client.metadata.get_proto(),
+        )
+
+    def clean_mirror_after_forward(self):
+        assert self.use_mirror_sim, "Mirror sim must be instantiated!"
+        self.mirror_sim_client.kill_run()
+        self.mirror_sim_robot = None
+
 
 class RobotInterface(BaseRobotInterface):
     """
@@ -276,7 +340,7 @@ class RobotInterface(BaseRobotInterface):
 
     def __init__(
         self,
-        time_to_go_default: float = 3.0,
+        time_to_go_default: float = 1.0,
         use_grav_comp: bool = True,
         *args,
         **kwargs,
@@ -285,6 +349,7 @@ class RobotInterface(BaseRobotInterface):
 
         with tempfile.NamedTemporaryFile("w+") as urdf_file:
             urdf_file.write(self.metadata.urdf_file)
+            urdf_file.flush()
             self.set_robot_model(urdf_file.name, self.metadata.ee_link_name)
 
         self.set_home_pose(torch.Tensor(self.metadata.rest_pose))
@@ -313,6 +378,28 @@ class RobotInterface(BaseRobotInterface):
         joint_pos_diff = torch.abs(joint_displacement)
         time_to_go = torch.max(joint_pos_diff / joint_vel_limits * 8.0)
         return max(time_to_go, self.time_to_go_default)
+
+    def solve_inverse_kinematics(
+        self,
+        position: torch.Tensor,
+        orientation: torch.Tensor,
+        q0: torch.Tensor,
+        tol: float = 1e-3,
+    ) -> Tuple[torch.Tensor, bool]:
+        """Compute inverse kinematics given desired EE pose"""
+        # Call IK
+        joint_pos_output = self.robot_model.inverse_kinematics(
+            position, orientation, rest_pose=q0
+        )
+
+        # Check result
+        pos_output, quat_output = self.robot_model.forward_kinematics(joint_pos_output)
+        pose_desired = T.from_rot_xyz(R.from_quat(orientation), position)
+        pose_output = T.from_rot_xyz(R.from_quat(quat_output), pos_output)
+        err = torch.linalg.norm((pose_desired * pose_output.inv()).as_twist())
+        ik_sol_found = err < tol
+
+        return joint_pos_output, ik_sol_found
 
     """
     Setter methods
@@ -413,16 +500,23 @@ class RobotInterface(BaseRobotInterface):
         torch_policy = toco.policies.JointTrajectoryExecutor(
             joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
             joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
-            Kp=Kq or self.Kq_default,
-            Kd=Kqd or self.Kqd_default,
+            Kq=self.Kq_default if Kq is None else Kq,
+            Kqd=self.Kqd_default if Kqd is None else Kqd,
+            Kx=self.Kx_default,
+            Kxd=self.Kxd_default,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
 
         return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
 
-    def go_home(self, *args, **kwargs) -> List[RobotState]:
+    def go_home(self, use_mirror=False, *args, **kwargs) -> List[RobotState]:
         """Calls move_to_joint_positions to the current home positions."""
+        if use_mirror:
+            assert (
+                self.mirror_sim_robot
+            ), "Must call setup_mirror_for_forward before forward methods can be used on mirror sim"
+            return self.mirror_sim_robot.go_home(use_mirror=False, *args, **kwargs)
         assert (
             self.home_pose is not None
         ), "Home pose not assigned! Call 'set_home_pose(<joint_angles>)' to enable homing"
@@ -438,6 +532,7 @@ class RobotInterface(BaseRobotInterface):
         delta: bool = False,
         Kx: torch.Tensor = None,
         Kxd: torch.Tensor = None,
+        op_space_interp: bool = True,
         **kwargs,
     ) -> List[RobotState]:
         """Uses an operational space controller to move to a desired end-effector position (and, optionally orientation).
@@ -448,6 +543,7 @@ class RobotInterface(BaseRobotInterface):
             delta: Whether the specified `position` and `orientation` are relative to current pose or absolute.
             Kx: P gains for the tracking controller. Uses default values if not specified.
             Kxd: D gains for the tracking controller. Uses default values if not specified.
+            op_space_interp: Interpolate trajectory in operational space, resulting in a straight line in 3D space instead of the shortest path in joint movement space.
 
         Returns:
             Same as `send_torch_policy`
@@ -456,6 +552,7 @@ class RobotInterface(BaseRobotInterface):
             self.robot_model is not None
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
 
+        joint_pos_current = self.get_joint_positions()
         ee_pos_current, ee_quat_current = self.get_ee_pose()
 
         # Parse parameters
@@ -475,63 +572,85 @@ class RobotInterface(BaseRobotInterface):
                     R.from_quat(ee_quat_desired) * R.from_quat(ee_quat_current)
                 ).as_quat()
 
-        ee_pose_current = T.from_rot_xyz(
-            rotation=R.from_quat(ee_quat_current), translation=ee_pos_current
+        # Compute joint space target
+        joint_pos_desired, success = self.solve_inverse_kinematics(
+            ee_pos_desired, ee_quat_desired, joint_pos_current
         )
-        ee_pose_desired = T.from_rot_xyz(
-            rotation=R.from_quat(ee_quat_desired), translation=ee_pos_desired
-        )
-        # Roughly estimate joint diff by linearizing around current joint pose
-        joint_pos_current = self.get_joint_positions()
-        jacobian = self.robot_model.compute_jacobian(joint_pos_current)
+        if not success:
+            log.warning(
+                "Unable to find valid joint target. Skipping move_to_ee_pose command..."
+            )
+            return []
 
-        ee_pose_diff = ee_pose_desired * ee_pose_current.inv()
-        joint_pos_diff = torch.linalg.pinv(jacobian) @ ee_pose_diff.as_twist()
-        time_to_go_adaptive = self._adaptive_time_to_go(joint_pos_diff)
-
+        # Compute adaptive time_to_go
         if time_to_go is None:
+            time_to_go_adaptive = self._adaptive_time_to_go(
+                joint_pos_desired - joint_pos_current
+            )
             time_to_go = time_to_go_adaptive
-        elif time_to_go < time_to_go_adaptive:
-            log.warn(
-                "The specified 'time_to_go' might not be large enough to ensure accurate movement."
+
+        # Generate & run policy
+        if op_space_interp:
+            # Compute operational space trajectory
+            ee_pose_desired = T.from_rot_xyz(
+                rotation=R.from_quat(ee_quat_desired), translation=ee_pos_desired
+            )
+            waypoints = toco.planning.generate_cartesian_target_joint_min_jerk(
+                joint_pos_start=joint_pos_current,
+                ee_pose_goal=ee_pose_desired,
+                time_to_go=time_to_go,
+                hz=self.hz,
+                robot_model=self.robot_model,
+                home_pose=self.home_pose,
             )
 
-        # Plan trajectory
-        waypoints = toco.planning.generate_cartesian_space_min_jerk(
-            start=ee_pose_current,
-            goal=ee_pose_desired,
-            time_to_go=time_to_go,
-            hz=self.hz,
-        )
+            # Create joint tracking policy and run
+            torch_policy = toco.policies.JointTrajectoryExecutor(
+                joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
+                joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
+                Kq=self.Kq_default,
+                Kqd=self.Kqd_default,
+                Kx=self.Kx_default if Kx is None else Kx,
+                Kxd=self.Kxd_default if Kxd is None else Kxd,
+                robot_model=self.robot_model,
+                ignore_gravity=self.use_grav_comp,
+            )
 
-        # Create & execute policy
-        torch_policy = toco.policies.EndEffectorTrajectoryExecutor(
-            ee_pose_trajectory=[waypoint["pose"] for waypoint in waypoints],
-            ee_twist_trajectory=[waypoint["twist"] for waypoint in waypoints],
-            Kp=Kx or self.Kx_default,
-            Kd=Kxd or self.Kxd_default,
-            robot_model=self.robot_model,
-            ignore_gravity=self.use_grav_comp,
-        )
+            return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
 
-        return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
+        else:
+            # Use joint space controller to move to joint target
+            return self.move_to_joint_positions(
+                joint_pos_desired, time_to_go=time_to_go
+            )
 
     """
     Continuous control methods
     """
 
-    def start_joint_impedance(self, Kq=None, Kqd=None, **kwargs):
+    def start_joint_impedance(self, Kq=None, Kqd=None, adaptive=True, **kwargs):
         """Starts joint position control mode.
         Runs an non-blocking joint impedance controller.
         The desired joint positions can be updated using `update_desired_joint_positions`
         """
-        torch_policy = toco.policies.JointImpedanceControl(
-            joint_pos_current=self.get_joint_positions(),
-            Kp=Kq or self.Kq_default,
-            Kd=Kqd or self.Kqd_default,
-            robot_model=self.robot_model,
-            ignore_gravity=self.use_grav_comp,
-        )
+        if adaptive:
+            torch_policy = toco.policies.HybridJointImpedanceControl(
+                joint_pos_current=self.get_joint_positions(),
+                Kq=self.Kq_default if Kq is None else Kq,
+                Kqd=self.Kqd_default if Kqd is None else Kqd,
+                Kx=self.Kx_default,
+                Kxd=self.Kxd_default,
+                robot_model=self.robot_model,
+                ignore_gravity=self.use_grav_comp,
+            )
+        else:
+            torch_policy = toco.policies.JointImpedanceControl(
+                joint_pos_current=self.get_joint_positions(),
+                Kp=self.Kq_default if Kq is None else Kq,
+                Kd=self.Kqd_default if Kqd is None else Kqd,
+                robot_model=self.robot_model,
+                ignore_gravity=self.use_grav_comp,
+            )
 
         return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
 
@@ -540,17 +659,19 @@ class RobotInterface(BaseRobotInterface):
         Runs an non-blocking Cartesian impedance controller.
         The desired EE pose can be updated using `update_desired_ee_pose`
         """
-        torch_policy = toco.policies.CartesianImpedanceControl(
+        torch_policy = toco.policies.HybridJointImpedanceControl(
             joint_pos_current=self.get_joint_positions(),
-            Kp=Kx or self.Kx_default,
-            Kd=Kxd or self.Kxd_default,
+            Kq=self.Kq_default,
+            Kqd=self.Kqd_default,
+            Kx=self.Kx_default if Kx is None else Kx,
+            Kxd=self.Kxd_default if Kxd is None else Kxd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
 
         return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
 
-    def update_desired_joint_positions(self, positions: torch.Tensor):
+    def update_desired_joint_positions(self, positions: torch.Tensor) -> int:
         """Update the desired joint positions used by the joint position control mode.
         Requires starting a joint impedance controller with `start_joint_impedance` beforehand.
         """
@@ -568,21 +689,53 @@ class RobotInterface(BaseRobotInterface):
         self,
         position: torch.Tensor = None,
         orientation: torch.Tensor = None,
-    ):
+    ) -> int:
         """Update the desired EE pose used by the Cartesian position control mode.
         Requires starting a Cartesian impedance controller with `start_cartesian_impedance` beforehand.
         """
-        param_dict = {}
-        if position is not None:
-            param_dict["ee_pos_desired"] = position
-        if orientation is not None:
-            param_dict["ee_quat_desired"] = orientation
+        joint_pos_current = self.get_joint_positions()
+        ee_pos_current, ee_quat_current = self.get_ee_pose()
+        ee_pos_desired = ee_pos_current if position is None else position
+        ee_quat_desired = ee_quat_current if orientation is None else orientation
 
+        joint_pos_desired, success = self.solve_inverse_kinematics(
+            ee_pos_desired, ee_quat_desired, joint_pos_current
+        )
+        if not success:
+            log.warning(
+                "Unable to find valid joint target. Skipping update_desired_ee_pose command..."
+            )
+            return -1
+
+        return self.update_desired_joint_positions(joint_pos_desired)
+
+    def start_joint_velocity_control(
+        self, joint_vel_desired, hz=None, Kq=None, Kqd=None, **kwargs
+    ):
+        """Starts joint velocity control mode.
+        Runs a non-blocking joint velocity controller.
+        The desired joint velocities can be updated using `update_desired_joint_velocities`
+        """
+        torch_policy = toco.policies.JointVelocityControl(
+            joint_vel_desired=joint_vel_desired,
+            Kp=self.Kq_default if Kq is None else Kq,
+            Kd=self.Kqd_default if Kqd is None else Kqd,
+            robot_model=self.robot_model,
+            hz=self.metadata.hz if hz is None else hz,
+            ignore_gravity=self.use_grav_comp,
+        )
+
+        return self.send_torch_policy(torch_policy=torch_policy, blocking=False)
+
+    def update_desired_joint_velocities(self, velocities: torch.Tensor):
+        """Update the desired joint velocities used by the joint velocities control mode.
+        Requires starting a joint velocities controller with `start_joint_velocity_control` beforehand.
+        """
         try:
-            update_idx = self.update_current_policy(param_dict)
+            update_idx = self.update_current_policy({"joint_vel_desired": velocities})
         except grpc.RpcError as e:
             log.error(
-                "Unable to update desired EE pose. Use 'start_cartesian_impedance' to start a Cartesian impedance controller."
+                "Unable to update desired joint velocities. Use 'start_joint_velocity_control' to start a joint velocities controller."
             )
             raise e
 

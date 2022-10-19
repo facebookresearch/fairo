@@ -107,6 +107,14 @@ def white():
     return (35, 0)
 
 
+def dirt():
+    return (3, 0)
+
+
+def grass():
+    return (2, 0)
+
+
 def make_pose(args, loc=None, pitchyaw=None, height_map=None):
     """
     make a random pose for player or mob.
@@ -118,12 +126,12 @@ def make_pose(args, loc=None, pitchyaw=None, height_map=None):
     """
     ENTITY_HEIGHT = 2
     if loc is None:
-        x, y, z = np.random.randint((args.SL, args.H, args.SL))
+        x, y, z = np.random.randint((args.SL / 3, args.H / 3, args.SL / 3)) + args.SL / 3
     else:
         x, y, z = loc
     if pitchyaw is None:
-        pitch = np.random.uniform(-90, 90)
-        yaw = np.random.uniform(-180, 180)
+        pitch = np.random.uniform(-np.pi / 2, np.pi / 2)
+        yaw = np.random.uniform(-np.pi, np.pi)
     else:
         pitch, yaw = pitchyaw
     # put the entity above the current height map.  this will break if
@@ -147,10 +155,16 @@ def build_base_world(sl, h, g, fence=False):
     for i in range(sl):
         for j in range(g):
             for k in range(sl):
-                if (i == 0 or i == sl - 1 or k == 0 or k == sl - 1) and j == g - 1 and fence:
+                if (
+                    (i < sl / 3 or i >= 2 * sl / 3 or k < sl / 3 or k >= 2 * sl / 3)
+                    and j == g - 1
+                    and fence
+                ):
                     idm = red()
+                elif j == (g - 1):
+                    idm = grass()
                 else:
-                    idm = white()
+                    idm = dirt()
                 W[(i, j, k)] = idm
     return W
 
@@ -216,7 +230,9 @@ def collect_scene(blocks, inst_segs, args, mobs=[]):
             pitchyaw = (p, yaw)
         else:
             loc = None
-            pitchyaw = None
+            # For mobs we want random yaw, but 0 pitch
+            yaw = np.random.uniform(-np.pi, np.pi)
+            pitchyaw = (0, yaw)
         mob["pose"] = make_pose(args, loc=loc, pitchyaw=pitchyaw, height_map=height_map)
         J["mobs"].append(mob)
     # FIXME not using the avatar and agent position in cuberite...
@@ -249,7 +265,6 @@ def build_shape_scene(args):
     fence = getattr(args, "fence", False)
     blocks = build_base_world(args.SL, args.H, args.GROUND_DEPTH, fence=fence)
     if args.iglu_scenes:
-        import pickle
 
         with open(args.iglu_scenes, "rb") as f:
             assets = pickle.load(f)

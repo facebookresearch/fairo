@@ -37,7 +37,6 @@ class NextDialogueStep(Exception):
 # FIXME!  why is this here?
 class RGBDepth:
     """Class for the current RGB, depth and point cloud fetched from the robot.
-
     Args:
         rgb (np.array): RGB image fetched from the robot
         depth (np.array): depth map fetched from the robot
@@ -121,9 +120,13 @@ class MockOpt:
         self.mark_airtouching_blocks = False
         # test does not instantiate cpp client
         self.port = -1
+        self.backend = "pyworld"
         self.no_default_behavior = False
         self.log_timeline = False
         self.enable_timeline = False
+        # flag for whether loading true model
+        self.flag_load_nsp_model = False
+        self.allow_clarification = False
 
 
 class PriorityQueue:

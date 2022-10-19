@@ -6,7 +6,7 @@ This is a very basic, single process example.
 
 To launch:
 ```sh
-mrp -v up
+mrp up
 ```
 
 A Conda env will be created with Python 3.7+, and `python3 proc.py` will be executed inside that environment.

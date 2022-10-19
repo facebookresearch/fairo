@@ -1,4 +1,5 @@
 import a0
+import asyncio
 import collections.abc
 import contextlib
 import glob
@@ -29,22 +30,78 @@ def common_env_context(proc_def):
         os.environ.update(old_environ)
 
 
-def _make_plaintext_logger(logger_callback):
-    logger = a0.Logger(a0.env.topic())
+class PlainTextLogger:
+    def __init__(self):
+        self._logger = a0.Logger(a0.env.topic())
 
-    def write(msg):
-        pkt = a0.Packet([("content-type", "text/plain")], msg)
-        logger_callback(logger, pkt)
+    def _plaintext_pkt(self, payload=None, headers=None):
+        payload = payload or ""
+        headers = headers or []
+        headers.append(("content-type", "text/plain"))
+        return a0.Packet(headers, payload)
 
-    return write
+    def info(self, payload=None, *, headers=None):
+        self._logger.info(self._plaintext_pkt(payload, headers))
+
+    def err(self, payload=None, *, headers=None):
+        self._logger.err(self._plaintext_pkt(payload, headers))
 
 
-def stdout_logger():
-    return _make_plaintext_logger(lambda logger, pkt: logger.info(pkt))
+class LogPtyPipes:
+    def __init__(self, fd_in, fd_out, fd_err):
+        self.fd_in = fd_in
+        self.fd_out = fd_out
+        self.fd_err = fd_err
+        self.ptl = PlainTextLogger()
 
+    def start(self):
+        loop = asyncio.get_event_loop()
+        loop.add_reader(
+            self.fd_out,
+            self._read_impl,
+            self.fd_out,
+            a0.Publisher(f"mrp/{a0.env.topic()}/stdout").pub,
+            self.ptl.info,
+            [b""],
+        )
+        loop.add_reader(
+            self.fd_err,
+            self._read_impl,
+            self.fd_err,
+            a0.Publisher(f"mrp/{a0.env.topic()}/stderr").pub,
+            self.ptl.err,
+            [b""],
+        )
+        self._write_task = asyncio.create_task(self._write_impl())
 
-def stderr_logger():
-    return _make_plaintext_logger(lambda logger, pkt: logger.err(pkt))
+    async def stop(self):
+        loop = asyncio.get_event_loop()
+        loop.remove_reader(self.fd_out)
+        loop.remove_reader(self.fd_err)
+        self._write_task.cancel()
+
+    def _read_impl(self, fd, pub, log, residual):
+        data = os.read(fd, 4 * 1024)
+        if not data:
+            return
+
+        pub(data)
+
+        lines = data.split(b"\n")
+        if len(lines) == 1:
+            residual[0] += lines[0]
+            return
+
+        lines[0] = residual[0] + lines[0]
+
+        for line in lines[:-1]:
+            log(line[: 4 * 1024])
+
+        residual[0] = lines[-1]
+
+    async def _write_impl(self):
+        async for pkt in a0.aio_sub(f"mrp/{a0.env.topic()}/stdin"):
+            os.write(self.fd_in, pkt.payload)
 
 
 def pid_children(pid):

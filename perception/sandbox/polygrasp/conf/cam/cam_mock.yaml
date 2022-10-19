@@ -1,0 +1,5 @@
+cam:
+  _target_: polygrasp_test.mocked.MockedCam
+  rgbd_path: data/rgbd.npy
+  intrinsics_file: conf/intrinsics.json
+  extrinsics_file: ../eyehandcal/calibration.json

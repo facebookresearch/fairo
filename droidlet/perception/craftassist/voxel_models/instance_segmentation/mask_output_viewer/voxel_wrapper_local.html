@@ -1,0 +1,22 @@
+<!-- Copyright (c) Facebook, Inc. and its affiliates.
+   This source code is licensed under the MIT license found in the
+   LICENSE file in the root directory of this source tree. -->
+
+<html>
+    <head>
+        <link	
+            rel="stylesheet"	
+            href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"	
+        />	
+    </head>
+    <body>
+        <div id="voxel_viewer"></div>  <!--three.js canvases-->
+        <br>
+        <div id="buttons">
+            <button type="button" class="center btn btn-secondary" id="prevScene">Load the previous scene</button>
+            <button type="button" class="center btn btn-secondary" id="nextScene">Load the next scene    </button>
+        </div>
+    </body>
+    <script type='module' id="voxelViewer" src='voxel_viewer_local.mjs'></script>
+    <link rel="stylesheet" href="voxel_wrapper.css">
+</html>

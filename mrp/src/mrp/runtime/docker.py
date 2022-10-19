@@ -2,7 +2,9 @@ from mrp import life_cycle
 from mrp import util
 from mrp.process_def import ProcDef
 from mrp.runtime.base import BaseLauncher, BaseRuntime
+import a0
 import aiodocker
+import aiohttp
 import asyncio
 import contextlib
 import docker
@@ -73,6 +75,8 @@ class Launcher(BaseLauncher):
             "Env": ["=".join(kv) for kv in env.items()],
             "Labels": labels,
             "User": f"{id_info.pw_uid}:{id_info.pw_gid}",
+            "Tty": True,
+            "OpenStdin": True,
             "HostConfig": {
                 "Privileged": True,
                 "NetworkMode": "host",
@@ -88,6 +92,7 @@ class Launcher(BaseLauncher):
 
         try:
             self.proc = await docker.containers.create_or_replace(container, run_kwargs)
+            self.proc_io = await self.proc.websocket()
             await self.proc.start()
             proc_info = await self.proc.show()
         except Exception as e:
@@ -102,15 +107,19 @@ class Launcher(BaseLauncher):
         self.proc_pid = proc_info["State"]["Pid"]
         life_cycle.set_state(self.name, life_cycle.State.STARTED)
 
-        async def log_pipe(logger, pipe):
+        ptl = util.PlainTextLogger()
+
+        async def log_pipe(log_fn, pipe):
             async for line in pipe:
-                logger(line)
+                log_fn(line)
 
         self.down_task = asyncio.create_task(self.down_watcher(self.handle_down))
         try:
             await asyncio.gather(
-                log_pipe(util.stdout_logger(), self.proc.log(stdout=True, follow=True)),
-                log_pipe(util.stderr_logger(), self.proc.log(stderr=True, follow=True)),
+                log_pipe(ptl.info, self.proc.log(stdout=True, follow=True)),
+                log_pipe(ptl.err, self.proc.log(stderr=True, follow=True)),
+                self.stdout_pipe(),
+                self.stdin_pipe(),
                 self.log_psutil(),
                 self.death_handler(),
                 self.down_task,
@@ -138,6 +147,22 @@ class Launcher(BaseLauncher):
         with contextlib.suppress(asyncio.TimeoutError):
             await self.proc.wait(timeout=3.0)
         await self.proc.delete(force=True)
+
+    async def stdout_pipe(self):
+        pub = a0.Publisher(f"mrp/{a0.env.topic()}/stdout").pub
+
+        while True:
+            msg = await self.proc_io.receive()
+            if msg.type not in [aiohttp.WSMsgType.BINARY, aiohttp.WSMsgType.TEXT]:
+                break
+            pub(msg.data)
+
+    async def stdin_pipe(self):
+        try:
+            async for pkt in a0.aio_sub(f"mrp/{a0.env.topic()}/stdin"):
+                await self.proc_io.send_bytes(pkt.payload)
+        except ConnectionResetError:
+            pass
 
 
 class Docker(BaseRuntime):
@@ -259,15 +284,19 @@ class Docker(BaseRuntime):
         if uses_ldap or nfs_mounts:
             dockerfile = [f"FROM {self.image}"]
             if uses_ldap:
-                dockerfile.append(
-                    " && ".join(
-                        [
-                            "RUN apt update",
-                            "DEBIAN_FRONTEND=noninteractive apt install -y sssd",
-                            "rm -rf /var/lib/apt/lists/*",
-                        ]
-                    )
+                # We try to inject sssd to allow the container to communicate with the ldap server.
+                # We assume the docker container provides apt. If there is no apt, we skip this step. The user id and group ids will still correctly match the active user, but the user and group names will not be fetchable.
+                apt_install_sssd_cmd = " && ".join(
+                    [
+                        "apt update",
+                        "DEBIAN_FRONTEND=noninteractive apt install -y sssd",
+                        "rm -rf /var/lib/apt/lists/*",
+                    ]
                 )
+                try_apt_install_sssd_cmd = (
+                    f"if [ $(which apt) ] ; then $({apt_install_sssd_cmd}) ; fi"
+                )
+                dockerfile.append(f"RUN {try_apt_install_sssd_cmd}")
             for nfs_mount in nfs_mounts:
                 relpath = os.path.relpath(nfs_mount["host"], nfs_mount["host_nfs_root"])
                 container_fullpath = os.path.join(

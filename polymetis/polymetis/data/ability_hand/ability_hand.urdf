@@ -1,0 +1,498 @@
+<!--
+	NOTES:
+	Units:
+		Distance: m
+		Angles: rad (only option)
+		Mass: kg
+		Inertia: kg*m^2
+		
+	Notes on intertia:
+		-The inertias are calculated for uniform density with weights that may or may not be accurate.
+		At the time of this writing only the thumb flexor weight is correct. The palm is a 'best guess' 
+		approximation and the fingers are likely off by an order of magnitude
+	
+	Notes on finger q2:
+		-The hand is a 4 bar linkage mechanism forming an 'X'. 4 bar linkages are not supported in the 
+		urdf format. The motion of the second finger joint is fully defined by the motion of the first 
+		finger joint. The calculation to find the index finger second joint angle given the first is provided
+		in a matlab script elsewhere in this repository.
+-->
+<robot name="ability_hand">
+
+	<link name="base" >
+		<inertial>
+			<mass value = "0.400"/>
+			<inertia ixx="978.26e-6" ixy = "87.34e-6" ixz = "322.99e-6" iyy = "1244.78e-6" iyz = "244.74e-6" izz = "456.22e-6" />
+			<origin xyz = "22.41911e-3 -0.15798201e-3 -0.01319866e-3" rpy = "0 0 0"/>
+		</inertial>
+				
+		<!--WristPlateBone-->
+		<visual>
+			<origin xyz = "27.412417e-3 -0.454432e-3 26.510489e-3" rpy = "0.006361 -0.088345 3.069623" />
+			<geometry>
+				<cylinder length = "3.9e-3" radius = "24.05e-3"/>
+			</geometry>
+		</visual>
+		<!--Wrist Bone 2-->
+		<visual>
+			<origin xyz = "36.796220e-3 -8.001000e-3 12.124025e-3" rpy = "-3.086612 -0.059956 2.398653" />
+			<geometry>
+				<cylinder length = "25.000660e-3" radius = "3.500000e-3" />
+			</geometry>
+		</visual>
+		<!--Wrist Bone-->
+		<visual>
+			<origin xyz = "8.509640e-3 -8.001000e-3 14.636040e-3" rpy = "-0.059614 0.065548 -0.738965" />
+			<geometry>
+				<cylinder length = "25.000001e-3" radius = "3.500000e-3" />
+			</geometry>
+		</visual>
+		<!--Bar Bone-->
+		<visual>
+			<origin xyz = "25.349180e-3 -8.001000e-3 0.000000e-3" rpy = "1.570796 -0.785398 -1.570796" />
+			<geometry>
+				<cylinder length = "66.000000e-3" radius = "7.00000e-3" />
+			</geometry>
+		</visual>
+		<!--Pinky Bone-->
+		<visual>
+			<origin xyz = "50.889805e-3 -8.753450e-3 -29.632815e-3" rpy = "-0.076208 -0.019754 -0.799369" />
+			<geometry>
+				<cylinder length = "67.000008e-3" radius = "3.500000e-3" />
+			</geometry>
+		</visual>
+		<!--Ringbone Bone-->
+		<visual>
+			<origin xyz = "31.064135e-3 -10.290505e-3 -34.034900e-3" rpy = "-0.103572 -0.064539 -0.831114" />
+			<geometry>
+				<cylinder length = "67.000202e-3" radius = "3.500000e-3" />
+			</geometry>
+		</visual>
+		<!--Middlebone Bone-->
+		<visual>
+			<origin xyz = "12.268540e-3 -12.148345e-3 -34.606210e-3" rpy = "-0.122139 -0.012729 -0.794400" />
+			<geometry>
+				<cylinder length = "67.000001e-3" radius = "3.500000e-3" />
+			</geometry>
+		</visual>
+		<!--Index Bone-->
+		<visual>
+			<origin xyz = "-5.830855e-3 -10.981725e-3 -33.241905e-3" rpy = "-0.133914 0.042071 -0.755627" />
+			<geometry>
+				<cylinder length = "59.999993e-3" radius = "3.500000e-3" />
+			</geometry>
+		</visual>
+		
+		<visual>
+			<origin rpy = "0 0 0" xyz = "0 0 0"/>
+			<geometry>
+				<mesh filename="meshes/FB_palm_ref.STL"/>
+			</geometry>
+		</visual>		
+	</link>
+	
+	
+	
+	<link name="index_L1" >
+		<inertial>
+			<mass value = "0.00635888"/>
+			<inertia ixx="0.29766e-6" ixy = "-0.06447133e-6" ixz = "-0.00423315e-6" iyy = "3.6947967e-6" iyz = "0.00083028e-6" izz = "3.8176336e-6" />
+			<origin xyz = "22.41911e-3 -0.15798201e-3 -0.01319866e-3" rpy = "0 0 0"/>
+		</inertial>
+		<visual>
+			<origin xyz = "0 0 0" rpy = "0 0 0"/>
+			<geometry>
+				<!--<cylinder length="8" radius="7"/>-->
+				<sphere radius = "7e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "19.23500e-3 1.62500e-3 0" rpy = "0 0 0.084474"/>
+			<geometry>	
+				<box size = "38.6070382e-3 4e-3 4e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "38.472723e-3 3.257695e-3 0.000000" rpy = "0 0 0.084474"/>
+			<geometry>
+				<mesh filename="meshes/idx-F1.STL"/>
+			</geometry>
+		</visual>
+	</link>
+	<link name="index_L2" >
+		<inertial>
+			<mass value = "0.00645"/>
+			<inertia ixx="0.82671e-6" ixy = "-1.08876e-6" ixz = "-0.00037e-6" iyy = "1.98028e-6" iyz = "0.00081e-6" izz = "2.64638e-6" />
+			<origin rpy = "0 0 0" xyz = "13.36818e-3 -8.75392e-3 -0.02886e-3"/>
+		</inertial>		
+		<visual>
+			<origin xyz = "0 0 0" rpy = "0 0 0"/>
+			<geometry>
+				<sphere radius = "5e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "15.5333e-3 -8.501e-3 0" rpy = "0 0 -0.500734962"/>
+			<geometry>	
+				<box size = "35.41e-3 4e-3 4e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "29.159500e-3 -11.643970e-3 -0.148280e-3" rpy = "1.5708 0 -0.420107"/>
+			<geometry>
+				<cylinder length = "3e-3" radius = "4e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin rpy = "0 0 0" xyz = "9.1241e-3 0 0"/>
+			<geometry>
+				<mesh filename="meshes/idx-F2.STL"/>
+			</geometry>
+		</visual>
+	</link>
+	<joint name="index_q1" type="revolute">
+		<parent link="base"/>
+		<child link="index_L1"/>
+		<origin xyz = "-9.49e-3 -13.04e-3 -62.95e-3" rpy = "-1.982050 1.284473 -2.090591" />
+		<axis xyz="0 0 1"/>
+		<limit lower = "0" upper = "2.0943951" effort = "0.20" velocity = "8.0677777442"/>		<!-- angles in rad, efforts in N-m, velocity in rad/s -->
+		<dynamics damping = "0.001" friction = "0.001" />	<!-- Friction coefficient is not from quantitative measurement -->
+	</joint>
+	<joint name="index_q2" type="revolute">
+		<parent link="index_L1"/>
+		<child link="index_L2"/>
+		<origin xyz = "38.472723e-3 3.257695e-3 0.000000e-3" rpy = "0 0 0.084474"/>
+		<axis xyz="0 0 1"/>
+		<limit lower = "0.0" upper = "2.6586" effort = "0.20" velocity = "8.0677777442"/>		<!-- angles in rad, efforts in N-m, velocity in rad/s -->
+		<dynamics damping = "0.001" friction = "0.001" />	<!-- Friction coefficient is not from quantitative measurement -->
+	</joint>
+	
+	
+
+	<link name="middle_L1" >
+		<inertial>
+			<mass value = "0.00635888"/>
+			<inertia ixx="0.29766e-6" ixy = "-0.06447133e-6" ixz = "-0.00423315e-6" iyy = "3.6947967e-6" iyz = "0.00083028e-6" izz = "3.8176336e-6" />
+			<origin xyz = "22.41911e-3 -0.15798201e-3 -0.01319866e-3" rpy = "0 0 0"/>
+		</inertial>
+		<visual>
+			<origin xyz = "0 0 0" rpy = "0 0 0"/>
+			<geometry>
+				<!--<cylinder length="8" radius="7"/>-->
+				<sphere radius = "7e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "19.23500e-3 1.62500e-3 0" rpy = "0 0 0.084474"/>
+			<geometry>	
+				<box size = "38.6070382e-3 4e-3 4e-3"/>
+			</geometry>
+		</visual>
+		
+		<visual>
+			<origin xyz = "38.472723e-3 3.257695e-3 0.000000" rpy = "0 0 0.084474"/>
+			<geometry>
+				<mesh filename="meshes/idx-F1.STL"/>
+			</geometry>
+		</visual>
+		
+	</link>
+	<link name="middle_L2" >
+		<inertial>
+			<mass value = "0.00645"/>
+			<inertia ixx="0.82671e-6" ixy = "-1.08876e-6" ixz = "-0.00037e-6" iyy = "1.98028e-6" iyz = "0.00081e-6" izz = "2.64638e-6" />
+			<origin rpy = "0 0 0" xyz = "13.36818e-3 -8.75392e-3 -0.02886e-3"/>
+		</inertial>
+		<visual>
+			<origin xyz = "0 0 0" rpy = "0 0 0"/>
+			<geometry>
+				<sphere radius = "5e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "15.5333e-3 -8.501e-3 0" rpy = "0 0 -0.500734962"/>
+			<geometry>	
+				<box size = "35.41e-3 4e-3 4e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "29.159500e-3 -11.643970e-3 -0.148280e-3" rpy = "1.5708 0 -0.420107"/>
+			<geometry>
+				<cylinder length = "3e-3" radius = "4e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin rpy = "0 0 0" xyz = "9.1241e-3 0 0"/>
+			<geometry>
+				<mesh filename="meshes/idx-F2.STL"/>
+			</geometry>
+		</visual>
+	</link>
+	<joint name="middle_q1" type="revolute">
+		<parent link="base"/>
+		<child link="middle_L1"/>
+		<origin xyz = "9.653191e-3 -15.310271e-3 -67.853949e-3" rpy = "-1.860531 1.308458 -1.896217" />
+		<limit lower = "0" upper = "2.0943951" effort = "0.20" velocity = "8.0677777442"/>		<!-- angles in rad, efforts in N-m, velocity in rad/s -->
+		<dynamics damping = "0.001" friction = "0.001" />	<!-- Friction coefficient is not from quantitative measurement -->
+		<axis xyz="0 0 1"/>
+	</joint>
+	<joint name="middle_q2" type="revolute">
+		<parent link="middle_L1"/>
+		<child link="middle_L2"/>
+		<origin xyz = "38.472723e-3 3.257695e-3 0.000000" rpy = "0 0 0.084474"/>
+		<axis xyz="0 0 1"/>
+		<limit lower = "0.0" upper = "2.6586" effort = "0.20" velocity = "8.0677777442"/>		<!-- angles in rad, efforts in N-m, velocity in rad/s -->
+		<dynamics damping = "0.001" friction = "0.001" />	<!-- Friction coefficient is not from quantitative measurement -->
+	</joint>
+
+
+
+
+
+	<link name="ring_L1" >
+		<inertial>
+			<mass value = "0.00635888"/>
+			<inertia ixx="0.29766e-6" ixy = "-0.06447133e-6" ixz = "-0.00423315e-6" iyy = "3.6947967e-6" iyz = "0.00083028e-6" izz = "3.8176336e-6" />
+			<origin xyz = "22.41911e-3 -0.15798201e-3 -0.01319866e-3" rpy = "0 0 0"/>
+		</inertial>
+		<visual>
+			<origin xyz = "0 0 0" rpy = "0 0 0"/>
+			<geometry>
+				<sphere radius = "7e-3"/>
+				<!--<cylinder length="8" radius="7"/>-->
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "19.23500e-3 1.62500e-3 0" rpy = "0 0 0.084474"/>
+			<geometry>	
+				<box size = "38.6070382e-3 4e-3 4e-3"/>
+			</geometry>
+		</visual>
+		
+		<visual>
+			<origin xyz = "38.472723e-3 3.257695e-3 0.000000" rpy = "0 0 0.084474"/>
+			<geometry>
+				<mesh filename="meshes/idx-F1.STL"/>
+			</geometry>
+		</visual>
+		
+		
+	</link>
+	<link name="ring_L2" >
+		<inertial>
+			<mass value = "0.00645"/>
+			<inertia ixx="0.82671e-6" ixy = "-1.08876e-6" ixz = "-0.00037e-6" iyy = "1.98028e-6" iyz = "0.00081e-6" izz = "2.64638e-6" />
+			<origin rpy = "0 0 0" xyz = "13.36818e-3 -8.75392e-3 -0.02886e-3"/>
+		</inertial>
+		<visual>
+			<origin xyz = "0 0 0" rpy = "0 0 0"/>
+			<geometry>
+				<sphere radius = "5e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "15.5333e-3 -8.501e-3 0" rpy = "0 0 -0.500734962"/>
+			<geometry>	
+				<box size = "35.41e-3 4e-3 4e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "29.159500e-3 -11.643970e-3 -0.148280e-3" rpy = "1.5708 0 -0.420107"/>
+			<geometry>
+				<cylinder length = "3e-3" radius = "4e-3"/>
+			</geometry>
+		</visual>
+		
+		<visual>
+			<origin rpy = "0 0 0" xyz = "9.1241e-3 0 0"/>
+			<geometry>
+				<mesh filename="meshes/idx-F2.STL"/>
+			</geometry>
+		</visual>
+		
+	</link>
+	<joint name="ring_q1" type="revolute">
+		<parent link="base"/>
+		<child link="ring_L1"/>
+		<origin xyz = "29.954260e-3 -14.212492e-3 -67.286105e-3" rpy = "-1.716598 1.321452 -1.675862" />
+		<limit lower = "0" upper = "2.0943951" effort = "0.20" velocity = "8.0677777442"/>		<!-- angles in rad, efforts in N-m, velocity in rad/s -->
+		<dynamics damping = "0.001" friction = "0.001" />	<!-- Friction coefficient is not from quantitative measurement -->
+		<axis xyz="0 0 1"/>
+	</joint>
+	<joint name="ring_q2" type="revolute">
+		<parent link="ring_L1"/>
+		<child link="ring_L2"/>
+		<origin xyz = "38.472723e-3 3.257695e-3 0.000000" rpy = "0 0 0.084474"/>
+		<axis xyz="0 0 1"/>
+		<limit lower = "0.0" upper = "2.6586" effort = "0.20" velocity = "8.0677777442"/>		<!-- angles in rad, efforts in N-m, velocity in rad/s -->
+		<dynamics damping = "0.001" friction = "0.001" />	<!-- Friction coefficient is not from quantitative measurement -->
+	</joint>
+
+
+
+
+
+
+
+
+	<link name="pinky_L1" >
+		<inertial>
+			<mass value = "0.00635888"/>
+			<inertia ixx="0.29766e-6" ixy = "-0.06447133e-6" ixz = "-0.00423315e-6" iyy = "3.6947967e-6" iyz = "0.00083028e-6" izz = "3.8176336e-6" />
+			<origin xyz = "22.41911e-3 -0.15798201e-3 -0.01319866e-3" rpy = "0 0 0"/>
+		</inertial>
+		<visual>
+			<origin xyz = "0 0 0" rpy = "0 0 0"/>
+			<geometry>
+				<sphere radius = "7e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "19.23500e-3 1.62500e-3 0" rpy = "0 0 0.084474"/>
+			<geometry>	
+				<box size = "38.6070382e-3 4e-3 4e-3"/>
+			</geometry>
+		</visual>
+		
+		<visual>
+			<origin xyz = "38.472723e-3 3.257695e-3 0.000000" rpy = "0 0 0.084474"/>
+			<geometry>
+				<mesh filename="meshes/idx-F1.STL"/>
+			</geometry>
+		</visual>
+		
+	</link>
+	<link name="pinky_L2" >
+		<inertial>
+			<mass value = "0.00645"/>
+			<inertia ixx="0.82671e-6" ixy = "-1.08876e-6" ixz = "-0.00037e-6" iyy = "1.98028e-6" iyz = "0.00081e-6" izz = "2.64638e-6" />
+			<origin rpy = "0 0 0" xyz = "13.36818e-3 -8.75392e-3 -0.02886e-3"/>
+		</inertial>
+		<visual>
+			<origin xyz = "0 0 0" rpy = "0 0 0"/>
+			<geometry>
+				<sphere radius = "5e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "15.5333e-3 -8.501e-3 0" rpy = "0 0 -0.500734962"/>
+			<geometry>	
+				<box size = "35.41e-3 4e-3 4e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "29.159500e-3 -11.643970e-3 -0.148280e-3" rpy = "1.5708 0 -0.420107"/>
+			<geometry>
+				<cylinder length = "3e-3" radius = "4e-3"/>
+			</geometry>
+		</visual>
+		
+		<visual>
+			<origin rpy = "0 0 0" xyz = "9.1241e-3 0 0"/>
+			<geometry>
+				<mesh filename="meshes/idx-F2.STL"/>
+			</geometry>
+		</visual>
+		
+	</link>
+	<joint name="pinky_q1" type="revolute">
+		<parent link="base"/>
+		<child link="pinky_L1"/>
+		<origin xyz = "49.521293e-3 -11.004583e-3 -63.029065e-3" rpy = "-1.765110 1.322220 -1.658383" />
+		<limit lower = "0" upper = "2.0943951" effort = "0.20" velocity = "8.0677777442"/>		<!-- angles in rad, efforts in N-m, velocity in rad/s -->
+		<dynamics damping = "0.001" friction = "0.001" />	<!-- Friction coefficient is not from quantitative measurement -->
+		<axis xyz="0 0 1"/>
+	</joint>
+	<joint name="pinky_q2" type="revolute">
+		<parent link="pinky_L1"/>
+		<child link="pinky_L2"/>
+		<origin xyz = "38.472723e-3 3.257695e-3 0.000000" rpy = "0 0 0.084474"/>
+		<limit lower = "0.0" upper = "2.6586" effort = "0.20" velocity = "8.0677777442"/>		<!-- angles in rad, efforts in N-m, velocity in rad/s -->
+		<dynamics damping = "0.001" friction = "0.001" />	<!-- Friction coefficient is not from quantitative measurement -->
+		<axis xyz="0 0 1"/>
+	</joint>
+
+
+
+
+
+
+	<link name="thumb_L1" >
+		<inertial>
+			<mass value = "0.00268342"/>
+			<inertia ixx="0.16931e-6" ixy = "-0.076214e-6" ixz = "-0.16959148e-6" iyy = "0.77769934e-6" iyz = "0.0156622e-6" izz = "0.7249122e-6" />
+			<origin rpy = "0 0 0" xyz = "14.606e-3 -1.890854e-3 -3.1155356e-3"/>
+		</inertial>
+		<visual>
+			<origin xyz = "13.851489e-3 -1.900374e-3 -6.866140e-3" rpy = "0.490960 0.456500 -0.136345" />
+			<geometry>
+				<box size = "31.15246724e-3 5e-3 4e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "0 0 0" rpy = "0 0 0"/>
+			<geometry>
+				<sphere radius = "8e-3"/>
+				<!--<cylinder length = "14" radius = "7"/>-->
+			</geometry>
+		</visual>
+		
+		<visual>
+			<origin xyz = "27.8283501e-3 0 -14.7507000e-3" rpy = "4.450589592585541 0 0" />
+			<geometry>
+				<mesh filename="meshes/thumb-F1.STL"/>
+			</geometry>
+		</visual>
+		
+	</link>
+	<link name="thumb_L2" >
+		<inertial>
+			<mass value = "0.0055"/>
+			<inertia ixx="4.4789082e-6" ixy = "4.4789082e-6" ixz = "-0.62144934e-6" iyy = "15.600996e-6" iyz = "-0.07466143e-6" izz = "17.908554e-6" />
+			<origin rpy = "0 0 0" xyz = "30.020522e-3 5.59476e-3 -4.1504356e-3"/>
+		</inertial>
+		<visual>
+			<origin xyz = "0 0 -3.93482782e-3" rpy = "0 0 0"/> <!-- rotation axis cylinder -->
+			<geometry>
+				<sphere radius = "8.9e-3"/>
+				<!--<cylinder length = "7" radius = "8.9"/>-->
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "26.851927e-3 6.766622e-3 -3.934828e-3" rpy = "0.000000 -0.000000 0.462507" />
+			<geometry>
+				<box size = "60.93e-3 4e-3 8e-3"/>
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz = "56.730453e-3 19.890903e-3 -3.934828e-3" rpy = "1.570800 -0.000000 0.343830" />
+			<geometry>
+				<cylinder length = "7e-3" radius = "7e-3"/>
+			</geometry>
+		</visual>
+		
+		<visual>
+			<origin xyz = "65.18669e-3 23.34021e-3 -3.93483e-3" rpy = "3.141592 0 0.343830"/>
+			<geometry>
+				<mesh filename="meshes/thumb-F2.STL"/>
+			</geometry>
+		</visual>
+		
+	</link>
+	<joint name="thumb_q1" type="revolute">
+		<parent link="base"/>
+		<child link="thumb_L1"/>
+		<origin xyz = "0 0 0" rpy = "0 0 3.330437"/>
+		<axis xyz="0 0 1"/>
+		<limit lower = "-2.0943951" upper = "0" effort = "0.20" velocity = "8.0677777442"/>		<!-- angles in rad, efforts in N-m, velocity in rad/s -->
+		<dynamics damping = "0.001" friction = "0.001" />	<!-- Friction coefficient is not from quantitative measurement -->
+	</joint>
+	<joint name="thumb_q2" type="revolute">
+		<parent link="thumb_L1"/>
+		<child link="thumb_L2"/>
+		<origin xyz = "27.8283501e-3 0 -14.7507000e-3" rpy = "4.450589592585541 0 0" />
+		<axis xyz="0 0 1"/>
+		<limit lower = "0" upper = "2.0943951" effort = "0.20" velocity = "8.0677777442"/>		<!-- angles in rad, efforts in N-m, velocity in rad/s -->
+		<dynamics damping = "0.001" friction = "0.001" />	<!-- Friction coefficient is not from quantitative measurement -->		
+	</joint>
+</robot>

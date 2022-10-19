@@ -1,0 +1,11 @@
+Model Information:
+* title:	Low poly rabbit
+* source:	https://sketchfab.com/3d-models/low-poly-rabbit-284412021a4c42879b894271c0bcc634
+* author:	Tin3D (https://sketchfab.com/Tin3D)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Low poly rabbit" (https://sketchfab.com/3d-models/low-poly-rabbit-284412021a4c42879b894271c0bcc634) by Tin3D (https://sketchfab.com/Tin3D) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -6,7 +6,7 @@
 
 To run the server and robot client for Franka:
 ```bash
-launch_robot.py robot_client=franka_sim use_real_time=false gui=[true|false]
+launch_robot.py robot_client=bullet_sim use_real_time=false gui=[true|false]
 ```
 
 `launch_robot.py` is an executable script which starts both a controller manager server and a robot client which connects to it, and is installed as a script with the conda package by default in `$CONDA_PREFIX/bin`. It utilizes [Hydra](https://hydra.cc/) configurations to easily swap between simulation and hardware.

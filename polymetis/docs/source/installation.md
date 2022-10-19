@@ -19,6 +19,7 @@
     ```bash
     conda install -c pytorch -c fair-robotics -c aihabitat -c conda-forge polymetis
     ```
+    > Note: We build the conda package with the [libfranka v0.9.0](https://github.com/frankaemika/libfranka/tree/0.9.0), which requires [Franka Control Interface (FCI) version >=4.2.1](https://frankaemika.github.io/docs/libfranka_changelog.html#id1). If you have a different version of FCI, consider building from source with the compatible version of libfranka (see below).
 
 ## For advanced users & developers
 
@@ -44,7 +45,11 @@
 1. Build from source:
     - Optionally, build [libfranka](https://frankaemika.github.io/docs/libfranka.html) for use on Franka Panda hardware:
         ```bash
+        # Build libfranka
         ./scripts/build_libfranka.sh
+
+        # OPTIONAL: Build custom version of libfranka instead
+        ./scripts/build_libfranka.sh <version_tag_or_commit_hash>
         ```
     - Optionally, [install the CUDA-enabled version of PyTorch](https://pytorch.org/get-started/locally/) (by default, only the CPU version is enabled).
     - Build Polymetis from source:
@@ -52,7 +57,7 @@
         mkdir -p ./polymetis/build
         cd ./polymetis/build
 
-        cmake .. -DBUILD_FRANKA=[OFF/ON] -DBUILD_TESTS=[OFF/ON] -DBUILD_DOCS=[OFF/ON]
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_FRANKA=[OFF/ON] -DBUILD_TESTS=[OFF/ON] -DBUILD_DOCS=[OFF/ON]
         make -j
         ```
 

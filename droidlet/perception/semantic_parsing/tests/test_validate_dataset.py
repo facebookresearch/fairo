@@ -6,7 +6,7 @@ import unittest
 from droidlet.perception.semantic_parsing.utils.validate_json import JSONValidator
 
 FULL_DATA_DIR = os.path.join(
-    os.path.dirname(__file__), "../../../../droidlet/artifacts/datasets/full_data/"
+    os.path.dirname(__file__), "../../../../droidlet/artifacts/datasets/ground_truth/datasets/"
 )
 SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "../../../documents/json_schema/")
 
@@ -35,6 +35,12 @@ class DataValidationTest(unittest.TestCase):
     def test_annotated(self):
         res = self.json_validator_array.validate_data(
             FULL_DATA_DIR + "annotated.txt", test_mode=True
+        )
+        self.assertTrue(res)
+
+    def test_horizon_world_data(self):
+        res = self.json_validator_array.validate_data(
+            FULL_DATA_DIR + "horizon_world_data.txt", test_mode=True
         )
         self.assertTrue(res)
 

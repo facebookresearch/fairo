@@ -1,0 +1,17 @@
+_target_: polymetis.robot_client.metadata.RobotClientMetadata
+hz: 240
+default_Kq: [20, 30, 25, 25, 15, 10, 10]
+default_Kqd: [1.0, 1.5, 1.0, 1.0, 0.5, 0.5, 0.5]
+default_Kx: [100, 100, 100, 40, 40, 40]
+default_Kxd: [1, 1, 1, 0.2, 0.2, 0.2]
+robot_model_cfg: 
+  robot_description_path: "franka_panda/panda_arm.urdf"
+  controlled_joints:  [0, 1, 2, 3, 4, 5, 6]
+  num_dofs: 7
+  ee_link_idx: 7
+  ee_link_name: panda_link8
+  rest_pose: [-0.13935425877571106, -0.020481698215007782, -0.05201413854956627, -2.0691256523132324, 0.05058913677930832, 2.0028650760650635, -0.9167874455451965]
+  joint_limits_low: [-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]
+  joint_limits_high: [2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973]
+  joint_damping: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+  torque_limits: [87., 87., 87., 87., 12., 12., 12.]

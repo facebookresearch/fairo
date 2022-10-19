@@ -39,7 +39,7 @@ def test_conda_nobuild():
     mrp.cmd.up("proc", reset_logs=True)
     mrp.cmd.wait("proc")
 
-    assert read_logs("proc") == ["Python 3.7.11\n"]
+    assert read_logs("proc") == ["Python 3.7.11\r"]
 
     # Define process to run Python 3.8.8
     proc_def.runtime = mrp.Conda(
@@ -51,7 +51,7 @@ def test_conda_nobuild():
     mrp.cmd.up("proc", reset_logs=True, build=False)
     mrp.cmd.wait("proc")
 
-    assert read_logs("proc") == ["Python 3.7.11\n"]
+    assert read_logs("proc") == ["Python 3.7.11\r"]
 
     # Run the proc with building.
     proc_def.runtime = mrp.Conda(
@@ -62,7 +62,7 @@ def test_conda_nobuild():
     mrp.cmd.up("proc", reset_logs=True)
     mrp.cmd.wait("proc")
 
-    assert read_logs("proc") == ["Python 3.8.8\n"]
+    assert read_logs("proc") == ["Python 3.8.8\r"]
 
 
 def test_conda_build_cache():

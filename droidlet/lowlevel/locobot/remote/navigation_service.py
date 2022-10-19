@@ -374,12 +374,17 @@ class Navigation(object):
 
                 # TODO: if the trackback fails, we're screwed. Handle this robustly.
 
+            steps = steps - 1
+
             if visualize:
                 self.vis.set_action_and_collision(
                     {"action": action, "collision": status != "SUCCEEDED"}
                 )
                 self.vis.update_last_position_vis_info(self.slam.get_last_position_vis_info())
                 self.vis.snapshot()
+
+        self._busy = False
+        return path_found, goal_reached
 
     def go_to_object(
         self,

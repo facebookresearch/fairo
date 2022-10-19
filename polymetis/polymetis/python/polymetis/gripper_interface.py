@@ -2,6 +2,7 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
+import logging
 import threading
 import queue
 
@@ -10,6 +11,8 @@ import grpc
 import polymetis_pb2
 import polymetis_pb2_grpc
 
+
+log = logging.getLogger(__name__)
 
 EMPTY = polymetis_pb2.Empty()
 
@@ -23,8 +26,15 @@ class GripperInterface:
     """
 
     def __init__(self, ip_address: str = "localhost", port: int = 50052):
+        # Connect to server
         self.channel = grpc.insecure_channel(f"{ip_address}:{port}")
         self.grpc_connection = polymetis_pb2_grpc.GripperServerStub(self.channel)
+
+        # Get metadata
+        try:
+            self.metadata = self.grpc_connection.GetRobotClientMetadata(EMPTY)
+        except grpc.RpcError:
+            log.warning("Metadata unavailable from server.")
 
         # Execute commands from cache in separate thread
         self._command_thr = threading.Thread(
@@ -38,7 +48,10 @@ class GripperInterface:
     def _command_executor(self):
         while True:
             command, msg = self._command_queue.get()
-            command(msg)
+            try:
+                command(msg)
+            except grpc.RpcError as e:
+                raise grpc.RpcError(f"GRIPPER SERVER ERROR --\n{e.details()}") from None
             self._command_queue.task_done()
 
     def _send_gripper_command(self, command, msg, blocking: bool = True) -> None:
@@ -61,9 +74,14 @@ class GripperInterface:
             vel: Velocity of the movement
             force: Maximum force the gripper will exert
         """
+        cmd = polymetis_pb2.GripperCommand(
+            width=width, speed=speed, force=force, grasp=False
+        )
+        cmd.timestamp.GetCurrentTime()
+
         self._send_gripper_command(
             self.grpc_connection.Goto,
-            polymetis_pb2.GripperCommand(width=width, speed=speed, force=force),
+            cmd,
             blocking=blocking,
         )
 
@@ -73,8 +91,13 @@ class GripperInterface:
             vel: Velocity of the movement
             force: Maximum force the gripper will exert
         """
+        cmd = polymetis_pb2.GripperCommand(
+            width=0.0, speed=speed, force=force, grasp=True
+        )
+        cmd.timestamp.GetCurrentTime()
+
         self._send_gripper_command(
-            self.grpc_connection.Grasp,
-            polymetis_pb2.GripperCommand(width=0.0, speed=speed, force=force),
+            self.grpc_connection.Goto,
+            cmd,
             blocking=blocking,
         )
