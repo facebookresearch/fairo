@@ -127,6 +127,8 @@ class BulletManipulator:
 
         self.arm_state.prev_command_successful = True
 
+        print(self.arm_state)
+
     def apply_gripper_control(self, cmd: polymetis_pb2.GripperCommand):
         self.sim.setJointMotorControlArray(
             bodyIndex=self.robot_id,
@@ -166,7 +168,7 @@ def main(cfg):
         action_callback=sim_wrapper.apply_gripper_control,
         max_width=cfg.robot_model.gripper.max_width,
     )
-    sim_client.register_step_callback(sim.step)
+    sim_client.register_step_callback(sim_wrapper.step)
 
     # Start sim client
     sim_client.run()
