@@ -127,8 +127,6 @@ class BulletManipulator:
 
         self.arm_state.prev_command_successful = True
 
-        print(self.arm_state)
-
     def apply_gripper_control(self, cmd: polymetis_pb2.GripperCommand):
         self.sim.setJointMotorControlArray(
             bodyIndex=self.robot_id,
