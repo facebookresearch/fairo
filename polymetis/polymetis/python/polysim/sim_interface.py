@@ -77,9 +77,9 @@ class SimInterface:
 
         metadata.default_Kq[:] = [0.0] * dof if kp_joint is None else kp_joint
         metadata.default_Kqd[:] = [0.0] * dof if kd_joint is None else kd_joint
-        metadata.default_Kxd[:] = [0.0] * 6 if kp_ee is None else kp_ee
+        metadata.default_Kx[:] = [0.0] * 6 if kp_ee is None else kp_ee
         metadata.default_Kxd[:] = [0.0] * 6 if kd_ee is None else kd_ee
-        metadata.rest_pose[:] = [0.0] * dof if kp_joint is None else kp_joint
+        metadata.rest_pose[:] = [0.0] * dof if rest_pose is None else rest_pose
 
         if urdf_path is not None:
             full_urdf_path = get_full_path_to_urdf(urdf_path)

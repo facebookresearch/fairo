@@ -166,7 +166,7 @@ def main(cfg):
         action_callback=sim_wrapper.apply_gripper_control,
         max_width=cfg.robot_model.gripper.max_width,
     )
-    sim_client.register_step_callback(sim.step)
+    sim_client.register_step_callback(sim_wrapper.step)
 
     # Start sim client
     sim_client.run()
