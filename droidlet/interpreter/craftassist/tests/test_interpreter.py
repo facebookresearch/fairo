@@ -168,6 +168,7 @@ class TwoCubesInterpreterTest(BaseCraftassistTestCase):
         self.assertEqual(len(changes), len(self.cube_right) + 1)
 
 
+@unittest.skip("flaky")
 class GetTest(BaseCraftassistTestCase):
     def setUp(self):
         stone = GettableItem("stone", idm=(1, 0))
