@@ -167,6 +167,7 @@ class TwoCubesInterpreterTest(BaseCraftassistTestCase):
         # check that the cube_right is rebuilt and an additional block is built
         self.assertEqual(len(changes), len(self.cube_right) + 1)
 
+
 @unittest.skip("flaky")
 class GetTest(BaseCraftassistTestCase):
     def setUp(self):
