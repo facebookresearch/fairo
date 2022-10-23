@@ -2,8 +2,11 @@ import os
 import sys
 import random
 import math
-from threading import local
+import threading
 import time
+from dataclasses import dataclass
+from typing import Optional
+
 import torch
 import numpy as np
 import Pyro4
@@ -11,11 +14,16 @@ from rich import print
 from droidlet.lowlevel.pyro_utils import safe_call
 import skimage.morphology
 import cv2
+import rospy
+from geometry_msgs.msg import Twist
 
 from slam_pkg.utils import depth_util as du
 from visualization.ogn_vis import ObjectGoalNavigationVisualization
 from policy.goal_policy import GoalPolicy
 from segmentation.constants import coco_categories
+
+from geometry_msgs.msg import Pose
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 random.seed(0)
 torch.manual_seed(0)
@@ -34,6 +42,20 @@ def draw_line(start, end, mat, steps=25, w=1):
         c = int(np.rint(start[1] + (end[1] - start[1]) * i / steps))
         mat[r - w : r + w, c - w : c + w] = 1
     return mat
+
+
+def xyt2pose(xyt):
+    quat = quaternion_from_euler(0.0, 0.0, xyt[2])
+
+    pose = Pose()
+    pose.position.x = xyt[0]
+    pose.position.y = xyt[1]
+    pose.orientation.x = quat[0]
+    pose.orientation.y = quat[1]
+    pose.orientation.z = quat[2]
+    pose.orientation.w = quat[3]
+
+    return pose
 
 
 class Trackback(object):
@@ -72,6 +94,26 @@ class Trackback(object):
         return ans
 
 
+@dataclass
+class GoalParams:
+    is_multi_goal: bool
+    goal: Optional[np.ndarray]
+    goal_map: Optional[np.ndarray]
+    distance_threshold: Optional[np.ndarray]
+    angle_threshold: Optional[np.ndarray]
+    steps: float
+    visualize: bool
+
+
+@dataclass
+class NavigationStatus:
+    path_found: bool
+    goal_reached: bool
+    goal_data: Optional[GoalParams]
+    goal_update: threading.Event
+    goal_lock: threading.Lock
+
+
 @Pyro4.expose
 class Navigation(object):
     def __init__(self, planner, slam, robot):
@@ -82,6 +124,19 @@ class Navigation(object):
 
         num_sem_categories = len(coco_categories)
         self.map_size, self.local_map_size = self.slam.get_map_sizes()
+
+        # ROS publishers for monitoring
+        self._loc_pub = rospy.Publisher("nav/robot_pose", Pose, queue_size=1)
+        self._stg_pub = rospy.Publisher("nav/st_goal_pose", Pose, queue_size=1)
+        self._goal_pub = rospy.Publisher("nav/goal_pose", Pose, queue_size=1)
+        rospy.init_node("navigation_service")
+
+        # Async navigator
+        self.nav_status = NavigationStatus(False, False, None, threading.Event(), threading.Lock())
+        self.goto_thr = threading.Thread(target=self._navigation_loop)
+        self.goto_thr.start()
+
+        # ObjectNav policy
         self.goal_policy = GoalPolicy(
             map_features_shape=(num_sem_categories + 8, self.local_map_size, self.local_map_size),
             num_outputs=2,
@@ -92,7 +147,6 @@ class Navigation(object):
         self.goal_policy.load_state_dict(state_dict, strict=False)
 
         self._busy = False
-        self._stop = True
         self._done_exploring = False
 
         self.vis = ObjectGoalNavigationVisualization()
@@ -198,37 +252,72 @@ class Navigation(object):
         steps=100000000,
         visualize=True,
     ):
-        print("[navigation] Starting a go_to_absolute")
-        # specify exactly one of goal or goal_map
+        # Specify exactly one of goal or goal_map
         assert (goal is not None and goal_map is None) or (goal is None and goal_map is not None)
+        is_multi_goal = goal is None
+        goal_data = GoalParams(
+            is_multi_goal, goal, goal_map, distance_threshold, angle_threshold, steps, visualize
+        )
 
-        self._busy = True
+        # Reset params
+        with self.nav_status.goal_lock:
+            self.nav_status.goal_data = goal_data
+            self.nav_status.goal_update.set()
+
+        # Log
+        if goal is not None:
+            self._goal_pub.publish(xyt2pose(goal))
+
+    def _navigation_loop(self):
         self._stop = False
-        robot_loc = self.robot.get_base_state()
-        initial_robot_loc = robot_loc
-        goal_reached = False
-        path_found = True
 
-        while not goal_reached and steps > 0 and self._stop is False:
-            stg = self.planner.get_short_term_goal(
-                robot_loc,
-                goal=goal,
-                goal_map=goal_map,
-                vis_path=f"{self.vis.path}/planner/step{self.vis.snapshot_idx}.png",
-            )
-            if stg == False:
-                # no path to end-goal
-                print(
-                    "Could not find a path to the end goal {} from current robot location {}, aborting move".format(
-                        goal, robot_loc
-                    )
+        while self._stop is False:
+            if self.nav_status.goal_reached or not self.nav_status.path_found:
+                self.nav_status.goal_update.clear()
+                self.nav_status.goal_update.wait()
+
+            with self.nav_status.goal_lock:
+                # Load goal data
+                goal = self.nav_status.goal_data.goal
+                goal_map = self.nav_status.goal_data.goal_map
+                distance_threshold = self.nav_status.goal_data.distance_threshold
+                angle_threshold = self.nav_status.goal_data.angle_threshold
+                visualize = self.nav_status.goal_data.visualize
+
+                # Plan
+                self.nav_status.path_found = True
+
+                robot_loc = self.robot.get_base_state()
+                self._loc_pub.publish(xyt2pose(robot_loc))
+
+                stg = self.planner.get_short_term_goal(
+                    robot_loc,
+                    goal=goal,
+                    goal_map=goal_map,
+                    vis_path=f"{self.vis.path}/planner/step{self.vis.snapshot_idx}.png",
                 )
-                path_found = False
-                break
-            robot_loc = self.robot.get_base_state()
-            status, action = self.robot.go_to_absolute(stg)
-            robot_loc = self.robot.get_base_state()
+                if stg == False:
+                    # no path to end-goal
+                    print(
+                        "Could not find a path to the end goal {} from current robot location {}, aborting move".format(
+                            goal, robot_loc
+                        )
+                    )
+                    self.nav_status.path_found = False
+                    break
 
+                # Log
+                if goal is not None:
+                    self._stg_pub.publish(xyt2pose(stg))
+
+            # Execute plan
+            # status, action = self.robot.go_to_absolute(stg)
+            self.robot.set_goal(stg, absolute=True)
+            status = "SUCCEEDED"
+            action = "move_to"
+
+            robot_loc = self.robot.get_base_state()
+            """
             print("[navigation] Finished a go_to_absolute")
             print(
                 " Initial location: {} Final goal: {}".format(
@@ -237,8 +326,9 @@ class Navigation(object):
             )
             print(" Short-term goal: {}, Reached Location: {}".format(stg, robot_loc))
             print(" Robot Status: {}".format(status))
+            """
             if status == "SUCCEEDED":
-                goal_reached = self.planner.goal_within_threshold(
+                self.nav_status.goal_reached = self.planner.goal_within_threshold(
                     robot_loc,
                     goal=goal,
                     goal_map=goal_map,
@@ -357,13 +447,14 @@ class Navigation(object):
                 if visualize:
                     self.vis.set_location_goal(goal_map)
 
-                _, goal_reached = self.go_to_absolute(
+                self.go_to_absolute(
                     goal_map=goal_map,
                     distance_threshold=0.5,
                     angle_threshold=30,
                     steps=1,
                     visualize=visualize,
                 )
+                goal_reached = self.nav_status.goal_reached
                 continue
 
             elif (cat_frame == 1).sum() > 0:
@@ -559,8 +650,8 @@ class Navigation(object):
             self._done_exploring = False
         if not self._done_exploring:
             print("exploring 1 step")
-            path_found, _ = self.go_to_absolute(far_away_goal, steps=1)
-            if path_found == False:
+            self.go_to_absolute(far_away_goal, steps=1)
+            if self.nav_status.path_found == False:
                 # couldn't reach far_away_goal
                 # and don't seem to have any unexplored
                 # paths to attempt to get there
@@ -578,6 +669,8 @@ class Navigation(object):
 
     def stop(self):
         self._stop = True
+        if self.goto_thr is not None:
+            self.goto_thr.join()
 
 
 robot_ip = os.getenv("LOCOBOT_IP")
