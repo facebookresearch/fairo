@@ -50,7 +50,7 @@ dependencies:
     - pytest
     - pytest-benchmark
     - scipy
-    - spdlog
+    - spdlog=1.10.0=h924138e_0
     - sphinx
     - sphinx-copybutton
     - sphinx-book-theme
