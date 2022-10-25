@@ -22,7 +22,7 @@ from geometry_msgs.msg import Twist
 LOCALIZATION_TIME_CONSTANT = 1.0
 
 
-def pose_ros2sp(self, pose):
+def pose_ros2sp(pose):
     r_mat = R.from_quat(
         (pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w)
     ).as_matrix()
@@ -30,7 +30,7 @@ def pose_ros2sp(self, pose):
     return sp.SE3(r_mat, t_vec)
 
 
-def pose_sp2ros(self, pose_se3):
+def pose_sp2ros(pose_se3):
     quat = R.from_matrix(pose_se3.so3().matrix()).as_quat()
 
     pose = Pose()
@@ -64,6 +64,8 @@ class MoveNode(hm.HelloNode):
 
         self._filter_lock = threading.Lock()
         self._filtered_pose = sp.SE3()
+        self._t_odom_prev = time.time()
+        self._t_slam_prev = time.time()
         self._pose_odom_prev = sp.SE3()
 
         self._nav_mode = rospy.ServiceProxy("/switch_to_navigation_mode", Trigger)
@@ -90,7 +92,7 @@ class MoveNode(hm.HelloNode):
         coeff = w / (w + 1)
 
         # Update filtered pose
-        slam_pose = pose_ros2sp(pose)
+        slam_pose = pose_ros2sp(pose.pose.pose)
         with self._filter_lock:
             pose_prev = self._filtered_pose
             self._filtered_pose = pose_prev * sp.SE3.exp(
@@ -117,7 +119,7 @@ class MoveNode(hm.HelloNode):
         # Compute injected signals into filtered pose
         w = cutoff_angle(t_curr - self._t_odom_prev, LOCALIZATION_TIME_CONSTANT)
         coeff = 1 / (w + 1)
-        pose_odom = pose_ros2sp(pose)
+        pose_odom = pose_ros2sp(pose.pose.pose)
         pose_diff_odom = self._pose_odom_prev.inverse() * pose_odom
 
         # Update filtered pose
@@ -131,7 +133,7 @@ class MoveNode(hm.HelloNode):
 
     def _publish_filtered_state(self, timestamp):
         pose_out = PoseStamped()
-        pose_out.header = timestamp
+        pose_out.header.stamp = timestamp
         pose_out.pose = pose_sp2ros(self._filtered_pose)
         self._estimator_pub.publish(pose_out)
 
