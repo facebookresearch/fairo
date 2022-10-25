@@ -68,7 +68,7 @@ class GotoVelocityController:
         Output = 1 when facing target, gradually decreases to 0 when angle to target is pi/3.
         """
         assert theta_err >= 0.0
-        return 1.0 - np.sin(min(max(theta_err - tol, 0.0) * 2.0, np.pi / 3.0))
+        return 1.0 - np.sin(max(theta_err - tol, 0.0))
 
     @staticmethod
     def _turn_rate_limit(w_max, lin_err, heading_err):
@@ -77,7 +77,7 @@ class GotoVelocityController:
         """
         assert lin_err >= 0.0
         assert heading_err >= 0.0
-        return w_max * lin_err / np.sin(heading_err) + 1e-5 / 2.0
+        return w_max * lin_err / (np.sin(heading_err) + 1e-5) / 2.0
 
     def _integrate_state(self, v, w):
         """

@@ -6,15 +6,47 @@ from std_srvs.srv import Trigger, TriggerRequest
 from sensor_msgs.msg import JointState
 from control_msgs.msg import FollowJointTrajectoryGoal
 from trajectory_msgs.msg import JointTrajectoryPoint
-from geometry_msgs.msg import PoseStamped, Pose2D, PoseWithCovarianceStamped, Twist
+from geometry_msgs.msg import Pose, PoseStamped, Pose2D, PoseWithCovarianceStamped, Twist
 from nav_msgs.msg import Odometry
 import hello_helpers.hello_misc as hm
 from tf.transformations import euler_from_quaternion
 import collections
 import numpy as np
+import sophus as sp
+from scipy.spatial.transform import Rotation as R
 
 import rospy
 from geometry_msgs.msg import Twist
+
+
+LOCALIZATION_TIME_CONSTANT = 1.0
+
+
+def pose_ros2sp(self, pose):
+    r_mat = R.from_quat(
+        (pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w)
+    ).as_matrix()
+    t_vec = np.array([pose.position.x, pose.position.y, pose.position.z])
+    return sp.SE3(r_mat, t_vec)
+
+
+def pose_sp2ros(self, pose_se3):
+    quat = R.from_matrix(pose_se3.so3().matrix()).as_quat()
+
+    pose = Pose()
+    pose.position.x = pose_se3.translation()[0]
+    pose.position.y = pose_se3.translation()[1]
+    pose.position.z = pose_se3.translation()[2]
+    pose.orientation.x = quat[0]
+    pose.orientation.y = quat[1]
+    pose.orientation.z = quat[2]
+    pose.orientation.w = quat[3]
+
+    return pose
+
+
+def cutoff_angle(duration, time_constant):
+    return 2 * np.pi * duration / time_constant
 
 
 class MoveNode(hm.HelloNode):
@@ -30,31 +62,79 @@ class MoveNode(hm.HelloNode):
         self._scan_matched_pose = None
         self._lock = threading.Lock()
 
+        self._filtered_pose = sp.SE3()
+        self._pose_odom_prev = sp.SE3()
+
         self._nav_mode = rospy.ServiceProxy("/switch_to_navigation_mode", Trigger)
         s_request = TriggerRequest()
         self._nav_mode(s_request)
 
         self._vel_command_pub = rospy.Publisher("/stretch/cmd_vel", Twist, queue_size=1)
+        self._estimator_pub = rospy.Publisher(
+            "/state_estimator/pose_filtered", PoseStamped, queue_size=1
+        )
 
     def _joint_states_callback(self, joint_state):
         with self._lock:
             self._joint_state = joint_state
 
     def _slam_pose_callback(self, pose):
+        t_curr = time.time()
+        ros_time = rospy.Time.now()
         with self._lock:
             self._slam_pose = pose
+
+        # Compute injected signals into filtered pose
+        w = cutoff_angle(t_curr - self._t_slam_prev, LOCALIZATION_TIME_CONSTANT)
+        coeff = w / (w + 1)
+
+        # Update filtered pose
+        slam_pose = pose_ros2sp(pose)
+        with self._lock:
+            pose_prev = self._filtered_pose
+            self._filtered_pose = pose_prev * sp.SE3.exp(
+                coeff * (pose_prev.inverse() * slam_pose).log()
+            )
+
+        self._t_slam_prev = t_curr
+
+        self._publish_filtered_state(ros_time)
 
     def _scan_matched_pose_callback(self, pose):
         with self._lock:
             self._scan_matched_pose = (pose.x, pose.y, pose.theta)
 
     def _odom_callback(self, pose):
+        t_curr = time.time()
+        ros_time = rospy.Time.now()
         with self._lock:
             self._odom = pose
             self._linear_movement.append(
                 max(abs(pose.twist.twist.linear.x), abs(pose.twist.twist.linear.y))
             )
             self._angular_movement.append(abs(pose.twist.twist.angular.z))
+
+        # Compute injected signals into filtered pose
+        w = cutoff_angle(t_curr - self._t_odom_prev, LOCALIZATION_TIME_CONSTANT)
+        coeff = 1 / (w + 1)
+        pose_odom = pose_ros2sp(pose)
+        pose_diff_odom = self._pose_odom_prev.inverse() * pose_odom
+
+        # Update filtered pose
+        with self._lock:
+            pose_prev = self._filtered_pose
+            self._filtered_pose = sp.SE3.exp(coeff * (pose_prev * pose_diff_odom).log())
+
+        self._pose_odom_prev = pose_odom
+        self._t_odom_prev = t_curr
+
+        self._publish_filtered_state(ros_time)
+
+    def _publish_filtered_state(self, timestamp):
+        pose_out = PoseStamped()
+        pose_out.header = timestamp
+        pose_out.pose = pose_sp2ros(self._filtered_pose)
+        self._estimator_pub.publish(pose_out)
 
     def set_velocity(self, v_m, w_r):
         cmd = Twist()
@@ -105,6 +185,14 @@ class MoveNode(hm.HelloNode):
         )
         euler = euler_from_quaternion(quat)
         return (pose.pose.position.x, pose.pose.position.y, euler[2])
+
+    def get_filtered_pose(self):
+        with self._lock:
+            pose = self._filtered_pose.copy()
+
+        t_vec = pose.translation()
+        r_vec = pose.so3().log()
+        return (t_vec[0], t_vec[1], r_vec[2])
 
     def get_joint_state(self, name=None):
         with self._lock:
