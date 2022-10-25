@@ -46,7 +46,7 @@ def pose_sp2ros(pose_se3):
 
 
 def cutoff_angle(duration, time_constant):
-    return 2 * np.pi * duration / time_constant
+    return duration / time_constant
 
 
 class MoveNode(hm.HelloNode):
