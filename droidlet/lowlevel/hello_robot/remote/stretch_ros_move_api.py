@@ -62,6 +62,7 @@ class MoveNode(hm.HelloNode):
         self._scan_matched_pose = None
         self._lock = threading.Lock()
 
+        self._filter_lock = threading.Lock()
         self._filtered_pose = sp.SE3()
         self._pose_odom_prev = sp.SE3()
 
@@ -90,15 +91,14 @@ class MoveNode(hm.HelloNode):
 
         # Update filtered pose
         slam_pose = pose_ros2sp(pose)
-        with self._lock:
+        with self._filter_lock:
             pose_prev = self._filtered_pose
             self._filtered_pose = pose_prev * sp.SE3.exp(
                 coeff * (pose_prev.inverse() * slam_pose).log()
             )
+            self._publish_filtered_state(ros_time)
 
         self._t_slam_prev = t_curr
-
-        self._publish_filtered_state(ros_time)
 
     def _scan_matched_pose_callback(self, pose):
         with self._lock:
@@ -121,14 +121,13 @@ class MoveNode(hm.HelloNode):
         pose_diff_odom = self._pose_odom_prev.inverse() * pose_odom
 
         # Update filtered pose
-        with self._lock:
+        with self._filter_lock:
             pose_prev = self._filtered_pose
             self._filtered_pose = sp.SE3.exp(coeff * (pose_prev * pose_diff_odom).log())
+            self._publish_filtered_state(ros_time)
 
         self._pose_odom_prev = pose_odom
         self._t_odom_prev = t_curr
-
-        self._publish_filtered_state(ros_time)
 
     def _publish_filtered_state(self, timestamp):
         pose_out = PoseStamped()
