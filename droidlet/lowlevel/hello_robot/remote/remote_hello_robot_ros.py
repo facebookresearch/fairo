@@ -271,7 +271,7 @@ class RemoteHelloRobot(object):
         """Directly sets the forward and yaw velocity of the robot."""
         self._robot.set_velocity(v_m, w_r)
 
-    def set_position_goal(self, xy_position, absolute=False):
+    def set_position_goal(self, xy_position, relative=False):
         """Moves the robot base to the given goal position.
         The robot does not have a yaw goal and will simply turn & move towards
         the desired position.
@@ -284,7 +284,7 @@ class RemoteHelloRobot(object):
 
         # Convert abs to rel
         xyt_position = list(xy_position) + [0.0]
-        if absolute:
+        if not relative:
             base_state = self.get_base_state()
             xyt_position = transform_global_to_base(xyt_position, base_state)
         xyt_position[2] = 0.0
@@ -294,7 +294,7 @@ class RemoteHelloRobot(object):
         self._goto_controller.enable_yaw_tracking(False)
         self._goto_controller.set_goal(xyt_position)
 
-    def set_goal(self, xyt_position, absolute=False):
+    def set_goal(self, xyt_position, relative=False):
         """Moves the robot base to the given goal state
 
         :param xyt_position: The goal state of the form (x,y,yaw)
@@ -304,7 +304,7 @@ class RemoteHelloRobot(object):
         ), f"Input goal should be of length 3 (xyt), got {len(xyt_position)} instead."
 
         # Convert abs to rel
-        if absolute:
+        if not relative:
             base_state = self.get_base_state()
             xyt_position = transform_global_to_base(xyt_position, base_state)
 
