@@ -19,7 +19,7 @@ import rospy
 from geometry_msgs.msg import Twist
 
 
-LOCALIZATION_TIME_CONSTANT = 1.0
+LOCALIZATION_TIME_CONSTANT = 2.0
 
 
 def pose_ros2sp(pose):
@@ -117,15 +117,13 @@ class MoveNode(hm.HelloNode):
             self._angular_movement.append(abs(pose.twist.twist.angular.z))
 
         # Compute injected signals into filtered pose
-        w = cutoff_angle(t_curr - self._t_odom_prev, LOCALIZATION_TIME_CONSTANT)
-        coeff = 1 / (w + 1)
         pose_odom = pose_ros2sp(pose.pose.pose)
         pose_diff_odom = self._pose_odom_prev.inverse() * pose_odom
 
         # Update filtered pose
         with self._filter_lock:
             pose_prev = self._filtered_pose
-            self._filtered_pose = sp.SE3.exp(coeff * (pose_prev * pose_diff_odom).log())
+            self._filtered_pose = pose_prev * pose_diff_odom
             self._publish_filtered_state(ros_time)
 
         self._pose_odom_prev = pose_odom
