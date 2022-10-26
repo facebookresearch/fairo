@@ -102,11 +102,13 @@ class RemoteHelloRobot(object):
         return camera_transform
 
     def get_base_state(self):
-        # Best (from SLAM)
-        return self._robot.get_slam_pose()
-        # second Best (from lidar scanning)
+        # SLAM + wheel encoder (#1)
+        return self._robot.get_estimator_pose()
+        # SLAM (#2)
+        # return self._robot.get_slam_pose()
+        # lidar scanning (#3)
         # return self._robot.get_scan_matched_pose()
-        # Worst, from wheel encoder only
+        # Wheel encoder only (#4, but low latency & noise)
         # return self._robot.get_odom()
 
     def get_slam_pose(self):

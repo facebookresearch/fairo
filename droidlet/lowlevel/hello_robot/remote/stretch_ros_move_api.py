@@ -176,7 +176,7 @@ class MoveNode(hm.HelloNode):
         euler = euler_from_quaternion(quat)
         return (pose.pose.position.x, pose.pose.position.y, euler[2])
 
-    def get_filtered_pose(self):
+    def get_estimator_pose(self):
         with self._lock:
             pose = self._filtered_pose.copy()
 
