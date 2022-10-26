@@ -62,10 +62,9 @@ class MoveNode(hm.HelloNode):
         self._scan_matched_pose = None
         self._lock = threading.Lock()
 
-        self._filter_lock = threading.Lock()
         self._filtered_pose = sp.SE3()
+        self._slam_pose_sp = sp.SE3()
         self._t_odom_prev = time.time()
-        self._t_slam_prev = time.time()
         self._pose_odom_prev = sp.SE3()
 
         self._nav_mode = rospy.ServiceProxy("/switch_to_navigation_mode", Trigger)
@@ -76,7 +75,6 @@ class MoveNode(hm.HelloNode):
         self._estimator_pub = rospy.Publisher(
             "/state_estimator/pose_filtered", PoseStamped, queue_size=1
         )
-        self._cov_pub = rospy.Publisher("/state_estimator/slam_pose_cov", float, queue_size=1)
 
     def _joint_states_callback(self, joint_state):
         with self._lock:
@@ -88,23 +86,8 @@ class MoveNode(hm.HelloNode):
         with self._lock:
             self._slam_pose = pose
 
-        # Compute injected signals into filtered pose
-        w = cutoff_angle(t_curr - self._t_slam_prev, LOCALIZATION_TIME_CONSTANT)
-        coeff = w / (w + 1)
-
-        cov = np.linalg.det(np.array(pose.pose.covariance).reshape(6, 6))
-        self._cov_pub.publish(cov)
-
-        # Update filtered pose
-        slam_pose = pose_ros2sp(pose.pose.pose)
-        with self._filter_lock:
-            pose_prev = self._filtered_pose
-            self._filtered_pose = pose_prev * sp.SE3.exp(
-                coeff * (pose_prev.inverse() * slam_pose).log()
-            )
-            self._publish_filtered_state(ros_time)
-
-        self._t_slam_prev = t_curr
+        # Update slam pose for filtering
+        self._slam_pose_sp = pose_ros2sp(pose.pose.pose)
 
     def _scan_matched_pose_callback(self, pose):
         with self._lock:
@@ -123,13 +106,17 @@ class MoveNode(hm.HelloNode):
         # Compute injected signals into filtered pose
         pose_odom = pose_ros2sp(pose.pose.pose)
         pose_diff_odom = self._pose_odom_prev.inverse() * pose_odom
+        pose_diff_slam = self._filtered_pose.inverse() * self._slam_pose_sp
 
         # Update filtered pose
-        with self._filter_lock:
-            pose_prev = self._filtered_pose
-            self._filtered_pose = pose_prev * pose_diff_odom
-            self._publish_filtered_state(ros_time)
+        w = cutoff_angle(t_curr - self._t_odom_prev, LOCALIZATION_TIME_CONSTANT)
+        coeff = 1 / (w + 1)
 
+        pose_diff_log = coeff * pose_diff_odom.log() + (1 - coeff) * pose_diff_slam.log()
+        self._filtered_pose = self._filtered_pose * sp.SE3.exp(pose_diff_log)
+        self._publish_filtered_state(ros_time)
+
+        # Update variables
         self._pose_odom_prev = pose_odom
         self._t_odom_prev = t_curr
 
