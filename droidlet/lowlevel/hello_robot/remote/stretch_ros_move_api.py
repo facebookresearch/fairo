@@ -19,7 +19,7 @@ import rospy
 from geometry_msgs.msg import Twist
 
 
-LOCALIZATION_TIME_CONSTANT = 2.0
+SLAM_CUTOFF_HZ = 0.2
 
 
 def pose_ros2sp(pose):
@@ -45,8 +45,8 @@ def pose_sp2ros(pose_se3):
     return pose
 
 
-def cutoff_angle(duration, time_constant):
-    return 2 * np.pi * duration / time_constant
+def cutoff_angle(duration, cutoff_freq):
+    return 2 * np.pi * duration * cutoff_freq
 
 
 class MoveNode(hm.HelloNode):
@@ -109,7 +109,7 @@ class MoveNode(hm.HelloNode):
         pose_diff_slam = self._filtered_pose.inverse() * self._slam_pose_sp
 
         # Update filtered pose
-        w = cutoff_angle(t_curr - self._t_odom_prev, LOCALIZATION_TIME_CONSTANT)
+        w = cutoff_angle(t_curr - self._t_odom_prev, SLAM_CUTOFF_HZ)
         coeff = 1 / (w + 1)
 
         pose_diff_log = coeff * pose_diff_odom.log() + (1 - coeff) * pose_diff_slam.log()
