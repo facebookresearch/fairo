@@ -20,12 +20,12 @@ class GotoVelocityController:
         hz: float,
         v_max: Optional[float] = None,
         w_max: Optional[float] = None,
-        use_odom: bool = False,
+        use_localization: bool = True,
     ):
         self.robot = robot
         self.hz = hz
         self.dt = 1.0 / self.hz
-        self.use_odom = use_odom
+        self.use_loc = use_localization
 
         # Params
         self.v_max = v_max or V_MAX_DEFAULT
@@ -38,7 +38,7 @@ class GotoVelocityController:
         self.control_lock = threading.Lock()
         self.active = False
 
-        self.xyt_odom = self.robot.get_odom()
+        self.xyt_loc = self.robot.get_base_state()
         self.xyt_err = np.zeros(3)
         self.track_yaw = True
 
@@ -93,16 +93,16 @@ class GotoVelocityController:
 
     def _update_error_state(self):
         """
-        Updates error based on odometry feedback (has drift but very low noise signal)
+        Updates error based on robot localization
         """
-        xyt_odom_new = self.robot.get_odom()
+        xyt_loc_new = self.robot.get_base_state()
 
         # Update error
-        xyt_goal_global = transform_base_to_global(self.xyt_err, self.xyt_odom)
-        self.xyt_err = transform_global_to_base(xyt_goal_global, xyt_odom_new)
+        xyt_goal_global = transform_base_to_global(self.xyt_err, self.xyt_loc)
+        self.xyt_err = transform_global_to_base(xyt_goal_global, xyt_loc_new)
 
-        # Update odom state
-        self.xyt_odom = xyt_odom_new
+        # Update state
+        self.xyt_loc = xyt_loc_new
 
     def _run(self):
         rate = rospy.Rate(self.hz)
@@ -121,7 +121,7 @@ class GotoVelocityController:
 
                 # Compute linear velocity
                 k_t = self._error_velocity_multiplier(
-                    lin_err_abs, ACC_LIN, tol=self.lin_error_tol, use_acc=self.use_odom
+                    lin_err_abs, ACC_LIN, tol=self.lin_error_tol, use_acc=self.use_loc
                 )
                 k_p = self._projection_velocity_multiplier(heading_err_abs, tol=self.ang_error_tol)
                 v_limit = self._turn_rate_limit(self.w_max, lin_err_abs, heading_err_abs)
@@ -129,7 +129,7 @@ class GotoVelocityController:
 
                 # Compute angular velocity
                 k_t_ang = self._error_velocity_multiplier(
-                    heading_err_abs, ACC_ANG, tol=self.ang_error_tol / 2.0, use_acc=self.use_odom
+                    heading_err_abs, ACC_ANG, tol=self.ang_error_tol / 2.0, use_acc=self.use_loc
                 )
                 w_cmd = np.sign(heading_err) * k_t_ang * self.w_max
 
@@ -137,7 +137,7 @@ class GotoVelocityController:
             elif ang_err_abs > self.ang_error_tol:
                 # Compute angular velocity
                 k_t_ang = self._error_velocity_multiplier(
-                    ang_err_abs, ACC_ANG, tol=self.ang_error_tol, use_acc=self.use_odom
+                    ang_err_abs, ACC_ANG, tol=self.ang_error_tol, use_acc=self.use_loc
                 )
                 w_cmd = np.sign(ang_err) * k_t_ang * self.w_max
 
@@ -146,7 +146,7 @@ class GotoVelocityController:
                 self.robot.set_velocity(v_cmd, w_cmd)
 
             # Update error
-            if self.use_odom:
+            if self.use_loc:
                 self._update_error_state()
             else:
                 self._integrate_state(v_cmd, w_cmd)
