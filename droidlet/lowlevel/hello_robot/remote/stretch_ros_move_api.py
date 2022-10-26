@@ -46,7 +46,7 @@ def pose_sp2ros(pose_se3):
 
 
 def cutoff_angle(duration, time_constant):
-    return duration / time_constant
+    return 2 * np.pi * duration / time_constant
 
 
 class MoveNode(hm.HelloNode):
@@ -76,6 +76,7 @@ class MoveNode(hm.HelloNode):
         self._estimator_pub = rospy.Publisher(
             "/state_estimator/pose_filtered", PoseStamped, queue_size=1
         )
+        self._cov_pub = rospy.Publisher("/state_estimator/slam_pose_cov", float, queue_size=1)
 
     def _joint_states_callback(self, joint_state):
         with self._lock:
@@ -90,6 +91,9 @@ class MoveNode(hm.HelloNode):
         # Compute injected signals into filtered pose
         w = cutoff_angle(t_curr - self._t_slam_prev, LOCALIZATION_TIME_CONSTANT)
         coeff = w / (w + 1)
+
+        cov = np.linalg.det(np.array(pose.pose.covariance).reshape(6, 6))
+        self._cov_pub.publish(cov)
 
         # Update filtered pose
         slam_pose = pose_ros2sp(pose.pose.pose)
