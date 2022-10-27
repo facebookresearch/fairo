@@ -38,7 +38,7 @@ class GotoVelocityController:
         self.control_lock = threading.Lock()
         self.active = False
 
-        self.xyt_loc = self.robot.get_base_state()
+        self.xyt_loc = self.robot.get_estimator_pose()
         self.xyt_err = np.zeros(3)
         self.track_yaw = True
 
@@ -95,7 +95,7 @@ class GotoVelocityController:
         """
         Updates error based on robot localization
         """
-        xyt_loc_new = self.robot.get_base_state()
+        xyt_loc_new = self.robot.get_estimator_pose()
 
         # Update error
         xyt_goal_global = transform_base_to_global(self.xyt_err, self.xyt_loc)
