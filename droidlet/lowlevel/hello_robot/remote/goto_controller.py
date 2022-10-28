@@ -20,12 +20,10 @@ class GotoVelocityController:
         hz: float,
         v_max: Optional[float] = None,
         w_max: Optional[float] = None,
-        use_localization: bool = True,
     ):
         self.robot = robot
         self.hz = hz
         self.dt = 1.0 / self.hz
-        self.use_loc = use_localization
 
         # Params
         self.v_max = v_max or V_MAX_DEFAULT
@@ -39,7 +37,7 @@ class GotoVelocityController:
         self.active = False
 
         self.xyt_loc = self.robot.get_estimator_pose()
-        self.xyt_err = np.zeros(3)
+        self.xyt_goal = self.xyt_loc
         self.track_yaw = True
 
     @staticmethod
@@ -76,43 +74,31 @@ class GotoVelocityController:
         dist_projected = lin_err * np.sin(heading_diff)
         return w_max * max(dist_projected - dead_zone, 0.0)
 
-    def _integrate_state(self, v, w):
-        """
-        Predict error in the next timestep with current commanded velocity
-        Deprecated in favor of _update_error_state.
-        """
-        dx = v * self.dt
-        dtheta = w * self.dt
-
-        xyt_goal_global = transform_base_to_global(self.xyt_err, np.zeros(3))
-        xyt_new = np.array([dx * np.cos(dtheta / 2.0), dx * np.sin(dtheta / 2.0), dtheta])
-        self.xyt_err = transform_global_to_base(xyt_goal_global, xyt_new)
-
-    def _update_error_state(self):
+    def _compute_error_pose(self):
         """
         Updates error based on robot localization
         """
         xyt_loc_new = self.robot.get_estimator_pose()
 
-        # Update error
-        xyt_goal_global = transform_base_to_global(self.xyt_err, self.xyt_loc)
-        self.xyt_err = transform_global_to_base(xyt_goal_global, xyt_loc_new)
+        xyt_err = transform_global_to_base(self.xyt_goal, xyt_loc_new)
+        if self.track_yaw:
+            xyt_err[2] = 0.0
 
-        # Update state
-        self.xyt_loc = xyt_loc_new
+        return xyt_err
 
     def _run(self):
         rate = rospy.Rate(self.hz)
 
         while True:
             v_cmd = w_cmd = 0
+            xyt_err = self._compute_error_pose()
 
-            lin_err_abs = np.linalg.norm(self.xyt_err[0:2])
-            ang_err = self.xyt_err[2]
+            lin_err_abs = np.linalg.norm(xyt_err[0:2])
+            ang_err = xyt_err[2]
 
             # Go to goal XY position if not there yet
             if lin_err_abs > self.lin_error_tol:
-                heading_err = np.arctan2(self.xyt_err[1], self.xyt_err[0])
+                heading_err = np.arctan2(xyt_err[1], xyt_err[0])
                 heading_err_abs = abs(heading_err)
 
                 # Compute linear velocity
@@ -146,21 +132,17 @@ class GotoVelocityController:
             with self.control_lock:
                 self.robot.set_velocity(v_cmd, w_cmd)
 
-            # Update error
-            if self.use_loc:
-                self._update_error_state()
-            else:
-                self._integrate_state(v_cmd, w_cmd)
-
             # Spin
             rate.sleep()
 
     def check_at_goal(self) -> bool:
-        xy_fulfilled = np.linalg.norm(self.xyt_err[0:2]) <= self.lin_error_tol
+        xyt_err = self._compute_error_pose()
+
+        xy_fulfilled = np.linalg.norm(xyt_err[0:2]) <= self.lin_error_tol
 
         t_fulfilled = True
         if self.track_yaw:
-            t_fulfilled = abs(self.xyt_err[2]) <= self.ang_error_tol
+            t_fulfilled = abs(xyt_err[2]) <= self.ang_error_tol
 
         return xy_fulfilled and t_fulfilled
 
@@ -168,9 +150,7 @@ class GotoVelocityController:
         self,
         xyt_position: List[float],
     ):
-        self.xyt_err = xyt_position
-        if not self.track_yaw:
-            self.xyt_err[2] = 0.0
+        self.xyt_goal = xyt_position
 
     def enable_yaw_tracking(self, value: bool = True):
         self.track_yaw = value
