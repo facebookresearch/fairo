@@ -73,8 +73,8 @@ class GotoVelocityController:
         """
         assert lin_err >= 0.0
         assert heading_diff >= 0.0
-        v_projected_max = w_max * max(lin_err - dead_zone, 0.0)
-        return v_projected_max * np.sin(heading_diff)
+        dist_projected = lin_err * np.sin(heading_diff)
+        return w_max * max(dist_projected - dead_zone, 0.0)
 
     def _integrate_state(self, v, w):
         """
@@ -117,7 +117,7 @@ class GotoVelocityController:
 
                 # Compute linear velocity
                 v_raw = self._velocity_feedback_control(
-                    lin_err_abs, ACC_LIN, self.v_max, tol=self.lin_error_tol, use_acc=self.use_loc
+                    lin_err_abs, ACC_LIN, self.v_max, tol=self.lin_error_tol
                 )
                 k_proj = self._projection_velocity_multiplier(
                     heading_err_abs, tol=self.ang_error_tol
@@ -133,14 +133,13 @@ class GotoVelocityController:
                     ACC_ANG,
                     self.w_max,
                     tol=self.ang_error_tol / 2.0,
-                    use_acc=self.use_loc,
                 )
 
             # Rotate to correct yaw if yaw tracking is on and XY position is at goal
             elif abs(ang_err) > self.ang_error_tol:
                 # Compute angular velocity
                 w_cmd = self._velocity_feedback_control(
-                    ang_err, ACC_ANG, self.w_max, tol=self.ang_error_tol, use_acc=self.use_loc
+                    ang_err, ACC_ANG, self.w_max, tol=self.ang_error_tol
                 )
 
             # Command robot
