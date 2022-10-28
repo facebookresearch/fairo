@@ -20,11 +20,13 @@ class GotoVelocityController:
         hz: float,
         v_max: Optional[float] = None,
         w_max: Optional[float] = None,
+        use_acc: bool = False,
         use_localization: bool = True,
     ):
         self.robot = robot
         self.hz = hz
         self.dt = 1.0 / self.hz
+        self.use_acc = use_acc
         self.use_loc = use_localization
 
         # Params
@@ -77,8 +79,8 @@ class GotoVelocityController:
         """
         assert lin_err >= 0.0
         assert heading_err >= 0.0
-        v_projected_max = w_max * max(lin_err - dead_zone, 0.0)
-        return v_projected_max * np.sin(heading_err)
+        dist_projected = lin_err / np.sin(heading_err)
+        return w_max * max(dist_projected - dead_zone, 0.0)
 
     def _integrate_state(self, v, w):
         """
@@ -122,7 +124,7 @@ class GotoVelocityController:
 
                 # Compute linear velocity
                 k_t = self._error_velocity_multiplier(
-                    lin_err_abs, ACC_LIN, tol=self.lin_error_tol, use_acc=self.use_loc
+                    lin_err_abs, ACC_LIN, tol=self.lin_error_tol, use_acc=self.use_acc
                 )
                 k_p = self._projection_velocity_multiplier(heading_err_abs, tol=self.ang_error_tol)
                 v_limit = self._turn_rate_limit(
@@ -132,7 +134,7 @@ class GotoVelocityController:
 
                 # Compute angular velocity
                 k_t_ang = self._error_velocity_multiplier(
-                    heading_err_abs, ACC_ANG, tol=self.ang_error_tol / 2.0, use_acc=self.use_loc
+                    heading_err_abs, ACC_ANG, tol=self.ang_error_tol / 2.0, use_acc=self.use_acc
                 )
                 w_cmd = np.sign(heading_err) * k_t_ang * self.w_max
 
@@ -140,7 +142,7 @@ class GotoVelocityController:
             elif ang_err_abs > self.ang_error_tol:
                 # Compute angular velocity
                 k_t_ang = self._error_velocity_multiplier(
-                    ang_err_abs, ACC_ANG, tol=self.ang_error_tol, use_acc=self.use_loc
+                    ang_err_abs, ACC_ANG, tol=self.ang_error_tol, use_acc=self.use_acc
                 )
                 w_cmd = np.sign(ang_err) * k_t_ang * self.w_max
 
