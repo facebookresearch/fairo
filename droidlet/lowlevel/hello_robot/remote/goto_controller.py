@@ -84,7 +84,7 @@ class GotoVelocityController:
         xyt_loc_new = self.robot.get_estimator_pose()
 
         xyt_err = transform_global_to_base(self.xyt_goal, xyt_loc_new)
-        if self.track_yaw:
+        if not self.track_yaw:
             xyt_err[2] = 0.0
 
         return xyt_err
