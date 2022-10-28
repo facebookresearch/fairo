@@ -9,8 +9,8 @@ from utils import transform_global_to_base, transform_base_to_global
 
 V_MAX_DEFAULT = 0.2  # base.params["motion"]["default"]["vel_m"]
 W_MAX_DEFAULT = 0.45  # (vel_m_max - vel_m_default) / wheel_separation_m
-ACC_LIN = 0.4  # base.params["motion"]["max"]["accel_m"]
-ACC_ANG = 1.2  # (accel_m_max - accel_m_default) / wheel_separation_m
+ACC_LIN = 0.1  # 0.25 * base.params["motion"]["max"]["accel_m"]
+ACC_ANG = 0.3  # 0.25 * (accel_m_max - accel_m_default) / wheel_separation_m
 
 
 class GotoVelocityController:
@@ -41,16 +41,19 @@ class GotoVelocityController:
         self.track_yaw = True
 
     @staticmethod
-    def _velocity_feedback_control(x_err, a, v_max, tol=0.0):
+    def _velocity_feedback_control(x_err, a, v_max, tol=0.0, use_acc=True):
         """
         Computes velocity based on distance from target.
         Used for both linear and angular motion.
 
         Current implementation: Trapezoidal velocity profile
         """
-        t = np.sqrt(2.0 * max(abs(x_err) - tol, 0.0) / a)  # x_err = (1/2) * a * t^2
-        v = min(a * t, v_max)
-        return v * np.sign(x_err)
+        if use_acc:
+            t = np.sqrt(2.0 * max(abs(x_err) - tol, 0.0) / a)  # x_err = (1/2) * a * t^2
+            v = min(a * t, v_max)
+            return v * np.sign(x_err)
+        else:
+            return np.sign(x_err) * (abs(x_err) > tol) * v_max
 
     @staticmethod
     def _projection_velocity_multiplier(theta_diff, tol=0.0):
@@ -65,7 +68,7 @@ class GotoVelocityController:
         return 1.0 - np.sin(max(theta_diff - tol, 0.0))
 
     @staticmethod
-    def _turn_rate_limit(w_max, lin_err, heading_diff, dead_zone=0.0):
+    def _turn_rate_limit(lin_err, heading_diff, w_max, dead_zone=0.0):
         """
         Computed velocity limit based on the turning radius required to reach goal.
         """
@@ -109,23 +112,23 @@ class GotoVelocityController:
                     heading_err_abs, tol=self.ang_error_tol
                 )
                 v_limit = self._turn_rate_limit(
-                    self.w_max / 2.0, lin_err_abs, heading_err_abs, dead_zone=self.lin_error_tol
+                    lin_err_abs,
+                    heading_err_abs,
+                    self.w_max / 2.0,
+                    dead_zone=2.0 * self.lin_error_tol,
                 )
                 v_cmd = min(k_proj * v_raw, v_limit)
 
                 # Compute angular velocity
                 w_cmd = self._velocity_feedback_control(
-                    heading_err,
-                    ACC_ANG,
-                    self.w_max,
-                    tol=self.ang_error_tol / 2.0,
+                    heading_err, ACC_ANG, self.w_max, tol=self.ang_error_tol / 2.0, use_acc=False
                 )
 
             # Rotate to correct yaw if yaw tracking is on and XY position is at goal
             elif abs(ang_err) > self.ang_error_tol:
                 # Compute angular velocity
                 w_cmd = self._velocity_feedback_control(
-                    ang_err, ACC_ANG, self.w_max, tol=self.ang_error_tol
+                    ang_err, ACC_ANG, self.w_max, tol=self.ang_error_tol, use_acc=False
                 )
 
             # Command robot
