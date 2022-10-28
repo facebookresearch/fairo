@@ -71,13 +71,14 @@ class GotoVelocityController:
         return 1.0 - np.sin(max(theta_err - tol, 0.0))
 
     @staticmethod
-    def _turn_rate_limit(w_max, lin_err, heading_err):
+    def _turn_rate_limit(w_max, lin_err, heading_err, dead_zone=0.0):
         """
         Computed velocity limit based on the turning radius required to reach goal.
         """
         assert lin_err >= 0.0
         assert heading_err >= 0.0
-        return w_max * lin_err / (np.sin(heading_err) + 1e-5) / 2.0
+        v_projected_max = w_max * max(lin_err - dead_zone, 0.0)
+        return v_projected_max * np.sin(heading_err)
 
     def _integrate_state(self, v, w):
         """
@@ -124,7 +125,9 @@ class GotoVelocityController:
                     lin_err_abs, ACC_LIN, tol=self.lin_error_tol, use_acc=self.use_loc
                 )
                 k_p = self._projection_velocity_multiplier(heading_err_abs, tol=self.ang_error_tol)
-                v_limit = self._turn_rate_limit(self.w_max, lin_err_abs, heading_err_abs)
+                v_limit = self._turn_rate_limit(
+                    self.w_max / 2.0, lin_err_abs, heading_err_abs, dead_zone=self.lin_error_tol
+                )
                 v_cmd = min(k_t * k_p * self.v_max, v_limit)
 
                 # Compute angular velocity
