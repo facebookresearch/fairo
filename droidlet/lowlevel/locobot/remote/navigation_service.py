@@ -312,7 +312,7 @@ class Navigation(object):
 
             # Execute plan
             # status, action = self.robot.go_to_absolute(stg)
-            self.robot.set_goal(stg)
+            self.robot.set_position_goal(stg)
             status = "SUCCEEDED"
             action = "move_to"
 
