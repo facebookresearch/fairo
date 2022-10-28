@@ -9,8 +9,8 @@ from utils import transform_global_to_base, transform_base_to_global
 
 V_MAX_DEFAULT = 0.2  # base.params["motion"]["default"]["vel_m"]
 W_MAX_DEFAULT = 0.45  # (vel_m_max - vel_m_default) / wheel_separation_m
-ACC_LIN = 1.6  # 4 * (base.params["motion"]["max"]["accel_m"])
-ACC_ANG = 4.8  # 2 * (2 * (accel_m_max - accel_m_max) / wheel_separation_m)
+ACC_LIN = 0.4  # base.params["motion"]["max"]["accel_m"]
+ACC_ANG = 1.2  # (accel_m_max - accel_m_default) / wheel_separation_m
 
 
 class GotoVelocityController:
