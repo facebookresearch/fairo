@@ -6,7 +6,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - polymetis=685_g1d486298
+  - polymetis
   - opencv=4.5.1
   - librealsense=2.50.0
   - scipy=1.7.3
