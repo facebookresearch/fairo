@@ -139,6 +139,10 @@ class PickAndPlaceTask:
         """
         if scores is None:
             scores = np.arange(len(grasps))
+
+        # Ths gets the robot state that we use to move around
+        # q[:3] is x y theta - this is from map to base_link
+        # fairo navigation code base pose is map to odom link, maybe?
         q, _ = self.manip.update()
 
         # Some magic numbers here
@@ -219,6 +223,10 @@ class PickAndPlaceTask:
                 q2 = qi
                 # q2 = model.static_ik(grasp_pose, q1)
                 if q2 is not None:
+                    print(q[0])
+                    print(q1[2])
+                    print(q2[2])
+
                     # if np.abs(eq1) < 0.075 and np.abs(eq2) < 0.075:
                     # go to the grasp and try it
                     q[HelloStretchIdx.LIFT] = 0.99
@@ -229,7 +237,8 @@ class PickAndPlaceTask:
                     q_pre[5:] = q1[5:]
                     q_pre = self.model.update_gripper(q_pre, open=True)
                     # TODO replace this
-                    self.manip.move_base(theta=q1[2])
+                    #self.manip.move_base(theta=q1[2])
+                    self.bot.rotate_by(q1[2] - q[0])
                     time.sleep(2.0)
                     self.manip.goto(q_pre, move_base=False, wait=False, verbose=False)
                     self.model.set_config(q1)
@@ -240,7 +249,9 @@ class PickAndPlaceTask:
                     if pause:
                         input('--> go to grasp')
                     # TODO replace this
-                    self.manip.move_base(theta=q2[2])
+                    #self.manip.move_base(theta=q2[2])
+                    if abs(q2[2] - q1[2]) > 0.01:
+                        self.bot.rotate_by(q2[2] - q1[2])
                     time.sleep(2.0)
                     self.manip.goto(q_pre, move_base=False, wait=False, verbose=False)
                     self.model.set_config(q2)
@@ -254,7 +265,8 @@ class PickAndPlaceTask:
                     q = self.model.update_gripper(q, open=False)
                     self.manip.goto(q, move_base=False, wait=True, verbose=False)
                     # TODO replace this
-                    self.manip.move_base(theta=q[0])
+                    #self.manip.move_base(theta=q[0])
+                    self.bot.rotate_by(q[0] - q2[2])
                     return True
 
         return False
