@@ -12,6 +12,7 @@ dependencies:
   - scipy=1.7.3
   - cmake
   - pybind11
+  - py
   - pip
   - pip:
     - ../../realsense_driver/
