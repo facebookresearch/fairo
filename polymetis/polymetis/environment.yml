@@ -48,7 +48,7 @@ dependencies:
     - pymodbus ==2.5.3
     - pyserial
     - pytest
-    - pytest-benchmark=3.4.1
+    - pytest-benchmark=4.0.0
     - scipy
     - spdlog=1.10.0=h924138e_0
     - sphinx

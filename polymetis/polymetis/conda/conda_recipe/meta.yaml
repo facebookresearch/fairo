@@ -59,7 +59,7 @@ requirements:
     - pymodbus
     - pyserial
     - pytest
-    - pytest-benchmark=3.4.1
+    - pytest-benchmark=4.0.0
     - python ==3.8
     - pytorch ==1.10.0
     - scipy
