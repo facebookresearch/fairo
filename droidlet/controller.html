@@ -153,8 +153,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Controller</li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Controller</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/controller.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -224,7 +224,7 @@ The logical form is fed to an interpreter to
 handle the action.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>chat</strong> (<em>Tuple</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – Tuple of (speaker, chat). Speaker is name of speaker.
+<dd class="field-odd"><p><strong>chat</strong> (<em>Tuple</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>]</em>) – Tuple of (speaker, chat). Speaker is name of speaker.
 Chat is an incoming chat command that the agent has received.
 Example: (“player_1”, “build a red cube”)</p>
 </dd>
@@ -257,11 +257,11 @@ this is empty during inference.</p></li>
 </dd>
 <dt class="field-even">Parameters</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>model_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Path to directory containing all files necessary to
+<li><p><strong>model_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Path to directory containing all files necessary to
 load and run the model, including args, tree mappings and the checkpointed model.
 Semantic parsing models used by current project are in <code class="docutils literal notranslate"><span class="pre">ttad_bert_updated</span></code>.
 eg. semantic parsing model is <code class="docutils literal notranslate"><span class="pre">ttad_bert_updated/caip_test_model.pth</span></code></p></li>
-<li><p><strong>data_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Path to directory containing all datasets used by the NSP model.
+<li><p><strong>data_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – Path to directory containing all datasets used by the NSP model.
 Note that this data is not used in inference, rather we load from the ground truth
 data directory.</p></li>
 </ul>
@@ -279,7 +279,7 @@ Uses beam search decoding, see <cite>beam_search</cite>
 <dd class="field-odd"><p>Logical form.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)">dict</a></p>
 </dd>
 </dl>
 </dd></dl>

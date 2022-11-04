@@ -153,8 +153,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Memory</li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Memory</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/memory.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -183,7 +183,7 @@ capabilities based on the agent’s framework.</p>
 <li><p><strong>db_file</strong> (<em>string</em>) – The database file</p></li>
 <li><p><strong>schema_path</strong> (<em>string</em>) – Path to the file containing the database schema</p></li>
 <li><p><strong>db_log_path</strong> (<em>string</em>) – Path to where the database logs will be written</p></li>
-<li><p><strong>nodelist</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em>[</em><a class="reference internal" href="#droidlet.memory.memory_nodes.MemoryNode" title="droidlet.memory.memory_nodes.MemoryNode"><em>MemoryNode</em></a><em>]</em>) – List of memory nodes</p></li>
+<li><p><strong>nodelist</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em>[</em><a class="reference internal" href="#droidlet.memory.memory_nodes.MemoryNode" title="droidlet.memory.memory_nodes.MemoryNode"><em>MemoryNode</em></a><em>]</em>) – List of memory nodes</p></li>
 <li><p><strong>agent_time</strong> (<em>Time object</em>) – object with a .get_time(), get_world_hour, and add_tick()
 methods</p></li>
 <li><p><strong>on_delete_callback</strong> (<em>callable</em>) – callable to be run when a memory is deleted from Memories table</p></li>
@@ -192,20 +192,20 @@ methods</p></li>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>_db_log_file</strong> (<em>FileHandler</em>) – File handler for writing database logs</p></li>
-<li><p><strong>_db_log_idx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Database log index</p></li>
-<li><p><strong>db</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><em>object</em></a>) – connection object to the database file</p></li>
-<li><p><strong>_safe_pickle_saved_attrs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – Dictionary for pickled attributes</p></li>
-<li><p><strong>all_tables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a>) – List of all table names</p></li>
-<li><p><strong>nodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – Mapping of node name to table name</p></li>
-<li><p><strong>self_memid</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – MemoryID for the AgentMemory</p></li>
+<li><p><strong>_db_log_idx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Database log index</p></li>
+<li><p><strong>db</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><em>object</em></a>) – connection object to the database file</p></li>
+<li><p><strong>_safe_pickle_saved_attrs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – Dictionary for pickled attributes</p></li>
+<li><p><strong>all_tables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a>) – List of all table names</p></li>
+<li><p><strong>nodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – Mapping of node name to table name</p></li>
+<li><p><strong>self_memid</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – MemoryID for the AgentMemory</p></li>
 <li><p><strong>searcher</strong> (<em>MemorySearcher</em>) – A class to process searches through memory</p></li>
-<li><p><strong>time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The time of the agent</p></li>
+<li><p><strong>time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – The time of the agent</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory._db_read">
-<span class="sig-name descname"><span class="pre">_db_read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory._db_read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory._db_read" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_db_read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.11)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.11)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory._db_read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory._db_read" title="Permalink to this definition"></a></dt>
 <dd><p>Return all entries returned from running the query against
 the database.</p>
 <dl class="field-list simple">
@@ -219,7 +219,7 @@ the database.</p>
 <dd class="field-even"><p>a list of tuples satisfying the query</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a>]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)">tuple</a>]</p>
 </dd>
 </dl>
 <dl>
@@ -237,20 +237,20 @@ the database.</p>
 <dd><p>Perform a basic search using the query</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>query</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – A FILTERS dict or sqly query</p>
+<dd class="field-odd"><p><strong>query</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – A FILTERS dict or sqly query</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>the memids and respective values from the search</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a>[memid], <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a>[value]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)">list</a>[memid], <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)">list</a>[value]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.forget">
-<span class="sig-name descname"><span class="pre">forget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.forget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.forget" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">forget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.forget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.forget" title="Permalink to this definition"></a></dt>
 <dd><dl class="simple">
 <dt>remove a memory from the DB. Warning: some of the work is done by</dt><dd><p>delete cascades in SQL</p>
 </dd>
@@ -271,13 +271,13 @@ the database.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.get_last_finished_root_task">
-<span class="sig-name descname"><span class="pre">get_last_finished_root_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recency</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_control</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.get_last_finished_root_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.get_last_finished_root_task" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_last_finished_root_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.11)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recency</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.11)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_control</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.get_last_finished_root_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.get_last_finished_root_task" title="Permalink to this definition"></a></dt>
 <dd><p>Get last task that was marked as finished</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>action_name</strong> (<em>string</em>) – Name of action associated with task</p></li>
-<li><p><strong>recency</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – How recent should the task be</p></li>
+<li><p><strong>recency</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – How recent should the task be</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -298,7 +298,7 @@ the database.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.get_mem_by_id">
-<span class="sig-name descname"><span class="pre">get_mem_by_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#droidlet.memory.memory_nodes.MemoryNode" title="droidlet.memory.memory_nodes.MemoryNode"><span class="pre">MemoryNode</span></a></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.get_mem_by_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.get_mem_by_id" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_mem_by_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.11)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#droidlet.memory.memory_nodes.MemoryNode" title="droidlet.memory.memory_nodes.MemoryNode"><span class="pre">MemoryNode</span></a></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.get_mem_by_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.get_mem_by_id" title="Permalink to this definition"></a></dt>
 <dd><p>Given the memid and an optional node_type,
 return the memory node</p>
 <dl class="field-list simple">
@@ -327,21 +327,21 @@ return the memory node</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.get_recent_entities">
-<span class="sig-name descname"><span class="pre">get_recent_entities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12000</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#droidlet.memory.memory_nodes.MemoryNode" title="droidlet.memory.memory_nodes.MemoryNode"><span class="pre">MemoryNode</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.get_recent_entities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.get_recent_entities" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_recent_entities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12000</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.11)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#droidlet.memory.memory_nodes.MemoryNode" title="droidlet.memory.memory_nodes.MemoryNode"><span class="pre">MemoryNode</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.get_recent_entities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.get_recent_entities" title="Permalink to this definition"></a></dt>
 <dd><p>Get all entities of given memtype that were recently (within the
 time window) attended</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>memtype</strong> (<em>string</em>) – The node type of memory</p></li>
-<li><p><strong>time_window</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The time window for maintaining recency window from current time</p></li>
+<li><p><strong>time_window</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – The time window for maintaining recency window from current time</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>list of MemoryNode objects</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a>[<a class="reference internal" href="#droidlet.memory.memory_nodes.MemoryNode" title="droidlet.memory.memory_nodes.MemoryNode">MemoryNode</a>]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)">list</a>[<a class="reference internal" href="#droidlet.memory.memory_nodes.MemoryNode" title="droidlet.memory.memory_nodes.MemoryNode">MemoryNode</a>]</p>
 </dd>
 </dl>
 <dl>
@@ -362,7 +362,7 @@ time window) attended</p>
 <dd class="field-odd"><p>current time from memory</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -376,7 +376,7 @@ time window) attended</p>
 <dd class="field-odd"><p>current time in the environment world</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -390,14 +390,14 @@ time window) attended</p>
 <dd class="field-odd"><p>Number of rows affected</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.task_stack_find_lowest_instance">
-<span class="sig-name descname"><span class="pre">task_stack_find_lowest_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.10)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.10)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#droidlet.memory.memory_nodes.TaskNode" title="droidlet.memory.memory_nodes.TaskNode"><span class="pre">TaskNode</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.task_stack_find_lowest_instance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.task_stack_find_lowest_instance" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">task_stack_find_lowest_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.11)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.11)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.11)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#droidlet.memory.memory_nodes.TaskNode" title="droidlet.memory.memory_nodes.TaskNode"><span class="pre">TaskNode</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.task_stack_find_lowest_instance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.task_stack_find_lowest_instance" title="Permalink to this definition"></a></dt>
 <dd><p>Find and return the lowest item in the stack of the given class(es)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -421,21 +421,21 @@ time window) attended</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.task_stack_pause">
-<span class="sig-name descname"><span class="pre">task_stack_pause</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.task_stack_pause"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.task_stack_pause" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">task_stack_pause</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.task_stack_pause"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.task_stack_pause" title="Permalink to this definition"></a></dt>
 <dd><p>Pause the stack and return True iff anything was stopped</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>Number of rows affected</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.task_stack_peek">
-<span class="sig-name descname"><span class="pre">task_stack_peek</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#droidlet.memory.memory_nodes.TaskNode" title="droidlet.memory.memory_nodes.TaskNode"><span class="pre">TaskNode</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.task_stack_peek"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.task_stack_peek" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">task_stack_peek</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.11)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#droidlet.memory.memory_nodes.TaskNode" title="droidlet.memory.memory_nodes.TaskNode"><span class="pre">TaskNode</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.task_stack_peek"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.task_stack_peek" title="Permalink to this definition"></a></dt>
 <dd><p>Return the top of task stack</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -455,7 +455,7 @@ time window) attended</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.task_stack_pop">
-<span class="sig-name descname"><span class="pre">task_stack_pop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#droidlet.memory.memory_nodes.TaskNode" title="droidlet.memory.memory_nodes.TaskNode"><span class="pre">TaskNode</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.task_stack_pop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.task_stack_pop" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">task_stack_pop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.11)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#droidlet.memory.memory_nodes.TaskNode" title="droidlet.memory.memory_nodes.TaskNode"><span class="pre">TaskNode</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.task_stack_pop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.task_stack_pop" title="Permalink to this definition"></a></dt>
 <dd><p>Return the ‘TaskNode’ of the stack head and mark finished</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -475,14 +475,14 @@ time window) attended</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.task_stack_push">
-<span class="sig-name descname"><span class="pre">task_stack_push</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chat_effect</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#droidlet.memory.memory_nodes.TaskNode" title="droidlet.memory.memory_nodes.TaskNode"><span class="pre">TaskNode</span></a></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.task_stack_push"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.task_stack_push" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">task_stack_push</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.11)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chat_effect</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#droidlet.memory.memory_nodes.TaskNode" title="droidlet.memory.memory_nodes.TaskNode"><span class="pre">TaskNode</span></a></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.task_stack_push"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.task_stack_push" title="Permalink to this definition"></a></dt>
 <dd><p>Create a task object in memory, add triples and add to task stack</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>task</strong> (<a class="reference internal" href="tasks.html#droidlet.task.task.Task" title="droidlet.task.task.Task"><em>Task</em></a>) – The task to be pushed</p></li>
 <li><p><strong>parent_memid</strong> (<em>string</em>) – Memory ID of the task’s parent</p></li>
-<li><p><strong>chat_effect</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If the task was a result of a chat, add the triple.</p></li>
+<li><p><strong>chat_effect</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – If the task was a result of a chat, add the triple.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -504,21 +504,21 @@ time window) attended</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.task_stack_resume">
-<span class="sig-name descname"><span class="pre">task_stack_resume</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.task_stack_resume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.task_stack_resume" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">task_stack_resume</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.task_stack_resume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.task_stack_resume" title="Permalink to this definition"></a></dt>
 <dd><p>Resume stopped tasks. Return True if there was something to resume.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>Number of rows affected</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="droidlet.memory.sql_memory.AgentMemory.task_stack_update_task">
-<span class="sig-name descname"><span class="pre">task_stack_update_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">task</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.task_stack_update_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.task_stack_update_task" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">task_stack_update_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">task</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/sql_memory.html#AgentMemory.task_stack_update_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.sql_memory.AgentMemory.task_stack_update_task" title="Permalink to this definition"></a></dt>
 <dd><p>Update task in memory</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -531,7 +531,7 @@ time window) attended</p>
 <dd class="field-even"><p>Number of rows affected</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)">int</a></p>
 </dd>
 </dl>
 <dl>
@@ -553,7 +553,7 @@ time window) attended</p>
 <p>MemoryNodes are python objects that collate data about a particular entity or event.  There are MemoryNodes for ReferenceObjects (things that have a location in space), for Tasks, for chats and commands, etc.  MemoryNode .<strong>init</strong> calls take a memid (key in the base Memories table in the database).  To create a memid (and to enter information relevant to the MemoryNode)  use the classes’ <code class="docutils literal notranslate"><span class="pre">.create()</span></code> method.  These have a different input signature for each type of MemoryNode, but always output a memid.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="droidlet.memory.memory_nodes.MemoryNode">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">MemoryNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#MemoryNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.MemoryNode" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">MemoryNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#MemoryNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.MemoryNode" title="Permalink to this definition"></a></dt>
 <dd><p>This is the main class representing a node in the memory</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -579,7 +579,7 @@ time window) attended</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="droidlet.memory.memory_nodes.ProgramNode">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">ProgramNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#ProgramNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.ProgramNode" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">ProgramNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#ProgramNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.ProgramNode" title="Permalink to this definition"></a></dt>
 <dd><p>This class represents the logical forms (outputs from
 the semantic parser)</p>
 <dl class="field-list simple">
@@ -590,7 +590,7 @@ the semantic parser)</p>
 </ul>
 </dd>
 <dt class="field-even">Variables</dt>
-<dd class="field-even"><p><strong>logical_form</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – The semantic parser output for text</p>
+<dd class="field-even"><p><strong>logical_form</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – The semantic parser output for text</p>
 </dd>
 </dl>
 <dl>
@@ -610,7 +610,7 @@ the semantic parser)</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="droidlet.memory.memory_nodes.NamedAbstractionNode">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">NamedAbstractionNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#NamedAbstractionNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.NamedAbstractionNode" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">NamedAbstractionNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#NamedAbstractionNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.NamedAbstractionNode" title="Permalink to this definition"></a></dt>
 <dd><p>This class represents an abstract concept with a name,
 to be used in triples</p>
 <dl class="field-list simple">
@@ -641,7 +641,7 @@ to be used in triples</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="droidlet.memory.memory_nodes.ReferenceObjectNode">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">ReferenceObjectNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#ReferenceObjectNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.ReferenceObjectNode" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">ReferenceObjectNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#ReferenceObjectNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.ReferenceObjectNode" title="Permalink to this definition"></a></dt>
 <dd><p>This is a class representing generic memory node for anything that has a spatial location and can be
 used a spatial reference (e.g. to the left of the x).</p>
 <dl class="field-list simple">
@@ -669,7 +669,7 @@ used a spatial reference (e.g. to the left of the x).</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="droidlet.memory.memory_nodes.PlayerNode">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">PlayerNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#PlayerNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.PlayerNode" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">PlayerNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#PlayerNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.PlayerNode" title="Permalink to this definition"></a></dt>
 <dd><p>This class represents humans and other agents that can affect
 the world</p>
 <dl class="field-list simple">
@@ -681,11 +681,11 @@ the world</p>
 </dd>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>eid</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Entity ID</p></li>
+<li><p><strong>eid</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Entity ID</p></li>
 <li><p><strong>name</strong> (<em>string</em>) – Name of player</p></li>
-<li><p><strong>pos</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>)</em>) – x, y, z coordinates</p></li>
-<li><p><strong>pitch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the vertical angle of the agent’s view vector</p></li>
-<li><p><strong>yaw</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – the horizontal rotation angle of the agent’s view vector</p></li>
+<li><p><strong>pos</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>)</em>) – x, y, z coordinates</p></li>
+<li><p><strong>pitch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – the vertical angle of the agent’s view vector</p></li>
+<li><p><strong>yaw</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – the horizontal rotation angle of the agent’s view vector</p></li>
 </ul>
 </dd>
 </dl>
@@ -706,7 +706,7 @@ the world</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="droidlet.memory.memory_nodes.SelfNode">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">SelfNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#SelfNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.SelfNode" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">SelfNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#SelfNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.SelfNode" title="Permalink to this definition"></a></dt>
 <dd><p>This class is a special PlayerNode for representing the
 agent’s self</p>
 <dl class="field-list simple">
@@ -734,7 +734,7 @@ agent’s self</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="droidlet.memory.memory_nodes.LocationNode">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">LocationNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#LocationNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.LocationNode" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">LocationNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#LocationNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.LocationNode" title="Permalink to this definition"></a></dt>
 <dd><p>This is a ReferenceObjectNode representing a raw location
 (a point in space)</p>
 <dl class="field-list simple">
@@ -746,8 +746,8 @@ agent’s self</p>
 </dd>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>location</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a>) – (x, y, z) coordinates of the node</p></li>
-<li><p><strong>pos</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><em>tuple</em></a>) – (x, y, z) coordinates of the node</p></li>
+<li><p><strong>location</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><em>tuple</em></a>) – (x, y, z) coordinates of the node</p></li>
+<li><p><strong>pos</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><em>tuple</em></a>) – (x, y, z) coordinates of the node</p></li>
 </ul>
 </dd>
 </dl>
@@ -768,7 +768,7 @@ agent’s self</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="droidlet.memory.memory_nodes.AttentionNode">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">AttentionNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#AttentionNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.AttentionNode" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">AttentionNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#AttentionNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.AttentionNode" title="Permalink to this definition"></a></dt>
 <dd><p>This is a ReferenceObjectNode representing spatial attention</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -798,7 +798,7 @@ agent’s self</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="droidlet.memory.memory_nodes.TimeNode">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">TimeNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#TimeNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.TimeNode" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">TimeNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#TimeNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.TimeNode" title="Permalink to this definition"></a></dt>
 <dd><p>This class represents a temporal ‘location’</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -808,7 +808,7 @@ agent’s self</p>
 </ul>
 </dd>
 <dt class="field-even">Variables</dt>
-<dd class="field-even"><p><strong>time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – the value of time</p>
+<dd class="field-even"><p><strong>time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – the value of time</p>
 </dd>
 </dl>
 <dl>
@@ -828,7 +828,7 @@ agent’s self</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="droidlet.memory.memory_nodes.ChatNode">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">ChatNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#ChatNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.ChatNode" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">ChatNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#ChatNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.ChatNode" title="Permalink to this definition"></a></dt>
 <dd><p>This node represents a chat/utterance from another agent/human</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -841,7 +841,7 @@ agent’s self</p>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>speaker_id</strong> (<em>string</em>) – The memid of the speaker who sent the chat</p></li>
 <li><p><strong>chat_text</strong> (<em>string</em>) – The chat string</p></li>
-<li><p><strong>time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The time at which the chat was delivered</p></li>
+<li><p><strong>time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – The time at which the chat was delivered</p></li>
 </ul>
 </dd>
 </dl>
@@ -862,7 +862,7 @@ agent’s self</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="droidlet.memory.memory_nodes.TaskNode">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">TaskNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#TaskNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.TaskNode" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">droidlet.memory.memory_nodes.</span></span><span class="sig-name descname"><span class="pre">TaskNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/droidlet/memory/memory_nodes.html#TaskNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#droidlet.memory.memory_nodes.TaskNode" title="Permalink to this definition"></a></dt>
 <dd><p>This node represents a task object that was placed on
 the agent’s task_stack</p>
 <dl class="field-list simple">
@@ -874,9 +874,9 @@ the agent’s task_stack</p>
 </dd>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>task</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><em>object</em></a>) – Name of the task</p></li>
-<li><p><strong>created</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Time at which it was created</p></li>
-<li><p><strong>finished</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Time at which it was finished</p></li>
+<li><p><strong>task</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><em>object</em></a>) – Name of the task</p></li>
+<li><p><strong>created</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Time at which it was created</p></li>
+<li><p><strong>finished</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – Time at which it was finished</p></li>
 <li><p><strong>action_name</strong> (<em>string</em>) – The name of action that corresponds to this task</p></li>
 </ul>
 </dd>
