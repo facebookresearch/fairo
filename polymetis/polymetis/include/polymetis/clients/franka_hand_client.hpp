@@ -25,6 +25,7 @@ private:
   GripperState gripper_state_;
   GripperCommand gripper_cmd_;
   int prev_cmd_timestamp_ns_;
+  bool prev_cmd_successful_ = true;
 
   // Franka
   std::shared_ptr<franka::Gripper> gripper_;
