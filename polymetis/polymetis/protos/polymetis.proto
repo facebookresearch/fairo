@@ -78,6 +78,8 @@ message GripperCommand {
     float speed = 3;
     float force = 4;
     bool grasp = 5;
+    float epsilon_inner = 6;
+    float epsilon_outer = 7;
 }
 
 message GripperState {

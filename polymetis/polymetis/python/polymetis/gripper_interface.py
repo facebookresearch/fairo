@@ -85,14 +85,27 @@ class GripperInterface:
             blocking=blocking,
         )
 
-    def grasp(self, speed: float, force: float, blocking: bool = True):
+    def grasp(
+        self,
+        speed: float,
+        force: float,
+        grasp_width: float = 0.0,
+        epsilon_inner: float = -1.0,
+        epsilon_outer: float = -1.0,
+        blocking: bool = True,
+    ):
         """Commands the gripper to a certain width
         Args:
             vel: Velocity of the movement
             force: Maximum force the gripper will exert
         """
         cmd = polymetis_pb2.GripperCommand(
-            width=0.0, speed=speed, force=force, grasp=True
+            width=grasp_width,
+            speed=speed,
+            force=force,
+            grasp=True,
+            epsilon_inner=epsilon_inner,
+            epsilon_outer=epsilon_outer,
         )
         cmd.timestamp.GetCurrentTime()
 

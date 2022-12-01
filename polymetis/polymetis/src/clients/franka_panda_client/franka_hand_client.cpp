@@ -55,8 +55,14 @@ void FrankaHandClient::applyGripperCommand(void) {
   if (gripper_cmd_.grasp()) {
     spdlog::info("Grasping at width {} at speed={}", gripper_cmd_.width(),
                  gripper_cmd_.speed());
+    double eps_inner = (gripper_cmd_.epsilon_inner() < 0)
+                           ? EPSILON_INNER
+                           : gripper_cmd_.epsilon_inner();
+    double eps_outer = (gripper_cmd_.epsilon_outer() < 0)
+                           ? EPSILON_OUTER
+                           : gripper_cmd_.epsilon_outer();
     gripper_->grasp(gripper_cmd_.width(), gripper_cmd_.speed(),
-                    gripper_cmd_.force(), EPSILON_INNER, EPSILON_OUTER);
+                    gripper_cmd_.force(), eps_inner, eps_outer);
 
   } else {
     spdlog::info("Moving to width {} at speed={}", gripper_cmd_.width(),
