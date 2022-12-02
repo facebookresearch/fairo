@@ -85,14 +85,39 @@ class GripperInterface:
             blocking=blocking,
         )
 
-    def grasp(self, speed: float, force: float, blocking: bool = True):
-        """Commands the gripper to a certain width
+    def grasp(
+        self,
+        speed: float,
+        force: float,
+        grasp_width: float = 0.0,
+        epsilon_inner: float = -1.0,
+        epsilon_outer: float = -1.0,
+        blocking: bool = True,
+    ):
+        """Commands the gripper to a close
+
+        For Robotiq grippers, this is equivalent to calling `goto` with grasp_width (0 by default).
+
+        For the Franka Hand, see documentation for franka::Gripper::move in libfranka.
+        Basically the gripper will perform the grasp if grasp_width - epsilon_inner < final_width < grasp_width + epsilon_outer.
+        Else the gripper will not continue to exert force.
+        The default width and epsilon values ensures that the gripper closes to the minimum width possible and continues to exert force.
+
+
         Args:
             vel: Velocity of the movement
             force: Maximum force the gripper will exert
+            grasp_width: Target width of the grasp
+            epsilon_inner: Maximum tolerated deviation when the actual grasped width is smaller than the commanded grasp width
+            epsilon_outer: Maximum tolerated deviation when the actual grasped width is larger than the commanded grasp width
         """
         cmd = polymetis_pb2.GripperCommand(
-            width=0.0, speed=speed, force=force, grasp=True
+            width=grasp_width,
+            speed=speed,
+            force=force,
+            grasp=True,
+            epsilon_inner=epsilon_inner,
+            epsilon_outer=epsilon_outer,
         )
         cmd.timestamp.GetCurrentTime()
 

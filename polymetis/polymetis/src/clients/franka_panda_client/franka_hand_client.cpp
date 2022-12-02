@@ -44,6 +44,7 @@ void FrankaHandClient::getGripperState(void) {
   gripper_state_.set_width(franka_gripper_state.width);
   gripper_state_.set_is_grasped(franka_gripper_state.is_grasped);
   gripper_state_.set_is_moving(is_moving_);
+  gripper_state_.set_prev_command_successful(prev_cmd_successful_);
 
   // gripper_state.time();  // Use current timestamp instead!
   setTimestampToNow(gripper_state_.mutable_timestamp());
@@ -55,13 +56,21 @@ void FrankaHandClient::applyGripperCommand(void) {
   if (gripper_cmd_.grasp()) {
     spdlog::info("Grasping at width {} at speed={}", gripper_cmd_.width(),
                  gripper_cmd_.speed());
-    gripper_->grasp(gripper_cmd_.width(), gripper_cmd_.speed(),
-                    gripper_cmd_.force(), EPSILON_INNER, EPSILON_OUTER);
+    double eps_inner = (gripper_cmd_.epsilon_inner() < 0)
+                           ? EPSILON_INNER
+                           : gripper_cmd_.epsilon_inner();
+    double eps_outer = (gripper_cmd_.epsilon_outer() < 0)
+                           ? EPSILON_OUTER
+                           : gripper_cmd_.epsilon_outer();
+    prev_cmd_successful_ =
+        gripper_->grasp(gripper_cmd_.width(), gripper_cmd_.speed(),
+                        gripper_cmd_.force(), eps_inner, eps_outer);
 
   } else {
     spdlog::info("Moving to width {} at speed={}", gripper_cmd_.width(),
                  gripper_cmd_.speed());
-    gripper_->move(gripper_cmd_.width(), gripper_cmd_.speed());
+    prev_cmd_successful_ =
+        gripper_->move(gripper_cmd_.width(), gripper_cmd_.speed());
   }
 
   is_moving_ = false;

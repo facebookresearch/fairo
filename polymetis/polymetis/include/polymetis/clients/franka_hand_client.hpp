@@ -10,8 +10,8 @@
 #define GRIPPER_HZ 30
 
 // Define tolerances to be able to grasp any object without specifying width
-#define EPSILON_INNER -0.0005
-#define EPSILON_OUTER 0.15
+#define EPSILON_INNER 0.2
+#define EPSILON_OUTER 0.2
 
 class FrankaHandClient {
 private:
@@ -25,6 +25,7 @@ private:
   GripperState gripper_state_;
   GripperCommand gripper_cmd_;
   int prev_cmd_timestamp_ns_;
+  bool prev_cmd_successful_ = true;
 
   // Franka
   std::shared_ptr<franka::Gripper> gripper_;
