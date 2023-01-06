@@ -451,7 +451,6 @@ workflows:
       - update-docs:
           requires:
             - polymetis-local-ubuntu-20
-            - minecraft
           filters:
             branches:
               only: main
