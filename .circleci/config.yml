@@ -438,7 +438,6 @@ jobs:
 workflows:
   build:
     jobs:
-      - minecraft
       - polymetis-local-ubuntu-18
       - polymetis-local-ubuntu-20
       - polymetis-conda-ubuntu-18
