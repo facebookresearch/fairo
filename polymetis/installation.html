@@ -328,19 +328,19 @@
 <h3>From Anaconda<a class="headerlink" href="#from-anaconda" title="Permalink to this heading">¶</a></h3>
 <ol class="arabic">
 <li><p>Activate a conda environment with <code class="docutils literal notranslate"><span class="pre">python=3.8</span></code>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda activate polymetis
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>activate<span class="w"> </span>polymetis
 </pre></div>
 </div>
 <ul>
 <li><p>If you don’t have one yet, create one with the proper Python version:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n polymetis <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.8
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>polymetis<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.8
 </pre></div>
 </div>
 </li>
 </ul>
 </li>
 <li><p>Install polymetis using conda. This should pull the latest successful build from <code class="docutils literal notranslate"><span class="pre">main</span></code> branch.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -c pytorch -c fair-robotics -c aihabitat -c conda-forge polymetis
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>pytorch<span class="w"> </span>-c<span class="w"> </span>fair-robotics<span class="w"> </span>-c<span class="w"> </span>aihabitat<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>polymetis
 </pre></div>
 </div>
 <blockquote>
@@ -356,19 +356,19 @@
 <h3>From source<a class="headerlink" href="#from-source" title="Permalink to this heading">¶</a></h3>
 <ol class="arabic">
 <li><p>Clone repo:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone git@github.com:facebookresearch/fairo
-<span class="nb">cd</span> fairo/polymetis
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:facebookresearch/fairo
+<span class="nb">cd</span><span class="w"> </span>fairo/polymetis
 </pre></div>
 </div>
 </li>
 <li><p>Create environment</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda env create -f ./polymetis/environment.yml
-conda activate polymetis-local
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-f<span class="w"> </span>./polymetis/environment.yml
+conda<span class="w"> </span>activate<span class="w"> </span>polymetis-local
 </pre></div>
 </div>
 </li>
 <li><p>Install Python package in editable mode:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install -e ./polymetis
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>./polymetis
 </pre></div>
 </div>
 </li>
@@ -379,17 +379,17 @@ conda activate polymetis-local
 ./scripts/build_libfranka.sh
 
 <span class="c1"># OPTIONAL: Build custom version of libfranka instead</span>
-./scripts/build_libfranka.sh &lt;version_tag_or_commit_hash&gt;
+./scripts/build_libfranka.sh<span class="w"> </span>&lt;version_tag_or_commit_hash&gt;
 </pre></div>
 </div>
 </li>
 <li><p>Optionally, <a class="reference external" href="https://pytorch.org/get-started/locally/">install the CUDA-enabled version of PyTorch</a> (by default, only the CPU version is enabled).</p></li>
 <li><p>Build Polymetis from source:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir -p ./polymetis/build
-<span class="nb">cd</span> ./polymetis/build
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>-p<span class="w"> </span>./polymetis/build
+<span class="nb">cd</span><span class="w"> </span>./polymetis/build
 
-cmake .. -DCMAKE_BUILD_TYPE<span class="o">=</span>Release -DBUILD_FRANKA<span class="o">=[</span>OFF/ON<span class="o">]</span> -DBUILD_TESTS<span class="o">=[</span>OFF/ON<span class="o">]</span> -DBUILD_DOCS<span class="o">=[</span>OFF/ON<span class="o">]</span>
-make -j
+cmake<span class="w"> </span>..<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span>-DBUILD_FRANKA<span class="o">=[</span>OFF/ON<span class="o">]</span><span class="w"> </span>-DBUILD_TESTS<span class="o">=[</span>OFF/ON<span class="o">]</span><span class="w"> </span>-DBUILD_DOCS<span class="o">=[</span>OFF/ON<span class="o">]</span>
+make<span class="w"> </span>-j
 </pre></div>
 </div>
 </li>
@@ -411,24 +411,24 @@ make -j
 <li><p>In a fresh conda environment, install the package:</p>
 <ul>
 <li><p>Create a fresh conda environment:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n polymetis-test <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.8
-conda activate polymetis-test
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>polymetis-test<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.8
+conda<span class="w"> </span>activate<span class="w"> </span>polymetis-test
 </pre></div>
 </div>
 </li>
 <li><p>Update the local channel:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> polymetis/polymetis
-<span class="nv">PKG_PATH</span><span class="o">=</span>/path/to/downloaded/polymetis*.tar.bz2 ./conda/build_conda_package.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>polymetis/polymetis
+<span class="nv">PKG_PATH</span><span class="o">=</span>/path/to/downloaded/polymetis*.tar.bz2<span class="w"> </span>./conda/build_conda_package.sh
 </pre></div>
 </div>
 </li>
 <li><p>Install polymetis from the local channel:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -c file://<span class="k">$(</span><span class="nb">eval</span> <span class="nb">pwd</span><span class="k">)</span>/conda/channel <span class="se">\</span>
-    -c pytorch <span class="se">\</span>
-    -c fair-robotics <span class="se">\</span>
-    -c aihabitat <span class="se">\</span>
-    -c conda-forge <span class="se">\</span>
-    polymetis
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>file://<span class="k">$(</span><span class="nb">eval</span><span class="w"> </span><span class="nb">pwd</span><span class="k">)</span>/conda/channel<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-c<span class="w"> </span>pytorch<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-c<span class="w"> </span>fair-robotics<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-c<span class="w"> </span>aihabitat<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-c<span class="w"> </span>conda-forge<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>polymetis
 </pre></div>
 </div>
 </li>

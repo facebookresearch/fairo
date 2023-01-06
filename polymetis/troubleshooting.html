@@ -362,7 +362,7 @@
 <section id="end-to-end-testing">
 <h3>End-to-end testing<a class="headerlink" href="#end-to-end-testing" title="Permalink to this heading">¶</a></h3>
 <p>To test real-time performance, start a polymetis server connected to a fake Franka robot with</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launch_robot.py <span class="nv">robot_client</span><span class="o">=</span>franka_hardware robot_client.executable_cfg.mock<span class="o">=</span><span class="nb">true</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launch_robot.py<span class="w"> </span><span class="nv">robot_client</span><span class="o">=</span>franka_hardware<span class="w"> </span>robot_client.executable_cfg.mock<span class="o">=</span><span class="nb">true</span>
 </pre></div>
 </div>
 <p>Then run</p>

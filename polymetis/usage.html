@@ -349,7 +349,7 @@
 <section id="run-both-server-client-on-your-machine">
 <h3>Run both server &amp; client <strong>on your machine</strong>:<a class="headerlink" href="#run-both-server-client-on-your-machine" title="Permalink to this heading">¶</a></h3>
 <p>To run the server and robot client for Franka:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launch_robot.py <span class="nv">robot_client</span><span class="o">=</span>bullet_sim <span class="nv">use_real_time</span><span class="o">=</span><span class="nb">false</span> <span class="nv">gui</span><span class="o">=[</span>true<span class="p">|</span>false<span class="o">]</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launch_robot.py<span class="w"> </span><span class="nv">robot_client</span><span class="o">=</span>bullet_sim<span class="w"> </span><span class="nv">use_real_time</span><span class="o">=</span><span class="nb">false</span><span class="w"> </span><span class="nv">gui</span><span class="o">=[</span>true<span class="p">|</span>false<span class="o">]</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">launch_robot.py</span></code> is an executable script which starts both a controller manager server and a robot client which connects to it, and is installed as a script with the conda package by default in <code class="docutils literal notranslate"><span class="pre">$CONDA_PREFIX/bin</span></code>. It utilizes <a class="reference external" href="https://hydra.cc/">Hydra</a> configurations to easily swap between simulation and hardware.</p>
@@ -367,13 +367,13 @@
 </ol>
 <p>Then:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># On the NUC</span>
-launch_robot.py <span class="nv">robot_client</span><span class="o">=</span>franka_hardware
+launch_robot.py<span class="w"> </span><span class="nv">robot_client</span><span class="o">=</span>franka_hardware
 </pre></div>
 </div>
 <p>For hardware, <code class="docutils literal notranslate"><span class="pre">use_real_time</span></code> acquires the necessary <code class="docutils literal notranslate"><span class="pre">sudo</span></code> rights for real-time optimizations (see <a class="reference external" href="https://github.com/facebookresearch/fairo/blob/main/polymetis/polymetis/include/real_time.hpp">here</a> for the specific optimizations.)</p>
 <p>For debugging and calibration purposes, we provide a read-only mode for the robot client, where no torques will be applied to the robot but robot states are still recorded normally. To launch the robot client in read-only mode:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># On the NUC</span>
-launch_robot.py <span class="nv">robot_client</span><span class="o">=</span>franka_hardware robot_client.executable_cfg.readonly<span class="o">=</span><span class="nb">true</span>
+launch_robot.py<span class="w"> </span><span class="nv">robot_client</span><span class="o">=</span>franka_hardware<span class="w"> </span>robot_client.executable_cfg.readonly<span class="o">=</span><span class="nb">true</span>
 </pre></div>
 </div>
 </section>
@@ -388,12 +388,12 @@ launch_robot.py <span class="nv">robot_client</span><span class="o">=</span>fran
 <h2>Running the gripper <strong>on your machine</strong><a class="headerlink" href="#running-the-gripper-on-your-machine" title="Permalink to this heading">¶</a></h2>
 <p>We currently support two grippers: Franka Hand and Robotiq 2F Gripper.</p>
 <p>To run the gripper server:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launch_gripper.py <span class="nv">gripper</span><span class="o">=</span>&lt;franka_hand<span class="p">|</span>robotiq_2f&gt;
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launch_gripper.py<span class="w"> </span><span class="nv">gripper</span><span class="o">=</span>&lt;franka_hand<span class="p">|</span>robotiq_2f&gt;
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">launch_gripper.py</span></code> launches a service that exposes gripper functionality to a connected <code class="docutils literal notranslate"><span class="pre">GripperInterface</span></code>.</p>
 <p>You can modify the configuration on the command line through Hydra. For example, to change the comport (communication port) while using the <a class="reference external" href="https://github.com/facebookresearch/fairo/blob/main/polymetis/polymetis/conf/gripper/robotiq_2f.yaml">Robotiq 2F gripper config</a>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launch_gripper.py <span class="nv">gripper</span><span class="o">=</span>robotiq_2f gripper.comport<span class="o">=</span>/dev/ttyUSB1
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launch_gripper.py<span class="w"> </span><span class="nv">gripper</span><span class="o">=</span>robotiq_2f<span class="w"> </span>gripper.comport<span class="o">=</span>/dev/ttyUSB1
 </pre></div>
 </div>
 </section>
@@ -402,17 +402,17 @@ launch_robot.py <span class="nv">robot_client</span><span class="o">=</span>fran
 <p>The Allegro Hand client communicates using the SocketCAN interface which is included with modern Linux kernels.
 Before starting the Allegro Hand client you must configure your CAN netdev interface and specify the CAN bus network interface name in the <code class="docutils literal notranslate"><span class="pre">allegro_hardware.yaml</span></code> configuration file.</p>
 <p>One way to configure the CAN netdev interface is:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo ip link <span class="nb">set</span> can0 <span class="nb">type</span> can bitrate <span class="m">1000000</span>
-sudo ip link <span class="nb">set</span> can0 up
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>can0<span class="w"> </span><span class="nb">type</span><span class="w"> </span>can<span class="w"> </span>bitrate<span class="w"> </span><span class="m">1000000</span>
+sudo<span class="w"> </span>ip<span class="w"> </span>link<span class="w"> </span><span class="nb">set</span><span class="w"> </span>can0<span class="w"> </span>up
 </pre></div>
 </div>
 <p>you can use the command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ip link ls 
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ip<span class="w"> </span>link<span class="w"> </span>ls<span class="w"> </span>
 </pre></div>
 </div>
 <p>to check the names of the available CAN interfaces in your system.</p>
 <p>To launch the Allegro Hand client run the command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launch_robot.py <span class="nv">robot_client</span><span class="o">=</span>allegro_hardware <span class="nv">robot_model</span><span class="o">=</span>allegro_hand
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>launch_robot.py<span class="w"> </span><span class="nv">robot_client</span><span class="o">=</span>allegro_hardware<span class="w"> </span><span class="nv">robot_model</span><span class="o">=</span>allegro_hand
 </pre></div>
 </div>
 <p><em>Note:</em> if you previously installed the PEAK pcan kernel modules for libpcanbasic, the SocketCAN drivers have likely been blocklisted.  On Ubuntu systems you can undo this by commenting out all lines in the file <code class="docutils literal notranslate"><span class="pre">/etc/modprobe.d/blacklist-peak.conf</span> </code></p>
