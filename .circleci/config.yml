@@ -145,51 +145,6 @@ commands:
 
 
 jobs:
-  minecraft:
-    machine:
-      image: ubuntu-2004:202104-01
-    resource_class: gpu.nvidia.medium
-    steps:
-      - run:
-          name: Install dependencies
-          command: |
-            sudo apt update
-            sudo apt install -y git python3 python3-pip apt-transport-https ca-certificates curl gnupg-agent software-properties-common
-      - checkout
-
-      - run:
-          name: Get branch env variable
-          command: |
-            echo 'export DOCKER_BUILD_ARGS="--build-arg current_branch=${CIRCLE_BRANCH} --build-arg AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} --build-arg AWS_ACCESS_KEY_ID=${AWS_S3_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_S3_SECRET_ACCESS_KEY}"' >> $BASH_ENV
-            echo 'export CURRENT_BRANCH="${CIRCLE_BRANCH}"' >> $BASH_ENV
-
-      - run:
-          name: Build docker containers
-          command: make -C tools/docker build
-
-      - run:
-          name: CraftAssist Python unit tests
-          command: |
-              docker run --name mc-tests -v $(pwd):/shared -w /fairo --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && /fairo/.circleci/craftassist_tests.sh"
-              pip3 install codecov
-              export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
-              codecov -n "craftassist tests" -f *.xml || echo "Codecov did not collect coverage reports"
-          no_output_timeout: 50m
-
-      - run:
-          name: Push versioned docker containers
-          command: |
-            pip3 install $(cat conda.txt | grep -e awscli)
-            tools/docker/login.sh
-            make -C tools/docker push-versioned
-      - run:
-          name: Generate documentation
-          command: |
-            docker run -v $PWD:/shared -w /shared --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && cd droidlet/docs && python3 -m pip install -r requirements.txt && make html"
-      - persist_docs:
-          project_name: droidlet
-          relative_path: droidlet/docs/build/html
-
   polymetis-local-ubuntu-18:
     docker:
       - image: fairrobotics/kuka-workspace:ubuntu-18
