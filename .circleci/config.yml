@@ -252,7 +252,7 @@ jobs:
       - checkout
       - run:
           name: Install Deps
-          command: pip install -U black flake8
+          command: pip install -U black flake8==3.9.2
       - run:
           name: flake8
           command: cd mrp ; flake8
