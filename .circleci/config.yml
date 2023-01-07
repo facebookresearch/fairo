@@ -303,13 +303,13 @@ jobs:
             apt-get install -y build-essential libgl1-mesa-dev
       # fairotag
       - restore_cache:
-          key: deps9-{{ .Branch }}-perception-{{ checksum "perception/fairotag/environment.yml" }}
+          key: deps9-fairotag-{{ checksum "perception/fairotag/environment.yml" }}
       - run:
           name: Setup conda env - fairotag
           command: |
             [ -d ~/fairotag_env ] || conda env create -f perception/fairotag/environment.yml -p ~/fairotag_env
       - save_cache:
-          key: deps9-{{ .Branch }}-perception-{{ checksum "perception/fairotag/environment.yml" }}
+          key: deps9-fairotag-{{ checksum "perception/fairotag/environment.yml" }}
           paths:
             - "~/fairotag_env"
             - "/usr/lib"
@@ -324,13 +324,13 @@ jobs:
             pytest
       # eyehandcal
       - restore_cache:
-          key: deps9-{{ .Branch }}-perception-{{ checksum "perception/sandbox/eyehandcal/environment.yml" }}
+          key: deps9-eyehandcal-{{ checksum "perception/sandbox/eyehandcal/environment.yml" }}
       - run:
           name: Setup env - eyehandcal
           command: |
             [ -d ~/eyehandcal_env ] || conda env create -f perception/sandbox/eyehandcal/environment.yml -p ~/eyehandcal_env
       - save_cache:
-          key: deps9-{{ .Branch }}-perception-{{ checksum "perception/sandbox/eyehandcal/environment.yml" }}
+          key: deps9-eyehandcal-{{ checksum "perception/sandbox/eyehandcal/environment.yml" }}
           paths:
             - "~/eyehandcal_env"
       - run:
