@@ -346,7 +346,7 @@ jobs:
       - run:
           name: Setup env - iphone-reader
           command: |
-            [ -d ~/iphone_reader_env ] || conda create -p ~/iphone_reader_env
+            [ -d ~/iphone_reader_env ] || conda create -p ~/iphone_reader_env cmake
       - run:
           name: Run tests - iphone_reader
           command: |
