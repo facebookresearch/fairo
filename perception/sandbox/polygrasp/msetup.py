@@ -40,7 +40,7 @@ mrp.process(
 polygrasp_shared_env = mrp.Conda.SharedEnv(
     "polygrasp",
     channels=["pytorch", "fair-robotics", "aihabitat", "conda-forge"],
-    dependencies=["polymetis"],
+    dependencies=["polymetis", "numpy=1.23.5"],
     setup_commands=polygrasp_setup_commands,
 )
 
