@@ -25,7 +25,7 @@ requirements:
     - pinocchio ==2.5.2
     - poco ==1.9.0 # needed by libfranka
     - python ==3.8
-    - pytorch ==1.10.0
+    - pytorch
     - spdlog=1.10.0=h924138e_0
     - urdfdom=2.3.3=hc9558a2_0
     - urdfdom_headers=1.0.5=hc9558a2_2
@@ -61,7 +61,7 @@ requirements:
     - pytest
     - pytest-benchmark=4.0.0
     - python ==3.8
-    - pytorch ==1.10.0
+    - pytorch
     - scipy
     - spdlog=1.10.0=h924138e_0
     - sphinx
