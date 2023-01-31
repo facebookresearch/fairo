@@ -1,0 +1,6 @@
+defaults:
+  - robot_model: ability_hand
+  - gripper: psyonic
+
+ip: 0.0.0.0
+port: 50052
