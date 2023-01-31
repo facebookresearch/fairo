@@ -12,4 +12,4 @@ To launch the ability hand server:
 launch_psyonic_hand.py
 ```
 
-The robot can then be controlled via `polymetis.RobotInterface`. An example can be found in: [psyonic-hand-demo.py](./psyonic-hand-demo.py)
+The hand can then be controlled via `polymetis.RobotInterface`. An example can be found in: [psyonic-hand-demo.py](./psyonic-hand-demo.py)
