@@ -23,4 +23,5 @@ setup(
     include_package_data=True,
     scripts=scripts,
     install_requires=["alephzero"],
+    extras_require={"mj_ik": ["dm_control", "dm_robotics-moma"]},
 )
