@@ -21,7 +21,6 @@ def do_grasps(n):
 
 
 if __name__ == "__main__":
-
     # Define the a set of joint angle positions to iterate through to test each joint on
     # the robot arm.
     time_scale = 12
@@ -56,7 +55,6 @@ if __name__ == "__main__":
     home_positions = [float(x) for x in panda.get_joint_positions()]
 
     for sequence, time_to_go in test_sequence:
-
         # Create an initial target based upon the home positions
         target_positions = list(home_positions)
         for joint, angle in enumerate(sequence):
