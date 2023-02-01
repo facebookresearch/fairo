@@ -5,6 +5,7 @@ from typing import Tuple
 import random
 import Levenshtein
 
+
 # TODO FILTERS!
 def get_block_type(s, block_data_info, color_bid_map) -> Tuple:
     """string -> (id, meta)

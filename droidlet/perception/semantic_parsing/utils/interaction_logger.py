@@ -16,7 +16,6 @@ class InteractionLogger:
         """
 
     def logInteraction(self, data):
-
         """Log interaction data.
 
         args:

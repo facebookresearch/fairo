@@ -115,7 +115,7 @@ def update_data(folder):
     performs update on the dataset and writes output to a new
     file called : f_name + "_new.txt" (templated.txt -> templated_new.txt)
     """
-    for (dirpath, dirnames, filenames) in walk(folder):
+    for dirpath, dirnames, filenames in walk(folder):
         for f_name in filenames:
             if f_name == "templated_modify.txt":
                 continue

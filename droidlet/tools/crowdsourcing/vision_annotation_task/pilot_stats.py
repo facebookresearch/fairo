@@ -1,9 +1,9 @@
-#%%
+# %%
 """
 Get stats and plot for vision annotation pilot tasks
 """
 
-#%%
+# %%
 from numpy import Inf, Infinity
 import json
 import math
@@ -17,7 +17,8 @@ from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser
 from mephisto.data_model.worker import Worker
 
-#%%
+
+# %%
 def check_run_status(run_id: int, qual_name: str) -> None:
     db = LocalMephistoDB()
     units = db.find_units(task_run_id=run_id)
@@ -88,7 +89,7 @@ def check_run_status(run_id: int, qual_name: str) -> None:
         pass
 
 
-#%%
+# %%
 def retrieve_units(run_id: int) -> list:
     db = LocalMephistoDB()
     units = db.find_units(task_run_id=run_id)
@@ -99,7 +100,7 @@ def retrieve_units(run_id: int) -> list:
     return completed_units
 
 
-#%%
+# %%
 def increment_dict(dict: dict, key: str) -> dict:
     temp_dict = dict
     if key not in temp_dict:
@@ -109,7 +110,7 @@ def increment_dict(dict: dict, key: str) -> dict:
     return temp_dict
 
 
-#%%
+# %%
 def plot_OS_browser(run_id: int) -> None:
     completed_units = retrieve_units(run_id)
     db = LocalMephistoDB()
@@ -138,7 +139,7 @@ def plot_OS_browser(run_id: int) -> None:
     return
 
 
-#%%
+# %%
 def timing_charts(run_id: int) -> None:
     completed_units = retrieve_units(run_id)
     db = LocalMephistoDB()
@@ -199,7 +200,7 @@ def timing_charts(run_id: int) -> None:
     print(feedback)
 
 
-#%%
+# %%
 def hit_timing(
     content: dict, starttime: int, endtime: int, unit_timing: dict
 ) -> Tuple[int, int, dict]:
@@ -214,7 +215,7 @@ def hit_timing(
     return starttime, endtime, unit_timing
 
 
-#%%
+# %%
 def calc_percentiles(data: list, label: str) -> None:
     real_data = [x for x in data if x > 0]
     tenth = np.percentile(real_data, 10)
@@ -225,7 +226,7 @@ def calc_percentiles(data: list, label: str) -> None:
     print(f"{label} nintieth percentile: {nintieth:.1f}")
 
 
-#%%
+# %%
 def plot_hist(
     dictionary: dict,
     ylabel: str,
@@ -244,7 +245,7 @@ def plot_hist(
     plt.show()
 
 
-#%%
+# %%
 def plot_hist_sorted(
     values: list,
     ylabel: str,
@@ -261,7 +262,7 @@ def plot_hist_sorted(
     plot_hist(vals_dict, target_val=target_val, xlabel=xlabel, ylabel=ylabel, ymax=ymax)
 
 
-#%%
+# %%
 def plot_scatter(
     xs: list,
     ys: list,

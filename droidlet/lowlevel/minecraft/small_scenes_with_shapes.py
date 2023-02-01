@@ -265,7 +265,6 @@ def build_shape_scene(args):
     fence = getattr(args, "fence", False)
     blocks = build_base_world(args.SL, args.H, args.GROUND_DEPTH, fence=fence)
     if args.iglu_scenes:
-
         with open(args.iglu_scenes, "rb") as f:
             assets = pickle.load(f)
             sid = np.random.choice(list(assets.keys()))

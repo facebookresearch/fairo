@@ -13,6 +13,7 @@ from droidlet.memory.memory_nodes import TripleNode
 ### in various filter interpreters
 ####################################################################################
 
+
 # attribute has function signature list(mems) --> list(value)
 class Attribute:
     def __init__(self, memory):

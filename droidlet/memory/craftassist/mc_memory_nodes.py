@@ -723,7 +723,7 @@ class SchematicNode(MemoryNode):
             >>> create(memory, blocks)
         """
         memid = cls.new(memory)
-        for ((x, y, z), (b, m)) in blocks:
+        for (x, y, z), (b, m) in blocks:
             memory.db_write(
                 """
                     INSERT INTO Schematics(uuid, x, y, z, bid, meta)

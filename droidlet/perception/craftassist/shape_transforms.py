@@ -83,6 +83,7 @@ def moment_at_center(npy, sl):
 ## THICKEN
 #############################################
 
+
 # this doesn't preserve corners.  should it?
 # separate deltas per dim?
 def thicker_blocks(blocks, delta=1):
@@ -198,7 +199,7 @@ def scale_sparse(blocks, lams=(1.0, 1.0, 1.0)):
     cell_szs = szs / big_szs
     big_szs = big_szs.astype("int32")
     big = np.zeros(tuple(big_szs) + (2,)).astype("int32")
-    for (x, y, z) in inp_dict.keys():
+    for x, y, z in inp_dict.keys():
         for i in range(flint(x * lams[0]), ceint(x * lams[0]) + 2):
             for j in range(flint(y * lams[1]), ceint(y * lams[1]) + 2):
                 for k in range(flint(z * lams[2]), ceint(z * lams[2]) + 2):

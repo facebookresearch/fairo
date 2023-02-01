@@ -242,7 +242,7 @@ class World:
     def get_idm_at_locs(self, xyzs: Sequence[XYZ]) -> Dict[XYZ, IDM]:
         """Return the ground truth block state"""
         d = {}
-        for (x, y, z) in xyzs:
+        for x, y, z in xyzs:
             B = self.get_blocks(x, x, y, y, z, z)
             d[(x, y, z)] = tuple(B[0, 0, 0, :])
         return d

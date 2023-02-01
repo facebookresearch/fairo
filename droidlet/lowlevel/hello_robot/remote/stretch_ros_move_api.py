@@ -133,7 +133,6 @@ class MoveNode(hm.HelloNode):
         return result
 
     def background_loop(self):
-
         rospy.Subscriber(
             "/stretch/joint_states", JointState, self._joint_states_callback, queue_size=1
         )

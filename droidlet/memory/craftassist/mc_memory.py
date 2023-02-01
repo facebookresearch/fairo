@@ -290,7 +290,7 @@ class MCAgentMemory(AgentMemory):
 
         # 5. Update the state of the world when a block is changed.
         if perception_output.changed_block_attributes:
-            for (xyz, idm) in perception_output.changed_block_attributes:
+            for xyz, idm in perception_output.changed_block_attributes:
                 # 5.1 Update old instance segmentation if needed
                 self.maybe_remove_inst_seg(xyz)
 
@@ -642,7 +642,7 @@ class MCAgentMemory(AgentMemory):
             return
 
         mob_name_to_properties = mob_property_data.get("name_to_properties", {})
-        for (name, m) in mobs.items():
+        for name, m in mobs.items():
             type_name = "spawn " + name
 
             # load single mob as schematics

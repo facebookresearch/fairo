@@ -187,7 +187,6 @@ def interpret_reference_object(
     _, clarification_task_mems = interpreter.memory.basic_search(clarification_query)
     # does a clarification task referencing this interpreter exist?
     if not clarification_task_mems:
-
         mems = maybe_get_text_span_mems(interpreter, speaker, d)
         if mems:
             update_attended_and_link_lf(interpreter, mems)

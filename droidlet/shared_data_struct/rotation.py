@@ -47,6 +47,7 @@ DIRECTIONS = {
     "UP": np.array([0, 1, 0]),
 }
 
+
 # FIXME add the xz_only option for mc also, shouldn't use yaw for determining "up"
 def transform(direction, yaw, pitch, inverted=False, xz_only=False):
     """Coordinate transforms with respect to current yaw/pitch of the viewer direction

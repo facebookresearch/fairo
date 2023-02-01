@@ -116,7 +116,7 @@ class PlaceField:
         # overwrite traversibility map from slam service
         self.maps[h]["map"][:] = 0
         self.maps[h]["updated"][:] = self.get_time()
-        for (x, z) in locs:
+        for x, z in locs:
             i, j = self.real2map(x, z, h)
             s = max(i - self.map_size + 1, j - self.map_size + 1, -i, -j)
             if s > 0:

@@ -20,7 +20,7 @@ def update_schematic(folder):
     """
     f = []
     action_list = ["DIG", "BUILD"]
-    for (dirpath, dirnames, filenames) in walk(folder):
+    for dirpath, dirnames, filenames in walk(folder):
         for f_name in filenames:
             count = 0
             count1 = 0
@@ -93,7 +93,7 @@ def update_reference_object(folder):
     """
     f = []
     action_list = ["DESTROY", "SPAWN", "BUILD", "FILL", "GET", "SCOUT", "OTHERACTION"]
-    for (dirpath, dirnames, filenames) in walk(folder):
+    for dirpath, dirnames, filenames in walk(folder):
         for f_name in filenames:
             count = 0
             count1 = 0

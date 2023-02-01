@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 # --------------------------
 # Label smoothing loss
 # --------------------------

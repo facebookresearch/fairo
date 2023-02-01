@@ -65,7 +65,6 @@ def is_obstacle_ahead(dist, depth_fn):
 
     # Check if a significantly large obstacle is present and filter out smaller noisy regions
     if np.sum(mask) / 255.0 > 0.01 * mask.shape[0] * mask.shape[1]:
-
         image_gray = cv2.cvtColor(cv2.bitwise_and(rgb, rgb, mask=mask), cv2.COLOR_BGR2GRAY)
         edges = cv2.Canny(image_gray, 100, 200)
         edges = cv2.dilate(edges, None)

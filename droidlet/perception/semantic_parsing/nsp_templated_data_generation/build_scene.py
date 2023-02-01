@@ -190,7 +190,7 @@ def get_good_ad(template_attributes, flat=False):
         if len(r) > 0:
             allowed_blocks = template_attributes.get("allowed_blocktypes")
             if allowed_blocks:
-                for (_, btype) in r:
+                for _, btype in r:
                     if btype not in allowed_blocks:
                         new_btype = random.choice(allowed_blocks)
                         text = text.replace(btype, new_btype)
@@ -507,7 +507,6 @@ def build_scene(template_attributes, sl=32, flat=False):
 
 
 if __name__ == "__main__":
-
     template_attributes = {"count": range(1, 5)}
     template_attributes["step"] = range(1, 10)
     template_attributes["non_shape_names"] = list(SPECIAL_SHAPES_CANONICALIZE.keys())

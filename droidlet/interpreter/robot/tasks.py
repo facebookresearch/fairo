@@ -468,6 +468,7 @@ class CuriousExplore(TrajectorySaverTask):
             # Get a list of current detections
             objects = DetectedObjectNode.get_all(self.agent.memory)
             pos = self.agent.mover.get_base_pos_in_canonical_coords()
+
             # pick all from unexamined, in-sight object
             def pick_random_in_sight(objects, base_pos):
                 for x in objects:

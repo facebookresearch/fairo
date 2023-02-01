@@ -100,7 +100,6 @@ def fit_in_sidelength(schematic, labels=None, nothing_id=0, sl=32, max_shift=0):
 
 
 def make_example_from_raw(schematic, labels=None, augment={}, nothing_id=0, sl=32):
-
     max_shift = augment.get("max_shift", 0)
     s, l, o = fit_in_sidelength(
         schematic, labels=labels, nothing_id=nothing_id, max_shift=max_shift

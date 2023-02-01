@@ -21,6 +21,7 @@ rot = np.array([[0.0, 0.0, 1.0], [-1.0, 0.0, 0.0], [0.0, -1.0, 0.0]])
 CAMERA_HEIGHT = 0.6
 trans = np.array([0, 0, CAMERA_HEIGHT])
 
+
 # TODO: Consolidate camera intrinsics and their associated utils across locobot and habitat.
 def compute_uvone(height, width):
     intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)

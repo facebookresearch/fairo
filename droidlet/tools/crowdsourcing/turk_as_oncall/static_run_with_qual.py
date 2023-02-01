@@ -25,7 +25,6 @@ from droidlet.tools.crowdsourcing.droidlet_static_html_task.pilot_config import 
 
 @task_script(default_config_file="run_with_qual")
 def main(operator: Operator, cfg: DictConfig) -> None:
-
     shared_state = SharedStaticTaskState(
         qualifications=[
             make_qualification_dict(ALLOWLIST_QUALIFICATION, QUAL_EXISTS, None),

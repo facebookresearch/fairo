@@ -18,7 +18,7 @@ def update_data(folder):
     file called : f_name + "_new.txt" (templated.txt -> templated_new.txt)
     """
     f = []
-    for (dirpath, dirnames, filenames) in walk(folder):
+    for dirpath, dirnames, filenames in walk(folder):
         for f_name in filenames:
             action_names = {}
             count = 0

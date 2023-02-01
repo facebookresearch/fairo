@@ -42,6 +42,7 @@ def init_logger():
 
 init_logger()
 
+
 # TODO: Move these utils to a suitable place - as a class method in TripleNode
 def add_or_replace(agent, pred_text, obj_text):
     memids, _ = agent.memory.basic_search(f"SELECT uuid FROM Triple WHERE pred_text={pred_text}")

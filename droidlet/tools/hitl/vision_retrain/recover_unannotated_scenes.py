@@ -23,7 +23,6 @@ s3 = boto3.client(
 
 
 def main(batch_id: int):
-
     # Pull the completed annotated list from .hitl/batch_id
     print("Retrieving nominally annotated scene list")
     anno_dir = os.path.join(HITL_TMP_DIR, f"{batch_id}/annotated_scenes")

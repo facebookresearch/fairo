@@ -214,7 +214,7 @@ class Move(BaseMovementTask):
         # replace blocks if possible
         R = self.replace.copy()
         self.replace.clear()
-        for (pos, idm) in R:
+        for pos, idm in R:
             agent.set_held_item(idm)
             if agent.place_block(*pos):
                 logging.debug("Move: replaced {}".format((pos, idm)))
@@ -254,7 +254,7 @@ class Move(BaseMovementTask):
                 x, y, z = newpos
                 newpos_blocks = agent.get_blocks(x, x, y, y + 1, z, z)
                 # dig if necessary
-                for (bp, idm) in npy_to_blocks_list(newpos_blocks, newpos):
+                for bp, idm in npy_to_blocks_list(newpos_blocks, newpos):
                     self.replace.add((bp, idm))
                     agent.dig(*bp)
                 # move

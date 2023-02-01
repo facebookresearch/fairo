@@ -36,7 +36,6 @@ class LabelPropSaver:
         return img_folder, img_folder_dbg, depth_folder, lidar_folder, data_file
 
     def create_dirs(self, id_):
-
         img_folder, img_folder_dbg, depth_folder, lidar_folder, data_file = self.return_paths(id_)
 
         for x in [img_folder, img_folder_dbg, depth_folder, lidar_folder]:

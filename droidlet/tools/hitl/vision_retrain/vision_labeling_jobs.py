@@ -88,7 +88,6 @@ class VisionLabelingJob(DataGenerator):
         self._use_basic_shapes = use_basic_shapes
 
     def run(self) -> None:
-
         os.makedirs(f"{HITL_TMP_DIR}/{self._batch_id}/vision_labeling", exist_ok=True)
 
         try:

@@ -94,7 +94,7 @@ def record_video(image_filenames, image_timestamps, video_filename, fps=30, real
     out = cv2.VideoWriter(video_filename, cv2.VideoWriter_fourcc(*"mp4v"), fps, size)
     if realtime:
         prev_timestamp = 0
-        for (timestamp, image) in zip(image_timestamps, images):
+        for timestamp, image in zip(image_timestamps, images):
             frame_repeats = round((timestamp - prev_timestamp) * fps)
             for _ in range(frame_repeats):
                 out.write(image)

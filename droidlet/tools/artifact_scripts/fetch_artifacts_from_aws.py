@@ -9,6 +9,7 @@ from tqdm import tqdm
 ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../")
 print("Rootdir : %r" % ROOTDIR)
 
+
 # downloader with progress-bar
 # CC-by-SA: https://stackoverflow.com/a/53877507
 class DownloadProgressBar(tqdm):

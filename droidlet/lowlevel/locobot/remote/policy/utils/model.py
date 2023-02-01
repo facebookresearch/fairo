@@ -26,7 +26,6 @@ class Flatten(nn.Module):
 # https://github.com/ikostrikov/pytorch-a2c-ppo-acktr-gail/blob/master/a2c_ppo_acktr/model.py#L82
 class NNBase(nn.Module):
     def __init__(self, recurrent, recurrent_input_size, hidden_size):
-
         super(NNBase, self).__init__()
         self._hidden_size = hidden_size
         self._recurrent = recurrent

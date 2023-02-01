@@ -25,7 +25,6 @@ class LocalActionServer(object):
     """docstring for LocalActionServer"""
 
     def __init__(self):
-
         self._lock = threading.RLock()
         self._state = LocalActionStatus.UNKOWN
 

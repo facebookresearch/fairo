@@ -47,7 +47,6 @@ register_script_config(name="scriptconfig", module=TestScriptConfig)
 
 @hydra.main(config_name="scriptconfig")
 def main(cfg: DictConfig) -> None:
-
     shared_state = SharedStaticTaskState(
         qualifications=[
             make_qualification_dict(ALLOWLIST_QUALIFICATION, QUAL_EXISTS, None),
