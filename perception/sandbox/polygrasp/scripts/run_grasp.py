@@ -222,11 +222,12 @@ def main(cfg):
             )
             chosen_grasp = final_filtered_grasps[chosen_grasp_i]
 
-            grasp_client.visualize_grasp(scene_pcd, final_filtered_grasps)
+            grasp_client.visualize_grasp(scene_pcd, final_filtered_grasps, render=True)
             grasp_client.visualize_grasp(
                 obj_pcds[obj_i], final_filtered_grasps, name="obj"
             )
 
+            breakpoint()
             traj = execute_grasp(robot, chosen_grasp, hori_offset, time_to_go)
 
             print("Going home")

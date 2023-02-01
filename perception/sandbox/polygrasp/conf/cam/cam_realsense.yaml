@@ -1,4 +1,4 @@
 cam:
   _target_: polygrasp.cam_pub_sub.PointCloudSubscriber
   intrinsics_file: conf/intrinsics.json
-  extrinsics_file: ../eyehandcal/calibration.json
+  extrinsics_file: /mnt/tmp_nfs_clientshare/jaydv/calibration_data/RP07_v2/calibration.json

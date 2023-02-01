@@ -4,12 +4,12 @@ defaults:
 
 masks_1:
   - conf/masks/bin1/1.png
-  - conf/masks/bin1/2.png
-  - conf/masks/bin1/3.png
+  # - conf/masks/bin1/2.png
+  # - conf/masks/bin1/3.png
 masks_2:
   - conf/masks/bin2/1.png
-  - conf/masks/bin2/2.png
-  - conf/masks/bin2/3.png
+  # - conf/masks/bin2/2.png
+  # - conf/masks/bin2/3.png
 
 view_json_path: conf/o3d_view.json
 min_mask_size: 2500
