@@ -66,9 +66,11 @@ class BulletManipulatorEnv(AbstractControlledEnv):
 
         # Initialize PyBullet simulation
         if self.gui:
-            self.sim = BulletClient(connection_mode=pybullet.GUI)
+            self.server = BulletClient(connection_mode=pybullet.GRAPHICS_SERVER)
+            self.sim = BulletClient(connection_mode=pybullet.GRAPHICS_SERVER_TCP)
         else:
-            self.sim = BulletClient(connection_mode=pybullet.DIRECT)
+            self.server = BulletClient(connection_mode=pybullet.DIRECT)
+            self.sim = self.server
 
         self.sim.setGravity(0, 0, -gravity)
 
@@ -123,8 +125,8 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             flags=pybullet.URDF_USE_INERTIA_FROM_FILE,
         )
 
-        pybullet.setAdditionalSearchPath(pybullet_data.getDataPath())
-        world_id = pybullet.loadURDF("plane.urdf", [0.0, 0.0, 0.0])
+        sim.setAdditionalSearchPath(pybullet_data.getDataPath())
+        world_id = sim.loadURDF("plane.urdf", [0.0, 0.0, 0.0])
         return world_id, robot_id
 
     @staticmethod
@@ -135,8 +137,8 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             abs_urdf_path,
         )[0]
 
-        pybullet.setAdditionalSearchPath(pybullet_data.getDataPath())
-        world_id = pybullet.loadURDF("plane.urdf", [0.0, 0.0, 0.0])
+        sim.setAdditionalSearchPath(pybullet_data.getDataPath())
+        world_id = sim.loadURDF("plane.urdf", [0.0, 0.0, 0.0])
         return world_id, robot_id
 
     def reset(self, joint_pos: List[float] = None, joint_vel: List[float] = None):
