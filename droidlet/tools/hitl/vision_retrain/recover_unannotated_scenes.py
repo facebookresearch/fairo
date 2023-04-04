@@ -3,8 +3,12 @@ import json
 import re
 import argparse
 import boto3
+import copy
 
 from droidlet.lowlevel.minecraft.shape_util import SHAPE_NAMES
+
+GENERATED_TAGS = copy.deepcopy(SHAPE_NAMES)
+GENERATED_TAGS.append("hole")
 
 HITL_TMP_DIR = (
     os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
@@ -36,12 +40,14 @@ def main(batch_id: int):
     not_done = [
         x
         for x in partially_anno_scenes
-        if not x["inst_seg_tags"] or x["inst_seg_tags"][0]["tags"][0] in SHAPE_NAMES
+        if not x["inst_seg_tags"]
+        or all([y["tags"][0] in GENERATED_TAGS for y in x["inst_seg_tags"]])
     ]
     clean_anno_scenes = [
         x
         for x in partially_anno_scenes
-        if x["inst_seg_tags"] and x["inst_seg_tags"][0]["tags"][0] not in SHAPE_NAMES
+        if x["inst_seg_tags"]
+        and any([y["tags"][0] not in GENERATED_TAGS for y in x["inst_seg_tags"]])
     ]
     assert (len(not_done) + len(clean_anno_scenes)) == len(partially_anno_scenes)
     print(f"Found {len(not_done)} scenes that appear to be unannotated")
