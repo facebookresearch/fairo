@@ -56,6 +56,10 @@ class Recorder:
         self.maybe_add_entry()
         self.tape[self.agent.count]["mobs"] = self.agent.get_mobs()
 
+    def record_items(self):
+        self.maybe_add_entry()
+        self.tape[self.agent.count]["items"] = self.agent.get_item_stacks(get_all=True)
+
     def record_players(self):
         self.maybe_add_entry()
         player_list = self.agent.get_other_players()
@@ -87,6 +91,7 @@ class Recorder:
         self.record_mobs()
         self.record_agent()
         self.record_players()
+        self.record_items()
         self.record_block_changes()
 
     def get_last_record(self):
@@ -119,4 +124,5 @@ class Recorder:
             "agent": r.get("agent"),
             "players": r.get("players"),
             "actions": r.get("actions"),
+            "items": r.get("items"),
         }

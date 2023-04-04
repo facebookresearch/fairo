@@ -196,6 +196,8 @@ class Move(BaseMovementTask):
             return
         self.target = to_block_pos(np.array(task_data["target"]))
         self.approx = task_data.get("approx", 1)
+        # allows agent to destroy blocks to get to a location
+        self.destructive = task_data.get("destructive", False)
         self.path = None
         self.replace = set()
         self.last_stepped_time = agent.memory.get_time()
@@ -235,8 +237,12 @@ class Move(BaseMovementTask):
         if self.path is None or tuple(agent.pos) != self.path[-1]:
             self.path = astar(agent, self.target, self.approx)
             if self.path is None:
-                self.handle_no_path(agent)
-                return
+                if not self.destructive:
+                    self.finished = True
+                    raise Exception("Could not move to location {}".format(self.target))
+                else:
+                    self.handle_no_path(agent)
+                    return
 
         # take a step on the path
         assert tuple(agent.pos) == self.path.pop()

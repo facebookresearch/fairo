@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
+from collections import namedtuple
 from droidlet.base_util import Pos, Look
 from droidlet.shared_data_struct.craftassist_shared_utils import MOBS_BY_ID
 
@@ -27,8 +28,7 @@ class Opt:
     pass
 
 
-class MobInfo:
-    pass
+MobInfo = namedtuple("MobInfo", "entityId, pos, look, mobType, color, mobname")
 
 
 def make_mob_opts(mobname):
@@ -88,13 +88,9 @@ class SimpleMob:
         self.world.mobs.append(self)
 
     def get_info(self):
-        info = MobInfo()
-        info.entityId = self.entityId
-        info.pos = Pos(*self.pos)
-        info.look = Look(*self.look)
-        info.mobType = self.mobType
-        info.color = self.color
-        info.mobname = self.mobname
+        info = MobInfo(
+            self.entityId, Pos(*self.pos), Look(*self.look), self.mobType, self.color, self.mobname
+        )
         return info
 
     def new_direction(self):

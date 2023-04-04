@@ -615,13 +615,13 @@ DESTROY_COMMANDS = {
 }
 
 MOVE_COMMANDS = {
-    "move to 42 65 0": {
+    "move to 8 65 0": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
         "event_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
-                    "reference_object": {"special_reference": {"coordinates_span": "42 65 0"}}
+                    "reference_object": {"special_reference": {"coordinates_span": "8 65 0"}}
                 },
             }
         ],

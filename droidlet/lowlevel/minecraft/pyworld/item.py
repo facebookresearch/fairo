@@ -24,6 +24,7 @@ class GettableItem:
     def add_to_world(self, world):
         self.entityId = world.new_eid(entityId=self.entityId)
         x, y, z, _, _ = make_pose(world.sl, world.sl, height_map=world.get_height_map())
+        x, y, z = world.from_npy_coords((x, y, z))
         self.update_position(x, y, z)
         world.items[self.entityId] = self
 

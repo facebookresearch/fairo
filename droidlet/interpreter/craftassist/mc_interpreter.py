@@ -578,7 +578,8 @@ class MCInterpreter(Interpreter):
                 )
 
             for obj in objs:
-                task_data = {"target": pos, "eid": obj.eid, "obj_memid": obj.memid}
-                tasks.append(self.task_objects["drop"](agent, task_data))
+                if "_in_others_inventory" not in obj.get_tags():
+                    task_data = {"target": pos, "eid": obj.eid, "obj_memid": obj.memid}
+                    tasks.append(self.task_objects["drop"](agent, task_data))
 
             return maybe_bundle_task_list(agent, tasks)

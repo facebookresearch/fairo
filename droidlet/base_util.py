@@ -18,8 +18,8 @@ Hole = Tuple[List[XYZ], IDM]
 T = TypeVar("T")  # generic type
 
 """FIXME!!!!!!  make all these dicts all through code"""
-Pos = namedtuple("pos", "x, y, z", defaults=(None,) * 3)
-Look = namedtuple("look", "yaw, pitch")
+Pos = namedtuple("Pos", "x, y, z", defaults=(None,) * 3)
+Look = namedtuple("Look", "yaw, pitch")
 Player = namedtuple("Player", "entityId, name, pos, look")
 
 
