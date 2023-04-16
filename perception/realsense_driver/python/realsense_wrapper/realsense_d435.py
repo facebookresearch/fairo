@@ -6,7 +6,7 @@ from collections import OrderedDict
 class RealsenseAPI:
     """Wrapper that implements boilerplate code for RealSense cameras"""
 
-    def __init__(self, height=480, width=640, fps=30, warm_start=60):
+    def __init__(self, height=480, width=640, fps=30, warm_start=60, depth_preset: str="Default"):
         self.height = height
         self.width = width
         self.fps = fps
@@ -33,12 +33,36 @@ class RealsenseAPI:
             self.pipes.append(pipe)
             self.profiles[device_id]=pipe.start(config)
 
+            if depth_preset:
+                depth_sensor=self.profiles[device_id].get_device().first_depth_sensor()
+                RealsenseAPI._set_visual_preset(depth_sensor, depth_preset)
             print(f"Connected to camera {i+1} ({device_id}).")
 
         self.align = rs.align(rs.stream.color)
         # Warm start camera (realsense automatically adjusts brightness during initial frames)
         for _ in range(warm_start):
             self._get_frames()
+
+
+    @staticmethod
+    def _set_visual_preset(depth_sensor, preset_desc: str):
+        preset_option = None
+        options = []
+        for j in range(int(depth_sensor.get_option_range(rs.option.visual_preset).max)):
+            desc=depth_sensor.get_option_value_description(rs.option.visual_preset, j)
+            options.append(desc)
+            if preset_desc in desc:
+                preset_option = j
+                print(f'{preset_desc}  preset is: {preset_option}')
+                break
+
+        if preset_option is None:
+            raise RuntimeWarning(f"{preset_desc} not available, please choose one from {options}")
+        else:
+            depth_sensor.set_option(rs.option.visual_preset, preset_option)
+
+
+
 
     def _get_frames(self):
         framesets = [pipe.wait_for_frames() for pipe in self.pipes]
