@@ -34,5 +34,6 @@ fixed_span_values = {
     "0": 32,
     "BLOCK": 33,
     "THIS": 34,
+    "SECOND": 35,
 }
 fixed_span_values_voc = {v: k for k, v in fixed_span_values.items()}
