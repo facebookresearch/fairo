@@ -115,7 +115,7 @@ class communication:
             #   print("Failed to receive status")
             return None
         # Newer versions of pymodbus returns a ModbusIOException instead
-        elif type(response) is ModbusIOException:
+        elif isinstance(response, ModbusIOException):
             return None
 
         # Instantiate output as an empty list
