@@ -68,17 +68,19 @@ class Robotiq2FingerGripper:
             return False
 
         # Assign the values to their respective variables
-        try:
+        if status[0] is not None:
             self.gACT = (status[0] >> 0) & 0x01
             self.gGTO = (status[0] >> 3) & 0x01
             self.gSTA = (status[0] >> 4) & 0x03
             self.gOBJ = (status[0] >> 6) & 0x03
+        if status[2] is not None:
             self.gFLT = status[2]
+        if status[3] is not None:
             self.gPR = status[3]
+        if status[4] is not None:
             self.gPO = status[4]
+        if status[5] is not None:
             self.gCU = status[5]
-        except Exception:
-            return False  # also return False if status has incorrect format
 
         return True
 
