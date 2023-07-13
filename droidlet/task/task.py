@@ -119,7 +119,7 @@ class Task(object):
         def modified_step(self):
             if self.finished:
                 TaskNode(self.agent.memory, self.memid).get_update_status(
-                    {"prio": -2, "finished": True}
+                    {"prio": TaskNode.FINISHED_PRIO, "finished": True}
                 )
                 return
             query = "SELECT MEMORY FROM Task WHERE ((prio>=1) AND (_has_parent_task=#={}))".format(
