@@ -58,7 +58,7 @@ class World:
         for m in spec["mobs"]:
             m.add_to_world(self)
         self.items = {}
-        for i in spec.get("items"):
+        for i in spec.get("items", []):
             i.add_to_world(self)
         self.players = {}
         # TODO make this more robust
