@@ -31,7 +31,7 @@ class Object:
     pose_in_frame: sp.SE3
     size: float
     is_anchor: bool = False
-    is_visible: bool = False
+    is_visible: bool = True
 
 
 @dataclass
@@ -64,6 +64,7 @@ class Scene:
 
         # Default world frame
         f0 = Frame("world", sp.SE3())
+        f0.is_visible = True
         self._frames["world"] = f0
 
     # Scene construction
@@ -344,8 +345,8 @@ class Scene:
             self.clear_snapshots()
 
     # Rendering
-    def visualize(self, show_marker_id=False):
-        viz = SceneViz()
+    def visualize(self, fig=None, show_marker_id=False, should_return=False):
+        viz = SceneViz(fig=fig)
 
         # Draw markers & cameras
         for obj_name, obj in self._objects.items():
@@ -358,6 +359,7 @@ class Scene:
             else:
                 viz.draw_camera(obj.pose, size=obj.size)
 
+
         # Draw frames
         for frame_name, frame in self._frames.items():
             if not frame.is_visible:
@@ -365,7 +367,7 @@ class Scene:
             viz.draw_axes(frame.pose)
 
         # Show
-        viz.show()
+        return viz.show(should_return=should_return)
 
     # Save / Load TODO
     def __getstate__(self):

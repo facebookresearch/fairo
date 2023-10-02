@@ -2,13 +2,17 @@ import numpy as np
 import sophus as sp
 import matplotlib.pyplot as plt
 
-DEFAULT_AXIS_LENGTH = 0.1
+DEFAULT_AXIS_LENGTH = 0.3
 
 
 class SceneViz:
-    def __init__(self):
-        self.fig = plt.figure()
-        self.ax = plt.axes(projection="3d")
+    def __init__(self, fig=None, plot_config=112):
+        self.fig=None
+        if fig:
+            self.fig = fig
+        else:
+            self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(1,2,2,projection="3d")
         self.max = np.zeros(3)
         self.min = np.zeros(3)
 
@@ -80,7 +84,7 @@ class SceneViz:
             pos = pose.translation()
             self.ax.text(pos[0], pos[1], pos[2], id, color="b")
 
-    def show(self):
+    def show(self, should_return=False):
         # Set limits
         mid = (self.max + self.min) / 2.0
         r = max(np.max(self.max - mid), np.max(mid - self.min))
@@ -88,5 +92,9 @@ class SceneViz:
         self.ax.set_ylim(mid[1] - r, mid[1] + r)
         self.ax.set_zlim(mid[2] - r, mid[2] + r)
 
-        # Show
-        plt.show()
+        if should_return:
+            return self.ax
+        else:
+            # Show
+            plt.show()
+            return None
