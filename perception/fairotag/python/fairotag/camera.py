@@ -126,7 +126,7 @@ class CameraModule:
                 tvec = m.pose.translation()[None, :]
                 rvec = m.pose.so3().log()[None, :]
                 length = m.length / 2.0
-                img_rend = cv2.aruco.drawAxis(
+                img_rend = cv2.drawFrameAxes(
                     img_rend,
                     self._intrinsics2matrix(self.intrinsics),
                     self.intrinsics.coeffs,
