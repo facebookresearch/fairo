@@ -80,6 +80,7 @@ message GripperCommand {
     bool grasp = 5;
     float epsilon_inner = 6;
     float epsilon_outer = 7;
+    bool stop = 8;
 }
 
 message GripperState {
