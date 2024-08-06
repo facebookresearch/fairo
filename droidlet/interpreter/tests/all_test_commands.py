@@ -343,6 +343,82 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     },
 }
 
+
+GIVE_GET_BRING_COMMANDS = {
+    "bring me the stone": {
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+        "event_sequence": [
+            {
+                "action_type": "GET",
+                "reference_object": {
+                    "filters": {
+                        "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "stone"}]}
+                    }
+                },
+                "receiver": {
+                    "reference_object": {"special_reference": {"fixed_value": "SPEAKER"}}
+                },
+            }
+        ],
+    },
+    "get the stone": {
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+        "event_sequence": [
+            {
+                "action_type": "GET",
+                "reference_object": {
+                    "filters": {
+                        "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "stone"}]}
+                    }
+                },
+            }
+        ],
+    },
+    "drop the stone": {
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+        "event_sequence": [
+            {
+                "action_type": "GET",
+                "reference_object": {
+                    "filters": {
+                        "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "stone"}]}
+                    }
+                },
+                "receiver": {
+                    "location": {
+                        "reference_object": {"special_reference": {"fixed_value": "AGENT"}}
+                    }
+                },
+            }
+        ],
+    },
+    "bring the stone to the cube": {
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+        "event_sequence": [
+            {
+                "action_type": "GET",
+                "reference_object": {
+                    "filters": {
+                        "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "stone"}]}
+                    }
+                },
+                "receiver": {
+                    "location": {
+                        "reference_object": {
+                            "filters": {
+                                "where_clause": {
+                                    "AND": [{"pred_text": "has_name", "obj_text": "cube"}]
+                                }
+                            }
+                        }
+                    },
+                },
+            }
+        ],
+    },
+}
+
+
 BUILD_COMMANDS = {
     "build a gold cube at 0 66 0": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",

@@ -1,0 +1,11 @@
+Model Information:
+* title:	3D Sketchbook 12 - Low Poly Pig
+* source:	https://sketchfab.com/3d-models/3d-sketchbook-12-low-poly-pig-8702e4ba10ae40d8b58f61afc819c42d
+* author:	kcondley (https://sketchfab.com/kcondley)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "3D Sketchbook 12 - Low Poly Pig" (https://sketchfab.com/3d-models/3d-sketchbook-12-low-poly-pig-8702e4ba10ae40d8b58f61afc819c42d) by kcondley (https://sketchfab.com/kcondley) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

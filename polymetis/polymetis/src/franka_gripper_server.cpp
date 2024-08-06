@@ -17,6 +17,7 @@ using grpc::ServerContext;
 using grpc::ServerReader;
 using grpc::ServerWriter;
 using grpc::Status;
+using grpc::StatusCode;
 
 #include "polymetis.grpc.pb.h"
 #include "polymetis/utils.h"
@@ -39,7 +40,16 @@ public:
 
   Status GetState(ServerContext *context, const Empty *,
                   GripperState *gripper_proto_state) override {
-    *gripper_state_ = gripper_->readOnce();
+    // Read gripper state
+    try {
+      *gripper_state_ = gripper_->readOnce();
+    } catch (const std::exception &e) {
+      std::string error_msg =
+          "Failed to read from Franka Hand: " + std::string(e.what());
+      return Status(StatusCode::CANCELLED, error_msg);
+    }
+
+    // Construct gripper state msg
     gripper_proto_state->set_width(gripper_state_->width);
     gripper_proto_state->set_max_width(gripper_state_->max_width);
     gripper_proto_state->set_is_grasped(gripper_state_->is_grasped);
@@ -56,9 +66,16 @@ public:
     spdlog::info("Moving to width {} at speed={}", gripper_command->width(),
                  gripper_command->speed());
 
-    is_moving_ = true;
-    gripper_->move(gripper_command->width(), gripper_command->speed());
-    is_moving_ = false;
+    try {
+      is_moving_ = true;
+      gripper_->move(gripper_command->width(), gripper_command->speed());
+      is_moving_ = false;
+
+    } catch (const std::exception &e) {
+      std::string error_msg =
+          "Failed to command Franka Hand: " + std::string(e.what());
+      return Status(StatusCode::CANCELLED, error_msg);
+    }
 
     return Status::OK;
   }
@@ -68,10 +85,17 @@ public:
     spdlog::info("Grasping at width {} at speed={}", gripper_command->width(),
                  gripper_command->speed());
 
-    is_moving_ = true;
-    gripper_->grasp(gripper_command->width(), gripper_command->speed(),
-                    gripper_command->force(), EPSILON_INNER, EPSILON_OUTER);
-    is_moving_ = false;
+    try {
+      is_moving_ = true;
+      gripper_->grasp(gripper_command->width(), gripper_command->speed(),
+                      gripper_command->force(), EPSILON_INNER, EPSILON_OUTER);
+      is_moving_ = false;
+
+    } catch (const std::exception &e) {
+      std::string error_msg =
+          "Failed to command Franka Hand: " + std::string(e.what());
+      return Status(StatusCode::CANCELLED, error_msg);
+    }
 
     return Status::OK;
   }

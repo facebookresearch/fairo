@@ -143,7 +143,7 @@ function loadScene(scene, idx) {
         if (scene.blocks[i][3] === 0) {  // if it's a hole, don't add anything
             continue;
         }
-        else if (scene.blocks[i][3] === 46) {  // if it's the ground, skip the texture and add lines instead
+        else if (scene.blocks[i][3] === 46 || scene.blocks[i][3] === 9 || scene.blocks[i][3] === 8) {  // if it's the ground, skip the texture and add lines instead
             cubeMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, opacity: 1.0 } );
             const edges = new THREE.EdgesGeometry( geo );  // outline the white blocks for visibility
             const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
@@ -158,6 +158,7 @@ function loadScene(scene, idx) {
         }
         const voxel = new THREE.Mesh( geo, cubeMaterial );
         voxel.position.set(((scene.blocks[i][0] - origin_offset)*50)+25, (scene.blocks[i][1]*50)+25, ((scene.blocks[i][2] - origin_offset)*50)+25);
+        voxel.name = scene.blocks[i][0] + "_" + scene.blocks[i][1] + "_" + scene.blocks[i][2] + "_" + scene.blocks[i][3];
         scenes[idx].add( voxel );
         objects[idx].push( voxel );
     }
@@ -305,7 +306,6 @@ function onPointerMove( event ) {
                 rollOverMesh.position.copy( intersect.point ).add( intersect.face.normal );
                 rollOverMesh.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
             }
-            
         }
         matchCameras();
         render();
@@ -359,7 +359,7 @@ function onPointerDown( event ) {
                     // Remove the marked block from the scene
                     scenes[2].remove( intersect.object );
                     marked_blocks.splice( marked_blocks.indexOf( intersect.object ), 1 );
-                    // If it existed originally, replace with a the original object
+                    // If it existed originally, replace with the original object
                     let voxel = null;
                     objects[1].forEach(obj => {
                         if (obj.position.equals(intersect.object.position)) {
@@ -400,6 +400,22 @@ function onDocumentKeyDown( event ) {
         case 65: isADown = true; break;
         case 83: isSDown = true; break;
         case 68: isDDown = true; break;
+        case 71: // g to toggle ground visibility
+            for (const idx in scenes) {
+                scenes[idx].traverse(function(obj){
+                    if (obj.name.slice(-2) === "46" || obj.name.slice(-2) === "_8" || obj.name.slice(-2) === "_9") {
+                        if (obj.visible) {
+                            obj.visible = false;
+                            objects[idx].splice( objects[idx].indexOf( obj ), 1 );
+                        } else {
+                            obj.visible = true;
+                            objects[idx].push(obj);
+                        }
+                    };
+                });
+            };
+            render();
+            break;
         case 90:  // z to undo
             let action = actions_taken.pop();
             if (action){

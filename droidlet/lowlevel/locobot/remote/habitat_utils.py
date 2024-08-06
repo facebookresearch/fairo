@@ -5,6 +5,7 @@ import habitat_sim
 import magnum as mn
 import numpy as np
 import os
+import quaternion
 
 
 def reconfigure_scene(env, scene_path, add_humans):
@@ -28,19 +29,79 @@ def reconfigure_scene(env, scene_path, add_humans):
     old_agent_state = agent.get_state()
     new_agent_state = habitat_sim.AgentState()
 
-    # apartment_0 default position on linux
-    new_agent_state.position = np.asarray([0.18430093, -1.3747652, 5.265953])
-    new_agent_state.rotation = np.quaternion(1.0, 0.0, 0.0, 0.0)
+    scene_name = os.path.basename(scene_path).split(".")[0]
+    if scene_name == "mesh_semantic":
+        # this must be Replica Dataset
+        scene_name = os.path.basename(os.path.dirname(os.path.dirname(scene_path)))
+
+    ###########################
+    # start position
+    ###########################
+
+    # Coordinates correspond to (vertical, height, horizontal) in dashboard
+
+    if scene_name == "apartment_0":
+        # first scene in Replica Dataset
+        start_position = np.asarray([0.18430093, -1.3747652, 5.265953])
+        start_rotation = np.quaternion(1.0, 0.0, 0.0, 0.0)
+
+    elif scene_name == "devendra-home-scan":
+        # Devendra's apartment
+
+        # chair2
+        # start_position = np.asarray([3.5, 0.0, -9])
+        # start_rotation = quaternion.from_euler_angles(0, np.pi * (5 / 4), 0)
+
+        # bed1, plant1, toilet1
+        start_position = np.asarray([7.5, 0.0, -9])
+        start_rotation = quaternion.from_euler_angles(0, np.pi, 0)
+
+        # chair1
+        # start_position = np.asarray([-3.31, 0., -5.11])
+        # start_rotation = quaternion.from_euler_angles(0, np.pi / 2, 0)
+
+        # couch1
+        # start_position = np.asarray([-2.69, 0.0, -6.96])
+        # start_rotation = quaternion.from_euler_angles(0, 0.52, 0)
+
+        # couch2
+        # start_position = np.asarray([7.52, 0.0, -6.23])
+        # start_rotation = quaternion.from_euler_angles(0, 3.05, 0)
+
+        # plant2
+        # start_position = np.asarray([5.45, 0., -7.0])
+        # start_rotation = quaternion.from_euler_angles(0, -1.04, 0)
+
+        # toilet2
+        # start_position = np.asarray([3.11, 0.0, -2.44])
+        # start_rotation = quaternion.from_euler_angles(0, -0.52, 0)
+
+        # tv1
+        # start_position = np.asarray([5.26, 0., -6.60])
+        # start_rotation = quaternion.from_euler_angles(0, -1.57, 0)
+
+    elif scene_name == "fremont-home-scan":
+        # Fremont space
+        start_position = np.asarray([0.0, 0.0, 0.0])
+        start_rotation = np.quaternion(1.0, 0.0, 0.0, 0.0)
+
+    else:
+        # default to random navigable point
+        start_position = sim.pathfinder.get_random_navigable_point()
+        start_rotation = np.quaternion(1.0, 0.0, 0.0, 0.0)
+        attempt = 1
+        while sim.pathfinder.distance_to_closest_obstacle(start_position) < 1.0 and attempt < 50:
+            start_position = sim.pathfinder.get_random_navigable_point()
+            attempt += 1
+
+    new_agent_state.position = start_position
+    new_agent_state.rotation = start_rotation
     agent.set_state(new_agent_state, reset_sensors=True, infer_sensor_states=True, is_initial=True)
     env._robot.base.init_state = agent.get_state()
 
     ###########################
     # scene-specific additions
     ###########################
-    scene_name = os.path.basename(scene_path).split(".")[0]
-    if scene_name == "mesh_semantic":
-        # this must be Replica Dataset
-        scene_name = os.path.basename(os.path.dirname(os.path.dirname(scene_path)))
 
     supported_scenes = ["skokloster-castle", "van-gogh-room", "apartment_0"]
     if scene_name not in supported_scenes:

@@ -29,9 +29,9 @@ sleep 4
 
 echo $ip
 
-python remote_locobot.py --ip $ip $@ &
+python remote_locobot.py --ip $ip $@ &> remote_locobot.out &
 # blocking wait for server to start
-timeout 1m bash -c "until python check_connected.py remotelocobot $ip; do sleep 1; done;" || true
+timeout --foreground 1m bash -c "until python check_connected.py remotelocobot $ip; do sleep 1; done;" || true
 ./launch_navigation.sh
 
 popd

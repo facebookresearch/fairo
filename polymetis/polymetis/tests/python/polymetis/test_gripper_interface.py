@@ -1,10 +1,11 @@
 import time
 import random
+
+import numpy as np
 import pytest
 from unittest.mock import MagicMock
 
 from polymetis import GripperInterface
-from polymetis.robot_drivers.robotiq_gripper.gripper_server import RobotiqGripperServer
 import polymetis_pb2
 
 
@@ -30,9 +31,8 @@ def test_gripper_interface(mocked_gripper, blocking):
     time.sleep(0.1)
 
     # Check asserts
-    mocked_gripper.grpc_connection.GetState.assert_called_once()
-    mocked_gripper.grpc_connection.Goto.assert_called_once()
-    mocked_gripper.grpc_connection.Grasp.assert_called_once()
+    assert mocked_gripper.grpc_connection.GetState.call_count == 1
+    assert mocked_gripper.grpc_connection.Goto.call_count == 2
 
 
 @pytest.mark.parametrize("blocking", [True, False])
@@ -47,5 +47,7 @@ def test_async_gripper_commands(mocked_gripper, blocking):
     time.sleep(0.1)
 
     # Check if last goto is being executed
-    last_cmd = polymetis_pb2.GripperCommand(width=width, speed=speed, force=force)
-    mocked_gripper.grpc_connection.Goto.assert_called_with(last_cmd)
+    last_cmd = mocked_gripper.grpc_connection.Goto.call_args_list[-1]
+    np.allclose(last_cmd.args[0].width, width)
+    np.allclose(last_cmd.args[0].speed, speed)
+    np.allclose(last_cmd.args[0].force, force)

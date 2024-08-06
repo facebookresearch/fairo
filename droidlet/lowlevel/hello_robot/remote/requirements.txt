@@ -9,3 +9,9 @@ scikit-image
 torch
 torchvision
 rich
+blosc
+natsort
+open3d
+yacs
+rospy
+rospkg

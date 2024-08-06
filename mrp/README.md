@@ -1,4 +1,6 @@
-# Meta Robotics Platform
+<div align="center">
+<img src="./logo/Full%20Color%20Horizontal.svg" width=256px />
+</div>
 
 Deploy, launch, manage, and orchestrate heterogeneous robots with ease!
 
@@ -20,8 +22,6 @@ Starts all defined processes, or a given subset.
 mrp up
 # To bring up myproc:
 mrp up myproc
-# Add -v for verbose building print-outs:
-mrp up -v myproc
 ```
 
 ### down
@@ -106,7 +106,7 @@ Add the following snippet to your `~/.bashrc` to get tab completion:
 
 `eval "$(_MRP_COMPLETE=bash_source mrp)"`
 
-## For Contributers
+## Contributers Guide
 
 ### Code Formatting
 We use [black](https://github.com/psf/black) and [flake8](https://flake8.pycqa.org/en/latest/) to lint our code. The `formatting` test will not pass if your code does not conform.

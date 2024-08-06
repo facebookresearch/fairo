@@ -8,12 +8,12 @@ We've removed repetative configuration by moving the environment definition to a
 
 To launch both processes, we run the same command as before:
 ```sh
-mrp -v up
+mrp up
 ```
 
 If we wanted to run just `alice` (or just `bob`), we can do so with:
 ```sh
-mrp -v up alice
+mrp up alice
 ```
 
 In the code, `alice` sends data to `bob` via AlephZero, who them prints the recieved data. To see the output from `bob`
@@ -23,7 +23,7 @@ mrp logs bob
 
 You can also try changing the send in `alice`, and restarting it with
 ```sh
-mrp -v up -f alice
+mrp up -f alice
 ```
 `bob` will start printing the new messages without restarting itself.
 

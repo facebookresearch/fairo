@@ -200,9 +200,10 @@ if(BUILD_FRANKA)
       spdlog::spdlog
   )
 
-  # Add Franka gripper server
-  add_executable(franka_gripper_server src/franka_gripper_server.cpp)
-  target_link_libraries(franka_gripper_server
+  add_executable(franka_hand_client 
+      src/clients/franka_panda_client/franka_hand_client.cpp
+  )
+  target_link_libraries(franka_hand_client
       generated_grpc_protos
       Franka::Franka
       yaml-cpp

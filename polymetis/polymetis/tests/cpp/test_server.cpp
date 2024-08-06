@@ -107,10 +107,11 @@ TEST_F(ServiceTest, SetController) {
   stub_.get()->InitRobotClient(new grpc::ClientContext, metadata_, new Empty);
 
   // Get interval before sending policy
-  LogInterval interval1;
-  stub_.get()->GetEpisodeInterval(new grpc::ClientContext, empty_, &interval1);
-  EXPECT_EQ(interval1.start(), -1);
-  EXPECT_EQ(interval1.end(), -1);
+  LogInterval interval_init;
+  stub_.get()->GetEpisodeInterval(new grpc::ClientContext, empty_,
+                                  &interval_init);
+  EXPECT_EQ(interval_init.start(), -1);
+  EXPECT_EQ(interval_init.end(), -1);
 
   // Start thread that runs controller for 2 steps then terminate
   std::mutex terminate_mtx;
@@ -140,23 +141,30 @@ TEST_F(ServiceTest, SetController) {
   writer->WritesDone();
   ASSERT_TRUE((writer->Finish()).ok());
 
+  LogInterval interval_executing;
+  stub_.get()->GetEpisodeInterval(new grpc::ClientContext, empty_,
+                                  &interval_executing);
+  EXPECT_EQ(interval_executing.start(), 0);
+  EXPECT_EQ(interval_executing.end(), -1);
+
   // Terminate controller
   terminate_mtx.lock();
-  LogInterval interval2;
-  EXPECT_TRUE(
-      stub_.get()
-          ->TerminateController(new grpc::ClientContext, empty_, &interval2)
-          .ok());
+  LogInterval interval_terminated;
+  EXPECT_TRUE(stub_.get()
+                  ->TerminateController(new grpc::ClientContext, empty_,
+                                        &interval_terminated)
+                  .ok());
   robot_client_thread.join();
 
-  EXPECT_EQ(interval2.start(), 0);
-  EXPECT_EQ(interval2.end(), 2);
+  EXPECT_EQ(interval_terminated.start(), 0);
+  EXPECT_EQ(interval_terminated.end(), 2);
 
   // Get interval
-  LogInterval interval3;
-  stub_.get()->GetEpisodeInterval(new grpc::ClientContext, empty_, &interval3);
-  EXPECT_EQ(interval3.start(), 0);
-  EXPECT_EQ(interval3.end(), 2);
+  LogInterval interval_terminated_repeated;
+  stub_.get()->GetEpisodeInterval(new grpc::ClientContext, empty_,
+                                  &interval_terminated_repeated);
+  EXPECT_EQ(interval_terminated_repeated.start(), 0);
+  EXPECT_EQ(interval_terminated_repeated.end(), 2);
 }
 
 TEST_F(ServiceTest, TestInvalidRequests) {

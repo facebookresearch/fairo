@@ -38,6 +38,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         gui: bool,
         use_grav_comp: bool = True,
         gravity: float = 9.81,
+        extract_config_from_rdf=False,
     ):
         self.robot_model_cfg = robot_model_cfg
         self.robot_description_path = get_full_path_to_urdf(
@@ -83,6 +84,19 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             )
         else:
             raise Exception(f"Unknown robot definition extension {ext}!")
+
+        if extract_config_from_rdf:
+            log.info("************ CONFIG INFO ************")
+            num_joints = self.sim.getNumJoints(self.robot_id)
+            for i in range(num_joints):
+                # joint_info tuple structure described in PyBullet docs:
+                # https://docs.google.com/document/d/10sXEhzFRSnvFcl3XxNGhnD4N2SedqwdAvK3dsihxVUA/edit#heading=h.la294ocbo43o
+                joint_info = self.sim.getJointInfo(self.robot_id, i)
+                log.info("Joint {}".format(joint_info[1].decode("utf-8")))  # jointName
+                log.info("\tLimit low : {}".format(joint_info[8]))  # jointLowerLimit
+                log.info("\tLimit High: {}".format(joint_info[9]))  # jointUpperLimit
+                log.info("\tJoint Damping: {}".format(joint_info[6]))  # jointDamping
+            log.info("*************************************")
 
         # Enable torque control
         self.sim.setJointMotorControlArray(
@@ -273,3 +287,36 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             self.robot_id, list(joint_pos), list(joint_vel), list(joint_acc)
         )
         return np.asarray(torques)
+
+    def set_robot_state(self, robot_state):
+        req_joint_pos = robot_state.joint_positions
+        req_joint_vel = robot_state.joint_velocities
+        assert len(req_joint_pos) == len(req_joint_vel) == self.n_dofs
+        for i in range(self.n_dofs):
+            self.sim.resetJointState(
+                bodyUniqueId=self.robot_id,
+                jointIndex=i,
+                targetValue=req_joint_pos[i],
+                targetVelocity=req_joint_vel[i],
+            )
+
+        grav_comp_torques = self.compute_inverse_dynamics(
+            joint_pos=req_joint_pos,
+            joint_vel=[0] * self.n_dofs,
+            joint_acc=[0] * self.n_dofs,
+        )
+
+        # bug in pybullet requires many steps after reset so that subsequent forward sim calls work correctly
+        for _ in range(100):
+            self.sim.setJointMotorControlArray(
+                bodyIndex=self.robot_id,
+                jointIndices=self.controlled_joints,
+                controlMode=pybullet.TORQUE_CONTROL,
+                forces=grav_comp_torques,
+            )
+            self.sim.stepSimulation()
+
+        joint_state = self.sim.getJointStates(
+            bodyUniqueId=self.robot_id,
+            jointIndices=self.controlled_joints,
+        )

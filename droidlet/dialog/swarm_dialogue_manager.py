@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 from droidlet.dialog.dialogue_manager import DialogueManager
+from droidlet.memory.memory_nodes import ChatNode, PlayerNode, ProgramNode
 
 
 class SwarmDialogueManager(DialogueManager):
@@ -16,11 +17,11 @@ class SwarmDialogueManager(DialogueManager):
 
     def get_last_m_chats(self, m=1):
         # fetch last m chats from memory
-        all_chats = self.memory.get_recent_chats(n=m)
+        all_chats = self.memory.nodes[ChatNode.NODE_TYPE].get_recent_chats(self.memory, n=m)
         chat_list_text = []
         for chat in all_chats:
             # does not need to interpret its own swarm chats
-            speaker = self.memory.get_player_by_id(chat.speaker_id).name
+            speaker = self.memory.nodes[PlayerNode.NODE_TYPE](self.memory, chat.speaker_id).name
             if self.neglect(speaker):
                 continue
             chat_memid = chat.memid
@@ -33,8 +34,8 @@ class SwarmDialogueManager(DialogueManager):
                 subj=chat_memid, pred_text="has_tag", obj_text="unprocessed"
             )
             if logical_form_triples:
-                logical_form = self.memory.get_logical_form_by_id(
-                    logical_form_triples[0][2]
+                logical_form = self.memory.nodes[ProgramNode.NODE_TYPE](
+                    self.memory, logical_form_triples[0][2]
                 ).logical_form
 
             if processed_status:

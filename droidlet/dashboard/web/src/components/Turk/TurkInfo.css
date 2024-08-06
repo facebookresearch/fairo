@@ -19,7 +19,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-evenly;
   text-align: center;
   height: 100%;
   width: 100%;
@@ -31,7 +31,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 2%;
+  margin: 2%;
+  width: 85%;
+}
+
+.timer {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 2%;
   width: 85%;
 }
 
@@ -42,4 +51,13 @@
 
 .MuiInputBase-input {
   text-align: left !important;
+}
+
+.MsgButton {
+  color: black !important;
+  background-color: white !important; 
+}
+
+.MsgButton:disabled {
+  visibility: hidden;
 }

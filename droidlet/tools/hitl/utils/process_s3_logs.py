@@ -27,15 +27,21 @@ def read_s3_bucket(s3_logs_dir, output_dir):
     )
     # NOTE: This assumes the local directory is synced with the same name as the S3 directory
     pattern = re.compile(r".*turk_logs/(.*)/logs.tar.gz")
-    # NOTE: this is hard coded to search 2 levels deep because of how our logs are structured
+
+    # count log file for job management purpose
+    log_file_ct = 0
+    # NOTE: this is hard coded to search 2 levels deep because of how our logs are structure
     for csv_path in glob.glob(
         "{s3_logs_dir}/**/{csv_filename}".format(
             s3_logs_dir=s3_logs_dir, csv_filename="logs.tar.gz"
         )
     ):
+        log_file_ct += 1
         tf = tarfile.open(csv_path)
         timestamp = pattern.match(csv_path).group(1)
         tf.extractall(path="{}/{}/".format(output_dir, timestamp))
+
+    return log_file_ct
 
 
 def get_stats(command_list):
@@ -76,6 +82,8 @@ def get_stats(command_list):
     print(f"avg_len {avg_len}")
     print(f"valid {interested}")
     print(f"valid rate {interested / len_dedup * 100}%")
+    # return deduped length
+    return len_dedup
 
 
 def read_turk_logs(turk_output_directory, filename):

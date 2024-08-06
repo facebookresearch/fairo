@@ -1,0 +1,91 @@
+# Note:  This is an example config, see habitat_baselines/config/pointnav/ppo_pointnav.yaml
+# for better hyperparameters for actual training
+
+BASE_TASK_CONFIG_PATH: "configs/tasks/objectnav_mp3d_il.yaml"
+TRAINER_NAME: "objectnav-behavior-cloning"
+ENV_NAME: NavRLEnv
+SIMULATOR_GPU_ID: 0
+TORCH_GPU_ID: 0
+POLICY: original_camera_settings_and_mp3d_detector
+VIDEO_OPTION: ["disk"]
+TENSORBOARD_DIR: "tb/objectnav/sem_resnet18_challenge/seed_1/"
+VIDEO_DIR: "video_dir/objectnav/sem_resnet18_challenge/seed_1/eval"
+# To evaluate on all episodes, set this to -1
+TEST_EPISODE_COUNT: -1
+EVAL_CKPT_PATH_DIR: "data/new_checkpoints/objectnav/sem_resnet18_challenge/seed_1/model_500.ckpt"
+SHOW_TOP_DOWN_MAP: False
+NUM_PROCESSES: 1
+CHECKPOINT_FOLDER: "data/new_checkpoints/objectnav/sem_resnet18_challenge/seed_1"
+OUTPUT_LOG_DIR: data/objectnav/logs
+LOG_INTERVAL: 10
+LOG_METRICS: True
+CHECKPOINT_INTERVAL: 1
+DATASET_PATH: "/srv/flash1/rramrakhya6/habitat-lab/data/datasets/objectnav_mp3d_v2/{split}/{scene_split}.db"
+RESULTS_DIR: "data/objectnav/results/{split}/{type}"
+EVAL_SAVE_RESULTS: True
+EVAL_SAVE_RESULTS_INTERVAL: 50
+EVAL:
+  SPLIT: "eval"
+
+IL:
+  USE_IW: True
+  BehaviorCloning:
+    lr: 0.001
+    max_epochs: 10
+    batch_size: 8
+    timestep_batch_size: 64
+    freeze_encoder: False
+
+    POLICY:
+      name: "ObjectNavILPolicy"
+
+RL:
+  SUCCESS_REWARD: 2.5
+  SLACK_REWARD: -1e-3
+
+MODEL:
+  inflection_weight_coef: 3.5332856905538788
+  hm3d_goal: True
+  ablate_depth: False
+  ablate_rgb: False
+  hidden_size: 512
+  num_recurrent_layers: 2
+  rnn_type: "GRU"
+  backbone: "resnet18"
+  resnet_baseplanes: 32
+  normalize_visual_inputs: False
+  force_blind_policy: False
+  embed_sge: True
+  USE_SEMANTICS: True
+  SEMANTIC_ENCODER:
+    rednet_ckpt: "ckpt/rednet_semmap_mp3d_40_v2_vince.pth"
+    cnn_type: "ResnetSemSegEncoder"
+    output_size: 256
+    backbone: "resnet18"
+    train_encoder: True
+    embedding_size: 4
+    is_thda: True
+    num_classes: 29
+  RGB_ENCODER:
+    cnn_type: "ResnetRGBEncoder"
+    output_size: 256
+    backbone: "resnet18"
+    train_encoder: True
+  DEPTH_ENCODER:
+    cnn_type: "VlnResnetDepthEncoder"
+    output_size: 128
+    backbone: "resnet50"
+    trainable: False
+    ddppo_checkpoint: "ckpt/gibson-2plus-resnet50.pth"
+  STATE_ENCODER:
+    hidden_size: 2048
+    rnn_type: "GRU"
+    num_recurrent_layers: 2
+  SEQ2SEQ:
+    use_prev_action: True
+  PROGRESS_MONITOR:
+    use: False
+  CRITIC:
+    no_critic: False
+    mlp_critic: True
+    hidden_dim: 512

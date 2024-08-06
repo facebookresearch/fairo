@@ -7,6 +7,7 @@ from droidlet.task.condition_classes import Comparator
 from droidlet.memory.memory_values import FilterValue
 from droidlet.memory.memory_attributes import ComparatorAttribute
 
+
 # TODO distance between
 # TODO make this more modular.  what if we want to redefine just distance_between in a new agent?
 def interpret_comparator(interpreter, speaker, d, is_condition=True):

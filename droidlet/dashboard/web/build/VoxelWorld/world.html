@@ -38,6 +38,7 @@
     // Send a message to the parent window when the user clicks in so the prompt text can be removed
     window.addEventListener("click", () => {
       window.parent.postMessage(JSON.stringify({ msg: "click" }), "*");
+      document.body.requestPointerLock();
     }, false);
     
     window.addEventListener("message", (event) => {
@@ -45,6 +46,18 @@
       function updateAgents(agentsInfo) {
         if (agentsInfo != null) {
           myWorld.updateAgents(agentsInfo)
+        }
+      }
+
+      function updateMobs(mobsInfo) {
+        if (mobsInfo != null) {
+          myWorld.updateMobs(mobsInfo)
+        }
+      }
+
+      function updateItemStacks(itemStacksInfo) {
+        if (itemStacksInfo != null) {
+          myWorld.updateItemStacks(itemStacksInfo)
         }
       }
 
@@ -59,12 +72,17 @@
           myWorld.flashBlocks(bbox)
         }
       }
-
-      // document.getElementById("text-container").innerHTML=event.data
+      // console.log("world.html get data")
+      // document.getElementById("text-container").innerHTML=JSON.stringify(event.data)
       status = event.data['status']
-      worldState = event.data['world_state']
-      updateAgents(worldState['agent'])
-      updateBlocks(worldState['block'])
+
+      if (status == "updateVoxelWorldState") {
+        worldState = event.data['world_state']
+        updateAgents(worldState['agent'])
+        updateMobs(worldState['mob'])
+        updateItemStacks(worldState['item_stack'])
+        updateBlocks(worldState['block'])
+      } 
       
       flash_bbox = event.data['flash_bbox']
       if (flash_bbox) {

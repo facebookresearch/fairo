@@ -1,0 +1,17 @@
+gripper:
+  _target_: polymetis.robot_drivers.psyonic_gripper.GripperServerLauncher
+  ip: ${ip}
+  port: ${port}
+  comm:
+    type: SerialIO
+    port: /dev/ttyUSB0
+    baud: 230400
+
+  metadata_cfg:
+    _target_: polymetis.robot_client.metadata.RobotClientMetadata
+    default_Kq: [20, 30, 25, 25, 15, 10, 10]
+    default_Kqd: [1.0, 1.5, 1.0, 1.0, 0.5, 0.5, 0.5]
+    default_Kx: [100, 100, 100, 40, 40, 40]
+    default_Kxd: [1, 1, 1, 0.2, 0.2, 0.2]
+    hz: 240
+    robot_model_cfg: ${robot_model}

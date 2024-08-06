@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import copy
 
+
 # move location inside reference_object for Fill and Destroy actions
 def fix_fill_and_destroy_location(action_dict):
     action_name = action_dict["action_type"]

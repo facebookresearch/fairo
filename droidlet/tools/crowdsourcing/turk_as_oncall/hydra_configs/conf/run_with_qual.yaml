@@ -1,0 +1,20 @@
+#@package _global_
+defaults:
+  - /mephisto/blueprint: static_task
+  - /mephisto/architect: ec2
+  - /mephisto/provider: mturk
+mephisto:
+  blueprint:
+    data_csv: ${task_dir}/data.csv
+    task_source: ${task_dir}/server_files/oncall_task.html
+    preview_source: ${task_dir}/server_files/oncall_task.html
+    extra_source_dir: ${task_dir}/server_files/extra_refs
+    units_per_assignment: 1
+  database:
+    _database_type: singleton
+  task:
+    task_title: "Find bugs in our virtual assistant"
+    task_description: "Send commands to our virtual assistant and report any bugs that result."
+    task_reward: 3.5
+    task_tags: "assistant, game, interact"
+    task_name: "droidlet-oncall"

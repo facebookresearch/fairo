@@ -1,0 +1,4 @@
+cam:
+  _target_: polygrasp.cam_pub_sub.PointCloudSubscriber
+  intrinsics_file: conf/intrinsics.json
+  extrinsics_file: ../eyehandcal/calibration.json

@@ -1,0 +1,302 @@
+{
+	"asset": {
+		"generator": "Unity 5.6.0f3",
+		"extras": {
+			"exporterVersion" : "2.0.5"
+		},
+		"version": "2.0"
+	},
+	"accessors": [
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 996,
+			"max": [ 0.1021983, 0.2139838, 0.4014823 ],
+			"min": [ -0.3705616, -0.2139838, -0.3001158 ],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 11952,
+			"componentType": 5126,
+			"count": 996,
+			"max": [ 0.9984397, 0.9931769, 0.9912003 ],
+			"min": [ -0.9939312, -0.9931769, -0.9135972 ],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 996,
+			"max": [ 1, 0, 0, 1 ],
+			"min": [ 1, 0, 0, 1 ],
+			"type": "VEC4"
+		},
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 438,
+			"max": [ 313 ],
+			"min": [ 0 ],
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 0,
+			"byteOffset": 876,
+			"componentType": 5123,
+			"count": 228,
+			"max": [ 479 ],
+			"min": [ 314 ],
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 0,
+			"byteOffset": 1332,
+			"componentType": 5123,
+			"count": 42,
+			"max": [ 517 ],
+			"min": [ 480 ],
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 0,
+			"byteOffset": 1416,
+			"componentType": 5123,
+			"count": 36,
+			"max": [ 541 ],
+			"min": [ 518 ],
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 0,
+			"byteOffset": 1488,
+			"componentType": 5123,
+			"count": 216,
+			"max": [ 689 ],
+			"min": [ 542 ],
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 0,
+			"byteOffset": 1920,
+			"componentType": 5123,
+			"count": 96,
+			"max": [ 757 ],
+			"min": [ 79 ],
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 0,
+			"byteOffset": 2112,
+			"componentType": 5123,
+			"count": 330,
+			"max": [ 995 ],
+			"min": [ 758 ],
+			"type": "SCALAR"
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 42612,
+			"uri": "chicken.bin"
+		}
+	],
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 2772,
+			"byteOffset": 0,
+			"byteStride": 0,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 23904,
+			"byteOffset": 2772,
+			"byteStride": 12,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 15936,
+			"byteOffset": 26676,
+			"byteStride": 16,
+			"target": 34962
+		}
+	],
+	"materials": [
+		{
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [1, 1, 1, 1],
+				"roughnessFactor": 0.5,
+				"metallicFactor": 0
+			},
+			"doubleSided": false,
+			"emissiveFactor": [0, 0, 0],
+			"name": "white"
+		},
+		{
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [0.8000001, 0.06277503, 0.06541807, 1],
+				"roughnessFactor": 0.5,
+				"metallicFactor": 0
+			},
+			"doubleSided": false,
+			"emissiveFactor": [0, 0, 0],
+			"name": "pale red"
+		},
+		{
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [0.8000001, 0.2629347, 0.02078101, 1],
+				"roughnessFactor": 0.5,
+				"metallicFactor": 0
+			},
+			"doubleSided": false,
+			"emissiveFactor": [0, 0, 0],
+			"name": "gold"
+		},
+		{
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [0, 0, 0, 1],
+				"roughnessFactor": 0.5,
+				"metallicFactor": 0
+			},
+			"doubleSided": false,
+			"emissiveFactor": [0, 0, 0],
+			"name": "black"
+		},
+		{
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [0.8412092, 0.8169273, 0.779076, 1],
+				"roughnessFactor": 0.5,
+				"metallicFactor": 0
+			},
+			"doubleSided": false,
+			"emissiveFactor": [0, 0, 0],
+			"name": "pale grey"
+		},
+		{
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [0.6038212, 0.6018185, 0.5717398, 1],
+				"roughnessFactor": 0.5,
+				"metallicFactor": 0
+			},
+			"doubleSided": false,
+			"emissiveFactor": [0, 0, 0],
+			"name": "mid grey"
+		},
+		{
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [0.8000001, 0.5744026, 0.2378221, 1],
+				"roughnessFactor": 0.5,
+				"metallicFactor": 0
+			},
+			"doubleSided": false,
+			"emissiveFactor": [0, 0, 0],
+			"name": "buttermilk"
+		}
+	],
+	"meshes": [
+		{
+			"name": "mesh_Chicken_10146chicken",
+			"primitives": [
+				{
+					"attributes": {
+						"POSITION": 0,
+						"NORMAL": 1,
+						"TANGENT4": 2
+					},
+					"indices": 3,
+					"material": 0,
+					"mode": 4
+				},
+				{
+					"attributes": {
+						"POSITION": 0,
+						"NORMAL": 1,
+						"TANGENT4": 2
+					},
+					"indices": 4,
+					"material": 1,
+					"mode": 4
+				},
+				{
+					"attributes": {
+						"POSITION": 0,
+						"NORMAL": 1,
+						"TANGENT4": 2
+					},
+					"indices": 5,
+					"material": 2,
+					"mode": 4
+				},
+				{
+					"attributes": {
+						"POSITION": 0,
+						"NORMAL": 1,
+						"TANGENT4": 2
+					},
+					"indices": 6,
+					"material": 3,
+					"mode": 4
+				},
+				{
+					"attributes": {
+						"POSITION": 0,
+						"NORMAL": 1,
+						"TANGENT4": 2
+					},
+					"indices": 7,
+					"material": 4,
+					"mode": 4
+				},
+				{
+					"attributes": {
+						"POSITION": 0,
+						"NORMAL": 1,
+						"TANGENT4": 2
+					},
+					"indices": 8,
+					"material": 5,
+					"mode": 4
+				},
+				{
+					"attributes": {
+						"POSITION": 0,
+						"NORMAL": 1,
+						"TANGENT4": 2
+					},
+					"indices": 9,
+					"material": 6,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"name": "UnityGlTF_correctionMatrix",
+			"children": [
+				1
+			],
+			"matrix": [-1, 0, -8.742278E-08, 0, 0, 1, 0, 0, 8.742278E-08, 0, -1, 0, 0, 0, 0, 1]
+		},
+		{
+			"name": "node_chicken_-4772",
+			"mesh": 0,
+			"matrix": [1, 0, 0, 0, 0, -0.04744578, 0.9988739, 0, 0, -0.9988739, -0.04744578, 0, 0, 0.42, 0, 1]
+		}
+	],
+	"scenes": [
+		{
+			"name":"defaultScene",
+			"nodes": [
+				0
+			]
+		}
+	],
+	"scene": 0
+}

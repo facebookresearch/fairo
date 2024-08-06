@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+ <asset>
+  <contributor>
+   <authoring_tool>SceneKit Collada Exporter v1.0</authoring_tool>
+  </contributor>
+  <created>2020-06-15T18:45:30Z</created>
+  <modified>2020-06-15T18:45:30Z</modified>
+  <unit meter="1.000000"/>
+  <up_axis>Y_UP</up_axis>
+ </asset>
+ <library_lights>
+  <light id="bottom_light-light" name="bottom_light-light">
+   <technique_common>
+    <directional>
+     <color>1 1 1</color>
+    </directional>
+   </technique_common>
+   <extra>
+    <technique profile="SceneKit">
+     <attenuationStart>0</attenuationStart>
+     <attenuationEnd>0</attenuationEnd>
+     <attenuationFalloffExponent>2</attenuationFalloffExponent>
+     <intensity>1000</intensity>
+     <shadow>
+      <enable>0</enable>
+      <color>0 0 0 1</color>
+      <shadowRadius>3</shadowRadius>
+      <zNear>1</zNear>
+      <zFar>100</zFar>
+      <orthographicScale>1</orthographicScale>
+     </shadow>
+    </technique>
+   </extra>
+  </light>
+  <light id="top_light-light" name="top_light-light">
+   <technique_common>
+    <directional>
+     <color>1 1 1</color>
+    </directional>
+   </technique_common>
+   <extra>
+    <technique profile="SceneKit">
+     <attenuationStart>0</attenuationStart>
+     <attenuationEnd>0</attenuationEnd>
+     <attenuationFalloffExponent>2</attenuationFalloffExponent>
+     <intensity>1000</intensity>
+     <shadow>
+      <enable>0</enable>
+      <color>0 0 0 1</color>
+      <shadowRadius>3</shadowRadius>
+      <zNear>1</zNear>
+      <zFar>100</zFar>
+      <orthographicScale>1</orthographicScale>
+     </shadow>
+    </technique>
+   </extra>
+  </light>
+ </library_lights>
+ <library_materials>
+  <material id="arrow_material" name="arrow_material">
+   <instance_effect url="#effect_arrow_material"/>
+  </material>
+ </library_materials>
+ <library_effects>
+  <effect id="effect_arrow_material">
+   <profile_COMMON>
+    <technique sid="common">
+     <phong>
+      <emission>
+       <color>0 0.27451 0.568627 1</color>
+      </emission>
+      <ambient>
+       <color>0 0 0 1</color>
+      </ambient>
+      <diffuse>
+       <color>0 0.27451 0.568627 1</color>
+      </diffuse>
+      <specular>
+       <color>0 0.01098 0.022745 1</color>
+      </specular>
+      <shininess>
+       <float>19.9775</float>
+      </shininess>
+      <transparent opaque="RGB_ZERO">
+       <color>1 1 1 1</color>
+      </transparent>
+      <transparency>
+       <float>0.1</float>
+      </transparency>
+      <index_of_refraction>
+       <float>1</float>
+      </index_of_refraction>
+     </phong>
+    </technique>
+   </profile_COMMON>
+   <extra>
+    <technique profile="SceneKit">
+     <litPerPixel>1</litPerPixel>
+     <ambient_diffuse_lock>1</ambient_diffuse_lock>
+    </technique>
+   </extra>
+  </effect>
+ </library_effects>
+ <library_geometries>
+  <geometry id="geometry1">
+   <mesh>
+    <source id="arrow_model-POSITION">
+     <float_array id="ID2-array" count="180">0.002058 0 -2.35206 0.002058 0.5 0 -1.46794 0 1.06794 -1.46794 0 1.06794 0.002058 0.5 0 0.002058 0 -2.35206 0.002058 0 0 -1.46794 0 1.06794 0.002058 0.5 0 -1.46794 0 1.06794 0.002058 0 0 0.002058 -0.5 0 0.002058 -0.5 0 0.002058 0 0 -1.46794 0 1.06794 0.002058 0 0 1.47206 0 1.06794 0.002058 -0.5 0 1.47206 0 1.06794 0.002058 0 0 0.002058 0.5 0 0.002058 -0.5 0 1.47206 0 1.06794 0.002058 0 0 1.47206 0 1.06794 0.002058 -0.5 0 0.002058 0 -2.35206 0.002058 0 -2.35206 0.002058 -0.5 0 1.47206 0 1.06794 0.002058 0 -2.35206 -1.46794 0 1.06794 0.002058 -0.5 0 0.002058 -0.5 0 -1.46794 0 1.06794 0.002058 0 -2.35206 0.002058 0 -2.35206 0.002058 -0.5 0 0.002058 0 0 0.002058 0 0 0.002058 -0.5 0 0.002058 0 -2.35206 0.002058 0 -2.35206 0.002058 0 0 0.002058 0.5 0 0.002058 0.5 0 0.002058 0 0 0.002058 0 -2.35206 0.002058 0.5 0 0.002058 0 0 1.47206 0 1.06794 0.002058 0.5 0 -1.46794 0 1.06794 0.002058 0 0 1.47206 0 1.06794 0.002058 0.5 0 0.002058 0 -2.35206 0.002058 0 -2.35206 0.002058 0.5 0 1.47206 0 1.06794 </float_array>
+     <technique_common>
+      <accessor source="#ID2-array" count="60" stride="3">
+       <param name="X" type="float"/>
+       <param name="Y" type="float"/>
+       <param name="Z" type="float"/>
+      </accessor>
+     </technique_common>
+    </source>
+    <source id="arrow_model-Normal0">
+     <float_array id="ID3-array" count="180">0.435483 -0.880522 0.187181 0.435483 -0.880522 0.187181 0.435483 -0.880522 0.187181 -0.435483 0.880522 -0.187181 -0.435483 0.880522 -0.187181 -0.435483 0.880522 -0.187181 -0.587758 0 -0.809037 -0.587758 0 -0.809037 -0.587758 0 -0.809037 -0.587758 0 -0.809037 -0.587758 0 -0.809037 -0.587758 0 -0.809037 0.587758 0 0.809037 0.587758 0 0.809037 0.587758 0 0.809037 0.587758 0 -0.809037 0.587758 0 -0.809037 0.587758 0 -0.809037 0.587758 0 -0.809037 0.587758 0 -0.809037 0.587758 0 -0.809037 -0.587758 0 0.809037 -0.587758 0 0.809037 -0.587758 0 0.809037 0.435483 -0.880522 -0.187181 0.435483 -0.880522 -0.187181 0.435483 -0.880522 -0.187181 -0.435483 0.880522 0.187181 -0.435483 0.880522 0.187181 -0.435483 0.880522 0.187181 0.435483 0.880522 0.187181 0.435483 0.880522 0.187181 0.435483 0.880522 0.187181 -0.435483 -0.880522 -0.187181 -0.435483 -0.880522 -0.187181 -0.435483 -0.880522 -0.187181 -1 0 -0 -1 0 -0 -1 0 -0 1 0 0 1 0 0 1 0 0 -1 0 -0 -1 0 -0 -1 0 -0 1 0 0 1 0 0 1 0 0 -0.587758 0 0.809037 -0.587758 0 0.809037 -0.587758 0 0.809037 0.587758 0 0.809037 0.587758 0 0.809037 0.587758 0 0.809037 -0.435483 -0.880522 0.187181 -0.435483 -0.880522 0.187181 -0.435483 -0.880522 0.187181 0.435483 0.880522 -0.187181 0.435483 0.880522 -0.187181 0.435483 0.880522 -0.187181 </float_array>
+     <technique_common>
+      <accessor source="#ID3-array" count="60" stride="3">
+       <param name="X" type="float"/>
+       <param name="Y" type="float"/>
+       <param name="Z" type="float"/>
+      </accessor>
+     </technique_common>
+    </source>
+    <source id="arrow_model-UV0">
+     <float_array id="ID4-array" count="120">85.1068 -32.1327 0.031997 9.39638 -61.4498 -32.1327 -61.4498 -32.1327 0.031997 9.39638 85.1068 -32.1327 -0.065554 0 71.4689 0 -0.065554 19.685 71.4689 0 -0.065554 0 -0.065554 -19.685 -0.065554 -19.685 -0.065554 0 71.4689 0 -0.065554 0 -71.6 0 -0.065554 -19.685 -71.6 0 -0.065554 0 -0.065554 19.685 -0.065554 -19.685 -71.6 0 -0.065554 0 -61.5138 32.2638 -0.031997 -9.26528 85.0428 32.2638 85.0428 32.2638 -0.031997 -9.26528 -61.5138 32.2638 85.1068 32.1327 -61.4498 32.1327 0.031997 -9.39638 0.031997 -9.39638 -61.4498 32.1327 85.1068 32.1327 -92.6007 0 0 -19.685 0 0 0 0 0 -19.685 -92.6007 0 -92.6007 0 0 0 0 19.685 0 19.685 0 0 -92.6007 0 -0.065554 19.685 -0.065554 0 -71.6 0 -0.065554 19.685 71.4689 0 -0.065554 0 61.5138 -32.2638 0.031997 9.26528 -85.0428 -32.2638 -85.0428 -32.2638 0.031997 9.26528 61.5138 -32.2638 </float_array>
+     <technique_common>
+      <accessor source="#ID4-array" count="60" stride="2">
+       <param name="S" type="float"/>
+       <param name="T" type="float"/>
+      </accessor>
+     </technique_common>
+    </source>
+    <vertices id="arrow_model-POSITION-vertices">
+     <input semantic="POSITION" source="#arrow_model-POSITION"/>
+    </vertices>
+    <triangles count="20" material="geometryElement5">
+     <input semantic="VERTEX" offset="0" source="#arrow_model-POSITION-vertices"/>
+     <input semantic="NORMAL" offset="0" source="#arrow_model-Normal0"/>
+     <input semantic="TEXCOORD" offset="0" source="#arrow_model-UV0" set="1"/>
+     <p>0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 </p>
+    </triangles>
+   </mesh>
+  </geometry>
+ </library_geometries>
+ <library_visual_scenes>
+  <visual_scene id="scene6">
+   <node id="bottom_light" name="bottom_light">
+    <matrix>0.988037 -0.041812 0.148443 0 0 0.962546 0.27112 0.0375 -0.154219 -0.267876 0.95103 0.1873 0 0 0 1 </matrix>
+    <instance_light url="#bottom_light-light"/>
+   </node>
+   <node id="top_light" name="top_light">
+    <matrix>0.904078 0.257315 -0.341221 0 0.156907 -0.942519 -0.295022 -0.1371 -0.397521 0.213183 -0.892485 -0.3295 0 0 0 1 </matrix>
+    <instance_light url="#top_light-light"/>
+   </node>
+   <node id="arrow_root" name="arrow_root">
+    <matrix>0.01 0 0 0 0 0.01 0 0 0 0 0.01 0 0 0 0 1 </matrix>
+    <node id="arrow_model" name="arrow_model">
+     <matrix>10 0 0 0 0 0 -10 0 0 10 0 0 0 0 0 1 </matrix>
+     <instance_geometry url="#geometry1">
+      <bind_material>
+       <technique_common>
+        <instance_material symbol="geometryElement5" target="#arrow_material"/>
+       </technique_common>
+      </bind_material>
+     </instance_geometry>
+    </node>
+   </node>
+  </visual_scene>
+ </library_visual_scenes>
+ <scene>
+  <instance_visual_scene url="#scene6"/>
+ </scene>
+</COLLADA>

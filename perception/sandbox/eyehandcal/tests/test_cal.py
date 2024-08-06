@@ -85,7 +85,7 @@ def extract_obs_data_std(data, camera_index):
                 quat2rotvec(d['ori'].double())
             ))
 
-    ic = data[0]['intrinsics'][camera_index]
+    ic = list(data[0]['intrinsics'].values())[camera_index]
     K=build_proj_matrix(
         fx=ic['fx'],
         fy=ic['fy'],

@@ -14,7 +14,41 @@ ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../")
 print("Rootdir : %r" % ROOTDIR)
 
 
-def compute_checksum_tar_and_upload(agent, artifact_name, model_name=None):
+def tar_and_upload(checksum=None, artifact_path_name=None, artifact_name=None):
+    """
+    Tar all files for the artifact and upload it to AWS.
+    """
+    # Change the directory to artifacts
+    os.chdir(os.path.join(ROOTDIR, "droidlet/artifacts/"))
+
+    print("Now making the tar file...")
+    process = Popen(
+        [
+            "tar",
+            "-czvf",
+            artifact_name + "_" + checksum + ".tar.gz",
+            '--exclude="*/\.*"',
+            '--exclude="*checksum*"',
+            artifact_path_name,
+        ],
+        stdout=PIPE,
+        stderr=PIPE,
+    )
+
+    stdout, stderr = process.communicate()
+    print(stdout.decode("utf-8"))
+    print(stderr.decode("utf-8"))
+    print("Now uploading ...")
+    process = Popen(
+        ["aws", "s3", "cp", artifact_name + "_" + checksum + ".tar.gz", "s3://craftassist/pubr/"],
+        stdout=PIPE,
+        stderr=PIPE,
+    )
+    stdout, stderr = process.communicate()
+    print(stdout.decode("utf-8"))
+
+
+def compute_checksum(agent, artifact_name, model_name=None):
     if not agent:
         agent = "craftassist"
         print("Agent name not specified, defaulting to craftassist")
@@ -52,32 +86,17 @@ def compute_checksum_tar_and_upload(agent, artifact_name, model_name=None):
         checksum = f.read().strip()
     print("CHECKSUM: %r" % checksum)
 
-    """Tar and upload the local artifact folder"""
-    print("Now making the tar file...")
-    process = Popen(
-        [
-            "tar",
-            "-czvf",
-            artifact_name + "_" + checksum + ".tar.gz",
-            '--exclude="*/\.*"',
-            '--exclude="*checksum*"',
-            artifact_path_name,
-        ],
-        stdout=PIPE,
-        stderr=PIPE,
+    return checksum, artifact_path_name, artifact_name
+
+
+def compute_checksum_tar_and_upload(agent, artifact_name, model_name=None):
+    # Compute the checksum and write into corresponding file
+    checksum, artifact_path_name, artifact_name = compute_checksum(
+        agent, artifact_name, model_name
     )
-    stdout, stderr = process.communicate()
-    print(stdout.decode("utf-8"))
-    print(stderr.decode("utf-8"))
-    print("Now uploading ...")
-    process = Popen(
-        ["aws", "s3", "cp", artifact_name + "_" + checksum + ".tar.gz", "s3://craftassist/pubr/"],
-        stdout=PIPE,
-        stderr=PIPE,
-    )
-    stdout, stderr = process.communicate()
-    print(stdout.decode("utf-8"))
-    print(stderr.decode("utf-8"))
+
+    # Tar and upload the local artifact folder
+    tar_and_upload(checksum, artifact_path_name, artifact_name)
 
 
 def upload_agent_datasets(agent=None):

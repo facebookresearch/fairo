@@ -1,5 +1,6 @@
 import numpy as np
 import pyrealsense2 as rs
+from collections import OrderedDict
 
 
 class RealsenseAPI:
@@ -18,7 +19,7 @@ class RealsenseAPI:
         # Start stream
         print(f"Connecting to RealSense cameras ({len(self.device_ls)} found) ...")
         self.pipes = []
-        self.profiles = []
+        self.profiles = OrderedDict()
         for i, device_id in enumerate(self.device_ls):
             pipe = rs.pipeline()
             config = rs.config()
@@ -30,7 +31,7 @@ class RealsenseAPI:
             )
 
             self.pipes.append(pipe)
-            self.profiles.append(pipe.start(config))
+            self.profiles[device_id]=pipe.start(config)
 
             print(f"Connected to camera {i+1} ({device_id}).")
 
@@ -45,7 +46,7 @@ class RealsenseAPI:
 
     def get_intrinsics(self):
         intrinsics_ls = []
-        for profile in self.profiles:
+        for profile in self.profiles.values():
             stream = profile.get_streams()[1]
             intrinsics = stream.as_video_stream_profile().get_intrinsics()
 
@@ -53,6 +54,18 @@ class RealsenseAPI:
 
         return intrinsics_ls
 
+    def get_intrinsics_dict(self):
+        intrinsics_ls = OrderedDict()
+        for device_id, profile in self.profiles.items():
+            stream = profile.get_streams()[1]
+            intrinsics = stream.as_video_stream_profile().get_intrinsics()
+            param_dict = dict([(p, getattr(intrinsics, p)) for p in dir(intrinsics) if not p.startswith('__')])
+            param_dict['model'] = param_dict['model'].name
+
+            intrinsics_ls[device_id] = param_dict
+
+        return intrinsics_ls
+    
     def get_num_cameras(self):
         return len(self.device_ls)
 

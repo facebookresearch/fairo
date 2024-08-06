@@ -150,7 +150,7 @@ class ModuleUtilsMixin:
     def _hook_rss_memory_pre_forward(module, *args, **kwargs):
         try:
             import psutil
-        except (ImportError):
+        except ImportError:
             raise ImportError(
                 "You need to install psutil (pip install psutil) to use memory tracing."
             )
@@ -164,7 +164,7 @@ class ModuleUtilsMixin:
     def _hook_rss_memory_post_forward(module, *args, **kwargs):
         try:
             import psutil
-        except (ImportError):
+        except ImportError:
             raise ImportError(
                 "You need to install psutil (pip install psutil) to use memory tracing."
             )
@@ -1306,7 +1306,6 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
 
     @classmethod
     def _load_state_dict_into_model(cls, model, state_dict, pretrained_model_name_or_path):
-
         # Convert old format to new format if needed from a PyTorch state_dict
         old_keys = []
         new_keys = []

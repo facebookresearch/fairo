@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import math
 import numpy as np
 import pyrobot.utils.util as prutil
 
@@ -52,8 +53,19 @@ class LoCoBotCamera(object):
         :return: the intrinsic matrix (shape: :math:`[3, 3]`)
         :rtype: np.ndarray
         """
-        fx, fy, cx, cy = 256, 256, 256, 256
+        height, width = self.configs.COMMON.SIMULATOR.AGENT.SENSORS.RESOLUTIONS[0]
+        hfov = math.radians(self.configs.COMMON.SIMULATOR.AGENT.SENSORS.HFOVS[0])
+        vfov = 2 * math.atan(math.tan(hfov / 2) * height / width)
+
+        # https://github.com/facebookresearch/habitat-lab/issues/656
+        # https://github.com/facebookresearch/habitat-lab/issues/474
+        # https://github.com/facebookresearch/habitat-lab/issues/499
+        fx = width / math.tan(hfov / 2) / 2
+        fy = height / math.tan(vfov / 2) / 2
+        cx = width / 2
+        cy = height / 2
         Itc = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]])
+
         return Itc
 
     def _rot_matrix(self, habitat_quat):
@@ -143,7 +155,8 @@ class LoCoBotCamera(object):
         quat_pan_to_base = habUtils.quat_from_angle_axis(-1 * pan, np.asarray([0.0, 1.0, 0.0]))
 
         sensor_offset_base = habUtils.quat_rotate_vector(quat_pan_to_base, sensor_offset_pan)
-        sensor_offset_base += np.asarray([0.0, 0.5, 0.1])  # offset w.r.t base
+        # sensor_offset_base += np.asarray([0.0, 0.88, 0.1])  # offset w.r.t base
+        sensor_offset_base += np.asarray([0.0, 1.31, 0.1])  # offset w.r.t base
 
         # translation
         quat = quat_cam_to_pan * quat_pan_to_base

@@ -365,7 +365,7 @@ class Model(object):
                 for k in range(npy_blocks.shape[2]):
                     idm = tuple(npy_blocks[i, j, k])
                     if idm[0] != 0:
-                        loc = self.recorder.from_world_coords((i, j, k))
+                        loc = self.recorder.from_npy_coords((i, j, k))
                         self.add_block(loc, idm_to_tex_coords(idm), immediate=False)
 
     def show_world(self):
@@ -563,7 +563,7 @@ class Window(pyglet.window.Window):
         block_changes = self.current_record.get("block_changes")
         if block_changes:
             for loc, idm in block_changes:
-                loc = self.model.recorder.from_world_coords(loc)
+                loc = self.model.recorder.from_npy_coords(loc)
                 if idm[0] == 0:
                     try:
                         self.model.remove_block(loc, immediate=True)

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Cartoon Hammer
+* source:	https://sketchfab.com/3d-models/cartoon-hammer-4b3a4821679d4adea988c2f3134d71c3
+* author:	Blender Books (https://sketchfab.com/blenderbooks)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Cartoon Hammer" (https://sketchfab.com/3d-models/cartoon-hammer-4b3a4821679d4adea988c2f3134d71c3) by Blender Books (https://sketchfab.com/blenderbooks) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

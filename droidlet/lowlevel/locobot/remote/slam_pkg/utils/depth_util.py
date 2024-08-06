@@ -1,4 +1,6 @@
 import numpy as np
+import torch
+import itertools
 from scipy.spatial.transform import Rotation
 
 
@@ -79,3 +81,59 @@ def get_relative_state(cur_state, init_state):
     rel_x, rel_y = np.matmul(R, np.array([rel_X, rel_Y]).reshape(-1, 1))
 
     return rel_x[0], rel_y[0], cur_state[2] - init_state[2]
+
+
+def splat_feat_nd(init_grid, feat, coords):
+    """
+    Args:
+        init_grid: B X nF X W X H X D X ..
+        feat: B X nF X nPt
+        coords: B X nDims X nPt in [-1, 1]
+    Returns:
+        grid: B X nF X W X H X D X ..
+    """
+    wts_dim = []
+    pos_dim = []
+    grid_dims = init_grid.shape[2:]
+
+    B = init_grid.shape[0]
+    F = init_grid.shape[1]
+
+    n_dims = len(grid_dims)
+
+    grid_flat = init_grid.view(B, F, -1)
+    for d in range(n_dims):
+        pos = coords[:, [d], :] * grid_dims[d] / 2 + grid_dims[d] / 2
+        pos_d = []
+        wts_d = []
+
+        for ix in [0, 1]:
+            pos_ix = torch.floor(pos) + ix
+            safe_ix = (pos_ix > 0) & (pos_ix < grid_dims[d])
+            safe_ix = safe_ix.type(pos.dtype)
+
+            wts_ix = 1 - torch.abs(pos - pos_ix)
+
+            wts_ix = wts_ix * safe_ix
+            pos_ix = pos_ix * safe_ix
+
+            pos_d.append(pos_ix)
+            wts_d.append(wts_ix)
+
+        pos_dim.append(pos_d)
+        wts_dim.append(wts_d)
+
+    l_ix = [[0, 1] for d in range(n_dims)]
+    for ix_d in itertools.product(*l_ix):
+        wts = torch.ones_like(wts_dim[0][0])
+        index = torch.zeros_like(wts_dim[0][0])
+
+        for d in range(n_dims):
+            index = index * grid_dims[d] + pos_dim[d][ix_d[d]]
+            wts = wts * wts_dim[d][ix_d[d]]
+
+        index = index.long()
+        grid_flat.scatter_add_(2, index.expand(-1, F, -1), feat * wts)
+
+    grid_flat = torch.round(grid_flat)
+    return grid_flat.view(init_grid.shape)

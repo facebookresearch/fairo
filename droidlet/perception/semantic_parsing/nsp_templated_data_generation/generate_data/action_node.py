@@ -222,7 +222,6 @@ class ActionNode:
 
                 if action_dict.get("answer_type", None):
                     if action_dict["answer_type"] == "TAG" and "tag_name" in action_dict:
-
                         # fix for tag values to new
                         tag_val = action_dict["tag_name"]
                         if tag_val == "action_reference_object_name":

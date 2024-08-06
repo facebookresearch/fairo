@@ -53,6 +53,15 @@ Each condition key and the "spatial_control" blocks are optional. The default (i
 ## Actions ##
 <a id="action"> Actions </a> are an "atomic" <a href="#event">EVENT</a>, and can be distinguished by the "action_type" key.
 
+### Say Action ###
+This is the action that triggers the agent to say or speak something (represented by `say_span`):
+<pre>
+{"action_type" : 'SAY',
+ "say_span" : span
+}
+</pre>
+
+
 ### Build Action ###
 This is the action to Build a schematic at an optional location.
 
@@ -275,7 +284,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 </pre>
 
 The specificatition sets positive yaw to be rotations to the left and negative yaw to be rotations to the right;
-and positive pitch up (90) and negative pitch down (-90).
+and positive pitch up (90) and negative pitch down (-90).  TODO switch all angular fixed values to radians.
 	
 #### DanceType ####
 <pre>

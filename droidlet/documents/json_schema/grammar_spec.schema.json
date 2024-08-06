@@ -46,6 +46,19 @@
     "otheraction": {
       "$ref": "other_dialogue.schema.json#/definitions/otheraction"
     },
+    "say": {
+      "type": "object",
+      "properties": {
+        "action_type": {
+          "enum": [
+            "SAY"
+          ]
+        },
+        "say_span": {
+          "$ref": "action_dict_components.schema.json#/definitions/span"
+        }
+      }
+    },
     "build": {
       "type": "object",
       "properties": {
@@ -585,6 +598,9 @@
         "anyOf": [
           {
             "$ref": "#/definitions/move"
+          },
+          {
+            "$ref": "#/definitions/say"
           },
           {
             "$ref": "#/definitions/composite"

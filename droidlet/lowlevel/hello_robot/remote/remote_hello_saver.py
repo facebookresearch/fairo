@@ -36,7 +36,6 @@ class LabelPropSaver:
         return img_folder, img_folder_dbg, depth_folder, lidar_folder, data_file
 
     def create_dirs(self, id_):
-
         img_folder, img_folder_dbg, depth_folder, lidar_folder, data_file = self.return_paths(id_)
 
         for x in [img_folder, img_folder_dbg, depth_folder, lidar_folder]:
@@ -166,7 +165,7 @@ if __name__ == "__main__":
         cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + args.ip)
         data_logger = LabelPropSaver("hello_data_log_" + str(time.time()), bot, cam)
         data_logger_uri = daemon.register(data_logger)
-        with Pyro4.locateNS() as ns:
+        with Pyro4.locateNS(host=args.ip) as ns:
             ns.register("hello_data_logger", data_logger_uri)
 
         print("Server is started...")

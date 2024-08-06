@@ -12,7 +12,7 @@ install_requires = [
     "gtsam==4.1.1",
     "numpy",
     "matplotlib",
-    "opencv-contrib-python",
+    "opencv-contrib-python<=4.7.0", # works with cv2.aruco API < 4.7
     "scipy",
     "sophuspy",
 ]

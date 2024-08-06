@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
-from .utils import Pos, Look
+from droidlet.base_util import Pos, Look
 from droidlet.shared_data_struct.craftassist_shared_utils import MOBS_BY_ID
 
 FLAT_GROUND_DEPTH = 8
@@ -16,8 +16,8 @@ MOB_COLORS = {
     "sheep": (0.6, 0.6, 0.6),
 }
 MOB_META = {101: "rabbit", 92: "cow", 90: "pig", 93: "chicken", 91: "sheep"}
-MOB_SPEED = {"rabbit": 1, "cow": 0.3, "pig": 0.5, "chicken": 1, "sheep": 0.3}
-MOB_LOITER_PROB = {"rabbit": 0.3, "cow": 0.5, "pig": 0.3, "chicken": 0.1, "sheep": 0.5}
+MOB_SPEED = {"rabbit": 0.2, "cow": 0.06, "pig": 0.1, "chicken": 0.1, "sheep": 0.06}
+MOB_LOITER_PROB = {"rabbit": 0.4, "cow": 0.6, "pig": 0.4, "chicken": 0.3, "sheep": 0.6}
 MOB_LOITER_TIME = {"rabbit": 2, "cow": 2, "pig": 2, "chicken": 1, "sheep": 2}
 MOB_STEP_HEIGHT = {"rabbit": 1, "cow": 1, "pig": 1, "chicken": 2, "sheep": 2}
 MOB_DIRECTION_CHANGE_PROB = {"rabbit": 0.1, "cow": 0.1, "pig": 0.2, "chicken": 0.3, "sheep": 0.2}
@@ -44,8 +44,8 @@ def make_mob_opts(mobname):
     return opts
 
 
-def check_bounds(p, sl):
-    if p >= sl or p < 0:
+def check_bounds(p, lower, upper):
+    if p >= upper or p < lower:
         return -1
     return 1
 
@@ -66,11 +66,15 @@ class SimpleMob:
         self.entityId = str(np.random.randint(0, 100000))
         self.mobType = opts.mobType
         self.agent_built = False
+        self.inventory = set()
+        self.pick_prob = getattr(opts, "pick_prob", 0.0)
+        self.drop_prob = getattr(opts, "drop_prob", 0.0)
+        self.pick_range = getattr(opts, "pick_range", 0.0)
 
     def add_to_world(self, world):
         self.world = world
         if self.pos is None:
-            xz = np.random.randint(0, world.sl, (2,))
+            xz = np.random.randint(0, world.sl / 3, (2,))
             slice = self.world.blocks[xz[0], :, xz[1], 0]
             nz = np.flatnonzero(slice)
             if len(nz) == 0:
@@ -96,11 +100,33 @@ class SimpleMob:
     def new_direction(self):
         new_direction = np.random.randn(2)
         self.direction = new_direction / np.linalg.norm(new_direction)
-        # self.look ##NOT IMPLEMENTED
+        yaw = np.arctan2(new_direction[0], new_direction[1])
+        self.look = (yaw, 0.0)
 
     def step(self):
+        # if mob is carrying something, maybe drop:
+        if np.random.rand() < self.drop_prob and len(self.inventory) > 0:
+            eid = self.inventory.pop()
+            dropped = self.world.player_pick_drop_items(self.entityId, [eid], action="drop")
+            if dropped == 0:  # world didn't drop it, add back to inventory
+                self.inventory.add(eid)
+
+        # if mob can pick things, and if something is nearby, pick it
+        if np.random.rand() < self.pick_prob:
+            pickable_items = self.world.get_items()
+            for i in pickable_items:
+                if i["holder_entityId"] == -1:  # on ground
+                    ix, iy, iz = i["x"], i["y"], i["z"]
+                    x, y, z = self.pos
+                    if (x - ix) ** 2 + (y - iy) ** 2 + (z - iz) ** 2 < self.pick_range**2:
+                        picked = self.world.player_pick_drop_items(
+                            self.entityId, [i["entityId"]], action="pick"
+                        )
+                        if picked > 0:
+                            self.inventory.add(i["entityId"])
+
         # check if falling:
-        x, y, z = self.world.to_world_coords(self.pos)
+        x, y, z = self.world.to_npy_coords(self.pos)
         fy = min(max(int(np.floor(y)), 0), self.world.blocks.shape[1])
         rx = min(max(int(np.round(x)), 0), self.world.blocks.shape[0] - 1)
         rz = min(max(int(np.round(z)), 0), self.world.blocks.shape[2] - 1)
@@ -108,7 +134,6 @@ class SimpleMob:
             if self.world.blocks[rx, fy - 1, rz, 0] == 0:
                 self.pos = (self.pos[0], self.pos[1] - FALL_SPEED, self.pos[2])
                 return
-        # TODO when look implemented: change looks when loitering
         if self.loitering >= 0:
             self.loitering += 1
             if self.loitering > self.loiter_time:
@@ -120,8 +145,8 @@ class SimpleMob:
         if np.random.rand() < self.direction_change_prob:
             self.new_direction()
         step = self.direction * self.speed
-        bx = check_bounds(int(np.round(x + step[0])), self.world.sl)
-        bz = check_bounds(int(np.round(z + step[1])), self.world.sl)
+        bx = check_bounds(int(np.round(x + step[0])), self.world.sl / 3, 2 * self.world.sl / 3)
+        bz = check_bounds(int(np.round(z + step[1])), self.world.sl / 3, 2 * self.world.sl / 3)
         # if hitting boundary, reverse...
         self.direction[0] = bx * self.direction[0]
         self.direction[1] = bz * self.direction[1]
@@ -130,11 +155,11 @@ class SimpleMob:
         new_z = step[1] + z
         # is there a block in new location? if no go there, if yes go up
         for i in range(self.step_height):
-            if fy + i >= self.world.sl:
-                self.new_direction()
-                return
+            #            if fy + i >= self.world.sl / 3:
+            #                self.new_direction()
+            #                return
             if self.world.blocks[int(np.round(new_x)), fy + i, int(np.round(new_z)), 0] == 0:
-                self.pos = self.world.from_world_coords((new_x, y + i, new_z))
+                self.pos = self.world.from_npy_coords((new_x, y + i, new_z))
                 return
         # couldn't get past a wall of blocks, try a different dir
         self.new_direction()

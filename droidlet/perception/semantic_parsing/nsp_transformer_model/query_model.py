@@ -18,14 +18,12 @@ from .caip_dataset import *
 
 class NSPBertModel(object):
     """NSPBertModel model class that loads a pretrained model and runs inference in the agent.
-
     Attributes:
         tokenizer (str): Pretrained tokenizer used to tokenize input. Runs end-to-end
             tokenization, eg. split punctuation, BPE.
         dataset (CAIPDataset): CAIP (CraftAssist Instruction Parsing) Dataset. Note that
             this is empty during inference.
         encoder_decoder (EncoderDecoderWithLoss): Transformer model class. See
-
     Args:
         model_dir (str): Path to directory containing all files necessary to
             load and run the model, including args, tree mappings and the checkpointed model.
@@ -51,13 +49,10 @@ class NSPBertModel(object):
     def parse(self, chat, noop_thres=0.95, beam_size=5, well_formed_pen=1e2):
         """Given an incoming chat, query the parser and return a logical form.
         Uses beam search decoding, see `beam_search`
-
         Args:
             chat (str): Preprocessed chat command from a player. Used as text input to parser.
-
         Returns:
             dict: Logical form.
-
         """
         btr = beam_search(
             chat, self.encoder_decoder, self.tokenizer, self.dataset, beam_size, well_formed_pen

@@ -1,0 +1,11 @@
+# @package _group_
+robot_description_path: "kuka_iiwa/urdf/iiwa7.urdf"
+controlled_joints:  [0, 1, 2, 3, 4, 5, 6]
+num_dofs: 7
+ee_link_idx: 7
+ee_link_name: iiwa_link_7
+rest_pose: [0.0, 0.0, 0.0, -1.1, 0.0, 1.0, 0.0]
+joint_limits_low: [-2.9671, -2.0944, -2.9671, -2.0944, -2.9671, -2.0944, -3.0543]
+joint_limits_high: [2.9671, 2.0944, 2.9671, 2.0944, 2.9671, 2.0944, 3.0543]
+joint_damping: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+torque_limits: [30.0, 30.0, 30.0, 30.0, 30.0, 20.0, 20.0]

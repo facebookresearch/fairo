@@ -1,0 +1,11 @@
+Model Information:
+* title:	Wrench
+* source:	https://sketchfab.com/3d-models/wrench-489bf6b279b14c7bbd102fbdb20fb586
+* author:	David Malkasian (https://sketchfab.com/note2david97)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Wrench" (https://sketchfab.com/3d-models/wrench-489bf6b279b14c7bbd102fbdb20fb586) by David Malkasian (https://sketchfab.com/note2david97) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -78,7 +78,6 @@ class CocoPanoptic:
 
 
 def make_coco_panoptic_transforms(image_set):
-
     normalize = T.Compose(
         [
             T.ToTensor(),

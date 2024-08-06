@@ -20,30 +20,7 @@
         "attribute": {
             "oneOf": [
                 {
-                    "enum": [
-                        "HEIGHT",
-                        "WIDTH",
-                        "X",
-                        "Y",
-                        "Z",
-                        "REF_TYPE",
-                        "HEAD_PITCH",
-                        "HEAD_YAW",
-                        "NAME",
-                        "BORN_TIME",
-                        "MODIFY_TIME",
-                        "SPEAKER",
-                        "VISIT_TIME",
-                        "FINISHED_TIME",
-                        "CHAT",
-                        "LOGICAL_FORM",
-                        "SIZE",
-                        "COLOUR",
-                        "LOCATION",
-                        "TAG",
-                        "BLOCK_TYPE",
-                        "CURRENT_TIME"
-                    ]
+                    "type": "string"	
                 },
                 {
                     "type": "object",

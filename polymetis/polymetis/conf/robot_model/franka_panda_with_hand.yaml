@@ -1,0 +1,18 @@
+# @package _group_
+robot_description_path: "franka_panda/panda_arm_hand.urdf"
+controlled_joints:  [0, 1, 2, 3, 4, 5, 6]
+num_dofs: 7
+ee_link_idx: 7
+ee_link_name: panda_link8
+rest_pose: [-0.13935425877571106, -0.020481698215007782, -0.05201413854956627, -2.0691256523132324, 0.05058913677930832, 2.0028650760650635, -0.9167874455451965]
+joint_limits_low: [-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]
+joint_limits_high: [2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973]
+joint_damping: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+torque_limits: [87., 87., 87., 87., 12., 12., 12.]
+
+metadata_urdf_path: "franka_panda/panda_arm.urdf"
+gripper:
+  num_dofs: 2
+  controlled_joints: [9, 10]
+  max_width: 0.08
+  moving_threshold: 0.002

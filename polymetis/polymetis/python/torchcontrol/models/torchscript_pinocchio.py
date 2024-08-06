@@ -3,7 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 import os
-from typing import Tuple
+from typing import Tuple, Optional
 
 import torch
 from polymetis.utils.data_dir import PKG_ROOT_DIR
@@ -35,14 +35,14 @@ class RobotModelPinocchio(torch.nn.Module):
 
     Args:
         urdf_filename (str): path to the urdf file.
-        ee_link_name (str, optional): name of the end-effector link. Defaults to None,
-                                      which would require you to specify link_name
-                                      when using methods which require a link frame;
-                                      otherwise, the end-effector link will be used
-                                      by default.
+        ee_link_name (str, optional): name of the end-effector link. Defaults to None.
+                                      Having a value of either None or "" would require
+                                      you to specify link_name when using methods which
+                                      require a link frame; otherwise, the end-effector
+                                      link will be used by default.
     """
 
-    def __init__(self, urdf_filename: str, ee_link_name: str = None):
+    def __init__(self, urdf_filename: str, ee_link_name: Optional[str] = None):
         super().__init__()
         self.model = torch.classes.torchscript_pinocchio.RobotModelPinocchio(
             urdf_filename, False
@@ -51,9 +51,15 @@ class RobotModelPinocchio(torch.nn.Module):
         self.ee_link_idx = None
         self.set_ee_link(ee_link_name)
 
-    def set_ee_link(self, ee_link_name):
+    def set_ee_link(self, ee_link_name: Optional[str] = None):
         """Sets the `ee_link_name`, `ee_link_idx` using pinocchio::ModelTpl::getBodyId."""
-        self.ee_link_name = ee_link_name
+        # Set ee_link_name
+        if ee_link_name == "":  # also treat an empty string as default value
+            self.ee_link_name = None
+        else:
+            self.ee_link_name = ee_link_name
+
+        # Set ee_link_idx
         if self.ee_link_name is not None:
             self.ee_link_idx = self.model.get_link_idx_from_name(self.ee_link_name)
         else:
@@ -73,6 +79,9 @@ class RobotModelPinocchio(torch.nn.Module):
         else:
             frame_idx = self.model.get_link_idx_from_name(link_name)
         return frame_idx
+
+    def get_link_name_from_idx(self, link_idx: int):
+        return self.model.get_link_name_from_idx(link_idx)
 
     def get_joint_angle_limits(self) -> torch.Tensor:
         return self.model.get_joint_angle_limits()

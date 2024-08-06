@@ -2,8 +2,9 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
+from droidlet.memory.memory_nodes import PlayerNode, TripleNode
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
-from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
+from droidlet.memory.robot.loco_memory_nodes import DanceNode, DetectedObjectNode
 from droidlet.base_util import Pos, Look, Player
 
 
@@ -35,8 +36,15 @@ class BasicTest(unittest.TestCase):
         ]
         # test update_other_players
         self.memory.update_other_players(player_list)
-        assert self.memory.get_player_by_name("xyz").pos == (1.0, 1.0, 1.0)
-        assert self.memory.get_player_by_eid(10).name == "abc"
+        _, memnode = self.memory.basic_search(
+            "SELECT MEMORY FROM ReferenceObject WHERE ref_type=player AND name=xyz"
+        )
+        assert len(memnode) == 1
+        assert memnode[0].pos == (1.0, 1.0, 1.0)
+        assert (
+            self.memory.nodes[PlayerNode.NODE_TYPE].get_player_by_eid(self.memory, 10).name
+            == "abc"
+        )
 
     def test_detected_object_apis(self):
         self.memory = LocoAgentMemory()
@@ -64,11 +72,29 @@ class BasicTest(unittest.TestCase):
         def return_num():
             return 10
 
-        self.memory.add_dance(
-            return_num, "generate_num_10_dance", ["generate_num_10", "dance_with_numbers"]
+        self.memory.nodes[DanceNode.NODE_TYPE].create(
+            self.memory,
+            return_num,
+            "generate_num_10_dance",
+            ["generate_num_10", "dance_with_numbers"],
         )
-        assert len(self.memory.get_triples(obj_text="generate_num_10")) == 1
-        assert len(self.memory.get_triples(obj_text="dance_with_numbers")) == 1
+
+        assert (
+            len(
+                self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                    self.memory, obj_text="generate_num_10"
+                )
+            )
+            == 1
+        )
+        assert (
+            len(
+                self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                    self.memory, obj_text="dance_with_numbers"
+                )
+            )
+            == 1
+        )
 
 
 if __name__ == "__main__":

@@ -20,7 +20,11 @@ import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
 import numpy as np
 import cv2
-from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
+from droidlet.lowlevel.hello_robot.remote.utils import (
+    transform_global_to_base,
+    goto,
+    goto_trackback,
+)
 
 
 Pyro4.config.SERIALIZER = "pickle"
@@ -74,6 +78,9 @@ class RemoteHelloRobot(object):
         val_in_range("Current", p.status["current"], vmin=0.1, vmax=p.config["high_current_alert"])
         val_in_range("CPU Temp", p.status["cpu_temp"], vmin=15, vmax=80)
         print(Style.RESET_ALL)
+
+    def pull_status(self):
+        self._robot.pull_status()
 
     def _load_urdf(self):
         import os
@@ -197,7 +204,7 @@ class RemoteHelloRobot(object):
                 cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + self._ip)
             self.cam = cam
 
-    def go_to_absolute(self, xyt_position):
+    def go_to_absolute(self, xyt_position, trackback=False):
         """Moves the robot base to given goal state in the world frame.
 
         :param xyt_position: The goal state of the form (x,y,yaw)
@@ -214,9 +221,13 @@ class RemoteHelloRobot(object):
             def obstacle_fn():
                 return self.cam.is_obstacle_in_front()
 
-            status = goto(self._robot, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
+            if trackback:
+                status = goto_trackback(self, list(base_xyt), dryrun=False, optimize_distance=True)
+            else:
+                status = goto(self, list(base_xyt), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
-        return status
+        action = "don't track action"
+        return status, action
 
     def go_to_relative(self, xyt_position):
         """Moves the robot base to the given goal state relative to its current
@@ -233,9 +244,22 @@ class RemoteHelloRobot(object):
             def obstacle_fn():
                 return self.cam.is_obstacle_in_front()
 
-            status = goto(self._robot, list(xyt_position), dryrun=False, obstacle_fn=obstacle_fn)
+            status = goto(self, list(xyt_position), dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
         return status
+
+    def is_base_moving(self):
+        robot = self._robot
+        left_wheel_moving = (
+            robot.base.left_wheel.status["is_moving_filtered"]
+            or robot.base.left_wheel.status["is_moving"]
+        )
+        right_wheel_moving = (
+            robot.base.right_wheel.status["is_moving_filtered"]
+            or robot.base.right_wheel.status["is_moving"]
+        )
+        is_moving = left_wheel_moving or right_wheel_moving
+        return is_moving
 
     def is_busy(self):
         return not self.is_moving()
@@ -271,7 +295,7 @@ if __name__ == "__main__":
     with Pyro4.Daemon(args.ip) as daemon:
         robot = RemoteHelloRobot(ip=args.ip)
         robot_uri = daemon.register(robot)
-        with Pyro4.locateNS() as ns:
+        with Pyro4.locateNS(host=args.ip) as ns:
             ns.register("hello_robot", robot_uri)
 
         print("Hello Robot Server is started...")

@@ -81,7 +81,6 @@ def import_s3_lists(bucket: str):
 
 
 def add_workers_to_quals(add_list: list, qual: str):
-
     for turker in add_list:
         # First add the worker to the database, or retrieve them if they already exist
         try:
@@ -154,7 +153,6 @@ def update_lists(bucket: str, diff_dict: dict):
     for t in diff_dict.keys():
         for l in diff_dict[t].keys():
             for e in diff_dict[t][l].keys():
-
                 if e == "s3_exclusive" and len(diff_dict[t][l][e]) > 0:
                     add_workers_to_quals(diff_dict[t][l][e], qual_dict[t][l])
 

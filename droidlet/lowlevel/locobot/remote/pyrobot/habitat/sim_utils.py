@@ -42,6 +42,7 @@ def make_cfg(SIM):
                 SIM.AGENT.SENSORS.POSES[i][4],
                 SIM.AGENT.SENSORS.POSES[i][5],
             ],
+            "hfov": SIM.AGENT.SENSORS.HFOVS[i],
         }
 
     if SIM.noisy:
@@ -56,6 +57,7 @@ def make_cfg(SIM):
         sensor_spec.sensor_type = sensor_params["sensor_type"]
         sensor_spec.resolution = sensor_params["resolution"]
         sensor_spec.position = sensor_params["position"]
+        sensor_spec.hfov = sensor_params["hfov"]
         sensor_spec.gpu2gpu_transfer = False  # Todo: Move this to config
         if SIM.noisy and sensor_uuid in ("depth"):
             sensor_spec.noise_model = sensor_params["noise_model"]

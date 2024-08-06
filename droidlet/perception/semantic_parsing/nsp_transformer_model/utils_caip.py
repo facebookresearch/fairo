@@ -6,6 +6,7 @@ import random
 import torch
 from .tokenization_utils import fixed_span_values
 
+
 #########
 # Node typing: checking the type of a specific sub-tree (dict value)
 #########

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Cat
+* source:	https://sketchfab.com/3d-models/cat-bbe9be008cf5465a903ba0aa1b540e51
+* author:	Jeneko (https://sketchfab.com/jeneko)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Cat" (https://sketchfab.com/3d-models/cat-bbe9be008cf5465a903ba0aa1b540e51) by Jeneko (https://sketchfab.com/jeneko) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -5,6 +5,7 @@ import numpy as np
 from agents.argument_parser import ArgumentParser
 
 from agents.core import BaseAgent
+from droidlet.memory.memory_nodes import TripleNode
 from droidlet.memory.sql_memory import AgentMemory
 from heuristic_perception import HeuristicPerception
 
@@ -41,7 +42,7 @@ class GridAgent(BaseAgent):
             perception_module.perceive()
 
     def controller_step(self):
-        bot_memids = self.memory.get_memids_by_tag("bot")
+        bot_memids = self.memory.nodes[TripleNode.NODE_TYPE].get_memids_by_tag(self.memory, "bot")
         if self.memory.task_stack_peek() is None:
             if bot_memids:
                 task_data = {"target_memid": bot_memids[0]}

@@ -83,6 +83,7 @@ def pad_to_sidelength(schematic, labels=None, nothing_id=0, sidelength=32):
 
 # TODO cut outliers
 
+
 # TODO simplify
 def fit_in_sidelength(schematic, labels=None, nothing_id=0, sl=32, max_shift=0):
     """Adjust schematics to the center of the padded one"""

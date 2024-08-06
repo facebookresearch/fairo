@@ -15,7 +15,7 @@ from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.interpreter.interpret_attributes import AttributeInterpreter
 from droidlet.interpreter.tests import all_test_commands
 from droidlet.memory.memory_filters import MemorySearcher
-from droidlet.memory.memory_nodes import PlayerNode, AttentionNode
+from droidlet.memory.memory_nodes import SelfNode, PlayerNode, AttentionNode
 from droidlet.base_util import Pos, Look, Player
 
 
@@ -68,7 +68,7 @@ def dummy_specify_locations(interpreter, speaker, mems, steps, reldir):
 class BasicSearchWithAttributesTest(unittest.TestCase):
     def test_linear_extent_search(self):
         self.memory = AgentMemory()
-        PlayerNode.create(
+        SelfNode.update(
             self.memory,
             Player(0, "self", Pos(-1, 0, -1), Look(0, 0)),
             memid=self.memory.self_memid,

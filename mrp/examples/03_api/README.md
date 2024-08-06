@@ -8,7 +8,7 @@ MRP relays process stdout/stderr through AlephZero topics, allowing us to build 
 
 To launch all the processes, we run the same command as before:
 ```sh
-mrp -v up
+mrp up
 ```
 
 Now open your browser to `file:///path/to/mrp/examples/03_api/stdout.html`

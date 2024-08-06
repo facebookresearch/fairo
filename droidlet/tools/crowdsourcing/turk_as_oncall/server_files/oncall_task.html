@@ -1,0 +1,206 @@
+<!-- oncall_task.html -->	
+<!-- Bootstrap v3.0.3 -->	
+<link	
+  rel="stylesheet"	
+  href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"	
+/>	
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>	
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>	
+<!-- Modal --><!-- MODAL -->	
+<div	
+  aria-hidden="true"	
+  aria-labelledby="exampleModalLabel"	
+  class="modal fade bd-example-modal-lg"	
+  id="exampleModal"	
+  role="dialog"	
+  tabindex="-1"	
+>	
+  <div class="modal-dialog modal-lg" role="document">	
+    <div class="modal-content">	
+      <div class="modal-header">	
+        <nav aria-label="Instruction page navigation">	
+          <ul class="pagination justify-content-center">	
+            <li class="page-item disabled" id="previous">	
+              <a class="page-link" tabindex="-1" href="#" onclick="incrementPage(-1);return false;" role="button" aria-expanded="false" aria-controls="collapseExample">Previous</a>	
+            </li>	
+            <li class="page-item active" id="pg1">	
+              <a class="page-link" tabindex="-1" href="#" onclick="applyPagination(1);return false;" role="button" aria-expanded="true" aria-controls="collapseExample">1</a>	
+            </li>	
+            <li class="page-item" id="pg2">	
+              <a class="page-link" tabindex="-1" href="#" onclick="applyPagination(2);return false;" role="button" aria-expanded="false" aria-controls="collapseExample">2</a>	
+            </li>	
+            <li class="page-item" id="pg3">	
+              <a class="page-link" tabindex="-1" href="#" onclick="applyPagination(3);return false;" role="button" aria-expanded="false" aria-controls="collapseExample">3</a>	
+            </li>	
+            <li class="page-item" id="next">	
+              <a class="page-link" tabindex="-1" href="#" onclick="incrementPage(1);return false;" role="button" aria-expanded="false" aria-controls="collapseExample">Next</a>	
+            </li>	
+          </ul>	
+        </nav>	
+      </div>	
+      <div class="modal-body" id="modal"></div>	
+      <div class="modal-footer">	
+        <button class="btn btn-primary" id="close-instructions-btn" data-dismiss="modal" type="button" style="display:none">Close</button>
+      </div>	
+    </div>	
+  </div>	
+</div>
+
+	<!-- Content -->	
+  <section	
+  class="container"	
+  id="Other"	
+  style="	
+    padding: 10px;	
+    font-family: Verdana, Geneva, sans-serif;	
+    font-size: 0.9em;	
+  "	
+>	
+  <div class="row col-xs-12 col-md-12">	
+    <!-- Instructions -->	
+    <div class="panel panel-primary">	
+      <div class="panel-heading">	
+        <button class="btn btn-primary" type="button" onclick="showHideInstructions()" aria-expanded="false" aria-controls="instructionsWrapper">	
+          Click here to view/hide instructions	
+        </button>	
+      </div>	
+      <div class="collapse" id=instructionsWrapper>	
+        <div id="instructions">	
+          <div class="collapse in" id="instructions-page-1">	
+            <h1><strong>Interact with an assistant and mark bugs on failure</strong></h1>    	
+            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_world_agent_labeled.png" class="previews"></iframe>	
+            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_2_labeled.png" class="previews"></iframe>	
+            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_3_labeled.png" class="previews"></iframe>	
+            <p>	
+              <h3>You are playing a game in a 3-D world with an assistant who can help you.</h3>	
+              <h4>
+                To the left of the interaction window is a list of commands to send to the agent. 
+                Next to each command is a description of what the assistant should do in response to that command. 
+                <b>After each command</b>, note in the survey below whether the assistant did what was expected.
+              </h4>	
+            </p>	
+          	
+            <p><b style="color: red;">	
+              IMPORTANT - Please note that you will only get paid if you:	
+              <ol>	
+                <li>Click "Start" in the bottom right to begin session.</li>	
+                <li>Send all of the commands listed.</li>	
+                <li>Click on "End" in the bottom right.</li>	
+                <li>Complete the entire survey</li>
+                <li>Click on "Submit" button at the bottom.</li>	
+              </ol>	
+            </b></p>
+          </div>	
+          <div class="collapse" id="instructions-page-2">	
+            <h3>Example Task Interface</h3>	
+            <img class=center src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/mturk_dashboard_new.png" width="60%"></iframe>	
+            <h3>How to move around the 3-D world</h3>	
+            <p>	
+              <ul>	
+                <li>Click on the upper right pane to enter the game.</li>	
+                <li>Press ‘w/a/s/d’ buttons to move forward/left/back/right and ‘space’ to jump.</li>	
+                <li>Press ‘esc’ to leave the world.</li>	
+              </ul>	
+            </p>	
+          </div>	
+          	
+          <div class="collapse" id="instructions-page-3">	
+            <h3>Interacting with the assistant</h3>	
+            <p>	
+              Please use the <b>chat window on the left side of the screen</b> to send commands the assistant.
+              <img class=center src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/dashboard_chat_window_highlight.png" width="60%"></iframe>	
+            </p>	
+            <p>	
+              <ul>	
+                <li><b>Press 'Enter' to send the command to the assistant.</b></li>	
+                <li>You should then see the assistant execute the command in the 3-D world.</li>	
+                <li>The assistant might also send you replies in the chat window.</li>	
+              </ul>	
+              <b style="color: red;">
+                If you see "Agent is not connected" at the top of the chat window,
+                take a screenshot, exit the HIT, and please send us an email.
+              </b>	
+            </p>	
+          </div>	
+        </div>	
+      </div>	
+    </div>	
+    <!-- End Instructions -->
+  </div>
+</section>
+
+<section	
+  class="container-fluid"	
+  id="Other"	
+  style="	
+    margin-bottom: 15px;	
+    padding: 10px;	
+    font-family: Verdana, Geneva, sans-serif;	
+    font-size: 0.9em;"	
+>
+  <div class="row">
+    <!-- Commands Reminder -->
+    <div class="col-xs-2">
+      <div class="panel panel-primary" style="height:1000px;">
+        <div class="panel-heading">
+          <h4>Commands to Send</h4>
+        </div>
+        <p>
+          <ul id="commandPanel">
+          </ul>
+        </p>
+      </div>
+    </div>
+    <!-- End Commands Reminder -->
+    <div class="col-xs-10">
+      <iframe style="width:100%; height:1000px;" src="https://${subdomain}.craftassist.io/turk.html?job_type=oncall&turk_experiment_id=${batch}&mephisto_agent_id=${mephisto_agent_id}&turk_worker_id=${provider_worker_id}"></iframe>
+    </div>
+  </div>
+</section>
+
+<section class="container" style="margin-bottom: 20px">
+  <fieldset>
+    <div class="input-group center" id="survey">
+      <h4>Please rate the clarity and usability of this HIT</h4>
+      <select class="form-control" name="usability-rating" onchange="usabilityRated()">
+        <option selected="selected" value="">(select one)</option>
+        <option value="7">7 - Perfect</option>
+        <option value="6">6 - Very Good</option>
+        <option value="5">5 - Decent</option>
+        <option value="4">4 - OK</option>
+        <option value="3">3 - Poor</option>
+        <option value="2">2 - Very Poor</option>
+        <option value="1">1 - Unusable</option>
+      </select>
+      <br><br><br>
+      <h4>Please provide feedback on how we can improve the usability of this HIT</h4>
+      <input type="text" class="form-control" id="feedback" name="feedback">
+      <br><br><br>
+      <input type="hidden" id="clickedElements" name="clickedElements" value="0">
+      <input type="hidden" id="userAgent" name="userAgent" value="0">
+      <input type="hidden" id="listID" name="listID" value="${list_id}">
+      <input type="hidden" id="commandList" name="commandList" value="${command_list}">
+      <input type="hidden" id="answerList" name="answerList" value="${answer_list}">
+    </div>
+  </fieldset>
+</section>
+
+<script>
+  $(function () {
+    modal_body = $("#modal");
+    $("#instructions").clone().appendTo(modal_body);
+    $(".modal").modal("show");
+  });
+
+  // Disable enter to submit, must push button after quals have been met
+  $(document).on("keypress", 'form', function (e) {
+    var code = e.keyCode || e.which;
+    if (code == 13) {
+      e.preventDefault();
+      return false;
+    }
+  });
+</script>
+<script src="utils.js"></script>	
+<script src="browserInfo.js"></script>	
+<link rel="stylesheet" href="oncall_task.css">

@@ -7,6 +7,7 @@
 
 from typing import Callable
 import time
+from threading import Thread
 import numpy as np
 import hydra
 from omegaconf.dictconfig import DictConfig
@@ -15,6 +16,8 @@ import grpc
 import polymetis_pb2
 import polymetis_pb2_grpc
 
+from polymetis import RobotInterface
+from polymetis.utils import Spinner
 from polymetis.robot_client.abstract_robot_client import (
     AbstractRobotClient,
 )
@@ -24,37 +27,6 @@ from polysim.envs import AbstractControlledEnv
 import logging
 
 log = logging.getLogger(__name__)
-
-
-class Spinner:
-    """Sleeps the right amount of time to roughly maintain a specific frequency.
-
-    Args:
-        hz: frequency (times called / second)
-
-    """
-
-    def __init__(self, hz: float = 0.0):
-        self.dt = 1.0 / hz if hz > 0.0 else 0.0
-
-        # Initialize
-        self.t_spin_target = time.time() + self.dt
-
-    def spin(self):
-        """Called each time in a loop to sleep a duration which maintains a specific frequency."""
-        # No spinning if no time interval is specified
-        if self.dt <= 0.0:
-            return
-
-        # Spin: sleep until time
-        t_sleep = self.t_spin_target - time.time()
-        if t_sleep > 0:
-            time.sleep(t_sleep)
-        else:
-            # TODO: log warning without stuttering loop
-            # log.info("Warning: Computation time exceeded designated loop time.")
-            self.t_spin_target += -t_sleep  # prevent accumulating errors
-        self.t_spin_target += self.dt
 
 
 class GrpcSimulationClient(AbstractRobotClient):
@@ -87,6 +59,7 @@ class GrpcSimulationClient(AbstractRobotClient):
         port: int = 50051,
         log_interval: int = 0,
         max_ping: float = 0.0,
+        mirror_hz: float = 24.0,
     ):
         super().__init__(metadata_cfg=metadata_cfg)
 
@@ -123,11 +96,32 @@ class GrpcSimulationClient(AbstractRobotClient):
         self.interval_log = []
         self.round_trip_time_buffer = 0.0
 
+        self._state_setter = None
+        self._kill_state_setter = False
+
+        self._runner = None
+        self._kill_runner = False
+
+        self.mirror_hz = mirror_hz
+
     def __del__(self):
         """Close connection in destructor"""
         self.channel.close()
+        if self._state_setter:
+            self.unsync()
 
-    def run(self, time_horizon=float("inf")):
+    def run_no_wait(self, time_horizon=float("inf")):
+        assert self._runner is None, "Simulator already running in background thread!"
+        self._runner = Thread(target=self.run, args=[time_horizon, True], daemon=True)
+        self._runner.start()
+
+    def kill_run(self):
+        assert self._runner is not None, "No background simulator to kill!"
+        self._kill_runner = True
+        self._runner.join()
+        self._runner = None
+
+    def run(self, time_horizon=float("inf"), threaded=False):
         """Start running the simulation and querying the server.
 
         Args:
@@ -141,6 +135,10 @@ class GrpcSimulationClient(AbstractRobotClient):
         t = 0
         spinner = Spinner(self.hz)
         while t < time_horizon:
+            if threaded:
+                # print(f"Threaded run {t}")
+                if self._kill_runner:
+                    break
             # Get robot state from env
             joint_pos, joint_vel = self.env.get_current_joint_pos_vel()
             robot_state.joint_positions[:] = joint_pos
@@ -213,3 +211,33 @@ class GrpcSimulationClient(AbstractRobotClient):
                 self.interval_log = []
 
         return ret
+
+    def init_robot_client(self):
+        self.connection.InitRobotClient(self.metadata.get_proto())
+
+    def set_robot_state(self, robot_state: polymetis_pb2.RobotState):
+        self.env.set_robot_state(robot_state)
+
+    def _sync_blocking(self, tgt_robot: RobotInterface, timesteps: int):
+        step = 0
+        spinner = Spinner(self.mirror_hz)
+        while (timesteps < 0 or step < timesteps) and not self._kill_state_setter:
+            tgt_state = tgt_robot.get_robot_state()
+            self.set_robot_state(tgt_state)
+            step += 1
+            spinner.spin()
+
+    def sync(self, tgt_robot: RobotInterface, timesteps: int = -1):
+        assert (
+            self._state_setter is None
+        ), "The simulation client is already synced to a robot"
+        self._state_setter = Thread(
+            target=self._sync_blocking, args=[tgt_robot, timesteps], daemon=True
+        )
+        self._state_setter.start()
+
+    def unsync(self):
+        assert self._state_setter is not None, "The mirror simulator is not synced"
+        self._kill_state_setter = True
+        self._state_setter.join()
+        self._state_setter = None

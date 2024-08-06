@@ -15,7 +15,7 @@ class TestStore {
     humans: new Map(),
     commandState: "thinking",
     commandPollTime: 400,
-    last_reply: "I finished digging this.",
+    agent_replies: [{ msg: "Press the start button to begin!", timestamp: Date.now() }],
     lastChatActionDict: {
       dialogue_type: "HUMAN_GIVE_COMMAND",
       action_sequence: [

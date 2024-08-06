@@ -16,7 +16,15 @@
 [submodule "polymetis/polymetis/src/clients/franka_panda_client/third_party/libfranka"]
 	path = polymetis/polymetis/src/clients/franka_panda_client/third_party/libfranka
 	url = https://github.com/frankaemika/libfranka.git
-
 [submodule "polymetis/polymetis/tests/cpp/fake_clock"]
 	path = polymetis/polymetis/tests/cpp/fake_clock
 	url = https://github.com/korfuri/fake_clock
+[submodule "polymetis/polymetis/python/polymetis/robot_drivers/psyonic_gripper/ability-hand-api"]
+	path = polymetis/polymetis/python/polymetis/robot_drivers/psyonic_gripper/ability-hand-api
+	url = git@github.com:1heart/ability-hand-api.git
+[submodule "perception/sandbox/polygrasp/third_party/UnseenObjectClustering"]
+	path = perception/sandbox/polygrasp/third_party/UnseenObjectClustering
+	url = git@github.com:1heart/UnseenObjectClustering.git
+[submodule "perception/sandbox/polygrasp/third_party/graspnet-baseline"]
+	path = perception/sandbox/polygrasp/third_party/graspnet-baseline
+	url = git@github.com:1heart/graspnet-baseline.git

@@ -49,6 +49,7 @@ from droidlet.memory.memory_nodes import (  # noqa
     AttentionNode,
     NODELIST,
 )
+from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from droidlet.interpreter.craftassist.tasks import *
 
 import time
@@ -125,11 +126,11 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
             "_db_read_one": self.memory._db_read_one,
             "_db_write": self.memory._db_write,
             "db_write": self.memory.db_write,
-            "tag": self.memory.tag,
-            "untag": self.memory.untag,
+            "tag": self.memory.nodes["Triple"].tag,
+            "untag": self.memory.nodes["Triple"].untag,
             "forget": self.memory.forget,
-            "add_triple": self.memory.add_triple,
-            "get_triples": self.memory.get_triples,
+            "add_triple": self.memory.nodes["Triple"].create,
+            "get_triples": self.memory.nodes["Triple"].get_triples,
             "check_memid_exists": self.memory.check_memid_exists,
             "get_mem_by_id": self.memory.get_mem_by_id,
             "basic_search": self.memory.basic_search,
@@ -139,13 +140,14 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
             "get_block_object_by_id": self.memory.get_block_object_by_id,
             "get_object_by_id": self.memory.get_object_by_id,
             "get_instseg_object_ids_by_xyz": self.memory.get_instseg_object_ids_by_xyz,
-            "upsert_block": self.memory.upsert_block,
-            "_update_voxel_count": self.memory._update_voxel_count,
-            "_update_voxel_mean": self.memory._update_voxel_mean,
-            "remove_voxel": self.memory.remove_voxel,
+            # VoxelObjectNode is not a part of memory.nodes
+            "upsert_block": VoxelObjectNode.upsert_block,
+            "_update_voxel_count": VoxelObjectNode._update_voxel_count,
+            "_update_voxel_mean": VoxelObjectNode._update_voxel_mean,
+            "remove_voxel": VoxelObjectNode.remove_voxel,
             "set_memory_updated_time": self.memory.set_memory_updated_time,
             "set_memory_attended_time": self.memory.set_memory_attended_time,
-            "add_chat": self.memory.add_chat,
+            "add_chat": self.memory.nodes["Chat"].create,
         }
 
     def if_swarm_task(self, mem):

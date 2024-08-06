@@ -10,7 +10,7 @@ This release is motivated by a long-term research agenda described [here](https:
 
 The recommended way to install CraftAssist is by building a [Docker](https://docker.com) container. This approach enables you to run the setup on any machine and dependencies are taken care of. Alternatively, you can install it on your local machine by setting up the environment and installing all required packages manually as explained [here](#option-b-local-installation)
 
-## Option A: Docker Installation
+## Option A: Docker Installation (Recommended)
 
 ### Prerequisite
 
@@ -40,7 +40,14 @@ If you aren't already in the container shell (because you didn't do the step abo
 docker start droidlet_container
 ```
 
-to start the docker container. You have now successfully started the docker container, once you've done this you can directly go to [run cuberite instance](#run-the-cuberite-instance) and [starting your agent](#running-the-interactive-v0-agent) steps from here.
+to start the docker container. You have now successfully started the docker container, once you've done this you can directly go to [start the environment](#start-the-environment) and [starting the agent process](#start-the-agent-process) steps from here.
+
+For the remaining sections of this tutorial, if you need to run commands in a new shell window of this built container, simply run:
+```
+docker exec -it droidlet_container bash
+```
+to start a new shell window.
+
 After you are done playing with the bot, run:
 ```
 docker stop droidlet_container
@@ -70,33 +77,43 @@ cd droidlet/lowlevel/minecraft
 make
 ```
 
-## Run the Cuberite instance
+## Start the environment
 
-#### For Docker user
+Currently we support two types of environment (backend): the first one is cuberite and the second one is pyworld. We recommend you to use pyworld backend.
 
-Run
+To start the environment:
+
+### Option A: Pyworld (Recommended)
+
+Run the following command:
 
 ```
-docker exec -it droidlet_container bash
+python droidlet/lowlevel/minecraft/pyworld/run_world.py
 ```
+to start a pyworld backend listening on `localhost:6002`
 
-to open a shell in the docker container, and then run:
+### Option B: Cuberite
+
+Run the following command:
+
 ```
-python setup.py develop
 python droidlet/lowlevel/minecraft/cuberite_process.py --config flat_world
 ```
-to start an instance of cuberite instance listening on `localhost:25565`
+to start a cuberite instance listening on `localhost:25565`
 
-#### For local user
+## Start the agent process
 
-Simply run the following command:
+Once you have the environment up and running, simply run the following command to start the agent process:
+
 ```
-python droidlet/lowlevel/minecraft/cuberite_process.py --config flat_world
+python agents/craftassist/craftassist_agent.py --backend pyworld --port 6002
 ```
-to start an instance of cuberite instance listening on `localhost:25565`
 
+Then you will be able to open a web dashboard on `localhost:8000` where you can inspect the agent internal state and interact with our agent.
 
-## Connecting your Minecraft game client (so you can see what's happening)
+## Connecting your Minecraft game client
+
+Optionally you can interact with our agent in the real Minecraft game (Keep in mind that you can always interact with our agent via the web dashboard `localhost:8000` without having to buy a minecraft client)
 
 Buy and download the [official Minecraft client](https://my.minecraft.net/en-us/store/minecraft/).
 You can inspect the world and view the Minecraft agent's actions by logging into the
@@ -111,34 +128,6 @@ Multiplayer > Direct Connect > localhost:25565
 
 Our Cuberite system supports at most v1.12 version of Minecraft client.
 [Please follow these instructions](https://help.minecraft.net/hc/en-us/articles/360034754852-Changing-game-versions-) to add a 1.12.x profile and use it to connect.
-
-## Running the interactive V0 agent
-
-Assuming you have set up the [Cuberite server](#run-the-cuberite-instance)
-and the [client](#connecting-your-minecraft-game-client-so-you-can-see-whats-happening)
-
-#### For Docker user
-
-Run:
-```
-docker exec -it droidlet_container bash
-```
-
-to open a shell in the docker container, and then run:
-```
-python agents/craftassist/craftassist_agent.py
-```
-
-#### For local user
-
-Run:
-```
-python craftassist_agent.py
-```
-
-You should see a new bot player join the game.
-Chat with the bot by pressing `t` to open the dialogue box, and `Enter` to submit.
-Use the `w`, `a`, `s`, and `d` keys to navigate, left and right mouse clicks to destroy and place blocks, and `e` to open your inventory and select blocks to place.
 
 ## Running tests
 

@@ -1,0 +1,67 @@
+ {
+    "header": "RoBoPen",
+    "created": "Wednesday, August 17th 2022, 4:24:56 pm",
+    "layout": {
+        "direction": "row",
+        "first": "3d765524-646a-4bc8-900d-dbcfa4d630e6",
+        "second": "17a17584-46a5-4bbf-aeb6-22663196c418"
+    },
+    "panels": {
+        "3d87706d-848d-4ff6-b02f-b045f0a1c231": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "robot/desired_joint_state/sinusoidal",
+            "channel": "",
+            "subChannel": "position",
+            "layers": []
+        },
+        "930d6d4a-7272-4597-b592-5c6637c2c163": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "robot/joint_state",
+            "channel": "",
+            "subChannel": "position/4",
+            "layers": []
+        },
+        "47c53ffd-cdf7-4062-af48-5a809be1ce37": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "robot/desired_joint_state/sinusoidal",
+            "channel": "",
+            "subChannel": "position/4",
+            "layers": []
+        },
+        "f263b16a-b8bd-453e-8263-dd34a65770a4": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "robot/desired_joint_state/sinusoidal",
+            "channel": "",
+            "subChannel": "position/4",
+            "layers": []
+        },
+        "bf2211e8-c49c-4ec2-83b2-513c947969f4": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "robot/joint_state",
+            "channel": "",
+            "subChannel": "position/4",
+            "layers": []
+        },
+        "3d765524-646a-4bc8-900d-dbcfa4d630e6": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "robot/desired_joint_state/sinusoidal_json",
+            "channel": "",
+            "subChannel": "position",
+            "layers": []
+        },
+        "17a17584-46a5-4bbf-aeb6-22663196c418": {
+            "fullScreen": false,
+            "wsInput": "localhost:24880",
+            "topic": "realsense_148122070878/color/image_compressed",
+            "channel": "",
+            "subChannel": "",
+            "layers": []
+        }
+    }
+}

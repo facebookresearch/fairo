@@ -114,7 +114,6 @@ class GetMemory(ActionNode):
         for j, templ in enumerate(self.template):
             result = []
             for i, key in enumerate(templ):
-
                 # get the text from template object
                 item = key.generate_description(arg_index=0, index=i, templ_index=j)
 
@@ -221,7 +220,6 @@ class PutMemory(ActionNode):
         for j, templ in enumerate(self.template):
             result = []
             for i, key in enumerate(templ):
-
                 # get the text from template object
                 item = key.generate_description(arg_index=0, index=i, templ_index=j)
 

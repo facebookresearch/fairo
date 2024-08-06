@@ -35,35 +35,38 @@ if __name__ == "__main__":
     print("=== RobotInterface.move_to_joint_positions ===")
     delta_joint_pos_desired = torch.Tensor([0.0, 0.0, 0.0, 0.5, 0.0, -0.5, 0.0])
     joint_pos_desired = joint_pos + delta_joint_pos_desired
+    time_to_go = 3.0
 
-    state_log = robot.move_to_joint_positions(joint_pos_desired)
+    state_log = robot.move_to_joint_positions(joint_pos_desired, time_to_go=time_to_go)
     time.sleep(0.5)
 
     joint_pos = test_new_joint_pos(robot, joint_pos_desired)
-    check_episode_log(
-        state_log, int(robot.time_to_go_default * hz), check_timestamps=True
-    )
+    check_episode_log(state_log, int(time_to_go * hz), check_timestamps=True)
 
     # Move by delta joint positions
     print("=== RobotInterface.move_to_joint_positions (delta) ===")
     delta_joint_pos_desired = torch.Tensor([0.0, 0.0, 0.0, 0.0, 0.5, 0.0, -0.5])
     joint_pos_desired = joint_pos + delta_joint_pos_desired
+    time_to_go = 3.0
 
-    state_log = robot.move_to_joint_positions(delta_joint_pos_desired, delta=True)
+    state_log = robot.move_to_joint_positions(
+        delta_joint_pos_desired, time_to_go=time_to_go, delta=True
+    )
     time.sleep(0.5)
 
     joint_pos = test_new_joint_pos(robot, joint_pos_desired)
-    check_episode_log(state_log, int(robot.time_to_go_default * hz))
+    check_episode_log(state_log, int(time_to_go * hz))
 
     # Go home
     print("=== RobotInterface.go_home ===")
     joint_pos_desired = torch.Tensor(robot.home_pose)
+    time_to_go = 3.0
 
-    state_log = robot.go_home()
+    state_log = robot.go_home(time_to_go=time_to_go)
     time.sleep(0.5)
 
     joint_pos = test_new_joint_pos(robot, joint_pos_desired)
-    check_episode_log(state_log, int(robot.time_to_go_default * hz))
+    check_episode_log(state_log, int(time_to_go * hz))
 
     # Joint impedance control
     print("=== RobotInterface.start_joint_impedance ===")

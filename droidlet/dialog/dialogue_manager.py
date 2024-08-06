@@ -6,6 +6,7 @@ import random
 from typing import Tuple
 
 from droidlet.dialog.dialogue_task import Say
+from droidlet.memory.memory_nodes import ChatNode, PlayerNode, TripleNode
 from .load_datasets import get_greetings, get_safety_words
 
 
@@ -48,18 +49,18 @@ class DialogueManager(object):
 
     def get_last_m_chats(self, m=1):
         # fetch last m chats from memory
-        all_chats = self.memory.get_recent_chats(n=m)
+        all_chats = self.memory.nodes[ChatNode.NODE_TYPE].get_recent_chats(self.memory, n=m)
         chat_list_text = []
         for chat in all_chats:
-            speaker = self.memory.get_player_by_id(chat.speaker_id).name
+            speaker = self.memory.nodes[PlayerNode.NODE_TYPE](self.memory, chat.speaker_id).name
             chat_memid = chat.memid
             # get logical form if any else None
             logical_form_memid, chat_status = None, ""
-            logical_form_triples = self.memory.get_triples(
-                subj=chat_memid, pred_text="has_logical_form"
+            logical_form_triples = self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                self.memory, subj=chat_memid, pred_text="has_logical_form"
             )
-            processed_status = self.memory.get_triples(
-                subj=chat_memid, pred_text="has_tag", obj_text="uninterpreted"
+            processed_status = self.memory.nodes[TripleNode.NODE_TYPE].get_triples(
+                self.memory, subj=chat_memid, pred_text="has_tag", obj_text="uninterpreted"
             )
             if logical_form_triples:
                 logical_form_memid = logical_form_triples[0][2]
@@ -113,7 +114,7 @@ class DialogueManager(object):
         if not chat_status:
             return None
         # Mark chat as processed
-        self.memory.untag(chat_memid, "uninterpreted")
+        self.memory.nodes[TripleNode.NODE_TYPE].untag(self.memory, chat_memid, "uninterpreted")
 
         # FIXME handle this in gt (all of this will be folded into manager
         # 1. Check against safety phrase list

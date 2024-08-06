@@ -25,8 +25,8 @@ requirements:
     - pinocchio ==2.5.2
     - poco ==1.9.0 # needed by libfranka
     - python ==3.8
-    - pytorch ==1.10.0
-    - spdlog
+    - pytorch ==1.13.1
+    - spdlog=1.10.0=h924138e_0
     - urdfdom=2.3.3=hc9558a2_0
     - urdfdom_headers=1.0.5=hc9558a2_2
     - yaml-cpp ==0.6.3
@@ -41,11 +41,13 @@ requirements:
     - dash
     - doxygen
     - grpc-cpp ==1.41.1
-    - grpcio
+    - grpcio ==1.46.0
     - habitat-sim=0.2.1=py3.8_bullet_linux_fc7fb11ccec407753a73ab810d1dbb5f57d0f9b9
-    - hydra-core==1.0.6
+    - mujoco
+    - hydra-core ==1.0.6
+    - importlib-resources ==5.7.1
     - myst-parser
-    - numpy
+    - numpy ==1.23.5
     - openmpi ==2.1.2
     - pandas
     - pinocchio ==2.5.2
@@ -57,11 +59,11 @@ requirements:
     - pymodbus
     - pyserial
     - pytest
-    - pytest-benchmark
+    - pytest-benchmark=4.0.0
     - python ==3.8
-    - pytorch ==1.10.0
+    - pytorch ==1.13.1
     - scipy
-    - spdlog
+    - spdlog=1.10.0=h924138e_0
     - sphinx
     - sphinx-book-theme
     - tqdm

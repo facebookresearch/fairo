@@ -6,7 +6,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Optional
 
 import torch
 
@@ -178,6 +178,7 @@ def generate_cartesian_target_joint_min_jerk(
     time_to_go: float,
     hz: float,
     robot_model: torch.nn.Module,
+    home_pose: Optional[torch.Tensor] = None,
 ) -> List[Dict]:
     """
     Cartesian space minimum jerk trajectory planner, but outputs plan in joint space.
@@ -189,6 +190,7 @@ def generate_cartesian_target_joint_min_jerk(
         time_to_go: Trajectory duration in seconds
         hz: Frequency of output trajectory
         robot_model: A valid robot model module from torchcontrol.models
+        home_pose: Default pose of robot to stabilize around in null (elbow) space
 
     Returns:
         q_traj: Joint position trajectory
@@ -197,6 +199,7 @@ def generate_cartesian_target_joint_min_jerk(
     """
     steps = _compute_num_steps(time_to_go, hz)
     dt = 1.0 / hz
+    home_pose = torch.zeros_like(joint_pos_start) if home_pose is None else home_pose
 
     # Compute start pose
     ee_pos_start, ee_quat_start = robot_model.forward_kinematics(joint_pos_start)
@@ -232,7 +235,7 @@ def generate_cartesian_target_joint_min_jerk(
 
         # Null space correction
         null_space_proj = torch.eye(joint_pos_start.shape[0]) - jacobian_pinv @ jacobian
-        q_null_err = -null_space_proj @ q_traj[i + 1, :]
+        q_null_err = null_space_proj @ (home_pose - q_traj[i + 1, :])
         q_null_err_norm = q_null_err.norm() + 1e-27  # prevent zero division
         q_null_err_clamped = (
             q_null_err / q_null_err_norm * min(q_null_err_norm, q_delta.norm())

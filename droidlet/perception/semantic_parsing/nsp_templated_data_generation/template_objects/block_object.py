@@ -11,6 +11,7 @@ from .location import *
 ### BLOCKOBJECT TEMPLATES ###
 #############################
 
+
 # TODO: refactor this function.
 def define_block_object_type(
     template_obj,

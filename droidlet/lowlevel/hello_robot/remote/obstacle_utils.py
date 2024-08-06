@@ -67,35 +67,41 @@ def is_obstacle(
     fastmath=False,
     return_viz=False,
 ):
+    print("[is_obstacle] starting obstacle check")
     # print("num points", np.asarray(pcd.points).shape)
     rest = None
     crop, bbox = get_points_in_front(pcd, base_pos, min_dist, max_dist, robot_width, height)
     # print("num cropped", np.asarray(crop.points).shape)
     num_cropped_points = np.asarray(crop.points).shape[0]
     obstacle = False
+    print("[is_obstacle] checking if vision obstacle")
     if num_cropped_points < pix_threshold:
         warnings.warn(
             "[is_obstacle] for obstacle check, not able to see directly in front of robot, tilt the camera further down"
         )
-    if fastmath:
-        # TODO: make this based on not detecting ground plane, but directly cropping bounding box in front, at a certain height
-        raise RuntimeError("Not Implemented")
+    # if fastmath:
+    #     # TODO: make this based on not detecting ground plane, but directly cropping bounding box in front, at a certain height
+    #     raise RuntimeError("Not Implemented")
     elif num_cropped_points >= pix_threshold:
         rest = get_ground_plane(crop, return_ground=False)
         if np.asarray(rest.points).shape[0] > 100:
+            print("[is_obstacle] vision obstacle detected")
             obstacle = True
 
     if lidar_scan is not None:
+        print("[is_obstacle] checking if lidar obstacle")
         if is_lidar_obstacle(lidar_scan):
+            print("[is_obstacle] lidar obstacle detected")
             obstacle = True
 
+    print("[is_obstacle] finished obstacle check")
     if return_viz:
         return obstacle, pcd, crop, bbox, rest
     else:
         return obstacle
 
 
-def is_lidar_obstacle(lidar_scan, bbox=(0.0, 0.5, -0.25, 0.25), min_quality=0):
+def is_lidar_obstacle(lidar_scan, bbox=(0.0, 0.30, -0.20, 0.20), min_quality=0):
     # bbox specifies coordinates of rectangle (xmin, xmax, ymin, ymax) centered
     # at lidar. Any points within this box are considered an obstacle.
     # Note that positive x is the front of the robot.
@@ -120,7 +126,12 @@ def is_lidar_obstacle(lidar_scan, bbox=(0.0, 0.5, -0.25, 0.25), min_quality=0):
     ys = np.sin(rads) * dist
 
     in_bounds = (xs >= xmin) & (xs <= xmax) & (ys >= ymin) & (ys <= ymax)
-    return in_bounds.any()
+    lidar_obstacle_detected = in_bounds.any()
+    if lidar_obstacle_detected:
+        print("[is_lidar_obstacle] xs in bounds:", xs[in_bounds])
+        print("[is_lidar_obstacle] ys in bounds:", ys[in_bounds])
+
+    return lidar_obstacle_detected
 
 
 def get_o3d_pointcloud(points, colors):

@@ -7,6 +7,7 @@ import math
 import copy
 import time
 import logging
+import random
 from collections.abc import Iterable
 from prettytable import PrettyTable
 import Pyro4
@@ -39,6 +40,8 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 from droidlet.lowlevel.pyro_utils import safe_call
 from .data_compression import *
 
+random.seed(0)
+np.random.seed(0)
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 2
@@ -217,7 +220,9 @@ class HelloRobotMover(MoverInterface):
         """reset the camera to 0 pan and tilt."""
         return self.bot.reset()
 
-    def move_relative(self, xyt_positions, blocking=True):
+    def move_relative(
+        self, xyt_positions, blocking=True, distance_threshold=None, angle_threshold=None
+    ):
         """Command to execute a relative move.
 
         Args:
@@ -229,11 +234,15 @@ class HelloRobotMover(MoverInterface):
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
             self.nav_result.wait()
-            self.nav_result = safe_call(self.nav.go_to_relative, xyt)
+            self.nav_result = safe_call(
+                self.nav.go_to_relative, xyt, 10000000000, distance_threshold, angle_threshold
+            )
             if blocking:
                 self.nav_result.wait()
 
-    def move_absolute(self, xzt_positions, blocking=True):
+    def move_absolute(
+        self, xzt_positions, blocking=True, distance_threshold=None, angle_threshold=None
+    ):
         """Command to execute a move to an absolute position.
 
         It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
@@ -250,10 +259,32 @@ class HelloRobotMover(MoverInterface):
             logging.info("Move absolute in canonical coordinates {}".format(xzt))
             self.nav_result.wait()
             robot_coords = base_canonical_coords_to_pyrobot_coords(xzt)
-            self.nav_result = self.nav.go_to_absolute(robot_coords)
+            self.nav_result = self.nav.go_to_absolute(
+                goal=robot_coords,
+                distance_threshold=distance_threshold,
+                angle_threshold=angle_threshold,
+            )
             if blocking:
                 self.nav_result.wait()
         return "finished"
+
+    def move_to_object(
+        self, object_goal: str, episode_id: str, exploration_method: str, blocking=True
+    ):
+        """Command to execute a move to an object category.
+
+        Args:
+            object_goal: supported COCO object category
+            exploration_method: learned or frontier
+        """
+        if self.nav_result.ready:
+            self.nav_result.wait()
+            self.nav_result = self.nav.go_to_object(object_goal, episode_id, exploration_method)
+            if blocking:
+                self.nav_result.wait()
+        else:
+            print("navigator executing another call right now")
+        return self.nav_result
 
     def get_base_pos_in_canonical_coords(self):
         """get the current robot position in the canonical coordinate system
@@ -276,6 +307,9 @@ class HelloRobotMover(MoverInterface):
     def get_current_pcd(self, in_cam=False, in_global=False):
         """Gets the current point cloud"""
         return self.cam.get_current_pcd()
+
+    def get_rgb_depth_optimized_for_habitat_transfer(self):
+        return self.cam.get_rgb_depth_optimized_for_habitat_transfer()
 
     def get_rgb_depth(self):
         """Fetches rgb, depth and pointcloud in pyrobot world coordinates.

@@ -9,7 +9,7 @@ import logging
 
 from mephisto.operations.operator import Operator
 from mephisto.abstractions.blueprints.static_html_task.static_html_blueprint import (
-    BLUEPRINT_TYPE,
+    BLUEPRINT_TYPE_STATIC_HTML,
 )
 from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint import (
     SharedStaticTaskState,
@@ -18,7 +18,8 @@ from mephisto.abstractions.blueprints.abstract.static_task.static_blueprint impo
 from mephisto.tools.scripts import load_db_and_process_config
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser as MephistoDataBrowser
-from mephisto.data_model.qualification import QUAL_NOT_EXIST, make_qualification_dict
+from mephisto.utils.qualifications import make_qualification_dict
+from mephisto.data_model.qualification import QUAL_NOT_EXIST
 
 import hydra
 from omegaconf import DictConfig
@@ -32,7 +33,7 @@ TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 defaults = [
     "_self_",
-    {"mephisto/blueprint": BLUEPRINT_TYPE},
+    {"mephisto/blueprint": BLUEPRINT_TYPE_STATIC_HTML},
     {"mephisto/architect": "ec2"},
     {"mephisto/provider": "mock"},
     {"conf": "pilot"},
@@ -126,6 +127,7 @@ def main(cfg: DictConfig) -> None:
     ]
 
     operator.validate_and_run_config(cfg.mephisto, shared_state)
+    # operator.validate_and_run_config(cfg.mephisto)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 

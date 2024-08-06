@@ -33,12 +33,7 @@ def realsense_images(max_pixel_diff=200):
     num_cameras = rs.get_num_cameras()
     assert num_cameras > 0, "no camera found"
 
-    raw_intrinsics = rs.get_intrinsics()
-    intrinsics = []
-    for intrinsics_param in raw_intrinsics:
-        intrinsics.append(
-            dict([(p, getattr(intrinsics_param, p)) for p in dir(intrinsics_param) if not p.startswith('__')])
-        )
+    intrinsics = rs.get_intrinsics_dict()
 
 
     for i in range(30*5):
@@ -107,7 +102,7 @@ def extract_obs_data_std(data, camera_index):
                 quat2rotvec(d['ori'].double())
             ))
 
-    ic = data[0]['intrinsics'][camera_index]
+    ic = list(data[0]['intrinsics'].values())[camera_index]
     K=build_proj_matrix(
         fx=ic['fx'],
         fy=ic['fy'],
@@ -187,7 +182,8 @@ def main(argv):
 
     corner_data = detect_corners(data, target_idx=args.marker_id)
 
-    num_of_camera=len(corner_data[0]['intrinsics'])
+    intrinsics = corner_data[0]['intrinsics']
+    num_of_camera=len(intrinsics)
     CalibrationResult = namedtuple('CalibrationResult',
                                     field_names=['num_marker_seen', 'stage2_retry', 'pixel_error', 'param', 'proj_func'],
                                     defaults=[None]*5)
@@ -257,6 +253,10 @@ def main(argv):
         param_list = []
         for i, cal in enumerate(cal_results):
             result = cal._asdict().copy()
+            result.update({
+                "camera_serial_number": list(intrinsics.keys())[i],
+                "intrinsics":list(intrinsics.values())[i]
+            })
             del result['param'] #pytorch vector
             if cal.param is not None:
                 if cal.proj_func == "world_marker_proj_hand_camera":

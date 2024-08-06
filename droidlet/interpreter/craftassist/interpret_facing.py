@@ -1,6 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+import numpy as np
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.interpreter import interpret_relative_direction
 from droidlet.interpreter.facing_utils import number_from_span, interpret_relative_yaw
@@ -24,10 +25,15 @@ def number_from_span(span):
     return degrees
 
 
+# WARNING: everything here is in degrees.
+# TODO: change fixed values in DSL to be radians
 class FacingInterpreter:
     def __call__(self, interpreter, speaker, d):
         self_mem = interpreter.memory.get_mem_by_id(interpreter.memory.self_memid)
         current_yaw, current_pitch = self_mem.get_yaw_pitch()
+        # WARNING:
+        current_yaw = np.rad2deg(current_yaw)
+        current_pitch = np.rad2deg(current_pitch)
         if d.get("yaw_pitch"):
             span = d["yaw_pitch"]
             # for now assumed in (yaw, pitch) or yaw, pitch or yaw pitch formats

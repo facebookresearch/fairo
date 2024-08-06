@@ -1,0 +1,11 @@
+Model Information:
+* title:	The Terraformer
+* source:	https://sketchfab.com/3d-models/the-terraformer-dd8415c5fb134c94b7e8742a8042cf96
+* author:	asphyxxious (https://sketchfab.com/asphyxxious)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "The Terraformer" (https://sketchfab.com/3d-models/the-terraformer-dd8415c5fb134c94b7e8742a8042cf96) by asphyxxious (https://sketchfab.com/asphyxxious) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

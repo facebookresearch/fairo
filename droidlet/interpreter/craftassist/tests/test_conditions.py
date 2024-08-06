@@ -22,12 +22,12 @@ class MoveDirectionUntilTest(BaseCraftassistTestCase):
 
     def test_move_till_condition(self):
         cow_look = (0.0, 0.0)
-        x = -5
-        z = -5
+        x = 0
+        z = 0
         cow_move_sequence = [((x, 63, z), cow_look)]
-        # speaker_pos = [5, 63, 5]
+        # speaker_pos = [12, 63, 12]
         for i in range(20):
-            while x < 10:
+            while x < 20:
                 x += 1
                 cow_move_sequence.append(((x, 63, z), cow_look))
                 z += 1
@@ -47,12 +47,11 @@ class MoveDirectionUntilTest(BaseCraftassistTestCase):
         self.handle_logical_form(d, max_steps=1000)
 
         # check stopped when cow was close:
-        self.assertLessEqual(((5 - cow.pos[0]) ** 2 + (5 - cow.pos[2]) ** 2) ** 0.5, 2)
+        self.assertLessEqual(((12 - cow.pos[0]) ** 2 + (12 - cow.pos[2]) ** 2) ** 0.5, 2)
 
         # check agent went left:
-        player_left = rotation.transform(
-            rotation.DIRECTIONS["LEFT"], *self.agent.world.players[0].look, inverted=True
-        )
+        player_look = list(self.agent.world.players.values())[0].look
+        player_left = rotation.transform(rotation.DIRECTIONS["LEFT"], *player_look, inverted=True)
         agent_mv = self.agent.pos - np.array((0, 63, 0))
         agent_mv_n = agent_mv / np.linalg.norm(agent_mv)
         self.assertGreaterEqual(agent_mv_n @ player_left, 0.8)

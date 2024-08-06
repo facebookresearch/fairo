@@ -7,6 +7,17 @@ from droidlet.base_util import adjacent, get_bounds, manhat_dist
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import PASSABLE_BLOCKS
 from droidlet.shared_data_structs import PriorityQueue
 
+# mainHand is the item in the player or agent's hand, that will be placed by a place block action
+# it is defined in lowlevel/minecraft/client/src/types.h as Item, and has fields id, meta
+Player = namedtuple(
+    "Player", "entityId, name, pos, look, mainHand, cagent_struct", defaults=(None,) * 6
+)
+Slot = namedtuple("Slot", "id, meta, count, damage", defaults=(None,) * 4)
+Item = namedtuple("Item", "id, meta")
+ItemStack = namedtuple("ItemStack", "item, pos, entityId, typeName", defaults=(None,) * 4)
+Mob = namedtuple("Mob", "entityId, mobType, pos, look, cagent_struct", defaults=(None,) * 5)
+
+
 CraftAssistPerceptionData = namedtuple(
     "perception_data",
     [
@@ -19,8 +30,10 @@ CraftAssistPerceptionData = namedtuple(
         "in_perceive_area",
         "near_agent",
         "labeled_blocks",
+        "dashboard_edits",
+        "dashboard_groups",
     ],
-    defaults=[None, [], {}, None, [], {}, {}, {}, {}],
+    defaults=[None, [], {}, None, [], {}, {}, {}, {}, {}, {}],
 )
 
 MOBS_BY_ID = {
